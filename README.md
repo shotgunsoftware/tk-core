@@ -7,4 +7,4 @@ https://svn.shotgunsoftware.com/tank2/trunk
 
 However, the **Tank Core API Documentation** is maintained in Github, in Wiki form!
 
-Click here to go to the Tank Core API Wiki Documentation: https://github.com/shotgunsoftware/tank_core/wiki
+Click here to go to the Tank Core API Wiki Documentation: https://github.com/shotgunsoftware/tank-core/wiki
