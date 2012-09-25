@@ -1,0 +1,115 @@
+
+engines:
+    tk-maya:
+        location: {"type": "app_store", "name": "tk-maya", "version": "v0.1.0"}
+        debug_logging: false
+        template_project: "shot_work_area"
+
+        apps:
+            tk-maya-publish:
+                location: {"type": "app_store", "name": "tk-maya-publish", "version": "v0.1.0"}
+                template_work: "maya_shot_work"
+                template_snapshot: "maya_shot_snapshot"
+                template_publish: "maya_shot_publish"
+                validation_hooks: []
+                hook_publish_file: maya_publish_file
+                hook_scan_scene: maya_breakdown_scan_scene
+                input_templates_to_look_for: [maya_shot_publish, maya_asset_publish]
+                publish_tank_types:
+                    - { step: Anm, tank_types: ["Maya Anim"]}
+                    - { step: Light, tank_types: ["Lighting Scene"]}
+                    - { step: '*', tank_types: ["Maya Scene"]}
+
+            tk-maya-revolver:
+                location: {"type": "app_store", "name": "tk-maya-revolver", "version": "v0.1.0"}
+                rv_path_windows: "C:\\Program Files\\RV\\RV64.exe"
+                rv_path_linux: "rv"
+                rv_path_mac: /Applications/RV64.app
+
+            tk-maya-setframerange:
+                location: {"type": "app_store", "name": "tk-maya-setframerange", "version": "v0.1.0"}
+
+            tk-maya-breakdown:
+                location: {"type": "app_store", "name": "tk-maya-breakdown", "version": "v0.1.0"}
+                templates_to_look_for: ["maya_shot_publish", "maya_asset_publish"]
+                hook_scan_scene: maya_breakdown_scan_scene
+                hook_update: maya_breakdown_update
+
+    tk-nuke:
+        location: {"type": "app_store", "name": "tk-nuke", "version": "v0.1.0"}
+        debug_logging: false
+        template_context: shot_work_area
+
+        apps:
+            tk-nuke-setframerange:
+                location: {"type": "app_store", "name": "tk-nuke-setframerange", "version": "v0.1.0"}
+
+            tk-nuke-nukepub:
+                location: {"type": "app_store", "name": "tk-nuke-publish", "version": "v0.1.2"}
+
+                write_nodes:
+                    -   render_template: nuke_shot_render_stereo
+                        publish_template: nuke_shot_render_pub_stereo
+                        name: Stereo Exr, 32 bit
+                        file_type: exr
+                        tank_type: "Rendered Image"
+                        settings:
+                            datatype: "32 bit float"
+
+                    -   render_template: nuke_shot_render_stereo
+                        publish_template: nuke_shot_render_pub_stereo
+                        name: Stereo Exr, 16 bit
+                        file_type: exr
+                        tank_type: "Rendered Image"
+                        settings:
+                            datatype: "16 bit half"
+
+                    -   render_template: nuke_shot_render_mono_dpx
+                        publish_template: nuke_shot_render_pub_mono_dpx
+                        name: Mono Dpx
+                        file_type: dpx
+                        tank_type: "Rendered Image"
+                        settings: {}
+
+                movies:
+                    - { type: standard, template: shot_quicktime_full_res, tank_type: Quicktime}
+                    - { type: half_res, template: shot_quicktime_half_res, tank_type: Quicktime}
+
+                template_version_name: nuke_version_name
+                template_work: nuke_shot_work
+                template_snapshot: nuke_shot_snapshot
+                template_publish: nuke_shot_publish
+                input_templates_to_look_for:
+                    - nuke_asset_render
+                    - nuke_shot_render_pub_stereo
+                    - nuke_shot_render_pub_mono_dpx
+                hook_publish_file: nuke_publish_file
+                hook_generate_movie: nuke_generate_movie
+                published_script_tank_type: "Nuke Script"
+
+            tk-nuke-revolver:
+                location: {"type": "app_store", "name": "tk-nuke-revolver", "version": "v0.1.0"}
+                rv_path_windows: "C:\\Program Files\\RV\\RV64.exe"
+                rv_path_linux: "rv"
+                rv_path_mac: /Applications/RV64.app
+
+            tk-nuke-makequicktime:
+                location: {"type": "app_store", "name": "tk-nuke-makequicktime", "version": "v0.1.1"}
+                profiles:
+                    standard:
+                        width: 2048
+                        height: 1080
+
+                    half_res:
+                        width: 1024
+                        height: 540
+
+            tk-nuke-breakdown:
+                location: {"type": "app_store", "name": "tk-nuke-breakdown", "version": "v0.1.0"}
+                templates_to_look_for:
+                    - nuke_asset_render
+                    - nuke_shot_render_pub_stereo
+                    - nuke_shot_render_pub_mono_dpx
+
+
+

@@ -1,0 +1,61 @@
+
+
+engines:
+    tk-shotgun:
+        location: {"type": "app_store", "name": "tk-shotgun", "version": "v0.1.0"}
+        debug_logging: false
+
+        apps:
+            tk-shotgun-launchnuke:
+                location: {"type": "app_store", "name": "tk-shotgun-launchnuke", "version": "v0.1.0"}
+                entity_types: [Task]
+                deny_permissions: []
+                deny_platforms: []
+                windows_path: "C:\\Program Files\\Nuke6.3v6\\Nuke6.3.exe"
+                linux_path: Nuke6.3
+                mac_path: /Applications/Nuke6.3v7/Nuke6.3v7.app
+                engine: tk-nuke
+            
+            tk-shotgun-launchmaya:
+                location: {"type": "app_store", "name": "tk-shotgun-launchmaya", "version": "v0.1.0"}
+                entity_types: [Task]
+                deny_permissions: []
+                deny_platforms: []
+                windows_path: "C:\\Program Files\\Autodesk\\Maya2012\\bin\\maya.exe"
+                linux_path: maya
+                mac_path: /Applications/Autodesk/maya2012/Maya.app
+                engine: tk-maya
+            
+            tk-shotgun-folders:
+                location: {"type": "app_store", "name": "tk-shotgun-folders", "version": "v0.1.0"}
+                entity_types: [Sequence,Shot,Asset]
+                deny_permissions: []
+                deny_platforms: []
+            
+            tk-shotgun-launchfolder:
+                location: {"type": "app_store", "name": "tk-shotgun-launchfolder", "version": "v0.1.0"}
+                entity_types: [Sequence,Shot,Asset]
+                deny_permissions: []
+                deny_platforms: []
+            
+            tk-shotgun-launchpublish:
+                location: {"type": "app_store", "name": "tk-shotgun-launchpublish", "version": "v0.1.0"}                
+                deny_permissions: []
+                deny_platforms: []
+                viewer_extensions: [exr, dpx, cin]
+                viewer_path_windows: "C:\\Program Files\\RV\\RV64.exe"
+                viewer_path_linux: rv
+                viewer_path_mac: /Applications/RV64.app
+                hook_launch_publish: launch_publish
+
+            tk-shotgun-launchrevolver:
+               location: {"type": "app_store", "name": "tk-shotgun-launchrevolver", "version": "v0.1.0"}                
+               deny_permissions: []
+               deny_platforms: []
+               rv_path_windows: "C:\\Program Files\\RV\\RV64.exe"
+               rv_path_linux: rv
+               rv_path_mac: /Applications/RV64.app
+            
+    
+
+    

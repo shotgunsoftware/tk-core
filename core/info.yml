@@ -1,0 +1,12 @@
+#
+# Copyright (c) 2012 Shotgun Software, Inc
+# ----------------------------------------------------
+
+# Metadata for the Core Tank API.  
+# This is automatically replaced with appropriate values 
+# as the core bundle is uploaded to the app store.
+
+version: "HEAD"
+documentation_url: ""
+
+

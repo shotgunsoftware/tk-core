@@ -1,0 +1,152 @@
+#
+# Copyright (c) 2012 Shotgun Software, Inc
+# ----------------------------------------------------
+
+#
+# This file is one of the central points in the Tank configuration and a counterpart to
+# the folder configuration structure.
+#
+# the folder structure underneath the project folder is used to create folders on disk - 
+# templates.yml (this file) refers to those folders. Therefore, the two files need to be 
+# in sync. This file contains an overview of all locations that are used in Tank.
+#
+#
+# Whenever an app or an engine refers to a location on disk, it is using a entry defined in 
+# this file. For more information, see the Tank Documentation. 
+
+keys:
+    Sequence:
+        type: str
+    Shot:
+        type: str
+    Step:
+        type: str
+    name:
+        type: str
+        filter_by: alphanumeric
+    iteration:
+        type: int
+    version:
+        type: int
+        format_spec: "03"
+    version_four:
+        type: int
+        format_spec: "04"
+        alias: version
+    timestamp:
+        type: str
+    width:
+        type: int
+    height:
+        type: int
+    channel:
+        type: str
+        filter_by: alphanumeric
+    SEQ:
+        type: sequence
+        format_spec: "04"
+    eye:
+        type: str
+    sg_asset_type:
+        type: str
+    Asset:
+        type: str
+
+
+paths:
+    
+    ##########################################################################################
+    # Shot pipeline 
+
+
+    # ------------------------------------------------------------------------------------
+    # Maya
+
+    # project
+    shot_work_area_maya: sequences/{Sequence}/{Shot}/{Step}/work/maya
+
+    # The location of WIP files
+    maya_shot_work: sequences/{Sequence}/{Shot}/{Step}/work/maya/{name}.v{version}.ma
+
+    # The location of backups of WIP files
+    maya_shot_snapshot: sequences/{Sequence}/{Shot}/{Step}/work/maya/snapshots/{name}.v{version}.{timestamp}.ma
+
+    # The location of published maya files
+    maya_shot_publish: sequences/{Sequence}/{Shot}/{Step}/publish/maya/{name}.v{version}.ma
+
+
+
+    # ------------------------------------------------------------------------------------
+    # Nuke 
+
+    shot_work_area_nuke: sequences/{Sequence}/{Shot}/{Step}/work/nuke
+
+    # The location of WIP script files
+    nuke_shot_work: sequences/{Sequence}/{Shot}/{Step}/work/nuke/{name}.v{version}.nk
+
+    # The location of backups of WIP files
+    nuke_shot_snapshot: sequences/{Sequence}/{Shot}/{Step}/work/nuke/snapshots/{name}.v{version}.{timestamp}.nk
+
+    # The location of published nuke script files
+    nuke_shot_publish: sequences/{Sequence}/{Shot}/{Step}/publish/nuke/{name}.v{version}.nk
+
+    # write node outputs
+    nuke_shot_render_mono_dpx: sequences/{Sequence}/{Shot}/{Step}/work/images/{name}/v{version}/{width}x{height}/{Shot}_{name}_{channel}_v{version}.{SEQ}.dpx
+    nuke_shot_render_stereo: sequences/{Sequence}/{Shot}/{Step}/work/images/{name}/v{version}/{width}x{height}/{Shot}_{name}_{channel}_{eye}_v{version}.{SEQ}.exr
+
+    nuke_shot_render_pub_mono_dpx: sequences/{Sequence}/{Shot}/{Step}/publish/elements/{name}/v{version}/{width}x{height}/{Shot}_{name}_{channel}_v{version}.{SEQ}.dpx
+    nuke_shot_render_pub_stereo: sequences/{Sequence}/{Shot}/{Step}/publish/elements/{name}/v{version}/{width}x{height}/{Shot}_{name}_{channel}_{eye}_v{version}.{SEQ}.exr
+
+    shot_quicktime_half_res: sequences/{Sequence}/{Shot}/{Step}/review/half/{Shot}_{name}_{channel}_half_v{version_four}.mov
+    shot_quicktime_full_res: sequences/{Sequence}/{Shot}/{Step}/review/full/{Shot}_{name}_{channel}_full_v{version_four}.mov
+    shot_quicktime_quick: sequences/{Sequence}/{Shot}/{Step}/review/quickdaily/{Shot}_{name}_{iteration}.mov
+
+
+
+    ##########################################################################################
+    # Asset pipeline 
+
+    # ------------------------------------------------------------------------------------
+    # Maya
+
+    # define the location of a work area
+    asset_work_area_maya: assets/{sg_asset_type}/{Asset}/{Step}/work/maya
+
+    # The location of WIP files
+    maya_asset_work: assets/{sg_asset_type}/{Asset}/{Step}/work/maya/{name}.v{version}.ma
+
+    # The location of backups of WIP files
+    maya_asset_snapshot: assets/{sg_asset_type}/{Asset}/{Step}/work/maya/snapshots/{name}.v{version}.{timestamp}.ma
+
+    # The location of published maya files
+    maya_asset_publish: assets/{sg_asset_type}/{Asset}/{Step}/publish/maya/{name}.v{version}.ma
+
+
+    # ------------------------------------------------------------------------------------
+    # Nuke
+
+    # define the location of a work area
+    asset_work_area_nuke: assets/{sg_asset_type}/{Asset}/{Step}/work/nuke
+
+    # outputs from the tank write node for assets
+    nuke_asset_render: assets/{sg_asset_type}/{Asset}/{Step}/work/images/{name}/v{version}/{width}x{height}/{Asset}_{name}_{channel}_v{version}.{SEQ}.exr
+
+    nuke_asset_render_pub: assets/{sg_asset_type}/{Asset}/{Step}/publish/elements/{name}/v{version}/{width}x{height}/{Asset}_{name}_{channel}_v{version}.{SEQ}.exr
+
+    # The location of WIP script files
+    nuke_asset_work: assets/{sg_asset_type}/{Asset}/{Step}/work/nuke/{name}.v{version}.nk
+
+    # The location of backups of WIP files
+    nuke_asset_snapshot: assets/{sg_asset_type}/{Asset}/{Step}/work/nuke/snapshots/{name}.v{version}.{timestamp}.nk
+
+    # The location of published nuke script files
+    nuke_asset_publish: assets/{sg_asset_type}/{Asset}/{Step}/publish/nuke/{name}.v{version}.nk
+
+
+strings:
+
+
+    # when a review version in shotgun is created inside of nuke, this is the 
+    # name that is being given to it (the code field)
+    nuke_version_name: "{name}_{channel}_v{version}" 
+

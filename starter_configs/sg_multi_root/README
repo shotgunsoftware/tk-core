@@ -1,0 +1,26 @@
+-------------------------------------------------------------------------
+The Tank Standard Project Configuration
+-------------------------------------------------------------------------
+
+Welcome to the Tank Standard config! It provides a starting point for 
+experimentation and testing and will help you discover how Tank works!
+
+Once you have installed the standard config for a project, you need to
+do a quick configuration pass to make sure the config will work 
+with your system. The main item to configure are the paths to the 
+Maya and Nuke executables. These are needed in order for Tank to 
+be able to launch Maya and Nuke from within Shotgun. These configuration 
+options can be found in your newly created project:
+
+- First navigate to the new project root folder.
+- Now navigate to the tank folder and then to the config/env folder.
+- Open the shotgun.yml file and edit the settings.  
+
+
+Once things are set up, go to Shotgun:
+
+1. Select some shots, right click and select Create Folders
+3. Right click on a task for one of the shots and try launching Maya/Nuke
+4. Once Maya or Nuke is launched, you should see a Tank menu appear
+
+-------------------------------------------------------------------------

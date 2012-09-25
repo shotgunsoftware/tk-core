@@ -1,0 +1,39 @@
+engines:
+    test_engine:
+        location: {'type': 'dev', 'path': 'TEST_ENGINE_LOCATION'}
+        debug_logging: false
+
+        apps:
+            test_app:
+                location: {'type': 'dev', 'path': 'TEST_APP_LOCATION'}
+                test_template: maya_publish_name
+                test_hook: test_hook
+                test_simple_list: ['a','b','c','d']
+                test_complex_list:
+                    -
+                        test_str: a
+                        test_int: 1
+                        test_float: 1.1
+                        test_bool: true
+                        test_template: maya_shot_work
+                        test_hook: test_hook
+                        test_extra: extra
+                    -
+                        test_str: b
+                        test_int: 2
+                        test_float: 2.2
+                        test_bool: false
+                        test_template: maya_shot_publish
+                        test_hook: test_hook
+                        test_extra: extra
+
+            disabled_app:
+                location: {'type': 'dev', 'path': 'DISABLED_APP_LOCATION', 'disabled': True}
+    disabled_engine:
+        location: {'type': 'dev', 'path': 'DISABLED_ENGINE_LOCATION', 'disabled': True}
+        apps: 
+            test_app:
+                location: {'type': 'dev', 'path': 'TEST_APP_LOCATION'}
+
+
+

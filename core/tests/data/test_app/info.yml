@@ -1,0 +1,45 @@
+#
+# Copyright (c) 2012 Shotgun Software, Inc
+# ----------------------------------------------------
+#
+# Metadata defining the behaviour and requirements for this app
+
+
+# General items
+display_name: Test App
+author: Shotgun Software
+description: Unit testing
+version: 0.2.2
+maturity: dev # dev, beta, testing, mature
+
+# expected fields in the configuration file for this app
+configuration:
+    test_template:
+        type: template
+        required_fields: [name,version]
+    
+    test_hook:
+        type: hook
+    
+    test_simple_list:
+        type: list
+        values:
+            type: str
+    
+    test_complex_list:
+        type: list
+        values:
+            type: dict
+            items:
+                test_str: { type: str }
+                test_int: { type: int }
+                test_float: { type: float }
+                test_bool: { type: bool }
+                test_hook: { type: hook}
+                test_template:
+                    type: template
+                    required_fields: [name, version]
+
+# the Shotgun fields that this app needs in order to operate correctly
+requires_shotgun_fields:
+
