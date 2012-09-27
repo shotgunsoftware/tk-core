@@ -317,6 +317,73 @@ class TestSequenceKey(TankTestBase):
         result = self.seq_field.str_from_value(value, ignore_type=True)
         self.assertEquals(expected, result)
 
+    def test_str_from_value_abstract_one(self):
+        """
+        abstract frame spec value can be returned, frame spec with 
+        one place has special cases.
+        """
+        value = 999 # any valid value should work
+        seq_field = SequenceKey("field_name")
+        expected = "%01d"
+        result = seq_field.str_from_value(value, frame_spec="%0d")
+        self.assertEquals(expected, result)
+
+        expected = "%d"
+        result = seq_field.str_from_value(value, frame_spec="%d")
+        self.assertEquals(expected, result)
+
+        expected = "#"
+        result = seq_field.str_from_value(value, frame_spec="#")
+        self.assertEquals(expected, result)
+
+        expected = "@"
+        result = seq_field.str_from_value(value, frame_spec="@d")
+        self.assertEquals(expected, result)
+
+        expected = "$F1"
+        result = seq_field.str_from_value(value, frame_spec="$Fd")
+        self.assertEquals(expected, result)
+
+        expected = "$F"
+        result = seq_field.str_from_value(value, frame_spec="$F")
+        self.assertEquals(expected, result)
+
+    def test_str_from_value_abstract_three(self):
+        """
+        Test abstract frame spec value returned for framespec with more than
+        one places.
+        """
+        value = 999 # any valid value should work
+        seq_field = SequenceKey("field_name", format_spec="03")
+        expected = "%03d"
+        result = seq_field.str_from_value(value, frame_spec="%0d")
+        self.assertEquals(expected, result)
+
+        expected = "#"
+        result = seq_field.str_from_value(value, frame_spec="#")
+        self.assertEquals(expected, result)
+
+        expected = "#d"
+        result = seq_field.str_from_value(value, frame_spec="###")
+        self.assertEquals(expected, result)
+
+        expected = "@@@"
+        result = seq_field.str_from_value(value, frame_spec="@d")
+        self.assertEquals(expected, result)
+
+        expected = "$F3"
+        result = seq_field.str_from_value(value, frame_spec="$Fd")
+        self.assertEquals(expected, result)
+
+    def test_str_from_value_abstract_non(self):
+        """
+        Test abstract frame spec value returned with no value supplied.
+        """
+        seq_field = SequenceKey("field_name", format_spec="03")
+        expected = "%03d"
+        result = seq_field.str_from_value(frame_spec="%0d")
+        self.assertEquals(expected, result)
+
     def test_default_int(self):
         default = 13
         seq_frame = SequenceKey("field_name", default=default)
