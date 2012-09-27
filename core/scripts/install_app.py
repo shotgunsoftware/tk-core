@@ -35,7 +35,7 @@ def _format_param_info(log, name, type, summary):
     log.info("\%s" % ("-" * 70))
 
 
-def add_app(log, project_root, env_name, app_name):
+def add_app(log, project_root, env_name, engine_instance_name, app_name):
     """
     Adds an app to an environment
     """
@@ -50,40 +50,14 @@ def add_app(log, project_root, env_name, app_name):
     except Exception, e:
         raise TankError("Environment '%s' could not be loaded! Error reported: %s" % (env_name, e))
 
+    # make sure the engine exists in the environment
+    if engine_instance_name not in env.get_engines():
+        raise TankError("Environment %s has no engine named %s!" % (env_name, engine_instance_name))
+
     # find app
     app_descriptor = TankAppStoreDescriptor.find_item(project_root, AppDescriptor.APP, app_name)
     log.info("Successfully located %s..." % app_descriptor)
     log.info("")
-
-    # find the corresponding engine
-    parent_engine_descriptor = TankAppStoreDescriptor.find_engine_for_app(project_root, app_name)
-
-    # make sure this engine exists in environment
-    # note! We assume a naming convention where the short name for the engine descriptor
-    # (eg. tk-nuke) matches the environment instance.
-    engine_instance_name = parent_engine_descriptor.get_short_name()
-
-    if engine_instance_name not in env.get_engines():
-        raise TankError("Environment %s has no engine named %s! The app you are trying to "
-                        "install requires this engine in order to run, but it cannot "
-                        "be found in the environment file." % (env_name, engine_instance_name))
-
-    # now assume a convention where we will name the app instance that we create in the environment
-    # the same as the short name of the app
-    app_instance_name = app_descriptor.get_short_name()
-
-    # check so that there is not an app with that name already!
-    if app_instance_name in env.get_apps(engine_instance_name):
-        raise TankError("Engine %s already has an app named %s!" % (engine_instance_name,
-                                                                    app_instance_name))
-
-    # now make sure all constraints are okay
-    try:
-        administrator.check_constraints_for_item(project_root, app_descriptor, env, engine_instance_name)
-    except TankError, e:
-        raise TankError("Cannot install: %s" % e)
-
-    # okay to install!
 
     # note! Some of these methods further down are likely to pull the apps local
     # in order to do deep introspection. In order to provide better error reporting,
@@ -92,6 +66,22 @@ def add_app(log, project_root, env_name, app_name):
         log.info("Downloading from App Store, hold on...")
         app_descriptor.download_local()
         log.info("")
+
+    # now assume a convention where we will name the app instance that we create in the environment
+    # the same as the short name of the app
+    app_instance_name = app_descriptor.get_short_name()
+
+    # check so that there is not an app with that name already!
+    if app_instance_name in env.get_apps(engine_instance_name):
+        raise TankError("Engine %s already has an app named %s!" % (engine_instance_name, app_instance_name))
+
+    # now make sure all constraints are okay
+    try:
+        administrator.check_constraints_for_item(project_root, app_descriptor, env, engine_instance_name)
+    except TankError, e:
+        raise TankError("Cannot install: %s" % e)
+
+    # okay to install!
 
     # create required shotgun fields
     app_descriptor.ensure_shotgun_fields_exist(project_root)
@@ -163,15 +153,15 @@ def add_app(log, project_root, env_name, app_name):
 
 
 def main(log):
-    if len(sys.argv) == 1 or len(sys.argv) != 4:
+    if len(sys.argv) == 1 or len(sys.argv) != 5:
 
         desc = """
 
 Adds a new App to a Tank Environment.
 
-    Syntax:  %(cmd)s project_root environment_name app_name
+    Syntax:  %(cmd)s project_root environment_name engine_name app_name
 
-    Example: %(cmd)s /mnt/shows/my_project rigging tk-maya-geometry-cache
+    Example: %(cmd)s /mnt/shows/my_project rigging tk-maya tk-maya-geometry-cache
 
 This command will download an app from the Tank App Store and add it to
 the specified project and environment. You will be prompted to fill in
@@ -182,10 +172,11 @@ the various configuration parameters that the app requires.
     else:
         project_root = sys.argv[1]
         env_name = sys.argv[2]
-        app_name = sys.argv[3]
+        eng_name = sys.argv[3]
+        app_name = sys.argv[4]
 
     # run actual activation
-    add_app(log, project_root, env_name, app_name)
+    add_app(log, project_root, env_name, eng_name, app_name)
 
 #######################################################################
 if __name__ == "__main__":

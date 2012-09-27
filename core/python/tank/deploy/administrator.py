@@ -82,6 +82,17 @@ def _check_constraints(project_root, descriptor_obj, parent_engine_descriptor = 
                            "installed version is %s." % (parent_engine_descriptor.get_display_name(),
                                                         minimum_engine_version, 
                                                         curr_engine_version))
+            
+    # for multi engine apps, validate the supported_engines list
+    md  = descriptor_obj.get_metadata()
+    if "supported_engines" in md:
+        # this is a multi engine app!
+        supported_engines = md["supported_engines"]
+        engine_name = parent_engine_descriptor.get_short_name()
+        if engine_name not in supported_engines:
+            can_update = False
+            reasons.append("Not compatible with engine %s. "
+                           "Supported engines are %s" % (engine_name, ", ".join(supported_engines)))
     
     return (can_update, reasons)
 
@@ -89,7 +100,7 @@ def _check_constraints(project_root, descriptor_obj, parent_engine_descriptor = 
 ##########################################################################################
 # public interface
 
-def check_constraints_for_item(project_root, item_desc, environment_obj, parent_engine_name=None):
+def check_constraints_for_item(project_root, item_desc, environment_obj, engine_instance_name=None):
     """
     Validates the constraints for a single item. This will check that requirements for 
     minimum versions for shotgun, core API etc are fulfilled.
@@ -99,9 +110,9 @@ def check_constraints_for_item(project_root, item_desc, environment_obj, parent_
     """
     
     # get the parent engine descriptor, if we are checking an app
-    if parent_engine_name:
+    if engine_instance_name:
         # we are checking an engine object (it has no parent engine)
-        parent_engine_descriptor = environment_obj.get_engine_descriptor(parent_engine_name)
+        parent_engine_descriptor = environment_obj.get_engine_descriptor(engine_instance_name)
     else:
         parent_engine_descriptor = None
         

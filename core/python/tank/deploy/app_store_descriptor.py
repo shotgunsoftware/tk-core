@@ -237,58 +237,6 @@ class TankAppStoreDescriptor(AppDescriptor):
         # and return a descriptor instance
         return TankAppStoreDescriptor(project_root, location_dict, bundle_type)
 
-    @classmethod
-    def find_engine_for_app(cls, project_root, app_name):
-        """
-        Returns an TankAppStoreDescriptor object representing the latest version
-        of an engine, given an app descriptor. The app store keeps track of
-        app/engine relationships
-
-        :returns: TankAppStoreDescriptor instance
-        """
-
-        # connect to the app store
-        (sg, script_user) = shotgun.create_sg_app_store_connection_proj_root(project_root)
-
-        # get the filter logic for what to exclude
-        if constants.APP_STORE_QA_MODE_ENV_VAR in os.environ:
-            latest_filter = [["sg_status_list", "is_not", "bad" ]]
-        else:
-            latest_filter = [["sg_status_list", "is_not", "rev" ],
-                             ["sg_status_list", "is_not", "bad" ]]
-
-        # first find the app entity
-        bundle = sg.find_one(TANK_APP_ENTITY, [["sg_system_name", "is", app_name]], ["sg_tank_engine"])
-        if bundle is None:
-            raise TankError("App store does not contain an app named '%s'!" % app_name)
-
-        engine_id = bundle.get("sg_tank_engine", {}).get("id")
-        if engine_id is None:
-            raise TankError("App does not have an engine associated in Tank App Store!")
-
-        # now find the engine entity
-        bundle = sg.find_one(TANK_ENGINE_ENTITY, [["id", "is", engine_id]], ["sg_system_name", "id"])
-
-        # engine name
-        name = bundle["sg_system_name"]
-
-        # now get the version
-        version = sg.find_one(TANK_ENGINE_VERSION_ENTITY,
-                              filters = [["sg_tank_engine", "is", bundle]] + latest_filter,
-                              fields = ["code"],
-                              order=[{"field_name": "created_at", "direction": "desc"}])
-        if version is None:
-            raise TankError("Cannot find any versions for the engine '%s'!" % name)
-
-        version_str = version.get("code")
-        if version_str is None:
-            raise TankError("Invalid version number for %s" % version)
-
-        # make a location dict
-        location_dict = {"type": "app_store", "name": name, "version": version_str}
-
-        # and return a descriptor instance
-        return TankAppStoreDescriptor(project_root, location_dict, AppDescriptor.ENGINE)
 
     ###############################################################################################
     # data accessors
