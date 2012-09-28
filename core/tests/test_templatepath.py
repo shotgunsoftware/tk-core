@@ -839,6 +839,10 @@ class TestGetFields(TestTemplatePath):
         result = template.get_fields(input_path)
         self.assertEqual(expected, result)
 
+    def test_no_keys(self):
+        template = tank.TemplatePath("no keys", {}, self.project_root)
+        self.assertEqual({}, template.get_fields("anything"))
+
 
 class TestGetKeysSepInValue(TestTemplatePath):
     """Tests for cases where seperator used between keys is used in value for keys."""

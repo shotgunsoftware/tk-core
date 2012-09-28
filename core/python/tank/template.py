@@ -316,6 +316,8 @@ class Template(object):
         :rtype: Dictionary
         """
         path_parser = None
+        fields = None
+
         for ordered_keys, static_tokens in zip(self._ordered_keys, self._static_tokens):
             path_parser = TemplatePathParser(ordered_keys, static_tokens)
             fields = path_parser.parse_path(input_path, skip_keys)
@@ -462,6 +464,10 @@ class TemplatePathParser(object):
 
         :returns: Mapping of key names to values or None. 
         """
+        # if no keys, nothing to discover
+        if not self.ordered_keys:
+            return {}
+
         skip_keys = skip_keys or []
         input_path = os.path.normpath(input_path)
         self.fields = {}
