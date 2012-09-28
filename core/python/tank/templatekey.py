@@ -41,16 +41,21 @@ class TemplateKey(object):
         if not all(self.validate(choice, err_messages) for choice in self.choices):
             raise TankError(err_messages[-1])
     
-    def str_from_value(self, value=None, ignore_type=False):
+    def str_from_value(self, value=None, ignore_type=False, abstract=False, pattern=None):
         """
         Returns a string version of a value as appropriate for the key's setting.
 
         :param value: (Optional) Value to process. Will use key's default if value is None.
         :ignore_type: (Optional) Returns casts value to a string with no validation.
+        :param abstract: (Optional) For keys with abstract value, returns abstract value.
+        :param pattern: (Optional) Pattern for abstrac value if applicable.
 
         :returns: String version of value as processed by the key.
         :throws: TankError if value is not valid for the key.
         """
+        if abstract:
+            value = self._as_abstract(pattern)
+
         if value is None:
             if self.default is None:
                 raise TankError("No value provided and no default available for %s" % self)
@@ -236,6 +241,7 @@ class SequenceKey(IntegerKey):
                  shotgun_field_name=None,
                  exclusions=None):
         self.frame_specs = _determine_frame_specs(format_spec)
+        self._abstractor = Abstractor(self.frame_specs, self)
         super(SequenceKey, self).__init__(name,
                                           default=default,
                                           choices=choices,
@@ -245,25 +251,44 @@ class SequenceKey(IntegerKey):
                                           exclusions=exclusions)
 
     def validate(self, value, messages=None):
+        return self._abstractor.validate(value, messages)
+
+    def _as_string(self, value):
+        return self._abstractor.as_string(value)
+
+    def _as_value(self, str_value):
+        return self._abstractor.as_value(str_value)
+
+class Abstractor(object):
+    """Class for handling abstract values. Intended for composition.
+    """
+    def __init__(self, abstract_choices, obj):
+        """
+        :param abstract_choices: List of acceptable abstract choices.
+        """
+        self.abstract_choices = abstract_choices
+        self.obj = obj
+
+    def validate(self, value, messages=None):
         if not isinstance(messages, list):
             messages = []
 
-        if value in self.frame_specs:
+        if value in self.abstract_choices:
             return True
         else:
-            return super(SequenceKey, self).validate(value, messages)
+            return super(self.obj.__class__, self.obj).validate(value, messages)
 
-    def _as_string(self, value):
-        if value in self.frame_specs:
+    def as_string(self, value):
+        if value in self.abstract_choices:
             return value
         else:
-            return super(SequenceKey, self)._as_string(value)
+            return super(self.obj.__class__, self.obj)._as_string(value)
 
-    def _as_value(self, str_value):
-        if str_value in self.frame_specs:
+    def as_value(self, str_value):
+        if str_value in self.abstract_choices:
             return str_value
         else:
-            return super(SequenceKey, self)._as_value(str_value)
+            return super(self.obj.__class__, self.obj)._as_value(str_value)
 
 def _determine_frame_specs(format_spec):
     frame_specs = set()
@@ -288,6 +313,8 @@ def _determine_frame_specs(format_spec):
         frame_specs.add("$F")
 
     return frame_specs
+
+
 
 def make_keys(data):
     """

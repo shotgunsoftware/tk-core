@@ -375,7 +375,7 @@ class TestSequenceKey(TankTestBase):
         result = seq_field.str_from_value(value, frame_spec="$Fd")
         self.assertEquals(expected, result)
 
-    def test_str_from_value_abstract_non(self):
+    def test_str_from_value_abstract_none(self):
         """
         Test abstract frame spec value returned with no value supplied.
         """
