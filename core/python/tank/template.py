@@ -464,12 +464,15 @@ class TemplatePathParser(object):
 
         :returns: Mapping of key names to values or None. 
         """
-        # if no keys, nothing to discover
-        if not self.ordered_keys:
-            return {}
-
         skip_keys = skip_keys or []
         input_path = os.path.normpath(input_path)
+        # if no keys, nothing to discover
+        if not self.ordered_keys:
+            if input_path.lower() == self.static_tokens[0].lower():
+                return {}
+            else:
+                return None
+
         self.fields = {}
         last_index = None # end index of last static token
         start_index = None # index of begining of next static token
