@@ -325,27 +325,32 @@ class TestSequenceKey(TankTestBase):
         value = 999 # any valid value should work
         seq_field = SequenceKey("field_name")
         expected = "%01d"
-        result = seq_field.str_from_value(value, frame_spec="%0d")
+        result = seq_field.str_from_value(value=value, abstract=True, pattern="%0d")
         self.assertEquals(expected, result)
 
         expected = "%d"
-        result = seq_field.str_from_value(value, frame_spec="%d")
+        result = seq_field.str_from_value(value=value, abstract=True, pattern="%d")
         self.assertEquals(expected, result)
 
         expected = "#"
-        result = seq_field.str_from_value(value, frame_spec="#")
+        result = seq_field.str_from_value(value=value, abstract=True, pattern="#")
         self.assertEquals(expected, result)
 
         expected = "@"
-        result = seq_field.str_from_value(value, frame_spec="@d")
+        result = seq_field.str_from_value(value=value, abstract=True, pattern="@d")
         self.assertEquals(expected, result)
 
         expected = "$F1"
-        result = seq_field.str_from_value(value, frame_spec="$Fd")
+        result = seq_field.str_from_value(value=value, abstract=True, pattern="$Fd")
         self.assertEquals(expected, result)
 
         expected = "$F"
-        result = seq_field.str_from_value(value, frame_spec="$F")
+        result = seq_field.str_from_value(value=value, abstract=True, pattern="$F")
+        self.assertEquals(expected, result)
+
+        # no pattern specified
+        expected = "%01d"
+        result = seq_field.str_from_value(value=value, abstract=True)
         self.assertEquals(expected, result)
 
     def test_str_from_value_abstract_three(self):
@@ -356,23 +361,28 @@ class TestSequenceKey(TankTestBase):
         value = 999 # any valid value should work
         seq_field = SequenceKey("field_name", format_spec="03")
         expected = "%03d"
-        result = seq_field.str_from_value(value, frame_spec="%0d")
+        result = seq_field.str_from_value(value, abstract=True, pattern="%0d")
         self.assertEquals(expected, result)
 
         expected = "#"
-        result = seq_field.str_from_value(value, frame_spec="#")
+        result = seq_field.str_from_value(value, abstract=True, pattern="#")
         self.assertEquals(expected, result)
 
-        expected = "#d"
-        result = seq_field.str_from_value(value, frame_spec="###")
+        expected = "###"
+        result = seq_field.str_from_value(value, abstract=True, pattern="#d")
         self.assertEquals(expected, result)
 
         expected = "@@@"
-        result = seq_field.str_from_value(value, frame_spec="@d")
+        result = seq_field.str_from_value(value, abstract=True, pattern="@d")
         self.assertEquals(expected, result)
 
         expected = "$F3"
-        result = seq_field.str_from_value(value, frame_spec="$Fd")
+        result = seq_field.str_from_value(value, abstract=True, pattern="$Fd")
+        self.assertEquals(expected, result)
+
+        # no pattern specified
+        expected = "%03d"
+        result = seq_field.str_from_value(value, abstract=True)
         self.assertEquals(expected, result)
 
     def test_str_from_value_abstract_none(self):
@@ -381,7 +391,7 @@ class TestSequenceKey(TankTestBase):
         """
         seq_field = SequenceKey("field_name", format_spec="03")
         expected = "%03d"
-        result = seq_field.str_from_value(frame_spec="%0d")
+        result = seq_field.str_from_value(abstract=True, pattern="%0d")
         self.assertEquals(expected, result)
 
     def test_default_int(self):
@@ -481,7 +491,7 @@ class TestMakeKeys(TankTestBase):
         complex_key = result.get("complex")
 
         self.assertEquals("simple", simple_key.name)
-        self.assertEquals(None, simple_key.format_spec)
+        self.assertEquals("01", simple_key.format_spec)
 
         self.assertEquals("complex", complex_key.name)
         self.assertEquals("03", complex_key.format_spec)

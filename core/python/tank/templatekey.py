@@ -7,6 +7,8 @@ import re
 
 from .errors import TankError
 
+DEFAULT_FRAMESPEC_PATTERN = "%0d"
+
 class TemplateKey(object):
     """Base class for template keys. Should not be used directly."""
     def __init__(self,
@@ -54,7 +56,7 @@ class TemplateKey(object):
         :throws: TankError if value is not valid for the key.
         """
         if abstract:
-            value = self._as_abstract(pattern)
+            value = self._as_abstract(pattern) or value
 
         if value is None:
             if self.default is None:
@@ -116,6 +118,9 @@ class TemplateKey(object):
 
     def _as_value(self, str_value):
         return str_value
+
+    def _as_abstract(self, pattern=None):
+        return None
 
     def __repr__(self):
         return "<Tank %s %s>" % (self.__class__.__name__, self.name)
@@ -236,7 +241,7 @@ class SequenceKey(IntegerKey):
                  name,
                  default=None,
                  choices=None,
-                 format_spec=None,
+                 format_spec='01',
                  shotgun_entity_type=None,
                  shotgun_field_name=None,
                  exclusions=None):
@@ -255,6 +260,10 @@ class SequenceKey(IntegerKey):
 
     def _as_string(self, value):
         return self._abstractor.as_string(value)
+
+    def _as_abstract(self, pattern):
+        pattern = pattern or DEFAULT_FRAMESPEC_PATTERN
+        return _frame_spec_from_pattern(self.format_spec, pattern)
 
     def _as_value(self, str_value):
         return self._abstractor.as_value(str_value)
@@ -292,10 +301,7 @@ class Abstractor(object):
 
 def _determine_frame_specs(format_spec):
     frame_specs = set()
-    places = 1
-    # If formating specified, use it to construct acceptable frame specs
-    if format_spec:
-        places = int(format_spec)
+    places = int(format_spec)
 
     # Nuke
     frame_specs.add("%%0%dd" % places)
@@ -314,6 +320,29 @@ def _determine_frame_specs(format_spec):
 
     return frame_specs
 
+def _frame_spec_from_pattern(format_spec, pattern):
+    frame_spec = None
+    places = int(format_spec)
+
+    if pattern == "%0d":
+        frame_spec = "%%0%dd" % places
+    elif pattern == "%d":
+        frame_spec = "%d"
+    elif pattern == "#":
+        frame_spec = "#"
+    elif pattern == "#d":
+        frame_spec = "#"*places
+    elif pattern == "@d":
+        frame_spec = "@"*places
+    elif pattern == "$Fd":
+        frame_spec = "$F%d" % places
+    elif pattern == "$F":
+        frame_spec = "$F"
+    else:
+        msg = "Illegal pattern for framespec: '%s'. Legal patterns are: " % pattern
+        msg += "'%0d', '%d', '#', '#d', '@d', '$Fd', '$F'"
+        raise TankError(msg)
+    return frame_spec
 
 
 def make_keys(data):
