@@ -32,16 +32,16 @@ class TemplateKey(object):
         self.exclusions = exclusions or []
         self.shotgun_entity_type = shotgun_entity_type
         self.shotgun_field_name = shotgun_field_name
+        self._last_error = ""
 
         # Validation
         if self.shotgun_field_name and not self.shotgun_entity_type:
             raise TankError("Shotgun field requires a shotgun entity be set.")
 
-        err_messages = []
-        if not ((self.default is None) or self.validate(default, err_messages)):
-            raise TankError(err_messages[-1])
-        if not all(self.validate(choice, err_messages) for choice in self.choices):
-            raise TankError(err_messages[-1])
+        if not ((self.default is None) or self.validate(default)):
+            raise TankError(self._last_error)
+        if not all(self.validate(choice) for choice in self.choices):
+            raise TankError(self._last_error)
     
     def str_from_value(self, value=None, ignore_type=False, abstract=False, pattern=None):
         """
@@ -66,12 +66,10 @@ class TemplateKey(object):
         elif ignore_type:
             return str(value)
 
-        # container for validation errors
-        val_msg = []
-        if self.validate(value, messages=val_msg):
+        if self.validate(value):
             return self._as_string(value)
         else:
-            raise TankError(val_msg[-1])
+            raise TankError(self._last_error)
 
     def value_from_str(self, str_value):
         """
@@ -81,11 +79,10 @@ class TemplateKey(object):
 
         :returns: The translated value.
         """
-        err_messages = []
-        if self.validate(str_value, messages=err_messages):
+        if self.validate(str_value):
             value = self._as_value(str_value)
         else:
-            raise TankError(err_messages[-1])
+            raise TankError(self._last_error)
         return value
 
     def validate(self, value, messages=None):
@@ -93,23 +90,19 @@ class TemplateKey(object):
         Test if a value is valid for this key.
 
         :param value: Value to test.
-        :param messages: (Optional) A list to which error messages will be appended.
+        :param messages: Deprecated, does nothing
 
         :returns: Bool
         """
-        if not isinstance(messages, list):
-            messages = []
 
         # We are not case sensitive
         if str(value).lower() in [str(x).lower() for x in self.exclusions]:
-            msg = "%s Illegal value: %s is forbidden for this key." % (self, value)
-            messages.append(msg)
+            self._last_error = "%s Illegal value: %s is forbidden for this key." % (self, value)
             return False
 
         if not((value is None) or (self.choices == [])):
             if str(value).lower() not in [str(x).lower() for x in self.choices]:
-                msg ="%s Illegal value: '%s' not in choices: %s" % (self, value, str(self.choices))
-                messages.append(msg)
+                self._last_error = "%s Illegal value: '%s' not in choices: %s" % (self, value, str(self.choices))
                 return False
         return True
 
@@ -162,12 +155,9 @@ class StringKey(TemplateKey):
                                         exclusions=exclusions)
 
     def validate(self, value, messages=None):
-        if not isinstance(messages, list):
-            messages = []
 
         if self._filter_regex and self._filter_regex.search(value):
-            msg = "%s Illegal value '%s' does not fit filter" % (self, value)
-            messages.append(msg)
+            self._last_error = "%s Illegal value '%s' does not fit filter" % (self, value)
             return False
         else:
             return super(StringKey, self).validate(value, messages)
@@ -212,13 +202,10 @@ class IntegerKey(TemplateKey):
         self.format_spec = format_spec
 
     def validate(self, value, messages=None):
-        if not isinstance(messages, list):
-            messages = []
 
         if value is not None:
             if not (isinstance(value, int) or value.isdigit()):
-                msg = "%s Illegal value %s, expected an Integer" % (self, value)
-                messages.append(msg)
+                self._last_error = "%s Illegal value %s, expected an Integer" % (self, value)
                 return False
             else:
                 return super(IntegerKey, self).validate(value)
@@ -279,8 +266,6 @@ class Abstractor(object):
         self.obj = obj
 
     def validate(self, value, messages=None):
-        if not isinstance(messages, list):
-            messages = []
 
         if value in self.abstract_choices:
             return True
