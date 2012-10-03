@@ -610,7 +610,12 @@ class Entity(Folder):
             token_key = field_to_token_key_map[field]
             
             if value:
-                tokens[token_key] = value
+                if isinstance(value, dict):
+                    # If entity, check is type matches
+                    if token_key == value.get("type", token_key):
+                        tokens[token_key] = value
+                else:
+                        tokens[token_key] = value
             else:
                 # field was none! - cannot handle that
                 raise TankError("The %s %s has a required field %s that \ndoes not have a value "
