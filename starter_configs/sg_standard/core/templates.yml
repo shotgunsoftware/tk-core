@@ -21,6 +21,10 @@ keys:
         type: str
     Step:
         type: str
+    sg_asset_type:
+        type: str
+    Asset:
+        type: str
     name:
         type: str
         filter_by: alphanumeric
@@ -29,10 +33,6 @@ keys:
     version:
         type: int
         format_spec: "03"
-    version_four:
-        type: int
-        format_spec: "04"
-        alias: version
     timestamp:
         type: str
     width:
@@ -47,17 +47,12 @@ keys:
         format_spec: "04"
     eye:
         type: str
-    sg_asset_type:
-        type: str
-    Asset:
-        type: str
 
 
 paths:
-    
+
     ##########################################################################################
     # Shot pipeline 
-
 
     # ------------------------------------------------------------------------------------
     # Maya
@@ -74,7 +69,20 @@ paths:
     # The location of published maya files
     maya_shot_publish: sequences/{Sequence}/{Shot}/{Step}/publish/maya/{name}.v{version}.ma
 
+    # ------------------------------------------------------------------------------------
+    # Motion Builder
 
+    # project
+    shot_work_area_mobu: sequences/{Sequence}/{Shot}/{Step}/work/mobu
+
+    # The location of WIP files
+    mobu_shot_work: sequences/{Sequence}/{Shot}/{Step}/work/mobu/{name}.v{version}.fbx
+
+    # The location of backups of WIP files
+    mobu_shot_snapshot: sequences/{Sequence}/{Shot}/{Step}/work/mobu/snapshots/{name}.v{version}.{timestamp}.fbx
+
+    # The location of published maya files
+    mobu_shot_publish: sequences/{Sequence}/{Shot}/{Step}/publish/mobu/{name}.v{version}.fbx
 
     # ------------------------------------------------------------------------------------
     # Nuke 
@@ -91,17 +99,19 @@ paths:
     nuke_shot_publish: sequences/{Sequence}/{Shot}/{Step}/publish/nuke/{name}.v{version}.nk
 
     # write node outputs
-    nuke_shot_render_mono_dpx: sequences/{Sequence}/{Shot}/{Step}/work/images/{name}/v{version}/{width}x{height}/{Shot}_{name}_{channel}_v{version}.{SEQ}.dpx
-    nuke_shot_render_stereo: sequences/{Sequence}/{Shot}/{Step}/work/images/{name}/v{version}/{width}x{height}/{Shot}_{name}_{channel}_{eye}_v{version}.{SEQ}.exr
+    nuke_shot_render_mono_dpx:            sequences/{Sequence}/{Shot}/{Step}/work/images/{name}/v{version}/{width}x{height}/{Shot}_{name}_{channel}_v{version}.{SEQ}.dpx
+    nuke_shot_render_mono_dpx_review_mov: sequences/{Sequence}/{Shot}/{Step}/review/{Shot}_{name}_{channel}_v{version}.{iteration}.mov
+    nuke_shot_render_mono_dpx_review_seq: sequences/{Sequence}/{Shot}/{Step}/review/{Shot}_{name}_{channel}_v{version}.{iteration}/{Shot}_{name}_{channel}_v{version}.{iteration}.{SEQ}.dpx
+    nuke_shot_render_pub_mono_dpx:        sequences/{Sequence}/{Shot}/{Step}/publish/elements/{name}/v{version}/{width}x{height}/{Shot}_{name}_{channel}_v{version}.{SEQ}.dpx
 
-    nuke_shot_render_pub_mono_dpx: sequences/{Sequence}/{Shot}/{Step}/publish/elements/{name}/v{version}/{width}x{height}/{Shot}_{name}_{channel}_v{version}.{SEQ}.dpx
-    nuke_shot_render_pub_stereo: sequences/{Sequence}/{Shot}/{Step}/publish/elements/{name}/v{version}/{width}x{height}/{Shot}_{name}_{channel}_{eye}_v{version}.{SEQ}.exr
+    nuke_shot_render_stereo:            sequences/{Sequence}/{Shot}/{Step}/work/images/{name}/v{version}/{width}x{height}/{Shot}_{name}_{channel}_{eye}_v{version}.{SEQ}.exr
+    nuke_shot_render_stereo_review_mov: sequences/{Sequence}/{Shot}/{Step}/review/images/{name}/v{version}/{width}x{height}/{Shot}_{name}_{channel}_v{version}.{iteration}.mov
+    nuke_shot_render_stereo_review_seq: sequences/{Sequence}/{Shot}/{Step}/review/images/{name}/v{version}/{width}x{height}/{Shot}_{name}_{channel}_v{version}.{iteration}.{SEQ}.exr
+    nuke_shot_render_pub_stereo:        sequences/{Sequence}/{Shot}/{Step}/publish/elements/{name}/v{version}/{width}x{height}/{Shot}_{name}_{channel}_{eye}_v{version}.{SEQ}.exr
 
-    shot_quicktime_half_res: sequences/{Sequence}/{Shot}/{Step}/review/half/{Shot}_{name}_{channel}_half_v{version_four}.mov
-    shot_quicktime_full_res: sequences/{Sequence}/{Shot}/{Step}/review/full/{Shot}_{name}_{channel}_full_v{version_four}.mov
-    shot_quicktime_quick: sequences/{Sequence}/{Shot}/{Step}/review/quickdaily/{Shot}_{name}_{iteration}.mov
-
-
+    # review output
+    shot_quicktime: sequences/{Sequence}/{Shot}/{Step}/review/{name}_v{version}.{iteration}.mov
+    shot_quicktime_quick: sequences/{Sequence}/{Shot}/{Step}/review/quickdaily/{Shot}_{name}_quick_{iteration}.mov
 
     ##########################################################################################
     # Asset pipeline 
@@ -121,6 +131,20 @@ paths:
     # The location of published maya files
     maya_asset_publish: assets/{sg_asset_type}/{Asset}/{Step}/publish/maya/{name}.v{version}.ma
 
+    # ------------------------------------------------------------------------------------
+    # Motion Builder
+
+    # define the location of a work area
+    asset_work_area_mobu: assets/{sg_asset_type}/{Asset}/{Step}/work/mobu
+
+    # The location of WIP files
+    mobu_asset_work: assets/{sg_asset_type}/{Asset}/{Step}/work/mobu/{name}.v{version}.fbx
+
+    # The location of backups of WIP files
+    mobu_asset_snapshot: assets/{sg_asset_type}/{Asset}/{Step}/work/mobu/snapshots/{name}.v{version}.{timestamp}.fbx
+
+    # The location of published maya files
+    mobu_asset_publish: assets/{sg_asset_type}/{Asset}/{Step}/publish/mobu/{name}.v{version}.fbx
 
     # ------------------------------------------------------------------------------------
     # Nuke
@@ -130,8 +154,13 @@ paths:
 
     # outputs from the tank write node for assets
     nuke_asset_render: assets/{sg_asset_type}/{Asset}/{Step}/work/images/{name}/v{version}/{width}x{height}/{Asset}_{name}_{channel}_v{version}.{SEQ}.exr
-
+    nuke_asset_render_review_mov: assets/{sg_asset_type}/{Asset}/{Step}/review/images/{name}/v{version}/{width}x{height}/{Asset}_{name}_{channel}_v{version}.{iteration}.mov
+    nuke_asset_render_review_seq: assets/{sg_asset_type}/{Asset}/{Step}/review/images/{name}/v{version}/{width}x{height}/{Asset}_{name}_{channel}_v{version}.{iteration}.{SEQ}.exr
     nuke_asset_render_pub: assets/{sg_asset_type}/{Asset}/{Step}/publish/elements/{name}/v{version}/{width}x{height}/{Asset}_{name}_{channel}_v{version}.{SEQ}.exr
+
+    # review output
+    asset_quicktime: assets/{sg_asset_type}/{Asset}/{Step}/review/{name}_v{version}.{iteration}.mov
+    asset_quicktime_quick: assets/{sg_asset_type}/{Asset}/{Step}/review/quickdaily/{Asset}_{name}_quick_{iteration}.mov
 
     # The location of WIP script files
     nuke_asset_work: assets/{sg_asset_type}/{Asset}/{Step}/work/nuke/{name}.v{version}.nk
@@ -142,11 +171,12 @@ paths:
     # The location of published nuke script files
     nuke_asset_publish: assets/{sg_asset_type}/{Asset}/{Step}/publish/nuke/{name}.v{version}.nk
 
-
 strings:
-
 
     # when a review version in shotgun is created inside of nuke, this is the 
     # name that is being given to it (the code field)
-    nuke_version_name: "{name}_{channel}_v{version}" 
+    nuke_shot_version_name: "{Shot}_{name}_{channel}_v{version}.{iteration}"
+    nuke_quick_shot_version_name: "{Shot}_{name}_quick_{iteration}"
 
+    nuke_asset_version_name: "{Asset}_{name}_{channel}_v{version}.{iteration}"
+    nuke_quick_asset_version_name: "{Asset}_{name}_quick_{iteration}"

@@ -1,18 +1,21 @@
-"""
-Copyright (c) 2012 Shotgun Software, Inc
-----------------------------------------------------
+#
+# Copyright (c) 2012 Shotgun Software, Inc
+# ----------------------------------------------------
+#
 
+"""
 I/O Hook which copies files on disk.
 
 """
+import os
+import shutil
 
 from tank import Hook
-import shutil
-import os
 
-class NukePubPublishFile(Hook):
-    
-    def execute(self, source_path, target_path, **kwargs):
+
+class MotionBuilderPublishFile(Hook):
+
+    def execute(self, source_path, target_path):
         
         # create the publish folder if it doesn't exist
         dirname = os.path.dirname(target_path)
@@ -21,7 +24,7 @@ class NukePubPublishFile(Hook):
             os.makedirs(dirname, 0777)
             os.umask(old_umask)            
         
-        shutil.copy(source_path, target_path) 
+        shutil.copy(source_path, target_path)
         # make it readonly
         os.chmod(target_path, 0444)
-        
+
