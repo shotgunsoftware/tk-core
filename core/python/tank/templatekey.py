@@ -56,7 +56,7 @@ class TemplateKey(object):
         :throws: TankError if value is not valid for the key.
         """
         if abstract:
-            value = self._as_abstract(pattern) or value
+            value = value or self._as_abstract(pattern) 
 
         if value is None:
             if self.default is None:
@@ -117,6 +117,10 @@ class TemplateKey(object):
 
     def __repr__(self):
         return "<Tank %s %s>" % (self.__class__.__name__, self.name)
+
+    @property
+    def has_abstraction(self):
+        return hasattr(self, "_abstractor")
 
 
 class StringKey(TemplateKey):

@@ -322,7 +322,7 @@ class TestSequenceKey(TankTestBase):
         abstract frame spec value can be returned, frame spec with 
         one place has special cases.
         """
-        value = 999 # any valid value should work
+        value = None
         seq_field = SequenceKey("field_name")
         expected = "%01d"
         result = seq_field.str_from_value(value=value, abstract=True, pattern="%0d")
@@ -358,7 +358,7 @@ class TestSequenceKey(TankTestBase):
         Test abstract frame spec value returned for framespec with more than
         one places.
         """
-        value = 999 # any valid value should work
+        value = None
         seq_field = SequenceKey("field_name", format_spec="03")
         expected = "%03d"
         result = seq_field.str_from_value(value, abstract=True, pattern="%0d")
