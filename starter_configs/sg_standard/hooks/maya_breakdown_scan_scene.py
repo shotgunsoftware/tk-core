@@ -49,7 +49,8 @@ class ScanScene(Hook):
             path = cmds.getAttr("%s.fileTextureName" % file_node).replace("/", os.path.sep)
             
             refs.append( {"node": file_node, "type": "file", "path": path})
-            
+         
+        print refs   
         return refs
 
     
