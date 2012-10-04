@@ -189,6 +189,11 @@ class _SettingsValidator:
         # first sanity check that the schema is correct
         validate_schema(self._display_name, self._schema)
         
+        print "settings"
+        print settings
+        print "schema"
+        print self._schema
+        
         # Ensure that all required keys are in the settings and that the
         # values are appropriate.
         for settings_key in self._schema:
