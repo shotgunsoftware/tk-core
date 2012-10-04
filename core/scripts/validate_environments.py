@@ -27,6 +27,7 @@ from tank.platform.environment import Environment
 from tank.platform import validation
 
 g_templates = set()
+g_hooks = set()
 
 def validate_bundle(log, tk, name, settings, manifest):
 
@@ -62,6 +63,9 @@ def validate_bundle(log, tk, name, settings, manifest):
                 # remember templates
                 if manifest[s].get("type") == "template":
                     g_templates.add(value)
+                if manifest[s].get("type") == "hook":
+                    g_hooks.add(value)
+
                      
     for r in manifest.keys():
         if r not in settings.keys():
@@ -122,6 +126,22 @@ def validate_project(log, project_root):
     log.info("(they may be used inside complex data structures)")
     for ut in unused_templates:
         log.info(ut)
+
+    log.info("")
+    log.info("")
+    log.info("")
+    
+    # check hooks that are unused
+    hooks = os.listdir(constants.get_hooks_folder(project_root))
+    # strip extension from file name
+    all_hooks = set([ x[:-3] for x in hooks ])
+
+    unused_hooks = all_hooks - g_hooks 
+
+    log.info("The following hooks are not being used directly in any environments:")
+    log.info("(they may be used inside complex data structures)")
+    for uh in unused_hooks:
+        log.info(uh)
     
     log.info("")
     log.info("")
