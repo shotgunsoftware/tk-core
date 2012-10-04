@@ -26,8 +26,10 @@ from tank.deploy.app_store_descriptor import TankAppStoreDescriptor
 from tank.platform.environment import Environment
 from tank.platform import validation
 
+g_templates = set()
+
 def validate_bundle(log, tk, name, settings, manifest):
-    
+
     log.info("")
     log.info("Validating %s..." % name)
     manifest = manifest["configuration"]
@@ -39,6 +41,7 @@ def validate_bundle(log, tk, name, settings, manifest):
         
         else: 
             default = manifest[s].get("default_value")
+            
             value = settings[s]
             try:
                 validation.validate_single_setting(name, tk, manifest, s, value)
@@ -53,6 +56,10 @@ def validate_bundle(log, tk, name, settings, manifest):
                     log.info("  Parameter %s - OK [using default value]" % s)
                 else:
                     log.warning("  Parameter %s - OK [using non-default value]" % s)
+                    
+                # remember templates
+                if manifest[s].get("type") == "template":
+                    g_templates.add(value)
                      
     for r in manifest.keys():
         if r not in settings.keys():
@@ -67,11 +74,13 @@ def process_environment(log, tk, env_path):
     for e in env.get_engines():  
         s = env.get_engine_settings(e)
         m = env.get_engine_metadata(e)
-        validate_bundle(log, tk, e, s, m)
+        name = "Engine %s [environment %s]" % (e, env.name)
+        validate_bundle(log, tk, name, s, m)
         for a in env.get_apps(e):
             s = env.get_app_settings(e, a)
             m = env.get_app_metadata(e, a)
-            validate_bundle(log, tk, a, s, m)
+            name = "App %s: %s [environment %s]" % (e, a, env.name)
+            validate_bundle(log, tk, name, s, m)
     
     
     
@@ -96,11 +105,22 @@ def validate_project(log, project_root):
     log.info("")
     log.info("")
 
-    
+    # validate environments
     for x in envs:
         process_environment(log, tk, x)
-        
 
+    log.info("")
+    log.info("")
+    log.info("")
+        
+    # check templates that are orphaned
+    unused_templates = set(tk.templates.keys()) - g_templates 
+
+    log.info("The following templates are not being used directly in any environments:")
+    log.info("(they may be used inside complex data structures)")
+    for ut in unused_templates:
+        log.info(ut)
+    
     log.info("")
     log.info("")
     log.info("")
