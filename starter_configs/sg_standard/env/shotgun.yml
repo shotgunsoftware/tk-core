@@ -2,8 +2,8 @@
 # Copyright (c) 2012 Shotgun Software, Inc
 # ----------------------------------------------------
 
-# Example shotgun environment. This environment controls what items should be shown on 
-# the Shotgun Tank menu.
+description: "Example shotgun environment. This environment controls what items should be shown on
+              the Shotgun Tank menu."
 
 engines:
 

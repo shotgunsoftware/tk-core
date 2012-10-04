@@ -2,8 +2,12 @@
 # Copyright (c) 2012 Shotgun Software, Inc
 # ----------------------------------------------------
 
+description: "Apps and Engines related to Shot based work."
+
 engines:
+
   tk-maya:
+
     location: {name: tk-maya, type: app_store, version: v0.2.0}
     debug_logging: false
     menu_favourites:
@@ -11,7 +15,6 @@ engines:
     - {app_instance: tk-maya-publish, name: Snapshot}
     - {app_instance: tk-maya-publish, name: Publish...}
     template_project: shot_work_area_maya
-
 
     apps:
     
@@ -77,7 +80,6 @@ engines:
 
 
 
-
   tk-motionbuilder:
 
     debug_logging: false
@@ -88,6 +90,7 @@ engines:
     - {app_instance: tk-motionbuilder-publish, name: Publish...}
 
     apps:
+
       tk-multi-loader-1:
         location: {name: tk-multi-loader, type: app_store, version: v0.1.0}
         hook_add_file_to_scene: multi_add_file_to_scene
@@ -135,10 +138,6 @@ engines:
         location: {name: tk-multi-about, type: app_store, version: v0.1.0}
 
 
-
-
-
-
   tk-nuke:
   
     debug_logging: false
@@ -149,7 +148,6 @@ engines:
     - {app_instance: tk-nuke-publish, name: Snapshot}
     - {app_instance: tk-nuke-publish, name: Publish...}
     - {app_instance: tk-nuke-review, name: Submit for Review...}
-  
   
     apps:
       tk-nuke-breakdown:

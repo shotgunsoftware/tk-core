@@ -2,6 +2,8 @@
 # Copyright (c) 2012 Shotgun Software, Inc
 # ----------------------------------------------------
 
+description: "Apps and Engines related to Asset based work."
+
 engines:
 
 
@@ -18,7 +20,6 @@ engines:
 
       tk-multi-loader-rigging:
         location: {name: tk-multi-loader, type: app_store, version: v0.1.0}
-        
         menu_name: Load Rig...
         hook_add_file_to_scene: multi_add_file_to_scene
         sg_entity_types: {"Asset":[]}
@@ -26,7 +27,6 @@ engines:
 
       tk-multi-loader-texture:
         location: {name: tk-multi-loader, type: app_store, version: v0.1.0}
-        
         menu_name: Load Texture...
         hook_add_file_to_scene: multi_add_file_to_scene
         sg_entity_types: {"Asset":[]}
@@ -34,7 +34,6 @@ engines:
 
       tk-maya-publish:
         location: {name: tk-maya-publish, type: app_store, version: v0.1.1}
-        
         hook_publish_file: maya_publish_file
         hook_scan_scene: maya_breakdown_scan_scene
         input_templates_to_look_for: [maya_shot_publish, maya_asset_publish]
@@ -76,8 +75,8 @@ engines:
 
   tk-nuke:
 
-    debug_logging: false
     location: {name: tk-nuke, type: app_store, version: v0.2.3}
+    debug_logging: false
     menu_favourites:
     - {app_instance: tk-multi-setcontext, name: Set Work Area...}
     - {app_instance: tk-multi-recentfiles, name: Recent Work Files...}
@@ -85,9 +84,8 @@ engines:
     - {app_instance: tk-nuke-publish, name: Publish...}
     - {app_instance: tk-nuke-review, name: Submit for Review...}
 
-
-
     apps:
+    
       tk-nuke-breakdown:
         location: {name: tk-nuke-breakdown, type: app_store, version: v0.2.2}
         hook_multi_update: nuke_breakdown_update
