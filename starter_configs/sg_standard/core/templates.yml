@@ -10,10 +10,16 @@
 # templates.yml (this file) refers to those folders. Therefore, the two files need to be 
 # in sync. This file contains an overview of all locations that are used in Tank.
 #
-#
 # Whenever an app or an engine refers to a location on disk, it is using a entry defined in 
 # this file. For more information, see the Tank Documentation. 
 
+
+
+#
+# The keys section contains the definitions for all the different keys that are being
+# used in Tank. A key is a magic token that is replaced by a value at runtime, for example
+# {Shot}. The section below tells Tank which data types and formats to expect for each key.
+#
 keys:
     Sequence:
         type: str
@@ -53,13 +59,24 @@ keys:
         type: str
 
 
+#
+# The paths section contains all the the key locations where files are to be stored
+# by Tank Apps. Each path is made up of several keys (like {version} or {shot}) and
+# these are defined in the keys section above.
+#
+# Tank apps use these paths as part of their configuration to define where on disk
+# different files should go.
+#
+
 paths:
 
     ##########################################################################################
     # Shot pipeline 
+    #
 
-    # ------------------------------------------------------------------------------------
+    #
     # Maya
+    #
 
     # project
     shot_work_area_maya: sequences/{Sequence}/{Shot}/{Step}/work/maya
@@ -73,8 +90,9 @@ paths:
     # The location of published maya files
     maya_shot_publish: sequences/{Sequence}/{Shot}/{Step}/publish/maya/{name}.v{version}.ma
 
-    # ------------------------------------------------------------------------------------
+    #
     # Motion Builder
+    #
 
     # project
     shot_work_area_mobu: sequences/{Sequence}/{Shot}/{Step}/work/mobu
@@ -88,8 +106,9 @@ paths:
     # The location of published maya files
     mobu_shot_publish: sequences/{Sequence}/{Shot}/{Step}/publish/mobu/{name}.v{version}.fbx
 
-    # ------------------------------------------------------------------------------------
+    #
     # Nuke 
+    #
 
     shot_work_area_nuke: sequences/{Sequence}/{Shot}/{Step}/work/nuke
 
@@ -119,10 +138,11 @@ paths:
 
     ##########################################################################################
     # Asset pipeline 
-
-    # ------------------------------------------------------------------------------------
+    
+    #
     # Maya
-
+    #
+    
     # define the location of a work area
     asset_work_area_maya: assets/{sg_asset_type}/{Asset}/{Step}/work/maya
 
@@ -135,8 +155,9 @@ paths:
     # The location of published maya files
     maya_asset_publish: assets/{sg_asset_type}/{Asset}/{Step}/publish/maya/{name}.v{version}.ma
 
-    # ------------------------------------------------------------------------------------
+    #
     # Motion Builder
+    #
 
     # define the location of a work area
     asset_work_area_mobu: assets/{sg_asset_type}/{Asset}/{Step}/work/mobu
@@ -150,8 +171,9 @@ paths:
     # The location of published maya files
     mobu_asset_publish: assets/{sg_asset_type}/{Asset}/{Step}/publish/mobu/{name}.v{version}.fbx
 
-    # ------------------------------------------------------------------------------------
+    #
     # Nuke
+    #
 
     # define the location of a work area
     asset_work_area_nuke: assets/{sg_asset_type}/{Asset}/{Step}/work/nuke
@@ -174,6 +196,16 @@ paths:
 
     # The location of published nuke script files
     nuke_asset_publish: assets/{sg_asset_type}/{Asset}/{Step}/publish/nuke/{name}.v{version}.nk
+
+
+
+
+#
+# The strings section is similar to the paths section - but rather than defining paths
+# on disk, it contains a list of strings. Strings are typically used when you want to be 
+# able to configure the way data is written to shotgun - it may be the name field for a
+# review version or the formatting of a publish.
+#
 
 strings:
 
