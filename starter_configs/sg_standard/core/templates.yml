@@ -33,6 +33,10 @@ keys:
     version:
         type: int
         format_spec: "03"
+    version_four:
+       type: int
+       format_spec: "04"
+       alias: version
     timestamp:
         type: str
     width:
