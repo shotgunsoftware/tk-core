@@ -27,7 +27,9 @@ REQUIRED_TYPES = ["Maya Anim",
                   "Rendered Image",
                   "Review Quicktime",
                   "Review Sequence",
-                  "Stereo Rendered Image"]
+                  "Stereo Rendered Image",
+                  "Diffuse Texture",
+                  "Specular Texture"]
 
 def create(sg, project_id, log, **kwargs):
     project = {"type": "Project", "id": project_id}
