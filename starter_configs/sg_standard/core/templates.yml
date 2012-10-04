@@ -94,9 +94,6 @@ paths:
     # Motion Builder
     #
 
-    # project
-    shot_work_area_mobu: sequences/{Sequence}/{Shot}/{Step}/work/mobu
-
     # The location of WIP files
     mobu_shot_work: sequences/{Sequence}/{Shot}/{Step}/work/mobu/{name}.v{version}.fbx
 
@@ -109,8 +106,6 @@ paths:
     #
     # Nuke 
     #
-
-    shot_work_area_nuke: sequences/{Sequence}/{Shot}/{Step}/work/nuke
 
     # The location of WIP script files
     nuke_shot_work: sequences/{Sequence}/{Shot}/{Step}/work/nuke/{name}.v{version}.nk
@@ -133,7 +128,6 @@ paths:
     nuke_shot_render_pub_stereo:        sequences/{Sequence}/{Shot}/{Step}/publish/elements/{name}/v{version}/{width}x{height}/{Shot}_{name}_{channel}_{eye}_v{version}.{SEQ}.exr
 
     # review output
-    shot_quicktime: sequences/{Sequence}/{Shot}/{Step}/review/{name}_v{version}.{iteration}.mov
     shot_quicktime_quick: sequences/{Sequence}/{Shot}/{Step}/review/quickdaily/{Shot}_{name}_quick_{iteration}.mov
 
     ##########################################################################################
@@ -156,27 +150,8 @@ paths:
     maya_asset_publish: assets/{sg_asset_type}/{Asset}/{Step}/publish/maya/{name}.v{version}.ma
 
     #
-    # Motion Builder
-    #
-
-    # define the location of a work area
-    asset_work_area_mobu: assets/{sg_asset_type}/{Asset}/{Step}/work/mobu
-
-    # The location of WIP files
-    mobu_asset_work: assets/{sg_asset_type}/{Asset}/{Step}/work/mobu/{name}.v{version}.fbx
-
-    # The location of backups of WIP files
-    mobu_asset_snapshot: assets/{sg_asset_type}/{Asset}/{Step}/work/mobu/snapshots/{name}.v{version}.{timestamp}.fbx
-
-    # The location of published maya files
-    mobu_asset_publish: assets/{sg_asset_type}/{Asset}/{Step}/publish/mobu/{name}.v{version}.fbx
-
-    #
     # Nuke
     #
-
-    # define the location of a work area
-    asset_work_area_nuke: assets/{sg_asset_type}/{Asset}/{Step}/work/nuke
 
     # outputs from the tank write node for assets
     nuke_asset_render: assets/{sg_asset_type}/{Asset}/{Step}/work/images/{name}/v{version}/{width}x{height}/{Asset}_{name}_{channel}_v{version}.{SEQ}.exr
@@ -185,7 +160,6 @@ paths:
     nuke_asset_render_pub: assets/{sg_asset_type}/{Asset}/{Step}/publish/elements/{name}/v{version}/{width}x{height}/{Asset}_{name}_{channel}_v{version}.{SEQ}.exr
 
     # review output
-    asset_quicktime: assets/{sg_asset_type}/{Asset}/{Step}/review/{name}_v{version}.{iteration}.mov
     asset_quicktime_quick: assets/{sg_asset_type}/{Asset}/{Step}/review/quickdaily/{Asset}_{name}_quick_{iteration}.mov
 
     # The location of WIP script files
