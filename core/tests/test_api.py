@@ -10,7 +10,7 @@ import tank
 from tank.api import Tank
 from tank.errors import TankError
 from tank.template import TemplatePath, TemplateString
-from tank.templatekey import StringKey, IntegerKey, SequenceKey
+from tank.templatekey import StringKey, IntegerKey, SequenceKey, EyeKey
 
 from tank_test.tank_test_base import *
 
@@ -246,6 +246,78 @@ class TestPathsFromTemplateGlob(TankTestBase):
         self.assert_glob(fields, expected_glob, skip_keys)
 
     
+class TestAbstractPathFromTemplate(TankTestBase):
+    def setUp(self):
+        super(TestAbstractPathFromTemplate, self).setUp()
+        self.setup_fixtures()
+        # create project data
+        seq_path = os.path.join(self.project_root, "sequences/Seq_1")
+        self.add_production_path(seq_path,
+                            {"type":"Sequence", "id":1, "name": "Seq_1"})
+        # one shot
+        shot_path = os.path.join(seq_path, "Shot_1")
+        self.add_production_path(shot_path,
+                            {"type":"Shot", "id":1, "name": "shot_1"})
+        # one step
+        step_path = os.path.join(shot_path, "step_name")
+        self.add_production_path(step_path,
+                            {"type":"Step", "id":1, "name": "step_name"})
+
+        self.tk = Tank(self.project_root)
+
+        keys = {"Sequence": StringKey("Sequence"),
+                "Shot": StringKey("Shot"),
+                "Step": StringKey("Step"),
+                "eye": EyeKey("eye"),
+                "version": IntegerKey("version"),
+                "frame": SequenceKey("frame", format_spec="03")}
+
+        # create template with abstract and non-abstract keys
+        definition = "sequences/{Sequence}/{Shot}/{Step}/images/{eye}/{Shot}.{version}.{frame}.ext"
+        self.template = self.tk.templates("nuke_shot_render_mono_dpx", keys, self.project_root)
+
+        # make some fake files with different frames
+        self.fields = {"Sequence":"Seq_1",
+                  "Shot": "shot_1",
+                  "Step": "step_name",
+                  "version": 13,
+                  "eye": "L"}
+        self.fields["frame"] = 1
+        file_path = self.template.apply_fields(self.fields)
+        self.file_1 = file_path
+        self.create_file(self.file_1)
+
+        self.fields["frame"] = 2
+        file_path = self.template.apply_fields(self.fields)
+        self.file_2 = file_path
+        self.create_file(self.file_2)
+
+        # change eye directory
+        self.fields["eye"] = "R"
+        file_path = self.template.apply_fields(self.fields)
+        self.file_3 = file_path
+        self.create_file(self.file_3)
+
+    
+    def test_all_abstract(self):
+        # fields missing will be treated as abstract
+        del(self.field["eye"])
+        del(self.field["frame"])
+        relative_path = os.path.join("sequences",
+                                     "Seq_1",
+                                     "shot_1",
+                                     "images",
+                                     "%V",
+                                     "shot_1.13.###.ext")
+        expected = os.path.join(self.project_root, relative_path)
+
+
+    def test_frames_only(self):
+        assert False
+
+    def test_no_abstract(self):
+        assert False
+
     
 class TestVersionProperty(TankTestBase):
     """

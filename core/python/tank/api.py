@@ -155,6 +155,14 @@ class Tank(object):
         found_files =  glob.glob(glob_str)    
         return [found_file for found_file in found_files if template.validate(found_file)]
     
+    def abstract_path_from_template(self, template, fields, pattern=None):
+        """
+        Returns a path representing files on disk which conform to a given template.
+
+        Fields missing from the fields mapping will be represented by their abstract value.
+        """
+        return ""
+
     def paths_from_entity(self, entity_type, entity_id):
         """
         Finds paths associated with an entity.
@@ -264,6 +272,7 @@ class Tank(object):
         """
         hook_path = _get_hook_path(hook_name, self.project_path)
         return hook.execute_hook(hook_path, self, **kwargs)
+
     
 
 ##########################################################################################

@@ -541,3 +541,27 @@ class TestMakeKeys(TankTestBase):
         key = keys.get("real_key_name")
         self.assertIsInstance(key, StringKey)
         self.assertEquals("alias_name", key.name)
+
+#class TestEyeKey(TankTestBase):
+#    def setUp(self):
+#        super(TestEyeKey, self).setUp()
+#        self.eye_key = EyeKey("eye")
+#        self.abstract_value = "%V"
+#
+#    def test_type(self):
+#        self.assertIsInstance(self.eye_key, EyeKey)
+#
+#    def test_validate(self):
+#        self.assertTrue(self.eye_key.validate(self.abstract_value))
+#        self.assertTrue(self.eye_key.validate("L"))
+#        self.assertTrue(self.eye_key.validate("R"))
+#
+#    def test_str_from_value_abstract(self):
+#        self.assertEquals(self.abstract_value, self.eye_key.str_from_value())
+#
+#    def test_set_choices(self):
+#        eye_key = EyeKey("eye", choices=["l","r"])
+#        self.assertTrue(self.eye_key.validate(self.abstract_value))
+#        self.assertTrue(self.eye_key.validate("l"))
+#        self.assertTrue(self.eye_key.validate("r"))
+
