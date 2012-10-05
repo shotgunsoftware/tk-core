@@ -494,24 +494,20 @@ class TestApplyFields(TestTemplatePath):
         result = template_path.apply_fields(fields)
         self.assertEquals(expected, result)
 
-    def test_abstract_seq(self):
+    def test_format_default(self):
         definition = "shots/{Shot}.{branch}.{frame}.ext"
         template = TemplatePath(definition, self.keys, self.project_root)
         fields = { "Shot": "s1",
                    "branch": "loon"}
                    
-        # default abstract
+        # default format
         expected = os.path.join(self.project_root, "shots", "s1.loon.%04d.ext")
-        self.assertEquals(expected, template.apply_fields(fields, abstract=True))
+        self.assertEquals(expected, template.apply_fields(fields))
 
-        # specify abstract
+        # specify default format
         expected = os.path.join(self.project_root, "shots", "s1.loon.####.ext")
-        self.assertEquals(expected, template.apply_fields(fields, abstract=True, pattern="#d"))
-
-        # should use value if specified
-        fields["frame"] = 13
-        expected = os.path.join(self.project_root, "shots", "s1.loon.0013.ext")
-        self.assertEquals(expected, template.apply_fields(fields, abstract=True, pattern="#d"))
+        fields["frame"] = "#d"
+        self.assertEquals(expected, template.apply_fields(fields))
 
 
 class Test_ApplyFields(TestTemplatePath):

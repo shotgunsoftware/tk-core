@@ -317,81 +317,71 @@ class TestSequenceKey(TankTestBase):
         result = self.seq_field.str_from_value(value, ignore_type=True)
         self.assertEquals(expected, result)
 
-    def test_str_from_value_abstract_one(self):
+    def test_str_from_value_default_one(self):
         """
-        abstract frame spec value can be returned, frame spec with 
+        default frame spec value can be returned, frame spec with 
         one place has special cases.
         """
         value = None
         seq_field = SequenceKey("field_name")
         expected = "%01d"
-        result = seq_field.str_from_value(value=value, abstract=True, pattern="%0d")
+        result = seq_field.str_from_value(value="%0d")
         self.assertEquals(expected, result)
 
         expected = "%d"
-        result = seq_field.str_from_value(value=value, abstract=True, pattern="%d")
+        result = seq_field.str_from_value(value="%d")
         self.assertEquals(expected, result)
 
         expected = "#"
-        result = seq_field.str_from_value(value=value, abstract=True, pattern="#")
+        result = seq_field.str_from_value(value="#")
         self.assertEquals(expected, result)
 
         expected = "@"
-        result = seq_field.str_from_value(value=value, abstract=True, pattern="@d")
+        result = seq_field.str_from_value(value="@d")
         self.assertEquals(expected, result)
 
         expected = "$F1"
-        result = seq_field.str_from_value(value=value, abstract=True, pattern="$Fd")
+        result = seq_field.str_from_value(value="$Fd")
         self.assertEquals(expected, result)
 
         expected = "$F"
-        result = seq_field.str_from_value(value=value, abstract=True, pattern="$F")
+        result = seq_field.str_from_value(value="$F")
         self.assertEquals(expected, result)
 
         # no pattern specified
         expected = "%01d"
-        result = seq_field.str_from_value(value=value, abstract=True)
+        result = seq_field.str_from_value()
         self.assertEquals(expected, result)
 
-    def test_str_from_value_abstract_three(self):
+    def test_str_from_value_default_three(self):
         """
-        Test abstract frame spec value returned for framespec with more than
+        Test default frame spec value returned for framespec with more than
         one places.
         """
-        value = None
         seq_field = SequenceKey("field_name", format_spec="03")
         expected = "%03d"
-        result = seq_field.str_from_value(value, abstract=True, pattern="%0d")
+        result = seq_field.str_from_value("%0d")
         self.assertEquals(expected, result)
 
         expected = "#"
-        result = seq_field.str_from_value(value, abstract=True, pattern="#")
+        result = seq_field.str_from_value("#")
         self.assertEquals(expected, result)
 
         expected = "###"
-        result = seq_field.str_from_value(value, abstract=True, pattern="#d")
+        result = seq_field.str_from_value("#d")
         self.assertEquals(expected, result)
 
         expected = "@@@"
-        result = seq_field.str_from_value(value, abstract=True, pattern="@d")
+        result = seq_field.str_from_value("@d")
         self.assertEquals(expected, result)
 
         expected = "$F3"
-        result = seq_field.str_from_value(value, abstract=True, pattern="$Fd")
+        result = seq_field.str_from_value("$Fd")
         self.assertEquals(expected, result)
 
         # no pattern specified
         expected = "%03d"
-        result = seq_field.str_from_value(value, abstract=True)
-        self.assertEquals(expected, result)
-
-    def test_str_from_value_abstract_none(self):
-        """
-        Test abstract frame spec value returned with no value supplied.
-        """
-        seq_field = SequenceKey("field_name", format_spec="03")
-        expected = "%03d"
-        result = seq_field.str_from_value(abstract=True, pattern="%0d")
+        result = seq_field.str_from_value()
         self.assertEquals(expected, result)
 
     def test_default_int(self):
@@ -542,26 +532,26 @@ class TestMakeKeys(TankTestBase):
         self.assertIsInstance(key, StringKey)
         self.assertEquals("alias_name", key.name)
 
-#class TestEyeKey(TankTestBase):
-#    def setUp(self):
-#        super(TestEyeKey, self).setUp()
-#        self.eye_key = EyeKey("eye")
-#        self.abstract_value = "%V"
-#
-#    def test_type(self):
-#        self.assertIsInstance(self.eye_key, EyeKey)
-#
-#    def test_validate(self):
-#        self.assertTrue(self.eye_key.validate(self.abstract_value))
-#        self.assertTrue(self.eye_key.validate("L"))
-#        self.assertTrue(self.eye_key.validate("R"))
-#
-#    def test_str_from_value_abstract(self):
-#        self.assertEquals(self.abstract_value, self.eye_key.str_from_value())
-#
-#    def test_set_choices(self):
-#        eye_key = EyeKey("eye", choices=["l","r"])
-#        self.assertTrue(self.eye_key.validate(self.abstract_value))
-#        self.assertTrue(self.eye_key.validate("l"))
-#        self.assertTrue(self.eye_key.validate("r"))
+class TestEyeKey(TankTestBase):
+    """
+    Tests that key representing eye can be setup.
+    """
+    def setUp(self):
+        super(TestEyeKey, self).setUp()
+        self.eye_key = StringKey("eye", default="%V", choices=["%V","L","R"])
+        self.default_value = "%V"
+
+    def test_validate(self):
+        self.assertTrue(self.eye_key.validate(self.default_value))
+        self.assertTrue(self.eye_key.validate("L"))
+        self.assertTrue(self.eye_key.validate("R"))
+
+    def test_str_from_value_default(self):
+        self.assertEquals(self.default_value, self.eye_key.str_from_value())
+
+    def test_set_choices(self):
+        eye_key = EyeKey("eye", choices=["l","r"])
+        self.assertTrue(self.eye_key.validate(self.default_value))
+        self.assertTrue(self.eye_key.validate("l"))
+        self.assertTrue(self.eye_key.validate("r"))
 
