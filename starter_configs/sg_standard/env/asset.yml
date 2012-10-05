@@ -135,7 +135,7 @@ engines:
       tk-multi-recentfiles:
         location: {name: tk-multi-recentfiles, type: app_store, version: v0.1.0}
         template_work: nuke_asset_work
-        launch_at_startup: true
+        launch_at_startup: false
         
       tk-multi-revolver:
         location: {name: tk-multi-revolver, type: app_store, version: v0.1.0}
