@@ -839,9 +839,15 @@ class TestGetFields(TestTemplatePath):
         result = template.get_fields(input_path)
         self.assertEqual(expected, result)
 
-    def test_no_keys(self):
-        template = tank.TemplatePath("no keys", {}, self.project_root)
-        self.assertEqual({}, template.get_fields("anything"))
+    def test_no_keys_valid(self):
+        template = tank.TemplatePath("no/keys", {}, self.project_root)
+        input_path = os.path.join(self.project_root, "no/keys")
+        self.assertEqual({}, template.get_fields(input_path))
+
+    def test_no_keys_invalid(self):
+        template = tank.TemplatePath("no/keys", {}, self.project_root)
+        input_path = os.path.join(self.project_root, "some", "thing", "else")
+        self.assertRaises(TankError, template.get_fields, input_path)
 
 
 class TestGetKeysSepInValue(TestTemplatePath):
