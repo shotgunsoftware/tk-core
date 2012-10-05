@@ -83,7 +83,7 @@ engines:
   tk-motionbuilder:
 
     debug_logging: false
-    location: {name: tk-motionbuilder, type: app_store, version: v0.2.0}
+    location: {name: tk-motionbuilder, type: app_store, version: v0.2.1}
     menu_favourites:
     - {app_instance: tk-multi-recentfiles, name: Recent Work Files...}
     - {app_instance: tk-motionbuilder-publish, name: Snapshot}
@@ -91,18 +91,11 @@ engines:
 
     apps:
 
-      tk-multi-loader-1:
+      tk-multi-loader:
         location: {name: tk-multi-loader, type: app_store, version: v0.1.0}
         hook_add_file_to_scene: multi_add_file_to_scene
-        menu_name: Load Asset FBX...
-        sg_entity_types: {"Asset":[]}
-        tank_types: [Motion Builder FBX]
-        
-      tk-multi-loader-2:
-        location: {name: tk-multi-loader, type: app_store, version: v0.1.0}
-        hook_add_file_to_scene: multi_add_file_to_scene
-        menu_name: Load Shot FBX...
-        sg_entity_types: {"Shot":[]}
+        menu_name: Load FBX...
+        sg_entity_types: {"Asset":[], "Shot":[]}
         tank_types: [Motion Builder FBX]
         
       tk-motionbuilder-publish:
@@ -116,7 +109,7 @@ engines:
       tk-multi-recentfiles:
         location: {name: tk-multi-recentfiles, type: app_store, version: v0.1.0}
         template_work: mobu_shot_work
-        launch_at_startup: true
+        launch_at_startup: false
         
       tk-multi-revolver:
         location: {name: tk-multi-revolver, type: app_store, version: v0.1.0}
