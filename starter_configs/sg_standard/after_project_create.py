@@ -18,17 +18,18 @@ the following keyword arguments:
 
 # list of tank types to create for this starter configuration
 REQUIRED_TYPES = ["Maya Anim",
-                  "Maya Scene",
+                  "Maya Lighting",
                   "Maya Model",
                   "Maya Rig",
-                  "Quicktime",
+                  "Maya Scene",
+                  "Motion Builder FBX",
                   "Nuke Script",
-                  "Lighting Scene",
                   "Rendered Image",
-                  "Maya Rig High LOD",
-                  "Maya Rig Low LOD",
-                  "Maya Lighting Scene",
-                  "Stereo Rendered Image"]
+                  "Review Quicktime",
+                  "Review Sequence",
+                  "Stereo Rendered Image",
+                  "Diffuse Texture",
+                  "Specular Texture"]
 
 def create(sg, project_id, log, **kwargs):
     project = {"type": "Project", "id": project_id}

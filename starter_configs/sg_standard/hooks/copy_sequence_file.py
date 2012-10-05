@@ -10,7 +10,7 @@ from tank import Hook
 import shutil
 import os
 
-class MayaPubPublishFile(Hook):
+class NukeCopySequenceFile(Hook):
     
     def execute(self, source_path, target_path, **kwargs):
         shutil.copy(source_path, target_path) 

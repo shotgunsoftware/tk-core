@@ -1,76 +1,155 @@
+#
+# Copyright (c) 2012 Shotgun Software, Inc
+# ----------------------------------------------------
+
+description: "Apps and Engines related to Asset based work."
+
 engines:
-    tk-maya:
-        debug_logging: false
-        template_project: "asset_work_area_maya"
-        location: {"type": "app_store", "name": "tk-maya", "version": "v0.1.0"}
-
-        apps:
-            tk-maya-publish:
-                location: {"type": "app_store", "name": "tk-maya-publish", "version": "v0.1.0"}
-                template_work: "maya_asset_work"
-                template_snapshot: "maya_asset_snapshot"
-                template_publish: "maya_asset_publish"
-                validation_hooks: [ "maya_example_publish_validator" ]
-                hook_publish_file: maya_publish_file
-                hook_scan_scene: maya_breakdown_scan_scene
-                input_templates_to_look_for: [maya_shot_publish, maya_asset_publish]
-                publish_tank_types:
-                    - { step: Rig, tank_types: ["Maya Rig High LOD", "Maya Rig Low LOD"]}
-                    - { step: '*', tank_types: ["Maya Scene"]}
-
-            tk-maya-revolver:
-                location: {"type": "app_store", "name": "tk-maya-revolver", "version": "v0.1.0"}
-                rv_path_windows: "C:\\Program Files\\RV\\RV64.exe"
-                rv_path_linux: "rv"
-                rv_path_mac: "/Applications/RV64.app"
-
-            tk-maya-breakdown:
-                location: {"type": "app_store", "name": "tk-maya-breakdown", "version": "v0.1.0"}
-                templates_to_look_for: ["maya_shot_publish", "maya_asset_publish"]
-                hook_scan_scene: maya_breakdown_scan_scene
-                hook_update: maya_breakdown_update
 
 
-    tk-nuke:
-        location: {"type": "app_store", "name": "tk-nuke", "version": "v0.1.0"}
-        debug_logging: false
-        template_context: asset_work_area_nuke
+  tk-maya:
+    location: {name: tk-maya, type: app_store, version: v0.2.0}
+    debug_logging: false
+    menu_favourites:
+      - {app_instance: tk-maya-recentfiles, name: Recent Work Files...}
+      - {app_instance: tk-maya-publish, name: Snapshot}
+      - {app_instance: tk-maya-publish, name: Publish...}
+    template_project: asset_work_area_maya
 
-        apps:
+    apps:
 
-            tk-nuke-publish:
-                location: {"type": "app_store", "name": "tk-nuke-publish", "version": "v0.1.2"}
-                write_nodes:
-                    -   render_template: nuke_asset_render
-                        publish_template: nuke_asset_render_pub
-                        name: Exr
-                        file_type: exr
-                        tank_type: "Rendered Image"
-                        settings: {}
-                movies: []
-                template_version_name: nuke_version_name
-                template_work: nuke_asset_work
-                template_snapshot: nuke_asset_snapshot
-                template_publish: nuke_asset_publish
-                input_templates_to_look_for: [nuke_asset_render]
-                hook_publish_file: nuke_publish_file
-                hook_generate_movie: nuke_generate_movie
-                published_script_tank_type: "Nuke Script"
+      tk-multi-loader-rigging:
+        location: {name: tk-multi-loader, type: app_store, version: v0.1.0}
+        menu_name: Load Rig...
+        hook_add_file_to_scene: multi_add_file_to_scene
+        sg_entity_types: {"Asset":[]}
+        tank_types: [Maya Rig]
 
-            tk-nuke-makequicktime:
-                location: {"type": "app_store", "name": "tk-nuke-makequicktime", "version": "v0.1.1"}
-                profiles:
-                    standard:
-                        width: 2048
-                        height: 1080
-                        codec: jpeg
+      tk-multi-loader-texture:
+        location: {name: tk-multi-loader, type: app_store, version: v0.1.0}
+        menu_name: Load Texture...
+        hook_add_file_to_scene: multi_add_file_to_scene
+        sg_entity_types: {"Asset":[]}
+        tank_types: [Diffuse Texture, Specular Texture]
 
-                    half_res:
-                        width: 1024
-                        height: 540
-                        codec: jpeg
+      tk-maya-publish:
+        location: {name: tk-maya-publish, type: app_store, version: v0.1.1}
+        hook_publish_file: maya_publish_file
+        hook_scan_scene: maya_breakdown_scan_scene
+        input_templates_to_look_for: [maya_shot_publish, maya_asset_publish]
+        
+        publish_tank_types:
+        - step: Model
+          tank_types: [Maya Model]
+        - step: Rig
+          tank_types: [Maya Rig]
+        - step: '*'
+          tank_types: [Maya Scene]
+        template_publish: maya_asset_publish
+        template_snapshot: maya_asset_snapshot
+        template_work: maya_asset_work
+        validation_hooks: ["maya_example_publish_validator"]
 
-            tk-nuke-breakdown:
-                location: {"type": "app_store", "name": "tk-nuke-breakdown", "version": "v0.1.0"}
-                templates_to_look_for: [nuke_asset_render]
+      tk-multi-recentfiles:
+        location: {name: tk-multi-recentfiles, type: app_store, version: v0.1.0}
+        template_work: maya_asset_work
+        launch_at_startup: true
+
+      tk-multi-revolver:
+        location: {name: tk-multi-revolver, type: app_store, version: v0.1.0}
+        rv_path_linux: rv
+        rv_path_mac: /Applications/RV64.app
+        rv_path_windows: C:\Program Files\RV\RV64.exe
+
+      tk-multi-setcontext:
+        location: {name: tk-multi-setcontext, type: app_store, version: v0.1.0}
+        enable_create_tasks: true
+        sg_entity_types: [Shot, Asset]
+
+      tk-multi-about:
+        location: {name: tk-multi-about, type: app_store, version: v0.1.0}
+
+
+
+
+
+  tk-nuke:
+
+    location: {name: tk-nuke, type: app_store, version: v0.2.3}
+    debug_logging: false
+    menu_favourites:
+    - {app_instance: tk-multi-setcontext, name: Set Work Area...}
+    - {app_instance: tk-multi-recentfiles, name: Recent Work Files...}
+    - {app_instance: tk-nuke-publish, name: Snapshot}
+    - {app_instance: tk-nuke-publish, name: Publish...}
+    - {app_instance: tk-nuke-review, name: Submit for Review...}
+
+    apps:
+    
+      tk-nuke-breakdown:
+        location: {name: tk-nuke-breakdown, type: app_store, version: v0.2.2}
+        hook_multi_update: nuke_breakdown_update
+        hook_scan_scene: nuke_breakdown_scan_scene
+
+      tk-multi-loader:
+        location: {name: tk-multi-loader, type: app_store, version: v0.1.0}
+        hook_add_file_to_scene: multi_add_file_to_scene
+        menu_name: Load Render...
+        sg_entity_types: {"Asset":[]}
+        tank_types: [Rendered Image]
+        
+      tk-nuke-publish:
+        location: {name: tk-nuke-publish, type: app_store, version: v0.2.4}
+        hook_publish_file: nuke_publish_file
+        input_templates_to_look_for: [nuke_asset_render]
+        published_script_tank_type: Nuke Script
+        template_publish: nuke_asset_publish
+        template_snapshot: nuke_asset_snapshot
+        template_work: nuke_asset_work
+        write_nodes:
+        - file_type: exr
+          name: Exr
+          publish_template: nuke_asset_render_pub
+          render_template: nuke_asset_render
+          settings: {}
+          tank_type: Rendered Image
+          
+      tk-nuke-quickdailies:
+        location: {name: tk-nuke-quickdailies, type: app_store, version: v0.1.2}
+        current_scene_template: nuke_asset_work
+        width: 1024
+        height: 768
+        movie_template: asset_quicktime_quick
+        sg_version_name_template: nuke_quick_asset_version_name
+        post_hooks: [snapshot_history_post_quickdaily]
+        
+      tk-nuke-review:
+        location: {name: tk-nuke-review, type: app_store, version: v0.1.2}
+        hook_copy_sequence_file: copy_sequence_file
+        hook_create_content: review_create_content
+        hook_scan_scene: review_scan_scene
+        mappings:
+        - {input_template: nuke_asset_render, quicktime_output_template: nuke_asset_render_review_mov,
+          sequence_output_template: nuke_asset_render_review_seq, version_name_template: nuke_asset_version_name}
+        
+      tk-multi-recentfiles:
+        location: {name: tk-multi-recentfiles, type: app_store, version: v0.1.0}
+        template_work: nuke_asset_work
+        launch_at_startup: false
+        
+      tk-multi-revolver:
+        location: {name: tk-multi-revolver, type: app_store, version: v0.1.0}
+        rv_path_linux: rv
+        rv_path_mac: /Applications/RV64.app
+        rv_path_windows: C:\Program Files\RV\RV64.exe
+        
+      tk-multi-setcontext:
+        enable_create_tasks: true
+        location: {name: tk-multi-setcontext, type: app_store, version: v0.1.0}
+        sg_entity_types: [Shot, Asset]
+        
+      tk-multi-about:
+        location: {name: tk-multi-about, type: app_store, version: v0.1.0}
+
+
 

@@ -8,6 +8,7 @@
 # control. This file makes it easy for tank to ignore such files.
 #
 
+placeholder
 
 # ignore mac files
 .DS_Store
@@ -21,4 +22,3 @@
 
 # this is the last line of the file
 ##########################################################################################
-

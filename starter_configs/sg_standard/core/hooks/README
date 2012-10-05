@@ -1,4 +1,3 @@
-
 This location is for core hook override files.
 
 Tank comes with a series of Core Hooks, essentially snippets of python that contain
