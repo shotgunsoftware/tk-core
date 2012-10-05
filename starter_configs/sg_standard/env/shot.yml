@@ -34,7 +34,7 @@ engines:
         location: {name: tk-multi-loader, type: app_store, version: v0.1.0}
         hook_add_file_to_scene: multi_add_file_to_scene
         menu_name: Load Shots...
-        sg_entity_types: {"Shots":[]}
+        sg_entity_types: {"Shot":[]}
         tank_types: [Maya Anim, Maya Lighting, Maya Scene]
         
       tk-maya-publish:
