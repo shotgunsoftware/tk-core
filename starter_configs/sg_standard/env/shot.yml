@@ -136,7 +136,6 @@ engines:
     debug_logging: false
     location: {name: tk-nuke, type: app_store, version: v0.2.3}
     menu_favourites:
-    - {app_instance: tk-multi-setcontext, name: Set Work Area...}
     - {app_instance: tk-multi-recentfiles, name: Recent Work Files...}
     - {app_instance: tk-nuke-publish, name: Snapshot}
     - {app_instance: tk-nuke-publish, name: Publish...}
