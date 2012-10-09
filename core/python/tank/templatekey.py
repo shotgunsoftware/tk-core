@@ -8,6 +8,7 @@ import re
 from .errors import TankError
 
 DEFAULT_FRAMESPEC_PATTERN = "%0d"
+FRAMESPEC_FORMAT_INDICATOR = "FORMAT:"
 
 class TemplateKey(object):
     """Base class for template keys. Should not be used directly."""
@@ -43,21 +44,16 @@ class TemplateKey(object):
         if not all(self.validate(choice) for choice in self.choices):
             raise TankError(self._last_error)
     
-    def str_from_value(self, value=None, ignore_type=False, abstract=False, pattern=None):
+    def str_from_value(self, value=None, ignore_type=False):
         """
         Returns a string version of a value as appropriate for the key's setting.
 
         :param value: (Optional) Value to process. Will use key's default if value is None.
         :ignore_type: (Optional) Returns casts value to a string with no validation.
-        :param abstract: (Optional) For keys with abstract value, returns abstract value.
-        :param pattern: (Optional) Pattern for abstrac value if applicable.
 
         :returns: String version of value as processed by the key.
         :throws: TankError if value is not valid for the key.
         """
-        if abstract:
-            value = value or self._as_abstract(pattern) 
-
         if value is None:
             if self.default is None:
                 raise TankError("No value provided and no default available for %s" % self)
@@ -236,8 +232,10 @@ class SequenceKey(IntegerKey):
                  shotgun_entity_type=None,
                  shotgun_field_name=None,
                  exclusions=None):
+
         self.frame_specs = _determine_frame_specs(format_spec)
-        self._abstractor = Abstractor(self.frame_specs, self)
+        format_strings = ['%0d', '%d', '#', '#d', '@d', '$Fd', '$F']
+        self._format_patterns = ["%s%s" % (FRAMESPEC_FORMAT_INDICATOR, x) for x in format_strings]
         super(SequenceKey, self).__init__(name,
                                           default=default,
                                           choices=choices,
@@ -246,47 +244,54 @@ class SequenceKey(IntegerKey):
                                           shotgun_field_name=shotgun_field_name,
                                           exclusions=exclusions)
 
-    def validate(self, value, messages=None):
-        return self._abstractor.validate(value, messages)
-
-    def _as_string(self, value):
-        return self._abstractor.as_string(value)
-
-    def _as_abstract(self, pattern):
-        pattern = pattern or DEFAULT_FRAMESPEC_PATTERN
-        return _frame_spec_from_pattern(self.format_spec, pattern)
-
-    def _as_value(self, str_value):
-        return self._abstractor.as_value(str_value)
-
-class Abstractor(object):
-    """Class for handling abstract values. Intended for composition.
-    """
-    def __init__(self, abstract_choices, obj):
-        """
-        :param abstract_choices: List of acceptable abstract choices.
-        """
-        self.abstract_choices = abstract_choices
-        self.obj = obj
+        self.default = self.default or self._as_abstract()
 
     def validate(self, value, messages=None):
-
-        if value in self.abstract_choices:
+        if value in self.frame_specs or value in self._format_patterns:
             return True
         else:
-            return super(self.obj.__class__, self.obj).validate(value, messages)
+            return super(SequenceKey, self).validate(value, messages)
 
-    def as_string(self, value):
-        if value in self.abstract_choices:
+    def _as_string(self, value):
+        if isinstance(value, basestring) and value.startswith(FRAMESPEC_FORMAT_INDICATOR):
+            return self._as_abstract(value.replace(FRAMESPEC_FORMAT_INDICATOR, ""))
+
+        if value in self.frame_specs:
             return value
         else:
-            return super(self.obj.__class__, self.obj)._as_string(value)
+            return super(SequenceKey, self)._as_string(value)
 
-    def as_value(self, str_value):
-        if str_value in self.abstract_choices:
+    def _as_abstract(self, pattern=None):
+        pattern = pattern or DEFAULT_FRAMESPEC_PATTERN
+        frame_spec = None
+        places = int(self.format_spec)
+
+        if pattern == "%0d":
+            frame_spec = "%%0%dd" % places
+        elif pattern == "%d":
+            frame_spec = "%d"
+        elif pattern == "#":
+            frame_spec = "#"
+        elif pattern == "#d":
+            frame_spec = "#"*places
+        elif pattern == "@d":
+            frame_spec = "@"*places
+        elif pattern == "$Fd":
+            frame_spec = "$F%d" % places
+        elif pattern == "$F":
+            frame_spec = "$F"
+        else:
+            msg = "Illegal format pattern for framespec: '%s'. Legal patterns are: " % pattern
+            msg += "%s" % ", ".join(self._format_patterns)
+            raise TankError(msg)
+        return frame_spec
+
+    def _as_value(self, str_value):
+        if str_value in self.frame_specs:
             return str_value
         else:
-            return super(self.obj.__class__, self.obj)._as_value(str_value)
+            return super(SequenceKey, self)._as_value(str_value)
+
 
 def _determine_frame_specs(format_spec):
     frame_specs = set()
@@ -309,29 +314,6 @@ def _determine_frame_specs(format_spec):
 
     return frame_specs
 
-def _frame_spec_from_pattern(format_spec, pattern):
-    frame_spec = None
-    places = int(format_spec)
-
-    if pattern == "%0d":
-        frame_spec = "%%0%dd" % places
-    elif pattern == "%d":
-        frame_spec = "%d"
-    elif pattern == "#":
-        frame_spec = "#"
-    elif pattern == "#d":
-        frame_spec = "#"*places
-    elif pattern == "@d":
-        frame_spec = "@"*places
-    elif pattern == "$Fd":
-        frame_spec = "$F%d" % places
-    elif pattern == "$F":
-        frame_spec = "$F"
-    else:
-        msg = "Illegal pattern for framespec: '%s'. Legal patterns are: " % pattern
-        msg += "'%0d', '%d', '#', '#d', '@d', '$Fd', '$F'"
-        raise TankError(msg)
-    return frame_spec
 
 
 def make_keys(data):

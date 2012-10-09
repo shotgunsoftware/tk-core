@@ -325,27 +325,27 @@ class TestSequenceKey(TankTestBase):
         value = None
         seq_field = SequenceKey("field_name")
         expected = "%01d"
-        result = seq_field.str_from_value(value="%0d")
+        result = seq_field.str_from_value(value="FORMAT:%0d")
         self.assertEquals(expected, result)
 
         expected = "%d"
-        result = seq_field.str_from_value(value="%d")
+        result = seq_field.str_from_value(value="FORMAT:%d")
         self.assertEquals(expected, result)
 
         expected = "#"
-        result = seq_field.str_from_value(value="#")
+        result = seq_field.str_from_value(value="FORMAT:#")
         self.assertEquals(expected, result)
 
         expected = "@"
-        result = seq_field.str_from_value(value="@d")
+        result = seq_field.str_from_value(value="FORMAT:@d")
         self.assertEquals(expected, result)
 
         expected = "$F1"
-        result = seq_field.str_from_value(value="$Fd")
+        result = seq_field.str_from_value(value="FORMAT:$Fd")
         self.assertEquals(expected, result)
 
         expected = "$F"
-        result = seq_field.str_from_value(value="$F")
+        result = seq_field.str_from_value(value="FORMAT:$F")
         self.assertEquals(expected, result)
 
         # no pattern specified
@@ -360,23 +360,23 @@ class TestSequenceKey(TankTestBase):
         """
         seq_field = SequenceKey("field_name", format_spec="03")
         expected = "%03d"
-        result = seq_field.str_from_value("%0d")
+        result = seq_field.str_from_value("FORMAT:%0d")
         self.assertEquals(expected, result)
 
         expected = "#"
-        result = seq_field.str_from_value("#")
+        result = seq_field.str_from_value("FORMAT:#")
         self.assertEquals(expected, result)
 
         expected = "###"
-        result = seq_field.str_from_value("#d")
+        result = seq_field.str_from_value("FORMAT:#d")
         self.assertEquals(expected, result)
 
         expected = "@@@"
-        result = seq_field.str_from_value("@d")
+        result = seq_field.str_from_value("FORMAT:@d")
         self.assertEquals(expected, result)
 
         expected = "$F3"
-        result = seq_field.str_from_value("$Fd")
+        result = seq_field.str_from_value("FORMAT:$Fd")
         self.assertEquals(expected, result)
 
         # no pattern specified
@@ -550,7 +550,7 @@ class TestEyeKey(TankTestBase):
         self.assertEquals(self.default_value, self.eye_key.str_from_value())
 
     def test_set_choices(self):
-        eye_key = EyeKey("eye", choices=["l","r"])
+        eye_key = StringKey("eye", default="%V", choices=["l","r", "%V"])
         self.assertTrue(self.eye_key.validate(self.default_value))
         self.assertTrue(self.eye_key.validate("l"))
         self.assertTrue(self.eye_key.validate("r"))
