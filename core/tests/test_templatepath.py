@@ -506,7 +506,7 @@ class TestApplyFields(TestTemplatePath):
 
         # specify default format
         expected = os.path.join(self.project_root, "shots", "s1.loon.####.ext")
-        fields["frame"] = "#d"
+        fields["frame"] = "FORMAT:#d"
         self.assertEquals(expected, template.apply_fields(fields))
 
 

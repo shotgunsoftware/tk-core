@@ -124,7 +124,7 @@ class Template(object):
         return self._keys[0].copy()
 
 
-    def missing_keys(self, fields, skip_defaults=False, abstract=False):
+    def missing_keys(self, fields, skip_defaults=False):
         """
         Determines keys required for use of template which do not exist
         in a given fields.
@@ -133,8 +133,6 @@ class Template(object):
         :type fields: mapping (dictionary or other)
         :param skip_defaults: If true, do not treat keys with default values as missing.
         :type skip_defalts: Bool.
-        :param abstract: If true, do not treat keys with abstract values as missing.
-        :type abstract: Bool.
         
         :returns: Fields needed by template which are not in inputs keys or which have
                   values of None.
@@ -142,9 +140,9 @@ class Template(object):
         """
         # find shortest keys dictionary
         keys = min(self._keys)
-        return self._missing_keys(fields, keys, skip_defaults, abstract)
+        return self._missing_keys(fields, keys, skip_defaults)
 
-    def _missing_keys(self, fields, keys, skip_defaults, abstract):
+    def _missing_keys(self, fields, keys, skip_defaults):
         """
         Compares two dictionaries to determine keys in second missing in first.
         """
@@ -153,30 +151,22 @@ class Template(object):
         else:
             required_keys = keys
 
-        if abstract:
-            # filter out abstract keys
-            required_keys = filter(lambda x: not keys[x].has_abstraction, required_keys)
-
         return [x for x in required_keys if (x not in fields) or  (fields[x] is None)]
 
-    def apply_fields(self, fields, abstract=False, pattern=None):
+    def apply_fields(self, fields):
         """
         Creates path using fields.
 
         :param fields: Mapping of keys to fields. Keys must match those in template 
                        definition.
         :type fields: Dictionary
-        :param abstract: If true, use abstract values for keys missing from fields.
-        :type abstract: Bool.
-        :param pattern: Pattern used to determine abstract type for sequence keys.
-        :type pattern: String.
 
         :returns: Path reflecting field values inserted into template definition.
         :rtype: String
         """
-        return self._apply_fields(fields, abstract=abstract, pattern=pattern)
+        return self._apply_fields(fields)
 
-    def _apply_fields(self, fields, abstract=False, pattern=None, ignore_types=None):
+    def _apply_fields(self, fields, ignore_types=None):
         """
         Creates path using fields.
 
@@ -188,8 +178,6 @@ class Template(object):
         :type  ignore_type: List of strings.
         :param abstract: If true, use abstract values for keys missing from fields.
         :type abstract: Bool.
-        :param pattern: Pattern used to determine abstract type for sequence keys.
-        :type pattern: String.
 
         :returns: Path reflecting field values inserted into template definition.
         :rtype: String
@@ -201,7 +189,7 @@ class Template(object):
         # index of matching keys will be used to find cleaned_definition
         index = -1
         for index, cur_keys in enumerate(self._keys):
-            missing_keys = self._missing_keys(fields, cur_keys, skip_defaults=True, abstract=abstract)
+            missing_keys = self._missing_keys(fields, cur_keys, skip_defaults=True)
             if not missing_keys:
                 keys = cur_keys
                 break
@@ -217,10 +205,7 @@ class Template(object):
         for key_name, key in keys.items():
             value = fields.get(key_name)
             ignore_type =  key_name in ignore_types
-            processed_fields[key_name] = key.str_from_value(value,
-                                                            ignore_type=ignore_type,
-                                                            abstract=abstract,
-                                                            pattern=pattern)
+            processed_fields[key_name] = key.str_from_value(value, ignore_type=ignore_type)
 
         return self._cleaned_definitions[index] % processed_fields
 
@@ -396,8 +381,8 @@ class TemplatePath(Template):
             return TemplatePath(parent_definition, self.keys, self.root_path, None)
         return None
 
-    def _apply_fields(self, fields, abstract=False, pattern=None, ignore_types=None):
-        relative_path = super(TemplatePath, self)._apply_fields(fields, abstract, pattern, ignore_types)
+    def _apply_fields(self, fields, ignore_types=None):
+        relative_path = super(TemplatePath, self)._apply_fields(fields, ignore_types)
         return os.path.join(self.root_path, relative_path)
 
 
