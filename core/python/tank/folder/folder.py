@@ -578,6 +578,8 @@ class Entity(Folder):
             fields_to_retrieve.append("name")
         elif self.entity_type == "Task":
             fields_to_retrieve.append("content")
+        elif self.entity_type == "HumanUser":
+            fields_to_retrieve.append("login")
         else:
             fields_to_retrieve.append("code")
         
@@ -600,18 +602,27 @@ class Entity(Folder):
         elif self.entity_type == "Task":
             name = rec["content"]
             tokens[self.entity_type]["content"] = rec["content"]
+        elif self.entity_type == "HumanUser":
+            name = rec["login"]
+            tokens[self.entity_type]["login"] = rec["login"]
         else:
             name = rec["code"]
             tokens[self.entity_type]["code"] = rec["code"]
         
         
+        # Get the values returned and map them to the appropriate keys in the tokens map
         for field in field_to_token_key_map:
             value = rec[field]
             token_key = field_to_token_key_map[field]
             
             if value:
                 if isinstance(value, dict):
-                    # If entity, check is type matches
+                    # If the value is a dict, assume it comes from a entity field.
+                    # As such, it may be an entity of a different type than
+                    # the one in our tokens map, in which case it is not valid
+                    # for our tokens. We will construct queries based on the
+                    # tokens, so having an id paired with the wrong type
+                    # will raise an error.
                     if token_key == value.get("type", token_key):
                         tokens[token_key] = value
                 else:
