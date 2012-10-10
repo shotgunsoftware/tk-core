@@ -10,7 +10,7 @@ import tank
 from tank.api import Tank
 from tank.errors import TankError
 from tank.template import TemplatePath, TemplateString
-from tank.templatekey import StringKey, IntegerKey, SequenceKey, EyeKey
+from tank.templatekey import StringKey, IntegerKey, SequenceKey
 
 from tank_test.tank_test_base import *
 
@@ -188,7 +188,7 @@ class TestPathsFromTemplateGlob(TankTestBase):
 
         self.template = TemplatePath("{Shot}/{version}/filename.{seq_num}", keys, root_path=self.project_root)
 
-    @patch("tank.api.glob.glob")
+    @patch("tank.api.glob.iglob")
     def assert_glob(self, fields, expected_glob, skip_keys, mock_glob):
         # want to ensure that value returned from glob is returned
         expected = [os.path.join(self.project_root, "shot_1","001","filename.00001")]
@@ -268,13 +268,13 @@ class TestAbstractPathFromTemplate(TankTestBase):
         keys = {"Sequence": StringKey("Sequence"),
                 "Shot": StringKey("Shot"),
                 "Step": StringKey("Step"),
-                "eye": EyeKey("eye"),
+                "eye": StringKey("eye", default="%V", choices=["%V", "L", "R"]),
                 "version": IntegerKey("version"),
                 "frame": SequenceKey("frame", format_spec="03")}
 
         # create template with abstract and non-abstract keys
         definition = "sequences/{Sequence}/{Shot}/{Step}/images/{eye}/{Shot}.{version}.{frame}.ext"
-        self.template = self.tk.templates("nuke_shot_render_mono_dpx", keys, self.project_root)
+        self.template = TemplatePath(definition, keys, self.project_root)
 
         # make some fake files with different frames
         self.fields = {"Sequence":"Seq_1",
@@ -301,22 +301,68 @@ class TestAbstractPathFromTemplate(TankTestBase):
     
     def test_all_abstract(self):
         # fields missing will be treated as abstract
-        del(self.field["eye"])
-        del(self.field["frame"])
+        del(self.fields["eye"])
+        del(self.fields["frame"])
         relative_path = os.path.join("sequences",
                                      "Seq_1",
                                      "shot_1",
+                                     "step_name",
                                      "images",
                                      "%V",
-                                     "shot_1.13.###.ext")
+                                     "shot_1.13.%03d.ext")
         expected = os.path.join(self.project_root, relative_path)
+        result = self.tk.abstract_path_from_template(self.template, self.fields)
+        self.assertEquals(expected, result)
 
 
     def test_frames_only(self):
-        assert False
+        del(self.fields["frame"])
+        self.fields["eye"] = "R"
+        relative_path = os.path.join("sequences",
+                                     "Seq_1",
+                                     "shot_1",
+                                     "step_name",
+                                     "images",
+                                     "R",
+                                     "shot_1.13.%03d.ext")
+        expected = os.path.join(self.project_root, relative_path)
+        result = self.tk.abstract_path_from_template(self.template, self.fields)
+        self.assertEquals(expected, result)
+
+    def test_format_frames(self):
+        self.fields["frame"] = "FORMAT:#d"
+        self.fields["eye"] = "R"
+        relative_path = os.path.join("sequences",
+                                     "Seq_1",
+                                     "shot_1",
+                                     "step_name",
+                                     "images",
+                                     "R",
+                                     "shot_1.13.###.ext")
+        expected = os.path.join(self.project_root, relative_path)
+        result = self.tk.abstract_path_from_template(self.template, self.fields)
+        self.assertEquals(expected, result)
 
     def test_no_abstract(self):
-        assert False
+        self.fields["frame"] = 2
+        self.fields["eye"] = "R"
+        relative_path = os.path.join("sequences",
+                                     "Seq_1",
+                                     "shot_1",
+                                     "step_name",
+                                     "images",
+                                     "R",
+                                     "shot_1.13.002.ext")
+        expected = os.path.join(self.project_root, relative_path)
+        result = self.tk.abstract_path_from_template(self.template, self.fields)
+        self.assertEquals(expected, result)
+
+    def test_no_files_on_disk(self):
+        os.remove(self.file_1)
+        os.remove(self.file_2)
+        os.remove(self.file_3)
+        result = self.tk.abstract_path_from_template(self.template, self.fields)
+        self.assertIsNone(result)
 
     
 class TestVersionProperty(TankTestBase):
