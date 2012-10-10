@@ -466,12 +466,20 @@ class TemplatePathParser(object):
         """
         skip_keys = skip_keys or []
         input_path = os.path.normpath(input_path)
+
         # if no keys, nothing to discover
         if not self.ordered_keys:
             if input_path.lower() == self.static_tokens[0].lower():
+                # this is a template where there are no keys
+                # but where the static part of the template is matching
+                # the input path
+                # (e.g. template: foo/bar - input path foo/bar)
                 return {}
             else:
+                # template with no keys - in this case not matching 
+                # the input path. Return for no match.
                 return None
+            
 
         self.fields = {}
         last_index = None # end index of last static token
