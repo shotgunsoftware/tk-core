@@ -146,22 +146,21 @@ class Tank(object):
         found_files =  self._paths_from_template(template, fields, skip_keys)
         return [found_file for found_file in found_files if template.validate(found_file)]
     
-    def abstract_path_from_template(self, template, fields, skip_keys=None):
+    def abstract_path_from_template(self, template, fields):
         """
         Returns a path representing files on disk which conform to a given template.
 
-        Fields missing from the fields mapping will be represented by their default values.
+        Fields missing from the fields mapping and fields with a string value starting 
+        with 'FORMAT:' will be represented by their default values.
 
         :param template: Template against whom to match.
         :type  template: Tank.Template instance.
         :param fields: Fields and values to use.
         :type  fields: Dictionary.
-        :param skip_keys: Keys whose values should be ignored from the fields parameter.
-        :type  skip_keys: List of key names.
 
-        :returns: A path representing files on disk with skipped keys using their default values. 
+        :returns: A path representing files on disk with missing keys using their default values. 
         """
-        skip_keys = skip_keys or []
+        skip_keys = []
         # Check for special format value, keys with it should be skipped for file search
         for field, value in fields.items():
             if isinstance(value, basestring) and value.startswith(FRAMESPEC_FORMAT_INDICATOR):
