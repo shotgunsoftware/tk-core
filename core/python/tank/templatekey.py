@@ -81,12 +81,11 @@ class TemplateKey(object):
             raise TankError(self._last_error)
         return value
 
-    def validate(self, value, messages=None):
+    def validate(self, value):
         """
         Test if a value is valid for this key.
 
         :param value: Value to test.
-        :param messages: Deprecated, does nothing
 
         :returns: Bool
         """
@@ -154,13 +153,13 @@ class StringKey(TemplateKey):
                                         shotgun_field_name=shotgun_field_name,
                                         exclusions=exclusions)
 
-    def validate(self, value, messages=None):
+    def validate(self, value):
 
         if self._filter_regex and self._filter_regex.search(value):
             self._last_error = "%s Illegal value '%s' does not fit filter" % (self, value)
             return False
         else:
-            return super(StringKey, self).validate(value, messages)
+            return super(StringKey, self).validate(value)
 
     def _as_string(self, value):
         return str(value)
@@ -201,7 +200,7 @@ class IntegerKey(TemplateKey):
 
         self.format_spec = format_spec
 
-    def validate(self, value, messages=None):
+    def validate(self, value):
 
         if value is not None:
             if not (isinstance(value, int) or value.isdigit()):
@@ -246,11 +245,11 @@ class SequenceKey(IntegerKey):
 
         self.default = self.default or self._as_abstract()
 
-    def validate(self, value, messages=None):
+    def validate(self, value):
         if value in self.frame_specs or value in self._format_patterns:
             return True
         else:
-            return super(SequenceKey, self).validate(value, messages)
+            return super(SequenceKey, self).validate(value)
 
     def _as_string(self, value):
         if isinstance(value, basestring) and value.startswith(FRAMESPEC_FORMAT_INDICATOR):
