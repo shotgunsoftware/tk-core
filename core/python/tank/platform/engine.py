@@ -374,6 +374,7 @@ class Engine(object):
                 if supported_engines and self.name not in supported_engines:
                     self.log_error("The app %s could not be loaded since it only supports "
                                    "the following engines: %s" % (app_instance_name, supported_engines))
+                    continue
                     
             except TankError as e:
                 # validation error - probably some issue with the settings!
@@ -381,6 +382,7 @@ class Engine(object):
                 self.log_error("App configuration Error for %s. It will not "
                                "be loaded. \n\nDetails: %s" % (app_instance_name, e))
                 continue
+            
             except Exception as e:
                 # code execution error in the validation. Report this as an error 
                 # with the engire call stack!
