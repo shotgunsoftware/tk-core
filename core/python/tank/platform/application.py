@@ -8,10 +8,14 @@ Defines the base class for all Tank Apps.
 
 import os
 import sys
+import uuid
+import imp
 
 from .. import hook
 from .. import loader
 from . import constants 
+
+from ..errors import TankError
 
 class Application(object):
     """
@@ -31,15 +35,20 @@ class Application(object):
         self.__descriptor = app_descriptor 
         self.__engine = engine
         self.__settings = settings
-        self.__engine.log_debug("App init: Instantiating %s" % self)
-                
-        # get path to app
-        app_path = os.path.dirname(sys.modules[self.__module__].__file__)
+        self.__module_uid = None
         
+        self.log_debug("App init: Instantiating %s" % self)
+                
         # now if a folder named python is defined in the app, add it to the pythonpath
+        app_path = os.path.dirname(sys.modules[self.__module__].__file__)
         python_path = os.path.join(app_path, constants.BUNDLE_PYTHON_FOLDER)
         if os.path.exists(python_path):
-            sys.path.append(python_path)
+            # only append to python path if __init__.py does not exist
+            # if __init__ exists, we should use the special tank import instead
+            init_path = os.path.join(python_path, "__init__.py")
+            if not os.path.exists(init_path):
+                self.log_debug("Appending to PYTHONPATH: %s" % python_path)
+                sys.path.append(python_path)
 
     def __repr__(self):        
         return "<Tank App 0x%08x: %s, engine: %s>" % (id(self), self.name, self.engine)
@@ -150,6 +159,34 @@ class Application(object):
     
     ##########################################################################################
     # public methods
+
+    def import_module(self, module_name):
+        """
+        Special Tank import command for app modules. Imports the python folder inside
+        an app and returns the specified module name that exists inside the python folder.
+        
+        For more information, see the API documentation.
+        """
+        
+        # get the python folder
+        python_folder = os.path.join(self.disk_location, constants.BUNDLE_PYTHON_FOLDER)
+        if not os.path.exists(python_folder):
+            raise TankError("Cannot import - folder %s does not exist!" % python_folder)
+        
+        # and import
+        if self.__module_uid is None:
+            self.log_debug("Importing python modules in %s..." % python_folder)
+            # alias the python folder with a UID to ensure it is unique every time it is imported
+            self.__module_uid = uuid.uuid4().hex
+            imp.load_module(self.__module_uid, None, python_folder, ("", "", imp.PKG_DIRECTORY) )
+        
+        # we can now find our actual module in sys.modules as GUID.module_name
+        mod_name = "%s.%s" % (self.__module_uid, module_name)
+        if mod_name not in sys.modules:
+            raise TankError("Cannot find module %s as part of %s!" % (module_name, python_folder))
+        
+        return sys.modules[mod_name]
+        
 
     def get_setting(self, key, default=None):
         """
