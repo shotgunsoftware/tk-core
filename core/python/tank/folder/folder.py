@@ -285,6 +285,9 @@ class EntityName(object):
         :param values: dictionary of values to test
         """
         
+        # get the shotgun id from the values dict
+        sg_id = values.get("id")
+        
         # first make sure that each field is valid
         for field_name in self._fields:
             raw_val = values.get(field_name)
@@ -297,7 +300,7 @@ class EntityName(object):
                                 "configuration!" % (field_name, self._name_expr, self._entity_type))
             
             # now cast the value to a string
-            val = generate_string_val(tk, self._entity_type, field_name, raw_val)
+            val = generate_string_val(tk, self._entity_type, sg_id, field_name, raw_val)
             
             # validate
             if re.match(constants.VALID_SG_ENTITY_NAME_REGEX, val) is None:
@@ -343,6 +346,9 @@ class EntityName(object):
         str_data = {}
         adjustments = {}
         
+        # get the shotgun id from the shotgun entity dict
+        sg_id = values.get("id")
+        
         for sg_field in values:
             
             # adjust the sg_field to make sure we have to 
@@ -355,7 +361,7 @@ class EntityName(object):
             adjustments[sg_field] = adjusted_field
             
             # and store all values in a dict
-            str_data[adjusted_field] = generate_string_val(tk, self._entity_type, sg_field, values[sg_field])
+            str_data[adjusted_field] = generate_string_val(tk, self._entity_type, sg_id, sg_field, values[sg_field])
             
         
         # now look at the expression ({code}_{entity.Shot.code}) and convert it
@@ -670,7 +676,7 @@ class TokenError(TankError):
     """
     pass
 
-def generate_string_val(tk, sg_entity_type, sg_field_name, data):
+def generate_string_val(tk, sg_entity_type, sg_id, sg_field_name, data):
     """
     Generates a string value given a shotgun value.
     Doing smart conversions, so that for example
@@ -679,5 +685,6 @@ def generate_string_val(tk, sg_entity_type, sg_field_name, data):
     # call out to core hook
     return tk.execute_hook(constants.PROCESS_FOLDER_NAME_HOOK_NAME, 
                            entity_type=sg_entity_type, 
+                           entity_id=sg_id,
                            field_name=sg_field_name,
                            value=data)

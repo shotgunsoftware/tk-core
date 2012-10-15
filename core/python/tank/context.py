@@ -242,6 +242,7 @@ class Context(object):
                 else:
                     processed_val = folder.generate_string_val(self.__tk,
                                                                key.shotgun_entity_type,
+                                                               entity.get("id"),
                                                                key.shotgun_field_name, 
                                                                value)
                     if key.validate(processed_val):

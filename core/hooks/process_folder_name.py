@@ -18,9 +18,14 @@ import re
 
 class ProcessFolderName(Hook):
 
-    def execute(self, entity_type, field_name, value):
+    def execute(self, entity_type, entity_id, field_name, value):
         """
-        Default implementation.
+        Default implementation. The following parameters are passed:
+        
+        * entity_type: the shotgun entity type for which the value is taken
+        * entity_id: The entity id representing the data
+        * field_name: the shotgun field associated with the value
+        * value: the actual value in some form, as returned by shotgun        
         
         Generates a string value given some shotgun value.
         Doing smart conversions, so that for example
