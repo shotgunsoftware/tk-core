@@ -27,7 +27,7 @@ class Schema(object):
     Represents the entire schema file and is the main entry point for the folder creation.
     """
     
-    def __init__(self, sg, project_root, schema_config_path, create_folder, copy_file, preview):
+    def __init__(self, tk, schema_config_path, create_folder, copy_file, preview):
         """
         Constructor
         
@@ -39,8 +39,9 @@ class Schema(object):
         :param preview: preview mode
         """
         
-        self.sg = sg
-        self.project_root = project_root
+        self.sg = tk.shotgun
+        self.tk = tk
+        self.project_root = tk.project_path
         self.projects = []
         self.num_entity_folders = 0
         self._nodes_by_name = None
@@ -486,8 +487,7 @@ def process_filesystem_structure(tk, entity_type, entity_ids, preview):
     schema_cfg_folder = constants.get_schema_config_location(tk.project_path)   
 
     # create schema builder
-    schema = Schema(tk.shotgun, 
-                    tk.project_path, 
+    schema = Schema(tk, 
                     schema_cfg_folder, 
                     _make_folder_callback, 
                     _copy_file_callback, 

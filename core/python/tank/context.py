@@ -240,7 +240,10 @@ class Context(object):
                     msg = msg % (key.shotgun_entity_type, key.shotgun_field_name)
                     raise TankError(msg)
                 else:
-                    processed_val = folder.generate_string_val(value)
+                    processed_val = folder.generate_string_val(self.__tk,
+                                                               key.shotgun_entity_type,
+                                                               key.shotgun_field_name, 
+                                                               value)
                     if key.validate(processed_val):
                         fields[key.name] = processed_val
                         self._entity_fields_cache[cache_key] = processed_val

@@ -75,6 +75,7 @@ SHOTGUN_ENVIRONMENT = "shotgun"
 COPY_FILE_CORE_HOOK_NAME = "copy_file"
 CREATE_FOLDERS_CORE_HOOK_NAME = "create_folder"
 PICK_ENVIRONMENT_CORE_HOOK_NAME = "pick_environment"
+PROCESS_FOLDER_NAME_HOOK_NAME = "process_folder_name"
 
 ###############################################################################################
 # environment cfg constants
