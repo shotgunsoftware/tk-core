@@ -18,7 +18,7 @@ import re
 
 class ProcessFolderName(Hook):
 
-    def execute(self, entity_type, entity_id, field_name, value):
+    def execute(self, entity_type, entity_id, field_name, value, **kwargs):
         """
         Default implementation. The following parameters are passed:
         

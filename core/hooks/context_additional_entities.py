@@ -18,7 +18,11 @@ from tank import Hook
 
 class ContextAdditionalEntities(Hook):
 
-    def execute(self):
+    def execute(self, **kwargs):
+        """
+        The default implementation does not do anything.
+        """
+        
         val = {
             "entity_types_in_path": [],
             "entity_fields_on_task": []

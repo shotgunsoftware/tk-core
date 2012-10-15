@@ -11,6 +11,11 @@ import shutil
 import os
 
 class CopyFile(Hook):    
-    def execute(self, source_path, target_path):
+    
+    def execute(self, source_path, target_path, **kwargs):
+        """
+        The default implementation copies using standard permissions.
+        """
+        
         if not os.path.exists(target_path):
             shutil.copy(source_path, target_path)

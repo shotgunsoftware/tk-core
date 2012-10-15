@@ -472,9 +472,7 @@ def process_filesystem_structure(tk, entity_type, entity_ids, preview):
     # Define a create folder callback.
     def _make_folder_callback(path, entity):
         # pass on request to hook
-        tk.execute_hook(constants.CREATE_FOLDERS_CORE_HOOK_NAME, 
-                        path=path, 
-                        sg_entity=entity)
+        tk.execute_hook(constants.CREATE_FOLDERS_CORE_HOOK_NAME, path=path, sg_entity=entity)
         
     # Define a copy file callback.
     def _copy_file_callback(source_path, target_path):
