@@ -8,6 +8,8 @@ Defines the base class for all Tank Engines.
 
 import os
 import sys
+import imp
+import uuid
 import traceback
 
 from .. import loader
@@ -41,17 +43,12 @@ class Engine(object):
         self.__applications = {}
         self.__commands = {}
         self.__sg = None
+        self.__module_uid = None
         self.__currently_initializing_app = None
 
         # get the descriptor representing the engine        
         self.__descriptor = self.__env.get_engine_descriptor(self.__engine_instance_name)        
-        
-        # now if a folder named python is defined in the engine, add it to the pythonpath
-        my_path = os.path.dirname(sys.modules[self.__module__].__file__)
-        python_path = os.path.join(my_path, constants.BUNDLE_PYTHON_FOLDER)
-        if os.path.exists(python_path):
-            sys.path.append(python_path)
-        
+                
         # Get the settings for the engine and then validate them
         self.__settings = self.__env.get_engine_settings(self.__engine_instance_name)
         metadata = self.__env.get_engine_metadata(self.__engine_instance_name)
@@ -61,6 +58,17 @@ class Engine(object):
         # run the engine init
         self.log_debug("Engine init: Instantiating %s" % self)
         self.log_debug("Engine init: Current Context: %s" % context)
+
+        # now if a folder named python is defined in the engine, add it to the pythonpath
+        my_path = os.path.dirname(sys.modules[self.__module__].__file__)
+        python_path = os.path.join(my_path, constants.BUNDLE_PYTHON_FOLDER)
+        if os.path.exists(python_path):            
+            # only append to python path if __init__.py does not exist
+            # if __init__ exists, we should use the special tank import instead
+            init_path = os.path.join(python_path, "__init__.py")
+            if not os.path.exists(init_path):
+                self.log_debug("Appending to PYTHONPATH: %s" % python_path)
+                sys.path.append(python_path)
 
         self.init_engine()
         
@@ -254,6 +262,34 @@ class Engine(object):
     ##########################################################################################
     # public methods
 
+    def import_module(self, module_name):
+        """
+        Special Tank import command for app modules. Imports the python folder inside
+        an app and returns the specified module name that exists inside the python folder.
+        
+        For more information, see the API documentation.
+        """
+        
+        # get the python folder
+        python_folder = os.path.join(self.disk_location, constants.BUNDLE_PYTHON_FOLDER)
+        if not os.path.exists(python_folder):
+            raise TankError("Cannot import - folder %s does not exist!" % python_folder)
+        
+        # and import
+        if self.__module_uid is None:
+            self.log_debug("Importing python modules in %s..." % python_folder)
+            # alias the python folder with a UID to ensure it is unique every time it is imported
+            self.__module_uid = uuid.uuid4().hex
+            imp.load_module(self.__module_uid, None, python_folder, ("", "", imp.PKG_DIRECTORY) )
+        
+        # we can now find our actual module in sys.modules as GUID.module_name
+        mod_name = "%s.%s" % (self.__module_uid, module_name)
+        if mod_name not in sys.modules:
+            raise TankError("Cannot find module %s as part of %s!" % (module_name, python_folder))
+        
+        return sys.modules[mod_name]
+
+
     def register_command(self, name, callback, properties=None):
         """
         Register a command with a name and a callback function. Properties can store
@@ -343,13 +379,27 @@ class Engine(object):
         which is logged as an error.
         """
         (exc_type, exc_value, exc_traceback) = sys.exc_info()
+        
+        if exc_traceback is None:
+            # we are not inside an exception handler right now.
+            # someone is calling log_exception from the running code.
+            # in this case, present the current stack frame
+            # and a sensible message
+            stack_frame = traceback.extract_stack()
+            traceback_str = "".join(traceback.format_list(stack_frame))
+            exc_type = "OK"
+            exc_value = "No current exception."
+        
+        else:    
+            traceback_str = "".join( traceback.format_tb(exc_traceback))
+        
         message = ""
         message += "\n\n"
         message += "Message: %s\n" % msg
         message += "Environment: %s\n" % self.__env.name
         message += "Exception: %s - %s\n" % (exc_type, exc_value)
         message += "Traceback (most recent call last):\n"
-        message += "".join( traceback.format_tb(exc_traceback))
+        message += traceback_str
         message += "\n\n"
         self.log_error(message)
         
@@ -374,6 +424,7 @@ class Engine(object):
                 if supported_engines and self.name not in supported_engines:
                     self.log_error("The app %s could not be loaded since it only supports "
                                    "the following engines: %s" % (app_instance_name, supported_engines))
+                    continue
                     
             except TankError as e:
                 # validation error - probably some issue with the settings!
@@ -381,6 +432,7 @@ class Engine(object):
                 self.log_error("App configuration Error for %s. It will not "
                                "be loaded. \n\nDetails: %s" % (app_instance_name, e))
                 continue
+            
             except Exception as e:
                 # code execution error in the validation. Report this as an error 
                 # with the engire call stack!
