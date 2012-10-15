@@ -379,13 +379,27 @@ class Engine(object):
         which is logged as an error.
         """
         (exc_type, exc_value, exc_traceback) = sys.exc_info()
+        
+        if exc_traceback is None:
+            # we are not inside an exception handler right now.
+            # someone is calling log_exception from the running code.
+            # in this case, present the current stack frame
+            # and a sensible message
+            stack_frame = traceback.extract_stack()
+            traceback_str = "".join(traceback.format_list(stack_frame))
+            exc_type = "OK"
+            exc_value = "No current exception."
+        
+        else:    
+            traceback_str = "".join( traceback.format_tb(exc_traceback))
+        
         message = ""
         message += "\n\n"
         message += "Message: %s\n" % msg
         message += "Environment: %s\n" % self.__env.name
         message += "Exception: %s - %s\n" % (exc_type, exc_value)
         message += "Traceback (most recent call last):\n"
-        message += "".join( traceback.format_tb(exc_traceback))
+        message += traceback_str
         message += "\n\n"
         self.log_error(message)
         
