@@ -48,7 +48,7 @@ def __create_sg_connection(shotgun_cfg_path, evaluate_script_user):
     sg = Shotgun(config_data["host"],
                  config_data["api_script"],
                  config_data["api_key"],
-                 http_proxy)
+                 http_proxy=http_proxy)
 
     script_user = None
 
