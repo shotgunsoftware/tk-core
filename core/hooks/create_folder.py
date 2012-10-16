@@ -11,7 +11,10 @@ import os
 
 class CreateFolders(Hook):
     
-    def execute(self, path, sg_entity=None):
+    def execute(self, path, sg_entity, **kwargs):
+        """
+        The default implementation creates folders recursively using open permissions.
+        """
         if not os.path.exists(path):
             old_umask = os.umask(0)
             os.makedirs(path, 0777)

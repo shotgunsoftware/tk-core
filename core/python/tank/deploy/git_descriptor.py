@@ -97,7 +97,7 @@ class TankGitDescriptor(AppDescriptor):
 
         target = self.get_path()
         if not os.path.exists(target):
-            self._tk.execute_hook(constants.CREATE_FOLDERS_CORE_HOOK_NAME, path=target)
+            self._tk.execute_hook(constants.CREATE_FOLDERS_CORE_HOOK_NAME, path=target, sg_entity=None)
 
         # do a git archive from the remote repository
         # download to temp
