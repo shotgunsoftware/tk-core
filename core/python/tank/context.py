@@ -12,6 +12,7 @@ from tank_vendor import yaml
 
 import tank
 from . import root
+from .util import login
 from .util import shotgun
 from .folder import folder
 from .errors import TankError
@@ -36,7 +37,7 @@ class Context(object):
 
     """
 
-    def __init__(self, tk, project=None, entity=None, step=None, task=None, additional_entities=[]):
+    def __init__(self, tk, project=None, entity=None, step=None, task=None, user=None, additional_entities=[]):
         """
         Do not create instances of this class directly.
         Instead, use the factory methods.
@@ -46,6 +47,7 @@ class Context(object):
         self.__entity = entity
         self.__step = step
         self.__task = task
+        self.__user = user
         self.__additional_entities = additional_entities
         self._entity_fields_cache = {}
 
@@ -120,6 +122,13 @@ class Context(object):
                   May return None if this has not been defined
         """
         return self.__task
+
+    @property
+    def user(self):
+        """
+        The shotgun human user, if any, associated with this context.
+        """
+        return self.__user
 
     @property
     def additional_entities(self):
@@ -438,6 +447,8 @@ def from_path(tk, path, previous_context=None):
             context["step"] = curr_entity
         elif curr_entity["type"] == "Task":
             context["task"] = curr_entity
+        elif curr_entity["type"] == "HumanUser":
+            context["user"] = curr_entity
         elif curr_entity["type"] in additional_types:
             context["additional_entities"].append(curr_entity)
         else:
@@ -506,7 +517,8 @@ def _task_from_sg(tk, task_id):
     # Look up task's step and entity. This information should be static in practice, so we could
     # likely cache it in the future.
 
-    standard_fields = ["content", "entity", "step", "project"]
+    standard_fields = ["content", "entity", "step", "project", "task_assignees"]
+    # theses keys map directly to linked entities, users will be handled separately
     context_keys = ["project", "entity", "step", "task"]
 
     # ask hook for extra Task entity fields we should query and insert into the additional_entities list.
@@ -542,7 +554,41 @@ def _task_from_sg(tk, task_id):
             additional_entities.append(value)
             context["additional_entities"] = additional_entities
 
+    # handle task user (assignee)
+    context["user"] = _user_from_task_assignees(tk.shotgun, task)
+
     return context
+
+def _user_from_task_assignees(shotgun, task):
+    user = None
+
+    # if no assignees, skip
+    if task.get("task_assignees"):
+        task_assignees = task["task_assignees"]
+        num_assignees = len(task_assignees)
+        if num_assignees == 1:
+            # if single assignee, use that one
+            user = task_assignees[0]
+        elif num_assignees > 1:
+            # if multiple, try to match with current login
+            cur_user = login.get_shotgun_user(shotgun)
+            if not cur_user:
+                msg =  "The task %s has multiple people assigned to it, " % task
+                msg += "but we are unable to find a shotgun entry matching "
+                msg += "your login."
+                raise TankError, msg
+            
+            matches = [x for x in task_assignees if x["id"] == cur_user["id"]]
+            if matches:
+                user = matches[0]
+            else:
+                msg =  "The task %s has multiple users assigned to it, " % task
+                msg += "but none of them match the current user's login, "
+                msg += "if you wish to work with this task, please assign "
+                msg += "youself to it in Shotgun."
+                raise TankError, msg
+
+    return user
 
 def _context_data_from_cache(tk, entity_type, entity_id):
     """Adds data to context based on path cache.

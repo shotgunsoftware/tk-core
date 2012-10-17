@@ -6,3 +6,4 @@ file_to_ignore # comments should be ignored.
 # indented should work as well:
   another_file_to_ignore
 .placeholder
+.DS_Store
