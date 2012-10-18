@@ -563,8 +563,8 @@ def _user_from_task_assignees(shotgun, task):
     user = None
 
     # if no assignees, skip
-    if task.get("task_assignees"):
-        task_assignees = task["task_assignees"]
+    task_assignees = task.get("task_assignees")
+    if task_assignees: 
         num_assignees = len(task_assignees)
         if num_assignees == 1:
             # if single assignee, use that one
