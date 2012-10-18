@@ -176,8 +176,6 @@ class Template(object):
         :param ignore_type: Keys for whom the defined type is ignored. This 
                             allows setting a Key whose type is int with a string value.
         :type  ignore_type: List of strings.
-        :param abstract: If true, use abstract values for keys missing from fields.
-        :type abstract: Bool.
 
         :returns: Path reflecting field values inserted into template definition.
         :rtype: String

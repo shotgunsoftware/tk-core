@@ -19,8 +19,6 @@ from .util import shotgun
 from .errors import TankError
 from .path_cache import PathCache
 from .template import read_templates, TemplatePath
-from .templatekey import FRAMESPEC_FORMAT_INDICATOR
-
 
 class Tank(object):
     """
@@ -142,39 +140,6 @@ class Tank(object):
         :rtype: List of strings.
         """
         skip_keys = skip_keys or []
-        # Return all files which are valid for this template
-        found_files =  self._paths_from_template(template, fields, skip_keys)
-        return [found_file for found_file in found_files if template.validate(found_file)]
-    
-    def abstract_path_from_template(self, template, fields):
-        """
-        Returns a path representing files on disk which conform to a given template.
-
-        Fields missing from the fields mapping and fields with a string value starting 
-        with 'FORMAT:' will be represented by their default values.
-
-        :param template: Template against whom to match.
-        :type  template: Tank.Template instance.
-        :param fields: Fields and values to use.
-        :type  fields: Dictionary.
-
-        :returns: A path representing files on disk with missing keys using their default values. 
-        """
-        skip_keys = []
-        # Check for special format value, keys with it should be skipped for file search
-        for field, value in fields.items():
-            if isinstance(value, basestring) and value.startswith(FRAMESPEC_FORMAT_INDICATOR):
-                skip_keys.append(field)
-
-        # Return all files which are valid for this template
-        found_files =  self._paths_from_template(template, fields, skip_keys)
-        for found_file in found_files:
-            if template.validate(found_file):
-                return template.apply_fields(fields)
-
-        return None
-
-    def _paths_from_template(self, template, fields, skip_keys):
         if isinstance(skip_keys, basestring):
             skip_keys = [skip_keys]
         local_fields = fields.copy()
@@ -186,8 +151,9 @@ class Tank(object):
             local_fields[missing_key] = "*"
             skip_keys.append(missing_key)
         glob_str = template._apply_fields(local_fields, ignore_types=skip_keys)
+        # Return all files which are valid for this template
         found_files = glob.iglob(glob_str)
-        return found_files
+        return [found_file for found_file in found_files if template.validate(found_file)]
 
     def paths_from_entity(self, entity_type, entity_id):
         """
