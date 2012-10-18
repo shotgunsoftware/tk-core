@@ -159,7 +159,7 @@ class TankAppStoreDescriptor(AppDescriptor):
 
         try:
             if not os.path.exists(folder):
-                self._tk.execute_hook(constants.CREATE_FOLDERS_CORE_HOOK_NAME, path=folder)
+                self._tk.execute_hook(constants.CREATE_FOLDERS_CORE_HOOK_NAME, path=folder, sg_entity=None)
             fp = open(os.path.join(folder, METADATA_FILE), "wt")
             json.dump(metadata, fp)
             fp.close()
@@ -371,7 +371,7 @@ class TankAppStoreDescriptor(AppDescriptor):
         target = self.get_path()
 
         if not os.path.exists(target):
-            self._tk.execute_hook(constants.CREATE_FOLDERS_CORE_HOOK_NAME, path=target)
+            self._tk.execute_hook(constants.CREATE_FOLDERS_CORE_HOOK_NAME, path=target, sg_entity=None)
 
         # connect to the app store
         (sg, script_user) = shotgun.create_sg_app_store_connection_proj_root(self._project_root)

@@ -1,61 +1,86 @@
+#
+# Copyright (c) 2012 Shotgun Software, Inc
+# ----------------------------------------------------
 
+description: "Example shotgun environment. This environment controls what items should be shown on
+              the Shotgun Tank menu."
 
 engines:
-    tk-shotgun:
-        location: {"type": "app_store", "name": "tk-shotgun", "version": "v0.1.0"}
-        debug_logging: false
 
-        apps:
-            tk-shotgun-launchnuke:
-                location: {"type": "app_store", "name": "tk-shotgun-launchnuke", "version": "v0.1.0"}
-                entity_types: [Task]
-                deny_permissions: []
-                deny_platforms: []
-                windows_path: "C:\\Program Files\\Nuke6.3v6\\Nuke6.3.exe"
-                linux_path: Nuke6.3
-                mac_path: /Applications/Nuke6.3v7/Nuke6.3v7.app
-                engine: tk-nuke
-            
-            tk-shotgun-launchmaya:
-                location: {"type": "app_store", "name": "tk-shotgun-launchmaya", "version": "v0.1.0"}
-                entity_types: [Task]
-                deny_permissions: []
-                deny_platforms: []
-                windows_path: "C:\\Program Files\\Autodesk\\Maya2012\\bin\\maya.exe"
-                linux_path: maya
-                mac_path: /Applications/Autodesk/maya2012/Maya.app
-                engine: tk-maya
-            
-            tk-shotgun-folders:
-                location: {"type": "app_store", "name": "tk-shotgun-folders", "version": "v0.1.0"}
-                entity_types: [Sequence,Shot,Asset]
-                deny_permissions: []
-                deny_platforms: []
-            
-            tk-shotgun-launchfolder:
-                location: {"type": "app_store", "name": "tk-shotgun-launchfolder", "version": "v0.1.0"}
-                entity_types: [Sequence,Shot,Asset]
-                deny_permissions: []
-                deny_platforms: []
-            
-            tk-shotgun-launchpublish:
-                location: {"type": "app_store", "name": "tk-shotgun-launchpublish", "version": "v0.1.0"}                
-                deny_permissions: []
-                deny_platforms: []
-                viewer_extensions: [exr, dpx, cin]
-                viewer_path_windows: "C:\\Program Files\\RV\\RV64.exe"
-                viewer_path_linux: rv
-                viewer_path_mac: /Applications/RV64.app
-                hook_launch_publish: launch_publish
-
-            tk-shotgun-launchrevolver:
-               location: {"type": "app_store", "name": "tk-shotgun-launchrevolver", "version": "v0.1.0"}                
-               deny_permissions: []
-               deny_platforms: []
-               rv_path_windows: "C:\\Program Files\\RV\\RV64.exe"
-               rv_path_linux: rv
-               rv_path_mac: /Applications/RV64.app
-            
+  tk-shotgun:
+    location: {name: tk-shotgun, type: app_store, version: v0.1.0}
+    debug_logging: false
     
+    apps:
+      tk-shotgun-folders:
+        location: {name: tk-shotgun-folders, type: app_store, version: v0.1.0}
+        deny_permissions: []
+        deny_platforms: []
+        entity_types: [Sequence, Shot, Asset]
+        
+      tk-shotgun-launchfolder:
+        location: {name: tk-shotgun-launchfolder, type: app_store, version: v0.1.0}
+        deny_permissions: []
+        deny_platforms: []
+        entity_types: [Sequence, Shot, Asset, Task]
+        
+      tk-shotgun-launchmaya:
+        location: {name: tk-shotgun-launchmaya, type: app_store, version: v0.1.2}
+        deny_permissions: []
+        deny_platforms: []
+        engine: tk-maya
+        entity_types: [Task]
+        hook_before_app_launch: maya_before_app_launch
+        linux_args: ''
+        linux_path: maya
+        mac_args: ''
+        mac_path: /Applications/Autodesk/maya2012/Maya.app
+        windows_args: ''
+        windows_path: C:\Program Files\Autodesk\Maya2012\bin\maya.exe
+      
+      tk-shotgun-launchmotionbuilder:
+        location: {name: tk-shotgun-launchmotionbuilder, type: app_store, version: v0.2.2}
+        deny_permissions: []
+        deny_platforms: [Linux, Mac]
+        engine: tk-motionbuilder
+        entity_types: [Task]
+        hook_before_app_launch: motionbuilder_before_app_launch
+        windows_args: ''
+        windows_path: C:\Program Files\Autodesk\MotionBuilder 2013\bin\x64\motionbuilder.exe
+      
+      tk-shotgun-launchnuke:
+        location: {name: tk-shotgun-launchnuke, type: app_store, version: v0.1.3}
+        deny_permissions: []
+        deny_platforms: []
+        engine: tk-nuke
+        entity_types: [Task]
+        hook_before_app_launch: nuke_before_app_launch
+        linux_args: ''
+        linux_path: Nuke6.3
+        mac_args: ''
+        mac_path: /Applications/Nuke6.3v8/Nuke6.3v8.app
+        windows_args: ''
+        windows_path: C:\Program Files\Nuke6.3v8\Nuke6.3.exe
+      
+      tk-shotgun-launchpublish:
+        location: {name: tk-shotgun-launchpublish, type: app_store, version: v0.1.1}
+        deny_permissions: []
+        deny_platforms: []
+        hook_launch_publish: shotgun_launch_publish
+        viewer_extensions: [exr, dpx, cin]
+        viewer_path_linux: rv
+        viewer_path_mac: /Applications/RV64.app
+        viewer_path_windows: C:\Program Files\RV\RV64.exe
+      
+      tk-shotgun-launchrevolver:
+        location: {name: tk-shotgun-launchrevolver, type: app_store, version: v0.1.1}
+        deny_permissions: []
+        deny_platforms: []
+        rv_path_linux: rv
+        rv_path_mac: /Applications/RV64.app
+        rv_path_windows: C:\Program Files\RV\RV64.exe
 
-    
+        
+        
+        
+        

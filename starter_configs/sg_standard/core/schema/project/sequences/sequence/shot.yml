@@ -17,4 +17,3 @@ entity_type: "Shot"
 # (this is std shotgun API syntax)
 # any values starting with $ are resolved into path objects
 filters: [ { "path": "sg_sequence", "relation": "is", "values": [ "$sequence" ] } ]
-

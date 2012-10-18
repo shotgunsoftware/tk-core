@@ -26,9 +26,10 @@ class Test_FieldsForFind(TankTestBase):
         # Mock rather than writing to disk
         self.mock_make_folder = Mock()
         self.mock_copy_file = Mock()
+        
+        self.tk = tank.Tank(self.project_root)
 
-        schema = Schema(self.sg_mock, 
-                        self.project_root, 
+        schema = Schema(self.tk, 
                         schema_location, 
                         self.mock_make_folder, 
                         self.mock_copy_file,

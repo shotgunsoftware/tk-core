@@ -1,124 +1,227 @@
+#
+# Copyright (c) 2012 Shotgun Software, Inc
+# ----------------------------------------------------
+
+description: "Apps and Engines related to Shot based work."
 
 engines:
-    tk-maya:
-        location: {"type": "app_store", "name": "tk-maya", "version": "v0.1.0"}
-        debug_logging: false
-        template_project: "shot_work_area_maya"
 
-        apps:
-            tk-maya-publish:
-                location: {"type": "app_store", "name": "tk-maya-publish", "version": "v0.1.0"}
-                template_work: "maya_shot_work"
-                template_snapshot: "maya_shot_snapshot"
-                template_publish: "maya_shot_publish"
-                validation_hooks: []
-                hook_publish_file: maya_publish_file
-                hook_scan_scene: maya_breakdown_scan_scene
-                input_templates_to_look_for: [maya_shot_publish, maya_asset_publish]
-                publish_tank_types:
-                    - { step: Anm, tank_types: ["Maya Anim"]}
-                    - { step: Light, tank_types: ["Lighting Scene"]}
-                    - { step: '*', tank_types: ["Maya Scene"]}
+  tk-maya:
 
-            tk-maya-revolver:
-                location: {"type": "app_store", "name": "tk-maya-revolver", "version": "v0.1.0"}
-                rv_path_windows: "C:\\Program Files\\RV\\RV64.exe"
-                rv_path_linux: "rv"
-                rv_path_mac: /Applications/RV64.app
+    location: {name: tk-maya, type: app_store, version: v0.2.0}
+    debug_logging: false
+    menu_favourites:
+    - {app_instance: tk-multi-recentfiles, name: Recent Work Files...}
+    - {app_instance: tk-maya-publish, name: Snapshot}
+    - {app_instance: tk-maya-publish, name: Publish...}
+    template_project: shot_work_area_maya
 
-            tk-maya-setframerange:
-                location: {"type": "app_store", "name": "tk-maya-setframerange", "version": "v0.1.0"}
-
-            tk-maya-breakdown:
-                location: {"type": "app_store", "name": "tk-maya-breakdown", "version": "v0.1.0"}
-                templates_to_look_for: ["maya_shot_publish", "maya_asset_publish"]
-                hook_scan_scene: maya_breakdown_scan_scene
-                hook_update: maya_breakdown_update
-
-    tk-nuke:
-        location: {"type": "app_store", "name": "tk-nuke", "version": "v0.1.0"}
-        debug_logging: false
-        template_context: shot_work_area_nuke
-
-        apps:
-            tk-nuke-setframerange:
-                location: {"type": "app_store", "name": "tk-nuke-setframerange", "version": "v0.1.0"}
-
-            tk-nuke-quickdailies:
-                location: {"type": "app_store", "name": "tk-nuke-quickdailies", "version": "v0.1.1"}
-                width: 1024
-                height: 768
-                movie_template: shot_quicktime_quick
-                current_scene_template: nuke_shot_work
-                post_hooks: ["snapshot_history_post_quickdaily"]
-
-
-            tk-nuke-publish:
-                location: {"type": "app_store", "name": "tk-nuke-publish", "version": "v0.1.2"}
-
-                write_nodes:
-                    -   render_template: nuke_shot_render_stereo
-                        publish_template: nuke_shot_render_pub_stereo
-                        name: Stereo Exr, 32 bit
-                        file_type: exr
-                        tank_type: "Rendered Image"
-                        settings:
-                            datatype: "32 bit float"
-
-                    -   render_template: nuke_shot_render_stereo
-                        publish_template: nuke_shot_render_pub_stereo
-                        name: Stereo Exr, 16 bit
-                        file_type: exr
-                        tank_type: "Rendered Image"
-                        settings:
-                            datatype: "16 bit half"
-
-                    -   render_template: nuke_shot_render_mono_dpx
-                        publish_template: nuke_shot_render_pub_mono_dpx
-                        name: Mono Dpx
-                        file_type: dpx
-                        tank_type: "Rendered Image"
-                        settings: {}
-
-                movies:
-                    - { type: standard, template: shot_quicktime_full_res, tank_type: Quicktime}
-                    - { type: half_res, template: shot_quicktime_half_res, tank_type: Quicktime}
-
-                template_version_name: nuke_version_name
-                template_work: nuke_shot_work
-                template_snapshot: nuke_shot_snapshot
-                template_publish: nuke_shot_publish
-                input_templates_to_look_for:
-                    - nuke_asset_render
-                    - nuke_shot_render_pub_stereo
-                    - nuke_shot_render_pub_mono_dpx
-                hook_publish_file: nuke_publish_file
-                hook_generate_movie: nuke_generate_movie
-                published_script_tank_type: "Nuke Script"
-
-            tk-nuke-revolver:
-                location: {"type": "app_store", "name": "tk-nuke-revolver", "version": "v0.1.0"}
-                rv_path_windows: "C:\\Program Files\\RV\\RV64.exe"
-                rv_path_linux: "rv"
-                rv_path_mac: /Applications/RV64.app
-
-            tk-nuke-makequicktime:
-                location: {"type": "app_store", "name": "tk-nuke-makequicktime", "version": "v0.1.1"}
-                profiles:
-                    standard:
-                        width: 2048
-                        height: 1080
-
-                    half_res:
-                        width: 1024
-                        height: 540
-
-            tk-nuke-breakdown:
-                location: {"type": "app_store", "name": "tk-nuke-breakdown", "version": "v0.1.0"}
-                templates_to_look_for:
-                    - nuke_asset_render
-                    - nuke_shot_render_pub_stereo
-                    - nuke_shot_render_pub_mono_dpx
+    apps:
+    
+      tk-maya-breakdown:
+        location: {name: tk-maya-breakdown, type: app_store, version: v0.2.1}
+        hook_scan_scene: maya_breakdown_scan_scene
+        hook_multi_update: maya_breakdown_update    
+        
+      tk-multi-loader-1:
+        location: {name: tk-multi-loader, type: app_store, version: v0.1.0}
+        hook_add_file_to_scene: multi_add_file_to_scene
+        menu_name: Load Assets...
+        sg_entity_types: {"Asset":[]}
+        tank_types: [Maya Model, Maya Rig]
+        
+      tk-multi-loader-2:
+        location: {name: tk-multi-loader, type: app_store, version: v0.1.0}
+        hook_add_file_to_scene: multi_add_file_to_scene
+        menu_name: Load Shots...
+        sg_entity_types: {"Shot":[]}
+        tank_types: [Maya Anim, Maya Lighting, Maya Scene]
+        
+      tk-maya-publish:
+        location: {name: tk-maya-publish, type: app_store, version: v0.1.1}
+        hook_publish_file: maya_publish_file
+        hook_scan_scene: maya_breakdown_scan_scene
+        input_templates_to_look_for: [maya_shot_publish, maya_asset_publish]
+        publish_tank_types:
+        - step: Anm
+          tank_types: [Maya Anim]
+        - step: Light
+          tank_types: [Maya Lighting]
+        - step: '*'
+          tank_types: [Maya Scene]
+        template_publish: maya_shot_publish
+        template_snapshot: maya_shot_snapshot
+        template_work: maya_shot_work
+        validation_hooks: []
+        
+      tk-multi-recentfiles:
+        location: {name: tk-multi-recentfiles, type: app_store, version: v0.1.0}
+        template_work: maya_shot_work
+        launch_at_startup: true
+        
+      tk-multi-revolver:
+        location: {name: tk-multi-revolver, type: app_store, version: v0.1.0}
+        rv_path_linux: rv
+        rv_path_mac: /Applications/RV64.app
+        rv_path_windows: C:\Program Files\RV\RV64.exe
+        
+      tk-multi-setcontext:
+        location: {name: tk-multi-setcontext, type: app_store, version: v0.1.0}
+        enable_create_tasks: true
+        sg_entity_types: [Shot, Asset]
+        
+      tk-multi-setframerange:
+        location: {name: tk-multi-setframerange, type: app_store, version: v0.1.0}
+        sg_in_frame_field: sg_cut_in
+        sg_out_frame_field: sg_cut_out
+        
+      tk-multi-about:
+        location: {name: tk-multi-about, type: app_store, version: v0.1.0}
 
 
 
+  tk-motionbuilder:
+
+    debug_logging: false
+    location: {name: tk-motionbuilder, type: app_store, version: v0.2.1}
+    menu_favourites:
+    - {app_instance: tk-multi-recentfiles, name: Recent Work Files...}
+    - {app_instance: tk-motionbuilder-publish, name: Snapshot}
+    - {app_instance: tk-motionbuilder-publish, name: Publish...}
+
+    apps:
+
+      tk-multi-loader:
+        location: {name: tk-multi-loader, type: app_store, version: v0.1.0}
+        hook_add_file_to_scene: multi_add_file_to_scene
+        menu_name: Load FBX...
+        sg_entity_types: {"Asset":[], "Shot":[]}
+        tank_types: [Motion Builder FBX]
+        
+      tk-motionbuilder-publish:
+        hook_publish_file: motionbuilder_publish_file
+        location: {name: tk-motionbuilder-publish, type: app_store, version: v0.1.1}
+        template_publish: mobu_shot_publish
+        template_snapshot: mobu_shot_snapshot
+        template_work: mobu_shot_work
+        published_scene_tank_type: Motion Builder FBX
+        
+      tk-multi-recentfiles:
+        location: {name: tk-multi-recentfiles, type: app_store, version: v0.1.0}
+        template_work: mobu_shot_work
+        launch_at_startup: false
+        
+      tk-multi-revolver:
+        location: {name: tk-multi-revolver, type: app_store, version: v0.1.0}
+        rv_path_linux: rv
+        rv_path_mac: /Applications/RV64.app
+        rv_path_windows: C:\Program Files\RV\RV64.exe
+        
+      tk-multi-setcontext:
+        enable_create_tasks: true
+        location: {name: tk-multi-setcontext, type: app_store, version: v0.1.0}
+        sg_entity_types: [Shot, Asset]
+        
+      tk-multi-setframerange:
+        location: {name: tk-multi-setframerange, type: app_store, version: v0.1.0}
+        sg_in_frame_field: sg_cut_in
+        sg_out_frame_field: sg_cut_out
+        
+      tk-multi-about:
+        location: {name: tk-multi-about, type: app_store, version: v0.1.0}
+
+
+  tk-nuke:
+  
+    debug_logging: false
+    location: {name: tk-nuke, type: app_store, version: v0.2.3}
+    menu_favourites:
+    - {app_instance: tk-multi-recentfiles, name: Recent Work Files...}
+    - {app_instance: tk-nuke-publish, name: Snapshot}
+    - {app_instance: tk-nuke-publish, name: Publish...}
+    - {app_instance: tk-nuke-review, name: Submit for Review...}
+  
+    apps:
+      tk-nuke-breakdown:
+        location: {name: tk-nuke-breakdown, type: app_store, version: v0.2.2}
+        hook_multi_update: nuke_breakdown_update
+        hook_scan_scene: nuke_breakdown_scan_scene
+        
+      tk-multi-loader:
+        location: {name: tk-multi-loader, type: app_store, version: v0.1.0}
+        hook_add_file_to_scene: multi_add_file_to_scene
+        menu_name: Load...
+        sg_entity_types: {"Shot":[]}
+        tank_types: [Rendered Image]
+                  
+      tk-nuke-publish:
+        location: {name: tk-nuke-publish, type: app_store, version: v0.2.4}
+        hook_publish_file: nuke_publish_file
+        input_templates_to_look_for: [nuke_asset_render, nuke_shot_render_pub_stereo, nuke_shot_render_pub_mono_dpx]
+        published_script_tank_type: Nuke Script
+        template_publish: nuke_shot_publish
+        template_snapshot: nuke_shot_snapshot
+        template_work: nuke_shot_work
+        write_nodes:
+        - file_type: exr
+          name: Stereo Exr, 32 bit
+          publish_template: nuke_shot_render_pub_stereo
+          render_template: nuke_shot_render_stereo
+          settings: {datatype: 32 bit float}
+          tank_type: Rendered Image
+        - file_type: exr
+          name: Stereo Exr, 16 bit
+          publish_template: nuke_shot_render_pub_stereo
+          render_template: nuke_shot_render_stereo
+          settings: {datatype: 16 bit half}
+          tank_type: Rendered Image
+        - file_type: dpx
+          name: Mono Dpx
+          publish_template: nuke_shot_render_pub_mono_dpx
+          render_template: nuke_shot_render_mono_dpx
+          settings: {}
+          tank_type: Rendered Image
+          
+      tk-nuke-quickdailies:
+        location: {name: tk-nuke-quickdailies, type: app_store, version: v0.1.2}
+        current_scene_template: nuke_shot_work
+        height: 768
+        movie_template: shot_quicktime_quick
+        sg_version_name_template: nuke_quick_shot_version_name
+        post_hooks: [snapshot_history_post_quickdaily]
+        width: 1024
+        
+      tk-multi-recentfiles:
+        location: {name: tk-multi-recentfiles, type: app_store, version: v0.1.0}
+        template_work: nuke_shot_work
+        launch_at_startup: false
+        
+      tk-nuke-review:
+        location: {name: tk-nuke-review, type: app_store, version: v0.1.2}
+        hook_copy_sequence_file: copy_sequence_file
+        hook_create_content: review_create_content
+        hook_scan_scene: review_scan_scene
+        mappings:
+        - {input_template: nuke_shot_render_stereo, quicktime_output_template: nuke_shot_render_stereo_review_mov,
+          sequence_output_template: nuke_shot_render_stereo_review_seq, version_name_template: nuke_shot_version_name}
+        - {input_template: nuke_shot_render_mono_dpx, quicktime_output_template: nuke_shot_render_mono_dpx_review_mov,
+          sequence_output_template: nuke_shot_render_mono_dpx_review_seq, version_name_template: nuke_shot_version_name}
+        
+      tk-multi-revolver:
+        location: {name: tk-multi-revolver, type: app_store, version: v0.1.0}
+        rv_path_linux: rv
+        rv_path_mac: /Applications/RV64.app
+        rv_path_windows: C:\Program Files\RV\RV64.exe
+        
+      tk-multi-setcontext:
+        enable_create_tasks: true
+        location: {name: tk-multi-setcontext, type: app_store, version: v0.1.0}
+        sg_entity_types: [Shot, Asset]
+        
+      tk-multi-setframerange:
+        location: {name: tk-multi-setframerange, type: app_store, version: v0.1.0}
+        sg_in_frame_field: sg_cut_in
+        sg_out_frame_field: sg_cut_out
+        
+      tk-multi-about:
+        location: {name: tk-multi-about, type: app_store, version: v0.1.0}

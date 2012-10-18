@@ -55,6 +55,8 @@ class TestSchemaCreateFolders(TankTestBase):
         # Add these to mocked shotgun
         self.add_to_sg_mock_db(entities)
 
+        self.tk = tank.Tank(self.project_root)
+
         # add mock schema data so that a list of the asset type enum values can be returned
         data = {}
         data["properties"] = {}
@@ -72,8 +74,7 @@ class TestSchemaCreateFolders(TankTestBase):
     def test_shot(self):
         """Tests paths used in making a shot are as expected."""
         expected_paths = self._construct_shot_paths()
-        schema = Schema(self.sg_mock, 
-                        self.project_root, 
+        schema = Schema(self.tk, 
                         self.schema_location, 
                         self.mock_make_folder, 
                         self.mock_copy_file,
@@ -86,8 +87,7 @@ class TestSchemaCreateFolders(TankTestBase):
         self.shot["code"] = "name with spaces"
         self.add_to_sg_mock_db(self.shot)
         expected_paths = self._construct_shot_paths(shot_name="name-with-spaces")
-        schema = Schema(self.sg_mock, 
-                        self.project_root, 
+        schema = Schema(self.tk, 
                         self.schema_location, 
                         self.mock_make_folder, 
                         self.mock_copy_file,
@@ -104,8 +104,7 @@ class TestSchemaCreateFolders(TankTestBase):
             self.shot["code"] = "shot%sname" % illegal_char
             self.add_to_sg_mock_db(self.shot)
             expected_paths = self._construct_shot_paths(shot_name="shot-name")
-            schema = Schema(self.sg_mock, 
-                            self.project_root, 
+            schema = Schema(self.tk, 
                             self.schema_location, 
                             self.mock_make_folder, 
                             self.mock_copy_file,
@@ -134,8 +133,9 @@ class TestSchemaCreateFolders(TankTestBase):
         expected_paths.append(os.path.join(step_path, "work", "snapshots"))
         expected_paths.append(os.path.join(step_path, "out"))
 
-        schema = Schema(self.sg_mock, 
-                        self.project_root, 
+        self.tk = tank.Tank(self.project_root)
+
+        schema = Schema(self.tk, 
                         self.schema_location, 
                         self.mock_make_folder, 
                         self.mock_copy_file,
@@ -172,8 +172,7 @@ class TestSchemaCreateFolders(TankTestBase):
         expected_paths.append(os.path.join(self.project_root, "scenes", "extra_short_name", "scenename"))
         expected_paths.append(os.path.join(self.project_root, "scenes", "extra_short_name", "scenename", "work"))
         
-        schema = Schema(self.sg_mock, 
-                        self.project_root, 
+        schema = Schema(self.tk, 
                         self.schema_location, 
                         self.mock_make_folder, 
                         self.mock_copy_file,
@@ -194,8 +193,7 @@ class TestSchemaCreateFolders(TankTestBase):
         expected_paths.append(os.path.join(self.project_root, "reference", "artwork"))
         expected_paths.append(os.path.join(self.project_root, "reference", "footage"))
 
-        schema = Schema(self.sg_mock, 
-                        self.project_root, 
+        schema = Schema(self.tk, 
                         self.schema_location, 
                         self.mock_make_folder, 
                         self.mock_copy_file,
@@ -242,8 +240,7 @@ class TestSchemaCreateFolders(TankTestBase):
         project_schema = os.path.join(self.project_root, "tank", "config", "core", "schema", "project")
         shutil.rmtree(project_schema)
         with self.assertRaises(tank.TankError):
-            schema = Schema(self.sg_mock,
-                            self.project_root, 
+            schema = Schema(self.tk,
                             self.schema_location, 
                             self.mock_make_folder, 
                             self.mock_copy_file,
@@ -265,101 +262,6 @@ class TestSchemaCreateFolders(TankTestBase):
             if not any(x.startswith(actual_path) for x in expected_paths):
                 assert False, "Unexpected path slated for creation: %s" % actual_path
 
-class TestSchemaCreateFoldersAssetType(TankTestBase):
-    def setUp(self):
-        """Sets up entities in mocked shotgun database and creates Mock objects
-        to pass in as callbacks to Schema.create_folders. The mock objects are
-        then queried to see what paths the code attempted to create.
-        """
-        super(TestSchemaCreateFoldersAssetType, self).setUp()
-        self.setup_fixtures()
-        self.step = {"type": "Step",
-                     "id": 3,
-                     "code": "step_code",
-                     "short_name": "step_short_name"}
-        self.assetA = {"type": "Asset",
-                    "id": 4,
-                    "sg_asset_type": "assettype1",
-                    "code": "assetA",
-                    "project": self.project}
-        self.assetB = {"type": "Asset",
-                    "id": 5,
-                    "sg_asset_type": "assettype2",
-                    "code": "assetB",
-                    "project": self.project}
-
-        # Add these to mocked shotgun
-        self.add_to_sg_mock_db([self.step, self.assetA, self.assetB])
-
-        # Mock rather than writing to disk
-        self.mock_make_folder = Mock()
-        self.mock_copy_file = Mock()
-
-        self.schema_location = os.path.join(self.project_root, "tank", "config", "core", "schema")
-
-    def setup_fixtures(self):
-        """Use starter config sg_asset_type to configure the test project."""
-        configs_path = os.path.join(self.tank_source_path, "starter_configs", "sg_standard")
-        shutil.copytree(configs_path, self.project_config, ignore=shutil.ignore_patterns('.svn', '.pyc'))
-
-    def test_asset(self):
-        """Tests paths used in making a asset are as expected."""
-        expected_paths = []
-        
-        self.append_expected_paths_for_asset(expected_paths, self.assetA)
-        self.append_expected_paths_for_asset(expected_paths, self.assetB)
-        
-        schema = Schema(self.sg_mock, 
-                        self.project_root, 
-                        self.schema_location, 
-                        self.mock_make_folder, 
-                        self.mock_copy_file,
-                        preview=False)
-        
-        schema.create_folders("Asset", self.assetA["id"])
-        schema.create_folders("Asset", self.assetB["id"])
-        self.assert_paths_to_create(expected_paths)
-
-    def append_expected_paths_for_asset(self, expected_paths, asset):
-        # expected paths here are based on sg_asset_type starter-config
-        # define paths we expect for entities
-        asset_path = os.path.join(self.project_root, "assets", asset["sg_asset_type"], asset["code"])
-        expected_paths.append(asset_path)
-
-        expected_paths.append(os.path.join(asset_path, "reference"))
-        expected_paths.append(os.path.join(asset_path, "reference", "artwork"))
-        expected_paths.append(os.path.join(asset_path, "reference", "footage"))
-        
-        step_path = os.path.join(asset_path, self.step["short_name"])
-        expected_paths.append(step_path)
-
-        expected_paths.append(os.path.join(step_path, "publish"))
-        expected_paths.append(os.path.join(step_path, "publish", "elements"))
-        expected_paths.append(os.path.join(step_path, "publish", "maya"))
-        expected_paths.append(os.path.join(step_path, "publish", "nuke"))
-        
-        expected_paths.append(os.path.join(step_path, "review"))
-        expected_paths.append(os.path.join(step_path, "work"))
-        expected_paths.append(os.path.join(step_path, "work", "images"))
-        expected_paths.append(os.path.join(step_path, "work", "maya"))
-        expected_paths.append(os.path.join(step_path, "work", "nuke"))
-        expected_paths.append(os.path.join(step_path, "work", "maya", "snapshots"))
-        expected_paths.append(os.path.join(step_path, "work", "nuke", "snapshots"))
-        
-
-        
-    def assert_paths_to_create(self, expected_paths):
-        """
-        No file system operations are performed.
-        """
-        # Check paths sent to make_folder
-        actual_paths = [x[0][0] for x in self.mock_make_folder.call_args_list]
-        for expected_path in expected_paths:
-            if expected_path not in actual_paths:
-                assert False, "\n%s\nnot found in: [\n%s]" % (expected_path, "\n".join(actual_paths))
-        for actual_path in actual_paths:
-            if not any(x.startswith(actual_path) for x in expected_paths):
-                assert False, "Unexpected path slated for creation: %s" % actual_path
                                 
 class TestSchemaCreateFoldersMultiRoot(TankTestBase):
     """Test paths generated by Schema.create folders for multi-root project."""
@@ -392,6 +294,8 @@ class TestSchemaCreateFoldersMultiRoot(TankTestBase):
         # Add these to mocked shotgun
         self.add_to_sg_mock_db([self.shot, self.seq, self.step, self.project, self.asset])
 
+        self.tk = tank.Tank(self.project_root)
+
         # Mock rather than writing to disk
         self.mock_make_folder = Mock()
         self.mock_copy_file = Mock()
@@ -402,8 +306,7 @@ class TestSchemaCreateFoldersMultiRoot(TankTestBase):
     def test_shot(self):
         """Tests paths used in making a shot are as expected."""
         expected_paths = self._construct_shot_paths()
-        schema = Schema(self.sg_mock, 
-                        self.project_root, 
+        schema = Schema(self.tk, 
                         self.schema_location, 
                         self.mock_make_folder, 
                         self.mock_copy_file,
@@ -429,8 +332,7 @@ class TestSchemaCreateFoldersMultiRoot(TankTestBase):
         expected_paths.append(os.path.join(step_path, "work", "snapshots"))
         expected_paths.append(os.path.join(step_path, "out"))
 
-        schema = Schema(self.sg_mock, 
-                        self.project_root, 
+        schema = Schema(self.tk, 
                         self.schema_location, 
                         self.mock_make_folder, 
                         self.mock_copy_file,
@@ -454,8 +356,7 @@ class TestSchemaCreateFoldersMultiRoot(TankTestBase):
         expected_paths.append(os.path.join(self.alt_root_1, "tank", "config"))
         expected_paths.append(os.path.join(self.alt_root_1, "assets"))
         expected_paths.append(os.path.join(self.alt_root_1, "alternate_reference"))
-        schema = Schema(self.sg_mock, 
-                        self.project_root, 
+        schema = Schema(self.tk, 
                         self.schema_location, 
                         self.mock_make_folder, 
                         self.mock_copy_file,
@@ -475,8 +376,7 @@ class TestSchemaCreateFoldersMultiRoot(TankTestBase):
                 os.makedirs(path, 0777)
                 os.umask(old_umask)
         
-        schema = Schema(self.sg_mock, 
-                        self.project_root, 
+        schema = Schema(self.tk, 
                         self.schema_location, 
                         make_folder, 
                         self.mock_copy_file,
@@ -502,8 +402,7 @@ class TestSchemaCreateFoldersMultiRoot(TankTestBase):
         project_yml = os.path.join(self.schema_location, "alternate_1.yml")
         os.remove(project_yml)
         with self.assertRaises(tank.TankError):
-            schema = Schema(self.sg_mock, 
-                            self.project_root, 
+            schema = Schema(self.tk, 
                             self.schema_location, 
                             self.mock_make_folder, 
                             self.mock_copy_file,
@@ -525,8 +424,7 @@ class TestSchemaCreateFoldersMultiRoot(TankTestBase):
             roots_file.write(yaml.dump(roots))
 
         with self.assertRaises(tank.TankError):
-            schema = Schema(self.sg_mock, 
-                            self.project_root, 
+            schema = Schema(self.tk, 
                             self.schema_location, 
                             self.mock_make_folder, 
                             self.mock_copy_file,
@@ -611,6 +509,8 @@ class TestCreateFilesystemStructure(TankTestBase):
 
         # Add these to mocked shotgun
         self.add_to_sg_mock_db([self.shot, self.seq, self.step, self.project, self.asset, self.task])
+        
+        self.tk = tank.Tank(self.project_root)
         
         # add mock schema data so that a list of the asset type enum values can be returned
         data = {}

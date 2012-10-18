@@ -276,7 +276,7 @@ class EntityName(object):
     
         
     
-    def validate(self, values):
+    def validate(self, tk, values):
         """
         Checks that the fields and the full path is valid and doesn't 
         produce a dodgy file name. raises an exception on failure,
@@ -284,6 +284,9 @@ class EntityName(object):
         
         :param values: dictionary of values to test
         """
+        
+        # get the shotgun id from the values dict
+        sg_id = values.get("id")
         
         # first make sure that each field is valid
         for field_name in self._fields:
@@ -297,7 +300,7 @@ class EntityName(object):
                                 "configuration!" % (field_name, self._name_expr, self._entity_type))
             
             # now cast the value to a string
-            val = generate_string_val(raw_val)
+            val = generate_string_val(tk, self._entity_type, sg_id, field_name, raw_val)
             
             # validate
             if re.match(constants.VALID_SG_ENTITY_NAME_REGEX, val) is None:
@@ -314,7 +317,7 @@ class EntityName(object):
                 raise TankError(msg)        
         
         # now validate the entire value!
-        val = self.generate_name(values)
+        val = self.generate_name(tk, values)
         if re.match(constants.VALID_SG_ENTITY_NAME_REGEX, val) is None:
             # not valid!!!
             msg = ("The format string '%s' used in the Tank configuration "
@@ -331,7 +334,7 @@ class EntityName(object):
         """
         return copy.copy(self._fields)
     
-    def generate_name(self, values):
+    def generate_name(self, tk, values):
         """
         Generates a name given some fields.
         
@@ -343,18 +346,22 @@ class EntityName(object):
         str_data = {}
         adjustments = {}
         
-        for key in values:
-            # adjust the key to make sure we have to 
+        # get the shotgun id from the shotgun entity dict
+        sg_id = values.get("id")
+        
+        for sg_field in values:
+            
+            # adjust the sg_field to make sure we have to 
             # . characters since this confuses the parser.
             # so the SG field entity.Shot.code --> entity__Shot__code
-            adjusted_field = key.replace(".", "__")
+            adjusted_field = sg_field.replace(".", "__")
 
             # store the adjustments we are making so that we can
             # do the same adjustments to the expression later
-            adjustments[key] = adjusted_field
+            adjustments[sg_field] = adjusted_field
             
             # and store all values in a dict
-            str_data[adjusted_field] = generate_string_val(values[key])
+            str_data[adjusted_field] = generate_string_val(tk, self._entity_type, sg_id, sg_field, values[sg_field])
             
         
         # now look at the expression ({code}_{entity.Shot.code}) and convert it
@@ -479,10 +486,10 @@ class Entity(Folder):
         :returns: the path created.
         """
         # validate the name
-        self.entity_name_obj.validate(entity)
+        self.entity_name_obj.validate(schema.tk, entity)
         
         # generate the field name
-        folder_name = self.entity_name_obj.generate_name(entity)
+        folder_name = self.entity_name_obj.generate_name(schema.tk, entity)
                 
         # create folder via callback
         my_path = os.path.join(path, folder_name)
@@ -578,6 +585,8 @@ class Entity(Folder):
             fields_to_retrieve.append("name")
         elif self.entity_type == "Task":
             fields_to_retrieve.append("content")
+        elif self.entity_type == "HumanUser":
+            fields_to_retrieve.append("login")
         else:
             fields_to_retrieve.append("code")
         
@@ -600,17 +609,31 @@ class Entity(Folder):
         elif self.entity_type == "Task":
             name = rec["content"]
             tokens[self.entity_type]["content"] = rec["content"]
+        elif self.entity_type == "HumanUser":
+            name = rec["login"]
+            tokens[self.entity_type]["login"] = rec["login"]
         else:
             name = rec["code"]
             tokens[self.entity_type]["code"] = rec["code"]
         
         
+        # Get the values returned and map them to the appropriate keys in the tokens map
         for field in field_to_token_key_map:
             value = rec[field]
             token_key = field_to_token_key_map[field]
             
             if value:
-                tokens[token_key] = value
+                if isinstance(value, dict):
+                    # If the value is a dict, assume it comes from a entity field.
+                    # As such, it may be an entity of a different type than
+                    # the one in our tokens map, in which case it is not valid
+                    # for our tokens. We will construct queries based on the
+                    # tokens, so having an id paired with the wrong type
+                    # will raise an error.
+                    if token_key == value.get("type", token_key):
+                        tokens[token_key] = value
+                else:
+                        tokens[token_key] = value
             else:
                 # field was none! - cannot handle that
                 raise TankError("The %s %s has a required field %s that \ndoes not have a value "
@@ -664,35 +687,15 @@ class TokenError(TankError):
     """
     pass
 
-def generate_string_val(data):
+def generate_string_val(tk, sg_entity_type, sg_id, sg_field_name, data):
     """
     Generates a string value given a shotgun value.
     Doing smart conversions, so that for example
     a {"type":"Shot", "id":123, "name":"foo"} ==> "foo"
     """
-    if data.__class__ == dict and "name" in data:
-        # it is a dictionary with a name key - assume this is what we want
-        # this is normally an entity link
-        str_data = str(data["name"])
-    elif data.__class__ == list and len(data) == 0:
-        # this an empty list.
-        str_data = ""
-    elif data.__class__ == list and len(data) > 0:
-        # this is a multi entity link with at least one element
-        # that element is a dict with a name field
-        # e.g. this is a multi entity link field
-        
-        # make a string by concatenating all names with _
-        # [{"name":"foo"}, {"name":"bar"}] ==> "foo_bar"
-        try:
-            str_data = "_".join( [x["name"] for x in data] )
-        except KeyError:
-            str_data = str(data)
-    else:
-        # assume all other data types convert straight
-        str_data = str(data)
-        
-    # replace white space with dashes
-    str_data = re.sub("\W", "-", str_data) 
-    
-    return str_data
+    # call out to core hook
+    return tk.execute_hook(constants.PROCESS_FOLDER_NAME_HOOK_NAME, 
+                           entity_type=sg_entity_type, 
+                           entity_id=sg_id,
+                           field_name=sg_field_name,
+                           value=data)

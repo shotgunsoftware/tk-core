@@ -6,10 +6,9 @@ I/O Hook which copies files on disk.
 
 """
 
-import os
-import shutil
 from tank import Hook
-
+import shutil
+import os
 
 class MayaPubPublishFile(Hook):
     
