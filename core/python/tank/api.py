@@ -155,6 +155,9 @@ class Tank(object):
         found_files = glob.iglob(glob_str)
         return [found_file for found_file in found_files if template.validate(found_file)]
 
+    def abstracts_from_template(self, template, fields):
+        return []
+
     def paths_from_entity(self, entity_type, entity_id):
         """
         Finds paths associated with an entity.
