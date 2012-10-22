@@ -298,7 +298,10 @@ class TestSequenceKey(TankTestBase):
 
     def test_str_from_value_bad(self):
         value = "a"
-        expected = "%s Illegal value %s, expected an Integer" % (str(self.seq_field), value)
+        expected = "%s Illegal value %s, expected an Integer, a frame spec or format spec." % (str(self.seq_field), value)
+        expected += "\nValid frame specs: ['@', '#', '%01d', '$F', '%d', '$F1']"
+        expected += "\nValid format strings: ['FORMAT:%0d', 'FORMAT:%d', 'FORMAT:#', 'FORMAT:#d', 'FORMAT:@d', 'FORMAT:$Fd', 'FORMAT:$F']\n"
+
         with self.assertRaises(TankError) as cm:
             self.seq_field.str_from_value(value)
             

@@ -248,6 +248,12 @@ class SequenceKey(IntegerKey):
     def validate(self, value):
         if value in self.frame_specs or value in self._format_patterns:
             return True
+        elif not(isinstance(value, int) or value.isdigit()):
+            msg = "%s Illegal value %s, expected an Integer, a frame spec or format spec.\n" % (self, value)
+            msg += "Valid frame specs: %s\n" % str(list(self.frame_specs))
+            msg += "Valid format strings: %s\n" % str(self._format_patterns)
+            self._last_error = msg
+            return False
         else:
             return super(SequenceKey, self).validate(value)
 
