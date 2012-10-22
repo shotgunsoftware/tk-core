@@ -14,6 +14,7 @@ from tank_vendor import yaml
 from .. import root
 from ..errors import TankError
 from ..platform import constants
+from ..templatekey import SequenceKey
 from . import login
 
 
@@ -258,7 +259,9 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
 
         context - the context we want to associate with the publish
 
-        path - the path to the file or sequence we want to publish
+        path - the path to the file or sequence we want to publish. If the
+               path is a sequence path it will be abstracted so that
+               any sequence keys are replaced with their default values.
 
         name - a name, without version number, which helps distinguish
                this publish from other publishes. This is typically
@@ -306,6 +309,8 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
     update_entity_thumbnail = kwargs.get("update_entity_thumbnail", False)
     update_task_thumbnail = kwargs.get("update_task_thumbnail", False)
 
+    path = _check_for_sequence_path(tk, path)
+
     sg_tank_type = None
     # query shotgun for the tank_type
     if tank_type:
@@ -348,6 +353,18 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
     _create_dependencies(tk, entity, dependency_paths)
 
     return entity
+
+def _check_for_sequence_path(tk, path):
+    template = tk.template_from_path(path)
+    if template:
+        sequence_keys = [k.name for k in template.keys.values() if isinstance(k, SequenceKey)]
+        if sequence_keys:
+            # we want to use the default values for sequence keys
+            cur_fields = template.get_fields(path)
+            for sequence_key in sequence_keys:
+                del(cur_fields[sequence_key])
+            path = template.apply_fields(cur_fields)
+    return path
 
 def _create_dependencies(tk, entity, dependency_paths):
     publishes = find_publish(tk, dependency_paths)

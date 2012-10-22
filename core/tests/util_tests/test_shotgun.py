@@ -114,6 +114,37 @@ class TestShotgunRegisterPublish(TankTestBase):
             tank_type="Missing Type"
         )
 
+    def test_sequence_abstracted_path(self):
+        """Test that if path supplied represents a sequence, the abstract version of that
+        sequence is used."""
+        tk = tank.Tank(self.project_root)
+        # mock shotgun
+        tk._tank__sg = Mock()
+
+        # make sequence key
+        keys = { "seq": tank.templatekey.SequenceKey("seq", format_spec="03")}
+        # make sequence template
+        seq_template = tank.template.TemplatePath("/folder/name_{seq}.ext", keys, self.project_root)
+        tk.templates["sequence_template"] = seq_template
+
+        seq_path = os.path.join(self.project_root, "folder", "name_001.ext")
+
+        # mock sg.create, check it for path value
+        tank.util.register_publish(tk, self.context, seq_path, self.name, self.version)
+
+        # check that path is modified before sent to shotgun
+        expected_path = os.path.join(self.project_root, "folder", "name_%03d.ext")
+        project_name = os.path.basename(self.project_root)
+        expected_path_cache = os.path.join(project_name, "folder", "name_%03d.ext")
+
+        # look at values sent to the Mocked shotgun.create
+        actual_path = tk.shotgun.create.call_args[0][1]["path"]["local_path"]
+        actual_path_cache = tk.shotgun.create.call_args[0][1]["path_cache"]
+
+        self.assertEqual(expected_path, actual_path)
+        self.assertEqual(expected_path_cache, actual_path_cache)
+
+
 
 class TestCalcPathCache(TankTestBase):
     @patch("tank.root.get_project_roots")
