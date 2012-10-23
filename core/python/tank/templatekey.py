@@ -246,12 +246,20 @@ class SequenceKey(IntegerKey):
         self.default = self.default or self._as_abstract()
 
     def validate(self, value):
+        value = self._preprocess_value(value)
         if value in self.frame_specs or value in self._format_patterns:
             return True
+        elif not(isinstance(value, int) or value.isdigit()):
+            msg = "%s Illegal value %s, expected an Integer, a frame spec or format spec.\n" % (self, value)
+            msg += "Valid frame specs: %s\n" % str(list(self.frame_specs))
+            msg += "Valid format strings: %s\n" % str(self._format_patterns)
+            self._last_error = msg
+            return False
         else:
             return super(SequenceKey, self).validate(value)
 
     def _as_string(self, value):
+        value = self._preprocess_value(value)
         if isinstance(value, basestring) and value.startswith(FRAMESPEC_FORMAT_INDICATOR):
             return self._as_abstract(value.replace(FRAMESPEC_FORMAT_INDICATOR, ""))
 
@@ -290,6 +298,13 @@ class SequenceKey(IntegerKey):
             return str_value
         else:
             return super(SequenceKey, self)._as_value(str_value)
+
+    def _preprocess_value(self, value):
+        # remove any white space in-between format indicator and value
+        if isinstance(value, basestring) and value.startswith(FRAMESPEC_FORMAT_INDICATOR):
+            temp_value = value.replace(FRAMESPEC_FORMAT_INDICATOR, "")
+            value = FRAMESPEC_FORMAT_INDICATOR + temp_value.strip()
+        return value
 
 
 def _determine_frame_specs(format_spec):
