@@ -18,7 +18,8 @@ class TemplateKey(object):
                  choices=None,
                  shotgun_entity_type=None,
                  shotgun_field_name=None,
-                 exclusions=None):
+                 exclusions=None,
+                 abstract=False):
         """
         :param name: Key's name.
         :param default: Default value for this key.
@@ -26,6 +27,7 @@ class TemplateKey(object):
         :param shotgun_entity_type: For keys directly linked to a shotgun field, the entity type.
         :param shotgun_field_name: For keys directly linked to a shotgun field, the field name.
         :param exclusions: List of values which are not allowed.
+        :param abstract: Bool, should this key be treated as abstract.
         """
         self.name = name
         self.default = default
@@ -33,6 +35,7 @@ class TemplateKey(object):
         self.exclusions = exclusions or []
         self.shotgun_entity_type = shotgun_entity_type
         self.shotgun_field_name = shotgun_field_name
+        self.is_abstract = abstract
         self._last_error = ""
 
         # Validation
@@ -129,7 +132,8 @@ class StringKey(TemplateKey):
                  filter_by=None,
                  shotgun_entity_type=None,
                  shotgun_field_name=None, 
-                 exclusions=None):
+                 exclusions=None,
+                 abstract=False):
         """
         :param name: Name by which the key will be refered.
         :param default: Default value for the key.
@@ -139,6 +143,7 @@ class StringKey(TemplateKey):
         :param shotgun_entity_type: For keys directly linked to a shotgun field, the entity type.
         :param shotgun_field_name: For keys directly linked to a shotgun field, the field name.
         :param exclusions: List of forbidden values.
+        :param abstract: Bool, should this key be treated as abstract.
         """
         self.filter_by = filter_by
         if self.filter_by == "alphanumeric":
@@ -151,7 +156,8 @@ class StringKey(TemplateKey):
                                         choices=choices,
                                         shotgun_entity_type=shotgun_entity_type,
                                         shotgun_field_name=shotgun_field_name,
-                                        exclusions=exclusions)
+                                        exclusions=exclusions,
+                                        abstract=abstract)
 
     def validate(self, value):
 
@@ -176,7 +182,8 @@ class IntegerKey(TemplateKey):
                  format_spec=None,
                  shotgun_entity_type=None,
                  shotgun_field_name=None,
-                 exclusions=None):
+                 exclusions=None,
+                 abstract=False):
         """
         :param name: Key's name.
         :param default: Default value for this key.
@@ -186,13 +193,16 @@ class IntegerKey(TemplateKey):
                             the value.
         :param shotgun_entity_type: For keys directly linked to a shotgun field, the entity type.
         :param shotgun_field_name: For keys directly linked to a shotgun field, the field name.
+        :param exclusions: List of forbidden values.
+        :param abstract: Bool, should this key be treated as abstract.
         """
         super(IntegerKey, self).__init__(name,
                                          default=default,
                                          choices=choices,
                                          shotgun_entity_type=shotgun_entity_type,
                                          shotgun_field_name=shotgun_field_name,
-                                         exclusions=exclusions)
+                                         exclusions=exclusions,
+                                         abstract=abstract)
 
         if not(format_spec is None or isinstance(format_spec, basestring)):
             msg = "Format_spec for TemplateKey %s is not of type string: %s"
@@ -235,13 +245,15 @@ class SequenceKey(IntegerKey):
         self.frame_specs = _determine_frame_specs(format_spec)
         format_strings = ['%0d', '%d', '#', '#d', '@d', '$Fd', '$F']
         self._format_patterns = ["%s%s" % (FRAMESPEC_FORMAT_INDICATOR, x) for x in format_strings]
+        abstract = True
         super(SequenceKey, self).__init__(name,
                                           default=default,
                                           choices=choices,
                                           format_spec=format_spec,
                                           shotgun_entity_type=shotgun_entity_type,
                                           shotgun_field_name=shotgun_field_name,
-                                          exclusions=exclusions)
+                                          exclusions=exclusions,
+                                          abstract=abstract)
 
         self.default = self.default or self._as_abstract()
 
