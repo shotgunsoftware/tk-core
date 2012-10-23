@@ -157,7 +157,7 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
     }
 
     Fields that are not found, or filtered out by the filters parameter,
-    is not returned in the dictionary.
+    are not returned in the dictionary.
 
     :param tk: Tank API Instance
     :param list_of_paths: List of full paths for which information should be retrieved
@@ -166,18 +166,25 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
                    return. Defaults to id, created_at, and path_cache.
     :returns: dictionary keyed by path
     """
-    # group paths by storage
+    # Map path caches to full paths, grouped by storage
+    # in case of sequences, there will be more than one file
+    # per path cache
+    # {<storage name>: { path_cache: [full_path, full_path]}}
     storages_paths = _group_by_storage(tk, list_of_paths)
     
     filters = filters or []
-        
     fields = fields or []
     fields.append("created_at")
     fields.append("path_cache")
 
+    # Use storage, path_cache and filters to find publishes grouped by storage.
     published_files = _publishes_from_paths(tk, storages_paths, filters, fields)
+
+    # Use mapping of path_cache to full paths to create mapping of 
+    # full paths to publishes.
     matches = _sort_publishes(published_files, storages_paths) 
     return matches
+
 
 def _group_by_storage(tk, list_of_paths):
     """
@@ -187,7 +194,9 @@ def _group_by_storage(tk, list_of_paths):
 
     for path in list_of_paths:
 
-        root_name, dep_path_cache = _calc_path_cache(tk.project_path, path)
+        # use abstracted path if path is part of a sequence
+        abstract_path = _check_for_sequence_path(tk, path)
+        root_name, dep_path_cache = _calc_path_cache(tk.project_path, abstract_path)
 
         # make sure that the path is even remotely valid, otherwise skip
         if dep_path_cache is None:
@@ -200,7 +209,9 @@ def _group_by_storage(tk, list_of_paths):
 
         # Update data for this storage
         storage_info = storages_paths.get(root_name, {})
-        storage_info[dep_path_cache] = path
+        paths = storage_info.get(dep_path_cache, [])
+        paths.append(path)
+        storage_info[dep_path_cache] = paths
         storages_paths[root_name] = storage_info
 
     return storages_paths
@@ -239,8 +250,8 @@ def _sort_publishes(published_files, storage_paths):
         storage_info = storage_paths[root_name]
         for publish in publishes:
             path_cache = publish["path_cache"]
-            full_path = storage_info.get(path_cache)
-            if full_path:
+
+            for full_path in storage_info.get(path_cache, []):
                 cur_publish = matches.get(full_path, publish)
                 # We want the most recent
                 if not cur_publish["created_at"] > publish["created_at"]:
