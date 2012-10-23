@@ -179,7 +179,7 @@ class TestShotgunRegisterPublish(TankTestBase):
         # check that path is modified before sent to shotgun
         expected_path = os.path.join(self.project_root, "folder", "name_%03d.ext")
         project_name = os.path.basename(self.project_root)
-        expected_path_cache = os.path.join(project_name, "folder", "name_%03d.ext")
+        expected_path_cache = "%s/%s/%s" % (project_name, "folder", "name_%03d.ext")
 
         # look at values sent to the Mocked shotgun.create
         actual_path = tk.shotgun.create.call_args[0][1]["path"]["local_path"]
