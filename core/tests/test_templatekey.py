@@ -261,7 +261,10 @@ class TestSequenceKey(TankTestBase):
         self.assertEquals(expected_frame_specs, seq_field.frame_specs)
 
     def test_validate_good(self):
-        good_values = self.seq_field.frame_specs
+        good_values = self.seq_field.frame_specs.copy()
+        good_values.update(self.seq_field._format_patterns)
+        # add format patterns with white space
+        good_values.update([x.replace(":", ": ") for x in self.seq_field._format_patterns])
         good_values.update([1, "243"])
         for good_value in good_values:
             self.assertTrue(self.seq_field.validate(good_value))
@@ -385,6 +388,29 @@ class TestSequenceKey(TankTestBase):
         # no pattern specified
         expected = "%03d"
         result = seq_field.str_from_value()
+        self.assertEquals(expected, result)
+
+    def test_str_from_value_format_whitespace(self):
+        """Use of FORMAT: prefix with whitespace."""
+        seq_field = SequenceKey("field_name", format_spec="03")
+        expected = "%03d"
+        result = seq_field.str_from_value("FORMAT: %0d")
+        self.assertEquals(expected, result)
+
+        expected = "#"
+        result = seq_field.str_from_value("FORMAT: #")
+        self.assertEquals(expected, result)
+
+        expected = "###"
+        result = seq_field.str_from_value("FORMAT: #d")
+        self.assertEquals(expected, result)
+
+        expected = "@@@"
+        result = seq_field.str_from_value("FORMAT: @d")
+        self.assertEquals(expected, result)
+
+        expected = "$F3"
+        result = seq_field.str_from_value("FORMAT: $Fd")
         self.assertEquals(expected, result)
 
     def test_default_int(self):
