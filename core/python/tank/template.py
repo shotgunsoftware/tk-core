@@ -153,6 +153,13 @@ class Template(object):
 
         return [x for x in required_keys if (x not in fields) or  (fields[x] is None)]
 
+    def abstract_keys(self):
+        """Returns names of keys which are registered as abstract.
+
+        :returns: List of key names.
+        """
+        return [k.name for k in self.keys.values() if k.is_abstract]
+
     def apply_fields(self, fields):
         """
         Creates path using fields.

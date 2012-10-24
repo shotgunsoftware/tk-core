@@ -14,7 +14,6 @@ from tank_vendor import yaml
 from .. import root
 from ..errors import TankError
 from ..platform import constants
-from ..templatekey import SequenceKey
 from . import login
 
 
@@ -368,12 +367,12 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
 def _check_for_sequence_path(tk, path):
     template = tk.template_from_path(path)
     if template:
-        sequence_keys = [k.name for k in template.keys.values() if isinstance(k, SequenceKey)]
-        if sequence_keys:
-            # we want to use the default values for sequence keys
+        abstract_keys = template.abstract_keys()
+        if abstract_keys:
+            # we want to use the default values for abstract keys
             cur_fields = template.get_fields(path)
-            for sequence_key in sequence_keys:
-                del(cur_fields[sequence_key])
+            for abstract_key in abstract_keys:
+                del(cur_fields[abstract_key])
             path = template.apply_fields(cur_fields)
     return path
 
