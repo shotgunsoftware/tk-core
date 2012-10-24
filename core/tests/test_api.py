@@ -178,7 +178,7 @@ class TestPathsFromTemplate(TankTestBase):
 
 
 class TestAbstractsFromTemplate(TankTestBase):
-    """Tests Tank.abstracts_from_template method."""
+    """Tests Tank.abstract_paths_from_template method."""
     def setUp(self):
         super(TestAbstractsFromTemplate, self).setUp()
         self.setup_fixtures()
@@ -203,18 +203,18 @@ class TestAbstractsFromTemplate(TankTestBase):
         step = {"type":"Step", "id":1, "name": "step_name"}
         self.step_path = os.path.join(shot_path, "step_name")
         self.add_production_path(self.step_path, step)
-        step_path = os.path.join(shot_path_1, "step_name")
-        self.add_production_path(step_path, step)
+        self.step_path_1 = os.path.join(shot_path_1, "step_name")
+        self.add_production_path(self.step_path_1, step)
 
         self.tk = Tank(self.project_root)
 
         self.keys = {"Sequence": StringKey("Sequence"),
                      "Shot": StringKey("Shot"),
                      "Step": StringKey("Step"),
-                     "eye": StringKey("eye", default="%V", choices=["%V", "L", "R"]),
+                     "eye": StringKey("eye", default="%V", choices=["%V", "L", "R"], abstract=True),
                      "name": StringKey("name"),
                      "version": IntegerKey("version"),
-                     "seq": SequenceKey("frame", format_spec="03")}
+                     "seq": SequenceKey("seq", format_spec="03")}
 
         # fields reflectint values for first sequneces step path
         self.fields = {"Sequence": "Seq_1",
@@ -226,7 +226,7 @@ class TestAbstractsFromTemplate(TankTestBase):
         fields = {}
         definition = "/sequences/{Sequence}/{Shot}/{Step}/{name}.{seq}.ext"
         template = TemplatePath(definition, self.keys, self.project_root)
-        result = self.tk.abstracts_from_template(template, fields)
+        result = self.tk.abstract_paths_from_template(template, fields)
         expected = []
         self.assertEquals(expected, result)
 
@@ -243,7 +243,7 @@ class TestAbstractsFromTemplate(TankTestBase):
         file_path = template.apply_fields(temp_fields)
         self.create_file(file_path)
 
-        result = self.tk.abstracts_from_template(template, fields)
+        result = self.tk.abstract_paths_from_template(template, fields)
         abstract_path = os.path.join(self.step_path, "name_value.%03d.ext")
         expected = [abstract_path]
         self.assertEquals(expected, result)
@@ -253,7 +253,7 @@ class TestAbstractsFromTemplate(TankTestBase):
         fields = {}
         definition = "/sequences/{Sequence}/{Shot}/{Step}/{name}/{name}.{seq}.ext"
         template = TemplatePath(definition, self.keys, self.project_root)
-        result = self.tk.abstracts_from_template(template, fields)
+        result = self.tk.abstract_paths_from_template(template, fields)
         expected = []
         self.assertEquals(expected, result)
 
@@ -262,18 +262,18 @@ class TestAbstractsFromTemplate(TankTestBase):
         fields = {}
         definition = "/sequences/{Sequence}/{Shot}/{Step}/something.{seq}.ext"
         template = TemplatePath(definition, self.keys, self.project_root)
-        result = self.tk.abstracts_from_template(template, fields)
+        result = self.tk.abstract_paths_from_template(template, fields)
         abstract_path = os.path.join(self.step_path, "something.%03d.ext")
-        expected = [abstract_path]
-        self.assertEquals(expected, result)
-
+        abstract_path_1 = os.path.join(self.step_path_1, "something.%03d.ext")
+        expected = [abstract_path, abstract_path_1]
+        self.assertEquals(set(expected), set(result))
 
     def test_5(self):
         """ No fields values, only abstract in leaf file, dir structure does not exist"""
         fields = {}
         definition = "/sequences/{Sequence}/{Shot}/{Step}/some_directory/something.{seq}.ext"
         template = TemplatePath(definition, self.keys, self.project_root)
-        result = self.tk.abstracts_from_template(template, fields)
+        result = self.tk.abstract_paths_from_template(template, fields)
         self.assertEquals([], result)
 
     def test_6(self):
@@ -290,7 +290,7 @@ class TestAbstractsFromTemplate(TankTestBase):
 
         abstract_path = os.path.join(self.step_path, "%V", "something.%V.ext")
         expected = [abstract_path]
-        result = self.tk.abstracts_from_template(template, fields)
+        result = self.tk.abstract_paths_from_template(template, fields)
         self.assertEquals(expected, result)
 
     def test_7(self):
@@ -299,9 +299,8 @@ class TestAbstractsFromTemplate(TankTestBase):
         definition = "/sequences/{Sequence}/{Shot}/{Step}/{eye}/something.{eye}.ext"
         template = TemplatePath(definition, self.keys, self.project_root)
 
-        abstract_path = os.path.join(self.step_path, "%V", "something.%V.ext")
-        expected = [abstract_path]
-        result = self.tk.abstracts_from_template(template, fields)
+        expected = []
+        result = self.tk.abstract_paths_from_template(template, fields)
         self.assertEquals(expected, result)
 
     def test_8(self):
@@ -318,7 +317,7 @@ class TestAbstractsFromTemplate(TankTestBase):
 
         abstract_path = os.path.join(self.step_path, "%V", "work", "something.%V.ext")
         expected = [abstract_path]
-        result = self.tk.abstracts_from_template(template, fields)
+        result = self.tk.abstract_paths_from_template(template, fields)
         self.assertEquals(expected, result)
 
     def test_9(self):
@@ -334,7 +333,7 @@ class TestAbstractsFromTemplate(TankTestBase):
         os.makedirs(file_path)
 
         expected = []
-        result = self.tk.abstracts_from_template(template, fields)
+        result = self.tk.abstract_paths_from_template(template, fields)
         self.assertEquals(expected, result)
 
     def test_10(self):
@@ -351,7 +350,7 @@ class TestAbstractsFromTemplate(TankTestBase):
 
         abstract_path = os.path.join(self.step_path, "some_name", "some_name.%V.ext")
         expected = [abstract_path]
-        result = self.tk.abstracts_from_template(template, fields)
+        result = self.tk.abstract_paths_from_template(template, fields)
         self.assertEquals(expected, result)
 
     def test_11(self):
@@ -366,7 +365,7 @@ class TestAbstractsFromTemplate(TankTestBase):
         file_path = template.apply_fields(temp_fields)
         self.create_file(file_path)
 
-        result = self.tk.abstracts_from_template(template, self.fields)
+        result = self.tk.abstract_paths_from_template(template, self.fields)
         abstract_path = os.path.join(self.step_path, "name_value.%03d.ext")
         expected = [abstract_path]
         self.assertEquals(expected, result)
@@ -384,15 +383,18 @@ class TestAbstractsFromTemplate(TankTestBase):
         file_path = template.apply_fields(temp_fields)
         self.create_file(file_path)
 
-        result = self.tk.abstracts_from_template(template, self.fields)
+        result = self.tk.abstract_paths_from_template(template, self.fields)
         abstract_path = os.path.join(self.step_path, "R.%03d.ext")
         expected = [abstract_path]
         self.assertEquals(expected, result)
 
         # make value not match that on disk
         self.fields["eye"] = "L"
-        result = self.tk.abstracts_from_template(template, self.fields)
-        expected = []
+        result = self.tk.abstract_paths_from_template(template, self.fields)
+        # this result is weird, we get a result as we don't care about 
+        # the file existing on disk!
+        abstract_path = os.path.join(self.step_path, "L.%03d.ext")
+        expected = [abstract_path]
         self.assertEquals(expected, result)
 
     def test_13(self):
@@ -408,9 +410,9 @@ class TestAbstractsFromTemplate(TankTestBase):
         self.create_file(file_path)
 
         # add format value for abstract key
-        self.fields["seq"] = "#d"
+        self.fields["seq"] = "FORMAT:#d"
 
-        result = self.tk.abstracts_from_template(template, self.fields)
+        result = self.tk.abstract_paths_from_template(template, self.fields)
         abstract_path = os.path.join(self.step_path, "name_value.###.ext")
         expected = [abstract_path]
         self.assertEquals(expected, result)
@@ -418,11 +420,12 @@ class TestAbstractsFromTemplate(TankTestBase):
 
     def test_14(self):
         """ Leaf is not file."""
-        definition = "/sequences/{Sequence}/{Shot}/{Step}/{name}"
+        definition = "/sequences/{Sequence}/{Shot}/{Step}/{eye}"
         template = TemplatePath(definition, self.keys, self.project_root)
 
-        result = self.tk.abstracts_from_template(template, self.fields)
-        expected = []
+        result = self.tk.abstract_paths_from_template(template, self.fields)
+        abstract_path = os.path.join(self.step_path, "%V")
+        expected = [abstract_path]
         self.assertEquals(expected, result)
         
 

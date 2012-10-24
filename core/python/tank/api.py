@@ -155,8 +155,41 @@ class Tank(object):
         found_files = glob.iglob(glob_str)
         return [found_file for found_file in found_files if template.validate(found_file)]
 
-    def abstracts_from_template(self, template, fields):
-        return []
+    def abstract_paths_from_template(self, template, fields):
+        """Returns an abstract path based on a template.
+
+        If the leaf level of the path contains only abstract keys, or only a combination
+        of abstract keys with keys which appear higher up in the path, the method does
+        not check that this level actually exists, only that the structure above it exists.
+
+        :param template: Template with which to search.
+        :param fields: Mapping of keys to values with which to assemble the abstract path.
+
+        :returns: A list of paths whose abstract keys use their abstract(default) value unless
+                  a value is specified for them in the fields parameter.
+        """
+        search_template = template
+        search_fields = fields.copy()
+        # If the leaf only includes abstract keys, leave it out of glob
+        leaf_keys = set(template.keys.keys()) - set(template.parent.keys.keys())
+        abstract_keys = template.abstract_keys()
+        # we don't want values for abstract keys when searching
+        for abstract_key in abstract_keys:
+            search_fields[abstract_key] = None
+        
+        if all([k in abstract_keys for k in leaf_keys]):
+            search_template = template.parent
+
+        found_files = self.paths_from_template(search_template, search_fields)
+        abstract_paths = set()
+        for found_file in found_files:
+            cur_fields = search_template.get_fields(found_file)
+            for abstract_key in abstract_keys:
+                # Abstract keys may have formatting values supplied
+                cur_fields[abstract_key] = fields.get(abstract_key)
+                abstract_paths.add(template.apply_fields(cur_fields))
+        return list(abstract_paths)
+
 
     def paths_from_entity(self, entity_type, entity_id):
         """
