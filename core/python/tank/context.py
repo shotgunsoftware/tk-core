@@ -126,8 +126,12 @@ class Context(object):
     @property
     def user(self):
         """
-        The shotgun human user, if any, associated with this context.
+        The shotgun human user, if any, associated with this context. Try to match the local
+        login to a HumanUser in Shotgun the first time it is called.
         """
+        if self.__user is None:
+            user = login.get_shotgun_user(self.__tk.shotgun)
+            self.__user = user
         return self.__user
 
     @property
@@ -517,7 +521,7 @@ def _task_from_sg(tk, task_id):
     # Look up task's step and entity. This information should be static in practice, so we could
     # likely cache it in the future.
 
-    standard_fields = ["content", "entity", "step", "project", "task_assignees"]
+    standard_fields = ["content", "entity", "step", "project"]
     # theses keys map directly to linked entities, users will be handled separately
     context_keys = ["project", "entity", "step", "task"]
 
@@ -554,41 +558,8 @@ def _task_from_sg(tk, task_id):
             additional_entities.append(value)
             context["additional_entities"] = additional_entities
 
-    # handle task user (assignee)
-    context["user"] = _user_from_task_assignees(tk.shotgun, task)
-
     return context
 
-def _user_from_task_assignees(shotgun, task):
-    user = None
-
-    # if no assignees, skip
-    task_assignees = task.get("task_assignees")
-    if task_assignees: 
-        num_assignees = len(task_assignees)
-        if num_assignees == 1:
-            # if single assignee, use that one
-            user = task_assignees[0]
-        elif num_assignees > 1:
-            # if multiple, try to match with current login
-            cur_user = login.get_shotgun_user(shotgun)
-            if not cur_user:
-                msg =  "The task %s has multiple people assigned to it, " % task
-                msg += "but we are unable to find a shotgun entry matching "
-                msg += "your login."
-                raise TankError, msg
-            
-            matches = [x for x in task_assignees if x["id"] == cur_user["id"]]
-            if matches:
-                user = matches[0]
-            else:
-                msg =  "The task %s has multiple users assigned to it, " % task
-                msg += "but none of them match the current user's login, "
-                msg += "if you wish to work with this task, please assign "
-                msg += "youself to it in Shotgun."
-                raise TankError, msg
-
-    return user
 
 def _context_data_from_cache(tk, entity_type, entity_id):
     """Adds data to context based on path cache.

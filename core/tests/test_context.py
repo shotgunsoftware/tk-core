@@ -34,7 +34,13 @@ class TestContext(TankTestBase):
                     "sg_sequence": self.seq,
                     "project": self.project}
         self.step = {"type":"Step", "name": "step_name", "id": 4}
-        self.humanuser = {"type":"HumanUser", "name":"user_name", "id":1, "login": "user_login"}
+
+        # One human user not matching the current login
+        self.other_user = {"type":"HumanUser", "name":"user_name", "id":1, "login": "user_login"}
+        # One human user matching the current login
+        self.current_login = tank.util.login._get_login_name()
+        self.current_user = {"type":"HumanUser", "name":"user_name", "id":2, "login": self.current_login}
+        self.add_to_sg_mock_db(self.current_user)
 
         self.seq_path = os.path.join(self.project_root, "sequence/Seq")
         self.add_production_path(self.seq_path, self.seq)
@@ -42,8 +48,8 @@ class TestContext(TankTestBase):
         self.add_production_path(self.shot_path, self.shot)
         self.step_path = os.path.join(self.shot_path, "step_short_name")
         self.add_production_path(self.step_path, self.step)
-        self.humanuser_path = os.path.join(self.step_path, "user_login")
-        self.add_production_path(self.humanuser_path, self.humanuser)
+        self.other_user_path = os.path.join(self.step_path, "user_login")
+        self.add_production_path(self.other_user_path, self.other_user)
 
         # adding shot path with alternate root 
         seq_path = os.path.join(self.alt_root_1, "sequence/Seq")
@@ -52,8 +58,8 @@ class TestContext(TankTestBase):
         self.add_production_path(self.alt_1_shot_path, self.shot)
         self.alt_1_step_path = os.path.join(self.alt_1_shot_path, "step_short_name")
         self.add_production_path(self.alt_1_step_path, self.step)
-        self.alt_1_humanuser_path = os.path.join(self.alt_1_step_path, "user_login")
-        self.add_production_path(self.alt_1_humanuser_path, self.humanuser)
+        self.alt_1_other_user_path = os.path.join(self.alt_1_step_path, "user_login")
+        self.add_production_path(self.alt_1_other_user_path, self.other_user)
 
 
 class TestEq(TestContext):
@@ -83,6 +89,35 @@ class TestEq(TestContext):
         not_context = object()
         self.assertFalse(context_1 == not_context)
 
+class TestUser(TestContext):
+    def setUp(self):
+        super(TestUser, self).setUp()
+        kws1 = {}
+        kws1["tk"] = self.tk
+        kws1["project"] = self.project
+        kws1["entity"] = self.shot
+        kws1["step"] = self.step
+        self.context = context.Context(**kws1)
+
+    def test_local_login(self):
+        """
+        Test that if user is not supplied, the human user matching the
+        local login is used.
+        """
+        self.assertEquals(self.current_user["id"], self.context.user["id"])
+        self.assertEquals(self.current_user["type"], self.context.user["type"])
+
+    def test_sg_called_once(self):
+        """
+        Test that shotgun is only queried the first time user is called.
+        """
+        self.sg_mock.find_one.reset_mock()
+        self.sg_mock.find_one.called == 0
+        self.context.user
+        self.sg_mock.find_one.called == 1
+        self.context.user
+        self.sg_mock.find_one.called == 1
+
 
 class TestCreateEmpty(TestContext):
     def test_empty_context(self):
@@ -102,19 +137,21 @@ class TestFromPath(TestContext):
         self.assertEquals(self.shot["type"], result.entity["type"])
         self.assertEquals(self.project["id"], result.project["id"])
         self.assertEquals(self.project["type"], result.project["type"])
+        self.assertEquals(self.current_user["id"], result.user["id"])
+        self.assertEquals(self.current_user["type"], result.user["type"])
         self.assertIsNone(result.step)
         self.assertIsNone(result.task)
-        self.assertIsNone(result.user)
 
     def test_external_path(self):
         shot_path_abs = os.path.abspath(os.path.join(self.project_root, ".."))
         result = self.tk.context_from_path(shot_path_abs)
         # check context's attributes
+        self.assertEquals(self.current_user["id"], result.user["id"])
+        self.assertEquals(self.current_user["type"], result.user["type"])
         self.assertIsNone(result.entity)
         self.assertIsNone(result.task)
         self.assertIsNone(result.step)
         self.assertIsNone(result.project)
-        self.assertIsNone(result.user)
 
     def test_non_primary_path(self):
         """Check that path which is not child of primary root create context."""
@@ -125,14 +162,15 @@ class TestFromPath(TestContext):
         self.assertEquals(self.shot["type"], result.entity["type"])
         self.assertEquals(self.project["id"], result.project["id"])
         self.assertEquals(self.project["type"], result.project["type"])
+        self.assertEquals(self.current_user["id"], result.user["id"])
+        self.assertEquals(self.current_user["type"], result.user["type"])
 
         self.assertIsNone(result.step)
         self.assertIsNone(result.task)
-        self.assertIsNone(result.user)
 
     def test_user_path(self):
-        """Check humanuser is set when contained in the path."""
-        result = self.tk.context_from_path(self.humanuser_path)
+        """Check other_user is set when contained in the path."""
+        result = self.tk.context_from_path(self.other_user_path)
 
         # check context's attributes
         self.assertEquals(self.shot["id"], result.entity["id"])
@@ -141,8 +179,8 @@ class TestFromPath(TestContext):
         self.assertEquals(self.project["type"], result.project["type"])
         self.assertEquals(self.step["id"], result.step["id"])
         self.assertEquals(self.step["type"], result.step["type"])
-        self.assertEquals(self.humanuser["id"], result.user["id"])
-        self.assertEquals(self.humanuser["type"], result.user["type"])
+        self.assertEquals(self.other_user["id"], result.user["id"])
+        self.assertEquals(self.other_user["type"], result.user["type"])
         
         self.assertIsNone(result.task)
 
@@ -157,8 +195,7 @@ class TestFromPathWithPrevious(TestContext):
                      "content": "task_content",
                      "project": self.project,
                      "entity": self.shot,
-                     "step": self.step,
-                     "task_assignees": None}
+                     "step": self.step}
         self.add_to_sg_mock_db(self.task)
 
         return context.from_entity(self.tk, self.task["type"], self.task["id"])
@@ -180,7 +217,8 @@ class TestFromPathWithPrevious(TestContext):
         self.assertEquals(self.step["id"], result.step["id"])
         self.assertEquals("Task", result.task["type"])
         self.assertEquals(self.task["id"], result.task["id"])
-        self.assertIsNone(result.user)
+        self.assertEquals(self.current_user["id"], result.user["id"])
+        self.assertEquals(self.current_user["type"], result.user["type"])
 
 
 
@@ -195,8 +233,7 @@ class TestFromEntity(TestContext):
                      "content": "task_content",
                      "project": self.project,
                      "entity": self.shot,
-                     "step": self.step,
-                     "task_assignees": None}
+                     "step": self.step}
         self.add_to_sg_mock_db(self.task)
 
     def test_entity_from_cache(self):
@@ -207,6 +244,8 @@ class TestFromEntity(TestContext):
 
         self.check_entity(self.shot, result.entity)
         self.assertEquals(3, len(result.entity))
+
+        self.check_entity(self.current_user, result.user)
 
         self.assertEquals(None, result.task)
         self.assertEquals(None, result.step)
@@ -224,6 +263,7 @@ class TestFromEntity(TestContext):
         result =  context.from_entity(self.tk, self.shot["type"], self.shot["id"])
         self.check_entity(self.step, result.step)
         self.check_entity(self.shot, result.entity)
+        self.check_entity(self.current_user, result.user)
 
     def test_task_from_sg(self):
         """
@@ -248,6 +288,11 @@ class TestFromEntity(TestContext):
         self.check_entity(self.step, result.step)
         self.assertEquals(3, len(result.step))
 
+        self.check_entity(self.current_user, result.user)
+
+        self.assertEquals(self.current_user["id"], result.user["id"])
+        self.assertEquals(self.current_user["type"], result.user["type"])
+
         self.assertEquals(self.task["type"], result.task["type"])
         self.assertEquals(self.task["id"], result.task["id"])
         self.assertEquals(self.task["content"], result.task["name"])
@@ -258,46 +303,6 @@ class TestFromEntity(TestContext):
 
         # Check that the shotgun method find_one was used
         self.assertTrue(self.sg_mock.find_one.called)
-
-    def test_task_assignees_not_set(self):
-        """If task_assignees is not set, expect context.user == None."""
-        self.task["task_assignees"] = None
-        result = context.from_entity(self.tk, self.task["type"], self.task["id"])
-        self.assertIsNone(result.user)
-        
-    def test_task_assignees_one(self):
-        """If single assignee for a task, context.user == assignee."""
-        self.task["task_assignees"] = [self.humanuser]
-        result = context.from_entity(self.tk, self.task["type"], self.task["id"])
-        self.assertIsNotNone(result.user)
-        self.check_entity(self.humanuser, result.user)
-
-    def test_task_assignees_matches_login(self):
-        """If multiple assignees for a task, choose one which matches local user."""
-        login = tank.util.login._get_login_name()
-        another_user = {"type": "HumanUser",
-                        "id": 2,
-                        "name": "user_2", 
-                        "login": login}
-        self.add_to_sg_mock_db(another_user)
-
-        self.task["task_assignees"] = [self.humanuser, another_user]
-        result = context.from_entity(self.tk, self.task["type"], self.task["id"])
-        self.assertIsNotNone(result.user)
-        self.check_entity(another_user, result.user)
-
-    def test_task_assignees_no_login_match(self):
-        """If multiple assigness for a task, none of which matches the local user, error."""
-        another_user = {"type": "HumanUser",
-                        "id": 2,
-                        "name": "user_2", 
-                        "login": "another_login"}
-        self.add_to_sg_mock_db(another_user)
-
-        self.task["task_assignees"] = [self.humanuser, another_user]
-
-        self.assertRaises(TankError, context.from_entity, self.tk, self.task["type"], self.task["id"])
-
 
     def test_data_missing_non_task(self):
         """
@@ -310,10 +315,11 @@ class TestFromEntity(TestContext):
         self.assertEquals(shot["id"], result.entity["id"])
         self.assertEquals(shot["type"], result.entity["type"])
         self.check_entity(self.project, result.project)
+        self.assertEquals(self.current_user["id"], result.user["id"])
+        self.assertEquals(self.current_user["type"], result.user["type"])
         # Everything else should be none
         self.assertIsNone(result.step)
         self.assertIsNone(result.task)
-        self.assertIsNone(result.user)
 
 
     def test_data_missing_task(self):
