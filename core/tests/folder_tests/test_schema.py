@@ -40,17 +40,13 @@ class TestSchemaCreateFolders(TankTestBase):
                     "sg_asset_type": "assettype",
                     "code": "assetname",
                     "project": self.project}
-        self.humanuser = {"type": "HumanUser",
-                          "id": 3,
-                          "login": "login_name"}
         self.task = {"type": "Task",
                      "id": 23,
-                     "task_assignees": [self.humanuser],
                      "entity": self.shot,
                      "step": self.step,
                      "project": self.project}
 
-        entities = [self.shot, self.seq, self.step, self.project, self.asset, self.humanuser, self.task]
+        entities = [self.shot, self.seq, self.step, self.project, self.asset, self.task]
 
         # Add these to mocked shotgun
         self.add_to_sg_mock_db(entities)
@@ -223,16 +219,15 @@ class TestSchemaCreateFolders(TankTestBase):
         shot_path = os.path.join(sequence_path, shot_name)
 
         step_path = os.path.join(shot_path, self.step["short_name"])
-        user_path = os.path.join(step_path, self.humanuser["login"])
-        expected_paths = [sequence_path, shot_path, step_path, user_path]
+        expected_paths = [sequence_path, shot_path, step_path]
         # add non-entity paths
-        expected_paths.append(os.path.join(user_path, "publish"))
-        expected_paths.append(os.path.join(user_path, "images"))
-        expected_paths.append(os.path.join(user_path, "review"))
-        expected_paths.append(os.path.join(user_path, "work"))
-        expected_paths.append(os.path.join(user_path, "work", "snapshots"))
-        expected_paths.append(os.path.join(user_path, "work", "workspace.mel"))
-        expected_paths.append(os.path.join(user_path, "out"))
+        expected_paths.append(os.path.join(step_path, "publish"))
+        expected_paths.append(os.path.join(step_path, "images"))
+        expected_paths.append(os.path.join(step_path, "review"))
+        expected_paths.append(os.path.join(step_path, "work"))
+        expected_paths.append(os.path.join(step_path, "work", "snapshots"))
+        expected_paths.append(os.path.join(step_path, "work", "workspace.mel"))
+        expected_paths.append(os.path.join(step_path, "out"))
         return expected_paths
 
     def test_project_missing(self):
