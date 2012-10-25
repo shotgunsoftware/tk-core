@@ -1,9 +1,0 @@
-primary: 
-    mac_path:  <Primary root path for Mac>
-    linux_path: <Primary root path for linux>
-    windows_path: <Primary root path for windows>
-
-alternate: 
-    mac_path:  <Alternate root path for Mac>
-    linux_path: <Alternate root path for linux>
-    windows_path: <Alterante root path for windows>

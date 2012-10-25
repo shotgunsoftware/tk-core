@@ -1,9 +1,0 @@
-#
-# Copyright (c) 2012 Shotgun Software, Inc
-# ----------------------------------------------------
-
-# the type of dynamic content
-type: "project"
-
-# name of project root as defined in roots.yml
-root_name: "primary"
