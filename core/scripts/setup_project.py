@@ -35,6 +35,11 @@ from tank.errors import TankError
 
 TANK_APP_STORE_DUMMY_PROJECT = {"type": "Project", "id": 64} 
 
+TANK_CONFIG_ENTITY = "CustomNonProjectEntity07"
+TANK_CONFIG_VERSION_ENTITY = "CustomNonProjectEntity08"
+TANK_CODE_PAYLOAD_FIELD = "sg_payload"
+
+
 ########################################################################################
 # helpers
 
@@ -109,6 +114,9 @@ def _process_config_project(studio_root, project_name, log):
     
     dir_path = os.path.join(studio_root, project_name, "tank", "config")
 
+    log.info("Using the configuration from project %s" % project_name)
+    log.info("Looking for a configuration in %s" % dir_path)
+    
     if not os.path.exists(dir_path):
         raise TankError("Config location '%s' does not exist!" % dir_path)
 
@@ -117,8 +125,7 @@ def _process_config_project(studio_root, project_name, log):
         if item not in template_items:
             raise TankError("Config location '%s' missing a %s folder!" % (dir_path, item))
     
-    log.info("Found valid configuration in %s." % dir_path)
-    log.info("Will use this as the starter configuration for the new project.")
+    log.info("Configuration looks valid!")
     
     return dir_path
 
@@ -135,10 +142,63 @@ def _process_config_zip(studio_root, zip_path, log):
         if item not in template_items:
             raise TankError("Config zip '%s' is missing a %s folder!" % (zip_path, item))
     
-    log.info("Found valid configuration in %s." % zip_path)
-    log.info("Will use this as the starter configuration for the new project.")
+    log.info("Configuration looks valid!")
     
     return zip_unpack_tmp
+
+def _process_config_app_store(sg_app_store, script_user, studio_root, cfg_string, log):
+    
+    # try download from app store...
+    parent_entity = sg_app_store.find_one(TANK_CONFIG_ENTITY, 
+                                          [["sg_system_name", "is", cfg_string ]],
+                                          ["code"]) 
+    if parent_entity is None:
+        raise Exception("Cannot find a config in the app store named %s!" % cfg_string)
+    
+    # get latest code
+    latest_cfg = sg_app_store.find_one(TANK_CONFIG_VERSION_ENTITY, 
+                                       filters = [["sg_status_list", "is_not", "rev" ],
+                                                  ["sg_status_list", "is_not", "bad" ]], 
+                                       fields=["code", TANK_CODE_PAYLOAD_FIELD],
+                                       order=[{"field_name": "created_at", "direction": "desc"}])
+    if latest_cfg is None:
+        raise Exception("It looks like this configuration doesn't have any versions uploaded yet!")
+    
+    # now have to get the attachment id from the data we obtained. This is a bit hacky.
+    # data example for the payload field, as returned by the query above:
+    # {'url': 'http://tank.shotgunstudio.com/file_serve/attachment/21', 'name': 'tank_core.zip',
+    #  'content_type': 'application/zip', 'link_type': 'upload'}
+    #
+    # grab the attachment id off the url field and pass that to the download_attachment()
+    # method below.
+    try:
+        attachment_id = int(latest_cfg[TANK_CODE_PAYLOAD_FIELD]["url"].split("/")[-1])
+    except:
+        raise TankError("Could not extract attachment id from data %s" % latest_cfg)
+
+    log.info("Begin downloading Config %s %s from the Tank App Store..." % (cfg_string, latest_cfg["code"]))
+    
+    zip_tmp = os.path.join(tempfile.gettempdir(), "%s_tank_cfg.zip" % uuid.uuid4().hex)
+
+    bundle_content = sg_app_store.download_attachment(attachment_id)
+    fh = open(zip_tmp, "wb")
+    fh.write(bundle_content)
+    fh.close()
+
+    # and write a custom event to the shotgun event log to indicate that a download
+    # has happened.
+    data = {}
+    data["description"] = "Config %s %s was downloaded" % (cfg_string, latest_cfg["code"])
+    data["event_type"] = "TankAppStore_Config_Download"
+    data["entity"] = latest_cfg
+    data["user"] = script_user
+    data["project"] = TANK_APP_STORE_DUMMY_PROJECT
+    data["attribute_name"] = TANK_CODE_PAYLOAD_FIELD
+    sg_app_store.create("EventLogEntry", data)
+
+    # got a zip! Pass to zip extractor...
+    return _process_config_zip(studio_root, zip_tmp, log)
+
 
 def _process_config_dir(studio_root, dir_path, log):
     
@@ -147,13 +207,12 @@ def _process_config_dir(studio_root, dir_path, log):
         if item not in template_items:
             raise TankError("Config location '%s' missing a %s folder!" % (dir_path, item))
     
-    log.info("Found valid configuration in %s." % dir_path)
-    log.info("Will use this as the starter configuration for the new project.")
+    log.info("Configuration looks valid!")
     
     return dir_path
     
     
-def _process_config(studio_root, cfg_string, log):
+def _process_config(sg_app_store, script_user, studio_root, cfg_string, log):
     """
     Looks at the starter config string and tries to convert it into a folder
     Returns a string
@@ -172,7 +231,11 @@ def _process_config(studio_root, cfg_string, log):
                 return _process_config_dir(studio_root, cfg_string, log)
         else:
             raise TankError("File path %s does not exist on disk!" % cfg_string)    
+    elif cfg_string.startswith("tk-"):
+        # app store!
+        return _process_config_app_store(sg_app_store, script_user, studio_root, cfg_string, log)
     else:
+        # is this a project?
         return _process_config_project(studio_root, cfg_string, log)
     
 
@@ -247,12 +310,11 @@ def setup_project(log, starter_config_input):
     log.info("")
     log.info("Welcome to the Tank Setup Project tool!")
     
-    # validate and process input data
     tank_root = _get_studio_root(log)
-    starter_config = _process_config(tank_root, starter_config_input, log)
-
+    
     # now connect to shotgun
     try:
+        log.info("Connecting to Shotgun...")
         sg = shotgun.create_sg_connection_studio_root(tank_root)        
         sg_version = ".".join([ str(x) for x in sg.server_info["version"]])
         log.info("Connected to target Shotgun server! (v%s)" % sg_version)
@@ -260,11 +322,19 @@ def setup_project(log, starter_config_input):
         raise TankError("Could not connect to Shotgun server: %s" % e)
     
     try:
+        log.info("Connecting to the Tank App Store...")
         (sg_app_store, script_user) = shotgun.create_sg_app_store_connection(tank_root)
         sg_version = ".".join([ str(x) for x in sg_app_store.server_info["version"]])
         log.info("Connected to Tank App Store! (v%s)" % sg_version)
     except Exception, e:
         raise TankError("Could not connect to App Store: %s" % e)
+        
+    # validate and process input data
+    starter_config = _process_config(sg_app_store, 
+                                     script_user,
+                                     tank_root, 
+                                     starter_config_input, 
+                                     log)    
         
     # get projects 
     projs = sg.find("Project", [["tank_name", "is", None]], ["id", "name", "sg_description"])
@@ -428,23 +498,32 @@ def main(log):
 
         desc = """ 
 This utility script sets up a new project for Tank.
-It supports a couple of different syntaxes. 
-Typically, the following syntax is used:
-    
-    %(cmd)s old_project
-    
-This will copy the configuration from an existing project
-and use that as the configuration for the new project.
+You can call this command in the following ways:
 
-If you don't want to base your new project configuration
-on an old project, you can use the following syntaxes:
-%(cmd)s /path/to/configuration.zip
-%(cmd)s /path/to/configuration_folder 
-This will load the configuration from a zip file or folder
-instead of from the project.
+Using an App Store Config
+-----------------------------------------------------------
 
-If you are unsure, contact the Tank support: tanksupport@shotgunsoftware.com
+> %(cmd)s tk-config-xyz
+For a list of available configs, see https://tank.shotgunsoftware.com
 
+Using an existing project
+-----------------------------------------------------------
+
+> %(cmd)s gunstlinger
+If your Tank studio root is set to /mnt/projects, the above command will
+look for a configuration in the location /mnt/projects/gunstlinger/tank/config
+
+Pointing it to a specific folder or zip file
+-----------------------------------------------------------
+
+> %(cmd)s /path/to/configuration.zip
+> %(cmd)s /path/to/tank/config
+To point the installer directly at the gunstlinger config
+above, you would use the following syntax:
+> %(cmd)s /mnt/projects/gunstlinger/tank/config
+
+-----------------------------------------------------------
+For help and support, contact the Tank support: tanksupport@shotgunsoftware.com
 
 """ % {"cmd": sys.argv[0]} 
 
