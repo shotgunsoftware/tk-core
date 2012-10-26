@@ -486,6 +486,7 @@ def context_yaml_representer(dumper, context):
         "tank_project_path": context.tank.project_path,
         "project": context.project,
         "entity": context.entity,
+        "user": context.user,
         "step": context.step,
         "task": context.task,
         "additional_entities": context.additional_entities
