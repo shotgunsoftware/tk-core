@@ -128,6 +128,13 @@ class Tank(object):
     def paths_from_template(self, template, fields, skip_keys=None):
         """
         Finds paths that match a template using field values passed.
+        
+        By omitting fields, you are effectively adding wild cards to the search.
+        So if a template requires Shot, Sequence, Name and Version, and you 
+        omit the version fields from the fields dictionary, the method 
+        will return paths to all the different versions you can find.
+        
+        For more information and examples, see the API documentation.
 
         :param template: Template against whom to match.
         :type  template: Tank.Template instance.
@@ -158,9 +165,16 @@ class Tank(object):
     def abstract_paths_from_template(self, template, fields):
         """Returns an abstract path based on a template.
 
-        If the leaf level of the path contains only abstract keys, or only a combination
-        of abstract keys with keys which appear higher up in the path, the method does
-        not check that this level actually exists, only that the structure above it exists.
+        This method is similar to paths_from_template with the addition that 
+        abstract fields (such as sequence fields and any other field that is 
+        marked as being abstract) is returned as their abstract value by default.
+        
+        So rather than returning a value for every single frame in an image sequence,
+        this method will return a single path representing all the frames and using the
+        abstract value '%04d' for the sequence key. Similarly, it may be useful to return
+        %V to represent an eye (assuming an eye template has been defined and marked as abstract) 
+
+        For more information and examples, see the API documentation.
 
         :param template: Template with which to search.
         :param fields: Mapping of keys to values with which to assemble the abstract path.
@@ -227,7 +241,7 @@ class Tank(object):
 
     def context_empty(self):
         """
-        Create empty context.
+        Creates an empty context.
 
         :returns: Context object.
         """
@@ -249,7 +263,7 @@ class Tank(object):
     
     def context_from_entity(self, entity_type, entity_id):
         """
-        Derive context from entity.
+        Derives a context from a Shotgun entity.
 
         :param entity_type: The name of the entity type.
         :type  entity_type: String.
@@ -264,7 +278,6 @@ class Tank(object):
         """
         Create folders and associated data on disk to reflect branches in the project tree
         related to a specific entity.
-
     
         :param entity_type: The name of the entity type.
         :type  entity_type: String.
