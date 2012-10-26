@@ -157,46 +157,7 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
     fields.append("path_cache")
 
     # Use storage, path_cache and filters to find publishes grouped by storage.
-    published_files = _publishes_from_paths(tk, storages_paths, filters, fields)
-
-    # Use mapping of path_cache to full paths to create mapping of 
-    # full paths to publishes.
-    matches = _sort_publishes(published_files, storages_paths) 
-    return matches
-
-
-def _group_by_storage(tk, list_of_paths):
-    """
-    Groups paths by local storage (root).
-    """
-    storages_paths = {}
-
-    for path in list_of_paths:
-
-        # use abstracted path if path is part of a sequence
-        abstract_path = _check_for_sequence_path(tk, path)
-        root_name, dep_path_cache = _calc_path_cache(tk.project_path, abstract_path)
-
-        # make sure that the path is even remotely valid, otherwise skip
-        if dep_path_cache is None:
-            continue
-
-        # Find LocalStorage matching root name
-        # 'primary' root is 'Tank' storage
-        if root_name == "primary":
-            root_name = "Tank"
-
-        # Update data for this storage
-        storage_info = storages_paths.get(root_name, {})
-        paths = storage_info.get(dep_path_cache, [])
-        paths.append(path)
-        storage_info[dep_path_cache] = paths
-        storages_paths[root_name] = storage_info
-
-    return storages_paths
-
-
-def _publishes_from_paths(tk, storages_paths, filters, fields):
+    
     # make copy
     sg_fields = fields[:]
 
@@ -220,10 +181,51 @@ def _publishes_from_paths(tk, storages_paths, filters, fields):
         sg_filters.append( ["path_cache_storage", "is", local_storage] )
 
         published_files[root_name] = tk.shotgun.find("TankPublishedFile", sg_filters, sg_fields)
-    return published_files
+    
+    
+    # Use mapping of path_cache to full paths to create mapping of 
+    # full paths to publishes.
+    matches = _sort_publishes(published_files, storages_paths) 
+    return matches
+
+
+def _group_by_storage(tk, list_of_paths):
+    """
+    Groups paths by local storage (root).
+    """
+    storages_paths = {}
+
+    for path in list_of_paths:
+
+        # use abstracted path if path is part of a sequence
+        abstract_path = _translate_abstract_fields(tk, path)
+        root_name, dep_path_cache = _calc_path_cache(tk.project_path, abstract_path)
+
+        # make sure that the path is even remotely valid, otherwise skip
+        if dep_path_cache is None:
+            continue
+
+        # Find LocalStorage matching root name
+        # 'primary' root is 'Tank' storage
+        if root_name == "primary":
+            root_name = "Tank"
+
+        # Update data for this storage
+        storage_info = storages_paths.get(root_name, {})
+        paths = storage_info.get(dep_path_cache, [])
+        paths.append(path)
+        storage_info[dep_path_cache] = paths
+        storages_paths[root_name] = storage_info
+
+    return storages_paths
+
 
 def _sort_publishes(published_files, storage_paths):
-    """maps absolute file paths to published file entities."""
+    """
+    Maps absolute file paths to published file entities.
+    In the case of duplicate entries in shotgun for the same file,
+    the more recent record is used.
+    """
     matches = {}
     for root_name, publishes in published_files.items():
         storage_info = storage_paths[root_name]
@@ -299,7 +301,8 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
     update_entity_thumbnail = kwargs.get("update_entity_thumbnail", False)
     update_task_thumbnail = kwargs.get("update_task_thumbnail", False)
 
-    path = _check_for_sequence_path(tk, path)
+    # convert the abstract fields to their defaults
+    path = _translate_abstract_fields(tk, path)
 
     sg_tank_type = None
     # query shotgun for the tank_type
@@ -344,7 +347,12 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
 
     return entity
 
-def _check_for_sequence_path(tk, path):
+def _translate_abstract_fields(tk, path):
+    """
+    Translates abstract fields for a path into the default abstract value.
+    For example, the path /foo/bar/xyz.0003.exr will be transformed into
+    /foo/bar/xyz.%04d.exr
+    """
     template = tk.template_from_path(path)
     if template:
         abstract_keys = template.abstract_keys()
@@ -357,6 +365,10 @@ def _check_for_sequence_path(tk, path):
     return path
 
 def _create_dependencies(tk, entity, dependency_paths):
+    """
+    Creates dependencies in shotgun from a given entity to
+    a list of paths. Paths not recognized are skipped.
+    """
     publishes = find_publish(tk, dependency_paths)
     
     for dependency_path in dependency_paths:
@@ -369,6 +381,9 @@ def _create_dependencies(tk, entity, dependency_paths):
 
 
 def _create_published_file(tk, context, path, name, version_number, task, comment, tank_type):
+    """
+    Creates a publish entity in shotgun given some standard fields.
+    """
     # Make path platform agnostic.
     _, path_cache = _calc_path_cache(tk.project_path, path)
 
