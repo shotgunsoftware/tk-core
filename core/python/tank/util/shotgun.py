@@ -112,26 +112,6 @@ def create_sg_app_store_connection(studio_root):
     return (api_handle, script_user)
 
 
-def _make_dep_cache_path(tk, path):
-    """
-    Makes a path platform agnostic and project relative,
-    suitable for storing in the dependency cache field
-    """
-
-    # note! Have to take into account that certain applications
-    # use forward slashes in their paths even on windows so cannot
-    # rely on os.sep
-
-    studio_root = os.path.dirname(tk.project_path)
-    studio_root_agnostic = studio_root.replace(os.path.sep, "/")
-
-    path_agnostic = path.replace(os.path.sep, "/")
-
-    # chop off root + leading slash to create path agnostic field
-    path_cache = path_agnostic.replace(studio_root_agnostic + "/", "")
-
-    return path_cache
-
 def find_publish(tk, list_of_paths, filters=None, fields=None):
     """
     Finds publishes in Shotgun given paths on disk.
@@ -145,7 +125,7 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
 
     By default, the shotgun id is returned for each successfully identified path.
     If you want to retrieve additional fields, you can specify these using
-    the fields parameter.
+    the fields parameter.    
 
     The method will return a dictionary, keyed by path. The value will be
     a standard shotgun query result dictionary, for example
