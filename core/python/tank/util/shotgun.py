@@ -196,7 +196,7 @@ def _group_by_storage(tk, list_of_paths):
     return storages_paths
 
 
-def _publishes_from_paths(tk, storages_paths, filters=[], fields=[]):
+def _publishes_from_paths(tk, storages_paths, filters, fields):
     # make copy
     sg_fields = fields[:]
 
