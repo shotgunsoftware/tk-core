@@ -21,7 +21,7 @@ class Folder(object):
     (This should not be used in any configuration)
     """
     
-    def __init__(self, parent, schema_name):
+    def __init__(self, parent, schema_name, defer_creation=False):
         """
         Constructor
         """
@@ -29,6 +29,7 @@ class Folder(object):
         self.schema_name = schema_name
         self.parent = parent
         self.files = []
+        self.defer_creation = defer_creation
         
         if self.parent:
             # add me to parent!
@@ -67,7 +68,7 @@ class Folder(object):
         
         return found_entities
     
-    def create_folders(self, schema, path, tokens, explicit_child_list=None):
+    def create_folders(self, schema, path, tokens, explicit_child_list=None, engine=None):
         """
         Recursive folder creation. Creates folders for this node and one/all
         of its children. If explicit_child_list is passed in, we will pop the last
@@ -79,8 +80,17 @@ class Folder(object):
         :param path: the parent path
         :param tokens: resolved tokens
         :param explicit_child_list: a list of Folder instances to visit
+        :param engine: String used to limit folder creation if defer_creation has positive value
         :returns: Nothing
         """
+        # if creation is defered:
+        # if the deferred value is True and there is a value for engine, create
+        # if the deferred value is a list, and the engine is in that list, create
+        if not self.defer_creation or (engine and (self.defer_creation is True or engine in self.defer_creation)):
+            self._create_folders(schema, path, tokens, explicit_child_list=explicit_child_list, engine=engine)
+
+
+    def _create_folders(self, schema, path, tokens, explicit_child_list=None, engine=None):
         raise NotImplementedError
     
     def _copy_files_to_folder(self, schema, path):
@@ -93,7 +103,7 @@ class Folder(object):
             target_path = os.path.join(path, os.path.basename(src_file))
             schema.copy_file(src_file, target_path)
 
-    def _create_child_folders(self, schema, path, tokens, explicit_child_list=None):
+    def _create_child_folders(self, schema, path, tokens, explicit_child_list=None, engine=None):
         """
         Helper method to create this folder's children. If explicit_child_list is passed
         we will pop the last element of the list and process just that single
@@ -103,13 +113,14 @@ class Folder(object):
         :param path: the parent path
         :param tokens: resolved tokens
         :param explicit_child_list: a list of Folder instances to visit
+        :parma engine: Value used for defered creation.
         :returns: Nothing
         """
         if explicit_child_list:
             # We're going to modify the list, so make a copy.
             my_child_list = copy.deepcopy(explicit_child_list)
             child = my_child_list.pop()
-            child.create_folders(schema, path, tokens, my_child_list)
+            child.create_folders(schema, path, tokens, my_child_list, engine=engine)
         else:
             for child in self.children:
                 if isinstance(child, Entity) and not child.create_with_parent:
@@ -121,7 +132,7 @@ class Folder(object):
                     process_children = True
             
                 if process_children:
-                    child.create_folders(schema, path, tokens, explicit_child_list)
+                    child.create_folders(schema, path, tokens, explicit_child_list, engine=engine)
 
 ################################################################################################
 
@@ -130,14 +141,14 @@ class Static(Folder):
     Represents a static folder in the file system
     """
     
-    def __init__(self, parent, name):
+    def __init__(self, parent, name, defer_creation=False):
         """
         The name parameter represents the folder name that will be created in the file system.
         """
-        Folder.__init__(self, parent, name)
+        Folder.__init__(self, parent, name, defer_creation=defer_creation)
         self.name = name
     
-    def create_folders(self, schema, path, tokens, explicit_child_list=None):
+    def _create_folders(self, schema, path, tokens, explicit_child_list=None, engine=None):
         """
         Creates a static folder and its children
 
@@ -147,6 +158,7 @@ class Static(Folder):
         :type  path: String.
         :param tokens: Tokens to process
         :param explicit_child_list: A list of Folder instances to visit
+        :param engine: Value for defered creation
         """
         # create our folder
         my_path = os.path.join(path, self.name)
@@ -158,7 +170,7 @@ class Static(Folder):
         self._copy_files_to_folder(schema, my_path)
         
         # create children
-        self._create_child_folders(schema, my_path, tokens, explicit_child_list)
+        self._create_child_folders(schema, my_path, tokens, explicit_child_list, engine=engine)
 
 ################################################################################################
 
@@ -167,15 +179,15 @@ class ListField(Folder):
     Represents values from a Shotgun list field in the file system (like Asset.sg_asset_type)
     """
 
-    def __init__(self, parent, entity_type, field_name, skip_unused):
+    def __init__(self, parent, entity_type, field_name, skip_unused, defer_creation=False):
         self.entity_type = entity_type
         self.field_name = field_name
         self.token_name = "%s.%s" % (entity_type, field_name)
         self.skip_unused = skip_unused
         
-        Folder.__init__(self, parent, self.token_name)
+        Folder.__init__(self, parent, self.token_name, defer_creation=defer_creation)
         
-    def create_folders(self, schema, path, tokens, explicit_child_list=None):
+    def _create_folders(self, schema, path, tokens, explicit_child_list=None, engine=None):
         """
         Create folders for one or all list field values and recurse down
         """
@@ -205,7 +217,7 @@ class ListField(Folder):
             my_tokens[self.token_name] = value
             
             # create children
-            self._create_child_folders(schema, my_path, my_tokens, explicit_child_list)
+            self._create_child_folders(schema, my_path, my_tokens, explicit_child_list, engine=engine)
         
     def _filter_unused_list_values(self, sg, values, project):
         """
@@ -389,7 +401,7 @@ class Entity(Folder):
     Represents an entity in Shotgun
     """
     
-    def __init__(self, parent, entity_type, field_name_expression, filters, create_with_parent=False):
+    def __init__(self, parent, entity_type, field_name_expression, filters, create_with_parent=False, defer_creation=False):
         """
         Constructor.
         
@@ -412,10 +424,11 @@ class Entity(Folder):
         :param field_name_expression: shotgun field name expression to use as folder name
         :param filters: filter syntax - see above
         :param create_with_parent: True if this folder should be created at the same time as its parent folder
+        :param defer_creation: Boolean or string. Value representing whether to defer creation.
         """
         
         # the schema name is the same as the SG entity type
-        Folder.__init__(self, parent, entity_type)
+        Folder.__init__(self, parent, entity_type, defer_creation=defer_creation)
         
         self.entity_type = entity_type
         self.entity_name_obj = EntityName(self.entity_type, field_name_expression)
@@ -535,7 +548,7 @@ class Entity(Folder):
         
         return entities
     
-    def create_folders(self, schema, path, tokens, explicit_child_list=None):
+    def _create_folders(self, schema, path, tokens, explicit_child_list=None, engine=None):
         """
         Create folders for a specific entity or all entities matching the filters.
         Then, recurse to their child folders.
@@ -547,7 +560,7 @@ class Entity(Folder):
             my_tokens = copy.deepcopy(tokens)
             my_tokens[self.entity_type] = { "type": self.entity_type, "id": entity["id"] }
             
-            self._create_child_folders(schema, my_path, my_tokens, explicit_child_list)
+            self._create_child_folders(schema, my_path, my_tokens, explicit_child_list, engine=engine)
     
     def extract_tokens(self, sg, tokens):
         """

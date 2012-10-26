@@ -62,7 +62,7 @@ class Schema(object):
         # TODO: Check path exists and is a project.        
         self._load_schema(schema_config_path)
     
-    def create_folders(self, entity_type, entity_id):
+    def create_folders(self, entity_type, entity_id, engine=None):
         """
         Creates folders for an entity type and an entity id.
                 
@@ -109,7 +109,7 @@ class Schema(object):
             # now walk down from the project level until we reach our entity 
             # and create all the structure, then create our entity's children.
             to_visit = [folder] + parents
-            to_visit.pop().create_folders(self, path, tokens, to_visit)
+            to_visit.pop().create_folders(self, path, tokens, to_visit, engine=engine)
             
         # return how many folders were created
         return self.num_entity_folders
@@ -185,6 +185,7 @@ class Schema(object):
         entity_type = metadata.get("entity_type")
         filters = metadata.get("filters")
         create_with_parent = metadata.get("create_with_parent", False)
+        defer_creation = metadata.get("defer_creation", False)
         
         # validate
         if sg_name_expression is None:
@@ -232,7 +233,7 @@ class Schema(object):
         entity_filter["conditions"] = filters
         
         # construct
-        return Entity(parent_node, entity_type, sg_name_expression, entity_filter, create_with_parent)
+        return Entity(parent_node, entity_type, sg_name_expression, entity_filter, create_with_parent, defer_creation=defer_creation)
     
     def _create_sg_list_field_node(self, full_path, parent_node, metadata):
         """
@@ -242,6 +243,7 @@ class Schema(object):
         entity_type = metadata.get("entity_type")
         field_name = metadata.get("field_name")
         skip_unused = metadata.get("skip_unused", False)
+        defer_creation = metadata.get("defer_creation", False)
         
         # validate
         if entity_type is None:
@@ -251,7 +253,7 @@ class Schema(object):
             raise TankError("Missing field_name token in yml metadata file %s" % full_path )
         
         # construct
-        return ListField(parent_node, entity_type, field_name, skip_unused)
+        return ListField(parent_node, entity_type, field_name, skip_unused, defer_creation=defer_creation)
     
     def _process_config_r(self, parent_node, parent_path):
         """
@@ -266,26 +268,26 @@ class Schema(object):
                 
                 if node_type == "shotgun_entity":
                     # make object
-                    sg_node = self._create_sg_entity_node(full_path, parent_node, metadata)
-                    self._nodes_by_name[full_path] = sg_node
-                    # and process children
-                    self._process_config_r(sg_node, full_path)
+                    cur_node = self._create_sg_entity_node(full_path, parent_node, metadata)
                 elif node_type == "shotgun_list_field":
                     # make object
-                    sg_node = self._create_sg_list_field_node(full_path, parent_node, metadata)
-                    self._nodes_by_name[full_path] = sg_node
-                    # and process children
-                    self._process_config_r(sg_node, full_path)
+                    cur_node = self._create_sg_list_field_node(full_path, parent_node, metadata)
+                elif node_type == "static":
+                    # static folder
+                    file_name = os.path.basename(full_path)
+                    defer_creation = metadata.get("defer_creation", False)
+                    cur_node = Static(parent_node, file_name, defer_creation=defer_creation)
                 else:
                     # don't know this metadata
                     raise TankError("Unknown metadata type '%s'" % node_type)
             else:
-                # static folder!
+                # static folder
                 file_name = os.path.basename(full_path)
-                static_node = Static(parent_node, file_name)
-                self._nodes_by_name[full_path] = static_node
-                # and process children
-                self._process_config_r(static_node, full_path)
+                cur_node = Static(parent_node, file_name)
+
+            self._nodes_by_name[full_path] = cur_node
+            # and process children
+            self._process_config_r(cur_node, full_path)
            
         # now process all files and add them to the parent_node token
         for f in self._file_paths(parent_path):
@@ -407,7 +409,7 @@ def _read_ignore_files(schema_config_path):
 ################################################################################################
 # public functions
     
-def process_filesystem_structure(tk, entity_type, entity_ids, preview):    
+def process_filesystem_structure(tk, entity_type, entity_ids, preview, engine=None):    
     """
     Creates filesystem structure in Tank based on Shotgun and a schema config.
     Internal version.
@@ -416,6 +418,7 @@ def process_filesystem_structure(tk, entity_type, entity_ids, preview):
     :param entity_type: A shotgun entity type to create folders for
     :param entity_ids: list of entity ids to process
     :param preview: enable dry run mode?
+    :param engine: (Optional) A bool or string representation matching a level in the schema.
     
     :returns: tuple: (How many entity folders were processed, list of items)
     
@@ -494,6 +497,6 @@ def process_filesystem_structure(tk, entity_type, entity_ids, preview):
     entities_processed = 0
     for entity_type, entity_ids in items.items():
         for entity_id in entity_ids:
-            entities_processed += schema.create_folders(entity_type, entity_id)
+            entities_processed += schema.create_folders(entity_type, entity_id, engine)
 
     return (entities_processed, schema.created_items)
