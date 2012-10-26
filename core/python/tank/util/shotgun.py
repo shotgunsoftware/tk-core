@@ -191,7 +191,37 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
 
 def _group_by_storage(tk, list_of_paths):
     """
-    Groups paths by local storage (root).
+    Given a list of paths on disk, groups them into a data structure suitable for 
+    shotgun. In shotgun, the path_cache field contains an abstracted representation
+    of the publish field, with a normalized path and the storage chopped off.
+    
+    This method aims to process the paths to make them useful for later shotgun processing.
+    
+    Returns a dictionary, keyed by storage name. Each storage in the dict contains another dict,
+    with an item for each path_cache entry. 
+    
+    
+    Examples:
+    
+    ['/studio/project_code/foo/bar.0003.exr', '/secondary_storage/foo/bar']
+    
+    {'Tank': 
+        {'project_code/foo/bar.%04d.exr': ['/studio/project_code/foo/bar.0003.exr'] }
+     
+     'Secondary_Storage': 
+        {'foo/bar': ['/secondary_storage/foo/bar'] }
+    }
+    
+    
+    ['c:\studio\project_code\foo\bar', '/secondary_storage/foo/bar']
+    
+    {'Tank': 
+        {'project_code/foo/bar': ['c:\studio\project_code\foo\bar'] }
+     
+     'Secondary_Storage': 
+        {'foo/bar': ['/secondary_storage/foo/bar'] }
+    }
+    
     """
     storages_paths = {}
 
@@ -216,7 +246,7 @@ def _group_by_storage(tk, list_of_paths):
         paths.append(path)
         storage_info[dep_path_cache] = paths
         storages_paths[root_name] = storage_info
-
+        
     return storages_paths
 
 
