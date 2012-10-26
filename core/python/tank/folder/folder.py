@@ -11,6 +11,7 @@ import re
 
 from tank_vendor import yaml
 
+from ..util import login
 from ..platform import constants
 from ..errors import TankError
 from .. import root
@@ -395,7 +396,6 @@ class EntityName(object):
                             "Data: %s" % (self._name_expr, error, str_data))
         return val
         
-
 class Entity(Folder):
     """
     Represents an entity in Shotgun
@@ -654,6 +654,19 @@ class Entity(Folder):
                                 "again!\n" % (self.entity_type, name, field))    
     
     
+class UserWorkspace(Entity):
+    
+    def __init__(self, parent, field_name_expression, create_with_parent=False):
+        cur_login = login.get_login_name()
+        if not cur_login:
+            msg = "Could not determine the local user login while creating a user folder."
+            msg += "Check that the local login corresponds to a user in shotgun."
+            raise TankError(msg)
+
+        filters = { "logical_operator": "and",
+                     "conditions": [ { "path": "login", "relation": "is", "values": [ cur_login ] } ] }
+        Entity.__init__(self, parent, "HumanUser", field_name_expression, filters, create_with_parent=create_with_parent, defer_creation=True)
+
 ################################################################################################
 
 class Project(Entity):

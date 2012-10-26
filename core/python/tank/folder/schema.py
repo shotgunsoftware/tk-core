@@ -12,7 +12,7 @@ Known constraints:
 import os
 import fnmatch
 
-from .folder import Static, ListField, Entity, Project, Token
+from .folder import Static, ListField, Entity, Project, Token, UserWorkspace
 
 from .. import root
 from ..path_cache import PathCache
@@ -176,6 +176,16 @@ class Schema(object):
                 if os.path.basename(curr_path) == ref_token:
                     return obj
     
+    def _create_user_workspace_node(self, full_path, parent_node, metadata):
+        sg_name_expression = metadata.get("name")
+        create_with_parent = metadata.get("create_with_parent", False)
+        # validate
+        if sg_name_expression is None:
+            raise TankError("Missing name token in yml metadata file %s" % full_path )
+
+        return UserWorkspace(parent_node, sg_name_expression, create_with_parent)
+
+
     def _create_sg_entity_node(self, full_path, parent_node, metadata):
         """
         Create an entity object from a metadata file
@@ -277,6 +287,8 @@ class Schema(object):
                     file_name = os.path.basename(full_path)
                     defer_creation = metadata.get("defer_creation", False)
                     cur_node = Static(parent_node, file_name, defer_creation=defer_creation)
+                elif node_type == "user_workspace":
+                    cur_node = self._create_user_workspace_node(full_path, parent_node, metadata)
                 else:
                     # don't know this metadata
                     raise TankError("Unknown metadata type '%s'" % node_type)

@@ -38,7 +38,7 @@ class TestContext(TankTestBase):
         # One human user not matching the current login
         self.other_user = {"type":"HumanUser", "name":"user_name", "id":1, "login": "user_login"}
         # One human user matching the current login
-        self.current_login = tank.util.login._get_login_name()
+        self.current_login = tank.util.login.get_login_name()
         self.current_user = {"type":"HumanUser", "name":"user_name", "id":2, "login": self.current_login}
         self.add_to_sg_mock_db(self.current_user)
 

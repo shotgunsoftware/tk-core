@@ -619,7 +619,6 @@ class TestDeferredFolderCreation(TankTestBase):
         self.assertFalse(os.path.exists(self.deferred_asset_type))
         self.assertFalse(os.path.exists(self.deferred_asset))
 
-
         folder.process_filesystem_structure(self.tk, 
                                             self.shot["type"], 
                                             self.shot["id"], 
@@ -775,4 +774,68 @@ class TestDeferredFolderCreation(TankTestBase):
         self.assertFalse(os.path.exists(self.deferred_true))
         self.assertTrue(os.path.exists(self.deferred_asset_type))
         self.assertTrue(os.path.exists(self.deferred_asset))
+
+class TestHumanUser(TankTestBase):
+    def setUp(self):
+        super(TestHumanUser, self).setUp()
+        self.setup_fixtures("humanuser_core")
+        self.tk = tank.Tank(self.project_root)
+
+        self.shot = {"type": "Shot",
+                     "id": 1,
+                     "code": "shot_code",
+                     "project": self.project}
+
+        cur_login = tank.util.login.get_login_name()
+        self.humanuser = {"type": "HumanUser",
+                          "id": 2,
+                          "login": cur_login}
+
+        self.add_to_sg_mock_db([self.shot, self.humanuser])
+
+        self.user_path = os.path.join(self.project_root, cur_login, "shot_code")
+
+    def test_not_made_default(self):
+        self.assertFalse(os.path.exists(self.user_path))
+
+        folder.process_filesystem_structure(self.tk, 
+                                            self.shot["type"], 
+                                            self.shot["id"], 
+                                            preview=False)
+
+        self.assertFalse(os.path.exists(self.user_path))
+
+    def test_not_made_false(self):
+        self.assertFalse(os.path.exists(self.user_path))
+
+        folder.process_filesystem_structure(self.tk, 
+                                            self.shot["type"], 
+                                            self.shot["id"], 
+                                            preview=False,
+                                            engine=False)
+
+        self.assertFalse(os.path.exists(self.user_path))
+
+
+    def test_made_true(self):
+        self.assertFalse(os.path.exists(self.user_path))
+
+        folder.process_filesystem_structure(self.tk, 
+                                            self.shot["type"], 
+                                            self.shot["id"], 
+                                            preview=False,
+                                            engine=True)
+
+        self.assertTrue(os.path.exists(self.user_path))
+
+    def test_made_string(self):
+        self.assertFalse(os.path.exists(self.user_path))
+
+        folder.process_filesystem_structure(self.tk, 
+                                            self.shot["type"], 
+                                            self.shot["id"], 
+                                            preview=False,
+                                            engine="some string")
+
+        self.assertTrue(os.path.exists(self.user_path))
 

@@ -8,7 +8,7 @@ Helper methods that extracts information about the current user.
 
 import os, sys
 
-def _get_login_name():
+def get_login_name():
     """
     Retrieves the login name of the current user.
     Returns None if no login name was found
@@ -41,5 +41,5 @@ def get_shotgun_user(sg):
     This method connects to shotgun.
     """    
     fields = ["id", "type", "email", "login", "name", "image"]
-    local_login = _get_login_name()
+    local_login = get_login_name()
     return sg.find_one("HumanUser", filters=[["login", "is", local_login]], fields=fields)
