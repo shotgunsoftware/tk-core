@@ -142,7 +142,7 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
     :param list_of_paths: List of full paths for which information should be retrieved
     :param filters: Optional list of shotgun filters to apply.
     :param fields: Optional list of fields from the matched entities to
-                   return. Defaults to id, created_at, and path_cache.
+                   return. Defaults to id.
     :returns: dictionary keyed by path
     """
     # Map path caches to full paths, grouped by storage
@@ -153,19 +153,23 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
     
     filters = filters or []
     fields = fields or []
-    fields.append("created_at")
-    fields.append("path_cache")
 
-    # Use storage, path_cache and filters to find publishes grouped by storage.
-    
     # make copy
     sg_fields = fields[:]
+    # add these parameters to the fields list - they are needed for the internal processing
+    # of the result set.
+    sg_fields.append("created_at")
+    sg_fields.append("path_cache")
 
-    # query for each storage
+    # PASS 1
+    # because the file locations are split for each publish in shotgun into two fields
+    # - the path_cache which is a storage relative, platform agnostic path
+    # - a link to a storage entity
+    # ...we need to group the paths per storage and then for each storage do a 
+    # shotgun query on the form find all records where path_cache, in, /foo, /bar, /baz etc. 
     published_files = {}
     for root_name, storage_info in storages_paths.items():
         local_storage = tk.shotgun.find_one("LocalStorage", [["code", "is", root_name]])
-
         if not local_storage:
             raise TankError("Unable to locate LocalStorage matching root name %s." % root_name +
                            " Ensure that all project roots defined in the project's roots file" +
@@ -180,12 +184,44 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
         sg_filters.append(path_cache_filter)
         sg_filters.append( ["path_cache_storage", "is", local_storage] )
 
+        # organize the returned data by storage
         published_files[root_name] = tk.shotgun.find("TankPublishedFile", sg_filters, sg_fields)
     
     
-    # Use mapping of path_cache to full paths to create mapping of 
-    # full paths to publishes.
-    matches = _sort_publishes(published_files, storages_paths) 
+    # PASS 2
+    # take the published_files structure, containing the shotgun data
+    # grouped by storage, and turn that into the final data structure
+    #
+    matches = {}
+
+    for root_name, publishes in published_files.items():
+        storage_info = storages_paths[root_name]
+        for publish in publishes:
+            path_cache = publish["path_cache"]
+
+            for full_path in storage_info.get(path_cache, []):
+                cur_publish = matches.get(full_path, publish)
+                # We want the most recent
+                if not cur_publish["created_at"] > publish["created_at"]:
+                    matches[full_path] = publish
+
+    # PASS 3 -
+    # clean up resultset
+    # note that in order to do this we have pulled in additional fields from
+    # shotgun (path_cache, created_at etc) - unless these are specifically asked for
+    # by the caller, get rid of them.
+    #
+    for path in matches:
+        delete_fields = []
+        # find fields
+        for field in matches[path]:
+            if field not in fields and field != "id":
+                # field is not the id field and was not asked for.
+                delete_fields.append(field)
+        # remove fields
+        for f in delete_fields:
+            del matches[path][f]
+    
     return matches
 
 
@@ -248,27 +284,6 @@ def _group_by_storage(tk, list_of_paths):
         storages_paths[root_name] = storage_info
         
     return storages_paths
-
-
-def _sort_publishes(published_files, storage_paths):
-    """
-    Maps absolute file paths to published file entities.
-    In the case of duplicate entries in shotgun for the same file,
-    the more recent record is used.
-    """
-    matches = {}
-    for root_name, publishes in published_files.items():
-        storage_info = storage_paths[root_name]
-        for publish in publishes:
-            path_cache = publish["path_cache"]
-
-            for full_path in storage_info.get(path_cache, []):
-                cur_publish = matches.get(full_path, publish)
-                # We want the most recent
-                if not cur_publish["created_at"] > publish["created_at"]:
-                    matches[full_path] = publish
-
-    return matches
 
 
 def register_publish(tk, context, path, name, version_number, **kwargs):

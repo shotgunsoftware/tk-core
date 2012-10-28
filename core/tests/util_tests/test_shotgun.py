@@ -23,9 +23,11 @@ class TestShotgunFindPublish(TankTestBase):
         """
         super(TestShotgunFindPublish, self).setUp()
         
-        self.setup_fixtures()
+        #self.setup_fixtures()
+        self.setup_multi_root_fixtures()
 
-        self.storage = {"type": "LocalStorage", "id": 1, "code": "Tank"}
+        self.storage_1 = {"type": "LocalStorage", "id": 1, "code": "Tank"}
+        self.storage_2 = {"type": "LocalStorage", "id": 43, "code": "alternate_1"}
         
         project_name = os.path.basename(self.project_root)
         # older publish to test we get the latest
@@ -39,7 +41,7 @@ class TestShotgunFindPublish(TankTestBase):
         # publish matching older publish
         self.pub_2 = {"type": "TankPublishedFile",
                     "id": 2,
-                    "code": "hello",
+                    "code": "more recent",
                     "path_cache": "%s/foo/bar" % project_name,
                     "created_at": datetime.datetime(2012, 10, 13, 12, 1),
                     "path_cache_storage": {"type": "LocalStorage", "id": 1, "code": "Tank"}}
@@ -59,13 +61,21 @@ class TestShotgunFindPublish(TankTestBase):
                     "created_at": datetime.datetime(2012, 10, 13, 12, 2),
                     "path_cache_storage": {"type": "LocalStorage", "id": 1, "code": "Tank"}}
 
+
+        self.pub_5 = {"type": "TankPublishedFile",
+                    "id": 5,
+                    "code": "other storage",
+                    "path_cache": "foo/bar",
+                    "created_at": datetime.datetime(2012, 10, 12, 12, 1),
+                    "path_cache_storage": {"type": "LocalStorage", "id": 43, "code": "alternate_1"}}
+
         # Add these to mocked shotgun
-        self.add_to_sg_mock_db([self.storage, self.pub_1, self.pub_2, self.pub_3, self.pub_4])
+        self.add_to_sg_mock_db([self.storage_1, self.storage_2, 
+                                self.pub_1, self.pub_2, self.pub_3, self.pub_4, self.pub_5])
         self.tk = tank.Tank(self.project_root)
         self.tk._tank__sg = self.sg_mock
 
-    def test_find(self):
-        
+    def test_find(self):        
         paths = [os.path.join(self.project_root, "foo", "bar")]
         d = tank.util.find_publish(self.tk, paths)
         self.assertEqual(len(d), 1)
@@ -73,6 +83,16 @@ class TestShotgunFindPublish(TankTestBase):
         # make sure we got the latest matching publish
         sg_data = d.get(paths[0])
         self.assertEqual(sg_data["id"], self.pub_2["id"])
+        # make sure we are only getting the ID back.
+        self.assertEqual(sg_data.keys(), ["id"])
+
+    def test_most_recent_path(self):
+        # check that dupes return the more recent record        
+        paths = [os.path.join(self.project_root, "foo", "bar")]
+        d = tank.util.find_publish(self.tk, paths, fields=["code"])
+        self.assertEqual(len(d), 1)
+        sg_data = d.get(paths[0])
+        self.assertEqual(sg_data["code"], "more recent")
 
     def test_missing_paths(self):
         paths = [os.path.join(self.project_root, "foo", "bar"),
@@ -104,6 +124,19 @@ class TestShotgunFindPublish(TankTestBase):
         self.assertEqual(d.keys(), [ paths[0] ])
         sg_data = d.get(paths[0])
         self.assertEqual(sg_data["id"], self.pub_4["id"])
+
+#    def test_multi_root(self):        
+#        paths = [os.path.join(self.alt_root_1, "foo", "bar")]
+#        d = tank.util.find_publish(self.tk, paths)
+#        print "find publish returned: %s" % d
+#        self.assertEqual(len(d), 1)
+#        self.assertEqual(d.keys(), paths)
+#        # make sure we got the latest matching publish
+#        sg_data = d.get(paths[0])
+#        self.assertEqual(sg_data["id"], self.pub_5["id"])
+#        # make sure we are only getting the ID back.
+#        self.assertEqual(sg_data.keys(), ["id"])
+
 
 
 class TestShotgunRegisterPublish(TankTestBase):
@@ -206,48 +239,5 @@ class TestCalcPathCache(TankTestBase):
         root_name, path_cache = tank.util.shotgun._calc_path_cache(self.project_root, input_path)
         self.assertEqual("primary", root_name)
         self.assertEqual(expected, path_cache)
-
-
-class Test_SortPublishes(TankTestBase):
-
-    def test_multiple_roots(self):
-        """
-        Check that results are correctly assigned by root(local storage).
-        """
-        # same path cache across different storages
-        path_cache = "path/cache"
-        root_1 = "root_1"
-        root_2 = "root_2"
-        root_3 = "root_3"
-
-        full_path_1 = "root/1/" + path_cache
-        full_path_2 = "root/2/" + path_cache
-        full_path_3 = "root/3/" + path_cache
-
-        publish_1 = {"path_cache":path_cache, 
-                     "created_at": datetime.datetime(2012, 10, 13, 1, 30),
-                     "id": 1}
-        publish_2 = {"path_cache":path_cache,
-                     "created_at": datetime.datetime(2012, 10, 13, 2, 30),
-                     "id": 2}
-        publish_3 = {"path_cache":path_cache,
-                     "created_at": datetime.datetime(2012, 10, 13, 3, 30),
-                     "id": 3}
-
-        published_files = {root_1: [publish_1],
-                           root_2: [publish_2],
-                           root_3: [publish_3]}
-
-        storages_paths = {root_1: {path_cache: [full_path_1]},
-                          root_2: {path_cache: [full_path_2]},
-                          root_3: {path_cache: [full_path_3]}}
-
-        expected = {full_path_1: publish_1,
-                    full_path_2: publish_2,
-                    full_path_3: publish_3}
-    
-        result = tank.util.shotgun._sort_publishes(published_files, storages_paths)
-        self.assertEqual(expected, result)
-
 
 
