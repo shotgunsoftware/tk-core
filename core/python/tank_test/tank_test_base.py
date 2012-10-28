@@ -293,7 +293,9 @@ class TankTestBase(unittest.TestCase):
         """
 
         def find_one(entity_type, filters, fields=None, *args, **kws):
-            """Version of find_one which only returns values when filtered by id."""
+            """
+            Version of find_one which only returns values when filtered by id.
+            """
             for item in self._sg_mock_db.values():
                 
                 # first make sure that this record is right type
@@ -320,7 +322,7 @@ class TankTestBase(unittest.TestCase):
                     return item
             
             # no match
-            return {}                   
+            return None            
 
         def find(entity_type, filters, *args, **kws):
             """Returns all entries for specified type. 
