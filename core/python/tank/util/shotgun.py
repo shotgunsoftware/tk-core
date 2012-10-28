@@ -400,11 +400,11 @@ def _translate_abstract_fields(tk, path):
     """
     template = tk.template_from_path(path)
     if template:
-        abstract_keys = template.abstract_keys()
-        if abstract_keys:
+
+        if len(template.abstract_keys) > 0:
             # we want to use the default values for abstract keys
             cur_fields = template.get_fields(path)
-            for abstract_key in abstract_keys:
+            for abstract_key in template.abstract_keys:
                 del(cur_fields[abstract_key])
             path = template.apply_fields(cur_fields)
     return path

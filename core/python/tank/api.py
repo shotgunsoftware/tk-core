@@ -198,7 +198,7 @@ class Tank(object):
         
         skip_leaf_level = True
         for k in leaf_keys:
-            if k not in template.abstract_keys():
+            if k not in template.abstract_keys:
                 # a non-abstract key
                 if k not in fields:
                     # with no value
@@ -226,7 +226,7 @@ class Tank(object):
             # by deleting all eye values they will be replaced by %V
             # as the template is applied.
             #
-            for abstract_key in search_template.abstract_keys():
+            for abstract_key in search_template.abstract_keys:
                 del cur_fields[abstract_key]
             
             # pass 2 - if we ignored the leaf level, add those fields back
