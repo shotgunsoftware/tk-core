@@ -183,25 +183,65 @@ class Tank(object):
                   a value is specified for them in the fields parameter.
         """
         search_template = template
-        search_fields = fields.copy()
-        # If the leaf only includes abstract keys, leave it out of glob
-        leaf_keys = set(template.keys.keys()) - set(template.parent.keys.keys())
-        abstract_keys = template.abstract_keys()
-        # we don't want values for abstract keys when searching
-        for abstract_key in abstract_keys:
-            search_fields[abstract_key] = None
         
-        if all([k in abstract_keys for k in leaf_keys]):
-            search_template = template.parent
+        # the logic is as follows:
+        # do a glob and collapse abstract fields down into their abstract patterns
+        # unless they are specified with values in the fields dictionary
+        #
+        # if the leaf level can be avoided, do so. 
+        # the leaf level can be avoided if it contains 
+        # a combination of non-abstract templates with values in the fields dict
+        # and abstract templates.
+        
+        # can we avoid the leaf level?
+        leaf_keys = set(template.keys.keys()) - set(template.parent.keys.keys())
+        
+        skip_leaf_level = True
+        for k in leaf_keys:
+            if k not in template.abstract_keys():
+                # a non-abstract key
+                if k not in fields:
+                    # with no value
+                    skip_leaf_level = False
+                    break
 
-        found_files = self.paths_from_template(search_template, search_fields)
+        if skip_leaf_level:
+            search_template = template.parent
+            
+        # now carry out a regular search based on the template 
+        found_files = self.paths_from_template(search_template, fields)
+        
+        # now collapse down the search matches for any abstract fields, 
+        # and add the leaf level if necessary
         abstract_paths = set()
         for found_file in found_files:
+            
             cur_fields = search_template.get_fields(found_file)
-            for abstract_key in abstract_keys:
-                # Abstract keys may have formatting values supplied
-                cur_fields[abstract_key] = fields.get(abstract_key)
-                abstract_paths.add(template.apply_fields(cur_fields))
+            
+            # pass 1 - go through the fields for this file and
+            # zero out the abstract fields - this way, apply
+            # fields will pick up defaults for those fields
+            #
+            # if the system found matches for eye=left and eye=right,
+            # by deleting all eye values they will be replaced by %V
+            # as the template is applied.
+            #
+            for abstract_key in search_template.abstract_keys():
+                del cur_fields[abstract_key]
+            
+            # pass 2 - if we ignored the leaf level, add those fields back
+            # note that there is no risk that we add abstract fields at this point
+            # since the fields dictionary should only ever contain "real" values.
+            # also, we may have deleted actual fields in the pass above and now we
+            # want to put them back again. 
+            for f in fields:
+                if f not in cur_fields:
+                    cur_fields[f] = fields[f]
+            
+            # now we have all the fields we need to compose the full template
+            abstract_path = template.apply_fields(cur_fields)                
+            abstract_paths.add(abstract_path)
+                
         return list(abstract_paths)
 
 
