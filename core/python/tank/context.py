@@ -127,12 +127,22 @@ class Context(object):
     @property
     def user(self):
         """
-        The shotgun human user, if any, associated with this context. Try to match the local
-        login to a HumanUser in Shotgun the first time it is called.
+        The shotgun human user, associated with this context.
+        
+        ``{'type': 'HumanUser', 'id': 212, 'name': 'William Winter'}``
+
+        :returns: A std shotgun link dictionary.
+                  May return None if this has not been defined.
         """
+        # NOTE! get_shotgun_user returns more fields than just type, id and name
+        # so make sure we get rid of those. We should make sure we return the data
+        # in a consistent way, similar to all other entities. No more. No less.
         if self.__user is None:
             user = login.get_shotgun_user(self.__tk.shotgun)
-            self.__user = user
+            if user is not None:
+                self.__user = {"type": user.get("type"), 
+                               "id": user.get("id"), 
+                               "name": user.get("name")}
         return self.__user
 
     @property
