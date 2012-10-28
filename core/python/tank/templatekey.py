@@ -7,7 +7,6 @@ import re
 
 from .errors import TankError
 
-DEFAULT_FRAMESPEC_PATTERN = "%0d"
 FRAMESPEC_FORMAT_INDICATOR = "FORMAT:"
 
 class TemplateKey(object):
@@ -40,10 +39,14 @@ class TemplateKey(object):
 
         # Validation
         if self.shotgun_field_name and not self.shotgun_entity_type:
-            raise TankError("Shotgun field requires a shotgun entity be set.")
+            raise TankError("%s: Shotgun field requires a shotgun entity be set." % self)
+
+        if self.is_abstract and self.default is None:
+            raise TankError("%s: Fields marked as abstract needs to have a default value!" % self)
 
         if not ((self.default is None) or self.validate(default)):
             raise TankError(self._last_error)
+        
         if not all(self.validate(choice) for choice in self.choices):
             raise TankError(self._last_error)
     
@@ -102,6 +105,7 @@ class TemplateKey(object):
             if str(value).lower() not in [str(x).lower() for x in self.choices]:
                 self._last_error = "%s Illegal value: '%s' not in choices: %s" % (self, value, str(self.choices))
                 return False
+                        
         return True
 
     def _as_string(self, value):
@@ -109,9 +113,6 @@ class TemplateKey(object):
 
     def _as_value(self, str_value):
         return str_value
-
-    def _as_abstract(self, pattern=None):
-        return None
 
     def __repr__(self):
         return "<Tank %s %s>" % (self.__class__.__name__, self.name)
@@ -245,7 +246,12 @@ class SequenceKey(IntegerKey):
         self.frame_specs = _determine_frame_specs(format_spec)
         format_strings = ['%0d', '%d', '#', '#d', '@d', '$Fd', '$F']
         self._format_patterns = ["%s%s" % (FRAMESPEC_FORMAT_INDICATOR, x) for x in format_strings]
+        
+        # all sequences are abstract by default and have a default value of %0Xd
         abstract = True
+        if default is None:
+            default = "%%0%dd" % int(format_spec) # e.g. %04d if format spec is 4
+        
         super(SequenceKey, self).__init__(name,
                                           default=default,
                                           choices=choices,
@@ -255,7 +261,6 @@ class SequenceKey(IntegerKey):
                                           exclusions=exclusions,
                                           abstract=abstract)
 
-        self.default = self.default or self._as_abstract()
 
     def validate(self, value):
         value = self._preprocess_value(value)
@@ -271,7 +276,9 @@ class SequenceKey(IntegerKey):
             return super(SequenceKey, self).validate(value)
 
     def _as_string(self, value):
+        
         value = self._preprocess_value(value)
+        
         if isinstance(value, basestring) and value.startswith(FRAMESPEC_FORMAT_INDICATOR):
             return self._as_abstract(value.replace(FRAMESPEC_FORMAT_INDICATOR, ""))
 
@@ -280,8 +287,7 @@ class SequenceKey(IntegerKey):
         else:
             return super(SequenceKey, self)._as_string(value)
 
-    def _as_abstract(self, pattern=None):
-        pattern = pattern or DEFAULT_FRAMESPEC_PATTERN
+    def _as_abstract(self, pattern):
         frame_spec = None
         places = int(self.format_spec)
 
