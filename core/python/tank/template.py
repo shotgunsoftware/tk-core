@@ -107,7 +107,9 @@ class Template(object):
 
     @property
     def definition(self):
-        """Property to access Template definition."""
+        """
+        Property to access Template definition.
+        """
         # Use first definition as it should be most inclusive in case of variations
         return self._definitions[0]
 
@@ -154,7 +156,8 @@ class Template(object):
         return [x for x in required_keys if (x not in fields) or  (fields[x] is None)]
 
     def abstract_keys(self):
-        """Returns names of keys which are registered as abstract.
+        """
+        Returns names of keys which are registered as abstract.
 
         :returns: List of key names.
         """
@@ -162,7 +165,10 @@ class Template(object):
 
     def apply_fields(self, fields):
         """
-        Creates path using fields.
+        Creates path using fields. Certain fields may be processed in special ways, for
+        example Sequence fields, which can take a "FORMAT" string which will intelligently
+        format a image sequence specifier based on the type of data is being handled.
+        For more information about special cases, see the main documentation.
 
         :param fields: Mapping of keys to fields. Keys must match those in template 
                        definition.
@@ -253,7 +259,9 @@ class Template(object):
 
 
     def _fix_key_names(self, definition, keys):
-        """Substitutes key name for name used in definition"""
+        """
+        Substitutes key name for name used in definition
+        """
         # Substitute key names for original key input names(key aliasing)
         substitutions = [(key_name, key.name) for key_name, key in keys.items() if key_name != key.name]
         for old_name, new_name in substitutions:
@@ -269,7 +277,9 @@ class Template(object):
         return cleaned_definition
 
     def _calc_static_tokens(self, definition):
-        """Finds the tokens from a definition which are not involved in defining keys."""
+        """
+        Finds the tokens from a definition which are not involved in defining keys.
+        """
         expanded_definition = os.path.join(self._prefix, definition)
         regex = r"{%s}" % self._key_name_regex
         tokens = re.split(regex, expanded_definition.lower())
@@ -409,7 +419,9 @@ class TemplateString(Template):
     
     @property
     def parent(self):
-        "Strings have no parents"
+        """
+        Strings have no parents
+        """
         return None
 
 
@@ -431,7 +443,8 @@ class TemplateString(Template):
 
 
 def split_path(input_path):
-    """Split a path into tokens.
+    """
+    Split a path into tokens.
 
     :param input_path: path to split
     :type input_path: string
@@ -544,7 +557,8 @@ class TemplatePathParser(object):
 
 
     def find_index_of_token(self, key, token, input_path, last_index):
-        """Determines starting index of a sub-string in the remainig portion of a path.
+        """
+        Determines starting index of a sub-string in the remainig portion of a path.
 
         If possible, domain knowledge will be used to improve the accuracy.
         :param key: The the key whose value should start after the token.
@@ -592,7 +606,9 @@ class TemplatePathParser(object):
 
 
     def _process_value(self, value_str, cur_key, fields):
-        """Checks value is valid both for it's key and in relation to existing values for that  key."""
+        """
+        Checks value is valid both for it's key and in relation to existing values for that key.
+        """
         value = cur_key.value_from_str(value_str)
         key_name = cur_key.name
         
