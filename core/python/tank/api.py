@@ -196,9 +196,11 @@ class Tank(object):
         # can we avoid the leaf level?
         leaf_keys = set(template.keys.keys()) - set(template.parent.keys.keys())
         
+        abstract_key_names = [k.name for k in template.keys.values() if k.is_abstract]
+        
         skip_leaf_level = True
         for k in leaf_keys:
-            if k not in template.abstract_keys:
+            if k not in abstract_key_names:
                 # a non-abstract key
                 if k not in fields:
                     # with no value
@@ -210,6 +212,8 @@ class Tank(object):
             
         # now carry out a regular search based on the template 
         found_files = self.paths_from_template(search_template, fields)
+        
+        st_abstract_key_names = [k.name for k in search_template.keys.values() if k.is_abstract]
         
         # now collapse down the search matches for any abstract fields, 
         # and add the leaf level if necessary
@@ -226,8 +230,8 @@ class Tank(object):
             # by deleting all eye values they will be replaced by %V
             # as the template is applied.
             #
-            for abstract_key in search_template.abstract_keys:
-                del cur_fields[abstract_key]
+            for abstract_key_name in st_abstract_key_names:
+                del cur_fields[abstract_key_name]
             
             # pass 2 - if we ignored the leaf level, add those fields back
             # note that there is no risk that we add abstract fields at this point

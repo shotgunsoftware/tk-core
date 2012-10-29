@@ -125,15 +125,6 @@ class Template(object):
         # First keys should be most inclusive
         return self._keys[0].copy()
 
-    @property
-    def abstract_keys(self):
-        """
-        Returns names of keys which are registered as abstract.
-
-        :returns: List of key names.
-        """
-        return [k.name for k in self.keys.values() if k.is_abstract]
-
 
     def missing_keys(self, fields, skip_defaults=False):
         """
