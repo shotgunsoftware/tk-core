@@ -177,9 +177,23 @@ class Schema(object):
                 if os.path.basename(curr_path) == ref_token:
                     return obj
     
+    
+    def _create_static_node(self, full_path, parent_node, metadata):
+        """
+        Create a user static object from a metadata file
+        """
+        file_name = os.path.basename(full_path)
+        defer_creation = metadata.get("defer_creation", False)
+        return Static(parent_node, file_name, defer_creation=defer_creation)        
+
+    
     def _create_user_workspace_node(self, full_path, parent_node, metadata):
+        """
+        Create a user workspace object from a metadata file
+        """
         sg_name_expression = metadata.get("name")
-        create_with_parent = metadata.get("create_with_parent", False)
+        create_with_parent = metadata.get("create_with_parent", True)
+        
         # validate
         if sg_name_expression is None:
             raise TankError("Missing name token in yml metadata file %s" % full_path )
@@ -266,6 +280,9 @@ class Schema(object):
         # construct
         return ListField(parent_node, entity_type, field_name, skip_unused, defer_creation=defer_creation)
     
+    
+    
+    
     def _process_config_r(self, parent_node, parent_path):
         """
         Recursively scan the file system and construct an object
@@ -278,25 +295,23 @@ class Schema(object):
                 node_type = metadata.get("type", "undefined")
                 
                 if node_type == "shotgun_entity":
-                    # make object
                     cur_node = self._create_sg_entity_node(full_path, parent_node, metadata)
+                    
                 elif node_type == "shotgun_list_field":
-                    # make object
                     cur_node = self._create_sg_list_field_node(full_path, parent_node, metadata)
+                    
                 elif node_type == "static":
-                    # static folder
-                    file_name = os.path.basename(full_path)
-                    defer_creation = metadata.get("defer_creation", False)
-                    cur_node = Static(parent_node, file_name, defer_creation=defer_creation)
+                    cur_node = self._create_static_node(full_path, parent_node, metadata)
+                
                 elif node_type == "user_workspace":
                     cur_node = self._create_user_workspace_node(full_path, parent_node, metadata)
+                
                 else:
                     # don't know this metadata
                     raise TankError("Unknown metadata type '%s'" % node_type)
             else:
-                # static folder
-                file_name = os.path.basename(full_path)
-                cur_node = Static(parent_node, file_name)
+                # no metadata - so this is just a static folder!
+                cur_node = self._create_static_node(full_path, parent_node, {})
 
             self._nodes_by_name[full_path] = cur_node
             # and process children

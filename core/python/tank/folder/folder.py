@@ -662,7 +662,7 @@ class UserWorkspace(Entity):
     application startup.
     """
     
-    def __init__(self, parent, field_name_expression, create_with_parent=False):
+    def __init__(self, parent, field_name_expression, create_with_parent=True):
         cur_login = login.get_login_name()
         if not cur_login:
             msg = "Could not determine the local user login while creating a user folder."
@@ -671,7 +671,12 @@ class UserWorkspace(Entity):
 
         filters = { "logical_operator": "and",
                      "conditions": [ { "path": "login", "relation": "is", "values": [ cur_login ] } ] }
-        Entity.__init__(self, parent, "HumanUser", field_name_expression, filters, create_with_parent=create_with_parent, defer_creation=True)
+        Entity.__init__(self, parent, 
+                        "HumanUser", 
+                        field_name_expression, 
+                        filters, 
+                        create_with_parent=create_with_parent, 
+                        defer_creation=True)
 
 ################################################################################################
 
