@@ -86,9 +86,10 @@ class Folder(object):
         """
         # if creation is defered:
         # if the deferred value is True and there is a value for engine, create
-        # if the deferred value is a list, and the engine is in that list, create
+        # if the deferred value is a list of strings, and the engine name is in that list, create
         if not self.defer_creation or (engine and (self.defer_creation is True or engine in self.defer_creation)):
             self._create_folders(schema, path, tokens, explicit_child_list=explicit_child_list, engine=engine)
+
 
 
     def _create_folders(self, schema, path, tokens, explicit_child_list=None, engine=None):
@@ -662,7 +663,8 @@ class UserWorkspace(Entity):
     application startup.
     """
     
-    def __init__(self, parent, field_name_expression):
+    def __init__(self, parent, field_name_expression, defer_creation):
+        
         cur_login = login.get_login_name()
         if not cur_login:
             msg = "Could not determine the local user login while creating a user folder."
@@ -677,7 +679,7 @@ class UserWorkspace(Entity):
                         field_name_expression, 
                         filters, 
                         create_with_parent=True, 
-                        defer_creation=True)
+                        defer_creation=defer_creation)
 
 ################################################################################################
 

@@ -192,12 +192,13 @@ class Schema(object):
         Create a user workspace object from a metadata file
         """
         sg_name_expression = metadata.get("name")
+        defer_creation = metadata.get("defer_creation", False)
         
         # validate
         if sg_name_expression is None:
             raise TankError("Missing name token in yml metadata file %s" % full_path )
 
-        return UserWorkspace(parent_node, sg_name_expression)
+        return UserWorkspace(parent_node, sg_name_expression, defer_creation)
 
 
     def _create_sg_entity_node(self, full_path, parent_node, metadata):
