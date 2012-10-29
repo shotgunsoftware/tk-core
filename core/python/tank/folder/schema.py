@@ -184,7 +184,7 @@ class Schema(object):
         """
         file_name = os.path.basename(full_path)
         defer_creation = metadata.get("defer_creation", False)
-        return Static(parent_node, file_name, defer_creation=defer_creation)        
+        return Static(parent_node, file_name, defer_creation)        
 
     
     def _create_user_workspace_node(self, full_path, parent_node, metadata):
@@ -192,13 +192,12 @@ class Schema(object):
         Create a user workspace object from a metadata file
         """
         sg_name_expression = metadata.get("name")
-        create_with_parent = metadata.get("create_with_parent", True)
         
         # validate
         if sg_name_expression is None:
             raise TankError("Missing name token in yml metadata file %s" % full_path )
 
-        return UserWorkspace(parent_node, sg_name_expression, create_with_parent)
+        return UserWorkspace(parent_node, sg_name_expression)
 
 
     def _create_sg_entity_node(self, full_path, parent_node, metadata):
@@ -258,7 +257,7 @@ class Schema(object):
         entity_filter["conditions"] = filters
         
         # construct
-        return Entity(parent_node, entity_type, sg_name_expression, entity_filter, create_with_parent, defer_creation=defer_creation)
+        return Entity(parent_node, entity_type, sg_name_expression, entity_filter, create_with_parent, defer_creation)
     
     def _create_sg_list_field_node(self, full_path, parent_node, metadata):
         """
@@ -278,7 +277,7 @@ class Schema(object):
             raise TankError("Missing field_name token in yml metadata file %s" % full_path )
         
         # construct
-        return ListField(parent_node, entity_type, field_name, skip_unused, defer_creation=defer_creation)
+        return ListField(parent_node, entity_type, field_name, skip_unused, defer_creation)
     
     
     

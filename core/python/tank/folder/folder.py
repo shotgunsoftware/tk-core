@@ -22,7 +22,7 @@ class Folder(object):
     (This should not be used in any configuration)
     """
     
-    def __init__(self, parent, schema_name, defer_creation=False):
+    def __init__(self, parent, schema_name, defer_creation):
         """
         Constructor
         """
@@ -146,7 +146,7 @@ class Static(Folder):
         """
         The name parameter represents the folder name that will be created in the file system.
         """
-        Folder.__init__(self, parent, name, defer_creation=defer_creation)
+        Folder.__init__(self, parent, name, defer_creation)
         self.name = name
     
     def _create_folders(self, schema, path, tokens, explicit_child_list=None, engine=None):
@@ -180,13 +180,13 @@ class ListField(Folder):
     Represents values from a Shotgun list field in the file system (like Asset.sg_asset_type)
     """
 
-    def __init__(self, parent, entity_type, field_name, skip_unused, defer_creation=False):
+    def __init__(self, parent, entity_type, field_name, skip_unused, defer_creation):
         self.entity_type = entity_type
         self.field_name = field_name
         self.token_name = "%s.%s" % (entity_type, field_name)
         self.skip_unused = skip_unused
         
-        Folder.__init__(self, parent, self.token_name, defer_creation=defer_creation)
+        Folder.__init__(self, parent, self.token_name, defer_creation)
         
     def _create_folders(self, schema, path, tokens, explicit_child_list=None, engine=None):
         """
@@ -401,7 +401,7 @@ class Entity(Folder):
     Represents an entity in Shotgun
     """
     
-    def __init__(self, parent, entity_type, field_name_expression, filters, create_with_parent=False, defer_creation=False):
+    def __init__(self, parent, entity_type, field_name_expression, filters, create_with_parent, defer_creation):
         """
         Constructor.
         
@@ -428,7 +428,7 @@ class Entity(Folder):
         """
         
         # the schema name is the same as the SG entity type
-        Folder.__init__(self, parent, entity_type, defer_creation=defer_creation)
+        Folder.__init__(self, parent, entity_type, defer_creation)
         
         self.entity_type = entity_type
         self.entity_name_obj = EntityName(self.entity_type, field_name_expression)
@@ -662,7 +662,7 @@ class UserWorkspace(Entity):
     application startup.
     """
     
-    def __init__(self, parent, field_name_expression, create_with_parent=True):
+    def __init__(self, parent, field_name_expression):
         cur_login = login.get_login_name()
         if not cur_login:
             msg = "Could not determine the local user login while creating a user folder."
@@ -671,11 +671,12 @@ class UserWorkspace(Entity):
 
         filters = { "logical_operator": "and",
                      "conditions": [ { "path": "login", "relation": "is", "values": [ cur_login ] } ] }
-        Entity.__init__(self, parent, 
+        Entity.__init__(self, 
+                        parent, 
                         "HumanUser", 
                         field_name_expression, 
                         filters, 
-                        create_with_parent=create_with_parent, 
+                        create_with_parent=True, 
                         defer_creation=True)
 
 ################################################################################################
@@ -691,7 +692,13 @@ class Project(Entity):
             "conditions": []
         }
         
-        Entity.__init__(self, None, "Project", "tank_name", no_filters)
+        Entity.__init__(self, 
+                        None, 
+                        "Project", 
+                        "tank_name", 
+                        no_filters,
+                        create_with_parent=False,
+                        defer_creation=False)
         self.root_path = root_path
 
     def _create_folder(self, schema, path, entity):
