@@ -158,7 +158,7 @@ class TestValidate(TestTemplatePath):
         self.assert_sequence_paths_valid(frames_values)
 
     def test_shake_format_valid(self):
-        frames_values = ["#", "@@@@"]
+        frames_values = ["@@@@"]
         self.assert_sequence_paths_valid(frames_values)
 
     def test_houdini_format_valid(self):
@@ -369,12 +369,6 @@ class TestApplyFields(TestTemplatePath):
         result = self.sequence.apply_fields(fields)
         self.assertEqual(expected, result)
 
-    def test_shake_hash(self):
-        expected = os.path.join("path", "to", "seq.#.ext")
-        fields = {"frame": "#"}
-        result = self.sequence.apply_fields(fields)
-        self.assertEqual(expected, result)
-
     def test_shake_hash_alt(self):
         expected = os.path.join("path", "to", "seq.####.ext")
         fields = {"frame": "####"}
@@ -506,7 +500,7 @@ class TestApplyFields(TestTemplatePath):
 
         # specify default format
         expected = os.path.join(self.project_root, "shots", "s1.loon.####.ext")
-        fields["frame"] = "FORMAT:#d"
+        fields["frame"] = "FORMAT:#"
         self.assertEquals(expected, template.apply_fields(fields))
 
 
@@ -756,12 +750,6 @@ class TestGetFields(TestTemplatePath):
     def test_nuke_framespec(self):
         input_path = "path/to/seq.%04d.ext"
         expected = {"frame": "%04d"}
-        result = self.sequence.get_fields(input_path)
-        self.assertEqual(expected, result)
-
-    def test_shake_hash(self):
-        input_path = "path/to/seq.#.ext"
-        expected = {"frame": "#"}
         result = self.sequence.get_fields(input_path)
         self.assertEqual(expected, result)
 

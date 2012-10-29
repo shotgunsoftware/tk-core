@@ -410,7 +410,7 @@ class TestAbstractsFromTemplate(TankTestBase):
         self.create_file(file_path)
 
         # add format value for abstract key
-        self.fields["seq"] = "FORMAT:#d"
+        self.fields["seq"] = "FORMAT:#"
 
         result = self.tk.abstract_paths_from_template(template, self.fields)
         abstract_path = os.path.join(self.step_path, "name_value.###.ext")
