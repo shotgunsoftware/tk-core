@@ -318,7 +318,7 @@ class Tank(object):
         """
         return context.from_entity(self, entity_type, entity_id)
     
-    def create_filesystem_structure(self, entity_type, entity_id):
+    def create_filesystem_structure(self, entity_type, entity_id, engine=None):
         """
         Create folders and associated data on disk to reflect branches in the project tree
         related to a specific entity.
@@ -327,13 +327,21 @@ class Tank(object):
         :type  entity_type: String.
         :param entity_id: Shotgun id of the entity 
         :type  entity_id: Integer.
+        :param engine: Optional engine name to indicate that a second, engine specific 
+                       folder creation pass should be executed for a particular engine.
+                       Folders marked as deferred will be processed.
+        :type engine: String.
 
         :returns: The number of entity folders were processed
         """
-        num_processed, _ = folder.process_filesystem_structure(self, entity_type, entity_id, preview=False)
+        num_processed, _ = folder.process_filesystem_structure(self, 
+                                                               entity_type, 
+                                                               entity_id, 
+                                                               preview=False,
+                                                               engine=engine)
         return num_processed
         
-    def preview_filesystem_structure(self, entity_type, entity_id):
+    def preview_filesystem_structure(self, entity_type, entity_id, engine=None):
         """
         Previews folders that would be created by create_filesystem_structure.
 
@@ -341,10 +349,18 @@ class Tank(object):
         :type  entity_type: String.
         :param entity_id: Shotgun id of the entity 
         :type  entity_id: Integer.
+        :param engine: Optional engine name to indicate that a second, engine specific 
+                       folder creation pass should be executed for a particular engine.
+                       Folders marked as deferred will be processed.
+        :type engine: String.
 
         :returns: List of items processed.
         """
-        _, processed_items = folder.process_filesystem_structure(self, entity_type, entity_id, preview=True)
+        _, processed_items = folder.process_filesystem_structure(self, 
+                                                                 entity_type, 
+                                                                 entity_id, 
+                                                                 preview=True,
+                                                                 engine=engine)
         return processed_items
 
     def execute_hook(self, hook_name, **kwargs):

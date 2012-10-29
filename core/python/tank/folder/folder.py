@@ -655,6 +655,12 @@ class Entity(Folder):
     
     
 class UserWorkspace(Entity):
+    """
+    Represents a user workspace folder. 
+    
+    A workspace folder is deferred by default and is typically created in a second pass, just before
+    application startup.
+    """
     
     def __init__(self, parent, field_name_expression, create_with_parent=False):
         cur_login = login.get_login_name()
@@ -671,7 +677,7 @@ class UserWorkspace(Entity):
 
 class Project(Entity):
     """
-    The root point. Represnts a shotgun project.
+    The root point. Represents a shotgun project.
     """
     
     def __init__(self, root_path):

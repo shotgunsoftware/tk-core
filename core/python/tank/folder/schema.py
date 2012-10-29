@@ -68,6 +68,7 @@ class Schema(object):
                 
         :param entity_type: Shotgun entity type
         :param entity_id: Shotgun entity id
+        :param engine: Engine to create folders for / indicate second pass if not None.
         
         :returns: how many sg entity folders were processed
         """
@@ -430,7 +431,9 @@ def process_filesystem_structure(tk, entity_type, entity_ids, preview, engine=No
     :param entity_type: A shotgun entity type to create folders for
     :param entity_ids: list of entity ids to process
     :param preview: enable dry run mode?
-    :param engine: (Optional) A bool or string representation matching a level in the schema.
+    :param engine: (Optional) A string representation matching a level in the schema. Passing this
+                   option indicates to the system that a second pass should be executed and all
+                   which are marked as deferred are processed.
     
     :returns: tuple: (How many entity folders were processed, list of items)
     
