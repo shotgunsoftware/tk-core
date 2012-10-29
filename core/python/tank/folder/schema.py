@@ -192,7 +192,7 @@ class Schema(object):
         Create a user workspace object from a metadata file
         """
         sg_name_expression = metadata.get("name")
-        defer_creation = metadata.get("defer_creation", False)
+        defer_creation = metadata.get("defer_creation", True)
         
         # validate
         if sg_name_expression is None:
