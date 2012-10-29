@@ -106,6 +106,7 @@ class TestUser(TestContext):
         """
         self.assertEquals(self.current_user["id"], self.context.user["id"])
         self.assertEquals(self.current_user["type"], self.context.user["type"])
+        self.assertEquals(len(self.context.user), 3)
 
     def test_sg_called_once(self):
         """
@@ -171,6 +172,7 @@ class TestFromPath(TestContext):
     def test_user_path(self):
         """Check other_user is set when contained in the path."""
         result = self.tk.context_from_path(self.other_user_path)
+        
 
         # check context's attributes
         self.assertEquals(self.shot["id"], result.entity["id"])
@@ -183,6 +185,7 @@ class TestFromPath(TestContext):
         self.assertEquals(self.other_user["type"], result.user["type"])
         
         self.assertIsNone(result.task)
+
 
 
 class TestFromPathWithPrevious(TestContext):
@@ -627,6 +630,40 @@ class TestAsTemplateFields(TestContext):
         result = self.ctx.as_template_fields(template)
         self.assertEquals(expected_step_name, result['Step'])
         self.assertEquals(expected_shot_name, result['Shot'])
+
+
+    def test_user_ctx(self):
+        """Check other_user is set when contained in the path."""
+        
+        # get a context containing a user
+        ctx = self.tk.context_from_path(self.other_user_path)
+
+        # check context's attributes
+        self.assertEquals(self.shot["id"], ctx.entity["id"])
+        self.assertEquals(self.shot["type"], ctx.entity["type"])
+        self.assertEquals(self.project["id"], ctx.project["id"])
+        self.assertEquals(self.project["type"], ctx.project["type"])
+        self.assertEquals(self.step["id"], ctx.step["id"])
+        self.assertEquals(self.step["type"], ctx.step["type"])
+        self.assertEquals(self.other_user["id"], ctx.user["id"])
+        self.assertEquals(self.other_user["type"], ctx.user["type"])
+        self.assertIsNone(ctx.task)
+        
+        # create a template that uses user
+        self.keys["HumanUser"] = StringKey("HumanUser")
+        template_def = "/sequence/{Sequence}/{Shot}/{Step}/{HumanUser}"
+        template = TemplatePath(template_def, self.keys, self.project_root)
+
+        # pull out fields and test that we have everythign we expect
+        fields = ctx.as_template_fields(template)
+
+        self.assertEquals(fields["HumanUser"], "user_login")
+        self.assertEquals(fields["Shot"], "shot_code")
+        self.assertEquals(fields["Sequence"], "Seq")
+        self.assertEquals(fields["Step"], "step_short_name")
+        self.assertEquals(len(fields), 4)
+
+
 
 
 class TestSerailize(TestContext):

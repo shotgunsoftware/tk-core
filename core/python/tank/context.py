@@ -56,7 +56,17 @@ class Context(object):
                 self.entity,
                 self.step,
                 self.task)
-        return "<Tank Context: %s %s %s %s>" % args
+        
+        # multi line repr
+        msg = []
+        msg.append("  Project: %s" % str(self.__project))
+        msg.append("  Entity: %s" % str(self.__entity))
+        msg.append("  Step: %s" % str(self.__step))
+        msg.append("  Task: %s" % str(self.__task))
+        msg.append("  User: %s" % str(self.__user))
+        msg.append("  Additional Entities: %s" % str(self.__additional_entities))
+        
+        return "<Tank Context: %s>" % ("\n".join(msg))
 
     def __eq__(self, other):
         if not isinstance(other, Context):
@@ -207,6 +217,8 @@ class Context(object):
             entities["Step"] = self.step
         if self.task:
             entities["Task"] = self.task
+        if self.user:
+            entities["HumanUser"] = self.user
         if self.project:
             entities["Project"] = self.project
 
@@ -373,6 +385,7 @@ def from_entity(tk, entity_type, entity_id):
         "project": None,
         "entity": None,
         "step": None,
+        "user": None,
         "task": None,
         "additional_entities": []
     }
@@ -413,6 +426,7 @@ def from_path(tk, path, previous_context=None):
         "project": None,
         "entity": None,
         "step": None,
+        "user": None,
         "task": None,
         "additional_entities": []
     }
