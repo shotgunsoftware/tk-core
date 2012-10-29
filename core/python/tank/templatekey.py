@@ -9,6 +9,8 @@ from .errors import TankError
 
 FRAMESPEC_FORMAT_INDICATOR = "FORMAT:"
 
+VALID_FORMAT_STRINGS = ["%d", "#", "@", "$F"]
+
 class TemplateKey(object):
     """Base class for template keys. Should not be used directly."""
     def __init__(self,
@@ -243,14 +245,15 @@ class SequenceKey(IntegerKey):
                  shotgun_field_name=None,
                  exclusions=None):
 
-        self.frame_specs = _determine_frame_specs(format_spec)
-        format_strings = ['%0d', '%d', '#', '#d', '@d', '$Fd', '$F']
-        self._format_patterns = ["%s%s" % (FRAMESPEC_FORMAT_INDICATOR, x) for x in format_strings]
-        
+        # determine the actual frame specs given the padding (format_spec)
+        # and the allowed formats
+        self._frame_specs = [ _resolve_frame_spec(x, format_spec) for x in VALID_FORMAT_STRINGS ]
+
         # all sequences are abstract by default and have a default value of %0Xd
         abstract = True
         if default is None:
-            default = "%%0%dd" % int(format_spec) # e.g. %04d if format spec is 4
+            # default value is %d form
+            default = _resolve_frame_spec("%d", format_spec)
         
         super(SequenceKey, self).__init__(name,
                                           default=default,
@@ -263,88 +266,115 @@ class SequenceKey(IntegerKey):
 
 
     def validate(self, value):
-        value = self._preprocess_value(value)
-        if value in self.frame_specs or value in self._format_patterns:
-            return True
+
+        # use a std error message
+        full_format_strings = ["%s %s" % (FRAMESPEC_FORMAT_INDICATOR, x) for x in VALID_FORMAT_STRINGS]
+        error_msg = "%s Illegal value '%s', expected an Integer, a frame spec or format spec.\n" % (self, value)
+        error_msg += "Valid frame specs: %s\n" % str(self._frame_specs)
+        error_msg += "Valid format strings: %s\n" % full_format_strings
+        
+
+        if isinstance(value, basestring) and value.startswith(FRAMESPEC_FORMAT_INDICATOR):
+            # FORMAT: YXZ string - check that XYZ is in VALID_FORMAT_STRINGS
+            pattern = _extract_format_string(value)        
+            if pattern in VALID_FORMAT_STRINGS:
+                return True
+            else:
+                self._last_error = error_msg
+                return False
+                
         elif not(isinstance(value, int) or value.isdigit()):
-            msg = "%s Illegal value %s, expected an Integer, a frame spec or format spec.\n" % (self, value)
-            msg += "Valid frame specs: %s\n" % str(list(self.frame_specs))
-            msg += "Valid format strings: %s\n" % str(self._format_patterns)
-            self._last_error = msg
-            return False
+            # not a digit - so it must be a frame spec! (like %05d)
+            # make sure that it has the right length and formatting.
+            if value in self._frame_specs:
+                return True
+            else:
+                self._last_error = error_msg
+                return False
+                
         else:
             return super(SequenceKey, self).validate(value)
 
     def _as_string(self, value):
         
-        value = self._preprocess_value(value)
-        
         if isinstance(value, basestring) and value.startswith(FRAMESPEC_FORMAT_INDICATOR):
-            return self._as_abstract(value.replace(FRAMESPEC_FORMAT_INDICATOR, ""))
+            # this is a FORMAT: XYZ - convert it to the proper resolved frame spec
+            pattern = _extract_format_string(value)
+            return _resolve_frame_spec(pattern, self.format_spec)
 
-        if value in self.frame_specs:
+        if value in self._frame_specs:
+            # a frame spec like #### @@@@@ or %08d
             return value
+        
         else:
             return super(SequenceKey, self)._as_string(value)
 
-    def _as_abstract(self, pattern):
-        frame_spec = None
-        places = int(self.format_spec)
-
-        if pattern == "%0d":
-            frame_spec = "%%0%dd" % places
-        elif pattern == "%d":
-            frame_spec = "%d"
-        elif pattern == "#":
-            frame_spec = "#"
-        elif pattern == "#d":
-            frame_spec = "#"*places
-        elif pattern == "@d":
-            frame_spec = "@"*places
-        elif pattern == "$Fd":
-            frame_spec = "$F%d" % places
-        elif pattern == "$F":
-            frame_spec = "$F"
-        else:
-            msg = "Illegal format pattern for framespec: '%s'. Legal patterns are: " % pattern
-            msg += "%s" % ", ".join(self._format_patterns)
-            raise TankError(msg)
-        return frame_spec
-
     def _as_value(self, str_value):
-        if str_value in self.frame_specs:
+        if str_value in self._frame_specs:
             return str_value
         else:
             return super(SequenceKey, self)._as_value(str_value)
 
-    def _preprocess_value(self, value):
-        # remove any white space in-between format indicator and value
-        if isinstance(value, basestring) and value.startswith(FRAMESPEC_FORMAT_INDICATOR):
-            temp_value = value.replace(FRAMESPEC_FORMAT_INDICATOR, "")
-            value = FRAMESPEC_FORMAT_INDICATOR + temp_value.strip()
-        return value
 
 
-def _determine_frame_specs(format_spec):
-    frame_specs = set()
+
+def _extract_format_string(value):
+    """
+    Returns XYZ given the string "FORMAT:    XYZ"
+    """
+    if isinstance(value, basestring) and value.startswith(FRAMESPEC_FORMAT_INDICATOR):
+        pattern = value.replace(FRAMESPEC_FORMAT_INDICATOR, "").strip()
+    else:
+        # passthrough
+        pattern = value
+    return pattern
+
+def _resolve_frame_spec(format_string, format_spec):
+    """
+    Turns a format_string %d and a format_spec "03" into a sequence identifier (%03d)
+    """
+    
+    error_msg = "Illegal format pattern for framespec: '%s'. " % format_string
+    error_msg += "Legal patterns are: %s" % ", ".join(VALID_FORMAT_STRINGS)
+
+    
+    if format_string not in VALID_FORMAT_STRINGS:
+        raise TankError(error_msg)
+    
+    if format_spec.startswith("0") and format_spec != "01":
+        use_zero_padding = True
+    else: 
+        use_zero_padding = False
+    
     places = int(format_spec)
+    
+    if use_zero_padding:
+        if format_string == "%d":
+            frame_spec = "%%0%dd" % places
+        elif format_string == "#":
+            frame_spec = "#"*places
+        elif format_string == "@":
+            frame_spec = "@"*places
+        elif format_string == "$F":
+            frame_spec = "$F%d" % places
+        else:
+            raise TankError(error_msg)
+    else:
+        # non zero padded rules
+        if format_string == "%d":
+            frame_spec = "%d"
+        elif format_string == "#":
+            frame_spec = "#"
+        elif format_string == "@":
+            frame_spec = "@"
+        elif format_string == "$F":
+            frame_spec = "$F"
+        else:
+            raise TankError(error_msg)
+            
+    return frame_spec
+        
 
-    # Nuke
-    frame_specs.add("%%0%dd" % places)
-    if places == 1:
-        frame_specs.add("%d")
-
-    # Shake
-    frame_specs.add("#")
-    frame_specs.add("#"*places)
-    frame_specs.add("@"*places)
-
-    # Houdini
-    frame_specs.add("$F%d" % places)
-    if places == 1:
-        frame_specs.add("$F")
-
-    return frame_specs
 
 
 

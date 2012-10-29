@@ -4,6 +4,7 @@ Copyright (c) 2012 Shotgun Software, Inc
 Tests for templatefield module.
 """
 from tank import TankError
+import copy
 from tank_test.tank_test_base import *
 from tank.templatekey import TemplateKey, StringKey, IntegerKey, SequenceKey, make_keys
 
@@ -245,27 +246,26 @@ class TestSequenceKey(TankTestBase):
 
     def test_framespec_no_format(self):
         seq_field = SequenceKey("field_name")
-        expected_frame_specs = set(["%01d", "%d", "#", "@", "$F1", "$F"])
-        self.assertEquals(expected_frame_specs, seq_field.frame_specs)
+        expected_frame_specs = set(["%d", "#", "@", "$F"])
+        self.assertEquals(expected_frame_specs, set(seq_field._frame_specs))
 
     def test_framspec_short_format(self):
         format_spec = "02"
-        expected_frame_specs = set(["%02d", "#", "@@", "##", "$F2"])
+        expected_frame_specs = set(["%02d", "##", "@@", "$F2"])
         seq_field = SequenceKey("field_name", format_spec=format_spec)
-        self.assertEquals(expected_frame_specs, seq_field.frame_specs)
+        self.assertEquals(expected_frame_specs, set(seq_field._frame_specs))
 
     def test_framespec_long_format(self):
         format_spec = "010"
         seq_field = SequenceKey("field_name", format_spec=format_spec)
-        expected_frame_specs = set(["%010d", "#", "@@@@@@@@@@", "##########", "$F10"])
-        self.assertEquals(expected_frame_specs, seq_field.frame_specs)
+        expected_frame_specs = set(["%010d", "@@@@@@@@@@", "##########", "$F10"])
+        self.assertEquals(expected_frame_specs, set(seq_field._frame_specs))
 
     def test_validate_good(self):
-        good_values = self.seq_field.frame_specs.copy()
-        good_values.update(self.seq_field._format_patterns)
-        # add format patterns with white space
-        good_values.update([x.replace(":", ": ") for x in self.seq_field._format_patterns])
-        good_values.update([1, "243"])
+        good_values = copy.copy(self.seq_field._frame_specs)
+        good_values.extend(["FORMAT:%d", "FORMAT:#", "FORMAT:@", "FORMAT:$F"])
+        good_values.extend(["FORMAT:  %d", "FORMAT:  #", "FORMAT:  @", "FORMAT:  $F"])
+        good_values.extend(["243", "0123"])
         for good_value in good_values:
             self.assertTrue(self.seq_field.validate(good_value))
 
@@ -275,25 +275,25 @@ class TestSequenceKey(TankTestBase):
             self.assertFalse(self.seq_field.validate(bad_value))
 
     def test_value_from_str(self):
+        
+        # note - default case means frame spec is 01
         valid_str_values = {"12":12,
                             "0":0,
-                            "%01d":"%01d",
                             "%d":"%d",
                             "#":"#",
                             "@":"@",
-                            "$F1":"$F1",
                             "$F":"$F"}
         for str_value, expected_value in valid_str_values.items():
             self.assertEquals(expected_value, self.seq_field.value_from_str(str_value))
 
     def test_str_from_value_good(self):
+        
+        # note - default case means frame spec is 01
         valid_value_strs = {12:"12",
                             0:"0",
-                            "%01d":"%01d",
                             "%d":"%d",
                             "#":"#",
                             "@":"@",
-                            "$F1":"$F1",
                             "$F":"$F"}
         for value, str_value in valid_value_strs.items():
             self.assertEquals(str_value, self.seq_field.str_from_value(value))
@@ -301,9 +301,9 @@ class TestSequenceKey(TankTestBase):
 
     def test_str_from_value_bad(self):
         value = "a"
-        expected = "%s Illegal value %s, expected an Integer, a frame spec or format spec." % (str(self.seq_field), value)
-        expected += "\nValid frame specs: ['@', '#', '%01d', '$F', '%d', '$F1']"
-        expected += "\nValid format strings: ['FORMAT:%0d', 'FORMAT:%d', 'FORMAT:#', 'FORMAT:#d', 'FORMAT:@d', 'FORMAT:$Fd', 'FORMAT:$F']\n"
+        expected = "%s Illegal value '%s', expected an Integer, a frame spec or format spec." % (str(self.seq_field), value)
+        expected += "\nValid frame specs: ['%d', '#', '@', '$F']"
+        expected += "\nValid format strings: ['FORMAT: %d', 'FORMAT: #', 'FORMAT: @', 'FORMAT: $F']\n"
 
         with self.assertRaises(TankError) as cm:
             self.seq_field.str_from_value(value)
@@ -330,10 +330,6 @@ class TestSequenceKey(TankTestBase):
         """
         value = None
         seq_field = SequenceKey("field_name")
-        expected = "%01d"
-        result = seq_field.str_from_value(value="FORMAT:%0d")
-        self.assertEquals(expected, result)
-
         expected = "%d"
         result = seq_field.str_from_value(value="FORMAT:%d")
         self.assertEquals(expected, result)
@@ -343,11 +339,7 @@ class TestSequenceKey(TankTestBase):
         self.assertEquals(expected, result)
 
         expected = "@"
-        result = seq_field.str_from_value(value="FORMAT:@d")
-        self.assertEquals(expected, result)
-
-        expected = "$F1"
-        result = seq_field.str_from_value(value="FORMAT:$Fd")
+        result = seq_field.str_from_value(value="FORMAT:@")
         self.assertEquals(expected, result)
 
         expected = "$F"
@@ -355,7 +347,7 @@ class TestSequenceKey(TankTestBase):
         self.assertEquals(expected, result)
 
         # no pattern specified
-        expected = "%01d"
+        expected = "%d"
         result = seq_field.str_from_value()
         self.assertEquals(expected, result)
 
@@ -365,24 +357,21 @@ class TestSequenceKey(TankTestBase):
         one places.
         """
         seq_field = SequenceKey("field_name", format_spec="03")
+        
         expected = "%03d"
-        result = seq_field.str_from_value("FORMAT:%0d")
-        self.assertEquals(expected, result)
-
-        expected = "#"
-        result = seq_field.str_from_value("FORMAT:#")
+        result = seq_field.str_from_value("FORMAT:%d")
         self.assertEquals(expected, result)
 
         expected = "###"
-        result = seq_field.str_from_value("FORMAT:#d")
+        result = seq_field.str_from_value("FORMAT:#")
         self.assertEquals(expected, result)
 
         expected = "@@@"
-        result = seq_field.str_from_value("FORMAT:@d")
+        result = seq_field.str_from_value("FORMAT:@")
         self.assertEquals(expected, result)
 
         expected = "$F3"
-        result = seq_field.str_from_value("FORMAT:$Fd")
+        result = seq_field.str_from_value("FORMAT:$F")
         self.assertEquals(expected, result)
 
         # no pattern specified
@@ -392,25 +381,23 @@ class TestSequenceKey(TankTestBase):
 
     def test_str_from_value_format_whitespace(self):
         """Use of FORMAT: prefix with whitespace."""
+        
         seq_field = SequenceKey("field_name", format_spec="03")
+        
         expected = "%03d"
-        result = seq_field.str_from_value("FORMAT: %0d")
-        self.assertEquals(expected, result)
-
-        expected = "#"
-        result = seq_field.str_from_value("FORMAT: #")
+        result = seq_field.str_from_value("FORMAT: %d")
         self.assertEquals(expected, result)
 
         expected = "###"
-        result = seq_field.str_from_value("FORMAT: #d")
+        result = seq_field.str_from_value("FORMAT: #")
         self.assertEquals(expected, result)
 
         expected = "@@@"
-        result = seq_field.str_from_value("FORMAT: @d")
+        result = seq_field.str_from_value("FORMAT: @")
         self.assertEquals(expected, result)
 
         expected = "$F3"
-        result = seq_field.str_from_value("FORMAT: $Fd")
+        result = seq_field.str_from_value("FORMAT: $F")
         self.assertEquals(expected, result)
 
     def test_default_int(self):
@@ -419,13 +406,13 @@ class TestSequenceKey(TankTestBase):
         self.assertEquals(default, seq_frame.default)
 
     def test_default_frame_spec(self):
-        frame_specs = set(["%01d", "%d", "#", "@", "$F1", "$F"])
+        frame_specs = set(["%d", "#", "@", "$F"])
         for frame_spec in frame_specs:
             seq_frame = SequenceKey("field_name", default=frame_spec)
             self.assertEquals(frame_spec, seq_frame.default)
 
     def test_default_frame_spec_choices(self):
-        frame_specs = set(["%01d", "%d", "#", "@", "$F1", "$F"])
+        frame_specs = set(["%d", "#", "@", "$F"])
         for frame_spec in frame_specs:
             seq_frame = SequenceKey("field_name", default=frame_spec, choices=[1,2])
             self.assertEquals(frame_spec, seq_frame.default)
@@ -440,7 +427,7 @@ class TestSequenceKey(TankTestBase):
         self.assertEquals(choices, seq_frame.choices)
 
     def test_choices_frame_spec(self):
-        frame_specs = set(["%01d", "%d", "#", "@", "$F1", "$F"])
+        frame_specs = set(["%d", "#", "@", "$F"])
         seq_frame = SequenceKey("field_name", choices=frame_specs)
         self.assertEquals(frame_specs, seq_frame.choices)
 
