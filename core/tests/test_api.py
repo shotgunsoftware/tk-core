@@ -267,7 +267,7 @@ class TestAbstractPathsFromTemplate(TankTestBase):
 
     def test_bad_seq(self):
         expected = []
-        result = self.tk.abstract_paths_from_template(self.template, {"Shot": "AAA", "SEQ": 5})
+        result = self.tk.abstract_paths_from_template(self.template, {"Shot": "AAA", "SEQ": "####"})
         self.assertEquals(set(expected), set(result))
 
     def test_specific_frame(self):

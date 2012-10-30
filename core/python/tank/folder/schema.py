@@ -198,7 +198,7 @@ class Schema(object):
         if sg_name_expression is None:
             raise TankError("Missing name token in yml metadata file %s" % full_path )
 
-        return UserWorkspace(parent_node, sg_name_expression, defer_creation)
+        return UserWorkspace(parent_node, sg_name_expression, defer_creation, self.sg)
 
 
     def _create_sg_entity_node(self, full_path, parent_node, metadata):

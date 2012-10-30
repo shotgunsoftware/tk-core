@@ -663,16 +663,19 @@ class UserWorkspace(Entity):
     application startup.
     """
     
-    def __init__(self, parent, field_name_expression, defer_creation):
-        
-        cur_login = login.get_login_name()
-        if not cur_login:
-            msg = "Could not determine the local user login while creating a user folder."
+    def __init__(self, parent, field_name_expression, defer_creation, sg):
+        # this query confirms that there is a matching HumanUser in shotgun for the local login
+        # This means that a query for the user happens twice, here and later during _get_entities
+        # TODO possibly keep the result from this query instead and remove the later, duplicate, one
+        user = login.get_shotgun_user(sg) 
+
+        if not user:
+            msg = "Could not find a HumanUser in shotgun with login matching the local login. "
             msg += "Check that the local login corresponds to a user in shotgun."
             raise TankError(msg)
 
         filters = { "logical_operator": "and",
-                     "conditions": [ { "path": "login", "relation": "is", "values": [ cur_login ] } ] }
+                     "conditions": [ { "path": "id", "relation": "is", "values": [ user["id"] ] } ] }
         Entity.__init__(self, 
                         parent, 
                         "HumanUser", 
