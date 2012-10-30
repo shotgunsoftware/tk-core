@@ -839,3 +839,17 @@ class TestHumanUser(TankTestBase):
 
         self.assertTrue(os.path.exists(self.user_path))
 
+
+    def test_login_not_in_shotgun(self):
+        # change the record in the mock db to not match the local login
+        self.humanuser["login"] = "not the local login"
+
+        with self.assertRaises(TankError): 
+                          folder.process_filesystem_structure( self.tk,
+                                                               self.shot["type"], 
+                                                               self.shot["id"], 
+                                                               preview=False,
+                                                               engine=True)
+
+
+
