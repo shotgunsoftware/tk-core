@@ -8,12 +8,9 @@ Defines the base class for all Tank Engines.
 
 import os
 import sys
-import imp
-import uuid
 import traceback
 
 from .. import loader
-from .. import hook
 from ..errors import TankError, TankEngineInitError
 from ..deploy import descriptor
 
@@ -21,8 +18,9 @@ from . import application
 from . import constants
 from .environment import Environment
 from .validation import validate_settings, validate_frameworks
+from .bundle import TankBundle
 
-class Engine(object):
+class Engine(TankBundle):
     """
     Base class for an engine in Tank.
     """
@@ -36,25 +34,27 @@ class Engine(object):
         :param engine_instance_name: The name of the engine as it has been defined in the environment.
         :param env: An Environment object to associate with this engine
         """
-        self.__tk = tk
-        self.__context = context
+        
         self.__env = env
         self.__engine_instance_name = engine_instance_name
         self.__applications = {}
         self.__commands = {}
-        self.__sg = None
-        self.__module_uid = None
         self.__currently_initializing_app = None
-
+        
+        # get the engine settings
+        settings = self.__env.get_engine_settings(self.__engine_instance_name)
+        
         # get the descriptor representing the engine        
-        self.__descriptor = self.__env.get_engine_descriptor(self.__engine_instance_name)        
-                
+        descriptor = self.__env.get_engine_descriptor(self.__engine_instance_name)        
+        
+        # init base class
+        TankBundle.__init__(self, tk, context, settings, descriptor)
+
         # Get the settings for the engine and then validate them
-        self.__settings = self.__env.get_engine_settings(self.__engine_instance_name)
         metadata = self.__env.get_engine_metadata(self.__engine_instance_name)
         engine_schema = metadata["configuration"]
         engine_frameworks = metadata.get("frameworks")
-        validate_settings(self.__engine_instance_name, self.__tk, self.__context, engine_schema, self.__settings)
+        validate_settings(self.__engine_instance_name, tk, context, engine_schema, settings)
         validate_frameworks(self.__engine_instance_name, self.__env, engine_frameworks)
         
         # run the engine init
@@ -110,42 +110,6 @@ class Engine(object):
         return data
 
     @property
-    def name(self):
-        """
-        The short name of the engine (e.g. tk-maya)
-        
-        :returns: engine name as string
-        """
-        return self.__descriptor.get_short_name()
-    
-    @property
-    def display_name(self):
-        """
-        The displayname of the engine (e.g. Maya Engine)
-        
-        :returns: engine display name as string
-        """
-        return self.__descriptor.get_display_name()
-
-    @property
-    def description(self):
-        """
-        A short description of the app
-        
-        :returns: string
-        """
-        return self.__descriptor.get_description()
-
-    @property
-    def version(self):
-        """
-        The version of the engine (e.g. v0.2.3)
-        
-        :returns: string representing the version
-        """
-        return self.__descriptor.get_version()
-
-    @property
     def instance_name(self):
         """
         The instance name for this engine. The instance name
@@ -156,23 +120,6 @@ class Engine(object):
         return self.__engine_instance_name
 
     @property
-    def disk_location(self):
-        """
-        The folder on disk where this engine is located
-        """
-        path_to_this_file = os.path.abspath(sys.modules[self.__module__].__file__)
-        return os.path.dirname(path_to_this_file)
-
-    @property
-    def context(self):
-        """
-        The current context associated with this engine
-        
-        :returns: context object
-        """
-        return self.__context
-
-    @property
     def apps(self):
         """
         Dictionary of apps associated with this engine
@@ -180,25 +127,6 @@ class Engine(object):
         :returns: dictionary with keys being app name and values being app objects
         """
         return self.__applications
-    
-    @property
-    def shotgun(self):
-        """
-        Delegates to the Tank API instance's shotgun connection, which is lazily
-        created the first time it is requested.
-        
-        :returns: Shotgun API handle
-        """
-        return self.__tk.shotgun
-    
-    @property
-    def tank(self):
-        """
-        Returns a Tank API instance associated with this engine
-        
-        :returns: Tank API handle 
-        """
-        return self.__tk
     
     @property
     def commands(self):
@@ -214,15 +142,6 @@ class Engine(object):
         """
         return self.__commands
     
-    @property
-    def documentation_url(self):
-        """
-        Return the relevant documentation url for this engine.
-        
-        :returns: url string, None if no documentation was found
-        """
-        return self.__descriptor.get_doc_url()        
-
     ##########################################################################################
     # init and destroy
     
@@ -264,34 +183,6 @@ class Engine(object):
     ##########################################################################################
     # public methods
 
-    def import_module(self, module_name):
-        """
-        Special Tank import command for app modules. Imports the python folder inside
-        an app and returns the specified module name that exists inside the python folder.
-        
-        For more information, see the API documentation.
-        """
-        
-        # get the python folder
-        python_folder = os.path.join(self.disk_location, constants.BUNDLE_PYTHON_FOLDER)
-        if not os.path.exists(python_folder):
-            raise TankError("Cannot import - folder %s does not exist!" % python_folder)
-        
-        # and import
-        if self.__module_uid is None:
-            self.log_debug("Importing python modules in %s..." % python_folder)
-            # alias the python folder with a UID to ensure it is unique every time it is imported
-            self.__module_uid = uuid.uuid4().hex
-            imp.load_module(self.__module_uid, None, python_folder, ("", "", imp.PKG_DIRECTORY) )
-        
-        # we can now find our actual module in sys.modules as GUID.module_name
-        mod_name = "%s.%s" % (self.__module_uid, module_name)
-        if mod_name not in sys.modules:
-            raise TankError("Cannot find module %s as part of %s!" % (module_name, python_folder))
-        
-        return sys.modules[mod_name]
-
-
     def register_command(self, name, callback, properties=None):
         """
         Register a command with a name and a callback function. Properties can store
@@ -305,31 +196,7 @@ class Engine(object):
             properties["app"] = self.__currently_initializing_app
         self.__commands[name] = { "callback": callback, "properties": properties }
         
-    def get_setting(self, key, default=None):
-        """
-        Get a value from the engine's settings
-
-        :param key: config name
-        :param default: default value to return
-        """
-        return self.__settings.get(key, default)
-            
-    def execute_hook(self, key, **kwargs):
-        """
-        Shortcut for grabbing the hook name used in the settings, then calling execute_hook_by_name() on it.
-        """
-        hook_name = self.get_setting(key)
-        return self.execute_hook_by_name(hook_name, **kwargs)
-
-    def execute_hook_by_name(self, hook_name, **kwargs):
-        """
-        Executes the named engine level hook. 
-        The parent parameter passed to the hook will be the current engine.
-        """
-        hook_folder = constants.get_hooks_folder(self.tank.project_path)
-        hook_path = os.path.join(hook_folder, "%s.py" % hook_name)
-        return hook.execute_hook(hook_path, self, **kwargs)
-    
+                
     ##########################################################################################
     # simple batch queue
     
@@ -422,7 +289,7 @@ class Engine(object):
                 app_frameworks = app_metadata.get("frameworks")
                 
                 app_settings = self.__env.get_app_settings(self.__engine_instance_name, app_instance_name)
-                validate_settings(app_instance_name, self.__tk, self.__context, app_schema, app_settings)
+                validate_settings(app_instance_name, self.tank, self.context, app_schema, app_settings)
                 validate_frameworks(app_instance_name, self.__env, app_frameworks)
                 
                 # for multi engine apps, make sure our engine is supported
