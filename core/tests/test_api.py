@@ -177,257 +177,126 @@ class TestPathsFromTemplate(TankTestBase):
         self.assertNotIn(bad_file_path, result)
 
 
-class TestAbstractsFromTemplate(TankTestBase):
+class TestAbstractPathsFromTemplate(TankTestBase):
     """Tests Tank.abstract_paths_from_template method."""
     def setUp(self):
-        super(TestAbstractsFromTemplate, self).setUp()
+        super(TestAbstractPathsFromTemplate, self).setUp()
         self.setup_fixtures()
+
+        self.tk = tank.Tank(self.project_root)
+
+        keys = {"Sequence": StringKey("Sequence"),
+                "Shot": StringKey("Shot"),
+                "eye": StringKey("eye", 
+                       default="%V",
+                       choices=["left","right","%V"],
+                       abstract=True),
+                "name": StringKey("name"),
+                "SEQ": SequenceKey("SEQ", format_spec="04")}
+
+        definition = "sequences/{Sequence}/{Shot}/{eye}/{name}.{SEQ}.exr"
+
+        self.template = TemplatePath(definition, keys, self.project_root)
         
-        # create project data
-        # two sequences
-        seq1_path = os.path.join(self.project_root, "sequences", "Seq_1")
-        self.add_production_path(seq1_path,
-                            {"type":"Sequence", "id":1, "name": "Seq_1"})
-        seq2_path = os.path.join(self.project_root, "sequences", "Seq_2")
-        self.add_production_path(seq2_path,
-                            {"type":"Sequence", "id":2, "name": "Seq_2"})
-        # one shot, two locations
-        shot = {"type":"Shot", "id":1, "name": "shot_1"}
-        shot_path = os.path.join(seq1_path, "Shot_1")
-        self.add_production_path(shot_path, shot)
+        # create fixtures
+        seq_path = os.path.join(self.project_root, "sequences", "SEQ_001")
+        self.shot_a_path = os.path.join(seq_path, "AAA")
+        self.shot_b_path = os.path.join(seq_path, "BBB")
 
-        shot_path_1 = os.path.join(seq2_path, "Shot_1")
-        self.add_production_path(shot_path,
-                            {"type":"Shot", "id":1, "name": "shot_1"})
-        # one step, two locations
-        step = {"type":"Step", "id":1, "name": "step_name"}
-        self.step_path = os.path.join(shot_path, "step_name")
-        self.add_production_path(self.step_path, step)
-        self.step_path_1 = os.path.join(shot_path_1, "step_name")
-        self.add_production_path(self.step_path_1, step)
+        eye_left_a = os.path.join(self.shot_a_path, "left")
 
-        self.tk = Tank(self.project_root)
+        self.create_file(os.path.join(eye_left_a, "filename.0001.exr"))
+        self.create_file(os.path.join(eye_left_a, "filename.0002.exr"))
+        self.create_file(os.path.join(eye_left_a, "filename.0003.exr"))
+        self.create_file(os.path.join(eye_left_a, "filename.0004.exr"))
+        self.create_file(os.path.join(eye_left_a, "anothername.0001.exr"))
+        self.create_file(os.path.join(eye_left_a, "anothername.0002.exr"))
+        self.create_file(os.path.join(eye_left_a, "anothername.0003.exr"))
+        self.create_file(os.path.join(eye_left_a, "anothername.0004.exr"))
+        
+        eye_left_b = os.path.join(self.shot_b_path, "left")
 
-        self.keys = {"Sequence": StringKey("Sequence"),
-                     "Shot": StringKey("Shot"),
-                     "Step": StringKey("Step"),
-                     "eye": StringKey("eye", default="%V", choices=["%V", "L", "R"], abstract=True),
-                     "name": StringKey("name"),
-                     "version": IntegerKey("version"),
-                     "seq": SequenceKey("seq", format_spec="03")}
+        self.create_file(os.path.join(eye_left_b, "filename.0001.exr"))
+        self.create_file(os.path.join(eye_left_b, "filename.0002.exr"))
+        self.create_file(os.path.join(eye_left_b, "filename.0003.exr"))
+        self.create_file(os.path.join(eye_left_b, "filename.0004.exr"))
+        self.create_file(os.path.join(eye_left_b, "anothername.0001.exr"))
+        self.create_file(os.path.join(eye_left_b, "anothername.0002.exr"))
+        self.create_file(os.path.join(eye_left_b, "anothername.0003.exr"))
+        self.create_file(os.path.join(eye_left_b, "anothername.0004.exr"))
 
-        # fields reflectint values for first sequneces step path
-        self.fields = {"Sequence": "Seq_1",
-                       "Shot": "Shot_1",
-                       "Step": "step_name"}
+        eye_right_a = os.path.join(self.shot_a_path, "right")
 
-    def test_1(self):
-        """No fields values, non-abstract in leaf file, no files on disk."""
-        fields = {}
-        definition = "/sequences/{Sequence}/{Shot}/{Step}/{name}.{seq}.ext"
-        template = TemplatePath(definition, self.keys, self.project_root)
-        result = self.tk.abstract_paths_from_template(template, fields)
-        expected = []
-        self.assertEquals(expected, result)
+        self.create_file(os.path.join(eye_right_a, "filename.0001.exr"))
+        self.create_file(os.path.join(eye_right_a, "filename.0002.exr"))
+        self.create_file(os.path.join(eye_right_a, "filename.0003.exr"))
+        self.create_file(os.path.join(eye_right_a, "filename.0004.exr"))
+        self.create_file(os.path.join(eye_right_a, "anothername.0001.exr"))
+        self.create_file(os.path.join(eye_right_a, "anothername.0002.exr"))
+        self.create_file(os.path.join(eye_right_a, "anothername.0003.exr"))
+        self.create_file(os.path.join(eye_right_a, "anothername.0004.exr"))
+        
+        eye_right_b = os.path.join(self.shot_b_path, "right")
 
-    def test_2(self):
-        """No fields values, non-abstract key in leaf file, files exist on disk"""
-        fields = {}
-        definition = "/sequences/{Sequence}/{Shot}/{Step}/{name}.{seq}.ext"
-        template = TemplatePath(definition, self.keys, self.project_root)
+        self.create_file(os.path.join(eye_right_b, "filename.0001.exr"))
+        self.create_file(os.path.join(eye_right_b, "filename.0002.exr"))
+        self.create_file(os.path.join(eye_right_b, "filename.0003.exr"))
+        self.create_file(os.path.join(eye_right_b, "filename.0004.exr"))
+        self.create_file(os.path.join(eye_right_b, "anothername.0001.exr"))
+        self.create_file(os.path.join(eye_right_b, "anothername.0002.exr"))
+        self.create_file(os.path.join(eye_right_b, "anothername.0003.exr"))
+        self.create_file(os.path.join(eye_right_b, "anothername.0004.exr"))
 
-        # make a file matching the template
-        temp_fields = self.fields
-        temp_fields["name"] = "name_value"
-        temp_fields["seq"] = 13
-        file_path = template.apply_fields(temp_fields)
-        self.create_file(file_path)
+    def test_all_abstract(self):
+        # getting everything will return the two abstract fields
+        # using their default abstract values %V and %04d
+        expected = [ os.path.join(self.shot_a_path, "%V", "filename.%04d.exr"),
+                     os.path.join(self.shot_b_path, "%V", "filename.%04d.exr"),
+                     os.path.join(self.shot_a_path, "%V", "anothername.%04d.exr"),
+                     os.path.join(self.shot_b_path, "%V", "anothername.%04d.exr")]
 
-        result = self.tk.abstract_paths_from_template(template, fields)
-        abstract_path = os.path.join(self.step_path, "name_value.%03d.ext")
-        expected = [abstract_path]
-        self.assertEquals(expected, result)
-
-    def test_3(self):
-        """ No fields values, non-abstract in leaf file, dir structure not there."""
-        fields = {}
-        definition = "/sequences/{Sequence}/{Shot}/{Step}/{name}/{name}.{seq}.ext"
-        template = TemplatePath(definition, self.keys, self.project_root)
-        result = self.tk.abstract_paths_from_template(template, fields)
-        expected = []
-        self.assertEquals(expected, result)
-
-    def test_4(self):
-        """ No fields values, only abstract keys in leaf file, dir structure exists"""
-        fields = {}
-        definition = "/sequences/{Sequence}/{Shot}/{Step}/something.{seq}.ext"
-        template = TemplatePath(definition, self.keys, self.project_root)
-        result = self.tk.abstract_paths_from_template(template, fields)
-        abstract_path = os.path.join(self.step_path, "something.%03d.ext")
-        abstract_path_1 = os.path.join(self.step_path_1, "something.%03d.ext")
-        expected = [abstract_path, abstract_path_1]
+        result = self.tk.abstract_paths_from_template(self.template, {})
         self.assertEquals(set(expected), set(result))
 
-    def test_5(self):
-        """ No fields values, only abstract in leaf file, dir structure does not exist"""
-        fields = {}
-        definition = "/sequences/{Sequence}/{Shot}/{Step}/some_directory/something.{seq}.ext"
-        template = TemplatePath(definition, self.keys, self.project_root)
-        result = self.tk.abstract_paths_from_template(template, fields)
-        self.assertEquals([], result)
+    def test_specify_shot(self):
+        expected = [ os.path.join(self.shot_a_path, "%V", "filename.%04d.exr"),
+                     os.path.join(self.shot_a_path, "%V", "anothername.%04d.exr")]
 
-    def test_6(self):
-        """ No fields values, abstract in penunlitmate and leaf, directory structure exists"""
-        fields = {}
-        definition = "/sequences/{Sequence}/{Shot}/{Step}/{eye}/something.{eye}.ext"
-        template = TemplatePath(definition, self.keys, self.project_root)
+        result = self.tk.abstract_paths_from_template(self.template, {"Shot": "AAA"})
+        self.assertEquals(set(expected), set(result))
 
-        # make parent directory struct
-        temp_fields = self.fields
-        temp_fields["eye"] = "R"
-        file_path = template.parent.apply_fields(temp_fields)
-        os.mkdir(file_path)
-
-        abstract_path = os.path.join(self.step_path, "%V", "something.%V.ext")
-        expected = [abstract_path]
-        result = self.tk.abstract_paths_from_template(template, fields)
-        self.assertEquals(expected, result)
-
-    def test_7(self):
-        """ No fields values, only abstract keys in parent directory and leaf,  dir structure not there."""
-        fields = {}
-        definition = "/sequences/{Sequence}/{Shot}/{Step}/{eye}/something.{eye}.ext"
-        template = TemplatePath(definition, self.keys, self.project_root)
-
+    def test_bad_seq(self):
         expected = []
-        result = self.tk.abstract_paths_from_template(template, fields)
-        self.assertEquals(expected, result)
+        result = self.tk.abstract_paths_from_template(self.template, {"Shot": "AAA", "SEQ": 5})
+        self.assertEquals(set(expected), set(result))
 
-    def test_8(self):
-        """ No fields values, only abstract below some level, but static in between dir structure exists"""
-        fields = {}
-        definition = "/sequences/{Sequence}/{Shot}/{Step}/{eye}/work/something.{eye}.ext"
-        template = TemplatePath(definition, self.keys, self.project_root)
+    def test_specific_frame(self):
+        expected = [os.path.join(self.shot_a_path, "%V", "filename.0003.exr"),
+                    os.path.join(self.shot_a_path, "%V", "anothername.0003.exr")]
 
-        # make parent directory struct
-        temp_fields = self.fields
-        temp_fields["eye"] = "R"
-        file_path = template.parent.apply_fields(temp_fields)
-        os.makedirs(file_path)
+        result = self.tk.abstract_paths_from_template(self.template, {"Shot": "AAA", "SEQ": 3})
+        self.assertEquals(set(expected), set(result))
 
-        abstract_path = os.path.join(self.step_path, "%V", "work", "something.%V.ext")
-        expected = [abstract_path]
-        result = self.tk.abstract_paths_from_template(template, fields)
-        self.assertEquals(expected, result)
+    def test_specify_eye(self):
+        expected = [os.path.join(self.shot_a_path, "left", "anothername.%04d.exr"),
+                    os.path.join(self.shot_a_path, "left", "filename.%04d.exr")]
 
-    def test_9(self):
-        """ No fields values, only abstract below some level, but static in between dir structure does not exist."""
-        fields = {}
-        definition = "/sequences/{Sequence}/{Shot}/{Step}/{eye}/work/something.{eye}.ext"
-        template = TemplatePath(definition, self.keys, self.project_root)
-
-        # make parent directory struct without lowest static folder
-        temp_fields = self.fields
-        temp_fields["eye"] = "R"
-        file_path = template.parent.parent.apply_fields(temp_fields)
-        os.makedirs(file_path)
-
-        expected = []
-        result = self.tk.abstract_paths_from_template(template, fields)
-        self.assertEquals(expected, result)
-
-    def test_10(self):
-        """ No fields values, non-abstract in leaf, reresented higher up as well (value from higher incidence) files don't exist"""
-        fields = {}
-        definition = "/sequences/{Sequence}/{Shot}/{Step}/{name}/{name}.{eye}.ext"
-        template = TemplatePath(definition, self.keys, self.project_root)
-
-        # make parent directory structure
-        temp_fields = self.fields
-        temp_fields["name"] = "some_name"
-        file_path = template.parent.apply_fields(temp_fields)
-        os.makedirs(file_path)
-
-        abstract_path = os.path.join(self.step_path, "some_name", "some_name.%V.ext")
-        expected = [abstract_path]
-        result = self.tk.abstract_paths_from_template(template, fields)
-        self.assertEquals(expected, result)
-
-    def test_11(self):
-        """ Fields for some non-abstract keys have value. """
-        definition = "/sequences/{Sequence}/{Shot}/{Step}/{name}.{seq}.ext"
-        template = TemplatePath(definition, self.keys, self.project_root)
-
-        # make a file matching the template
-        self.fields["name"] = "name_value"
-        temp_fields = self.fields.copy()
-        temp_fields["seq"] = 13
-        file_path = template.apply_fields(temp_fields)
-        self.create_file(file_path)
-
-        result = self.tk.abstract_paths_from_template(template, self.fields)
-        abstract_path = os.path.join(self.step_path, "name_value.%03d.ext")
-        expected = [abstract_path]
-        self.assertEquals(expected, result)
-        
-
-    def test_12(self):
-        """ Fields for some abstract (not using 'FORMAT:')."""
-        definition = "/sequences/{Sequence}/{Shot}/{Step}/{eye}.{seq}.ext"
-        template = TemplatePath(definition, self.keys, self.project_root)
-
-        # make a file matching the template
-        self.fields["eye"] = "R"
-        temp_fields = self.fields.copy()
-        temp_fields["seq"] = 13
-        file_path = template.apply_fields(temp_fields)
-        self.create_file(file_path)
-
-        result = self.tk.abstract_paths_from_template(template, self.fields)
-        abstract_path = os.path.join(self.step_path, "R.%03d.ext")
-        expected = [abstract_path]
-        self.assertEquals(expected, result)
-
-        # make value not match that on disk
-        self.fields["eye"] = "L"
-        result = self.tk.abstract_paths_from_template(template, self.fields)
-        # this result is weird, we get a result as we don't care about 
-        # the file existing on disk!
-        abstract_path = os.path.join(self.step_path, "L.%03d.ext")
-        expected = [abstract_path]
-        self.assertEquals(expected, result)
-
-    def test_13(self):
-        """ Fields for some abstract (using 'FORMAT:')"""
-        definition = "/sequences/{Sequence}/{Shot}/{Step}/{name}.{seq}.ext"
-        template = TemplatePath(definition, self.keys, self.project_root)
-
-        # make a file matching the template
-        temp_fields = self.fields
-        temp_fields["name"] = "name_value"
-        temp_fields["seq"] = 13
-        file_path = template.apply_fields(temp_fields)
-        self.create_file(file_path)
-
-        # add format value for abstract key
-        self.fields["seq"] = "FORMAT:#"
-
-        result = self.tk.abstract_paths_from_template(template, self.fields)
-        abstract_path = os.path.join(self.step_path, "name_value.###.ext")
-        expected = [abstract_path]
-        self.assertEquals(expected, result)
+        result = self.tk.abstract_paths_from_template(self.template, {"Shot": "AAA", "eye": "left"})
+        self.assertEquals(set(expected), set(result))
 
 
-    def test_14(self):
-        """ Leaf is not file."""
-        definition = "/sequences/{Sequence}/{Shot}/{Step}/{eye}"
-        template = TemplatePath(definition, self.keys, self.project_root)
+    def test_specify_shot_and_name(self):
+        expected = [os.path.join(self.shot_a_path, "%V", "filename.%04d.exr")]
 
-        result = self.tk.abstract_paths_from_template(template, self.fields)
-        abstract_path = os.path.join(self.step_path, "%V")
-        expected = [abstract_path]
-        self.assertEquals(expected, result)
-        
+        result = self.tk.abstract_paths_from_template(self.template, {"Shot": "AAA", "name": "filename"})
+        self.assertEquals(set(expected), set(result))
+
+    def test_specify_name(self):
+        expected = [os.path.join(self.shot_a_path, "%V", "filename.%04d.exr"),
+                    os.path.join(self.shot_b_path, "%V", "filename.%04d.exr")]
+        result = self.tk.abstract_paths_from_template(self.template, {"name": "filename"})
+        self.assertEquals(set(expected), set(result))
+
 
 class TestPathsFromTemplateGlob(TankTestBase):
     """Tests for Tank.paths_from_template method which check the string sent to glob.glob."""
