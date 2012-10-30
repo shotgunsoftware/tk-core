@@ -29,9 +29,10 @@ class TankBundle(object):
         self.__settings = settings
         self.__sg = None
         self.__module_uid = None
-        self.__descriptor = descriptor        
+        self.__descriptor = descriptor    
+        self.__frameworks = {}
         
-        
+
     ##########################################################################################
     # properties
 
@@ -123,7 +124,7 @@ class TankBundle(object):
         
         :returns: List of framework objects
         """
-        return []
+        return self.__frameworks
     
     ##########################################################################################
     # public methods

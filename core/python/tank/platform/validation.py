@@ -38,22 +38,32 @@ def validate_frameworks(app_or_engine_display_name, environment, required_framew
     Validates the frameworks needed for an app or engine.
     
     required_frameworks can be None, indicating no fws are required.
+    
+    Returns a dictionary of descriptors, keyed by the instance name in the environment. 
     """
     
     if required_frameworks is None:
-        return
+        return []
 
-    # get descriptors in all frameworks declared in the environment    
-    fw_descriptors = [ environment.get_framework_descriptor(x) for x in environment.get_frameworks() ]
+    # make dictionary of all frameworks declared in the environment.
+    # key is the instance name in the environment
+    # value is the descriptor object
+    fw_descriptors = {}
+    for x in environment.get_frameworks():
+        fw_descriptors[x] = environment.get_framework_descriptor(x)
     
     # check that each framework required by this app is defined in the environment
+    required_fw_instance_names = []
     for fw in required_frameworks:
+        # the required_frameworks structure in the info.yml
+        # is a list of dicts, each dict having a name and a version key
         name = fw.get("name")
         version = fw.get("version")
         found = False
         for d in fw_descriptors:
-            if d.get_version() == version and d.get_short_name() == name:
+            if fw_descriptors[d].get_version() == version and fw_descriptors[d].get_short_name() == name:
                 found = True
+                required_fw_instance_names.append(d)
                 break
         if not found:
             msg =  "The framework %s %s required by %s " % (name, version, app_or_engine_display_name)
@@ -65,6 +75,8 @@ def validate_frameworks(app_or_engine_display_name, environment, required_framew
                 for x in fw_descriptors:
                     msg += "Name: '%s', Version: '%s'\n" % (d.get_short_name(), d.get_version())
             raise TankError(msg) 
+        
+    return required_fw_instance_names
         
 
 def validate_single_setting(app_or_engine_display_name, tank_api, schema, setting_name, setting_value):

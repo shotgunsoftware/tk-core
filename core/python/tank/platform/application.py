@@ -51,6 +51,13 @@ class Application(TankBundle):
     def __repr__(self):        
         return "<Tank App 0x%08x: %s, engine: %s>" % (id(self), self.name, self.engine)
 
+    def _destroy_frameworks(self):
+        """
+        Called on destroy, prior to calling destroy_app
+        """
+        for fw in self.frameworks.values():
+            fw._destroy_framework()        
+
     ##########################################################################################
     # properties
         
@@ -107,7 +114,7 @@ def get_application(engine, app_folder, descriptor, settings):
     :param engine: the engine this app should run in
     :param app_folder: the folder on disk where the app is located
     :param descriptor: descriptor for the app
-    :param settings: a settings dict to pass to the engine
+    :param settings: a settings dict to pass to the app
     """
     plugin_file = os.path.join(app_folder, constants.APP_FILE)
         

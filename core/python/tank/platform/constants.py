@@ -93,6 +93,12 @@ ENVIRONMENT_LOCATION_KEY = "location"
 APP_FILE = "app.py"
 
 ###############################################################################################
+# framework constants
+
+# the file to look for that defines and bootstraps a framework
+FRAMEWORK_FILE = "framework.py"
+
+###############################################################################################
 # core stuff
 
 CACHE_DB_FILENAME = "path_cache.db"

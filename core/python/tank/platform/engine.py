@@ -17,8 +17,9 @@ from ..deploy import descriptor
 from . import application
 from . import constants
 from .environment import Environment
-from .validation import validate_settings, validate_frameworks
+from .validation import validate_settings
 from .bundle import TankBundle
+from .framework import setup_frameworks
 
 class Engine(TankBundle):
     """
@@ -55,7 +56,9 @@ class Engine(TankBundle):
         engine_schema = metadata["configuration"]
         engine_frameworks = metadata.get("frameworks")
         validate_settings(self.__engine_instance_name, tk, context, engine_schema, settings)
-        validate_frameworks(self.__engine_instance_name, self.__env, engine_frameworks)
+        
+        # set up any frameworks defined
+        setup_frameworks(self, self, metadata, self.__env, descriptor)
         
         # run the engine init
         self.log_debug("Engine init: Instantiating %s" % self)
@@ -167,7 +170,12 @@ class Engine(TankBundle):
         
         This method should not be subclassed.
         """
+        for fw in self.frameworks.values():
+            fw._destroy_framework()
+
         self._destroy_apps()
+        
+        self.log_debug("Destroying %s" % self)
         self.destroy_engine()
         
         # finally remove the current engine reference
@@ -275,6 +283,9 @@ class Engine(TankBundle):
     ##########################################################################################
     # private and protected methods
     
+    
+    
+    
     def _load_apps(self):
         """
         Populate the __applications dictionary, skip over apps that fail to initialize.
@@ -286,12 +297,10 @@ class Engine(TankBundle):
                 # get the app settings data and validate it.
                 app_metadata = self.__env.get_app_metadata(self.__engine_instance_name, app_instance_name)
                 app_schema = app_metadata["configuration"]
-                app_frameworks = app_metadata.get("frameworks")
                 
                 app_settings = self.__env.get_app_settings(self.__engine_instance_name, app_instance_name)
                 validate_settings(app_instance_name, self.tank, self.context, app_schema, app_settings)
-                validate_frameworks(app_instance_name, self.__env, app_frameworks)
-                
+                                
                 # for multi engine apps, make sure our engine is supported
                 supported_engines = app_metadata.get("supported_engines")
                 if supported_engines and self.name not in supported_engines:
@@ -323,7 +332,12 @@ class Engine(TankBundle):
                                     
             # load the app
             try:
+                # create the object, run the constructor
                 app = application.get_application(self, app_dir, descriptor, app_settings)
+                
+                # load any frameworks required
+                setup_frameworks(self, app, app_metadata, self.__env, descriptor)
+                
                 # track the init of the app
                 self.__currently_initializing_app = app
                 try:
@@ -344,6 +358,8 @@ class Engine(TankBundle):
         """
         
         for app in self.__applications.values():
+            app._destroy_frameworks()
+            self.log_debug("Destroying %s" % app)
             app.destroy_app()
 
 
