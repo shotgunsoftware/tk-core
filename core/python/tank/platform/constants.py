@@ -168,6 +168,28 @@ def get_local_engine_location():
     #
     return os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "..", "..", "engines"))
 
+
+def get_local_framework_location():
+    """
+    Returns the location where tank frameworks are kept
+    """
+    # note - this setting is local to the running code!
+    # the location returned is inside the install location:
+    #
+    # studio                    # studio location
+    #   |--tank                 # tank studio root
+    #        |--config          # shotgun and app store configs
+    #        |--install         # tank code (install folder)
+    #            |--core
+    #                |--python  # tank core python code
+    #            |--apps
+    #            |--engines         
+    #            |--frameworks  # frameworks location (returned by this method!)
+    #
+    #
+    return os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "..", "..", "frameworks"))
+
+
 def get_environments_for_proj(project_path):
     """
     Returns a list with all the environment yml files found for a project.

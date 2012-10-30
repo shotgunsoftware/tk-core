@@ -33,6 +33,7 @@ class Environment(object):
         self.__env_data = None
         self.__engine_locations = {}
         self.__app_locations = {}
+        self.__framework_locations = {}
         
         # validate and populate config
         self.__refresh()
@@ -63,20 +64,30 @@ class Environment(object):
         if "engines" not in self.__env_data:
             raise TankError("No 'engines' section in env file: %s" % (self.__env_path))
         
-        # now organize the data in two dictionaries
+        # now organize the data in dictionaries
+        
+        # framework settings are keyed by fw name
+        self.__framework_settings = {}
         # engine settings are keyed by engine name
         self.__engine_settings = {}
         # app settings are keyed by tuple (engine_name, app_name)
         self.__app_settings = {}
+        
         # populate the above data structures
         # pass a copy of the data since process is destructive
         d = copy.deepcopy(self.__env_data)
         self.__process_engines(d)
         
+        if "frameworks" in self.__env_data:
+            # there are frameworks defined! Process them
+            d = copy.deepcopy(self.__env_data)
+            self.__process_frameworks(d)
+        
         # now extract the location key for all the configs
         # these two dicts are keyed in the same way as the settings dicts
         self.__engine_locations = {}
         self.__app_locations = {}
+        self.__framework_locations = {}
         self.__extract_locations()
             
     def __process_apps(self, engine, data):
@@ -96,6 +107,7 @@ class Environment(object):
         """
         Populates the __engine_settings dict
         """
+        # assumes that there is an engines key in the data dict
         engines = data.pop("engines")
         if engines is None:
             return
@@ -108,12 +120,37 @@ class Environment(object):
                 self.__process_apps(engine, engine_apps)
                 self.__engine_settings[engine] = engine_settings
     
+    def __process_frameworks(self, data):
+        """
+        Populates the __frameworks_settings dict
+        """
+        # assumes that there is an frameworks key in the data dict
+        frameworks = data.pop("frameworks")
+        if frameworks is None:
+            return
+
+        # iterate over the engine dict
+        for fw, fw_settings in frameworks.items():
+            # Check for engine disabled
+            location_dict = fw_settings.get(constants.ENVIRONMENT_LOCATION_KEY)
+            if not location_dict.get("disabled", False):
+                self.__framework_settings[fw] = fw_settings
+
     def __extract_locations(self):
         """
         Extract (remove from settings) the location key into the two separate structures
         self.__engine_locations
         self.__app_locations
+        self.__framework_locations
         """
+
+        for fw in self.__framework_settings:
+            location_dict = self.__framework_settings[fw].get(constants.ENVIRONMENT_LOCATION_KEY)
+            if location_dict is None:
+                raise TankError("The environment %s does not have a valid location " 
+                                "key for framework %s" % (self.__env_path, fw))
+            # remove location from dict
+            self.__framework_locations[fw] = self.__framework_settings[fw].pop(constants.ENVIRONMENT_LOCATION_KEY)
 
         for eng in self.__engine_settings:
             location_dict = self.__engine_settings[eng].get(constants.ENVIRONMENT_LOCATION_KEY)
@@ -123,7 +160,7 @@ class Environment(object):
             # remove location from dict
             self.__engine_locations[eng] = self.__engine_settings[eng].pop(constants.ENVIRONMENT_LOCATION_KEY)
         
-        for (eng,app) in self.__app_settings:
+        for (eng, app) in self.__app_settings:
             location_dict = self.__app_settings[(eng,app)].get(constants.ENVIRONMENT_LOCATION_KEY)
             if location_dict is None:
                 raise TankError("The environment %s does not have a valid location " 
@@ -170,6 +207,12 @@ class Environment(object):
         """
         return self.__engine_settings.keys()
         
+    def get_frameworks(self):
+        """
+        Returns all the frameworks contained in this environment file
+        """
+        return self.__framework_settings.keys()
+
     def get_apps(self, engine):
         """
         Returns all apps for an engine contained in this environment file
@@ -184,6 +227,15 @@ class Environment(object):
                 apps.append(app_name)
         return apps
         
+    def get_framework_settings(self, framework):
+        """
+        Returns the settings for a framework
+        """
+        d = self.__framework_settings.get(framework)
+        if d is None:
+            raise TankError("Framework '%s' is not part of environment %s" % (framework, self.__env_path))        
+        return d
+
     def get_engine_settings(self, engine):
         """
         Returns the settings for an engine
@@ -202,6 +254,22 @@ class Environment(object):
         if d is None:
             raise TankError("App '%s.%s' is not part of environment %s" % (engine, app, self.__env_path))
         return d
+        
+    def get_framework_descriptor(self, framework_name):
+        """
+        Returns the descriptor object for a framework.
+        """
+        location_dict = self.__framework_locations.get(framework_name)
+        if location_dict is None:
+            raise TankError("The framework %s does not have a valid location " 
+                            "key for engine %s" % (self.__env_path, framework_name))
+
+        # get the descriptor object for the location
+        d = descriptor.get_from_location(descriptor.AppDescriptor.FRAMEWORK, 
+                                         self.__project_path, 
+                                         location_dict)
+        
+        return d        
         
     def get_engine_descriptor(self, engine_name):
         """
@@ -236,13 +304,20 @@ class Environment(object):
         
         return d
         
+    def get_framework_metadata(self, framework_name):
+        """
+        Returns the info.yml metadata for an engine
+        """
+        descriptor = self.get_framework_descriptor(framework_name)
+        return descriptor.get_metadata()
+        
     def get_engine_metadata(self, engine_name):
         """
         Returns the info.yml metadata for an engine
         """
         descriptor = self.get_engine_descriptor(engine_name)
         return descriptor.get_metadata()
-        
+
     def get_app_metadata(self, engine_name, app_name):
         """
         Returns the info.yml metadata for an app
@@ -270,6 +345,19 @@ class Environment(object):
         # sync internal data with disk
         self.__refresh()
         
+
+    def update_framework_location(self, framework_name, new_location):
+        """
+        Updates the location dictionary for a framework
+        """
+        if self.__env_data.get("frameworks") is None:
+            self.__env_data["frameworks"] = []
+            
+        if framework_name not in self.__env_data.get("frameworks"):
+            raise TankError("Framework %s does not exist in environment %s" % (framework_name, self.__env_path) )
+        
+        self.__env_data["frameworks"][framework_name][constants.ENVIRONMENT_LOCATION_KEY] = new_location
+        self.__update_file_on_disk()
     
     def update_engine_location(self, engine_name, new_location):
         """
@@ -293,6 +381,20 @@ class Environment(object):
         self.__env_data["engines"][engine_name]["apps"][app_name][constants.ENVIRONMENT_LOCATION_KEY] = new_location        
         self.__update_file_on_disk()
         
+    def update_framework_settings(self, framework_name, new_data):
+        """
+        Updates the framework configuration
+        """
+        if self.__env_data.get("frameworks") is None:
+            self.__env_data["frameworks"] = []
+        
+        if framework_name not in self.__env_data["frameworks"]:
+            raise TankError("Framework %s does not exist in environment %s" % (framework_name, self.__env_path) )
+        
+        data = self.__env_data["frameworks"][framework_name]
+        data.update(new_data)
+        self.__update_file_on_disk()
+    
     def update_engine_settings(self, engine_name, new_data):
         """
         Updates the engine configuration
@@ -315,6 +417,21 @@ class Environment(object):
         
         data = self.__env_data["engines"][engine_name]["apps"][app_name]
         data.update(new_data)
+        self.__update_file_on_disk()
+            
+    def create_framework_settings(self, framework_name):
+        """
+        Creates a new empty framework settings in the config
+        """
+        if self.__env_data.get("frameworks") is None:
+            self.__env_data["frameworks"] = []
+        
+        if engine_name in self.__env_data["frameworks"]:
+            raise TankError("Framework %s already exists in environment %s" % (framework_name, self.__env_path) )
+        
+        self.__env_data["frameworks"][framework_name] = {}
+        # and make sure we also create the location key
+        self.__env_data["frameworks"][framework_name][constants.ENVIRONMENT_LOCATION_KEY] = {}
         self.__update_file_on_disk()
             
     def create_engine_settings(self, engine_name):

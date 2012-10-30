@@ -23,6 +23,9 @@ TANK_APP_ENTITY         = "CustomNonProjectEntity02"
 TANK_APP_VERSION_ENTITY = "CustomNonProjectEntity05"
 TANK_ENGINE_ENTITY      = "CustomNonProjectEntity03"
 TANK_ENGINE_VERSION_ENTITY = "CustomNonProjectEntity04"
+TANK_FRAMEWORK_ENTITY      = "CustomNonProjectEntity13"
+TANK_FRAMEWORK_VERSION_ENTITY = "CustomNonProjectEntity09"
+
 TANK_CODE_PAYLOAD_FIELD = "sg_payload"
 TANK_APP_STORE_DUMMY_PROJECT = {"type": "Project", "id": 64}
 
@@ -54,6 +57,8 @@ class TankAppStoreDescriptor(AppDescriptor):
             return "Tank App Store App %s, %s" % (self._name, self._version)
         elif self._type == AppDescriptor.ENGINE:
             return "Tank App Store Engine %s, %s" % (self._name, self._version)
+        elif self._type == AppDescriptor.FRAMEWORK:
+            return "Tank App Store Framework %s, %s" % (self._name, self._version)
         else:
             return "Tank App Store <Unknown> %s, %s" % (self._name, self._version)
 
@@ -120,6 +125,27 @@ class TankAppStoreDescriptor(AppDescriptor):
             if version is None:
                 raise TankError("App store does not have a version "
                                 "'%s' of app '%s'!" % (self._version, self._name))
+
+        elif self._type == AppDescriptor.FRAMEWORK:
+
+            # first find the engine entity
+            bundle = sg.find_one(TANK_FRAMEWORK_ENTITY,
+                                 [["sg_system_name", "is", self._name]],
+                                 ["description", "code"])
+            if bundle is None:
+                raise TankError("App store does not contain a framework named '%s'!" % self._name)
+
+            # now get the version
+            version = sg.find_one(TANK_FRAMEWORK_VERSION_ENTITY,
+                                  [["sg_tank_framework", "is", bundle], ["code", "is", self._version]],
+                                  ["description",
+                                   TANK_CODE_PAYLOAD_FIELD,
+                                   "sg_detailed_release_notes",
+                                   "sg_documentation",
+                                   ])
+            if version is None:
+                raise TankError("App store does not have a version "
+                                "'%s' of framework '%s'!" % (self._version, self._name))
 
         elif self._type == AppDescriptor.ENGINE:
 
@@ -208,6 +234,21 @@ class TankAppStoreDescriptor(AppDescriptor):
                                   order=[{"field_name": "created_at", "direction": "desc"}])
             if version is None:
                 raise TankError("Cannot find any versions for the app '%s'!" % name)
+
+        elif bundle_type == AppDescriptor.FRAMEWORK:
+
+            # first find the framework entity
+            bundle = sg.find_one(TANK_FRAMEWORK_ENTITY, [["sg_system_name", "is", name]], ["id"])
+            if bundle is None:
+                raise TankError("App store does not contain a framework named '%s'!" % name)
+
+            # now get the version
+            version = sg.find_one(TANK_FRAMEWORK_VERSION_ENTITY,
+                                  filters = [["sg_tank_framework", "is", bundle]] + latest_filter,
+                                  fields = ["code"],
+                                  order=[{"field_name": "created_at", "direction": "desc"}])
+            if version is None:
+                raise TankError("Cannot find any versions for the framework '%s'!" % name)
 
         elif bundle_type == AppDescriptor.ENGINE:
 
@@ -412,6 +453,16 @@ class TankAppStoreDescriptor(AppDescriptor):
             data = {}
             data["description"] = "%s: App %s %s was downloaded" % (local_sg.base_url, self._name, self._version)
             data["event_type"] = "TankAppStore_App_Download"
+            data["entity"] = version
+            data["user"] = script_user
+            data["project"] = TANK_APP_STORE_DUMMY_PROJECT
+            data["attribute_name"] = TANK_CODE_PAYLOAD_FIELD
+            sg.create("EventLogEntry", data)
+
+        elif self._type == AppDescriptor.FRAMEWORK:
+            data = {}
+            data["description"] = "%s: Framework %s %s was downloaded" % (local_sg.base_url, self._name, self._version)
+            data["event_type"] = "TankAppStore_Framework_Download"
             data["entity"] = version
             data["user"] = script_user
             data["project"] = TANK_APP_STORE_DUMMY_PROJECT

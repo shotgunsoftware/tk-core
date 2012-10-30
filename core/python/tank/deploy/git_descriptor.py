@@ -39,6 +39,8 @@ class TankGitDescriptor(AppDescriptor):
             return "Git App %s, %s" % (self._path, self._version)
         elif self._type == AppDescriptor.ENGINE:
             return "Git Engine %s, %s" % (self._path, self._version)
+        elif self._type == AppDescriptor.FRAMEWORK:
+            return "Git Framework %s, %s" % (self._path, self._version)
         else:
             return "Git <Unknown> %s, %s" % (self._path, self._version)
 

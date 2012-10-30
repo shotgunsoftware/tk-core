@@ -20,7 +20,7 @@ from ..deploy import descriptor
 from . import application
 from . import constants
 from .environment import Environment
-from .validation import validate_settings
+from .validation import validate_settings, validate_frameworks
 
 class Engine(object):
     """
@@ -52,8 +52,10 @@ class Engine(object):
         # Get the settings for the engine and then validate them
         self.__settings = self.__env.get_engine_settings(self.__engine_instance_name)
         metadata = self.__env.get_engine_metadata(self.__engine_instance_name)
-        schema = metadata["configuration"]
-        validate_settings(self.__engine_instance_name, self.__tk, self.__context, schema, self.__settings)
+        engine_schema = metadata["configuration"]
+        engine_frameworks = metadata.get("frameworks")
+        validate_settings(self.__engine_instance_name, self.__tk, self.__context, engine_schema, self.__settings)
+        validate_frameworks(self.__engine_instance_name, self.__env, engine_frameworks)
         
         # run the engine init
         self.log_debug("Engine init: Instantiating %s" % self)
@@ -417,8 +419,12 @@ class Engine(object):
                 # get the app settings data and validate it.
                 app_metadata = self.__env.get_app_metadata(self.__engine_instance_name, app_instance_name)
                 app_schema = app_metadata["configuration"]
+                app_frameworks = app_metadata.get("frameworks")
+                
                 app_settings = self.__env.get_app_settings(self.__engine_instance_name, app_instance_name)
                 validate_settings(app_instance_name, self.__tk, self.__context, app_schema, app_settings)
+                validate_frameworks(app_instance_name, self.__env, app_frameworks)
+                
                 # for multi engine apps, make sure our engine is supported
                 supported_engines = app_metadata.get("supported_engines")
                 if supported_engines and self.name not in supported_engines:

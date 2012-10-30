@@ -31,6 +31,41 @@ def validate_settings(app_or_engine_display_name, tank_api, context, schema, set
     """
     v = _SettingsValidator(app_or_engine_display_name, tank_api, schema, context)
     v.validate(settings)
+    
+    
+def validate_frameworks(app_or_engine_display_name, environment, required_frameworks):
+    """
+    Validates the frameworks needed for an app or engine.
+    
+    required_frameworks can be None, indicating no fws are required.
+    """
+    
+    if required_frameworks is None:
+        return
+
+    # get descriptors in all frameworks declared in the environment    
+    fw_descriptors = [ environment.get_framework_descriptor(x) for x in environment.get_frameworks() ]
+    
+    # check that each framework required by this app is defined in the environment
+    for fw in required_frameworks:
+        name = fw.get("name")
+        version = fw.get("version")
+        found = False
+        for d in fw_descriptors:
+            if d.get_version() == version and d.get_short_name() == name:
+                found = True
+                break
+        if not found:
+            msg =  "The framework %s %s required by %s " % (name, version, app_or_engine_display_name)
+            msg += "can not be found in environment %s. \n" % str(environment)
+            if len(fw_descriptors) == 0:
+                msg += "No frameworks are currently installed! \n"
+            else:
+                msg += "The currently installed frameworks are: \n"
+                for x in fw_descriptors:
+                    msg += "Name: '%s', Version: '%s'\n" % (d.get_short_name(), d.get_version())
+            raise TankError(msg) 
+        
 
 def validate_single_setting(app_or_engine_display_name, tank_api, schema, setting_name, setting_value):
     """

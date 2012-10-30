@@ -33,7 +33,7 @@ class AppDescriptor(object):
     # constants and helpers
 
     # constants describing the type of item we are describing
-    APP, ENGINE = range(2)
+    APP, ENGINE, FRAMEWORK = range(3)
 
     def __init__(self, project_root, location_dict):
         self._project_root = project_root
@@ -54,6 +54,8 @@ class AppDescriptor(object):
             root = constants.get_local_app_location()
         elif app_type == AppDescriptor.ENGINE:
             root = constants.get_local_engine_location()
+        elif app_type == AppDescriptor.FRAMEWORK:
+            root = constants.get_local_framework_location()
         else:
             raise TankError("Don't know how to figure out the local storage root - unknown type!")
         return os.path.join(root, descriptor_name, name, version)
@@ -275,7 +277,7 @@ def get_from_location(app_or_engine, project_root, location_dict):
     """
     Factory method.
 
-    :param app_or_engine: Either AppDescriptor.APP or AppDescriptor.ENGINE
+    :param app_or_engine: Either AppDescriptor.APP AppDescriptor.ENGINE or FRAMEWORK
     :param project_root: The project root
     :param location_dict: A tank location dict
     :returns: an AppDescriptor object

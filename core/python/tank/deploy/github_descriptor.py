@@ -48,6 +48,8 @@ class TankGitHubDescriptor(AppDescriptor):
             return "Github App %s, %s, %s" % (self._vendor, self._name, self._version)
         elif self._type == AppDescriptor.ENGINE:
             return "Github Engine %s, %s, %s" % (self._vendor, self._name, self._version)
+        elif self._type == AppDescriptor.FRAMEWORK:
+            return "Github Framework %s, %s, %s" % (self._vendor, self._name, self._version)
         else:
             return "Github <Unknown> %s, %s, %s" % (self._vendor, self._name, self._version)
 
