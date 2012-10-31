@@ -23,6 +23,7 @@ import tempfile
 from distutils.version import LooseVersion
 
 from ..errors import TankError
+from ..platform import constants
 from .descriptor import AppDescriptor
 
 
@@ -136,6 +137,13 @@ class TankGitHubDescriptor(AppDescriptor):
 
         # copy all files in the payload folder into the target location
         target = self.get_path()
+        
+        # make sure parent folder exists
+        parent_folder = os.path.dirname(target)
+        if not os.path.exists(parent_folder):
+            self._tk.execute_hook(constants.CREATE_FOLDERS_CORE_HOOK_NAME, path=parent_folder, sg_entity=None)
+        
+        # and move it into place
         shutil.move(payload, target)
 
     def find_latest_version(self):

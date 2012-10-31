@@ -147,9 +147,7 @@ class TankGitHubDevDescriptor(AppDescriptor):
         target = self.get_path()
 
         if not os.path.exists(target):
-
-            # perhaps we should use the folder hook here?
-            os.makedirs(target, 0775)
+            self._tk.execute_hook(constants.CREATE_FOLDERS_CORE_HOOK_NAME, path=target, sg_entity=None)
 
             cmd = "git clone %s %s" % (self._repo_str, target)
             if os.system(cmd) != 0:
