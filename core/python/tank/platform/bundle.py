@@ -154,6 +154,10 @@ class TankBundle(object):
         if mod_name not in sys.modules:
             raise TankError("Cannot find module %s as part of %s!" % (module_name, python_folder))
         
+        # lastly, append our own object to the added module. This is to make it easier to 
+        # do elegant imports in the class scope via the tank.platform.import_framework method
+        sys.modules[mod_name]._tank_bundle = self
+        
         return sys.modules[mod_name]
 
 
