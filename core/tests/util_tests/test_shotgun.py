@@ -83,8 +83,9 @@ class TestShotgunFindPublish(TankTestBase):
         # make sure we got the latest matching publish
         sg_data = d.get(paths[0])
         self.assertEqual(sg_data["id"], self.pub_2["id"])
+        self.assertEqual(sg_data["type"], "TankPublishedFile")
         # make sure we are only getting the ID back.
-        self.assertEqual(sg_data.keys(), ["id"])
+        self.assertEqual(sg_data.keys(), ["type", "id"])
 
     def test_most_recent_path(self):
         # check that dupes return the more recent record        
