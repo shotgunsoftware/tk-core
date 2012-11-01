@@ -358,8 +358,9 @@ class Schema(object):
         if os.path.exists(yml_file):
             # try to parse it
             try:
-                with open(yml_file) as open_file:
-                    metadata = yaml.load(open_file)
+                open_file = open(yml_file)
+                metadata = yaml.load(open_file)
+                open_file.close()
             except Exception, error:
                 raise TankError("Cannot load config file '%s'. Error: %s" % (yml_file, error))
         return metadata
@@ -423,14 +424,15 @@ def _read_ignore_files(schema_config_path):
     ignore_files = []
     file_path = os.path.join(schema_config_path, "ignore_files")
     if os.path.exists(file_path):
-        with open(file_path, "r") as open_file:
-            for line in open_file.readlines():
-                # skip comments
-                if "#" in line:
-                    line = line[:line.index("#")]
-                line = line.strip()
-                if line:
-                    ignore_files.append(line)
+        open_file = open(file_path, "r")
+        for line in open_file.readlines():
+            # skip comments
+            if "#" in line:
+                line = line[:line.index("#")]
+            line = line.strip()
+            if line:
+                ignore_files.append(line)
+        open_file.close()
     return ignore_files
 
 

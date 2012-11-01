@@ -56,8 +56,7 @@ def setUpModule():
     dirname = os.path.dirname
     TANK_SOURCE_PATH = dirname(dirname(dirname(dirname(__file__))))
     shutil.copytree(os.path.join(TANK_SOURCE_PATH, "engines"),
-                    os.path.join(install_dir, "engines"),
-                    ignore=shutil.ignore_patterns('.svn', '.pyc'))
+                    os.path.join(install_dir, "engines"))
 
 
 
@@ -160,12 +159,12 @@ class TankTestBase(unittest.TestCase):
         test_data_path = os.path.join(self.tank_source_path, "core", "tests", "data")
         core_source = os.path.join(test_data_path, core_config)
         core_target = os.path.join(self.project_config, "core")
-        shutil.copytree(core_source, core_target, ignore=shutil.ignore_patterns('.svn', '.pyc'))
+        shutil.copytree(core_source, core_target)
 
         for config_dir in ["env", "hooks", "test_app", "test_engine"]:
             config_source = os.path.join(test_data_path, config_dir)
             config_target = os.path.join(self.project_config, config_dir)
-            shutil.copytree(config_source, config_target, ignore=shutil.ignore_patterns('.svn', '.pyc'))
+            shutil.copytree(config_source, config_target)
         
         # Edit the test environment with correct hard-coded paths to the test engine and app
         src = open(os.path.join(test_data_path, "env", "test.yml"))
@@ -196,8 +195,9 @@ class TankTestBase(unittest.TestCase):
             roots["alternate_1"][os_name] = os.path.dirname(self.alt_root_1)
             roots["alternate_2"][os_name] = os.path.dirname(self.alt_root_2)
         roots_path = tank.constants.get_roots_file_location(self.project_root)        
-        with open(roots_path, "w") as roots_file:
-            roots_file.write(yaml.dump(roots))
+        roots_file = open(roots_path, "w") 
+        roots_file.write(yaml.dump(roots))
+        roots_file.close()
 
         # add project root folders
         # primary path was already added in base setUp
@@ -283,8 +283,9 @@ class TankTestBase(unittest.TestCase):
         if not os.path.exists(dir_path):
             os.makedirs(dir_path)
 
-        with open(file_path, "w") as open_file:
-            open_file.write(data)
+        open_file = open(file_path, "w") 
+        open_file.write(data)
+        open_file.close()
             
 
     def _setup_sg_mock(self):
@@ -361,6 +362,25 @@ class TankTestBase(unittest.TestCase):
         sg.schema_field_read = mock_schema_field_read
         return sg
 
+    def check_error_message(self, Error, message, func, *args, **kws):
+        """
+        Check that the correct exception is raised with the correct message.
+
+        :param Error: The exception that is expected.
+        :param message: The expected message on the exception.
+        :param func: The function to call.
+        :param args: Arguments to be passed to the function.
+        :param kws: Keyword arguments passed to the function.
+
+        :rasies: Exception if correct exception is not raised, or the message on the exception
+                 does not match that specified.
+        """
+        self.assertRaises(Error, func, *args, **kws)
+
+        try:
+            func(*args, **kws)
+        except Error, e:
+            self.assertEquals(message, e.message)
 
     def _move_project_data(self):
         """

@@ -202,8 +202,9 @@ class AppDescriptor(object):
             raise TankError("Tank metadata file '%s' missing." % file_path)
 
         try:
-            with open(file_path) as file_data:
-                metadata = yaml.load(file_data)
+            file_data = open(file_path)
+            metadata = yaml.load(file_data)
+            file_data.close()
         except Exception, exp:
             raise TankError("Cannot load metadata file '%s'. Error: %s" % (file_path, exp))
 

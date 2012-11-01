@@ -138,11 +138,11 @@ def _load_framework(engine_obj, env, parent_obj, fw_instance_name):
                           fw_schema, 
                           fw_settings)
                             
-    except TankError as e:
+    except TankError, e:
         # validation error - probably some issue with the settings!
         raise TankError("Framework configuration Error for %s: %s" % (fw_instance_name, e))
     
-    except Exception as e:
+    except Exception, e:
         # code execution error in the validation. 
         parent_obj.log_exception("A general exception was caught while trying to " 
                                  "validate the configuration for Framework %s: %s" % (fw_instance_name, e))
@@ -167,7 +167,7 @@ def _load_framework(engine_obj, env, parent_obj, fw_instance_name):
         # and run the init
         fw.init_framework()
         
-    except Exception as e:
+    except Exception, e:
         raise TankError("Framework %s failed to initialize: %s" % (fw_dir, e))
     
     else:
