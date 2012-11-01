@@ -52,8 +52,9 @@ class Environment(object):
             raise TankError("Attempting to load non-existent environment file: %s" % self.__env_path)
         
         try:
-            with open(self.__env_path, "r") as env_file:
-                self.__env_data = yaml.load(env_file)
+            env_file = open(self.__env_path, "r")
+            self.__env_data = yaml.load(env_file)
+            env_file.close()
         except Exception, exp:
             raise TankError("Could not parse file %s. "
                             "Error reported from parser: %s" % (self.__env_path, exp))
@@ -336,8 +337,9 @@ class Environment(object):
         Updates the file on disk
         """
         try:
-            with open(self.__env_path, "wt") as env_file:
-                yaml.dump(self.__env_data, env_file)
+            env_file = open(self.__env_path, "wt")
+            yaml.dump(self.__env_data, env_file)
+            env_file.close()
         except Exception, exp:
             raise TankError("Could not write to environment file %s. "
                             "Error reported: %s" % (self.__env_path, exp))

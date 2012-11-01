@@ -57,8 +57,9 @@ def platform_paths_for_root(root_name, project_root):
 def _read_roots_file(project_root):
     root_file_path = constants.get_roots_file_location(project_root)
     if os.path.exists(root_file_path):
-        with open(root_file_path, "r") as root_file:
-            roots_data = yaml.load(root_file)
+        root_file = open(root_file_path, "r")
+        roots_data = yaml.load(root_file)
+        root_file.close()
     else: 
         roots_data = {}
     return roots_data
@@ -88,8 +89,9 @@ def get_primary_root(input_path):
     primary_roots_file = os.path.join(config_path, "primary_project.yml")
     if os.path.exists(primary_roots_file):
         # Get path from file
-        with open(primary_roots_file, "r") as open_file:
-            primary_paths = yaml.load(open_file)
+        open_file = open(primary_roots_file, "r")
+        primary_paths = yaml.load(open_file)
+        open_file.close()
         platform_name = _determine_platform()
         return primary_paths.get(platform_name)
     else:
@@ -110,8 +112,9 @@ def write_primary_root(config_path, project_root):
     primary_roots_file = os.path.join(config_path, "primary_project.yml")
     if not os.path.exists(primary_roots_file) and os.path.exists(config_path):
         primary_roots = platform_paths_for_root("primary", project_root)
-        with open(primary_roots_file, "w") as open_file:
-            open_file.write(yaml.dump(primary_roots))
+        open_file = open(primary_roots_file, "w")
+        open_file.write(yaml.dump(primary_roots))
+        open_file.close()
 
 
 

@@ -308,14 +308,14 @@ class Engine(TankBundle):
                                    "the following engines: %s" % (app_instance_name, supported_engines))
                     continue
                     
-            except TankError as e:
+            except TankError, e:
                 # validation error - probably some issue with the settings!
                 # report this as an error message.
                 self.log_error("App configuration Error for %s. It will not "
                                "be loaded. \n\nDetails: %s" % (app_instance_name, e))
                 continue
             
-            except Exception as e:
+            except Exception, e:
                 # code execution error in the validation. Report this as an error 
                 # with the engire call stack!
                 self.log_exception("A general exception was caught while trying to" 
@@ -344,7 +344,7 @@ class Engine(TankBundle):
                     app.init_app()
                 finally:
                     self.__currently_initializing_app = None
-            except Exception as e:
+            except Exception, e:
                 self.log_exception("App %s failed to initialize - "
                                    "it will not be loaded:\n%s" % (app_dir, e))
             else:
