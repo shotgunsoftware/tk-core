@@ -13,7 +13,6 @@ NOTE! Currently only supports public repos!
 
 import os
 import copy
-import json
 import uuid
 import shutil
 import urllib
@@ -21,6 +20,10 @@ import zipfile
 import tempfile
 
 from distutils.version import LooseVersion
+
+# use sg api json to cover py 2.5
+from tank_vendor import shotgun_api3 
+json = shotgun_api3.shotgun.json
 
 from ..errors import TankError
 from ..platform import constants
