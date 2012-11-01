@@ -11,7 +11,7 @@ import os
 
 class CreateFolders(Hook):
     
-    def execute(self, path, sg_entity, **kwargs):
+    def execute(self, path, sg_entity=None, **kwargs):
         """
         The default implementation creates folders recursively using open permissions.
         """
