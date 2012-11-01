@@ -131,8 +131,8 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
     a standard shotgun query result dictionary, for example
 
     {
-        "/foo/bar" : { "id": 234, "code": "some data" },
-        "/foo/baz" : { "id": 23,  "code": "some more data" }
+        "/foo/bar" : { "id": 234, "type": "TankPublishedFile", "code": "some data" },
+        "/foo/baz" : { "id": 23,  "type": "TankPublishedFile", "code": "some more data" }
     }
 
     Fields that are not found, or filtered out by the filters parameter,
@@ -142,7 +142,7 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
     :param list_of_paths: List of full paths for which information should be retrieved
     :param filters: Optional list of shotgun filters to apply.
     :param fields: Optional list of fields from the matched entities to
-                   return. Defaults to id.
+                   return. Defaults to id and type.
     :returns: dictionary keyed by path
     """
     # Map path caches to full paths, grouped by storage
@@ -215,7 +215,7 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
         delete_fields = []
         # find fields
         for field in matches[path]:
-            if field not in fields and field != "id":
+            if field not in fields and field not in ("id", "type"):
                 # field is not the id field and was not asked for.
                 delete_fields.append(field)
         # remove fields
