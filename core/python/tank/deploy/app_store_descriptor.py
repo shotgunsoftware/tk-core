@@ -7,10 +7,13 @@ Tank App Store Connectivity.
 
 import os
 import copy
-import json
 import uuid
 import zipfile
 import tempfile
+
+# use api json to cover py 2.5
+from tank_vendor import shotgun_api3 
+json = shotgun_api3.shotgun.json
 
 from ..api import Tank
 from ..util import shotgun
