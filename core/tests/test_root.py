@@ -52,9 +52,9 @@ class TestGetProjectRoots(TankTestBase):
         root_file = open(self.root_file_path, "w") 
         root_file.write(yaml.dump(self.roots))
         root_file.close()
-        
+        bad_project_path = os.path.join(bad_path, os.path.basename(self.project_root)) 
         expected = ("Primary root defined in roots.yml file does not match that passed as argument" + 
-                   " (likely from Tank local storage): \n%s\n%s" % (bad_path, self.project_root))
+                   " (likely from Tank local storage): \n%s\n%s" % (bad_project_path, self.project_root))
         self.check_error_message(tank.errors.TankError, expected, root.get_project_roots, self.project_root)
 
     def test_paths(self):
