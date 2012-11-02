@@ -264,7 +264,6 @@ class EntityName(object):
         
         self._entity_type = entity_type
         self._name_expr = field_name_expr
-        formatter = string.Formatter()
         
         self._fields = set()
         
@@ -277,14 +276,8 @@ class EntityName(object):
         else:
             # expression
             try:            
-                for format_info in formatter.parse(self._name_expr):
-                    # the {xx} - token xx is in the second list index returned by parse
-                    sg_field = format_info[1]
-                    # sometimes a constant string is returning a None - meaning that it
-                    # is not a {field} but just a normal static part of the string.
-                    # need to check for this:
-                    if sg_field is not None:
-                        self._fields.add(sg_field)
+                # find the field name xx from {xx}
+                self._fields.update(re.findall('{([^}^{]*)}', self._name_expr))
             except Exception, error:
                 raise TankError("Could not parse the configuration field '%s' - Error: %s" % (self._name_expr, error) )
     
@@ -382,15 +375,17 @@ class EntityName(object):
         # to adjusted values ( -->  {code}_{entity__Shot__code}
         # we do this by replacing all adjusted fields
         # TODO: there may be edge cases here where this replacement fails
-        ajusted_expr = self._name_expr
+        adjusted_expr = self._name_expr
         for key in adjustments:
-            ajusted_expr = ajusted_expr.replace(key, adjustments[key])
+            adjusted_expr = adjusted_expr.replace(key, adjustments[key])
         
+        # change format from {xxx} to $(xxx)s for value substitution.
+        adjusted_expr = adjusted_expr.replace("{", "%(").replace("}", ")s")
+
         # just to be sure, make sure to catch any exceptions here
         # and produce a more sensible error message.
         try:
-            formatter = string.Formatter()
-            val = formatter.vformat(ajusted_expr, [], str_data)
+            val = adjusted_expr %(str_data)
         except Exception, error:
             raise TankError("Could not populate values for the expression '%s' - please "
                             "contact support! Error message: %s. "

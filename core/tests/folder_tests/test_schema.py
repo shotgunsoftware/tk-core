@@ -13,6 +13,71 @@ from tank import hook
 from tank import folder
 from tank_test.tank_test_base import *
 
+class TestSchema(TankTestBase):
+    """
+    Tests initialization of Schema class
+    """
+    def setUp(self):
+        super(TestSchema, self).setUp()
+        self.tk = tank.Tank(self.project_root)
+        self.schema_location = os.path.join(self.project_root, "tank", "config", "core", "schema")
+        # Mock rather than writing to disk
+        self.mock_make_folder = Mock()
+        self.mock_copy_file = Mock()
+
+    def test_project_missing(self):
+        """Case that project directory is missing from schema"""
+        self.setup_fixtures()
+        project_schema = os.path.join(self.project_root, "tank", "config", "core", "schema", "project")
+        shutil.rmtree(project_schema)
+        self.assertRaises(TankError,
+                        Schema, 
+                        self.tk,
+                        self.schema_location, 
+                        self.mock_make_folder, 
+                        self.mock_copy_file,
+                        preview=False)
+
+    def test_project_root_mismatch(self):
+        """
+        Case that root name specified in projects yml file does not exist in roots file.
+        """
+        # remove root name from the roots file
+        self.setup_multi_root_fixtures()
+        project_name = os.path.basename(self.project_root)
+        roots_path = tank.constants.get_roots_file_location(self.project_root)        
+        roots_file = open(roots_path, "r")
+        roots = yaml.load(roots_file)
+        roots_file.close()
+        del(roots["alternate_1"])
+
+        roots_file = open(roots_path, "w")
+        roots_file.write(yaml.dump(roots))
+        roots_file.close()
+
+        self.assertRaises(TankError,
+                        Schema, 
+                        self.tk,
+                        self.schema_location, 
+                        self.mock_make_folder, 
+                        self.mock_copy_file,
+                        preview=False)
+
+
+    def test_project_one_yml_missing(self):
+        """
+        Case that there are mutiple projects, one non-primary without yaml a file
+        """
+        self.setup_multi_root_fixtures()
+        project_yml = os.path.join(self.schema_location, "alternate_1.yml")
+        os.remove(project_yml)
+        self.assertRaises(TankError,
+                        Schema, 
+                        self.tk,
+                        self.schema_location, 
+                        self.mock_make_folder, 
+                        self.mock_copy_file,
+                        preview=False)
 
 class TestSchemaCreateFolders(TankTestBase):
     def setUp(self):
@@ -230,16 +295,6 @@ class TestSchemaCreateFolders(TankTestBase):
         expected_paths.append(os.path.join(step_path, "out"))
         return expected_paths
 
-    def test_project_missing(self):
-        """Case that project directory is missing from schema"""
-        project_schema = os.path.join(self.project_root, "tank", "config", "core", "schema", "project")
-        shutil.rmtree(project_schema)
-        schema = Schema(self.tk,
-                        self.schema_location, 
-                        self.mock_make_folder, 
-                        self.mock_copy_file,
-                        preview=False)
-        self.assertRaises(tank.TankError, schema.create_folders, "Project", self.project["id"])
 
     def assert_paths_to_create(self, expected_paths):
         """
@@ -388,42 +443,6 @@ class TestSchemaCreateFoldersMultiRoot(TankTestBase):
         open_file.close()
         self.assertEqual(expected, data)
 
-
-    def test_project_one_yml_missing(self):
-        """
-        Case that there are mutiple projects, one non-primary without yaml a file
-        """
-        project_yml = os.path.join(self.schema_location, "alternate_1.yml")
-        os.remove(project_yml)
-        schema = Schema(self.tk, 
-                        self.schema_location, 
-                        self.mock_make_folder, 
-                        self.mock_copy_file,
-                        preview=False)
-        self.assertRaises(tank.TankError, schema.create_folders, "Project", self.project["id"])
-
-    def test_project_root_mismatch(self):
-        """
-        Case that root name specified in projects yml file does not exist in roots file.
-        """
-        # remove root name from the roots file
-        project_name = os.path.basename(self.project_root)
-        roots_path = tank.constants.get_roots_file_location(self.project_root)        
-        roots_file = open(roots_path, "r")
-        roots = yaml.load(roots_file)
-        roots_file.close()
-        del(roots["alternate_1"])
-
-        roots_file = open(roots_path, "w")
-        roots_file.write(yaml.dump(roots))
-        roots_file.close()
-
-        schema = Schema(self.tk, 
-                        self.schema_location, 
-                        self.mock_make_folder, 
-                        self.mock_copy_file,
-                        preview=False)
-        self.assertRaises(tank.TankError, schema.create_folders, "Project", self.project["id"])
 
     def _construct_shot_paths(self, sequence_name=None, shot_name=None, step_name=None):
         """
