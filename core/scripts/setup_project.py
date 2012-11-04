@@ -135,7 +135,33 @@ def _process_config_zip(studio_root, zip_path, log):
     log.info("Unzipping configuration and inspecting it...")
     zip_unpack_tmp = os.path.join(tempfile.gettempdir(), uuid.uuid4().hex)
     z = zipfile.ZipFile(zip_path, "r")
-    z.extractall(zip_unpack_tmp)    
+    if hasattr(z, "extractall"):
+        z.extractall(zip_unpack_tmp)    
+    else:
+        # python 2.5 
+        names = z.namelist()
+
+        def dir_names(names):
+            # identify paths ending in a directory
+            return [x for x in names if os.path.split(x)[0] and not os.path.split(x)[1]]
+
+        def file_names(names):
+            # identify paths ending in a file
+            return [x for x in names if os.path.split(x)[1]]
+
+
+        for dir_name in dir_names(names):
+            # create directories
+            dir_path = os.path.join(target, dir_name)
+            if not os.path.exists(dir_path):
+                os.makedirs(dir_path)
+    
+        for name in file_names(names):
+            # unzip files
+            output_path = os.path.join(target, name)
+            outfile = file(output_path, 'wb')
+            outfile.write(z.read(name))
+            outfile.close()
 
     template_items = os.listdir(zip_unpack_tmp)
     for item in ["core", "env", "hooks"]:
