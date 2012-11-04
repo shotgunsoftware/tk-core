@@ -16,7 +16,6 @@ import copy
 import uuid
 import shutil
 import urllib
-import zipfile
 import tempfile
 
 from distutils.version import LooseVersion
@@ -28,6 +27,7 @@ json = shotgun_api3.shotgun.json
 from ..errors import TankError
 from ..platform import constants
 from .descriptor import AppDescriptor
+from .zipfilehelper import unzip_file
 
 
 class TankGitHubDescriptor(AppDescriptor):
@@ -131,8 +131,7 @@ class TankGitHubDescriptor(AppDescriptor):
             # unpack zip into temp location
             tmp_folder = os.path.join(tempfile.gettempdir(), "tanktmp_%s" % uuid.uuid4().hex)
             os.mkdir(tmp_folder)
-            z = zipfile.ZipFile(zip_tmp_file, "r")
-            z.extractall(tmp_folder)
+            unzip_file(self._tk, zip_tmp_file, tmp_folder)
             # get actual file location
             payload = os.path.join(tmp_folder, os.listdir(tmp_folder)[0])
         except Exception, e:
