@@ -427,14 +427,16 @@ def _read_ignore_files(schema_config_path):
     file_path = os.path.join(schema_config_path, "ignore_files")
     if os.path.exists(file_path):
         open_file = open(file_path, "r")
-        for line in open_file.readlines():
-            # skip comments
-            if "#" in line:
-                line = line[:line.index("#")]
-            line = line.strip()
-            if line:
-                ignore_files.append(line)
-        open_file.close()
+        try:
+            for line in open_file.readlines():
+                # skip comments
+                if "#" in line:
+                    line = line[:line.index("#")]
+                line = line.strip()
+                if line:
+                    ignore_files.append(line)
+        finally:
+            open_file.close()
     return ignore_files
 
 
