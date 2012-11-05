@@ -66,8 +66,10 @@ class Tank(object):
         info_yml_path = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "info.yml"))
         try:
             info_fh = open(info_yml_path, "r")
-            data = yaml.load(info_fh)
-            info_fh.close()
+            try:
+                data = yaml.load(info_fh)
+            finally:
+                info_fh.close()
             data = str(data.get("version", "unknown"))
         # NOTE! REALLY WANT THIS TO BEHAVE NICELY WHEN AN ERROR OCCURS
         # PLEASE DO NOT LIMIT THIS CATCH-ALL EXCEPTION
@@ -87,8 +89,10 @@ class Tank(object):
         info_yml_path = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "info.yml"))
         try:
             info_fh = open(info_yml_path, "r")
-            data = yaml.load(info_fh)
-            info_fh.close()
+            try:
+                data = yaml.load(info_fh)
+            finally:
+                info_fh.close()
             data = str(data.get("documentation_url"))
             if data == "":
                 data = None

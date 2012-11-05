@@ -53,8 +53,10 @@ class Environment(object):
         
         try:
             env_file = open(self.__env_path, "r")
-            self.__env_data = yaml.load(env_file)
-            env_file.close()
+            try:
+                self.__env_data = yaml.load(env_file)
+            finally:
+                env_file.close()
         except Exception, exp:
             raise TankError("Could not parse file %s. "
                             "Error reported from parser: %s" % (self.__env_path, exp))

@@ -359,8 +359,10 @@ class Schema(object):
             # try to parse it
             try:
                 open_file = open(yml_file)
-                metadata = yaml.load(open_file)
-                open_file.close()
+                try:
+                    metadata = yaml.load(open_file)
+                finally:
+                    open_file.close()
             except Exception, error:
                 raise TankError("Cannot load config file '%s'. Error: %s" % (yml_file, error))
         return metadata

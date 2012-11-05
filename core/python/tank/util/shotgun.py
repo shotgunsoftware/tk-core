@@ -28,8 +28,10 @@ def __create_sg_connection(shotgun_cfg_path, evaluate_script_user):
     # load the config file
     try:
         open_file = open(shotgun_cfg_path)
-        config_data = yaml.load(open_file)
-        open_file.close()
+        try:
+            config_data = yaml.load(open_file)
+        finally:
+            open_file.close()
     except Exception, error:
         raise TankError("Cannot load config file '%s'. Error: %s" % (shotgun_cfg_path, error))
 

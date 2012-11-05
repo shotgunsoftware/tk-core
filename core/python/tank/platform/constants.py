@@ -232,8 +232,10 @@ def get_core_api_version():
     info_yml_location = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "..", "info.yml"))
     try:
         info_fh = open(info_yml_location, "r")
-        data = yaml.load(info_fh)
-        info_fh.close()
+        try:
+            data = yaml.load(info_fh)
+        finally:
+            info_fh.close()
         core_version = data.get("version")
     except:
         raise TankError("Could not extract core API version number from %s!" % info_yml_location)
