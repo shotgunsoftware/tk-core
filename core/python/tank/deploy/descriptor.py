@@ -203,8 +203,10 @@ class AppDescriptor(object):
 
         try:
             file_data = open(file_path)
-            metadata = yaml.load(file_data)
-            file_data.close()
+            try:
+                metadata = yaml.load(file_data)
+            finally:
+                file_data.close()
         except Exception, exp:
             raise TankError("Cannot load metadata file '%s'. Error: %s" % (file_path, exp))
 

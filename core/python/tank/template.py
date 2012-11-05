@@ -633,8 +633,10 @@ def read_templates(primary_project_path, roots, config_path=None):
     config_path = config_path or constants.get_content_templates_location(primary_project_path)
     if os.path.exists(config_path):
         config_file = open(config_path, "r")
-        data = yaml.load(config_file) or {}
-        config_file.close()
+        try:
+            data = yaml.load(config_file) or {}
+        finally:
+            config_file.close()
     else:
         data = {}
             

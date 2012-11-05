@@ -58,8 +58,10 @@ def _read_roots_file(project_root):
     root_file_path = constants.get_roots_file_location(project_root)
     if os.path.exists(root_file_path):
         root_file = open(root_file_path, "r")
-        roots_data = yaml.load(root_file)
-        root_file.close()
+        try:
+            roots_data = yaml.load(root_file)
+        finally:
+            root_file.close()
     else: 
         roots_data = {}
     return roots_data
@@ -90,8 +92,10 @@ def get_primary_root(input_path):
     if os.path.exists(primary_roots_file):
         # Get path from file
         open_file = open(primary_roots_file, "r")
-        primary_paths = yaml.load(open_file)
-        open_file.close()
+        try:
+            primary_paths = yaml.load(open_file)
+        finally:
+            open_file.close()
         platform_name = _determine_platform()
         return primary_paths.get(platform_name)
     else:
