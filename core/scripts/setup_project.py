@@ -486,6 +486,13 @@ def setup_project(log, starter_config_input):
         fh.close()
     
     log.info("")
+    log.info("We now recommend that you run the update script to ensure that all")
+    log.info("the Apps and Engines that came with the config are up to date! ")
+    log.info("You can do this by executing the check_for_updates script ")
+    log.info("that is located in this folder.")
+    log.info("")
+    log.info("For more Apps, Support, Documentation and the Tank Community, go to")
+    log.info("https://tank.shotgunsoftware.com")
     log.info("")        
     log.info("Tank Project Script exiting.")
 
