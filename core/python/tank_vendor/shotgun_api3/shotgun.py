@@ -69,7 +69,7 @@ except ImportError:
         dir_path = os.path.dirname(__file__)
         lib_path = os.path.join(dir_path, 'lib')
         sys.path.append(lib_path)
-        import shotgun_api3.lib.simplejson as json
+        import simplejson as json
         sys.path.pop()
 
 try:
