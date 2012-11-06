@@ -18,48 +18,37 @@ class TestValidateSchema(TankTestBase):
         bad_type = "bogus"
         schema = {key:{"type":bad_type}}
         
-        with self.assertRaises(TankError) as cm:
-            validate_schema(self.app_name, schema)
-        
         params = (bad_type, key, self.app_name)
         expected_msg = "Invalid type '%s' in schema '%s' for '%s'!" % params
-        self.assertEqual(expected_msg, cm.exception.message)
     
+        self.check_error_message(TankError, expected_msg, validate_schema, self.app_name, schema)
+        
     def test_invalid_default_value(self):
         # Test invalid default value type
         key = "test_setting"
         value = {"type":"str","default_value":123}
         schema = {key:value}
         
-        with self.assertRaises(TankError) as cm:
-            validate_schema(self.app_name, schema)
-        
         params = (key, self.app_name, "int", "str")
         expected_msg = "Invalid type for default value in schema '%s' for '%s' - found '%s', expected '%s'" % params
-        self.assertEqual(expected_msg, cm.exception.message)
-        
+        self.check_error_message(TankError, expected_msg, validate_schema, self.app_name, schema) 
+
         # Test invalid default value type in list values
         value = {"type":"list","values":{"type":"str","default_value":123}}
         schema = {key:value}
 
-        with self.assertRaises(TankError) as cm:
-            validate_schema(self.app_name, schema)
-
         params = (key, self.app_name, "int", "str")
         expected_msg = "Invalid type for default value in schema '%s' for '%s' - found '%s', expected '%s'" % params
-        self.assertEqual(expected_msg, cm.exception.message)
+        self.check_error_message(TankError, expected_msg, validate_schema, self.app_name, schema)
         
         # Test invalid default value type in dict items
         value = {"type":"dict","items":{"test_dict":{"type":"str","default_value":123}}}
         schema = {key:value}
 
-        with self.assertRaises(TankError) as cm:
-            validate_schema(self.app_name, schema)
-        
         params = (key, self.app_name, "int", "str")
         expected_msg = "Invalid type for default value in schema '%s' for '%s' - found '%s', expected '%s'" % params
-        self.assertEqual(expected_msg, cm.exception.message)
-        
+        self.check_error_message(TankError, expected_msg, validate_schema, self.app_name, schema)
+
     def test_list_invalid_schema(self):
         key = "test_setting"
         bad_type = "bogus" 
@@ -67,51 +56,36 @@ class TestValidateSchema(TankTestBase):
         schema = {key:list_value}
 
         # Test a bad value type
-        with self.assertRaises(TankError) as cm:
-            validate_schema(self.app_name, schema)
-
         expected_msg = "Invalid type '%s' in schema '%s' for '%s'!" % (bad_type, key, self.app_name)
-        self.assertEqual(expected_msg, cm.exception.message)
+        self.check_error_message(TankError, expected_msg, validate_schema, self.app_name, schema)
 
         # Test missing type
         list_value = {"type":"list","values":{}}
         schema = {key:list_value}
 
-        with self.assertRaises(TankError) as cm:
-            validate_schema(self.app_name, schema)
-
         expected_msg = "Missing type in schema '%s' for '%s'!" % (key, self.app_name)
-        self.assertEqual(expected_msg, cm.exception.message)
+        self.check_error_message(TankError, expected_msg, validate_schema, self.app_name, schema)
 
         # Test missing "values" key
         list_value = {"type":"list"}
         schema = {key:list_value}
 
-        with self.assertRaises(TankError) as cm:
-            validate_schema(self.app_name, schema)
-
         expected_msg = "Missing or invalid 'values' dict in schema '%s' for '%s'!" % (key, self.app_name)
-        self.assertEqual(expected_msg, cm.exception.message)
+        self.check_error_message(TankError, expected_msg, validate_schema, self.app_name, schema)
 
         # Test bad type for "values" key
         list_value = {"type":"list","values":"bogus"}
         schema = {key:list_value}
 
-        with self.assertRaises(TankError) as cm:
-            validate_schema(self.app_name, schema)
-
         expected_msg = "Missing or invalid 'values' dict in schema '%s' for '%s'!" % (key, self.app_name)
-        self.assertEqual(expected_msg, cm.exception.message)
+        self.check_error_message(TankError, expected_msg, validate_schema, self.app_name, schema)
         
         # Test bad type for "allows_empty" key
         list_value = {"type":"list","values":{},"allows_empty":"bogus"}
         schema = {key:list_value}
 
-        with self.assertRaises(TankError) as cm:
-            validate_schema(self.app_name, schema)
-
         expected_msg = "Invalid 'allows_empty' bool in schema '%s' for '%s'!" % (key, self.app_name)
-        self.assertEqual(expected_msg, cm.exception.message)
+        self.check_error_message(TankError, expected_msg, validate_schema, self.app_name, schema)
         
     def test_dict_invalid_schema(self):
         # Test bad type for "items" key
@@ -119,21 +93,15 @@ class TestValidateSchema(TankTestBase):
         dict_value = {"type":"dict","items":"bogus"}
         schema = {key:dict_value}
 
-        with self.assertRaises(TankError) as cm:
-            validate_schema(self.app_name, schema)
-        
         expected_msg = "Invalid 'items' dict in schema '%s' for '%s'!" % (key, self.app_name)
-        self.assertEqual(expected_msg, cm.exception.message)
+        self.check_error_message(TankError, expected_msg, validate_schema, self.app_name, schema)
         
         # Test bad item in "items"
         dict_value = {"type":"dict","items":{"bogus":"bogus"}}
         schema = {key:dict_value}
-
-        with self.assertRaises(TankError) as cm:
-            validate_schema(self.app_name, schema)
         
         expected_msg = "Invalid 'bogus' dict in schema '%s' for '%s'" % (key, self.app_name)
-        self.assertEqual(expected_msg, cm.exception.message)
+        self.check_error_message(TankError, expected_msg, validate_schema, self.app_name, schema)
     
     def test_template_invalid_schema(self):
         # Test bad type for "required_fields"
@@ -141,41 +109,29 @@ class TestValidateSchema(TankTestBase):
         dict_value = {"type":"template","required_fields":"bogus"}
         schema = {key:dict_value}
 
-        with self.assertRaises(TankError) as cm:
-            validate_schema(self.app_name, schema)
-        
         expected_msg = "Invalid 'required_fields' list in schema '%s' for '%s'!" % (key, self.app_name)
-        self.assertEqual(expected_msg, cm.exception.message)
-        
+        self.check_error_message(TankError, expected_msg, validate_schema, self.app_name, schema)
+
         # Test bad value in "required_fields" list
         dict_value = {"type":"template","required_fields":["bogus",123]}
         schema = {key:dict_value}
 
-        with self.assertRaises(TankError) as cm:
-            validate_schema(self.app_name, schema)
-
         expected_msg = "Invalid 'required_fields' value '123' in schema '%s' for '%s'!" % (key, self.app_name)
-        self.assertEqual(expected_msg, cm.exception.message)
+        self.check_error_message(TankError, expected_msg, validate_schema, self.app_name, schema)
         
         # Test bad type for "optional_fields"
         dict_value = {"type":"template","optional_fields":"bogus"}
         schema = {key:dict_value}
 
-        with self.assertRaises(TankError) as cm:
-            validate_schema(self.app_name, schema)
-
         expected_msg = "Invalid 'optional_fields' list in schema '%s' for '%s'!" % (key, self.app_name)
-        self.assertEqual(expected_msg, cm.exception.message)
+        self.check_error_message(TankError, expected_msg, validate_schema, self.app_name, schema)
         
         # Test bad value in "optional_fields" list
         dict_value = {"type":"template","optional_fields":["bogus",123]}
         schema = {key:dict_value}
 
-        with self.assertRaises(TankError) as cm:
-            validate_schema(self.app_name, schema)
-
         expected_msg = "Invalid 'optional_fields' value '123' in schema '%s' for '%s'!" % (key, self.app_name)
-        self.assertEqual(expected_msg, cm.exception.message)
+        self.check_error_message(TankError, expected_msg, validate_schema, self.app_name, schema)
 
 class TestValidateSettings(TankTestBase):
     def setUp(self):
@@ -210,32 +166,24 @@ class TestValidateSettings(TankTestBase):
         settings = {key:99}
         schema = {key:{"type":"str"}}
 
-        with self.assertRaises(TankError) as cm:
-            validate_settings(self.app_name, self.tk, self.context, schema, settings)
 
         params = (key, self.app_name, "int", "str")
         expected_msg = "Invalid type for value in setting '%s' for '%s' - found '%s', expected '%s'" % params
-        self.assertEqual(expected_msg, cm.exception.message)
+        self.check_error_message(TankError, expected_msg, validate_settings, self.app_name, self.tk, self.context, schema, settings)
 
         settings = {key:None}
 
-        with self.assertRaises(TankError) as cm:
-            validate_settings(self.app_name, self.tk, self.context, schema, settings)
-
         params = (key, self.app_name, "NoneType", "str")
         expected_msg = "Invalid type for value in setting '%s' for '%s' - found '%s', expected '%s'" % params
-        self.assertEqual(expected_msg, cm.exception.message)
+        self.check_error_message(TankError, expected_msg, validate_settings, self.app_name, self.tk, self.context, schema, settings)
 
     def test_required_field_missing(self):
         settings = {}
         key = "some_name"
         schema = {key:{"type":"str"}}
 
-        with self.assertRaises(TankError) as cm:
-            validate_settings(self.app_name, self.tk, self.context, schema, settings)
-        
         expected_msg = "Missing required key '%s' in settings!" % key 
-        self.assertEqual(expected_msg, cm.exception.message)
+        self.check_error_message(TankError, expected_msg, validate_settings, self.app_name, self.tk, self.context, schema, settings)
 
     def test_hook_does_not_exist(self):
         hook_name = "hook_fake"
@@ -245,8 +193,7 @@ class TestValidateSettings(TankTestBase):
         schema = {hook_name:{"type":"hook"}}
         hooks_location = os.path.join(self.project_root, "tank", "config", "hooks")
 
-        with self.assertRaises(TankError) as cm:
-            validate_settings(self.app_name, self.tk, self.context, schema, settings)
+        self.assertRaises(TankError, validate_settings, self.app_name, self.tk, self.context, schema, settings)
 
 
     def test_template_missing_in_mastertemplates(self):
@@ -263,12 +210,9 @@ class TestValidateSettings(TankTestBase):
         # set up metadata about entry
         schema = {config_name:{"type":"template"}}
 
-        with self.assertRaises(TankError) as cm:
-            validate_settings(self.app_name, self.tk, self.context, schema, settings)
-
         expected_msg = ("The Tank Template '%s' referred to by the setting '%s' does "
                         "not exist in the master template config file!" % (cfg_val, config_name))
-        self.assertEqual(expected_msg, cm.exception.message)
+        self.check_error_message(TankError, expected_msg, validate_settings, self.app_name, self.tk, self.context, schema, settings)
 
 
     def test_required_fields_not_in_template_keys(self):
@@ -287,12 +231,9 @@ class TestValidateSettings(TankTestBase):
         config_data = {"type":"template", "required_fields": required}
         schema = {config_name: config_data}
 
-        with self.assertRaises(TankError) as cm:
-            validate_settings(self.app_name, self.tk, self.context, schema, config)
-
         expected_msg = ("The Tank Template '%s' referred to by the setting '%s' does "
                         "not contain required fields '%s'!" % (cfg_val, config_name, required))
-        self.assertEqual(expected_msg, cm.exception.message)
+        self.check_error_message(TankError, expected_msg, validate_settings, self.app_name, self.tk, self.context, schema, config)
 
     def test_required_field_missing_in_dict(self):
         key = "some_name"
@@ -307,13 +248,9 @@ class TestValidateSettings(TankTestBase):
         }
         settings = {key:{}}
 
-        with self.assertRaises(TankError) as cm:
-            validate_settings(self.app_name, self.tk, self.context, schema, settings)
-        
         params = (missing_key,key,self.app_name)
         expected_msg = "Missing required key '%s' in setting '%s' for '%s'" % params
-        self.assertEqual(expected_msg, cm.exception.message)
-        
+        self.check_error_message(TankError, expected_msg, validate_settings, self.app_name, self.tk, self.context, schema, settings)
 
     def test_skip_validate_context(self):
         """Test that required templates with the skip validate flag set to true will not validate against the context."""
@@ -360,33 +297,24 @@ class TestValidateSettings(TankTestBase):
         settings = {key:[]}
 
         # Test that a list can't be empty
-        with self.assertRaises(TankError) as cm:
-            validate_settings(self.app_name, self.tk, self.context, schema, settings)
-
         expected_msg = "The list in setting '%s' for '%s' can not be empty!" % (key, self.app_name)
-        self.assertEqual(expected_msg, cm.exception.message)
+        self.check_error_message(TankError, expected_msg, validate_settings, self.app_name, self.tk, self.context, schema, settings)
 
         # Test data type validation of list values
         settings = {key:[99,123]}
 
-        with self.assertRaises(TankError) as cm:
-            validate_settings(self.app_name, self.tk, self.context, schema, settings)
-
         params = (key, self.app_name, "int", "str")
         expected_msg = "Invalid type for value in setting '%s' for '%s' - found '%s', expected '%s'" % params
-        self.assertEqual(expected_msg, cm.exception.message)
+        self.check_error_message(TankError, expected_msg, validate_settings, self.app_name, self.tk, self.context, schema, settings)
 
         # Test a list inside list
         list_value = {"type":"list","values":{"type":"list","values":{"type":"int"}}}
         schema = {key:list_value}
         settings = {key:[["a"],["b","c"]]}
 
-        with self.assertRaises(TankError) as cm:
-            validate_settings(self.app_name, self.tk, self.context, schema, settings)
-
         params = (key, self.app_name, "str", "int")
         expected_msg = "Invalid type for value in setting '%s' for '%s' - found '%s', expected '%s'" % params
-        self.assertEqual(expected_msg, cm.exception.message)
+        self.check_error_message(TankError, expected_msg, validate_settings, self.app_name, self.tk, self.context, schema, settings)
 
 class TestValidateContext(TankTestBase):
     """Tests related to validating context through the config.validate_and_populate_config function. 
@@ -475,13 +403,11 @@ class TestValidateContext(TankTestBase):
         tk = tank.Tank(self.project_root)
         tk.templates={self.template_name:template}
 
-        with self.assertRaises(TankError) as cm:
-            validate_settings(self.app_name, tk, self.context, self.metadata, self.config)
-        
         params = (self.context, ["sppk",field_name], template)
         expected_msg = "Context %s can not determine value for fields %s needed by template %s" % params
-        self.assertEqual(expected_msg, cm.exception.message)
 
+        self.check_error_message(TankError, expected_msg, validate_settings, self.app_name, tk, self.context, self.metadata, self.config)
+        
     def test_context_determines_fields(self):
         """
         Case that field has no direct value in the context, but does have a value

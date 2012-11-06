@@ -560,6 +560,9 @@ class TemplatePathParser(object):
 
         :returns: The index of the start of the token.
         """
+        # in python 2.5 index into a string cannot be None
+        last_index = last_index or 0
+
         input_path_lower = input_path.lower()
         # Handle keys which already have values (they exist more than once in definition)
         if key.name and key.name in self.fields:
@@ -629,8 +632,11 @@ def read_templates(primary_project_path, roots, config_path=None):
     # Read file
     config_path = config_path or constants.get_content_templates_location(primary_project_path)
     if os.path.exists(config_path):
-        with open(config_path, "r") as config_file:
+        config_file = open(config_path, "r")
+        try:
             data = yaml.load(config_file) or {}
+        finally:
+            config_file.close()
     else:
         data = {}
             

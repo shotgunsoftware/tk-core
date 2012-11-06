@@ -150,7 +150,7 @@ class PathCache(object):
                                                                     entity_name, 
                                                                     root_name,
                                                                     db_path))
-        except sqlite3.IntegrityError as e:
+        except sqlite3.IntegrityError, e:
             # Trying to insert the exact value we already have cached isn't an error. But if we insert
             # a different entity for a path we've already cached, that's a problem.
             if e.args[0] == "columns entity_type, entity_id, root, path are not unique":
