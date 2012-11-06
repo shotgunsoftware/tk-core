@@ -11,7 +11,8 @@ import uuid
 import tempfile
 
 # use api json to cover py 2.5
-from tank_vendor import shotgun_api3 
+# todo - replace with proper external library  
+from tank_vendor import shotgun_api3  
 json = shotgun_api3.shotgun.json
 
 from ..api import Tank
@@ -448,7 +449,7 @@ class TankAppStoreDescriptor(AppDescriptor):
         fh.close()
 
         # unzip core zip file to app target location
-        unzip_file(self._tk, zip_tmp, target)
+        unzip_file(zip_tmp, target)
 
         # write a record to the tank app store
         if self._type == AppDescriptor.APP:

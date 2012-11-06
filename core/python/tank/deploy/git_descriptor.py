@@ -109,7 +109,7 @@ class TankGitDescriptor(AppDescriptor):
             raise TankError("Failed to download %s - error executing command %s" % (self, cmd))
 
         # unzip core zip file to app target location
-        unzip_file(self._tk, zip_tmp, target)
+        unzip_file(zip_tmp, target)
 
     def find_latest_version(self):
         """

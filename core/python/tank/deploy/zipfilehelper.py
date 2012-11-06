@@ -5,38 +5,70 @@ Copyright (c) 2012 Shotgun Software, Inc
 import os
 import zipfile
 
-from ..platform import constants
-
-def unzip_file(tk, zip_tmp, target):
-    zip_file = zipfile.ZipFile(zip_tmp, "r")
-    if hasattr(zip_file, "extractall"):
-        # py 2.6+
-        zip_file.extractall(target)
-    else:
-        # based on:
-        # http://forums.devshed.com/python-programming-11/unzipping-a-zip-file-having-folders-and-subfolders-534487.html
-
-        names = zip_file.namelist()
-
-        def dir_names(names):
-            # identify paths ending in a directory
-            return [x for x in names if os.path.split(x)[0] and not os.path.split(x)[1]]
-
-        def file_names(names):
-            # identify paths ending in a file
-            return [x for x in names if os.path.split(x)[1]]
-
-
-        for dir_name in dir_names(names):
-            # create directories
-            dir_path = os.path.join(target, dir_name)
-            if not os.path.exists(dir_path):
-                tk.execute_hook(constants.CREATE_FOLDERS_CORE_HOOK_NAME, path=dir_path, sg_entity=None)
+def _process_item(zip_obj, item_path, targetpath):
+    """
+    Modified version of _extract_member in http://hg.python.org/cpython/file/538f4e774c18/Lib/zipfile.py
     
-        for name in file_names(names):
-            # unzip files
-            output_path = os.path.join(target, name)
-            outfile = file(output_path, 'wb')
-            outfile.write(zip_file.read(name))
-            outfile.close()
+    """
+    # build the destination pathname, replacing
+    # forward slashes to platform specific separators.
+    # Strip trailing path separator, unless it represents the root.
+    if (targetpath[-1:] in (os.path.sep, os.path.altsep)
+        and len(os.path.splitdrive(targetpath)[1]) > 1):
+        targetpath = targetpath[:-1]
+    
+    # don't include leading "/" from file name if present
+    if item_path[0] == '/':
+        targetpath = os.path.join(targetpath, item_path[1:])
+    else:
+        targetpath = os.path.join(targetpath, item_path)
+    
+    targetpath = os.path.normpath(targetpath)
+    
+    # Create all upper directories if necessary.
+    upperdirs = os.path.dirname(targetpath)
+    if upperdirs and not os.path.exists(upperdirs):
+        os.makedirs(upperdirs, 0777)
+    
+    if item_path[-1] == '/':
+        # this is a directory!
+        if not os.path.isdir(targetpath):
+            os.mkdir(targetpath, 0777)
+    
+    else:
+        # this is a file! - write it in a way which is compatible
+        # with py25 zipfile library interface
+        target_obj = open(targetpath, "wb")
+        target_obj.write(zip_obj.read(item_path))
+        target_obj.close()
+        
+    return targetpath
+    
+    
 
+def unzip_file(zip_file, target_folder):
+    """
+    Does the following command, but in a way which works with 
+    Python 2.5 and Python2.6.2
+
+    z = zipfile.ZipFile(zip_file, "r")
+    z.extractall(target_folder)    
+    
+    works around http://bugs.python.org/issue6050
+    
+    """
+        
+    zip_obj = zipfile.ZipFile(zip_file, "r")
+    
+    # loosely based on:
+    # http://forums.devshed.com/python-programming-11/unzipping-a-zip-file-having-folders-and-subfolders-534487.html
+
+    # make sure we are using consistent permissions    
+    old_umask = os.umask(0)
+    try:
+        # get list of filenames contained in archinve
+        for x in zip_obj.namelist(): 
+            # process them one by one
+            _process_item(zip_obj, x, target_folder)
+    finally:
+        os.umask(old_umask)
