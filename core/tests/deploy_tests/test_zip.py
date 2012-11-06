@@ -30,6 +30,8 @@ class TestZip(TankTestBase):
         for x in os.listdir(folder):
             full_path = os.path.join(folder, x)
             test_centric_path = full_path[len(self.tank_temp):]
+            # translate to platform agnostic path
+            test_centric_path = test_centric_path.replace(os.path.sep, "/")
             items.append(test_centric_path)
             if os.path.isdir(full_path):
                 items.extend(self._get_file_list_r(full_path))
