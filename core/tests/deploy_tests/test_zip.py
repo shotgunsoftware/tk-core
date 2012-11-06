@@ -53,7 +53,7 @@ class TestZip(TankTestBase):
         expected_output = open(txt).read().split("\n")
         
         self.maxDiff = None
-        self.assertEqual(zip_file_output, expected_output)
+        self.assertEqual(set(zip_file_output), set(expected_output))
         
 
     def test_config(self):        
@@ -71,7 +71,7 @@ class TestZip(TankTestBase):
         expected_output = open(txt).read().split("\n")
         
         self.maxDiff = None
-        self.assertEqual(zip_file_output, expected_output)
+        self.assertEqual(set(zip_file_output), set(expected_output))
 
 
     def test_app(self):        
@@ -89,4 +89,4 @@ class TestZip(TankTestBase):
         expected_output = open(txt).read().split("\n")
         
         self.maxDiff = None
-        self.assertEqual(zip_file_output, expected_output)
+        self.assertEqual(set(zip_file_output), set(expected_output))
