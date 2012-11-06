@@ -13,7 +13,6 @@ import optparse
 import os
 import tempfile
 import logging
-import zipfile
 import sys
 import uuid
 import re
@@ -32,6 +31,8 @@ from tank.platform import constants
 from tank.errors import TankError
 from tank.platform import environment
 from tank.errors import TankError
+
+from tank.deploy.zipfilehelper import unzip_file
 
 TANK_APP_STORE_DUMMY_PROJECT = {"type": "Project", "id": 64} 
 
@@ -134,35 +135,7 @@ def _process_config_zip(studio_root, zip_path, log):
     # unzip into temp location
     log.info("Unzipping configuration and inspecting it...")
     zip_unpack_tmp = os.path.join(tempfile.gettempdir(), uuid.uuid4().hex)
-    z = zipfile.ZipFile(zip_path, "r")
-    if hasattr(z, "extractall"):
-        z.extractall(zip_unpack_tmp)    
-    else:
-        # python 2.5 
-        names = z.namelist()
-
-        def dir_names(names):
-            # identify paths ending in a directory
-            return [x for x in names if os.path.split(x)[0] and not os.path.split(x)[1]]
-
-        def file_names(names):
-            # identify paths ending in a file
-            return [x for x in names if os.path.split(x)[1]]
-
-
-        for dir_name in dir_names(names):
-            # create directories
-            dir_path = os.path.join(target, dir_name)
-            if not os.path.exists(dir_path):
-                os.makedirs(dir_path)
-    
-        for name in file_names(names):
-            # unzip files
-            output_path = os.path.join(target, name)
-            outfile = file(output_path, 'wb')
-            outfile.write(z.read(name))
-            outfile.close()
-
+    unzip_file(zip_path, zip_unpack_tmp)
     template_items = os.listdir(zip_unpack_tmp)
     for item in ["core", "env", "hooks"]:
         if item not in template_items:
