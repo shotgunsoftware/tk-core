@@ -21,6 +21,7 @@ import tempfile
 from distutils.version import LooseVersion
 
 # use sg api json to cover py 2.5
+# todo - replace with proper external library
 from tank_vendor import shotgun_api3 
 json = shotgun_api3.shotgun.json
 
@@ -131,7 +132,7 @@ class TankGitHubDescriptor(AppDescriptor):
             # unpack zip into temp location
             tmp_folder = os.path.join(tempfile.gettempdir(), "tanktmp_%s" % uuid.uuid4().hex)
             os.mkdir(tmp_folder)
-            unzip_file(self._tk, zip_tmp_file, tmp_folder)
+            unzip_file(zip_tmp_file, tmp_folder)
             # get actual file location
             payload = os.path.join(tmp_folder, os.listdir(tmp_folder)[0])
         except Exception, e:

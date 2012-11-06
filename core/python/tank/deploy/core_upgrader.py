@@ -187,7 +187,7 @@ class TankCoreUpgrader(object):
         
         self._log.info("Download complete - now extracting content...")
         # unzip core zip file to temp location and run updater
-        unzip_file(self._tk, zip_tmp, extract_tmp)
+        unzip_file(zip_tmp, extract_tmp)
         
         # and write a custom event to the shotgun event log
         data = {}
