@@ -7,16 +7,20 @@ Tank App Store Connectivity.
 
 import os
 import copy
-import json
 import uuid
-import zipfile
 import tempfile
+
+# use api json to cover py 2.5
+# todo - replace with proper external library  
+from tank_vendor import shotgun_api3  
+json = shotgun_api3.shotgun.json
 
 from ..api import Tank
 from ..util import shotgun
 from ..errors import TankError
 from ..platform import constants
 from .descriptor import AppDescriptor
+from .zipfilehelper import unzip_file
 
 
 TANK_APP_ENTITY         = "CustomNonProjectEntity02"
@@ -445,8 +449,7 @@ class TankAppStoreDescriptor(AppDescriptor):
         fh.close()
 
         # unzip core zip file to app target location
-        z = zipfile.ZipFile(zip_tmp, "r")
-        z.extractall(target)
+        unzip_file(zip_tmp, target)
 
         # write a record to the tank app store
         if self._type == AppDescriptor.APP:

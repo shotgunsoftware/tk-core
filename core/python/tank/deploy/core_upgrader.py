@@ -10,13 +10,13 @@ import os
 import sys
 import uuid
 import tempfile
-import zipfile
 from tank_vendor import yaml
 from distutils.version import LooseVersion
 
 from ..errors import TankError
 from ..util import shotgun
 from ..platform import constants
+from .zipfilehelper import unzip_file
 
 TANK_CORE_VERSION_ENTITY = "CustomNonProjectEntity01"
 TANK_CODE_PAYLOAD_FIELD = "sg_payload"
@@ -187,8 +187,7 @@ class TankCoreUpgrader(object):
         
         self._log.info("Download complete - now extracting content...")
         # unzip core zip file to temp location and run updater
-        z = zipfile.ZipFile(zip_tmp, "r")
-        z.extractall(extract_tmp)    
+        unzip_file(zip_tmp, extract_tmp)
         
         # and write a custom event to the shotgun event log
         data = {}

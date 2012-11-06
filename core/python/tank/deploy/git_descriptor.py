@@ -9,7 +9,6 @@ It will base version numbering off tags in git.
 import os
 import copy
 import uuid
-import zipfile
 import tempfile
 import subprocess
 
@@ -17,6 +16,7 @@ from ..api import Tank
 from ..errors import TankError
 from ..platform import constants
 from .descriptor import AppDescriptor
+from .zipfilehelper import unzip_file
 
 class TankGitDescriptor(AppDescriptor):
     """
@@ -109,8 +109,7 @@ class TankGitDescriptor(AppDescriptor):
             raise TankError("Failed to download %s - error executing command %s" % (self, cmd))
 
         # unzip core zip file to app target location
-        z = zipfile.ZipFile(zip_tmp, "r")
-        z.extractall(target)
+        unzip_file(zip_tmp, target)
 
     def find_latest_version(self):
         """

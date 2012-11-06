@@ -317,15 +317,10 @@ class TestApplyFields(TestTemplatePath):
         key = StringKey("alpha_num", filter_by="alphanumeric")
         template = TemplatePath("{alpha_num}", {"alpha_num":key}, self.project_root)
 
-
         invalid_values = ["_underscore", "white space", "@mpersand", "par(enthes)", "###"]
         for invalid_value in invalid_values:
-            with self.assertRaises(TankError) as cm:
-                template.apply_fields({"alpha_num": invalid_value})
-            
-
             expected_msg = "%s Illegal value '%s' does not fit filter" % (str(key), invalid_value)
-            self.assertEquals(expected_msg, cm.exception.message)
+            self.check_error_message(TankError, expected_msg, template.apply_fields, {"alpha_num": invalid_value})
 
     def test_good_alphanumeric(self):
         """

@@ -96,9 +96,7 @@ class TestStringKey(TankTestBase):
     def test_str_from_value_bad_choice(self):
         value = "c"
         expected = "%s Illegal value: 'c' not in choices: ['a', 'b']" % str(self.choice_field)
-        with self.assertRaises(TankError) as cm:
-            self.choice_field.str_from_value(value)
-        self.assertEquals(expected, cm.exception.message)
+        self.check_error_message(TankError, expected, self.choice_field.str_from_value, value)
 
     def test_str_from_value_use_default(self):
         expected = "b"
@@ -107,9 +105,7 @@ class TestStringKey(TankTestBase):
 
     def test_str_from_value_no_default(self):
         expected = "No value provided and no default available for %s" % self.str_field
-        with self.assertRaises(TankError) as cm:
-            self.str_field.str_from_value()
-        self.assertEquals(expected, cm.exception.message)
+        self.check_error_message(TankError, expected, self.str_field.str_from_value)
 
     def test_str_from_value_alphanum_good(self):
         value = "a9b9C"
@@ -128,9 +124,7 @@ class TestStringKey(TankTestBase):
         bad_values = ["a_b", "a b", "a-b", "*"]
         for bad_value in bad_values:
             expected = base_expected % bad_value
-            with self.assertRaises(TankError) as cm:
-                self.alpha_field.str_from_value(bad_value)
-            self.assertEquals(expected, cm.exception.message)
+            self.check_error_message(TankError, expected, self.alpha_field.str_from_value, bad_value)
 
     def test_str_from_value_ignore_type_alphanum(self):
         bad_values = ["a_b", "a b", "a-b", "*"]
@@ -211,10 +205,7 @@ class TestIntegerKey(TankTestBase):
     def test_str_from_value_bad(self):
         value = "a"
         expected = "%s Illegal value %s, expected an Integer" % (str(self.int_field), value)
-        with self.assertRaises(TankError) as cm:
-            self.int_field.str_from_value(value)
-            
-        self.assertEquals(expected, cm.exception.message)
+        self.check_error_message(TankError, expected, self.int_field.str_from_value, value)
 
     def test_str_from_value_formatted(self):
         formatted_field = IntegerKey("field_name", format_spec="03")
@@ -305,10 +296,7 @@ class TestSequenceKey(TankTestBase):
         expected += "\nValid frame specs: ['%d', '#', '@', '$F']"
         expected += "\nValid format strings: ['FORMAT: %d', 'FORMAT: #', 'FORMAT: @', 'FORMAT: $F']\n"
 
-        with self.assertRaises(TankError) as cm:
-            self.seq_field.str_from_value(value)
-            
-        self.assertEquals(expected, cm.exception.message)
+        self.check_error_message(TankError, expected, self.seq_field.str_from_value, value)
 
     def test_str_from_value_formatted(self):
         formatted_field = SequenceKey("field_name", format_spec="03")

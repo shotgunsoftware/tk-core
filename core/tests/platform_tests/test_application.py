@@ -48,11 +48,15 @@ class TestGetApplication(TestApplication):
     def test_bad_app_path(self):
         bogus_path = os.path.join(self.tank_temp, "bogus_path")
         
-        with self.assertRaises(TankError) as cm:
-            application.get_application(self.engine, bogus_path, "bogus_app", {})
+        self.assertRaises(TankError,
+                          application.get_application,
+                          self.engine, bogus_path, "bogus_app", {})
         
-        expected_msg = "Failed to load plugin"
-        self.assertTrue(cm.exception.message.startswith(expected_msg))
+        try:
+            application.get_application(self.engine, bogus_path, "bogus_app", {})
+        except TankError, cm:
+            expected_msg = "Failed to load plugin"
+            self.assertTrue(cm.message.startswith(expected_msg))
         
     def test_good_path(self):
         app_path = os.path.join(self.project_config, "test_app")
