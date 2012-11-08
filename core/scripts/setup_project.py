@@ -156,7 +156,8 @@ def _process_config_app_store(sg_app_store, script_user, studio_root, cfg_string
     
     # get latest code
     latest_cfg = sg_app_store.find_one(TANK_CONFIG_VERSION_ENTITY, 
-                                       filters = [["sg_status_list", "is_not", "rev" ],
+                                       filters = [["sg_tank_config", "is", parent_entity],
+                                                  ["sg_status_list", "is_not", "rev" ],
                                                   ["sg_status_list", "is_not", "bad" ]], 
                                        fields=["code", TANK_CODE_PAYLOAD_FIELD],
                                        order=[{"field_name": "created_at", "direction": "desc"}])
