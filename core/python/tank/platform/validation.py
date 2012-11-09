@@ -73,7 +73,8 @@ def validate_frameworks(app_or_engine_display_name, environment, required_framew
             else:
                 msg += "The currently installed frameworks are: \n"
                 for x in fw_descriptors:
-                    msg += "Name: '%s', Version: '%s'\n" % (d.get_short_name(), d.get_version())
+                    msg += "Name: '%s', Version: '%s'\n" % (fw_descriptors[x].get_short_name(), 
+                                                            fw_descriptors[x].get_version())
             raise TankError(msg) 
         
     return required_fw_instance_names
