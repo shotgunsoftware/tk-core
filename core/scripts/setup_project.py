@@ -21,6 +21,8 @@ import datetime
 import pprint
 import platform
 
+from distutils.version import LooseVersion
+
 # make sure that the core API is part of the pythonpath
 python_path = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "python"))
 sys.path.append(python_path)
@@ -31,8 +33,9 @@ from tank.platform import constants
 from tank.errors import TankError
 from tank.platform import environment
 from tank.errors import TankError
-
 from tank.deploy.zipfilehelper import unzip_file
+
+from tank_vendor import yaml
 
 TANK_APP_STORE_DUMMY_PROJECT = {"type": "Project", "id": 64} 
 
@@ -110,6 +113,70 @@ def _install_environment(proj_root, env_cfg, log):
     # create required shotgun fields
     for descriptor in descriptors:
         descriptor.ensure_shotgun_fields_exist(proj_root)
+    
+def _check_manifest(studio_root, starter_config, tk, sg_version_str, log):
+    """
+    Looks for an info.yml manifest in the config and validates it
+    """
+    
+    log.info("")
+    
+    info_yml = os.path.join(starter_config, constants.BUNDLE_METADATA_FILE)
+    if not os.path.exists(info_yml):
+        log.warning("Could not find manifest file %s. Project setup will proceed without validation." % info_yml)
+        return
+
+    try:
+        file_data = open(info_yml)
+        try:
+            metadata = yaml.load(file_data)
+        finally:
+            file_data.close()
+    except Exception, exp:
+        raise TankError("Cannot load configuration manifest '%s'. Error: %s" % (info_yml, exp))
+
+    # display name
+    if "display_name" in metadata:
+        log.info("This is the '%s' config." % metadata["display_name"])
+
+    # perform checks
+    if "requires_shotgun_version" in metadata:
+        # there is a sg min version required - make sure we have that!
+        
+        required_version = metadata["requires_shotgun_version"]
+        if required_version.startswith("v"):
+            required_version = required_version[1:]        
+        
+        if LooseVersion(required_version) > LooseVersion(sg_version_str):
+            raise TankError("This configuration requires Shotgun version %s "
+                            "but you are running version %s" % (required_version, sg_version_str))
+        else:
+            log.info("Config requires shotgun v%s. You are running v%s which is fine." % (required_version, sg_version_str))
+                
+                
+    
+    if "requires_core_version" in metadata:
+        # there is a core min version required - make sure we have that!
+        
+        required_version = metadata["requires_core_version"]
+        if required_version.startswith("v"):
+            required_version = required_version[1:]     
+        
+        # now figure out the current version of the core api
+        curr_core_version = constants.get_core_api_version()
+        if curr_core_version.startswith("v"):
+            curr_core_version = curr_core_version[1:]     
+        
+        if LooseVersion(required_version) > LooseVersion(curr_core_version):
+            raise TankError("This configuration requires Tank Core version %s "
+                            "but you are running version %s" % (required_version, curr_core_version))
+        else:
+            log.info("Config requires Tank Core v%s. You are running v%s which is fine." % (required_version, curr_core_version))
+    
+    
+    
+
+    
     
 def _process_config_project(studio_root, project_name, log):
     
@@ -335,6 +402,9 @@ def setup_project(log, starter_config_input):
                                      tank_root, 
                                      starter_config_input, 
                                      log)    
+    
+    # check constraints etc.
+    _check_manifest(tank_root, starter_config, tank_root, sg_version, log)
         
     # get projects 
     projs = sg.find("Project", [["tank_name", "is", None]], ["id", "name", "sg_description"])
