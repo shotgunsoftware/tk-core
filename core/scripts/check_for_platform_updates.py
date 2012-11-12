@@ -62,20 +62,20 @@ def main(log):
         log.info("")
         log.info("Check if the Tank Platform is up to date.")
         log.info("")
-        log.info("Usage: %s project_root" % sys.argv[0])
+        log.info("Usage: %s studio_root" % sys.argv[0])
         log.info("")
         log.info("")
         log.info("")
         sys.exit(1)
 
-    project_root = sys.argv[1]
+    studio_root = sys.argv[1]
 
     log.info("Welcome to the Tank update checker!")
     log.info("This script will check if the Tank Platform is up to date.")
-    log.info("for the installation associated with project %s" % project_root)
+    log.info("for the installation at %s" % studio_root)
     log.info("")
     
-    installer = TankCoreUpgrader(project_root, log)
+    installer = TankCoreUpgrader(studio_root, log)
     cv = installer.get_current_version_number()
     lv = installer.get_latest_version_number()
     log.info("You are currently running version %s of the Tank Platform" % cv)

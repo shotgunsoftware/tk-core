@@ -36,20 +36,21 @@ class TankCoreUpgrader(object):
      ) = range(3)
         
         
-    def __init__(self, project_root, logger):
+    def __init__(self, studio_root, logger):
         self._log = logger
-        (sg_app_store, script_user) = shotgun.create_sg_app_store_connection_proj_root(project_root)
+        
+        (sg_app_store, script_user) = shotgun.create_sg_app_store_connection(studio_root)
         self._sg = sg_app_store
         self._sg_script_user = script_user
-        self._local_sg = shotgun.create_sg_connection(project_root)
+        
+        self._local_sg = shotgun.create_sg_connection_studio_root(studio_root)      
         self._latest_ver = self.__get_latest_version()
         
         self._current_ver = constants.get_core_api_version()
         
         # now also extract the version of shotgun currently running
         try:
-            studio_sg = shotgun.create_sg_connection(project_root)
-            self._sg_studio_version = ".".join([ str(x) for x in studio_sg.server_info["version"]])        
+            self._sg_studio_version = ".".join([ str(x) for x in self._local_sg.server_info["version"]])        
         except Exception, e:
             raise TankError("Could not extract version number for studio shotgun: %s" % e)
     
