@@ -43,7 +43,7 @@ class TankBundle(object):
         
         :returns: name as string
         """
-        return self.__descriptor.get_short_name()
+        return self.__descriptor.get_system_name()
     
     @property
     def display_name(self):

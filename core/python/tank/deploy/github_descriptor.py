@@ -48,19 +48,6 @@ class TankGitHubDescriptor(AppDescriptor):
         if self._vendor is None or self._name is None or self._version is None:
             raise TankError("Github descriptor is not valid: %s" % str(location_dict))
 
-    def __repr__(self):
-        if self._type == AppDescriptor.APP:
-            return "Github App %s, %s, %s" % (self._vendor, self._name, self._version)
-        elif self._type == AppDescriptor.ENGINE:
-            return "Github Engine %s, %s, %s" % (self._vendor, self._name, self._version)
-        elif self._type == AppDescriptor.FRAMEWORK:
-            return "Github Framework %s, %s, %s" % (self._vendor, self._name, self._version)
-        else:
-            return "Github <Unknown> %s, %s, %s" % (self._vendor, self._name, self._version)
-
-    ###############################################################################################
-    # data accessors
-
     def get_doc_url(self):
         """
         Returns the documentation url for this item. Returns None if the documentation url
@@ -69,18 +56,12 @@ class TankGitHubDescriptor(AppDescriptor):
         #https://github.com/shotgunsoftware/tk-core/wiki
         return "https://github.com/%s/%s/wiki" % (self._vendor, self._name)
 
-    def _get_default_display_name(self):
-        """
-        Returns the display name for this item
-        """
-        return "%s %s" % (self._vendor, self._name)
-
-    def get_short_name(self):
+    def get_system_name(self):
         """
         Returns a short name, suitable for use in configuration files
         and for folders on disk
         """
-        return "%s_%s" % (self._vendor, self._name)
+        return self._name
 
     def get_version(self):
         """
@@ -88,21 +69,12 @@ class TankGitHubDescriptor(AppDescriptor):
         """
         return self._version
 
-    def get_location(self):
-        """
-        Returns the location for this descriptor
-        """
-        return self._location_dict
-
     def get_path(self):
         """
         returns the path to the folder where this item resides
         """
         name = "%s_%s" % (self._vendor, self._name)
         return self._get_local_location(self._type, "github", name, self._version)
-
-    ###############################################################################################
-    # methods
 
     def exists_local(self):
         """

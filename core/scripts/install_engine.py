@@ -65,7 +65,7 @@ def add_engine(log, project_root, env_name, engine_name):
 
     # now assume a convention where we will name the engine instance that we create in the environment
     # the same as the short name of the engine
-    engine_instance_name = engine_descriptor.get_short_name()
+    engine_instance_name = engine_descriptor.get_system_name()
 
     # check so that there is not an app with that name already!
     if engine_instance_name in env.get_engines():

@@ -33,16 +33,14 @@ def validate_settings(app_or_engine_display_name, tank_api, context, schema, set
     v.validate(settings)
     
     
-def validate_frameworks(app_or_engine_display_name, environment, required_frameworks):
+def validate_and_return_frameworks(app_or_engine_display_name, environment, required_frameworks):
     """
     Validates the frameworks needed for an app or engine.
-    
-    required_frameworks can be None, indicating no fws are required.
     
     Returns a dictionary of descriptors, keyed by the instance name in the environment. 
     """
     
-    if required_frameworks is None:
+    if len(required_frameworks) == 0:
         return []
 
     # make dictionary of all frameworks declared in the environment.
@@ -61,7 +59,7 @@ def validate_frameworks(app_or_engine_display_name, environment, required_framew
         version = fw.get("version")
         found = False
         for d in fw_descriptors:
-            if fw_descriptors[d].get_version() == version and fw_descriptors[d].get_short_name() == name:
+            if fw_descriptors[d].get_version() == version and fw_descriptors[d].get_system_name() == name:
                 found = True
                 required_fw_instance_names.append(d)
                 break
@@ -73,7 +71,7 @@ def validate_frameworks(app_or_engine_display_name, environment, required_framew
             else:
                 msg += "The currently installed frameworks are: \n"
                 for x in fw_descriptors:
-                    msg += "Name: '%s', Version: '%s'\n" % (fw_descriptors[x].get_short_name(), 
+                    msg += "Name: '%s', Version: '%s'\n" % (fw_descriptors[x].get_system_name(), 
                                                             fw_descriptors[x].get_version())
             raise TankError(msg) 
         

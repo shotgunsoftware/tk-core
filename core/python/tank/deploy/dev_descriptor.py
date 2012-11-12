@@ -38,19 +38,7 @@ class TankDevDescriptor(AppDescriptor):
         self._path = os.path.expandvars(self._path)
 
 
-    def __repr__(self):
-        return "Local Path %s" % self._path
-
-    ###############################################################################################
-    # data accessors
-
-    def _get_default_display_name(self):
-        """
-        Returns the display name for this item
-        """
-        return self.get_short_name()
-
-    def get_short_name(self):
+    def get_system_name(self):
         """
         Returns a short name, suitable for use in configuration files
         and for folders on disk
@@ -66,20 +54,11 @@ class TankDevDescriptor(AppDescriptor):
         """
         return "Undefined"
 
-    def get_location(self):
-        """
-        Returns the location for this descriptor
-        """
-        return self._location_dict
-
     def get_path(self):
         """
         returns the path to the folder where this item resides
         """
         return self._path
-
-    ###############################################################################################
-    # methods
 
     def exists_local(self):
         """

@@ -7,6 +7,7 @@ Functionality for managing versions of apps.
 
 import os
 import shutil
+import copy
 
 from tank_vendor import yaml
 
@@ -37,7 +38,12 @@ class AppDescriptor(object):
 
     def __init__(self, project_root, location_dict):
         self._project_root = project_root
-        self._location_dict = location_dict
+        self._location_dict = location_dict        
+        self.__manifest_data = None
+
+    def __repr__(self):
+        class_name = self.__class__.__name__
+        return "<%s %s %s>" % (class_name, self.get_system_name(), self.get_version())
 
     def _get_local_location(self, app_type, descriptor_name, name, version):
         """
@@ -59,11 +65,6 @@ class AppDescriptor(object):
         else:
             raise TankError("Don't know how to figure out the local storage root - unknown type!")
         return os.path.join(root, descriptor_name, name, version)
-
-    def __repr__(self):
-        return "Tank Descriptor: %s (%s) %s" % (self.get_short_name(),
-                                                self.get_display_name(),
-                                                self.get_version())
 
     def __ensure_sg_field_exists(self, sg, sg_type, sg_field_name, sg_data_type):
         """
@@ -87,50 +88,72 @@ class AppDescriptor(object):
         if sg_field_name not in sg_field_schema:
             sg.schema_field_create(sg_type, sg_data_type, ui_field_name)
 
+
+    def _get_metadata(self):
+        """
+        Returns the info.yml metadata associated with this descriptor.
+        Note that this call involves deep introspection; in order to
+        access the metadata we normally need to have the code content
+        local, so this method may trigger a remote code fetch if necessary.
+        """
+        if self.__manifest_data is None:
+            # make sure payload exists locally
+            if not self.exists_local():
+                self.download_local()
+                
+            # get the metadata
+            bundle_root = self.get_path()
+        
+            file_path = os.path.join(bundle_root, constants.BUNDLE_METADATA_FILE)
+        
+            if not os.path.exists(file_path):
+                raise TankError("Tank metadata file '%s' missing." % file_path)
+        
+            try:
+                file_data = open(file_path)
+                try:
+                    metadata = yaml.load(file_data)
+                finally:
+                    file_data.close()
+            except Exception, exp:
+                raise TankError("Cannot load metadata file '%s'. Error: %s" % (file_path, exp))
+        
+            # cache it
+            self.__manifest_data = metadata
+        
+        # return a copy
+        return copy.deepcopy(self.__manifest_data)
+
+
     ###############################################################################################
     # data accessors
 
-    def get_doc_url(self):
+    def get_location(self):
         """
-        Returns the documentation url for this item. Returns None if the documentation url
-        is not defined.
+        Returns the location dict associated with this descriptor
         """
-        return None
+        return self._location_dict
 
     def get_display_name(self):
         """
-        Returns the display name for this item. Returns "Undefined" if not defined.
+        Returns the display name for this item.
+        If no display name has been defined, the system name will be returned.
         """
-        meta = self.get_metadata()
+        meta = self._get_metadata()
         display_name = meta.get("display_name")
-        return display_name or self._get_default_display_name()
-
-    def _get_default_display_name(self):
-        """
-        Used if display_name not set in configuration.
-        """
-        return "Undefined"
+        if display_name is None:
+            display_name = self.get_system_name()
+        return display_name
 
     def get_description(self):
         """
         Returns a short description for the app.
         """
-        return "No description available"
-
-    def get_short_name(self):
-        """
-        Returns a short name, suitable for use in configuration files
-        and for folders on disk
-        """
-        raise NotImplementedError
-
-    def get_changelog(self):
-        """
-        Returns information about the changelog for this item.
-        Returns a tuple: (changelog_summary, changelog_url). Values may be None
-        to indicate that no changelog exists.
-        """
-        return (None, None)
+        meta = self._get_metadata()
+        desc = meta.get("description")
+        if desc is None:
+            desc = "No description available." 
+        return desc
 
     def get_version_constraints(self):
         """
@@ -138,30 +161,93 @@ class AppDescriptor(object):
         indicates that there is no defined constraint. The following keys can be
         returned: min_sg, min_core, min_engine
         """
-        # default implementation has no constraints
-        return {}
+        constraints = {}
 
+        meta = self._get_metadata()
+        
+        if meta.get("requires_shotgun_version") is not None:
+            constraints["min_sg"] = meta.get("requires_shotgun_version")
+        
+        if meta.get("requires_core_version") is not None:
+            constraints["min_core"] = meta.get("requires_core_version")
+
+        if meta.get("requires_engine_version") is not None:
+            constraints["min_engine"] = meta.get("requires_engine_version")
+
+        return constraints
+
+    def get_supported_engines(self):
+        """
+        Returns the engines supported for this app. May return None,
+        meaning that anything goes.
+        
+        return: None                   (all engines are fine!)
+        return: ["tk-maya", "tk-nuke"] (works with maya and nuke)
+        """
+        md  = self._get_metadata()
+        return md.get("supported_engines")
+        
+    def get_configuration_schema(self):
+        """
+        Returns the manifest configuration schema for this bundle.
+        Always returns a dictionary.
+        """
+        md  = self._get_metadata()
+        cfg = md.get("configuration")
+        # always return a dict
+        if cfg is None:
+            cfg = {}
+        return cfg
+         
+    def get_required_frameworks(self):
+        """
+        returns the list of required frameworks for this item.
+        Always returns a list.
+        """
+        md  = self._get_metadata()
+        frameworks = md.get("frameworks")
+        # always return a list
+        if frameworks is None:
+            frameworks = []
+        return frameworks
+
+    ###############################################################################################
+    # stuff typically implemented by deriving classes
+    
+    def get_system_name(self):
+        """
+        Returns a short name, suitable for use in configuration files
+        and for folders on disk
+        """
+        raise NotImplementedError
+    
     def get_version(self):
         """
         Returns the version number string for this item.
         """
-        raise NotImplementedError
-
-    def get_location(self):
-        """
-        Returns the location dict associated with this descriptor
-        """
-        raise NotImplementedError
-
+        raise NotImplementedError    
+    
     def get_path(self):
         """
         returns the path to the folder where this item resides
         """
         raise NotImplementedError
-
-    ###############################################################################################
-    # methods
-
+    
+    def get_doc_url(self):
+        """
+        Returns the documentation url for this item. Returns None if the documentation url
+        is not defined.
+        """
+        return None
+    
+    def get_changelog(self):
+        """
+        Returns information about the changelog for this item.
+        Returns a tuple: (changelog_summary, changelog_url). Values may be None
+        to indicate that no changelog exists.
+        """
+        return (None, None)
+    
     def exists_local(self):
         """
         Returns true if this item exists in a local repo
@@ -180,43 +266,8 @@ class AppDescriptor(object):
         """
         raise NotImplementedError
 
-    def get_metadata(self):
-        """
-        Returns the info.yml metadata associated with this description.
-        Note that this call involves deep introspection; in order to
-        access the metadata we normally need to have the code content
-        local, so this method may trigger a remote code fetch if necessary.
-        """
-        # local import due to cyclic deps
-        from ..platform.environment import Environment
-
-        # make sure payload exists locally
-        if not self.exists_local():
-            self.download_local()
-        # get the metadata
-        bundle_root = self.get_path()
-
-        file_path = os.path.join(bundle_root, constants.BUNDLE_METADATA_FILE)
-
-        if not os.path.exists(file_path):
-            raise TankError("Tank metadata file '%s' missing." % file_path)
-
-        try:
-            file_data = open(file_path)
-            try:
-                metadata = yaml.load(file_data)
-            finally:
-                file_data.close()
-        except Exception, exp:
-            raise TankError("Cannot load metadata file '%s'. Error: %s" % (file_path, exp))
-
-        # validate the bundle
-        if not "configuration" in metadata:
-            raise TankError("Missing configuration section in %s!" % file_path)
-        elif metadata["configuration"] is None:
-            metadata["configuration"] = {}
-
-        return metadata
+    ###############################################################################################
+    # helper methods
 
     def ensure_shotgun_fields_exist(self, project_root):
         """
@@ -233,7 +284,7 @@ class AppDescriptor(object):
         fields exists.
         """
         # first fetch metadata
-        meta = self.get_metadata()
+        meta = self._get_metadata()
         # get a sg handle
         sg = shotgun.create_sg_connection(project_root)
         # get fields def
@@ -263,7 +314,7 @@ class AppDescriptor(object):
         project_hook_file = os.path.join(project_hook_location, "%s.py" % default_hook_name)
         hook_name = default_hook_name
         if os.path.exists(project_hook_file):
-            hook_name = "%s_%s" % (self.get_short_name().replace("-", "_"), default_hook_name)
+            hook_name = "%s_%s" % (self.get_system_name().replace("-", "_"), default_hook_name)
             project_hook_file = os.path.join(project_hook_location, "%s.py" % hook_name)
 
         try:
@@ -287,7 +338,6 @@ def get_from_location(app_or_engine, project_root, location_dict):
     """
     from .app_store_descriptor import TankAppStoreDescriptor
     from .dev_descriptor import TankDevDescriptor
-    from .github_dev_descriptor import TankGitHubDevDescriptor
     from .github_descriptor import TankGitHubDescriptor
     from .git_descriptor import TankGitDescriptor
 
@@ -314,11 +364,6 @@ def get_from_location(app_or_engine, project_root, location_dict):
     # location: {"type": "dev", "windows_path": "c:\\path\\to\\app", "linux_path": "/path/to/app", "mac_path": "/path/to/app"}
     elif location_dict.get("type") == "dev":
         return TankDevDescriptor(project_root, location_dict)
-
-    # github dev - track head of repo
-    # location: {"type": "github_dev", "vendor": "shotgunsoftware", "repo": "tk-nuke"}
-    elif location_dict.get("type") == "github_dev":
-        return TankGitHubDevDescriptor(project_root, location_dict, app_or_engine)
 
     else:
         raise TankError("Invalid location dict '%s'" % location_dict)

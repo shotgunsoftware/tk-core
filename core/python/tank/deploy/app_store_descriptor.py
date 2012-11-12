@@ -56,17 +56,7 @@ class TankAppStoreDescriptor(AppDescriptor):
         # cached metadata - loaded on demand
         self.__cached_metadata = None
 
-    def __repr__(self):
-        if self._type == AppDescriptor.APP:
-            return "Tank App Store App %s, %s" % (self._name, self._version)
-        elif self._type == AppDescriptor.ENGINE:
-            return "Tank App Store Engine %s, %s" % (self._name, self._version)
-        elif self._type == AppDescriptor.FRAMEWORK:
-            return "Tank App Store Framework %s, %s" % (self._name, self._version)
-        else:
-            return "Tank App Store <Unknown> %s, %s" % (self._name, self._version)
-
-    def _get_metadata(self):
+    def _get_app_store_metadata(self):
         """
         Returns a metadata dictionary for this particular location.
         The manner in which this is being retrieved depends on the state of the descriptor.
@@ -286,24 +276,20 @@ class TankAppStoreDescriptor(AppDescriptor):
     ###############################################################################################
     # data accessors
 
-    def get_doc_url(self):
-        """
-        Returns the documentation url for this item. May return None.
-        """
-        metadata = self._get_metadata()
-        url = None
-        try:
-            url = metadata.get("version").get("sg_documentation").get("url")
-        except:
-            pass
-        return url
-
-    def _get_default_display_name(self):
+    def get_display_name(self):
         """
         Returns the display name for this item. The display name represents
         a brief name of the app, such as "Nuke Publish".
         """
-        metadata = self._get_metadata()
+        # overriden from base class. uses name in info.yml if possible.
+        info_yml_display_name = AppDescriptor.get_display_name(self)
+        
+        if info_yml_display_name != self.get_system_name():
+            # there is a display name defined in info.yml! 
+            return info_yml_display_name
+        
+        # no display name found in info.yml - get it from the app store...
+        metadata = self._get_app_store_metadata()
         display_name = "Unknown"
         try:
             display_name = metadata.get("bundle").get("code")
@@ -315,36 +301,22 @@ class TankAppStoreDescriptor(AppDescriptor):
         """
         Returns a short description for the app.
         """
-        metadata = self._get_metadata()
-        desc = "No description found"
+        # overriden from base class. uses name in info.yml if possible.
+        info_yml_description = AppDescriptor.get_description(self)
+        
+        if info_yml_description != "No description available":
+            # there is a display name defined in info.yml! 
+            return info_yml_description
+        
+        # no desc found in info.yml - get it from the app store...
+        metadata = self._get_app_store_metadata()
+        desc = "No description available"
         try:
             desc = metadata.get("bundle").get("description")
         except:
             pass
         return desc
 
-    def get_short_name(self):
-        """
-        Returns a short name, suitable for use in configuration files
-        and for folders on disk
-        """
-        return self._name
-
-    def get_changelog(self):
-        """
-        Returns information about the changelog for this item.
-        Returns a tuple: (changelog_summary, changelog_url). Values may be None
-        to indicate that no changelog exists.
-        """
-        summary = None
-        url = None
-        metadata = self._get_metadata()
-        try:
-            summary = metadata.get("version").get("description")
-            url = metadata.get("version").get("sg_detailed_release_notes").get("url")
-        except:
-            pass
-        return (summary, url)
 
     def get_version_constraints(self):
         """
@@ -354,7 +326,14 @@ class TankAppStoreDescriptor(AppDescriptor):
         * min_core
         * min_engine
         """
-        metadata = self._get_metadata()
+        constraints = AppDescriptor.get_version_constraints(self)
+        if len(constraints) > 0:
+            # found constraints in info.yml
+            # use these
+            return constraints 
+        
+        # no constraints in info.yml. Check with app store
+        metadata = self._get_app_store_metadata()
         constraints = {}
         version = metadata.get("version")
 
@@ -375,17 +354,19 @@ class TankAppStoreDescriptor(AppDescriptor):
 
         return constraints
 
+
+    def get_system_name(self):
+        """
+        Returns a short name, suitable for use in configuration files
+        and for folders on disk
+        """
+        return self._name
+
     def get_version(self):
         """
         Returns the version number string for this item
         """
         return self._version
-
-    def get_location(self):
-        """
-        Returns the location for this descriptor
-        """
-        return self._location_dict
 
     def get_path(self):
         """
@@ -393,8 +374,33 @@ class TankAppStoreDescriptor(AppDescriptor):
         """
         return self._get_local_location(self._type, "app_store", self._name, self._version)
 
-    ###############################################################################################
-    # methods
+    def get_doc_url(self):
+        """
+        Returns the documentation url for this item. May return None.
+        """
+        metadata = self._get_app_store_metadata()
+        url = None
+        try:
+            url = metadata.get("version").get("sg_documentation").get("url")
+        except:
+            pass
+        return url
+
+    def get_changelog(self):
+        """
+        Returns information about the changelog for this item.
+        Returns a tuple: (changelog_summary, changelog_url). Values may be None
+        to indicate that no changelog exists.
+        """
+        summary = None
+        url = None
+        metadata = self._get_app_store_metadata()
+        try:
+            summary = metadata.get("version").get("description")
+            url = metadata.get("version").get("sg_detailed_release_notes").get("url")
+        except:
+            pass
+        return (summary, url)
 
     def exists_local(self):
         """

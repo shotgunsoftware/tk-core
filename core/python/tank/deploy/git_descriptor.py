@@ -34,26 +34,8 @@ class TankGitDescriptor(AppDescriptor):
         if self._path is None or self._version is None:
             raise TankError("Git descriptor is not valid: %s" % str(location_dict))
 
-    def __repr__(self):
-        if self._type == AppDescriptor.APP:
-            return "Git App %s, %s" % (self._path, self._version)
-        elif self._type == AppDescriptor.ENGINE:
-            return "Git Engine %s, %s" % (self._path, self._version)
-        elif self._type == AppDescriptor.FRAMEWORK:
-            return "Git Framework %s, %s" % (self._path, self._version)
-        else:
-            return "Git <Unknown> %s, %s" % (self._path, self._version)
 
-    ###############################################################################################
-    # data accessors
-
-    def _get_default_display_name(self):
-        """
-        Returns the display name for this item
-        """
-        return os.path.basename(self._path)
-
-    def get_short_name(self):
+    def get_system_name(self):
         """
         Returns a short name, suitable for use in configuration files
         and for folders on disk
@@ -66,21 +48,12 @@ class TankGitDescriptor(AppDescriptor):
         """
         return self._version
 
-    def get_location(self):
-        """
-        Returns the location for this descriptor
-        """
-        return self._location_dict
-
     def get_path(self):
         """
         returns the path to the folder where this item resides
         """
         name = os.path.basename(self._path)
         return self._get_local_location(self._type, "git", name, self._version)
-
-    ###############################################################################################
-    # methods
 
     def exists_local(self):
         """

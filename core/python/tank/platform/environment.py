@@ -179,7 +179,7 @@ class Environment(object):
     @property
     def name(self):
         """
-        returns the environemnt name, e.g. the file name of the environment file
+        returns the environment name, e.g. the file name of the environment file
         without its extension
         """
         file_name_with_ext = os.path.basename(self.__env_path)
@@ -307,28 +307,6 @@ class Environment(object):
         
         return d
         
-    def get_framework_metadata(self, framework_name):
-        """
-        Returns the info.yml metadata for an engine
-        """
-        descriptor = self.get_framework_descriptor(framework_name)
-        return descriptor.get_metadata()
-        
-    def get_engine_metadata(self, engine_name):
-        """
-        Returns the info.yml metadata for an engine
-        """
-        descriptor = self.get_engine_descriptor(engine_name)
-        return descriptor.get_metadata()
-
-    def get_app_metadata(self, engine_name, app_name):
-        """
-        Returns the info.yml metadata for an app
-        """
-        descriptor = self.get_app_descriptor(engine_name, app_name)
-        return descriptor.get_metadata()
-        
-        
     ##########################################################################################
     # Public methods - data update
     
@@ -348,7 +326,6 @@ class Environment(object):
         
         # sync internal data with disk
         self.__refresh()
-        
 
     def update_framework_location(self, framework_name, new_location):
         """
@@ -430,7 +407,7 @@ class Environment(object):
         if self.__env_data.get("frameworks") is None:
             self.__env_data["frameworks"] = []
         
-        if engine_name in self.__env_data["frameworks"]:
+        if framework_name in self.__env_data["frameworks"]:
             raise TankError("Framework %s already exists in environment %s" % (framework_name, self.__env_path) )
         
         self.__env_data["frameworks"][framework_name] = {}

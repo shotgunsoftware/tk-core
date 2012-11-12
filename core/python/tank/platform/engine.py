@@ -52,13 +52,11 @@ class Engine(TankBundle):
         TankBundle.__init__(self, tk, context, settings, descriptor)
 
         # Get the settings for the engine and then validate them
-        metadata = self.__env.get_engine_metadata(self.__engine_instance_name)
-        engine_schema = metadata["configuration"]
-        engine_frameworks = metadata.get("frameworks")
+        engine_schema = descriptor.get_configuration_schema()
         validate_settings(self.__engine_instance_name, tk, context, engine_schema, settings)
         
         # set up any frameworks defined
-        setup_frameworks(self, self, metadata, self.__env, descriptor)
+        setup_frameworks(self, self, self.__env, descriptor)
         
         # run the engine init
         self.log_debug("Engine init: Instantiating %s" % self)
@@ -292,17 +290,22 @@ class Engine(TankBundle):
         """
         for app_instance_name in self.__env.get_apps(self.__engine_instance_name):
             
+            # get a handle to the app bundle
+            descriptor = self.__env.get_app_descriptor(self.__engine_instance_name, app_instance_name)
+            if not descriptor.exists_local():
+                self.log_error("Cannot start app! %s does not exist on disk." % descriptor)
+                continue
+            
             # Load settings for app - skip over the ones that don't validate
             try:
                 # get the app settings data and validate it.
-                app_metadata = self.__env.get_app_metadata(self.__engine_instance_name, app_instance_name)
-                app_schema = app_metadata["configuration"]
-                
+                app_schema = descriptor.get_configuration_schema()
                 app_settings = self.__env.get_app_settings(self.__engine_instance_name, app_instance_name)
+                
                 validate_settings(app_instance_name, self.tank, self.context, app_schema, app_settings)
                                 
                 # for multi engine apps, make sure our engine is supported
-                supported_engines = app_metadata.get("supported_engines")
+                supported_engines = descriptor.get_supported_engines()
                 if supported_engines and self.name not in supported_engines:
                     self.log_error("The app %s could not be loaded since it only supports "
                                    "the following engines: %s" % (app_instance_name, supported_engines))
@@ -323,20 +326,17 @@ class Engine(TankBundle):
                                    "The app will not be loaded.\n%s" % (app_instance_name, e))
                 continue
             
-            # now get the app location and resolve it into a version object
-            descriptor = self.__env.get_app_descriptor(self.__engine_instance_name, app_instance_name)
-            if not descriptor.exists_local():
-                self.log_error("Cannot start app! %s does not exist on disk." % descriptor)
-            
-            app_dir = descriptor.get_path()
                                     
             # load the app
             try:
+                # now get the app location and resolve it into a version object
+                app_dir = descriptor.get_path()
+
                 # create the object, run the constructor
                 app = application.get_application(self, app_dir, descriptor, app_settings)
                 
                 # load any frameworks required
-                setup_frameworks(self, app, app_metadata, self.__env, descriptor)
+                setup_frameworks(self, app, self.__env, descriptor)
                 
                 # track the init of the app
                 self.__currently_initializing_app = app

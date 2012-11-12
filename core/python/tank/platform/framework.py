@@ -14,7 +14,7 @@ from . import constants
 
 from ..errors import TankError
 from .bundle import TankBundle
-from .validation import validate_settings, validate_frameworks
+from .validation import validate_settings, validate_and_return_frameworks
 
 class Framework(TankBundle):
     """
@@ -103,15 +103,18 @@ class Framework(TankBundle):
 # Helper methods for loading frameworks
 #
 
-def setup_frameworks(engine_obj, parent_obj, parent_metadata, env, parent_descriptor):
+def setup_frameworks(engine_obj, parent_obj, env, parent_descriptor):
     """
     Checks if any frameworks are needed for the current item
     and in that case loads them - recursively
     """
     
-    item_frameworks = parent_metadata.get("frameworks")
+    frameworks_needed = parent_descriptor.get_required_frameworks()
     
-    framework_instance_names = validate_frameworks(parent_obj.name, env, item_frameworks)
+    # look into the environment, get descriptors for all frameworks that our item needs:
+    framework_instance_names = validate_and_return_frameworks(parent_obj.name, 
+                                                              env, 
+                                                              frameworks_needed)
     
     # looks like all of the frameworks are valid! Load them one by one
     for fw_inst_name in framework_instance_names:
@@ -128,8 +131,7 @@ def _load_framework(engine_obj, env, parent_obj, fw_instance_name):
     try:
         
         # get the app settings data and validate it.
-        fw_metadata = env.get_framework_metadata(fw_instance_name)
-        fw_schema = fw_metadata["configuration"]
+        fw_schema = env.get_framework_descriptor(fw_instance_name).get_configuration_schema()
         
         fw_settings = env.get_framework_settings(fw_instance_name)
         validate_settings(fw_instance_name, 
@@ -162,7 +164,7 @@ def _load_framework(engine_obj, env, parent_obj, fw_instance_name):
         fw = get_framework(engine_obj, fw_dir, descriptor, fw_settings)
         
         # load any frameworks required by the framework :)
-        setup_frameworks(engine_obj, fw, fw_metadata, env, descriptor)
+        setup_frameworks(engine_obj, fw, env, descriptor)
         
         # and run the init
         fw.init_framework()
@@ -172,7 +174,7 @@ def _load_framework(engine_obj, env, parent_obj, fw_instance_name):
     
     else:
         # note! frameworks are keyed by their code name, not their instance name
-        parent_obj.frameworks[descriptor.get_short_name()] = fw
+        parent_obj.frameworks[descriptor.get_system_name()] = fw
 
 
 def get_framework(engine, fw_folder, descriptor, settings):

@@ -503,6 +503,6 @@ class TestValidateFixtures(TankTestBase):
         env = Environment(env_path)
 
         for app_name in env.get_apps(self.test_engine):
-            schema = env.get_app_metadata(self.test_engine, app_name)["configuration"]
+            schema = env.get_app_descriptor(self.test_engine, app_name).get_configuration_schema()
             settings = env.get_app_settings(self.test_engine, app_name)
             validate_settings(app_name, tk, context, schema, settings)

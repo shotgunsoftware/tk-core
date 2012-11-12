@@ -69,7 +69,7 @@ def add_app(log, project_root, env_name, engine_instance_name, app_name):
 
     # now assume a convention where we will name the app instance that we create in the environment
     # the same as the short name of the app
-    app_instance_name = app_descriptor.get_short_name()
+    app_instance_name = app_descriptor.get_system_name()
 
     # check so that there is not an app with that name already!
     if app_instance_name in env.get_apps(engine_instance_name):

@@ -33,7 +33,6 @@ def validate_bundle(log, tk, name, settings, manifest):
 
     log.info("")
     log.info("Validating %s..." % name)
-    manifest = manifest["configuration"]
     
     
     for s in settings.keys():
@@ -79,14 +78,14 @@ def process_environment(log, tk, env_path):
 
     for e in env.get_engines():  
         s = env.get_engine_settings(e)
-        m = env.get_engine_metadata(e)
+        cfg_schema = env.get_engine_descriptor(e).get_configuration_schema()
         name = "Engine %s [environment %s]" % (e, env.name)
-        validate_bundle(log, tk, name, s, m)
+        validate_bundle(log, tk, name, s, cfg_schema)
         for a in env.get_apps(e):
             s = env.get_app_settings(e, a)
-            m = env.get_app_metadata(e, a)
+            cfg_schema = env.get_app_descriptor(e, a).get_configuration_schema()
             name = "App %s: %s [environment %s]" % (e, a, env.name)
-            validate_bundle(log, tk, name, s, m)
+            validate_bundle(log, tk, name, s, cfg_schema)
     
     
     

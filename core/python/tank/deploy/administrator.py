@@ -84,11 +84,10 @@ def _check_constraints(project_root, descriptor_obj, parent_engine_descriptor = 
                                                         curr_engine_version))
             
     # for multi engine apps, validate the supported_engines list
-    md  = descriptor_obj.get_metadata()
-    if "supported_engines" in md:
+    supported_engines  = descriptor_obj.get_supported_engines()
+    if supported_engines is not None:
         # this is a multi engine app!
-        supported_engines = md["supported_engines"]
-        engine_name = parent_engine_descriptor.get_short_name()
+        engine_name = parent_engine_descriptor.get_system_name()
         if engine_name not in supported_engines:
             can_update = False
             reasons.append("Not compatible with engine %s. "
@@ -202,16 +201,16 @@ def generate_settings_diff(new_descriptor, old_descriptor=None):
     }
     
     """
-    # get the new metadata (this will download the app pontentially)
-    new_meta = new_descriptor.get_metadata()
-    new_config_items = new_meta["configuration"].keys()
+    # get the new metadata (this will download the app potentially)
+    schema = new_descriptor.get_configuration_schema()
+    new_config_items = schema.keys()
     
     if old_descriptor is None:
         old_config_items = []
     else:
         try:
-            old_meta = old_descriptor.get_metadata()
-            old_config_items = old_meta["configuration"].keys()
+            old_schema = old_descriptor.get_configuration_schema()
+            old_config_items = old_schema.keys()
         except TankError:
             # download to local failed? Assume that the old version is 
             # not valid. This is an edge case. 
@@ -223,11 +222,11 @@ def generate_settings_diff(new_descriptor, old_descriptor=None):
     # add descriptions and types - skip default values!!!
     data = {}
     for x in new_parameters:        
-        desc = new_meta["configuration"][x].get("description", "No description.")
-        schema_type = new_meta["configuration"][x].get("type", "Unknown")
-        default_val = new_meta["configuration"][x].get("default_value")
+        desc = schema[x].get("description", "No description.")
+        schema_type = schema[x].get("type", "Unknown")
+        default_val = schema[x].get("default_value")
         # check if allows_empty == True, in that case set default value to []
-        if new_meta["configuration"][x].get("allows_empty") == True:
+        if schema[x].get("allows_empty") == True:
             if default_val is None:
                 default_val = []
         
@@ -242,15 +241,13 @@ def validate_parameter(project_root, descriptor, parameter, str_value):
     Returns the object-ified value on success.
     """
     
-    new_meta = descriptor.get_metadata()
-    schema = new_meta["configuration"]
+    schema = descriptor.get_configuration_schema()
     # get the type for the param we are dealing with
     schema_type = schema.get(parameter, {}).get("type", "unknown")
     # now convert string value input to objet (int, string, dict etc)
     obj_value = validation.convert_string_to_type(str_value, schema_type)
     # finally validate this object against the schema
     tk_api = Tank(project_root)
-    schema = new_meta["configuration"]
     validation.validate_single_setting(descriptor.get_display_name(), tk_api, schema, parameter, obj_value)
     
     # we are here, must mean we are good to go!
