@@ -101,6 +101,9 @@ def _install_environment(proj_root, env_cfg, log):
         for app in ed.get_apps(engine):
             descriptors.append( ed.get_app_descriptor(engine, app) )
             
+    for framework in ed.get_frameworks():
+        descriptors.append( ed.get_framework_descriptor(framework) )
+            
     # ensure all apps are local - if not then download them
     for descriptor in descriptors:
         if not descriptor.exists_local():
