@@ -48,6 +48,7 @@ class Schema(object):
 
         # keep track of stuff we are creating
         self.created_items = list()
+        self.creation_history = list()
         
         # check if we are using the preview mode
         self._preview_mode = preview
@@ -131,6 +132,7 @@ class Schema(object):
         Calls make folder callback.
         """
         self.created_items.append(path)
+        self._add_create_history(path, entity)
         if not self._preview_mode:
             self._make_folder_callback(path, entity)            
     
@@ -139,8 +141,19 @@ class Schema(object):
         Calls copy file callback.
         """
         self.created_items.append(target_path)
+        self._add_copy_history(src_path, target_path)
         if not self._preview_mode:
             self._copy_file_callback(src_path, target_path)            
+
+    def _add_create_history(self, path, entity):
+        self.creation_history.append({'path':path,
+                                      'entity':entity,
+                                      'action':constants.CREATE_FOLDER_ACTION})
+
+    def _add_copy_history(self, src_path, target_path):
+        self.creation_history.append({'source_path':src_path,
+                                      'target_path':target_path,
+                                      'action':constants.COPY_FILE_ACTION})
 
     def _visit(self, folder, tokens, parents):
         if isinstance(folder, Entity):
@@ -474,6 +487,12 @@ def process_filesystem_structure(tk, entity_type, entity_ids, preview, engine=No
     if len(entity_ids) == 0:
         return
 
+    tk.execute_hook(constants.PRE_PROCESS_FOLDER_CREATION_HOOK_NAME,
+                    entity_type=entity_type,
+                    entity_ids=entity_ids,
+                    preview=preview,
+                    engine=engine)
+
     # all things to create, organized by type
     items = {}
 
@@ -534,5 +553,10 @@ def process_filesystem_structure(tk, entity_type, entity_ids, preview, engine=No
     for entity_type, entity_ids in items.items():
         for entity_id in entity_ids:
             entities_processed += schema.create_folders(entity_type, entity_id, engine)
+
+    tk.execute_hook(constants.POST_PROCESS_FOLDER_CREATION_HOOK_NAME,
+                    num_entities_processed=entities_processed,
+                    processed_items=schema.creation_history,
+                    preview=preview)
 
     return (entities_processed, schema.created_items)

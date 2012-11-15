@@ -76,6 +76,12 @@ COPY_FILE_CORE_HOOK_NAME = "copy_file"
 CREATE_FOLDERS_CORE_HOOK_NAME = "create_folder"
 PICK_ENVIRONMENT_CORE_HOOK_NAME = "pick_environment"
 PROCESS_FOLDER_NAME_HOOK_NAME = "process_folder_name"
+PRE_PROCESS_FOLDER_CREATION_HOOK_NAME = 'pre_process_folder_creation'
+POST_PROCESS_FOLDER_CREATION_HOOK_NAME = 'post_process_folder_creation'
+
+# folder creation actions
+CREATE_FOLDER_ACTION = 'create_folder'
+COPY_FILE_ACTION = 'copy_file'
 
 ###############################################################################################
 # environment cfg constants
