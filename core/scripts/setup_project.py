@@ -21,14 +21,13 @@ import datetime
 import pprint
 import platform
 
-from distutils.version import LooseVersion
-
 # make sure that the core API is part of the pythonpath
 python_path = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "python"))
 sys.path.append(python_path)
 
 from tank.util import shotgun
 from tank.deploy import descriptor
+from tank.deploy import util as deploy_util
 from tank.platform import constants 
 from tank.errors import TankError
 from tank.platform import environment
@@ -147,10 +146,8 @@ def _check_manifest(studio_root, starter_config, tk, sg_version_str, log):
         # there is a sg min version required - make sure we have that!
         
         required_version = metadata["requires_shotgun_version"]
-        if required_version.startswith("v"):
-            required_version = required_version[1:]        
-        
-        if LooseVersion(required_version) > LooseVersion(sg_version_str):
+
+        if deploy_util.is_version_newer(required_version, sg_version_str):
             raise TankError("This configuration requires Shotgun version %s "
                             "but you are running version %s" % (required_version, sg_version_str))
         else:
@@ -162,15 +159,11 @@ def _check_manifest(studio_root, starter_config, tk, sg_version_str, log):
         # there is a core min version required - make sure we have that!
         
         required_version = metadata["requires_core_version"]
-        if required_version.startswith("v"):
-            required_version = required_version[1:]     
         
         # now figure out the current version of the core api
         curr_core_version = constants.get_core_api_version()
-        if curr_core_version.startswith("v"):
-            curr_core_version = curr_core_version[1:]     
-        
-        if LooseVersion(required_version) > LooseVersion(curr_core_version):
+
+        if deploy_util.is_version_newer(required_version, curr_core_version):        
             raise TankError("This configuration requires Tank Core version %s "
                             "but you are running version %s" % (required_version, curr_core_version))
         else:

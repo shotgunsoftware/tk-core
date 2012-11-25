@@ -11,12 +11,13 @@ import sys
 import uuid
 import tempfile
 from tank_vendor import yaml
-from distutils.version import LooseVersion
+
 
 from ..errors import TankError
 from ..util import shotgun
 from ..platform import constants
 from .zipfilehelper import unzip_file
+from . import util
 
 TANK_CORE_VERSION_ENTITY = "CustomNonProjectEntity01"
 TANK_CODE_PAYLOAD_FIELD = "sg_payload"
@@ -140,11 +141,8 @@ class TankCoreUpgrader(object):
                 return TankCoreUpgrader.UPGRADE_POSSIBLE
             
             else:
-                # there is a required version. Compare it to current.
-                if req_sg.startswith("v"):
-                    req_sg = req_sg[1:]        
                 # there is a sg min version required - make sure we have that!
-                if LooseVersion(req_sg) > LooseVersion(self._sg_studio_version):
+                if util.is_version_newer(req_sg, self._sg_studio_version):
                     return TankCoreUpgrader.UPGRADE_BLOCKED_BY_SG
                 else:
                     return TankCoreUpgrader.UPGRADE_POSSIBLE

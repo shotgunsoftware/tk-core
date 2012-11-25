@@ -8,6 +8,7 @@ Stuff like adding, updating and removing items from environments.
 """
 
 from . import descriptor
+from . import util
 from .descriptor import AppDescriptor
 from ..util import shotgun
 from ..platform import constants
@@ -15,7 +16,6 @@ from ..platform import validation
 from ..errors import TankError
 from ..api import Tank
 
-from distutils.version import LooseVersion
 
 ##########################################################################################
 # helpers
@@ -53,11 +53,7 @@ def _check_constraints(project_root, descriptor_obj, parent_engine_descriptor = 
         # ensure shotgun version is ok
         studio_sg_version = __get_sg_version(project_root)
         minimum_sg_version = constraints["min_sg"]
-        # strip the v off the shotgun version if there is one
-        if minimum_sg_version.startswith("v"):
-            minimum_sg_version = minimum_sg_version[1:]
-            
-        if LooseVersion(studio_sg_version) < LooseVersion(minimum_sg_version):
+        if util.is_version_older(studio_sg_version, minimum_sg_version):
             can_update = False
             reasons.append("Requires at least Shotgun v%s but currently "
                            "installed version is v%s." % (minimum_sg_version, studio_sg_version))
@@ -66,8 +62,7 @@ def _check_constraints(project_root, descriptor_obj, parent_engine_descriptor = 
         # ensure core API is ok
         core_api_version = constants.get_core_api_version()
         minimum_core_version = constraints["min_core"]
-        
-        if LooseVersion(core_api_version) < LooseVersion(minimum_core_version):
+        if util.is_version_older(core_api_version, minimum_core_version):
             can_update = False
             reasons.append("Requires at least Core API %s but currently "
                            "installed version is %s." % (minimum_core_version, core_api_version))
@@ -75,8 +70,7 @@ def _check_constraints(project_root, descriptor_obj, parent_engine_descriptor = 
     if "min_engine" in constraints:
         curr_engine_version = parent_engine_descriptor.get_version()
         minimum_engine_version = constraints["min_engine"]
-        
-        if LooseVersion(curr_engine_version) < LooseVersion(minimum_engine_version):
+        if util.is_version_older(curr_engine_version, minimum_engine_version):
             can_update = False
             reasons.append("Requires at least Engine %s %s but currently "
                            "installed version is %s." % (parent_engine_descriptor.get_display_name(),
@@ -156,7 +150,7 @@ def check_item_update_status(project_root, environment_obj, engine_name, app_nam
 
     if not out_of_date:
         can_update = False
-        status = "Engine is up to date!"
+        status = "Item is up to date!"
     
     else:
         # maybe we can update!

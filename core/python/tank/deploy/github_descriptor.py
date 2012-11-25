@@ -18,8 +18,6 @@ import shutil
 import urllib
 import tempfile
 
-from distutils.version import LooseVersion
-
 # use sg api json to cover py 2.5
 # todo - replace with proper external library
 from tank_vendor import shotgun_api3 
@@ -29,6 +27,7 @@ from ..errors import TankError
 from ..platform import constants
 from .descriptor import AppDescriptor
 from .zipfilehelper import unzip_file
+from . import util
 
 
 class TankGitHubDescriptor(AppDescriptor):
@@ -168,7 +167,7 @@ class TankGitHubDescriptor(AppDescriptor):
             if highest is None:
                 highest = x
             else:
-                if LooseVersion(x) > LooseVersion(highest):
+                if util.is_version_newer(x, highest):
                     highest = x
 
         new_loc_dict = copy.deepcopy(self._location_dict)
