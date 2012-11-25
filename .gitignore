@@ -1,5 +1,14 @@
 *.py[co]
 
+# apps, engines, frameworks
+# ignore everything except the readme file
+apps/*
+!apps/README
+engines/*
+!engines/README
+frameworks/*
+!frameworks/README
+
 # Packages
 *.egg
 *.egg-info
