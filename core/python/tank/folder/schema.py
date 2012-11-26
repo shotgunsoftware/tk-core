@@ -378,11 +378,15 @@ class Schema(object):
         project_dirs = self._directory_paths(schema_config_path)
         
         if len(project_dirs) == 1:
-            # Only one project root
+            # Only one project root - in this case, this single root needs to be named
+            # 'project' for backwards compatibility reasons and it represents the 
+            # project name in shotgun
             project_root = os.path.join(schema_config_path, "project")
             
             if not os.path.exists(project_root):
-                raise TankError("Could not find a root folder named 'project' in %s!" % schema_config_path)
+                raise TankError("When running Tank in a single-root configuration, a folder "
+                                "named 'project' needs to be present in %s. This folder "
+                                "represents the current Shotgun project." % schema_config_path)                
              
             # make root node
             project = Project(self.project_root)
@@ -391,8 +395,10 @@ class Schema(object):
              
             # recursively process the rest
             self._process_config_r(project, project_root)
+        
         elif len(project_dirs) > 1:
-            # Multiple project roots
+            # Multiple project roots - now you can arbitrary name things.
+            
             roots = root.get_project_roots(self.project_root)
             for project_dir in project_dirs:
                 project_root = os.path.join(schema_config_path, project_dir)
