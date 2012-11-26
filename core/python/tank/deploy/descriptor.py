@@ -43,7 +43,7 @@ class AppDescriptor(object):
 
     def __repr__(self):
         class_name = self.__class__.__name__
-        return "<%s %s %s>" % (class_name, self.get_system_name(), self.get_version())
+        return "%s %s %s" % (class_name, self.get_system_name(), self.get_version())
 
     def _get_local_location(self, app_type, descriptor_name, name, version):
         """
