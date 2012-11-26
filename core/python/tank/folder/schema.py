@@ -91,7 +91,6 @@ class Schema(object):
         # ensure its parent folders exist. Then, create the folder for this entity with
         # all its children.
         for folder in folders:
-            parents = []
             
             # fill in the information we know about this entity now
             tokens = { 
@@ -99,18 +98,24 @@ class Schema(object):
             }
             
             # now go up the tree and populate parents and tokens
+            parents = []
             self._visit(folder, tokens, parents)
             
-            # get the parent folder of the project
-            if entity_type == "Project":
-                path = os.path.abspath(os.path.join(folder.root_path, os.path.pardir))
-            else:
-                path = os.path.abspath(os.path.join(parents[-1].root_path, os.path.pardir))
+            # now we got all the parents, the list goes from the bottom up
+            # [Entity /Project/sequences/Sequence/Shot, Entity /Project/sequences/Sequence, Static /Project/sequences, Project /Project]
+            # the last element is now always the project object
+            folder_objects_to_recurse = [folder] + parents
+            
+            # get the project object and take it out of the list
+            # [Entity /Project/sequences/Sequence/Shot, Entity /Project/sequences/Sequence, Static /Project/sequences]
+            project_folder = folder_objects_to_recurse.pop()
+
+            # get the parent path of the project folder
+            parent_project_path = os.path.abspath(os.path.join(project_folder.root_path, ".."))
             
             # now walk down from the project level until we reach our entity 
             # and create all the structure, then create our entity's children.
-            to_visit = [folder] + parents
-            to_visit.pop().create_folders(self, path, tokens, to_visit, engine=engine)
+            project_folder.create_folders(self, parent_project_path, tokens, folder_objects_to_recurse, engine=engine)
             
         # return how many folders were created
         return self.num_entity_folders
@@ -466,7 +471,6 @@ def process_filesystem_structure(tk, entity_type, entity_ids, preview, engine=No
     
     """
 
-
     # Ensure ids is a list
     if not isinstance(entity_ids, (list, tuple)):
         if isinstance(entity_ids, int):
@@ -485,6 +489,8 @@ def process_filesystem_structure(tk, entity_type, entity_ids, preview, engine=No
 
     # Add the project
     # assume all entites belong to the same project
+    # it is necessary for the folder recursion to start at some point
+    # so we always need to ensure that the project folder exists. 
     if entity_type != "Project":
         data = tk.shotgun.find_one(entity_type, [["id", "is", entity_ids[0]]], ["project"])
         if not data:
@@ -511,8 +517,6 @@ def process_filesystem_structure(tk, entity_type, entity_ids, preview, engine=No
     else:
         # normal entities
         items[entity_type] = entity_ids
-
-
 
     # Define a create folder callback.
     def _make_folder_callback(path, entity):
