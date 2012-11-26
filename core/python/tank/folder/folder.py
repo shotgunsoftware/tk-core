@@ -35,6 +35,20 @@ class Folder(object):
         if self.parent:
             # add me to parent!
             self.parent.add_child(self)
+    
+    def __get_full_schema_name(self):
+        """
+        Helper for repr. Returns the path to this node,
+        e.g /project/shot/sequence/foo/bar
+        """
+        if self.parent is None:
+            return "/%s" % self.schema_name
+        else:
+            return "%s/%s" % (self.parent.__get_full_schema_name(), self.schema_name)
+    
+    def __repr__(self):
+        class_name = self.__class__.__name__
+        return "%s %s" % (class_name, self.__get_full_schema_name())
             
     def add_child(self, child):
         """
