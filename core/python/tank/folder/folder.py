@@ -635,8 +635,9 @@ class Entity(Folder):
                     # will raise an error.
                     if token_key == value.get("type", token_key):
                         tokens[token_key] = value
+                
                 else:
-                        tokens[token_key] = value
+                    tokens[token_key] = value
             else:
                 # field was none! - cannot handle that
                 raise TankError("The %s %s has a required field %s that \ndoes not have a value "

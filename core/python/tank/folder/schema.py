@@ -177,7 +177,7 @@ class Schema(object):
             # skip static folders (project folder in single root project is special case.)
             # check if there is a yml file with the same name
             yml_file = "%s.yml" % curr_path
-            if os.path.basename(curr_path) == "project"   or os.path.exists(yml_file):
+            if os.path.basename(curr_path) == "project" or os.path.exists(yml_file):
                 # the curr folder name matches the $reference! It's a match! 
                 if os.path.basename(curr_path) == ref_token:
                     return obj
