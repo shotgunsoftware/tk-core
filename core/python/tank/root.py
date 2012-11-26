@@ -12,11 +12,12 @@ from .errors import TankError
 from . import constants
 
 def get_project_roots(project_root):
-    """Returns a mapping of project root names to root paths based on roots file.
+    """
+    Returns a mapping of project root names to root paths based on roots file.
     
     :param project_root: Path to primary project root.
-    
-    :returns: Dictionary of project root names to project root paths"""
+    :returns: Dictionary of project root names to project root paths
+    """
     
     roots = {}
     roots_data = _read_roots_file(project_root)
@@ -47,10 +48,19 @@ def platform_paths_for_root(root_name, project_root):
     """
     project_name = os.path.basename(project_root)
     roots_data = _read_roots_file(project_root)
-    root_data = roots_data.get(root_name, {})
-    # Add project directory
-    for key, value in root_data.items():
-        root_data[key] = os.path.join(value, project_name)
+    root_data = roots_data.get(root_name)
+    if root_data is None:
+        root_data = {}
+    
+    # Add project directory to the root path for all platforms defined
+    # in the roots file
+    for platform in root_data:
+        platform_root_path = root_data.get(platform)
+        if platform_root_path is None:
+            # skip it!
+            continue
+
+        root_data[platform] = os.path.join(platform_root_path, project_name)
     return root_data
 
 
