@@ -19,6 +19,7 @@ from .util import shotgun
 from .errors import TankError
 from .path_cache import PathCache
 from .template import read_templates, TemplatePath
+from .platform import constants as platform_constants
 
 class Tank(object):
     """
@@ -34,6 +35,8 @@ class Tank(object):
         self.roots = root.get_project_roots(self.project_path)
         self.templates = read_templates(project_path, self.roots)
         
+        # execute a tank_init hook for developers to use.
+        self.execute_hook(platform_constants.TANK_INIT_HOOK_NAME)
 
     ################################################################################################
     # properties
