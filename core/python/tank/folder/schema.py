@@ -127,33 +127,35 @@ class Schema(object):
                 # path not in cache yet - add it now!
                 self._path_cache.add_mapping(entity_type, entity_id, entity_name, path)
         
-    def make_folder(self, path, entity):
+    def make_folder(self, path, entity, metadata):
         """
         Calls make folder callback.
         """
         self.created_items.append(path)
-        self._add_create_history(path, entity)
+        self._add_create_history(path, entity, metadata)
         if not self._preview_mode:
-            self._make_folder_callback(path, entity)            
+            self._make_folder_callback(path, entity)
     
-    def copy_file(self, src_path, target_path):
+    def copy_file(self, src_path, target_path, metadata):
         """
         Calls copy file callback.
         """
         self.created_items.append(target_path)
-        self._add_copy_history(src_path, target_path)
+        self._add_copy_history(src_path, target_path, metadata)
         if not self._preview_mode:
             self._copy_file_callback(src_path, target_path)            
 
-    def _add_create_history(self, path, entity):
-        self.creation_history.append({'path':path,
-                                      'entity':entity,
-                                      'action':constants.CREATE_FOLDER_ACTION})
+    def _add_create_history(self, path, entity, metadata):
+        self.creation_history.append({'path': path,
+                                      'entity': entity,
+                                      'metadata': metadata,
+                                      'action': constants.CREATE_FOLDER_ACTION})
 
-    def _add_copy_history(self, src_path, target_path):
-        self.creation_history.append({'source_path':src_path,
-                                      'target_path':target_path,
-                                      'action':constants.COPY_FILE_ACTION})
+    def _add_copy_history(self, src_path, target_path, metadata):
+        self.creation_history.append({'source_path': src_path,
+                                      'target_path': target_path,
+                                      'metadata': metadata,
+                                      'action': constants.COPY_FILE_ACTION})
 
     def _visit(self, folder, tokens, parents):
         if isinstance(folder, Entity):
@@ -197,7 +199,7 @@ class Schema(object):
         """
         file_name = os.path.basename(full_path)
         defer_creation = metadata.get("defer_creation", False)
-        return Static(parent_node, file_name, defer_creation)        
+        return Static(parent_node, file_name, defer_creation, metadata)        
 
     
     def _create_user_workspace_node(self, full_path, parent_node, metadata):
@@ -211,7 +213,7 @@ class Schema(object):
         if sg_name_expression is None:
             raise TankError("Missing name token in yml metadata file %s" % full_path )
 
-        return UserWorkspace(parent_node, sg_name_expression, defer_creation, self.sg)
+        return UserWorkspace(parent_node, sg_name_expression, defer_creation, self.sg, metadata)
 
 
     def _create_sg_entity_node(self, full_path, parent_node, metadata):
@@ -271,7 +273,7 @@ class Schema(object):
         entity_filter["conditions"] = filters
         
         # construct
-        return Entity(parent_node, entity_type, sg_name_expression, entity_filter, create_with_parent, defer_creation)
+        return Entity(parent_node, entity_type, sg_name_expression, entity_filter, create_with_parent, defer_creation, metadata)
     
     def _create_sg_list_field_node(self, full_path, parent_node, metadata):
         """
@@ -291,7 +293,7 @@ class Schema(object):
             raise TankError("Missing field_name token in yml metadata file %s" % full_path )
         
         # construct
-        return ListField(parent_node, entity_type, field_name, skip_unused, defer_creation)
+        return ListField(parent_node, entity_type, field_name, skip_unused, defer_creation, metadata)
     
     
     

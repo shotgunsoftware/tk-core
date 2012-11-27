@@ -13,6 +13,12 @@ class PreProcessFolders(Hook):
     
     def execute(self, entity_type, entity_ids, preview, engine, **kwargs):
         """
-        The default implementation creates folders recursively using open permissions.
+        Executes before a process_filesystem_structure is run.
+
+        * entity_type: the shotgun entity type for which the value is taken
+        * entity_id: The entity id representing the data
+        * preview: determines if the create or copy should be fulfilled
+        * engine: an engine name for second pass
+
         """
         pass
