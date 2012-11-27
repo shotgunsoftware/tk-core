@@ -22,7 +22,7 @@ class Folder(object):
     (This should not be used in any configuration)
     """
     
-    def __init__(self, parent, schema_name, defer_creation):
+    def __init__(self, parent, schema_name, defer_creation, metadata):
         """
         Constructor
         """
@@ -31,6 +31,7 @@ class Folder(object):
         self.parent = parent
         self.files = []
         self.defer_creation = defer_creation
+        self.metadata = metadata
         
         if self.parent:
             # add me to parent!
@@ -103,7 +104,7 @@ class Folder(object):
         """
         for src_file in self.files:
             target_path = os.path.join(path, os.path.basename(src_file))
-            schema.copy_file(src_file, target_path)
+            schema.copy_file(src_file, target_path, self.metadata)
 
     def _create_child_folders(self, schema, path, tokens, explicit_child_list=None, engine=None):
         """
@@ -143,11 +144,11 @@ class Static(Folder):
     Represents a static folder in the file system
     """
     
-    def __init__(self, parent, name, defer_creation=False):
+    def __init__(self, parent, name, defer_creation=False, metadata={}):
         """
         The name parameter represents the folder name that will be created in the file system.
         """
-        Folder.__init__(self, parent, name, defer_creation)
+        Folder.__init__(self, parent, name, defer_creation, metadata)
         self.name = name
     
     def _create_folders(self, schema, path, tokens, explicit_child_list=None, engine=None):
@@ -166,7 +167,7 @@ class Static(Folder):
         my_path = os.path.join(path, self.name)
         
         # call out to callback
-        schema.make_folder(my_path, None)
+        schema.make_folder(my_path, None, self.metadata)
 
         # copy files across
         self._copy_files_to_folder(schema, my_path)
@@ -181,13 +182,13 @@ class ListField(Folder):
     Represents values from a Shotgun list field in the file system (like Asset.sg_asset_type)
     """
 
-    def __init__(self, parent, entity_type, field_name, skip_unused, defer_creation):
+    def __init__(self, parent, entity_type, field_name, skip_unused, defer_creation, metadata):
         self.entity_type = entity_type
         self.field_name = field_name
         self.token_name = "%s.%s" % (entity_type, field_name)
         self.skip_unused = skip_unused
         
-        Folder.__init__(self, parent, self.token_name, defer_creation)
+        Folder.__init__(self, parent, self.token_name, defer_creation, metadata)
         
     def _create_folders(self, schema, path, tokens, explicit_child_list=None, engine=None):
         """
@@ -209,7 +210,7 @@ class ListField(Folder):
         # process each value independently
         for value in values:
             my_path = os.path.join(path, value)
-            schema.make_folder(my_path, None)
+            schema.make_folder(my_path, None, self.metadata)
             
             # copy files across
             self._copy_files_to_folder(schema, my_path)
@@ -377,7 +378,7 @@ class Entity(Folder):
     Represents an entity in Shotgun
     """
     
-    def __init__(self, parent, entity_type, field_name_expression, filters, create_with_parent, defer_creation):
+    def __init__(self, parent, entity_type, field_name_expression, filters, create_with_parent, defer_creation, metadata):
         """
         Constructor.
         
@@ -404,7 +405,7 @@ class Entity(Folder):
         """
         
         # the schema name is the same as the SG entity type
-        Folder.__init__(self, parent, entity_type, defer_creation)
+        Folder.__init__(self, parent, entity_type, defer_creation, metadata)
         
         self.entity_type = entity_type
         self.entity_name_obj = EntityName(self.entity_type, field_name_expression)
@@ -482,7 +483,7 @@ class Entity(Folder):
                 
         # create folder via callback
         my_path = os.path.join(path, folder_name)
-        schema.make_folder(my_path, entity)
+        schema.make_folder(my_path, entity, self.metadata)
         
         # copy files across
         self._copy_files_to_folder(schema, my_path)
@@ -638,7 +639,7 @@ class UserWorkspace(Entity):
     application startup.
     """
     
-    def __init__(self, parent, field_name_expression, defer_creation, sg):
+    def __init__(self, parent, field_name_expression, defer_creation, sg, metadata):
         # this query confirms that there is a matching HumanUser in shotgun for the local login
         # This means that a query for the user happens twice, here and later during _get_entities
         # TODO possibly keep the result from this query instead and remove the later, duplicate, one
@@ -657,7 +658,8 @@ class UserWorkspace(Entity):
                         field_name_expression, 
                         filters, 
                         create_with_parent=True, 
-                        defer_creation=defer_creation)
+                        defer_creation=defer_creation,
+                        metadata=metadata)
 
 ################################################################################################
 
@@ -666,7 +668,7 @@ class Project(Entity):
     The root point. Represents a shotgun project.
     """
     
-    def __init__(self, root_path):
+    def __init__(self, root_path, metadata={}):
         no_filters = {
             "logical_operator": "and",
             "conditions": []
@@ -678,7 +680,8 @@ class Project(Entity):
                         "tank_name", 
                         no_filters,
                         create_with_parent=False,
-                        defer_creation=False)
+                        defer_creation=False,
+                        metadata=metadata)
         self.root_path = root_path
 
     def _create_folder(self, schema, path, entity):
@@ -688,9 +691,9 @@ class Project(Entity):
         if my_path != schema.project_root:
             # make tank config directories
             tank_dir = os.path.join(my_path, "tank")
-            schema.make_folder(tank_dir, None)
+            schema.make_folder(tank_dir, None, metadata)
             config_dir = os.path.join(my_path, "tank", "config")
-            schema.make_folder(config_dir, None)
+            schema.make_folder(config_dir, None, metadata)
             # write primary path 
             root.write_primary_root(config_dir, schema.project_root)
         return my_path
