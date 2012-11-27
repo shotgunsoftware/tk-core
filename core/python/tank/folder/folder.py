@@ -6,10 +6,7 @@ Folder Classes representing various types of dynamic behaviour
 """
 import os
 import copy
-import string
 import re
-
-from tank_vendor import yaml
 
 from ..util import login
 from ..platform import constants
@@ -211,6 +208,8 @@ class ListField(Folder):
         # First check the constraints: if tokens contains a matching value, only create a single
         # folder. Otherwise, create folders for all list field values.
         if self.token_name in tokens:
+            # todo - investigate why this code is needed....
+            # either remove or add a example that illustrates this use case
             values = [tokens[self.token_name]]
         else:
             # TODO: handle no response
