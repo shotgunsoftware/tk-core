@@ -37,6 +37,11 @@ class TankDevDescriptor(AppDescriptor):
         # lastly, resolve environment variables
         self._path = os.path.expandvars(self._path)
 
+        # if there is a version defined in the location dict
+        self._version = "Undefined"
+        if "version" in location_dict:
+            self._version = location_dict.get("version")
+
 
     def get_system_name(self):
         """
@@ -52,7 +57,7 @@ class TankDevDescriptor(AppDescriptor):
         """
         Returns the version number string for this item
         """
-        return "Undefined"
+        return self._version
 
     def get_path(self):
         """
