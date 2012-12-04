@@ -24,6 +24,8 @@ def get_login_name():
         except:
             return None
 
+g_shotgun_user_cache = None
+
 def get_shotgun_user(sg):
     """
     Retrieves a shotgun user dict
@@ -40,6 +42,11 @@ def get_shotgun_user(sg):
     
     This method connects to shotgun.
     """    
-    fields = ["id", "type", "email", "login", "name", "image"]
-    local_login = get_login_name()
-    return sg.find_one("HumanUser", filters=[["login", "is", local_login]], fields=fields)
+    global g_shotgun_user_cache
+    if g_shotgun_user_cache is None:        
+        fields = ["id", "type", "email", "login", "name", "image"]
+        local_login = get_login_name()
+        g_shotgun_user_cache = sg.find_one("HumanUser", filters=[["login", "is", local_login]], fields=fields)
+    
+    return g_shotgun_user_cache
+        
