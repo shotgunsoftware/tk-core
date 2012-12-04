@@ -447,7 +447,14 @@ class TankAppStoreDescriptor(AppDescriptor):
 
         # and now for the download.
         # @todo: progress feedback here - when the SG api supports it!
-        bundle_content = sg.download_attachment(attachment_id)
+        # sometimes people report that this download fails (because of flaky connections etc)
+        # engines can often be 30-50MiB - as a quick fix, just retry the download once
+        # if it fails.
+        try:
+            bundle_content = sg.download_attachment(attachment_id)
+        except:
+            # retry once
+            bundle_content = sg.download_attachment(attachment_id)
 
         zip_tmp = os.path.join(tempfile.gettempdir(), "%s_tank.zip" % uuid.uuid4().hex)
         fh = open(zip_tmp, "wb")
