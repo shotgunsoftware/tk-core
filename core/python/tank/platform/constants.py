@@ -74,6 +74,9 @@ SHOTGUN_ENVIRONMENT = "shotgun"
 # hook that is executed when a tank instance initializes.
 TANK_INIT_HOOK_NAME = "tank_init"
 
+# hook that is executed before a publish is registered in sg.
+TANK_PUBLISH_HOOK_NAME = "before_register_publish"
+
 # the name of the built in create folders hook
 COPY_FILE_CORE_HOOK_NAME = "copy_file"
 CREATE_FOLDERS_CORE_HOOK_NAME = "create_folder"
