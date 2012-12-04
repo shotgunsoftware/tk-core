@@ -185,7 +185,8 @@ class TankBundle(object):
             
     def execute_hook(self, key, **kwargs):
         """
-        Shortcut for grabbing the hook name used in the settings, then calling execute_hook_by_name() on it.
+        Shortcut for grabbing the hook name used in the settings, 
+        then calling execute_hook_by_name() on it.
         """
         hook_name = self.get_setting(key)
         return self.execute_hook_by_name(hook_name, **kwargs)
