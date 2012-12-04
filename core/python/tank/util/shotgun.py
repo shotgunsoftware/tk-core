@@ -456,6 +456,9 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
     if tank_type:
         data['tank_type'] = tank_type
 
+    # now call out to hook just before publishing
+    data = tk.execute_hook(constants.TANK_PUBLISH_HOOK_NAME, shotgun_data=data, context=context)
+
     return tk.shotgun.create("TankPublishedFile", data)
 
 def _calc_path_cache(project_root, path):
