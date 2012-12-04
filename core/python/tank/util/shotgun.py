@@ -424,6 +424,12 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
         # task
         if update_task_thumbnail == True and task is not None:
             tk.shotgun.upload_thumbnail("Task", task["id"], thumbnail_path)
+            
+    else:
+        # no thumbnail found - instead use the default one
+        this_folder = os.path.abspath(os.path.dirname(__file__))
+        no_thumb = os.path.join(this_folder, "no_preview.jpg")
+        tk.shotgun.upload_thumbnail("TankPublishedFile", entity["id"], no_thumb)
 
 
     # register dependencies
