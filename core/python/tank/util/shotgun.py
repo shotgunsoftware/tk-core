@@ -289,6 +289,40 @@ def _group_by_storage(tk, list_of_paths):
     return storages_paths
 
 
+def create_event_log_entry(tk, context, event_type, description):
+    """
+    Creates an event log entry inside of Shotgun.
+    Event log entries can be handy if you want to track a process or a sequence of events.
+    
+    :param tk: Tank API instance
+    
+    :param context: Context which will be used to associate the event log entry
+    
+    :param event_type: String which defines the event type. The Shotgun standard suggests
+                       that this should be on the form Company_Item_Action. Examples include:
+                       
+                       Shotgun_Asset_New
+                       Shotgun_Asset_Change
+                       Shotgun_User_Login
+                       
+    :param description: A verbose description explaining the meaning of this event.
+    """
+    
+    data = {}
+    data["description"] = description
+    data["event_type"] = event_type
+    data["entity"] = context.entity
+    data["project"] = context.project
+
+    sg_user = login.get_shotgun_user(tk.shotgun)
+    if sg_user:
+        data["user"] = sg_user
+    
+    tk.shotgun.create("EventLogEntry", data)
+    
+
+
+
 def register_publish(tk, context, path, name, version_number, **kwargs):
     """
     Creates a Tank Published File in Shotgun.
