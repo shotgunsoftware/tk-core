@@ -289,7 +289,7 @@ def _group_by_storage(tk, list_of_paths):
     return storages_paths
 
 
-def create_event_log_entry(tk, context, event_type, description):
+def create_event_log_entry(tk, context, event_type, description, metadata=None):
     """
     Creates an event log entry inside of Shotgun.
     Event log entries can be handy if you want to track a process or a sequence of events.
@@ -307,6 +307,10 @@ def create_event_log_entry(tk, context, event_type, description):
                        
     :param description: A verbose description explaining the meaning of this event.
     
+    :param metadata: A dictionary of metadata information which will be attached to the event
+                     log record in Shotgun. This dictionary may only contain simple data types
+                     such as ints, strings etc.
+    
     :returns: The newly created shotgun record
     """
     
@@ -315,6 +319,7 @@ def create_event_log_entry(tk, context, event_type, description):
     data["event_type"] = event_type
     data["entity"] = context.entity
     data["project"] = context.project
+    data["meta"] = metadata
 
     sg_user = login.get_shotgun_user(tk.shotgun)
     if sg_user:
