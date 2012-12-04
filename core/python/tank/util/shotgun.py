@@ -306,6 +306,8 @@ def create_event_log_entry(tk, context, event_type, description):
                        Shotgun_User_Login
                        
     :param description: A verbose description explaining the meaning of this event.
+    
+    :returns: The newly created shotgun record
     """
     
     data = {}
@@ -318,7 +320,7 @@ def create_event_log_entry(tk, context, event_type, description):
     if sg_user:
         data["user"] = sg_user
     
-    tk.shotgun.create("EventLogEntry", data)
+    return tk.shotgun.create("EventLogEntry", data)
     
 
 
