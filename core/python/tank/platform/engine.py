@@ -81,6 +81,8 @@ class Engine(TankBundle):
         # now run the post app init
         self.post_app_init()
         
+        # emit an engine started event
+        tk.execute_hook(constants.TANK_ENGINE_INIT_HOOK_NAME, engine=self)
         
         self.log_debug("Init complete: %s" % self)
         
