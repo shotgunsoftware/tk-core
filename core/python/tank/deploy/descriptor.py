@@ -43,7 +43,13 @@ class AppDescriptor(object):
 
     def __repr__(self):
         class_name = self.__class__.__name__
-        return "%s %s %s" % (class_name, self.get_system_name(), self.get_version())
+        return "<%s %s %s>" % (class_name, self.get_system_name(), self.get_version())
+
+    def __str__(self):
+        """
+        Used for pretty printing
+        """
+        return "%s %s" % (self.get_system_name(), self.get_version())
 
     def _get_local_location(self, app_type, descriptor_name, name, version):
         """
@@ -269,7 +275,7 @@ class AppDescriptor(object):
     ###############################################################################################
     # helper methods
 
-    def ensure_shotgun_fields_exist(self, project_root):
+    def ensure_shotgun_fields_exist(self):
         """
         Ensures that any shotgun fields a particular descriptor requires
         exists in shotgun. In the metadata (info.yml) for an app or an engine,
@@ -286,7 +292,7 @@ class AppDescriptor(object):
         # first fetch metadata
         meta = self._get_metadata()
         # get a sg handle
-        sg = shotgun.create_sg_connection(project_root)
+        sg = shotgun.create_sg_connection(self._project_root)
         # get fields def
         sg_fields_def = meta.get("requires_shotgun_fields")
         if sg_fields_def:  # can be defined as None from yml file

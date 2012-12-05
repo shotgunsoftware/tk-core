@@ -15,24 +15,16 @@ import textwrap
 python_path = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "python"))
 sys.path.append(python_path)
 
+
+
 from tank.errors import TankError
 from tank.platform import constants
 from tank.deploy import administrator
 from tank.platform import environment
 from tank.deploy.descriptor import AppDescriptor
 from tank.deploy.app_store_descriptor import TankAppStoreDescriptor
+from tank.deploy import console_utils
 
-def _format_param_info(log, name, type, summary):
-    """
-    Formats a release notes summary output for an app, engine or core
-    """
-    log.info("/%s" % ("-" * 70))
-    log.info("| Item:    %s" % name)
-    log.info("| Type:    %s" % type)
-    str_to_wrap = "Summary: %s" % summary
-    for x in textwrap.wrap(str_to_wrap, width=68, initial_indent="| ", subsequent_indent="|          "):
-        log.info(x)
-    log.info("\%s" % ("-" * 70))
 
 
 def add_app(log, project_root, env_name, engine_instance_name, app_name):
@@ -59,6 +51,14 @@ def add_app(log, project_root, env_name, engine_instance_name, app_name):
     log.info("Successfully located %s..." % app_descriptor)
     log.info("")
 
+    # make sure that our app can be used in this engine
+    # note! This logic assumes that the engine instance is the same as the engine nane
+    supported_engines = app_descriptor.get_supported_engines()
+    if supported_engines is not None and engine_instance_name not in supported_engines:
+        raise TankError("Cannot use app %s with engine %s! "
+                        "Supported engines are: %s" % (app_descriptor, engine_instance_name, supported_engines))
+
+
     # note! Some of these methods further down are likely to pull the apps local
     # in order to do deep introspection. In order to provide better error reporting,
     # pull the apps local before we start
@@ -82,60 +82,15 @@ def add_app(log, project_root, env_name, engine_instance_name, app_name):
         raise TankError("Cannot install: %s" % e)
 
     # okay to install!
+    
+    # ensure that all required frameworks have been installed
+    console_utils.ensure_frameworks_installed(log, project_root, app_descriptor, env)
 
     # create required shotgun fields
-    app_descriptor.ensure_shotgun_fields_exist(project_root)
+    app_descriptor.ensure_shotgun_fields_exist()
 
-    # first get data for all new settings values in the config
-    param_diff = administrator.generate_settings_diff(app_descriptor, None)
-
-    if len(param_diff) > 0:
-        log.info("Several settings are associated with this app.")
-        log.info("You will now be prompted to input values for all settings")
-        log.info("that do not have default values defined.")
-        log.info("")
-
-    params = {}
-    for (name, data) in param_diff.items():
-
-        # output info about the setting
-        log.info("")
-        _format_param_info(log, name, data["type"], data["description"])
-
-        # don't ask user to input anything for default values
-        if data["value"] is not None:
-            value = data["value"]
-            if data["type"] == "hook":
-                value = app_descriptor.install_hook(log, value)
-            params[name] = value
-
-            # note that value can be a tuple so need to cast to str
-            log.info("Auto-populated with default value '%s'" % str(value))
-
-        else:
-
-            # get value from user
-            # loop around until happy
-            input_valid = False
-            while not input_valid:
-                # ask user
-                answer = raw_input("Please enter value (enter to skip): ")
-                if answer == "":
-                    # user chose to skip
-                    log.warning("You skipped this value! Please update the environment by hand later!")
-                    params[name] = None
-                    input_valid = True
-                else:
-                    # validate value
-                    try:
-                        obj_value = administrator.validate_parameter(project_root, app_descriptor, name, answer)
-                    except Exception, e:
-                        log.error("Validation failed: %s" % e)
-                    else:
-                        input_valid = True
-                        params[name] = obj_value
-
-    # awesome. got all the values we need.
+    # now get data for all new settings values in the config
+    params = console_utils.get_configuration(log, project_root, app_descriptor, None)
 
     # next step is to add the new configuration values to the environment
     env.create_app_settings(engine_instance_name, app_instance_name)

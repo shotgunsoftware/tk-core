@@ -19,61 +19,7 @@ from tank.errors import TankError
 from tank.platform import constants
 from tank.platform import environment
 from tank.deploy import administrator
-
-##########################################################################################
-# helpers
-
-g_ask_questions = True
-
-def _ask_question(question, force_promt=False):
-    """
-    Ask a yes-no-always question
-    returns true if user pressed yes (or previously always)
-    false if no
-    """
-    global g_ask_questions
-    if g_ask_questions == False and force_promt == False:
-        # auto-press YES
-        return True
-
-    answer = raw_input("%s [Yna?]" % question)
-    answer = answer.lower()
-    if answer != "n" and answer != "a" and answer != "y" and answer != "":
-        print("Press ENTER or y for YES, n for NO and a for ALWAYS.")
-        answer = raw_input("%s [Yna?]" % question)
-
-    if answer == "a":
-        g_ask_questions = False
-        return True
-
-    if answer == "y" or answer == "":
-        return True
-
-    return False
-
-
-def _format_bundle_info(log, info, summary):
-    """
-    Formats a release notes summary output for an app, engine or core
-    """
-    log.info("/%s" % ("-" * 70))
-    log.info("| Item:    %s" % info)
-    str_to_wrap = "Summary: %s" % summary
-    for x in textwrap.wrap(str_to_wrap, width=68, initial_indent="| ", subsequent_indent="|          "):
-        log.info(x)
-    log.info("\%s" % ("-" * 70))
-
-def _format_param_info(log, name, type, summary):
-    """
-    Formats a release notes summary output for an app, engine or core
-    """
-    log.info("/%s" % ("-" * 70))
-    log.info("| Setting: %s" % name)
-    log.info("| Type:    %s" % type)
-    str_to_wrap = "Summary: %s" % summary
-    for x in textwrap.wrap(str_to_wrap, width=68, initial_indent="| ", subsequent_indent="|          "):
-        log.info(x)
-    log.info("\%s" % ("-" * 70))
+from tank.deploy import console_utils
 
 ##########################################################################################
 # deploy stuff
@@ -83,60 +29,24 @@ def update_item(log, project_root, env, status, engine_name, app_name=None):
     Performs an upgrade of an engine/app.
     """
 
+    new_descriptor = status["latest"]
+    old_descriptor = status["current"]
+
     # note! Some of these methods further down are likely to pull the apps local
     # in order to do deep introspection. In order to provide better error reporting,
     # pull the apps local before we start
-    if not status["latest"].exists_local():
-        log.info("Downloading %s..." % status["latest"])
-        status["latest"].download_local()
+    if not new_descriptor.exists_local():
+        log.info("Downloading %s..." % new_descriptor)
+        new_descriptor.download_local()
 
     # create required shotgun fields
-    status["latest"].ensure_shotgun_fields_exist(project_root)
+    new_descriptor.ensure_shotgun_fields_exist()
 
-    # first get data for all new parameter values in the config
-    param_diff = administrator.generate_settings_diff(status["latest"], status["current"])
-    if len(param_diff) > 0:
-        log.info("")
-        log.info("Note! Several new settings were added in the new version of the app.")
-        log.info("")
+    # ensure that all required frameworks have been installed
+    console_utils.ensure_frameworks_installed(log, project_root, new_descriptor, env)
 
-    params = {}
-    for (name, data) in param_diff.items():
-        # output info about the setting
-        log.info("")
-        _format_param_info(log, name, data["type"], data["description"])
-
-        # don't ask user to input anything for default values
-        if data["value"] is not None:
-            value = data["value"]
-            if data["type"] == "hook":
-                value = status["latest"].install_hook(log, value)
-            params[name] = value
-            # note that value can be a tuple so need to cast to str
-            log.info("Auto-populated with default value '%s'" % str(value))
-
-        else:
-
-            # get value from user
-            # loop around until happy
-            input_valid = False
-            while not input_valid:
-                # ask user
-                answer = raw_input("Please enter value (enter to skip): ")
-                if answer == "":
-                    # user chose to skip
-                    log.warning("You skipped this value! Please update the environment by hand later!")
-                    params[name] = None
-                    input_valid = True
-                else:
-                    # validate value
-                    try:
-                        obj_value = administrator.validate_parameter(project_root, status["latest"], name, answer)
-                    except Exception, e:
-                        log.error("Validation failed: %s" % e)
-                    else:
-                        input_valid = True
-                        params[name] = obj_value
+    # now get data for all new settings values in the config
+    params = console_utils.get_configuration(log, project_root, new_descriptor, old_descriptor)
 
     # awesome. got all the values we need.
     log.info("")
@@ -146,16 +56,18 @@ def update_item(log, project_root, env, status, engine_name, app_name=None):
     if app_name is None:
 
         data = env.get_engine_settings(engine_name)
+        # update with the new settings
         data.update(params)
         env.update_engine_settings(engine_name, data)
-        env.update_engine_location(engine_name, status["latest"].get_location())
+        env.update_engine_location(engine_name, new_descriptor.get_location())
 
     else:
 
         data = env.get_app_settings(engine_name, app_name)
+        # update with the new settings
         data.update(params)
         env.update_app_settings(engine_name, app_name, data)
-        env.update_app_location(engine_name, app_name, status["latest"].get_location())
+        env.update_app_location(engine_name, app_name, new_descriptor.get_location())
 
 def process_item(log, project_root, env, engine_name, app_name=None):
     """
@@ -176,18 +88,18 @@ def process_item(log, project_root, env, engine_name, app_name=None):
     item_was_updated = False
 
     if status["can_update"]:
-        # yay we can install! - get release notes
-        (summary, url) = status["latest"].get_changelog()
-        if summary is None:
-            summary = "No details provided."
-        _format_bundle_info(log, status["latest"], summary)
-        if _ask_question("Update to the above version?"):
+        
+        # print summary of changes
+        tank_deploy_util.format_bundle_info(log, status["latest"])
+        
+        # ask user
+        if console_utils.ask_question("Update to the above version?"):
             update_item(log, project_root, env, status, engine_name, app_name)
             item_was_updated = True
 
     elif status["out_of_date"] == False and not status["current"].exists_local():
         # app is not local! boo!
-        if _ask_question("Current version does not exist locally - download it now?"):
+        if console_utils.ask_question("Current version does not exist locally - download it now?"):
             log.info("Downloading %s..." % status["current"])
             status["current"].download_local()
 

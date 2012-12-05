@@ -114,7 +114,7 @@ def _install_environment(proj_root, env_cfg, log):
 
     # create required shotgun fields
     for descriptor in descriptors:
-        descriptor.ensure_shotgun_fields_exist(proj_root)
+        descriptor.ensure_shotgun_fields_exist()
     
 def _check_manifest(studio_root, starter_config, tk, sg_version_str, log):
     """
