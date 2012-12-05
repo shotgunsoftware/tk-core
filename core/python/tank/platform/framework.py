@@ -109,12 +109,8 @@ def setup_frameworks(engine_obj, parent_obj, env, parent_descriptor):
     and in that case loads them - recursively
     """
     
-    frameworks_needed = parent_descriptor.get_required_frameworks()
-    
     # look into the environment, get descriptors for all frameworks that our item needs:
-    framework_instance_names = validate_and_return_frameworks(parent_obj.name, 
-                                                              env, 
-                                                              frameworks_needed)
+    framework_instance_names = validate_and_return_frameworks(parent_descriptor, env)
     
     # looks like all of the frameworks are valid! Load them one by one
     for fw_inst_name in framework_instance_names:

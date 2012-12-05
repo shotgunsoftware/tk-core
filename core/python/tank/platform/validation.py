@@ -33,12 +33,48 @@ def validate_settings(app_or_engine_display_name, tank_api, context, schema, set
     v.validate(settings)
     
     
-def validate_and_return_frameworks(app_or_engine_display_name, environment, required_frameworks):
+def get_missing_frameworks(descriptor, environment):
     """
-    Validates the frameworks needed for an app or engine.
+    Returns a list of framework descriptors by the given descriptor required but not present 
+    in the given environment.
     
-    Returns a dictionary of descriptors, keyed by the instance name in the environment. 
+    :returns: list of fw descriptors
     """
+    required_framework_descriptors = descriptor.get_required_frameworks()
+    
+    if len(required_framework_descriptors) == 0:
+        return []
+
+    # get all framework descriptors defined in the environment
+    # put a tuple with (name, version) into a list 
+    fws_in_env = [] 
+    for fw_instance_str in environment.get_frameworks():
+        descriptor = environment.get_framework_descriptor(fw_instance_str)
+        d_identifier = (descriptor.get_system_name(), descriptor.get_version())
+        fws_in_env.append( d_identifier )
+
+    # now check which frameworks are missing
+    missing_fws = []
+    for fwd in required_framework_descriptors:
+        identifier = (fwd.get_system_name(), fwd.get_version())
+        if identifier not in fws_in_env:
+            # this descriptor is not available in the environment
+            missing_fws.append(fwd)
+
+    return missing_fws
+
+    
+    
+def validate_and_return_frameworks(descriptor, environment):
+    """
+    Validates the frameworks needed for an given descriptor.
+    
+    Returns a list of the instance names for each of the frameworks needed by the input descriptor.
+    
+    Will raise exceptions if there are frameworks missing from the environment. 
+    """
+    
+    required_frameworks = descriptor.get_required_frameworks()
     
     if len(required_frameworks) == 0:
         return []
@@ -64,7 +100,7 @@ def validate_and_return_frameworks(app_or_engine_display_name, environment, requ
                 required_fw_instance_names.append(d)
                 break
         if not found:
-            msg =  "The framework %s %s required by %s " % (name, version, app_or_engine_display_name)
+            msg =  "The framework %s %s required by %s " % (name, version, descriptor)
             msg += "can not be found in environment %s. \n" % str(environment)
             if len(fw_descriptors) == 0:
                 msg += "No frameworks are currently installed! \n"
