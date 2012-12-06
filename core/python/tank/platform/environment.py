@@ -332,7 +332,7 @@ class Environment(object):
         Updates the location dictionary for a framework
         """
         if self.__env_data.get("frameworks") is None:
-            self.__env_data["frameworks"] = []
+            self.__env_data["frameworks"] = {}
             
         if framework_name not in self.__env_data.get("frameworks"):
             raise TankError("Framework %s does not exist in environment %s" % (framework_name, self.__env_path) )
@@ -367,7 +367,7 @@ class Environment(object):
         Updates the framework configuration
         """
         if self.__env_data.get("frameworks") is None:
-            self.__env_data["frameworks"] = []
+            self.__env_data["frameworks"] = {}
         
         if framework_name not in self.__env_data["frameworks"]:
             raise TankError("Framework %s does not exist in environment %s" % (framework_name, self.__env_path) )
@@ -405,7 +405,7 @@ class Environment(object):
         Creates a new empty framework settings in the config
         """
         if self.__env_data.get("frameworks") is None:
-            self.__env_data["frameworks"] = []
+            self.__env_data["frameworks"] = {}
         
         if framework_name in self.__env_data["frameworks"]:
             raise TankError("Framework %s already exists in environment %s" % (framework_name, self.__env_path) )

@@ -38,11 +38,14 @@ def get_missing_frameworks(descriptor, environment):
     Returns a list of framework descriptors by the given descriptor required but not present 
     in the given environment.
     
-    :returns: list of fw descriptors
-    """
-    required_framework_descriptors = descriptor.get_required_frameworks()
+    returns items on the following form:
+    [{'version': 'v0.1.0', 'name': 'tk-framework-widget'}]
     
-    if len(required_framework_descriptors) == 0:
+    :returns: list dictionaries, each with a name and a version key.
+    """
+    required_frameworks = descriptor.get_required_frameworks()
+    
+    if len(required_frameworks) == 0:
         return []
 
     # get all framework descriptors defined in the environment
@@ -55,8 +58,8 @@ def get_missing_frameworks(descriptor, environment):
 
     # now check which frameworks are missing
     missing_fws = []
-    for fwd in required_framework_descriptors:
-        identifier = (fwd.get_system_name(), fwd.get_version())
+    for fwd in required_frameworks:
+        identifier = (fwd["name"], fwd["version"])
         if identifier not in fws_in_env:
             # this descriptor is not available in the environment
             missing_fws.append(fwd)

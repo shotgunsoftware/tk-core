@@ -90,7 +90,7 @@ def process_item(log, project_root, env, engine_name, app_name=None):
     if status["can_update"]:
         
         # print summary of changes
-        tank_deploy_util.format_bundle_info(log, status["latest"])
+        console_utils.format_bundle_info(log, status["latest"])
         
         # ask user
         if console_utils.ask_question("Update to the above version?"):

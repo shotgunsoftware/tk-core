@@ -191,7 +191,7 @@ class TankAppStoreDescriptor(AppDescriptor):
     # class methods
 
     @classmethod
-    def find_item(cls, project_root, bundle_type, name):
+    def find_item(cls, project_root, bundle_type, name, version=None):
         """
         Returns an TankAppStoreDescriptor object representing the latest version
         of the sought after object. If no matching item is found, an
@@ -200,71 +200,63 @@ class TankAppStoreDescriptor(AppDescriptor):
         This method is useful if you know the name of an app (after browsing in the
         app store for example) and want to get a formal "handle" to it.
 
+        If version is None, the latest version is returned.
+
         :returns: TankAppStoreDescriptor instance
         """
 
         # connect to the app store
         (sg, script_user) = shotgun.create_sg_app_store_connection_proj_root(project_root)
 
-        # get the filter logic for what to exclude
-        if constants.APP_STORE_QA_MODE_ENV_VAR in os.environ:
-            latest_filter = [["sg_status_list", "is_not", "bad" ]]
-        else:
-            latest_filter = [["sg_status_list", "is_not", "rev" ],
-                             ["sg_status_list", "is_not", "bad" ]]
+        if version is None:
+            # get latest
+            # get the filter logic for what to exclude
+            if constants.APP_STORE_QA_MODE_ENV_VAR in os.environ:
+                latest_filter = [["sg_status_list", "is_not", "bad" ]]
+            else:
+                latest_filter = [["sg_status_list", "is_not", "rev" ],
+                                 ["sg_status_list", "is_not", "bad" ]]
         
-
-        if bundle_type == AppDescriptor.APP:
-
-            # first find the app entity
-            bundle = sg.find_one(TANK_APP_ENTITY, [["sg_system_name", "is", name]], ["id"])
-            if bundle is None:
-                raise TankError("App store does not contain an app named '%s'!" % name)
-
-            # now get the version
-            version = sg.find_one(TANK_APP_VERSION_ENTITY,
-                                  filters = [["sg_tank_app", "is", bundle]] + latest_filter,
-                                  fields = ["code"],
-                                  order=[{"field_name": "created_at", "direction": "desc"}])
-            if version is None:
-                raise TankError("Cannot find any versions for the app '%s'!" % name)
-
-        elif bundle_type == AppDescriptor.FRAMEWORK:
-
-            # first find the framework entity
-            bundle = sg.find_one(TANK_FRAMEWORK_ENTITY, [["sg_system_name", "is", name]], ["id"])
-            if bundle is None:
-                raise TankError("App store does not contain a framework named '%s'!" % name)
-
-            # now get the version
-            version = sg.find_one(TANK_FRAMEWORK_VERSION_ENTITY,
-                                  filters = [["sg_tank_framework", "is", bundle]] + latest_filter,
-                                  fields = ["code"],
-                                  order=[{"field_name": "created_at", "direction": "desc"}])
-            if version is None:
-                raise TankError("Cannot find any versions for the framework '%s'!" % name)
-
-        elif bundle_type == AppDescriptor.ENGINE:
-
-            # first find the engine entity
-            bundle = sg.find_one(TANK_ENGINE_ENTITY, [["sg_system_name", "is", name]], ["id"])
-            if bundle is None:
-                raise TankError("App store does not contain an engine named '%s'!" % name)
-
-            # now get the version
-            version = sg.find_one(TANK_ENGINE_VERSION_ENTITY,
-                                  filters = [["sg_tank_engine", "is", bundle]] + latest_filter,
-                                  fields = ["code"],
-                                  order=[{"field_name": "created_at", "direction": "desc"}])
-            if version is None:
-                raise TankError("Cannot find any versions for the engine '%s'!" % name)
-
         else:
-            raise TankError("Illegal type value!")
+            # specific version
+            latest_filter = [["code", "is", version]]
+        
+        # set up some lookup tables so we look in the right table in sg
+        main_entity_map = { AppDescriptor.APP: TANK_APP_ENTITY,
+                            AppDescriptor.FRAMEWORK: TANK_FRAMEWORK_ENTITY,
+                            AppDescriptor.ENGINE: TANK_ENGINE_ENTITY }
 
-        version_str = version.get("code")
+        version_entity_map = { AppDescriptor.APP: TANK_APP_VERSION_ENTITY,
+                               AppDescriptor.FRAMEWORK: TANK_FRAMEWORK_VERSION_ENTITY,
+                               AppDescriptor.ENGINE: TANK_ENGINE_VERSION_ENTITY }
+
+        link_field_map = { AppDescriptor.APP: "sg_tank_app",
+                           AppDescriptor.FRAMEWORK: "sg_tank_framework",
+                           AppDescriptor.ENGINE: "sg_tank_engine" }
+
+        # find the main entry
+        bundle = sg.find_one(main_entity_map[bundle_type], [["sg_system_name", "is", name]], ["id"])
+        if bundle is None:
+            raise TankError("App store does not contain an item named '%s'!" % name)
+
+        # now get the version
+        link_field = link_field_map[bundle_type]
+        entity_type = version_entity_map[bundle_type]
+        sg_version_data = sg.find_one(entity_type,
+                                      filters = [[link_field, "is", bundle]] + latest_filter,
+                                      fields = ["code"],
+                                      order=[{"field_name": "created_at", "direction": "desc"}])
+        if sg_version_data is None:
+            if version is None:
+                raise TankError("Cannot find any versions for %s in the Tank store!" % name)
+            else:
+                raise TankError("Cannot find %s %s in the Tank store!" % (name, version))
+
+
+
+        version_str = sg_version_data.get("code")
         if version_str is None:
-            raise TankError("Invalid version number for %s" % version)
+            raise TankError("Invalid version number for %s" % sg_version_data)
 
         # make a location dict
         location_dict = {"type": "app_store", "name": name, "version": version_str}

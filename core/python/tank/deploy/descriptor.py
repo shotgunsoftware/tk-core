@@ -208,7 +208,11 @@ class AppDescriptor(object):
     def get_required_frameworks(self):
         """
         returns the list of required frameworks for this item.
-        Always returns a list.
+        Always returns a list for example
+        
+        [{'version': 'v0.1.0', 'name': 'tk-framework-widget'}]
+        
+        Each item contains a name and a version key.
         """
         md  = self._get_metadata()
         frameworks = md.get("frameworks")

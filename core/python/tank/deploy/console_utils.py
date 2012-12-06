@@ -15,6 +15,8 @@ import textwrap
 from . import administrator
 from ..platform import validation
 from ..errors import TankError
+from .app_store_descriptor import TankAppStoreDescriptor
+from .descriptor import AppDescriptor
 
 
 def get_configuration(log, project_root, new_ver_descriptor, old_ver_descriptor):
@@ -84,8 +86,7 @@ def get_configuration(log, project_root, new_ver_descriptor, old_ver_descriptor)
                         params[name] = obj_value
     
 
-        return params
-
+    return params
 
 
 
@@ -122,7 +123,7 @@ def ask_question(question, force_promt=False):
     return False
 
 
-def format_bundle_info(log, info, descriptor):
+def format_bundle_info(log, descriptor):
     """
     Formats a release notes summary output for an app, engine or core
     """
@@ -138,12 +139,12 @@ def format_bundle_info(log, info, descriptor):
     log.info("|")
     
     str_to_wrap = "Description: %s" % descriptor.get_description()
-    for x in textwrap.wrap(str_to_wrap, width=68, initial_indent="| ", subsequent_indent="|          "):
+    for x in textwrap.wrap(str_to_wrap, width=68, initial_indent="| ", subsequent_indent="|              "):
         log.info(x)
     log.info("|")
     
     str_to_wrap = "Change Log:  %s" % summary
-    for x in textwrap.wrap(str_to_wrap, width=68, initial_indent="| ", subsequent_indent="|          "):
+    for x in textwrap.wrap(str_to_wrap, width=68, initial_indent="| ", subsequent_indent="|              "):
         log.info(x)
     
     log.info("\%s" % ("-" * 70))
@@ -151,15 +152,21 @@ def format_bundle_info(log, info, descriptor):
 
 def ensure_frameworks_installed(log, project_root, descriptor, environment):
     """
-    Recursively check that all required frameworks are installed
+    Recursively check that all required frameworks are installed.
+    Anything not installed will be downloaded from the app store.
     """
     missing_fws = validation.get_missing_frameworks(descriptor, environment)
+    # (this returns dictionaries with name and version keys)
     
-    for fw_descriptor in missing_fws:
+    for fw_dict in missing_fws:
         
-        # first make sure these guys have all their required frameworks installed
-        ensure_frameworks_installed(log, project_root, fw_descriptor, environment)
-
+        # see if we can get this from the app store...
+        fw_descriptor = TankAppStoreDescriptor.find_item(project_root, 
+                                                         AppDescriptor.FRAMEWORK, 
+                                                         fw_dict["name"], 
+                                                         fw_dict["version"])
+        
+        
         # and now process this framework
         log.info("Installing required framework %s..." % fw_descriptor)
         if not fw_descriptor.exists_local():
@@ -193,7 +200,8 @@ def ensure_frameworks_installed(log, project_root, descriptor, environment):
         environment.update_framework_settings(fw_instance_name, params)
         environment.update_framework_location(fw_instance_name, fw_descriptor.get_location())
         
-        
+        # now make sure these guys have all their required frameworks installed
+        ensure_frameworks_installed(log, project_root, fw_descriptor, environment)
         
     
     
