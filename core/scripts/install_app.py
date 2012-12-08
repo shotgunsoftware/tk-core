@@ -51,14 +51,6 @@ def add_app(log, project_root, env_name, engine_instance_name, app_name):
     log.info("Successfully located %s..." % app_descriptor)
     log.info("")
 
-    # make sure that our app can be used in this engine
-    # note! This logic assumes that the engine instance is the same as the engine nane
-    supported_engines = app_descriptor.get_supported_engines()
-    if supported_engines is not None and engine_instance_name not in supported_engines:
-        raise TankError("Cannot use app %s with engine %s! "
-                        "Supported engines are: %s" % (app_descriptor, engine_instance_name, supported_engines))
-
-
     # note! Some of these methods further down are likely to pull the apps local
     # in order to do deep introspection. In order to provide better error reporting,
     # pull the apps local before we start
