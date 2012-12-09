@@ -350,13 +350,19 @@ def get_from_location(app_or_engine, project_root, location_dict):
     from .dev_descriptor import TankDevDescriptor
     from .github_descriptor import TankGitHubDescriptor
     from .git_descriptor import TankGitDescriptor
+    from .manual_descriptor import TankManualDescriptor
 
     # temporary implementation. Todo: more error checks!
 
-    # tank app store format - apps/engines
+    # tank app store format
     # location: {"type": "app_store", "name": "tk-nukepublish", "version": "v0.5.0"}
     if location_dict.get("type") == "app_store":
         return TankAppStoreDescriptor(project_root, location_dict, app_or_engine)
+
+    # manual format
+    # location: {"type": "manual", "name": "tk-nukepublish", "version": "v0.5.0"}
+    elif location_dict.get("type") == "manual":
+        return TankManualDescriptor(project_root, location_dict, app_or_engine)
 
     # git repo
     # location: {"type": "git", "path": "/path/to/repo.git", "version": "v0.2.1"}

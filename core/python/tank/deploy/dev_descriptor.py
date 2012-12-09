@@ -38,6 +38,8 @@ class TankDevDescriptor(AppDescriptor):
         self._path = os.path.expandvars(self._path)
 
         # if there is a version defined in the location dict
+        # (this is handy when doing framework development, but totally
+        #  non-required for finding the code) 
         self._version = "Undefined"
         if "version" in location_dict:
             self._version = location_dict.get("version")
