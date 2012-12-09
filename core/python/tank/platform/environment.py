@@ -10,6 +10,7 @@ import os
 import sys
 import glob
 import copy
+import platform
 
 from tank_vendor import yaml
 from . import constants
@@ -93,6 +94,27 @@ class Environment(object):
         self.__framework_locations = {}
         self.__extract_locations()
             
+    def __is_item_disabled(self, settings):
+        """
+        handles the checks to see if an item is disabled
+        """
+        location_dict = settings.get(constants.ENVIRONMENT_LOCATION_KEY)
+        
+        # Check for disabled and deny_platforms
+        is_disabled = location_dict.get("disabled", False)
+        if is_disabled:
+            return True
+        
+        # now check if the current platform is disabled
+        deny_platforms = location_dict.get("deny_platforms", [])
+        # current os: linux/mac/windows
+        nice_system_name = {"Linux": "linux", "Darwin": "mac", "Windows": "windows"}[platform.system()]
+        if nice_system_name in deny_platforms:
+            return True
+        
+        return False
+
+            
     def __process_apps(self, engine, data):
         """
         Populates the __app_settings dict
@@ -101,9 +123,7 @@ class Environment(object):
             return
         # iterate over the apps dict
         for app, app_settings in data.items():
-            location_dict = app_settings.get(constants.ENVIRONMENT_LOCATION_KEY)
-            # Check for disabled
-            if not location_dict.get("disabled", False):
+            if not self.__is_item_disabled(app_settings):
                 self.__app_settings[(engine, app)] = app_settings
     
     def __process_engines(self, data):
@@ -117,8 +137,7 @@ class Environment(object):
         # iterate over the engine dict
         for engine, engine_settings in engines.items():
             # Check for engine disabled
-            location_dict = engine_settings.get(constants.ENVIRONMENT_LOCATION_KEY)
-            if not location_dict.get("disabled", False):
+            if not self.__is_item_disabled(engine_settings):
                 engine_apps = engine_settings.pop('apps')
                 self.__process_apps(engine, engine_apps)
                 self.__engine_settings[engine] = engine_settings
@@ -135,8 +154,7 @@ class Environment(object):
         # iterate over the engine dict
         for fw, fw_settings in frameworks.items():
             # Check for engine disabled
-            location_dict = fw_settings.get(constants.ENVIRONMENT_LOCATION_KEY)
-            if not location_dict.get("disabled", False):
+            if not self.__is_item_disabled(fw_settings):
                 self.__framework_settings[fw] = fw_settings
 
     def __extract_locations(self):
