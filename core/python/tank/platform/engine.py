@@ -16,8 +16,8 @@ from ..deploy import descriptor
 
 from . import application
 from . import constants
+from . import validation
 from .environment import Environment
-from .validation import validate_settings
 from .bundle import TankBundle
 from .framework import setup_frameworks
 
@@ -51,9 +51,15 @@ class Engine(TankBundle):
         # init base class
         TankBundle.__init__(self, tk, context, settings, descriptor)
 
+        # check that the context contains all the info that the app needs
+        validation.validate_context(descriptor, context)
+        
+        # make sure the current operating system platform is supported
+        validation.validate_platform(descriptor)
+
         # Get the settings for the engine and then validate them
         engine_schema = descriptor.get_configuration_schema()
-        validate_settings(self.__engine_instance_name, tk, context, engine_schema, settings)
+        validation.validate_settings(self.__engine_instance_name, tk, context, engine_schema, settings)
         
         # set up any frameworks defined
         setup_frameworks(self, self, self.__env, descriptor)
@@ -303,15 +309,22 @@ class Engine(TankBundle):
                 # get the app settings data and validate it.
                 app_schema = descriptor.get_configuration_schema()
                 app_settings = self.__env.get_app_settings(self.__engine_instance_name, app_instance_name)
+
+                # check that the context contains all the info that the app needs
+                validation.validate_context(descriptor, self.context)
                 
-                validate_settings(app_instance_name, self.tank, self.context, app_schema, app_settings)
+                # make sure the current operating system platform is supported
+                validation.validate_platform(descriptor)
                                 
                 # for multi engine apps, make sure our engine is supported
                 supported_engines = descriptor.get_supported_engines()
                 if supported_engines and self.name not in supported_engines:
-                    self.log_error("The app %s could not be loaded since it only supports "
-                                   "the following engines: %s" % (app_instance_name, supported_engines))
-                    continue
+                    raise TankError("The app could not be loaded since it only supports "
+                                    "the following engines: %s" % supported_engines)
+                
+                # now validate the configuration                
+                validation.validate_settings(app_instance_name, self.tank, self.context, app_schema, app_settings)
+                
                     
             except TankError, e:
                 # validation error - probably some issue with the settings!

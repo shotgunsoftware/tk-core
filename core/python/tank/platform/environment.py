@@ -114,7 +114,6 @@ class Environment(object):
         
         return False
 
-            
     def __process_apps(self, engine, data):
         """
         Populates the __app_settings dict

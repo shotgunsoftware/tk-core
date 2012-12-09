@@ -193,6 +193,38 @@ class AppDescriptor(object):
         md  = self._get_metadata()
         return md.get("supported_engines")
         
+    def get_required_context(self):
+        """
+        Returns the required context, if there is one defined for a bundle.
+        This is a list of strings, something along the lines of 
+        ["user", "task", "step"] for an app that requires a context with 
+        user task and step defined.
+        
+        Always returns a list, with an empty list meaning no items required.
+        """
+        md  = self._get_metadata()
+        rc = md.get("required_context")
+        if rc is None:
+            rc = []
+        return rc
+    
+    def get_supported_platforms(self):
+        """
+        Returns the platforms supported. Possible values
+        are windows, linux and mac. 
+        
+        Always returns a list, returns an empty list if there is 
+        no constraint in place. 
+        
+        example: ["windows", "linux"]
+        example: []
+        """
+        md  = self._get_metadata()
+        sp = md.get("supported_platforms")
+        if sp is None:
+            sp = []
+        return sp
+        
     def get_configuration_schema(self):
         """
         Returns the manifest configuration schema for this bundle.

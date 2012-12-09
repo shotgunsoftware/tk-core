@@ -6,6 +6,7 @@ App configuration and schema validation.
 
 """
 import os
+import platform
 
 from . import constants
 from ..errors import TankError
@@ -32,6 +33,41 @@ def validate_settings(app_or_engine_display_name, tank_api, context, schema, set
     v = _SettingsValidator(app_or_engine_display_name, tank_api, schema, context)
     v.validate(settings)
     
+    
+def validate_context(descriptor, context):
+    """
+    Validates a bundle to check that the given context
+    will work with it. Raises a tankerror if not.
+    """
+    # check that the context contains all the info that the app needs
+    context_check_ok = True
+    req_ctx = descriptor.get_required_context()
+    for req_ctx_item in req_ctx:
+        context_check_ok &= (req_ctx_item == "user" and context.user is None)
+        context_check_ok &= (req_ctx_item == "entity" and context.entity is None)
+        context_check_ok &= (req_ctx_item == "project" and context.project is None)
+        context_check_ok &= (req_ctx_item == "step" and context.step is None)
+        context_check_ok &= (req_ctx_item == "task" and context.task is None)
+    if not context_check_ok:
+        raise TankError("The item requires the following "
+                        "items in the context: %s. The current context is missing one "
+                        "or more of these items: %s" % (req_ctx, context) )
+    
+def validate_platform(descriptor):
+    """
+    Validates that the given bundle is compatible with the 
+    current operating system
+    """
+    # make sure the current operating system platform is supported
+    supported_platforms = descriptor.get_supported_platforms()
+    if len(supported_platforms) > 0:
+        # supported platforms defined in manifest
+        # get a human friendly mapping of current platform: linux/mac/windows 
+        nice_system_name = {"Linux": "linux", "Darwin": "mac", "Windows": "windows"}[platform.system()]
+        if nice_system_name not in supported_platforms:
+            raise TankError("The current operating system '%s' is not supported."
+                            "Supported platforms are: %s" % (nice_system_name, supported_platforms))
+
     
 def get_missing_frameworks(descriptor, environment):
     """

@@ -14,7 +14,7 @@ from . import constants
 
 from ..errors import TankError
 from .bundle import TankBundle
-from .validation import validate_settings, validate_and_return_frameworks
+from . import validation
 
 class Framework(TankBundle):
     """
@@ -110,7 +110,7 @@ def setup_frameworks(engine_obj, parent_obj, env, parent_descriptor):
     """
     
     # look into the environment, get descriptors for all frameworks that our item needs:
-    framework_instance_names = validate_and_return_frameworks(parent_descriptor, env)
+    framework_instance_names = validation.validate_and_return_frameworks(parent_descriptor, env)
     
     # looks like all of the frameworks are valid! Load them one by one
     for fw_inst_name in framework_instance_names:
@@ -123,18 +123,29 @@ def _load_framework(engine_obj, env, parent_obj, fw_instance_name):
     """
     engine_obj.log_debug("%s - loading framework %s" % (parent_obj, fw_instance_name))
     
+    # now get the app location and resolve it into a version object
+    descriptor = env.get_framework_descriptor(fw_instance_name)
+    if not descriptor.exists_local():
+        raise TankError("Cannot load Framework! %s does not exist on disk." % descriptor)
+    
     # Load settings for app - skip over the ones that don't validate
     try:
+
+        # check that the context contains all the info that the app needs
+        validation.validate_context(descriptor, engine_obj.context)
+        
+        # make sure the current operating system platform is supported
+        validation.validate_platform(descriptor)        
         
         # get the app settings data and validate it.
-        fw_schema = env.get_framework_descriptor(fw_instance_name).get_configuration_schema()
-        
+        fw_schema = descriptor.get_configuration_schema()
+                
         fw_settings = env.get_framework_settings(fw_instance_name)
-        validate_settings(fw_instance_name, 
-                          engine_obj.tank, 
-                          engine_obj.context, 
-                          fw_schema, 
-                          fw_settings)
+        validation.validate_settings(fw_instance_name, 
+                                     engine_obj.tank, 
+                                     engine_obj.context, 
+                                     fw_schema, 
+                                     fw_settings)
                             
     except TankError, e:
         # validation error - probably some issue with the settings!
@@ -147,17 +158,11 @@ def _load_framework(engine_obj, env, parent_obj, fw_instance_name):
         
         raise TankError("Could not validate framework %s: %s" % (fw_instance_name, e))
     
-    # now get the app location and resolve it into a version object
-    descriptor = env.get_framework_descriptor(fw_instance_name)
-    if not descriptor.exists_local():
-        raise TankError("Cannot load Framework! %s does not exist on disk." % descriptor)
     
-    fw_dir = descriptor.get_path()
-                            
     # load the framework
     try:
         # initialize fw class
-        fw = get_framework(engine_obj, fw_dir, descriptor, fw_settings)
+        fw = get_framework(engine_obj, descriptor, fw_settings)
         
         # load any frameworks required by the framework :)
         setup_frameworks(engine_obj, fw, env, descriptor)
@@ -166,23 +171,23 @@ def _load_framework(engine_obj, env, parent_obj, fw_instance_name):
         fw.init_framework()
         
     except Exception, e:
-        raise TankError("Framework %s failed to initialize: %s" % (fw_dir, e))
+        raise TankError("Framework %s failed to initialize: %s" % (descriptor, e))
     
     else:
         # note! frameworks are keyed by their code name, not their instance name
         parent_obj.frameworks[descriptor.get_system_name()] = fw
 
 
-def get_framework(engine, fw_folder, descriptor, settings):
+def get_framework(engine, descriptor, settings):
     """
     Internal helper method. 
     Returns an framework object given an engine and fw settings.
     
     :param engine: the engine this app should run in
-    :param fw_folder: the folder on disk where the fw is located
     :param descriptor: descriptor for the fw
     :param settings: a settings dict to pass to the fw
     """
+    fw_folder = descriptor.get_path()
     plugin_file = os.path.join(fw_folder, constants.FRAMEWORK_FILE)
         
     # Instantiate the app
