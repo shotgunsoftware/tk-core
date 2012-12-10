@@ -10,9 +10,10 @@ Known constraints:
 """
 
 import os
+import re
 import fnmatch
 
-from .folder import Static, ListField, Entity, Project, Token, UserWorkspace
+from .folder import Static, ListField, Entity, Project, UserWorkspace, EntityLinkTypeMismatch
 
 from .. import root
 from ..path_cache import PathCache
@@ -22,311 +23,41 @@ from ..platform import constants
 from tank_vendor import yaml
 
 
-class Schema(object):
+class FolderConfiguration(object):
     """
-    Represents the entire schema file and is the main entry point for the folder creation.
+    Class that loads the schema from disk and constructs folder objects.
     """
     
-    def __init__(self, tk, schema_config_path, create_folder, copy_file, preview):
+    def __init__(self, tk, schema_config_path):
         """
         Constructor
-        
-        :param sg: shotgun API handle
-        :param project_root: project root folder on disk
-        :param schema_config_path: path to the schema configuration root folder
-        :param create_folder: create folder callback
-        :param copy_file: copy file callback
-        :param preview: preview mode
         """
-        
-        self.sg = tk.shotgun
-        self.tk = tk
-        self.project_root = tk.project_path
-        self.projects = []
-        self.num_entity_folders = 0
-        self._nodes_by_name = None
-
-        # keep track of stuff we are creating
-        self.created_items = list()
-        
-        # check if we are using the preview mode
-        self._preview_mode = preview
-        self._make_folder_callback = create_folder
-        self._copy_file_callback = copy_file
-
-        self._path_cache = PathCache(self.project_root)
-
+        self._tk = tk
+        # access shotgun nodes by their entity_type
+        self._entity_nodes_by_type = {}
         # read skip files config
-        self.ignore_files = _read_ignore_files(schema_config_path)
-
-        # TODO: Check path exists and is a project.        
+        self._ignore_files = self._read_ignore_files(schema_config_path)
+        # load schema
         self._load_schema(schema_config_path)
-    
-    def create_folders(self, entity_type, entity_id, engine=None):
-        """
-        Creates folders for an entity type and an entity id.
-                
-        :param entity_type: Shotgun entity type
-        :param entity_id: Shotgun entity id
-        :param engine: Engine to create folders for / indicate second pass if not None.
         
-        :returns: how many sg entity folders were processed
-        """
-        # TODO: Confirm this entity exists and is in this project
-        
-        # reset folder counter
-        self.num_entity_folders = 0
-        
-        # Recurse over entire tree and find find all Entity folders of this type
-        if entity_type == "Project":
-            # handle project as a special case. we know them all already...
-            folders = self.projects
-        else:
-            # recurse from each project folder to look for folders of the desired type
-            folders = []
-            for project in self.projects:
-                folders.extend(project.find_entity_folders(entity_type))
-        
-        # For each folder, find the list of entities needed to build the full path and
-        # ensure its parent folders exist. Then, create the folder for this entity with
-        # all its children.
-        for folder in folders:
-            
-            # fill in the information we know about this entity now
-            tokens = { 
-                entity_type: { "type": entity_type, "id": entity_id }
-            }
-            
-            # now go up the tree and populate parents and tokens
-            parents = []
-            self._visit(folder, tokens, parents)
-            
-            # now we got all the parents, the list goes from the bottom up
-            # [Entity /Project/sequences/Sequence/Shot, Entity /Project/sequences/Sequence, Static /Project/sequences, Project /Project]
-            # the last element is now always the project object
-            folder_objects_to_recurse = [folder] + parents
-            
-            # get the project object and take it out of the list
-            # [Entity /Project/sequences/Sequence/Shot, Entity /Project/sequences/Sequence, Static /Project/sequences]
-            project_folder = folder_objects_to_recurse.pop()
 
-            # get the parent path of the project folder
-            parent_project_path = os.path.abspath(os.path.join(project_folder.root_path, ".."))
-            
-            # now walk down from the project level until we reach our entity 
-            # and create all the structure, then create our entity's children.
-            project_folder.create_folders(self, parent_project_path, tokens, folder_objects_to_recurse, engine=engine)
-            
-        # return how many folders were created
-        return self.num_entity_folders
-    
-        
-    def add_entry_to_cache_db(self, path, entity_type, entity_id, entity_name):
-        """
-        Adds entity to database. 
-        """
-        if not self._preview_mode:            
-            existing_paths = self._path_cache.get_paths(entity_type, entity_id)
-            if path not in existing_paths:
-                # path not in cache yet - add it now!
-                self._path_cache.add_mapping(entity_type, entity_id, entity_name, path)
-        
-    def make_folder(self, path, entity):
-        """
-        Calls make folder callback.
-        """
-        self.created_items.append(path)
-        if not self._preview_mode:
-            self._make_folder_callback(path, entity)            
-    
-    def copy_file(self, src_path, target_path):
-        """
-        Calls copy file callback.
-        """
-        self.created_items.append(target_path)
-        if not self._preview_mode:
-            self._copy_file_callback(src_path, target_path)            
-
-    def _visit(self, folder, tokens, parents):
-        if isinstance(folder, Entity):
-            folder.extract_tokens(self.sg, tokens)
-        
-        if folder.parent:
-            parents.append(folder.parent)
-            self._visit(folder.parent, tokens, parents)
-    
     ##########################################################################################
-    # loading scaffold from disk
-    
-    def _resolve_reference(self, ref_token, node_path):
-        """
-        Resolves a $ref_token to an object by going up the tree
-        until it finds a match.
-        """
-        curr_path = node_path
-        while True:
-            # look at parent folder
-            curr_path = os.path.abspath(os.path.join(curr_path, ".."))
+    # public methods
 
-            # look it up in the nodes dict
-            obj = self._nodes_by_name.get(curr_path)
-            # abort if not found
-            if obj is None:
-                raise TankError("Could not find token %s starting from %s" % (ref_token, node_path))
-
-            # skip static folders (project folder in single root project is special case.)
-            # check if there is a yml file with the same name
-            yml_file = "%s.yml" % curr_path
-            if os.path.basename(curr_path) == "project" or os.path.exists(yml_file):
-                # the curr folder name matches the $reference! It's a match! 
-                if os.path.basename(curr_path) == ref_token:
-                    return obj
-    
-    
-    def _create_static_node(self, full_path, parent_node, metadata):
+    def get_folder_objs_for_entity_type(self, entity_type):
         """
-        Create a user static object from a metadata file
+        Returns all the nodes representing a particular sg entity type 
         """
-        file_name = os.path.basename(full_path)
-        defer_creation = metadata.get("defer_creation", False)
-        return Static(parent_node, file_name, defer_creation)        
-
-    
-    def _create_user_workspace_node(self, full_path, parent_node, metadata):
-        """
-        Create a user workspace object from a metadata file
-        """
-        sg_name_expression = metadata.get("name")
-        defer_creation = metadata.get("defer_creation", True)
-        
-        # validate
-        if sg_name_expression is None:
-            raise TankError("Missing name token in yml metadata file %s" % full_path )
-
-        return UserWorkspace(parent_node, sg_name_expression, defer_creation, self.sg)
+        return self._entity_nodes_by_type.get(entity_type)
 
 
-    def _create_sg_entity_node(self, full_path, parent_node, metadata):
-        """
-        Create an entity object from a metadata file
-        """
-        # get data
-        sg_name_expression = metadata.get("name")
-        entity_type = metadata.get("entity_type")
-        filters = metadata.get("filters")
-        create_with_parent = metadata.get("create_with_parent", False)
-        defer_creation = metadata.get("defer_creation", False)
-        
-        # validate
-        if sg_name_expression is None:
-            raise TankError("Missing name token in yml metadata file %s" % full_path )
-        
-        if entity_type is None:
-            raise TankError("Missing entity_type token in yml metadata file %s" % full_path )
-
-        if filters is None:
-            raise TankError("Missing filters token in yml metadata file %s" % full_path )
-
-        # transform
-        #
-        # example:
-        # filters: [ { "path": "project", "relation": "is", "values": [ "$project" ] } ]
-        
-        # in order to find $Project, traverse the file system upwards, looking for
-        # a path that has a folder named "project".
-        
-        for sg_filter in filters:
-            values = sg_filter["values"]
-            new_values = []
-            for filter_value in values:
-                if filter_value.startswith("$"):
-                    #process
-                    referenced_node = self._resolve_reference(filter_value[1:], full_path)
-                    
-                    if isinstance(referenced_node, Entity):
-                        # append a token to the filter with the entity TYPE of the sg node
-                        new_values.append( Token(referenced_node.entity_type) )
-                    elif isinstance(referenced_node, ListField):
-                        # append a token to the filter of the form Asset.sg_asset_type
-                        new_values.append( Token(referenced_node.entity_type + "." + referenced_node.field_name) )
-                    else:
-                        raise TankError("Folder creation metadata file for %s "
-                                        "has a filter %s which refers to an " 
-                                        "unknown node %s!" % (full_path, sg_filter, filter_value))
-                else:
-                    new_values.append(filter_value)
-            sg_filter["values"] = new_values
-        
-        # make a filters that the entity object expects
-        entity_filter = {}
-        entity_filter["logical_operator"] = "and"
-        entity_filter["conditions"] = filters
-        
-        # construct
-        return Entity(parent_node, entity_type, sg_name_expression, entity_filter, create_with_parent, defer_creation)
-    
-    def _create_sg_list_field_node(self, full_path, parent_node, metadata):
-        """
-        Create a list field object from a metadata file
-        """
-        # get data
-        entity_type = metadata.get("entity_type")
-        field_name = metadata.get("field_name")
-        skip_unused = metadata.get("skip_unused", False)
-        defer_creation = metadata.get("defer_creation", False)
-        
-        # validate
-        if entity_type is None:
-            raise TankError("Missing entity_type token in yml metadata file %s" % full_path )
-        
-        if field_name is None:
-            raise TankError("Missing field_name token in yml metadata file %s" % full_path )
-        
-        # construct
-        return ListField(parent_node, entity_type, field_name, skip_unused, defer_creation)
-    
-    
-    
-    
-    def _process_config_r(self, parent_node, parent_path):
-        """
-        Recursively scan the file system and construct an object
-        hierarchy
-        """
-        for full_path in self._directory_paths(parent_path):
-            # check for metadata (non-static folder)
-            metadata = self._read_metadata(full_path)
-            if metadata:
-                node_type = metadata.get("type", "undefined")
-                
-                if node_type == "shotgun_entity":
-                    cur_node = self._create_sg_entity_node(full_path, parent_node, metadata)
-                    
-                elif node_type == "shotgun_list_field":
-                    cur_node = self._create_sg_list_field_node(full_path, parent_node, metadata)
-                    
-                elif node_type == "static":
-                    cur_node = self._create_static_node(full_path, parent_node, metadata)
-                
-                elif node_type == "user_workspace":
-                    cur_node = self._create_user_workspace_node(full_path, parent_node, metadata)
-                
-                else:
-                    # don't know this metadata
-                    raise TankError("Unknown metadata type '%s'" % node_type)
-            else:
-                # no metadata - so this is just a static folder!
-                cur_node = self._create_static_node(full_path, parent_node, {})
-
-            self._nodes_by_name[full_path] = cur_node
-            # and process children
-            self._process_config_r(cur_node, full_path)
-           
-        # now process all files and add them to the parent_node token
-        for f in self._file_paths(parent_path):
-            parent_node.add_file(f)
+    ####################################################################################
+    # utility methods
     
     def _directory_paths(self, parent_path):
+        """
+        Returns all the directories for a given path
+        """
         directory_paths = []
         for file_name in os.listdir(parent_path):
             full_path = os.path.join(parent_path, file_name)
@@ -336,11 +67,15 @@ class Schema(object):
         return directory_paths
 
     def _file_paths(self, parent_path):
+        """
+        Returns all the files for a given path except yml files
+        Also ignores any files mentioned in the ignore files list
+        """
         file_paths = []
         for file_name in os.listdir(parent_path):
 
             # don't process files matching ignore pattern(s)
-            if not any(fnmatch.fnmatch(file_name, p) for p in self.ignore_files):
+            if not any(fnmatch.fnmatch(file_name, p) for p in self._ignore_files):
 
                 full_path = os.path.join(parent_path, file_name)
                 # yml files - those are our config files
@@ -354,7 +89,6 @@ class Schema(object):
         Reads metadata file.
 
         :param full_path: Absolute path without extension
-
         :returns: Dictionary of file contents or None
         """
         metadata = None
@@ -372,15 +106,41 @@ class Schema(object):
                 raise TankError("Cannot load config file '%s'. Error: %s" % (yml_file, error))
         return metadata
     
+
+    def _read_ignore_files(self, schema_config_path):
+        """
+        Reads ignore_files from root of schema if it exists.
+        Returns a list of patterns to ignore.
+        """
+        ignore_files = []
+        file_path = os.path.join(schema_config_path, "ignore_files")
+        if os.path.exists(file_path):
+            open_file = open(file_path, "r")
+            try:
+                for line in open_file.readlines():
+                    # skip comments
+                    if "#" in line:
+                        line = line[:line.index("#")]
+                    line = line.strip()
+                    if line:
+                        ignore_files.append(line)
+            finally:
+                open_file.close()
+        return ignore_files
+
+    ##########################################################################################
+    # internal stuff
+
+
     def _load_schema(self, schema_config_path):
         """
         Scan the config and build objects structure
         """
-        
-        # maintain a dictionary of nodes by name
-        self._nodes_by_name = {} 
-        
+                
         project_dirs = self._directory_paths(schema_config_path)
+        
+        # make some space in our obj/entity type mapping
+        self._entity_nodes_by_type["Project"] = []
         
         if len(project_dirs) == 1:
             # Only one project root - in this case, this single root needs to be named
@@ -394,17 +154,18 @@ class Schema(object):
                                 "represents the current Shotgun project." % schema_config_path)                
              
             # make root node
-            project = Project(self.project_root)
-            self.projects.append(project)
-            self._nodes_by_name[project_root] = project
+            project_obj = Project.create(self._tk, project_root, {}, self._tk.project_path)
+            
+            # store it in our lookup tables
+            self._entity_nodes_by_type["Project"].append(project_obj)
              
             # recursively process the rest
-            self._process_config_r(project, project_root)
+            self._process_config_r(project_obj, project_root)
         
         elif len(project_dirs) > 1:
             # Multiple project roots - now you can arbitrary name things.
             
-            roots = root.get_project_roots(self.project_root)
+            roots = root.get_project_roots(self._tk.project_path)
             for project_dir in project_dirs:
                 project_root = os.path.join(schema_config_path, project_dir)
                 
@@ -412,10 +173,10 @@ class Schema(object):
                 metadata = self._read_metadata(project_root)
                 if metadata:
                     if metadata.get("type", None) != "project":
-                        raise TankError("Only directories of type 'project' are allowed at the schema root. %s" % project_root)
+                        raise TankError("Only items of type 'project' are allowed at the root level: %s" % project_root)
                     root_name = metadata.get("root_name", None)
                     if root_name is None:
-                        raise TankError("Missing or invalid value for 'root_name' in metadata for project directory %s" % project_root)
+                        raise TankError("Missing or invalid value for 'root_name' in metadata: %s" % project_root)
 
                     root_path = roots.get(root_name, None)
                     if root_path is None:
@@ -423,49 +184,226 @@ class Schema(object):
                 else:
                     raise TankError("Project directory missing required metadata file: %s" % project_root)
                 
-                project = Project(root_path)
-                self.projects.append(project)
-                self._nodes_by_name[project_root] = project
-                self._process_config_r(project, project_root)
+                project_obj = Project.create(self._tk, project_root, metadata, root_path)
+
+                # store it in our lookup tables
+                self._entity_nodes_by_type["Project"].append(project_obj)
+                
+                # recursively process the rest
+                self._process_config_r(project_obj, project_root)
         else:
             raise TankError("Could not find a project root folder in %s!" % schema_config_path)
+        
 
-def _read_ignore_files(schema_config_path):
+    def _process_config_r(self, parent_node, parent_path):
+        """
+        Recursively scan the file system and construct an object
+        hierarchy. 
+        
+        Factory method for Folder objects.
+        """
+        for full_path in self._directory_paths(parent_path):
+            # check for metadata (non-static folder)
+            metadata = self._read_metadata(full_path)
+            if metadata:
+                node_type = metadata.get("type", "undefined")
+                
+                if node_type == "shotgun_entity":
+                    cur_node = Entity.create(self._tk, parent_node, full_path, metadata)
+                    
+                    # put it into our list where we group entity nodes by entity type
+                    et = cur_node.get_entity_type()
+                    if et not in self._entity_nodes_by_type:
+                        self._entity_nodes_by_type[et] = []
+                    self._entity_nodes_by_type[et].append(cur_node)
+                    
+                elif node_type == "shotgun_list_field":
+                    cur_node = ListField.create(self._tk, parent_node, full_path, metadata)
+                    
+                elif node_type == "static":
+                    cur_node = Static.create(self._tk, parent_node, full_path, metadata)     
+                
+                elif node_type == "user_workspace":
+                    cur_node = UserWorkspace.create(self._tk, parent_node, full_path, metadata)     
+                
+                else:
+                    # don't know this metadata
+                    raise TankError("Error in %s. Unknown metadata type '%s'" % (full_path, node_type))
+            else:
+                # no metadata - so this is just a static folder!
+                cur_node = Static.create(self._tk, parent_node, full_path, {})
+
+            # and process children
+            self._process_config_r(cur_node, full_path)
+           
+        # now process all files and add them to the parent_node token
+        for f in self._file_paths(parent_path):
+            parent_node.add_file(f)
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+class FolderIOReceiver(object):
     """
-    Reads ignore_files from root of schema if it exists.
+    Class that encapsulates all the IO operations from the various folder classes.
     """
-    ignore_files = []
-    file_path = os.path.join(schema_config_path, "ignore_files")
-    if os.path.exists(file_path):
-        open_file = open(file_path, "r")
-        try:
-            for line in open_file.readlines():
-                # skip comments
-                if "#" in line:
-                    line = line[:line.index("#")]
-                line = line.strip()
-                if line:
-                    ignore_files.append(line)
-        finally:
-            open_file.close()
-    return ignore_files
+    
+    def __init__(self, tk, preview):
+        """
+        Constructor
+        """
+        self._tk = tk
+        self._preview_mode = preview
+        self._computed_items = list()
+        self._path_cache = PathCache(tk.project_path)
+        
+    def get_computed_items(self):
+        """
+        Returns list of files and folders that have been computed by the folder creation
+        """
+        return self._computed_items
+            
+    
+    ####################################################################################
+    # post processing
+    
+        
+    ####################################################################################
+    # called by the folder classes
+        
+    def add_entry_to_cache_db(self, path, entity_type, entity_id, entity_name):
+        """
+        Adds entity to database. 
+        """
+        if not self._preview_mode:            
+            existing_paths = self._path_cache.get_paths(entity_type, entity_id)
+            if path not in existing_paths:
+                # path not in cache yet - add it now!
+                self._path_cache.add_mapping(entity_type, entity_id, entity_name, path)
+        
+    def make_folder(self, path):
+        """
+        Calls make folder callback.
+        """
+        self._computed_items.append(path)
+        if not self._preview_mode:
+            self._tk.execute_hook(constants.CREATE_FOLDERS_CORE_HOOK_NAME, path=path, sg_entity=None)
+    
+    def copy_file(self, src_path, target_path):
+        """
+        Calls copy file callback.
+        """
+        self._computed_items.append(target_path)
+        if not self._preview_mode:
+            self._tk.execute_hook(constants.COPY_FILE_CORE_HOOK_NAME, source_path=src_path, target_path=target_path)
+            
+    
+    def prepare_project_root(self, root_path):
+            
+        if root_path != self._tk.project_path:
+            # make tank config directories
+            tank_dir = os.path.join(root_path, "tank")
+            self.make_folder(tank_dir)
+            config_dir = os.path.join(root_path, "tank", "config")
+            self.make_folder(config_dir)
+            # write primary path 
+            root.write_primary_root(config_dir, self._tk.project_path)
+        
 
 
 ################################################################################################
 # public functions
+
+def create_single_folder_item(tk, config_obj, io_receiver, entity_type, entity_id, engine):
+    """
+    Creates folders for an entity type and an entity id.
+    :param config_obj: a FolderConfiguration object representing the folder configuration
+    :param io_receiver: a FolderIOReceiver representing the folder operation callbacks
+    :param entity_type: Shotgun entity type
+    :param entity_id: Shotgun entity id
+    :param engine: Engine to create folders for / indicate second pass if not None.
+    """
+    # TODO: Confirm this entity exists and is in this project
     
-def process_filesystem_structure(tk, entity_type, entity_ids, preview, engine=None):    
+    # Recurse over entire tree and find find all Entity folders of this type
+    folder_objects = config_obj.get_folder_objs_for_entity_type(entity_type)
+    
+    # now we have folder objects representing the entity type we are after.
+    # (for example there may be 3 SHOT nodes in the folder config tree)
+    # For each folder, find the list of entities needed to build the full path and
+    # ensure its parent folders exist. Then, create the folder for this entity with
+    # all its children.
+    for folder_obj in folder_objects:
+        
+        # fill in the information we know about this entity now
+        entity_id_seed = { 
+            entity_type: { "type": entity_type, "id": entity_id }
+        }
+        
+        # now go from the folder object, deep inside the hierarchy,
+        # up the tree and resolve all the entity ids that are required 
+        # in order to create folders.
+        try:
+            shotgun_entity_data = folder_obj.extract_shotgun_data_upwards(tk.shotgun, entity_id_seed)
+        except EntityLinkTypeMismatch:
+            # the seed entity id object does not satisfy the link
+            # path from folder_obj up to the root. 
+            continue
+        
+        # now get all the parents, the list goes from the bottom up
+        # parents:
+        # [Entity /Project/sequences/Sequence/Shot, Entity /Project/sequences/Sequence, Static /Project/sequences, Project /Project]
+        #
+        # the last element is now always the project object
+        folder_objects_to_recurse = [folder_obj] + folder_obj.get_parents()
+        
+        # get the project object and take it out of the list
+        # we will use the project object to start the recursion down
+        # [Entity /Project/sequences/Sequence/Shot, Entity /Project/sequences/Sequence, Static /Project/sequences]
+        project_folder = folder_objects_to_recurse.pop()
+
+        # get the parent path of the project folder
+        parent_project_path = os.path.abspath(os.path.join(project_folder.get_data_root(), ".."))
+        
+        # now walk down, starting from the project level until we reach our entity 
+        # and create all the structure.
+        #
+        # we pass a list of folder objects to create, so that in the case an object has multiple
+        # children, the folder creation knows which object to create at that point.
+        #
+        # the shotgun_entity_data dictionary contains all the shotgun data needed in order to create
+        # all the folders down this particular recursion path
+        project_folder.create_folders(io_receiver, parent_project_path, shotgun_entity_data, folder_objects_to_recurse, engine)
+        
+
+
+
+    
+def process_filesystem_structure(tk, entity_type, entity_ids, preview, engine):    
     """
     Creates filesystem structure in Tank based on Shotgun and a schema config.
-    Internal version.
+    Internal implementation.
     
     :param tk: A tank instance
     :param entity_type: A shotgun entity type to create folders for
-    :param entity_ids: list of entity ids to process
+    :param entity_ids: list of entity ids to process or a single entity id
     :param preview: enable dry run mode?
-    :param engine: (Optional) A string representation matching a level in the schema. Passing this
+    :param engine: A string representation matching a level in the schema. Passing this
                    option indicates to the system that a second pass should be executed and all
-                   which are marked as deferred are processed.
+                   which are marked as deferred are processed. Pass None for non-deferred mode.
+                   The convention is to pass the name of the current engine, e.g 'tk-maya'.
     
     :returns: tuple: (How many entity folders were processed, list of items)
     
@@ -478,28 +416,29 @@ def process_filesystem_structure(tk, entity_type, entity_ids, preview, engine=No
         elif isinstance(entity_ids, str) and entity_ids.isdigit():
             entity_ids = (int(entity_ids),)
         else:
-            raise ValueError("Parameter entity_ids was passed %s, accepted types are list, typle and int.")
-
+            raise ValueError("Parameter entity_ids was passed %s, accepted types are list, tuple and int.")
     
     if len(entity_ids) == 0:
         return
 
+
     # all things to create, organized by type
     items = {}
 
-    # Add the project
-    # assume all entites belong to the same project
-    # it is necessary for the folder recursion to start at some point
-    # so we always need to ensure that the project folder exists. 
-    if entity_type != "Project":
-        data = tk.shotgun.find_one(entity_type, [["id", "is", entity_ids[0]]], ["project"])
-        if not data:
-            raise TankError("Unable to find entity in shotgun. type: %s, id: %s" % (entity_type, entity_ids[0]))
-        project_id = data["project"]["id"]
-        items["Project"] = [project_id]
-
-    # if entity_type is a task, get the entity connected to the task
-    # a selection of tasks may be connected to multiple shotgun entity types
+    #################################################################################
+    #
+    # Steps are not supported
+    #
+    if entity_type == "Step":
+        raise TankError("Cannot create folders from Steps, only for entity types such as Shots, Assets etc.")
+    
+    #################################################################################
+    #
+    # Special handling of tasks. In the case of tasks, jump to the connected entity
+    # note that this requires a shotgun query, and is therefore a performance hit. 
+    #
+    # Tasks with no entity associated will be ignored.
+    #
     if entity_type == "Task":
         
         filters = ["id", "in"]
@@ -508,7 +447,6 @@ def process_filesystem_structure(tk, entity_type, entity_ids, preview, engine=No
         data = tk.shotgun.find(entity_type, [filters], ["entity"])
         for sg_entry in data:
             if sg_entry["entity"]: # task may not be associated with an entity
-                
                 entry_type = sg_entry["entity"]["type"]
                 if entry_type not in items:
                     items[entry_type] = []
@@ -518,31 +456,17 @@ def process_filesystem_structure(tk, entity_type, entity_ids, preview, engine=No
         # normal entities
         items[entity_type] = entity_ids
 
-    # Define a create folder callback.
-    def _make_folder_callback(path, entity):
-        # pass on request to hook
-        tk.execute_hook(constants.CREATE_FOLDERS_CORE_HOOK_NAME, path=path, sg_entity=entity)
-        
-    # Define a copy file callback.
-    def _copy_file_callback(source_path, target_path):
-        # pass on request to hook
-        tk.execute_hook(constants.COPY_FILE_CORE_HOOK_NAME, 
-                        source_path=source_path, 
-                        target_path=target_path)
-
-    # get some constants
-    schema_cfg_folder = constants.get_schema_config_location(tk.project_path)   
-
+    
     # create schema builder
-    schema = Schema(tk, 
-                    schema_cfg_folder, 
-                    _make_folder_callback, 
-                    _copy_file_callback, 
-                    preview)
-        
-    entities_processed = 0
+    schema_cfg_folder = constants.get_schema_config_location(tk.project_path)   
+    config = FolderConfiguration(tk, schema_cfg_folder)
+    
+    # create an object to receive all IO requests
+    io_receiver = FolderIOReceiver(tk, preview)
+
+    # now loop over all individual objects and create folders
     for entity_type, entity_ids in items.items():
         for entity_id in entity_ids:
-            entities_processed += schema.create_folders(entity_type, entity_id, engine)
+            create_single_folder_item(tk, config, io_receiver, entity_type, entity_id, engine)
 
-    return (entities_processed, schema.created_items)
+    return io_receiver.get_computed_items()

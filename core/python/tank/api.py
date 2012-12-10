@@ -343,12 +343,12 @@ class Tank(object):
 
         :returns: The number of entity folders were processed
         """
-        num_processed, _ = folder.process_filesystem_structure(self, 
-                                                               entity_type, 
-                                                               entity_id, 
-                                                               preview=False,
-                                                               engine=engine)
-        return num_processed
+        folders = folder.process_filesystem_structure(self, 
+                                                      entity_type, 
+                                                      entity_id, 
+                                                      False,
+                                                      engine)
+        return len(folders)
         
     def preview_filesystem_structure(self, entity_type, entity_id, engine=None):
         """
@@ -365,12 +365,12 @@ class Tank(object):
 
         :returns: List of items processed.
         """
-        _, processed_items = folder.process_filesystem_structure(self, 
-                                                                 entity_type, 
-                                                                 entity_id, 
-                                                                 preview=True,
-                                                                 engine=engine)
-        return processed_items
+        folders = folder.process_filesystem_structure(self, 
+                                                      entity_type, 
+                                                      entity_id, 
+                                                      True,
+                                                      engine)
+        return folders
 
     def execute_hook(self, hook_name, **kwargs):
         """

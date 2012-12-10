@@ -8,7 +8,7 @@ import shutil
 from mock import Mock
 import tank
 from tank_vendor import yaml
-from tank.folder import Schema
+from tank.folder.schema import Schema
 from tank import TankError
 from tank import hook
 from tank import folder

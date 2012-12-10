@@ -353,12 +353,19 @@ class TankTestBase(unittest.TestCase):
             # see https://github.com/shotgunsoftware/python-api/wiki/Reference%3A-Methods#wiki-schema_field_read
             return {field_name: data}
         
+        def upload_thumbnail(entity_type, entity_id, path):
+            """
+            Nop thumb uploader
+            """
+            # do nothing
+        
         mock_find_one = Mock(side_effect=find_one)
         mock_find = Mock(side_effect=find)
         mock_schema_field_read = Mock(side_effect=schema_field_read)
         sg = Mock()
         sg.find_one = mock_find_one
         sg.find = mock_find
+        sg.upload_thumbnail = upload_thumbnail
         sg.schema_field_read = mock_schema_field_read
         return sg
 

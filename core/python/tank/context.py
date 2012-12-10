@@ -14,6 +14,7 @@ import tank
 from . import root
 from .util import login
 from .util import shotgun
+from .util import shotgun_entity
 from .folder import folder
 from .errors import TankError
 from .path_cache import PathCache
@@ -52,11 +53,6 @@ class Context(object):
         self._entity_fields_cache = {}
 
     def __repr__(self):
-        args = (self.project,
-                self.entity,
-                self.step,
-                self.task)
-        
         # multi line repr
         msg = []
         msg.append("  Project: %s" % str(self.__project))
@@ -276,11 +272,11 @@ class Context(object):
                     msg = msg % (key.shotgun_entity_type, key.shotgun_field_name)
                     raise TankError(msg)
                 else:
-                    processed_val = folder.generate_string_val(self.__tk,
-                                                               key.shotgun_entity_type,
-                                                               entity.get("id"),
-                                                               key.shotgun_field_name, 
-                                                               value)
+                    processed_val = shotgun_entity.sg_entity_to_string(self.__tk,
+                                                                       key.shotgun_entity_type,
+                                                                       entity.get("id"),
+                                                                       key.shotgun_field_name, 
+                                                                       value)
                     if key.validate(processed_val):
                         fields[key.name] = processed_val
                         self._entity_fields_cache[cache_key] = processed_val

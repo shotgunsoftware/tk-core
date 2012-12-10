@@ -197,7 +197,7 @@ class TestShotgunRegisterPublish(TankTestBase):
         sequence is used."""
         tk = tank.Tank(self.project_root)
         # mock shotgun
-        tk._tank__sg = Mock()
+        tk._tank__sg = self.sg_mock
 
         # make sequence key
         keys = { "seq": tank.templatekey.SequenceKey("seq", format_spec="03")}
