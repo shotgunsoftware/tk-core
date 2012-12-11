@@ -128,7 +128,7 @@ class Folder(object):
         if explicit_child_list:
             # we have been given a specific list to recurse down.
             # pop off the next item and process it.
-            explicit_ch = copy.deepcopy(explicit_child_list)
+            explicit_ch = copy.copy(explicit_child_list)
             ch = explicit_ch.pop()
             children_to_process = [ch]
             
@@ -453,13 +453,17 @@ class FilterExpressionToken(object):
             self._expression = self._expression[1:]
         
         # now find which node is being pointed at
-        self._referenced_node = self._resolve_ref_r(parent)
+        referenced_node = self._resolve_ref_r(parent)
         
-        if self._referenced_node is None:
+        if referenced_node is None:
             raise TankError("The configuration expression $%s could not be found in %s or in "
                             "any of its parents." % (self._expression, parent))
 
-        self._sg_data_key = self.sg_data_key_for_folder_obj(self._referenced_node)
+        self._sg_data_key = self.sg_data_key_for_folder_obj(referenced_node)
+        
+        # all the nodes we refer to have a concept of an entity type.
+        # store that too so that for later use
+        self._associated_entity_type = referenced_node.get_entity_type() 
         
 
     def _resolve_ref_r(self, folder_obj):
@@ -486,7 +490,7 @@ class FilterExpressionToken(object):
         """
         Returns the shotgun entity type for this link
         """
-        return self._referenced_node.get_entity_type()
+        return self._associated_entity_type
         
         
     def resolve_shotgun_data(self, shotgun_data):
