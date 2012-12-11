@@ -311,7 +311,7 @@ class FolderIOReceiver(object):
             
     
     def prepare_project_root(self, root_path):
-            
+        
         if root_path != self._tk.project_path:
             # make tank config directories
             tank_dir = os.path.join(root_path, "tank")
@@ -339,7 +339,6 @@ def create_single_folder_item(tk, config_obj, io_receiver, entity_type, entity_i
     
     # Recurse over entire tree and find find all Entity folders of this type
     folder_objects = config_obj.get_folder_objs_for_entity_type(entity_type)
-    
     # now we have folder objects representing the entity type we are after.
     # (for example there may be 3 SHOT nodes in the folder config tree)
     # For each folder, find the list of entities needed to build the full path and
@@ -373,7 +372,7 @@ def create_single_folder_item(tk, config_obj, io_receiver, entity_type, entity_i
         # we will use the project object to start the recursion down
         # [Entity /Project/sequences/Sequence/Shot, Entity /Project/sequences/Sequence, Static /Project/sequences]
         project_folder = folder_objects_to_recurse.pop()
-
+        
         # get the parent path of the project folder
         parent_project_path = os.path.abspath(os.path.join(project_folder.get_data_root(), ".."))
         

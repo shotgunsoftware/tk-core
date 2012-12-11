@@ -115,8 +115,11 @@ class Folder(object):
         """
         
         # should we create any folders?
-        if not self._should_item_be_processed(engine):
-            return
+        # if the explicit child list exists, this take precedence - we always want to create
+        # those children.
+        if not explicit_child_list:
+            if not self._should_item_be_processed(engine):
+                return
         
         # run the actual folder creation
         created_data = self._create_folders_impl(io_receiver, path, sg_data)
@@ -206,7 +209,7 @@ class Folder(object):
         Copies all files that have been registered with this folder object
         to a specific target folder on disk, using the dedicated hook
         """
-        for src_file in self.files:
+        for src_file in self._files:
             target_path = os.path.join(path, os.path.basename(src_file))
             io_receiver.copy_file(src_file, target_path)
 
@@ -294,7 +297,9 @@ class ListField(Folder):
                             "exactly one field!" % (full_path, field_expr))
         
         # get the single shotgun field that the expression is based on
-        self._field_name = self._field_expr_obj.get_shotgun_fields()[0]
+        sg_fields = self._field_expr_obj.get_shotgun_fields()
+        # get the first element of the returned set
+        self._field_name = list(sg_fields)[0]
         
         
     def get_entity_type(self):
@@ -707,7 +712,7 @@ class Entity(Folder):
         # we should only process this single entity. If not, then use the query filter
         
         # first, resolve the filter queries for the current ids passed in via tokens
-        resolved_filters = self.__resolve_shotgun_filters(self._filters, sg_data)
+        resolved_filters = self.__resolve_shotgun_filters(sg_data)
         
         # see if the sg_data dictionary has anything for us
         my_sg_data_key = FilterExpressionToken.sg_data_key_for_folder_obj(self)
@@ -969,6 +974,11 @@ class Project(Entity):
         self._tk = tk
         self._project_data_root = project_data_root
         
+        # note! create_with_parent is set specifically to True
+        # to make sure that we can bootstrap the folder creation 
+        # process correctly. Folder creation always starts with 
+        # a project node and setting create with parent to True
+        # means that we are forcing it to always be processed.
         Entity.__init__(self, 
                         tk,
                         None, 
@@ -977,7 +987,7 @@ class Project(Entity):
                         "Project", 
                         "tank_name", 
                         no_filters, 
-                        create_with_parent=False)
+                        create_with_parent=True)
                 
     def get_data_root(self):
         """
@@ -990,7 +1000,7 @@ class Project(Entity):
         """
         Project specific implementation of the folder creation.
         """
-        io_receiver.create_project_root()
+        io_receiver.prepare_project_root(path)
         
 
 
