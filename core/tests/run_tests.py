@@ -12,6 +12,11 @@ python_path = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "py
 print "Adding tank location to python_path: %s" % python_path
 sys.path = [python_path] + sys.path
 
+# prepend tank_vendor location to PYTHONPATH to make sure we are running
+# the tests against the vendor libs, not local libs on the machine
+python_path = os.path.abspath(os.path.join( os.path.dirname(__file__), "python"))
+print "Adding tests/python location to python_path: %s" % python_path
+sys.path = [python_path] + sys.path
 
 
 class TankTestRunner(object):

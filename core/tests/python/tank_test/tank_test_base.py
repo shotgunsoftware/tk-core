@@ -53,8 +53,7 @@ def setUpModule():
     install_dir = os.path.join(studio_tank, "install")
 
     # copy tank engine code into place
-    dirname = os.path.dirname
-    TANK_SOURCE_PATH = dirname(dirname(dirname(dirname(__file__))))
+    TANK_SOURCE_PATH = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "..", ".."))
     shutil.copytree(os.path.join(TANK_SOURCE_PATH, "engines"),
                     os.path.join(install_dir, "engines"))
 
