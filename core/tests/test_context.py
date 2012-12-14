@@ -41,6 +41,7 @@ class TestContext(TankTestBase):
         self.current_login = tank.util.login.get_login_name()
         self.current_user = {"type":"HumanUser", "name":"user_name", "id":2, "login": self.current_login}
         self.add_to_sg_mock_db(self.current_user)
+        
 
         self.seq_path = os.path.join(self.project_root, "sequence/Seq")
         self.add_production_path(self.seq_path, self.seq)
@@ -247,7 +248,7 @@ class TestFromEntity(TestContext):
 
         self.check_entity(self.shot, result.entity)
         self.assertEquals(3, len(result.entity))
-
+                
         self.check_entity(self.current_user, result.user)
 
         self.assertEquals(None, result.task)

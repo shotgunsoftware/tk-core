@@ -402,7 +402,8 @@ class TestValidateContext(TankTestBase):
         # tank instance with this template
         tk = tank.Tank(self.project_root)
         tk.templates={self.template_name:template}
-
+        # prime the context with the current user - the repr wont load it
+        self.context.user
         params = (self.context, ["sppk",field_name], template)
         expected_msg = "Context %s can not determine value for fields %s needed by template %s" % params
 

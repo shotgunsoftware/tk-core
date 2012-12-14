@@ -28,6 +28,7 @@ def setUpModule():
 
     # determine tests root location 
     temp_dir = tempfile.gettempdir()
+    # make a unique test dir for each file
     temp_dir_name = "tankTemporaryTestData"
     # If running on the windows CI server then append time to
     # the temp directory name
@@ -41,16 +42,20 @@ def setUpModule():
     print msg
     print "="*len(msg) + "\n"
 
+    # move tank directory if left by previous tests
+    _move_data(TANK_TEMP)
+    os.makedirs(TANK_TEMP)
+
     # create studio level tank directories
     studio_tank = os.path.join(TANK_TEMP, "tank")
-    # move tank directory if left by previous tests
-    _move_data(studio_tank)
-    os.makedirs(studio_tank)
 
     # make studio level subdirectories
     os.makedirs(os.path.join(studio_tank, "config", "core"))
     os.mkdir(os.path.join(studio_tank, "doc"))
     install_dir = os.path.join(studio_tank, "install")
+
+    # reset the global cache
+    tank.util.login.g_shotgun_user_cache = None
 
     # copy tank engine code into place
     TANK_SOURCE_PATH = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "..", ".."))
@@ -65,7 +70,7 @@ def _move_data(path):
     """
     if path and os.path.exists(path):
         dirname, basename = os.path.split(path)
-        new_basename = "_%s" % basename
+        new_basename = "%s.old" % basename
         backup_path = os.path.join(dirname, new_basename)
         if os.path.exists(backup_path):
             shutil.rmtree(backup_path)
