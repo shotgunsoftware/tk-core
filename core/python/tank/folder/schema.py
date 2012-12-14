@@ -11,6 +11,7 @@ Known constraints:
 
 import os
 import re
+import copy
 import fnmatch
 
 from .folder import Static, ListField, Entity, Project, UserWorkspace, EntityLinkTypeMismatch
@@ -363,14 +364,15 @@ def create_single_folder_item(tk, config_obj, io_receiver, entity_type, entity_i
         
         # now get all the parents, the list goes from the bottom up
         # parents:
-        # [Entity /Project/sequences/Sequence/Shot, Entity /Project/sequences/Sequence, Static /Project/sequences, Project /Project]
+        # [Entity /Project/sequences/Sequence/Shot, 
+        #  Entity /Project/sequences/Sequence, 
+        #  Static /Project/sequences, Project /Project ]
         #
         # the last element is now always the project object
         folder_objects_to_recurse = [folder_obj] + folder_obj.get_parents()
         
         # get the project object and take it out of the list
         # we will use the project object to start the recursion down
-        # [Entity /Project/sequences/Sequence/Shot, Entity /Project/sequences/Sequence, Static /Project/sequences]
         project_folder = folder_objects_to_recurse.pop()
         
         # get the parent path of the project folder
@@ -384,7 +386,12 @@ def create_single_folder_item(tk, config_obj, io_receiver, entity_type, entity_i
         #
         # the shotgun_entity_data dictionary contains all the shotgun data needed in order to create
         # all the folders down this particular recursion path
-        project_folder.create_folders(io_receiver, parent_project_path, shotgun_entity_data, folder_objects_to_recurse, engine)
+        project_folder.create_folders(io_receiver, 
+                                      parent_project_path, 
+                                      shotgun_entity_data, 
+                                      True,
+                                      folder_objects_to_recurse,
+                                      engine)
         
 
 
@@ -407,6 +414,11 @@ def process_filesystem_structure(tk, entity_type, entity_ids, preview, engine):
     :returns: tuple: (How many entity folders were processed, list of items)
     
     """
+
+    # check that engine is either a string or None
+    if not (isinstance(engine, basestring) or engine is None):
+        raise ValueError("engine parameter needs to be a string or None")
+
 
     # Ensure ids is a list
     if not isinstance(entity_ids, (list, tuple)):

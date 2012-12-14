@@ -27,7 +27,6 @@ class Folder(object):
         self._parent = parent
         self._files = []
         
-        
         if self._parent:
             # add me to parent's child list
             self._parent._children.append(self)
@@ -39,7 +38,7 @@ class Folder(object):
             
     ###############################################################################################
     # public methods
-            
+    
     def get_path(self):
         """
         Returns the path on disk to this configuration item
@@ -83,7 +82,7 @@ class Folder(object):
         """
         self._files.append(path)
                 
-    def create_folders(self, io_receiver, path, sg_data, explicit_child_list, engine):
+    def create_folders(self, io_receiver, path, sg_data, is_primary, explicit_child_list, engine):
         """
         Recursive folder creation. Creates folders for this node and all its children.
         
@@ -95,6 +94,12 @@ class Folder(object):
                      
         :param sg_data: All Shotgun data, organized in a dictionary, as returned by 
                         extract_shotgun_data_upwards()
+                     
+        :param is_primary: Indicates that the folder is part of the primary creation chain
+                           and not part of the secondary recursion. For example, if the 
+                           folder creation is running for shot ABC, the primary chain
+                           folders would be Project X -> Sequence Y -> Shot ABC.
+                           The secondary folders would be the children of Shot ABC.
                           
         :param explicit_child_list: A list of specific folders to process as the algorithm
                                     traverses down. Each time a new level is traversed, the child
@@ -115,11 +120,8 @@ class Folder(object):
         """
         
         # should we create any folders?
-        # if the explicit child list exists, this take precedence - we always want to create
-        # those children.
-        if not explicit_child_list:
-            if not self._should_item_be_processed(engine):
-                return
+        if not self._should_item_be_processed(engine, is_primary):
+            return
         
         # run the actual folder creation
         created_data = self._create_folders_impl(io_receiver, path, sg_data)
@@ -131,17 +133,24 @@ class Folder(object):
             explicit_ch = copy.copy(explicit_child_list)
             ch = explicit_ch.pop()
             children_to_process = [ch]
+            child_is_primary = True
             
         else:
             # no explicit list! instead process all children.
             explicit_ch = []
             children_to_process = self._children
+            child_is_primary = False
             
         # run the folder creation for all new folders created and for all
         # configuration children
         for (created_folder, sg_data_dict) in created_data:
             for cp in children_to_process:
-                cp.create_folders(io_receiver, created_folder, sg_data_dict, explicit_ch, engine)
+                cp.create_folders(io_receiver, 
+                                  created_folder, 
+                                  sg_data_dict, 
+                                  child_is_primary, 
+                                  explicit_ch, 
+                                  engine)
             
 
     ###############################################################################################
@@ -155,12 +164,14 @@ class Folder(object):
         """
         raise NotImplementedError
     
-    def _should_item_be_processed(self, engine_str):
+    def _should_item_be_processed(self, engine_str, is_primary):
         """
         Checks if this node should be processed, given its deferred status.
         
         If deriving classes have other logic for deciding if a node should be processsed,
         this method can be sublcassed. However, the base class should also be executed.
+        
+        Is Primary indicates that the folder is part of the primary creation pass.
         
         in the metadata, expect the following values:
         
@@ -172,8 +183,8 @@ class Folder(object):
         defer_creation: [tk-maya, tk-nuke]    # create if engine_str is in list
         """
         
+
         dc_value = self._config_metadata.get("defer_creation")
-        
         # if defer_creation config param not specified or None means we 
         # can always go ahead with folder creation!!
         if dc_value is None or dc_value == False:
@@ -643,22 +654,35 @@ class Entity(Folder):
                 vals[0] = expr_token.resolve_shotgun_data(sg_data)                
         return resolved_filters
     
+    
+    def __get_name_field_for_et(self, entity_type):
+        """
+        return the special name field for a given entity
+        """
+        spec_name_fields = {"Project": "name", "Task": "content", "HumanUser": "login"}
+        if entity_type in spec_name_fields:
+            return spec_name_fields[entity_type]
+        else:
+            return "code"
+
+    
     def get_entity_type(self):
         """
         returns the shotgun entity type for this node
         """
         return self._entity_type
     
-    def _should_item_be_processed(self, engine_str):
+    def _should_item_be_processed(self, engine_str, is_primary):
         """
         Checks if this node should be processed, given its deferred status.        
         """
         # check our special condition - is this node set to be auto-created with its parent node?
-        if self._create_with_parent == False:
+        # note that primary nodes are always created with their parent nodes!
+        if is_primary == False and self._create_with_parent == False:
             return False
         
         # base class implementation
-        return super(Entity, self)._should_item_be_processed(engine_str)
+        return super(Entity, self)._should_item_be_processed(engine_str, is_primary)
     
     def _create_folders_impl(self, io_receiver, parent_path, sg_data):
         """
@@ -679,16 +703,9 @@ class Entity(Folder):
             self._copy_files_to_folder(io_receiver, my_path)
 
             # write to path cache db
-            # note - assuming there is a code for every entity type here except project and task
-            if self._entity_type == "Project":
-                cache_name = entity["name"]
-            elif self._entity_type == "Task":
-                cache_name = entity["content"]
-            elif self._entity_type == "HumanUser":
-                cache_name = entity["login"]
-            else:
-                cache_name = entity["code"]
-            
+            # get the name field - which depends on the entity type
+            name_field = self.__get_name_field_for_et(self._entity_type)
+            cache_name = entity[name_field]            
             io_receiver.add_entry_to_cache_db(my_path, self._entity_type, entity["id"], cache_name)
             
             # create a new entity dict including our own data and pass it down to children
@@ -718,7 +735,7 @@ class Entity(Folder):
         # first, resolve the filter queries for the current ids passed in via tokens
         resolved_filters = self.__resolve_shotgun_filters(sg_data)
         
-        # see if the sg_data dictionary has anything for us
+        # see if the sg_data dictionary has a "seed" entity type matching our entity type
         my_sg_data_key = FilterExpressionToken.sg_data_key_for_folder_obj(self)
         if my_sg_data_key in sg_data:
             # we have a constraint!
@@ -729,18 +746,11 @@ class Entity(Folder):
 
         # figure out which fields to retrieve
         fields = self._entity_expression.get_shotgun_fields()
-        
-        if self._entity_type == "Project":
-            fields.add("name")
-        elif self._entity_type == "Task":
-            fields.add("content")
-        elif self._entity_type == "HumanUser":
-            fields.add("login")
-        else:
-            fields.add("code")
-            
-        if self._entity_type == "Step":
-            fields.add("entity_type")
+        # always retrieve the name field for the entity
+        fields.add( self.__get_name_field_for_et(self._entity_type) )        
+        # do we need this?
+        #if self._entity_type == "Step":
+        #    fields.add("entity_type")
         
         # now find all the items (e.g. shots) matching this query
         entities = self._tk.shotgun.find(self._entity_type, resolved_filters, fields)
@@ -941,6 +951,10 @@ class UserWorkspace(Entity):
                      "conditions": [ { "path": "id", "relation": "is", "values": [ user["id"] ] } ] 
                   }
         
+        # user work spaces are always deferred so make sure to add a setting to the metadata
+        # note: This should ideally be a parameter passed to the base class.
+        metadata["defer_creation"] = True
+        
         Entity.__init__(self, 
                         tk,
                         parent, 
@@ -978,11 +992,6 @@ class Project(Entity):
         self._tk = tk
         self._project_data_root = project_data_root
         
-        # note! create_with_parent is set specifically to True
-        # to make sure that we can bootstrap the folder creation 
-        # process correctly. Folder creation always starts with 
-        # a project node and setting create with parent to True
-        # means that we are forcing it to always be processed.
         Entity.__init__(self, 
                         tk,
                         None, 
@@ -991,7 +1000,7 @@ class Project(Entity):
                         "Project", 
                         "tank_name", 
                         no_filters, 
-                        create_with_parent=True)
+                        create_with_parent=False)
                 
     def get_data_root(self):
         """
