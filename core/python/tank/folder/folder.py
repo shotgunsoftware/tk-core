@@ -368,7 +368,7 @@ class ListField(Folder):
             #
             
             # validate that the data type is of type list
-            field_type = resp[self._field_name]["sg_asset_type"]["data_type"]["value"]
+            field_type = resp[self._field_name]["data_type"]["value"]
             if field_type != "list":
                 msg = "Folder creation error: Only list fields can be used with the list field type. "
                 msg += "%s.%s is of type %s which is unsupported." % (self._entity_type, self._field_name, field_type)
