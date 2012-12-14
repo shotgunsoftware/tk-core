@@ -119,12 +119,17 @@ class TestSchemaCreateFolders(TankTestBase):
 
         self.schema_location = os.path.join(self.project_root, "tank", "config", "core", "schema")
 
+        self.FolderIOReceiverBackup = folder.schema.FolderIOReceiver
+        folder.schema.FolderIOReceiver = FolderIOReceiverProxy
+
+    def tearDown(self):
+        
+        folder.schema.FolderIOReceiver = self.FolderIOReceiverBackup
+
 
     def test_shot(self):
         """Tests paths used in making a shot are as expected."""
         expected_paths = self._construct_shot_paths()
-        
-        folder.schema.FolderIOReceiver = FolderIOReceiverProxy
         
         folder.process_filesystem_structure(self.tk, 
                                             self.shot["type"], 
@@ -136,8 +141,6 @@ class TestSchemaCreateFolders(TankTestBase):
     def test_white_space(self):
         # make illegal value
         self.shot["code"] = "name with spaces"
-        
-        folder.schema.FolderIOReceiver = FolderIOReceiverProxy
         
         expected_paths = self._construct_shot_paths(shot_name="name-with-spaces")
 
@@ -158,7 +161,6 @@ class TestSchemaCreateFolders(TankTestBase):
             self.add_to_sg_mock_db(self.shot)
             expected_paths = self._construct_shot_paths(shot_name="shot-name")
 
-            folder.schema.FolderIOReceiver = FolderIOReceiverProxy
             folder.process_filesystem_structure(self.tk, 
                                                 self.shot["type"], 
                                                 self.shot["id"], 
@@ -189,7 +191,6 @@ class TestSchemaCreateFolders(TankTestBase):
 
         self.tk = tank.Tank(self.project_root)
 
-        folder.schema.FolderIOReceiver = FolderIOReceiverProxy
         folder.process_filesystem_structure(self.tk, 
                                             self.asset["type"], 
                                             self.asset["id"], 
@@ -226,7 +227,6 @@ class TestSchemaCreateFolders(TankTestBase):
         expected_paths.append(os.path.join(self.project_root, "scenes", "extra_short_name", "scenename"))
         expected_paths.append(os.path.join(self.project_root, "scenes", "extra_short_name", "scenename", "work"))
         
-        folder.schema.FolderIOReceiver = FolderIOReceiverProxy
         folder.process_filesystem_structure(self.tk, 
                                             scene["type"], 
                                             scene["id"], 
@@ -247,7 +247,6 @@ class TestSchemaCreateFolders(TankTestBase):
         expected_paths.append(os.path.join(self.project_root, "reference", "artwork"))
         expected_paths.append(os.path.join(self.project_root, "reference", "footage"))
 
-        folder.schema.FolderIOReceiver = FolderIOReceiverProxy
         folder.process_filesystem_structure(self.tk, 
                                             self.project["type"], 
                                             self.project["id"],  
@@ -339,12 +338,17 @@ class TestSchemaCreateFoldersMultiRoot(TankTestBase):
 
         self.tk = tank.Tank(self.project_root)
 
+        self.FolderIOReceiverBackup = folder.schema.FolderIOReceiver
+        folder.schema.FolderIOReceiver = FolderIOReceiverProxy
+
+    def tearDown(self):
+        
+        folder.schema.FolderIOReceiver = self.FolderIOReceiverBackup
+
 
     def test_shot(self):
         """Tests paths used in making a shot are as expected."""
         expected_paths = self._construct_shot_paths()
-        
-        folder.schema.FolderIOReceiver = FolderIOReceiverProxy
         
         folder.process_filesystem_structure(self.tk, 
                                             self.shot["type"], 
@@ -373,8 +377,6 @@ class TestSchemaCreateFoldersMultiRoot(TankTestBase):
         expected_paths.append(os.path.join(step_path, "work", "snapshots"))
         expected_paths.append(os.path.join(step_path, "out"))
 
-        folder.schema.FolderIOReceiver = FolderIOReceiverProxy
-        
         folder.process_filesystem_structure(self.tk, 
                                             self.asset["type"], 
                                             self.asset["id"], 
@@ -399,9 +401,7 @@ class TestSchemaCreateFoldersMultiRoot(TankTestBase):
         expected_paths.append(os.path.join(self.alt_root_1, "tank", "config"))
         expected_paths.append(os.path.join(self.alt_root_1, "assets"))
         expected_paths.append(os.path.join(self.alt_root_1, "alternate_reference"))
-        
-        folder.schema.FolderIOReceiver = FolderIOReceiverProxy
-        
+                
         folder.process_filesystem_structure(self.tk, 
                                             self.project["type"], 
                                             self.project["id"], 
@@ -567,6 +567,5 @@ class TestCreateFilesystemStructure(TankTestBase):
               
               
      
-
 
 
