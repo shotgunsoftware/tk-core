@@ -95,7 +95,7 @@ def get_primary_root(input_path):
         parent_path = os.path.dirname(cur_path)
         if parent_path == cur_path:
             # Topped out without finding config
-            raise TankError("Path is not part of tank a project: %s" % input_path)
+            raise TankError("Path is not part of a Tank project: %s" % input_path)
         cur_path = parent_path
 
     primary_roots_file = os.path.join(config_path, "primary_project.yml")
@@ -113,7 +113,7 @@ def get_primary_root(input_path):
         # primary root file missing, check if it's project or studio path
         if os.path.exists(schema_path):
             return cur_path
-        raise TankError("Path is not part of tank a project: %s" % input_path)
+        raise TankError("Path is not part of a Tank project: %s" % input_path)
 
 
 def write_primary_root(config_path, project_root):
