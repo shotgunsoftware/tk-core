@@ -90,6 +90,7 @@ def switch_location(log, project_root, env_obj, app_name, engine_name, framework
         except TankError:
             log.info("Framework %s not found - will add it to the environment." % framework_name)
             curr_desc = None
+            env_obj.create_framework_settings(framework_name)
         
     elif app_name:
         mode = AppDescriptor.APP
@@ -98,6 +99,7 @@ def switch_location(log, project_root, env_obj, app_name, engine_name, framework
         except TankError:
             log.info("App %s not found - will add it to the environment." % app_name)
             curr_desc = None        
+            env_obj.create_app_settings(engine_name, app_name)
         
     else:
         mode = AppDescriptor.ENGINE
@@ -106,6 +108,7 @@ def switch_location(log, project_root, env_obj, app_name, engine_name, framework
         except TankError:
             log.info("Engine %s not found - will add it to the environment." % engine_name)
             curr_desc = None
+            env_obj.create_engine_settings(engine_name)
         
     
     #  find the new item
@@ -172,7 +175,7 @@ def switch_location(log, project_root, env_obj, app_name, engine_name, framework
         raise TankError("Unknown type!")
 
     
-        
+    log.info("Location switch complete!")
     
 
 
