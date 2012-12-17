@@ -419,7 +419,7 @@ def start_engine(engine_name, tk, context):
     
     # now we can instantiate a wrapper class around the data
     # this will load it and check basic things.
-    env = Environment(env_path)
+    env = Environment(tk, env_path)
     
     # make sure that the environment has an engine instance with that name
     if not engine_name in env.get_engines():

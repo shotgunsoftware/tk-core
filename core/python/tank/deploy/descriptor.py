@@ -369,7 +369,7 @@ class AppDescriptor(object):
 ################################################################################################
 # factory method for app descriptors
 
-def get_from_location(app_or_engine, project_root, location_dict):
+def get_from_location(tk, app_or_engine, project_root, location_dict):
     """
     Factory method.
 
@@ -414,7 +414,7 @@ def get_from_location(app_or_engine, project_root, location_dict):
         return TankDevDescriptor(project_root, location_dict)
 
     else:
-        desc = self.execute_hook(constants.TANK_DESCRIPTOR_CHECK_HOOK, 
+        desc = tk.execute_hook(constants.TANK_DESCRIPTOR_CHECK_HOOK, 
                                  descriptor_type=location_dict.get("type"),
                                  project_root=project_root,
                                  location_dict=location_dict,
