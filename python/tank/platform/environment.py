@@ -26,10 +26,11 @@ class Environment(object):
     files from the various apps and engines referenced in the environment file)
     """
     
-    def __init__(self, env_path):
+    def __init__(self, tk, env_path):
         """
         Constructor
         """
+        self.__tk = tk
         self.__env_path = env_path
         self.__env_data = None
         self.__engine_locations = {}
@@ -285,7 +286,8 @@ class Environment(object):
                             "key for engine %s" % (self.__env_path, framework_name))
 
         # get the descriptor object for the location
-        d = descriptor.get_from_location(descriptor.AppDescriptor.FRAMEWORK, 
+        d = descriptor.get_from_location(self.__tk,
+                                         descriptor.AppDescriptor.FRAMEWORK, 
                                          self.__project_path, 
                                          location_dict)
         
@@ -301,7 +303,8 @@ class Environment(object):
                             "key for engine %s" % (self.__env_path, engine_name))
 
         # get the descriptor object for the location
-        d = descriptor.get_from_location(descriptor.AppDescriptor.ENGINE, 
+        d = descriptor.get_from_location(self.__tk,
+                                         descriptor.AppDescriptor.ENGINE, 
                                          self.__project_path, 
                                          location_dict)
         
@@ -318,7 +321,8 @@ class Environment(object):
                             "key for app %s.%s" % (self.__env_path, engine_name, app_name))
         
         # get the version object for the location
-        d = descriptor.get_from_location(descriptor.AppDescriptor.APP, 
+        d = descriptor.get_from_location(self.__tk,
+                                         descriptor.AppDescriptor.APP, 
                                          self.__project_path,
                                          location_dict)
         
