@@ -45,7 +45,7 @@ class TankDevDescriptor(AppDescriptor):
             self._version = location_dict.get("version")
 
     @classmethod
-    def from_path(self, project_root, path):
+    def from_path(cls, project_root, path):
         """
         Factory method which returns an object based on a path
         """
