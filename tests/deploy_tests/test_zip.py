@@ -34,7 +34,7 @@ class TestZipCore(TankTestBase):
         then queried to see what paths the code attempted to create.
         """
         super(TestZipCore, self).setUp()
-        self.zip_file_location = os.path.join(self.tank_source_path, "core", "tests", "data", "zip")
+        self.zip_file_location = os.path.join(self.tank_source_path, "tests", "data", "zip")
 
         
 
@@ -64,7 +64,7 @@ class TestZipConfig(TankTestBase):
         then queried to see what paths the code attempted to create.
         """
         super(TestZipConfig, self).setUp()
-        self.zip_file_location = os.path.join(self.tank_source_path, "core", "tests", "data", "zip")
+        self.zip_file_location = os.path.join(self.tank_source_path, "tests", "data", "zip")
         
 
     def test_config(self):        
@@ -93,7 +93,7 @@ class TestZipApp(TankTestBase):
         then queried to see what paths the code attempted to create.
         """
         super(TestZipApp, self).setUp()
-        self.zip_file_location = os.path.join(self.tank_source_path, "core", "tests", "data", "zip")
+        self.zip_file_location = os.path.join(self.tank_source_path, "tests", "data", "zip")
 
     def test_app(self):        
         

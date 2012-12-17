@@ -752,8 +752,11 @@ class Entity(Folder):
         #if self._entity_type == "Step":
         #    fields.add("entity_type")
         
+        # convert to a list - sets wont work with the SG API
+        fields_list = list(fields)
+        
         # now find all the items (e.g. shots) matching this query
-        entities = self._tk.shotgun.find(self._entity_type, resolved_filters, fields)
+        entities = self._tk.shotgun.find(self._entity_type, resolved_filters, fields_list)
         
         return entities
 

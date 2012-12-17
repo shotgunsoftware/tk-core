@@ -63,11 +63,11 @@ class AppDescriptor(object):
         # /studio/tank/install/apps/APP_TYPE/NAME/VERSION
 
         if app_type == AppDescriptor.APP:
-            root = constants.get_local_app_location()
+            root = constants.get_local_app_location(self._project_root)
         elif app_type == AppDescriptor.ENGINE:
-            root = constants.get_local_engine_location()
+            root = constants.get_local_engine_location(self._project_root)
         elif app_type == AppDescriptor.FRAMEWORK:
-            root = constants.get_local_framework_location()
+            root = constants.get_local_framework_location(self._project_root)
         else:
             raise TankError("Don't know how to figure out the local storage root - unknown type!")
         return os.path.join(root, descriptor_name, name, version)

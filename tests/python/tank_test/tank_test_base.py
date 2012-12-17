@@ -58,9 +58,8 @@ def setUpModule():
     tank.util.login.g_shotgun_user_cache = None
 
     # copy tank engine code into place
-    TANK_SOURCE_PATH = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "..", ".."))
-    shutil.copytree(os.path.join(TANK_SOURCE_PATH, "engines"),
-                    os.path.join(install_dir, "engines"))
+    TANK_SOURCE_PATH = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", ".."))
+    os.makedirs(os.path.join(install_dir, "engines"))
 
 
 
@@ -160,7 +159,7 @@ class TankTestBase(unittest.TestCase):
 
         
     def setup_fixtures(self, core_config="default_core"):
-        test_data_path = os.path.join(self.tank_source_path, "core", "tests", "data")
+        test_data_path = os.path.join(self.tank_source_path, "tests", "data")
         core_source = os.path.join(test_data_path, core_config)
         core_target = os.path.join(self.project_config, "core")
         shutil.copytree(core_source, core_target)
