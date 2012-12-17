@@ -222,7 +222,7 @@ class Folder(object):
         """
         for src_file in self._files:
             target_path = os.path.join(path, os.path.basename(src_file))
-            io_receiver.copy_file(src_file, target_path)
+            io_receiver.copy_file(src_file, target_path, self._config_metadata)
 
 ################################################################################################
 
@@ -255,7 +255,7 @@ class Static(Folder):
         my_path = os.path.join(parent_path, self._name)
         
         # call out to callback
-        io_receiver.make_folder(my_path)
+        io_receiver.make_folder(my_path, metadata=self._config_metadata)
 
         # copy files across
         self._copy_files_to_folder(io_receiver, my_path)
@@ -391,7 +391,7 @@ class ListField(Folder):
             
             # construct folder
             my_path = os.path.join(parent_path, folder_name)
-            io_receiver.make_folder(my_path)
+            io_receiver.make_folder(my_path, metadata=self._config_metadata)
             
             # copy files across
             self._copy_files_to_folder(io_receiver, my_path)
@@ -697,7 +697,7 @@ class Entity(Folder):
             my_path = os.path.join(parent_path, folder_name)
                         
             # call out to callback
-            self._create_folder(io_receiver, my_path)
+            self._create_folder(io_receiver, my_path, entity)
 
             # copy files across
             self._copy_files_to_folder(io_receiver, my_path)
@@ -717,13 +717,15 @@ class Entity(Folder):
             
         return items_created
     
-    def _create_folder(self, io_receiver, path):
+    def _create_folder(self, io_receiver, path, entity):
         """
         Helper method that wraps around the folder creation 
         so that it can be easily subclassed.
         """    
         # call out to callback
-        io_receiver.make_folder(path)
+        io_receiver.make_folder(path, 
+                                entity=entity, 
+                                metadata=self._config_metadata)
 
     def __get_entities(self, sg_data):
         """
@@ -1016,7 +1018,7 @@ class Project(Entity):
         """
         Project specific implementation of the folder creation.
         """
-        io_receiver.prepare_project_root(path)
+        io_receiver.prepare_project_root(path, self._config_metadata)
         
 
 
