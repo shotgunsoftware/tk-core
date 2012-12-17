@@ -49,6 +49,8 @@ class TankCoreUpgrader(object):
         
         self._current_ver = constants.get_core_api_version()
         
+        self._studio_root = studio_root
+         
         # now also extract the version of shotgun currently running
         try:
             self._sg_studio_version = ".".join([ str(x) for x in self._local_sg.server_info["version"]])        
@@ -204,21 +206,18 @@ class TankCoreUpgrader(object):
         try:
             import _core_upgrader
             
-            # compute the install root based on the current file
-            # this is typically safe even inside symlinked setups,
-            # as the "install" bundle should always be kept together.
+            # compute the install root based on the studio root
             #
             # studio                    
             #   |--tank                 
             #        |--config          
             #        |--install         # <<<--- install root
             #            |--core
-            #                |--python  # <<<--- this file inside here somewhere
+            #                |--python  
             #            |--apps         
             #            |--engines     
             #
-            install_folder = os.path.abspath(os.path.join( os.path.dirname(__file__), 
-                                                           "..", "..", "..", ".." ))
+            install_folder = os.path.join(self._studio_root, "tank", "install")
             _core_upgrader.upgrade_tank(install_folder, self._log)
         except Exception, e:
             self._log.exception(e)

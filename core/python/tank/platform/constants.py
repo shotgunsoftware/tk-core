@@ -145,14 +145,13 @@ def get_hooks_folder(project_path):
     """
     return os.path.join(project_path, "tank", "config", "hooks")
 
-def get_local_app_location():
+def get_local_app_location(project_root):
     """
     Returns the location where tank apps are kept
     """
-    # note - this setting is local to the running code!
-    # the location returned is inside the install location:
     #
     # studio                    # studio location
+    #   |--project_xyz          # <-- project_root
     #   |--tank                 # tank studio root
     #        |--config          # shotgun and app store configs
     #        |--install         # tank code (install folder)
@@ -161,17 +160,17 @@ def get_local_app_location():
     #            |--apps        # apps location (returned by this method!) 
     #            |--engines    
     #
-    #
-    return os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "..", "..", "apps"))
+    #    
+    studio_location = os.path.abspath( os.path.join(project_root, "..") )
+    return os.path.join(studio_location, "tank", "install", "apps")
 
-def get_local_engine_location():
+def get_local_engine_location(project_root):
     """
     Returns the location where tank apps are kept
     """
-    # note - this setting is local to the running code!
-    # the location returned is inside the install location:
     #
     # studio                    # studio location
+    #   |--project_xyz          # <-- project_root    
     #   |--tank                 # tank studio root
     #        |--config          # shotgun and app store configs
     #        |--install         # tank code (install folder)
@@ -181,17 +180,17 @@ def get_local_engine_location():
     #            |--engines     # engines location (returned by this method!)
     #
     #
-    return os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "..", "..", "engines"))
+    studio_location = os.path.abspath( os.path.join(project_root, "..") )
+    return os.path.join(studio_location, "tank", "install", "engines")
 
 
-def get_local_framework_location():
+def get_local_framework_location(project_root):
     """
     Returns the location where tank frameworks are kept
     """
-    # note - this setting is local to the running code!
-    # the location returned is inside the install location:
     #
     # studio                    # studio location
+    #   |--project_xyz          # <-- project_root    
     #   |--tank                 # tank studio root
     #        |--config          # shotgun and app store configs
     #        |--install         # tank code (install folder)
@@ -202,8 +201,8 @@ def get_local_framework_location():
     #            |--frameworks  # frameworks location (returned by this method!)
     #
     #
-    return os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "..", "..", "frameworks"))
-
+    studio_location = os.path.abspath( os.path.join(project_root, "..") )
+    return os.path.join(studio_location, "tank", "install", "frameworks")
 
 def get_environments_for_proj(project_path):
     """
