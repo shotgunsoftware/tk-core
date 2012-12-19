@@ -21,7 +21,7 @@ class Folder(object):
         """
         Constructor
         """
-        self._config_metadata = config_metadata or {}
+        self._config_metadata = config_metadata
         self._children = []
         self._full_path = full_path
         self._parent = parent

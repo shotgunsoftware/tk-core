@@ -309,7 +309,7 @@ class FolderIOReceiver(object):
                                        'metadata':metadata,
                                        'action':constants.COPY_FILE_ACTION})  
 
-    def make_folder(self, path, entity=None, metadata=None):
+    def make_folder(self, path, entity=None, metadata={}):
         """
         Calls make folder callback.
         """
