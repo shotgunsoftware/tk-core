@@ -1018,7 +1018,7 @@ class Project(Entity):
         """
         Project specific implementation of the folder creation.
         """
-        io_receiver.prepare_project_root(path, self._config_metadata)
+        io_receiver.prepare_project_root(path)
         
 
 
