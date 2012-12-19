@@ -1014,7 +1014,7 @@ class Project(Entity):
         return self._project_data_root
         
 
-    def _create_folder(self, io_receiver, path):
+    def _create_folder(self, io_receiver, path, entity):
         """
         Project specific implementation of the folder creation.
         """
