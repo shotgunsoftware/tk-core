@@ -298,16 +298,16 @@ class FolderIOReceiver(object):
                 self._path_cache.add_mapping(entity_type, entity_id, entity_name, path)
     
     def _add_create_history(self, path, entity, metadata):
-        self.creation_history.append({'path':path,
-                                      'entity':entity,
-                                      'metadata':metadata,
-                                      'action':constants.CREATE_FOLDER_ACTION})
+        self._creation_history.append({'path':path,
+                                       'entity':entity,
+                                       'metadata':metadata,
+                                       'action':constants.CREATE_FOLDER_ACTION})
 
     def _add_copy_history(self, src_path, target_path, metadata):
-        self.creation_history.append({'source_path':src_path,
-                                      'target_path':target_path,
-                                      'metadata':metadata,
-                                      'action':constants.COPY_FILE_ACTION})  
+        self._creation_history.append({'source_path':src_path,
+                                       'target_path':target_path,
+                                       'metadata':metadata,
+                                       'action':constants.COPY_FILE_ACTION})  
 
     def make_folder(self, path, entity=None, metadata=None):
         """
