@@ -2,7 +2,7 @@
 Copyright (c) 2012 Shotgun Software, Inc
 ----------------------------------------------------
 
-Hook that gets executed every time an engine has fully initialized.
+Hook that gets executed every time an bundle has fully initialized.
 
 """
 
