@@ -80,6 +80,14 @@ TANK_PUBLISH_HOOK_NAME = "before_register_publish"
 # hook that is executed whenever an engine has initialized
 TANK_ENGINE_INIT_HOOK_NAME = "engine_init"
 
+# hooks that are used during folder creation.
+PRE_PROCESS_FOLDER_CREATION_HOOK_NAME = "pre_process_folder_creation"
+POST_PROCESS_FOLDER_CREATION_HOOK_NAME = "post_process_folder_creation"
+
+# constants used for the post file hook.
+CREATE_FOLDER_ACTION = "create_folder"
+COPY_FILE_ACTION = "copy_file"
+
 # the name of the built in create folders hook
 COPY_FILE_CORE_HOOK_NAME = "copy_file"
 CREATE_FOLDERS_CORE_HOOK_NAME = "create_folder"
