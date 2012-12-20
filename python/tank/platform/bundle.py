@@ -31,6 +31,9 @@ class TankBundle(object):
         self.__module_uid = None
         self.__descriptor = descriptor    
         self.__frameworks = {}
+
+        # emit an engine started event
+        tk.execute_hook(constants.TANK_BUNDLE_INIT_HOOK_NAME, bundle=self)
         
 
     ##########################################################################################
