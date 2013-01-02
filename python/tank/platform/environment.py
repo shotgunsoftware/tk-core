@@ -8,9 +8,7 @@ Environment Settings Object and access.
 
 import os
 import sys
-import glob
 import copy
-import platform
 
 from tank_vendor import yaml
 from . import constants
@@ -108,7 +106,7 @@ class Environment(object):
         # now check if the current platform is disabled
         deny_platforms = location_dict.get("deny_platforms", [])
         # current os: linux/mac/windows
-        nice_system_name = {"Linux": "linux", "Darwin": "mac", "Windows": "windows"}[platform.system()]
+        nice_system_name = {"linux2": "linux", "darwin": "mac", "win32": "windows"}[sys.platform]
         if nice_system_name in deny_platforms:
             return True
         

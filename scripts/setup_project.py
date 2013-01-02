@@ -19,7 +19,6 @@ import re
 import shutil
 import datetime
 import pprint
-import platform
 
 # make sure that the core API is part of the pythonpath
 python_path = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "python"))

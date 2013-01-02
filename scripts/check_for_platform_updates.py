@@ -14,7 +14,6 @@ import re
 import shutil
 import datetime
 import pprint
-import platform
 import textwrap
 
 # make sure that the core API is part of the pythonpath

@@ -8,7 +8,7 @@ This is handy when doing development.
 """
 
 import os
-import platform
+import sys
 
 from ..errors import TankError
 from .descriptor import AppDescriptor
@@ -23,8 +23,8 @@ class TankDevDescriptor(AppDescriptor):
         super(TankDevDescriptor, self).__init__(project_root, location_dict)
 
         # platform specific location support
-        system = platform.system()
-        platform_keys = {"Linux": "linux_path", "Darwin": "mac_path", "Windows": "windows_path"}
+        system = sys.platform
+        platform_keys = {"linux2": "linux_path", "darwin": "mac_path", "win32": "windows_path"}
         platform_key = platform_keys.get(system)
 
         if platform_key not in location_dict and "path" in location_dict:

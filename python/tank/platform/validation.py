@@ -6,7 +6,7 @@ App configuration and schema validation.
 
 """
 import os
-import platform
+import sys
 
 from . import constants
 from ..errors import TankError
@@ -63,7 +63,7 @@ def validate_platform(descriptor):
     if len(supported_platforms) > 0:
         # supported platforms defined in manifest
         # get a human friendly mapping of current platform: linux/mac/windows 
-        nice_system_name = {"Linux": "linux", "Darwin": "mac", "Windows": "windows"}[platform.system()]
+        nice_system_name = {"linux2": "linux", "darwin": "mac", "win32": "windows"}[sys.platform]
         if nice_system_name not in supported_platforms:
             raise TankError("The current operating system '%s' is not supported."
                             "Supported platforms are: %s" % (nice_system_name, supported_platforms))
