@@ -80,6 +80,9 @@ TANK_PUBLISH_HOOK_NAME = "before_register_publish"
 # hook that is executed whenever an engine has initialized
 TANK_ENGINE_INIT_HOOK_NAME = "engine_init"
 
+# hook that is executed whenever a bundle has initialized
+TANK_BUNDLE_INIT_HOOK_NAME = "bundle_init"
+
 # the name of the built in create folders hook
 COPY_FILE_CORE_HOOK_NAME = "copy_file"
 CREATE_FOLDERS_CORE_HOOK_NAME = "create_folder"
