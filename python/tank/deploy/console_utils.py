@@ -14,6 +14,7 @@ import textwrap
 
 from . import administrator
 from ..platform import validation
+from ..platform import constants
 from ..errors import TankError
 from .app_store_descriptor import TankAppStoreDescriptor
 from .descriptor import AppDescriptor
@@ -51,9 +52,15 @@ def get_configuration(log, project_root, new_ver_descriptor, old_ver_descriptor)
 
         # don't ask user to input anything for default values
         if data["value"] is not None:
-            value = data["value"]
+            
             if data["type"] == "hook":
-                value = new_ver_descriptor.install_hook(log, value)
+                # for hooks, instead set the value to "default"
+                # this means that the app will use its local hooks
+                # rather than the ones provided.
+                value = constants.TANK_BUNDLE_DEFAULT_HOOK_SETTING
+            else:
+                # just copy the default value into the environment
+                value = data["value"]
             params[name] = value
 
             # note that value can be a tuple so need to cast to str

@@ -93,10 +93,4 @@ class TankDevDescriptor(AppDescriptor):
         # we are always the latest version :)
         return self
 
-    def install_hook(self, logger, default_hook_name):
-        """
-        Returns None - dev descriptor doesn't use install or update.
-        """
-        return
-
 

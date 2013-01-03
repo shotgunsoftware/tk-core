@@ -339,32 +339,6 @@ class AppDescriptor(object):
                     sg_field_name = field["system_name"]
                     self.__ensure_sg_field_exists(sg, sg_entity_type, sg_field_name, sg_data_type)
 
-    def install_hook(self, logger, default_hook_name):
-        """
-        Installs a hook given the default name. If a hook with the same name already exists it will prepend the app/engine shortname.
-
-        :param Logger logger: a logger for output.
-        :param str default_hook_name: default hook filename as define in the app/engine info.yml
-        :returns str: the final hook filename
-        """
-        install_path = self.get_path()
-        hook_file = os.path.join(install_path, "hooks", "%s.py" % default_hook_name)
-        project_hook_location = constants.get_hooks_folder(self._project_root)
-        if not os.path.exists(hook_file):
-            raise TankError("Hook file %s could not be found." % hook_file)
-
-        project_hook_file = os.path.join(project_hook_location, "%s.py" % default_hook_name)
-        hook_name = default_hook_name
-        if os.path.exists(project_hook_file):
-            hook_name = "%s_%s" % (self.get_system_name().replace("-", "_"), default_hook_name)
-            project_hook_file = os.path.join(project_hook_location, "%s.py" % hook_name)
-
-        try:
-            shutil.copy(hook_file, project_hook_file)
-            logger.info("Installed Hook: %s", project_hook_file)
-        except (IOError, OSError), ex:
-            raise TankError("Could not copy hook.\nError: %s" % (ex))
-        return hook_name
 
 ################################################################################################
 # factory method for app descriptors

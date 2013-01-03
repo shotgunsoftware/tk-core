@@ -192,7 +192,28 @@ class TankBundle(object):
         then calling execute_hook_by_name() on it.
         """
         hook_name = self.get_setting(key)
-        return self.execute_hook_by_name(hook_name, **kwargs)
+        if hook_name == constants.TANK_BUNDLE_DEFAULT_HOOK_SETTING:
+            # hook settings points to the default one.
+            # find the name of the hook from the manifest
+            manifest = self.__descriptor.get_configuration_schema()
+            #
+            # Entries are on the following form
+            #            
+            # hook_publish_file:
+            #    type: hook
+            #    description: Called when a file is published, e.g. copied from a work area to a publish area.
+            #    parameters: [source_path, target_path]
+            #    default_value: maya_publish_file
+            #
+            default_hook_name = manifest.get(key).get("default_value", "undefined")
+            hook_path = os.path.join(self.disk_location, "hooks", "%s.py" % default_hook_name)  
+            ret_val = hook.execute_hook(hook_path, self, **kwargs)
+             
+        else:
+            # use a specific hook in the user hooks folder
+            ret_val = self.execute_hook_by_name(hook_name, **kwargs)
+        
+        return ret_val
 
     def execute_hook_by_name(self, hook_name, **kwargs):
         """

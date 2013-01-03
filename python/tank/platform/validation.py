@@ -432,6 +432,10 @@ class _SettingsValidator:
         Validate that the value for a setting of type hook corresponds to a file in the hooks
         directory.
         """
+        # if setting is default, assume everything is fine
+        if hook_name == constants.TANK_BUNDLE_DEFAULT_HOOK_SETTING:
+            return
+        
         hooks_folder = constants.get_hooks_folder(self._tank_api.project_path)
         hook_path = os.path.join(hooks_folder, "%s.py" % hook_name)
 
