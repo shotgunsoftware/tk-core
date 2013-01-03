@@ -268,6 +268,7 @@ class FolderIOReceiver(object):
         self._tk = tk
         self._preview_mode = preview
         self._computed_items = list()
+        self._creation_history = list()
         self._path_cache = PathCache(tk.project_path)
         
     def get_computed_items(self):
@@ -276,7 +277,9 @@ class FolderIOReceiver(object):
         """
         return self._computed_items
             
-    
+    def get_creation_history(self):
+        return self._creation_history
+
     ####################################################################################
     # post processing
     
@@ -293,19 +296,33 @@ class FolderIOReceiver(object):
             if path not in existing_paths:
                 # path not in cache yet - add it now!
                 self._path_cache.add_mapping(entity_type, entity_id, entity_name, path)
-        
-    def make_folder(self, path):
+    
+    def _add_create_history(self, path, entity, metadata):
+        self._creation_history.append({'path':path,
+                                       'entity':entity,
+                                       'metadata':metadata,
+                                       'action':constants.CREATE_FOLDER_ACTION})
+
+    def _add_copy_history(self, src_path, target_path, metadata):
+        self._creation_history.append({'source_path':src_path,
+                                       'target_path':target_path,
+                                       'metadata':metadata,
+                                       'action':constants.COPY_FILE_ACTION})  
+
+    def make_folder(self, path, entity=None, metadata={}):
         """
         Calls make folder callback.
         """
+        self._add_create_history(path, entity, metadata)
         self._computed_items.append(path)
         if not self._preview_mode:
             self._tk.execute_hook(constants.CREATE_FOLDERS_CORE_HOOK_NAME, path=path, sg_entity=None)
     
-    def copy_file(self, src_path, target_path):
+    def copy_file(self, src_path, target_path, metadata):
         """
         Calls copy file callback.
         """
+        self._add_copy_history(src_path, target_path, metadata)
         self._computed_items.append(target_path)
         if not self._preview_mode:
             self._tk.execute_hook(constants.COPY_FILE_CORE_HOOK_NAME, source_path=src_path, target_path=target_path)
@@ -433,6 +450,12 @@ def process_filesystem_structure(tk, entity_type, entity_ids, preview, engine):
         return
 
 
+    tk.execute_hook(constants.PRE_PROCESS_FOLDER_CREATION_HOOK_NAME, 
+                    entity_type=entity_type, 
+                    entity_ids=entity_ids, 
+                    preview=preview, 
+                    engine=engine)
+
     # all things to create, organized by type
     items = {}
 
@@ -479,5 +502,9 @@ def process_filesystem_structure(tk, entity_type, entity_ids, preview, engine):
     for entity_type, entity_ids in items.items():
         for entity_id in entity_ids:
             create_single_folder_item(tk, config, io_receiver, entity_type, entity_id, engine)
+
+    tk.execute_hook(constants.POST_PROCESS_FOLDER_CREATION_HOOK_NAME,
+                    processed_items=io_receiver.get_creation_history(), 
+                    preview=preview)
 
     return io_receiver.get_computed_items()
