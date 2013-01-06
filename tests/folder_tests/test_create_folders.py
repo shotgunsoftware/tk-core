@@ -16,53 +16,38 @@ from tank_test.tank_test_base import *
 
 g_paths_created = []
 
-class FolderIOReceiverProxy(object):
+def execute_folder_creation_proxy(self):
     """
-    Class that encapsulates all the IO operations from the various folder classes.
+    Proxy stub for folder creation tests
     """
-    
-    def __init__(self, tk, preview):
-        """
-        Constructor
-        """
-        global g_paths_created
-        g_paths_created = []
-        self._tk = tk
-        self._preview_mode = preview
-        self._computed_items = list()
         
-    def get_computed_items(self):
-        """
-        Returns list of files and folders that have been computed by the folder creation
-        """
-        return self._computed_items
+    # now handle the path cache
+    if not self._preview_mode: 
+        for i in self._items:
+            if i.get("action") == "entity_folder":
+                path = i.get("path")
+                entity_type = i.get("entity").get("type")
+                entity_id = i.get("entity").get("id")
+                entity_name = i.get("entity").get("name")
                 
-    def add_entry_to_cache_db(self, path, entity_type, entity_id, entity_name):
-        """
-        Adds entity to database. 
-        """
-        
-    def make_folder(self, path):
-        """
-        Calls make folder callback.
-        """
-        self._computed_items.append(path)
-        g_paths_created.append(path)
-    
-    def copy_file(self, src_path, target_path):
-        """
-        Calls copy file callback.
-        """
-        self._computed_items.append(target_path)
-        g_paths_created.append(target_path)            
-    
-    def prepare_project_root(self, root_path):
-        
-        if root_path != self._tk.project_path:
-            g_paths_created.append(root_path)
-            g_paths_created.append( os.path.join(root_path, "tank"))
-            g_paths_created.append( os.path.join(root_path, "tank", "config"))
+                existing_paths = self._path_cache.get_paths(entity_type, entity_id)
+                if path not in existing_paths:
+                    # path not in cache yet - add it now!
+                    self._path_cache.add_mapping(entity_type, entity_id, entity_name, path)
 
+    # finally, build a list of all paths calculated
+    folders = list()
+    for i in self._items:
+        action = i.get("action")
+        if action in ["entity_folder", "create_file", "folder"]:
+            folders.append( i["path"] )
+        elif action == "copy":
+            folders.append( i["target_path"] )
+    
+    global g_paths_created
+    g_paths_created = folders
+    
+    return folders
 
 
 
@@ -119,12 +104,12 @@ class TestSchemaCreateFolders(TankTestBase):
 
         self.schema_location = os.path.join(self.project_root, "tank", "config", "core", "schema")
 
-        self.FolderIOReceiverBackup = folder.schema.FolderIOReceiver
-        folder.schema.FolderIOReceiver = FolderIOReceiverProxy
+        self.FolderIOReceiverBackup = folder.folder_io.FolderIOReceiver.execute_folder_creation
+        folder.folder_io.FolderIOReceiver.execute_folder_creation = execute_folder_creation_proxy
 
     def tearDown(self):
         
-        folder.schema.FolderIOReceiver = self.FolderIOReceiverBackup
+        folder.folder_io.FolderIOReceiver.execute_folder_creation = self.FolderIOReceiverBackup
 
 
     def test_shot(self):
@@ -338,13 +323,13 @@ class TestSchemaCreateFoldersMultiRoot(TankTestBase):
 
         self.tk = tank.Tank(self.project_root)
 
-        self.FolderIOReceiverBackup = folder.schema.FolderIOReceiver
-        folder.schema.FolderIOReceiver = FolderIOReceiverProxy
+        self.FolderIOReceiverBackup = folder.folder_io.FolderIOReceiver.execute_folder_creation
+        folder.folder_io.FolderIOReceiver.execute_folder_creation = execute_folder_creation_proxy
 
     def tearDown(self):
         
-        folder.schema.FolderIOReceiver = self.FolderIOReceiverBackup
-
+        folder.folder_io.FolderIOReceiver.execute_folder_creation = self.FolderIOReceiverBackup
+        
 
     def test_shot(self):
         """Tests paths used in making a shot are as expected."""
@@ -368,7 +353,7 @@ class TestSchemaCreateFoldersMultiRoot(TankTestBase):
         step_path = os.path.join(asset_path, self.step["short_name"])
         expected_paths = [asset_path, step_path]
         # config path
-        expected_paths.append(os.path.join(self.alt_root_1, "tank", "config"))
+        expected_paths.append(os.path.join(self.alt_root_1, "tank", "config", "primary_project.yml"))
         # add non-entity paths
         expected_paths.append(os.path.join(step_path, "publish"))
         expected_paths.append(os.path.join(step_path, "images"))
@@ -397,8 +382,7 @@ class TestSchemaCreateFoldersMultiRoot(TankTestBase):
         expected_paths.append(os.path.join(self.project_root, "reference", "artwork"))
         expected_paths.append(os.path.join(self.project_root, "reference", "footage"))
 
-        expected_paths.append(os.path.join(self.alt_root_1, "tank"))
-        expected_paths.append(os.path.join(self.alt_root_1, "tank", "config"))
+        expected_paths.append(os.path.join(self.alt_root_1, "tank", "config", "primary_project.yml"))
         expected_paths.append(os.path.join(self.alt_root_1, "assets"))
         expected_paths.append(os.path.join(self.alt_root_1, "alternate_reference"))
                 

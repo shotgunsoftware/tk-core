@@ -44,7 +44,10 @@ class ProcessFolderCreation(Hook):
                 elif action == "create_file":
                     # create a new file based on content
                     path = i.get("path")
+                    parent_folder = os.path.dirname(path)
                     content = i.get("content")
+                    if not os.path.exists(parent_folder):
+                        os.makedirs(parent_folder, 0777)
                     if not os.path.exists(path):
                         # create the file
                         fp = open(path, "wb")

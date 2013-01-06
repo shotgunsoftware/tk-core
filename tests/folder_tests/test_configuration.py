@@ -30,12 +30,12 @@ class TestFolderConfiguration(TankTestBase):
         self.setup_fixtures()
         
         # should be fine
-        folder.schema.FolderConfiguration(self.tk, self.schema_location)
+        folder.configuration.FolderConfiguration(self.tk, self.schema_location)
         
         project_schema = os.path.join(self.project_root, "tank", "config", "core", "schema", "project")
         shutil.rmtree(project_schema)
         
-        self.assertRaises(TankError, folder.schema.FolderConfiguration, self.tk, self.schema_location)
+        self.assertRaises(TankError, folder.configuration.FolderConfiguration, self.tk, self.schema_location)
 
     def test_project_root_mismatch(self):
         """
@@ -45,7 +45,7 @@ class TestFolderConfiguration(TankTestBase):
         self.setup_multi_root_fixtures()
         
         # should be fine
-        folder.schema.FolderConfiguration(self.tk, self.schema_location)
+        folder.configuration.FolderConfiguration(self.tk, self.schema_location)
         
         project_name = os.path.basename(self.project_root)
         
@@ -60,7 +60,7 @@ class TestFolderConfiguration(TankTestBase):
         roots_file.close()
 
         self.assertRaises(TankError,
-                          folder.schema.FolderConfiguration,
+                          folder.configuration.FolderConfiguration,
                           self.tk,
                           self.schema_location)
 
@@ -71,13 +71,13 @@ class TestFolderConfiguration(TankTestBase):
         self.setup_multi_root_fixtures()
         
         # should be fine
-        folder.schema.FolderConfiguration(self.tk, self.schema_location)
+        folder.configuration.FolderConfiguration(self.tk, self.schema_location)
         
         project_yml = os.path.join(self.schema_location, "alternate_1.yml")
         os.remove(project_yml)
         
         self.assertRaises(TankError,
-                          folder.schema.FolderConfiguration,
+                          folder.configuration.FolderConfiguration,
                           self.tk,
                           self.schema_location)
 
