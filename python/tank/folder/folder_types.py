@@ -255,7 +255,7 @@ class Static(Folder):
         my_path = os.path.join(parent_path, self._name)
         
         # call out to callback
-        io_receiver.make_folder(my_path, metadata=self._config_metadata)
+        io_receiver.make_folder(my_path, self._config_metadata)
 
         # copy files across
         self._copy_files_to_folder(io_receiver, my_path)
@@ -391,7 +391,7 @@ class ListField(Folder):
             
             # construct folder
             my_path = os.path.join(parent_path, folder_name)
-            io_receiver.make_folder(my_path, metadata=self._config_metadata)
+            io_receiver.make_folder(my_path, self._config_metadata)
             
             # copy files across
             self._copy_files_to_folder(io_receiver, my_path)
@@ -696,18 +696,19 @@ class Entity(Folder):
             folder_name = self._entity_expression.generate_name(entity)
             my_path = os.path.join(parent_path, folder_name)
                         
+                        
+            # get the name field - which depends on the entity type
+            name_field = self.__get_name_field_for_et(self._entity_type)
+            name_value = entity[name_field]            
+            # construct a full entity link dict w name, id, type
+            full_entity_dict = {"type": self._entity_type, "id": entity["id"], "name": name_value} 
+                        
             # call out to callback
-            self._create_folder(io_receiver, my_path, entity)
+            self._create_folder(io_receiver, my_path, full_entity_dict)
 
             # copy files across
             self._copy_files_to_folder(io_receiver, my_path)
 
-            # write to path cache db
-            # get the name field - which depends on the entity type
-            name_field = self.__get_name_field_for_et(self._entity_type)
-            cache_name = entity[name_field]            
-            io_receiver.add_entry_to_cache_db(my_path, self._entity_type, entity["id"], cache_name)
-            
             # create a new entity dict including our own data and pass it down to children
             my_sg_data = copy.deepcopy(sg_data)
             my_sg_data_key = FilterExpressionToken.sg_data_key_for_folder_obj(self)
@@ -723,9 +724,7 @@ class Entity(Folder):
         so that it can be easily subclassed.
         """    
         # call out to callback
-        io_receiver.make_folder(path, 
-                                entity=entity, 
-                                metadata=self._config_metadata)
+        io_receiver.make_entity_folder(path, entity, self._config_metadata)
 
     def __get_entities(self, sg_data):
         """
@@ -1018,8 +1017,10 @@ class Project(Entity):
         """
         Project specific implementation of the folder creation.
         """
+        # ensure that the project specific folders are created
         io_receiver.prepare_project_root(path)
-        
+        # and run base class implementation
+        Entity._create_folder(self, io_receiver, path, entity)
 
 
 

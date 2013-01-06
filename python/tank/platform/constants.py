@@ -87,8 +87,7 @@ TANK_BUNDLE_INIT_HOOK_NAME = "bundle_init"
 TANK_BUNDLE_DEFAULT_HOOK_SETTING = "default"
 
 # hooks that are used during folder creation.
-PRE_PROCESS_FOLDER_CREATION_HOOK_NAME = "pre_process_folder_creation"
-POST_PROCESS_FOLDER_CREATION_HOOK_NAME = "post_process_folder_creation"
+PROCESS_FOLDER_CREATION_HOOK_NAME = "process_folder_creation"
 
 # constants used for the post file hook.
 CREATE_FOLDER_ACTION = "create_folder"
