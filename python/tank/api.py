@@ -334,14 +334,14 @@ class Tank(object):
     
         :param entity_type: The name of the entity type.
         :type  entity_type: String.
-        :param entity_id: Shotgun id of the entity 
-        :type  entity_id: Integer.
+        :param entity_id: Shotgun id of the entity or list of ids if more than one. 
+        :type  entity_id: Integer or list of integers.
         :param engine: Optional engine name to indicate that a second, engine specific 
                        folder creation pass should be executed for a particular engine.
                        Folders marked as deferred will be processed.
         :type engine: String.
 
-        :returns: The number of entity folders were processed
+        :returns: The number of folders processed
         """
         folders = folder.process_filesystem_structure(self, 
                                                       entity_type, 
@@ -356,14 +356,14 @@ class Tank(object):
 
         :param entity_type: The name of the entity type.
         :type  entity_type: String.
-        :param entity_id: Shotgun id of the entity 
-        :type  entity_id: Integer.
+        :param entity_id: Shotgun id of the entity or list of ids if more than one.
+        :type  entity_id: Integer or list of integers.
         :param engine: Optional engine name to indicate that a second, engine specific 
                        folder creation pass should be executed for a particular engine.
                        Folders marked as deferred will be processed.
         :type engine: String.
 
-        :returns: List of items processed.
+        :returns: List of items processed. 
         """
         folders = folder.process_filesystem_structure(self, 
                                                       entity_type, 

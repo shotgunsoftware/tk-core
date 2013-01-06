@@ -13,9 +13,7 @@ from tank_vendor import yaml
 import tank
 from . import root
 from .util import login
-from .util import shotgun
 from .util import shotgun_entity
-from .folder import folder
 from .errors import TankError
 from .path_cache import PathCache
 from .template import TemplatePath

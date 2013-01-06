@@ -115,23 +115,6 @@ def get_primary_root(input_path):
             return cur_path
         raise TankError("Path is not part of a Tank project: %s" % input_path)
 
-
-def write_primary_root(config_path, project_root):
-    """
-    Write a primary root file.
-
-    :param config_path: Directory into which to write the file.
-    :param project_root: Project root from which to read roots file.
-    """
-    primary_roots_file = os.path.join(config_path, "primary_project.yml")
-    if not os.path.exists(primary_roots_file) and os.path.exists(config_path):
-        primary_roots = platform_paths_for_root("primary", project_root)
-        open_file = open(primary_roots_file, "w")
-        open_file.write(yaml.dump(primary_roots))
-        open_file.close()
-
-
-
             
 def _determine_platform():
     system = sys.platform.lower()

@@ -16,8 +16,6 @@ from ..errors import TankError
 from ..platform import constants
 
 
-
-
 def create_single_folder_item(tk, config_obj, io_receiver, entity_type, entity_id, engine):
     """
     Creates folders for an entity type and an entity id.
@@ -102,7 +100,7 @@ def process_filesystem_structure(tk, entity_type, entity_ids, preview, engine):
                    which are marked as deferred are processed. Pass None for non-deferred mode.
                    The convention is to pass the name of the current engine, e.g 'tk-maya'.
     
-    :returns: tuple: (How many entity folders were processed, list of items)
+    :returns: tuple: list of items processed
     
     """
 
@@ -171,8 +169,6 @@ def process_filesystem_structure(tk, entity_type, entity_ids, preview, engine):
         for entity_id in entity_ids:
             create_single_folder_item(tk, config, io_receiver, entity_type, entity_id, engine)
 
-    tk.execute_hook(constants.PROCESS_FOLDER_CREATION_HOOK_NAME,
-                    processed_items=io_receiver.get_creation_history(), 
-                    preview=preview)
-
-    return io_receiver.get_computed_items()
+    folders_created = io_receiver.execute_folder_creation()
+    
+    return folders_created

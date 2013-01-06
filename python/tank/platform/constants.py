@@ -89,12 +89,7 @@ TANK_BUNDLE_DEFAULT_HOOK_SETTING = "default"
 # hooks that are used during folder creation.
 PROCESS_FOLDER_CREATION_HOOK_NAME = "process_folder_creation"
 
-# constants used for the post file hook.
-CREATE_FOLDER_ACTION = "create_folder"
-COPY_FILE_ACTION = "copy_file"
-
 # the name of the built in create folders hook
-COPY_FILE_CORE_HOOK_NAME = "copy_file"
 CREATE_FOLDERS_CORE_HOOK_NAME = "create_folder"
 PICK_ENVIRONMENT_CORE_HOOK_NAME = "pick_environment"
 PROCESS_FOLDER_NAME_HOOK_NAME = "process_folder_name"

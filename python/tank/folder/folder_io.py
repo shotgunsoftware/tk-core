@@ -11,9 +11,10 @@ Known constraints:
 
 import os
 
+from tank_vendor import yaml
+
 from .. import root
 from ..path_cache import PathCache
-from ..errors import TankError
 from ..platform import constants
 
 
@@ -30,83 +31,92 @@ class FolderIOReceiver(object):
         """
         self._tk = tk
         self._preview_mode = preview
-        self._computed_items = list()
-        self._creation_history = list()
+        self._items = list()
         self._path_cache = PathCache(tk.project_path)
         
-    def get_computed_items(self):
+    def execute_folder_creation(self):
         """
-        Returns list of files and folders that have been computed by the folder creation
+        Runs the actual execution. Returns a list of paths
+        which were actually created during this process.
         """
-        return self._computed_items
+        self._tk.execute_hook(constants.PROCESS_FOLDER_CREATION_HOOK_NAME,
+                              items=self._items, 
+                              preview=self._preview_mode)
+        
+        # now handle the path cache
+        if not self._preview_mode: 
+            for i in self._items:
+                if i.get("action") == "entity_folder":
+                    path = i.get("path")
+                    entity_type = i.get("entity").get("type")
+                    entity_id = i.get("entity").get("id")
+                    entity_name = i.get("entity").get("name")
+                    
+                    existing_paths = self._path_cache.get_paths(entity_type, entity_id)
+                    if path not in existing_paths:
+                        # path not in cache yet - add it now!
+                        self._path_cache.add_mapping(entity_type, entity_id, entity_name, path)
+    
+        # finally, build a list of all paths calculated
+        folders = list()
+        for i in self._items:
+            action = i.get("action")
+            if action in ["entity_folder", "create_file", "folder"]:
+                folders.append( i["path"] )
+            elif action == "copy":
+                folders.append( i["target_path"] )
+        
+        return folders
             
-    def get_creation_history(self):
-        return self._creation_history
-
         
     ####################################################################################
-    # called by the folder classes
+    # methods called by the folder classes
             
     def make_folder(self, path, metadata):
         """
-        Calls make folder callback.
+        Called by the folder creation classes when a normal simple folder
+        is to be created.
         """
-        self._creation_history.append({'path':path,
-                                       'metadata':metadata,
-                                       'action':constants.CREATE_FOLDER_ACTION})
-        
-        self._computed_items.append(path)
-
-        if not self._preview_mode:
-            self._tk.execute_hook(constants.CREATE_FOLDERS_CORE_HOOK_NAME, path=path, sg_entity=None)
-    
+        self._items.append({"path": path, "metadata": metadata, "action": "folder"})
     
     def make_entity_folder(self, path, entity, metadata):
         """
         Creates an entity folder, including any cache entries
-        the entity must be a dict with id, type and name
+        the entity parameter must be a dict with id, type and name.
         """
-    
-#        if not self._preview_mode:            
-#            existing_paths = self._path_cache.get_paths(entity_type, entity_id)
-#            if path not in existing_paths:
-#                # path not in cache yet - add it now!
-#                self._path_cache.add_mapping(entity_type, entity_id, entity_name, path)
-    
-        self._creation_history.append({'path':path,
-                                       'entity':entity,
-                                       'metadata':metadata,
-                                       'action':constants.CREATE_FOLDER_ACTION})
-    
-    
+        self._items.append({"path": path, 
+                            "metadata": metadata, 
+                            "entity": entity, 
+                            "action": "entity_folder"})
     
     def copy_file(self, src_path, target_path, metadata):
         """
-        Calls copy file callback.
+        Called by the folder creation classes when a file is to be copied.
         """
-        
-        self._creation_history.append({'source_path':src_path,
-                                       'target_path':target_path,
-                                       'metadata':metadata,
-                                       'action':constants.COPY_FILE_ACTION})  
-        
-        
-        self._computed_items.append(target_path)
-        if not self._preview_mode:
-            self._tk.execute_hook(constants.COPY_FILE_CORE_HOOK_NAME, source_path=src_path, target_path=target_path)
-            
+        self._items.append({"source_path": src_path, 
+                            "target_path": target_path, 
+                            "metadata": metadata, 
+                            "action": "copy"})  
     
-    def prepare_project_root(self, root_path):
-        
-        
+    def prepare_project_root(self, root_path, metadata):
+        """
+        Called when the project root is created.
+        """
         if root_path != self._tk.project_path:
-            # make tank config directories
-            tank_dir = os.path.join(root_path, "tank")
-            #self.make_folder(tank_dir)
-            config_dir = os.path.join(root_path, "tank", "config")
-            #self.make_folder(config_dir)
-            # write primary path 
-            root.write_primary_root(config_dir, self._tk.project_path)
-        
+            
+            # this is one of those non-primary project roots
+            # used when there are multiple roots configured
+            # ensure that we have a primary_project.yml file
+            primary_roots_file = os.path.join(root_path, "tank", "config", "primary_project.yml")
 
-
+            # get the content for this file
+            primary_roots_content = root.platform_paths_for_root("primary", self._tk.project_path)
+            
+            # and translate that into yaml
+            primary_roots_content_yaml = yaml.dump(primary_roots_content)
+                        
+            self._items.append({"path": primary_roots_file, 
+                                "metadata": metadata, 
+                                "action": "create_file",
+                                "content": primary_roots_content_yaml})
+            

@@ -225,7 +225,9 @@ class FolderConfiguration(object):
                     raise TankError("Error in %s. Unknown metadata type '%s'" % (full_path, node_type))
             else:
                 # no metadata - so this is just a static folder!
-                cur_node = Static.create(self._tk, parent_node, full_path, {})
+                # specify the type in the metadata chunk for completeness
+                # since we are passing this into the hook later
+                cur_node = Static.create(self._tk, parent_node, full_path, {"type": "static"})
 
             # and process children
             self._process_config_r(cur_node, full_path)
