@@ -1165,7 +1165,7 @@ class ShotgunTask(Entity):
         # with the entity
         filters = {
             "logical_operator": "and",
-            "conditions": [{"path": "$FROM$Task.step.entity", 
+            "conditions": [{"path": "entity", 
                             "relation": "is", 
                             "values": [parent_expr_token] }
                            ]
