@@ -132,6 +132,21 @@ def process_filesystem_structure(tk, entity_type, entity_ids, preview, engine):
     if entity_type == "Step":
         raise TankError("Cannot create folders from Steps, only for entity types such as Shots, Assets etc.")
     
+    
+    #################################################################################
+    #
+    # Add the project
+    # assume all entites belong to the same project
+    # the reason we need the project is to make sure that any static child folders
+    # on the project level are properly created.
+    #
+    if entity_type != "Project":
+        data = tk.shotgun.find_one(entity_type, [["id", "is", entity_ids[0]]], ["project"])
+        if not data:
+            raise TankError("Unable to find entity in shotgun. type: %s, id: %s" % (entity_type, entity_ids[0]))
+        project_id = data["project"]["id"]
+        items["Project"] = [project_id]
+    
     #################################################################################
     #
     # Special handling of tasks. In the case of tasks, jump to the connected entity
