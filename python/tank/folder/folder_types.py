@@ -112,7 +112,7 @@ class Folder(object):
                                     and then when the child list has been emptied (at the shot level),
                                     the recursion will switch to a creation mode where all Folder 
                                     object children are processed. 
-                                    
+                                  
         :param engine: String used to limit folder creation. If engine is not None, folder creation
                        traversal will include nodes that have their deferred flag set.
         
@@ -312,6 +312,19 @@ class ListField(Folder):
         # get the first element of the returned set
         self._field_name = list(sg_fields)[0]
         
+    def _should_item_be_processed(self, engine_str, is_primary):
+        """
+        Checks if this node should be processed, given its deferred status.        
+        """
+        # list fields are only created when they are on the primary path,
+        # e.g. we don't recurse down to create asset types when shots are created,
+        # but only when assets are created.
+        if is_primary == False:
+            return False
+        
+        # base class implementation
+        return super(ListField, self)._should_item_be_processed(engine_str, is_primary)
+        
         
     def get_entity_type(self):
         """
@@ -327,7 +340,7 @@ class ListField(Folder):
         
     def _create_folders_impl(self, io_receiver, parent_path, sg_data):
         """
-        Creates a static folder. Returns the created folder.
+        Creates a list field folder. 
         """
         
         # first see if this item has already been declared inside the sg_data structure
@@ -426,6 +439,46 @@ class ListField(Folder):
         return used_values
 
 ################################################################################################
+
+class CurrentStepExpressionToken(object):
+    """
+    Represents the current step
+    """
+    
+    def __init__(self):
+        pass
+    
+    def resolve_shotgun_data(self, shotgun_data):
+        """
+        Given a shotgun data dictionary, return an appropriate value 
+        for this expression. 
+        """
+        
+        if "current_step_id" in shotgun_data:
+            return shotgun_data["current_step_id"]
+        else:
+            return None
+    
+
+class CurrentTaskExpressionToken(object):
+    """
+    Represents the current task
+    """
+    
+    def __init__(self):
+        pass
+    
+    def resolve_shotgun_data(self, shotgun_data):
+        """
+        Given a shotgun data dictionary, return an appropriate value 
+        for this expression.
+        """
+        
+        if "current_task_id" in shotgun_data:
+            return shotgun_data["current_task_id"]
+        else:
+            return None
+
 
 class FilterExpressionToken(object):
     """
@@ -648,10 +701,22 @@ class Entity(Folder):
         resolved_filters = copy.deepcopy(self._filters)
         for condition in resolved_filters["conditions"]:
             vals = condition["values"]
+            
             if vals[0] and isinstance(vals[0], FilterExpressionToken):
                 # we got a $filter! - replace with resolved value
                 expr_token = vals[0]
+                vals[0] = expr_token.resolve_shotgun_data(sg_data)
+            
+            if vals[0] and isinstance(vals[0], CurrentStepExpressionToken):
+                # we got a current step filter! - replace with resolved value
+                expr_token = vals[0]
                 vals[0] = expr_token.resolve_shotgun_data(sg_data)                
+
+            if vals[0] and isinstance(vals[0], CurrentTaskExpressionToken):
+                # we got a current task filter! - replace with resolved value
+                expr_token = vals[0]
+                vals[0] = expr_token.resolve_shotgun_data(sg_data)                
+
         return resolved_filters
     
     
@@ -927,7 +992,7 @@ class UserWorkspace(Entity):
         """
         # get config
         sg_name_expression = metadata.get("name")
-
+        
         # validate
         if sg_name_expression is None:
             raise TankError("Missing name token in yml metadata file %s" % full_path )
@@ -968,6 +1033,172 @@ class UserWorkspace(Entity):
                         field_name_expression, 
                         filters, 
                         create_with_parent=True)
+
+
+class ShotgunStep(Entity):
+    """
+    Represents a Shotgun Pipeline Step
+    """
+    
+    @classmethod
+    def create(cls, tk, parent, full_path, metadata):
+        """
+        Factory method for this class
+        """
+        # get config
+        sg_name_expression = metadata.get("name")
+
+        create_with_parent = metadata.get("create_with_parent", True)
+
+        # validate
+        if sg_name_expression is None:
+            raise TankError("Missing name token in yml metadata file %s" % full_path )
+        
+        return ShotgunStep(tk, parent, full_path, metadata, sg_name_expression, create_with_parent)
+    
+    
+    def __init__(self, tk, parent, full_path, metadata, field_name_expression, create_with_parent):
+        """
+        constructor
+        """
+        
+        # look up the tree for the first parent of type Entity
+        # refer to this in our query expression
+        sg_parent = parent
+        while True:
+            if isinstance(sg_parent, Entity):            
+                break
+            elif sg_parent is None:
+                raise TankError("Error in configuration %s - node must be parented under a shotgun entity." % full_path)
+            else:
+                sg_parent = sg_parent.get_parent()
+            
+        # get the parent name for the entity expression, e.g. $shot
+        parent_name = os.path.basename(sg_parent.get_path())
+        # create a token object to represent the parent link
+        parent_expr_token = FilterExpressionToken(parent_name, sg_parent)
+        # now create the shotgun filter query for this
+        # note that the query uses this weird special syntax to restrict 
+        # the pipeline steps created only to be ones actually used
+        # with the entity
+        filters = {
+            "logical_operator": "and",
+            "conditions": [{"path": "$FROM$Task.step.entity", 
+                            "relation": "is", 
+                            "values": [parent_expr_token] }
+                           ]
+        }
+        
+        # if the create_with_parent setting is True, it means that if we create folders for a 
+        # shot, we want all the steps to be created at the same time.
+        # however, if we have create_with_client set to False, we only want to create 
+        # this node if we are creating folders for a task.
+        if create_with_parent == False: 
+            # do not auto-create with parent - only create when a task has been specified.
+            # create an expression object to represent the current step
+            current_step_id_token = CurrentStepExpressionToken()
+            # add this to the filters so that we restrict the filter to be 
+            # step id is 1234 (where 1234 is the current step derived from the current task
+            # and the current task comes from the original folder create request).
+            filters["conditions"].append({"path": "id", "relation": "is", "values": [current_step_id_token]})
+                    
+        print filters
+        Entity.__init__(self, 
+                        tk,
+                        parent, 
+                        full_path,
+                        metadata,
+                        "Step", 
+                        field_name_expression, 
+                        filters, 
+                        create_with_parent=True)
+                
+        
+        
+
+
+class ShotgunTask(Entity):
+    """
+    Represents a Shotgun Task
+    """
+    
+    @classmethod
+    def create(cls, tk, parent, full_path, metadata):
+        """
+        Factory method for this class
+        """
+        # get config
+        sg_name_expression = metadata.get("name")
+
+        create_with_parent = metadata.get("create_with_parent", False)
+
+        # validate
+        if sg_name_expression is None:
+            raise TankError("Missing name token in yml metadata file %s" % full_path )
+        
+        return ShotgunTask(tk, parent, full_path, metadata, sg_name_expression, create_with_parent)
+    
+    
+    def __init__(self, tk, parent, full_path, metadata, field_name_expression, create_with_parent):
+        """
+        constructor
+        """
+        
+        # look up the tree for the first parent of type Entity
+        # refer to this in our query expression
+        sg_parent = parent
+        while True:
+            if isinstance(sg_parent, Entity):            
+                break
+            elif sg_parent is None:
+                raise TankError("Error in configuration %s - node must be parented under a shotgun entity." % full_path)
+            else:
+                sg_parent = sg_parent.get_parent()
+            
+        # get the parent name for the entity expression, e.g. $shot
+        parent_name = os.path.basename(sg_parent.get_path())
+        # create a token object to represent the parent link
+        parent_expr_token = FilterExpressionToken(parent_name, sg_parent)
+        # now create the shotgun filter query for this
+        # note that the query uses this weird special syntax to restrict 
+        # the pipeline steps created only to be ones actually used
+        # with the entity
+        filters = {
+            "logical_operator": "and",
+            "conditions": [{"path": "$FROM$Task.step.entity", 
+                            "relation": "is", 
+                            "values": [parent_expr_token] }
+                           ]
+        }
+        
+        # if the create_with_parent setting is True, it means that if we create folders for a 
+        # shot, we want all the steps to be created at the same time.
+        # however, if we have create_with_client set to False, we only want to create 
+        # this node if we are creating folders for a task.
+        if create_with_parent == False: 
+            # do not auto-create with parent - only create when a task has been specified.
+            # create an expression object to represent the current step
+            current_task_id_token = CurrentTaskExpressionToken()
+            # add this to the filters so that we restrict the filter to be 
+            # step id is 1234 (where 1234 is the current step derived from the current task
+            # and the current task comes from the original folder create request).
+            filters["conditions"].append({"path": "id", "relation": "is", "values": [current_task_id_token]})
+                    
+        Entity.__init__(self, 
+                        tk,
+                        parent, 
+                        full_path,
+                        metadata,
+                        "Task", 
+                        field_name_expression, 
+                        filters, 
+                        create_with_parent=True)
+                
+        
+        
+
+
+
 
 
 class Project(Entity):

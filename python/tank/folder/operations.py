@@ -16,13 +16,15 @@ from ..errors import TankError
 from ..platform import constants
 
 
-def create_single_folder_item(tk, config_obj, io_receiver, entity_type, entity_id, engine):
+def create_single_folder_item(tk, config_obj, io_receiver, entity_type, entity_id, step_id, task_id, engine):
     """
     Creates folders for an entity type and an entity id.
     :param config_obj: a FolderConfiguration object representing the folder configuration
     :param io_receiver: a FolderIOReceiver representing the folder operation callbacks
     :param entity_type: Shotgun entity type
     :param entity_id: Shotgun entity id
+    :param task_id: shotgun task id if this folder creation is associated with a particular task
+    :param step_id: shotgun step id if this folder creation is associated with a particular step
     :param engine: Engine to create folders for / indicate second pass if not None.
     """
     # TODO: Confirm this entity exists and is in this project
@@ -38,7 +40,9 @@ def create_single_folder_item(tk, config_obj, io_receiver, entity_type, entity_i
         
         # fill in the information we know about this entity now
         entity_id_seed = { 
-            entity_type: { "type": entity_type, "id": entity_id }
+            entity_type: { "type": entity_type, "id": entity_id },
+            "current_task_id": task_id,
+            "current_step_id": step_id 
         }
         
         # now go from the folder object, deep inside the hierarchy,
@@ -122,8 +126,8 @@ def process_filesystem_structure(tk, entity_type, entity_ids, preview, engine):
         return
 
 
-    # all things to create, organized by type
-    items = {}
+    # all things to create
+    items = []
 
     #################################################################################
     #
@@ -145,7 +149,7 @@ def process_filesystem_structure(tk, entity_type, entity_ids, preview, engine):
         if not data:
             raise TankError("Unable to find entity in shotgun. type: %s, id: %s" % (entity_type, entity_ids[0]))
         project_id = data["project"]["id"]
-        items["Project"] = [project_id]
+        items.append( { "type": "Project", "id": project_id, "step_id": None, "task_id": None } )
     
     #################################################################################
     #
@@ -159,19 +163,25 @@ def process_filesystem_structure(tk, entity_type, entity_ids, preview, engine):
         filters = ["id", "in"]
         filters.extend(entity_ids) # weird filter format here
         
-        data = tk.shotgun.find(entity_type, [filters], ["entity"])
+        data = tk.shotgun.find(entity_type, [filters], ["entity", "step"])
         for sg_entry in data:
             if sg_entry["entity"]: # task may not be associated with an entity
-                entry_type = sg_entry["entity"]["type"]
-                if entry_type not in items:
-                    items[entry_type] = []
-                items[entry_type].append(sg_entry["entity"]["id"])
+                
+                # get the current step
+                step_id = None
+                if sg_entry["step"]:
+                    step_id = sg_entry["step"]["id"]
+
+                items.append( { "type":    sg_entry["entity"]["type"], 
+                                "id":      sg_entry["entity"]["id"], 
+                                "step_id": step_id, 
+                                "task_id": sg_entry["id"] } )
             
     else:
         # normal entities
-        items[entity_type] = entity_ids
-
-    
+        for i in entity_ids:
+            items.append( { "type": entity_type, "id": i, "step_id": None, "task_id": None } )
+        
     # create schema builder
     schema_cfg_folder = constants.get_schema_config_location(tk.project_path)   
     config = FolderConfiguration(tk, schema_cfg_folder)
@@ -180,9 +190,15 @@ def process_filesystem_structure(tk, entity_type, entity_ids, preview, engine):
     io_receiver = FolderIOReceiver(tk, preview)
 
     # now loop over all individual objects and create folders
-    for entity_type, entity_ids in items.items():
-        for entity_id in entity_ids:
-            create_single_folder_item(tk, config, io_receiver, entity_type, entity_id, engine)
+    for i in items:
+        create_single_folder_item(tk, 
+                                  config, 
+                                  io_receiver, 
+                                  i["type"], 
+                                  i["id"], 
+                                  i["step_id"],
+                                  i["task_id"],
+                                  engine)
 
     folders_created = io_receiver.execute_folder_creation()
     

@@ -9,7 +9,7 @@ Handles the creation of a configuration object structure based on the folder con
 import os
 import fnmatch
 
-from .folder_types import Static, ListField, Entity, Project, UserWorkspace
+from .folder_types import Static, ListField, Entity, Project, UserWorkspace, ShotgunStep, ShotgunTask
 
 from .. import root
 from ..errors import TankError
@@ -220,6 +220,12 @@ class FolderConfiguration(object):
                 elif node_type == "user_workspace":
                     cur_node = UserWorkspace.create(self._tk, parent_node, full_path, metadata)     
                 
+                elif node_type == "shotgun_step":
+                    cur_node = ShotgunStep.create(self._tk, parent_node, full_path, metadata)     
+
+                elif node_type == "shotgun_task":
+                    cur_node = ShotgunTask.create(self._tk, parent_node, full_path, metadata)     
+
                 else:
                     # don't know this metadata
                     raise TankError("Error in %s. Unknown metadata type '%s'" % (full_path, node_type))
