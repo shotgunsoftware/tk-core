@@ -332,11 +332,31 @@ class TankTestBase(unittest.TestCase):
             """Returns all entries for specified type. 
             Filters are ignored in many cases, check code."""
             results = [self._sg_mock_db[key] for key in self._sg_mock_db if key[0] == entity_type]
-
-            # currently only supporting dict style with 'is' relation
+            
+            # support [['id', 'in', 23, 34]]
+            if isinstance(filters, list) and len(filters) ==1:
+                # we have a [[something]] structure
+                inner_filter = filters[0]
+                if isinstance(inner_filter, list) and len(inner_filter) > 2 and inner_filter[0] == "id" and inner_filter[1] == "in":
+                    all_items_of_type = [self._sg_mock_db[key] for key in self._sg_mock_db if key[0] == entity_type]
+                    ids_to_find = inner_filter[2:]
+                    matches = []
+                    for i in all_items_of_type:
+                        if i["id"] in ids_to_find:
+                            matches.append(i)
+                    
+                    # assign to final matches structure
+                    results = matches
+                
+            # support dict style with 'is' relation
             if isinstance(filters, dict):
                 for sg_filter in filters.get("conditions", []):
                     if sg_filter["relation"] == "is":
+                        
+                        if sg_filter["values"] == [None] and sg_filter["path"] == "id":
+                            # always return empty for this
+                            results = [] 
+                        
                         if isinstance(sg_filter["values"][0], (int, str)):
                             # only handling simple string and number relations
                             field_name = sg_filter["path"]

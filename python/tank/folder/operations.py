@@ -28,7 +28,6 @@ def create_single_folder_item(tk, config_obj, io_receiver, entity_type, entity_i
     :param engine: Engine to create folders for / indicate second pass if not None.
     """
     # TODO: Confirm this entity exists and is in this project
-    
     # Recurse over entire tree and find find all Entity folders of this type
     folder_objects = config_obj.get_folder_objs_for_entity_type(entity_type)
     # now we have folder objects representing the entity type we are after.
@@ -190,7 +189,7 @@ def process_filesystem_structure(tk, entity_type, entity_ids, preview, engine):
     io_receiver = FolderIOReceiver(tk, preview)
 
     # now loop over all individual objects and create folders
-    for i in items:
+    for i in items:        
         create_single_folder_item(tk, 
                                   config, 
                                   io_receiver, 
