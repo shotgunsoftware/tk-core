@@ -12,9 +12,54 @@ import shutil
 
 class ProcessFolderCreation(Hook):
     
-    def execute(self, items, preview, **kwargs):
+    def execute(self, items, **kwargs):
         """
         The default implementation creates folders recursively using open permissions.
+        
+        Items is a list of dictionaries. Each dictionary can be of the following type:
+        
+        Standard Folder
+        ---------------
+        This represents a standard folder in the file system which is not associated
+        with anything in Shotgun. It contains the following keys:
+        
+        * "action": "folder"
+        * "metadata": The configuration yaml file for this item
+        * "path": path on disk to the item
+        
+        Entity Folder
+        -------------
+        This represents a folder in the file system which is associated with a 
+        shotgun entity. It contains the following keys:
+        
+        * "action": "entity_folder"
+        * "metadata": The configuration yaml file for this item
+        * "path": path on disk to the item
+        * "entity": Shotgun entity link dict with keys type, id and name.
+        
+        File Copy
+        ---------
+        This represents a file copy operation which should be carried out.
+        It contains the following keys:
+        
+        * "action": "copy"
+        * "metadata": The configuration yaml file associated with the directory level 
+                      on which this object exists.
+        * "source_path": location of the file that should be copied
+        * "target_path": target location to where the file should be copied.
+                
+        
+        File Creation
+        -------------
+        This is similar to the file copy, but instead of a source path, a chunk
+        of data is specified. It contains the following keys:
+        
+        * "action": "create_file"
+        * "metadata": The configuration yaml file associated with the directory level 
+                      on which this object exists.
+        * "content": file content
+        * "target_path": target location to where the file should be copied.
+ 
         """
 
         # set the umask so that we get true permissions

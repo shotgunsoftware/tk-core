@@ -37,14 +37,14 @@ class FolderIOReceiver(object):
     def execute_folder_creation(self):
         """
         Runs the actual execution. Returns a list of paths
-        which were actually created during this process.
+        which were calculated to be created.
         """
-        self._tk.execute_hook(constants.PROCESS_FOLDER_CREATION_HOOK_NAME,
-                              items=self._items, 
-                              preview=self._preview_mode)
         
         # now handle the path cache
         if not self._preview_mode: 
+
+            self._tk.execute_hook(constants.PROCESS_FOLDER_CREATION_HOOK_NAME, items=self._items)
+            
             for i in self._items:
                 if i.get("action") == "entity_folder":
                     path = i.get("path")
