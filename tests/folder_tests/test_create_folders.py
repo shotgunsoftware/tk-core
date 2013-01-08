@@ -584,7 +584,7 @@ class TestSchemaCreateFoldersWorkspaces(TankTestBase):
         to pass in as callbacks to Schema.create_folders. The mock objects are
         then queried to see what paths the code attempted to create.
         """
-        super(TestSchemaCreateFoldersSingleStep, self).setUp()
+        super(TestSchemaCreateFoldersWorkspaces, self).setUp()
         self.setup_fixtures("multi_link_core")
         
         self.seq = {"type": "Sequence",
