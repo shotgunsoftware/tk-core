@@ -710,7 +710,7 @@ class Entity(Folder):
             if vals[0] and isinstance(vals[0], CurrentStepExpressionToken):
                 # we got a current step filter! - replace with resolved value
                 expr_token = vals[0]
-                vals[0] = expr_token.resolve_shotgun_data(sg_data)                
+                vals[0] = expr_token.resolve_shotgun_data(sg_data)
 
             if vals[0] and isinstance(vals[0], CurrentTaskExpressionToken):
                 # we got a current task filter! - replace with resolved value
@@ -1093,7 +1093,7 @@ class ShotgunStep(Entity):
         # shot, we want all the steps to be created at the same time.
         # however, if we have create_with_client set to False, we only want to create 
         # this node if we are creating folders for a task.
-        if create_with_parent == False: 
+        if create_with_parent != True: 
             # do not auto-create with parent - only create when a task has been specified.
             # create an expression object to represent the current step
             current_step_id_token = CurrentStepExpressionToken()
@@ -1102,7 +1102,6 @@ class ShotgunStep(Entity):
             # and the current task comes from the original folder create request).
             filters["conditions"].append({"path": "id", "relation": "is", "values": [current_step_id_token]})
                     
-        print filters
         Entity.__init__(self, 
                         tk,
                         parent, 
