@@ -42,7 +42,7 @@ class FolderConfiguration(object):
         """
         Returns all the nodes representing a particular sg entity type 
         """
-        return self._entity_nodes_by_type.get(entity_type)
+        return self._entity_nodes_by_type.get(entity_type, [])
 
 
     ####################################################################################
