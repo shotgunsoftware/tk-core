@@ -50,7 +50,7 @@ class FolderConfiguration(object):
         # access shotgun nodes by their entity_type
         self._entity_nodes_by_type = {}
         # read skip files config
-        self._ignore_files = self.read_ignore_files(schema_config_path)
+        self._ignore_files = read_ignore_files(schema_config_path)
         # load schema
         self._load_schema(schema_config_path)
         
