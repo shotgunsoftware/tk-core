@@ -569,7 +569,16 @@ class TestCreateFilesystemStructure(TankTestBase):
 
 
 
-class TestSchemaCreateFoldersSingleStep(TankTestBase):
+class TestSchemaCreateFoldersWorkspaces(TankTestBase):
+    """
+    This test
+    covers the case where you have an entity (for example a workspace
+    entity) which has a sg_entity single link field which can point to both
+    assets and shots. If you run folder creation on this, the algorithm
+    should be able to correctly distinguish between items linked to shots
+    and items linked to assets.    
+    """
+    
     def setUp(self):
         """Sets up entities in mocked shotgun database and creates Mock objects
         to pass in as callbacks to Schema.create_folders. The mock objects are
