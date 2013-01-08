@@ -39,6 +39,23 @@ class PathCache(object):
         Sets up the database
         """
         
+        # first check that the cache folder exists
+        # note that the cache folder is inside of the tank folder
+        # so no need to attempt a recursive creation here.
+        cache_folder = os.path.dirname(db_path)
+        if not os.path.exists(cache_folder):
+            old_umask = os.umask(0)
+            try:
+                os.mkdir(cache_folder, 0777)
+            finally:
+                os.umask(old_umask)            
+        
+        # make sure to set open permissions on the db file if we are the first ones 
+        # to create it
+        db_file_created = False
+        if not os.path.exists(db_path):
+            db_file_created = True
+        
         self.connection = sqlite3.connect(db_path)
         self.connection.text_factory = str
         
@@ -71,6 +88,14 @@ class PathCache(object):
             
         self.connection.commit()
         c.close()
+        
+        # and open up permissions if the file was just created
+        if db_file_created:
+            old_umask = os.umask(0)
+            try:
+                os.chmod(db_path, 0666)
+            finally:
+                os.umask(old_umask)            
     
     def _path_to_dbpath(self, relative_path):
         """
