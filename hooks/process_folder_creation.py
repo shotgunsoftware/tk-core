@@ -83,8 +83,10 @@ class ProcessFolderCreation(Hook):
                     source_path = i.get("source_path")
                     target_path = i.get("target_path")
                     if not os.path.exists(target_path):
-                        # do a standard file copy with open permissions
+                        # do a standard file copy
                         shutil.copy(source_path, target_path)
+                        # set permissions to open
+                        os.chmod(target_path, 0666)
     
                 elif action == "create_file":
                     # create a new file based on content
@@ -98,6 +100,8 @@ class ProcessFolderCreation(Hook):
                         fp = open(path, "wb")
                         fp.write(content)
                         fp.close()
+                        # and set permissions to open
+                        os.chmod(path, 0666)
                     
                 else:
                     raise Exception("Unknown folder hook action '%s'" % action)
