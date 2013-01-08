@@ -22,7 +22,7 @@ def assert_paths_to_create(expected_paths):
         if expected_path not in g_paths_created:
             assert False, "\n%s\nnot found in: [\n%s]" % (expected_path, "\n".join(g_paths_created))
     for actual_path in g_paths_created:
-        if not any(x.startswith(actual_path) for x in expected_paths):
+        if actual_path not in expected_paths:
             assert False, "Unexpected path slated for creation: %s \nPaths: %s" % (actual_path, "\n".join(g_paths_created))
 
 
@@ -171,22 +171,12 @@ class TestSchemaCreateFolders(TankTestBase):
         # expected paths here are based on sg_standard start-config
         # define paths we expect for entities
 
-        static_reference = os.path.join(self.project_root, "reference")
-        static_artwork = os.path.join(static_reference, "artwork")
-        static_footage = os.path.join(static_reference, "footage")
-        static_scenes = os.path.join(self.project_root, "scenes")
-        static_seq = os.path.join(self.project_root, "sequences")
-        
         static_assets = os.path.join(self.project_root, "assets")
         asset_type_path = os.path.join(static_assets, self.asset["sg_asset_type"])
         asset_path = os.path.join(asset_type_path, self.asset["code"])        
         step_path = os.path.join(asset_path, self.step["short_name"])
         
-        expected_paths = [static_reference, 
-                          static_artwork, 
-                          static_footage, 
-                          static_scenes,
-                          static_seq,
+        expected_paths = [self.project_root,
                           static_assets,
                           asset_type_path, 
                           asset_path, 
@@ -230,13 +220,8 @@ class TestSchemaCreateFolders(TankTestBase):
         self.add_to_sg_mock_db([scene, extra_step])
         
         expected_paths = []
-        
-        expected_paths.append(os.path.join(self.project_root, "sequences"))
-        expected_paths.append(os.path.join(self.project_root, "assets"))
-        expected_paths.append(os.path.join(self.project_root, "reference"))
-        expected_paths.append(os.path.join(self.project_root, "reference", "artwork"))
-        expected_paths.append(os.path.join(self.project_root, "reference", "footage"))
-        
+                
+        expected_paths.append(self.project_root)
         expected_paths.append(os.path.join(self.project_root, "scenes"))
         expected_paths.append(os.path.join(self.project_root, "scenes", "step_short_name"))
         expected_paths.append(os.path.join(self.project_root, "scenes", "step_short_name", "scenename"))
@@ -257,6 +242,7 @@ class TestSchemaCreateFolders(TankTestBase):
         """Tests paths used in making a project are as expected."""
         # paths based on sg_standard starter config
         expected_paths = []
+        expected_paths.append(self.project_root)
         expected_paths.append(os.path.join(self.project_root, "sequences"))
         expected_paths.append(os.path.join(self.project_root, "scenes"))
         expected_paths.append(os.path.join(self.project_root, "assets"))
@@ -287,19 +273,9 @@ class TestSchemaCreateFolders(TankTestBase):
         if not sequence_name:
             sequence_name = self.seq["code"]
 
-        static_reference = os.path.join(self.project_root, "reference")
-        static_artwork = os.path.join(static_reference, "artwork")
-        static_footage = os.path.join(static_reference, "footage")
-        static_scenes = os.path.join(self.project_root, "scenes")
         static_seq = os.path.join(self.project_root, "sequences")        
-        static_assets = os.path.join(self.project_root, "assets")
 
-        expected_paths = [static_reference, 
-                          static_artwork,
-                          static_footage,
-                          static_scenes,
-                          static_seq,
-                          static_assets]
+        expected_paths = [self.project_root, static_seq]
 
         sequence_path = os.path.join(self.project_root, "sequences", sequence_name)
         if not shot_name:
@@ -386,23 +362,16 @@ class TestSchemaCreateFoldersMultiRoot(TankTestBase):
         
         expected_paths = []
         
-        expected_paths.append(os.path.join(self.project_root, "sequences"))
-        expected_paths.append(os.path.join(self.project_root, "reference"))
-        expected_paths.append(os.path.join(self.project_root, "reference", "artwork"))
-        expected_paths.append(os.path.join(self.project_root, "reference", "footage"))
-
+        expected_paths.append(self.alt_root_1)
         expected_paths.append(os.path.join(self.alt_root_1, "tank", "config", "primary_project.yml"))
-        expected_paths.append(os.path.join(self.alt_root_1, "assets"))
-        expected_paths.append(os.path.join(self.alt_root_1, "alternate_reference"))
-        
+        expected_paths.append(os.path.join(self.alt_root_1, "assets"))        
         
         asset_folder_name = "%s_%s" % (self.asset["sg_asset_type"], self.asset["code"])
         asset_path = os.path.join(self.alt_root_1, "assets", asset_folder_name)
         step_path = os.path.join(asset_path, self.step["short_name"])
         expected_paths.append(asset_path)
         expected_paths.append(step_path)
-        # config path
-        expected_paths.append(os.path.join(self.alt_root_1, "tank", "config", "primary_project.yml"))
+        
         # add non-entity paths
         expected_paths.append(os.path.join(step_path, "publish"))
         expected_paths.append(os.path.join(step_path, "images"))
@@ -426,11 +395,13 @@ class TestSchemaCreateFoldersMultiRoot(TankTestBase):
         """
         # paths based on sg_standard starter config modified to be multi-project
         expected_paths = []
+        expected_paths.append(self.project_root)
         expected_paths.append(os.path.join(self.project_root, "sequences"))
         expected_paths.append(os.path.join(self.project_root, "reference"))
         expected_paths.append(os.path.join(self.project_root, "reference", "artwork"))
         expected_paths.append(os.path.join(self.project_root, "reference", "footage"))
 
+        expected_paths.append(self.alt_root_1)
         expected_paths.append(os.path.join(self.alt_root_1, "tank", "config", "primary_project.yml"))
         expected_paths.append(os.path.join(self.alt_root_1, "assets"))
         expected_paths.append(os.path.join(self.alt_root_1, "alternate_reference"))
@@ -455,14 +426,8 @@ class TestSchemaCreateFoldersMultiRoot(TankTestBase):
         """
         
         expected_paths = []
+        expected_paths.append(self.project_root)
         expected_paths.append(os.path.join(self.project_root, "sequences"))
-        expected_paths.append(os.path.join(self.project_root, "reference"))
-        expected_paths.append(os.path.join(self.project_root, "reference", "artwork"))
-        expected_paths.append(os.path.join(self.project_root, "reference", "footage"))
-
-        expected_paths.append(os.path.join(self.alt_root_1, "tank", "config", "primary_project.yml"))
-        expected_paths.append(os.path.join(self.alt_root_1, "assets"))
-        expected_paths.append(os.path.join(self.alt_root_1, "alternate_reference"))
         
         # expected paths here are based on sg_standard start-config
         # define paths we expect for entities

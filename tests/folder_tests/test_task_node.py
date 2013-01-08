@@ -22,7 +22,7 @@ def assert_paths_to_create(expected_paths):
         if expected_path not in g_paths_created:
             assert False, "\n%s\nnot found in: [\n%s]" % (expected_path, "\n".join(g_paths_created))
     for actual_path in g_paths_created:
-        if not any(x.startswith(actual_path) for x in expected_paths):
+        if actual_path not in expected_paths:
             assert False, "Unexpected path slated for creation: %s \nPaths: %s" % (actual_path, "\n".join(g_paths_created))
 
 
@@ -150,10 +150,11 @@ class TestSchemaCreateFoldersSingleStep(TankTestBase):
         
         expected_paths = []
         
-        sequence_path = os.path.join(self.project_root, "sequences", self.seq["code"])        
+        sequence_path = os.path.join(self.project_root, "sequences", self.seq["code"])
+        sequences_path = os.path.join(self.project_root, "sequences")
         shot_path = os.path.join(sequence_path, self.shot["code"])
 
-        expected_paths.extend( [sequence_path, shot_path] )
+        expected_paths.extend( [self.project_root, sequences_path, sequence_path, shot_path] )
 
         folder.process_filesystem_structure(self.tk, 
                                             self.shot["type"], 
@@ -175,11 +176,12 @@ class TestSchemaCreateFoldersSingleStep(TankTestBase):
         
         expected_paths = []
 
-        sequence_path = os.path.join(self.project_root, "sequences", self.seq["code"])        
+        sequence_path = os.path.join(self.project_root, "sequences", self.seq["code"])
+        sequences_path = os.path.join(self.project_root, "sequences")        
         shot_path = os.path.join(sequence_path, self.shot["code"])
         step_path = os.path.join(shot_path, self.task["content"])
         
-        expected_paths.extend( [sequence_path, shot_path, step_path] )
+        expected_paths.extend( [self.project_root, sequences_path, sequence_path, shot_path, step_path] )
         
         # add non-entity paths
         expected_paths.append(os.path.join(step_path, "publish"))
@@ -204,11 +206,12 @@ class TestSchemaCreateFoldersSingleStep(TankTestBase):
         
         expected_paths = []
 
-        sequence_path = os.path.join(self.project_root, "sequences", self.seq["code"])        
+        sequence_path = os.path.join(self.project_root, "sequences", self.seq["code"])   
+        sequences_path = os.path.join(self.project_root, "sequences")     
         shot_path = os.path.join(sequence_path, self.shot["code"])
         step_path = os.path.join(shot_path, self.task2["content"])
         
-        expected_paths.extend( [sequence_path, shot_path, step_path] )
+        expected_paths.extend( [self.project_root, sequences_path, sequence_path, shot_path, step_path] )
         
         # add non-entity paths
         expected_paths.append(os.path.join(step_path, "publish"))
@@ -311,11 +314,18 @@ class TestSchemaCreateFoldersMultiStep(TankTestBase):
         
         expected_paths = []
 
-        sequence_path = os.path.join(self.project_root, "sequences", self.seq["code"])        
+        sequence_path = os.path.join(self.project_root, "sequences", self.seq["code"])
+        sequences_path = os.path.join(self.project_root, "sequences")
         shot_path = os.path.join(sequence_path, self.shot["code"])
         task_path = os.path.join(shot_path, self.task["content"])
         task2_path = os.path.join(shot_path, self.task2["content"])
-        expected_paths.extend( [sequence_path, shot_path, task_path, task2_path] )
+        
+        expected_paths.extend( [self.project_root, 
+                                sequences_path, 
+                                sequence_path, 
+                                shot_path, 
+                                task_path, 
+                                task2_path] )
         
         # add non-entity paths
         for x in [task_path, task2_path]:
