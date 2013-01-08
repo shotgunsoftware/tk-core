@@ -568,3 +568,120 @@ class TestCreateFilesystemStructure(TankTestBase):
      
 
 
+
+class TestSchemaCreateFoldersSingleStep(TankTestBase):
+    def setUp(self):
+        """Sets up entities in mocked shotgun database and creates Mock objects
+        to pass in as callbacks to Schema.create_folders. The mock objects are
+        then queried to see what paths the code attempted to create.
+        """
+        super(TestSchemaCreateFoldersSingleStep, self).setUp()
+        self.setup_fixtures("multi_link_core")
+        
+        self.seq = {"type": "Sequence",
+                    "id": 2,
+                    "code": "seq_code",
+                    "project": self.project}
+        self.shot = {"type": "Shot",
+                     "id": 1,
+                     "code": "shot_code",
+                     "sg_sequence": self.seq,
+                     "project": self.project}
+        self.workspace = {"type": "Workspace",
+                     "id": 3,
+                     "sg_entity": self.shot,
+                     "code": "workspace_code_shot"}
+
+        
+        self.asset = {"type": "Asset",
+                    "id": 4,
+                    "sg_asset_type": "assettype",
+                    "code": "assetname",
+                    "project": self.project}
+
+        self.workspace2 = {"type": "Workspace",
+                     "id": 5,
+                     "sg_entity": self.asset,
+                     "code": "workspace_code_asset"}
+
+
+        entities = [self.shot, 
+                    self.seq, 
+                    self.project, 
+                    self.asset, 
+                    self.workspace,
+                    self.workspace2]
+
+        # Add these to mocked shotgun
+        self.add_to_sg_mock_db(entities)
+
+        self.tk = tank.Tank(self.project_root)
+
+        # add mock schema data so that a list of the asset type enum values can be returned
+        data = {}
+        data["properties"] = {}
+        data["properties"]["valid_values"] = {}
+        data["properties"]["valid_values"]["value"] = ["assettype"]
+        data["data_type"] = {}
+        data["data_type"]["value"] = "list"        
+        self.add_to_sg_schema_db("Asset", "sg_asset_type", data)
+
+        self.schema_location = os.path.join(self.project_root, "tank", "config", "core", "schema")
+
+        self.FolderIOReceiverBackup = folder.folder_io.FolderIOReceiver.execute_folder_creation
+        folder.folder_io.FolderIOReceiver.execute_folder_creation = execute_folder_creation_proxy
+
+    def tearDown(self):
+        
+        folder.folder_io.FolderIOReceiver.execute_folder_creation = self.FolderIOReceiverBackup
+
+
+    def test_shot(self):
+        """Tests paths used in making a shot are as expected."""
+        
+        
+        sequence_path = os.path.join(self.project_root, "sequences", self.seq["code"])
+        sequences_path = os.path.join(self.project_root, "sequences")        
+        shot_path = os.path.join(sequence_path, self.shot["code"])
+        ws_path = os.path.join(shot_path, self.workspace["code"])
+
+        expected_paths = []
+        expected_paths.extend( [self.project_root, 
+                                sequences_path, 
+                                sequence_path, 
+                                shot_path,
+                                ws_path] )
+
+        folder.process_filesystem_structure(self.tk, 
+                                            self.workspace["type"], 
+                                            self.workspace["id"], 
+                                            preview=False,
+                                            engine=None)        
+        
+        assert_paths_to_create(expected_paths)
+
+
+    def test_asset(self):
+        """Tests paths used in making a shot are as expected."""
+        
+        
+        assets_path = os.path.join(self.project_root, "assets")
+        at_path = os.path.join(assets_path, "assettype")
+        asset_path = os.path.join(at_path, self.asset["code"])
+        ws_path = os.path.join(asset_path, self.workspace2["code"])
+
+        expected_paths = []
+        expected_paths.extend( [self.project_root, 
+                                assets_path, 
+                                at_path, 
+                                asset_path,
+                                ws_path] )
+
+        folder.process_filesystem_structure(self.tk, 
+                                            self.workspace2["type"], 
+                                            self.workspace2["id"], 
+                                            preview=False,
+                                            engine=None)        
+        
+        assert_paths_to_create(expected_paths)
+
