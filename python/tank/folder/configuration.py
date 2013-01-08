@@ -16,6 +16,26 @@ from ..errors import TankError
 
 from tank_vendor import yaml
 
+def read_ignore_files(schema_config_path):
+        """
+        Reads ignore_files from root of schema if it exists.
+        Returns a list of patterns to ignore.
+        """
+        ignore_files = []
+        file_path = os.path.join(schema_config_path, "ignore_files")
+        if os.path.exists(file_path):
+            open_file = open(file_path, "r")
+            try:
+                for line in open_file.readlines():
+                    # skip comments
+                    if "#" in line:
+                        line = line[:line.index("#")]
+                    line = line.strip()
+                    if line:
+                        ignore_files.append(line)
+            finally:
+                open_file.close()
+        return ignore_files
 
 class FolderConfiguration(object):
     """
@@ -30,7 +50,7 @@ class FolderConfiguration(object):
         # access shotgun nodes by their entity_type
         self._entity_nodes_by_type = {}
         # read skip files config
-        self._ignore_files = self._read_ignore_files(schema_config_path)
+        self._ignore_files = self.read_ignore_files(schema_config_path)
         # load schema
         self._load_schema(schema_config_path)
         
@@ -99,28 +119,6 @@ class FolderConfiguration(object):
             except Exception, error:
                 raise TankError("Cannot load config file '%s'. Error: %s" % (yml_file, error))
         return metadata
-    
-
-    def _read_ignore_files(self, schema_config_path):
-        """
-        Reads ignore_files from root of schema if it exists.
-        Returns a list of patterns to ignore.
-        """
-        ignore_files = []
-        file_path = os.path.join(schema_config_path, "ignore_files")
-        if os.path.exists(file_path):
-            open_file = open(file_path, "r")
-            try:
-                for line in open_file.readlines():
-                    # skip comments
-                    if "#" in line:
-                        line = line[:line.index("#")]
-                    line = line.strip()
-                    if line:
-                        ignore_files.append(line)
-            finally:
-                open_file.close()
-        return ignore_files
 
     ##########################################################################################
     # internal stuff
