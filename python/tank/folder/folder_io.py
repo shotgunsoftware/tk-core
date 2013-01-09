@@ -44,7 +44,7 @@ class FolderIOReceiver(object):
         
         folders = self._tk.execute_hook(constants.PROCESS_FOLDER_CREATION_HOOK_NAME, 
                                         items=self._items, 
-                                        self._preview_mode)
+                                        preview_mode=self._preview_mode)
         
         if not self._preview_mode:    
             for i in self._items:
