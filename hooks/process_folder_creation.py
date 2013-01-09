@@ -12,7 +12,7 @@ import shutil
 
 class ProcessFolderCreation(Hook):
     
-    def execute(self, items, preview, **kwargs):
+    def execute(self, items, preview_mode, **kwargs):
         """
         The default implementation creates folders recursively using open permissions.
         
@@ -62,11 +62,9 @@ class ProcessFolderCreation(Hook):
  
         """
         
-        if preview:
-            return
-
         # set the umask so that we get true permissions
         old_umask = os.umask(0)
+        folders = []
         try:
 
             # loop through our list of items
@@ -78,33 +76,39 @@ class ProcessFolderCreation(Hook):
                     # folder creation
                     path = i.get("path")    
                     if not os.path.exists(path):
-                        # create the folder using open permissions
-                        os.makedirs(path, 0777)
-                    
+                        if not preview_mode:
+                            # create the folder using open permissions
+                            os.makedirs(path, 0777)
+                        folders.append(path)
+                
                 elif action == "copy":
                     # a file copy
                     source_path = i.get("source_path")
                     target_path = i.get("target_path")
                     if not os.path.exists(target_path):
-                        # do a standard file copy
-                        shutil.copy(source_path, target_path)
-                        # set permissions to open
-                        os.chmod(target_path, 0666)
+                        if not preview_mode:
+                            # do a standard file copy
+                            shutil.copy(source_path, target_path)
+                            # set permissions to open
+                            os.chmod(target_path, 0666)
+                        folders.append(target_path)
     
                 elif action == "create_file":
                     # create a new file based on content
                     path = i.get("path")
                     parent_folder = os.path.dirname(path)
                     content = i.get("content")
-                    if not os.path.exists(parent_folder):
+                    if not os.path.exists(parent_folder) and not preview_mode:
                         os.makedirs(parent_folder, 0777)
                     if not os.path.exists(path):
-                        # create the file
-                        fp = open(path, "wb")
-                        fp.write(content)
-                        fp.close()
-                        # and set permissions to open
-                        os.chmod(path, 0666)
+                        if not preview_mode:
+                            # create the file
+                            fp = open(path, "wb")
+                            fp.write(content)
+                            fp.close()
+                            # and set permissions to open
+                            os.chmod(path, 0666)
+                        folders.append(path)
                     
                 else:
                     raise Exception("Unknown folder hook action '%s'" % action)
@@ -113,4 +117,4 @@ class ProcessFolderCreation(Hook):
             # reset umask
             os.umask(old_umask)
 
-        
+        return folders
