@@ -12,7 +12,7 @@ import shutil
 
 class ProcessFolderCreation(Hook):
     
-    def execute(self, items, **kwargs):
+    def execute(self, items, preview, **kwargs):
         """
         The default implementation creates folders recursively using open permissions.
         
@@ -61,6 +61,9 @@ class ProcessFolderCreation(Hook):
         * "target_path": target location to where the file should be copied.
  
         """
+        
+        if preview:
+            return
 
         # set the umask so that we get true permissions
         old_umask = os.umask(0)

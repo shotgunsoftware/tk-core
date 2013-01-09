@@ -41,10 +41,10 @@ class FolderIOReceiver(object):
         """
         
         # now handle the path cache
-        if not self._preview_mode: 
-
-            self._tk.execute_hook(constants.PROCESS_FOLDER_CREATION_HOOK_NAME, items=self._items)
-            
+        
+        self._tk.execute_hook(constants.PROCESS_FOLDER_CREATION_HOOK_NAME, items=self._items, self._preview_mode)
+        
+        if not self._preview_mode:    
             for i in self._items:
                 if i.get("action") == "entity_folder":
                     path = i.get("path")
