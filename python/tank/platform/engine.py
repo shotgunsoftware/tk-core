@@ -80,14 +80,6 @@ class Engine(TankBundle):
                 self.log_debug("Appending to PYTHONPATH: %s" % python_path)
                 sys.path.append(python_path)
 
-        self.init_engine()
-        
-        # now load all apps and their settings
-        self._load_apps()
-        
-        # now run the post app init
-        self.post_app_init()
-
         # try to pull in QT classes and assign to tank.platform.qt.XYZ
         (core, gui) = self._define_qt_base()
         qt.QtCore = core
@@ -96,6 +88,13 @@ class Engine(TankBundle):
         qt.TankQDialog = dialog
         qt.create_dialog = create_dialog
 
+        self.init_engine()
+        
+        # now load all apps and their settings
+        self._load_apps()
+        
+        # now run the post app init
+        self.post_app_init()
         
         # emit an engine started event
         tk.execute_hook(constants.TANK_ENGINE_INIT_HOOK_NAME, engine=self)
