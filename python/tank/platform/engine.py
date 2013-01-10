@@ -17,6 +17,7 @@ from ..deploy import descriptor
 from . import application
 from . import constants
 from . import validation
+from . import qt
 from .environment import Environment
 from .bundle import TankBundle
 from .framework import setup_frameworks
@@ -86,9 +87,19 @@ class Engine(TankBundle):
         
         # now run the post app init
         self.post_app_init()
+
+        # try to pull in QT classes and assign to tank.platform.qt.XYZ
+        (core, gui) = self._define_qt_base()
+        qt.QtCore = core
+        qt.QtGui = gui
+        (dialog, create_dialog) = self._define_qt_tankdialog()
+        qt.TankQDialog = dialog
+        qt.create_dialog = create_dialog
+
         
         # emit an engine started event
         tk.execute_hook(constants.TANK_ENGINE_INIT_HOOK_NAME, engine=self)
+        
         
         self.log_debug("Init complete: %s" % self)
         
@@ -223,6 +234,7 @@ class Engine(TankBundle):
     def execute_queue(self):
         raise NotImplementedError("Queue not implemented by this engine!")
     
+    
     ##########################################################################################
     # logging interfaces
 
@@ -289,9 +301,47 @@ class Engine(TankBundle):
     ##########################################################################################
     # private and protected methods
     
+    def _define_qt_base(self):
+        """
+        This will be called at initialisation time and will set 
+        tank.platform.qt.QtCore and tank.platform.qt.QtGui.
+        
+        Defaults to a straight pyside - can be subclassed if 
+        something else is desirable.
+        
+        :returns: tuple with (QtCoreClass, QtGuiClass)
+        """
+        try:
+            from PySide import QtCore, QtGui
+            return (QtCore, QtGui)
+        except:
+            self.log_debug("Default engine QT definition failed to find QT. "
+                             "This may need to be subclassed.")
+            return (None, None)
+        
     
-    
-    
+    def _define_qt_tankdialog(self):
+        """
+        This will be called at init and will set 
+        tank.platform.qt.TankQDialog.
+        
+        Defaults to a straight passthrough class - can be sublcassed by 
+        deriving engines. The class needs to be called TankQDialog and 
+        tank zero constructor parameters.
+        
+        :returns: (TankQDialogClass, create_dialog_method)
+        
+        """
+        try:
+            from .qt.tankqdialog import TankQDialog
+            from .qt.tankqdialog import create_dialog
+            return (TankQDialog, create_dialog)
+        except:
+            self.log_debug("Default engine TankQDialog definition failed to find QT. "
+                             "This may need to be subclassed.")
+            return (None, None)
+        
+        
     def _load_apps(self):
         """
         Populate the __applications dictionary, skip over apps that fail to initialize.
