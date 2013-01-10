@@ -1159,9 +1159,6 @@ class ShotgunTask(Entity):
         # create a token object to represent the parent link
         parent_expr_token = FilterExpressionToken(parent_name, sg_parent)
         # now create the shotgun filter query for this
-        # note that the query uses this weird special syntax to restrict 
-        # the pipeline steps created only to be ones actually used
-        # with the entity
         filters = {
             "logical_operator": "and",
             "conditions": [{"path": "entity", 
