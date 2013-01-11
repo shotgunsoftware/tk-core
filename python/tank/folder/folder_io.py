@@ -41,10 +41,12 @@ class FolderIOReceiver(object):
         """
         
         # now handle the path cache
-        if not self._preview_mode: 
-
-            self._tk.execute_hook(constants.PROCESS_FOLDER_CREATION_HOOK_NAME, items=self._items)
-            
+        
+        folders = self._tk.execute_hook(constants.PROCESS_FOLDER_CREATION_HOOK_NAME, 
+                                        items=self._items, 
+                                        preview_mode=self._preview_mode)
+        
+        if not self._preview_mode:    
             for i in self._items:
                 if i.get("action") == "entity_folder":
                     path = i.get("path")
@@ -56,16 +58,7 @@ class FolderIOReceiver(object):
                     if path not in existing_paths:
                         # path not in cache yet - add it now!
                         self._path_cache.add_mapping(entity_type, entity_id, entity_name, path)
-    
-        # finally, build a list of all paths calculated
-        folders = list()
-        for i in self._items:
-            action = i.get("action")
-            if action in ["entity_folder", "create_file", "folder"]:
-                folders.append( i["path"] )
-            elif action == "copy":
-                folders.append( i["target_path"] )
-        
+
         return folders
             
         
