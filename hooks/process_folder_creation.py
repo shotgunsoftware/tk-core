@@ -16,6 +16,8 @@ class ProcessFolderCreation(Hook):
         """
         The default implementation creates folders recursively using open permissions.
         
+        This hook should return a list of created items.
+        
         Items is a list of dictionaries. Each dictionary can be of the following type:
         
         Standard Folder
