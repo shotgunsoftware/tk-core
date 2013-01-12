@@ -333,6 +333,11 @@ class _SettingsValidator:
     def __validate_settings_value(self, settings_key, schema, value):
         data_type = schema.get("type")
 
+        # For templates, if the value is None and it is allowed to be so,
+        # validation can be skipped otherwise type validation would fail.
+        if data_type == 'template' and value is None and schema.get('allows_empty', False):
+            return
+
         # Check that the value is of a compatible Python type
         if not _validate_expected_data_type(data_type, value):
             params = (settings_key, self._display_name, type(value).__name__, data_type)
