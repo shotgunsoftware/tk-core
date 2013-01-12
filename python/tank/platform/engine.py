@@ -161,6 +161,20 @@ class Engine(TankBundle):
         """
         return self.__commands
     
+    @property
+    def has_ui(self):
+        """
+        Indicates that the host application that the engine is connected to has a UI enabled.
+        This always returns False for some engines (such as the shell engine) and may vary 
+        for some engines, depending if the host application for example is in batch mode or
+        UI mode.
+        
+        :returns: boolean value indicating if a UI currently exists
+        """
+        # default implementation is to assume a UI exists
+        # this is since most engines are supporting a graphical application
+        return True
+    
     ##########################################################################################
     # init and destroy
     
