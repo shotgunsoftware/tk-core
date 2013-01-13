@@ -13,15 +13,10 @@ class TankQDialog(QtGui.QDialog):
     The default implementation used is essentially just a passthrough to QDialog.
     """
 
-    def __init__(self, parent):
+    def __init__(self):
         """
         Constructor.
         """
-        QtGui.QDialog.__init__(self, parent)
+        QtGui.QDialog.__init__(self)
         
 
-def create_dialog(dialog_class):
-    """
-    Creates a dialog instance for a given dialog class
-    """
-    return dialog_class()
