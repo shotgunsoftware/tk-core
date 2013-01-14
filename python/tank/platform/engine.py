@@ -81,14 +81,15 @@ class Engine(TankBundle):
                 self.log_debug("Appending to PYTHONPATH: %s" % python_path)
                 sys.path.append(python_path)
 
+
+        # initial init pass on engine
+        self.init_engine()
+
         # try to pull in QT classes and assign to tank.platform.qt.XYZ
         (core, gui) = self._define_qt_base()
         qt.QtCore = core
         qt.QtGui = gui
         qt.TankQDialog = self._define_qt_tankdialog()
-
-        # initial init pass on engine
-        self.init_engine()
         
         # now load all apps and their settings
         self.__load_apps()
@@ -235,7 +236,7 @@ class Engine(TankBundle):
         self.__commands[name] = { "callback": callback, "properties": properties }
         
                 
-    ##########################################################################################
+    ##########################################################################################    
     # simple batch queue
     
     def add_to_queue(self, name, method, args):
