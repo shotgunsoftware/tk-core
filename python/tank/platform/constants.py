@@ -32,7 +32,7 @@ TANK_SCHEMA_VALID_TYPES = [
     "hook",
     "shotgun_entity_type",
     "shotgun_permission_group",
-    "shotgun_filter_list"
+    "shotgun_filter"
 ]
 
 # Types from the list above that expect "str" values.

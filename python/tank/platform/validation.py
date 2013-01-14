@@ -208,8 +208,6 @@ def _validate_expected_data_type(expected_type, value):
     expected_type_name = expected_type
     if expected_type in constants.TANK_SCHEMA_STRING_TYPES:
         expected_type_name = "str"
-    elif expected_type == "shotgun_filter_list":
-        expected_type_name = "list"
     else:
         expected_type_name = expected_type
 
@@ -334,6 +332,11 @@ class _SettingsValidator:
         
     def __validate_settings_value(self, settings_key, schema, value):
         data_type = schema.get("type")
+
+        # shotgun filters can be a variety of formats so assume it is
+        # valid and don't do any further validation:
+        if data_type == 'shotgun_filter':
+            return
 
         # For templates, if the value is None and it is allowed to be so,
         # validation can be skipped otherwise type validation would fail.
