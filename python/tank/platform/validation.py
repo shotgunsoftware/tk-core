@@ -208,6 +208,8 @@ def _validate_expected_data_type(expected_type, value):
     expected_type_name = expected_type
     if expected_type in constants.TANK_SCHEMA_STRING_TYPES:
         expected_type_name = "str"
+    elif expected_type == "shotgun_filter_list":
+        expected_type_name = "list"
     else:
         expected_type_name = expected_type
 
