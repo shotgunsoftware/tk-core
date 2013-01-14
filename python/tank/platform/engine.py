@@ -345,14 +345,15 @@ class Engine(TankBundle):
         
         Additional parameters specified will be passed through to the dialog_class constructor.
 
-        :returns: a standard QT dialog status return code
+        :returns: (a standard QT dialog status return code, the created dialog object)
         """
         from . import qt 
         if not issubclass(modal_class, qt.TankQDialog):
             raise TankError("Class %s must derive from TankQDialog in order to be displayed." % modal_class)
         
         dialog = modal_class(*args, **kwargs)
-        return dialog.exec_()
+        status = dialog.exec_()
+        return (status, dialog)
     
     def _define_qt_base(self):
         """

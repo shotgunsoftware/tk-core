@@ -17,6 +17,8 @@ class TankQDialog(QtGui.QDialog):
         """
         Constructor.
         """
-        QtGui.QDialog.__init__(self)
+        # by default, parent windows to the currently active window
+        parent = QtGui.QApplication.activeWindow()
+        QtGui.QDialog.__init__(self, parent)
         
 
