@@ -133,6 +133,13 @@ class TestValidateSchema(TankTestBase):
         expected_msg = "Invalid 'optional_fields' value '123' in schema '%s' for '%s'!" % (key, self.app_name)
         self.check_error_message(TankError, expected_msg, validate_schema, self.app_name, schema)
 
+        # Test bad type for "allows_empty" key
+        list_value = {"type":"template","values":{},"allows_empty":"bogus"}
+        schema = {key:list_value}
+
+        expected_msg = "Invalid 'allows_empty' bool in schema '%s' for '%s'!" % (key, self.app_name)
+        self.check_error_message(TankError, expected_msg, validate_schema, self.app_name, schema)
+
 class TestValidateSettings(TankTestBase):
     def setUp(self):
         super(TestValidateSettings, self).setUp()
@@ -213,7 +220,6 @@ class TestValidateSettings(TankTestBase):
         expected_msg = ("The Tank Template '%s' referred to by the setting '%s' does "
                         "not exist in the master template config file!" % (cfg_val, config_name))
         self.check_error_message(TankError, expected_msg, validate_settings, self.app_name, self.tk, self.context, schema, settings)
-
 
     def test_required_fields_not_in_template_keys(self):
         """Test that fields designated as required in the config exist as keys of the template."""
@@ -315,6 +321,25 @@ class TestValidateSettings(TankTestBase):
         params = (key, self.app_name, "str", "int")
         expected_msg = "Invalid type for value in setting '%s' for '%s' - found '%s', expected '%s'" % params
         self.check_error_message(TankError, expected_msg, validate_settings, self.app_name, self.tk, self.context, schema, settings)
+
+    def test_template_allows_empty(self):
+        key = "test_setting"
+        schema = {key: {"type": "template", "allows_empty": True}}
+        settings = {key: None}
+        params = (key, self.app_name, "NoneType", "template")
+        expected_msg = "Invalid type for value in setting '%s' for '%s' - found '%s', expected '%s'" % params
+
+        # Test a None template with allows_empty=True
+        validate_settings(self.app_name, self.tk, self.context, schema, settings)
+
+        # Test a None template with allows_empty=False
+        schema = {key: {"type": "template", "allows_empty": False}}
+        self.check_error_message(TankError, expected_msg, validate_settings, self.app_name, self.tk, self.context, schema, settings)
+
+        # Test a None template with default/unspecified allows_empty (should default to False)
+        schema = {key: {"type": "template"}}
+        self.check_error_message(TankError, expected_msg, validate_settings, self.app_name, self.tk, self.context, schema, settings)
+
 
 class TestValidateContext(TankTestBase):
     """Tests related to validating context through the config.validate_and_populate_config function. 
