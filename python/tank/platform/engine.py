@@ -236,19 +236,6 @@ class Engine(TankBundle):
         self.__commands[name] = { "callback": callback, "properties": properties }
         
                 
-    ##########################################################################################    
-    # simple batch queue
-    
-    def add_to_queue(self, name, method, args):
-        raise NotImplementedError("Queue not implemented by this engine!")
-    
-    def report_progress(self, percent):
-        raise NotImplementedError("Queue not implemented by this engine!")
-    
-    def execute_queue(self):
-        raise NotImplementedError("Queue not implemented by this engine!")
-    
-    
     ##########################################################################################
     # logging interfaces
 
