@@ -298,6 +298,11 @@ class _SchemaValidator:
             params = (settings_key, self._display_name)
             raise TankError("Invalid 'optional_fields' list in schema '%s' for '%s'!" % params)
 
+        # If there's an "allows_empty" key, it should be a bool
+        if "allows_empty" in schema and type(schema["allows_empty"]) != bool:
+            params = (settings_key, self._display_name)
+            raise TankError("Invalid 'allows_empty' bool in schema '%s' for '%s'!" % params)
+
 class _SettingsValidator:
     def __init__(self, display_name, tank_api, schema, context=None):
         # note! if context is None, context-specific validation will be skipped.
