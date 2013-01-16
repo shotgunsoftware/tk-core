@@ -36,6 +36,8 @@ class TankDevDescriptor(AppDescriptor):
 
         # lastly, resolve environment variables
         self._path = os.path.expandvars(self._path)
+        # and normalise:
+        self._path = os.path.normpath(self._path)
 
         # if there is a version defined in the location dict
         # (this is handy when doing framework development, but totally
