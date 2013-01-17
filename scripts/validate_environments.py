@@ -52,6 +52,8 @@ def validate_bundle(log, tk, name, settings, manifest):
                 if default is None:
                     # no default value
                     log.info("  Parameter %s - OK [no default value specified in manifest]" % s)
+                elif manifest[s].get("type") == "hook" and value == "default":
+                    log.info("  Parameter %s - OK [using hook 'default']" % s)
                 elif default == value:
                     log.info("  Parameter %s - OK [using default value]" % s)
                 else:
