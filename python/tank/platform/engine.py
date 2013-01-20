@@ -492,57 +492,87 @@ def current_engine():
     """
     global g_current_engine
     return g_current_engine
-        
+
+
+def get_engine_path(engine_name, tk, context):
+    """
+    Returns the path to the engine corresponding to the given engine name or
+    None if the engine could not be found.
+    """
+    # get environment and engine location
+    try:
+        (env, engine_descriptor) = __get_env_and_descriptor_for_engine(engine_name, tk, context)
+    except TankEngineInitError:
+        return None
+
+    # return path to engine code
+    engine_path = engine_descriptor.get_path()
+    return engine_path
+
+
 def start_engine(engine_name, tk, context):
     """
     Creates an engine and makes it the current engine.
     Returns the newly created engine object.
-    
-    Raises TankEngineInitError if an engine could not be started 
-    for the passed context.    
+
+    Raises TankEngineInitError if an engine could not be started
+    for the passed context.
     """
     # first ensure that an engine is not currently running
     if current_engine():
         raise TankError("An engine (%s) is already running! Before you can start a new engine, "
-                        "please shut down the previous one using the command " 
+                        "please shut down the previous one using the command "
                         "tank.platform.current_engine().destroy()." % current_engine())
-    
-    # get the environment via the pick_environment hook
-    env_name = __pick_environment(engine_name, tk, context)
-    
-    # get the path to the environment file given its name
-    env_path = constants.get_environment_path(env_name, tk.project_path)
-    
-    # now we can instantiate a wrapper class around the data
-    # this will load it and check basic things.
-    env = Environment(env_path)
-    
-    # make sure that the environment has an engine instance with that name
-    if not engine_name in env.get_engines():
-        raise TankEngineInitError("Cannot find an engine instance %s in %s." % (engine_name, env))
-    
-    # get the location for our engine    
-    engine_descriptor = env.get_engine_descriptor(engine_name)
-    
+
+    # get environment and engine location
+    (env, engine_descriptor) = __get_env_and_descriptor_for_engine(engine_name, tk, context)
+
     # make sure it exists locally
     if not engine_descriptor.exists_local():
         raise TankEngineInitError("Cannot start engine! %s does not exist on disk" % engine_descriptor)
-    
+
     # get path to engine code
     engine_path = engine_descriptor.get_path()
     plugin_file = os.path.join(engine_path, constants.ENGINE_FILE)
-    
+
     # Instantiate the engine
     class_obj = loader.load_plugin(plugin_file, Engine)
     obj = class_obj(tk, context, engine_name, env)
-    
+
     # register this engine as the current engine
     set_current_engine(obj)
-    
+
     return obj
+
 
 ##########################################################################################
 # utilities
+
+def __get_env_and_descriptor_for_engine(engine_name, tk, context):
+    """
+    Utility method to return commonly needed objects when instantiating engines.
+
+    Raises TankEngineInitError if the engine name cannot be found.
+    """
+    # get the environment via the pick_environment hook
+    env_name = __pick_environment(engine_name, tk, context)
+
+    # get the path to the environment file given its name
+    env_path = constants.get_environment_path(env_name, tk.project_path)
+
+    # now we can instantiate a wrapper class around the data
+    # this will load it and check basic things.
+    env = Environment(env_path)
+
+    # make sure that the environment has an engine instance with that name
+    if not engine_name in env.get_engines():
+        raise TankEngineInitError("Cannot find an engine instance %s in %s." % (engine_name, env))
+
+    # get the location for our engine
+    engine_descriptor = env.get_engine_descriptor(engine_name)
+
+    return (env, engine_descriptor)
+
 
 def __pick_environment(engine_name, tk, context):
     """
