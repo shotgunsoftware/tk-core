@@ -28,6 +28,7 @@ class TankQDialog(TankDialogBase):
         self.ui = ui_tank_dialog.Ui_TankDialog() 
         self.ui.setupUi(self)
         self.ui.label.setText(title)
+        self.setWindowTitle(title)
         
         # parent the widget we are hosting into the dialog area
         widget.setParent(self.ui.page)
