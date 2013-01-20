@@ -7,7 +7,7 @@
 #
 # WARNING! All changes made in this file will be lost!
 
-from PySide import QtCore, QtGui
+from . import QtCore, QtGui
 
 class Ui_TankDialog(object):
     def setupUi(self, TankDialog):

@@ -86,9 +86,10 @@ class Engine(TankBundle):
         self.init_engine()
 
         # try to pull in QT classes and assign to tank.platform.qt.XYZ
-        (core, gui) = self._define_qt_base()
-        qt.QtCore = core
-        qt.QtGui = gui
+        base_def = self._define_qt_base()
+        qt.QtCore = base_def.get("qt_core")
+        qt.QtGui = base_def.get("qt_gui")
+        qt.TankDialogBase = base_def.get("dialog_base")
         
         # now load all apps and their settings
         self.__load_apps()
@@ -301,28 +302,29 @@ class Engine(TankBundle):
     ##########################################################################################
     # private and protected methods
     
-    def show_dialog(self, widget, *args, **kwargs):
+    def show_dialog(self, title, bundle, widget_class, *args, **kwargs):
         """
-        Shows a dialog window in a way suitable for this engine. The engine will attempt to 
-        parent the dialog nicely to the host application.
+        Shows a non-modal dialog window in a way suitable for this engine. 
+        The engine will attempt to parent the dialog nicely to the host application.
         
-        :param widget: the widget to instantiate. This must derive from QWidget
+        :param title: The title of the window
+        :param bundle: The app, engine or framework object that is associated with this window
+        :param widget_class: The class of the UI to be constructed. This must derive from QWidget.
         
-        Additional parameters specified will be passed through to the widget constructor.
+        Additional parameters specified will be passed through to the widget_class constructor.
         
-        :returns: the created widget object
+        :returns: the created widget_class instance
         """
         from .qt import tankqdialog 
         from .qt import QtCore, QtGui
         
         # first construct the widget object 
-        obj = widget(*args, **kwargs)
-        
-        # get the parent window
-        parent = QtGui.QApplication.activeWindow()
+        obj = widget_class(*args, **kwargs)
         
         # now create a dialog to put it inside
-        dialog = tankqdialog.TankQDialog(obj, parent)
+        # parent it to the active window by default
+        parent = QtGui.QApplication.activeWindow()
+        dialog = tankqdialog.TankQDialog(title, bundle, obj, parent)
         
         # keep a reference to all created dialogs to make GC happy
         self.__created_qt_dialogs.append(dialog)
@@ -333,29 +335,30 @@ class Engine(TankBundle):
         # lastly, return the instantiated class
         return obj
     
-    def show_modal(self, widget, *args, **kwargs):
+    def show_modal(self, title, bundle, widget_class, *args, **kwargs):
         """
         Shows a modal dialog window in a way suitable for this engine. The engine will attempt to
         integrate it as seamlessly as possible into the host application. This call is blocking 
         until the user closes the dialog.
         
-        :param dialog_class: the class to instantiate. This must derive from tank.platform.qt.TankQDialog
+        :param title: The title of the window
+        :param bundle: The app, engine or framework object that is associated with this window
+        :param widget_class: The class of the UI to be constructed. This must derive from QWidget.
         
-        Additional parameters specified will be passed through to the dialog_class constructor.
+        Additional parameters specified will be passed through to the widget_class constructor.
 
-        :returns: (a standard QT dialog status return code, the created dialog object)
+        :returns: (a standard QT dialog status return code, the created widget_class instance)
         """
         from .qt import tankqdialog 
         from .qt import QtCore, QtGui
         
         # first construct the widget object 
-        obj = widget(*args, **kwargs)
-        
-        # get the parent window
-        parent = QtGui.QApplication.activeWindow()
+        obj = widget_class(*args, **kwargs)
         
         # now create a dialog to put it inside
-        dialog = tankqdialog.TankQDialog(obj, parent)
+        # parent it to the active window by default
+        parent = QtGui.QApplication.activeWindow()
+        dialog = tankqdialog.TankQDialog(title, bundle, obj, parent)
         
         # keep a reference to all created dialogs to make GC happy
         self.__created_qt_dialogs.append(dialog)
@@ -368,21 +371,29 @@ class Engine(TankBundle):
     
     def _define_qt_base(self):
         """
-        This will be called at initialisation time and will set 
-        tank.platform.qt.QtCore and tank.platform.qt.QtGui.
+        This will be called at initialisation time and will allow 
+        a user to control various aspects of how QT is being used
+        by Tank. The method should return a dictionary with a number
+        of specific keys, outlined below. 
         
-        Defaults to a straight pyside - can be subclassed if 
-        something else is desirable.
+        * qt_core - the QtCore module to use
+        * qt_gui - the QtGui module to use
+        * dialog_base - base class for to use for Tank's dialog factory
         
-        :returns: tuple with (QtCoreClass, QtGuiClass)
+        :returns: dict
         """
+        # default to None
+        base = {"qt_core": None, "qt_gui": None, "dialog_base": None}
         try:
             from PySide import QtCore, QtGui
-            return (QtCore, QtGui)
+            base["qt_core"] = QtCore
+            base["qt_gui"] = QtGui
+            base["dialog_base"] = QtGui.QDialog
         except:
             self.log_debug("Default engine QT definition failed to find QT. "
                            "This may need to be subclassed.")
-            return (None, None)
+        
+        return base
         
             
     ##########################################################################################

@@ -8,24 +8,32 @@ Default implementation for the Tank Dialog
 
 from . import QtCore, QtGui
 from . import ui_tank_dialog
+from . import TankDialogBase
 
 TANK_TOOLBAR_HEIGHT = 45
 
-class TankQDialog(QtGui.QDialog):
+class TankQDialog(TankDialogBase):
     """
-    Wraps around app widgets. 
+    Wraps around app widgets. Contains Tank specific toolbars and configuration info
+    in addition to the user object that it is hosting.
     """
 
-    def __init__(self, widget, parent):
-        QtGui.QDialog.__init__(self, parent)
+    def __init__(self, title, bundle, widget, parent):
+        """
+        Constructor
+        """
+        TankDialogBase.__init__(self, parent)
         
         # set up the UI
         self.ui = ui_tank_dialog.Ui_TankDialog() 
         self.ui.setupUi(self)
+        self.ui.label.setText(title)
         
         # parent the widget we are hosting into the dialog area
         widget.setParent(self.ui.page)
         self.ui.target.insertWidget(0, widget)
+        # keep track of the widget
+        self._widget = widget
         
         # adjust size of the outer window to match the hosted widget size
         self.resize(widget.width(), widget.height() + TANK_TOOLBAR_HEIGHT)
@@ -36,8 +44,22 @@ class TankQDialog(QtGui.QDialog):
         widget.closeEvent = lambda event: self._handle_child_close(event)
         
     def _handle_child_close(self, event):
+        """
+        Callback from the hosted widget's closeEvent.
+        Make sure that when a close() is issued for the hosted widget,
+        the parent widget is closed too.
+        """
+        # ACK the event to tell QT to proceed with the close 
         event.accept()
-        self.close()
+        
+        # use accepted as the default exit code
+        exit_code = QtGui.QDialog.Accepted    
+        # look if the hosted widget has an exit_code we should pick up
+        if hasattr(self._widget, "exit_code"):
+            exit_code = self._widget.exit_code
+        
+        # close QDialog
+        self.done(exit_code)
         
 #    def on_arrow(self):
 #        
