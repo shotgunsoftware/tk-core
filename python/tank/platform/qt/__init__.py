@@ -11,6 +11,3 @@ Copyright (c) 2012 Shotgun Software, Inc
 
 # from tank.platform.qt import QtCore, QtGui
 
-# in addition to this, the engine will add a class called TankQDialog which represents
-# a QDialog object potentially subclassed by an engine. Use this class when you want to 
-# create dialog windows.

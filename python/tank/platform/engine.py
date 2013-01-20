@@ -89,7 +89,6 @@ class Engine(TankBundle):
         (core, gui) = self._define_qt_base()
         qt.QtCore = core
         qt.QtGui = gui
-        qt.TankQDialog = self._define_qt_tankdialog()
         
         # now load all apps and their settings
         self.__load_apps()
@@ -302,28 +301,39 @@ class Engine(TankBundle):
     ##########################################################################################
     # private and protected methods
     
-    def show_dialog(self, dialog_class, *args, **kwargs):
+    def show_dialog(self, widget, *args, **kwargs):
         """
         Shows a dialog window in a way suitable for this engine. The engine will attempt to 
         parent the dialog nicely to the host application.
         
-        :param dialog_class: the class to instantiate. This must derive from tank.platform.qt.TankQDialog
+        :param widget: the widget to instantiate. This must derive from QWidget
         
-        Additional parameters specified will be passed through to the dialog_class constructor.
+        Additional parameters specified will be passed through to the widget constructor.
         
-        :returns: the created dialog object
+        :returns: the created widget object
         """
-        from . import qt 
-        if not issubclass(dialog_class, qt.TankQDialog):
-            raise TankError("Class %s must derive from TankQDialog in order to be displayed." % dialog_class)
+        from .qt import tankqdialog 
+        from .qt import QtCore, QtGui
         
-        dialog = dialog_class(*args, **kwargs)
+        # first construct the widget object 
+        obj = widget(*args, **kwargs)
+        
+        # get the parent window
+        parent = QtGui.QApplication.activeWindow()
+        
+        # now create a dialog to put it inside
+        dialog = tankqdialog.TankQDialog(obj, parent)
+        
         # keep a reference to all created dialogs to make GC happy
         self.__created_qt_dialogs.append(dialog)
+        
+        # finally show it        
         dialog.show()
-        return dialog
+        
+        # lastly, return the instantiated class
+        return obj
     
-    def show_modal(self, modal_class, *args, **kwargs):
+    def show_modal(self, widget, *args, **kwargs):
         """
         Shows a modal dialog window in a way suitable for this engine. The engine will attempt to
         integrate it as seamlessly as possible into the host application. This call is blocking 
@@ -335,13 +345,26 @@ class Engine(TankBundle):
 
         :returns: (a standard QT dialog status return code, the created dialog object)
         """
-        from . import qt 
-        if not issubclass(modal_class, qt.TankQDialog):
-            raise TankError("Class %s must derive from TankQDialog in order to be displayed." % modal_class)
+        from .qt import tankqdialog 
+        from .qt import QtCore, QtGui
         
-        dialog = modal_class(*args, **kwargs)
+        # first construct the widget object 
+        obj = widget(*args, **kwargs)
+        
+        # get the parent window
+        parent = QtGui.QApplication.activeWindow()
+        
+        # now create a dialog to put it inside
+        dialog = tankqdialog.TankQDialog(obj, parent)
+        
+        # keep a reference to all created dialogs to make GC happy
+        self.__created_qt_dialogs.append(dialog)
+        
+        # finally launch it, modal state        
         status = dialog.exec_()
-        return (status, dialog)
+        
+        # lastly, return the instantiated class
+        return (status, obj)
     
     def _define_qt_base(self):
         """
@@ -361,27 +384,7 @@ class Engine(TankBundle):
                            "This may need to be subclassed.")
             return (None, None)
         
-    
-    def _define_qt_tankdialog(self):
-        """
-        This will be called at init and will set tank.platform.qt.TankQDialog
-        to whatever class this method returns.
-        
-        Defaults to a straight passthrough class - can be sublcassed by 
-        deriving engines. The class needs to be called TankQDialog and 
-        take zero constructor parameters.
-        
-        :returns: TankQDialogClass
-        
-        """
-        try:
-            from .qt.tankqdialog import TankQDialog
-            return TankQDialog
-        except:
-            self.log_debug("Default engine TankQDialog definition failed to find QT. "
-                           "This may need to be subclassed.")
-            return None
-        
+            
     ##########################################################################################
     # private         
         
