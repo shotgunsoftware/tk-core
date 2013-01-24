@@ -4,7 +4,7 @@ Copyright (c) 2012 Shotgun Software, Inc
 """
 
 # Engine management
-from .engine import start_engine, current_engine
+from .engine import start_engine, current_engine, get_engine_path
 
 # base classes to derive from
 from .application import Application
