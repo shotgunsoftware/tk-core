@@ -62,6 +62,38 @@ class Context(object):
         
         return "<Tank Context: %s>" % ("\n".join(msg))
 
+    def __str__(self):
+        # smart looking string representation
+        
+        if self.project is None:
+            # empty context!
+            ctx_name = "Empty Context"
+        
+        elif self.entity is None:
+            # project-only!
+            ctx_name = "%s" % self.project.get("name")
+        
+        elif self.step is None and self.task is None:
+            # entity only
+            # e.g. Shot ABC_123
+            ctx_name = "%s %s" % (self.entity.get("type"), 
+                                  self.entity.get("name"))
+
+        else:
+            # we have either step or task
+            task_step = None
+            if self.step:
+                task_step = self.step.get("name")
+            if self.task:
+                task_step = self.task.get("name")
+            
+            # e.g. [Lighting, Shot ABC_123]
+            ctx_name = "%s, %s %s" % (task_step, 
+                                      self.entity.get("type"), 
+                                      self.entity.get("name"))
+        
+        return ctx_name
+
     def __eq__(self, other):
         if not isinstance(other, Context):
             return False
