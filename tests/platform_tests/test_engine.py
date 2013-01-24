@@ -35,6 +35,11 @@ class TestStartEngine(TankTestBase):
         self.tk = tank.Tank(self.project_root)
         self.context = self.tk.context_from_path(self.shot_step_path)
 
+    def test_get_engine_path(self):
+        engine_path = tank.platform.get_engine_path("test_engine", self.tk, self.context)
+        expected_engine_path = os.path.join(self.project_root, "tank/config/test_engine")
+        self.assertEquals(engine_path, expected_engine_path)
+
     def test_valid_engine(self):
         engine = tank.platform.start_engine("test_engine", self.tk, self.context)
         self.assertIsInstance(engine, tank.platform.engine.Engine)
