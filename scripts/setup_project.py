@@ -364,7 +364,7 @@ def _get_studio_root(log):
 ########################################################################################
 # main installer
 
-def setup_project(log, starter_config_input):
+def setup_project(log, starter_config_input, tank_root, project_id, project_folder_name):
     """
     main method.
     """
@@ -372,7 +372,8 @@ def setup_project(log, starter_config_input):
     log.info("")
     log.info("Welcome to the Tank Setup Project tool!")
     
-    tank_root = _get_studio_root(log)
+    if tank_root is None:
+        tank_root = _get_studio_root(log)
     
     # now connect to shotgun
     try:
@@ -401,11 +402,8 @@ def setup_project(log, starter_config_input):
     # check constraints etc.
     _check_manifest(tank_root, starter_config, tank_root, sg_version, log)
         
-    # get projects 
+    # get projects     
     projs = sg.find("Project", [["tank_name", "is", None]], ["id", "name", "sg_description"])
-
-    if len(projs) == 0:
-        raise TankError("Could not find any suitable Shotgun projects!")
 
     log.info("")
     log.info("")
@@ -433,39 +431,51 @@ def setup_project(log, starter_config_input):
         projs_found += 1
     
     if projs_found == 0:
-        raise TankError("No Shotgun projects suitable for Tank setup were found!")
+        raise TankError("No non-tank projects found in Shotgun!")
     
-    log.info("")
-    answer = raw_input("Please type in the id of the project to connect to or ENTER to exit: " )
-    if answer == "":
-        raise TankError("Aborted by user.")
-    try:
-        proj_id = int(answer)
-    except:
-        raise TankError("Please enter a number!")
+    if project_id is not None:
+        log.info("Will attempt to set up a project for id %s" % project_id)
     
-    if proj_id not in [ x["id"] for x in projs]:
-        raise TankError("Id %d was not found in the list of projects!" % proj_id)
+    else:
     
-    # try to propose a project name
-    for x in projs:
-        if x["id"] == proj_id:
-            proj_name = x["name"].lower().replace(" ", "_")
-    # make sure that what we suggest is valid...
-    if not _validate_proj_disk_name(proj_name):
-        proj_name = "proj"
+        log.info("")
+        answer = raw_input("Please type in the id of the project to connect to or ENTER to exit: " )
+        if answer == "":
+            raise TankError("Aborted by user.")
+        try:
+            project_id = int(answer)
+        except:
+            raise TankError("Please enter a number!")
     
-    log.info("")
-    log.info("")
-    log.info("Now you need to choose a name for your project on disk.")
-    log.info("This will be the name of the root project folder.")
-    log.info("Please stick to alphanumerics, underscore and dash.")
-    log.info("Press ENTER to go with the suggested name.")
-    log.info("")
-    answer = raw_input("Enter project root folder name: [%s] " % proj_name )
-    if answer != "":
-        proj_name = answer
-    if not _validate_proj_disk_name(proj_name):
+    if project_id not in [ x["id"] for x in projs]:
+        raise TankError("Id %d was not found in the list of projects!" % project_id)
+    
+    
+    
+    if project_folder_name is None:
+        # ask user for project name
+    
+        # try to propose a project name
+        for x in projs:
+            if x["id"] == project_id:
+                project_folder_name = x["name"].lower().replace(" ", "_")
+        # make sure that what we suggest is valid...
+        if not _validate_proj_disk_name(project_folder_name):
+            project_folder_name = "proj"
+        
+        log.info("")
+        log.info("")
+        log.info("Now you need to choose a name for your project on disk.")
+        log.info("This will be the name of the root project folder.")
+        log.info("Please stick to alphanumerics, underscore and dash.")
+        log.info("Press ENTER to go with the suggested name.")
+        log.info("")
+        answer = raw_input("Enter project root folder name: [%s] " % project_folder_name )
+        if answer != "":
+            project_folder_name = answer
+        
+                
+    if not _validate_proj_disk_name(project_folder_name):
         raise TankError("Invalid characters in project name!")
     
     ########################################################################################
@@ -473,7 +483,7 @@ def setup_project(log, starter_config_input):
     
     log.info("")
     log.info("")
-    proj_root = os.path.join(tank_root, proj_name)
+    proj_root = os.path.join(tank_root, project_folder_name)
     log.info("The project will be created in the root point %s" % proj_root)
     log.info("")
     if not os.path.exists(proj_root):
@@ -494,7 +504,7 @@ def setup_project(log, starter_config_input):
     os.mkdir(tank_folder, 0775)
     
     # all good. Register tank_name in shotgun
-    sg.update("Project", proj_id, {"tank_name": proj_name})
+    sg.update("Project", project_id, {"tank_name": project_folder_name})
     log.info("Updated shotgun (Project.tank_name) with the project disk name.")
     
     # now copy the template data across
@@ -505,11 +515,11 @@ def setup_project(log, starter_config_input):
  
     # and write a custom event to the shotgun event log
     data = {}
-    data["description"] = "%s: A Tank Project named %s was created" % (sg.base_url, proj_name)
+    data["description"] = "%s: A Tank Project named %s was created" % (sg.base_url, project_folder_name)
     data["event_type"] = "TankAppStore_Project_Created"
     data["user"] = script_user
     data["project"] = TANK_APP_STORE_DUMMY_PROJECT
-    data["attribute_name"] = proj_name
+    data["attribute_name"] = project_folder_name
     sg_app_store.create("EventLogEntry", data)
  
     ##########################################################################################
@@ -532,7 +542,7 @@ def setup_project(log, starter_config_input):
         log.info("Executing post-install commands...")
         sys.path.insert(0, os.path.dirname(after_script_path))
         import after_project_create
-        after_project_create.create(sg=sg, project_id=proj_id, log=log)
+        after_project_create.create(sg=sg, project_id=project_id, log=log)
         sys.path.pop(0)
         log.info("Post install phase complete!")
 
@@ -572,40 +582,58 @@ def main(log):
 This utility script sets up a new project for Tank.
 You can call this command in the following ways:
 
+-----------------------------------------------------------
 Using an App Store Config
 -----------------------------------------------------------
-
 > %(cmd)s tk-config-xyz
 For a list of available configs, see https://tank.shotgunsoftware.com
 
+-----------------------------------------------------------
 Using an existing project
 -----------------------------------------------------------
-
 > %(cmd)s gunstlinger
 If your Tank studio root is set to /mnt/projects, the above command will
 look for a configuration in the location /mnt/projects/gunstlinger/tank/config
 
+-----------------------------------------------------------
 Pointing it to a specific folder or zip file
 -----------------------------------------------------------
-
 > %(cmd)s /path/to/configuration.zip
 > %(cmd)s /path/to/tank/config
 To point the installer directly at the gunstlinger config
 above, you would use the following syntax:
 > %(cmd)s /mnt/projects/gunstlinger/tank/config
 
+
 -----------------------------------------------------------
+Additional Parameters
+-----------------------------------------------------------
+If you want to run the script without prompting for anything,
+pass shotgun id and project root folder parameters, like this:
+
+> %(cmd)s tk-config-xyz studio_root shotgun_project_id project_folder_name
+for example
+> %(cmd)s tk-config-default /mnt/projects 70 my_new_project
+
 For help and support, contact the Tank support: tanksupport@shotgunsoftware.com
 
 """ % {"cmd": sys.argv[0]} 
 
         print desc
         return
-    else:
-        starter_config = sys.argv[1]
+
+
+    starter_config = sys.argv[1]
+    project_id = None
+    project_folder_name = None
+    studio_root = None
+    if len(sys.argv) == 5:
+        studio_root = sys.argv[2]
+        project_id = int(sys.argv[3])
+        project_folder_name = sys.argv[4]
         
     # run actual activation
-    setup_project(log, starter_config)
+    setup_project(log, starter_config, studio_root, project_id, project_folder_name)
 
 #######################################################################
 if __name__ == "__main__":
