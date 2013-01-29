@@ -372,3 +372,117 @@ class TestSchemaCreateFoldersMultiStep(TankTestBase):
         assert_paths_to_create(self.make_path_list())
                                 
                                 
+
+
+
+# make sure that user sandboxes can have step folders inside
+
+class TestSchemaCreateFoldersStepAndUserSandbox(TankTestBase):
+    def setUp(self):
+        """Sets up entities in mocked shotgun database and creates Mock objects
+        to pass in as callbacks to Schema.create_folders. The mock objects are
+        then queried to see what paths the code attempted to create.
+        """
+        super(TestSchemaCreateFoldersStepAndUserSandbox, self).setUp()
+        self.setup_fixtures("humanuser_step_core")
+        self.seq = {"type": "Sequence",
+                    "id": 2,
+                    "code": "seq_code",
+                    "project": self.project}
+
+        self.shot = {"type": "Shot",
+                     "id": 1,
+                     "code": "shot_code",
+                     "sg_sequence": self.seq,
+                     "project": self.project}
+
+        self.step = {"type": "Step",
+                     "id": 3,
+                     "code": "step_code",
+                     "short_name": "step_short_name"}
+        
+        self.task = {"type": "Task",
+                     "id": 23,
+                     "entity": self.shot,
+                     "step": self.step,
+                     "project": self.project}        
+
+        cur_login = tank.util.login.get_login_name()
+        
+        self.humanuser = {"type": "HumanUser",
+                          "id": 2,
+                          "login": cur_login}
+
+        entities = [self.shot, 
+                    self.task,
+                    self.seq, 
+                    self.step,
+                    self.project,
+                    self.humanuser]
+
+        # Add these to mocked shotgun
+        self.add_to_sg_mock_db(entities)
+
+        self.tk = tank.Tank(self.project_root)
+
+        self.schema_location = os.path.join(self.project_root, "tank", "config", "core", "schema")
+
+        self.FolderIOReceiverBackup = folder.folder_io.FolderIOReceiver.execute_folder_creation
+        folder.folder_io.FolderIOReceiver.execute_folder_creation = execute_folder_creation_proxy
+
+    def tearDown(self):
+        
+        folder.folder_io.FolderIOReceiver.execute_folder_creation = self.FolderIOReceiverBackup
+
+
+    def test_shot(self):
+        """Tests paths used in making a shot are as expected."""
+        
+        expected_paths = []
+        
+        sequence_path = os.path.join(self.project_root, "sequences", self.seq["code"])
+        sequences_path = os.path.join(self.project_root, "sequences")        
+        shot_path = os.path.join(sequence_path, self.shot["code"])
+
+        expected_paths.extend( [self.project_root, sequences_path, sequence_path, shot_path] )
+
+        folder.process_filesystem_structure(self.tk, 
+                                            self.shot["type"], 
+                                            self.shot["id"], 
+                                            preview=False,
+                                            engine=None)        
+        
+        assert_paths_to_create(expected_paths)
+
+
+    def test_step_a(self):
+        """Tests paths used in making a shot are as expected."""
+
+        folder.process_filesystem_structure(self.tk, 
+                                            self.task["type"], 
+                                            self.task ["id"], 
+                                            preview=False,
+                                            engine="foo-bar")        
+        
+        expected_paths = []
+
+        sequence_path = os.path.join(self.project_root, "sequences", self.seq["code"])   
+        sequences_path = os.path.join(self.project_root, "sequences")     
+        shot_path = os.path.join(sequence_path, self.shot["code"])
+        sandbox_path = os.path.join(shot_path, self.humanuser["login"])
+        step_path = os.path.join(sandbox_path, self.step["short_name"])
+        
+        expected_paths.extend( [self.project_root, sequences_path, sequence_path, shot_path, sandbox_path, step_path] )
+        
+        # add non-entity paths
+        expected_paths.append(os.path.join(step_path, "publish"))
+        expected_paths.append(os.path.join(step_path, "images"))
+        expected_paths.append(os.path.join(step_path, "review"))
+        expected_paths.append(os.path.join(step_path, "work"))
+        expected_paths.append(os.path.join(step_path, "work", "snapshots"))
+        expected_paths.append(os.path.join(step_path, "work", "workspace.mel"))
+        expected_paths.append(os.path.join(step_path, "out"))
+
+        assert_paths_to_create(expected_paths)
+                                
+                                
