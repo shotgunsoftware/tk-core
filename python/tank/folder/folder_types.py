@@ -1062,11 +1062,16 @@ class ShotgunStep(Entity):
         constructor
         """
         
-        # look up the tree for the first parent of type Entity
+        # look up the tree for the first parent of type Entity which is not a User
+        # this is because the user is typically assiged to a sandbox
+        # and no-one would have steps actually associated with a user anyways 
+        # (seems like a highly unlikely case anyone would even do that)
+        # so skip over user in order to support folder configs where
+        # you have for example Asset -> User Sandbox -> (Asset) Step
         # refer to this in our query expression
         sg_parent = parent
         while True:
-            if isinstance(sg_parent, Entity):            
+            if isinstance(sg_parent, Entity) and sg_parent.get_entity_type() != "HumanUser":            
                 break
             elif sg_parent is None:
                 raise TankError("Error in configuration %s - node must be parented under a shotgun entity." % full_path)
@@ -1075,6 +1080,7 @@ class ShotgunStep(Entity):
             
         # get the parent name for the entity expression, e.g. $shot
         parent_name = os.path.basename(sg_parent.get_path())
+        
         # create a token object to represent the parent link
         parent_expr_token = FilterExpressionToken(parent_name, sg_parent)
         # now create the shotgun filter query for this
