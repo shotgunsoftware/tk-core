@@ -108,14 +108,32 @@ class EntityExpression(object):
         
         # first make sure that each field is valid
         for field_name in self._fields:
-            raw_val = values.get(field_name)
-            if raw_val is None:
+            
+            
+            if field_name not in values:
                 # required value was not provided!
                 raise TankError("Folder Configuration Error: "
                                 "A Shotgun field '%s' is being requested as part of the expression "
                                 "'%s' when creating folders connected to entities of type %s, "
                                 "however no such field exists in Shotgun. Please review your "
                                 "configuration!" % (field_name, self._name_expr, self._entity_type))
+            
+            raw_val = values.get(field_name)
+            if raw_val is None:
+                
+                # try to make a nice name from values
+                if "code" in values:
+                    nice_name = "%s %s (id %s)" % (self._entity_type, values["code"], sg_id)
+                else:
+                    nice_name = "%s %s" % (self._entity_type, sg_id)
+                
+                raise TankError("Folder Configuration Error. Could not create folders for %s! "
+                                "A Shotgun field '%s' is being requested as part of the expression "
+                                "'%s' when creating folders connected to entities of type %s. "
+                                "The folder for %s you are trying to create has a Null value in "
+                                "this field and can therefore "
+                                "not be created. " % (nice_name, field_name, self._name_expr, self._entity_type, nice_name))
+                
             
             # now cast the value to a string
             str_data[field_name] = sg_entity_to_string(self._tk, self._entity_type, sg_id, field_name, raw_val)

@@ -757,7 +757,7 @@ class Entity(Folder):
         
         for entity in self.__get_entities(sg_data):
 
-            # generate the field name
+            # generate the field name            
             folder_name = self._entity_expression.generate_name(entity)
             my_path = os.path.join(parent_path, folder_name)
                         
@@ -814,9 +814,6 @@ class Entity(Folder):
         fields = self._entity_expression.get_shotgun_fields()
         # always retrieve the name field for the entity
         fields.add( self.__get_name_field_for_et(self._entity_type) )        
-        # do we need this?
-        #if self._entity_type == "Step":
-        #    fields.add("entity_type")
         
         # convert to a list - sets wont work with the SG API
         fields_list = list(fields)
