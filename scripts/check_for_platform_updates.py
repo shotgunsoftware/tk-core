@@ -74,6 +74,11 @@ def main(log):
     log.info("for the installation at %s" % studio_root)
     log.info("")
     
+    # quick check to ensure that this is the studio root
+    if not os.path.exists( os.path.join(studio_root, "tank", "config", "core", "app_store.yml") ):
+        raise TankError("Looks like '%s' is not a valid Tank studio root path" % studio_root)
+    
+    
     installer = TankCoreUpgrader(studio_root, log)
     cv = installer.get_current_version_number()
     lv = installer.get_latest_version_number()
