@@ -99,12 +99,12 @@ class Context(object):
             return False
 
         equal = True
-        equal &= (self.__project == other.__project)
-        equal &= (self.__entity == other.__entity)
-        equal &= (self.__step == other.__step)
-        equal &= (self.__task == other.__task)
-        equal &= (self.__user == other.__user)
-        equal &= (self.__additional_entities == other.__additional_entities)
+        equal &= (self.project == other.project)
+        equal &= (self.entity == other.entity)
+        equal &= (self.step == other.step)
+        equal &= (self.task == other.task)
+        equal &= (self.user == other.user)
+        equal &= (self.additional_entities == other.additional_entities)
 
         return equal
 

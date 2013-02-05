@@ -90,6 +90,17 @@ class TestEq(TestContext):
         not_context = object()
         self.assertFalse(context_1 == not_context)
 
+    def test_lazy_load_user(self):
+        # bug ticket 20272
+        context_1 = context.Context(**self.kws)
+        kws2 = self.kws.copy()
+        # force seed the user for one of the contexts 
+        kws2["user"] = self.current_user
+        # the other context should pick up the context
+        # automatically by the equals operator
+        context_2 = context.Context(**kws2)
+        self.assertTrue(context_1 == context_2)
+
 class TestUser(TestContext):
     def setUp(self):
         super(TestUser, self).setUp()
