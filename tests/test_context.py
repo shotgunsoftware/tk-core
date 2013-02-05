@@ -41,7 +41,6 @@ class TestContext(TankTestBase):
         self.current_login = tank.util.login.get_login_name()
         self.current_user = {"type":"HumanUser", "name":"user_name", "id":2, "login": self.current_login}
         self.add_to_sg_mock_db(self.current_user)
-        
 
         self.seq_path = os.path.join(self.project_root, "sequence/Seq")
         self.add_production_path(self.seq_path, self.seq)
@@ -95,7 +94,9 @@ class TestEq(TestContext):
         context_1 = context.Context(**self.kws)
         kws2 = self.kws.copy()
         # force seed the user for one of the contexts 
-        kws2["user"] = self.current_user
+        kws2["user"] = {"id": self.current_user["id"], 
+                        "type": self.current_user["type"], 
+                        "name": self.current_user["name"]} 
         # the other context should pick up the context
         # automatically by the equals operator
         context_2 = context.Context(**kws2)
