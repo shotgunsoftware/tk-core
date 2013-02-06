@@ -34,22 +34,16 @@ paths:
   nuke_asset_publish: {definition: 'assets/{Asset}/{Step}/publish/{alpha_name}.v{version}.nk',
                       root_name: alternate_1}
   nuke_asset_render: {definition: 'assets/{Asset}/{Step}/images/{alpha_name}/v{version}/{width}x{height}/{Asset}_{alpha_name}_{channel}_v{version}.{SEQ}.exr'}
-  nuke_asset_render_name: {definition: 'Nuke Render {alpha_name}, Channel {channel},
-      v{version}'}
   nuke_asset_render_pub: {definition: 'assets/{Asset}/{Step}/out/{alpha_name}/v{version}/{width}x{height}/{Asset}_{alpha_name}_{channel}_v{version}.{SEQ}.exr'}
   nuke_asset_snapshot: {definition: 'assets/{Asset}/{Step}/work/snapshots/{alpha_name}.v{version}.{timestamp}.nk'}
-  nuke_asset_version_name: {definition: '{Asset}_{alpha_name}_{channel}_v{version}'}
   nuke_asset_work: {definition: 'assets/{Asset}/{Step}/work/{alpha_name}.v{version}.nk'}
   nuke_shot_publish: {definition: 'sequences/{Sequence}/{Shot}/{Step}/publish/{alpha_name}.v{version}.nk',
                      root_name: alternate_1}
   nuke_shot_render_mono_dpx: {definition: 'sequences/{Sequence}/{Shot}/{Step}/images/{alpha_name}/v{version}/{width}x{height}/{Shot}_{alpha_name}_{channel}_v{version}.{SEQ}.dpx'}
-  nuke_shot_render_name: {definition: 'Nuke Render {alpha_name} Channel {channel},
-      Version v{version}'}
   nuke_shot_render_pub_mono_dpx: {definition: 'sequences/{Sequence}/{Shot}/{Step}/out/{alpha_name}/v{version}/{width}x{height}/{Shot}_{alpha_name}_{channel}_v{version}.{SEQ}.dpx'}
   nuke_shot_render_pub_stereo: {definition: 'sequences/{Sequence}/{Shot}/{Step}/out/{alpha_name}/v{version}/{width}x{height}/{Shot}_{alpha_name}_{channel}_{eye}_v{version}.{SEQ}.exr'}
   nuke_shot_render_stereo: {definition: 'sequences/{Sequence}/{Shot}/{Step}/images/{alpha_name}/v{version}/{width}x{height}/{Shot}_{alpha_name}_{channel}_{eye}_v{version}.{SEQ}.exr'}
   nuke_shot_snapshot: {definition: 'sequences/{Sequence}/{Shot}/{Step}/work/snapshots/{alpha_name}.v{version}.{timestamp}.nk'}
-  nuke_shot_version_name: {definition: '{Shot}_{alpha_name}_{channel}_v{version}'}
   nuke_shot_work: {definition: 'sequences/{Sequence}/{Shot}/{Step}/work/{alpha_name}.v{version}.nk'}
   shot_quicktime_full_res: {definition: 'sequences/{Sequence}/{Shot}/{Step}/editorial/full/{Shot}_{alpha_name}_{channel}_full_v{version}.mov'}
   shot_quicktime_half_res: {definition: 'sequences/{Sequence}/{Shot}/{Step}/editorial/half/{Shot}_{alpha_name}_{channel}_half_v{version}.mov'}

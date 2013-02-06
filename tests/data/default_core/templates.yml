@@ -88,10 +88,6 @@ paths:
     shot_quicktime_half_res: sequences/{Sequence}/{Shot}/{Step}/editorial/half/{Shot}_{name_alpha}_{channel}_half_v{version}.mov
     shot_quicktime_full_res: sequences/{Sequence}/{Shot}/{Step}/editorial/full/{Shot}_{name_alpha}_{channel}_full_v{version}.mov
 
-    nuke_shot_render_name_alpha: "Nuke Render {name_alpha} Channel {channel}, Version v{version}"
-
-    nuke_shot_version_name_alpha: "{Shot}_{name_alpha}_{channel}_v{version}" 
-
     # ------------------------------------------------------------------------------------
     # Shot pipeline - nuke scripts
 
@@ -145,11 +141,6 @@ paths:
     nuke_asset_render: assets/{sg_asset_type}/{Asset}/{Step}/images/{name_alpha}/v{version}/{width}x{height}/{Asset}_{name_alpha}_{channel}_v{version}.{frame}.exr
 
     nuke_asset_render_pub: assets/{sg_asset_type}/{Asset}/{Step}/out/{name_alpha}/v{version}/{width}x{height}/{Asset}_{name_alpha}_{channel}_v{version}.{frame}.exr
-
-    nuke_asset_render_name_alpha: "Nuke Render {name_alpha}, Channel {channel}, v{version}"
-
-    nuke_asset_version_name_alpha: "{Asset}_{name_alpha}_{channel}_v{version}"
-
 
     # ------------------------------------------------------------------------------------
     # Asset pipeline - nuke scripts
