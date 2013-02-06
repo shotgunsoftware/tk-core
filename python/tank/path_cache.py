@@ -181,7 +181,7 @@ class PathCache(object):
             if e.args[0] == "columns entity_type, entity_id, root, path are not unique":
                 # means we are trying to re-insert the same record which is fine!
                 pass
-            elif e.args[0] == "column path is not unique":
+            elif e.args[0] == "columns root, path are not unique":
                 # means that we have tried to insert the same path twice in the database,
                 # but with different values for entity ids etc.
                 # this can happen if we reconfigure the config in such a way that a folder
