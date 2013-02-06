@@ -170,29 +170,43 @@ class PathCache(object):
         :param entity_name: a shotgun entity name
         :param path: a path on disk representing the entity.
         """
-
-        # see if there are any records for this path
-        curr_entity = self.get_entity(path)
-        new_entity = {"id": entity_id, "type": entity_type, "name": entity_name}
         
-        if curr_entity is not None:
-            # this path is already registered. Ensure it is connected to
-            # our entity! Note! We are only comparing against the type and the id
-            # not against the name. It should be perfectly valid to rename something
-            # in shotgun and if folders are then recreated for that item, nothing happens
-            # because there is already a folder which repreents that item. (although now with 
-            # an incorrect name)
-            if curr_entity["type"] != entity_type or curr_entity["id"] != entity_id:
-                raise TankError("The path '%s' is already associated with Shotgun "
-                                "entity %s. You are trying to associate the same "
-                                "path with Shotgun entity %s. This typically happens "
-                                "when shots have been relinked to new sequences or if "
-                                "you have made big changes to the folder configuration. "
-                                "Please contact support "
-                                "for need help and advice!" % (path, str(curr_entity), str(new_entity)))
-            else:
-                # the entry that exists in the db matches what we are trying to insert
-                # so skip it
+        if primary:
+            # the primary entity must be unique: path/id/type 
+            # see if there are any records for this path
+            # note that get_entity does not return secondary entities
+            curr_entity = self.get_entity(path)
+            new_entity = {"id": entity_id, "type": entity_type, "name": entity_name}
+            
+            if curr_entity is not None:
+                # this path is already registered. Ensure it is connected to
+                # our entity! Note! We are only comparing against the type and the id
+                # not against the name. It should be perfectly valid to rename something
+                # in shotgun and if folders are then recreated for that item, nothing happens
+                # because there is already a folder which repreents that item. (although now with 
+                # an incorrect name)
+                if curr_entity["type"] != entity_type or curr_entity["id"] != entity_id:
+    
+                    raise TankError("The path '%s' is already associated with Shotgun "
+                                    "entity %s. You are trying to associate the same "
+                                    "path with Shotgun entity %s. This typically happens "
+                                    "when shots have been relinked to new sequences or if "
+                                    "you have made big changes to the folder configuration. "
+                                    "Please contact support "
+                                    "for need help and advice!" % (path, str(curr_entity), str(new_entity)))
+                    
+                else:
+                    # the entry that exists in the db matches what we are trying to insert
+                    # so skip it
+                    return
+                
+        else:
+            # secondary entity
+            # in this case, it is okay with more than one record for a path
+            # but we don't want to insert the exact same record over and over again
+            paths = self.get_paths(entity_type, entity_id)
+            if path in paths:
+                # we already have the association present in the db.
                 return
 
         # there was no entity in the db. So let's create it!
@@ -232,7 +246,8 @@ class PathCache(object):
             # assemble path
             path_str = self._dbpath_to_path(root_path, relative_path)
             paths.append(path_str)
-
+        
+        c.close()
         return paths
 
     def get_entity(self, path):
@@ -261,6 +276,8 @@ class PathCache(object):
 
         data = list(res)
 
+        c.close()
+        
         if len(data) > 1:
             # never supposed to happen!
             raise TankError("More than one entry in path database for %s!" % path)

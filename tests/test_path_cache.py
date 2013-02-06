@@ -98,6 +98,54 @@ class TestAddMapping(TestPathCache):
         # and a fourth time - this should be bad because id is not matching
         self.assertRaises(tank.TankError, self.path_cache.add_mapping, self.entity["type"], self.entity["id"]+1, "foo", full_path)         
 
+        # finally, make sure that there is exactly a single record in the db representing the path
+        res = self.db_cursor.execute("SELECT path, root FROM path_cache WHERE entity_type = ? AND entity_id = ?", (self.entity["type"], self.entity["id"]))
+        self.assertEqual( len(res.fetchall()), 1)
+        
+
+
+    def test_multi_entity_path(self):
+        """
+        Tests that secondary paths can be inserted.
+        """
+        relative_path = "shot"
+        full_path = os.path.join(self.project_root, relative_path)
+        self.path_cache.add_mapping(self.entity["type"], self.entity["id"], self.entity["name"], full_path)
+        self.path_cache.add_mapping(self.entity["type"], self.entity["id"]+1, self.entity["name"], full_path, primary=False)
+        self.path_cache.add_mapping(self.entity["type"], self.entity["id"]+2, self.entity["name"], full_path, primary=False)
+        self.path_cache.add_mapping(self.entity["type"], self.entity["id"]+3, self.entity["name"], full_path, primary=False)
+        
+        # adding the same thing over and over should be fine (but not actually insert anything into the db)
+        self.path_cache.add_mapping(self.entity["type"], self.entity["id"]+3, self.entity["name"], full_path, primary=False)
+        self.path_cache.add_mapping(self.entity["type"], self.entity["id"]+3, self.entity["name"], full_path, primary=False)
+        self.path_cache.add_mapping(self.entity["type"], self.entity["id"]+3, self.entity["name"], full_path, primary=False)
+        self.path_cache.add_mapping(self.entity["type"], self.entity["id"]+3, self.entity["name"], full_path, primary=False)
+
+        # get path should return the primary record
+        self.assertEquals( self.path_cache.get_entity(full_path), {'type': 'EntityType', 'id': 1, 'name': 'EntityName'} )
+        
+        # check lookup from other direction
+        paths = self.path_cache.get_paths(self.entity["type"], self.entity["id"])
+        self.assertEquals( len(paths), 1)
+        self.assertEquals( paths[0], full_path)
+
+        paths = self.path_cache.get_paths(self.entity["type"], self.entity["id"]+1)
+        self.assertEquals( len(paths), 1)
+        self.assertEquals( paths[0], full_path)
+
+        paths = self.path_cache.get_paths(self.entity["type"], self.entity["id"]+2)
+        self.assertEquals( len(paths), 1)
+        self.assertEquals( paths[0], full_path)
+
+        paths = self.path_cache.get_paths(self.entity["type"], self.entity["id"]+3)
+        self.assertEquals( len(paths), 1)
+        self.assertEquals( paths[0], full_path)
+
+        # finally, make sure that there no dupe records
+        res = self.db_cursor.execute("SELECT path, root FROM path_cache WHERE entity_type = ? AND entity_id = ?", (self.entity["type"], self.entity["id"]+3))
+        self.assertEqual( len(res.fetchall()), 1)
+
+
 
     def test_non_primary_path(self):
         """
