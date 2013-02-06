@@ -375,7 +375,7 @@ class Context(object):
                         temp_fields = _values_from_path_cache(entity, cur_template, path_cache, fields)
                         fields.update(temp_fields)
 
-        path_cache.connection.close()
+        path_cache.close()
         return fields
 
 
@@ -468,6 +468,7 @@ def from_path(tk, path, previous_context=None):
 
     # first gather entities
     entities = []
+    secondary_entities = []
     curr_path = path
     while True:
         curr_entity = path_cache.get_entity(curr_path)
@@ -475,6 +476,9 @@ def from_path(tk, path, previous_context=None):
             # Don't worry about entity types we've already got in the context. In the future
             # we should look for entity ids that conflict in order to flag a degenerate schema.
             entities.append(curr_entity)
+        
+        # add secondary entities
+        secondary_entities.extend( path_cache.get_secondary_entities(curr_path) )
 
         if curr_path.lower() in project_roots:
             #TODO this could fail with windows path variations
@@ -489,6 +493,8 @@ def from_path(tk, path, previous_context=None):
             break
         else:
             curr_path = parent_path
+
+    path_cache.close()
 
     # now populate the context
     # go from the root down, so that in the case there are a path with
@@ -509,7 +515,34 @@ def from_path(tk, path, previous_context=None):
         else:
             context["entity"] = curr_entity
 
-    path_cache.connection.close()
+    # now that the context has been populated as much as possible using the
+    # primary entities, fill in any blanks based on the secondary entities.
+    for curr_entity in secondary_entities[::-1]:
+        # handle the special context fields first
+        if curr_entity["type"] == "Project":
+            if context["project"] is None:
+                context["project"] = curr_entity
+        
+        elif curr_entity["type"] == "Step":
+            if context["step"] is None:
+                context["step"] = curr_entity
+        
+        elif curr_entity["type"] == "Task":
+            if context["task"] is None:
+                context["task"] = curr_entity
+        
+        elif curr_entity["type"] == "HumanUser":
+            if context["user"] is None:
+                context["user"] = curr_entity
+        
+        elif curr_entity["type"] in additional_types:
+            # is this entity in the list already
+            if curr_entity not in context["additional_entities"]:            
+                context["additional_entities"].append(curr_entity)
+        
+        else:
+            if context["entity"] is None:
+                context["entity"] = curr_entity
 
     # see if we can populate it based on the previous context
     if previous_context and \
@@ -662,7 +695,7 @@ def _context_data_from_cache(tk, entity_type, entity_id):
                     field_name = types_fields[cur_type]
                     context[field_name] = curr_entity
 
-    path_cache.connection.close()
+    path_cache.close()
     return context
 
 
@@ -693,7 +726,7 @@ def _values_from_path_cache(entity, cur_template, path_cache, fields):
                     # /proj/hero_LOW
                     # and we are mapping against template /%(Project)s/%(Asset)s
                     # both paths are valid matches, so we have ambiguous state for the entity
-                    path_cache.connection.close()
+                    path_cache.close()
                     msg = "Ambiguous data. Multiple paths cached for %s which match template %s"
                     raise TankError(msg % (str(entity), str(cur_template)))
                 else:

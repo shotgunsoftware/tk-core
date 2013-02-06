@@ -31,8 +31,10 @@ class PathCache(object):
         # make sure that the project root has the right slashes
         self._project_root = project_root.replace("/", os.sep)
         db_path = constants.get_cache_db_location(self._project_root)
+        self._connection = None
         self._init_db(db_path)
         self.roots = roots or root.get_project_roots(project_root)
+        
         
     def _init_db(self, db_path):
         """
@@ -56,13 +58,13 @@ class PathCache(object):
         if not os.path.exists(db_path):
             db_file_created = True
         
-        self.connection = sqlite3.connect(db_path)
+        self._connection = sqlite3.connect(db_path)
         
         # this is to handle unicode properly - make sure that sqlite returns str objects
         # for TEXT fields rather than unicode.
-        self.connection.text_factory = str
+        self._connection.text_factory = str
         
-        c = self.connection.cursor()
+        c = self._connection.cursor()
         c.executescript("""
             CREATE TABLE IF NOT EXISTS path_cache (entity_type text, entity_id integer, entity_name text, root text, path text, primary_entity integer);
         
@@ -89,7 +91,7 @@ class PathCache(object):
                 
             """)
 
-        self.connection.commit()
+        self._connection.commit()
         c.close()
         
         # and open up permissions if the file was just created
@@ -156,6 +158,15 @@ class PathCache(object):
         full_path = os.path.join(root_path, path_sep)
         return os.path.normpath(full_path)
 
+    def close(self):
+        """
+        Close the database connection.
+        """
+        if self._connection is not None:
+            self._connection.close()
+            self._connection = None
+        
+
     def add_mapping(self, entity_type, entity_id, entity_name, path, primary=True):
         """
         Adds an association to the database. If the association already exists, it will
@@ -209,7 +220,7 @@ class PathCache(object):
                 return
 
         # there was no entity in the db. So let's create it!
-        c = self.connection.cursor()
+        c = self._connection.cursor()
         root_name, relative_path = self._seperate_root(path)
         db_path = self._path_to_dbpath(relative_path)
         c.execute("INSERT INTO path_cache VALUES(?, ?, ?, ?, ?, ?)", (entity_type, 
@@ -218,7 +229,7 @@ class PathCache(object):
                                                                 root_name,
                                                                 db_path,
                                                                 primary))
-        self.connection.commit()
+        self._connection.commit()
         c.close()
 
     def get_paths(self, entity_type, entity_id):
@@ -230,7 +241,7 @@ class PathCache(object):
         :returns: a path on disk
         """
         paths = []
-        c = self.connection.cursor()
+        c = self._connection.cursor()
         res = c.execute("SELECT root, path FROM path_cache WHERE entity_type = ? AND entity_id = ?", (entity_type, entity_id))
 
         for row in res:
@@ -261,7 +272,7 @@ class PathCache(object):
         :returns: Shotgun entity dict, e.g. {"type": "Shot", "name": "xxx", "id": 123} 
                   or None if not found
         """
-        c = self.connection.cursor()
+        c = self._connection.cursor()
         try:
             root_path, relative_path = self._seperate_root(path)
         except TankError:
@@ -270,11 +281,8 @@ class PathCache(object):
             return None
 
         db_path = self._path_to_dbpath(relative_path)
-
         res = c.execute("SELECT entity_type, entity_id, entity_name FROM path_cache WHERE path = ? AND root = ? and primary_entity = 1", (db_path, root_path))
-
         data = list(res)
-
         c.close()
         
         if len(data) > 1:
@@ -287,3 +295,34 @@ class PathCache(object):
             return {"type": type_str, "id": data[0][1], "name": name_str }
         else:
             return None
+
+    def get_secondary_entities(self, path):
+        """
+        Returns all the secondary entities for a path.
+        
+        :param path: a path on disk
+        :returns: list of shotgun entity dicts, e.g. [{"type": "Shot", "name": "xxx", "id": 123}] 
+                  or [] if no entities associated.
+        """
+        c = self._connection.cursor()
+        try:
+            root_path, relative_path = self._seperate_root(path)
+        except TankError:
+            # fail gracefully if path is not a valid path
+            # eg. doesn't belong to the project
+            return []
+
+        db_path = self._path_to_dbpath(relative_path)
+        res = c.execute("SELECT entity_type, entity_id, entity_name FROM path_cache WHERE path = ? AND root = ? and primary_entity = 0", (db_path, root_path))
+        data = list(res)
+        c.close()
+
+        matches = []
+        for d in data:        
+            # convert to string, not unicode!
+            type_str = str(d[0])
+            name_str = str(d[2])
+            matches.append( {"type": type_str, "id": d[1], "name": name_str } )
+
+        return matches
+    

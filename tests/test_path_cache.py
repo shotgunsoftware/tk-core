@@ -18,18 +18,18 @@ class TestPathCache(TankTestBase):
         self.path_cache = path_cache.PathCache(self.project_root)
 
     def tearDown(self):
-        self.path_cache.connection.close()
+        self.path_cache.close()
         super(TestPathCache, self).tearDown()
 
 class TestInit(TestPathCache):
     def test_db_exists(self):
         db_path = constants.get_cache_db_location(self.project_root)
         if os.path.exists(db_path):
-            self.path_cache.connection.close()
+            self.path_cache.close()
             os.remove(db_path)
         self.assertFalse(os.path.exists(db_path))
         pc = path_cache.PathCache(self.project_root)
-        pc.connection.close()
+        pc.close()
         self.assertTrue(os.path.exists(db_path))
 
     def test_root_map(self):
@@ -49,7 +49,7 @@ class TestInit(TestPathCache):
     def test_db_columns(self):
         """Test that expected columns are created in db"""
         expected = ["entity_type", "entity_id", "entity_name", "root", "path", "primary_entity"]
-        self.db_cursor = self.path_cache.connection.cursor()
+        self.db_cursor = self.path_cache._connection.cursor()
         ret = self.db_cursor.execute("PRAGMA table_info(path_cache)")
         column_names = [x[1] for x in ret.fetchall()]
         self.assertEquals(expected, column_names)
@@ -66,7 +66,7 @@ class TestAddMapping(TestPathCache):
                        "name":"EntityName"}
 
         # get db connection
-        self.db_cursor = self.path_cache.connection.cursor()
+        self.db_cursor = self.path_cache._connection.cursor()
 
     def test_primary_path(self):
         """

@@ -244,7 +244,7 @@ class TankTestBase(unittest.TestCase):
                                     entity["name"],
                                     path)
         # On windows path cache has persisted, interfering with teardowns, so get rid of it.
-        path_cache.connection.close()
+        path_cache.close()
         del(path_cache)
                                     
 
