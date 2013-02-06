@@ -81,6 +81,24 @@ class TestAddMapping(TestPathCache):
         self.assertEquals("/shot", entry[0])
         self.assertEquals("primary", entry[1])
 
+    def test_dupe_failure(self):
+        """
+        Test that the system fails if two paths are inserted.
+        """
+        relative_path = "shot"
+        full_path = os.path.join(self.project_root, relative_path)
+        self.path_cache.add_mapping(self.entity["type"], self.entity["id"], self.entity["name"], full_path)
+        
+        # and a second time - this should be fine as the mapping is the same
+        self.path_cache.add_mapping(self.entity["type"], self.entity["id"], self.entity["name"], full_path)
+
+        # and a third time - this should be fine as the id and type is the same
+        self.path_cache.add_mapping(self.entity["type"], self.entity["id"], "foo", full_path)
+
+        # and a fourth time - this should be bad because id is not matching
+        self.assertRaises(tank.TankError, self.path_cache.add_mapping, self.entity["type"], self.entity["id"]+1, "foo", full_path)         
+
+
     def test_non_primary_path(self):
         """
         Case path to add has alternate (non-primary) project as root.
