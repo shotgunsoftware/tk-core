@@ -16,6 +16,7 @@ from tank_vendor import yaml
 from .. import root
 from ..path_cache import PathCache
 from ..platform import constants
+from ..errors import TankError
 
 
 
@@ -52,11 +53,7 @@ class FolderIOReceiver(object):
                     entity_type = i.get("entity").get("type")
                     entity_id = i.get("entity").get("id")
                     entity_name = i.get("entity").get("name")
-                    
-                    existing_paths = self._path_cache.get_paths(entity_type, entity_id)
-                    if path not in existing_paths:
-                        # path not in cache yet - add it now!
-                        self._path_cache.add_mapping(entity_type, entity_id, entity_name, path)
+                    self._path_cache.add_mapping(entity_type, entity_id, entity_name, path)
 
         # note that for backwards compatibility, we are returning all folders, not 
         # just the ones that were created

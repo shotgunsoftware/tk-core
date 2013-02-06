@@ -48,46 +48,12 @@ class TestInit(TestPathCache):
 
     def test_db_columns(self):
         """Test that expected columns are created in db"""
-        expected = ["entity_type", "entity_id", "entity_name", "root", "path"]
+        expected = ["entity_type", "entity_id", "entity_name", "root", "path", "primary_entity"]
         self.db_cursor = self.path_cache.connection.cursor()
         ret = self.db_cursor.execute("PRAGMA table_info(path_cache)")
         column_names = [x[1] for x in ret.fetchall()]
         self.assertEquals(expected, column_names)
 
-# fails on windows due to permissions of db file
-#    def test_update_db(self):
-#        """Test existing db has new columns added."""
-#        # remove db
-#        db_cursor = self.path_cache.connection.cursor()
-#        db_cursor.close()
-#        db_path = path_cache.constants.get_cache_db_location(self.project_root)
-#        os.remove(db_path)
-#        # make new db missing column
-#        connection = sqlite3.connect(db_path)
-#        
-#        c = connection.cursor()
-#        c.executescript("""
-#            CREATE TABLE IF NOT EXISTS path_cache (entity_type text, entity_id integer, entity_name text, path text);
-#            
-#            CREATE INDEX IF NOT EXISTS path_cache_entity ON path_cache(entity_type, entity_id);
-#            
-#            CREATE UNIQUE INDEX IF NOT EXISTS path_cache_path ON path_cache(path);
-#            
-#            CREATE UNIQUE INDEX IF NOT EXISTS path_cache_all ON path_cache(entity_type, entity_id, path);
-#        """)
-#        
-#        connection.commit()
-#        c.close()
-#        
-#        # instantiate path cache
-#        self.path_cache = path_cache.PathCache(self.project_root)
-#
-#        # Check column names
-#        expected = ["entity_type", "entity_id", "entity_name", "root", "path"]
-#        db_cursor = self.path_cache.connection.cursor()
-#        ret = db_cursor.execute("PRAGMA table_info(path_cache)")
-#        column_names = [x[1] for x in ret.fetchall()]
-#        self.assertIn("root", column_names)
 
 
 class TestAddMapping(TestPathCache):

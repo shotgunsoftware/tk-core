@@ -57,35 +57,38 @@ class PathCache(object):
             db_file_created = True
         
         self.connection = sqlite3.connect(db_path)
+        
+        # this is to handle unicode properly - make sure that sqlite returns str objects
+        # for TEXT fields rather than unicode.
         self.connection.text_factory = str
         
         c = self.connection.cursor()
         c.executescript("""
-            CREATE TABLE IF NOT EXISTS path_cache (entity_type text, entity_id integer, entity_name text, root text, path text);
+            CREATE TABLE IF NOT EXISTS path_cache (entity_type text, entity_id integer, entity_name text, root text, path text, primary_entity integer);
         
             CREATE INDEX IF NOT EXISTS path_cache_entity ON path_cache(entity_type, entity_id);
         
-            CREATE UNIQUE INDEX IF NOT EXISTS path_cache_path ON path_cache(root, path);
+            CREATE INDEX IF NOT EXISTS path_cache_path ON path_cache(root, path, primary_entity);
         
-            CREATE UNIQUE INDEX IF NOT EXISTS path_cache_all ON path_cache(entity_type, entity_id, root, path);
+            CREATE UNIQUE INDEX IF NOT EXISTS path_cache_all ON path_cache(entity_type, entity_id, root, path, primary_entity);
         """)
         
-        # Check to see if we need to add "root" to the table. Can delete when we're sure everyone has run
-        # through the migration.
         ret = c.execute("PRAGMA table_info(path_cache)")
-        if "root" not in [x[1] for x in ret.fetchall()]:
+        
+        # check for primary field
+        if "primary_entity" not in [x[1] for x in ret.fetchall()]:
             c.executescript("""
-                ALTER TABLE path_cache ADD COLUMN root text;
+                ALTER TABLE path_cache ADD COLUMN primary_entity integer;
+                UPDATE path_cache SET primary_entity=1;
 
-                UPDATE path_cache SET root='primary';
-                
                 DROP INDEX path_cache_path;
-                CREATE UNIQUE INDEX path_cache_path ON path_cache(root, path);
+                CREATE INDEX IF NOT EXISTS path_cache_path ON path_cache(root, path, primary_entity);
                 
                 DROP INDEX path_cache_all;
-                CREATE UNIQUE INDEX path_cache_all ON path_cache(entity_type, entity_id, root, path);
+                CREATE UNIQUE INDEX IF NOT EXISTS path_cache_all ON path_cache(entity_type, entity_id, root, path, primary_entity);
+                
             """)
-            
+
         self.connection.commit()
         c.close()
         
@@ -153,47 +156,55 @@ class PathCache(object):
         full_path = os.path.join(root_path, path_sep)
         return os.path.normpath(full_path)
 
-    def add_mapping(self, entity_type, entity_id, entity_name, path):
+    def add_mapping(self, entity_type, entity_id, entity_name, path, primary=True):
         """
-        Adds an association to the database.
-
-        Will raise an exception if the entries we are trying to insert are not unique.
+        Adds an association to the database. If the association already exists, it will
+        do nothing, just return.
+        
+        If there is another association which conflicts with the association that is 
+        to be inserted, a TankError is raised.
 
         :param entity_type: a shotgun entity type
         :param entity_id: a shotgun entity id
+        :param primary: is this the primary entry for this particular path
         :param entity_name: a shotgun entity name
         :param path: a path on disk representing the entity.
         """
 
+        # see if there are any records for this path
+        curr_entity = self.get_entity(path)
+        new_entity = {"id": entity_id, "type": entity_type, "name": entity_name}
+        
+        if curr_entity is not None:
+            # this path is already registered. Ensure it is connected to
+            # our entity! Note! We are only comparing against the type and the id
+            # not against the name. It should be perfectly valid to rename something
+            # in shotgun and if folders are then recreated for that item, nothing happens
+            # because there is already a folder which repreents that item. (although now with 
+            # an incorrect name)
+            if curr_entity["type"] != entity_type or curr_entity["id"] != entity_id:
+                raise TankError("The path '%s' is already associated with Shotgun "
+                                "entity %s. You are trying to associate the same "
+                                "path with Shotgun entity %s. This typically happens "
+                                "when shots have been relinked to new sequences or if "
+                                "you have made big changes to the folder configuration. "
+                                "Please contact support "
+                                "for need help and advice!" % (path, str(curr_entity), str(new_entity)))
+            else:
+                # the entry that exists in the db matches what we are trying to insert
+                # so skip it
+                return
+
+        # there was no entity in the db. So let's create it!
         c = self.connection.cursor()
         root_name, relative_path = self._seperate_root(path)
         db_path = self._path_to_dbpath(relative_path)
-
-        try:
-            c.execute("INSERT INTO path_cache VALUES(?, ?, ?, ?, ?)", (entity_type, 
-                                                                    entity_id, 
-                                                                    entity_name, 
-                                                                    root_name,
-                                                                    db_path))
-        except sqlite3.IntegrityError, e:
-            # Trying to insert the exact value we already have cached isn't an error. But if we insert
-            # a different entity for a path we've already cached, that's a problem.
-            if e.args[0] == "columns entity_type, entity_id, root, path are not unique":
-                # means we are trying to re-insert the same record which is fine!
-                pass
-            elif e.args[0] == "columns root, path are not unique":
-                # means that we have tried to insert the same path twice in the database,
-                # but with different values for entity ids etc.
-                # this can happen if we reconfigure the config in such a way that a folder
-                # that used to represent a folder X now represents a folder Y.
-                # definitely and edge case, but good to cover.
-                raise TankError("The path %s is currently already connected to an entity in Shotgun, "
-                                 "however you are trying to connect it to a different entity. This "
-                                 "is not allowed. Please contact the Tank support!" % path)
-            else:
-                # some error we don't expect. So re-raise it.
-                raise e
-
+        c.execute("INSERT INTO path_cache VALUES(?, ?, ?, ?, ?, ?)", (entity_type, 
+                                                                entity_id, 
+                                                                entity_name, 
+                                                                root_name,
+                                                                db_path,
+                                                                primary))
         self.connection.commit()
         c.close()
 
@@ -227,6 +238,10 @@ class PathCache(object):
     def get_entity(self, path):
         """
         Returns an entity given a path.
+        
+        If this path is made up of nested entities (e.g. has a folder creation expression
+        on the form Shot: "{code}_{sg_sequence.Sequence.code}"), the primary entity (in 
+        this case the Shot) will be returned.
 
         :param path: a path on disk
         :returns: Shotgun entity dict, e.g. {"type": "Shot", "name": "xxx", "id": 123} 
@@ -242,7 +257,7 @@ class PathCache(object):
 
         db_path = self._path_to_dbpath(relative_path)
 
-        res = c.execute("SELECT entity_type, entity_id, entity_name FROM path_cache WHERE path = ? AND root = ?", (db_path, root_path))
+        res = c.execute("SELECT entity_type, entity_id, entity_name FROM path_cache WHERE path = ? AND root = ? and primary_entity = 1", (db_path, root_path))
 
         data = list(res)
 
