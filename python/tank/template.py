@@ -434,6 +434,8 @@ class TemplateString(Template):
         return super(TemplateString, self).get_fields(adj_path, skip_keys=skip_keys)
 
 
+
+
 def split_path(input_path):
     """
     Split a path into tokens.
@@ -674,6 +676,14 @@ def make_template_paths(data, keys, roots):
     for template_name, template_data in templates_data.items():
         definition = template_data["definition"]
         root_name = template_data["root_name"]
+        # to avoid confusion between strings and paths, validate to check
+        # that each item contains at least a "/" (#19098)
+        if "/" not in definition:
+            raise TankError("The template %s (%s) does not seem to be a valid path. A valid "
+                            "path needs to contain at least one '/' character. Perhaps this "
+                            "template should be in the strings section "
+                            "instead?" % (template_name, definition))
+
         root_path = roots[root_name]
         template_path = TemplatePath(definition, keys, root_path, template_name)
         template_paths[template_name] = template_path
@@ -745,12 +755,13 @@ def _process_templates_data(data, template_type):
         cur_data = _conform_template_data(template_data, template_name)
         definition = cur_data["definition"]
         if template_type == "path":
-            root_name = cur_data.get("root_name", "primary")
-            cur_data["root_name"] = root_name
+            if "root_name" not in cur_data:
+                cur_data["root_name"] = "primary"
+            
+            root_name = cur_data["root_name"]
         else:
             root_name = None
 
-        
         # Record this templates definition
         cur_key = (root_name, definition)
         definitions[cur_key] = definitions.get(cur_key, []) + [template_name]
