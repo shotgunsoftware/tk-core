@@ -112,8 +112,6 @@ class ProcessFolderCreation(Hook):
                             os.chmod(path, 0666)
                         folders.append(path)
                     
-                else:
-                    raise Exception("Unknown folder hook action '%s'" % action)
         
         finally:
             # reset umask
