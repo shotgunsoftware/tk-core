@@ -1,0 +1,11 @@
+#
+# Copyright (c) 2012 Shotgun Software, Inc
+# ----------------------------------------------------
+
+# the type of dynamic content
+type: "shotgun_task"
+
+# the shotgun field to use for the folder name
+name: "{content}_{step.Step.short_name}"
+
+create_with_parent: false

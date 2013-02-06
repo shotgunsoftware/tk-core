@@ -170,7 +170,6 @@ class PathCache(object):
         :param entity_name: a shotgun entity name
         :param path: a path on disk representing the entity.
         """
-        
         if primary:
             # the primary entity must be unique: path/id/type 
             # see if there are any records for this path

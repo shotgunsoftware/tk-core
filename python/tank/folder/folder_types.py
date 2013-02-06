@@ -761,12 +761,14 @@ class Entity(Folder):
             folder_name = self._entity_expression.generate_name(entity)
             my_path = os.path.join(parent_path, folder_name)
                         
-                        
             # get the name field - which depends on the entity type
             name_field = self.__get_name_field_for_et(self._entity_type)
             name_value = entity[name_field]            
             # construct a full entity link dict w name, id, type
             full_entity_dict = {"type": self._entity_type, "id": entity["id"], "name": name_value} 
+                        
+            # register secondary entity links
+            self._register_secondary_entities(io_receiver, my_path, entity)
                         
             # call out to callback
             self._create_folder(io_receiver, my_path, full_entity_dict)
@@ -791,6 +793,16 @@ class Entity(Folder):
         # call out to callback
         io_receiver.make_entity_folder(path, entity, self._config_metadata)
 
+    def _register_secondary_entities(self, io_receiver, path, entity):
+        """
+        Looks in the entity dict for any linked entities and register these 
+        """
+        # get all the link fields from the name expression
+        for lf in self._entity_expression.get_shotgun_link_fields():
+            
+            entity_link = entity[lf]
+            io_receiver.register_secondary_entity(path, entity_link)
+
     def __get_entities(self, sg_data):
         """
         Returns shotgun data for folder creation
@@ -812,6 +824,10 @@ class Entity(Folder):
 
         # figure out which fields to retrieve
         fields = self._entity_expression.get_shotgun_fields()
+        
+        # add any shotgun link fields used in the expression
+        fields.update( self._entity_expression.get_shotgun_link_fields() )
+        
         # always retrieve the name field for the entity
         fields.add( self.__get_name_field_for_et(self._entity_type) )        
         

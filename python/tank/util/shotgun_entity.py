@@ -63,7 +63,7 @@ class EntityExpression(object):
         self._tk = tk
         self._entity_type = entity_type
         self._name_expr = field_name_expr
-        
+        self._entity_links = set()
         self._fields = set()
         
         # now validate
@@ -80,14 +80,30 @@ class EntityExpression(object):
             except Exception, error:
                 raise TankError("Could not parse the configuration field '%s' - Error: %s" % (self._name_expr, error) )
     
+        # now look for any field which contains a dot - these are all deep links.
+        # for example: sg_sequence.Sequence.code
+        # extract the actual link field from each one and put in entity_links set
+        # (in the above case, that would be sg_sequence)
+        for field in self._fields:
+            if "." in field:
+                self._entity_links.add( field.split(".")[0] )
+    
     def get_shotgun_fields(self):
         """
-        Returns the shotgun field that are needed in order to 
+        Returns the shotgun fields that are needed in order to 
         build this name expression.
         
         :returns: set of shotgun field names
         """
         return copy.copy(self._fields)
+    
+    def get_shotgun_link_fields(self):
+        """
+        Returns a list of all entity links that are used in the name expression.
+        For example, if a name expression for a Shot is {code}_{sg_sequence.Sequence.code},
+        the link fields for this expression is sg_sequence. 
+        """
+        return copy.copy(self._entity_links)
     
     def generate_name(self, values):
         """

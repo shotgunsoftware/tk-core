@@ -41,11 +41,14 @@ def execute_folder_creation_proxy(self):
                 entity_type = i.get("entity").get("type")
                 entity_id = i.get("entity").get("id")
                 entity_name = i.get("entity").get("name")
+                self._path_cache.add_mapping(entity_type, entity_id, entity_name, path)
+        for i in self._secondary_cache_entries:
+            path = i.get("path")
+            entity_type = i.get("entity").get("type")
+            entity_id = i.get("entity").get("id")
+            entity_name = i.get("entity").get("name")
+            self._path_cache.add_mapping(entity_type, entity_id, entity_name, path, False)
                 
-                existing_paths = self._path_cache.get_paths(entity_type, entity_id)
-                if path not in existing_paths:
-                    # path not in cache yet - add it now!
-                    self._path_cache.add_mapping(entity_type, entity_id, entity_name, path)
 
     # finally, build a list of all paths calculated
     folders = list()

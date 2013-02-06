@@ -329,8 +329,10 @@ class TankTestBase(unittest.TestCase):
             return None            
 
         def find(entity_type, filters, *args, **kws):
-            """Returns all entries for specified type. 
-            Filters are ignored in many cases, check code."""
+            """
+            Returns all entries for specified type. 
+            Filters are ignored in many cases, check code.
+            """
             results = [self._sg_mock_db[key] for key in self._sg_mock_db if key[0] == entity_type]
             
             # support [['id', 'in', 23, 34]]

@@ -33,6 +33,7 @@ class FolderIOReceiver(object):
         self._tk = tk
         self._preview_mode = preview
         self._items = list()
+        self._secondary_cache_entries = list()
         self._path_cache = PathCache(tk.project_path)
         
     def execute_folder_creation(self):
@@ -54,6 +55,13 @@ class FolderIOReceiver(object):
                     entity_id = i.get("entity").get("id")
                     entity_name = i.get("entity").get("name")
                     self._path_cache.add_mapping(entity_type, entity_id, entity_name, path)
+            for i in self._secondary_cache_entries:
+                path = i.get("path")
+                entity_type = i.get("entity").get("type")
+                entity_id = i.get("entity").get("id")
+                entity_name = i.get("entity").get("name")
+                self._path_cache.add_mapping(entity_type, entity_id, entity_name, path, False)
+
 
         # note that for backwards compatibility, we are returning all folders, not 
         # just the ones that were created
@@ -70,6 +78,16 @@ class FolderIOReceiver(object):
         
     ####################################################################################
     # methods called by the folder classes
+            
+    def register_secondary_entity(self, path, entity):
+        """
+        Called when a secondary entity is registered. A secondary
+        entity is when a path contains more than one entity association.
+        For example, a Shot folder configured to use the name
+        {code}_{sg_sequence.Sequence.code} is implicity also linked
+        to the associated sequence entity. This is the secondary entity.
+        """
+        self._secondary_cache_entries.append({"path": path, "entity": entity})
             
     def make_folder(self, path, metadata):
         """
