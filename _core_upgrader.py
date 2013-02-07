@@ -50,7 +50,7 @@ def _copy_folder(log, src, dst):
                 log.debug("Copy %s -> %s" % (srcname, dstname))
                 files.append(srcname)
                 # if the file extension is sh, set executable permissions
-                if dstname.endswith(".sh"):
+                if dstname.endswith(".sh") or dstname.endswith(".bat"):
                     try:
                         # make it readable and executable for everybody
                         os.chmod(dstname, 0777)
