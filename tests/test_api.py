@@ -7,6 +7,7 @@ import unittest2 as unittest
 from mock import Mock, patch
 
 import tank
+from tank import folder
 from tank.api import Tank
 from tank.errors import TankError
 from tank.template import TemplatePath, TemplateString
@@ -80,6 +81,136 @@ class TestTemplatesLoaded(TankTestBase):
         self.assertEquals(self.alt_root_1, alt_template.root_path)
 
 
+def execute_folder_creation_proxy(self):
+    """
+    Proxy stub for folder creation tests
+    """
+    # now handle the path cache
+    if not self._preview_mode:
+        for i in self._items:
+            if i.get("action") == "entity_folder":
+                path = i.get("path")
+                entity_type = i.get("entity").get("type")
+                entity_id = i.get("entity").get("id")
+                entity_name = i.get("entity").get("name")
+                self._path_cache.add_mapping(entity_type, entity_id, entity_name, path)
+        for i in self._secondary_cache_entries:
+            path = i.get("path")
+            entity_type = i.get("entity").get("type")
+            entity_id = i.get("entity").get("id")
+            entity_name = i.get("entity").get("name")
+            self._path_cache.add_mapping(entity_type, entity_id, entity_name, path, False)
+
+
+def tank_cur_login_proxy_one():
+    tank.util.login.g_shotgun_user_cache = None
+    return "test_user"
+
+
+def tank_cur_login_proxy_two():
+    tank.util.login.g_shotgun_user_cache = None
+    return "test_user_junior"
+
+
+class TestPathsFromEntity(TankTestBase):
+    """Tests for tank.paths_from_entity using test data based on humanuser_step_core setup."""
+    def setUp(self):
+        super(TestPathsFromEntity, self).setUp()
+        self.setup_fixtures("humanuser_step_core")
+
+        self.seq = {"type": "Sequence",
+                    "id": 2,
+                    "code": "seq_code",
+                    "project": self.project}
+
+        self.shot = {"type": "Shot",
+                     "id": 1,
+                     "code": "shot_code",
+                     "sg_sequence": self.seq,
+                     "project": self.project}
+
+        self.step = {"type": "Step",
+                     "id": 3,
+                     "code": "step_code",
+                     "short_name": "step_short_name"}
+
+        self.task = {"type": "Task",
+                     "id": 23,
+                     "content": "name",
+                     "entity": self.shot,
+                     "step": self.step,
+                     "project": self.project}
+
+        self.humanuser = {"type": "HumanUser",
+                          "id": 2,
+                          "login": tank_cur_login_proxy_one()}
+
+        self.humanuser2 = {"type": "HumanUser",
+                           "id": 3,
+                           "login": tank_cur_login_proxy_two()}
+
+        entities = [self.shot,
+                    self.task,
+                    self.seq,
+                    self.step,
+                    self.project,
+                    self.humanuser,
+                    self.humanuser2]
+
+        # Add these to mocked shotgun
+        self.add_to_sg_mock_db(entities)
+
+        self.tk = tank.Tank(self.project_root)
+
+        self.FolderIOReceiverBackup = folder.folder_io.FolderIOReceiver.execute_folder_creation
+        folder.folder_io.FolderIOReceiver.execute_folder_creation = execute_folder_creation_proxy
+
+        self.TankCurLoginBackup = tank.util.login.get_login_name
+
+        # setup as user one
+        tank.util.login.get_login_name = tank_cur_login_proxy_one
+        folder.process_filesystem_structure(self.tk,
+                                            self.task["type"],
+                                            self.task["id"],
+                                            preview=False,
+                                            engine="foo-bar")
+        # setup as user two
+        tank.util.login.g_shotgun_user_cache = None
+        tank.util.login.get_login_name = tank_cur_login_proxy_two
+        folder.process_filesystem_structure(self.tk,
+                                            self.task["type"],
+                                            self.task["id"],
+                                            preview=False,
+                                            engine="foo-bar")
+
+    def tearDown(self):
+        folder.folder_io.FolderIOReceiver.execute_folder_creation = self.FolderIOReceiverBackup
+        tank.util.login.get_login_name = self.TankCurLoginBackup
+
+    def test_step_a(self):
+        seq_path = os.path.join(self.project_root, "sequences", self.seq["code"])
+        shot_path = os.path.join(seq_path, self.shot["code"])
+        user_one_path = os.path.join(shot_path, tank_cur_login_proxy_one(), self.step["short_name"])
+        user_two_path = os.path.join(shot_path, tank_cur_login_proxy_two(), self.step["short_name"])
+
+        paths = self.tk.paths_from_entity(self.step['type'], self.step['id'])
+        self.assertEquals(len(paths), 2)
+        self.assertIn(user_one_path, paths)
+        self.assertIn(user_two_path, paths)
+
+    def test_step_a_context(self):
+        seq_path = os.path.join(self.project_root, "sequences", self.seq["code"])
+        shot_path = os.path.join(seq_path, self.shot["code"])
+        user_one_path = os.path.join(shot_path, tank_cur_login_proxy_one(), self.step["short_name"])
+
+        tank.util.login.get_login_name = tank_cur_login_proxy_one
+        context = self.tk.context_from_entity(self.task["type"], self.task["id"])
+
+        paths = self.tk.paths_from_entity(self.step['type'], self.step['id'], context)
+        self.assertEquals(len(paths), 1)
+        self.assertIn(user_one_path, paths)
+
+
 class TestPathsFromTemplate(TankTestBase):
     """Tests for tank.paths_from_template using test data based on sg_standard setup."""
     def setUp(self):
@@ -89,18 +220,18 @@ class TestPathsFromTemplate(TankTestBase):
         # two sequences
         seq1_path = os.path.join(self.project_root, "sequences/Seq_1")
         self.add_production_path(seq1_path,
-                            {"type":"Sequence", "id":1, "name": "Seq_1"})
+                            {"type": "Sequence", "id": 1, "name": "Seq_1"})
         seq2_path = os.path.join(self.project_root, "sequences/Seq_2")
         self.add_production_path(seq2_path,
-                            {"type":"Sequence", "id":2, "name": "Seq_2"})
+                            {"type": "Sequence", "id": 2, "name": "Seq_2"})
         # one shot
         shot_path = os.path.join(seq1_path, "Shot_1")
         self.add_production_path(shot_path,
-                            {"type":"Shot", "id":1, "name": "shot_1"})
+                            {"type": "Shot", "id": 1, "name": "shot_1"})
         # one step
         step_path = os.path.join(shot_path, "step_name")
         self.add_production_path(step_path,
-                            {"type":"Step", "id":1, "name": "step_name"})
+                            {"type": "Step", "id": 1, "name": "step_name"})
 
         self.tk = Tank(self.project_root)
 
@@ -108,10 +239,12 @@ class TestPathsFromTemplate(TankTestBase):
         self.template = self.tk.templates.get("maya_shot_work")
 
         # make some fake files with different versions
-        fields = {"Sequence":"Seq_1",
-                  "Shot": "shot_1",
-                  "Step": "step_name",
-                  "name": "filename"}
+        fields = {
+            "Sequence": "Seq_1",
+            "Shot": "shot_1",
+            "Step": "step_name",
+            "name": "filename",
+        }
         fields["version"] = 1
         file_path = self.template.apply_fields(fields)
         self.file_1 = file_path

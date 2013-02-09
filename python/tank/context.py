@@ -264,6 +264,43 @@ class Context(object):
         fields.update(self._fields_from_shotgun(template, entities))
         return fields
 
+    def matches_path(self, path):
+        """
+        Returns True if the given path resolves to a valid context and all
+        of the portions of the path that resolve to entities match this context.
+
+        :param path: The path to check against this context.
+        :type  path: String
+
+        :returns: True if the path is related to this context.
+        """
+        # Turn the path into a matching context
+        path_ctx = self.tank.context_from_path(path)
+
+        # explicitly compare entity type and id since name is inconsistent
+        def entities_equal(left, right):
+            if left is None and right is None:
+                return True
+            if left is None or right is None:
+                return False
+            return left['type'] == right['type'] and left['id'] == right['id']
+
+        # These are the attributes that are not pulled from the path
+        not_path_dependent = ['user']
+        # These are the attributes between contexts to compare
+        compare_entities = ['project', 'entity', 'step', 'task', 'user']
+        path_has_info = False
+        for compare_entity in compare_entities:
+            path_entity = getattr(path_ctx, compare_entity)
+            self_entity = getattr(self, compare_entity)
+            if path_entity is not None:
+                path_has_info |= (compare_entity not in not_path_dependent)
+                if not entities_equal(path_entity, self_entity):
+                    return False
+
+        # Everything was either not set on the path context or the same
+        return path_has_info
+
     ################################################################################################
     # private methods
 
