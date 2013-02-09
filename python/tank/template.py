@@ -215,6 +215,12 @@ class Template(object):
     def _definition_variations(self, definition):
         """
         Determines all possible definition based on combinations of optional sectionals.
+        
+        "{manne}"               ==> ['{manne}']
+        "{manne}_{ludde}"       ==> ['{manne}_{ludde}']
+        "{manne}[_{ludde}]"     ==> ['{manne}', '{manne}_{ludde}']
+        "{manne}_[{foo}_{bar}]" ==> ['{manne}_', '{manne}_{foo}_{bar}']
+        
         """
         # split definition by optional sections
         tokens = re.split("(\[[^]]*\])", definition)
