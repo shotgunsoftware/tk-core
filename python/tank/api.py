@@ -257,32 +257,23 @@ class Tank(object):
                 
         return list(abstract_paths)
 
-    def paths_from_entity(self, entity_type, entity_id, context=None):
+
+    def paths_from_entity(self, entity_type, entity_id):
         """
         Finds paths associated with an entity.
-
+        
         :param entity_type: a Shotgun entity type
-        :type  entity_type: String
-        :param entity_id: a Shotgun entity id
-        :type  entity_id: Integer
-        :param context: Optional context to filter the results to only paths matching
-                        that context.
-        :type  context: tank.context.Context
-
+        :params entity_id: a Shotgun entity id
+        
         :returns: Matching file paths
         :rtype: List of strings.
         """
+
         # Use the path cache to look up all paths associated with this entity
         path_cache = PathCache(self.project_path)
         paths = path_cache.get_paths(entity_type, entity_id)
         path_cache.close()
-
-        if context is not None:
-            # Filter out paths that do not match the context, it would be nice
-            # to move this logic into the path_cache query directly, but until
-            # then...
-            paths = [p for p in paths if context.matches_path(p)]
-
+        
         return paths
 
     def entity_from_path(self, path):
