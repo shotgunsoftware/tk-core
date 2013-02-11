@@ -196,7 +196,7 @@ class Context(object):
     @property
     def entity_locations(self):
         """
-        A list of disk locations where the entity can be found
+        A list of disk locations where the entity associated with this context can be found.
         """
         if self.entity is None:
             return []
@@ -205,6 +205,82 @@ class Context(object):
 
         return paths
 
+    @property
+    def shotgun_url(self):
+        """
+        Returns the shotgun detail page url that best represents this context. Depending on 
+        the context, this may be a task, a shot, an asset or a project. If the context is 
+        completely empty, the root url of the associated shotgun installation is returned.
+        """
+        
+        # walk up task -> entity -> project -> site
+        
+        if self.task is not None:
+            return "%s/detail/%s/%d" % (self.__tk.shotgun.base_url, "Task", self.task["id"])            
+        
+        if self.entity is not None:
+            return "%s/detail/%s/%d" % (self.__tk.shotgun.base_url, self.entity["type"], self.entity["id"])            
+
+        if self.project is not None:
+            return "%s/detail/%s/%d" % (self.__tk.shotgun.base_url, "Project", self.project["id"])            
+        
+        # fall back on just the site main url
+        return self.__tk.shotgun.base_url
+        
+        
+
+    @property
+    def filesystem_locations(self):
+        """
+        A list of filesystem locations associated with this context.
+        """
+        
+        # first handle special cases: empty context
+        if self.project is None:
+            return []
+        
+        # first handle special cases: project context
+        if self.entity is None:
+            return self.__tk.paths_from_entity("Project", self.project["id"])
+            
+        # at this stage we know that the context contains an entity
+        # start off with all the paths matching this entity and then cull it down 
+        # based on constraints.
+        entity_paths = self.__tk.paths_from_entity(self.entity["type"], self.entity["id"])
+                
+        # for each of these paths, get the context and compare it against our context
+        # todo: optimize this!
+        matching_paths = []
+        for p in entity_paths:
+            ctx = self.__tk.context_from_path(p)
+            # the stuff we need to compare against are all the "child" levels
+            # below entity: task and user
+            matching = False
+            if ctx.user is None and self.user is None:
+                # no user data in either context
+                matching = True
+            elif ctx.user is not None and self.user is not None:
+                # both contexts have user data - is it matching?
+                if ctx.user["id"] == self.user["id"]:
+                    matching = True
+            
+            if matching:
+                # ok so user looks good, now check task.
+                # it is possible that with a context that comes from shotgun
+                # there is a task populated which is not being used in the file system
+                # so when we compare tasks, only if there are differing task ids, 
+                # we should treat it as a mismatch.
+                task_matching = True
+                if ctx.task is not None and self.task is not None:
+                    if ctx.task["id"] != self.task["id"]:
+                        task_matching = False
+                
+                if task_matching:
+                    # both user and task is matching
+                    matching_paths.append(p)
+                    
+        return matching_paths
+                    
     @property
     def tank(self):
         """
