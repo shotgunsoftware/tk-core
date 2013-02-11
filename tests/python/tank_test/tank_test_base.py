@@ -388,6 +388,7 @@ class TankTestBase(unittest.TestCase):
         mock_find = Mock(side_effect=find)
         mock_schema_field_read = Mock(side_effect=schema_field_read)
         sg = Mock()
+        sg.base_url = "http://unit_test_mock_sg"
         sg.find_one = mock_find_one
         sg.find = mock_find
         sg.upload_thumbnail = upload_thumbnail

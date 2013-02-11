@@ -13,7 +13,7 @@ from tank.templatekey import StringKey, IntegerKey
 from tank_vendor import yaml
 
 
-class TestContext(TankTestBase):
+class  TestContext(TankTestBase):
     def setUp(self):
         super(TestContext, self).setUp()
         self.setup_multi_root_fixtures()
@@ -236,6 +236,48 @@ class TestFromPathWithPrevious(TestContext):
         self.assertEquals(self.current_user["id"], result.user["id"])
         self.assertEquals(self.current_user["type"], result.user["type"])
 
+
+class TestUrl(TestContext):
+
+    def setUp(self):
+        super(TestUrl, self).setUp()
+
+        # Add task data to mocked shotgun
+        self.task = {"id": 1,
+                     "type": "Task",
+                     "content": "task_content",
+                     "project": self.project,
+                     "entity": self.shot,
+                     "step": self.step}
+        self.add_to_sg_mock_db(self.task)
+
+    def test_project(self):
+        result =  context.from_entity(self.tk, self.project["type"], self.project["id"])
+        self.assertEquals(result.shotgun_url, "http://unit_test_mock_sg/detail/Project/1" )
+
+    def test_empty(self):
+        result =  context.create_empty(self.tk)
+        self.assertEquals(result.shotgun_url, "http://unit_test_mock_sg" )
+
+    def test_entity(self):
+        result =  context.from_entity(self.tk, self.shot["type"], self.shot["id"])
+        self.assertEquals(result.shotgun_url, "http://unit_test_mock_sg/detail/Shot/2" )
+        
+    def test_task(self):
+        """
+        Case that all data is found from shotgun query
+        Note that additional field is specified in a
+        context_additional_entities hook.
+        """
+        # add additional field value to task
+        add_value = {"name":"additional", "id": 3, "type": "add_type"}
+        self.task["additional_field"] = add_value
+        
+        # reset call count on mocked shotgun.find_one method so we can check it later
+        self.sg_mock.find_one.reset_mock()
+
+        result = context.from_entity(self.tk, self.task["type"], self.task["id"])
+        self.assertEquals(result.shotgun_url, "http://unit_test_mock_sg/detail/Task/1" )
 
 
 class TestFromEntity(TestContext):
