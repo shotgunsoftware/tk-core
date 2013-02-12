@@ -197,13 +197,18 @@ class PathCache(object):
                 # an incorrect name)
                 if curr_entity["type"] != entity_type or curr_entity["id"] != entity_id:
     
+                    # format entities nicely for error message
+                    curr_nice_name = "%s %s (id %s)" % (curr_entity["type"], curr_entity["name"], curr_entity["id"])
+                    new_nice_name = "%s %s (id %s)" % (new_entity["type"], new_entity["name"], new_entity["id"])
+    
                     raise TankError("The path '%s' is already associated with Shotgun "
-                                    "entity %s. You are trying to associate the same "
-                                    "path with Shotgun entity %s. This typically happens "
-                                    "when shots have been relinked to new sequences or if "
+                                    "%s. You are trying to associate the same "
+                                    "path with %s. This typically happens "
+                                    "when shots have been relinked to new sequences, if you are "
+                                    "trying to create two shots with the same name or if "
                                     "you have made big changes to the folder configuration. "
-                                    "Please contact support "
-                                    "for need help and advice!" % (path, str(curr_entity), str(new_entity)))
+                                    "Please contact support on tanksupport@shotgunsoftware.com "
+                                    "if you need help or advice!" % (path, curr_nice_name, new_nice_name ))
                     
                 else:
                     # the entry that exists in the db matches what we are trying to insert
