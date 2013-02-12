@@ -130,14 +130,17 @@ class TestAddMapping(TestPathCache):
         self.assertEquals( paths[0], full_path)
 
         paths = self.path_cache.get_paths(self.entity["type"], self.entity["id"]+1)
+        self.assertEquals( len(paths), 0)
+
+        paths = self.path_cache.get_paths(self.entity["type"], self.entity["id"]+1, primary_only=False)
         self.assertEquals( len(paths), 1)
         self.assertEquals( paths[0], full_path)
 
-        paths = self.path_cache.get_paths(self.entity["type"], self.entity["id"]+2)
+        paths = self.path_cache.get_paths(self.entity["type"], self.entity["id"]+2, primary_only=False)
         self.assertEquals( len(paths), 1)
         self.assertEquals( paths[0], full_path)
 
-        paths = self.path_cache.get_paths(self.entity["type"], self.entity["id"]+3)
+        paths = self.path_cache.get_paths(self.entity["type"], self.entity["id"]+3, primary_only=False)
         self.assertEquals( len(paths), 1)
         self.assertEquals( paths[0], full_path)
 

@@ -9,6 +9,7 @@ import tank
 from tank_vendor import yaml
 from tank import TankError
 from tank import hook
+from tank import path_cache
 from tank import folder
 from tank_test.tank_test_base import *
 
@@ -171,11 +172,14 @@ class TestSchemaCreateFoldersSecondaryEntity(TankTestBase):
         assert_paths_to_create(expected_paths)
 
         # now check the path cache!
-        # there shouldbe two entries, one for the shot and one for the seq
-        shot_paths = self.tk.paths_from_entity("Shot", self.shot["id"])
-        seq_paths = self.tk.paths_from_entity("Sequence", self.seq["id"])
+        # there shouldbe two entries, one for the shot and one for the seq        
+        pc = path_cache.PathCache(self.project_root)
+        shot_paths = pc.get_paths("Shot", self.shot["id"], primary_only=False)
+        seq_paths = pc.get_paths("Sequence", self.seq["id"], primary_only=False)
         self.assertEquals( len(shot_paths), 1 )
         self.assertEquals( len(seq_paths), 1)
+        pc.close()
+        
         # it's the same folder for seq and shot
         self.assertEquals(shot_paths, seq_paths)
 
@@ -201,13 +205,17 @@ class TestSchemaCreateFoldersSecondaryEntity(TankTestBase):
         assert_paths_to_create(expected_paths)
                                 
         # now check the path cache!
-        # there shouldbe two entries, one for the task and one for the step
-        step_paths = self.tk.paths_from_entity("Step", self.step["id"])
-        task_paths = self.tk.paths_from_entity("Task", self.task["id"])
+        # there should be two entries, one for the task and one for the step
+        
+        pc = path_cache.PathCache(self.project_root)
+        step_paths = pc.get_paths("Step", self.step["id"], primary_only=False)
+        task_paths = pc.get_paths("Task", self.task["id"], primary_only=False)        
         self.assertEquals( len(step_paths), 1 )
         self.assertEquals( len(task_paths), 1)
         # it's the same folder for seq and shot
         self.assertEquals(step_paths, task_paths)
+        pc.close()
+
         
         # finally check the context.
         ctx = self.tk.context_from_path(step_path)

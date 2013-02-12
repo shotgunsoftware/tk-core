@@ -214,7 +214,7 @@ class PathCache(object):
             # secondary entity
             # in this case, it is okay with more than one record for a path
             # but we don't want to insert the exact same record over and over again
-            paths = self.get_paths(entity_type, entity_id)
+            paths = self.get_paths(entity_type, entity_id, primary_only=False)
             if path in paths:
                 # we already have the association present in the db.
                 return
@@ -232,7 +232,7 @@ class PathCache(object):
         self._connection.commit()
         c.close()
 
-    def get_paths(self, entity_type, entity_id):
+    def get_paths(self, entity_type, entity_id, primary_only=True):
         """
         Returns a path given a shotgun entity (type/id pair)
 
@@ -242,7 +242,10 @@ class PathCache(object):
         """
         paths = []
         c = self._connection.cursor()
-        res = c.execute("SELECT root, path FROM path_cache WHERE entity_type = ? AND entity_id = ?", (entity_type, entity_id))
+        if primary_only:
+            res = c.execute("SELECT root, path FROM path_cache WHERE entity_type = ? AND entity_id = ? and primary_entity = 1", (entity_type, entity_id))
+        else:
+            res = c.execute("SELECT root, path FROM path_cache WHERE entity_type = ? AND entity_id = ?", (entity_type, entity_id))
 
         for row in res:
             root_name = row[0]
