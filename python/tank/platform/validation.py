@@ -433,7 +433,7 @@ class _SettingsValidator:
                 for field_name, value in self._context.as_template_fields(cur_template).items():
                     # (AD) - removed check if None - this isn't ideal so need
                     # to work out why 'optional_fields' doesn't contain [{...}]
-                    # fields from template?§
+                    # fields from template?
                     #if value is not None:
                     context_fields.add(field_name)
     
