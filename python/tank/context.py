@@ -373,23 +373,32 @@ class Context(object):
 
                     value = result.get(key.shotgun_field_name)
 
-                if value is None:
+                # (AD) - changed to allow null values if not found in shotgun:
+                # Q. Is this safe to do all the time or should there be an 'allow_none' field on the key?
+                """
+                e.g.
+                
+                if value is None and not key.allow_no_value:
                     msg = "Shotgun returned None as value for field %s.%s" 
                     msg = msg % (key.shotgun_entity_type, key.shotgun_field_name)
                     raise TankError(msg)
                 else:
+                    ...
+                """
+                processed_val = value
+                if value is not None:
                     processed_val = shotgun_entity.sg_entity_to_string(self.__tk,
                                                                        key.shotgun_entity_type,
                                                                        entity.get("id"),
                                                                        key.shotgun_field_name, 
                                                                        value)
-                    if key.validate(processed_val):
-                        fields[key.name] = processed_val
-                        self._entity_fields_cache[cache_key] = processed_val
-                    else:
-                        msg = "Shotgun returned invalid value: %s for field %s.%s" 
-                        msg = msg % (str(value), key.shotgun_entity_type, key.shotgun_field_name)
-                        raise TankError(msg)
+                if key.validate(processed_val):
+                    fields[key.name] = processed_val
+                    self._entity_fields_cache[cache_key] = processed_val
+                else:
+                    msg = "Shotgun returned invalid value: %s for field %s.%s" 
+                    msg = msg % (str(value), key.shotgun_entity_type, key.shotgun_field_name)
+                    raise TankError(msg)
 
         return fields
 
