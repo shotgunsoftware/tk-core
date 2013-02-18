@@ -420,17 +420,15 @@ class TestValidateContext(TankTestBase):
         required fields are have no value in the context.
         """
         # template with fields not in required fields or context
-        field_name = "field_1"
+        field_name = "field_2"
         self.keys[field_name] = StringKey(field_name)
         self.keys["sppk"] = StringKey("sppk")
         template = tank.template.TemplatePath("{%s}{sppk}" % field_name, self.keys, self.project_root)
         # tank instance with this template
         tk = tank.Tank(self.project_root)
         tk.templates={self.template_name:template}
-        # prime the context with the current user - the repr wont load it
-        self.context.user
-        params = (self.context, ["sppk",field_name], template)
-        expected_msg = "Context %s can not determine value for fields %s needed by template %s" % params
+        
+        expected_msg = "Context %s can not determine value for fields %s needed by template %s" % (self.context, ["sppk"], template)
 
         self.check_error_message(TankError, expected_msg, validate_settings, self.app_name, tk, self.context, self.metadata, self.config)
         

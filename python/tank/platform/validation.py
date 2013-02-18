@@ -402,7 +402,6 @@ class _SettingsValidator:
 
         if isinstance(cur_template, TemplateString):
             # Don't validate template strings
-            # TODO add validate_with functionality
             return
 
         # Check fields 
@@ -426,17 +425,17 @@ class _SettingsValidator:
         # note - only perform this context based valiation if context is not None.
         # this means that it is possible to run a partial (yet extensive) validation 
         # without having access to the context.
+        #
+        # NOTE!!!!! This special validate_context flag checked below is something that is
+        # only used by the unit tests...
+        #
         if self._context:        
             if optional_fields != "*" and schema.get("validate_context", True):
                 optional_fields = set(optional_fields)
-                context_fields = set()
-                for field_name, value in self._context.as_template_fields(cur_template).items():
-                    # (AD) - removed check if None - this isn't ideal so need
-                    # to work out why 'optional_fields' doesn't contain [{...}]
-                    # fields from template?
-                    #if value is not None:
-                    context_fields.add(field_name)
-    
+                
+                # collect all fields that will be covered by the context object. 
+                context_fields = set( self._context.as_template_fields(cur_template).keys() )
+                
                 # check template fields (keys) not in required are available through context
                 missing_fields = ((no_default_fields - required_fields) - optional_fields) - context_fields
                 if missing_fields:
