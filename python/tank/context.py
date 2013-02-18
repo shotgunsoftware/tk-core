@@ -464,20 +464,23 @@ class Context(object):
         # Use cached paths to find field values
         path_cache = PathCache(project_root)
 
-        # Step 3 - walk templates from the root down,
-        # for each template, get all paths we have stored in the database
-        # and get the filename - this will be our field value
-        for cur_template in templates:
-            for key in cur_template.keys.values():
-                # If we don't already have a value, look for it
-                if fields.get(key.name) is None:
-                    entity = entities.get(key.name)
-                    if entity:
-                        # context contains an entity for this Shotgun entity type!
-                        temp_fields = _values_from_path_cache(entity, cur_template, path_cache, fields)
-                        fields.update(temp_fields)
+        try:
+            # Step 3 - walk templates from the root down,
+            # for each template, get all paths we have stored in the database
+            # and get the filename - this will be our field value
+            for cur_template in templates:
+                for key in cur_template.keys.values():
+                    # If we don't already have a value, look for it
+                    if fields.get(key.name) is None:
+                        entity = entities.get(key.name)
+                        if entity:
+                            # context contains an entity for this Shotgun entity type!
+                            temp_fields = _values_from_path_cache(entity, cur_template, path_cache, fields)
+                            fields.update(temp_fields)
 
-        path_cache.close()
+        finally:    
+            path_cache.close()
+        
         return fields
 
 
@@ -828,7 +831,6 @@ def _values_from_path_cache(entity, cur_template, path_cache, fields):
                     # /proj/hero_LOW
                     # and we are mapping against template /%(Project)s/%(Asset)s
                     # both paths are valid matches, so we have ambiguous state for the entity
-                    path_cache.close()
                     msg = "Ambiguous data. Multiple paths cached for %s which match template %s"
                     raise TankError(msg % (str(entity), str(cur_template)))
                 else:
