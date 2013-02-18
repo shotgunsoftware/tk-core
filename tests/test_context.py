@@ -456,7 +456,8 @@ class TestAsTemplateFields(TestContext):
         self.keys["shot_seq"] = query_key
         template_def = "/sequence/{Sequence}/{Shot}/{Step}/work/{shot_seq}.ext"
         template = TemplatePath(template_def, self.keys, self.project_root)
-        self.assertRaises(TankError, self.ctx.as_template_fields, template)
+        fields = self.ctx.as_template_fields(template)
+        self.assertEquals(fields['shot_seq'], None)
 
     def test_query_cached(self):
         """

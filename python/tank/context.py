@@ -351,54 +351,71 @@ class Context(object):
         fields = {}
         # for any sg query field
         for key in template.keys.values():
-            # check each key to see if it has shotgun query information
-            # shotgun_field_name can only be set if shotgun_entity_type has a value,
-            # so we don't need to check for both.
-            if key.shotgun_field_name and key.shotgun_entity_type in entities:
+            
+            # check each key to see if it has shotgun query information that we should resolve
+            if key.shotgun_field_name:
+                # this key is a shotgun value that needs fetching! 
+                
+                # ensure that the context actually provides the desired entities
+                if not key.shotgun_entity_type in entities:
+                    raise TankError("Key '%s' in template '%s' could not be populated by "
+                                    "context '%s' because the context does not contain a "
+                                    "shotgun entity of type '%s'!" % (key, template, self, key.shotgun_entity_type))
+                    
                 entity = entities[key.shotgun_entity_type]
+                
                 # check the context cache 
                 cache_key = (entity["type"], entity["id"], key.shotgun_field_name)
                 if cache_key in self._entity_fields_cache:
-                    value = self._entity_fields_cache[cache_key]
+                    # already have the value cached - no need to fetch from shotgun
+                    fields[key.name] = self._entity_fields_cache[cache_key]
+                
                 else:
+                    # get the value from shotgun
                     filters = [["id", "is", entity["id"]]]
                     query_fields = [key.shotgun_field_name]
                     result = self.__tk.shotgun.find_one(key.shotgun_entity_type, filters, query_fields)
                     if not result:
-                        # We should be able to query any entity in the context
-                        msg =  "Query to shotgun for entity %s has failed." % str(entity)
-                        msg += "Template: %s" % str(template)
-                        msg += "Context: %s" % str(self)
-                        raise TankError(msg)
+                        # no record with that id in shotgun!
+                        raise TankError("Could not retrieve Shotgun data for key '%s' in "
+                                        "template '%s'. No records in Shotgun are matching "
+                                        "entity '%s' (Which is part of the current "
+                                        "context '%s')" % (key, template, entity, self))                        
 
                     value = result.get(key.shotgun_field_name)
 
-                # (AD) - changed to allow null values if not found in shotgun:
-                # Q. Is this safe to do all the time or should there be an 'allow_none' field on the key?
-                """
-                e.g.
-                
-                if value is None and not key.allow_no_value:
-                    msg = "Shotgun returned None as value for field %s.%s" 
-                    msg = msg % (key.shotgun_entity_type, key.shotgun_field_name)
-                    raise TankError(msg)
-                else:
-                    ...
-                """
-                processed_val = value
-                if value is not None:
-                    processed_val = shotgun_entity.sg_entity_to_string(self.__tk,
-                                                                       key.shotgun_entity_type,
-                                                                       entity.get("id"),
-                                                                       key.shotgun_field_name, 
-                                                                       value)
-                if key.validate(processed_val):
+                    # note! It is perfectly possible (and may be valid) to return None values from 
+                    # shotgun at this point. In these cases, a None field will be returned in the 
+                    # fields dictionary from as_template_fields, and this may be injected into
+                    # a template with optional fields.
+    
+                    if value is None:
+                        processed_val = None
+                    
+                    else:
+
+                        # now convert the shotgun value to a string.
+                        # note! This means that there is no way currently to create an int key
+                        # in a tank template which matches an int field in shotgun, since we are
+                        # force converting everything into strings...
+                                 
+                        processed_val = shotgun_entity.sg_entity_to_string(self.__tk,
+                                                                           key.shotgun_entity_type,
+                                                                           entity.get("id"),
+                                                                           key.shotgun_field_name, 
+                                                                           value)
+                    
+                        if not key.validate(processed_val):                    
+                            raise TankError("Template validation failed for value '%s'. This "
+                                            "value was retrieved from entity %s in Shotgun to "
+                                            "represent key '%s' in "
+                                            "template '%s'." % (processed_val, entity, key, template))
+                            
+                    # all good!
+                    # populate dictionary and cache
                     fields[key.name] = processed_val
                     self._entity_fields_cache[cache_key] = processed_val
-                else:
-                    msg = "Shotgun returned invalid value: %s for field %s.%s" 
-                    msg = msg % (str(value), key.shotgun_entity_type, key.shotgun_field_name)
-                    raise TankError(msg)
+
 
         return fields
 
