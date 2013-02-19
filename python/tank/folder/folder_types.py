@@ -39,6 +39,13 @@ class Folder(object):
     ###############################################################################################
     # public methods
     
+    def is_dynamic(self):
+        """
+        Returns true if this folder node requires some sort of dynamic input
+        """
+        # assume all nodes are dynamic unless explicitly stated
+        return True
+    
     def get_path(self):
         """
         Returns the path on disk to this configuration item
@@ -128,29 +135,54 @@ class Folder(object):
         
         # and recurse down to children
         if explicit_child_list:
+            
             # we have been given a specific list to recurse down.
             # pop off the next item and process it.
             explicit_ch = copy.copy(explicit_child_list)
-            ch = explicit_ch.pop()
-            children_to_process = [ch]
-            child_is_primary = True
+            child_to_process = explicit_ch.pop()
+            
+            # before recursing down our specific recursion path, make sure all static content
+            # has been created at this level in the folder structure
+            static_children = [ch for ch in self._children if ch.is_dynamic() == False]
+            
+            for (created_folder, sg_data_dict) in created_data:
+
+                # first process the static folders                
+                for cp in static_children:
+                    # note! if the static child is on the specific recursion path,
+                    # skip it, (we will create it below)
+                    if cp == child_to_process:
+                        continue
+                    
+                    cp.create_folders(io_receiver, 
+                                      created_folder, 
+                                      sg_data_dict, 
+                                      is_primary=False, 
+                                      explicit_child_list=[], 
+                                      engine=engine)
+                
+                # and then recurse down our specific recursion path
+                child_to_process.create_folders(io_receiver, 
+                                                created_folder, 
+                                                sg_data_dict, 
+                                                is_primary=True, 
+                                                explicit_child_list=explicit_ch, 
+                                                engine=engine)
+                 
+            
             
         else:
-            # no explicit list! instead process all children.
-            explicit_ch = []
-            children_to_process = self._children
-            child_is_primary = False
-            
-        # run the folder creation for all new folders created and for all
-        # configuration children
-        for (created_folder, sg_data_dict) in created_data:
-            for cp in children_to_process:
-                cp.create_folders(io_receiver, 
-                                  created_folder, 
-                                  sg_data_dict, 
-                                  child_is_primary, 
-                                  explicit_ch, 
-                                  engine)
+            # no explicit list! instead process all children.            
+            # run the folder creation for all new folders created and for all
+            # configuration children
+            for (created_folder, sg_data_dict) in created_data:
+                for cp in self._children:
+                    cp.create_folders(io_receiver, 
+                                      created_folder, 
+                                      sg_data_dict, 
+                                      is_primary=False, 
+                                      explicit_child_list=[], 
+                                      engine=engine)
             
 
     ###############################################################################################
@@ -246,6 +278,12 @@ class Static(Folder):
         
         # The name parameter represents the folder name that will be created in the file system.
         self._name = os.path.basename(full_path)
+    
+    def is_dynamic(self):
+        """
+        Returns true if this folder node requires some sort of dynamic input
+        """
+        return False
     
     def _create_folders_impl(self, io_receiver, parent_path, sg_data):
         """
