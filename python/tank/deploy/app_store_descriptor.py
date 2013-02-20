@@ -92,80 +92,41 @@ class TankAppStoreDescriptor(AppDescriptor):
         Fetches metadata about the app from the tank app store
         returns a dictionary with a bundle key and a version key.
         """
+        
+        # find the right shotgun entity types
+        if self._type == AppDescriptor.APP:
+            bundle_entity = TANK_APP_ENTITY
+            version_entity = TANK_APP_VERSION_ENTITY
+            link_field = "sg_tank_app"
+
+        elif self._type == AppDescriptor.FRAMEWORK:
+            bundle_entity = TANK_FRAMEWORK_ENTITY
+            version_entity = TANK_FRAMEWORK_VERSION_ENTITY
+            link_field = "sg_tank_framework"
+
+        elif self._type == AppDescriptor.ENGINE:
+            bundle_entity = TANK_ENGINE_ENTITY
+            version_entity = TANK_ENGINE_VERSION_ENTITY
+            link_field = "sg_tank_engine"
+
+        else:
+            raise TankError("Illegal type value!")
 
         # connect to the app store
         (sg, script_user) = shotgun.create_sg_app_store_connection_proj_root(self._project_root)
 
-        if self._type == AppDescriptor.APP:
+        # first find the bundle level entity
+        bundle = sg.find_one(bundle_entity, [["sg_system_name", "is", self._name]], [])
+        if bundle is None:
+            raise TankError("The Tank store does not contain an item named '%s'!" % self._name)
 
-            # first find the app entity
-            bundle = sg.find_one(TANK_APP_ENTITY,
-                                 [["sg_system_name", "is", self._name]],
-                                 ["description", "code"])
-            if bundle is None:
-                raise TankError("App store does not contain an app named '%s'!" % self._name)
-
-            # now get the version
-            version = sg.find_one(TANK_APP_VERSION_ENTITY,
-                                  [["sg_tank_app", "is", bundle], ["code", "is", self._version]],
-                                  ["description",
-                                   TANK_CODE_PAYLOAD_FIELD,
-                                   "sg_min_shotgun_version",
-                                   "sg_min_core_version",
-                                   "sg_min_engine_version",
-                                   "sg_detailed_release_notes",
-                                   "sg_documentation",
-                                   ])
-            if version is None:
-                raise TankError("App store does not have a version "
-                                "'%s' of app '%s'!" % (self._version, self._name))
-
-        elif self._type == AppDescriptor.FRAMEWORK:
-
-            # first find the engine entity
-            bundle = sg.find_one(TANK_FRAMEWORK_ENTITY,
-                                 [["sg_system_name", "is", self._name]],
-                                 ["description", "code"])
-            if bundle is None:
-                raise TankError("App store does not contain a framework named '%s'!" % self._name)
-
-            # now get the version
-            version = sg.find_one(TANK_FRAMEWORK_VERSION_ENTITY,
-                                  [["sg_tank_framework", "is", bundle], ["code", "is", self._version]],
-                                  ["description",
-                                   TANK_CODE_PAYLOAD_FIELD,
-                                   "sg_detailed_release_notes",
-                                   "sg_documentation",
-                                   ])
-            if version is None:
-                raise TankError("App store does not have a version "
-                                "'%s' of framework '%s'!" % (self._version, self._name))
-
-        elif self._type == AppDescriptor.ENGINE:
-
-            # first find the engine entity
-            bundle = sg.find_one(TANK_ENGINE_ENTITY,
-                                 [["sg_system_name", "is", self._name]],
-                                 ["description", "code"])
-            if bundle is None:
-                raise TankError("App store does not contain an engine named '%s'!" % self._name)
-
-            # now get the version
-            version = sg.find_one(TANK_ENGINE_VERSION_ENTITY,
-                                  [["sg_tank_engine", "is", bundle], ["code", "is", self._version]],
-                                  ["description",
-                                   TANK_CODE_PAYLOAD_FIELD,
-                                   "sg_min_shotgun_version",
-                                   "sg_min_core_version",
-                                   "sg_detailed_release_notes",
-                                   "sg_documentation",
-                                   ])
-            if version is None:
-                raise TankError("App store does not have a version "
-                                "'%s' of engine '%s'!" % (self._version, self._name))
-
-        else:
-            raise TankError("Illegal type value!")
+        # now get the version
+        version = sg.find_one(version_entity,
+                              [[link_field, "is", bundle], ["code", "is", self._version]],
+                              ["description", "sg_detailed_release_notes", "sg_documentation"])
+        if version is None:
+            raise TankError("The Tank store does not have a version "
+                            "'%s' of item '%s'!" % (self._version, self._name))
 
         return {"bundle": bundle, "version": version}
 
@@ -179,7 +140,9 @@ class TankAppStoreDescriptor(AppDescriptor):
 
         try:
             if not os.path.exists(folder):
-                self._tk.execute_hook(constants.CREATE_FOLDERS_CORE_HOOK_NAME, path=folder, sg_entity=None)
+                old_umask = os.umask(0)
+                os.makedirs(folder, 0777)
+                os.umask(old_umask)                
             fp = open(os.path.join(folder, METADATA_FILE), "wt")
             json.dump(metadata, fp)
             fp.close()
@@ -268,85 +231,6 @@ class TankAppStoreDescriptor(AppDescriptor):
     ###############################################################################################
     # data accessors
 
-    def get_display_name(self):
-        """
-        Returns the display name for this item. The display name represents
-        a brief name of the app, such as "Nuke Publish".
-        """
-        # overriden from base class. uses name in info.yml if possible.
-        info_yml_display_name = AppDescriptor.get_display_name(self)
-        
-        if info_yml_display_name != self.get_system_name():
-            # there is a display name defined in info.yml! 
-            return info_yml_display_name
-        
-        # no display name found in info.yml - get it from the app store...
-        metadata = self._get_app_store_metadata()
-        display_name = "Unknown"
-        try:
-            display_name = metadata.get("bundle").get("code")
-        except:
-            pass
-        return display_name
-
-    def get_description(self):
-        """
-        Returns a short description for the app.
-        """
-        # overriden from base class. uses name in info.yml if possible.
-        info_yml_description = AppDescriptor.get_description(self)
-        
-        if info_yml_description != "No description available":
-            # there is a display name defined in info.yml! 
-            return info_yml_description
-        
-        # no desc found in info.yml - get it from the app store...
-        metadata = self._get_app_store_metadata()
-        desc = "No description available"
-        try:
-            desc = metadata.get("bundle").get("description")
-        except:
-            pass
-        return desc
-
-
-    def get_version_constraints(self):
-        """
-        Returns a dictionary with version constraints. The absence of a key
-        indicates that there is no defined constraint. Keys include:
-        * min_sg
-        * min_core
-        * min_engine
-        """
-        constraints = AppDescriptor.get_version_constraints(self)
-        if len(constraints) > 0:
-            # found constraints in info.yml
-            # use these
-            return constraints 
-        
-        # no constraints in info.yml. Check with app store
-        metadata = self._get_app_store_metadata()
-        constraints = {}
-        version = metadata.get("version")
-
-        if version:
-            min_sg_version = version.get("sg_min_shotgun_version")
-            if min_sg_version:
-                constraints["min_sg"] = min_sg_version
-
-            min_core_version = version.get("sg_min_core_version")
-            if min_core_version:
-                # this is an entity link, so grab the name field
-                constraints["min_core"] = min_core_version.get("name")
-
-            min_engine_version = version.get("sg_min_engine_version")
-            if min_engine_version:
-                # this is an entity link, so grab the name field
-                constraints["min_engine"] = min_engine_version.get("name")
-
-        return constraints
-
-
     def get_system_name(self):
         """
         Returns a short name, suitable for use in configuration files
@@ -414,7 +298,9 @@ class TankAppStoreDescriptor(AppDescriptor):
         target = self.get_path()
 
         if not os.path.exists(target):
-            self._tk.execute_hook(constants.CREATE_FOLDERS_CORE_HOOK_NAME, path=target, sg_entity=None)
+            old_umask = os.umask(0)
+            os.makedirs(target, 0777)
+            os.umask(old_umask)                
 
         # connect to the app store
         (sg, script_user) = shotgun.create_sg_app_store_connection_proj_root(self._project_root)

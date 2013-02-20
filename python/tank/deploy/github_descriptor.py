@@ -117,7 +117,9 @@ class TankGitHubDescriptor(AppDescriptor):
         # make sure parent folder exists
         parent_folder = os.path.dirname(target)
         if not os.path.exists(parent_folder):
-            self._tk.execute_hook(constants.CREATE_FOLDERS_CORE_HOOK_NAME, path=parent_folder, sg_entity=None)
+            old_umask = os.umask(0)
+            os.makedirs(parent_folder, 0777)
+            os.umask(old_umask)                
         
         # and move it into place
         shutil.move(payload, target)
