@@ -125,11 +125,32 @@ class Template(object):
         # First keys should be most inclusive
         return self._keys[0].copy()
 
+    def is_optional(self, key_name):
+        """
+        Returns true if the given key name is optional for this template.
+        
+        Example: template: {Shot}[_{name}]
+        is_optional("Shot") --> Returns False
+        is_optional("name") --> Returns True
+        """
+        # minimum set of required keys for this template
+        required_keys = self.missing_keys({})
+        if key_name in required_keys:
+            # this key is required
+            return False
+        else:
+            return True
 
     def missing_keys(self, fields, skip_defaults=False):
         """
         Determines keys required for use of template which do not exist
         in a given fields.
+        
+        Example:
+        
+            >>> tk.templates["max_asset_work"].missing_keys({})
+            ['Step', 'sg_asset_type', 'Asset', 'version', 'name']
+        
         
         :param fields: fields to test
         :type fields: mapping (dictionary or other)
@@ -648,9 +669,19 @@ def read_templates(primary_project_path, roots, config_path=None):
     else:
         data = {}
             
-    keys = templatekey.make_keys(data.get("keys", {}))
-    template_paths   = make_template_paths(data.get("paths", {}), keys, roots)
-    template_strings = make_template_strings(data.get("strings", {}), keys, template_paths)
+    
+    # get dictionaries from the templates config file:
+    def get_data_section(section_name):
+        # support both the case where the section 
+        # name exists and is set to None and the case where it doesn't exist
+        d = data.get(section_name)
+        if d is None:
+            d = {}
+        return d            
+            
+    keys             = templatekey.make_keys(get_data_section("keys"))
+    template_paths   = make_template_paths(get_data_section("paths"), keys, roots)
+    template_strings = make_template_strings(get_data_section("strings"), keys, template_paths)
 
     # Detect duplicate names across paths and strings
     dup_names =  set(template_paths).intersection(set(template_strings))

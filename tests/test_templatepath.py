@@ -837,6 +837,17 @@ class TestGetFields(TestTemplatePath):
         result = template.get_fields(input_path)
         self.assertEqual(expected, result)
 
+    def test_is_optional(self):
+        """
+        testing the is_optional method
+        """
+        definition = "sequences/{Sequence}/{Shot}/{Step}/work/{Shot}[_{name}].v{version}.nk"
+        template = tank.TemplatePath(definition, self.keys, self.project_root)
+
+        self.assertTrue(template.is_optional("name"))
+        self.assertFalse(template.is_optional("version"))
+        
+
     def test_no_keys_valid(self):
         template = tank.TemplatePath("no/keys", {}, self.project_root)
         input_path = os.path.join(self.project_root, "no/keys")
