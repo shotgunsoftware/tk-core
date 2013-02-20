@@ -9,6 +9,18 @@ A studio may use github to formally manage its own apps.
 
 NOTE! Currently only supports public repos!
 
+
+
+
+
+NOTE! NOW deprecated as of 20 February 2013. 
+Remove at some point in the future when it is safe to do so.
+
+
+
+
+
+
 """
 
 import os
