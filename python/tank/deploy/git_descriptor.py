@@ -21,6 +21,12 @@ from .zipfilehelper import unzip_file
 class TankGitDescriptor(AppDescriptor):
     """
     Represents a repository in git. New versions are represented by new tags.
+    
+    path can be on the form:
+    git@github.com:manneohrstrom/tk-hiero-publish.git
+    https://github.com/manneohrstrom/tk-hiero-publish.git
+    git://github.com/manneohrstrom/tk-hiero-publish.git
+    /full/path/to/local/repo.git
     """
 
     def __init__(self, project_root, location_dict, type):
@@ -52,6 +58,8 @@ class TankGitDescriptor(AppDescriptor):
         """
         returns the path to the folder where this item resides
         """
+        # git@github.com:manneohrstrom/tk-hiero-publish.git -> tk-hiero-publish
+        # /full/path/to/local/repo.git -> repo.git        
         name = os.path.basename(self._path)
         return self._get_local_location(self._type, "git", name, self._version)
 
@@ -76,13 +84,28 @@ class TankGitDescriptor(AppDescriptor):
             os.makedirs(target, 0777)
             os.umask(old_umask)                
 
-        # do a git archive from the remote repository
-        # download to temp
+        # now first clone the repo into a tmp location
+        # then zip up the tag we are looking for
+        # finally, move that zip file into the target location
         zip_tmp = os.path.join(tempfile.gettempdir(), "%s_tank.zip" % uuid.uuid4().hex)
-        cmd = "git archive --format zip --output %s --remote %s %s" % (zip_tmp, self._path, self._version)
-        if os.system(cmd) != 0:
-            raise TankError("Failed to download %s - error executing command %s" % (self, cmd))
+        clone_tmp = os.path.join(tempfile.gettempdir(), "%s_tank_clone" % uuid.uuid4().hex)
+        old_umask = os.umask(0)
+        os.makedirs(clone_tmp, 0777)
+        os.umask(old_umask)                
 
+        # now clone and archive
+        cwd = os.getcwd()
+        try:
+            if os.system("git clone -q '%s' %s" % (self._path, clone_tmp)) != 0:
+                raise TankError("Could not clone git repository '%s'!" % self._path)
+            
+            os.chdir(clone_tmp)
+            
+            if os.system("git archive --format zip --output %s %s" % (zip_tmp, self._version)) != 0:
+                raise TankError("Could not find tag %s in git repository %s!" % (self._version, self._path))
+        finally:
+            os.chdir(cwd)
+        
         # unzip core zip file to app target location
         unzip_file(zip_tmp, target)
 
@@ -90,25 +113,34 @@ class TankGitDescriptor(AppDescriptor):
         """
         Returns a descriptor object that represents the latest version
         """
+        # now first clone the repo into a tmp location
+        clone_tmp = os.path.join(tempfile.gettempdir(), "%s_tank_clone" % uuid.uuid4().hex)
+        old_umask = os.umask(0)
+        os.makedirs(clone_tmp, 0777)
+        os.umask(old_umask)                
+
         # get the most recent tag hash
         cwd = os.getcwd()
         try:
-            os.chdir(self._path)
-            git_hash = subprocess.check_output("git rev-list --tags --max-count=1", shell=True).strip()
-        except Exception, e:
-            raise TankError("Could not get list of tags for %s: %s" % (self._path, e))
+            
+            if os.system("git clone -q '%s' %s" % (self._path, clone_tmp)) != 0:
+                raise TankError("Could not clone git repository '%s'!" % self._path)
+            
+            os.chdir(clone_tmp)
+            
+            try:
+                git_hash = subprocess.check_output("git rev-list --tags --max-count=1", shell=True).strip()
+            except Exception, e:
+                raise TankError("Could not get list of tags for %s: %s" % (self._path, e))
+
+            try:
+                latest_version = subprocess.check_output("git describe --tags %s" % git_hash, shell=True).strip()
+            except Exception, e:
+                raise TankError("Could not get tag for hash %s: %s" % (hash, e))
+        
         finally:
             os.chdir(cwd)
 
-        # and now get the name of the tag fort his hash
-        cwd = os.getcwd()
-        try:
-            os.chdir(self._path)
-            latest_version = subprocess.check_output("git describe --tags %s" % git_hash, shell=True).strip()
-        except Exception, e:
-            raise TankError("Could not get tag for hash %s: %s" % (hash, e))
-        finally:
-            os.chdir(cwd)
 
         new_loc_dict = copy.deepcopy(self._location_dict)
         new_loc_dict["version"] = latest_version
