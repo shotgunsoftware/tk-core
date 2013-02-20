@@ -123,7 +123,10 @@ class TankAppStoreDescriptor(AppDescriptor):
         # now get the version
         version = sg.find_one(version_entity,
                               [[link_field, "is", bundle], ["code", "is", self._version]],
-                              ["description", "sg_detailed_release_notes", "sg_documentation"])
+                              ["description", 
+                               "sg_detailed_release_notes", 
+                               "sg_documentation",
+                               TANK_CODE_PAYLOAD_FIELD])
         if version is None:
             raise TankError("The Tank store does not have a version "
                             "'%s' of item '%s'!" % (self._version, self._name))
