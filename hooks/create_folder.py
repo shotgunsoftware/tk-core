@@ -2,7 +2,10 @@
 Copyright (c) 2012 Shotgun Software, Inc
 ----------------------------------------------------
 
-I/O Hook which creates folders on disk.
+DEPRECATED!! This hook is not used by the Tank Core Platform
+and is just bundled for backwards compatibility. (20 Feb 2013)
+
+It will be removed at some stage - do not use it.
 
 """
 
