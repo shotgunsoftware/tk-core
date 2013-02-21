@@ -374,7 +374,10 @@ class Tank(object):
 
     def execute_hook(self, hook_name, **kwargs):
         """
-        Executes a core level hook, passing it any keyword arguments supplied. 
+        Executes a core level hook, passing it any keyword arguments supplied.
+        
+        Note! This is part of the private Tank API and should not be called from ouside
+        the core API. 
 
         :param hook_name: Name of hook to execute.
 
