@@ -189,7 +189,28 @@ class TankBundle(object):
         :param key: config name
         :param default: default value to return
         """
-        return self.__settings.get(key, default)
+        settings_value = self.__settings.get(key, default)
+        
+        if settings_value.startswith("hook:"):
+            
+            # handle the special form where the value is computed in a hook.
+            # 
+            # if the template parameter is on the form
+            # a) hook:foo_bar
+            # b) hook:foo_bar:testing:testing
+            #        
+            # The following hook will be called
+            # a) foo_bar with parameters []
+            # b) foo_bar with parameters [testing, testing]
+            #
+            chunks = settings_value.split(":")
+            hook_name = chunks[1]
+            params = chunks[2:] 
+            settings_value = self.__tk.execute_hook(hook_name, 
+                                                   setting=key, 
+                                                   bundle_obj=self, 
+                                                   extra_params=params)
+        return settings_value
             
     def get_template(self, key):
         """
@@ -197,27 +218,7 @@ class TankBundle(object):
         calling get_template_by_name() on it.
         """
 
-        # handle the special form where the template is computed in a hook.
-        # 
-        # if the template parameter is on the form
-        # a) hook|foo_bar
-        # b) hook|foo_bar|testing|testing
-        #        
-        # The following hook will be called
-        # a) foo_bar with parameters []
-        # b) foo_bar with parameters [testing, testing]
-        #
-        template_name = self.get_setting(key)
-        if template_name.startswith("hook|"):
-            # get the template name from a hook
-            chunks = template_name.split("|")
-            hook_name = chunks[1]
-            params = chunks[2:] 
-            template_name = self.__tk.execute_hook(hook_name, 
-                                                   setting=key, 
-                                                   bundle_obj=self, 
-                                                   extra_params=params)
-        
+        template_name = self.get_setting(key)        
         return self.get_template_by_name(template_name)
     
     def get_template_by_name(self, template_name):

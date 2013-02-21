@@ -14,7 +14,7 @@ However if you want more complex behaviour, it is possible to specify that a hoo
 should be used to evaluate the setting at runtime rather than just set it. 
 For example:
 
-template_snapshot: "hook|example_template_hook|maya_shot_publish"
+template_snapshot: "hook:example_template_hook:maya_shot_publish"
 
 This setting would look for a core hook named example_template_hook and execute it.
 See below for an example implementation and parameter descriptions.
@@ -33,7 +33,7 @@ class ProceduralTemplateEvaluator(Hook):
         So the following two things will evaluate to the same thing:
         
         > template_snapshot: maya_shot_publish
-        > template_snapshot: "hook|example_template_hook|maya_shot_publish"
+        > template_snapshot: hook:example_template_hook:maya_shot_publish
         
         
         
@@ -44,7 +44,7 @@ class ProceduralTemplateEvaluator(Hook):
                            is associated with.
         
         :param extra_params: List of options passed from the setting. If the settings
-                             string is "hook|hook_name|foo|bar", extra_params would
+                             string is "hook:hook_name:foo:bar", extra_params would
                              be ['foo', 'bar'] 
                              
         returns: needs to return the name of a template, as a string.

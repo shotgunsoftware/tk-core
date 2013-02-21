@@ -345,6 +345,10 @@ class _SettingsValidator:
     def __validate_settings_value(self, settings_key, schema, value):
         data_type = schema.get("type")
 
+        # functor values which refer to a hook are never validated
+        if type(value) == str and value.startswith("hook:"):
+            return
+
         # shotgun filters can be a variety of formats so assume it is
         # valid and don't do any further validation:
         if data_type == 'shotgun_filter':
@@ -401,13 +405,6 @@ class _SettingsValidator:
 
     def __validate_settings_template(self, settings_key, schema, template_name):
         
-        # first, check if we have a hook based template - the format for such as a setting is
-        # parameter: hook/name_of_hook/som_param
-        
-        if template_name.startswith("hook"):
-            # skip validation!
-            return
-                
         # look it up in the master file
         cur_template = self._tank_api.templates.get(template_name) 
         if cur_template is None:
