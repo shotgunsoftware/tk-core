@@ -196,7 +196,29 @@ class TankBundle(object):
         A shortcut for looking up which template is referenced in the given setting, and
         calling get_template_by_name() on it.
         """
-        return self.get_template_by_name(self.get_setting(key))
+
+        # handle the special form where the template is computed in a hook.
+        # 
+        # if the template parameter is on the form
+        # a) hook|foo_bar
+        # b) hook|foo_bar|testing|testing
+        #        
+        # The following hook will be called
+        # a) foo_bar with parameters []
+        # b) foo_bar with parameters [testing, testing]
+        #
+        template_name = self.get_setting(key)
+        if template_name.startswith("hook|"):
+            # get the template name from a hook
+            chunks = template_name.split("|")
+            hook_name = chunks[1]
+            params = chunks[2:] 
+            template_name = self.__tk.execute_hook(hook_name, 
+                                                   setting=key, 
+                                                   bundle_obj=self, 
+                                                   extra_params=params)
+        
+        return self.get_template_by_name(template_name)
     
     def get_template_by_name(self, template_name):
         """

@@ -278,6 +278,13 @@ class _SchemaValidator:
             self.__validate_schema_value(settings_key, value_schema)
 
     def __validate_schema_template(self, settings_key, schema):
+        
+        # new style template def: if there is a fields key, it should be a str
+        if "fields" in schema and type(schema["required_fields"]) != str:
+            params = (settings_key, self._display_name)
+            raise TankError("Invalid 'fields' string in schema '%s' for '%s'!" % params)
+        
+        
         # If there's a required_fields key, it should contain a list of strs.
         if "required_fields" in schema and type(schema["required_fields"]) != list:
             params = (settings_key, self._display_name)
@@ -393,6 +400,14 @@ class _SettingsValidator:
             self.__validate_settings_value(settings_key, value_schema, value[key])
 
     def __validate_settings_template(self, settings_key, schema, template_name):
+        
+        # first, check if we have a hook based template - the format for such as a setting is
+        # parameter: hook/name_of_hook/som_param
+        
+        if template_name.startswith("hook"):
+            # skip validation!
+            return
+                
         # look it up in the master file
         cur_template = self._tank_api.templates.get(template_name) 
         if cur_template is None:
@@ -400,49 +415,73 @@ class _SettingsValidator:
             raise TankError("The Tank Template '%s' referred to by the setting '%s' does "
                             "not exist in the master template config file!" % (template_name, settings_key))
 
-        if isinstance(cur_template, TemplateString):
-            # Don't validate template strings
-            return
 
-        # Check fields 
-        required_fields = set(schema.get("required_fields", []))
-        # All template fields
-        template_fields = set(cur_template.keys)
-        # Template field without default values
-        no_default_fields = set(key_name for key_name, key in cur_template.keys.items() if key.default is None)
-        optional_fields = schema.get("optional_fields", [])
+        if "fields" in schema:
+            
+            #################################################################################
+            # NEW SCHOOL VALIDATION USING fields: context, foo, bar, [baz]
+            #
+            
+            problems = self.__validate_new_style_template(cur_template, str(schema.get("fields")) )
+            
+            if len(problems) > 0:
+                msg = ("%s: The Tank Template '%s' referred to by the setting '%s' "
+                       "does not validate. The following problems were "
+                       "reported: " % (self._display_name, template_name, settings_key))
+                for p in problems:
+                    msg += "%s " % p
+                
+                raise TankError(msg)
 
-        # check required fields exist in template
-        missing_fields = required_fields - template_fields
-        if missing_fields:
-            raise TankError("The Tank Template '%s' referred to by the setting '%s' does "
-                            "not contain required fields '%s'!" % (template_name, settings_key, list(missing_fields)))
-
-
-        # If optional_fields is "*" then we're done. If optional_fields is a list, then validate 
-        # that all keys in the template are satisfied by a required, optional or context field.
         
-        # note - only perform this context based valiation if context is not None.
-        # this means that it is possible to run a partial (yet extensive) validation 
-        # without having access to the context.
-        #
-        # NOTE!!!!! This special validate_context flag checked below is something that is
-        # only used by the unit tests...
-        #
-        if self._context:        
-            if optional_fields != "*" and schema.get("validate_context", True):
-                optional_fields = set(optional_fields)
-                
-                # collect all fields that will be covered by the context object. 
-                context_fields = set( self._context.as_template_fields(cur_template).keys() )
-                
-                # check template fields (keys) not in required are available through context
-                missing_fields = ((no_default_fields - required_fields) - optional_fields) - context_fields
-                if missing_fields:
-                    raise TankError(
-                        "Context %s can not determine value for fields %s needed by template %s" % \
-                        (self._context, list(missing_fields), cur_template)
-                    )
+        else:
+            
+            #################################################################################
+            # OLD SCHOOL VALIDATION USING required_fields, optional_fields etc.
+    
+            if isinstance(cur_template, TemplateString):
+                # Don't validate template strings
+                return
+    
+            # Check fields 
+            required_fields = set(schema.get("required_fields", []))
+            # All template fields
+            template_fields = set(cur_template.keys)
+            # Template field without default values
+            no_default_fields = set(key_name for key_name, key in cur_template.keys.items() if key.default is None)
+            optional_fields = schema.get("optional_fields", [])
+    
+            # check required fields exist in template
+            missing_fields = required_fields - template_fields
+            if missing_fields:
+                raise TankError("The Tank Template '%s' referred to by the setting '%s' does "
+                                "not contain required fields '%s'!" % (template_name, settings_key, list(missing_fields)))
+    
+    
+            # If optional_fields is "*" then we're done. If optional_fields is a list, then validate 
+            # that all keys in the template are satisfied by a required, optional or context field.
+            
+            # note - only perform this context based valiation if context is not None.
+            # this means that it is possible to run a partial (yet extensive) validation 
+            # without having access to the context.
+            #
+            # NOTE!!!!! This special validate_context flag checked below is something that is
+            # only used by the unit tests...
+            #
+            if self._context:        
+                if optional_fields != "*" and schema.get("validate_context", True):
+                    optional_fields = set(optional_fields)
+                    
+                    # collect all fields that will be covered by the context object. 
+                    context_fields = set( self._context.as_template_fields(cur_template).keys() )
+                    
+                    # check template fields (keys) not in required are available through context
+                    missing_fields = ((no_default_fields - required_fields) - optional_fields) - context_fields
+                    if missing_fields:
+                        raise TankError(
+                            "Context %s can not determine value for fields %s needed by template %s" % \
+                            (self._context, list(missing_fields), cur_template)
+                        )
 
     def __validate_settings_hook(self, settings_key, schema, hook_name):
         """
@@ -464,5 +503,113 @@ class _SettingsValidator:
             raise TankError(msg)
             
             
-
-  
+    def __validate_new_style_template(self, cur_template, fields_str):
+        
+        #################################################################################
+        # NEW SCHOOL VALIDATION USING fields: context, foo, bar, [baz]
+        #
+        # format:
+        # - context: means that the context will be included
+        # - value: the value must exist in the template
+        # - [value]: the value can exist in the template and that's okay
+        # - * any number of additional fields can exist in the template
+        #
+        # Examples:
+        # context, name, version
+        # context, name, version, [width], [height]
+        # name, *
+        # context, *
+        
+        # get all values in a list
+        field_chunks = fields_str.split(",")
+        # chop whitespace
+        field_chunks = [ x.strip() for x in field_chunks ]
+        
+        # process
+        mandatory = set()
+        optional = set()
+        star = False
+        include_context = False
+        for x in field_chunks:
+            if x.lower() == "context":
+                include_context = True
+            elif x == "*":
+                star = True
+            elif x.startswith("[") and x.endswith("]"):
+                optional.add( x[1:-1] )
+            else:
+                mandatory.add(x)
+        
+        # validate
+        # get all fields which do not have default values
+        fields_needing_values = set(key_name for key_name, key in cur_template.keys.items() if key.default is None)
+        problems = []
+        
+        # pass 1: ensure all mandatory fields are present.
+        for m in mandatory:
+            if m not in fields_needing_values:
+                problems.append("The mandatory field '%s' is missing" % m)
+        
+        if star == True:
+            # means an open ended number of fields can be used.
+            # no need to do more validation
+            pass
+        
+        elif self._context is None:
+            # we don't have the context (we are outside app rumtime mode)
+            # and cannot do any further validation
+            pass
+        
+        elif len(problems) > 0:
+            # one or more mandatory issues. No point checking further
+            pass
+        
+        else:
+            # there are a fixed number of fields that we need to populate
+            # make sure we have populated exactly those fields
+                        
+            remaining_fields = fields_needing_values - mandatory
+                        
+            if include_context:
+                # gather all the fields that will be covered by the context object
+                context_fields = set( self._context.as_template_fields(cur_template).keys() )
+                remaining_fields = remaining_fields - context_fields
+                
+                for x in remaining_fields:
+                    if x not in optional:
+                        # we have a field that is in the template but which is not 
+                        # covered, either in the context nor in the schema fields
+                        
+                        required_and_optional_str = ", ".join(mandatory+optional)
+                        context_fields_str = ", ".join(context_fields)
+                        
+                        problems.append("The field '%s' is part of the template but %s does not "
+                                        "know how to assign a value to it when calculating paths. "
+                                        "The code inside %s will populate the following fields: %s. "
+                                        "Tank's current context (%s) will populate the following fields: "
+                                        "%s." % (x, 
+                                                 self._display_name, 
+                                                 self._display_name, 
+                                                 required_and_optional_str, 
+                                                 str(self._context),
+                                                 context_fields_str))
+                        
+            else:
+                # the context is not taken into account.
+                for x in remaining_fields:
+                    if x not in optional:
+                        # we have a field that is in the template but which is not 
+                        # covered by mandatory or optional
+                        
+                        required_and_optional_str = ", ".join(mandatory+optional)
+                        
+                        problems.append("The field '%s' is part of the template but %s does not "
+                                        "know how to assign a value to it when calculating paths. "
+                                        "The code inside %s will populate the following fields: "
+                                        "%s." % (x, 
+                                                 self._display_name, 
+                                                 self._display_name, 
+                                                 required_and_optional_str))
+                
+        #####
+        return problems
