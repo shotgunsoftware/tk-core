@@ -100,6 +100,17 @@ class TestExecuteHook(TestApplication):
         app = self.engine.apps["test_app"]
         self.assertTrue(app.execute_hook("test_hook", dummy_param=True))
 
+    def test_request_folder(self):
+        app = self.engine.apps["test_app"]
+        
+        path = "/tmp/tank_unit_test_test_request_folder"
+    
+        self.assertFalse(os.path.exists(path))
+        app.ensure_folder_exists(path)
+        self.assertTrue(os.path.exists(path))
+        os.rmdir(path)
+
+
 class TestProperties(TestApplication):
 
 

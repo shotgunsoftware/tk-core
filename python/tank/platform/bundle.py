@@ -93,6 +93,24 @@ class TankBundle(object):
         return os.path.dirname(path_to_this_file)
 
     @property
+    def cache_location(self):
+        """
+        An item-specific location on disk where the app or engine can store
+        random cache data. This location is guaranteed to exist on disk.
+        """
+        # organize caches by app name
+        folder = os.path.join(self.__tk.project_path, "tank", "cache", self.name)
+        if not os.path.exists(folder):
+            # create it using open permissions (not via hook since we want to be in control
+            # of permissions inside the tank folders)
+            old_umask = os.umask(0)
+            os.makedirs(folder, 0777)
+            os.umask(old_umask)                
+        
+        return folder
+
+
+    @property
     def context(self):
         """
         The current context associated with this item
@@ -232,3 +250,19 @@ class TankBundle(object):
         hook_path = os.path.join(hook_folder, "%s.py" % hook_name)
         return hook.execute_hook(hook_path, self, **kwargs)
     
+    def ensure_folder_exists(self, path):
+        """
+        Convenience method to make it easy for apps and engines to create folders
+        in a standardized fashion. While the creation of high level folder structure
+        such as Shot and Asset folders is typically handled by the folder creation system
+        in Tank, Apps tend to need to create leaf-level folders such as publish folders
+        and work areas. These are often created just in time of the operation.
+        
+        :param path: path to create
+        """        
+        try:
+            self.__tk.execute_hook("ensure_folder_exists", path=path, bundle_obj=self)
+        except Exception, e:
+            raise TankError("Error creating folder %s: %s" % (path, e))
+        
+        
