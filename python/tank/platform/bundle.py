@@ -191,7 +191,7 @@ class TankBundle(object):
         """
         settings_value = self.__settings.get(key, default)
         
-        if settings_value.startswith("hook:"):
+        if type(settings_value) == str and settings_value.startswith("hook:"):
             
             # handle the special form where the value is computed in a hook.
             # 
