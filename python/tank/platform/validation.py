@@ -445,7 +445,7 @@ class _SettingsValidator:
             # All template fields
             template_fields = set(cur_template.keys)
             # Template field without default values
-            no_default_fields = set(key_name for key_name, key in cur_template.keys.items() if key.default is None)
+            no_default_fields = set(cur_template.missing_keys({}, skip_defaults=True))
             optional_fields = schema.get("optional_fields", [])
     
             # check required fields exist in template
@@ -539,7 +539,7 @@ class _SettingsValidator:
         
         # validate
         # get all fields which do not have default values
-        fields_needing_values = set(key_name for key_name, key in cur_template.keys.items() if key.default is None)
+        fields_needing_values = set(cur_template.missing_keys({}, skip_defaults=True))
         problems = []
         
         # pass 1: ensure all mandatory fields are present.
