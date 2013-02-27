@@ -381,8 +381,11 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
     - look at a project level config to see if publish should succeed if Shotgun is down?
     - if Shotgun is down, log to sqlite and try again later?
     """
+    # get the task from the optional args, fall back on context task if not set
+    task = kwargs.get("task")
+    if task is None:
+        task = context.task
 
-    task = context.task or kwargs.get("task")
     thumbnail_path = kwargs.get("thumbnail_path")
     comment = kwargs.get("comment")
     dependency_paths = kwargs.get('dependency_paths', [])
