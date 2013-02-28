@@ -11,6 +11,7 @@ import sys
 import traceback
 
 from .. import loader
+from .. import hook
 from ..errors import TankError, TankEngineInitError
 from ..deploy import descriptor
 
@@ -211,6 +212,10 @@ class Engine(TankBundle):
         
         # finally remove the current engine reference
         set_current_engine(None)
+        
+        # now clear the hooks cache to make sure fresh hooks are loaded the 
+        # next time an engine is initialized
+        hook.clear_hooks_cache()
     
     def destroy_engine(self):
         """

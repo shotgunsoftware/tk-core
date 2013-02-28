@@ -29,6 +29,13 @@ class Hook(object):
     def execute(self):
         return None
 
+def clear_hooks_cache():
+    """
+    Clears the cache where tank keeps hook classes
+    """
+    global _HOOKS_CACHE
+    _HOOKS_CACHE = {}
+
 def execute_hook(hook_path, parent, **kwargs):
     hook_class = _get_hook_class(hook_path)
     hook = hook_class(parent)

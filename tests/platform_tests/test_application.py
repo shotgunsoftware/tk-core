@@ -110,6 +110,22 @@ class TestExecuteHook(TestApplication):
         self.assertTrue(os.path.exists(path))
         os.rmdir(path)
 
+class TestHookCache(TestApplication):
+    """
+    Check that the hooks cache is cleared when an engine is restarted.
+    """
+    def test_call_hook(self):
+        
+        tank.hook.clear_hooks_cache()
+        self.assertTrue(len(tank.hook._HOOKS_CACHE) == 0)
+        app = self.engine.apps["test_app"]
+        self.assertTrue(app.execute_hook("test_hook", dummy_param=True))
+        self.assertTrue(len(tank.hook._HOOKS_CACHE) == 1)
+        self.engine.destroy()
+        self.assertTrue(len(tank.hook._HOOKS_CACHE) == 0)
+
+
+
 
 class TestProperties(TestApplication):
 
