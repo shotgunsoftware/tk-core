@@ -150,7 +150,7 @@ def _check_manifest(studio_root, starter_config, tk, sg_version_str, log):
             raise TankError("This configuration requires Shotgun version %s "
                             "but you are running version %s" % (required_version, sg_version_str))
         else:
-            log.info("Config requires shotgun v%s. You are running v%s which is fine." % (required_version, sg_version_str))
+            log.info("Config requires shotgun %s. You are running %s which is fine." % (required_version, sg_version_str))
                 
                 
     
@@ -166,7 +166,7 @@ def _check_manifest(studio_root, starter_config, tk, sg_version_str, log):
             raise TankError("This configuration requires Tank Core version %s "
                             "but you are running version %s" % (required_version, curr_core_version))
         else:
-            log.info("Config requires Tank Core v%s. You are running v%s which is fine." % (required_version, curr_core_version))
+            log.info("Config requires Tank Core %s. You are running %s which is fine." % (required_version, curr_core_version))
     
     
     
