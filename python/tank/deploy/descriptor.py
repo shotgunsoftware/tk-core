@@ -172,6 +172,19 @@ class AppDescriptor(object):
             support_url = "https://tank.shotgunsoftware.com" 
         return support_url
 
+    def get_doc_url(self):
+        """
+        Returns the documentation url for this item. Returns None if the documentation url
+        is not defined. This is sometimes subclassed, where a descriptor (like the tank app
+        store) and support for automatic, built in documentation management. If not, the 
+        default implementation will search the manifest for a doc url location.
+        """
+        meta = self._get_metadata()
+        doc_url = meta.get("documentation_url")
+        # note - doc_url can be none which is fine.
+        return doc_url
+
+
     def get_version_constraints(self):
         """
         Returns a dictionary with version constraints. The absence of a key
@@ -285,14 +298,7 @@ class AppDescriptor(object):
         returns the path to the folder where this item resides
         """
         raise NotImplementedError
-    
-    def get_doc_url(self):
-        """
-        Returns the documentation url for this item. Returns None if the documentation url
-        is not defined.
-        """
-        return None
-    
+        
     def get_changelog(self):
         """
         Returns information about the changelog for this item.
