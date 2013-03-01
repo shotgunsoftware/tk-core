@@ -56,6 +56,19 @@ class TankAppStoreDescriptor(AppDescriptor):
         # cached metadata - loaded on demand
         self.__cached_metadata = None
 
+    def _remove_app_store_metadata(self):
+        """
+        Clears the app store metadata that is cached on disk.
+        This will force a re-fetch from shotgun the next time the metadata is needed
+        """
+        cache_file = os.path.join(self.get_path(), METADATA_FILE)
+        if os.path.exists(cache_file):
+            try:
+                os.remove(cache_file)
+            except:
+                # fail gracefully - this is only a cache
+                pass
+    
     def _get_app_store_metadata(self):
         """
         Returns a metadata dictionary for this particular location.
@@ -116,7 +129,7 @@ class TankAppStoreDescriptor(AppDescriptor):
         (sg, script_user) = shotgun.create_sg_app_store_connection_proj_root(self._project_root)
 
         # first find the bundle level entity
-        bundle = sg.find_one(bundle_entity, [["sg_system_name", "is", self._name]], [])
+        bundle = sg.find_one(bundle_entity, [["sg_system_name", "is", self._name]], ["sg_status_list", "sg_deprecation_message"])
         if bundle is None:
             raise TankError("The Tank store does not contain an item named '%s'!" % self._name)
 
@@ -201,9 +214,17 @@ class TankAppStoreDescriptor(AppDescriptor):
                            AppDescriptor.ENGINE: "sg_tank_engine" }
 
         # find the main entry
-        bundle = sg.find_one(main_entity_map[bundle_type], [["sg_system_name", "is", name]], ["id"])
+        bundle = sg.find_one(main_entity_map[bundle_type], 
+                             [["sg_system_name", "is", name]], 
+                             ["id", "sg_status_list"])
         if bundle is None:
             raise TankError("App store does not contain an item named '%s'!" % name)
+
+        # check if this has been deprecated in the app store
+        # in that case we should ensure that the cache is cleared later
+        is_deprecated = False
+        if bundle["sg_status_list"] == "dep":
+            is_deprecated = True
 
         # now get the version
         link_field = link_field_map[bundle_type]
@@ -228,7 +249,16 @@ class TankAppStoreDescriptor(AppDescriptor):
         location_dict = {"type": "app_store", "name": name, "version": version_str}
 
         # and return a descriptor instance
-        return TankAppStoreDescriptor(project_root, location_dict, bundle_type)
+        desc = TankAppStoreDescriptor(project_root, location_dict, bundle_type)
+        
+        # now if this item has been deprecated, meaning that someone has gone in to the app
+        # store and updated the record's deprecation status, we want to make sure we download
+        # all this info the next time it is being requested. So we force clear the metadata
+        # cache.
+        if is_deprecated:
+            desc._remove_app_store_metadata()
+        
+        return desc
 
 
     ###############################################################################################
@@ -240,6 +270,17 @@ class TankAppStoreDescriptor(AppDescriptor):
         and for folders on disk
         """
         return self._name
+
+    def get_deprecation_status(self):
+        """
+        Returns (is_deprecated (bool), message (str)) to indicate if this item is deprecated.
+        """
+        metadata = self._get_app_store_metadata()
+        if metadata.get("bundle").get("sg_status_list") == "dep":
+            msg = metadata.get("bundle").get("sg_deprecation_message", "No reason given.")
+            return (True, msg)
+        else:
+            return (False, "")        
 
     def get_version(self):
         """

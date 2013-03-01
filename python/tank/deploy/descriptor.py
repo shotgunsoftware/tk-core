@@ -277,6 +277,14 @@ class AppDescriptor(object):
             frameworks = []
         return frameworks
 
+    def get_deprecation_status(self):
+        """
+        Returns (is_deprecated (bool), message (str)) to indicate if this item is deprecated.
+        """
+        # only some descriptors handle this. Default is to not support deprecation, e.g.
+        # always return that things are active.
+        return (False, "")
+
     ###############################################################################################
     # stuff typically implemented by deriving classes
     

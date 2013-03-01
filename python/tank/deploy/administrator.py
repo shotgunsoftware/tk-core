@@ -131,6 +131,7 @@ def check_item_update_status(project_root, environment_obj, engine_name, app_nam
     - current:       Current engine descriptor
     - latest:        Latest engine descriptor
     - out_of_date:   Is the current version out of date?
+    - deprecated:    Is this item deprecated?
     - can_update:    Can we update?
     - update_status: String with details describing the status.  
     """
@@ -145,10 +146,20 @@ def check_item_update_status(project_root, environment_obj, engine_name, app_nam
 
     # get latest version
     latest_desc = curr_desc.find_latest_version()
+
     # out of date check
     out_of_date = (latest_desc.get_version() != curr_desc.get_version())
+    
+    # check deprecation
+    (is_dep, dep_msg) = latest_desc.get_deprecation_status()
+    
+    if is_dep:
+        # we treat deprecation as an out of date that cannot be upgraded!
+        out_of_date = True
+        can_update = False
+        status = "This item has been flagged as deprecated with the following status: %s" % dep_msg 
 
-    if not out_of_date:
+    elif not out_of_date:
         can_update = False
         status = "Item is up to date!"
     
