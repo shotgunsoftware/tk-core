@@ -161,6 +161,17 @@ class AppDescriptor(object):
             desc = "No description available." 
         return desc
 
+    def get_support_url(self):
+        """
+        Returns a url that points to a support web page where you can get help
+        if you are stuck with this item.
+        """
+        meta = self._get_metadata()
+        support_url = meta.get("support_url")
+        if support_url is None:
+            support_url = "https://tank.shotgunsoftware.com" 
+        return support_url
+
     def get_version_constraints(self):
         """
         Returns a dictionary with version constraints. The absence of a key
