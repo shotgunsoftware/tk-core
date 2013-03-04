@@ -161,6 +161,20 @@ class AppDescriptor(object):
             desc = "No description available." 
         return desc
 
+    def get_icon_256(self):
+        """
+        Returns the path to a 256px square png icon file for this app
+        """
+        app_icon = os.path.join(self.get_path(), "icon_256.png")
+        if os.path.exists(app_icon):
+            return app_icon
+        else:
+            # return default
+            default_icon = os.path.abspath(os.path.join( os.path.dirname(__file__), 
+                                                         "..", "platform", "qt",
+                                                         "default_app_icon_256.png"))
+            return default_icon
+
     def get_support_url(self):
         """
         Returns a url that points to a support web page where you can get help

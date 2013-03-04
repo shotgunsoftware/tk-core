@@ -35,6 +35,28 @@ class TankBundle(object):
         # emit an engine started event
         tk.execute_hook(constants.TANK_BUNDLE_INIT_HOOK_NAME, bundle=self)
         
+    ##########################################################################################
+    # properties used by internal classes, not part of the public interface
+    
+    @property
+    def descriptor(self):
+        """
+        Internal method - not part of Tank's public interface.
+        This method may be changed or even removed at some point in the future.
+        We leave no guarantees that it will remain unchanged over time, so 
+        do not use in any app code. 
+        """
+        return self.__descriptor
+    
+    @property
+    def settings(self):
+        """
+        Internal method - not part of Tank's public interface.
+        This method may be changed or even removed at some point in the future.
+        We leave no guarantees that it will remain unchanged over time, so 
+        do not use in any app code. 
+        """
+        return self.__settings
 
     ##########################################################################################
     # properties
@@ -76,6 +98,13 @@ class TankBundle(object):
         return self.__descriptor.get_version()
 
     @property
+    def icon_256(self):
+        """
+        The path to the app's icon, which is a 256px square png
+        """
+        return self.__descriptor.get_icon_256()
+
+    @property
     def documentation_url(self):
         """
         Return the relevant documentation url for this item.
@@ -83,6 +112,15 @@ class TankBundle(object):
         :returns: url string, None if no documentation was found
         """
         return self.__descriptor.get_doc_url()        
+
+    @property
+    def support_url(self):
+        """
+        Return the relevant support url for this item.
+        
+        :returns: url string, None if no documentation was found
+        """
+        return self.__descriptor.get_support_url()        
 
     @property
     def disk_location(self):
