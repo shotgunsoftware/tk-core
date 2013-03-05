@@ -123,14 +123,22 @@ def setup_frameworks(engine_obj, parent_obj, env, parent_descriptor):
     
     # looks like all of the frameworks are valid! Load them one by one
     for fw_inst_name in framework_instance_names:
-        _load_framework(engine_obj, env, parent_obj, fw_inst_name)
+        
+        engine_obj.log_debug("%s - loading framework %s" % (parent_obj, fw_inst_name))
+        
+        fw_obj = load_framework(engine_obj, env, fw_inst_name)
+        
+        # note! frameworks are keyed by their code name, not their instance name
+        parent_obj.frameworks[fw_obj.name] = fw_obj
+        
+        
 
 
-def _load_framework(engine_obj, env, parent_obj, fw_instance_name):
+def load_framework(engine_obj, env, fw_instance_name):
     """
-    Validates, loads and initializes a framework and attaches it to a parent object.
+    Validates, loads and initializes a framework.
+    Returns an initialized framework object.
     """
-    engine_obj.log_debug("%s - loading framework %s" % (parent_obj, fw_instance_name))
     
     # now get the app location and resolve it into a version object
     descriptor = env.get_framework_descriptor(fw_instance_name)
@@ -162,7 +170,7 @@ def _load_framework(engine_obj, env, parent_obj, fw_instance_name):
     
     except Exception, e:
         # code execution error in the validation. 
-        parent_obj.log_exception("A general exception was caught while trying to " 
+        engine_obj.log_exception("A general exception was caught while trying to " 
                                  "validate the configuration for Framework %s: %s" % (fw_instance_name, e))
         
         raise TankError("Could not validate framework %s: %s" % (fw_instance_name, e))
@@ -171,7 +179,7 @@ def _load_framework(engine_obj, env, parent_obj, fw_instance_name):
     # load the framework
     try:
         # initialize fw class
-        fw = get_framework(engine_obj, descriptor, fw_settings)
+        fw = _create_framework_instance(engine_obj, descriptor, fw_settings)
         
         # load any frameworks required by the framework :)
         setup_frameworks(engine_obj, fw, env, descriptor)
@@ -182,12 +190,10 @@ def _load_framework(engine_obj, env, parent_obj, fw_instance_name):
     except Exception, e:
         raise TankError("Framework %s failed to initialize: %s" % (descriptor, e))
     
-    else:
-        # note! frameworks are keyed by their code name, not their instance name
-        parent_obj.frameworks[descriptor.get_system_name()] = fw
+    return fw
 
 
-def get_framework(engine, descriptor, settings):
+def _create_framework_instance(engine, descriptor, settings):
     """
     Internal helper method. 
     Returns an framework object given an engine and fw settings.

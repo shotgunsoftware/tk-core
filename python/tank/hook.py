@@ -8,6 +8,7 @@ Defines the base class for all Tank Hooks.
 import os
 from . import loader
 from .platform import constants
+from .errors import TankError
 
 _HOOKS_CACHE = {}
 
@@ -25,6 +26,21 @@ class Hook(object):
     @property
     def parent(self):
         return self.__parent
+    
+    def load_framework(self, framework_instance_name):
+        """
+        Loads and returns a framework given an environment instance name.
+        Only works for hooks that are executed from apps and frameworks.
+        """
+        # avoid circular refs
+        from .platform import framework
+        try:
+            engine = self.__parent.engine
+        except:
+            raise TankError("Cannot load framework %s for %r - it does not have a "
+                            "valid engine property!" % (framework_instance_name, self.__parent))
+            
+        return framework.load_framework(engine, engine.get_env(), framework_instance_name)
     
     def execute(self):
         return None

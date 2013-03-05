@@ -112,6 +112,15 @@ class Engine(TankBundle):
                                                            self.name, 
                                                            self.__env.name)
 
+    def get_env(self):
+        """
+        Returns the environment object associated with this engine.
+        This is a private method which is internal to tank and should
+        not be used by external code. This method signature may change at any point
+        and the object returned may also change. Do not use outside of the core api.
+        """
+        return self.__env
+    
     ##########################################################################################
     # properties
 
