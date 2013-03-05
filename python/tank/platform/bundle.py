@@ -12,7 +12,6 @@ import imp
 import uuid
 from .. import hook
 from ..errors import TankError
-
 from . import constants
 
 class TankBundle(object):
@@ -195,27 +194,38 @@ class TankBundle(object):
         
         For more information, see the API documentation.
         """
+        # local import to avoid cycles
+        from . import framework
         
-        # get the python folder
-        python_folder = os.path.join(self.disk_location, constants.BUNDLE_PYTHON_FOLDER)
-        if not os.path.exists(python_folder):
-            raise TankError("Cannot import - folder %s does not exist!" % python_folder)
+        # first, set the module we are currently processing
+        framework.CURRENT_BUNDLE_DOING_IMPORT.append(self)
         
-        # and import
-        if self.__module_uid is None:
-            self.log_debug("Importing python modules in %s..." % python_folder)
-            # alias the python folder with a UID to ensure it is unique every time it is imported
-            self.__module_uid = uuid.uuid4().hex
-            imp.load_module(self.__module_uid, None, python_folder, ("", "", imp.PKG_DIRECTORY) )
+        try:
         
-        # we can now find our actual module in sys.modules as GUID.module_name
-        mod_name = "%s.%s" % (self.__module_uid, module_name)
-        if mod_name not in sys.modules:
-            raise TankError("Cannot find module %s as part of %s!" % (module_name, python_folder))
+            # get the python folder
+            python_folder = os.path.join(self.disk_location, constants.BUNDLE_PYTHON_FOLDER)
+            if not os.path.exists(python_folder):
+                raise TankError("Cannot import - folder %s does not exist!" % python_folder)
+            
+            # and import
+            if self.__module_uid is None:
+                self.log_debug("Importing python modules in %s..." % python_folder)
+                # alias the python folder with a UID to ensure it is unique every time it is imported
+                self.__module_uid = uuid.uuid4().hex
+                imp.load_module(self.__module_uid, None, python_folder, ("", "", imp.PKG_DIRECTORY) )
+            
+            # we can now find our actual module in sys.modules as GUID.module_name
+            mod_name = "%s.%s" % (self.__module_uid, module_name)
+            if mod_name not in sys.modules:
+                raise TankError("Cannot find module %s as part of %s!" % (module_name, python_folder))
+            
+            # lastly, append our own object to the added module. This is to make it easier to 
+            # do elegant imports in the class scope via the tank.platform.import_framework method
+            sys.modules[mod_name]._tank_bundle = self
         
-        # lastly, append our own object to the added module. This is to make it easier to 
-        # do elegant imports in the class scope via the tank.platform.import_framework method
-        sys.modules[mod_name]._tank_bundle = self
+        finally:
+            # no longer processing this one
+            framework.CURRENT_BUNDLE_DOING_IMPORT.pop()
         
         return sys.modules[mod_name]
 
