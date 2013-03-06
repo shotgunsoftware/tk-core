@@ -166,6 +166,19 @@ class PathCache(object):
             self._connection.close()
             self._connection = None
         
+    def delete_path_tree(self, path):
+        """
+        Deletes all records that are associated with the given path
+        """
+        # there was no entity in the db. So let's create it!
+        c = self._connection.cursor()
+        root_name, relative_path = self._seperate_root(path)
+        db_path = self._path_to_dbpath(relative_path)
+        query = "DELETE FROM path_cache where root=? and path like '%s%%'" % db_path
+        c.execute(query, (root_name,) )
+        self._connection.commit()
+        c.close()
+        
 
     def add_mapping(self, entity_type, entity_id, entity_name, path, primary=True):
         """
@@ -181,6 +194,7 @@ class PathCache(object):
         :param entity_name: a shotgun entity name
         :param path: a path on disk representing the entity.
         """
+        
         if primary:
             # the primary entity must be unique: path/id/type 
             # see if there are any records for this path
