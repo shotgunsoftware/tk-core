@@ -164,14 +164,14 @@ class TankQDialog(TankDialogBase):
             self.anim.setDuration(800)
             self.anim.setStartValue(QtCore.QPoint(self.ui.page_1.x()-(GRADIENT_WIDTH+INFO_WIDTH), self.ui.page_1.y() ))
             self.anim.setEndValue(QtCore.QPoint(self.ui.page_1.x(), self.ui.page_1.y() ))
-            self.anim.setEasingCurve(QtCore.QEasingCurve.OutBounce)
+            self.anim.setEasingCurve(QtCore.QEasingCurve.OutCubic)
             self.anim.finished.connect( self._finished_show_anim )
 
             self.anim2 = QtCore.QPropertyAnimation(self.ui.page_2, "pos")
             self.anim2.setDuration(800)
             self.anim2.setStartValue(QtCore.QPoint(self.ui.page_2.x(), self.ui.page_2.y() ))
             self.anim2.setEndValue(QtCore.QPoint(self.ui.page_2.x()+GRADIENT_WIDTH+INFO_WIDTH, self.ui.page_2.y() ))
-            self.anim2.setEasingCurve(QtCore.QEasingCurve.OutBounce)
+            self.anim2.setEasingCurve(QtCore.QEasingCurve.OutCubic)
 
             self.grp = QtCore.QParallelAnimationGroup()
             self.grp.addAnimation(self.anim)
@@ -192,13 +192,13 @@ class TankQDialog(TankDialogBase):
             self.anim.setDuration(800)
             self.anim.setStartValue(QtCore.QPoint(self.ui.page_2.x()+(GRADIENT_WIDTH+INFO_WIDTH), self.ui.page_2.y() ))
             self.anim.setEndValue(QtCore.QPoint(self.ui.page_2.x(), self.ui.page_2.y() ))
-            self.anim.setEasingCurve(QtCore.QEasingCurve.OutBounce)
+            self.anim.setEasingCurve(QtCore.QEasingCurve.OutCubic)
     
             self.anim2 = QtCore.QPropertyAnimation(self.ui.page_1, "pos")
             self.anim2.setDuration(800)
             self.anim2.setStartValue(QtCore.QPoint(self.ui.page_1.x(), self.ui.page_1.y() ))
             self.anim2.setEndValue(QtCore.QPoint(self.ui.page_1.x()-(GRADIENT_WIDTH+INFO_WIDTH), self.ui.page_1.y() ))
-            self.anim2.setEasingCurve(QtCore.QEasingCurve.OutBounce)
+            self.anim2.setEasingCurve(QtCore.QEasingCurve.OutCubic)
             self.anim2.finished.connect( self._finished_show_anim )
             
             self.grp = QtCore.QParallelAnimationGroup()
