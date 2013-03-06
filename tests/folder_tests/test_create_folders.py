@@ -767,6 +767,14 @@ class TestFolderCreationEdgeCases(TankTestBase):
         
         self.path_cache = path_cache.PathCache(self.tk.project_path)
 
+    def tearDown(self):
+        
+        # making sure that no file handles remain active 
+        # leftover handles cause problems on windows! 
+        self.path_cache.close()
+        self.path_cache = None
+
+
 
     def test_delete_shot_then_recreate(self):
         
