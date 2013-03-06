@@ -9,6 +9,7 @@ import tank
 from tank_vendor import yaml
 from tank import TankError
 from tank import hook
+from tank import path_cache
 from tank import folder
 from tank_test.tank_test_base import *
 
@@ -721,4 +722,132 @@ class TestSchemaCreateFoldersWorkspaces(TankTestBase):
                                             engine=None)        
         
         assert_paths_to_create(expected_paths)
+
+
+
+
+
+
+
+class TestFolderCreationEdgeCases(TankTestBase):
+    """
+    Tests renaming edge cases etc.
+    
+    """
+    def setUp(self):
+        super(TestFolderCreationEdgeCases, self).setUp()
+        self.setup_fixtures()
+        
+        self.tk = tank.Tank(self.project_root)
+        
+        self.seq = {"type": "Sequence",
+                    "id": 2,
+                    "code": "seq_code",
+                    "project": self.project}
+        self.shot = {"type": "Shot",
+                     "id": 1,
+                     "code": "shot_code",
+                     "sg_sequence": self.seq,
+                     "project": self.project}
+        self.step = {"type": "Step",
+                     "id": 3,
+                     "code": "step_code",
+                     "short_name": "step_short_name"}
+        self.task = {"type":"Task",
+                     "id": 1,
+                     "content": "this task",
+                     "entity": self.shot,
+                     "step": {"type": "Step", "id": 3},
+                     "project": self.project}
+
+        # Add these to mocked shotgun
+        self.add_to_sg_mock_db([self.shot, self.seq, self.step, self.project, self.task])
+        
+        self.tk = tank.Tank(self.project_root)
+        
+        self.path_cache = path_cache.PathCache(self.tk.project_path)
+
+
+    def test_delete_shot_then_recreate(self):
+        
+        # 1. create fodlers for shot ABC
+        # 2. delete shot ABC from SG
+        # 3. create a new shot ABC in SG
+        # 4. when creating folders, it should delete the previous records and replace with new
+        
+
+        self.assertEquals(self.path_cache.get_paths("Shot", self.shot["id"]), [])
+        
+        folder.process_filesystem_structure(self.tk, 
+                                            self.task["type"], 
+                                            self.task["id"], 
+                                            preview=False, 
+                                            engine=None)
+        
+        # check that it is in the db
+        shot_path = os.path.join(self.project_root, "sequences", "seq_code", "shot_code")
+        paths_in_db = self.path_cache.get_paths("Shot", self.shot["id"])
+        self.assertEquals(paths_in_db, [shot_path])
+        
+        # change the id of the shot - effectively deleting and creating a shot!
+        old_id = self.shot["id"]
+        self.shot["id"] = 12345
+        
+        self.assertEquals(self.path_cache.get_paths("Shot", self.shot["id"]), [])
+        
+        folder.process_filesystem_structure(self.tk, 
+                                            self.task["type"], 
+                                            self.task["id"], 
+                                            preview=False, 
+                                            engine=None)
+        
+        # now check that the path is associated with the new id and not the old
+        shot_path = os.path.join(self.project_root, "sequences", "seq_code", "shot_code")
+        paths_in_db = self.path_cache.get_paths("Shot", self.shot["id"])
+        self.assertEquals(paths_in_db, [shot_path])
+        self.assertEquals(self.path_cache.get_paths("Shot", old_id), [])
+
+        
+        
+        
+
+    def test_rename_shot_but_keep_on_disk(self):
+        
+        # 1. create fodlers for shot ABC
+        # 2. rename shot to XYZ
+        # 3. create folders --> ERROR
+        
+
+        folder.process_filesystem_structure(self.tk, 
+                                            self.task["type"], 
+                                            self.task["id"], 
+                                            preview=False, 
+                                            engine=None)
+        
+        # rename the shot
+        self.shot["code"] = "XYZ"
+
+        self.assertRaises(TankError, 
+                          folder.process_filesystem_structure, 
+                          self.tk,
+                          self.task["type"],
+                          self.task["id"],
+                          preview=False,
+                          engine=None)
+        
+        # but if I delete the old folder on disk, the folder creation should proceed
+        shot_path = os.path.join(self.project_root, "sequences", "seq_code", "shot_code")
+        renamed_shot_path = os.path.join(self.project_root, "sequences", "seq_code", "shot_code_renamed")
+        shutil.move(shot_path, renamed_shot_path)
+        
+        folder.process_filesystem_structure(self.tk, 
+                                            self.task["type"], 
+                                            self.task["id"], 
+                                            preview=False, 
+                                            engine=None)
+        
+        new_shot_path = os.path.join(self.project_root, "sequences", "seq_code", "XYZ")
+        self.assertTrue( os.path.exists(new_shot_path))
+              
+     
 
