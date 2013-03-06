@@ -69,6 +69,18 @@ def update_item(log, project_root, env, status, engine_name, app_name=None):
         env.update_app_settings(engine_name, app_name, data)
         env.update_app_location(engine_name, app_name, new_descriptor.get_location())
 
+def process_framework(log, project_root, env, framework_name):
+    """
+    Ensures that a framework exists on disk.
+    """
+    log.info("Processing framework %s" % framework_name)
+    desc = env.get_framework_descriptor(framework_name)
+    
+    if not desc.exists_local():
+        log.info("Downloading %s..." % desc)
+        desc.download_local() 
+
+
 def process_item(log, project_root, env, engine_name, app_name=None):
     """
     Checks if an app/engine is up to date and potentially upgrades it.
@@ -172,12 +184,17 @@ def main(log):
         log.info("")
         log.info("Processing Environment %s..." % env.name)
         log.info("")
+                
         for engine in env.get_engines():
             items.append( process_item(log, project_root, env, engine) )
             log.info("")
             for app in env.get_apps(engine):
                 items.append( process_item(log, project_root, env, engine, app) )
                 log.info("")
+        
+        for framework in env.get_frameworks():
+            process_framework(log, project_root, env, framework)
+        
 
     # display summary
     log.info("")
