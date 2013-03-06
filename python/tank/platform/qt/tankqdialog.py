@@ -155,20 +155,31 @@ class TankQDialog(TankDialogBase):
         
             
         if self._info_mode:
-            # activate page 1 again - note that this will reset all positions!
-            self.ui.stackedWidget.setCurrentIndex(0)
-            # this hides page page 2, but let's show it again
-            self.ui.page_2.show()
+            
+            self.setUpdatesEnabled(False)
+            try:
+                # activate page 1 again - note that this will reset all positions!
+                self.ui.stackedWidget.setCurrentIndex(0)
+                # this hides page page 2, but let's show it again
+                self.ui.page_2.show()
+                # put this window top most to avoid flickering
+                self.ui.page_2.raise_()       
+                # and move the page 1 window back to its current position
+                self.ui.page_1.move( self.ui.page_1.x()-(GRADIENT_WIDTH+INFO_WIDTH), self.ui.page_1.y())
+                # now that the first window is positioned correctly, make it top most again.
+                self.ui.page_1.raise_()       
+            finally:
+                self.setUpdatesEnabled(True)
             
             self.anim = QtCore.QPropertyAnimation(self.ui.page_1, "pos")
-            self.anim.setDuration(800)
-            self.anim.setStartValue(QtCore.QPoint(self.ui.page_1.x()-(GRADIENT_WIDTH+INFO_WIDTH), self.ui.page_1.y() ))
-            self.anim.setEndValue(QtCore.QPoint(self.ui.page_1.x(), self.ui.page_1.y() ))
+            self.anim.setDuration(600)
+            self.anim.setStartValue(QtCore.QPoint(self.ui.page_1.x(), self.ui.page_1.y() ))
+            self.anim.setEndValue(QtCore.QPoint(self.ui.page_1.x()+(GRADIENT_WIDTH+INFO_WIDTH), self.ui.page_1.y() ))
             self.anim.setEasingCurve(QtCore.QEasingCurve.OutCubic)
             self.anim.finished.connect( self._finished_show_anim )
 
             self.anim2 = QtCore.QPropertyAnimation(self.ui.page_2, "pos")
-            self.anim2.setDuration(800)
+            self.anim2.setDuration(600)
             self.anim2.setStartValue(QtCore.QPoint(self.ui.page_2.x(), self.ui.page_2.y() ))
             self.anim2.setEndValue(QtCore.QPoint(self.ui.page_2.x()+GRADIENT_WIDTH+INFO_WIDTH, self.ui.page_2.y() ))
             self.anim2.setEasingCurve(QtCore.QEasingCurve.OutCubic)
@@ -189,13 +200,13 @@ class TankQDialog(TankDialogBase):
             self.ui.page_1.raise_()                
 
             self.anim = QtCore.QPropertyAnimation(self.ui.page_2, "pos")
-            self.anim.setDuration(800)
+            self.anim.setDuration(600)
             self.anim.setStartValue(QtCore.QPoint(self.ui.page_2.x()+(GRADIENT_WIDTH+INFO_WIDTH), self.ui.page_2.y() ))
             self.anim.setEndValue(QtCore.QPoint(self.ui.page_2.x(), self.ui.page_2.y() ))
             self.anim.setEasingCurve(QtCore.QEasingCurve.OutCubic)
     
             self.anim2 = QtCore.QPropertyAnimation(self.ui.page_1, "pos")
-            self.anim2.setDuration(800)
+            self.anim2.setDuration(600)
             self.anim2.setStartValue(QtCore.QPoint(self.ui.page_1.x(), self.ui.page_1.y() ))
             self.anim2.setEndValue(QtCore.QPoint(self.ui.page_1.x()-(GRADIENT_WIDTH+INFO_WIDTH), self.ui.page_1.y() ))
             self.anim2.setEasingCurve(QtCore.QEasingCurve.OutCubic)
