@@ -22,7 +22,7 @@ done
 SELF_PATH=$(dirname $SELF_PATH)
 
 # if we have a local install of the core, this is the script to dispatch to
-LOCAL_SCRIPT="$SELF_PATH/install/core/scripts/tank.sh"
+LOCAL_SCRIPT="$SELF_PATH/install/core/scripts/tank_cmd.sh"
 
 if [ -f "$LOCAL_SCRIPT" ];
 then
