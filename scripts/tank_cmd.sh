@@ -32,8 +32,5 @@ then
     exit 1
 fi
 
-# get rid of the location param @ $1, no longer needed
-shift
-
 # execute the python script which does the actual work
 exec $interpreter "$core_install_root/scripts/tank_cmd.py" $@
