@@ -75,12 +75,12 @@ def create_sg_connection(proj_root):
     api_handle, _ = __create_sg_connection(shotgun_cfg_path, evaluate_script_user=False)
     return api_handle
 
-def create_sg_connection_studio_root(studio_root):
+def create_sg_connection_studio_root(pipeline_config_root):
     """
     Creates a standard tank shotgun connection.
-    based on the studio root
+    based on a pipeline_config_root
     """
-    shotgun_cfg_path = os.path.join(studio_root, "tank", "config", "core", constants.SHOTGUN_CONFIG_FILE)
+    shotgun_cfg_path = os.path.join(pipeline_config_root, "config", "core", constants.SHOTGUN_CONFIG_FILE)
     api_handle, _ = __create_sg_connection(shotgun_cfg_path, evaluate_script_user=False)
     return api_handle
 
@@ -99,7 +99,7 @@ def create_sg_app_store_connection_proj_root(proj_root):
     (api_handle, script_user) = __create_sg_connection(shotgun_cfg_path, evaluate_script_user=True)
     return (api_handle, script_user)
 
-def create_sg_app_store_connection(studio_root):
+def create_sg_app_store_connection(pipeline_config_root):
     """
     Creates a shotgun connection to the tank app store.
 
@@ -110,7 +110,7 @@ def create_sg_app_store_connection(studio_root):
     as a standard sg entity dictionary.
 
     """
-    shotgun_cfg_path = os.path.join(studio_root, "tank", "config", "core", constants.APP_STORE_CONFIG_FILE)
+    shotgun_cfg_path = os.path.join(pipeline_config_root, "config", "core", constants.APP_STORE_CONFIG_FILE)
     (api_handle, script_user) = __create_sg_connection(shotgun_cfg_path, evaluate_script_user=True)
     return (api_handle, script_user)
 
