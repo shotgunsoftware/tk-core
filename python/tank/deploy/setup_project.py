@@ -14,6 +14,8 @@ PIPELINE_CONFIGURATION_ENTITY = "CustomNonProjectEntity02"
 PIPELINE_CONFIGURATION_ENTITY_PROJ_LINK = "sg_project"
 DEFAULT_CFG = "tk-config-default"
 
+SG_LOCAL_STORAGE_OS_MAP = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
+
 import re
 import sys
 import os
@@ -616,6 +618,69 @@ def interactive_setup(log, pipeline_config_root):
     # check if the user wants the api local
     use_local = cmdline_ui.get_use_local_core()
 
+    ##################################################################
+    # validate the local storages
+    #
+    
+    for s in resolved_storages:
+        current_os_path = s.get( SG_LOCAL_STORAGE_OS_MAP[sys.platform] )
+        
+        if current_os_path is None:
+            raise TankError("The Storage %s does not have a path defined for the current os. "
+                            "Please set a path and try again!" % s.get("code"))
+        
+        project_path = os.path.join(current_os_path, project_disk_folder)
+        if not os.path.exists(project_path):
+            raise TankError("The Project path %s for storage %s does not exist on disk! "
+                            "Please create it and try again!" % (project_path, s.get("code")))
+    
+        tank_folder = os.path.join(project_path, "tank")
+        if os.path.exists(tank_folder):
+            # tank folder exists - make sure it is writable
+            if not os.access(tank_folder, os.W_OK|os.R_OK|os.X_OK):
+                raise TankError("The permissions setting for '%s' is too strict. The current user "
+                                "cannot create files or folders in this location." % tank_folder)
+        else:
+            # not tank folder has been created in this storage
+            # make sure we can create it
+            if not os.access(project_path, os.W_OK|os.R_OK|os.X_OK):
+                raise TankError("The permissions setting for '%s' is too strict. The current user "
+                                "cannot create a tank folder in this location." % project_path)
+            
+
+    
+    
+    ##################################################################
+    # validate the install location
+    #
+    current_os_pc_location = locations_dict[sys.platform]
+    
+    if os.path.exists(current_os_pc_location):
+        # pc location already exists - make sure it doesn't already contain
+        # an install
+        if os.path.exists(os.path.join(current_os_pc_location, "install")) or \
+           os.path.exists(os.path.join(current_os_pc_location, "config")):
+            raise TankError("Looks like the location '%s' already contains a "
+                            "tank config!" % current_os_pc_location)
+        # also make sure it has right permissions
+        if not os.access(current_os_pc_location, os.W_OK|os.R_OK|os.X_OK):
+            raise TankError("The permissions setting for '%s' is too strict. The current user "
+                            "cannot create files or folders in this location." % current_os_pc_location)
+        
+    else:
+        # path does not exist! 
+        # make sure parent exists and is writable
+    
+        parent_os_pc_location = os.path.dirname(current_os_pc_location)
+        if not os.path.exists(parent_os_pc_location):
+            raise TankError("The folder '%s' does not exist! Please create "
+                            "it before proceeding!" % parent_os_pc_location)
+    
+        # and make sure we can create a folder in it
+        if not os.access(parent_os_pc_location, os.W_OK|os.R_OK|os.X_OK):
+            raise TankError("The permissions setting for '%s' is too strict. The current user "
+                            "cannot create folders in this location." % parent_os_pc_location)
+    
     
     ###############################################################################################
     # Stage 2 - summary and confirmation
@@ -623,6 +688,8 @@ def interactive_setup(log, pipeline_config_root):
     log.info("")
     log.info("")
     log.info("Project Creation Summary:")
+    log.info("-------------------------")
+    log.info("")
     log.info("You are about to set up Tank for Project %s - %s " % (project_id, project_name))
     log.info("The following items will be created:")
     log.info("")
@@ -634,7 +701,7 @@ def interactive_setup(log, pipeline_config_root):
 
     for x in resolved_storages:
 
-        log.info("* A '%s' project root will be attached to:" % x["code"] )
+        log.info("* Tank will connect to the project folder in Storage '%s':" % x["code"] )
         
         if x["mac_path"] is None:
             log.info("  - on Macosx: No path defined")
@@ -666,10 +733,29 @@ def interactive_setup(log, pipeline_config_root):
     ###############################################################################################
     # Stage 3 - execution
     
+    log.info("")
+    log.info("Starting project setup.")
+    
+    # first do disk structure setup, this is most likely to fail.
+    current_os_pc_location = locations_dict[sys.platform]    
+    if not os.path.exists(current_os_pc_location):
+        # note that we have already validated that creation is possible
+        os.mkdir(current_os_pc_location, 0777)
+         
+    
+    for s in resolved_storages:
+        current_os_path = s.get( SG_LOCAL_STORAGE_OS_MAP[sys.platform] )
+        tank_path = os.path.join(current_os_path, project_disk_folder, "tank")
+        if not os.path.exists(tank_path):
+            os.mkdir(tank_path, 0777)
+    
+    raise Exception("fo")
     
     # creating project.tank_name record
     log.debug("Shotgun: Setting Project.tank_name to %s" % project_disk_folder)
     sg.update("Project", project_id, {"tank_name": project_disk_folder})
+    
+    
     
     # make sure there is a local storage for all roots
     log.debug("Making sure there is a local storage for all roots...")

@@ -26,7 +26,7 @@ import getopt
 from tank import TankError
 from tank.deploy import setup_project
 
-CORE_COMMANDS = ["setup_project", "clone", "core", "join", "leave"]
+CORE_COMMANDS = ["setup_project", "clone", "core", "join", "leave", "info"]
 DEFAULT_ENGINE = "tk-shell"
 
 def show_help():
@@ -65,14 +65,16 @@ def run_core_command(log, pipeline_config_root, command, args):
         # fork a pipeline config
         pass
             
+    elif command == "info":
+        # info about all PCs etc.
+        pass
+
     elif command == "core":
         # update the core in this pipeline config
         
         # core update > update to latest
         # core        > info about which PCs are using this core + help
-        # core info   > info about which PCs are using this core
         # core clone  > get local core
-        
         pass
         
     elif command == "join":
