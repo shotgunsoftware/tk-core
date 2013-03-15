@@ -56,7 +56,6 @@ class TankGitHubDescriptor(AppDescriptor):
         self._vendor = location_dict.get("vendor")
         self._name = location_dict.get("repo")
         self._version = location_dict.get("version")
-        self._tk = Tank(project_root)
 
         if self._vendor is None or self._name is None or self._version is None:
             raise TankError("Github descriptor is not valid: %s" % str(location_dict))

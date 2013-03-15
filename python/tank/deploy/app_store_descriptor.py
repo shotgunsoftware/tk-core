@@ -50,7 +50,6 @@ class TankAppStoreDescriptor(AppDescriptor):
         super(TankAppStoreDescriptor, self).__init__(project_root, location_dict)
 
         self._type = bundle_type
-        self._tk = Tank(project_root)
         self._name = location_dict.get("name")
         self._version = location_dict.get("version")
         # cached metadata - loaded on demand

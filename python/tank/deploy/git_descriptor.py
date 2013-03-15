@@ -33,7 +33,6 @@ class TankGitDescriptor(AppDescriptor):
         super(TankGitDescriptor, self).__init__(project_root, location_dict)
 
         self._type = type
-        self._tk = Tank(project_root)
         self._path = location_dict.get("path")
         self._version = location_dict.get("version")
 
