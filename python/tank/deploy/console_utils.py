@@ -190,7 +190,7 @@ def ensure_frameworks_installed(log, tank_api_instance, descriptor, environment)
     
         # now make sure all constraints are okay
         try:
-            administrator.check_constraints_for_item(tank_api_instance.project_path, fw_descriptor, environment)
+            administrator.check_constraints_for_item(fw_descriptor, environment)
         except TankError, e:
             raise TankError("Cannot install framework: %s" % e)
     

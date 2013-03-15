@@ -21,7 +21,7 @@ from ..api import Tank
 # helpers
 
 g_sg_studio_version = None
-def __get_sg_version(project_root):
+def __get_sg_version():
     """
     Returns the version of the studio shotgun server.
     
@@ -37,7 +37,7 @@ def __get_sg_version(project_root):
         
     return g_sg_studio_version
 
-def _check_constraints(project_root, descriptor_obj, parent_engine_descriptor = None):
+def _check_constraints(descriptor_obj, parent_engine_descriptor = None):
     """
     Checks if there are constraints blocking an upgrade or install
     
@@ -51,7 +51,7 @@ def _check_constraints(project_root, descriptor_obj, parent_engine_descriptor = 
     
     if "min_sg" in constraints:
         # ensure shotgun version is ok
-        studio_sg_version = __get_sg_version(project_root)
+        studio_sg_version = __get_sg_version()
         minimum_sg_version = constraints["min_sg"]
         if util.is_version_older(studio_sg_version, minimum_sg_version):
             can_update = False
@@ -93,7 +93,7 @@ def _check_constraints(project_root, descriptor_obj, parent_engine_descriptor = 
 ##########################################################################################
 # public interface
 
-def check_constraints_for_item(project_root, item_desc, environment_obj, engine_instance_name=None):
+def check_constraints_for_item(item_desc, environment_obj, engine_instance_name=None):
     """
     Validates the constraints for a single item. This will check that requirements for 
     minimum versions for shotgun, core API etc are fulfilled.
@@ -110,7 +110,7 @@ def check_constraints_for_item(project_root, item_desc, environment_obj, engine_
         parent_engine_descriptor = None
         
     # check constraints (minimum versions etc)
-    (can_update, reasons) = _check_constraints(project_root, item_desc, parent_engine_descriptor)
+    (can_update, reasons) = _check_constraints(item_desc, parent_engine_descriptor)
     
     if can_update == False:
         reasons.insert(0, "%s requires an upgrade to one or more "
@@ -120,7 +120,7 @@ def check_constraints_for_item(project_root, item_desc, environment_obj, engine_
 
 
 
-def check_item_update_status(project_root, environment_obj, engine_name, app_name = None):
+def check_item_update_status(environment_obj, engine_name, app_name = None):
     """
     Checks if an engine or app is up to date.
     Will locate the latest version of the item and run a comparison.
@@ -166,7 +166,7 @@ def check_item_update_status(project_root, environment_obj, engine_name, app_nam
     else:
         # maybe we can update!
         # look at constraints
-        (can_update, reasons) = _check_constraints(project_root, latest_desc, parent_engine_desc)
+        (can_update, reasons) = _check_constraints(latest_desc, parent_engine_desc)
         
         # create status message
         if can_update:
