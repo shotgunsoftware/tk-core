@@ -239,7 +239,7 @@ def generate_settings_diff(new_descriptor, old_descriptor=None):
     return data
     
     
-def validate_parameter(project_root, descriptor, parameter, str_value):
+def validate_parameter(tank_api_instance, descriptor, parameter, str_value):
     """
     Convenience wrapper. Validates a single parameter.
     Will raise exceptions if validation fails.
@@ -252,8 +252,7 @@ def validate_parameter(project_root, descriptor, parameter, str_value):
     # now convert string value input to objet (int, string, dict etc)
     obj_value = validation.convert_string_to_type(str_value, schema_type)
     # finally validate this object against the schema
-    tk_api = Tank(project_root)
-    validation.validate_single_setting(descriptor.get_display_name(), tk_api, schema, parameter, obj_value)
+    validation.validate_single_setting(descriptor.get_display_name(), tank_api_instance, schema, parameter, obj_value)
     
     # we are here, must mean we are good to go!
     return obj_value

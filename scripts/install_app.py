@@ -16,7 +16,7 @@ python_path = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "py
 sys.path.append(python_path)
 
 
-
+import tank
 from tank.errors import TankError
 from tank.platform import constants
 from tank.deploy import administrator
@@ -76,13 +76,14 @@ def add_app(log, project_root, env_name, engine_instance_name, app_name):
     # okay to install!
     
     # ensure that all required frameworks have been installed
-    console_utils.ensure_frameworks_installed(log, project_root, app_descriptor, env)
+    tank_api = tank.Tank(project_root)
+    console_utils.ensure_frameworks_installed(log, tank_api, app_descriptor, env)
 
     # create required shotgun fields
     app_descriptor.ensure_shotgun_fields_exist()
 
     # now get data for all new settings values in the config
-    params = console_utils.get_configuration(log, project_root, app_descriptor, None)
+    params = console_utils.get_configuration(log, tank_api, app_descriptor, None)
 
     # next step is to add the new configuration values to the environment
     env.create_app_settings(engine_instance_name, app_instance_name)

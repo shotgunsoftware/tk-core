@@ -21,6 +21,8 @@ from tank.platform import environment
 from tank.deploy import administrator
 from tank.deploy import console_utils
 
+import tank
+
 ##########################################################################################
 # deploy stuff
 
@@ -43,10 +45,11 @@ def update_item(log, project_root, env, status, engine_name, app_name=None):
     new_descriptor.ensure_shotgun_fields_exist()
 
     # ensure that all required frameworks have been installed
-    console_utils.ensure_frameworks_installed(log, project_root, new_descriptor, env)
+    tank_api = tank.Tank(project_root)
+    console_utils.ensure_frameworks_installed(log, tank_api, new_descriptor, env)
 
     # now get data for all new settings values in the config
-    params = console_utils.get_configuration(log, project_root, new_descriptor, old_descriptor)
+    params = console_utils.get_configuration(log, tank_api, new_descriptor, old_descriptor)
 
     # awesome. got all the values we need.
     log.info("")

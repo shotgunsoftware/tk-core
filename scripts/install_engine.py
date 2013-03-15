@@ -20,6 +20,7 @@ import pprint
 python_path = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "python"))
 sys.path.append(python_path)
 
+import tank
 from tank.deploy.app_store_descriptor import TankAppStoreDescriptor
 from tank.deploy.descriptor import AppDescriptor
 from tank.platform import constants
@@ -68,7 +69,8 @@ def add_engine(log, project_root, env_name, engine_name):
     # okay to install!
 
     # ensure that all required frameworks have been installed
-    console_utils.ensure_frameworks_installed(log, project_root, engine_descriptor, env)
+    tank_api = tank.Tank(project_root)
+    console_utils.ensure_frameworks_installed(log, tank_api, engine_descriptor, env)
 
     # note! Some of these methods further down are likely to pull the apps local
     # in order to do deep introspection. In order to provide better error reporting,
@@ -82,7 +84,7 @@ def add_engine(log, project_root, env_name, engine_name):
     engine_descriptor.ensure_shotgun_fields_exist()
 
     # now get data for all new settings values in the config
-    params = console_utils.get_configuration(log, project_root, engine_descriptor, None)
+    params = console_utils.get_configuration(log, tank_api, engine_descriptor, None)
     
     # next step is to add the new configuration values to the environment
     env.create_engine_settings(engine_instance_name)

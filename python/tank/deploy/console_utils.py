@@ -20,7 +20,7 @@ from .app_store_descriptor import TankAppStoreDescriptor
 from .descriptor import AppDescriptor
 
 
-def get_configuration(log, project_root, new_ver_descriptor, old_ver_descriptor):
+def get_configuration(log, tank_api_instance, new_ver_descriptor, old_ver_descriptor):
     """
     Retrieves all the parameters needed for an app, engine or framework.
     May prompt the user for information.
@@ -82,7 +82,7 @@ def get_configuration(log, project_root, new_ver_descriptor, old_ver_descriptor)
                 else:
                     # validate value
                     try:
-                        obj_value = administrator.validate_parameter(project_root, 
+                        obj_value = administrator.validate_parameter(tank_api_instance, 
                                                                      new_ver_descriptor, 
                                                                      name, 
                                                                      answer)
@@ -157,7 +157,7 @@ def format_bundle_info(log, descriptor):
     log.info("\%s" % ("-" * 70))
 
 
-def ensure_frameworks_installed(log, project_root, descriptor, environment):
+def ensure_frameworks_installed(log, tank_api_instance, descriptor, environment):
     """
     Recursively check that all required frameworks are installed.
     Anything not installed will be downloaded from the app store.
@@ -168,7 +168,7 @@ def ensure_frameworks_installed(log, project_root, descriptor, environment):
     for fw_dict in missing_fws:
         
         # see if we can get this from the app store...
-        fw_descriptor = TankAppStoreDescriptor.find_item(project_root, 
+        fw_descriptor = TankAppStoreDescriptor.find_item(tank_api_instance.project_path, 
                                                          AppDescriptor.FRAMEWORK, 
                                                          fw_dict["name"], 
                                                          fw_dict["version"])
@@ -190,7 +190,7 @@ def ensure_frameworks_installed(log, project_root, descriptor, environment):
     
         # now make sure all constraints are okay
         try:
-            administrator.check_constraints_for_item(project_root, fw_descriptor, environment)
+            administrator.check_constraints_for_item(tank_api_instance.project_path, fw_descriptor, environment)
         except TankError, e:
             raise TankError("Cannot install framework: %s" % e)
     
@@ -200,7 +200,7 @@ def ensure_frameworks_installed(log, project_root, descriptor, environment):
         fw_descriptor.ensure_shotgun_fields_exist()
     
         # now get data for all new settings values in the config
-        params = get_configuration(log, project_root, fw_descriptor, None)
+        params = get_configuration(log, tank_api_instance, fw_descriptor, None)
     
         # next step is to add the new configuration values to the environment
         environment.create_framework_settings(fw_instance_name)
@@ -208,7 +208,7 @@ def ensure_frameworks_installed(log, project_root, descriptor, environment):
         environment.update_framework_location(fw_instance_name, fw_descriptor.get_location())
         
         # now make sure these guys have all their required frameworks installed
-        ensure_frameworks_installed(log, project_root, fw_descriptor, environment)
+        ensure_frameworks_installed(log, tank_api_instance, fw_descriptor, environment)
         
     
     

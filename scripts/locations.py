@@ -16,6 +16,7 @@ import textwrap
 python_path = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "python"))
 sys.path.append(python_path)
 
+import tank
 from tank.errors import TankError
 from tank.platform import constants
 from tank.platform import environment
@@ -137,10 +138,11 @@ def switch_location(log, project_root, env_obj, app_name, engine_name, framework
     new_desc.ensure_shotgun_fields_exist()
 
     # ensure that all required frameworks have been installed
-    console_utils.ensure_frameworks_installed(log, project_root, new_desc, env_obj)
+    tank_api = tank.Tank(project_root)
+    console_utils.ensure_frameworks_installed(log, tank_api, new_desc, env_obj)
 
     # now get data for all new settings values in the config
-    params = console_utils.get_configuration(log, project_root, new_desc, curr_desc)
+    params = console_utils.get_configuration(log, tank_api, new_desc, curr_desc)
 
     # awesome. got all the values we need.
     log.info("")
