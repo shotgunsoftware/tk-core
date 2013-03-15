@@ -42,31 +42,7 @@ class CmdlineSetupInteraction(object):
     def __init__(self, log, sg):
         self._log = log
         self._sg = sg
-    
-    def get_use_local_core(self):
-        """
-        Asks the user if they want to use a local core
-        """
-        core_api_path = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", ".."))
-        
-        self._log.info("")
-        self._log.info("")
-        self._log.info("")
-        self._log.info("Now it is time to choose where you want the Tank Core to be located.")
-        self._log.info("You can keep the Core local to the project - allowing you ")
-        self._log.info("to upgrading it without affecting other projects. ")
-        self._log.info("Alternatively, you can use the standard shared Tank Core located ")
-        self._log.info("in '%s'." % core_api_path)
-        self._log.info("")
-        self._log.info("If you are unsure what to do, just press ENTER")
-        val = raw_input("Use shared Tank Core (Yes/No)? [Yes]: ")
-        if val == "" or val.lower().startswith("y"):
-            return True
-        elif val.lower().startswith("n"):
-            return False
-        else:
-            raise TankError("Please answer Yes, y, no, n or press ENTER!")
-        
+            
     def confirm_continue(self):
         """
         Yes no confirm to continue
@@ -422,6 +398,12 @@ class TankConfigInstaller(object):
         
         return storages
 
+    def get_path(self):
+        """
+        Returns a path to a location on disk where this config resides
+        """
+        return self._cfg_folder
+
     def check_manifest(self, sg_version_str):
         """
         Looks for an info.yml manifest in the config and validates it
@@ -551,9 +533,14 @@ def _install_environment(env_cfg, log):
 ########################################################################################
 # main methods and entry points
 
-
-    
 def interactive_setup(log, pipeline_config_root):
+    old_umask = os.umask(0)
+    try:
+        return _interactive_setup(log, pipeline_config_root)
+    finally:
+        os.umask(old_umask)
+    
+def _interactive_setup(log, pipeline_config_root):
     """
     interactive setup which will ask questions via the console.
     """
@@ -614,9 +601,6 @@ def interactive_setup(log, pipeline_config_root):
     # disk friendly name for project by replacing white space by underscore    
     suggested_path = os.path.abspath( os.path.join(pipeline_config_root, "..", project_disk_folder) )
     locations_dict = cmdline_ui.get_disk_location(suggested_path)
-
-    # check if the user wants the api local
-    use_local = cmdline_ui.get_use_local_core()
 
     ##################################################################
     # validate the local storages
@@ -738,16 +722,53 @@ def interactive_setup(log, pipeline_config_root):
     
     # first do disk structure setup, this is most likely to fail.
     current_os_pc_location = locations_dict[sys.platform]    
+    log.info("Installing configuration into '%s'..." % current_os_pc_location )
     if not os.path.exists(current_os_pc_location):
         # note that we have already validated that creation is possible
-        os.mkdir(current_os_pc_location, 0777)
-         
+        os.mkdir(current_os_pc_location, 0775)
     
+    # create pipeline config base folder structure            
+    os.mkdir(os.path.join(current_os_pc_location, "cache"), 0775)    
+    os.mkdir(os.path.join(current_os_pc_location, "config"), 0775)
+    os.mkdir(os.path.join(current_os_pc_location, "install"), 0775)
+    os.mkdir(os.path.join(current_os_pc_location, "install", "core"), 0777)
+    os.mkdir(os.path.join(current_os_pc_location, "install", "core", "python"), 0777)
+    os.mkdir(os.path.join(current_os_pc_location, "install", "core.backup"), 0777)
+    os.mkdir(os.path.join(current_os_pc_location, "install", "engines"), 0777)
+    os.mkdir(os.path.join(current_os_pc_location, "install", "apps"), 0777)
+    os.mkdir(os.path.join(current_os_pc_location, "install", "frameworks"), 0777)
+    
+    # copy the configuration into place
+    _copy_folder(cfg_installer.get_path(), os.path.join(current_os_pc_location, "config"))
+    
+    # copy the tank binaries to the top of the config
+    core_api_root = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", ".."))
+    root_binaries_folder = os.path.join(core_api_root, "setup", "root_binaries")
+    if not os.path.exists(root_binaries_folder):
+        raise Exception("Looks like you are using an old version of Tank! "
+                        "Please contact tanksupport@shotgunsoftware.com.")
+    for file_name in os.listdir(root_binaries_folder):
+        src_file = os.path.join(root_binaries_folder, file_name)
+        tgt_file = os.path.join(current_os_pc_location, file_name)
+        shutil.copy(src_file, tgt_file)
+        os.chmod(tgt_file, 0775)
+    
+    # copy the python stubs
+    tank_proxy = os.path.join(core_api_root, "setup", "tank_api_proxy")
+    _copy_folder(tank_proxy, os.path.join(current_os_pc_location, "install", "core", "python"))
+    
+    # now ensure there is a tank folder in every storage
     for s in resolved_storages:
+        log.info("Setting up %s storage..." % s.get("code") )
         current_os_path = s.get( SG_LOCAL_STORAGE_OS_MAP[sys.platform] )
         tank_path = os.path.join(current_os_path, project_disk_folder, "tank")
         if not os.path.exists(tank_path):
             os.mkdir(tank_path, 0777)
+    
+    # create path cache db
+    # create file for configuration backlinks
+    # add our confg to that file
+    
     
     raise Exception("fo")
     
@@ -755,38 +776,73 @@ def interactive_setup(log, pipeline_config_root):
     log.debug("Shotgun: Setting Project.tank_name to %s" % project_disk_folder)
     sg.update("Project", project_id, {"tank_name": project_disk_folder})
     
+    # create pipeline configuration record
     
     
-    # make sure there is a local storage for all roots
-    log.debug("Making sure there is a local storage for all roots...")
-    # we need to make sure there is a root that matches by name, this is how 
-    # tank identifies its publishes, then also verify that the paths within that 
-    # section matches what we specified.
+        
     
     
     
     
     
-    # ask about where the core should be copied from
+    # and write a custom event to the shotgun event log
+    data = {}
+    data["description"] = "%s: A Tank Project named %s was created" % (sg.base_url, project_disk_folder)
+    data["event_type"] = "TankAppStore_Project_Created"
+    data["user"] = script_user
+    data["project"] = TANK_APP_STORE_DUMMY_PROJECT
+    data["attribute_name"] = project_disk_folder
+    sg_app_store.create("EventLogEntry", data)
     
     
-    # create pipeline configuration folder structure on disk
-    cfg_installer.install_configuration()
+    ##########################################################################################
+    # install apps
     
+    # each entry in the config template contains instructions about which version of the app
+    # to use.
     
-    # write a pc ref in the storages which are associated 
-    cfg_installer.ensure_local_storages_exist()
+    for env in constants.get_environments_for_proj(proj_root):
+        log.info("Installing apps for environment %s..." % env)
+        _install_environment(proj_root, env, log)
+
+    ##########################################################################################
+    # post processing of the install
     
+    # run after project create script if it exists
+    after_script_path = os.path.join(tank_folder, "config", "after_project_create.py")
+    if os.path.exists(after_script_path):
+        log.info("Found a tank post-install script %s" % after_script_path)
+        log.info("Executing post-install commands...")
+        sys.path.insert(0, os.path.dirname(after_script_path))
+        import after_project_create
+        after_project_create.create(sg=sg, project_id=project_id, log=log)
+        sys.path.pop(0)
+        log.info("Post install phase complete!")
+
+    log.info("")
+    log.info("Tank Project Creation Complete.")
+    log.info("")
+
+    # show the readme file if it exists
+    readme_file = os.path.join(starter_config, "README")
+    if os.path.exists(readme_file):
+        log.info("")
+        log.info("README file for template:")
+        fh = open(readme_file)
+        for line in fh:
+            print line.strip()
+        fh.close()
     
-    
-    
-    # download apps
-#    for env in constants.get_environments_for_proj(proj_root):
-#        log.info("Installing apps for environment %s..." % env)
-#        _install_environment(proj_root, env, log)
-    
-    
-    # create folders for the project
-    
+    log.info("")
+    log.info("We now recommend that you run the update script to ensure that all")
+    log.info("the Apps and Engines that came with the config are up to date! ")
+    log.info("You can do this by executing the check_for_updates script ")
+    log.info("that is located in this folder.")
+    log.info("")
+    log.info("For more Apps, Support, Documentation and the Tank Community, go to")
+    log.info("https://tank.shotgunsoftware.com")
+    log.info("")        
+    log.info("Tank Project Script exiting.")
+
     
     
