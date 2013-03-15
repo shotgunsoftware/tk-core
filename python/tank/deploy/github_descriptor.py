@@ -49,10 +49,11 @@ class TankGitHubDescriptor(AppDescriptor):
     This class only supports public repositories.
     """
 
-    def __init__(self, project_root, location_dict, type):
-        super(TankGitHubDescriptor, self).__init__(project_root, location_dict)
+    def __init__(self, pipeline_config_root, location_dict, type):
+        super(TankGitHubDescriptor, self).__init__(pipeline_config_root, location_dict)
 
         self._type = type
+        self._pipeline_config_root = pipeline_config_root
         self._vendor = location_dict.get("vendor")
         self._name = location_dict.get("repo")
         self._version = location_dict.get("version")
@@ -188,6 +189,6 @@ class TankGitHubDescriptor(AppDescriptor):
         new_loc_dict = copy.deepcopy(self._location_dict)
         new_loc_dict["version"] = highest
 
-        return TankGitHubDescriptor(self._project_root, new_loc_dict, self._type)
+        return TankGitHubDescriptor(self._pipeline_config_root, new_loc_dict, self._type)
 
 

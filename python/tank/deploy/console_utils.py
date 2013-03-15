@@ -168,7 +168,7 @@ def ensure_frameworks_installed(log, tank_api_instance, descriptor, environment)
     for fw_dict in missing_fws:
         
         # see if we can get this from the app store...
-        fw_descriptor = TankAppStoreDescriptor.find_item(tank_api_instance.project_path, 
+        fw_descriptor = TankAppStoreDescriptor.find_item(tank_api_instance.pipeline_configuration_path, 
                                                          AppDescriptor.FRAMEWORK, 
                                                          fw_dict["name"], 
                                                          fw_dict["version"])

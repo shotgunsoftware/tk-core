@@ -37,8 +37,8 @@ class Environment(object):
         # validate and populate config
         self.__refresh()
         
-        # project path for this environment
-        self.__project_path = constants.get_project_path_from_env(env_path)
+        # pc path for this environment
+        self.__pipeline_config_root = constants.get_pipeline_config_root_from_env(env_path)
         
     def __repr__(self):
         return "<Tank Environment %s>" % self.__env_path
@@ -284,7 +284,7 @@ class Environment(object):
 
         # get the descriptor object for the location
         d = descriptor.get_from_location(descriptor.AppDescriptor.FRAMEWORK, 
-                                         self.__project_path, 
+                                         self.__pipeline_config_root, 
                                          location_dict)
         
         return d        
@@ -300,7 +300,7 @@ class Environment(object):
 
         # get the descriptor object for the location
         d = descriptor.get_from_location(descriptor.AppDescriptor.ENGINE, 
-                                         self.__project_path, 
+                                         self.__pipeline_config_root, 
                                          location_dict)
         
         return d
@@ -317,7 +317,7 @@ class Environment(object):
         
         # get the version object for the location
         d = descriptor.get_from_location(descriptor.AppDescriptor.APP, 
-                                         self.__project_path,
+                                         self.__pipeline_config_root,
                                          location_dict)
         
         return d

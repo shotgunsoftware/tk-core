@@ -62,7 +62,7 @@ class TestGetApplication(TestApplication):
         app_path = os.path.join(self.project_config, "test_app")
         # make a dev location and create descriptor
         app_desc = descriptor.get_from_location(descriptor.AppDescriptor.APP, 
-                                                self.project_root, 
+                                                self.project_config, 
                                                 {"type": "dev", "path": app_path})
         result = application.get_application(self.engine, app_path, app_desc, {})
         self.assertIsInstance(result, application.Application)

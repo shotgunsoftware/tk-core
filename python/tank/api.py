@@ -42,6 +42,15 @@ class Tank(object):
     # properties
     
     @property
+    def pipeline_configuration_path(self):
+        """
+        Path to the pipeline configuation for this project
+        """
+        
+        # need to change this for 0.13
+        return os.path.join(self.__project_path, "tank")
+    
+    @property
     def project_path(self):
         """
         Path to the primary root directory for a project.

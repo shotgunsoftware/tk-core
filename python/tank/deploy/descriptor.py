@@ -36,8 +36,8 @@ class AppDescriptor(object):
     # constants describing the type of item we are describing
     APP, ENGINE, FRAMEWORK = range(3)
 
-    def __init__(self, project_root, location_dict):
-        self._project_root = project_root
+    def __init__(self, pipeline_config_root, location_dict):
+        self._pipeline_config_root = pipeline_config_root
         self._location_dict = location_dict        
         self.__manifest_data = None
 
@@ -63,11 +63,11 @@ class AppDescriptor(object):
         # /studio/tank/install/apps/APP_TYPE/NAME/VERSION
 
         if app_type == AppDescriptor.APP:
-            root = constants.get_local_app_location(self._project_root)
+            root = os.path.join(self._pipeline_config_root, "install", "apps")
         elif app_type == AppDescriptor.ENGINE:
-            root = constants.get_local_engine_location(self._project_root)
+            root = os.path.join(self._pipeline_config_root, "install", "engines")
         elif app_type == AppDescriptor.FRAMEWORK:
-            root = constants.get_local_framework_location(self._project_root)
+            root = os.path.join(self._pipeline_config_root, "install", "frameworks")
         else:
             raise TankError("Don't know how to figure out the local storage root - unknown type!")
         return os.path.join(root, descriptor_name, name, version)
@@ -382,12 +382,12 @@ class AppDescriptor(object):
 ################################################################################################
 # factory method for app descriptors
 
-def get_from_location(app_or_engine, project_root, location_dict):
+def get_from_location(app_or_engine, pipeline_config_root, location_dict):
     """
     Factory method.
 
     :param app_or_engine: Either AppDescriptor.APP AppDescriptor.ENGINE or FRAMEWORK
-    :param project_root: The project root
+    :param pipeline_config_root: The project root
     :param location_dict: A tank location dict
     :returns: an AppDescriptor object
     """
@@ -402,29 +402,29 @@ def get_from_location(app_or_engine, project_root, location_dict):
     # tank app store format
     # location: {"type": "app_store", "name": "tk-nukepublish", "version": "v0.5.0"}
     if location_dict.get("type") == "app_store":
-        return TankAppStoreDescriptor(project_root, location_dict, app_or_engine)
+        return TankAppStoreDescriptor(pipeline_config_root, location_dict, app_or_engine)
 
     # manual format
     # location: {"type": "manual", "name": "tk-nukepublish", "version": "v0.5.0"}
     elif location_dict.get("type") == "manual":
-        return TankManualDescriptor(project_root, location_dict, app_or_engine)
+        return TankManualDescriptor(pipeline_config_root, location_dict, app_or_engine)
 
     # git repo
     # location: {"type": "git", "path": "/path/to/repo.git", "version": "v0.2.1"}
     elif location_dict.get("type") == "git":
-        return TankGitDescriptor(project_root, location_dict, app_or_engine)
+        return TankGitDescriptor(pipeline_config_root, location_dict, app_or_engine)
 
     # github public repo
     # location: {"type": "github", "vendor": "shotgunsoftware", "repo": "tk-nuke", "version": "v0.2.1"}
     elif location_dict.get("type") == "github":
-        return TankGitHubDescriptor(project_root, location_dict, app_or_engine)
+        return TankGitHubDescriptor(pipeline_config_root, location_dict, app_or_engine)
 
     # local dev format
     # location: {"type": "dev", "path": "/path/to/app"}
     # or
     # location: {"type": "dev", "windows_path": "c:\\path\\to\\app", "linux_path": "/path/to/app", "mac_path": "/path/to/app"}
     elif location_dict.get("type") == "dev":
-        return TankDevDescriptor(project_root, location_dict)
+        return TankDevDescriptor(pipeline_config_root, location_dict)
 
     else:
         raise TankError("Invalid location dict '%s'" % location_dict)

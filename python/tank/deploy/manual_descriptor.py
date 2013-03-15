@@ -16,8 +16,8 @@ class TankManualDescriptor(AppDescriptor):
     Represents a manually installed item
     """
 
-    def __init__(self, project_root, location_dict, bundle_type):
-        super(TankManualDescriptor, self).__init__(project_root, location_dict)
+    def __init__(self, pipeline_config_root, location_dict, bundle_type):
+        super(TankManualDescriptor, self).__init__(pipeline_config_root, location_dict)
         self._type = bundle_type
         self._name = location_dict.get("name")
         self._version = location_dict.get("version")

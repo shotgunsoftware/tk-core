@@ -152,43 +152,6 @@ def get_hooks_folder(project_path):
     """
     return os.path.join(project_path, "tank", "config", "hooks")
 
-def get_local_app_location(project_root):
-    """
-    Returns the location where tank apps are kept
-    """
-    #
-    # studio                    # studio location
-    #   |--project_xyz          # <-- project_root
-    #   |--tank                 # tank studio root
-    #        |--config          # shotgun and app store configs
-    #        |--install         # tank code (install folder)
-    #            |--core
-    #                |--python  # tank core python code
-    #            |--apps        # apps location (returned by this method!) 
-    #            |--engines    
-    #
-    #    
-    studio_location = os.path.abspath( os.path.join(project_root, "..") )
-    return os.path.join(studio_location, "tank", "install", "apps")
-
-def get_local_engine_location(project_root):
-    """
-    Returns the location where tank apps are kept
-    """
-    #
-    # studio                    # studio location
-    #   |--project_xyz          # <-- project_root    
-    #   |--tank                 # tank studio root
-    #        |--config          # shotgun and app store configs
-    #        |--install         # tank code (install folder)
-    #            |--core
-    #                |--python  # tank core python code
-    #            |--apps         
-    #            |--engines     # engines location (returned by this method!)
-    #
-    #
-    studio_location = os.path.abspath( os.path.join(project_root, "..") )
-    return os.path.join(studio_location, "tank", "install", "engines")
 
 
 def get_local_framework_location(project_root):
@@ -226,6 +189,17 @@ def get_environment_path(env_name, project_path):
     """
     env_folder = os.path.join(project_path, "tank", "config", "env")
     return os.path.join(env_folder, "%s.yml" % env_name)
+
+def get_pipeline_config_root_from_env(env_path):
+    """
+    returns the root of a given pipeline configuration given an environment file
+    """
+    # pipelineConfig       
+    #   |--config
+    #        |--env
+    env_folder = os.path.dirname(env_path)
+    pc_folder = os.path.abspath( os.path.join(env_folder, "..", ".."))
+    return pc_folder
 
 def get_project_path_from_env(env_path):
     """
