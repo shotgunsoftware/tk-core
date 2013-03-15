@@ -378,7 +378,7 @@ def setup_project(log, starter_config_input, tank_root, project_id, project_fold
     # now connect to shotgun
     try:
         log.info("Connecting to Shotgun...")
-        sg = shotgun.create_sg_connection_studio_root(tank_root)        
+        sg = shotgun.create_sg_connection()        
         sg_version = ".".join([ str(x) for x in sg.server_info["version"]])
         log.info("Connected to target Shotgun server! (v%s)" % sg_version)
     except Exception, e:

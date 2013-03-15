@@ -40,13 +40,11 @@ class TankCoreUpgrader(object):
     def __init__(self, studio_root, logger):
         self._log = logger
         
-        #FIXME
-        (sg_app_store, script_user) = shotgun.create_sg_app_store_connection(studio_root)
+        (sg_app_store, script_user) = shotgun.create_sg_app_store_connection()
         self._sg = sg_app_store
         self._sg_script_user = script_user
         
-        # THIS METHOD HAS CHANGED ....
-        self._local_sg = shotgun.create_sg_connection_studio_root(studio_root)      
+        self._local_sg = shotgun.create_sg_connection()      
         self._latest_ver = self.__get_latest_version()
         
         self._current_ver = constants.get_core_api_version()

@@ -367,7 +367,7 @@ class AppDescriptor(object):
         # first fetch metadata
         meta = self._get_metadata()
         # get a sg handle
-        sg = shotgun.create_sg_connection(self._project_root)
+        sg = shotgun.create_sg_connection()
         # get fields def
         sg_fields_def = meta.get("requires_shotgun_fields")
         if sg_fields_def:  # can be defined as None from yml file

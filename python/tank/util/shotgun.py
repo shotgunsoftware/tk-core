@@ -13,10 +13,54 @@ from tank_vendor import yaml
 
 from .. import root
 from ..errors import TankError
-from ..platform import constants
 from . import login
 
 
+def __get_api_core_config_location():
+    """
+    Given the location of the code, find the core config location.
+    
+    Walk from the location of this file on disk to the config area.
+    this operation is guaranteed to work on any valid tank installation
+    
+    Pipeline Configuration
+       |
+       |- Install
+       |     \- Core 
+       |          \- Python
+       |                \- tank
+       |
+       \- Config
+             \- Core
+    """
+    
+    core_api_root = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "..", "..", ".."))
+    core_cfg = os.path.join(core_api_root, "config", "core")
+    
+    if not os.path.exists(core_cfg):
+        full_path_to_file = os.path.abspath(os.path.dirname(__file__))
+        raise TankError("Cannot resolve the core configuration from the location of the Tank Code! "
+                        "This can happen if you try to move or symlink the Tank API. The "
+                        "Tank API is currently picked up from %s which is an "
+                        "invalid location." % full_path_to_file)
+    
+    return core_cfg
+    
+def __get_sg_config():
+    """
+    Returns the sg config yml file for this install
+    """
+    core_cfg = __get_api_core_config_location()
+    return os.path.join(core_cfg, "shotgun.yml")
+    
+def __get_app_store_config():
+    """
+    Returns the sg config yml file for this install
+    """
+    core_cfg = __get_api_core_config_location()
+    return os.path.join(core_cfg, "app_store.yml")
+       
+   
 def __create_sg_connection(shotgun_cfg_path, evaluate_script_user):
     """
     Creates a standard tank shotgun connection.
@@ -66,25 +110,15 @@ def __create_sg_connection(shotgun_cfg_path, evaluate_script_user):
 
     return (sg, script_user)
 
-def create_sg_connection(proj_root):
+
+def create_sg_connection():
     """
     Creates a standard tank shotgun connection.
     """
-    studio_root = os.path.abspath(os.path.join(proj_root, ".."))
-    shotgun_cfg_path = os.path.join(studio_root, "tank", "config", "core", constants.SHOTGUN_CONFIG_FILE)
-    api_handle, _ = __create_sg_connection(shotgun_cfg_path, evaluate_script_user=False)
+    api_handle, _ = __create_sg_connection(__get_sg_config(), evaluate_script_user=False)
     return api_handle
 
-def create_sg_connection_studio_root(pipeline_config_root):
-    """
-    Creates a standard tank shotgun connection.
-    based on a pipeline_config_root
-    """
-    shotgun_cfg_path = os.path.join(pipeline_config_root, "config", "core", constants.SHOTGUN_CONFIG_FILE)
-    api_handle, _ = __create_sg_connection(shotgun_cfg_path, evaluate_script_user=False)
-    return api_handle
-
-def create_sg_app_store_connection_proj_root(proj_root):
+def create_sg_app_store_connection():
     """
     Creates a shotgun connection to the tank app store.
 
@@ -94,24 +128,7 @@ def create_sg_app_store_connection_proj_root(proj_root):
     user that was used to connect to the app store,
     as a standard sg entity dictionary.
     """
-    studio_root = os.path.abspath(os.path.join(proj_root, ".."))
-    shotgun_cfg_path = os.path.join(studio_root, "tank", "config", "core", constants.APP_STORE_CONFIG_FILE)
-    (api_handle, script_user) = __create_sg_connection(shotgun_cfg_path, evaluate_script_user=True)
-    return (api_handle, script_user)
-
-def create_sg_app_store_connection(pipeline_config_root):
-    """
-    Creates a shotgun connection to the tank app store.
-
-    returns a tuple: (api_handle, script_user_entity)
-
-    The second part of the tuple represents the
-    user that was used to connect to the app store,
-    as a standard sg entity dictionary.
-
-    """
-    shotgun_cfg_path = os.path.join(pipeline_config_root, "config", "core", constants.APP_STORE_CONFIG_FILE)
-    (api_handle, script_user) = __create_sg_connection(shotgun_cfg_path, evaluate_script_user=True)
+    (api_handle, script_user) = __create_sg_connection(__get_app_store_config(), evaluate_script_user=True)
     return (api_handle, script_user)
 
 

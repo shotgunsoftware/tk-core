@@ -547,11 +547,11 @@ def _interactive_setup(log, pipeline_config_root):
     log.info("")
     log.info("Welcome to the Tank Project Setup!")
     log.info("")
-    
+        
     # now connect to shotgun
     try:
         log.info("Connecting to Shotgun...")
-        sg = shotgun.create_sg_connection_studio_root(pipeline_config_root)        
+        sg = shotgun.create_sg_connection()        
         sg_version = ".".join([ str(x) for x in sg.server_info["version"]])
         log.debug("Connected to target Shotgun server! (v%s)" % sg_version)
     except Exception, e:
@@ -559,7 +559,7 @@ def _interactive_setup(log, pipeline_config_root):
     
     try:
         log.info("Connecting to the Tank App Store...")
-        (sg_app_store, script_user) = shotgun.create_sg_app_store_connection(pipeline_config_root)
+        (sg_app_store, script_user) = shotgun.create_sg_app_store_connection()
         sg_version = ".".join([ str(x) for x in sg_app_store.server_info["version"]])
         log.debug("Connected to Tank App Store! (v%s)" % sg_version)
     except Exception, e:

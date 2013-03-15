@@ -125,7 +125,7 @@ class TankAppStoreDescriptor(AppDescriptor):
             raise TankError("Illegal type value!")
 
         # connect to the app store
-        (sg, script_user) = shotgun.create_sg_app_store_connection_proj_root(self._project_root)
+        (sg, script_user) = shotgun.create_sg_app_store_connection()
 
         # first find the bundle level entity
         bundle = sg.find_one(bundle_entity, [["sg_system_name", "is", self._name]], ["sg_status_list", "sg_deprecation_message"])
@@ -184,7 +184,7 @@ class TankAppStoreDescriptor(AppDescriptor):
         """
 
         # connect to the app store
-        (sg, script_user) = shotgun.create_sg_app_store_connection_proj_root(project_root)
+        (sg, script_user) = shotgun.create_sg_app_store_connection()
 
         if version is None:
             # get latest
@@ -346,8 +346,8 @@ class TankAppStoreDescriptor(AppDescriptor):
             os.umask(old_umask)                
 
         # connect to the app store
-        (sg, script_user) = shotgun.create_sg_app_store_connection_proj_root(self._project_root)
-        local_sg = shotgun.create_sg_connection(self._project_root)
+        (sg, script_user) = shotgun.create_sg_app_store_connection()
+        local_sg = shotgun.create_sg_connection()
 
         # get metadata from sg...
         metadata = self.__download_app_store_metadata()

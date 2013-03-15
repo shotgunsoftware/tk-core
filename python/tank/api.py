@@ -54,7 +54,7 @@ class Tank(object):
         Lazily create a Shotgun API handle
         """
         if self.__sg is None:
-            self.__sg = shotgun.create_sg_connection(self.project_path)
+            self.__sg = shotgun.create_sg_connection()
         
         return self.__sg
         
