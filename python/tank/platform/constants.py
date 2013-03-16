@@ -140,17 +140,22 @@ def get_schema_config_location(pipeline_configuration_path):
     """
     return os.path.join(pipeline_configuration_path, "config", "core", "schema")
 
-def get_cache_db_location(primary_storage_root):
+def get_cache_db_location(pipeline_configuration_path):
     """
-    returns the location of the cache db given a primary storage root
+    returns the location of the cache db given a pipeline configuration!
+
     """
+    
+    #TODO - FIX THIS!!!!
+    
+    
     return os.path.join(primary_storage_root, "tank", "cache", CACHE_DB_FILENAME)
 
-def get_hooks_folder(project_path):
+def get_hooks_folder(pipeline_configuration_path):
     """
     returns the hooks folder for the project
     """
-    return os.path.join(project_path, "tank", "config", "hooks")
+    return os.path.join(pipeline_configuration_path, "config", "hooks")
 
 def get_environments_for_proj(project_path):
     """

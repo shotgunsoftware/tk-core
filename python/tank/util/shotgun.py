@@ -286,7 +286,7 @@ def _group_by_storage(tk, list_of_paths):
 
         # use abstracted path if path is part of a sequence
         abstract_path = _translate_abstract_fields(tk, path)
-        root_name, dep_path_cache = _calc_path_cache(tk.project_path, abstract_path)
+        root_name, dep_path_cache = _calc_path_cache(tk, abstract_path)
 
         # make sure that the path is even remotely valid, otherwise skip
         if dep_path_cache is None:
@@ -503,7 +503,7 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
     Creates a publish entity in shotgun given some standard fields.
     """
     # Make path platform agnostic.
-    _, path_cache = _calc_path_cache(tk.project_path, path)
+    _, path_cache = _calc_path_cache(tk, path)
 
     data = {
         "code": os.path.basename(path),
@@ -529,7 +529,7 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
 
     return tk.shotgun.create("TankPublishedFile", data)
 
-def _calc_path_cache(project_root, path):
+def _calc_path_cache(tk, path):
     """
     Calculates root path name and relative path (including project directory).
     returns (root_name, path_cache)
@@ -544,7 +544,7 @@ def _calc_path_cache(project_root, path):
 
     # get roots - don't assume data is reurned on any partiuclar form
     # may return c:\foo, c:/foo or /foo - assume that we need to normalize this path
-    roots = root.get_project_roots(project_root)
+    roots = root.get_project_roots(tk.pipeline_configuration_path)
 
     for root_name, root_path in roots.items():
         norm_root_path = root_path.replace(os.sep, "/")

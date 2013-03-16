@@ -22,19 +22,16 @@ class PathCache(object):
     Ensure that the code is developed with the constraints that this entails in mind.
     """
     
-    def __init__(self, project_root):
+    def __init__(self, pipeline_configuration_path):
         """
         Constructor
         
         :param project_root: project root for which the database should be loaded
         """
-        # make sure that the project root has the right slashes
-        # (not sure if this is necessary any longer)
-        project_root = project_root.replace("/", os.sep)
-        db_path = constants.get_cache_db_location(project_root)
+        db_path = constants.get_cache_db_location(pipeline_configuration_path)
         self._connection = None
         self._init_db(db_path)
-        self._roots = root.get_project_roots(project_root)
+        self._roots = root.get_project_roots(pipeline_configuration_path)
         
         
     def _init_db(self, db_path):

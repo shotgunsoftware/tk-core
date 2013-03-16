@@ -133,7 +133,7 @@ def validate_project(log, project_root):
     log.info("")
     
     # check hooks that are unused
-    hooks = os.listdir(constants.get_hooks_folder(project_root))
+    hooks = os.listdir(constants.get_hooks_folder(tk.pipeline_configuration_path))
     # strip extension from file name
     all_hooks = set([ x[:-3] for x in hooks ])
 

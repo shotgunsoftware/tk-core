@@ -32,7 +32,7 @@ class Tank(object):
         # TODO: validate this really is a valid project path
         self.__project_path = os.path.abspath(project_path)
         self.__sg = None
-        self.roots = root.get_project_roots(self.project_path)
+        self.roots = root.get_project_roots(self.pipeline_configuration_path)
         self.templates = read_templates(project_path, self.roots)
         
         # execute a tank_init hook for developers to use.
@@ -279,7 +279,7 @@ class Tank(object):
         """
 
         # Use the path cache to look up all paths associated with this entity
-        path_cache = PathCache(self.project_path)
+        path_cache = PathCache(self.pipeline_configuration_path)
         paths = path_cache.get_paths(entity_type, entity_id)
         path_cache.close()
         
@@ -295,7 +295,7 @@ class Tank(object):
                   if no path was associated.
         """
         # Use the path cache to look up all paths associated with this entity
-        path_cache = PathCache(self.project_path)
+        path_cache = PathCache(self.pipeline_configuration_path)
         entity = path_cache.get_entity(path)
         path_cache.close()
         

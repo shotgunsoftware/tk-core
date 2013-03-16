@@ -34,7 +34,7 @@ class FolderIOReceiver(object):
         self._preview_mode = preview
         self._items = list()
         self._secondary_cache_entries = list()
-        self._path_cache = PathCache(tk.project_path)
+        self._path_cache = PathCache(tk.pipeline_configuration_path)
         
     def execute_folder_creation(self):
         """

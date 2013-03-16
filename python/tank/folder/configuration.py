@@ -159,7 +159,7 @@ class FolderConfiguration(object):
         elif len(project_dirs) > 1:
             # Multiple project roots - now you can arbitrary name things.
             
-            roots = root.get_project_roots(self._tk.project_path)
+            roots = root.get_project_roots(self._tk.pipeline_configuration_path)
             for project_dir in project_dirs:
                 project_root = os.path.join(schema_config_path, project_dir)
                 

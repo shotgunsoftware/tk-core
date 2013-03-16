@@ -11,13 +11,15 @@ from tank_vendor import yaml
 from .errors import TankError
 from . import constants
 
-def get_project_roots(project_root):
+def get_project_roots(pipeline_configuration_path):
     """
     Returns a mapping of project root names to root paths based on roots file.
     
     :param project_root: Path to primary project root.
     :returns: Dictionary of project root names to project root paths
     """
+    
+    # TODO - FIX
     
     roots = {}
     roots_data = _read_roots_file(project_root)
