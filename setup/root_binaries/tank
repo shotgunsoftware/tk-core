@@ -33,7 +33,7 @@ else
    # so try and get the parent and call its tank script
    # the parent location is stored in a config file
    curr_platform=`uname`
-   parent_config_file="$SELF_PATH/config/system/parent_${curr_platform}.cfg"
+   parent_config_file="$SELF_PATH/install/core/core_${curr_platform}.cfg"
 
    if [ ! -f "$parent_config_file" ];
    then

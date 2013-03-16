@@ -8,6 +8,7 @@ Copyright (c) 2012 Shotgun Software, Inc
 import os
 import sys
 
+
 # first look for our parent file
 current_folder = os.path.abspath(os.path.dirname(__file__))
 parent_file_name =  "core_%s.cfg" % sys.platform
