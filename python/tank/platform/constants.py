@@ -166,11 +166,11 @@ def get_environments_for_proj(pipeline_configuration_path):
     env_root = os.path.join(pipeline_configuration_path, "config", "env")           
     return glob.glob(os.path.join(env_root, "*.yml"))
 
-def get_environment_path(env_name, project_path):
+def get_environment_path(env_name, pipeline_configuration_path):
     """
     returns the path to an environment given its name
     """
-    env_folder = os.path.join(project_path, "tank", "config", "env")
+    env_folder = os.path.join(pipeline_configuration_path, "config", "env")
     return os.path.join(env_folder, "%s.yml" % env_name)
 
 def get_pipeline_config_root_from_env(env_path):

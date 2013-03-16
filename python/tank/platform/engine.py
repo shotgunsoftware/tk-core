@@ -583,7 +583,7 @@ def __get_env_and_descriptor_for_engine(engine_name, tk, context):
     env_name = __pick_environment(engine_name, tk, context)
 
     # get the path to the environment file given its name
-    env_path = constants.get_environment_path(env_name, tk.project_path)
+    env_path = constants.get_environment_path(env_name, tk.pipeline_configuration_path)
 
     # now we can instantiate a wrapper class around the data
     # this will load it and check basic things.
