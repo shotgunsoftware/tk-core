@@ -32,14 +32,21 @@ class Tank(object):
         # TODO: validate this really is a valid project path
         self.__project_path = os.path.abspath(project_path)
         self.__sg = None
-        self.roots = root.get_project_roots(self.pipeline_configuration_path)
-        self.templates = read_templates(self.pipeline_configuration_path, self.roots)
+        self._roots = root.get_project_roots(self.pipeline_configuration_path)
+        self.templates = read_templates(self.pipeline_configuration_path, self._roots)
         
         # execute a tank_init hook for developers to use.
         self.execute_hook(platform_constants.TANK_INIT_HOOK_NAME)
 
     ################################################################################################
     # properties
+    
+    @property
+    def roots(self):
+        """
+        Roots
+        """
+        return self._roots
     
     @property
     def pipeline_configuration_path(self):
@@ -49,6 +56,13 @@ class Tank(object):
         
         # need to change this for 0.13
         return os.path.join(self.__project_path, "tank")
+    
+    @property
+    def primary_data_path(self):
+        """
+        Returns the path to the primary data storage
+        """
+        return self.__project_path 
     
     @property
     def project_path(self):

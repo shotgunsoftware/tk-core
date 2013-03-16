@@ -1260,14 +1260,25 @@ class Project(Entity):
     """
     
     @classmethod
-    def create(cls, tk, project_path, metadata, project_data_root):
+    def create(cls, tk, schema_config_project_folder, metadata):
         """
         Factory method for this class
         """
-        return Project(tk, project_path, metadata, project_data_root)
+        
+        storage_name = metadata.get("root_name", None)
+        if storage_name is None:
+            raise TankError("Missing or invalid value for 'root_name' in metadata: %s" % schema_config_project_folder)
+        
+        # now resolve the disk location for the storage specified in the project config
+        storage_root_path = tk.roots.get(storage_name)
+        if storage_root_path is None:
+            raise TankError("The storage '%s' specified in the folder config %s "
+                            "does not exist!" % (storage_name, schema_config_project_folder))
+        
+        return Project(tk, schema_config_project_folder, metadata, storage_root_path)
     
     
-    def __init__(self, tk, project_path, metadata, project_data_root):
+    def __init__(self, tk, schema_config_project_folder, metadata, storage_root_path):
         """
         constructor
         """
@@ -1278,12 +1289,12 @@ class Project(Entity):
         }
         
         self._tk = tk
-        self._project_data_root = project_data_root
+        self._storage_root_path = storage_root_path
         
         Entity.__init__(self, 
                         tk,
                         None, 
-                        project_path,
+                        schema_config_project_folder,
                         metadata,
                         "Project", 
                         "tank_name", 
@@ -1294,7 +1305,7 @@ class Project(Entity):
         """
         Returns the data root folder for this project
         """
-        return self._project_data_root
+        return self._storage_root_path
         
 
     def _create_folder(self, io_receiver, path, entity):

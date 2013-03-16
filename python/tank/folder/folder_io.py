@@ -183,7 +183,7 @@ class FolderIOReceiver(object):
         """
         Called when the project root is created.
         """
-        if root_path != self._tk.project_path:
+        if root_path != self._tk.primary_data_path:
             
             # this is one of those non-primary project roots
             # used when there are multiple roots configured

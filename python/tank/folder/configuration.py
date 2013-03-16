@@ -48,7 +48,7 @@ class FolderConfiguration(object):
     ####################################################################################
     # utility methods
     
-    def _directory_paths(self, parent_path):
+    def _get_sub_directories(self, parent_path):
         """
         Returns all the directories for a given path
         """
@@ -60,7 +60,7 @@ class FolderConfiguration(object):
                 directory_paths.append(full_path)
         return directory_paths
 
-    def _file_paths(self, parent_path):
+    def _get_files_in_folder(self, parent_path):
         """
         Returns all the files for a given path except yml files
         Also ignores any files mentioned in the ignore files list
@@ -131,62 +131,31 @@ class FolderConfiguration(object):
         Scan the config and build objects structure
         """
                 
-        project_dirs = self._directory_paths(schema_config_path)
+        project_dirs = self._get_sub_directories(schema_config_path)
         
         # make some space in our obj/entity type mapping
         self._entity_nodes_by_type["Project"] = []
         
-        if len(project_dirs) == 1:
-            # Only one project root - in this case, this single root needs to be named
-            # 'project' for backwards compatibility reasons and it represents the 
-            # project name in shotgun
-            project_root = os.path.join(schema_config_path, "project")
+        for project_dir in project_dirs:
             
-            if not os.path.exists(project_root):
-                raise TankError("When running Tank in a single-root configuration, a folder "
-                                "named 'project' needs to be present in %s. This folder "
-                                "represents the current Shotgun project." % schema_config_path)                
-             
-            # make root node
-            project_obj = Project.create(self._tk, project_root, {}, self._tk.project_path)
+            schema_config_project_folder = os.path.join(schema_config_path, project_dir)
             
+            # read metadata to determine root path 
+            metadata = self._read_metadata(schema_config_project_folder)
+            
+            if metadata is None:
+                raise TankError("Project directory missing required metadata file: %s" % schema_config_project_folder)
+            
+            if metadata.get("type") != "project":
+                raise TankError("Only items of type 'project' are allowed at the root level: %s" % schema_config_project_folder)
+                            
+            project_obj = Project.create(self._tk, schema_config_project_folder, metadata)
+
             # store it in our lookup tables
             self._entity_nodes_by_type["Project"].append(project_obj)
-             
-            # recursively process the rest
-            self._process_config_r(project_obj, project_root)
-        
-        elif len(project_dirs) > 1:
-            # Multiple project roots - now you can arbitrary name things.
             
-            roots = root.get_project_roots(self._tk.pipeline_configuration_path)
-            for project_dir in project_dirs:
-                project_root = os.path.join(schema_config_path, project_dir)
-                
-                # read metadata to determine root path 
-                metadata = self._read_metadata(project_root)
-                if metadata:
-                    if metadata.get("type", None) != "project":
-                        raise TankError("Only items of type 'project' are allowed at the root level: %s" % project_root)
-                    root_name = metadata.get("root_name", None)
-                    if root_name is None:
-                        raise TankError("Missing or invalid value for 'root_name' in metadata: %s" % project_root)
-
-                    root_path = roots.get(root_name, None)
-                    if root_path is None:
-                        raise TankError("No path is specified for root %s" % root_name)
-                else:
-                    raise TankError("Project directory missing required metadata file: %s" % project_root)
-                
-                project_obj = Project.create(self._tk, project_root, metadata, root_path)
-
-                # store it in our lookup tables
-                self._entity_nodes_by_type["Project"].append(project_obj)
-                
-                # recursively process the rest
-                self._process_config_r(project_obj, project_root)
-        else:
-            raise TankError("Could not find a project root folder in %s!" % schema_config_path)
+            # recursively process the rest
+            self._process_config_r(project_obj, schema_config_project_folder)
         
 
     def _process_config_r(self, parent_node, parent_path):
@@ -196,7 +165,7 @@ class FolderConfiguration(object):
         
         Factory method for Folder objects.
         """
-        for full_path in self._directory_paths(parent_path):
+        for full_path in self._get_sub_directories(parent_path):
             # check for metadata (non-static folder)
             metadata = self._read_metadata(full_path)
             if metadata:
@@ -239,7 +208,7 @@ class FolderConfiguration(object):
             self._process_config_r(cur_node, full_path)
            
         # now process all files and add them to the parent_node token
-        for f in self._file_paths(parent_path):
+        for f in self._get_files_in_folder(parent_path):
             parent_node.add_file(f)
 
     

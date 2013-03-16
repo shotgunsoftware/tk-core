@@ -136,7 +136,7 @@ class TankBundle(object):
         random cache data. This location is guaranteed to exist on disk.
         """
         # organize caches by app name
-        folder = os.path.join(self.__tk.project_path, "tank", "cache", self.name)
+        folder = os.path.join(self.__tk.primary_data_path, "tank", "cache", self.name)
         if not os.path.exists(folder):
             # create it using open permissions (not via hook since we want to be in control
             # of permissions inside the tank folders)

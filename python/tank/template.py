@@ -652,9 +652,8 @@ def read_templates(pipeline_configuration_path, roots):
     """
     Creates templates and keys based on contents of templates file.
 
-    :param primary_project_path: Path to project root containing configuration.
+    :param pipeline_configuration_path: Path to project root containing configuration.
     :param roots: Dictionary of root names to paths
-    :param config_path: Path to templates file, overrides primary_project_path.
 
     :returns: Dictionary of form {template name: template object}
     """

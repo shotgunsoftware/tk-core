@@ -773,8 +773,9 @@ def _context_data_from_cache(tk, entity_type, entity_id):
     # Grab all project roots
     project_roots = tk.roots.values()
 
-    # Special case for project as we have the project root
-    context["project"] = path_cache.get_entity(tk.project_path)
+    # Special case for project as we have the primary data path, which 
+    # always points at a project.
+    context["project"] = path_cache.get_entity(tk.primary_data_path)
 
     paths = path_cache.get_paths(entity_type, entity_id)
 
