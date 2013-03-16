@@ -134,45 +134,23 @@ VALID_SG_ENTITY_NAME_EXPLANATION = ("letters, numbers and the characters period(
 # methods to get key project specific paths in tank
     
 
-def get_schema_config_location(project_path):
+def get_schema_config_location(pipeline_configuration_path):
     """
     returns the location of the schema
     """
-    return os.path.join(project_path, "tank", "config", "core", "schema")
+    return os.path.join(pipeline_configuration_path, "config", "core", "schema")
 
-def get_cache_db_location(project_path):
+def get_cache_db_location(primary_storage_root):
     """
-    returns the location of the cache db
+    returns the location of the cache db given a primary storage root
     """
-    return os.path.join(project_path, "tank", "cache", CACHE_DB_FILENAME)
+    return os.path.join(primary_storage_root, "tank", "cache", CACHE_DB_FILENAME)
 
 def get_hooks_folder(project_path):
     """
     returns the hooks folder for the project
     """
     return os.path.join(project_path, "tank", "config", "hooks")
-
-
-
-def get_local_framework_location(project_root):
-    """
-    Returns the location where tank frameworks are kept
-    """
-    #
-    # studio                    # studio location
-    #   |--project_xyz          # <-- project_root    
-    #   |--tank                 # tank studio root
-    #        |--config          # shotgun and app store configs
-    #        |--install         # tank code (install folder)
-    #            |--core
-    #                |--python  # tank core python code
-    #            |--apps
-    #            |--engines         
-    #            |--frameworks  # frameworks location (returned by this method!)
-    #
-    #
-    studio_location = os.path.abspath( os.path.join(project_root, "..") )
-    return os.path.join(studio_location, "tank", "install", "frameworks")
 
 def get_environments_for_proj(project_path):
     """

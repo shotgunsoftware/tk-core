@@ -13,6 +13,7 @@ from tank_vendor import yaml
 
 from .. import root
 from ..errors import TankError
+from ..platform import constants
 from . import login
 
 
