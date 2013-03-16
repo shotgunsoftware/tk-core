@@ -239,7 +239,7 @@ class TestReadTemplates(TankTestBase):
         super(TestReadTemplates, self).setUp()
         self.setup_fixtures()
         roots = {"primary": self.project_root}
-        self.templates = read_templates(self.project_root, roots)
+        self.templates = read_templates(self.pipeline_configuration_path, roots)
 
     def test_read_simple(self):
         """

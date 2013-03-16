@@ -648,7 +648,7 @@ class TemplatePathParser(object):
         
         return value
 
-def read_templates(primary_project_path, roots, config_path=None):
+def read_templates(pipeline_configuration_path, roots):
     """
     Creates templates and keys based on contents of templates file.
 
@@ -659,7 +659,7 @@ def read_templates(primary_project_path, roots, config_path=None):
     :returns: Dictionary of form {template name: template object}
     """
     # Read file
-    config_path = config_path or constants.get_content_templates_location(primary_project_path)
+    config_path = constants.get_content_templates_location(pipeline_configuration_path)
     if os.path.exists(config_path):
         config_file = open(config_path, "r")
         try:

@@ -33,7 +33,7 @@ class Tank(object):
         self.__project_path = os.path.abspath(project_path)
         self.__sg = None
         self.roots = root.get_project_roots(self.pipeline_configuration_path)
-        self.templates = read_templates(project_path, self.roots)
+        self.templates = read_templates(self.pipeline_configuration_path, self.roots)
         
         # execute a tank_init hook for developers to use.
         self.execute_hook(platform_constants.TANK_INIT_HOOK_NAME)
@@ -392,7 +392,7 @@ class Tank(object):
 
         :returns: Return value of the hook.
         """
-        hook_path = _get_hook_path(hook_name, self.project_path)
+        hook_path = _get_hook_path(hook_name, self.pipeline_configuration_path)
         return hook.execute_hook(hook_path, self, **kwargs)
 
     
@@ -407,8 +407,8 @@ def tank_from_path(path):
     project_path = root.get_primary_root(path)
     return Tank(project_path)
 
-def _get_hook_path(hook_name, project_path):
-    hook_folder = constants.get_core_hooks_folder(project_path)
+def _get_hook_path(hook_name, pipeline_configuration_path):
+    hook_folder = constants.get_core_hooks_folder(pipeline_configuration_path)
     file_name = "%s.py" % hook_name
     # use project level hook if available
     hook_path = os.path.join(hook_folder, file_name)

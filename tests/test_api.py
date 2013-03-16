@@ -437,7 +437,7 @@ class Test_GetHookPath(TankTestBase):
         # Check for one of the core hooks
         # Path will be where code is stored...
         expected = os.path.join( "core", "hooks", "create_folder.py")
-        result = tank.api._get_hook_path("create_folder", self.project_root)
+        result = tank.api._get_hook_path("create_folder", self.pipeline_configuration_path)
         self.assertTrue(result.endswith(expected))
         self.assertFalse(result.startswith(self.project_root))
 
@@ -447,7 +447,7 @@ class Test_GetHookPath(TankTestBase):
         """
         # Check for hook overrriden in the project core hooks area
         expected = os.path.join(self.project_root, "tank", "config", "core", "hooks", "context_additional_entities.py")
-        self.assertEquals(expected, tank.api._get_hook_path("context_additional_entities", self.project_root))
+        self.assertEquals(expected, tank.api._get_hook_path("context_additional_entities", self.pipeline_configuration_path))
 
 
 if __name__ == "__main__":
