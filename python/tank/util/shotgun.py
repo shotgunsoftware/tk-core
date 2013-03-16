@@ -292,11 +292,6 @@ def _group_by_storage(tk, list_of_paths):
         if dep_path_cache is None:
             continue
 
-        # Find LocalStorage matching root name
-        # 'primary' root is 'Tank' storage
-        if root_name == "primary":
-            root_name = "Tank"
-
         # Update data for this storage
         storage_info = storages_paths.get(root_name, {})
         paths = storage_info.get(dep_path_cache, [])

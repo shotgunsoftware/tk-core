@@ -120,7 +120,6 @@ FRAMEWORK_FILE = "framework.py"
 # core stuff
 
 CACHE_DB_FILENAME = "path_cache.db"
-SHOTGUN_TANK_STORAGE_CODE = "Tank" # the name of the special Tank storage in SG
 
 ###############################################################################################
 # folder creation (schema) stuff
