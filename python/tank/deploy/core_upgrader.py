@@ -37,7 +37,7 @@ class TankCoreUpgrader(object):
      ) = range(3)
         
         
-    def __init__(self, studio_root, logger):
+    def __init__(self, pipeline_configuration_path, logger):
         self._log = logger
         
         (sg_app_store, script_user) = shotgun.create_sg_app_store_connection()
@@ -49,7 +49,7 @@ class TankCoreUpgrader(object):
         
         self._current_ver = constants.get_core_api_version()
         
-        self._studio_root = studio_root
+        self._pipeline_configuration_path = pipeline_configuration_path
          
         # now also extract the version of shotgun currently running
         try:
@@ -207,9 +207,8 @@ class TankCoreUpgrader(object):
             import _core_upgrader
             
             # compute the install root based on the studio root
-            #
-            # studio                    
-            #   |--tank                 
+            #           
+            # pipeline_configuration_root                 
             #        |--config          
             #        |--install         # <<<--- install root
             #            |--core
@@ -217,7 +216,7 @@ class TankCoreUpgrader(object):
             #            |--apps         
             #            |--engines     
             #
-            install_folder = os.path.join(self._studio_root, "tank", "install")
+            install_folder = os.path.join(self._pipeline_configuration_path, "install")
             _core_upgrader.upgrade_tank(install_folder, self._log)
         except Exception, e:
             self._log.exception(e)
