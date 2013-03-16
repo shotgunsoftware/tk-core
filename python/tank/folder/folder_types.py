@@ -809,7 +809,7 @@ class Entity(Folder):
             self._register_secondary_entities(io_receiver, my_path, entity)
                         
             # call out to callback
-            self._create_folder(io_receiver, my_path, full_entity_dict)
+            io_receiver.make_entity_folder(my_path, full_entity_dict, self._config_metadata)
 
             # copy files across
             self._copy_files_to_folder(io_receiver, my_path)
@@ -823,13 +823,6 @@ class Entity(Folder):
             
         return items_created
     
-    def _create_folder(self, io_receiver, path, entity):
-        """
-        Helper method that wraps around the folder creation 
-        so that it can be easily subclassed.
-        """    
-        # call out to callback
-        io_receiver.make_entity_folder(path, entity, self._config_metadata)
 
     def _register_secondary_entities(self, io_receiver, path, entity):
         """
@@ -1307,15 +1300,6 @@ class Project(Entity):
         """
         return self._storage_root_path
         
-
-    def _create_folder(self, io_receiver, path, entity):
-        """
-        Project specific implementation of the folder creation.
-        """
-        # ensure that the project specific folders are created
-        io_receiver.prepare_project_root(path, self._config_metadata)
-        # and run base class implementation
-        Entity._create_folder(self, io_receiver, path, entity)
 
 
 
