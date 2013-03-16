@@ -22,7 +22,7 @@ class PathCache(object):
     Ensure that the code is developed with the constraints that this entails in mind.
     """
     
-    def __init__(self, project_root, roots=None):
+    def __init__(self, project_root):
         """
         Constructor
         
@@ -34,7 +34,7 @@ class PathCache(object):
         db_path = constants.get_cache_db_location(project_root)
         self._connection = None
         self._init_db(db_path)
-        self._roots = roots or root.get_project_roots(project_root)
+        self._roots = root.get_project_roots(project_root)
         
         
     def _init_db(self, db_path):
