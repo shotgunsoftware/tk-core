@@ -101,8 +101,8 @@ def validate_project(log, project_root):
     log.info("")
 
     try:
-        envs = constants.get_environments_for_proj(project_root)
         tk = tank.tank_from_path(project_root)
+        envs = constants.get_environments_for_proj(tk.pipeline_configuration_path)
     except Exception, e:
         raise TankError("Could not find any environments for Tank project root %s: %s" % (project_root, e))
 

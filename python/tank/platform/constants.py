@@ -157,13 +157,13 @@ def get_hooks_folder(pipeline_configuration_path):
     """
     return os.path.join(pipeline_configuration_path, "config", "hooks")
 
-def get_environments_for_proj(project_path):
+def get_environments_for_proj(pipeline_configuration_path):
     """
     Returns a list with all the environment yml files found for a project.
     
     ["/path/to/env1.yml", "/path/to/env2.yml"]
     """
-    env_root = os.path.join(project_path, "tank", "config", "env")           
+    env_root = os.path.join(pipeline_configuration_path, "config", "env")           
     return glob.glob(os.path.join(env_root, "*.yml"))
 
 def get_environment_path(env_name, project_path):

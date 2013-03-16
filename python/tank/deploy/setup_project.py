@@ -801,7 +801,7 @@ def _interactive_setup(log, pipeline_config_root):
     # each entry in the config template contains instructions about which version of the app
     # to use.
     
-    for env in constants.get_environments_for_proj(proj_root):
+    for env in constants.get_environments_for_proj(tk.pipeline_configuration_path):
         log.info("Installing apps for environment %s..." % env)
         _install_environment(proj_root, env, log)
 
