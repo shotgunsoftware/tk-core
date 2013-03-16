@@ -183,19 +183,6 @@ def get_pipeline_config_root_from_env(env_path):
     env_folder = os.path.dirname(env_path)
     pc_folder = os.path.abspath( os.path.join(env_folder, "..", ".."))
     return pc_folder
-
-def get_project_path_from_env(env_path):
-    """
-    returns the project path given an environment file
-    """
-    # studio                    # studio location
-    #   |--project              # project path
-    #        |--tank            # project specific tank area
-    #            |--config      
-    #                |--env     # env folder
-    env_folder = os.path.dirname(env_path)
-    project_folder = os.path.abspath( os.path.join(env_folder, "..", "..", ".."))
-    return project_folder
     
 def get_core_api_version():
     """
