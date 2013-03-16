@@ -29,11 +29,12 @@ class PathCache(object):
         :param project_root: project root for which the database should be loaded
         """
         # make sure that the project root has the right slashes
-        self._project_root = project_root.replace("/", os.sep)
-        db_path = constants.get_cache_db_location(self._project_root)
+        # (not sure if this is necessary any longer)
+        project_root = project_root.replace("/", os.sep)
+        db_path = constants.get_cache_db_location(project_root)
         self._connection = None
         self._init_db(db_path)
-        self.roots = roots or root.get_project_roots(project_root)
+        self._roots = roots or root.get_project_roots(project_root)
         
         
     def _init_db(self, db_path):
@@ -126,7 +127,7 @@ class PathCache(object):
         # Deterimine which root
         root_name = None
         relative_path = None
-        for cur_root_name, root_path in self.roots.items():
+        for cur_root_name, root_path in self._roots.items():
             n_root = root_path.replace(os.sep, "/")
             if n_path.lower().startswith(n_root.lower()):
                 root_name = cur_root_name
@@ -270,7 +271,7 @@ class PathCache(object):
             root_name = row[0]
             relative_path = row[1]
             
-            root_path = self.roots.get(root_name)
+            root_path = self._roots.get(root_name)
             if not root_path:
                 # The root name doesn't match a recognized name, so skip this entry
                 continue
