@@ -191,7 +191,7 @@ class FolderIOReceiver(object):
             primary_roots_file = os.path.join(root_path, "tank", "config", "primary_project.yml")
 
             # get the content for this file
-            primary_roots_content = root.platform_paths_for_root("primary", self._tk.project_path)
+            primary_roots_content = root.platform_paths_for_root("primary", self._tk.pipeline_configuration_path)
             
             # and translate that into yaml
             primary_roots_content_yaml = yaml.dump(primary_roots_content)

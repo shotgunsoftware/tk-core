@@ -22,7 +22,7 @@ def get_project_roots(pipeline_configuration_path):
     # TODO - FIX
     
     roots = {}
-    roots_data = _read_roots_file(project_root)
+    roots_data = _read_roots_file(pipeline_configuration_path)
 
     platform_name = _determine_platform()
     project_name = os.path.basename(project_root)
@@ -41,7 +41,7 @@ def get_project_roots(pipeline_configuration_path):
     
     return roots
 
-def platform_paths_for_root(root_name, project_root):
+def platform_paths_for_root(root_name, pipeline_configuration_path):
     """
     Returns root paths for all platform for specified root.
 
@@ -49,7 +49,7 @@ def platform_paths_for_root(root_name, project_root):
     :param project_root: Path of primary project root.
     """
     project_name = os.path.basename(project_root)
-    roots_data = _read_roots_file(project_root)
+    roots_data = _read_roots_file(pipeline_configuration_path)
     root_data = roots_data.get(root_name)
     if root_data is None:
         root_data = {}
@@ -66,8 +66,8 @@ def platform_paths_for_root(root_name, project_root):
     return root_data
 
 
-def _read_roots_file(project_root):
-    root_file_path = constants.get_roots_file_location(project_root)
+def _read_roots_file(pipeline_configuration_path):
+    root_file_path = constants.get_roots_file_location(pipeline_configuration_path)
     if os.path.exists(root_file_path):
         root_file = open(root_file_path, "r")
         try:

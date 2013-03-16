@@ -30,8 +30,8 @@ def get_core_hooks_folder(pipeline_configuration_path):
     """
     return os.path.join(pipeline_configuration_path, "config", "core", "hooks")
 
-def get_roots_file_location(project_path): 
+def get_roots_file_location(pipeline_configuration_path): 
     """ 
     returns the location of the roots file 
     """ 
-    return os.path.join(project_path, "tank", "config", "core", ROOTS_FILE)
+    return os.path.join(pipeline_configuration_path, "config", "core", ROOTS_FILE)

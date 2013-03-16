@@ -49,7 +49,7 @@ class TestFolderConfiguration(TankTestBase):
         
         project_name = os.path.basename(self.project_root)
         
-        roots_path = tank.constants.get_roots_file_location(self.project_root)        
+        roots_path = tank.constants.get_roots_file_location(self.pipeline_configuration_path)        
         roots_file = open(roots_path, "r")
         roots = yaml.load(roots_file)
         roots_file.close()

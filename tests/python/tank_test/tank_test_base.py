@@ -197,7 +197,7 @@ class TankTestBase(unittest.TestCase):
             roots["primary"][os_name]     = os.path.dirname(self.project_root)
             roots["alternate_1"][os_name] = os.path.dirname(self.alt_root_1)
             roots["alternate_2"][os_name] = os.path.dirname(self.alt_root_2)
-        roots_path = tank.constants.get_roots_file_location(self.project_root)        
+        roots_path = tank.constants.get_roots_file_location(self.pipeline_configuration_path)        
         roots_file = open(roots_path, "w") 
         roots_file.write(yaml.dump(roots))
         roots_file.close()
