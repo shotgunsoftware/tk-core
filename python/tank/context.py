@@ -588,7 +588,7 @@ def from_path(tk, path, previous_context=None):
             break
 
         # and continue with parent path
-        parent_path = os.path.abspath(os.path.join(curr_path, os.pardir))
+        parent_path = os.path.abspath(os.path.join(curr_path, ".."))
 
         if curr_path == parent_path:
             # We're at the disk root, probably a degenerate path
@@ -790,7 +790,7 @@ def _context_data_from_cache(tk, entity_type, entity_id):
         # note - paths returned by get_paths are always prefixed with a
         # project root so there is no risk we end up with an infinite loop here..
         while curr_path not in project_roots:
-            curr_path = os.path.abspath(os.path.join(curr_path, os.pardir))
+            curr_path = os.path.abspath(os.path.join(curr_path, ".."))
             curr_entity = path_cache.get_entity(curr_path)
             if curr_entity:
                 cur_type = curr_entity["type"]

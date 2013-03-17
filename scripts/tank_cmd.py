@@ -63,7 +63,7 @@ def run_core_command(log, pipeline_config_root, command, args):
         
     elif command == "validate":
         # fork a pipeline config
-        validate_config.validate_project(log, pipeline_config_root)
+        validate_config.validate_configuration(log, pipeline_config_root)
 
     elif command == "clone":
         # fork a pipeline config

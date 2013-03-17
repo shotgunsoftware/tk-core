@@ -9,10 +9,6 @@ debugging script that validates the environments for a project.
 import os
 import sys
 
-# make sure that the core API is part of the pythonpath
-python_path = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "python"))
-sys.path.append(python_path)
-
 from .. import api
 from ..errors import TankError
 from ..platform import validation
@@ -81,10 +77,11 @@ def process_environment(log, tk, env):
     
     
     
-def validate_project(log, pipeline_config_root):
+def validate_configuration(log, pipeline_config_root):
     """
-    Adds an app to an environment
+    Checks that a tank configuration is valid
     """
+    
     log.info("")
     log.info("")
     log.info("Welcome to the Tank Configuration validator!")
