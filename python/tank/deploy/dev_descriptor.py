@@ -19,8 +19,8 @@ class TankDevDescriptor(AppDescriptor):
     into the local storage, you interact with it directly.
     """
 
-    def __init__(self, pipeline_config_root, location_dict):
-        super(TankDevDescriptor, self).__init__(pipeline_config_root, location_dict)
+    def __init__(self, pipeline_config, location_dict):
+        super(TankDevDescriptor, self).__init__(pipeline_config, location_dict)
 
         # platform specific location support
         system = sys.platform

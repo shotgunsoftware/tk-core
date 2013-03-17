@@ -46,8 +46,8 @@ class TankAppStoreDescriptor(AppDescriptor):
 
     """
 
-    def __init__(self, pipeline_config_root, location_dict, bundle_type):
-        super(TankAppStoreDescriptor, self).__init__(pipeline_config_root, location_dict)
+    def __init__(self, pipeline_config, location_dict, bundle_type):
+        super(TankAppStoreDescriptor, self).__init__(pipeline_config, location_dict)
 
         self._type = bundle_type
         self._name = location_dict.get("name")
@@ -169,7 +169,7 @@ class TankAppStoreDescriptor(AppDescriptor):
     # class methods
 
     @classmethod
-    def find_item(cls, pipeline_config_root, bundle_type, name, version=None):
+    def find_item(cls, pipeline_config, bundle_type, name, version=None):
         """
         Returns an TankAppStoreDescriptor object representing the latest version
         of the sought after object. If no matching item is found, an
@@ -248,7 +248,7 @@ class TankAppStoreDescriptor(AppDescriptor):
         location_dict = {"type": "app_store", "name": name, "version": version_str}
 
         # and return a descriptor instance
-        desc = TankAppStoreDescriptor(pipeline_config_root, location_dict, bundle_type)
+        desc = TankAppStoreDescriptor(pipeline_config, location_dict, bundle_type)
         
         # now if this item has been deprecated, meaning that someone has gone in to the app
         # store and updated the record's deprecation status, we want to make sure we download
@@ -423,7 +423,7 @@ class TankAppStoreDescriptor(AppDescriptor):
         """
         Returns a descriptor object that represents the latest version
         """
-        latest_version = self.find_item(self._pipeline_config_root, self._type, self._name)
+        latest_version = self.find_item(self._pipeline_config, self._type, self._name)
         return latest_version
 
 

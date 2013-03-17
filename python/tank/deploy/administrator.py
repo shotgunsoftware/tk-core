@@ -13,6 +13,7 @@ from .descriptor import AppDescriptor
 from ..util import shotgun
 from ..platform import constants
 from ..platform import validation
+from .. import pipelineconfig
 from ..errors import TankError
 from ..api import Tank
 
@@ -60,7 +61,7 @@ def _check_constraints(descriptor_obj, parent_engine_descriptor = None):
         
     if "min_core" in constraints:
         # ensure core API is ok
-        core_api_version = constants.get_core_api_version()
+        core_api_version = pipelineconfig.get_core_api_version_based_on_current_code()
         minimum_core_version = constraints["min_core"]
         if util.is_version_older(core_api_version, minimum_core_version):
             can_update = False

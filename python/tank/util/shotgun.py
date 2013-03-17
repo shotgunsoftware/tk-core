@@ -11,7 +11,6 @@ import os
 from tank_vendor.shotgun_api3 import Shotgun
 from tank_vendor import yaml
 
-from .. import root
 from ..errors import TankError
 from ..platform import constants
 from . import login
@@ -539,7 +538,7 @@ def _calc_path_cache(tk, path):
 
     # get roots - don't assume data is returned on any particular form
     # may return c:\foo, c:/foo or /foo - assume that we need to normalize this path
-    roots = tk.roots
+    roots = tk.pipeline_config.get_data_roots()
 
     for root_name, root_path in roots.items():
         norm_root_path = root_path.replace(os.sep, "/")

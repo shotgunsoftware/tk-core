@@ -523,8 +523,7 @@ class TestValidateFixtures(TankTestBase):
         tk = tank.Tank(self.project_root)
         context = tk.context_from_path(self.shot_step_path)
         
-        env_path = constants.get_environment_path(self.test_env, self.pipeline_configuration_path)
-        env = Environment(env_path)
+        env = tk.pipeline_configuration.get_environment(self.test_env)
 
         for app_name in env.get_apps(self.test_engine):
             schema = env.get_app_descriptor(self.test_engine, app_name).get_configuration_schema()

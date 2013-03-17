@@ -10,9 +10,7 @@ all Tank items in the file system are kept.
 import sqlite3
 import os
 
-from . import root
 from .errors import TankError 
-from platform import constants
 
 class PathCache(object):
     """
@@ -22,16 +20,15 @@ class PathCache(object):
     Ensure that the code is developed with the constraints that this entails in mind.
     """
     
-    def __init__(self, pipeline_configuration_path):
+    def __init__(self, pipeline_configuration):
         """
         Constructor
-        
-        :param project_root: project root for which the database should be loaded
+        :param pipeline_configuration: pipeline config object
         """
-        db_path = constants.get_cache_db_location(pipeline_configuration_path)
+        db_path = pipeline_configuration.get_path_cache_location()
         self._connection = None
         self._init_db(db_path)
-        self._roots = root.get_project_roots(pipeline_configuration_path)
+        self._roots = pipeline_configuration.get_data_roots()
         
         
     def _init_db(self, db_path):

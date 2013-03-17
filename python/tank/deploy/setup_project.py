@@ -23,6 +23,7 @@ import shutil
 import tempfile
 import uuid
 from ..errors import TankError
+from .. import pipelineconfig
 from ..platform import environment
 from ..util import shotgun
 from ..platform import constants
@@ -447,7 +448,7 @@ class TankConfigInstaller(object):
             required_version = metadata["requires_core_version"]
             
             # now figure out the current version of the core api
-            curr_core_version = constants.get_core_api_version()
+            curr_core_version = pipelineconfig.get_core_api_version_based_on_current_code()
     
             if deploy_util.is_version_newer(required_version, curr_core_version):        
                 raise TankError("This configuration requires Tank Core version %s "
@@ -497,6 +498,9 @@ def _install_environment(env_cfg, log):
     """
     Make sure that all apps and engines exist in the local repo.
     """
+    
+    TODO TODO TODO -- use the PC factory here!
+    
     
     # get a wrapper object for the config
     ed = environment.Environment(env_cfg)
@@ -801,9 +805,10 @@ def _interactive_setup(log, pipeline_config_root):
     # each entry in the config template contains instructions about which version of the app
     # to use.
     
-    for env in constants.get_environments_for_proj(tk.pipeline_configuration_path):
-        log.info("Installing apps for environment %s..." % env)
-        _install_environment(proj_root, env, log)
+    for env_name in tk.pipeline_configuration.get_environments():
+        env_obj = tk.pipeline_configuration.get_environment(env_name)
+        log.info("Installing apps for environment %s..." % env_obj)
+        _install_environment(proj_root, env_obj, log)
 
     ##########################################################################################
     # post processing of the install

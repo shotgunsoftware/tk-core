@@ -13,7 +13,6 @@ import os
 
 from tank_vendor import yaml
 
-from .. import root
 from ..path_cache import PathCache
 from ..platform import constants
 from ..errors import TankError
@@ -34,7 +33,7 @@ class FolderIOReceiver(object):
         self._preview_mode = preview
         self._items = list()
         self._secondary_cache_entries = list()
-        self._path_cache = PathCache(tk.pipeline_configuration_path)
+        self._path_cache = PathCache(tk.pipeline_configuration)
         
     def execute_folder_creation(self):
         """

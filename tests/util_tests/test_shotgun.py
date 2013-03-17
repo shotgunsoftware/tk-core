@@ -225,6 +225,7 @@ class TestShotgunRegisterPublish(TankTestBase):
 
 
 class TestCalcPathCache(TankTestBase):
+    
     @patch("tank.root.get_project_roots")
     def test_case_difference(self, get_project_roots):
         """

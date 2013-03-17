@@ -489,7 +489,7 @@ class _SettingsValidator:
         if hook_name == constants.TANK_BUNDLE_DEFAULT_HOOK_SETTING:
             return
         
-        hooks_folder = constants.get_hooks_folder(self._tank_api.pipeline_configuration_path)
+        hooks_folder = self._tank_api.pipeline_configuration.get_hooks_location()
         hook_path = os.path.join(hooks_folder, "%s.py" % hook_name)
 
         if not os.path.exists(hook_path):

@@ -425,31 +425,6 @@ class TestTankFromPath(TankTestBase):
         """
         self.assertRaises(TankError, tank.tank_from_path, self.tank_temp)
 
-class Test_GetHookPath(TankTestBase):
-    def setUp(self):
-        super(Test_GetHookPath, self).setUp()
-        self.setup_fixtures()
-
-    def test_core_path(self):
-        """
-        Case that core hook does not exist at project level, find it in the core area.
-        """
-        # Check for one of the core hooks
-        # Path will be where code is stored...
-        expected = os.path.join( "core", "hooks", "create_folder.py")
-        result = tank.api._get_hook_path("create_folder", self.pipeline_configuration_path)
-        self.assertTrue(result.endswith(expected))
-        self.assertFalse(result.startswith(self.project_root))
-
-    def test_project_override(self):
-        """
-        Case that project core hooks area contains a hook with matching name.
-        """
-        # Check for hook overrriden in the project core hooks area
-        expected = os.path.join(self.project_root, "tank", "config", "core", "hooks", "context_additional_entities.py")
-        self.assertEquals(expected, tank.api._get_hook_path("context_additional_entities", self.pipeline_configuration_path))
 
 
-if __name__ == "__main__":
-    unittest.main()
 

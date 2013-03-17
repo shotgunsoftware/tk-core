@@ -1263,7 +1263,7 @@ class Project(Entity):
             raise TankError("Missing or invalid value for 'root_name' in metadata: %s" % schema_config_project_folder)
         
         # now resolve the disk location for the storage specified in the project config
-        storage_root_path = tk.roots.get(storage_name)
+        storage_root_path = tk.pipeline_config.get_data_roots().get(storage_name)
         if storage_root_path is None:
             raise TankError("The storage '%s' specified in the folder config %s "
                             "does not exist!" % (storage_name, schema_config_project_folder))

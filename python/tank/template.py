@@ -11,7 +11,6 @@ import re
 
 from tank_vendor import yaml
 
-from . import constants
 from . import templatekey
 from .errors import TankError
 
@@ -648,17 +647,16 @@ class TemplatePathParser(object):
         
         return value
 
-def read_templates(pipeline_configuration_path, roots):
+def read_templates(pipeline_configuration):
     """
     Creates templates and keys based on contents of templates file.
 
-    :param pipeline_configuration_path: Path to project root containing configuration.
-    :param roots: Dictionary of root names to paths
+    :param pipeline_configuration: pipeline config object
 
     :returns: Dictionary of form {template name: template object}
     """
     # Read file
-    config_path = constants.get_content_templates_location(pipeline_configuration_path)
+    config_path = pipeline_configuration.get_templates_location()
     if os.path.exists(config_path):
         config_file = open(config_path, "r")
         try:
@@ -679,7 +677,9 @@ def read_templates(pipeline_configuration_path, roots):
         return d            
             
     keys             = templatekey.make_keys(get_data_section("keys"))
-    template_paths   = make_template_paths(get_data_section("paths"), keys, roots)
+    template_paths   = make_template_paths(get_data_section("paths"), 
+                                           keys, 
+                                           pipeline_configuration.get_data_roots() )
     template_strings = make_template_strings(get_data_section("strings"), keys, template_paths)
 
     # Detect duplicate names across paths and strings

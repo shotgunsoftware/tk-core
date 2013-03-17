@@ -173,7 +173,7 @@ class TestSchemaCreateFoldersSecondaryEntity(TankTestBase):
 
         # now check the path cache!
         # there shouldbe two entries, one for the shot and one for the seq        
-        pc = path_cache.PathCache(self.project_root)
+        pc = path_cache.PathCache(self.pipeline_configuration)
         shot_paths = pc.get_paths("Shot", self.shot["id"], primary_only=False)
         seq_paths = pc.get_paths("Sequence", self.seq["id"], primary_only=False)
         self.assertEquals( len(shot_paths), 1 )
@@ -207,7 +207,7 @@ class TestSchemaCreateFoldersSecondaryEntity(TankTestBase):
         # now check the path cache!
         # there should be two entries, one for the task and one for the step
         
-        pc = path_cache.PathCache(self.project_root)
+        pc = path_cache.PathCache(self.pipeline_configuration)
         step_paths = pc.get_paths("Step", self.step["id"], primary_only=False)
         task_paths = pc.get_paths("Task", self.task["id"], primary_only=False)        
         self.assertEquals( len(step_paths), 1 )

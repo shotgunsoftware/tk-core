@@ -12,12 +12,11 @@ from tank_vendor import yaml
 
 from . import hook
 from . import folder
-from . import constants
 from . import context
-from . import root
 from .util import shotgun
 from .errors import TankError
 from .path_cache import PathCache
+from . import pipelineconfig
 from .template import read_templates, TemplatePath
 from .platform import constants as platform_constants
 
@@ -27,49 +26,42 @@ class Tank(object):
     """
     def __init__(self, project_path):
         """
-        :param project_path: Path to root of project containing tank configuration.
+        :param project_path: Any path inside one of the data locations
         """
-        # TODO: validate this really is a valid project path
-        self.__project_path = os.path.abspath(project_path)
+        
         self.__sg = None
-        self._roots = root.get_project_roots(self.pipeline_configuration_path)
-        self.templates = read_templates(self.pipeline_configuration_path, self._roots)
+        
+        # TODO: validate this really is a valid project path
+        self.__pipeline_config = pipelineconfig.from_data_path(os.path.abspath(project_path))
+        
+        self.templates = read_templates(self.__pipeline_config)
         
         # execute a tank_init hook for developers to use.
         self.execute_hook(platform_constants.TANK_INIT_HOOK_NAME)
 
+    
+    ################################################################################################
+    # internal API
+    
+    @property
+    def pipeline_config(self):
+        """
+        Internal Use Only - We provide no guarantees that this method
+        will be backwards compatible. The returned objects are also 
+        subject to change and are not part of the public tank API.
+        """ 
+        return self.__pipeline_config
+    
+    
     ################################################################################################
     # properties
-    
-    @property
-    def roots(self):
-        """
-        Roots
-        """
-        return self._roots
-    
-    @property
-    def pipeline_configuration_path(self):
-        """
-        Path to the pipeline configuation for this project
-        """
-        
-        # need to change this for 0.13
-        return os.path.join(self.__project_path, "tank")
-    
-    @property
-    def primary_data_path(self):
-        """
-        Returns the path to the primary data storage
-        """
-        return self.__project_path 
-    
+            
     @property
     def project_path(self):
         """
         Path to the primary root directory for a project.
         """
-        return self.__project_path
+        return self.__pipeline_config.get_primary_data_root()
     
     @property
     def shotgun(self):
@@ -88,22 +80,8 @@ class Tank(object):
 
         :returns: string representing the version
         """
-        # read this from info.yml
-        info_yml_path = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "info.yml"))
-        try:
-            info_fh = open(info_yml_path, "r")
-            try:
-                data = yaml.load(info_fh)
-            finally:
-                info_fh.close()
-            data = str(data.get("version", "unknown"))
-        # NOTE! REALLY WANT THIS TO BEHAVE NICELY WHEN AN ERROR OCCURS
-        # PLEASE DO NOT LIMIT THIS CATCH-ALL EXCEPTION
-        except:
-            data = "unknown"
-
-        return data
-
+        return pipelineconfig.get_core_api_version_based_on_current_code()
+        
     @property
     def documentation_url(self):
         """
@@ -293,7 +271,7 @@ class Tank(object):
         """
 
         # Use the path cache to look up all paths associated with this entity
-        path_cache = PathCache(self.pipeline_configuration_path)
+        path_cache = PathCache(self.pipeline_configuration)
         paths = path_cache.get_paths(entity_type, entity_id)
         path_cache.close()
         
@@ -309,7 +287,7 @@ class Tank(object):
                   if no path was associated.
         """
         # Use the path cache to look up all paths associated with this entity
-        path_cache = PathCache(self.pipeline_configuration_path)
+        path_cache = PathCache(self.pipeline_configuration)
         entity = path_cache.get_entity(path)
         path_cache.close()
         
@@ -406,7 +384,16 @@ class Tank(object):
 
         :returns: Return value of the hook.
         """
-        hook_path = _get_hook_path(hook_name, self.pipeline_configuration_path)
+        # first look for the hook in the pipeline configuration
+        # if it does not exist, fall back onto core API default implementation.
+        hook_folder = self.pipeline_configuration.get_core_hooks_location()
+        file_name = "%s.py" % hook_name
+        hook_path = os.path.join(hook_folder, file_name)
+        if not os.path.exists(hook_path):
+            # construct install hooks path if no project(override) hook
+            hooks_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "hooks"))
+            hook_path = os.path.join(hooks_path, file_name)
+        
         return hook.execute_hook(hook_path, self, **kwargs)
 
     
@@ -418,16 +405,6 @@ def tank_from_path(path):
     """
     Create a Tank API instance based on a path inside a project.
     """
-    project_path = root.get_primary_root(path)
-    return Tank(project_path)
+    return Tank(path)
 
-def _get_hook_path(hook_name, pipeline_configuration_path):
-    hook_folder = constants.get_core_hooks_folder(pipeline_configuration_path)
-    file_name = "%s.py" % hook_name
-    # use project level hook if available
-    hook_path = os.path.join(hook_folder, file_name)
-    if not os.path.exists(hook_path):
-        # construct install hooks path if no project(override) hook
-        hooks_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "hooks"))
-        hook_path = os.path.join(hooks_path, file_name)
-    return hook_path
+

@@ -73,10 +73,9 @@ def validate_bundle(log, tk, name, settings, manifest):
             log.error("Required parameter missing: %s" % r)
 
 
-def process_environment(log, tk, env_path):
+def process_environment(log, tk, env):
     
-    log.info("Processing environment %s" % env_path)
-    env = Environment(env_path)
+    log.info("Processing environment %s" % env)
 
     for e in env.get_engines():  
         s = env.get_engine_settings(e)
@@ -102,7 +101,7 @@ def validate_project(log, project_root):
 
     try:
         tk = tank.tank_from_path(project_root)
-        envs = constants.get_environments_for_proj(tk.pipeline_configuration_path)
+        envs = tk.pipeline_configuration.get_environments()
     except Exception, e:
         raise TankError("Could not find any environments for Tank project root %s: %s" % (project_root, e))
 
@@ -113,8 +112,9 @@ def validate_project(log, project_root):
     log.info("")
 
     # validate environments
-    for x in envs:
-        process_environment(log, tk, x)
+    for env_name in envs:
+        env = tk.pipeline_configuration.get_environment(env_name)
+        process_environment(log, tk, env)
 
     log.info("")
     log.info("")
@@ -133,7 +133,7 @@ def validate_project(log, project_root):
     log.info("")
     
     # check hooks that are unused
-    hooks = os.listdir(constants.get_hooks_folder(tk.pipeline_configuration_path))
+    hooks = os.listdir(tk.pipeline_configuration.get_hooks_location())
     # strip extension from file name
     all_hooks = set([ x[:-3] for x in hooks ])
 

@@ -15,7 +15,7 @@ class TestPathCache(TankTestBase):
     def setUp(self):
         super(TestPathCache, self).setUp()
         self.setup_multi_root_fixtures()
-        self.path_cache = path_cache.PathCache(self.project_root)
+        self.path_cache = path_cache.PathCache(self.pipeline_configuration)
 
     def tearDown(self):
         self.path_cache.close()
@@ -23,12 +23,13 @@ class TestPathCache(TankTestBase):
 
 class TestInit(TestPathCache):
     def test_db_exists(self):
-        db_path = constants.get_cache_db_location(self.project_root)
+        pc = tank.pipelineconfig.from_data_path(self.project_root)
+        db_path = pc.get_path_cache_location()
         if os.path.exists(db_path):
             self.path_cache.close()
             os.remove(db_path)
         self.assertFalse(os.path.exists(db_path))
-        pc = path_cache.PathCache(self.project_root)
+        pc = path_cache.PathCache(self.pipeline_configuration)
         pc.close()
         self.assertTrue(os.path.exists(db_path))
 
@@ -42,7 +43,8 @@ class TestInit(TestPathCache):
     def test_pass_in_root_mapping(self):
         """Test that if a mapping of project root locations is passed in, it is used."""
         mapping = {'root_name':'root_path'}
-        pc_obj = path_cache.PathCache(self.project_root, roots=mapping)
+        #FIXME!!!
+        pc_obj = path_cache.PathCache(self.pipeline_configuration, roots=mapping)
         for root_name, root_path in mapping.items():
             self.assertEquals(root_path, pc_obj.roots[root_name])
 

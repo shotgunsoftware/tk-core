@@ -16,6 +16,7 @@ from tank_vendor import yaml
 from ..errors import TankError
 from ..util import shotgun
 from ..platform import constants
+from .. import pipelineconfig
 from .zipfilehelper import unzip_file
 from . import util
 
@@ -37,7 +38,7 @@ class TankCoreUpgrader(object):
      ) = range(3)
         
         
-    def __init__(self, pipeline_configuration_path, logger):
+    def __init__(self, pipeline_configuration, logger):
         self._log = logger
         
         (sg_app_store, script_user) = shotgun.create_sg_app_store_connection()
@@ -47,9 +48,7 @@ class TankCoreUpgrader(object):
         self._local_sg = shotgun.create_sg_connection()      
         self._latest_ver = self.__get_latest_version()
         
-        self._current_ver = constants.get_core_api_version()
-        
-        self._pipeline_configuration_path = pipeline_configuration_path
+        self._pipeline_configuration = pipeline_configuration
          
         # now also extract the version of shotgun currently running
         try:
@@ -96,7 +95,7 @@ class TankCoreUpgrader(object):
         """
         Returns the currently installed version of the Tank API
         """
-        return self._current_ver
+        return pipelineconfig.get_core_api_version_based_on_current_code()
 
     def get_required_sg_version_for_upgrade(self):
         """
@@ -204,19 +203,8 @@ class TankCoreUpgrader(object):
         self._log.info("Extraction complete - now installing Tank Core")
         sys.path.insert(0, extract_tmp)
         try:
-            import _core_upgrader
-            
-            # compute the install root based on the studio root
-            #           
-            # pipeline_configuration_root                 
-            #        |--config          
-            #        |--install         # <<<--- install root
-            #            |--core
-            #                |--python  
-            #            |--apps         
-            #            |--engines     
-            #
-            install_folder = os.path.join(self._pipeline_configuration_path, "install")
+            import _core_upgrader            
+            install_folder = self._pipeline_configuration.get_install_root()
             _core_upgrader.upgrade_tank(install_folder, self._log)
         except Exception, e:
             self._log.exception(e)

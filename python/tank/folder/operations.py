@@ -167,7 +167,7 @@ def process_filesystem_structure(tk, entity_type, entity_ids, preview, engine):
             items.append( { "type": entity_type, "id": i, "step_id": None, "task_id": None } )
         
     # create schema builder
-    schema_cfg_folder = constants.get_schema_config_location(tk.pipeline_configuration_path)   
+    schema_cfg_folder = tk.pipeline_configuration.get_schema_config_location()   
     config = FolderConfiguration(tk, schema_cfg_folder)
     
     # create an object to receive all IO requests

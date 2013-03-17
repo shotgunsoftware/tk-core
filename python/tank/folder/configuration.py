@@ -11,7 +11,6 @@ import fnmatch
 
 from .folder_types import Static, ListField, Entity, Project, UserWorkspace, ShotgunStep, ShotgunTask
 
-from .. import root
 from ..errors import TankError
 
 from tank_vendor import yaml

@@ -582,13 +582,9 @@ def __get_env_and_descriptor_for_engine(engine_name, tk, context):
     # get the environment via the pick_environment hook
     env_name = __pick_environment(engine_name, tk, context)
 
-    # get the path to the environment file given its name
-    env_path = constants.get_environment_path(env_name, tk.pipeline_configuration_path)
-
-    # now we can instantiate a wrapper class around the data
-    # this will load it and check basic things.
-    env = Environment(env_path)
-
+    # get the env object based on the name in the pick env hook
+    env = tk.pipeline_configuration.get_environment(env_name)
+    
     # make sure that the environment has an engine instance with that name
     if not engine_name in env.get_engines():
         raise TankEngineInitError("Cannot find an engine instance %s in %s." % (engine_name, env))

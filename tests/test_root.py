@@ -8,7 +8,6 @@ import sys
 from tank_vendor import yaml
 from tank_test.tank_test_base import *
 
-from tank import root
 from tank import TankError
 
 class TestGetProjectRoots(TankTestBase):
@@ -30,7 +29,8 @@ class TestGetProjectRoots(TankTestBase):
         """Case roots file is not present"""
         expected = {"primary": self.project_root}
         # Don't make a root file
-        result = root.get_project_roots(self.project_root)
+        pc = tank.pipelineconfig.from_data_path(self.project_root)
+        result = pc.get_data_roots()
         self.assertEqual(expected, result)
 
     def test_primary_missing(self):
@@ -41,7 +41,8 @@ class TestGetProjectRoots(TankTestBase):
         root_file.close()
 
         # expect primary will be set using primary argument
-        result = root.get_project_roots(self.project_root)
+        pc = tank.pipelineconfig.from_data_path(self.project_root)
+        result = pc.get_data_roots()
         self.assertEqual(self.project_root, result["primary"])
 
     def test_primary_mismatch(self):
@@ -53,9 +54,12 @@ class TestGetProjectRoots(TankTestBase):
         root_file.write(yaml.dump(self.roots))
         root_file.close()
         bad_project_path = os.path.join(bad_path, os.path.basename(self.project_root)) 
+        
+        pc = tank.pipelineconfig.from_data_path(self.project_root)
+        
         expected = ("Primary root defined in roots.yml file does not match that passed as argument" + 
                    " (likely from Tank local storage): \n%s\n%s" % (bad_project_path, self.project_root))
-        self.check_error_message(tank.errors.TankError, expected, root.get_project_roots, self.project_root)
+        self.check_error_message(tank.errors.TankError, expected, pc.get_data_roots)
 
     def test_paths(self):
         """Test paths match those in roots for current os."""
@@ -63,7 +67,8 @@ class TestGetProjectRoots(TankTestBase):
         root_file.write(yaml.dump(self.roots))
         root_file.close()
 
-        result = root.get_project_roots(self.project_root)
+        pc = tank.pipelineconfig.from_data_path(self.project_root)
+        result = pc.get_data_roots(self.project_root)
         
         # Determine platform
         system = sys.platform.lower()
@@ -115,7 +120,8 @@ class TestGetPrimaryRoot(TankTestBase):
         Test input path in alternate project root's tree.
         """
         asset_path = os.path.join(self.alt_root_1, 'assets', 'assettype_assetname')
-        self.assertEqual(self.project_root, root.get_primary_root(asset_path))
+        pc = tank.pipelineconfig.from_data_path(asset_path)
+        self.assertEqual(self.project_root, pc.get_primary_data_root())
         
 
     def test_primary(self):
@@ -123,7 +129,8 @@ class TestGetPrimaryRoot(TankTestBase):
         Test input path is in primary root's tree for multi-root project.
         """
         shot_path = os.path.join(self.project_root, "sequences", "seq_code", "shot_code")
-        self.assertEqual(self.project_root, root.get_primary_root(shot_path))
+        pc = tank.pipelineconfig.from_data_path(shot_path)
+        self.assertEqual(self.project_root, pc.get_primary_data_root())
 
 
     def test_non_project_path(self):
@@ -131,5 +138,5 @@ class TestGetPrimaryRoot(TankTestBase):
         Test path which is not in the project tree.
         """
         non_project_path = os.path.join(os.path.dirname(self.project_root), "bogus")
-        self.assertRaises(TankError, root.get_primary_root, non_project_path)
+        self.assertRaises(TankError, tank.pipelineconfig.from_data_path, non_project_path)
         

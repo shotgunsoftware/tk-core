@@ -11,7 +11,6 @@ import os
 from tank_vendor import yaml
 
 import tank
-from . import root
 from .util import login
 from .util import shotgun_entity
 from .errors import TankError
@@ -426,7 +425,7 @@ class Context(object):
         matches for the template are found.
         """
         fields = {}
-        project_roots = self.__tk.roots.values()
+        project_roots = self.__tk.pipeline_config.get_data_roots().values()
 
         for cur_path in self.entity_locations:
             # walk up path until match and get value
@@ -460,7 +459,7 @@ class Context(object):
         templates = _get_template_ancestors(template)
 
         # Use cached paths to find field values
-        path_cache = PathCache(self.__tk.pipeline_configuration_path)
+        path_cache = PathCache(self.__tk.pipeline_configuration)
 
         try:
             # Step 3 - walk templates from the root down,
@@ -564,10 +563,10 @@ def from_path(tk, path, previous_context=None):
     additional_types = tk.execute_hook("context_additional_entities").get("entity_types_in_path", [])
 
     # get a cache handle
-    path_cache = PathCache(tk.pipeline_configuration_path)
+    path_cache = PathCache(tk.pipeline_configuration)
 
     # gather all roots as lower case
-    project_roots = [x.lower() for x in tk.roots.values()]
+    project_roots = [x.lower() for x in tk.pipeline_config.get_data_roots().values()]
 
     # first gather entities
     entities = []
@@ -768,14 +767,14 @@ def _context_data_from_cache(tk, entity_type, entity_id):
 
     # Use the path cache to look up all paths linked to the entity and use that to extract
     # extra entities we should include in the context
-    path_cache = PathCache(tk.pipeline_configuration_path)
+    path_cache = PathCache(tk.pipeline_configuration)
 
     # Grab all project roots
-    project_roots = tk.roots.values()
+    project_roots = tk.pipeline_config.get_data_roots().values()
 
     # Special case for project as we have the primary data path, which 
     # always points at a project.
-    context["project"] = path_cache.get_entity(tk.primary_data_path)
+    context["project"] = path_cache.get_entity(tk.pipeline_config.get_primary_data_root())
 
     paths = path_cache.get_paths(entity_type, entity_id)
 

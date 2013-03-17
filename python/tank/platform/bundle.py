@@ -136,7 +136,7 @@ class TankBundle(object):
         random cache data. This location is guaranteed to exist on disk.
         """
         # organize caches by app name
-        folder = os.path.join(self.__tk.primary_data_path, "tank", "cache", self.name)
+        folder = os.path.join(self.__tk.pipeline_configuration.get_primary_data_root(), "tank", "cache", self.name)
         if not os.path.exists(folder):
             # create it using open permissions (not via hook since we want to be in control
             # of permissions inside the tank folders)
@@ -317,7 +317,7 @@ class TankBundle(object):
         list of hooks, for example if you want to run a series of arbitrary
         user defined pre-publish validation hooks.  
         """
-        hook_folder = constants.get_hooks_folder(self.tank.pipeline_configuration_path)
+        hook_folder = self.tank.pipeline_configuration.get_hooks_location()
         hook_path = os.path.join(hook_folder, "%s.py" % hook_name)
         return hook.execute_hook(hook_path, self, **kwargs)
     

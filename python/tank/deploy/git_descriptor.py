@@ -29,10 +29,10 @@ class TankGitDescriptor(AppDescriptor):
     /full/path/to/local/repo.git
     """
 
-    def __init__(self, pipeline_config_root, location_dict, type):
-        super(TankGitDescriptor, self).__init__(pipeline_config_root, location_dict)
+    def __init__(self, pipeline_config, location_dict, type):
+        super(TankGitDescriptor, self).__init__(pipeline_config, location_dict)
 
-        self._pipeline_config_root = pipeline_config_root
+        self._pipeline_config = pipeline_config
         self._type = type
         self._path = location_dict.get("path")
         self._version = location_dict.get("version")
@@ -145,6 +145,6 @@ class TankGitDescriptor(AppDescriptor):
         new_loc_dict = copy.deepcopy(self._location_dict)
         new_loc_dict["version"] = latest_version
 
-        return TankGitDescriptor(self._pipeline_config_root, new_loc_dict, self._type)
+        return TankGitDescriptor(self._pipeline_config, new_loc_dict, self._type)
 
 

@@ -22,9 +22,13 @@ class Environment(object):
     for quick and easy extraction of data from the environment and metadata 
     about the different parts of the confguration (by pulling the info.yml
     files from the various apps and engines referenced in the environment file)
+    
+    Don't construct this class by hand! Instead, use the 
+    pipelineConfiguration.get_environment() method.
+    
     """
     
-    def __init__(self, env_path):
+    def __init__(self, env_path, pipeline_config):
         """
         Constructor
         """
@@ -38,7 +42,7 @@ class Environment(object):
         self.__refresh()
         
         # pc path for this environment
-        self.__pipeline_config_root = constants.get_pipeline_config_root_from_env(env_path)
+        self.__pipeline_config = pipeline_config
         
     def __repr__(self):
         return "<Tank Environment %s>" % self.__env_path
@@ -284,7 +288,7 @@ class Environment(object):
 
         # get the descriptor object for the location
         d = descriptor.get_from_location(descriptor.AppDescriptor.FRAMEWORK, 
-                                         self.__pipeline_config_root, 
+                                         self.__pipeline_config, 
                                          location_dict)
         
         return d        
@@ -300,7 +304,7 @@ class Environment(object):
 
         # get the descriptor object for the location
         d = descriptor.get_from_location(descriptor.AppDescriptor.ENGINE, 
-                                         self.__pipeline_config_root, 
+                                         self.__pipeline_config, 
                                          location_dict)
         
         return d
@@ -317,7 +321,7 @@ class Environment(object):
         
         # get the version object for the location
         d = descriptor.get_from_location(descriptor.AppDescriptor.APP, 
-                                         self.__pipeline_config_root,
+                                         self.__pipeline_config,
                                          location_dict)
         
         return d

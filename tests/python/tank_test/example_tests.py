@@ -31,12 +31,12 @@ class TestExample(TankTestBase):
         self.assertEquals(self.shot, result)
 
     def test_path_cache_get_paths(self):
-        pc = tank.path_cache.PathCache(self.project_root)
+        pc = tank.path_cache.PathCache(self.pipeline_configuration)
         result = pc.get_paths(self.shot["type"], self.shot["id"])
         self.assertEquals(self.shot_path, result[0])
 
     def test_path_cache_get_entity(self):
-        pc = tank.path_cache.PathCache(self.project_root)
+        pc = tank.path_cache.PathCache(self.pipeline_configuration)
         result = pc.get_entity(self.shot_path)
         self.assertEquals(self.shot, result)
 

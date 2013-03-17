@@ -26,6 +26,9 @@ def setUpModule():
     global TANK_TEMP
     global TANK_SOURCE_PATH
 
+    
+
+
     # determine tests root location 
     temp_dir = tempfile.gettempdir()
     # make a unique test dir for each file
@@ -78,7 +81,8 @@ def _move_data(path):
             os.rename(path, backup_path)
         except WindowsError:
             # On windows intermittent problems with sqlite db file occur
-            db_path = tank.platform.constants.get_cache_db_location(path)
+            pc = tank.pipelineconfig.from_data_path(path)
+            db_path = pc.get_path_cache_location()
             if os.path.exists(db_path):
                 print 'Removing db %s' % db_path
                 # Importing pdb allows the deletion of the sqlite db sometimes...
@@ -238,7 +242,7 @@ class TankTestBase(unittest.TestCase):
         :param path: Absolute path to add.
         :param entity: Entity dictionary with values for keys 'id', 'name', and 'type'
         """
-        path_cache = tank.path_cache.PathCache(self.project_root)
+        path_cache = tank.path_cache.PathCache(self.pipeline_configuration)
         path_cache.add_mapping(entity["type"],
                                     entity["id"],
                                     entity["name"],
