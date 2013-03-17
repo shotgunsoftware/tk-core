@@ -65,8 +65,7 @@ class PipelineConfiguration(object):
         Constructor.
         """
         self._pc_root = pipeline_configuration_path
-        
-        
+                
     ########################################################################################
     # data roots access
         

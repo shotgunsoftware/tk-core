@@ -90,7 +90,7 @@ def process_environment(log, tk, env):
     
     
     
-def validate_project(log, project_root):
+def validate_project(log, pipeline_config_root):
     """
     Adds an app to an environment
     """
@@ -158,17 +158,17 @@ def main(log):
 
 Validates the settings for all apps and engines in a Tank Environment.
 
-    Syntax:  %(cmd)s project_root
+    Syntax:  %(cmd)s pipeline_config_root
 
 
 """ % {"cmd": sys.argv[0]}
         print desc
         return
     else:
-        project_root = sys.argv[1]
+        pipeline_config_root = sys.argv[1]
 
     # run actual activation
-    validate_project(log, project_root)
+    validate_project(log, pipeline_config_root)
 
 #######################################################################
 if __name__ == "__main__":

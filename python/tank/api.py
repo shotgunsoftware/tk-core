@@ -17,7 +17,7 @@ from .util import shotgun
 from .errors import TankError
 from .path_cache import PathCache
 from . import pipelineconfig
-from .template import read_templates, TemplatePath
+from .template import read_templates
 from .platform import constants as platform_constants
 
 class Tank(object):
