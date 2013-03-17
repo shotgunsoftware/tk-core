@@ -30,7 +30,7 @@ class PathCache(object):
         self._init_db(db_path)
         self._roots = pipeline_configuration.get_data_roots()
         
-        
+    
     def _init_db(self, db_path):
         """
         Sets up the database

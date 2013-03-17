@@ -16,7 +16,7 @@ from ..platform import validation
 g_templates = set()
 g_hooks = set()
 
-def validate_bundle(log, tk, name, settings, manifest):
+def _validate_bundle(log, tk, name, settings, manifest):
 
     log.info("")
     log.info("Validating %s..." % name)
@@ -60,7 +60,7 @@ def validate_bundle(log, tk, name, settings, manifest):
             log.error("Required parameter missing: %s" % r)
 
 
-def process_environment(log, tk, env):
+def _process_environment(log, tk, env):
     
     log.info("Processing environment %s" % env)
 
@@ -68,16 +68,16 @@ def process_environment(log, tk, env):
         s = env.get_engine_settings(e)
         cfg_schema = env.get_engine_descriptor(e).get_configuration_schema()
         name = "Engine %s [environment %s]" % (e, env.name)
-        validate_bundle(log, tk, name, s, cfg_schema)
+        _validate_bundle(log, tk, name, s, cfg_schema)
         for a in env.get_apps(e):
             s = env.get_app_settings(e, a)
             cfg_schema = env.get_app_descriptor(e, a).get_configuration_schema()
             name = "App %s: %s [environment %s]" % (e, a, env.name)
-            validate_bundle(log, tk, name, s, cfg_schema)
+            _validate_bundle(log, tk, name, s, cfg_schema)
     
     
     
-def validate_configuration(log, pipeline_config_root):
+def validate_configuration(log, tk):
     """
     Checks that a tank configuration is valid
     """
@@ -88,10 +88,9 @@ def validate_configuration(log, pipeline_config_root):
     log.info("")
 
     try:
-        tk = api.tank_from_path(pipeline_config_root)
         envs = tk.pipeline_configuration.get_environments()
     except Exception, e:
-        raise TankError("Could not find any environments for config %s: %s" % (pipeline_config_root, e))
+        raise TankError("Could not find any environments for config %s: %s" % (tk, e))
 
     log.info("Found the following environments:")
     for x in envs:
@@ -102,7 +101,7 @@ def validate_configuration(log, pipeline_config_root):
     # validate environments
     for env_name in envs:
         env = tk.pipeline_configuration.get_environment(env_name)
-        process_environment(log, tk, env)
+        _process_environment(log, tk, env)
 
     log.info("")
     log.info("")

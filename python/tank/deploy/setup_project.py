@@ -210,6 +210,7 @@ class TankConfigInstaller(object):
         self._cfg_folder = self._process_config(config_name)
         self._roots_data = self._read_roots_file()
 
+        # make sure that the config has a setup/root_binaries folder - 
 
     def _read_roots_file(self):
         """
@@ -235,7 +236,7 @@ class TankConfigInstaller(object):
             
         else: 
             # set up default roots data
-            roots_data = { "primary": 
+            roots_data = { constants.PRIMARY_STORAGE_NAME: 
                             { "description": "A location where the primary data is located.",
                               "mac_path": "/studio/projects", 
                               "linux_path": "/studio/projects", 
@@ -364,6 +365,7 @@ class TankConfigInstaller(object):
         Returns the root paths from shotgun for each storage.
         """
         #
+        self._log.debug("Checking so that all the local storages are registered...")
         sg_storage = self._sg.find("LocalStorage", [],
                                     fields=["code", "linux_path", "mac_path", "windows_path"])
 
@@ -464,6 +466,43 @@ class TankConfigInstaller(object):
 ########################################################################################
 # helper methods
 
+def _get_current_core_file_location():
+    """
+    Given the location of the code, find the configuration which holds
+    the installation location on all platforms.    
+    """
+    
+    core_api_root = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "..", "..", ".."))
+    core_cfg = os.path.join(core_api_root, "config", "core")
+    
+    if not os.path.exists(core_cfg):
+        full_path_to_file = os.path.abspath(os.path.dirname(__file__))
+        raise TankError("Cannot resolve the core configuration from the location of the Tank Code! "
+                        "This can happen if you try to move or symlink the Tank API. The "
+                        "Tank API is currently picked up from %s which is an "
+                        "invalid location." % full_path_to_file)
+    
+
+    location_file = os.path.join(core_cfg, "install_location.yml")
+    if not os.path.exists(location_file):
+        raise TankError("Cannot find '%s' - please contact support!" % location_file)
+
+    # load the config file
+    try:
+        open_file = open(location_file)
+        try:
+            location_data = yaml.load(open_file)
+        finally:
+            open_file.close()
+    except Exception, error:
+        raise TankError("Cannot load config file '%s'. Error: %s" % (location_file, error))
+        
+    return location_data
+       
+   
+
+
+
 
 def _copy_folder(src, dst): 
     """
@@ -499,7 +538,7 @@ def _install_environment(env_cfg, log):
     Make sure that all apps and engines exist in the local repo.
     """
     
-    TODO TODO TODO -- use the PC factory here!
+    #TODO TODO TODO -- use the PC factory here!
     
     
     # get a wrapper object for the config
@@ -574,6 +613,21 @@ def _interactive_setup(log, pipeline_config_root):
     
     cmdline_ui = CmdlineSetupInteraction(log, sg)
     
+    # now ask which config to use. Download if necessary and examine
+    config_name = cmdline_ui.get_config()
+
+    # now try to load the config
+    cfg_installer = TankConfigInstaller(config_name, sg, sg_app_store, script_user, log)
+    
+    # validate the config against the shotgun where we are installing it 
+    cfg_installer.check_manifest(sg_version)
+    
+    # now look at the roots yml in the config
+    resolved_storages = cfg_installer.validate_roots()
+
+
+    
+
     # ask which project to operate on
     (project_id, project_name) = cmdline_ui.get_project()
     
@@ -589,18 +643,6 @@ def _interactive_setup(log, pipeline_config_root):
         raise TankError("Invalid project folder '%s'! Please stick to alphanumerics, "
                         "underscores and dashes." % project_disk_folder)
     
-    # now ask which config to use. Download if necessary and examine
-    config_name = cmdline_ui.get_config()
-
-    # now try to load the config
-    cfg_installer = TankConfigInstaller(config_name, sg, sg_app_store, script_user, log)
-    
-    # validate the config against the shotgun where we are installing it 
-    cfg_installer.check_manifest(sg_version)
-    
-    # now look at the roots yml in the config
-    resolved_storages = cfg_installer.validate_roots()
-
     # create pipeline configuration record - ask for paths
     # disk friendly name for project by replacing white space by underscore    
     suggested_path = os.path.abspath( os.path.join(pipeline_config_root, "..", project_disk_folder) )
@@ -748,9 +790,6 @@ def _interactive_setup(log, pipeline_config_root):
     # copy the tank binaries to the top of the config
     core_api_root = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", ".."))
     root_binaries_folder = os.path.join(core_api_root, "setup", "root_binaries")
-    if not os.path.exists(root_binaries_folder):
-        raise Exception("Looks like you are using an old version of Tank! "
-                        "Please contact tanksupport@shotgunsoftware.com.")
     for file_name in os.listdir(root_binaries_folder):
         src_file = os.path.join(root_binaries_folder, file_name)
         tgt_file = os.path.join(current_os_pc_location, file_name)
@@ -761,16 +800,57 @@ def _interactive_setup(log, pipeline_config_root):
     tank_proxy = os.path.join(core_api_root, "setup", "tank_api_proxy")
     _copy_folder(tank_proxy, os.path.join(current_os_pc_location, "install", "core", "python"))
     
+    # specify the parent files in install/core/core_PLATFORM.cfg
+    for (uname, path) in _get_current_core_file_location().items():
+        core_path = os.path.join(current_os_pc_location, "install", "core", "core_%s.cfg" % uname)
+        fh = open(core_path, "wt")
+        fh.write(path)
+        fh.close()
+        
+    # update the roots file in the config to match our settings
+    core_path = os.path.join(current_os_pc_location, "config", "core", "roots.yml")
+    
+    # resuffle list of associated local storages to be a dict keyed by storage name
+    # and with keys mac_path/windows_path/linux_path
+    roots_data = {}
+    for s in resolved_storages:
+        roots_data[ s["code"] ] = {"windows_path": s["windows_path"],
+                                   "linux_path": s["linux_path"],
+                                   "macosx_path": s["macosx_path"]}
+    try:
+        fh = open(core_path, "wt")
+        yaml.dump(roots_data, fh)
+        fh.close()
+    except Exception, exp:
+        raise TankError("Could not write to environment file %s. "
+                        "Error reported: %s" % (core_path, exp))
+    
+    
     # now ensure there is a tank folder in every storage
     for s in resolved_storages:
-        log.info("Setting up %s storage..." % s.get("code") )
+        log.info("Setting up %s storage..." % s["code"] )
         current_os_path = s.get( SG_LOCAL_STORAGE_OS_MAP[sys.platform] )
+        
         tank_path = os.path.join(current_os_path, project_disk_folder, "tank")
         if not os.path.exists(tank_path):
             os.mkdir(tank_path, 0777)
+        
+        cache_path = os.path.join(tank_path, "cache")
+        if not os.path.exists(cache_path):
+            os.mkdir(cache_path, 0777)
+        
+        if s["code"] == constants.PRIMARY_STORAGE_NAME:
+            # primary storage - make sure there is a path cache file
+            # this is to secure the ownership of this file
+            cache_file = os.path.join(cache_path, "path_cache.db")
+            fh = open(cache_file, "wb")
+            fh.close()
+            os.chmod(cache_file, 0666)
+                
     
-    # create path cache db
     # create file for configuration backlinks
+    
+    
     # add our confg to that file
     
     

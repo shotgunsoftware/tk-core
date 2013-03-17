@@ -30,7 +30,7 @@ def from_pipeline_config_root(path):
     """
     return PipelineConfiguration(path)
     
-def get_core_api_version_based_on_current_code(self):
+def get_core_api_version_based_on_current_code():
     """
     Returns the version number string for the core API, based on the code that is currently
     executing.
@@ -70,10 +70,13 @@ class PipelineConfiguration(object):
         # the code that is locally stored in this config!!!!
         
                 
+    def __repr__(self):
+        return "<Tank Configuration %s>" % self._pc_root
+                
     ########################################################################################
     # data roots access
         
-    def get_pipeline_configuration_root(self):
+    def get_path(self):
         """
         Returns the master root for this pc
         """

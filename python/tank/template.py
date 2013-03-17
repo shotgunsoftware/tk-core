@@ -13,6 +13,7 @@ from tank_vendor import yaml
 
 from . import templatekey
 from .errors import TankError
+from .platform import constants
 
 
 
@@ -792,7 +793,7 @@ def _process_templates_data(data, template_type):
         definition = cur_data["definition"]
         if template_type == "path":
             if "root_name" not in cur_data:
-                cur_data["root_name"] = "primary"
+                cur_data["root_name"] = constants.PRIMARY_STORAGE_NAME
             
             root_name = cur_data["root_name"]
         else:

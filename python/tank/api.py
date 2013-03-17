@@ -39,6 +39,9 @@ class Tank(object):
         # execute a tank_init hook for developers to use.
         self.execute_hook(platform_constants.TANK_INIT_HOOK_NAME)
 
+    def __repr__(self):
+        return "<Tank Core v%s@0x%08x Config %s>" % (self.version, id(self), self.__pipeline_config.get_path())
+
     
     ################################################################################################
     # internal API

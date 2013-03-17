@@ -14,7 +14,6 @@ from tank_vendor import yaml
 from ..util import shotgun
 from ..errors import TankError
 from ..platform import constants
-from ..pipelineconfig import PipelineConfiguration
 
 
 class AppDescriptor(object):

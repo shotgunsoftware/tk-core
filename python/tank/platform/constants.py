@@ -93,6 +93,9 @@ ENVIRONMENT_LOCATION_KEY = "location"
 # the file to look for that defines and bootstraps an app
 APP_FILE = "app.py"
 
+# the storage name that is treated to be the primary storage for tank
+PRIMARY_STORAGE_NAME = "primary"
+
 # the file to look for that defines and bootstraps a framework
 FRAMEWORK_FILE = "framework.py"
 
