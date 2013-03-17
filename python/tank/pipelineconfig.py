@@ -65,6 +65,10 @@ class PipelineConfiguration(object):
         Constructor.
         """
         self._pc_root = pipeline_configuration_path
+        
+        # validate that the current code version matches or is compatible with
+        # the code that is locally stored in this config!!!!
+        
                 
     ########################################################################################
     # data roots access
@@ -89,6 +93,13 @@ class PipelineConfiguration(object):
             
     def get_path_cache_location(self):
         return os.path.join(self.primary_data_root, "tank", "cache", CACHE_DB_FILENAME)
+            
+            
+            
+    def get_project_id(self):
+        """
+        Returns the shotgun project id that is associated with this config
+        """
             
             
     ########################################################################################

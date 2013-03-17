@@ -601,11 +601,6 @@ def __pick_environment(engine_name, tk, context):
     based on the current context. The Shotgun engine provides its own implementation.
     """
 
-    # for now, handle shotgun as a special case!
-    # if the engine_name is shotgun, then return shotgun as the environment
-    if engine_name in constants.SHOTGUN_ENGINES:
-        return constants.SHOTGUN_ENVIRONMENT
-
     try:
         env_name = tk.execute_hook(constants.PICK_ENVIRONMENT_CORE_HOOK_NAME, context=context)
     except Exception, e:

@@ -121,6 +121,13 @@ def run_engine(log, context_str, args):
     log.debug("Will launch engine: %s" % engine_to_launch)
     
     
+    #####################
+    #
+    # note! local location of this script takes precednece
+    # check that there is a match ebtween context/priject and current PC
+    #
+    
+    
     if ":" in context_str:
         # Shot:123 or Shot:foo
         chunks = context_str.split(":")
