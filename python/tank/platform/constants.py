@@ -8,12 +8,6 @@ Constants relating to the app/engine part of the Tank Stack.
 
 """
 
-import os
-import glob
-from tank_vendor import yaml
-from ..errors import TankError 
-
-
 # metadata file for engines and apps
 BUNDLE_METADATA_FILE = "info.yml"
 

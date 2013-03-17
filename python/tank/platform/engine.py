@@ -19,7 +19,6 @@ from . import application
 from . import constants
 from . import validation
 from . import qt
-from .environment import Environment
 from .bundle import TankBundle
 from .framework import setup_frameworks
 
