@@ -24,9 +24,9 @@ import logging
 import tank
 import getopt
 from tank import TankError
-from tank.deploy import setup_project
+from tank.deploy import setup_project, validate_config
 
-CORE_COMMANDS = ["setup_project", "clone", "core", "join", "leave", "info"]
+CORE_COMMANDS = ["setup_project", "clone", "core", "join", "leave", "info", "validate"]
 DEFAULT_ENGINE = "tk-shell"
 
 def show_help():
@@ -61,6 +61,10 @@ def run_core_command(log, pipeline_config_root, command, args):
         # project setup
         setup_project.interactive_setup(log, pipeline_config_root)
         
+    elif command == "validate":
+        # fork a pipeline config
+        validate_config.validate_project(log, pipeline_config_root)
+
     elif command == "clone":
         # fork a pipeline config
         pass

@@ -8,23 +8,14 @@ debugging script that validates the environments for a project.
 
 import os
 import sys
-import logging
-import textwrap
-import pprint
 
 # make sure that the core API is part of the pythonpath
 python_path = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "python"))
 sys.path.append(python_path)
 
-import tank
-from tank.errors import TankError
-from tank.platform import constants
-from tank.deploy import administrator
-from tank.platform import environment
-from tank.deploy.descriptor import AppDescriptor
-from tank.deploy.app_store_descriptor import TankAppStoreDescriptor
-from tank.platform.environment import Environment
-from tank.platform import validation
+from .. import api
+from ..errors import TankError
+from ..platform import validation
 
 g_templates = set()
 g_hooks = set()
@@ -100,10 +91,10 @@ def validate_project(log, pipeline_config_root):
     log.info("")
 
     try:
-        tk = tank.tank_from_path(project_root)
+        tk = api.tank_from_path(pipeline_config_root)
         envs = tk.pipeline_configuration.get_environments()
     except Exception, e:
-        raise TankError("Could not find any environments for Tank project root %s: %s" % (project_root, e))
+        raise TankError("Could not find any environments for config %s: %s" % (pipeline_config_root, e))
 
     log.info("Found the following environments:")
     for x in envs:
@@ -151,50 +142,6 @@ def validate_project(log, pipeline_config_root):
      
 
 
-def main(log):
-    if len(sys.argv) == 1 or len(sys.argv) != 2:
-
-        desc = """
-
-Validates the settings for all apps and engines in a Tank Environment.
-
-    Syntax:  %(cmd)s pipeline_config_root
 
 
-""" % {"cmd": sys.argv[0]}
-        print desc
-        return
-    else:
-        pipeline_config_root = sys.argv[1]
 
-    # run actual activation
-    validate_project(log, pipeline_config_root)
-
-#######################################################################
-if __name__ == "__main__":
-
-    # set up logging channel for this script
-    log = logging.getLogger("tank.validate")
-    log.setLevel(logging.INFO)
-
-    ch = logging.StreamHandler()
-    formatter = logging.Formatter("%(levelname)08s %(message)s")
-    ch.setFormatter(formatter)
-    log.addHandler(ch)
-
-    exit_code = 1
-    try:
-        # clear the umask so permissions are respected
-        old_umask = os.umask(0)
-        main(log)
-        exit_code = 0
-    except TankError, e:
-        # one line report
-        log.error("An error occurred: %s" % e)
-    except Exception, e:
-        # callstack
-        log.exception("An error occurred: %s" % e)
-    finally:
-        os.umask(old_umask)
-
-    sys.exit(exit_code)
