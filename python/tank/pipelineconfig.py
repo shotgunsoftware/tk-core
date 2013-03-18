@@ -63,14 +63,21 @@ class StorageConfigurationMapping(object):
         """
         Add pipeline configuration mapping to a storage
         """
+        data = {}
+        
         if os.path.exists(self._config_file):
             # we have a config already - so read it in
-        info_fh = open(info_yml_path, "r")
-        try:
-            data = yaml.load(info_fh)
-        finally:
-            info_fh.close()
-        data = str(data.get("version", "unknown"))
+            fh = open(self._config_file, "rt")
+            try:
+                data = yaml.load(fh)
+            except Exception, e:
+                raise TankError("Looks like the config lookup file %s is corrupt. Please contact "
+                                "support! File: '%s' Error: %s" % (self._config_file, e))
+            finally:
+                fh.close()
+        
+        # now add our new mapping to this data structure
+        
             
             
         
