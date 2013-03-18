@@ -902,7 +902,7 @@ def _interactive_setup(log, pipeline_config_root):
     log.info("")
 
     # show the readme file if it exists
-    readme_file = os.path.join(current_os_pc_location, "README")
+    readme_file = os.path.join(current_os_pc_location, "config", "README")
     if os.path.exists(readme_file):
         log.info("")
         log.info("README file for template:")
