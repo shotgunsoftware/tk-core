@@ -51,7 +51,8 @@ else
    fi
    
    # all good, execute tank script in parent location
-   $parent_location/tank $@ --pc="$SELF_PATH"
+   #$parent_location/tank $@ --pc="$SELF_PATH"
+   $parent_location/tank $@
       
 fi
 
