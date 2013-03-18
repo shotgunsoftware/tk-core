@@ -23,7 +23,7 @@ class TestPathCache(TankTestBase):
 
 class TestInit(TestPathCache):
     def test_db_exists(self):
-        pc = tank.pipelineconfig.from_data_path(self.project_root)
+        pc = tank.pipelineconfig.from_path(self.project_root)
         db_path = pc.get_path_cache_location()
         if os.path.exists(db_path):
             self.path_cache.close()

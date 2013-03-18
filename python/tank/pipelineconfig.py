@@ -18,17 +18,17 @@ from .platform.environment import Environment
 CACHE_DB_FILENAME = "path_cache.db"
 CONTENT_TEMPLATES_FILE = "templates.yml"
 ROOTS_FILE = "roots.yml"
+CONFIG_BACK_MAPPING_FILE = "tank_configs.yml"
 
-def from_data_path(path):
+def from_path(path):
     """
-    Factory method that constructs a PC object from any data path that relates to the project
-    """
-    
-def from_pipeline_config_root(path):
-    """
-    
+    Factory method that constructs a PC object from a path:
+    - data paths are being traversed and resolved
+    - if the path is a direct path to a PC root that's fine too
     """
     return PipelineConfiguration(path)
+    
+    
     
 def get_core_api_version_based_on_current_code():
     """
@@ -57,11 +57,23 @@ class StorageConfigurationMapping(object):
     
     def __init__(self, data_root):
         self._root = data_root
+        self._config_file = os.path.join(self._root, "tank", "config", CONFIG_BACK_MAPPING_FILE)
         
     def add_pipeline_configuration(self, mac_path, win_path, linux_path):
         """
         Add pipeline configuration mapping to a storage
         """
+        if os.path.exists(self._config_file):
+            # we have a config already - so read it in
+        info_fh = open(info_yml_path, "r")
+        try:
+            data = yaml.load(info_fh)
+        finally:
+            info_fh.close()
+        data = str(data.get("version", "unknown"))
+            
+            
+        
     
     def get_pipeline_configs(self, path):
         """
@@ -145,7 +157,7 @@ class PipelineConfiguration(object):
         """
         return os.path.join(self._pc_root, "install", "engines")
             
-    def get_frameworks_loaation(self):
+    def get_frameworks_location(self):
         """
         Returns the location where apps are stored
         """

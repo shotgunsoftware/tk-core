@@ -873,7 +873,7 @@ def _interactive_setup(log, pipeline_config_root):
     # install apps
     
     # We now have a fully functional tank setup! Time to start it up...
-    pc = pipelineconfig.from_pipeline_config_root(current_os_pc_location)
+    pc = pipelineconfig.from_path(current_os_pc_location)
     
     # each entry in the config template contains instructions about which version of the app
     # to use.

@@ -32,7 +32,7 @@ class Tank(object):
         self.__sg = None
         
         # TODO: validate this really is a valid project path
-        self.__pipeline_config = pipelineconfig.from_data_path(os.path.abspath(project_path))
+        self.__pipeline_config = pipelineconfig.from_path(os.path.abspath(project_path))
         
         self.templates = read_templates(self.__pipeline_config)
         

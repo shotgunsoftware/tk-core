@@ -81,7 +81,7 @@ def _move_data(path):
             os.rename(path, backup_path)
         except WindowsError:
             # On windows intermittent problems with sqlite db file occur
-            pc = tank.pipelineconfig.from_data_path(path)
+            pc = tank.pipelineconfig.from_path(path)
             db_path = pc.get_path_cache_location()
             if os.path.exists(db_path):
                 print 'Removing db %s' % db_path
