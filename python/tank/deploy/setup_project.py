@@ -810,7 +810,7 @@ def _interactive_setup(log, pipeline_config_root):
     for s in resolved_storages:
         roots_data[ s["code"] ] = {"windows_path": s["windows_path"],
                                    "linux_path": s["linux_path"],
-                                   "macosx_path": s["macosx_path"]}
+                                   "mac_path": s["mac_path"]}
     try:
         fh = open(core_path, "wt")
         yaml.dump(roots_data, fh)
@@ -843,7 +843,7 @@ def _interactive_setup(log, pipeline_config_root):
                 
         # create file for configuration backlinks
         scm = pipelineconfig.StorageConfigurationMapping(current_os_path)
-        scm.add_pipeline_configuration(s["macosx_path"], s["windows_path"], s["linux_path"])    
+        scm.add_pipeline_configuration(s["mac_path"], s["windows_path"], s["linux_path"])    
     
     # creating project.tank_name record
     log.debug("Shotgun: Setting Project.tank_name to %s" % project_disk_folder)

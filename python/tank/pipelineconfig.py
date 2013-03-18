@@ -59,7 +59,9 @@ class StorageConfigurationMapping(object):
         self._root = data_root
         
     def add_pipeline_configuration(self, mac_path, win_path, linux_path):
-        pass
+        """
+        Add pipeline configuration mapping to a storage
+        """
     
     def get_pipeline_configs(self, path):
         """
