@@ -20,10 +20,6 @@ from .. import pipelineconfig
 from .zipfilehelper import unzip_file
 from . import util
 
-TANK_CORE_VERSION_ENTITY = "CustomNonProjectEntity01"
-TANK_CODE_PAYLOAD_FIELD = "sg_payload"
-TANK_APP_STORE_DUMMY_PROJECT = {"type": "Project", "id": 64} 
-
 class TankCoreUpgrader(object):
     """
     Class which handles the upgrade of the core API.
@@ -69,13 +65,13 @@ class TankCoreUpgrader(object):
                              ["sg_status_list", "is_not", "bad" ]]
         
         # connect to the app store
-        latest_core = self._sg.find_one(TANK_CORE_VERSION_ENTITY, 
+        latest_core = self._sg.find_one(constants.TANK_CORE_VERSION_ENTITY, 
                                         filters = latest_filter, 
                                         fields=["sg_min_shotgun_version", 
                                                 "code",
                                                 "sg_detailed_release_notes",
                                                 "description",
-                                                TANK_CODE_PAYLOAD_FIELD],
+                                                constants.TANK_CODE_PAYLOAD_FIELD],
                                         order=[{"field_name": "created_at", "direction": "desc"}])
 
         if latest_core is None:
@@ -159,7 +155,7 @@ class TankCoreUpgrader(object):
             raise Exception("Upgrade not allowed at this point. Run get_update_status for details.")
         
         # download attachment
-        if self._latest_ver[TANK_CODE_PAYLOAD_FIELD] is None:
+        if self._latest_ver[constants.TANK_CODE_PAYLOAD_FIELD] is None:
             raise Exception("Cannot find a tank binary bundle for %s. Please contact support" % self._latest_ver["code"])
         
         self._log.info("Begin downloading Tank Core API %s from the Tank App Store..." % self._latest_ver["code"])
@@ -176,7 +172,7 @@ class TankCoreUpgrader(object):
         # method below.
         
         try:
-            attachment_id = int(self._latest_ver[TANK_CODE_PAYLOAD_FIELD]["url"].split("/")[-1])
+            attachment_id = int(self._latest_ver[constants.TANK_CODE_PAYLOAD_FIELD]["url"].split("/")[-1])
         except:
             raise Exception("Could not extract attachment id from data %s" %  self._latest_ver)
         
@@ -195,8 +191,8 @@ class TankCoreUpgrader(object):
         data["event_type"] = "TankAppStore_CoreApi_Download"
         data["entity"] = self._latest_ver
         data["user"] = self._sg_script_user
-        data["project"] = TANK_APP_STORE_DUMMY_PROJECT
-        data["attribute_name"] = TANK_CODE_PAYLOAD_FIELD
+        data["project"] = constants.TANK_APP_STORE_DUMMY_PROJECT
+        data["attribute_name"] = constants.TANK_CODE_PAYLOAD_FIELD
         self._sg.create("EventLogEntry", data)
         
         

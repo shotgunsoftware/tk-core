@@ -106,6 +106,9 @@ VALID_SG_ENTITY_NAME_REGEX = "^[0-9A-Za-z_\-\.]+$"
 VALID_SG_ENTITY_NAME_EXPLANATION = ("letters, numbers and the characters period(.), "
                                     "dash(-) and underscore(_)")
 
+# app store: the entity that represents the core api
+TANK_CORE_VERSION_ENTITY = "CustomNonProjectEntity01"
+
 # app store: the entity representing apps
 TANK_APP_ENTITY         = "CustomNonProjectEntity02"
 
@@ -124,9 +127,32 @@ TANK_FRAMEWORK_ENTITY      = "CustomNonProjectEntity13"
 # app store: the entity representing framework versions
 TANK_FRAMEWORK_VERSION_ENTITY = "CustomNonProjectEntity09"
 
+# app store: the entity representing configs
+TANK_CONFIG_ENTITY = "CustomNonProjectEntity07"
+
+# app store: the entity representing config versions
+TANK_CONFIG_VERSION_ENTITY = "CustomNonProjectEntity08"
+
 # app store: the field containing the zip payload
 TANK_CODE_PAYLOAD_FIELD = "sg_payload"
 
 # app store: dummy project required when writing event data to the system
 TANK_APP_STORE_DUMMY_PROJECT = {"type": "Project", "id": 64}
 
+# Shotgun: The entity that represents Pipeline Configurations in Shotgun 
+PIPELINE_CONFIGURATION_ENTITY = "CustomNonProjectEntity02"
+
+# The name of the default config
+DEFAULT_CFG = "tk-config-default"
+
+# the name of the file that holds the path cache
+CACHE_DB_FILENAME = "path_cache.db"
+
+# the name of the file that holds the templates.yml config
+CONTENT_TEMPLATES_FILE = "templates.yml"
+
+# the name of the file that holds the root definitions
+ROOTS_FILE = "roots.yml"
+
+# the name of the file that holds the inverse root defs
+CONFIG_BACK_MAPPING_FILE = "tank_configs.yml"

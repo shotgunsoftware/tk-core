@@ -16,105 +16,6 @@ from .deploy import util
 from .platform import constants
 from .platform.environment import Environment
 
-CACHE_DB_FILENAME = "path_cache.db"
-CONTENT_TEMPLATES_FILE = "templates.yml"
-ROOTS_FILE = "roots.yml"
-CONFIG_BACK_MAPPING_FILE = "tank_configs.yml"
-
-def from_path(path):
-    """
-    Factory method that constructs a PC object from a path:
-    - data paths are being traversed and resolved
-    - if the path is a direct path to a PC root that's fine too
-    """
-    return PipelineConfiguration(path)
-    
-    
-    
-def get_core_api_version_based_on_current_code():
-    """
-    Returns the version number string for the core API, based on the code that is currently
-    executing.
-    """
-    # read this from info.yml
-    info_yml_path = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "info.yml"))
-    try:
-        info_fh = open(info_yml_path, "r")
-        try:
-            data = yaml.load(info_fh)
-        finally:
-            info_fh.close()
-        data = str(data.get("version", "unknown"))
-    except:
-        data = "unknown"
-
-    return data
-
-
-class StorageConfigurationMapping(object):
-    """
-    Handles operation on the mapping from a data root to a pipeline config
-    """
-    
-    def __init__(self, data_root):
-        self._root = data_root
-        self._config_file = os.path.join(self._root, "tank", "config", CONFIG_BACK_MAPPING_FILE)
-        
-    def add_pipeline_configuration(self, mac_path, win_path, linux_path):
-        """
-        Add pipeline configuration mapping to a storage
-        """
-        data = []
-        
-        if os.path.exists(self._config_file):
-            # we have a config already - so read it in
-            fh = open(self._config_file, "rt")
-            try:
-                data = yaml.load(fh)
-            except Exception, e:
-                raise TankError("Looks like the config lookup file is corrupt. Please contact "
-                                "support! File: '%s' Error: %s" % (self._config_file, e))
-            finally:
-                fh.close()
-        
-        # now add our new mapping to this data structure
-        new_item = {"darwin": mac_path, "win32": win_path, "linux2": linux_path}
-        if new_item not in data:
-            data.append(new_item)
-        
-        # and write the file
-        try:
-            fh = open(self._config_file, "wt")
-            yaml.dump(data, fh)
-            fh.close()
-        except Exception, exp:
-            raise TankError("Could not write to roots file %s. "
-                            "Error reported: %s" % (self._config_file, exp))
-        
-
-    def get_pipeline_configs(self):
-        """
-        Returns a list of current os paths to pipeline configs
-        """
-        data = []
-        
-        if os.path.exists(self._config_file):
-            # we have a config already - so read it in
-            fh = open(self._config_file, "rt")
-            try:
-                data = yaml.load(fh)
-            except Exception, e:
-                raise TankError("Looks like the config lookup file %s is corrupt. Please contact "
-                                "support! File: '%s' Error: %s" % (self._config_file, e))
-            finally:
-                fh.close()
-        
-        current_os_paths = [ x.get(sys.platform) for x in data ]
-        return current_os_paths
-        
-    
-
-    
 
 class PipelineConfiguration(object):
     """
@@ -196,7 +97,7 @@ class PipelineConfiguration(object):
         Returns a dictionary of all the data roots available for this PC,
         keyed by their storage name.
         """
-        roots_yml = os.path.join(self._pc_root, "install", "core", ROOTS_FILE)
+        roots_yml = os.path.join(self._pc_root, "install", "core", constants.ROOTS_FILE)
         if not os.path.exists(roots_yml):
             raise TankError("Cannot find roots.yml file %s! Please contact support." % roots_yml)
             
@@ -230,7 +131,7 @@ class PipelineConfiguration(object):
         """
         Returns the path to the path cache file.
         """
-        return os.path.join(self.primary_data_root, "tank", "cache", CACHE_DB_FILENAME)
+        return os.path.join(self.primary_data_root, "tank", "cache", constants.CACHE_DB_FILENAME)
             
             
     ########################################################################################
@@ -274,7 +175,7 @@ class PipelineConfiguration(object):
         """
         Returns the path to the template config
         """
-        return os.path.join(self._pc_root, "config", "core", CONTENT_TEMPLATES_FILE)
+        return os.path.join(self._pc_root, "config", "core", constants.CONTENT_TEMPLATES_FILE)
     
     def get_core_hooks_location(self):
         """
@@ -321,12 +222,118 @@ class PipelineConfiguration(object):
         
     
     
+
+
+class StorageConfigurationMapping(object):
+    """
+    Handles operation on the mapping from a data root to a pipeline config
+    """
     
+    def __init__(self, data_root):
+        self._root = data_root
+        self._config_file = os.path.join(self._root, "tank", "config", constants.CONFIG_BACK_MAPPING_FILE)
+        
+    def add_pipeline_configuration(self, mac_path, win_path, linux_path):
+        """
+        Add pipeline configuration mapping to a storage
+        """
+        data = []
+        
+        if os.path.exists(self._config_file):
+            # we have a config already - so read it in
+            fh = open(self._config_file, "rt")
+            try:
+                data = yaml.load(fh)
+            except Exception, e:
+                raise TankError("Looks like the config lookup file is corrupt. Please contact "
+                                "support! File: '%s' Error: %s" % (self._config_file, e))
+            finally:
+                fh.close()
+        
+        # now add our new mapping to this data structure
+        new_item = {"darwin": mac_path, "win32": win_path, "linux2": linux_path}
+        if new_item not in data:
+            data.append(new_item)
+        
+        # and write the file
+        try:
+            fh = open(self._config_file, "wt")
+            yaml.dump(data, fh)
+            fh.close()
+        except Exception, exp:
+            raise TankError("Could not write to roots file %s. "
+                            "Error reported: %s" % (self._config_file, exp))
+        
+
+    def get_pipeline_configs(self):
+        """
+        Returns a list of current os paths to pipeline configs
+        """
+        data = []
+        
+        if os.path.exists(self._config_file):
+            # we have a config already - so read it in
+            fh = open(self._config_file, "rt")
+            try:
+                data = yaml.load(fh)
+            except Exception, e:
+                raise TankError("Looks like the config lookup file %s is corrupt. Please contact "
+                                "support! File: '%s' Error: %s" % (self._config_file, e))
+            finally:
+                fh.close()
+        
+        current_os_paths = [ x.get(sys.platform) for x in data ]
+        return current_os_paths
+        
+    
+
+def from_entity(entity_type, entity_id):
+    """
+    Factory method that constructs a PC given a shotgun object
+    """
     
     
 
 
 
+
+def from_path(path):
+    """
+    Factory method that constructs a PC object from a path:
+    - data paths are being traversed and resolved
+    - if the path is a direct path to a PC root that's fine too
+    """
+    
+    # first see if this path is a pipeline configuration
+    
+    # if not, walk up until a tank folder is found, 
+    
+    # todo: support user based work spaces
+    
+    
+    
+    return PipelineConfiguration(path)
+    
+    
+    
+def get_core_api_version_based_on_current_code():
+    """
+    Returns the version number string for the core API, based on the code that is currently
+    executing.
+    """
+    # read this from info.yml
+    info_yml_path = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "info.yml"))
+    try:
+        info_fh = open(info_yml_path, "r")
+        try:
+            data = yaml.load(info_fh)
+        finally:
+            info_fh.close()
+        data = str(data.get("version", "unknown"))
+    except:
+        data = "unknown"
+
+    return data
 
 
 

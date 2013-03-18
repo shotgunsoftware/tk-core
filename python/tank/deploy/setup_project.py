@@ -5,14 +5,6 @@ Copyright (c) 2012 Shotgun Software, Inc
 Utils and logic for creating new tank projects
 """
 
-# tank app store constants
-TANK_APP_STORE_DUMMY_PROJECT = {"type": "Project", "id": 64} 
-TANK_CONFIG_ENTITY = "CustomNonProjectEntity07"
-TANK_CONFIG_VERSION_ENTITY = "CustomNonProjectEntity08"
-TANK_CODE_PAYLOAD_FIELD = "sg_payload"
-PIPELINE_CONFIGURATION_ENTITY = "CustomNonProjectEntity02"
-DEFAULT_CFG = "tk-config-default"
-
 SG_LOCAL_STORAGE_OS_MAP = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
 
 import re
@@ -110,9 +102,9 @@ class CmdlineSetupInteraction(object):
         self._log.info("You can either type in a name of a config in the Tank Store")
         self._log.info("or specify a path to a config on disk. Hit enter to use the ")
         self._log.info("standard Tank Starter configuration.")
-        config_name = raw_input("[%s]: " % DEFAULT_CFG)
+        config_name = raw_input("[%s]: " % constants.DEFAULT_CFG)
         if config_name == "":
-            config_name = DEFAULT_CFG
+            config_name = constants.DEFAULT_CFG
         return config_name
         
     def get_project_folder_name(self, suggested_folder_name):
@@ -269,18 +261,18 @@ class TankConfigInstaller(object):
         """
         
         # try download from app store...
-        parent_entity = self._sg_app_store.find_one(TANK_CONFIG_ENTITY, 
+        parent_entity = self._sg_app_store.find_one(constants.TANK_CONFIG_ENTITY, 
                                               [["sg_system_name", "is", config_name ]],
                                               ["code"]) 
         if parent_entity is None:
             raise Exception("Cannot find a config in the app store named %s!" % config_name)
         
         # get latest code
-        latest_cfg = self._sg_app_store.find_one(TANK_CONFIG_VERSION_ENTITY, 
+        latest_cfg = self._sg_app_store.find_one(constants.TANK_CONFIG_VERSION_ENTITY, 
                                            filters = [["sg_tank_config", "is", parent_entity],
                                                       ["sg_status_list", "is_not", "rev" ],
                                                       ["sg_status_list", "is_not", "bad" ]], 
-                                           fields=["code", TANK_CODE_PAYLOAD_FIELD],
+                                           fields=["code", constants.TANK_CODE_PAYLOAD_FIELD],
                                            order=[{"field_name": "created_at", "direction": "desc"}])
         if latest_cfg is None:
             raise Exception("It looks like this configuration doesn't have any versions uploaded yet!")
@@ -293,7 +285,7 @@ class TankConfigInstaller(object):
         # grab the attachment id off the url field and pass that to the download_attachment()
         # method below.
         try:
-            attachment_id = int(latest_cfg[TANK_CODE_PAYLOAD_FIELD]["url"].split("/")[-1])
+            attachment_id = int(latest_cfg[constants.TANK_CODE_PAYLOAD_FIELD]["url"].split("/")[-1])
         except:
             raise TankError("Could not extract attachment id from data %s" % latest_cfg)
     
@@ -313,8 +305,8 @@ class TankConfigInstaller(object):
         data["event_type"] = "TankAppStore_Config_Download"
         data["entity"] = latest_cfg
         data["user"] = self._script_user
-        data["project"] = TANK_APP_STORE_DUMMY_PROJECT
-        data["attribute_name"] = TANK_CODE_PAYLOAD_FIELD
+        data["project"] = constants.TANK_APP_STORE_DUMMY_PROJECT
+        data["attribute_name"] = constants.TANK_CODE_PAYLOAD_FIELD
         self._sg_app_store.create("EventLogEntry", data)
     
         # got a zip! Pass to zip extractor...
@@ -870,7 +862,7 @@ def _interactive_setup(log, pipeline_config_root):
             "sg_windows_path": locations_dict["win32"],
             "sg_macosx_path": locations_dict["darwin"],
             "code": project_disk_folder}
-    pc_entity = sg.create(PIPELINE_CONFIGURATION_ENTITY, data)
+    pc_entity = sg.create(constants.PIPELINE_CONFIGURATION_ENTITY, data)
     log.debug("Created data: %s" % pc_entity)
     
     # write the record to disk
@@ -890,7 +882,7 @@ def _interactive_setup(log, pipeline_config_root):
     data["description"] = "%s: A Tank Project named %s was created" % (sg.base_url, project_disk_folder)
     data["event_type"] = "TankAppStore_Project_Created"
     data["user"] = script_user
-    data["project"] = TANK_APP_STORE_DUMMY_PROJECT
+    data["project"] = constants.TANK_APP_STORE_DUMMY_PROJECT
     data["attribute_name"] = project_disk_folder
     sg_app_store.create("EventLogEntry", data)
     
