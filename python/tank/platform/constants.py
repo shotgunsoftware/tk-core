@@ -106,3 +106,27 @@ VALID_SG_ENTITY_NAME_REGEX = "^[0-9A-Za-z_\-\.]+$"
 VALID_SG_ENTITY_NAME_EXPLANATION = ("letters, numbers and the characters period(.), "
                                     "dash(-) and underscore(_)")
 
+# app store: the entity representing apps
+TANK_APP_ENTITY         = "CustomNonProjectEntity02"
+
+# app store: the entity representing app versions
+TANK_APP_VERSION_ENTITY = "CustomNonProjectEntity05"
+
+# app store: the entity representing engines
+TANK_ENGINE_ENTITY      = "CustomNonProjectEntity03"
+
+# app store: the entity representing engine versions
+TANK_ENGINE_VERSION_ENTITY = "CustomNonProjectEntity04"
+
+# app store: the entity representing frameworks
+TANK_FRAMEWORK_ENTITY      = "CustomNonProjectEntity13"
+
+# app store: the entity representing framework versions
+TANK_FRAMEWORK_VERSION_ENTITY = "CustomNonProjectEntity09"
+
+# app store: the field containing the zip payload
+TANK_CODE_PAYLOAD_FIELD = "sg_payload"
+
+# app store: dummy project required when writing event data to the system
+TANK_APP_STORE_DUMMY_PROJECT = {"type": "Project", "id": 64}
+

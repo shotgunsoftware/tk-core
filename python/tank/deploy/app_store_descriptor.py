@@ -22,17 +22,6 @@ from ..platform import constants
 from .descriptor import AppDescriptor
 from .zipfilehelper import unzip_file
 
-
-TANK_APP_ENTITY         = "CustomNonProjectEntity02"
-TANK_APP_VERSION_ENTITY = "CustomNonProjectEntity05"
-TANK_ENGINE_ENTITY      = "CustomNonProjectEntity03"
-TANK_ENGINE_VERSION_ENTITY = "CustomNonProjectEntity04"
-TANK_FRAMEWORK_ENTITY      = "CustomNonProjectEntity13"
-TANK_FRAMEWORK_VERSION_ENTITY = "CustomNonProjectEntity09"
-
-TANK_CODE_PAYLOAD_FIELD = "sg_payload"
-TANK_APP_STORE_DUMMY_PROJECT = {"type": "Project", "id": 64}
-
 METADATA_FILE = ".metadata.json"
 
 class TankAppStoreDescriptor(AppDescriptor):
@@ -107,18 +96,18 @@ class TankAppStoreDescriptor(AppDescriptor):
         
         # find the right shotgun entity types
         if self._type == AppDescriptor.APP:
-            bundle_entity = TANK_APP_ENTITY
-            version_entity = TANK_APP_VERSION_ENTITY
+            bundle_entity = constants.TANK_APP_ENTITY
+            version_entity = constants.TANK_APP_VERSION_ENTITY
             link_field = "sg_tank_app"
 
         elif self._type == AppDescriptor.FRAMEWORK:
-            bundle_entity = TANK_FRAMEWORK_ENTITY
-            version_entity = TANK_FRAMEWORK_VERSION_ENTITY
+            bundle_entity = constants.TANK_FRAMEWORK_ENTITY
+            version_entity = constants.TANK_FRAMEWORK_VERSION_ENTITY
             link_field = "sg_tank_framework"
 
         elif self._type == AppDescriptor.ENGINE:
-            bundle_entity = TANK_ENGINE_ENTITY
-            version_entity = TANK_ENGINE_VERSION_ENTITY
+            bundle_entity = constants.TANK_ENGINE_ENTITY
+            version_entity = constants.TANK_ENGINE_VERSION_ENTITY
             link_field = "sg_tank_engine"
 
         else:
@@ -138,7 +127,7 @@ class TankAppStoreDescriptor(AppDescriptor):
                               ["description", 
                                "sg_detailed_release_notes", 
                                "sg_documentation",
-                               TANK_CODE_PAYLOAD_FIELD])
+                               constants.TANK_CODE_PAYLOAD_FIELD])
         if version is None:
             raise TankError("The Tank store does not have a version "
                             "'%s' of item '%s'!" % (self._version, self._name))
@@ -200,13 +189,13 @@ class TankAppStoreDescriptor(AppDescriptor):
             latest_filter = [["code", "is", version]]
         
         # set up some lookup tables so we look in the right table in sg
-        main_entity_map = { AppDescriptor.APP: TANK_APP_ENTITY,
-                            AppDescriptor.FRAMEWORK: TANK_FRAMEWORK_ENTITY,
-                            AppDescriptor.ENGINE: TANK_ENGINE_ENTITY }
+        main_entity_map = { AppDescriptor.APP: constants.TANK_APP_ENTITY,
+                            AppDescriptor.FRAMEWORK: constants.TANK_FRAMEWORK_ENTITY,
+                            AppDescriptor.ENGINE: constants.TANK_ENGINE_ENTITY }
 
-        version_entity_map = { AppDescriptor.APP: TANK_APP_VERSION_ENTITY,
-                               AppDescriptor.FRAMEWORK: TANK_FRAMEWORK_VERSION_ENTITY,
-                               AppDescriptor.ENGINE: TANK_ENGINE_VERSION_ENTITY }
+        version_entity_map = { AppDescriptor.APP: constants.TANK_APP_VERSION_ENTITY,
+                               AppDescriptor.FRAMEWORK: constants.TANK_FRAMEWORK_VERSION_ENTITY,
+                               AppDescriptor.ENGINE: constants.TANK_ENGINE_VERSION_ENTITY }
 
         link_field_map = { AppDescriptor.APP: "sg_tank_app",
                            AppDescriptor.FRAMEWORK: "sg_tank_framework",
@@ -362,7 +351,7 @@ class TankAppStoreDescriptor(AppDescriptor):
         # grab the attachment id off the url field and pass that to the download_attachment()
         # method below.
         try:
-            attachment_id = int(version[TANK_CODE_PAYLOAD_FIELD]["url"].split("/")[-1])
+            attachment_id = int(version[constants.TANK_CODE_PAYLOAD_FIELD]["url"].split("/")[-1])
         except:
             raise TankError("Could not extract attachment id from data %s" % version)
 
@@ -392,8 +381,8 @@ class TankAppStoreDescriptor(AppDescriptor):
             data["event_type"] = "TankAppStore_App_Download"
             data["entity"] = version
             data["user"] = script_user
-            data["project"] = TANK_APP_STORE_DUMMY_PROJECT
-            data["attribute_name"] = TANK_CODE_PAYLOAD_FIELD
+            data["project"] = constants.TANK_APP_STORE_DUMMY_PROJECT
+            data["attribute_name"] = constants.TANK_CODE_PAYLOAD_FIELD
             sg.create("EventLogEntry", data)
 
         elif self._type == AppDescriptor.FRAMEWORK:
@@ -402,8 +391,8 @@ class TankAppStoreDescriptor(AppDescriptor):
             data["event_type"] = "TankAppStore_Framework_Download"
             data["entity"] = version
             data["user"] = script_user
-            data["project"] = TANK_APP_STORE_DUMMY_PROJECT
-            data["attribute_name"] = TANK_CODE_PAYLOAD_FIELD
+            data["project"] = constants.TANK_APP_STORE_DUMMY_PROJECT
+            data["attribute_name"] = constants.TANK_CODE_PAYLOAD_FIELD
             sg.create("EventLogEntry", data)
 
         elif self._type == AppDescriptor.ENGINE:
@@ -412,8 +401,8 @@ class TankAppStoreDescriptor(AppDescriptor):
             data["event_type"] = "TankAppStore_Engine_Download"
             data["entity"] = version
             data["user"] = script_user
-            data["project"] = TANK_APP_STORE_DUMMY_PROJECT
-            data["attribute_name"] = TANK_CODE_PAYLOAD_FIELD
+            data["project"] = constants.TANK_APP_STORE_DUMMY_PROJECT
+            data["attribute_name"] = constants.TANK_CODE_PAYLOAD_FIELD
             sg.create("EventLogEntry", data)
 
         else:
