@@ -11,7 +11,6 @@ TANK_CONFIG_ENTITY = "CustomNonProjectEntity07"
 TANK_CONFIG_VERSION_ENTITY = "CustomNonProjectEntity08"
 TANK_CODE_PAYLOAD_FIELD = "sg_payload"
 PIPELINE_CONFIGURATION_ENTITY = "CustomNonProjectEntity02"
-PIPELINE_CONFIGURATION_ENTITY_PROJ_LINK = "sg_project"
 DEFAULT_CFG = "tk-config-default"
 
 SG_LOCAL_STORAGE_OS_MAP = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
@@ -29,6 +28,7 @@ from ..util import shotgun
 from ..platform import constants
 from . import util as deploy_util
 from . import console_utils
+from .. import pipelineconfig
 
 from .zipfilehelper import unzip_file
 
@@ -533,28 +533,22 @@ def _copy_folder(src, dst):
         except (IOError, os.error), why: 
             raise TankError("Can't copy %s to %s: %s" % (srcname, dstname, str(why))) 
     
-def _install_environment(env_cfg, log):
+def _install_environment(env_obj, log):
     """
     Make sure that all apps and engines exist in the local repo.
     """
     
-    #TODO TODO TODO -- use the PC factory here!
-    
-    
-    # get a wrapper object for the config
-    ed = environment.Environment(env_cfg)
-    
     # populate a list of descriptors
     descriptors = []
     
-    for engine in ed.get_engines():
-        descriptors.append( ed.get_engine_descriptor(engine) )
+    for engine in env_obj.get_engines():
+        descriptors.append( env_obj.get_engine_descriptor(engine) )
         
-        for app in ed.get_apps(engine):
-            descriptors.append( ed.get_app_descriptor(engine, app) )
+        for app in env_obj.get_apps(engine):
+            descriptors.append( env_obj.get_app_descriptor(engine, app) )
             
-    for framework in ed.get_frameworks():
-        descriptors.append( ed.get_framework_descriptor(framework) )
+    for framework in env_obj.get_frameworks():
+        descriptors.append( env_obj.get_framework_descriptor(framework) )
             
     # ensure all apps are local - if not then download them
     for descriptor in descriptors:
@@ -847,27 +841,23 @@ def _interactive_setup(log, pipeline_config_root):
             fh.close()
             os.chmod(cache_file, 0666)
                 
-    
-    # create file for configuration backlinks
-    
-    
-    # add our confg to that file
-    
-    
-    raise Exception("fo")
+        # create file for configuration backlinks
+        scm = pipelineconfig.StorageConfigurationMapping(current_os_path)
+        scm.add_pipeline_configuration(s["macosx_path"], s["windows_path"], s["linux_path"])    
     
     # creating project.tank_name record
     log.debug("Shotgun: Setting Project.tank_name to %s" % project_disk_folder)
     sg.update("Project", project_id, {"tank_name": project_disk_folder})
     
     # create pipeline configuration record
+    log.debug("Shotgun: Creating Pipeline Config record...")
+    data = {"sg_project": {"type": "Project", "id": project_id},
+            "sg_linux_path": locations_dict["linux2"],
+            "sg_windows_path": locations_dict["win32"],
+            "sg_macosx_path": locations_dict["darwin"],
+            "code": project_disk_folder}
     
-    
-        
-    
-    
-    
-    
+    sg.create(PIPELINE_CONFIGURATION_ENTITY, data)
     
     # and write a custom event to the shotgun event log
     data = {}
@@ -882,19 +872,22 @@ def _interactive_setup(log, pipeline_config_root):
     ##########################################################################################
     # install apps
     
+    # We now have a fully functional tank setup! Time to start it up...
+    pc = pipelineconfig.from_pipeline_config_root(current_os_pc_location)
+    
     # each entry in the config template contains instructions about which version of the app
     # to use.
     
-    for env_name in tk.pipeline_configuration.get_environments():
-        env_obj = tk.pipeline_configuration.get_environment(env_name)
+    for env_name in pc.get_environments():
+        env_obj = pc.get_environment(env_name)
         log.info("Installing apps for environment %s..." % env_obj)
-        _install_environment(proj_root, env_obj, log)
+        _install_environment(env_obj, log)
 
     ##########################################################################################
     # post processing of the install
     
     # run after project create script if it exists
-    after_script_path = os.path.join(tank_folder, "config", "after_project_create.py")
+    after_script_path = os.path.join(current_os_pc_location, "config", "after_project_create.py")
     if os.path.exists(after_script_path):
         log.info("Found a tank post-install script %s" % after_script_path)
         log.info("Executing post-install commands...")
@@ -909,7 +902,7 @@ def _interactive_setup(log, pipeline_config_root):
     log.info("")
 
     # show the readme file if it exists
-    readme_file = os.path.join(starter_config, "README")
+    readme_file = os.path.join(current_os_pc_location, "README")
     if os.path.exists(readme_file):
         log.info("")
         log.info("README file for template:")
@@ -919,15 +912,14 @@ def _interactive_setup(log, pipeline_config_root):
         fh.close()
     
     log.info("")
-    log.info("We now recommend that you run the update script to ensure that all")
+    log.info("Project setup complete!")
+    log.info("")
+    log.info("We now recommend that you run the update app to ensure that all")
     log.info("the Apps and Engines that came with the config are up to date! ")
-    log.info("You can do this by executing the check_for_updates script ")
-    log.info("that is located in this folder.")
     log.info("")
     log.info("For more Apps, Support, Documentation and the Tank Community, go to")
     log.info("https://tank.shotgunsoftware.com")
     log.info("")        
-    log.info("Tank Project Script exiting.")
 
     
     
