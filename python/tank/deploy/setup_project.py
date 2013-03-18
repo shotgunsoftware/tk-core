@@ -802,7 +802,7 @@ def _interactive_setup(log, pipeline_config_root):
         fh.close()
         
     # update the roots file in the config to match our settings
-    core_path = os.path.join(current_os_pc_location, "config", "core", "roots.yml")
+    roots_path = os.path.join(current_os_pc_location, "config", "core", "roots.yml")
     
     # resuffle list of associated local storages to be a dict keyed by storage name
     # and with keys mac_path/windows_path/linux_path
@@ -812,12 +812,12 @@ def _interactive_setup(log, pipeline_config_root):
                                    "linux_path": s["linux_path"],
                                    "mac_path": s["mac_path"]}
     try:
-        fh = open(core_path, "wt")
+        fh = open(roots_path, "wt")
         yaml.dump(roots_data, fh)
         fh.close()
     except Exception, exp:
-        raise TankError("Could not write to environment file %s. "
-                        "Error reported: %s" % (core_path, exp))
+        raise TankError("Could not write to roots file %s. "
+                        "Error reported: %s" % (roots_path, exp))
     
     
     # now ensure there is a tank folder in every storage
@@ -856,8 +856,17 @@ def _interactive_setup(log, pipeline_config_root):
             "sg_windows_path": locations_dict["win32"],
             "sg_macosx_path": locations_dict["darwin"],
             "code": project_disk_folder}
+    pc_entity = sg.create(PIPELINE_CONFIGURATION_ENTITY, data)
     
-    sg.create(PIPELINE_CONFIGURATION_ENTITY, data)
+    # write the record to disk
+    pipe_config_sg_id_path = os.path.join(current_os_pc_location, "config", "core", "pipeline_configuration.yml")
+    try:
+        fh = open(pipe_config_sg_id_path, "wt")
+        yaml.dump({"id": pc_entity["id"], "type": pc_entity["type"]}, fh)
+        fh.close()
+    except Exception, exp:
+        raise TankError("Could not write to shotgun cache file %s. "
+                        "Error reported: %s" % (pipe_config_sg_id_path, exp))
     
     # and write a custom event to the shotgun event log
     data = {}
