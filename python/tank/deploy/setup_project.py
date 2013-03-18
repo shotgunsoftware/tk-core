@@ -22,12 +22,9 @@ import shutil
 import tempfile
 import uuid
 from ..errors import TankError
-from .. import pipelineconfig
-from ..platform import environment
 from ..util import shotgun
 from ..platform import constants
 from . import util as deploy_util
-from . import console_utils
 from .. import pipelineconfig
 
 from .zipfilehelper import unzip_file
@@ -210,7 +207,10 @@ class TankConfigInstaller(object):
         self._cfg_folder = self._process_config(config_name)
         self._roots_data = self._read_roots_file()
 
-        # make sure that the config has a setup/root_binaries folder - 
+        if constants.PRIMARY_STORAGE_NAME not in self._roots_data:
+            # need a primary storage in every config
+            raise TankError("Looks like your configuration does not have a primary storage. "
+                            "This is required by Tank. Please contact support for more info.")
 
     def _read_roots_file(self):
         """
