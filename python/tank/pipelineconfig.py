@@ -63,7 +63,7 @@ class StorageConfigurationMapping(object):
         """
         Add pipeline configuration mapping to a storage
         """
-        data = {}
+        data = []
         
         if os.path.exists(self._config_file):
             # we have a config already - so read it in
@@ -77,11 +77,20 @@ class StorageConfigurationMapping(object):
                 fh.close()
         
         # now add our new mapping to this data structure
+        new_item = {"darwin": mac_path, "win32": win_path, "linux2": linux_path}
+        if new_item not in data:
+            data.append(new_item)
         
-            
-            
+        # and write the file
+        try:
+            fh = open(self._config_file, "wt")
+            yaml.dump(data, fh)
+            fh.close()
+        except Exception, exp:
+            raise TankError("Could not write to roots file %s. "
+                            "Error reported: %s" % (self._config_file, exp))
         
-    
+
     def get_pipeline_configs(self, path):
         """
         Returns a list of current os paths to pipeline configs, given an arbitrary path.

@@ -499,12 +499,12 @@ def _get_current_core_file_location():
         
     return location_data
        
-   
 
+def _make_folder(log, folder, permissions):
+    log.debug("Creating folder %s.." % folder)
+    os.mkdir(folder, permissions)
 
-
-
-def _copy_folder(src, dst): 
+def _copy_folder(log, src, dst): 
     """
     Alternative implementation to shutil.copytree
     Copies recursively with very open permissions.
@@ -512,6 +512,7 @@ def _copy_folder(src, dst):
     """
     
     if not os.path.exists(dst):
+        log.debug("Creating folder %s..." % dst)
         os.mkdir(dst, 0775)
 
     names = os.listdir(src)     
@@ -526,8 +527,9 @@ def _copy_folder(src, dst):
 
         try: 
             if os.path.isdir(srcname): 
-                _copy_folder(srcname, dstname)             
+                _copy_folder(log, srcname, dstname)             
             else: 
+                log.debug("Copying %s --> %s" % (srcname, dstname))
                 shutil.copy(srcname, dstname) 
         
         except (IOError, os.error), why: 
@@ -765,23 +767,24 @@ def _interactive_setup(log, pipeline_config_root):
     log.info("Installing configuration into '%s'..." % current_os_pc_location )
     if not os.path.exists(current_os_pc_location):
         # note that we have already validated that creation is possible
-        os.mkdir(current_os_pc_location, 0775)
+        _make_folder(log, current_os_pc_location, 0775)
     
     # create pipeline config base folder structure            
-    os.mkdir(os.path.join(current_os_pc_location, "cache"), 0775)    
-    os.mkdir(os.path.join(current_os_pc_location, "config"), 0775)
-    os.mkdir(os.path.join(current_os_pc_location, "install"), 0775)
-    os.mkdir(os.path.join(current_os_pc_location, "install", "core"), 0777)
-    os.mkdir(os.path.join(current_os_pc_location, "install", "core", "python"), 0777)
-    os.mkdir(os.path.join(current_os_pc_location, "install", "core.backup"), 0777)
-    os.mkdir(os.path.join(current_os_pc_location, "install", "engines"), 0777)
-    os.mkdir(os.path.join(current_os_pc_location, "install", "apps"), 0777)
-    os.mkdir(os.path.join(current_os_pc_location, "install", "frameworks"), 0777)
+    _make_folder(log, os.path.join(current_os_pc_location, "cache"), 0775)    
+    _make_folder(log, os.path.join(current_os_pc_location, "config"), 0775)
+    _make_folder(log, os.path.join(current_os_pc_location, "install"), 0775)
+    _make_folder(log, os.path.join(current_os_pc_location, "install", "core"), 0777)
+    _make_folder(log, os.path.join(current_os_pc_location, "install", "core", "python"), 0777)
+    _make_folder(log, os.path.join(current_os_pc_location, "install", "core.backup"), 0777)
+    _make_folder(log, os.path.join(current_os_pc_location, "install", "engines"), 0777)
+    _make_folder(log, os.path.join(current_os_pc_location, "install", "apps"), 0777)
+    _make_folder(log, os.path.join(current_os_pc_location, "install", "frameworks"), 0777)
     
     # copy the configuration into place
-    _copy_folder(cfg_installer.get_path(), os.path.join(current_os_pc_location, "config"))
+    _copy_folder(log, cfg_installer.get_path(), os.path.join(current_os_pc_location, "config"))
     
     # copy the tank binaries to the top of the config
+    log.debug("Copying tank binaries...")
     core_api_root = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", ".."))
     root_binaries_folder = os.path.join(core_api_root, "setup", "root_binaries")
     for file_name in os.listdir(root_binaries_folder):
@@ -791,10 +794,12 @@ def _interactive_setup(log, pipeline_config_root):
         os.chmod(tgt_file, 0775)
     
     # copy the python stubs
+    log.debug("Copying python stubs...")
     tank_proxy = os.path.join(core_api_root, "setup", "tank_api_proxy")
-    _copy_folder(tank_proxy, os.path.join(current_os_pc_location, "install", "core", "python"))
+    _copy_folder(log, tank_proxy, os.path.join(current_os_pc_location, "install", "core", "python"))
     
     # specify the parent files in install/core/core_PLATFORM.cfg
+    log.debug("Creating core redirection config files...")
     for (uname, path) in _get_current_core_file_location().items():
         core_path = os.path.join(current_os_pc_location, "install", "core", "core_%s.cfg" % uname)
         fh = open(core_path, "wt")
@@ -802,6 +807,7 @@ def _interactive_setup(log, pipeline_config_root):
         fh.close()
         
     # update the roots file in the config to match our settings
+    log.debug("Writing roots.yml...")
     roots_path = os.path.join(current_os_pc_location, "config", "core", "roots.yml")
     
     # resuffle list of associated local storages to be a dict keyed by storage name
@@ -820,30 +826,37 @@ def _interactive_setup(log, pipeline_config_root):
                         "Error reported: %s" % (roots_path, exp))
     
     
-    # now ensure there is a tank folder in every storage
+    # now ensure there is a tank folder in every storage    
     for s in resolved_storages:
         log.info("Setting up %s storage..." % s["code"] )
+        log.debug("Storage: %s" % str(s))
+        
         current_os_path = s.get( SG_LOCAL_STORAGE_OS_MAP[sys.platform] )
         
         tank_path = os.path.join(current_os_path, project_disk_folder, "tank")
         if not os.path.exists(tank_path):
-            os.mkdir(tank_path, 0777)
+            _make_folder(log, tank_path, 0777)
         
         cache_path = os.path.join(tank_path, "cache")
         if not os.path.exists(cache_path):
-            os.mkdir(cache_path, 0777)
+            _make_folder(log, cache_path, 0777)
         
         if s["code"] == constants.PRIMARY_STORAGE_NAME:
             # primary storage - make sure there is a path cache file
             # this is to secure the ownership of this file
             cache_file = os.path.join(cache_path, "path_cache.db")
+            log.debug("Touching path cache %s" % cache_file)
             fh = open(cache_file, "wb")
             fh.close()
             os.chmod(cache_file, 0666)
                 
         # create file for configuration backlinks
-        scm = pipelineconfig.StorageConfigurationMapping(current_os_path)
-        scm.add_pipeline_configuration(s["mac_path"], s["windows_path"], s["linux_path"])    
+        log.debug("Setting up storage -> PC mapping...")
+        project_root = os.path.join(current_os_path, project_disk_folder)
+        scm = pipelineconfig.StorageConfigurationMapping(project_root)
+        scm.add_pipeline_configuration(locations_dict["darwin"], 
+                                       locations_dict["win32"], 
+                                       locations_dict["linux2"])    
     
     # creating project.tank_name record
     log.debug("Shotgun: Setting Project.tank_name to %s" % project_disk_folder)
@@ -857,9 +870,11 @@ def _interactive_setup(log, pipeline_config_root):
             "sg_macosx_path": locations_dict["darwin"],
             "code": project_disk_folder}
     pc_entity = sg.create(PIPELINE_CONFIGURATION_ENTITY, data)
+    log.debug("Created data: %s" % pc_entity)
     
     # write the record to disk
     pipe_config_sg_id_path = os.path.join(current_os_pc_location, "config", "core", "pipeline_configuration.yml")
+    log.debug("Writing to pc cache file %s" % pipe_config_sg_id_path)
     try:
         fh = open(pipe_config_sg_id_path, "wt")
         yaml.dump({"id": pc_entity["id"], "type": pc_entity["type"]}, fh)
@@ -869,6 +884,7 @@ def _interactive_setup(log, pipeline_config_root):
                         "Error reported: %s" % (pipe_config_sg_id_path, exp))
     
     # and write a custom event to the shotgun event log
+    log.debug("Writing app store stats...")
     data = {}
     data["description"] = "%s: A Tank Project named %s was created" % (sg.base_url, project_disk_folder)
     data["event_type"] = "TankAppStore_Project_Created"
