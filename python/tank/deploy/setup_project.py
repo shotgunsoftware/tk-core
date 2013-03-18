@@ -845,10 +845,11 @@ def _interactive_setup(log, pipeline_config_root):
             # primary storage - make sure there is a path cache file
             # this is to secure the ownership of this file
             cache_file = os.path.join(cache_path, "path_cache.db")
-            log.debug("Touching path cache %s" % cache_file)
-            fh = open(cache_file, "wb")
-            fh.close()
-            os.chmod(cache_file, 0666)
+            if not os.path.exists(cache_file):
+                log.debug("Touching path cache %s" % cache_file)
+                fh = open(cache_file, "wb")
+                fh.close()
+                os.chmod(cache_file, 0666)
                 
         # create file for configuration backlinks
         log.debug("Setting up storage -> PC mapping...")
