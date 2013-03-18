@@ -203,7 +203,7 @@ if __name__ == "__main__":
         
     except Exception, e:
         # call stack
-        log.exception("An error occurred: %s" % e)
+        log.exception("An exception was reported: %s" % e)
     
     log.debug("Exiting with exit code %s" % exit_code)
     sys.exit(exit_code)
