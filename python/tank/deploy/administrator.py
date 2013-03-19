@@ -26,7 +26,12 @@ def show_tank_info(log):
     Outputs core information about this tank install, including all other pipeline configs etc.
     """
     log.info("INFO for")
-
+    # pipeline cofnigs overview
+    # - location, users asssociated, project, roots
+    
+    # current pc
+    # environments, engines apps
+    
 
 
 
@@ -34,7 +39,21 @@ def clone_configuration(log, tk, target_folder):
     """
     Clones the current configuration
     """
-    log.info("%s Clone into %s " % (tk, target_folder)) 
+    log.info("%s Clone into %s " % (tk, target_folder))
+    
+        
+def switch_locator(log, tk, item_str, path_to_dev_location):
+    """
+    Clones the current configuration
+    """
+    log.info("Switch Locator")
+    
+def revert_locator(log, tk, item_str):
+    """
+    Clones the current configuration
+    """
+    log.info("revert Locator")
+     
 
 
 def join_configuration(log, tk):

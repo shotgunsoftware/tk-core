@@ -29,10 +29,19 @@ class Tank(object):
         :param project_path: Any path inside one of the data locations
         """
         
+        # special stuff to make sure we maintain backwards compatibility in the constructor
+        # if the 'project_path' parameter contains a pipeline config object,
+        # just use this straight away. If the param contains a string, assume
+        # this is a path and try to construct a pc from the path
+        
         self.__sg = None
         
-        # TODO: validate this really is a valid project path
-        self.__pipeline_config = pipelineconfig.from_path(os.path.abspath(project_path))
+        if isinstance(project_path, pipelineconfig.PipelineConfiguration):
+            # this is actually a pc object
+            self.__pipeline_config = project_path
+        else:
+            # TODO: validate this really is a valid project path
+            self.__pipeline_config = pipelineconfig.from_path(os.path.abspath(project_path))
         
         self.templates = read_templates(self.__pipeline_config)
         
@@ -410,4 +419,10 @@ def tank_from_path(path):
     """
     return Tank(path)
 
+def tank_from_entity(entity_type, entity_id):
+    """
+    Create a Tank API instance based on a path inside a project.
+    """
+    pc = pipelineconfig.from_entity(entity_type, entity_id)
+    return Tank(pc)
 

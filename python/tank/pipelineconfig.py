@@ -189,7 +189,7 @@ class PipelineConfiguration(object):
         """
         Returns the path to the path cache file.
         """
-        return os.path.join(self.primary_data_root, "tank", "cache", constants.CACHE_DB_FILENAME)
+        return os.path.join(self.get_primary_data_root(), "tank", "cache", constants.CACHE_DB_FILENAME)
             
             
     ########################################################################################
@@ -374,10 +374,19 @@ def from_entity(entity_type, entity_id):
                         "Tank installation!" % (entity_type, entity_id))
     
     # TODO: add user checks
-    path = pipe_configs[0].get( platform_lookup[sys.platform] )
     
-    # pass it to the std factory
-    return from_path(path)
+    # get all the registered pcs for the current platform
+    current_os_pcs = [ x.get(platform_lookup[sys.platform]) for x in pipe_configs if x is not None]    
+    
+    for pc in current_os_pcs:
+        if os.path.exists(pc):
+            # ok it's a match!
+            return PipelineConfiguration(pc)
+    
+    raise TankError("Cannot create a Tank Configuration from %s %s - cannot find an associated "
+                    "tank configuration for %s!" % (entity_type, entity_id, sys.platform))
+    
+    
     
 
 

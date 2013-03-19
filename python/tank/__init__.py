@@ -8,7 +8,7 @@ from . import platform
 from . import util
 
 # core functionality
-from .api import Tank, tank_from_path
+from .api import Tank, tank_from_path, tank_from_entity
 from .errors import TankError, TankEngineInitError
 from .template import TemplatePath, TemplateString
 from .hook import Hook

@@ -27,7 +27,7 @@ LOCAL_SCRIPT="$SELF_PATH/install/core/scripts/tank_cmd.sh"
 if [ -f "$LOCAL_SCRIPT" ];
 then
    # run local script
-   $LOCAL_SCRIPT "$SELF_PATH" $@
+   $LOCAL_SCRIPT "$SELF_PATH" "$@"
 else
    # there is no local install
    # so try and get the parent and call its tank script
@@ -51,7 +51,7 @@ else
    fi
    
    # all good, execute tank script in parent location
-   $parent_location/tank $@ --pc="$SELF_PATH"
+   $parent_location/tank "$@" --pc="$SELF_PATH"
       
 fi
 

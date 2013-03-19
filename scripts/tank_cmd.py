@@ -26,12 +26,14 @@ import getopt
 from tank import TankError
 from tank.deploy import setup_project, validate_config, administrator, core_api_admin
 from tank import pipelineconfig
+from tank.util import shotgun
+from tank import folder
 
 # built in commands that can run without a project
-CORE_NON_PROJECT_COMMANDS = ["setup_project", "core", "info"]
+CORE_NON_PROJECT_COMMANDS = ["setup_project", "core", "info", "folders"]
 
 # built in commands that run against a specific project
-CORE_PROJECT_COMMANDS = ["clone", "join", "leave", "validate"]
+CORE_PROJECT_COMMANDS = ["clone", "join", "leave", "validate", "revert", "switch"]
 
 DEFAULT_ENGINE = "tk-shell"
 
@@ -67,7 +69,12 @@ def show_help():
     print("> tank join - join this configuration")
     print("> tank leave - leave this configuration")
     print("")
+    print("> tank switch environment/engine/app path_to_dev - switch to dev code")
+    print("> tank revert environment/engine/app - revert back to std code")
+    print("")
     print("> tank setup_project - create a new project")
+    print("")
+    print("> tank folders project_name entity_type name [--preview]")
     print("")
     print("> tank core - information about the core API")
     print("> tank core update - update the core API")
@@ -77,7 +84,7 @@ def show_help():
     
 
 
-def run_core_non_project_command(log, install_root, code_root, command, args):
+def run_core_non_project_command(log, install_root, pipeline_config_root, command, args):
     """
     Execute one of the built in commands
     """
@@ -91,7 +98,7 @@ def run_core_non_project_command(log, install_root, code_root, command, args):
         if len(args) != 0:
             raise TankError("Invalid arguments. Run tank --help for more information.")
         
-        setup_project.interactive_setup(log, code_root)
+        setup_project.interactive_setup(log, install_root)
         
     elif command == "info":
         # info about all PCs etc.
@@ -100,6 +107,75 @@ def run_core_non_project_command(log, install_root, code_root, command, args):
 
         administrator.show_tank_info(log)
 
+    elif command == "folders":
+        # info about all PCs etc.
+        if len(args) not in [3, 4]:
+            raise TankError("Invalid arguments. Run tank --help for more information.")
+
+        log.info("")
+        
+        # handle preview mode
+        preview = False
+        if "--preview" in args:
+            preview = True
+            # remove this arg
+            args = [arg for arg in args if arg != "--preview"]
+        
+        # fetch other options
+        project = args[0]
+        entity_type = args[1]
+        item = args[2]
+        
+        
+        log.info("Will create folders for project '%s', %s %s" % (project, entity_type, item))        
+        
+        # first find project
+        sg = shotgun.create_sg_connection()
+        
+        proj = sg.find_one("Project", [["name", "is", project]])
+        if proj is None:
+            projs = sg.find("Project", [["tank_name", "is_not", None]], ["name"])  
+            log.error("")
+            log.error("Sorry, cannot find a project in Shotgun named '%s'. " % project)
+            log.error("Projects using Tank are:")
+            for x in projs:
+                log.error(" - '%s' " % x.get("name"))
+            log.error("")
+            raise TankError("Folder Creation Failed.")
+        
+        # now find item        
+        entity = sg.find_one(entity_type, [["code", "is", item]])
+        if entity is None:
+            raise TankError("Could not find %s '%s' in Shotgun!" % (entity_type, item))
+        
+        # now create a tank 
+        tk = tank.tank_from_entity(entity["type"], entity["id"])
+        try:
+            if preview:
+                log.info("Previewing folder creation, stand by...")
+            else:
+                log.info("Creating folders, stand by...")
+                
+            f = folder.process_filesystem_structure(tk, entity["type"], entity["id"], preview, None)
+            log.info("Folder creation complete!")
+            log.info("")
+            log.info("The following items were processed:")
+            for x in f:
+                log.info(" - %s" % x)
+                
+            log.info("")
+            log.info("In total, %s folders were processed." % len(f))
+            if preview:
+                log.info("Note: No folders were created, preview mode only.")
+            log.info("")
+            
+        except TankError, e:
+            log.error("Folder Creation Error: %s" % e)
+            
+
+        
+
+    
     elif command == "core":
         # update the core in this pipeline config
         
@@ -111,6 +187,15 @@ def run_core_non_project_command(log, install_root, code_root, command, args):
             core_api_admin.show_core_info(log)
         
         elif len(args) == 1 and args[0] == "update":
+            
+            if install_root != pipeline_config_root:
+                # we are updating a parent install that is shared
+                log.info("")
+                log.warning("You are potentially about to update the Core API for ")
+                log.warning("multiple projects. Before proceeding, we recommend ")
+                log.warning("that you run 'tank core info' for a summary.")
+                log.info("")
+            
             core_api_admin.interactive_update(log, install_root)
 
         elif len(args) == 1 and args[0] == "localize":
@@ -172,6 +257,21 @@ def run_core_project_command(log, pipeline_config_root, command, args):
             raise TankError("Invalid arguments. Run tank --help for more information.")
 
         administrator.leave_configuration(log, tk)
+
+    elif command == "switch":
+        # leave this PC
+        if len(args) != 2:
+            raise TankError("Invalid arguments. Run tank --help for more information.")
+
+        administrator.switch_locator(log, tk, args[0], args[1])
+
+    elif command == "revert":
+        # leave this PC
+        if len(args) != 1:
+            raise TankError("Invalid arguments. Run tank --help for more information.")
+
+        administrator.revert_locator(log, tk, args[0])
+
     
     else:
         raise TankError("Unknown command '%s'. Run tank --help for more information" % command)
@@ -214,8 +314,16 @@ def run_engine(log, context_str, args):
     
     
     if ":" in context_str:
-        # Shot:123 or Shot:foo
+        # Shot:123
         chunks = context_str.split(":")
+
+    else:
+        tk = tank.tank_from_path(context_str)
+        log.debug("Resolved path %s into tank instance %s" % (context_str, tk))
+        ctx = tk.context_from_path(context_str)
+        log.debug("Resolved Path %s into context %s" % (context_str, ctx))
+        e = tank.platform.start_engine(engine_to_launch, tk, ctx)
+        log.debug("Started engine %s" % e)
         
 
 

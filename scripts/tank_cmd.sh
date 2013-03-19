@@ -3,6 +3,7 @@
 # Copyright (c) 2012 Shotgun Software, Inc
 # ----------------------------------------------------
 
+
 # this script is called by the main tank script
 # the first parameter contains the path to the pipeline config root
 # additional pameters are passed into the python script
@@ -33,4 +34,4 @@ then
 fi
 
 # execute the python script which does the actual work
-exec $interpreter "$core_install_root/scripts/tank_cmd.py" $@
+exec $interpreter "$core_install_root/scripts/tank_cmd.py" "$@"
