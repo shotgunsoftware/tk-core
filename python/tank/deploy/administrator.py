@@ -19,6 +19,18 @@ from ..api import Tank
 
 
 ##########################################################################################
+# core commands
+
+def show_tank_info(log):
+    """
+    Outputs core information about this tank install, including all other pipeline configs etc.
+    """
+    log.info("INFO for")
+
+
+
+
+##########################################################################################
 # helpers
 
 g_sg_studio_version = None

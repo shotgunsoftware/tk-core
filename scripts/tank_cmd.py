@@ -24,9 +24,15 @@ import logging
 import tank
 import getopt
 from tank import TankError
-from tank.deploy import setup_project, validate_config
+from tank.deploy import setup_project, validate_config, administrator, core_api_admin
+from tank import pipelineconfig
 
-CORE_COMMANDS = ["setup_project", "clone", "core", "join", "leave", "info", "validate"]
+# built in commands that can run without a project
+CORE_NON_PROJECT_COMMANDS = ["setup_project", "core", "info"]
+
+# built in commands that run against a specific project
+CORE_PROJECT_COMMANDS = ["clone", "join", "leave", "validate"]
+
 DEFAULT_ENGINE = "tk-shell"
 
 def show_help():
@@ -48,7 +54,7 @@ def show_help():
     
 
 
-def run_core_command(log, pipeline_config_root, command, args):
+def run_core_non_project_command(log, code_root, command, args):
     """
     Execute one of the built in commands
     """
@@ -59,29 +65,67 @@ def run_core_command(log, pipeline_config_root, command, args):
 
     if command == "setup_project":
         # project setup
-        setup_project.interactive_setup(log, pipeline_config_root)
+        setup_project.interactive_setup(log, code_root)
         
-    elif command == "validate":
-        # fork a pipeline config
-        tk = tank.tank_from_path(pipeline_config_root)
-        validate_config.validate_configuration(log, tk)
-
-    elif command == "clone":
-        # fork a pipeline config
-        pass
-            
     elif command == "info":
         # info about all PCs etc.
-        pass
+        administrator.show_tank_info(log)
 
     elif command == "core":
         # update the core in this pipeline config
         
         # core update > update to latest
         # core        > info about which PCs are using this core + help
-        # core clone  > get local core
-        pass
+        # core install  > get local core
         
+        if len(args) == 0:
+            core_api_admin.show_core_info(log)
+        
+        elif len(args) == 1 and args[0] == "update":
+            core_api_admin.interactive_update(log)
+
+        elif len(args) == 1 and args[0] == "install":
+            # a special case which actually requires a pipleine config object
+            try:
+                pc = pipelineconfig.from_path(pipeline_config_root)            
+            except TankError:
+                raise TankError("You must run the core install command against a specific "
+                                "Tank Configuration, not against a shared core location. "
+                                "Navigate to the Tank Configuration you want to operate on, "
+                                "and run the tank command from there!")
+            
+            core_api_admin.install_local_core(log, pc)
+        
+        else:
+            raise TankError("Invalid arguments! Please run tank --help for more information.")
+        
+    else:
+        raise TankError("Unknown command '%s'!" % command)
+
+
+def run_core_project_command(log, pipeline_config_root, command, args):
+    """
+    Execute one of the built in commands
+    """
+    
+    log.debug("Running built in command %s" % command)
+    log.debug("Arguments passed: %s" % args)
+ 
+    try:
+        tk = tank.tank_from_path(pipeline_config_root)
+    except TankError:
+        raise TankError("You must run the command '%s' against a specific Tank Configuration, not "
+                        "against a shared core location. Navigate to the Tank Configuration you "
+                        "want to operate on, and run the tank command from there!" % command)
+
+    if command == "validate":
+        # fork a pipeline config        
+        validate_config.validate_configuration(log, tk)
+
+    elif command == "clone":
+        # fork a pipeline config
+        pass
+            
     elif command == "join":
         # join this PC
         pass
@@ -92,6 +136,7 @@ def run_core_command(log, pipeline_config_root, command, args):
     
     else:
         raise TankError("Unknown command '%s'!" % command)
+
 
 def run_engine(log, context_str, args):
     """
@@ -178,12 +223,18 @@ if __name__ == "__main__":
         elif cmd_line[0] == "-h" or cmd_line[0] == "--help":
             exit_code = show_help()
             
-        elif cmd_line[0] in CORE_COMMANDS:
-            exit_code = run_core_command(log, 
-                                         pipeline_config_root, 
-                                         cmd_line[0], 
-                                         cmd_line[1:])
+        elif cmd_line[0] in CORE_PROJECT_COMMANDS:
+            exit_code = run_core_project_command(log, 
+                                                 pipeline_config_root, 
+                                                 cmd_line[0], 
+                                                 cmd_line[1:])
         
+        elif cmd_line[0] in CORE_NON_PROJECT_COMMANDS:
+            exit_code = run_core_non_project_command(log, 
+                                                     pipeline_config_root, 
+                                                     cmd_line[0], 
+                                                     cmd_line[1:])
+
         elif cmd_line[0].startswith("-"):
             # this is a parameters (-a, --foo=x)
             # meaning that we are running engine mode with 

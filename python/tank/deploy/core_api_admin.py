@@ -20,6 +20,29 @@ from .. import pipelineconfig
 from .zipfilehelper import unzip_file
 from . import util
 
+
+def show_core_info(log):
+    """
+    Display details about the core version etc
+    """
+    log.info("core info")
+    
+
+def install_local_core(log):
+    """
+    Install a local tank core into this pipeline configuration
+    """
+
+
+def interactive_update(log):
+    """
+    Perform an interactive core check and update
+    """
+    log.info("Core udpate")
+    
+
+
+
 class TankCoreUpgrader(object):
     """
     Class which handles the upgrade of the core API.
