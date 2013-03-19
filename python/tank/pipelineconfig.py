@@ -389,20 +389,62 @@ def from_path(path):
     - data paths are being traversed and resolved
     - if the path is a direct path to a PC root that's fine too
     """
-    
-    # first see if this path is a pipeline configuration
-    
-    # if not, walk up until a tank folder is found, 
-    
+
     # todo: support user based work spaces
-    
-    
+
     if not os.path.exists(path):
         raise TankError("Cannot create a Tank Configuration from path '%s' - the path does "
                         "not exist on disk!" % path)
+
     
+    # first see if this path is a pipeline configuration
+    pc_config = os.path.join(path, "config", "core", "pipeline_configuration.yml")
+    if os.path.exists(pc_config):
+        return PipelineConfiguration(path)
     
-    return PipelineConfiguration(path)
+    # if not, walk up until a tank folder is found, 
+    # find tank config directory
+    cur_path = path
+    config_path = None
+    while True:
+        config_path = os.path.join(cur_path, "tank", "config", constants.CONFIG_BACK_MAPPING_FILE)
+        # need to test for something in project vs studio config
+        if os.path.exists(config_path):
+            break
+        parent_path = os.path.dirname(cur_path)
+        if parent_path == cur_path:
+            # Topped out without finding config
+            raise TankError("Cannot create a Tank Configuration from path '%s' - the path does "
+                            "not belong to a data volume which is associated "
+                            "with any tank project!" % path)
+        cur_path = parent_path
+    
+    # all right - now read the config and find the right pipeline configuration
+    try:
+        fh = open(config_path, "r")
+        try:
+            data = yaml.load(fh)
+        finally:
+            fh.close()
+    except Exception, e:        
+        raise TankError("Looks like a config file is corrupt. Please contact "
+                        "support! File: '%s' Error: %s" % (config_path, e))
+        
+    # get all the registered pcs for the current platform
+    current_os_pcs = [ x.get(sys.platform) for x in data if x is not None]
+
+    # find matching one - TODO: add home support and better validation
+    for pc in current_os_pcs:
+        if os.path.exists(pc):
+            # ok it's a match!
+            return PipelineConfiguration(pc)
+    
+    raise TankError("Cannot create a Tank Configuration from path '%s' - the storage "
+                    "configuration for this volume does not define a pipeline "
+                    "configuration for %s!" % (path, sys.platform))
+
+        
+    
     
     
     
