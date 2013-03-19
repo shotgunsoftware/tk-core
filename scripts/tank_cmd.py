@@ -36,19 +36,37 @@ CORE_PROJECT_COMMANDS = ["clone", "join", "leave", "validate"]
 DEFAULT_ENGINE = "tk-shell"
 
 def show_help():
+    print("")
     print("-" * 60)
     print("Welcome to Tank!")
     print("-" * 60)
     print("")
     print("This command lets you run control tank from a shell.")
-    print("The following syntaxes are supported:")
+    print("You can run apps and engines via the Tank command.")
+    print("You can also run various tank admin commands.")
     print("")
-    print("> tank [context] [engine] [app] [params]")
-    print("> tank admin_command [params]")
-    
-    
-    
+    print("Running Apps and Engines")
+    print("----------------------------------------------")
     print("")
+    print("")
+    print("")
+    print("")
+    print("Administering Tank")
+    print("----------------------------------------------")
+    print("")
+    print("The following commands are available:")
+    print("")
+    print("> tank info - information about your setup")
+    print("> tank validate - validates your configuration")
+    print("> tank clone path_to_clone_to - clones a configuration")
+    print("> tank join - join this configuration")
+    print("> tank leave - leave this configuration")
+    print("")
+    print("> tank setup_project - create a new project")
+    print("")
+    print("> tank core - information about the core API")
+    print("> tank core update - update the core API")
+    print("> tank core localize - install the core API into this configuration")
     print("")
     
     
@@ -65,10 +83,16 @@ def run_core_non_project_command(log, code_root, command, args):
 
     if command == "setup_project":
         # project setup
+        if len(args) != 0:
+            raise TankError("Invalid arguments. Run tank --help for more information.")
+        
         setup_project.interactive_setup(log, code_root)
         
     elif command == "info":
         # info about all PCs etc.
+        if len(args) != 0:
+            raise TankError("Invalid arguments. Run tank --help for more information.")
+
         administrator.show_tank_info(log)
 
     elif command == "core":
@@ -84,7 +108,7 @@ def run_core_non_project_command(log, code_root, command, args):
         elif len(args) == 1 and args[0] == "update":
             core_api_admin.interactive_update(log)
 
-        elif len(args) == 1 and args[0] == "install":
+        elif len(args) == 1 and args[0] == "localize":
             # a special case which actually requires a pipleine config object
             try:
                 pc = pipelineconfig.from_path(pipeline_config_root)            
@@ -100,7 +124,7 @@ def run_core_non_project_command(log, code_root, command, args):
             raise TankError("Invalid arguments! Please run tank --help for more information.")
         
     else:
-        raise TankError("Unknown command '%s'!" % command)
+        raise TankError("Unknown command '%s'. Run tank --help for more information" % command)
 
 
 def run_core_project_command(log, pipeline_config_root, command, args):
@@ -120,22 +144,32 @@ def run_core_project_command(log, pipeline_config_root, command, args):
 
     if command == "validate":
         # fork a pipeline config        
+        if len(args) != 0:
+            raise TankError("Invalid arguments. Run tank --help for more information.")
         validate_config.validate_configuration(log, tk)
 
     elif command == "clone":
         # fork a pipeline config
-        pass
+        if len(args) != 1:
+            raise TankError("Invalid arguments. Run tank --help for more information.")
+        administrator.clone_configuration(log, tk, args[0])
             
     elif command == "join":
         # join this PC
-        pass
+        if len(args) != 0:
+            raise TankError("Invalid arguments. Run tank --help for more information.")
+
+        administrator.join_configuration(log, tk)
         
     elif command == "leave":
         # leave this PC
-        pass
+        if len(args) != 0:
+            raise TankError("Invalid arguments. Run tank --help for more information.")
+
+        administrator.leave_configuration(log, tk)
     
     else:
-        raise TankError("Unknown command '%s'!" % command)
+        raise TankError("Unknown command '%s'. Run tank --help for more information" % command)
 
 
 def run_engine(log, context_str, args):

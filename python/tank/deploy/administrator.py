@@ -30,6 +30,27 @@ def show_tank_info(log):
 
 
 
+def clone_configuration(log, tk, target_folder):
+    """
+    Clones the current configuration
+    """
+    log.info("%s Clone into %s " % (tk, target_folder)) 
+
+
+def join_configuration(log, tk):
+    """
+    Join the current configuration
+    """
+    log.info("%s Join " % tk) 
+
+
+def leave_configuration(log, tk):
+    """
+    Join the current configuration
+    """
+    log.info("%s Leave " % tk) 
+
+
 ##########################################################################################
 # helpers
 
