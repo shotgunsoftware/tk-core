@@ -226,13 +226,14 @@ if __name__ == "__main__":
     ch.setFormatter(formatter)
     log.addHandler(ch)
 
-    # the first argument is always the path to the pipeline
-    # configuration we are running from.
+    # the first argument is always the path to the code root
+    # we are running from.
     if len(sys.argv) == 1:
         log.error("This script needs to be executed from the tank command!")
         sys.exit(1)
-    pipeline_config_root = sys.argv[1]
-            
+    # the install root is typically not needed at this point
+    install_root = sys.argv[1]
+
     # pass the rest of the args into our checker
     cmd_line = sys.argv[2:] 
 
@@ -242,6 +243,14 @@ if __name__ == "__main__":
         log.setLevel(logging.DEBUG)
         log.debug("Running with debug output enabled.")
     cmd_line = [arg for arg in cmd_line if arg != "--debug"]
+    
+    # also we are passing the pipeline config 
+    # at the back of the args as --pc=foo
+    if cmd_line[-1].startswith("--pc="):
+        pipeline_config_root = cmd_line[-1][5:] 
+        
+    # and strip out the --pc args
+    cmd_line = [arg for arg in cmd_line if not arg.startswith("--pc=")]
 
     log.debug("Full command line passed: %s" % str(sys.argv))
     log.debug("Pipeline Config Root: %s" % pipeline_config_root)
