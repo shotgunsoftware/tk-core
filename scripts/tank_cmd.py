@@ -232,7 +232,7 @@ if __name__ == "__main__":
         log.error("This script needs to be executed from the tank command!")
         sys.exit(1)
     pipeline_config_root = sys.argv[1]
-        
+            
     # pass the rest of the args into our checker
     cmd_line = sys.argv[2:] 
 
@@ -254,7 +254,7 @@ if __name__ == "__main__":
             log.debug("Note: will pick up the context from the CWD.")
             exit_code = run_engine(log, os.getcwd(), [])
          
-        elif cmd_line[0] == "-h" or cmd_line[0] == "--help":
+        elif cmd_line[0] == "-h" or "help" in cmd_line[0]:
             exit_code = show_help()
             
         elif cmd_line[0] in CORE_PROJECT_COMMANDS:
