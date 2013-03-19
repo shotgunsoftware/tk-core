@@ -38,11 +38,14 @@ def __get_api_core_config_location():
     core_cfg = os.path.join(core_api_root, "config", "core")
     
     if not os.path.exists(core_cfg):
-        full_path_to_file = os.path.abspath(os.path.dirname(__file__))
-        raise TankError("Cannot resolve the core configuration from the location of the Tank Code! "
-                        "This can happen if you try to move or symlink the Tank API. The "
-                        "Tank API is currently picked up from %s which is an "
-                        "invalid location." % full_path_to_file)
+        if "TANK_CORE_LOCATION_OVERRIDE" in os.environ:
+            core_cfg = os.environ["TANK_CORE_LOCATION_OVERRIDE"]
+        else:
+            full_path_to_file = os.path.abspath(os.path.dirname(__file__))
+            raise TankError("Cannot resolve the core configuration from the location of the Tank Code! "
+                            "This can happen if you try to move or symlink the Tank API. The "
+                            "Tank API is currently picked up from %s which is an "
+                            "invalid location." % full_path_to_file)
     
     return core_cfg
     
