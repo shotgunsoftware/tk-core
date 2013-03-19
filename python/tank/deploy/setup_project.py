@@ -868,9 +868,14 @@ def _interactive_setup(log, pipeline_config_root):
     # write the record to disk
     pipe_config_sg_id_path = os.path.join(current_os_pc_location, "config", "core", "pipeline_configuration.yml")
     log.debug("Writing to pc cache file %s" % pipe_config_sg_id_path)
+    
+    data = {}
+    data["shotgun_entity"] = {"id": pc_entity["id"], "type": pc_entity["type"]}
+    data["project_name"] = project_disk_folder
+    
     try:
         fh = open(pipe_config_sg_id_path, "wt")
-        yaml.dump({"id": pc_entity["id"], "type": pc_entity["type"]}, fh)
+        yaml.dump(data, fh)
         fh.close()
     except Exception, exp:
         raise TankError("Could not write to shotgun cache file %s. "

@@ -51,7 +51,10 @@ class PipelineConfiguration(object):
                                                                               self.get_python_location()))
         
         
+        self._roots = self.__load_roots_meatadata()
+        self.__load_config_metadata()
         
+
         
                 
     def __repr__(self):
@@ -82,6 +85,65 @@ class PipelineConfiguration(object):
 
         return data
     
+    def __load_config_metadata(self):
+        """
+        Loads the config metadata file
+        """
+        # now read in the pipeline_configuration.yml file
+        cfg_yml = os.path.join(self._pc_root, "config", "core", "pipeline_configuration.yml")
+        fh = open(cfg_yml, "rt")
+        try:
+            data = yaml.load(fh)
+        except Exception, e:
+            raise TankError("Looks like a config file is corrupt. Please contact "
+                            "support! File: '%s' Error: %s" % (cfg_yml, e))
+        finally:
+            fh.close()
+        
+        self._project_name = data.get("project_name")
+        if self._project_name is None:
+            raise TankError("Project name not defined in config metadata for %s! "
+                            "Please contact support." % self) 
+        
+        self._sg_entity = data.get("shotgun_entity")
+        if self._sg_entity is None:
+            raise TankError("SG link not defined in config metadata for %s! "
+                            "Please contact support." % self)
+        
+        
+    
+    def __load_roots_meatadata(self):
+        """
+        Loads and validates the roots metadata file
+        """
+        # now read in the roots.yml file
+        # this will contain something like
+        # {'primary': {'mac_path': '/studio', 'windows_path': None, 'linux_path': '/studio'}}
+        roots_yml = os.path.join(self._pc_root, "config", "core", "roots.yml")  
+                 
+        fh = open(roots_yml, "rt")
+        try:
+            data = yaml.load(fh)
+        except Exception, e:
+            raise TankError("Looks like the roots file is corrupt. Please contact "
+                            "support! File: '%s' Error: %s" % (roots_yml, e))
+        finally:
+            fh.close()
+        
+        # sanity check that there is a primary root
+        if constants.PRIMARY_STORAGE_NAME not in data:
+            raise TankError("Could not find a primary storage in roots file for %s!" % self)        
+        
+        # make sure that all paths are correctly ended without a path separator
+        for s in data:
+            if data[s]["mac_path"] and data[s]["mac_path"].endswith("/"):
+                data[s]["mac_path"] = data[s]["mac_path"][:-1]
+            if data[s]["linux_path"] and data[s]["linux_path"].endswith("/"):
+                data[s]["linux_path"] = data[s]["linux_path"][:-1]
+            if data[s]["windows_path"] and data[s]["windows_path"].endswith("\\"):
+                data[s]["windows_path"] = data[s]["windows_path"][:-1]
+                
+        return data
     
     ########################################################################################
     # data roots access
@@ -95,36 +157,32 @@ class PipelineConfiguration(object):
     def get_data_roots(self):
         """
         Returns a dictionary of all the data roots available for this PC,
-        keyed by their storage name.
-        """
-        roots_yml = os.path.join(self._pc_root, "install", "core", constants.ROOTS_FILE)
-        if not os.path.exists(roots_yml):
-            raise TankError("Cannot find roots.yml file %s! Please contact support." % roots_yml)
-            
-        fh = open(roots_yml, "rt")
-        try:
-            data = yaml.load(fh)
-        except Exception, e:
-            raise TankError("Looks like the roots file is corrupt. Please contact "
-                            "support! File: '%s' Error: %s" % (roots_yml, e))
-        finally:
-            fh.close()
+        keyed by their storage name. Only returns paths for current platform.
         
-        return data
+        Returns for example:
+        
+        {"primary": "/studio/my_project", "textures": "/textures/my_project"}
+        
+        """
+        platform_lookup = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
+                
+        # now pick current os and append project root
+        proj_roots = {}
+        for r in self._roots:            
+            current_os_root = self._roots[r][ platform_lookup[sys.platform] ]
+            if current_os_root is None:
+                proj_roots[r] = None
+            else:
+                proj_roots[r] = os.path.join(current_os_root, self._project_name)
+        
+        return proj_roots
+        
     
     def get_primary_data_root(self):
         """
-        Returns the path to the primary data root on the current platform
+        Returns the path to the primary data root for the current platform
         """
-        data = self.get_data_roots()
-        
-        if constants.PRIMARY_STORAGE_NAME not in data:
-            raise TankError("Could not find a primary storage in roots file for %s!" % self)
-        primary = data.get(constants.PRIMARY_STORAGE_NAME)
-        if sys.platform not in primary:
-            raise TankError("Roots file for %s is missing an entry for %s." % (self, sys.platform))
-        
-        return primary[sys.platform]
+        return self.get_data_roots().get(constants.PRIMARY_STORAGE_NAME)
             
             
     def get_path_cache_location(self):

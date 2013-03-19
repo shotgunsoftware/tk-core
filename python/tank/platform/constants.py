@@ -151,8 +151,5 @@ CACHE_DB_FILENAME = "path_cache.db"
 # the name of the file that holds the templates.yml config
 CONTENT_TEMPLATES_FILE = "templates.yml"
 
-# the name of the file that holds the root definitions
-ROOTS_FILE = "roots.yml"
-
 # the name of the file that holds the inverse root defs
 CONFIG_BACK_MAPPING_FILE = "tank_configs.yml"
