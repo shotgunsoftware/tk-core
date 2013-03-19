@@ -15,7 +15,7 @@ from .errors import TankError
 from .deploy import util
 from .platform import constants
 from .platform.environment import Environment
-
+from .util import shotgun
 
 class PipelineConfiguration(object):
     """
@@ -350,6 +350,34 @@ def from_entity(entity_type, entity_id):
     Factory method that constructs a PC given a shotgun object
     """
     
+    platform_lookup = {"linux2": "sg_linux_path", "win32": "sg_windows_path", "darwin": "sg_macosx_path" }
+    
+    sg = shotgun.create_sg_connection()
+    
+    e = sg.find_one(entity_type, [["id", "is", entity_id]], ["project"])
+    if e is None:
+        raise TankError("Cannot resolve a pipeline configuration object from %s:%s - this object "
+                        "does not exist in Shotgun!" % (entity_type, entity_id))
+    if e.get("project") is None:
+        raise TankError("Cannot resolve a pipeline configuration object from %s:%s - this object "
+                        "is not linked to a project!" % (entity_type, entity_id))
+    proj = e.get("project")
+    
+    
+    pipe_configs = sg.find(constants.PIPELINE_CONFIGURATION_ENTITY, 
+                           [["sg_project", "is", proj]],
+                           ["sg_windows_path", "sg_macosx_path", "sg_linux_path"])
+    
+    if len(pipe_configs) == 0:
+        raise TankError("Cannot resolve a pipeline configuration object from %s:%s - its "
+                        "associated project does not link to a "
+                        "Tank installation!" % (entity_type, entity_id))
+    
+    # TODO: add user checks
+    path = pipe_configs[0].get( platform_lookup[sys.platform] )
+    
+    # pass it to the std factory
+    return from_path(path)
     
 
 
@@ -368,6 +396,10 @@ def from_path(path):
     
     # todo: support user based work spaces
     
+    
+    if not os.path.exists(path):
+        raise TankError("Cannot create a Tank Configuration from path '%s' - the path does "
+                        "not exist on disk!" % path)
     
     
     return PipelineConfiguration(path)
