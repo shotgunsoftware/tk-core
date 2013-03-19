@@ -45,6 +45,11 @@ def show_help():
     print("You can run apps and engines via the Tank command.")
     print("You can also run various tank admin commands.")
     print("")
+    print("General options and info")
+    print("----------------------------------------------")
+    print("- To show this help, add a -h or --help flag.")
+    print("- To display verbose debug, add a --debug flag.")
+    print("")
     print("Running Apps and Engines")
     print("----------------------------------------------")
     print("")
@@ -72,7 +77,7 @@ def show_help():
     
 
 
-def run_core_non_project_command(log, code_root, command, args):
+def run_core_non_project_command(log, install_root, code_root, command, args):
     """
     Execute one of the built in commands
     """
@@ -106,7 +111,7 @@ def run_core_non_project_command(log, code_root, command, args):
             core_api_admin.show_core_info(log)
         
         elif len(args) == 1 and args[0] == "update":
-            core_api_admin.interactive_update(log)
+            core_api_admin.interactive_update(log, install_root)
 
         elif len(args) == 1 and args[0] == "localize":
             # a special case which actually requires a pipleine config object
@@ -231,7 +236,7 @@ if __name__ == "__main__":
     if len(sys.argv) == 1:
         log.error("This script needs to be executed from the tank command!")
         sys.exit(1)
-    # the install root is typically not needed at this point
+    # the location of the actual tank core installation
     install_root = sys.argv[1]
 
     # pass the rest of the args into our checker
@@ -253,6 +258,7 @@ if __name__ == "__main__":
     cmd_line = [arg for arg in cmd_line if not arg.startswith("--pc=")]
 
     log.debug("Full command line passed: %s" % str(sys.argv))
+    log.debug("Code install root: %s" % install_root)
     log.debug("Pipeline Config Root: %s" % pipeline_config_root)
 
     exit_code = 1
@@ -274,6 +280,7 @@ if __name__ == "__main__":
         
         elif cmd_line[0] in CORE_NON_PROJECT_COMMANDS:
             exit_code = run_core_non_project_command(log, 
+                                                     install_root,
                                                      pipeline_config_root, 
                                                      cmd_line[0], 
                                                      cmd_line[1:])
