@@ -541,7 +541,7 @@ def _calc_path_cache(tk, path):
 
     # get roots - don't assume data is returned on any particular form
     # may return c:\foo, c:/foo or /foo - assume that we need to normalize this path
-    roots = tk.pipeline_config.get_data_roots()
+    roots = tk.pipeline_configuration.get_data_roots()
 
     for root_name, root_path in roots.items():
         norm_root_path = root_path.replace(os.sep, "/")

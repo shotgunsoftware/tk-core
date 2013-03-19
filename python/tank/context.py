@@ -425,7 +425,7 @@ class Context(object):
         matches for the template are found.
         """
         fields = {}
-        project_roots = self.__tk.pipeline_config.get_data_roots().values()
+        project_roots = self.__tk.pipeline_configuration.get_data_roots().values()
 
         for cur_path in self.entity_locations:
             # walk up path until match and get value
@@ -566,7 +566,7 @@ def from_path(tk, path, previous_context=None):
     path_cache = PathCache(tk.pipeline_configuration)
 
     # gather all roots as lower case
-    project_roots = [x.lower() for x in tk.pipeline_config.get_data_roots().values()]
+    project_roots = [x.lower() for x in tk.pipeline_configuration.get_data_roots().values()]
 
     # first gather entities
     entities = []
@@ -770,11 +770,11 @@ def _context_data_from_cache(tk, entity_type, entity_id):
     path_cache = PathCache(tk.pipeline_configuration)
 
     # Grab all project roots
-    project_roots = tk.pipeline_config.get_data_roots().values()
+    project_roots = tk.pipeline_configuration.get_data_roots().values()
 
     # Special case for project as we have the primary data path, which 
     # always points at a project.
-    context["project"] = path_cache.get_entity(tk.pipeline_config.get_primary_data_root())
+    context["project"] = path_cache.get_entity(tk.pipeline_configuration.get_primary_data_root())
 
     paths = path_cache.get_paths(entity_type, entity_id)
 

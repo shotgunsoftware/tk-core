@@ -47,7 +47,7 @@ class Tank(object):
     # internal API
     
     @property
-    def pipeline_config(self):
+    def pipeline_configuration(self):
         """
         Internal Use Only - We provide no guarantees that this method
         will be backwards compatible. The returned objects are also 
