@@ -308,14 +308,36 @@ def run_engine(log, context_str, args):
     
     #####################
     #
-    # note! local location of this script takes precednece
+    # TODO: note! local location of this script takes precednece
     # check that there is a match ebtween context/priject and current PC
     #
     
     
     if ":" in context_str:
-        # Shot:123
+        # Shot:123 or Shot:foo
         chunks = context_str.split(":")
+        if len(chunks) != 2:
+            raise TankError("Invalid shotgun entity. Use the format EntityType:id or EntityType:name")
+        et = chunks[0]
+        item = chunks[1]
+        try:
+            sg_id = int(item)
+        except:
+            # it wasn't an id. So resolve the id
+            sg = shotgun.create_sg_connection()            
+            sg_obj = sg.find_one(et, [["code", "is", item]])
+            if sg_obj is None:
+                raise TankError("Cannot find %s %s in Shotgun!" % (et, item))
+            sg_id = sg_obj["id"]
+            
+        # sweet we got a type and an id. Start up tank.
+        tk = tank.tank_from_entity(et, sg_id)
+        log.debug("Resolved path %s into tank instance %s" % (context_str, tk))
+        ctx = tk.context_from_entity(et, sg_id)
+        log.debug("Resolved Path %s into context %s" % (context_str, ctx))
+        e = tank.platform.start_engine(engine_to_launch, tk, ctx)
+        log.debug("Started engine %s" % e)
+
 
     else:
         tk = tank.tank_from_path(context_str)
