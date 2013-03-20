@@ -39,7 +39,7 @@ def show_help():
     print("")
     print("Running Apps")
     print("----------------------------------------------")
-    print("Syntax: tank [context] [command]")
+    print("Syntax: tank [command] [context]")
     print("")
     print(" - Context is a location on disk where you want")
     print("   the tank command to operate. It can also be")
@@ -284,49 +284,37 @@ def run_core_project_command(log, pipeline_config_root, command, args):
         raise TankError("Unknown command '%s'. Run tank --help for more information" % command)
 
 
-def run_engine(log, install_root, pipeline_config_root, context_str, args):
+def run_engine(log, install_root, pipeline_config_root, context_str, engine_name, command):
     """
     Launches an engine
     """
     log.debug("")
-    log.debug("Will start an engine. Context string passed: '%s'" % context_str)
+    log.debug("Will start engine %s" % engine_name)
+    log.debug("Context String: %s" % context_str)
     
-    engine_to_launch = DEFAULT_ENGINE
-    app_to_launch = None
-    interactive_mode = True
-    
-    # go through arglist and search for --engine and --app params
-    remaining_args = []
-    for arg in args:
-        if arg.startswith("--engine="):
-            engine_to_launch = arg[9:]
-            
-        elif arg.startswith("--app="):
-            app_to_launch = arg[6:]
-            interactive_mode = False
-            log.debug("Will launch specific app %s" % app_to_launch)
-        
-        else:
-            # unprocessed arg
-            remaining_args.append(arg)
+    if command:
+        interactive_mode = False
+        log.debug("Command: %s" % command)
+    else:
+        interactive_mode = True
+        log.debug("Starting interactive mode.")
 
-    log.debug("Will launch engine: %s" % engine_to_launch)
-    log.debug("")
-    log.debug("Remaining args to pass to system when started: %s" % remaining_args)
-    
+    # now resolve the location and start      
     if ":" in context_str:
         # Shot:123 or Shot:foo
+        
+        uses_shotgun_context = True
         chunks = context_str.split(":")
         if len(chunks) != 2:
             raise TankError("Invalid shotgun entity. Use the format EntityType:id or EntityType:name")
-        et = chunks[0]
+        entity_type = chunks[0]
         item = chunks[1]
         try:
-            sg_id = int(item)
+            entity_id = int(item)
         except:
             # it wasn't an id. So resolve the id
             sg = shotgun.create_sg_connection()            
-            entity = sg.find(et, [["code", "is", item]])
+            entity = sg.find(entity_type, [["code", "is", item]])
             if len(entity) == 0:
                 raise TankError("Could not find %s '%s' in Shotgun!" % (entity_type, item))
             elif len(entity) > 1:
@@ -334,56 +322,45 @@ def run_engine(log, install_root, pipeline_config_root, context_str, args):
                                 "instead of a name (e.g %s:1234)" % (item, entity_type))
             else:
                 # single match yay
-                sg_id = entity[0]["id"]
+                entity_id = entity[0]["id"]
             
         # sweet we got a type and an id. Start up tank.
-        tk = tank.tank_from_entity(et, sg_id)
+        tk = tank.tank_from_entity(entity_type, entity_id)
         log.debug("Resolved %s into tank instance %s" % (context_str, tk))
-        
-        # now check if the pipeline configuration matches the resolved PC
-        if pipeline_config_root is not None:
-            # we are running the tank command from a PC location
-            # make sure it is matching the PC resolved here.
-            if pipeline_config_root != tk.pipeline_configuration.get_path():
-                log.error("")
-                log.error("%s %s is currently associated with a pipeline configuration" % (et, sg_id))
-                log.error("located in '%s', however you are trying to access it" % tk.pipeline_configuration.get_path())
-                log.error("via the tank command in %s." % pipeline_config_root)
-                log.error("")
-                log.error("Try running the same command from %s instead!" % tk.pipeline_configuration.get_path())
-                log.error("")
-                raise TankError("Configuration mis-match. Aborting.")
-        
-        # and create a context
-        ctx = tk.context_from_entity(et, sg_id)
-        log.debug("Resolved %s into context %s" % (context_str, ctx))
-        e = tank.platform.start_engine(engine_to_launch, tk, ctx)
-        log.debug("Started engine %s" % e)
 
 
     else:
+        # context str is a path
+        uses_shotgun_context = False
         tk = tank.tank_from_path(context_str)
         log.debug("Resolved path %s into tank instance %s" % (context_str, tk))
+
         
-        # now check if the pipeline configuration matches the resolved PC
-        if pipeline_config_root is not None:
-            # we are running the tank command from a PC location
-            # make sure it is matching the PC resolved here.
-            if pipeline_config_root != tk.pipeline_configuration.get_path():
-                log.error("")
-                log.error("%s %s is currently associated with a pipeline configuration" % (et, sg_id))
-                log.error("located in '%s', however you are trying to access it" % tk.pipeline_configuration.get_path())
-                log.error("via the tank command in %s." % pipeline_config_root)
-                log.error("")
-                log.error("Try running the same command from %s instead!" % tk.pipeline_configuration.get_path())
-                log.error("")
-                raise TankError("Configuration mis-match. Aborting.")
+    # now check if the pipeline configuration matches the resolved PC
+    if pipeline_config_root is not None:
+        # we are running the tank command from a PC location
+        # make sure it is matching the PC resolved here.
+        if pipeline_config_root != tk.pipeline_configuration.get_path():
+            log.error("")
+            log.error("%s is currently associated with a pipeline configuration" % context_str)
+            log.error("located in '%s', however you are trying to access it" % tk.pipeline_configuration.get_path())
+            log.error("via the tank command in %s." % pipeline_config_root)
+            log.error("")
+            log.error("Try running the same command from %s instead!" % tk.pipeline_configuration.get_path())
+            log.error("")
+            raise TankError("Configuration mis-match. Aborting.")
         
-        # and create a context
+    # and create a context
+    if uses_shotgun_context:
+        ctx = tk.context_from_entity(entity_type, entity_id)
+    else:
         ctx = tk.context_from_path(context_str)
-        log.debug("Resolved path %s into context %s" % (context_str, ctx))
-        e = tank.platform.start_engine(engine_to_launch, tk, ctx)
-        log.debug("Started engine %s" % e)
+    
+    log.debug("Resolved %s into context %s" % (context_str, ctx))
+    
+    e = tank.platform.start_engine(engine_name, tk, ctx)
+    log.debug("Started engine %s" % e)
+
         
 
 
@@ -419,6 +396,15 @@ if __name__ == "__main__":
         log.debug("")
     cmd_line = [arg for arg in cmd_line if arg != "--debug"]
     
+    # check if there is an --engine flag anywhere in the args list.
+    # in that case try to use this engine
+    engine_to_use = DEFAULT_ENGINE
+    for x in cmd_line:
+        if x.startswith("--engine="):
+            engine_to_use = x[9:]
+    cmd_line = [arg for arg in cmd_line if not arg.startswith("--engine=")]
+
+    
     # also we are passing the pipeline config 
     # at the back of the args as --pc=foo
     if cmd_line[-1].startswith("--pc="):
@@ -442,9 +428,12 @@ if __name__ == "__main__":
 
         if len(cmd_line) == 0:
             # engine mode, shell engine, using CWD
-            log.debug("Will use CWD %s when starting tank." % os.getcwd())
-            log.debug("")
-            exit_code = run_engine(log, install_root, pipeline_config_root, os.getcwd(), [])
+            exit_code = run_engine(log, 
+                                   install_root, 
+                                   pipeline_config_root, 
+                                   os.getcwd(), 
+                                   engine_to_use, 
+                                   None)
          
         elif cmd_line[0] == "-h" or "help" in cmd_line[0]:
             exit_code = show_help()
@@ -462,20 +451,42 @@ if __name__ == "__main__":
                                                      cmd_line[0], 
                                                      cmd_line[1:])
 
-        elif cmd_line[0].startswith("-"):
-            # this is a parameters (-a, --foo=x)
-            # meaning that we are running engine mode with 
-            # CTX=CWD
-            # e.g. ./tank --app=tk-multi-dostuff
-            log.debug("Will use CWD %s when starting tank." % os.getcwd())
-            log.debug("")
-            exit_code = run_engine(log, install_root, pipeline_config_root, os.getcwd(), cmd_line[0:])
+        elif (":" in cmd_line[0]) or ("/" in cmd_line[0]) or ("\\" in cmd_line[0]):
+            # command is on the form: 
+            # ./tank Shot:123
+            # ./tank /foo/bar/baz
+            location = cmd_line[0]
+            
+            if len(cmd_line) > 1:
+                raise TankError("Invalid syntax. Please run tank --help for more info.")
+            
+            exit_code = run_engine(log, 
+                                   install_root, 
+                                   pipeline_config_root, 
+                                   location, 
+                                   engine_to_use,
+                                   None)
             
         else:
-            # engine mode, first arg is the context
-            log.debug("Will use the specified location '%s' when starting tank." % cmd_line[0])
-            log.debug("")
-            exit_code = run_engine(log, install_root, pipeline_config_root, cmd_line[0], cmd_line[1:])
+            # two choices remain:
+            #
+            # > tank command_name
+            # > tank command_name location
+            if len(cmd_line) == 1:
+                cmd_name = cmd_line[0]
+                location = os.getcwd()
+            elif len(cmd_line) == 2:
+                cmd_name = cmd_line[0]
+                location = cmd_line[1]
+            else:
+                raise TankError("Invalid syntax. Please run tank --help for more info.")
+
+            exit_code = run_engine(log, 
+                                   install_root, 
+                                   pipeline_config_root, 
+                                   location, 
+                                   engine_to_use,
+                                   cmd_name)
 
     except TankError, e:
         # one line report
