@@ -74,7 +74,7 @@ def show_help():
     print("")
     print("> tank setup_project - create a new project")
     print("")
-    print("> tank folders project_name entity_type name [--preview]")
+    print("> tank folders entity_type name [--preview]")
     print("")
     print("> tank core - information about the core API")
     print("> tank core update - update the core API")
@@ -109,7 +109,7 @@ def run_core_non_project_command(log, install_root, pipeline_config_root, comman
 
     elif command == "folders":
         # info about all PCs etc.
-        if len(args) not in [3, 4]:
+        if len(args) not in [2, 3]:
             raise TankError("Invalid arguments. Run tank --help for more information.")
 
         log.info("")
@@ -122,41 +122,39 @@ def run_core_non_project_command(log, install_root, pipeline_config_root, comman
             args = [arg for arg in args if arg != "--preview"]
         
         # fetch other options
-        project = args[0]
-        entity_type = args[1]
-        item = args[2]
+        entity_type = args[0]
+        item = args[1]
         
         
-        log.info("Will create folders for project '%s', %s %s" % (project, entity_type, item))        
+        log.info("Will process folders for %s %s" % (entity_type, item))        
         
         # first find project
         sg = shotgun.create_sg_connection()
         
-        proj = sg.find_one("Project", [["name", "is", project]])
-        if proj is None:
-            projs = sg.find("Project", [["tank_name", "is_not", None]], ["name"])  
-            log.error("")
-            log.error("Sorry, cannot find a project in Shotgun named '%s'. " % project)
-            log.error("Projects using Tank are:")
-            for x in projs:
-                log.error(" - '%s' " % x.get("name"))
-            log.error("")
-            raise TankError("Folder Creation Failed.")
-        
-        # now find item        
-        entity = sg.find_one(entity_type, [["code", "is", item]])
-        if entity is None:
-            raise TankError("Could not find %s '%s' in Shotgun!" % (entity_type, item))
-        
+        # check if item is an id, in that case use it directly, otherwise look it up
+        try:
+            sg_id = int(item)
+        except:
+            # it wasn't an id, so resolve it
+            entity = sg.find(entity_type, [["code", "is", item]])
+            if len(entity) == 0:
+                raise TankError("Could not find %s '%s' in Shotgun!" % (entity_type, item))
+            elif len(entity) > 1:
+                raise TankError("More than one item matching %s '%s'. Please specify a shotgun id "
+                                "instead of a name (e.g tank folders %s 1234" % (item, entity_type))
+            else:
+                # single match yay
+                sg_id = entity[0]["id"]
+                
         # now create a tank 
-        tk = tank.tank_from_entity(entity["type"], entity["id"])
+        tk = tank.tank_from_entity(entity_type, sg_id)
         try:
             if preview:
                 log.info("Previewing folder creation, stand by...")
             else:
                 log.info("Creating folders, stand by...")
                 
-            f = folder.process_filesystem_structure(tk, entity["type"], entity["id"], preview, None)
+            f = folder.process_filesystem_structure(tk, entity_type, sg_id, preview, None)
             log.info("Folder creation complete!")
             log.info("")
             log.info("The following items were processed:")
