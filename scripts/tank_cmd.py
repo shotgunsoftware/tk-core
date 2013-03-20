@@ -22,7 +22,6 @@ import sys
 import os
 import logging
 import tank
-import getopt
 from tank import TankError
 from tank.deploy import setup_project, validate_config, administrator, core_api_admin
 from tank import pipelineconfig
@@ -55,8 +54,11 @@ def show_help():
     print("Running Apps and Engines")
     print("----------------------------------------------")
     print("")
-    print("")
-    print("")
+    print("Syntax: tank [path] [--engine=tk-xyz] [--app=tk-xyz-abc]")
+    
+    
+    print("> tank")
+    print("Runs the shell engine in ")
     print("")
     print("Administering Tank")
     print("----------------------------------------------")
@@ -281,37 +283,29 @@ def run_engine(log, install_root, pipeline_config_root, context_str, args):
     """
     log.debug("")
     log.debug("Will start an engine. Context string passed: '%s'" % context_str)
-    log.debug("Arguments passed: %s" % args)
-        
-    # args
-    # -a tk-publish-foo --app=tk-publish-foo
-    # -e tk-shotgun --engine=tk-shotgun
-    # the rest of the arguments are passed on
-    # if no app is given, the specified engine will start in interactive mode
-    (optlist, remaining_args) = getopt.getopt(args, "e:a:", ["engine=", "app="])
     
     engine_to_launch = DEFAULT_ENGINE
     app_to_launch = None
     interactive_mode = True
     
-    for (arg, value) in optlist:
-        if arg == "-e" or arg == "--engine":
-            engine_to_launch = value
+    # go through arglist and search for --engine and --app params
+    remaining_args = []
+    for arg in args:
+        if arg.startswith("--engine="):
+            engine_to_launch = arg[9:]
             
-        elif arg == "-a" or arg == "--app":
-            app_to_launch = value
+        elif arg.startswith("--app="):
+            app_to_launch = arg[6:]
             interactive_mode = False
             log.debug("Will launch specific app %s" % app_to_launch)
+        
+        else:
+            # unprocessed arg
+            remaining_args.append(arg)
 
     log.debug("Will launch engine: %s" % engine_to_launch)
-    
-    
-    #####################
-    #
-    # TODO: note! local location of this script takes precednece
-    # check that there is a match ebtween context/priject and current PC
-    #
-    
+    log.debug("")
+    log.debug("Remaining args to pass to system when started: %s" % remaining_args)
     
     if ":" in context_str:
         # Shot:123 or Shot:foo
