@@ -3,21 +3,6 @@
 # ----------------------------------------------------
 
 
-####################################################################################
-# possible modes
-# 
-# tank -h, --help              ----> help menu
-# tank core_command args       ----> core command special stuff
-#
-# tank /foo/bar [params]       ----> context from path
-# tank Shot:34 [params]        ----> context from entity
-# tank Shot:foo [params]       ----> context from entity
-# tank [params]                ----> context from CWD
-#
-# params are always on the form -x xyz or --xx=xyz
-
-
-
 import sys
 import os
 import logging
@@ -41,24 +26,46 @@ def show_help():
     print("-" * 60)
     print("Welcome to Tank!")
     print("-" * 60)
-    print("")
     print("This command lets you run control tank from a shell.")
     print("You can run apps and engines via the Tank command.")
     print("You can also run various tank admin commands.")
+    print("")
     print("")
     print("General options and info")
     print("----------------------------------------------")
     print("- To show this help, add a -h or --help flag.")
     print("- To display verbose debug, add a --debug flag.")
     print("")
-    print("Running Apps and Engines")
-    print("----------------------------------------------")
     print("")
-    print("Syntax: tank [path] [--engine=tk-xyz] [--app=tk-xyz-abc]")
-    
-    
+    print("Running Apps")
+    print("----------------------------------------------")
+    print("Syntax: tank [context] [command]")
+    print("")
+    print(" - Context is a location on disk where you want")
+    print("   the tank command to operate. It can also be")
+    print("   a Shotgun Entity on the form Type:id or Type:name")
+    print("   describing the object you want to operate on.")
+    print("   if you leave this out, the tank command will use")
+    print("   your current working directory as the context.")
+    print("")
+    print(" - Command is the engine command to execute. If you leave ")
+    print("   this out, you will enter an interactive mode.") 
+    print("")
+    print("Examples:")
+    print("")
+    print("Start the interactive mode for your current path:")
     print("> tank")
-    print("Runs the shell engine in ")
+    print("")
+    print("Launch maya for your current path (assuming there is a")
+    print("launch maya command registered):")
+    print("> tank launch_maya")
+    print("")
+    print("Launch maya for a Shot in Shotgun:")
+    print("> tank launch_maya Shot:ABC123")
+    print("")
+    print("Launch maya for a Task in Shotgun using an id:")
+    print("> tank launch_maya Task:234")
+    print("")
     print("")
     print("Administering Tank")
     print("----------------------------------------------")
