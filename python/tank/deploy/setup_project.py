@@ -762,7 +762,7 @@ def _interactive_setup(log, pipeline_config_root):
         _make_folder(log, current_os_pc_location, 0775)
     
     # create pipeline config base folder structure            
-    _make_folder(log, os.path.join(current_os_pc_location, "cache"), 0775)    
+    _make_folder(log, os.path.join(current_os_pc_location, "cache"), 0777)    
     _make_folder(log, os.path.join(current_os_pc_location, "config"), 0775)
     _make_folder(log, os.path.join(current_os_pc_location, "install"), 0775)
     _make_folder(log, os.path.join(current_os_pc_location, "install", "core"), 0777)
