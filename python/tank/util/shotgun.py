@@ -114,6 +114,9 @@ def create_sg_app_store_connection(studio_root):
     (api_handle, script_user) = __create_sg_connection(shotgun_cfg_path, evaluate_script_user=True)
     return (api_handle, script_user)
 
+
+g_entity_display_name_lookup = None
+
 def get_entity_type_display_name(tk, entity_type_code):
     """
     Returns the display name for an entity type given its type name.
@@ -126,15 +129,21 @@ def get_entity_type_display_name(tk, entity_type_code):
     :param entity_type code: API entity type name
     :returns: display name
     """
-    # now resolve the entity types into display names using the schema_entity_read method.
-    entity_type_lookup = tk.shotgun.schema_entity_read()
-    # returns a dictionary on the following form:
-    # { 'Booking': {'name': {'editable': False, 'value': 'Booking'}}, ... }
+    
+    global g_entity_display_name_lookup
+    
+    if g_entity_display_name_lookup is None:    
+        # now resolve the entity types into display names using the schema_entity_read method.
+        g_entity_display_name_lookup = tk.shotgun.schema_entity_read()
+        # returns a dictionary on the following form:
+        # { 'Booking': {'name': {'editable': False, 'value': 'Booking'}}, ... }
 
-    if entity_type_code in entity_type_lookup:
-        display_name = entity_type_lookup[entity_type_code]["name"]["value"]
-    else:
-        display_name = entity_type_code
+    display_name = entity_type_code
+    try: 
+        if entity_type_code in g_entity_display_name_lookup:
+            display_name = g_entity_display_name_lookup[entity_type_code]["name"]["value"]
+    except:
+        pass
     
     return display_name
 
