@@ -72,6 +72,9 @@ TANK_ENGINE_INIT_HOOK_NAME = "engine_init"
 # hook that is executed whenever a bundle has initialized
 TANK_BUNDLE_INIT_HOOK_NAME = "bundle_init"
 
+# hook to get current login
+CURRENT_LOGIN_HOOK_NAME = "get_current_login"
+
 # default value for hooks
 TANK_BUNDLE_DEFAULT_HOOK_SETTING = "default"
 

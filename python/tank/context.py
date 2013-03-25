@@ -173,7 +173,7 @@ class Context(object):
         # so make sure we get rid of those. We should make sure we return the data
         # in a consistent way, similar to all other entities. No more. No less.
         if self.__user is None:
-            user = login.get_shotgun_user(self.__tk.shotgun)
+            user = login.get_current_user(self.__tk)
             if user is not None:
                 self.__user = {"type": user.get("type"), 
                                "id": user.get("id"), 

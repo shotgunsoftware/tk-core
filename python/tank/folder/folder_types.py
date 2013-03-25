@@ -1053,7 +1053,7 @@ class UserWorkspace(Entity):
         # this query confirms that there is a matching HumanUser in shotgun for the local login
         # This means that a query for the user happens twice, here and later during _get_entities
         # TODO possibly keep the result from this query instead and remove the later, duplicate, one
-        user = login.get_shotgun_user(tk.shotgun) 
+        user = login.get_current_user(tk) 
 
         if not user:
             msg = "Could not find a HumanUser in shotgun with login matching the local login. "

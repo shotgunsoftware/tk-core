@@ -359,7 +359,7 @@ def create_event_log_entry(tk, context, event_type, description, metadata=None):
     data["project"] = context.project
     data["meta"] = metadata
 
-    sg_user = login.get_shotgun_user(tk.shotgun)
+    sg_user = login.get_current_user(tk)
     if sg_user:
         data["user"] = sg_user
     
@@ -537,7 +537,7 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
         "path_cache": path_cache,
     }
 
-    sg_user = login.get_shotgun_user(tk.shotgun)
+    sg_user = login.get_current_user(tk)
     if sg_user:
         data["created_by"] = sg_user
 
