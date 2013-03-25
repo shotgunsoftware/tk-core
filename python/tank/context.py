@@ -13,6 +13,7 @@ from tank_vendor import yaml
 import tank
 from .util import login
 from .util import shotgun_entity
+from .util import shotgun
 from .errors import TankError
 from .path_cache import PathCache
 from .template import TemplatePath
@@ -75,8 +76,12 @@ class Context(object):
         elif self.step is None and self.task is None:
             # entity only
             # e.g. Shot ABC_123
-            ctx_name = "%s %s" % (self.entity.get("type"), 
-                                  self.entity.get("name"))
+            
+            # resolve custom entities to their real display
+            entity_display_name = shotgun.get_entity_type_display_name(self.__tk, 
+                                                                       self.entity.get("type"))
+            
+            ctx_name = "%s %s" % (entity_display_name, self.entity.get("name"))
 
         else:
             # we have either step or task
@@ -86,9 +91,14 @@ class Context(object):
             if self.task:
                 task_step = self.task.get("name")
             
-            # e.g. [Lighting, Shot ABC_123]
+            # e.g. Lighting, Shot ABC_123
+            
+            # resolve custom entities to their real display
+            entity_display_name = shotgun.get_entity_type_display_name(self.__tk, 
+                                                                       self.entity.get("type"))
+            
             ctx_name = "%s, %s %s" % (task_step, 
-                                      self.entity.get("type"), 
+                                      entity_display_name, 
                                       self.entity.get("name"))
         
         return ctx_name
