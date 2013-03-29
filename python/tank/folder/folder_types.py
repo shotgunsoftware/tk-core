@@ -678,7 +678,7 @@ class Entity(Folder):
             values = sg_filter["values"]
             new_values = []
             for filter_value in values:
-                if filter_value.startswith("$"):
+                if filter_value is not None and filter_value.startswith("$"):
                     # create object
                     try:
                         expr_token = FilterExpressionToken(filter_value, parent)
