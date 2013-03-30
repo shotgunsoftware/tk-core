@@ -239,6 +239,16 @@ class TankBundle(object):
         """
         settings_value = self.__settings.get(key, default)
         
+        # try to get the type for the setting
+        # (may fail if the key does not exist in the schema,
+        # which is an old use case we need to support now...)
+        settings_type = None
+        try:
+            schema = self.__descriptor.get_configuration_schema()
+            settings_type = schema.get(key).get("type")
+        except:
+            pass
+        
         if type(settings_value) == str and settings_value.startswith("hook:"):
             
             # handle the special form where the value is computed in a hook.
@@ -258,6 +268,16 @@ class TankBundle(object):
                                                    setting=key, 
                                                    bundle_obj=self, 
                                                    extra_params=params)
+
+        elif settings_type == "config_path":
+            # this is a config path. Stored on the form
+            # foo/bar/baz.png, we should translate that into
+            # PROJECT_PATH/tank/config/foo/bar/baz.png
+            config_folder = constants.get_config_folder(self.__tk.project_path)
+            adjusted_value = settings_value.replace("/", os.path.sep)
+            settings_value = os.path.join(config_folder, adjusted_value)
+        
+        
         return settings_value
             
     def get_template(self, key):
