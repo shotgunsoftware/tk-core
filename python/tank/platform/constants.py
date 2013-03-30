@@ -156,13 +156,5 @@ CACHE_DB_FILENAME = "path_cache.db"
 # the name of the file that holds the templates.yml config
 CONTENT_TEMPLATES_FILE = "templates.yml"
 
-
-def get_config_folder(project_path):
-    """
-    returns the config folder for the project
-    """
-    return os.path.join(project_path, "tank", "config")
-
-
 # the name of the file that holds the inverse root defs
 CONFIG_BACK_MAPPING_FILE = "tank_configs.yml"

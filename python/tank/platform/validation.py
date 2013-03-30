@@ -515,7 +515,7 @@ class _SettingsValidator:
                                                                               config_value) ) 
             raise TankError(msg)
         
-        config_folder = constants.get_config_folder(self._tank_api.project_path)
+        config_folder = self._tank_api.pipeline_configuration.get_config_location()
         adjusted_value = config_value.replace("/", os.path.sep)
         full_path = os.path.join(config_folder, adjusted_value)
 

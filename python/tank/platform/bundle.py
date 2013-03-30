@@ -273,7 +273,7 @@ class TankBundle(object):
             # this is a config path. Stored on the form
             # foo/bar/baz.png, we should translate that into
             # PROJECT_PATH/tank/config/foo/bar/baz.png
-            config_folder = constants.get_config_folder(self.__tk.project_path)
+            config_folder = self.__tk.pipeline_configuration.get_config_location()
             adjusted_value = settings_value.replace("/", os.path.sep)
             settings_value = os.path.join(config_folder, adjusted_value)
         
