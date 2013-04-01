@@ -89,6 +89,9 @@ TANK_BUNDLE_INIT_HOOK_NAME = "bundle_init"
 # default value for hooks
 TANK_BUNDLE_DEFAULT_HOOK_SETTING = "default"
 
+# if the engine name is included in a hook definition, include this in the manifest.
+TANK_HOOK_ENGINE_REFERENCE_TOKEN = "{engine_name}"
+
 # hooks that are used during folder creation.
 PROCESS_FOLDER_CREATION_HOOK_NAME = "process_folder_creation"
 
