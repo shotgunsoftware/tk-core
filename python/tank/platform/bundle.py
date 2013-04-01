@@ -315,7 +315,35 @@ class TankBundle(object):
             #    default_value: maya_publish_file
             #
             default_hook_name = manifest.get(key).get("default_value", "undefined")
-            hook_path = os.path.join(self.disk_location, "hooks", "%s.py" % default_hook_name)  
+            
+            # special case - if the manifest default value contains the special token
+            # {ENGINE}, replace this with the name of the associated engine.
+            # note that this bundle base class level has no notion of what an engine or app is
+            # so we basically do this duck-type style, basically see if there is an engine
+            # attribute and if so, attempt the replacement:
+            if constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN in default_hook_name:
+                try:
+                    engine_name = self.engine.name
+                except:
+                    raise TankError("%s: Failed to be able to find the associated engine "
+                                    "when trying to access hook %s" % (self, hook_name))
+                
+                updated_hook_name = default_hook_name.replace(constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN, engine_name)
+                hook_path = os.path.join(self.disk_location, "hooks", "%s.py" % updated_hook_name)
+
+                if not os.path.exists(hook_path):
+                    # produce user friendly error message
+                    raise TankError("%s config setting %s: This hook is using an engine specific "
+                                    "hook setup (e.g '%s') but no hook '%s' has been provided with the app. "
+                                    "In order for this app to work with engine %s, you need to provide a "
+                                    "custom hook implementation. Please contact support for more "
+                                    "information" % (self, key, default_hook_name, hook_path, engine_name))
+                
+            else:
+                # no dynamic default value. No need to produce a special error message in this case
+                # if the file does not exist - the loader will check too.
+                hook_path = os.path.join(self.disk_location, "hooks", "%s.py" % default_hook_name)  
+            
             ret_val = hook.execute_hook(hook_path, self, **kwargs)
              
         else:
