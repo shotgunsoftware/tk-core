@@ -526,6 +526,13 @@ class TestValidateFixtures(TankTestBase):
         env_path = constants.get_environment_path(self.test_env, self.project_root)
         env = Environment(env_path)
 
+        # make sure our tmp file exists on disk for the disk_path property
+        self.test_resource = os.path.join(self.project_root, "tank", "config", "foo", "bar.png")
+        os.makedirs(os.path.dirname(self.test_resource))
+        fh = open(self.test_resource, "wt")
+        fh.write("test")
+        fh.close()        
+
         for app_name in env.get_apps(self.test_engine):
             schema = env.get_app_descriptor(self.test_engine, app_name).get_configuration_schema()
             settings = env.get_app_settings(self.test_engine, app_name)
