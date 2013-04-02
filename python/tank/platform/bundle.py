@@ -229,6 +229,62 @@ class TankBundle(object):
         
         return sys.modules[mod_name]
 
+    def __post_process_settings_r(self, value, schema):
+        """
+        Recursive post-processing of settings values
+        """
+        
+        settings_type = schema.get("type")
+        
+        if isinstance(value, list):
+            processed_val = []
+            value_schema = schema["values"]
+            for x in value:
+                processed_val.append(self.__post_process_settings_r(x, value_schema))
+        
+        elif isinstance(value, dict):
+            items = schema.get("items", {})
+            # note - we assign the original values here because we 
+            processed_val = value
+            for (key, value_schema) in items.items():            
+                processed_val[key] = self.__post_process_settings_r(value[key], value_schema)
+            
+        
+        elif settings_type == "config_path":
+            # this is a config path. Stored on the form
+            # foo/bar/baz.png, we should translate that into
+            # PROJECT_PATH/tank/config/foo/bar/baz.png
+            config_folder = self.__tk.pipeline_configuration.get_config_location()
+            adjusted_value = value.replace("/", os.path.sep)
+            processed_val = os.path.join(config_folder, adjusted_value)
+        
+        
+        elif type(value) == str and value.startswith("hook:"):
+            
+            # handle the special form where the value is computed in a hook.
+            # 
+            # if the template parameter is on the form
+            # a) hook:foo_bar
+            # b) hook:foo_bar:testing:testing
+            #        
+            # The following hook will be called
+            # a) foo_bar with parameters []
+            # b) foo_bar with parameters [testing, testing]
+            #
+            chunks = value.split(":")
+            hook_name = chunks[1]
+            params = chunks[2:] 
+            processed_val = self.__tk.execute_hook(hook_name, 
+                                                   setting=key, 
+                                                   bundle_obj=self, 
+                                                   extra_params=params)
+
+        else:
+            # pass-through
+            processed_val = value
+        
+        return processed_val
+        
 
     def get_setting(self, key, default=None):
         """
@@ -242,41 +298,15 @@ class TankBundle(object):
         # try to get the type for the setting
         # (may fail if the key does not exist in the schema,
         # which is an old use case we need to support now...)
-        settings_type = None
         try:
-            schema = self.__descriptor.get_configuration_schema()
-            settings_type = schema.get(key).get("type")
+            schema = self.__descriptor.get_configuration_schema().get(key)
         except:
-            pass
+            schema = None
         
-        if type(settings_value) == str and settings_value.startswith("hook:"):
-            
-            # handle the special form where the value is computed in a hook.
-            # 
-            # if the template parameter is on the form
-            # a) hook:foo_bar
-            # b) hook:foo_bar:testing:testing
-            #        
-            # The following hook will be called
-            # a) foo_bar with parameters []
-            # b) foo_bar with parameters [testing, testing]
-            #
-            chunks = settings_value.split(":")
-            hook_name = chunks[1]
-            params = chunks[2:] 
-            settings_value = self.__tk.execute_hook(hook_name, 
-                                                   setting=key, 
-                                                   bundle_obj=self, 
-                                                   extra_params=params)
-
-        elif settings_type == "config_path":
-            # this is a config path. Stored on the form
-            # foo/bar/baz.png, we should translate that into
-            # PROJECT_PATH/tank/config/foo/bar/baz.png
-            config_folder = self.__tk.pipeline_configuration.get_config_location()
-            adjusted_value = settings_value.replace("/", os.path.sep)
-            settings_value = os.path.join(config_folder, adjusted_value)
-        
+        if schema:
+            # post process against schema
+            settings_value = self.__post_process_settings_r(settings_value, schema)
+                    
         
         return settings_value
             

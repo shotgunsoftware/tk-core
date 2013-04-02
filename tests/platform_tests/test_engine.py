@@ -32,6 +32,14 @@ class TestStartEngine(TankTestBase):
         self.shot_step_path = os.path.join(shot_path, "step_name")
         self.add_production_path(self.shot_step_path, step)
         
+        
+        self.test_resource = os.path.join(self.project_root, "tank", "config", "foo", "bar.png")
+        os.makedirs(os.path.dirname(self.test_resource))
+        fh = open(self.test_resource, "wt")
+        fh.write("test")
+        fh.close()
+        
+        
         self.tk = tank.Tank(self.project_root)
         self.context = self.tk.context_from_path(self.shot_step_path)
 
@@ -60,6 +68,7 @@ class TestStartEngine(TankTestBase):
         cur_engine = tank.platform.current_engine()
         if cur_engine:
             cur_engine.destroy()
+        os.remove(self.test_resource)
 
     def test_properties(self):
         """
