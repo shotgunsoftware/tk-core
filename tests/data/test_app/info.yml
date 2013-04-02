@@ -21,6 +21,9 @@ configuration:
     test_hook:
         type: hook
     
+    test_icon:
+        type: config_path
+    
     test_simple_list:
         type: list
         values:

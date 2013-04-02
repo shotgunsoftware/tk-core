@@ -7,6 +7,7 @@ engines:
             test_app:
                 location: {'type': 'dev', 'path': 'TEST_APP_LOCATION'}
                 test_template: maya_publish_name
+                test_icon: "foo/bar.png"
                 test_hook: test_hook
                 test_simple_list: ['a','b','c','d']
                 test_complex_list:

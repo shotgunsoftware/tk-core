@@ -32,16 +32,24 @@ class TestApplication(TankTestBase):
         step = {"type":"Step", "name":"step_name", "id":4}
         self.shot_step_path = os.path.join(shot_path, "step_name")
         self.add_production_path(self.shot_step_path, step)
+
+        self.test_resource = os.path.join(self.project_root, "tank", "config", "foo", "bar.png")
+        os.makedirs(os.path.dirname(self.test_resource))
+        fh = open(self.test_resource, "wt")
+        fh.write("test")
+        fh.close()
         
         tk = tank.Tank(self.project_root)
         context = tk.context_from_path(self.shot_step_path)
         self.engine = tank.platform.start_engine("test_engine", tk, context)
+        
         
     def tearDown(self):
         # engine is held as global, so must be destroyed.
         cur_engine = tank.platform.current_engine()
         if cur_engine:
             cur_engine.destroy()
+        os.remove(self.test_resource)
 
 
 class TestGetApplication(TestApplication):
@@ -78,6 +86,9 @@ class TestGetSetting(TestApplication):
         tmpl = self.app.get_template("test_template")
         self.assertEqual("maya_publish_name", tmpl.name)
         self.assertIsInstance(tmpl, Template)
+        
+        # test resource
+        self.assertEqual(self.test_resource, self.app.get_setting("test_icon"))
         
         # Test a simple list
         test_list = self.app.get_setting("test_simple_list")
