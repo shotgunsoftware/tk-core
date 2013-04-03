@@ -311,12 +311,36 @@ class TankTestBase(unittest.TestCase):
                     continue
                 
                 # now check filters
+                
+                # complex style
+                # {'conditions': [{'path': 'id', 'relation': 'is', 'values': [1]}], 'logical_operator': 'and'}
+                
+                # turn these into simple style
+                new_filters = []
+                if isinstance(filters, dict):
+                    if filters.get("logical_operator") != "and":
+                        raise Exception("unsupported sg mock find_one filter %s" % filters)
+                    for c in filters.get("conditions"):
+                        if c["relation"] != "is":
+                            raise Exception("Unsupported sg mock find one filter %s" % filters)
+                        field = c["path"]
+                        value = c["values"][0]
+                        if len(c["values"]) > 1:
+                            raise Exception("Unsupported sg mock find one filter %s" % filters)
+                        new_filters.append( [field, "is", value])
+                    filters = new_filters
+                
+
                 found = True
                 for f in filters:
+
                     # assume operator is equals: e.g
                     # filter = ["field", "is", "value"]
                     field = f[0]
+                    if f[1] != "is":
+                        raise Exception("Unsupported sg mock find one filter %s" % filters)
                     value = f[2]
+
                     # now search through item to see if we got it
                     if field in item and item[field] == value:
                         # it is a match! Keep going...
@@ -325,6 +349,7 @@ class TankTestBase(unittest.TestCase):
                         # no match!
                         found = False
                         break
+                    
                 # did we find it?
                 if found:
                     return item

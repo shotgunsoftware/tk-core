@@ -919,6 +919,7 @@ class Entity(Folder):
             
             link_map = {}
             fields_to_retrieve = []
+            additional_filters = []
             
             # TODO: Support nested conditions
             for condition in self._filters["conditions"]:
@@ -943,6 +944,14 @@ class Entity(Folder):
                     # add to our map for later processing map['sg_sequence'] = 'Sequence'
                     # note that for List fields, the key is EntityType.field
                     link_map[ condition["path"] ] = expr_token 
+                
+                elif not condition["path"].startswith('$FROM$'):
+                    # this is a normal filter (we exclude the $FROM$ stuff since it is weird
+                    # and specific to steps.) So for example 'name must begin with X' - we want 
+                    # to include these in the query where we are looking for the object, to
+                    # ensure that assets with names starting with X are not created for an 
+                    # asset folder node which explicitly excludes these via its filters. 
+                    additional_filters.append(condition)
             
             # add some extra fields apart from the stuff in the config
             if self._entity_type == "Project":
@@ -960,10 +969,27 @@ class Entity(Folder):
             # appears in several locations in the filesystem and that the filters are responsible
             # for determining which location to use for a particular asset.
             my_id = tokens[ my_sg_data_key ]["id"]
-            rec = sg.find_one(self._entity_type, [ ["id", "is", my_id] ], fields_to_retrieve)
+            additional_filters.append( {"path": "id", "relation": "is", "values": [my_id]})
+            
+            # append additional filter cruft
+            filter_dict = { "logical_operator": "and", "conditions": additional_filters }
+            rec = sg.find_one(self._entity_type, filter_dict, fields_to_retrieve)
+            # there are now two reasons why find_one did not return:
+            # - the specified entity id does not exist
+            # - there are filters which has filtered it out. For example imagine that you 
+            #   have one folder structure for all assets starting with A and a second structure
+            #   for the rest. This would be a filter condition (code does not start with A, and
+            #   code starts with A respectively). In these cases, the object does exist but has been
+            #   explicitly filtered out - which is not an error!
+            
             if not rec:
-                raise TankError("Could not find entity %s:%s in Shotgun as required by "
-                                "the folder creation setup" % (self._entity_type, my_id))
+                
+                # check if it is a missing id or just a filtered out thing
+                if sg.find_one(self._entity_type, [["id", "is", my_id]]) is None:                
+                    raise TankError("Could not find entity %s:%s in Shotgun as required by "
+                                    "the folder creation setup" % (self._entity_type, my_id))
+                else:
+                    raise EntityLinkTypeMismatch()
             
             # and append the 'name field' which is always needed.
             name = None # used for error reporting
