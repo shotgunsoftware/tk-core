@@ -10,8 +10,8 @@ import os
 import copy
 import uuid
 import tempfile
-import subprocess
 
+from .util import subprocess_check_output
 from ..api import Tank
 from ..errors import TankError
 from ..platform import constants
@@ -129,12 +129,12 @@ class TankGitDescriptor(AppDescriptor):
             os.chdir(clone_tmp)
             
             try:
-                git_hash = subprocess.check_output("git rev-list --tags --max-count=1", shell=True).strip()
+                git_hash = subprocess_check_output("git rev-list --tags --max-count=1", shell=True).strip()
             except Exception, e:
                 raise TankError("Could not get list of tags for %s: %s" % (self._path, e))
 
             try:
-                latest_version = subprocess.check_output("git describe --tags %s" % git_hash, shell=True).strip()
+                latest_version = subprocess_check_output("git describe --tags %s" % git_hash, shell=True).strip()
             except Exception, e:
                 raise TankError("Could not get tag for hash %s: %s" % (hash, e))
         
