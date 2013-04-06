@@ -407,7 +407,7 @@ if __name__ == "__main__":
     
     # also we are passing the pipeline config 
     # at the back of the args as --pc=foo
-    if cmd_line[-1].startswith("--pc="):
+    if len(cmd_line) > 0 and cmd_line[-1].startswith("--pc="):
         pipeline_config_root = cmd_line[-1][5:] 
     else:
         pipeline_config_root = None
