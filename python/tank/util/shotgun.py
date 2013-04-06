@@ -446,19 +446,14 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
     # query shotgun for the tank_type
     if tank_type:
         if not isinstance(tank_type, basestring):
-            raise TankError('tank_type must be a string')
+            raise TankError("tank_type must be a string")
 
-        filters = [
-            ['code', 'is', tank_type],
-            ['project', 'is', context.project]
-        ]
-        sg_tank_type = tk.shotgun.find_one(
-            'TankType',
-            filters=filters
-        )
+        filters = [ ["code", "is", tank_type], ["project", "is", context.project] ]
+        sg_tank_type = tk.shotgun.find_one('TankType', filters=filters)
 
         if not sg_tank_type:
-            raise TankError("TankType '%s' not found." % (tank_type))
+            # create a tank type on the fly
+            sg_tank_type = tk.shotgun.create("TankType", {"code": tank_type, "project": context.project})
 
     # create the publish
     entity = _create_published_file(tk, context, path, name, version_number, task, comment, sg_tank_type)
