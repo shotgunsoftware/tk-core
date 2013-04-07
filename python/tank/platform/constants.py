@@ -148,7 +148,7 @@ TANK_CODE_PAYLOAD_FIELD = "sg_payload"
 TANK_APP_STORE_DUMMY_PROJECT = {"type": "Project", "id": 64}
 
 # Shotgun: The entity that represents Pipeline Configurations in Shotgun 
-PIPELINE_CONFIGURATION_ENTITY = "CustomNonProjectEntity02"
+PIPELINE_CONFIGURATION_ENTITY = "PipelineConfiguration"
 
 # The name of the default config
 DEFAULT_CFG = "tk-config-default"

@@ -56,9 +56,9 @@ class CmdlineSetupInteraction(object):
         
         self._log.info("")
         self._log.info("")
-        self._log.info("Where on disk would you like this tank configuration to be located?")
+        self._log.info("Now it is time to decide where the Tank configuration files should go.")
+        self._log.info("")
         self._log.info("You can press ENTER to accept the default value or to skip.")
-        self._log.info("If you skip, this configuration will not be available on that platform.")
         
         # start by asking for the current platform, the the other two platforms
         location = {"darwin": None, "linux2": None, "win32": None}
@@ -107,19 +107,70 @@ class CmdlineSetupInteraction(object):
             config_name = constants.DEFAULT_CFG
         return config_name
         
-    def get_project_folder_name(self, suggested_folder_name):
+    def get_project_folder_name(self, suggested_folder_name, resolved_storages):
         """
-        Returns a project name given a project folder
+        Returns a project name given a project folder.
+        Resolved storages are guaranteed to exist on disk etc.
         """
+        
         self._log.info("")
         self._log.info("")
-        self._log.info("Now you need to decide folder name on disk for your project.")
-        self._log.info("This will be used as the root folder for all project related data.")
-        self._log.info("Please enter a folder name of hit ENTER to accept the suggested value.")
-        config_name = raw_input("[%s]: " % suggested_folder_name)
-        if config_name == "":
-            config_name = suggested_folder_name
-        return config_name
+        self._log.info("")
+        self._log.info("Now you need to tell Tank where you are storing the data for this project.")
+        self._log.info("The selected tank config utilizes the following Local Storages, as ")
+        self._log.info("defined in the Shotgun Site Preferences:")
+        self._log.info("")
+        for s in resolved_storages:
+            # [{'code': 'primary', 'mac_path': '/tank_demo/project_data', 'windows_path': None, 'type': 'LocalStorage', 'id': 1, 'linux_path': None}]
+            current_os_path = s.get(SG_LOCAL_STORAGE_OS_MAP[sys.platform])
+            storage_name = s.get("code").capitalize()
+            self._log.info(" - %s: %s" % (storage_name, current_os_path))
+        
+        self._log.info("")
+        self._log.info("Each of the above locations need to have a data folder which is ")
+        self._log.info("specific to this project. These folders all need to be named the same thing.")
+        self._log.info("They also need to exist on disk.")
+        self._log.info("For example, if you named the project '%s', " % suggested_folder_name)
+        self._log.info("the following folders would need to exist on disk:")
+        self._log.info("")
+        for s in resolved_storages:
+            current_os_path = s.get(SG_LOCAL_STORAGE_OS_MAP[sys.platform])
+            proj_path = os.path.join(current_os_path, suggested_folder_name)
+            storage_name = s.get("code").capitalize()
+            self._log.info(" - %s: %s" % (storage_name, proj_path))
+        
+        self._log.info("")
+
+        while True:
+            self._log.info("")
+            proj_name = raw_input("Please enter a folder name [%s]: " % suggested_folder_name)
+            if proj_name == "":
+                proj_name = suggested_folder_name
+            self._log.info("...that corresponds to the following data locations:")
+            self._log.info("")
+            storages_valid = True
+            for s in resolved_storages:
+                current_os_path = s.get(SG_LOCAL_STORAGE_OS_MAP[sys.platform])
+                proj_path = os.path.join(current_os_path, proj_name)
+                storage_name = s.get("code").capitalize()
+                if os.path.exists(proj_path):
+                    self._log.info(" - %s: %s [OK]" % (storage_name, proj_path))
+                else:
+                    self._log.error(" - %s: %s [NOT FOUND]" % (storage_name, proj_path))
+                    storages_valid = False
+            
+            self._log.info("")
+            
+            if storages_valid:
+                # looks like folders exist on disk
+                
+                val = raw_input("Paths look valid. Continue? (Yes/No)? [Yes]: ")
+                if val == "" or val.lower().startswith("y"):
+                    break
+            else:
+                self._log.info("Please make sure that folders exist on disk for your project name!")
+        
+        return proj_name
 
 
         
@@ -366,12 +417,13 @@ class TankConfigInstaller(object):
         # make sure that there is a storage in shotgun matching all storages for this config
         sg_storage_codes = [x.get("code") for x in sg_storage]
         cfg_storages = self._roots_data.keys()
-        missing_storage_defs = False
+        problems = False
         for s in cfg_storages:
             if s not in sg_storage_codes:
-                missing_storage_defs = True
+                # storage required by config is missing 
+                problems = True
                 self._log.error("")
-                self._log.error("Missing Local File Storage in Shotgun!")
+                self._log.error("=== Missing Local File Storage in Shotgun! ===")
                 self._log.error("The Tank configuration is referring to a storage location")
                 self._log.error("named '%s'. However, no such storage has been defined " % s)
                 self._log.error("in Shotgun. Each Tank configuration defines one or more")
@@ -381,15 +433,35 @@ class TankConfigInstaller(object):
                 self._log.error("site preferences and set up local file storage named ")
                 self._log.error("'%s'. Note that you shouldn't include the project name" % s)
                 self._log.error("when you set up this storage.")
+            
             else:
                 # find the sg storage paths and add to return data
                 for x in sg_storage:
                     if x.get("code") == s:
-                        storages.append(x) 
+                        storages.append(x)
+                        local_storage_path = x.get( SG_LOCAL_STORAGE_OS_MAP[sys.platform] )
+                        # make sure that the storage is configured!
+                        if local_storage_path is None:
+                            # storage def does not have the path for current os set
+                            problems = True
+                            self._log.error("")
+                            self._log.error("=== Local file storage not configured ===")
+                            self._log.error("The local file storage %s is needed by the tank configuration " % s)
+                            self._log.error("but it does not have a path configured for the current os platform! ")
+                            self._log.error("Please go to the site preferences in shotgun and adjust.")
 
-        if missing_storage_defs:
-            raise TankError("Looks like there are some missing Local File Storages in Shotgun. "
-                            "Please create those and re-run the tank project setup.")
+                        elif not os.path.exists(local_storage_path):
+                            problems = True
+                            self._log.error("")
+                            self._log.error("=== File storage path does not exist! ===")
+                            self._log.error("The local file storage %s is needed by the tank configuration. " % s)
+                            self._log.error("It points to the path '%s' on the current os, " % local_storage_path)
+                            self._log.error("but that path does not exist on disk.")
+
+        if problems:
+            raise TankError("One or more issues with local storage setup detected. "
+                            "Setup cannot continue! If you have any questions, you can "
+                            "always drop us a line on tanksupport@shotgunsoftware.com")
         
         return storages
 
@@ -613,9 +685,6 @@ def _interactive_setup(log, pipeline_config_root):
     # now look at the roots yml in the config
     resolved_storages = cfg_installer.validate_roots()
 
-
-    
-
     # ask which project to operate on
     (project_id, project_name) = cmdline_ui.get_project()
     
@@ -623,7 +692,7 @@ def _interactive_setup(log, pipeline_config_root):
     project_disk_folder = re.sub("\W", "_", project_name).lower()
     
     # ask the user to confirm the folder name
-    project_disk_folder = cmdline_ui.get_project_folder_name(project_disk_folder)
+    project_disk_folder = cmdline_ui.get_project_folder_name(project_disk_folder, resolved_storages)
     
     # validate that this is not crazy
     if re.match("^[a-zA-Z0-9_-]+$", project_disk_folder) is None:
@@ -641,13 +710,11 @@ def _interactive_setup(log, pipeline_config_root):
     #
     
     for s in resolved_storages:
+        
+        # note! at this point, the storage has been checked and exists on disk.        
         current_os_path = s.get( SG_LOCAL_STORAGE_OS_MAP[sys.platform] )
-        
-        if current_os_path is None:
-            raise TankError("The Storage %s does not have a path defined for the current os. "
-                            "Please set a path and try again!" % s.get("code"))
-        
         project_path = os.path.join(current_os_path, project_disk_folder)
+        
         if not os.path.exists(project_path):
             raise TankError("The Project path %s for storage %s does not exist on disk! "
                             "Please create it and try again!" % (project_path, s.get("code")))
@@ -857,10 +924,10 @@ def _interactive_setup(log, pipeline_config_root):
     
     # create pipeline configuration record
     log.debug("Shotgun: Creating Pipeline Config record...")
-    data = {"sg_project": {"type": "Project", "id": project_id},
-            "sg_linux_path": locations_dict["linux2"],
-            "sg_windows_path": locations_dict["win32"],
-            "sg_macosx_path": locations_dict["darwin"],
+    data = {"project": {"type": "Project", "id": project_id},
+            "linux_path": locations_dict["linux2"],
+            "windows_path": locations_dict["win32"],
+            "mac_path": locations_dict["darwin"],
             "code": project_disk_folder}
     pc_entity = sg.create(constants.PIPELINE_CONFIGURATION_ENTITY, data)
     log.debug("Created data: %s" % pc_entity)
