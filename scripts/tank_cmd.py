@@ -3,6 +3,28 @@
 # ----------------------------------------------------
 
 
+#    ##########################################################################################
+#    # support for Shotgun actions
+#    
+#    def get_actions(self):
+#        res = []
+#
+#        for (cmd_name, cmd_params) in self.commands.items():
+#            entry = [
+#                cmd_name,
+#                cmd_params["properties"]["title"],
+#                ",".join(cmd_params["properties"]["entity_types"]),
+#                ",".join(cmd_params["properties"]["deny_permissions"]),
+#                ",".join(cmd_params["properties"]["deny_platforms"]),
+#                str(cmd_params["properties"]["supports_multiple_selection"])
+#            ]
+#            
+#            res.append("$".join(entry))
+#
+#        return "\n".join(res)
+
+
+
 import sys
 import os
 import logging
