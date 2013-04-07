@@ -16,6 +16,7 @@ from .deploy import util
 from .platform import constants
 from .platform.environment import Environment
 from .util import shotgun
+from .util import login
 
 class PipelineConfiguration(object):
     """
@@ -356,7 +357,7 @@ def from_entity(entity_type, entity_id):
     Factory method that constructs a PC given a shotgun object
     """
     
-    platform_lookup = {"linux2": "sg_linux_path", "win32": "sg_windows_path", "darwin": "sg_macosx_path" }
+    platform_lookup = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
     
     sg = shotgun.create_sg_connection()
     
@@ -371,26 +372,47 @@ def from_entity(entity_type, entity_id):
     
     
     pipe_configs = sg.find(constants.PIPELINE_CONFIGURATION_ENTITY, 
-                           [["sg_project", "is", proj]],
-                           ["sg_windows_path", "sg_macosx_path", "sg_linux_path"])
+                           [["project", "is", proj]], 
+                           ["windows_path", "mac_path", "linux_path", "users"])
     
     if len(pipe_configs) == 0:
         raise TankError("Cannot resolve a pipeline configuration object from %s:%s - its "
                         "associated project does not link to a "
                         "Tank installation!" % (entity_type, entity_id))
     
-    # TODO: add user checks
+    # get the current user (none if not found)
+    current_user = login.get_shotgun_user(sg)
     
-    # get all the registered pcs for the current platform
-    current_os_pcs = [ x.get(platform_lookup[sys.platform]) for x in pipe_configs if x is not None]    
+    # find primary and per user PC
+    primary_pc = None
+    custom_pc = None
+    for p in pipe_configs:
+        if p.get("users") is None or len(p.get("users")) == 0:
+            primary_pc = p
+        else:
+            # get list of associated user ids 
+            user_ids = [ x.get("id") for x in p.get("users") ]
+            if current_user.get("id") in user_ids:
+                custom_pc = p
     
-    for pc in current_os_pcs:
-        if os.path.exists(pc):
-            # ok it's a match!
-            return PipelineConfiguration(pc)
+    # choose custom first, the fall back onto primary
+    pc_to_use = custom_pc
+    if pc_to_use is None:
+        pc_to_use = primary_pc
+    if pc_to_use is None:
+        raise TankError("Cannot resolve a pipeline configuration object from %s:%s - "
+                        "could not find any associated pipeline configurations in "
+                        "Shotgun!" % (entity_type, entity_id))
+
+    pc_path = pc_to_use.get(platform_lookup[sys.platform])
+
+    if not os.path.exists(pc_path):
+        raise TankError("Cannot create a Tank Configuration from %s %s - cannot find an associated "
+                        "tank configuration for %s!" % (entity_type, entity_id, sys.platform))
+
     
-    raise TankError("Cannot create a Tank Configuration from %s %s - cannot find an associated "
-                    "tank configuration for %s!" % (entity_type, entity_id, sys.platform))
+    return PipelineConfiguration(pc_path)
+    
     
     
     
