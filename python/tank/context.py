@@ -677,8 +677,14 @@ def from_path(tk, path, previous_context=None):
 # YAML representer/constructor
 
 def context_yaml_representer(dumper, context):
+    """
+    Custom serializer.
+    Creates yaml code for a context object
+    """
+    
+    # first get the stuff which represents all the Context() 
+    # constructor parameters
     context_dict = {
-        "tank_project_path": context.tank.project_path,
         "project": context.project,
         "entity": context.entity,
         "user": context.user,
@@ -686,17 +692,34 @@ def context_yaml_representer(dumper, context):
         "task": context.task,
         "additional_entities": context.additional_entities
     }
+    
+    # now we also need to pass a TK instance to the constructor when we 
+    # are deserializing the object. For this purpose, pass a 
+    # PC path as part of the dict
+    context_dict["_pc_path"] = context.tank.pipeline_configuration.get_path()
 
     return dumper.represent_mapping(u'!TankContext', context_dict)
 
 def context_yaml_constructor(loader, node):
-    context_dict = loader.construct_mapping(node)
-    tk = tank.Tank(context_dict["tank_project_path"])
+    """
+    Custom deserializer.
+    Constructs a context object given the yaml data provided.
+    """
+    # get the dict from yaml
+    context_constructor_dict = loader.construct_mapping(node)
+    
+    # first get the pc path out of the dict
+    pipeline_config_path = context_constructor_dict["_pc_path"] 
+    del context_constructor_dict["_pc_path"]
+    
+    # create a tank API instance.
+    tk = tank.Tank(pipeline_config_path)
 
-    del context_dict["tank_project_path"]
-    context_dict["tk"] = tk
+    # add it to the constructor instance
+    context_constructor_dict["tk"] = tk
 
-    return Context(**context_dict)
+    # and lastly make the obejct
+    return Context(**context_constructor_dict)
 
 yaml.add_representer(Context, context_yaml_representer)
 yaml.add_constructor(u'!TankContext', context_yaml_constructor)
