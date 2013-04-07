@@ -1,10 +1,13 @@
-#!/usr/bin/env bash
+#!/usr/bin/env bash --login
 #
 # Copyright (c) 2012 Shotgun Software, Inc
 # ----------------------------------------------------
 
-# note! any changes made here need to be reflected in 
-# the tank_cmd_login.sh script
+# note! this is a clone of the tank_cmd.sh script
+# with the only difference that it uses a login shell
+# e.g. bash started with the --login parameter.
+# this is useful if you are starting from a blank environment,
+# for example the java applet. Make sure to keep the two scripts in sync.
 
 # this script is called by the main tank script
 # the first parameter contains the path to the pipeline config root
