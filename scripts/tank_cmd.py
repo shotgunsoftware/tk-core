@@ -278,6 +278,7 @@ def run_core_non_project_command(log, install_root, pipeline_config_root, comman
         raise TankError("Unknown command '%s'. Run tank --help for more information" % command)
 
 
+
 def run_core_project_command(log, pipeline_config_root, command, args):
     """
     Execute one of the built in commands
@@ -338,18 +339,41 @@ def run_core_project_command(log, pipeline_config_root, command, args):
         if len(args) != 3:
             raise TankError("Invalid arguments! Pass action_name, entity_type, comma_separated_entity_ids")
 
-    
         action_name = args[0]   
         entity_type = args[1]
-        entity_ids = args[2]
+        entity_ids_str = args[2].split(",")
+        entity_ids = [int(x) for x in entity_ids_str]   
+        
+        # add some smarts about context management here
+        if len(entity_ids) == 1:
+            # this is a single selection
+            ctx = tk.context_from_entity(entity_type, entity_ids[0])
+        else:
+            # with multiple items selected, create a blank context
+            ctx = tk.context_empty()
 
         # start the shotgun engine, load the apps
-        e = engine.start_shotgun_engine(tk, entity_type)
+        e = engine.start_shotgun_engine(tk, entity_type, ctx)
 
-        print e.apps
-        print e.commands
-    
-    
+        cmd = e.commands.get(action_name)
+        if cmd:
+            callback = cmd["callback"]
+            # introspect and get number of args for this fn
+            arg_names = callback.func_code.co_varnames
+            # choose between simple style callbacks or complex style
+            # special shotgun callbacks - these always take two
+            # params entity_type and entity_ids
+            
+            if "entity_type" in arg_names or "entity_ids" in arg_names:
+                # old style shotgun app launch
+                callback(entity_type, entity_ids)
+            else:
+                # std tank app launch
+                callback()
+            
+        else:
+            # unknown command
+            raise TankError("A command named '%s' is not registered with Tank!" % action_name)
     
     
     elif command == "shotgun_cache_actions":
@@ -429,7 +453,7 @@ def run_engine(log, install_root, pipeline_config_root, context_str, engine_name
             log.error("")
             log.error("Try running the same command from %s instead!" % tk.pipeline_configuration.get_path())
             log.error("")
-            raise TankError("Configuration mis-match. Aborting.")
+            raise TankError("Configuration mismatch. Aborting.")
         
     # and create a context
     if uses_shotgun_context:
