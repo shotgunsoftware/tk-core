@@ -100,7 +100,7 @@ def validate_configuration(log, tk):
 
     # validate environments
     for env_name in envs:
-        env = tk.pipeline_configuration.get_environment(env_name, None)
+        env = tk.pipeline_configuration.get_environment(env_name)
         _process_environment(log, tk, env)
 
     log.info("")

@@ -227,6 +227,15 @@ class PipelineConfiguration(object):
         """
         return os.path.join(self._pc_root, "install", "frameworks")
             
+    ########################################################################################
+    # cache
+
+    def get_cache_location(self):
+        """
+        Returns the pipeline config -centric cache location
+        """
+        return os.path.join(self._pc_root, "cache")
+
         
     ########################################################################################
     # configuration
@@ -267,7 +276,7 @@ class PipelineConfiguration(object):
             env_names.append(name)
         return env_names
     
-    def get_environment(self, env_name, context):
+    def get_environment(self, env_name, context=None):
         """
         Returns an environment object given an environment name.
         You can use the get_environments() method to get a list of 

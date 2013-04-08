@@ -3,28 +3,6 @@
 # ----------------------------------------------------
 
 
-#    ##########################################################################################
-#    # support for Shotgun actions
-#    
-#    def get_actions(self):
-#        res = []
-#
-#        for (cmd_name, cmd_params) in self.commands.items():
-#            entry = [
-#                cmd_name,
-#                cmd_params["properties"]["title"],
-#                ",".join(cmd_params["properties"]["entity_types"]),
-#                ",".join(cmd_params["properties"]["deny_permissions"]),
-#                ",".join(cmd_params["properties"]["deny_platforms"]),
-#                str(cmd_params["properties"]["supports_multiple_selection"])
-#            ]
-#            
-#            res.append("$".join(entry))
-#
-#        return "\n".join(res)
-
-
-
 import sys
 import os
 import logging
@@ -33,13 +11,15 @@ from tank import TankError
 from tank.deploy import setup_project, validate_config, administrator, core_api_admin
 from tank import pipelineconfig
 from tank.util import shotgun
+from tank.platform import engine
 from tank import folder
 
 # built in commands that can run without a project
 CORE_NON_PROJECT_COMMANDS = ["setup_project", "core", "info", "folders"]
 
 # built in commands that run against a specific project
-CORE_PROJECT_COMMANDS = ["clone", "join", "leave", "validate", "revert", "switch"]
+CORE_PROJECT_COMMANDS = ["clone", "join", "leave", "validate", 
+                         "revert", "switch", "shotgun_run_action", "shotgun_cache_actions"]
 
 DEFAULT_ENGINE = "tk-shell"
 
@@ -112,6 +92,58 @@ def show_help():
     print("> tank core localize - install the core API into this configuration")
     print("")
     
+    
+    
+    
+    
+def _write_shotgun_cache(tk, entity_type, cache_file_name):
+    """
+    Writes a shotgun cache menu file to disk.
+    The cache is per type and per operating system
+    """
+                
+    cache_path = os.path.join(tk.pipeline_configuration.get_cache_location(), cache_file_name)
+    
+    # start the shotgun engine, load the apps
+    e = engine.start_shotgun_engine(tk, entity_type)
+    
+    # get actions
+    res = []
+    for (cmd_name, cmd_params) in e.commands.items():
+        
+        # some apps provide a special deny_platforms entry
+        if "deny_platforms" in cmd_params["properties"]:
+            # setting can be Linux, Windows or Mac
+            curr_os = {"linux2": "Linux", "darwin": "Mac", "win32": "Windows"}[sys.platform]
+            if curr_os in cmd_params["properties"]["deny_platforms"]:
+                # deny this platform! :)
+                continue
+        
+        if "title" in cmd_params["properties"]:
+            title = cmd_params["properties"]["title"]
+        else:
+            title = cmd_name
+            
+        if "supports_multiple_selection" in cmd_params["properties"]:
+            supports_multiple_sel = cmd_params["properties"]["supports_multiple_selection"]
+        else:
+            supports_multiple_sel = False
+            
+        if "deny_permissions" in cmd_params["properties"]:
+            deny = ",".join(cmd_params["properties"]["deny_permissions"])
+        else:
+            deny = ""
+        
+        entry = [ cmd_name, title, deny, str(supports_multiple_sel) ]
+        
+        res.append("$".join(entry))
+
+    data = "\n".join(res)
+    
+    # Write to cache file
+    f = open(cache_path, "wt")
+    f.write(data)
+    f.close()
     
 
 
@@ -301,7 +333,34 @@ def run_core_project_command(log, pipeline_config_root, command, args):
 
         administrator.revert_locator(log, tk, args[0])
 
+    elif command == "shotgun_run_action":
+        # params: action_name, entity_type, entity_ids
+        if len(args) != 3:
+            raise TankError("Invalid arguments! Pass action_name, entity_type, comma_separated_entity_ids")
+
     
+        action_name = args[0]   
+        entity_type = args[1]
+        entity_ids = args[2]
+
+        # start the shotgun engine, load the apps
+        e = engine.start_shotgun_engine(tk, entity_type)
+
+        print e.apps
+        print e.commands
+    
+    
+    
+    
+    elif command == "shotgun_cache_actions":
+        # params: entity_type, cache_file_name
+        if len(args) != 2:
+            raise TankError("Invalid arguments! Pass entity_type, cache_file_name")
+        
+        entity_type = args[0]
+        cache_file_name = args[1]
+        _write_shotgun_cache(tk, entity_type, cache_file_name)
+        
     else:
         raise TankError("Unknown command '%s'. Run tank --help for more information" % command)
 

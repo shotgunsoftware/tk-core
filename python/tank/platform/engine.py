@@ -431,7 +431,10 @@ class Engine(TankBundle):
                 app_settings = self.__env.get_app_settings(self.__engine_instance_name, app_instance_name)
 
                 # check that the context contains all the info that the app needs
-                validation.validate_context(descriptor, self.context)
+                if self.__engine_instance_name != constants.SHOTGUN_ENGINE_NAME: 
+                    # special case! The shotgun engine is special and does not have a 
+                    # context until you actually run a command, so disable the valiation
+                    validation.validate_context(descriptor, self.context)
                 
                 # make sure the current operating system platform is supported
                 validation.validate_platform(descriptor)
@@ -568,6 +571,38 @@ def start_engine(engine_name, tk, context):
 
     return obj
 
+
+def start_shotgun_engine(tk, entity_type, context=None):
+    """
+    Special, internal method that handles the shotgun engine.
+    """
+
+    # bypass the get_environment hook and use a fixed set of environments
+    # for this shotgun engine. This is required because of the action caching.
+    env = tk.pipeline_configuration.get_environment("shotgun_%s" % entity_type.lower())
+
+    # get the location for our engine
+    if not constants.SHOTGUN_ENGINE_NAME in env.get_engines():
+        raise TankEngineInitError("Cannot find a shotgun engine in %s. Please contact support." % env)
+    
+    engine_descriptor = env.get_engine_descriptor(constants.SHOTGUN_ENGINE_NAME)
+
+    # make sure it exists locally
+    if not engine_descriptor.exists_local():
+        raise TankEngineInitError("Cannot start engine! %s does not exist on disk" % engine_descriptor)
+
+    # get path to engine code
+    engine_path = engine_descriptor.get_path()
+    plugin_file = os.path.join(engine_path, constants.ENGINE_FILE)
+
+    # Instantiate the engine
+    class_obj = loader.load_plugin(plugin_file, Engine)
+    obj = class_obj(tk, context, constants.SHOTGUN_ENGINE_NAME, env)
+
+    # register this engine as the current engine
+    set_current_engine(obj)
+
+    return obj
 
 ##########################################################################################
 # utilities

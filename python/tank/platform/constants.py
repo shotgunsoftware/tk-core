@@ -173,3 +173,6 @@ TEMPLATE_SECTIONS = ["keys", "paths", "strings"]
 
 # the path section in a templates file
 TEMPLATE_PATH_SECTION = "paths"
+
+# the shotgun engine always has this name
+SHOTGUN_ENGINE_NAME = "tk-shotgun"

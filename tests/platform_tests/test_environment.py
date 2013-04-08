@@ -22,7 +22,7 @@ class TestEnvironment(TankTestBase):
 
         # create env object
         tk = tank.Tank(self.project_root)
-        self.env = tk.pipeline_configuration.get_environment(self.test_env, None)
+        self.env = tk.pipeline_configuration.get_environment(self.test_env)
         
         # get raw environment
         env_file = os.path.join(self.project_config, "env", "test.yml")
@@ -92,7 +92,7 @@ class TestUpdateEnvironment(TankTestBase):
 
         # create env object
         tk = tank.Tank(self.project_root)
-        self.env = tk.pipeline_configuration.get_environment(self.test_env, None)
+        self.env = tk.pipeline_configuration.get_environment(self.test_env)
         
         
     def test_update_engine_location(self):

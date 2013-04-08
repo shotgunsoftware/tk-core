@@ -969,7 +969,7 @@ def _interactive_setup(log, pipeline_config_root):
     # to use.
     
     for env_name in pc.get_environments():
-        env_obj = pc.get_environment(env_name, None)
+        env_obj = pc.get_environment(env_name)
         log.info("Installing apps for environment %s..." % env_obj)
         _install_environment(env_obj, log)
 
