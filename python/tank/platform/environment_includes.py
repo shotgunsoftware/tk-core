@@ -20,12 +20,6 @@ relative paths are always required and context based paths are always optional.
 
 """
 
-SINGLE_INCLUDE_SECTION = "include"
-MULTI_INCLUDE_SECTION = "includes"
-
-TEMPLATE_SECTIONS = ["keys", "paths", "strings"]
-TEMPLATE_PATH_SECTION = "paths"
-
 
 import os
 import re
@@ -37,6 +31,8 @@ from ..errors import TankError
 from ..template import Template
 from ..templatekey import StringKey
 
+from . import constants
+
 def _resolve_includes(file_name, data, context):
     """
     Parses the includes section and returns a list of valid paths
@@ -44,13 +40,13 @@ def _resolve_includes(file_name, data, context):
     includes = []
     resolved_includes = []
     
-    if SINGLE_INCLUDE_SECTION in data:
+    if constants.SINGLE_INCLUDE_SECTION in data:
         # single include section
-        includes.append( data[SINGLE_INCLUDE_SECTION] )
+        includes.append( data[constants.SINGLE_INCLUDE_SECTION] )
             
-    if MULTI_INCLUDE_SECTION in data:
+    if constants.MULTI_INCLUDE_SECTION in data:
         # multi include section
-        includes.extend( data[MULTI_INCLUDE_SECTION] )
+        includes.extend( data[constants.MULTI_INCLUDE_SECTION] )
 
     for include in includes:
         

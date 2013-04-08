@@ -161,3 +161,15 @@ CONTENT_TEMPLATES_FILE = "templates.yml"
 
 # the name of the file that holds the inverse root defs
 CONFIG_BACK_MAPPING_FILE = "tank_configs.yml"
+
+# the name of the include section in env and template files
+SINGLE_INCLUDE_SECTION = "include"
+
+# the name of the includes section in env and template files
+MULTI_INCLUDE_SECTION = "includes"
+
+# the key sections in a template file
+TEMPLATE_SECTIONS = ["keys", "paths", "strings"]
+
+# the path section in a templates file
+TEMPLATE_PATH_SECTION = "paths"

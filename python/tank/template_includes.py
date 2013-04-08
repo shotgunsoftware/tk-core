@@ -21,11 +21,6 @@ c:\foo\bar\hello.yml - absolute path, windows
 
 """
 
-SINGLE_INCLUDE_SECTION = "include"
-MULTI_INCLUDE_SECTION = "includes"
-
-TEMPLATE_SECTIONS = ["keys", "paths", "strings"]
-TEMPLATE_PATH_SECTION = "paths"
 
 
 import os
@@ -34,6 +29,7 @@ import sys
 from tank_vendor import yaml
 
 from .errors import TankError
+from .platform import constants
 
 
 def _get_includes(file_name, data):
@@ -43,13 +39,13 @@ def _get_includes(file_name, data):
     includes = []
     resolved_includes = []
     
-    if SINGLE_INCLUDE_SECTION in data:
+    if constants.SINGLE_INCLUDE_SECTION in data:
         # single include section
-        includes.append( data[SINGLE_INCLUDE_SECTION] )
+        includes.append( data[constants.SINGLE_INCLUDE_SECTION] )
             
-    if MULTI_INCLUDE_SECTION in data:
+    if constants.MULTI_INCLUDE_SECTION in data:
         # multi include section
-        includes.extend( data[MULTI_INCLUDE_SECTION] )
+        includes.extend( data[constants.MULTI_INCLUDE_SECTION] )
 
     for include in includes:
         
@@ -93,7 +89,7 @@ def _process_template_includes_r(file_name, data):
     # return data    
     output_data = {}
     # add items for keys, paths, strings etc
-    for ts in TEMPLATE_SECTIONS:
+    for ts in constants.TEMPLATE_SECTIONS:
         output_data[ts] = {}
     
     # process includes
@@ -112,13 +108,13 @@ def _process_template_includes_r(file_name, data):
         included_data = _process_template_includes_r(included_path, included_data)
         
         # add the included data's different sections
-        for ts in TEMPLATE_SECTIONS:
+        for ts in constants.TEMPLATE_SECTIONS:
             if ts in included_data:
                 output_data[ts].update( included_data[ts] )
         
     # now all include data has been added into the data structure.
     # now add the template data itself
-    for ts in TEMPLATE_SECTIONS:
+    for ts in constants.TEMPLATE_SECTIONS:
         if ts in data:
             output_data[ts].update( data[ts] )
     
@@ -129,9 +125,9 @@ def get_template_str(data, template_name):
     """
     Returns a path str given a template name
     """
-    for t in data[TEMPLATE_PATH_SECTION]:
+    for t in data[constants.TEMPLATE_PATH_SECTION]:
         if t == template_name:
-            d = data[TEMPLATE_PATH_SECTION][t]
+            d = data[constants.TEMPLATE_PATH_SECTION][t]
             if isinstance(d, basestring):
                 return d
             elif isinstance(d, dict):
@@ -168,9 +164,9 @@ def process_includes(file_name, data):
     # ttt: @foo/something
     # you can only use these in the paths section
     # you can only use them on the first item
-    for t in resolved_includes_data[TEMPLATE_PATH_SECTION]:
+    for t in resolved_includes_data[constants.TEMPLATE_PATH_SECTION]:
         
-        d = resolved_includes_data[TEMPLATE_PATH_SECTION][t]
+        d = resolved_includes_data[constants.TEMPLATE_PATH_SECTION][t]
         
         complex_syntax = False
         if isinstance(d, dict):
@@ -192,9 +188,9 @@ def process_includes(file_name, data):
             
             # put the value back:
             if complex_syntax:
-                resolved_includes_data[TEMPLATE_PATH_SECTION][t]["definition"] = resolved_template
+                resolved_includes_data[constants.TEMPLATE_PATH_SECTION][t]["definition"] = resolved_template
             else:
-                resolved_includes_data[TEMPLATE_PATH_SECTION][t] = resolved_template 
+                resolved_includes_data[constants.TEMPLATE_PATH_SECTION][t] = resolved_template 
             
     return resolved_includes_data
         
