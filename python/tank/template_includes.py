@@ -2,49 +2,22 @@
 Copyright (c) 2012 Shotgun Software, Inc
 ----------------------------------------------------
 
-include files management for template.yml and environment files.
-
+include files management for template.yml
 
 includes
 ----------------------------------------------------------------------
 includes are defined in the following sections in the data structure:
 
 include: path
-include: {path_data}
-
 includes: [path, path]
-includes: [path_data, path_data, path]
+
 
 paths are on the following form:
 ----------------------------------------------------------------------
 foo/bar.yml - local path, relative to current file
-{Sequence}/{Shot}/hello.yml - template path based on context
 
-
-path_data is on the following form:
-----------------------------------------------------------------------
-{path: path, required: false}
-
-
-Template file includes
-----------------------------------------------------------------------
-If an include statement is found in a template file, the following will 
-happen:
-
-1. the included file will be read in (with recursive loading). The key, 
-   path and string sections will be updated
-2. as a second pass, any template starting with @xyz will be extended
-   based on the referenced value
-   
-    
-Environment file includes
-----------------------------------------------------------------------
-If an include statement is found in a template file, the following will 
-happen:
-
-all include files are read in.
-if any value in the config refers to a @link, this will be looked up in the includes.
-
+/foo/bar/hello.yml - absolute path, *nix
+c:\foo\bar\hello.yml - absolute path, windows
 
 """
 
@@ -56,22 +29,19 @@ TEMPLATE_PATH_SECTION = "paths"
 
 
 import os
-import re
-import copy
+import sys
 
 from tank_vendor import yaml
 
 from .errors import TankError
-from .template import Template
-from .templatekey import StringKey
 
 
 def _get_includes(file_name, data):
     """
-    Returns the includes in a data chunk.
-    Returns a list of dicts with keys path and required
+    Parses the includes section and returns a list of valid paths
     """
     includes = []
+    resolved_includes = []
     
     if SINGLE_INCLUDE_SECTION in data:
         # single include section
@@ -81,72 +51,35 @@ def _get_includes(file_name, data):
         # multi include section
         includes.extend( data[MULTI_INCLUDE_SECTION] )
 
-    # validate
-    for i in includes:
-
-        # turn strings into dict forms
-        if isinstance(i, basestring):
-            i = {"path": i, "required": True}
+    for include in includes:
         
-        if not isinstance(i, dict):
-            raise TankError("Syntax error in %s: invalid include: %s" % (file_name, str(i)))
-        
-        if not "path" in i.keys():
-            raise TankError("Syntax error in %s: include missing path def: %s" % (file_name, str(i)))
-        
-        if not "required" in i.keys():
-            raise TankError("Syntax error in %s: include missing required def: %s" % (file_name, str(i)))
+        if "/" in include and not include.startswith("/"):
+            # relative path!
+            adjusted = include.replace("/", os.path.sep)
+            full_path = os.path.join(os.path.dirname(file_name), adjusted)
     
-    return includes
-
-def _resolve_include_file(parent_file_path, path_def, context=None):
-    """
-    turns an include form into a proper path, adjusted for the OS.
-    Supports the following formats:
-    
-    - foo/bar (relative to include file) 
-    - {Shot}/foo (template based)
-    
-    """
-    if "{" in path_def:
-        # it's a template path
-        
-        if context is None:
-            raise TankError("Syntax error in %s: Could not process include path '%s'. "
-                            "This file does not support template based includes" % (parent_file_path, path_def))
-        
-        # extract all {tokens}
-        _key_name_regex = "[a-zA-Z_ 0-9]+"
-        regex = r"(?<={)%s(?=})" % _key_name_regex
-        key_names = re.findall(regex, path_def)
-
-        try:
-            # create template key objects        
-            template_keys = {}
-            for key_name in key_names:
-                template_keys[key_name] = StringKey(key_name)
-    
-            # Make a template
-            template = Template(path_def, template_keys)
-        except TankError, e:
-            raise TankError("Syntax error in %s: Could not transform include path '%s' "
-                            "into a template: %s" % (parent_file_path, path_def, e))
-        
-        # and turn the template into a path based on the context
-        try:
-            f = context.as_template_fields(template)
-            full_path = template.apply_fields(f)
-        except TankError, e:
-            raise TankError("Syntax error in %s: Could not transform include path '%s' (%s) "
-                            "into a path using context %s: %s" % (parent_file_path, path_def, template, context, e))
+        elif "\\" in include:
+            # windows absolute path
+            if sys.platform != "win32":
+                # ignore this on other platforms
+                continue
+            full_path = include
             
-    else:
-        # local path
-        adjusted = path_def.replace("/", os.path.sep)
-        full_path = os.path.join(os.path.dirname(parent_file_path), adjusted)
-    
-    return full_path
+        else:
+            # linux absolute path
+            if sys.platform == "win32":
+                # ignore this on other platforms
+                continue
+            full_path = include
+                    
+        # make sure that the paths all exist
+        if not os.path.exists(full_path):
+            raise TankError("Include Resolve error in %s: Included path %s "
+                            "does not exist!" % (file_name, full_path))
 
+        resolved_includes.append(full_path)
+
+    return resolved_includes
 
 
 def _process_template_includes_r(file_name, data):
@@ -155,7 +88,6 @@ def _process_template_includes_r(file_name, data):
     
     For each of the sections keys, strings, path, populate entries based on
     include files.
-    
     """
     
     # return data    
@@ -165,20 +97,10 @@ def _process_template_includes_r(file_name, data):
         output_data[ts] = {}
     
     # process includes
-    includes = _get_includes(file_name, data)
-    for i in includes:
+    included_paths = _get_includes(file_name, data)
+    
+    for included_path in included_paths:
                 
-        included_path = _resolve_include_file(file_name, i["path"])
-        
-        if not os.path.exists(included_path):
-            if i["required"]:
-                # must have this file
-                raise TankError("Include Resolve error in %s: Resolved %s to %s, but "
-                                "the path cannot be found" % (file_name, i["path"], included_path ))
-            else:
-                # optional include - ok to skip!
-                continue
-        
         # path exists, so try to read it
         fh = open(included_path, "r")
         try:
@@ -223,10 +145,18 @@ def get_template_str(data, template_name):
     raise TankError("Could not resolve template reference @%s" % template_name)
     
         
-def process_template_includes(file_name, data):
+def process_includes(file_name, data):
     """
-    Processes includes for a data structure. Will look for 
-    any include data structures and transform them into real data.    
+    Processes includes for the main templates file. Will look for 
+    any include data structures and transform them into real data.
+    
+    Algorithm (recursive):
+    
+    1. first load in include data into keys, strings, path sections.
+       if there are multiple files, they are loaded in order.
+    2. now, on top of this, load in this file's keys, strings and path defs
+    3. lastly, process all @refs in the paths section
+        
     """
     
     # first recursively load all template data from includes
@@ -269,8 +199,4 @@ def process_template_includes(file_name, data):
     return resolved_includes_data
         
         
-################################################################################################        
-        
-        
-        
-        
+    

@@ -523,7 +523,7 @@ class TestValidateFixtures(TankTestBase):
         tk = tank.Tank(self.project_root)
         context = tk.context_from_path(self.shot_step_path)
         
-        env = tk.pipeline_configuration.get_environment(self.test_env)
+        env = tk.pipeline_configuration.get_environment(self.test_env, context)
 
         # make sure our tmp file exists on disk for the disk_path property
         self.test_resource = os.path.join(self.project_root, "tank", "config", "foo", "bar.png")

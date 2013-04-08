@@ -582,7 +582,7 @@ def __get_env_and_descriptor_for_engine(engine_name, tk, context):
     env_name = __pick_environment(engine_name, tk, context)
 
     # get the env object based on the name in the pick env hook
-    env = tk.pipeline_configuration.get_environment(env_name)
+    env = tk.pipeline_configuration.get_environment(env_name, context)
     
     # make sure that the environment has an engine instance with that name
     if not engine_name in env.get_engines():

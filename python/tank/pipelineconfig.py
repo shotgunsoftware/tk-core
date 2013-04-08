@@ -17,7 +17,7 @@ from .platform import constants
 from .platform.environment import Environment
 from .util import shotgun
 from .util import login
-from . import include
+from . import template_includes
 
 class PipelineConfiguration(object):
     """
@@ -267,7 +267,7 @@ class PipelineConfiguration(object):
             env_names.append(name)
         return env_names
     
-    def get_environment(self, env_name):
+    def get_environment(self, env_name, context):
         """
         Returns an environment object given an environment name.
         You can use the get_environments() method to get a list of 
@@ -277,8 +277,8 @@ class PipelineConfiguration(object):
         if not os.path.exists(env_file):     
             raise TankError("Cannot load environment '%s': Environment configuration "
                             "file '%s' does not exist!" % (env_name, env_file))
-        
-        return Environment(env_file, self)
+                
+        return Environment(env_file, self, context)
         
     def get_templates_config(self):
         """
@@ -296,7 +296,7 @@ class PipelineConfiguration(object):
             data = {}
     
         # and process include files
-        data = include.process_template_includes(templates_file, data)
+        data = template_includes.process_includes(templates_file, data)
     
         return data
 

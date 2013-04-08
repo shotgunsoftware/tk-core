@@ -12,6 +12,7 @@ import copy
 
 from tank_vendor import yaml
 from . import constants
+from . import environment_includes
 from ..errors import TankError
 from ..deploy import descriptor
 
@@ -28,7 +29,7 @@ class Environment(object):
     
     """
     
-    def __init__(self, env_path, pipeline_config):
+    def __init__(self, env_path, pipeline_config, context=None):
         """
         Constructor
         """
@@ -37,6 +38,7 @@ class Environment(object):
         self.__engine_locations = {}
         self.__app_locations = {}
         self.__framework_locations = {}
+        self.__context = context
         
         # validate and populate config
         self.__refresh()
@@ -57,13 +59,15 @@ class Environment(object):
         try:
             env_file = open(self.__env_path, "r")
             try:
-                self.__env_data = yaml.load(env_file)
+                data = yaml.load(env_file)
             finally:
                 env_file.close()
         except Exception, exp:
             raise TankError("Could not parse file %s. "
                             "Error reported from parser: %s" % (self.__env_path, exp))
      
+        self.__env_data = environment_includes.process_includes(env_file, data, self.__context)
+        
         if not self.__env_data:
             raise TankError('No data in env file: %s' % (self.__env_path))
     
