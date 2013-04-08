@@ -17,6 +17,7 @@ from .platform import constants
 from .platform.environment import Environment
 from .util import shotgun
 from .util import login
+from . import include
 
 class PipelineConfiguration(object):
     """
@@ -293,6 +294,9 @@ class PipelineConfiguration(object):
                 config_file.close()
         else:
             data = {}
+    
+        # and process include files
+        data = include.process_template_includes(templates_file, data)
     
         return data
 

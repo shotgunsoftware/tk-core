@@ -99,7 +99,7 @@ def _get_includes(file_name, data):
     
     return includes
 
-def _resolve_include_file(parent_file_path, path_def, context):
+def _resolve_include_file(parent_file_path, path_def, context=None):
     """
     turns an include form into a proper path, adjusted for the OS.
     Supports the following formats:
@@ -110,6 +110,10 @@ def _resolve_include_file(parent_file_path, path_def, context):
     """
     if "{" in path_def:
         # it's a template path
+        
+        if context is None:
+            raise TankError("Syntax error in %s: Could not process include path '%s'. "
+                            "This file does not support template based includes" % (parent_file_path, path_def))
         
         # extract all {tokens}
         _key_name_regex = "[a-zA-Z_ 0-9]+"
@@ -145,7 +149,7 @@ def _resolve_include_file(parent_file_path, path_def, context):
 
 
 
-def _process_template_includes_r(file_name, data, context):
+def _process_template_includes_r(file_name, data):
     """
     Recursively add template include files.
     
@@ -164,7 +168,7 @@ def _process_template_includes_r(file_name, data, context):
     includes = _get_includes(file_name, data)
     for i in includes:
                 
-        included_path = _resolve_include_file(file_name, i["path"], context)
+        included_path = _resolve_include_file(file_name, i["path"])
         
         if not os.path.exists(included_path):
             if i["required"]:
@@ -183,7 +187,7 @@ def _process_template_includes_r(file_name, data, context):
             fh.close()
         
         # before doing any type of processing, allow the included data to be resolved.
-        included_data = _process_template_includes_r(included_path, included_data, context)
+        included_data = _process_template_includes_r(included_path, included_data)
         
         # add the included data's different sections
         for ts in TEMPLATE_SECTIONS:
@@ -219,14 +223,14 @@ def get_template_str(data, template_name):
     raise TankError("Could not resolve template reference @%s" % template_name)
     
         
-def process_template_includes(file_name, data, context):
+def process_template_includes(file_name, data):
     """
     Processes includes for a data structure. Will look for 
     any include data structures and transform them into real data.    
     """
     
     # first recursively load all template data from includes
-    resolved_includes_data = _process_template_includes_r(file_name, data, context)
+    resolved_includes_data = _process_template_includes_r(file_name, data)
     
     # now process any @resolves.
     # these are on the following form:
