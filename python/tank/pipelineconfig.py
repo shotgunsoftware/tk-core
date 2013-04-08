@@ -229,13 +229,7 @@ class PipelineConfiguration(object):
         
     ########################################################################################
     # configuration
-        
-    def get_templates_location(self):
-        """
-        Returns the path to the template config
-        """
-        return os.path.join(self._pc_root, "config", "core", constants.CONTENT_TEMPLATES_FILE)
-    
+            
     def get_core_hooks_location(self):
         """
         Returns the path to the core hooks location
@@ -285,8 +279,22 @@ class PipelineConfiguration(object):
         
         return Environment(env_file, self)
         
+    def get_templates_config(self):
+        """
+        Returns the templates configuration as an object
+        """
+        templates_file = os.path.join(self._pc_root, "config", "core", constants.CONTENT_TEMPLATES_FILE)
+        
+        if os.path.exists(templates_file):
+            config_file = open(templates_file, "r")
+            try:
+                data = yaml.load(config_file) or {}
+            finally:
+                config_file.close()
+        else:
+            data = {}
     
-    
+        return data
 
 
 class StorageConfigurationMapping(object):

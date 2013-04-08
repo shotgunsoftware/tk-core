@@ -656,17 +656,8 @@ def read_templates(pipeline_configuration):
 
     :returns: Dictionary of form {template name: template object}
     """
-    # Read file
-    config_path = pipeline_configuration.get_templates_location()
-    if os.path.exists(config_path):
-        config_file = open(config_path, "r")
-        try:
-            data = yaml.load(config_file) or {}
-        finally:
-            config_file.close()
-    else:
-        data = {}
-            
+    
+    data = pipeline_configuration.get_templates_config()            
     
     # get dictionaries from the templates config file:
     def get_data_section(section_name):
@@ -677,10 +668,8 @@ def read_templates(pipeline_configuration):
             d = {}
         return d            
             
-    keys             = templatekey.make_keys(get_data_section("keys"))
-    template_paths   = make_template_paths(get_data_section("paths"), 
-                                           keys, 
-                                           pipeline_configuration.get_data_roots() )
+    keys = templatekey.make_keys(get_data_section("keys"))
+    template_paths = make_template_paths(get_data_section("paths"), keys, pipeline_configuration.get_data_roots() )
     template_strings = make_template_strings(get_data_section("strings"), keys, template_paths)
 
     # Detect duplicate names across paths and strings
