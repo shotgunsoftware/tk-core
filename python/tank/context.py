@@ -536,6 +536,12 @@ def from_entity(tk, entity_type, entity_id):
     else:
         # Get data from path cache
         entity_context = _context_data_from_cache(tk, entity_type, entity_id)
+        
+        if entity_type == "Project":
+            # no need to set entity to point at project in this case
+            # that only produces double entries.
+            entity_context["entity"] = None
+        
         context.update(entity_context)
 
     return Context(**context)
