@@ -541,6 +541,11 @@ def from_entity(tk, entity_type, entity_id):
             # no need to set entity to point at project in this case
             # that only produces double entries.
             entity_context["entity"] = None
+            
+        # make sure this was actually found in the cache
+        # fall back on a shotgun lookup if not found
+        if entity_context["project"] is None:
+            entity_context = _entity_from_sg(tk, entity_type, entity_id)
         
         context.update(entity_context)
 
@@ -739,6 +744,9 @@ def _task_from_sg(tk, task_id):
     Because we are constructing the context from a task, we will get a context
     which has both a project, an entity a step and a task associated with it.
 
+    Manne 9 April 2013: could we use the path cache primarily and fall back onto
+                        a shotgun lookup? 
+
     :param tk:           a Tank API instance
     :param task_id:      The shotgun task id to produce a context for.
     """
@@ -783,6 +791,35 @@ def _task_from_sg(tk, task_id):
             additional_entities = context.get("additional_entities", [])
             additional_entities.append(value)
             context["additional_entities"] = additional_entities
+
+    return context
+
+
+def _entity_from_sg(tk, entity_type, entity_id):
+    """
+    Constructs a context from a shotgun task.
+    Because we are constructing the context from a task, we will get a context
+    which has both a project, an entity a step and a task associated with it.
+
+    :param tk:           a Tank API instance
+    :param task_id:      The shotgun task id to produce a context for.
+    """
+
+    # deal with funny naming for certain entities 
+    if entity_type == "HumanUser":
+        name_field = "login"
+    else:
+        name_field = "code"
+
+    data = tk.shotgun.find_one(entity_type, [["id", "is", entity_id]], ["project", name_field])
+
+    if not data:
+        raise TankError("Unable to locate %s with id %s in Shotgun" % (entity_type, entity_id))
+
+    # create context
+    context = {}
+    context["entity"] = {"type": entity_type, "id": entity_id, "name": data[name_field]}
+    context["project"] = data["project"]    
 
     return context
 
