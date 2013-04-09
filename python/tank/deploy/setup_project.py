@@ -928,7 +928,7 @@ def _interactive_setup(log, pipeline_config_root):
             "linux_path": locations_dict["linux2"],
             "windows_path": locations_dict["win32"],
             "mac_path": locations_dict["darwin"],
-            "code": project_disk_folder}
+            "code": "Primary"}
     pc_entity = sg.create(constants.PIPELINE_CONFIGURATION_ENTITY, data)
     log.debug("Created data: %s" % pc_entity)
     
