@@ -25,14 +25,15 @@ class TankDevDescriptor(AppDescriptor):
         # platform specific location support
         system = sys.platform
         platform_keys = {"linux2": "linux_path", "darwin": "mac_path", "win32": "windows_path"}
-        platform_key = platform_keys.get(system)
+        platform_key = platform_keys.get(system, "unsupported_os")
 
         if platform_key not in location_dict and "path" in location_dict:
             self._path = location_dict.get("path", "")
-        elif platform_key:
+        elif platform_key and platform_key in location_dict:
             self._path = location_dict.get(platform_key, "")
         else:
-            raise TankError("Platform '%s' is not supported." % system)
+            raise TankError("Invalid dev descriptor! Could not find a path or a %s entry in the "
+                            "location dict %s." % (platform_key, location_dict))
 
         # lastly, resolve environment variables
         self._path = os.path.expandvars(self._path)

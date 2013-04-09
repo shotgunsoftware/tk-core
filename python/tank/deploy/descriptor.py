@@ -427,5 +427,5 @@ def get_from_location(app_or_engine, pipeline_config, location_dict):
         return TankDevDescriptor(pipeline_config, location_dict)
 
     else:
-        raise TankError("Invalid location dict '%s'" % location_dict)
+        raise TankError("%s: Invalid location dict '%s'" % (app_or_engine, location_dict))
 
