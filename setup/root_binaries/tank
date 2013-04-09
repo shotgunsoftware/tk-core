@@ -25,7 +25,7 @@ SELF_PATH=$(dirname $SELF_PATH)
 LOCAL_SCRIPT="$SELF_PATH/install/core/scripts/tank_cmd.sh"
 
 # when called from shotgun, we reroute to a special script which uses a login shell shebang.
-if [ -n "$1" ] && ( [ $1 = "shotgun_run_action" ] || [ $1 = "shotgun_cache_actions" ] ); then
+if [ -n "$1" ] && ( [ "$1" = "shotgun_run_action" ] || [ "$1" = "shotgun_cache_actions" ] ); then
     LOCAL_SCRIPT="$SELF_PATH/install/core/scripts/tank_cmd_login.sh"
 fi
 
