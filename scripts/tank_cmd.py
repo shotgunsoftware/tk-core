@@ -49,9 +49,8 @@ def show_help(log):
     info = """
 Welcome to Tank!
 
-This command lets you run control tank from a shell.
-You can run apps and engines via the Tank command.
-You can also run various tank admin commands.
+This command lets you run control tank from a shell. You can run apps and 
+engines via the Tank command. You can also run various tank admin commands.
 
 
 General options and info
@@ -64,23 +63,23 @@ Running Apps
 ----------------------------------------------
 Syntax: tank [command] [context]
 
- - Context is a location on disk where you want
-   the tank command to operate. It can also be
-   a Shotgun Entity on the form Type:id or Type:name
-   describing the object you want to operate on.
-   if you leave this out, the tank command will use
-   your current working directory as the context.
+ - Context is a location on disk where you want the tank command to operate. 
+   It can also be a Shotgun Entity on the form Type id or Type name describing
+   the object you want to operate on. If you leave this out, the tank command 
+   will use your current working directory as the context.
 
- - Command is the engine command to execute. If you leave 
-   this out, you will enter an interactive mode.") 
+ - Command is the engine command to execute. If you leave this out, Tank will
+   list the available commands.
 
 Examples:
 
-Start the interactive mode for your current path:
+Show what commands are available for the current directory:
 > tank
 
-Launch maya for your current path (assuming there is a
-launch maya command registered):
+Show what commands are available for Shot ABC123
+> tank Shot ABC123
+
+Launch maya for your current path (assuming this command exists):
 > tank launch_maya
 
 Launch maya for a Shot in Shotgun:
@@ -89,27 +88,30 @@ Launch maya for a Shot in Shotgun:
 Launch maya for a Task in Shotgun using an id:
 > tank launch_maya Task 234
 
+Launch maya for a folder:
+> tank launch_maya /studio/proj_xyz/shots/ABC123
+
 
 Administering Tank
 ----------------------------------------------
 
-The following commands are available:
-
-> tank validate - validates your configuration
-
-> tank switch environment/engine/app path_to_dev - switch to dev code
-> tank revert environment/engine/app - revert back to std code
+The following admin commands are available:
 
 > tank setup_project - create a new project
 
-> tank folders entity_type name [--preview]
+> tank folders entity_type name [--preview] -- create new folders on disk
 
-> tank core - information about the core API
-> tank core update - update the core API
-> tank core localize - install the core API into this configuration
+> tank core           - information about the core API
+> tank core update    - update the core API
+> tank core localize  - install the core API into this configuration
+
+> tank validate - validates your configuration
+
+
 
 """
-    log.info(info)
+    for x in info.split("\n"):
+        log.info(x)
     
     
     
