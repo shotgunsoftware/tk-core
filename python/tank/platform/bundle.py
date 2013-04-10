@@ -100,6 +100,8 @@ class TankBundle(object):
         hook_name = self.get_setting_from(other_settings, key)
         return self.__execute_hook_internal(hook_name, key, **kwargs)
 
+
+
     ##########################################################################################
     # properties
 
