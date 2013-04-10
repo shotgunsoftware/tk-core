@@ -7,6 +7,7 @@ import sys
 import os
 import logging
 import tank
+import textwrap
 from tank import TankError
 from tank.deploy import setup_project, validate_config, administrator, core_api_admin
 from tank import pipelineconfig
@@ -15,83 +16,100 @@ from tank.platform import engine
 from tank import folder
 
 # built in commands that can run without a project
-CORE_NON_PROJECT_COMMANDS = ["setup_project", "core", "info", "folders"]
+CORE_NON_PROJECT_COMMANDS = ["setup_project", "core", "folders"]
 
 # built in commands that run against a specific project
-CORE_PROJECT_COMMANDS = ["clone", "join", "leave", "validate", 
-                         "revert", "switch", "shotgun_run_action", "shotgun_cache_actions"]
+CORE_PROJECT_COMMANDS = ["validate", "shotgun_run_action", "shotgun_cache_actions", "dev"]
 
 DEFAULT_ENGINE = "tk-shell"
 
-def show_help():
-    print("")
-    print("-" * 60)
-    print("Welcome to Tank!")
-    print("-" * 60)
-    print("This command lets you run control tank from a shell.")
-    print("You can run apps and engines via the Tank command.")
-    print("You can also run various tank admin commands.")
-    print("")
-    print("")
-    print("General options and info")
-    print("----------------------------------------------")
-    print("- To show this help, add a -h or --help flag.")
-    print("- To display verbose debug, add a --debug flag.")
-    print("")
-    print("")
-    print("Running Apps")
-    print("----------------------------------------------")
-    print("Syntax: tank [command] [context]")
-    print("")
-    print(" - Context is a location on disk where you want")
-    print("   the tank command to operate. It can also be")
-    print("   a Shotgun Entity on the form Type:id or Type:name")
-    print("   describing the object you want to operate on.")
-    print("   if you leave this out, the tank command will use")
-    print("   your current working directory as the context.")
-    print("")
-    print(" - Command is the engine command to execute. If you leave ")
-    print("   this out, you will enter an interactive mode.") 
-    print("")
-    print("Examples:")
-    print("")
-    print("Start the interactive mode for your current path:")
-    print("> tank")
-    print("")
-    print("Launch maya for your current path (assuming there is a")
-    print("launch maya command registered):")
-    print("> tank launch_maya")
-    print("")
-    print("Launch maya for a Shot in Shotgun:")
-    print("> tank launch_maya Shot:ABC123")
-    print("")
-    print("Launch maya for a Task in Shotgun using an id:")
-    print("> tank launch_maya Task:234")
-    print("")
-    print("")
-    print("Administering Tank")
-    print("----------------------------------------------")
-    print("")
-    print("The following commands are available:")
-    print("")
-    print("> tank info - information about your setup")
-    print("> tank validate - validates your configuration")
-    print("> tank clone path_to_clone_to - clones a configuration")
-    print("> tank join - join this configuration")
-    print("> tank leave - leave this configuration")
-    print("")
-    print("> tank switch environment/engine/app path_to_dev - switch to dev code")
-    print("> tank revert environment/engine/app - revert back to std code")
-    print("")
-    print("> tank setup_project - create a new project")
-    print("")
-    print("> tank folders entity_type name [--preview]")
-    print("")
-    print("> tank core - information about the core API")
-    print("> tank core update - update the core API")
-    print("> tank core localize - install the core API into this configuration")
-    print("")
+
+class AltCustomFormatter(logging.Formatter):
+    """ 
+    Custom logging output
+    """
+    def format(self, record):
+        
+        if record.levelno in (logging.WARNING, logging.ERROR, logging.CRITICAL, logging.DEBUG):
+            message = '%s: %s' % (record.levelname, record.msg)
+        else:
+            message = record.msg
+        
+        lines = []
+        for x in textwrap.wrap(message, width=78):
+            lines.append(x)
+        
+        record.msg = "\n".join(lines)
+        
+        return super(AltCustomFormatter, self).format(record)
     
+
+def show_help(log):
+
+    info = """
+Welcome to Tank!
+
+This command lets you run control tank from a shell.
+You can run apps and engines via the Tank command.
+You can also run various tank admin commands.
+
+
+General options and info
+----------------------------------------------
+- To show this help, add a -h or --help flag.
+- To display verbose debug, add a --debug flag.
+
+
+Running Apps
+----------------------------------------------
+Syntax: tank [command] [context]
+
+ - Context is a location on disk where you want
+   the tank command to operate. It can also be
+   a Shotgun Entity on the form Type:id or Type:name
+   describing the object you want to operate on.
+   if you leave this out, the tank command will use
+   your current working directory as the context.
+
+ - Command is the engine command to execute. If you leave 
+   this out, you will enter an interactive mode.") 
+
+Examples:
+
+Start the interactive mode for your current path:
+> tank
+
+Launch maya for your current path (assuming there is a
+launch maya command registered):
+> tank launch_maya
+
+Launch maya for a Shot in Shotgun:
+> tank launch_maya Shot ABC123
+
+Launch maya for a Task in Shotgun using an id:
+> tank launch_maya Task 234
+
+
+Administering Tank
+----------------------------------------------
+
+The following commands are available:
+
+> tank validate - validates your configuration
+
+> tank switch environment/engine/app path_to_dev - switch to dev code
+> tank revert environment/engine/app - revert back to std code
+
+> tank setup_project - create a new project
+
+> tank folders entity_type name [--preview]
+
+> tank core - information about the core API
+> tank core update - update the core API
+> tank core localize - install the core API into this configuration
+
+"""
+    log.info(info)
     
     
     
@@ -252,9 +270,9 @@ def run_core_non_project_command(log, install_root, pipeline_config_root, comman
             if install_root != pipeline_config_root:
                 # we are updating a parent install that is shared
                 log.info("")
-                log.warning("You are potentially about to update the Core API for ")
-                log.warning("multiple projects. Before proceeding, we recommend ")
-                log.warning("that you run 'tank core info' for a summary.")
+                log.warning("You are potentially about to update the Core API for "
+                            "multiple projects. Before proceeding, we recommend "
+                            "that you run 'tank core info' for a summary.")
                 log.info("")
             
             core_api_admin.interactive_update(log, install_root)
@@ -291,7 +309,7 @@ def run_core_project_command(log, pipeline_config_root, command, args):
         tk = tank.tank_from_path(pipeline_config_root)
     except TankError:
         raise TankError("You must run the command '%s' against a specific Tank Configuration, not "
-                        "against a shared core location. Navigate to the Tank Configuration you "
+                        "against a shared studio location. Navigate to the Tank Configuration you "
                         "want to operate on, and run the tank command from there!" % command)
 
     if command == "validate":
@@ -359,13 +377,12 @@ def run_core_project_command(log, pipeline_config_root, command, args):
         if cmd:
             callback = cmd["callback"]
             # introspect and get number of args for this fn
-            arg_names = callback.func_code.co_varnames
+            arg_count = callback.func_code.co_argcount
             # choose between simple style callbacks or complex style
             # special shotgun callbacks - these always take two
-            # params entity_type and entity_ids
-            
-            if "entity_type" in arg_names or "entity_ids" in arg_names:
-                # old style shotgun app launch
+            # params entity_type and entity_ids            
+            if arg_count > 1:
+                # old style shotgun app launch - takes entity_type and ids as args
                 callback(entity_type, entity_ids)
             else:
                 # std tank app launch
@@ -389,37 +406,64 @@ def run_core_project_command(log, pipeline_config_root, command, args):
         raise TankError("Unknown command '%s'. Run tank --help for more information" % command)
 
 
-def run_engine(log, install_root, pipeline_config_root, context_str, engine_name, command):
+
+def run_engine_cmd(log, install_root, pipeline_config_root, context_items, engine_name, command, using_cwd):
     """
-    Launches an engine
+    Launches an engine and potentially executed a command.
+    
+    :param log: logger
+    :param install_root: tank installation
+    :param pipeline_config_root: PC config location
+    :param context_items: list of strings to describe context. Either ["path"], 
+                               ["entity_type", "entity_id"] or ["entity_type", "entity_name"]
+    
+    :param engine_name: engine to run
+    :param command: command to run - None will display a list of commands
+    :param using_cwd: Was the context passed based on the current work folder?
     """
     log.debug("")
     log.debug("Will start engine %s" % engine_name)
-    log.debug("Context String: %s" % context_str)
-    
-    if command:
-        interactive_mode = False
-        log.debug("Command: %s" % command)
-    else:
-        interactive_mode = True
-        log.debug("Starting interactive mode.")
+    log.debug("Context items: %s" % str(context_items))    
+    log.debug("Command: %s" % command)
+
+    log.info("")
+    sys.stderr.write("This is Tank")
 
     # now resolve the location and start      
-    if ":" in context_str:
-        # Shot:123 or Shot:foo
+    if len(context_items) == 1:        
+        # context str is a path
+        uses_shotgun_context = False
+        ctx_path = context_items[0]
+        try:
+            tk = tank.tank_from_path(ctx_path)
+        except TankError, e:
+            # this path was not right. Fall back on default message
+            if using_cwd:
+                # no specific stuff
+                raise TankError("You are trying to start Tank in your current working directory "
+                                "(%s) but this is not a location that is "
+                                "recongnized by Tank!" % ctx_path)
+            else:
+                # a bad path was specified by a user
+                raise TankError("The path '%s' is not a path that is recognized by Tank!" % ctx_path )
+            
+        log.debug("Resolved path %s into tank instance %s" % (ctx_path, tk))
         
+    else:
+        # Shot 123 or Shot Foo        
         uses_shotgun_context = True
-        chunks = context_str.split(":")
-        if len(chunks) != 2:
-            raise TankError("Invalid shotgun entity. Use the format EntityType:id or EntityType:name")
-        entity_type = chunks[0]
-        item = chunks[1]
+        entity_type = context_items[0]
+        item = context_items[1]
         try:
             entity_id = int(item)
         except:
             # it wasn't an id. So resolve the id
-            sg = shotgun.create_sg_connection()            
-            entity = sg.find(entity_type, [["code", "is", item]])
+            sg = shotgun.create_sg_connection()
+            try:       
+                entity = sg.find(entity_type, [["code", "is", item]])
+            except:
+                raise TankError("Could not find a record of type %s with name %s in Shotgun!" % (entity_type, item))
+                 
             if len(entity) == 0:
                 raise TankError("Could not find %s '%s' in Shotgun!" % (entity_type, item))
             elif len(entity) > 1:
@@ -430,24 +474,24 @@ def run_engine(log, install_root, pipeline_config_root, context_str, engine_name
                 entity_id = entity[0]["id"]
             
         # sweet we got a type and an id. Start up tank.
-        tk = tank.tank_from_entity(entity_type, entity_id)
-        log.debug("Resolved %s into tank instance %s" % (context_str, tk))
+        try:
+            tk = tank.tank_from_entity(entity_type, entity_id)
+        except TankError, e:
+            # invalid entity
+            raise TankError("The Shotgun item %s %s is not recognized by Tank. "
+                            "Details: %s" % (entity_type, entity_id, e))
+            
+        log.debug("Resolved %s %s into tank instance %s" % (entity_type, item, tk))
+    
+    sys.stderr.write(" %s" % tk.version)
 
-
-    else:
-        # context str is a path
-        uses_shotgun_context = False
-        tk = tank.tank_from_path(context_str)
-        log.debug("Resolved path %s into tank instance %s" % (context_str, tk))
-
-        
     # now check if the pipeline configuration matches the resolved PC
     if pipeline_config_root is not None:
         # we are running the tank command from a PC location
         # make sure it is matching the PC resolved here.
         if pipeline_config_root != tk.pipeline_configuration.get_path():
             log.error("")
-            log.error("%s is currently associated with a pipeline configuration" % context_str)
+            log.error("%s is currently associated with a pipeline configuration" % " ".join(context_items))
             log.error("located in '%s', however you are trying to access it" % tk.pipeline_configuration.get_path())
             log.error("via the tank command in %s." % pipeline_config_root)
             log.error("")
@@ -459,14 +503,51 @@ def run_engine(log, install_root, pipeline_config_root, context_str, engine_name
     if uses_shotgun_context:
         ctx = tk.context_from_entity(entity_type, entity_id)
     else:
-        ctx = tk.context_from_path(context_str)
-    
-    log.debug("Resolved %s into context %s" % (context_str, ctx))
-    
+        ctx = tk.context_from_path(ctx_path)
+    log.debug("Resolved %s into context %s" % (" ".join(context_items), ctx))
+    sys.stderr.write(", for %s" % ctx)
+            
+    # kick off mr engine.
     e = tank.platform.start_engine(engine_name, tk, ctx)
-    log.debug("Started engine %s" % e)
-
+    if e.name == "tk-shell":
+        e.set_logger(log)
         
+    log.debug("Started engine %s" % e)
+    
+    env_name = e.environment["name"].capitalize()
+    sys.stderr.write(", running %s in the %s environment.\n" % (e.name, env_name))
+
+    # lastly, run the command
+    if command is None:
+        log.info("")
+        log.info("You didn't specify a command to run!")  
+    elif command not in e.commands:
+        log.info("")
+        log.error("Unknown command: '%s'" % command)
+        
+    if command is None or command not in e.commands:
+
+        log.info("")
+        log.info("When the %s engine is running in the %s environment, the following commands "
+                 "are available:" % (e.name, env_name))
+        log.info("")
+        for c in e.commands:
+            log.info("- %s (%s)" % (c, e.commands[c]["properties"].get("title", "No description available.")))
+            log.info("  To run this in the current work area, type tank %s" % c)
+            log.info("  To run this for a folder, type tank %s /path/to/location" % c)
+            log.info("  To run this for a Shotgun item, type tank %s Shot ABC" % c)
+            log.info("")
+        
+        log.info("")
+        log.info("")
+                
+        return
+
+    
+    # run the app!
+    log.info("Executing the %s command." % command)
+    return e.commands[command]["callback"]()
+            
 
 
 
@@ -477,7 +558,7 @@ if __name__ == "__main__":
     log.setLevel(logging.INFO)
     
     ch = logging.StreamHandler()
-    formatter = logging.Formatter("%(levelname)s %(message)s")
+    formatter = AltCustomFormatter()
     ch.setFormatter(formatter)
     log.addHandler(ch)
 
@@ -509,6 +590,11 @@ if __name__ == "__main__":
             engine_to_use = x[9:]
     cmd_line = [arg for arg in cmd_line if not arg.startswith("--engine=")]
 
+    # help requested?
+    for x in cmd_line:
+        if x == "--help" or x == "-h":
+            exit_code = show_help(log)
+            sys.exit(exit_code)
     
     # also we are passing the pipeline config 
     # at the back of the args as --pc=foo
@@ -532,17 +618,16 @@ if __name__ == "__main__":
     try:
 
         if len(cmd_line) == 0:
-            # engine mode, shell engine, using CWD
-            exit_code = run_engine(log, 
-                                   install_root, 
-                                   pipeline_config_root, 
-                                   os.getcwd(), 
-                                   engine_to_use, 
-                                   None)
-         
-        elif cmd_line[0] == "-h" or "help" in cmd_line[0]:
-            exit_code = show_help()
-            
+            # > tank, no arguments
+            # engine mode, using CWD
+            exit_code = run_engine_cmd(log, 
+                                       install_root, 
+                                       pipeline_config_root, 
+                                       [os.getcwd()], 
+                                       engine_to_use,
+                                       None,
+                                       True)
+                     
         elif cmd_line[0] in CORE_PROJECT_COMMANDS:
             exit_code = run_core_project_command(log, 
                                                  pipeline_config_root, 
@@ -555,50 +640,75 @@ if __name__ == "__main__":
                                                      pipeline_config_root, 
                                                      cmd_line[0], 
                                                      cmd_line[1:])
-
-        elif (":" in cmd_line[0]) or ("/" in cmd_line[0]) or ("\\" in cmd_line[0]):
-            # command is on the form: 
-            # ./tank Shot:123
-            # ./tank /foo/bar/baz
-            location = cmd_line[0]
-            
-            if len(cmd_line) > 1:
-                raise TankError("Invalid syntax. Please run tank --help for more info.")
-            
-            exit_code = run_engine(log, 
-                                   install_root, 
-                                   pipeline_config_root, 
-                                   location, 
-                                   engine_to_use,
-                                   None)
             
         else:
-            # two choices remain:
+            # these choices remain:
             #
             # > tank command_name
-            # > tank command_name location
+            
+            # > tank command_name /path
+            # > tank /path
+            
+            # > tank command_name Shot 123
+            # > tank command_name Shot foo
+            # > tank Shot 123
+            # > tank Shot foo
+            
+            using_cwd = False
+            
             if len(cmd_line) == 1:
-                cmd_name = cmd_line[0]
-                location = os.getcwd()
+                # tank path
+                # tank command
+                if ("/" in cmd_line[0]) or ("\\" in cmd_line[0]):
+                    # tank /foo/bar
+                    ctx_list = [ cmd_line[0] ]
+                    cmd_name = None
+                else:
+                    # tank command_name
+                    cmd_name = cmd_line[0]
+                    ctx_list = [ os.getcwd() ] # path
+                    using_cwd = True
+            
             elif len(cmd_line) == 2:
+                # tank Shot 123
+                # tank command_name /path
+                if ("/" in cmd_line[1]) or ("\\" in cmd_line[1]):
+                    # tank command_name /foo/bar
+                    ctx_list = [ cmd_line[1] ]
+                    cmd_name = cmd_line[0]
+                else:
+                    # tank Shot 123
+                    cmd_name = None
+                    ctx_list = [ cmd_line[0], cmd_line[1] ]
+                
+            elif len(cmd_line) == 3:
+                # > tank command_name Shot 123
                 cmd_name = cmd_line[0]
-                location = cmd_line[1]
+                ctx_list = [ cmd_line[1], cmd_line[2] ]
             else:
                 raise TankError("Invalid syntax. Please run tank --help for more info.")
 
-            exit_code = run_engine(log, 
-                                   install_root, 
-                                   pipeline_config_root, 
-                                   location, 
-                                   engine_to_use,
-                                   cmd_name)
+            exit_code = run_engine_cmd(log, 
+                                       install_root, 
+                                       pipeline_config_root, 
+                                       ctx_list, 
+                                       engine_to_use,
+                                       cmd_name,
+                                       using_cwd)
 
     except TankError, e:
         # one line report
-        log.error("An error occurred: %s" % e)
+        msg = ("An error occurred: %s. Run this command "
+              "with a --help parameter for more information." % e)
+        log.info("")
+        log.info("")
+        log.error(msg)
+        log.info("")
         
     except Exception, e:
         # call stack
+        log.info("")
+        log.info("")        
         log.exception("An exception was reported: %s" % e)
     
     log.debug("Exiting with exit code %s" % exit_code)

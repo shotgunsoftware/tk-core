@@ -28,7 +28,8 @@ class PipelineConfiguration(object):
     
     def __init__(self, pipeline_configuration_path):
         """
-        Constructor.
+        Constructor. Do not call this directly, use the factory methods
+        at the bottom of this file.
         """
         self._pc_root = pipeline_configuration_path
         
@@ -520,7 +521,7 @@ def from_path(path):
     # find matching one - TODO: add home support and better validation
     for pc in current_os_pcs:
         if os.path.exists(pc):
-            # ok it's a match!
+            # ok it's a match!            
             return PipelineConfiguration(pc)
     
     raise TankError("Cannot create a Tank Configuration from path '%s' - the storage "

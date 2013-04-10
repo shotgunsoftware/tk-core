@@ -50,6 +50,8 @@ class Tank(object):
     def __repr__(self):
         return "<Tank Core v%s@0x%08x Config %s>" % (self.version, id(self), self.__pipeline_config.get_path())
 
+    def __str__(self):
+        return "Tank Core v%s, config %s" % (self.version, self.__pipeline_config.get_path())
     
     ################################################################################################
     # internal API
