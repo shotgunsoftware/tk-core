@@ -21,19 +21,6 @@ from ..api import Tank
 ##########################################################################################
 # core commands
 
-def show_tank_info(log):
-    """
-    Outputs core information about this tank install, including all other pipeline configs etc.
-    """
-    log.info("INFO for")
-    # pipeline cofnigs overview
-    # - location, users asssociated, project, roots
-    
-    # current pc
-    # environments, engines apps
-    
-
-
 
 def clone_configuration(log, tk, target_folder):
     """

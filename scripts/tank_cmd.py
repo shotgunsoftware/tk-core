@@ -183,13 +183,6 @@ def run_core_non_project_command(log, install_root, pipeline_config_root, comman
         
         setup_project.interactive_setup(log, install_root)
         
-    elif command == "info":
-        # info about all PCs etc.
-        if len(args) != 0:
-            raise TankError("Invalid arguments. Run tank --help for more information.")
-
-        administrator.show_tank_info(log)
-
     elif command == "folders":
         # info about all PCs etc.
         if len(args) not in [2, 3]:
