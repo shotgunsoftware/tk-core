@@ -30,6 +30,11 @@ parent_python_path = os.path.join(parent_path, "install", "core", "python")
 if not os.path.exists(parent_python_path):
     raise Exception("Tank: Cannot find referenced core location '%s'" % parent_python_path)
 
+# set up an env var to track the current pipeline configuration
+# this is to help the tank core API figure out for example tank.tank_from_path()
+# when using multiple work dev areas. 
+os.environ["TANK_CURRENT_PC"] = current_folder
+
 # ok we got the parent location
 # prepend this to the python path and reload the module
 # this way we will load the 'real' tank! 
