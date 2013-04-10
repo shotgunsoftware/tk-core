@@ -383,12 +383,15 @@ def from_entity(entity_type, entity_id):
     sg = shotgun.create_sg_connection()
     
     e = sg.find_one(entity_type, [["id", "is", entity_id]], ["project"])
+    
     if e is None:
-        raise TankError("Cannot resolve a pipeline configuration object from %s:%s - this object "
+        raise TankError("Cannot resolve a pipeline configuration object from %s %s - this object "
                         "does not exist in Shotgun!" % (entity_type, entity_id))
+    
     if e.get("project") is None:
-        raise TankError("Cannot resolve a pipeline configuration object from %s:%s - this object "
+        raise TankError("Cannot resolve a pipeline configuration object from %s %s - this object "
                         "is not linked to a project!" % (entity_type, entity_id))
+    
     proj = e.get("project")
     
     
@@ -397,7 +400,7 @@ def from_entity(entity_type, entity_id):
                            ["windows_path", "mac_path", "linux_path", "users"])
     
     if len(pipe_configs) == 0:
-        raise TankError("Cannot resolve a pipeline configuration object from %s:%s - its "
+        raise TankError("Cannot resolve a pipeline configuration object from %s %s - its "
                         "associated project does not link to a "
                         "Tank installation!" % (entity_type, entity_id))
     
@@ -406,7 +409,7 @@ def from_entity(entity_type, entity_id):
     
     # find primary and per user PC
     primary_pc = None
-    custom_pc = None
+    custom_pcs = []
     for p in pipe_configs:
         if p.get("users") is None or len(p.get("users")) == 0:
             primary_pc = p
@@ -414,14 +417,41 @@ def from_entity(entity_type, entity_id):
             # get list of associated user ids 
             user_ids = [ x.get("id") for x in p.get("users") ]
             if current_user.get("id") in user_ids:
-                custom_pc = p
+                custom_pcs.append(p)
     
-    # choose custom first, the fall back onto primary
-    pc_to_use = custom_pc
-    if pc_to_use is None:
+    if len(custom_pcs) == 1:
+        pc_to_use = custom_pcs[0]
+        
+    elif len(custom_pcs) > 1:
+        # more than one work area. Use the TANK_CURRENT_PC env var to 
+        # see which one is correct. The TANK_CURRENT_PC pic contains the path 
+        # to the PC that tank was started from. So if we find a matching PC
+        # in this list, we know that is the match
+        
+        pc_to_use = None
+        if "TANK_CURRENT_PC" in os.environ:
+            curr_pc_path = os.environ["TANK_CURRENT_PC"]
+            for cpc in custom_pcs:
+                if cpc.get(platform_lookup[sys.platform]) == curr_pc_path:
+                    # found our PC!
+                    pc_to_use = cpc
+                    break
+                
+        if pc_to_use is None:
+            # looks like we are coming from a rogue PC which isn't registered in shotgun.
+            raise TankError("Cannot create a Tank Configuration from %s %s - there are more than "
+                            "one user pipeline configuration registered for your user, and tank "
+                            "was not able to determine which one is the right one to use. Try "
+                            "launching Tank directly from the pipeline config that you want to use, "
+                            "and make sure that you have associated your user with that " 
+                            "configuration." % (entity_type, entity_id))
+        
+    else:
+        # no custom configs. Use primary
         pc_to_use = primary_pc
+    
     if pc_to_use is None:
-        raise TankError("Cannot resolve a pipeline configuration object from %s:%s - "
+        raise TankError("Cannot resolve a pipeline configuration object from %s %s - "
                         "could not find any associated pipeline configurations in "
                         "Shotgun!" % (entity_type, entity_id))
 
@@ -434,12 +464,6 @@ def from_entity(entity_type, entity_id):
     
     return PipelineConfiguration(pc_path)
     
-    
-    
-    
-
-
-
 
 def from_path(path):
     """
@@ -448,12 +472,14 @@ def from_path(path):
     - if the path is a direct path to a PC root that's fine too
     """
 
-    # todo: support user based work spaces
+    if not isinstance(path, basestring):
+        raise TankError("Cannot create a Tank Configuration from path '%s' - path must be a string!" % path)        
 
+    path = os.path.abspath(path)
+    
     if not os.path.exists(path):
         raise TankError("Cannot create a Tank Configuration from path '%s' - the path does "
                         "not exist on disk!" % path)
-
     
     # first see if this path is a pipeline configuration
     pc_config = os.path.join(path, "config", "core", "pipeline_configuration.yml")
@@ -502,10 +528,6 @@ def from_path(path):
                     "configuration for %s!" % (path, sys.platform))
 
         
-    
-    
-    
-    
 def get_core_api_version_based_on_current_code():
     """
     Returns the version number string for the core API, based on the code that is currently

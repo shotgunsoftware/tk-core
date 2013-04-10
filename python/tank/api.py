@@ -40,8 +40,7 @@ class Tank(object):
             # this is actually a pc object
             self.__pipeline_config = project_path
         else:
-            # TODO: validate this really is a valid project path
-            self.__pipeline_config = pipelineconfig.from_path(os.path.abspath(project_path))
+            self.__pipeline_config = pipelineconfig.from_path(project_path)
         
         self.templates = read_templates(self.__pipeline_config)
         
@@ -112,8 +111,6 @@ class Tank(object):
             data = str(data.get("documentation_url"))
             if data == "":
                 data = None
-        # NOTE! REALLY WANT THIS TO BEHAVE NICELY WHEN AN ERROR OCCURS
-        # PLEASE DO NOT LIMIT THIS CATCH-ALL EXCEPTION
         except:
             data = None
 
