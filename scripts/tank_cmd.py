@@ -5,6 +5,7 @@
 
 import sys
 import os
+import re
 import logging
 import tank
 import textwrap
@@ -546,9 +547,13 @@ def run_engine_cmd(log, install_root, pipeline_config_root, context_items, engin
         log.info("")
         for c in e.commands:
             log.info("- %s (%s)" % (c, e.commands[c]["properties"].get("title", "No description available.")))
-            log.info("  To run this in the current work area, type tank %s" % c)
-            log.info("  To run this for a folder, type tank %s /path/to/location" % c)
-            log.info("  To run this for a Shotgun item, type tank %s Shot ABC" % c)
+            formatted_cmd = c
+            if not re.match("^[a-zA-Z0-9]+$", c):
+                # funny chars - quote it!
+                formatted_cmd = "'%s'" % c
+            log.info("  To run this in the current work area, type tank %s" % formatted_cmd)
+            log.info("  To run this for a folder, type tank %s /path/to/location" % formatted_cmd)
+            log.info("  To run this for a Shotgun item, type tank %s Shot ABC" % formatted_cmd)
             log.info("")
         
         log.info("")
