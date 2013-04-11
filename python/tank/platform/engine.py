@@ -593,13 +593,7 @@ def find_app_settings(engine_name, app_name, tk, context):
     
     # get the environment via the pick_environment hook
     env_name = __pick_environment(engine_name, tk, context)
-
-    # get the path to the environment file given its name
-    env_path = constants.get_environment_path(env_name, tk.project_path)
-
-    # now we can instantiate a wrapper class around the data
-    # this will load it and check basic things.
-    env = Environment(env_path)
+    env = tk.pipeline_configuration.get_environment(env_name, context)
     
     # now find all engines whose descriptor matches the engine_name:
     for eng in env.get_engines():
@@ -650,7 +644,7 @@ def start_shotgun_engine(tk, entity_type, context=None):
 
     # bypass the get_environment hook and use a fixed set of environments
     # for this shotgun engine. This is required because of the action caching.
-    env = tk.pipeline_configuration.get_environment("shotgun_%s" % entity_type.lower())
+    env = tk.pipeline_configuration.get_environment("shotgun_%s" % entity_type.lower(), context)
 
     # get the location for our engine
     if not constants.SHOTGUN_ENGINE_NAME in env.get_engines():
