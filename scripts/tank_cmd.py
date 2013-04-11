@@ -396,7 +396,6 @@ def run_core_project_command(log, pipeline_config_root, command, args):
         
         try:
             _run_shotgun_command(log, tk, action_name, entity_type, entity_ids)
-            raise TankError("asd")
         except TankError, e:
             # for any uncaught TankErrors, format them nicely with html 
             print("<b>ERROR: </b>%s" % e)
