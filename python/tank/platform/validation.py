@@ -142,12 +142,15 @@ def validate_and_return_frameworks(descriptor, environment):
             msg =  "The framework %s %s required by %s " % (name, version, descriptor)
             msg += "can not be found in environment %s. \n" % str(environment)
             if len(fw_descriptors) == 0:
-                msg += "No frameworks are currently installed! \n"
+                msg += "No frameworks are currently installed!"
             else:
                 msg += "The currently installed frameworks are: \n"
+                fw_strings = []
                 for x in fw_descriptors:
-                    msg += "Name: '%s', Version: '%s'\n" % (fw_descriptors[x].get_system_name(), 
-                                                            fw_descriptors[x].get_version())
+                    fw_strings.append("Name: '%s', Version: '%s'" % (fw_descriptors[x].get_system_name(), 
+                                                                     fw_descriptors[x].get_version()))
+                msg += "\n".join(fw_strings)
+                
             raise TankError(msg) 
         
     return required_fw_instance_names

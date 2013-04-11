@@ -114,6 +114,42 @@ The following admin commands are available:
         log.info(x)
     
     
+def _run_shotgun_command(log, tk, action_name, entity_type, entity_ids):
+    """
+    Helper method. Starts the shotgun engine and 
+    executes a command.
+    """
+    
+    # add some smarts about context management here
+    if len(entity_ids) == 1:
+        # this is a single selection
+        ctx = tk.context_from_entity(entity_type, entity_ids[0])
+    else:
+        # with multiple items selected, create a blank context
+        ctx = tk.context_empty()
+
+    # start the shotgun engine, load the apps
+    e = engine.start_shotgun_engine(tk, entity_type, ctx)
+
+    cmd = e.commands.get(action_name)
+    if cmd:
+        callback = cmd["callback"]
+        # introspect and get number of args for this fn
+        arg_count = callback.func_code.co_argcount
+        # choose between simple style callbacks or complex style
+        # special shotgun callbacks - these always take two
+        # params entity_type and entity_ids            
+        if arg_count > 1:
+            # old style shotgun app launch - takes entity_type and ids as args
+            callback(entity_type, entity_ids)
+        else:
+            # std tank app launch
+            callback()            
+    else:
+        # unknown command - this typically is caused by apps failing to initialize.
+        e.log_error("The action could not be executed! This is typically because there "
+                    "is an error in the app configuration which prevents the engine from "
+                    "initializing it.")
     
     
 def _write_shotgun_cache(tk, entity_type, cache_file_name):
@@ -357,34 +393,13 @@ def run_core_project_command(log, pipeline_config_root, command, args):
         entity_ids_str = args[2].split(",")
         entity_ids = [int(x) for x in entity_ids_str]   
         
-        # add some smarts about context management here
-        if len(entity_ids) == 1:
-            # this is a single selection
-            ctx = tk.context_from_entity(entity_type, entity_ids[0])
-        else:
-            # with multiple items selected, create a blank context
-            ctx = tk.context_empty()
-
-        # start the shotgun engine, load the apps
-        e = engine.start_shotgun_engine(tk, entity_type, ctx)
-
-        cmd = e.commands.get(action_name)
-        if cmd:
-            callback = cmd["callback"]
-            # introspect and get number of args for this fn
-            arg_count = callback.func_code.co_argcount
-            # choose between simple style callbacks or complex style
-            # special shotgun callbacks - these always take two
-            # params entity_type and entity_ids            
-            if arg_count > 1:
-                # old style shotgun app launch - takes entity_type and ids as args
-                callback(entity_type, entity_ids)
-            else:
-                # std tank app launch
-                callback()            
-        else:
-            # unknown command - this typically is caused by apps failing to initialize.
-            e.log_error("A command named '%s' is not registered with Tank!" % action_name)
+        
+        try:
+            _run_shotgun_command(log, tk, action_name, entity_type, entity_ids)
+            raise TankError("asd")
+        except TankError, e:
+            # for any uncaught TankErrors, format them nicely with html 
+            print("<b>ERROR: </b>%s" % e)
     
     
     elif command == "shotgun_cache_actions":
@@ -394,7 +409,12 @@ def run_core_project_command(log, pipeline_config_root, command, args):
         
         entity_type = args[0]
         cache_file_name = args[1]
-        _write_shotgun_cache(tk, entity_type, cache_file_name)
+        
+        try:
+            _write_shotgun_cache(tk, entity_type, cache_file_name)
+        except TankError, e:
+            # for any uncaught TankErrors, format them nicely with html 
+            print("<b>ERROR: </b>%s" % e)
         
     else:
         raise TankError("Unknown command '%s'. Run tank --help for more information" % command)
