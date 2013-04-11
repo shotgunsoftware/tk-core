@@ -574,6 +574,74 @@ def start_engine(engine_name, tk, context):
 
     return obj
 
+def find_app_settings(engine_name, app_name, tk, context):
+    """
+    Utility method to find the settings for an app in an engine in the
+    environment determined for the context by pick environment hook.
+    
+    :param engine_name: system name of the engine to look for
+    :param app_name: system name of the app to look for
+    :param tk: tank instance
+    :param context: context to use when picking environment
+    
+    :returns: list of dictionaries containing the engine name, 
+              application name and settings for any matching
+              applications that are found and that have valid
+              settings
+    """ 
+    app_settings = []
+    
+    # get the environment via the pick_environment hook
+    env_name = __pick_environment(engine_name, tk, context)
+
+    # get the path to the environment file given its name
+    env_path = constants.get_environment_path(env_name, tk.project_path)
+
+    # now we can instantiate a wrapper class around the data
+    # this will load it and check basic things.
+    env = Environment(env_path)
+    
+    # now find all engines whose descriptor matches the engine_name:
+    for eng in env.get_engines():
+        eng_desc = env.get_engine_descriptor(eng)
+        if eng_desc.get_system_name() != engine_name:
+            continue
+        
+        # ok, found engine so look for app:
+        for app in env.get_apps(eng):
+            app_desc = env.get_app_descriptor(eng, app)
+            if app_desc.get_system_name() != app_name:
+                continue
+            
+            # ok, found an app - lets validate the settings as
+            # we want to ignore them if they're not valid
+            try:
+                schema = app_desc.get_configuration_schema()
+                settings = env.get_app_settings(eng, app)
+                
+                # check that the context contains all the info that the app needs
+                validation.validate_context(app_desc, context)
+                
+                # make sure the current operating system platform is supported
+                validation.validate_platform(app_desc)
+                                
+                # for multi engine apps, make sure our engine is supported
+                supported_engines = app_desc.get_supported_engines()
+                if supported_engines and engine_name not in supported_engines:
+                    raise TankError("The app could not be loaded since it only supports "
+                                    "the following engines: %s" % supported_engines)
+                
+                # finally validate the configuration:
+                validation.validate_settings(app, tk, context, schema, settings)
+            except TankError:
+                # ignore any Tank exceptions to skip invalid apps
+                continue
+
+            # settings are valid so add them to return list:
+            app_settings.append({"engine_instance":eng, "app_instance":app, "settings":settings})
+                    
+    return app_settings
+    
 
 def start_shotgun_engine(tk, entity_type, context=None):
     """

@@ -56,6 +56,51 @@ class TankBundle(object):
         do not use in any app code. 
         """
         return self.__settings
+    
+    ##########################################################################################
+    # methods used by internal classes, not part of the public interface
+
+    def get_setting_from(self, other_settings, key, default=None):
+        """
+        Internal method - not part of Tank's public interface.
+        
+        Get a value from the settings dictionary passed in
+        using the logic from this application
+
+        :param other_settings: dictionary to use to find setting
+        :param key: setting name
+        :param default: default value to return
+        """
+        return self.__resolve_setting_value(key, other_settings.get(key, default))
+
+    def get_template_from(self, other_settings, key):
+        """
+        Internal method - not part of Tank's public interface.
+        
+        A shortcut for looking up which template is referenced in the given setting from
+        the settings dictionary passed in.  It then calls get_template_by_name() on it.
+        
+        :param other_settings: dictionary to use to find setting
+        :param key: setting name
+        """
+        template_name = self.get_setting_from(other_settings, key)        
+        return self.get_template_by_name(template_name)
+
+    def execute_hook_from(self, other_settings, key, **kwargs):
+        """
+        Internal method - not part of Tank's public interface.
+        
+        Shortcut for grabbing the hook name used in the settings dictionary 
+        passed in and then calling execute_hook_by_name() on it.
+        
+        :param other_settings: dictionary to use to find setting
+        :param key: setting name
+        :param **kwargs: arguments to be passed to the hook
+        """
+        hook_name = self.get_setting_from(other_settings, key)
+        return self.__execute_hook_internal(hook_name, key, **kwargs)
+
+
 
     ##########################################################################################
     # properties
@@ -285,16 +330,15 @@ class TankBundle(object):
         
         return processed_val
         
-
-    def get_setting(self, key, default=None):
+    def __resolve_setting_value(self, key, value):
         """
-        Get a value from the item's settings
-
-        :param key: config name
-        :param default: default value to return
-        """
-        settings_value = self.__settings.get(key, default)
+        Resolve a setting value.  Exposed to allow values
+        to be resolved for settings derived outside of the 
+        app.
         
+        :param key:   setting name
+        :param value: setting value
+        """
         # try to get the type for the setting
         # (may fail if the key does not exist in the schema,
         # which is an old use case we need to support now...)
@@ -305,10 +349,18 @@ class TankBundle(object):
         
         if schema:
             # post process against schema
-            settings_value = self.__post_process_settings_r(settings_value, schema)
-                    
-        
-        return settings_value
+            value = self.__post_process_settings_r(value, schema)
+            
+        return value
+
+    def get_setting(self, key, default=None):
+        """
+        Get a value from the item's settings
+
+        :param key: config name
+        :param default: default value to return
+        """
+        return self.__resolve_setting_value(key, self.__settings.get(key, default))
             
     def get_template(self, key):
         """
@@ -331,6 +383,16 @@ class TankBundle(object):
         then calling execute_hook_by_name() on it.
         """
         hook_name = self.get_setting(key)
+        return self.__execute_hook_internal(hook_name, key, **kwargs)
+        
+    def __execute_hook_internal(self, hook_name, key, **kwargs):
+        """
+        Internal method for executing the specified hook.  If hook
+        name is constants.TANK_BUNDLE_DEFAULT_HOOK_SETTING it will
+        look up the actual hook to use in the manifest, otherwise
+        it will assume that the hook lives in the 'hooks' directory
+        for the bundle.
+        """
         if hook_name == constants.TANK_BUNDLE_DEFAULT_HOOK_SETTING:
             # hook settings points to the default one.
             # find the name of the hook from the manifest
