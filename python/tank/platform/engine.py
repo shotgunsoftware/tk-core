@@ -296,21 +296,22 @@ class Engine(TankBundle):
             # and a sensible message
             stack_frame = traceback.extract_stack()
             traceback_str = "".join(traceback.format_list(stack_frame))
-            exc_type = "OK"
-            exc_value = "No current exception."
+            exc_value = "No error details available."
         
         else:    
             traceback_str = "".join( traceback.format_tb(exc_traceback))
         
-        message = ""
-        message += "\n\n"
-        message += "Message: %s\n" % msg
-        message += "Environment: %s\n" % self.__env.name
-        message += "Exception: %s - %s\n" % (exc_type, exc_value)
-        message += "Traceback (most recent call last):\n"
-        message += traceback_str
-        message += "\n\n"
-        self.log_error(message)
+        
+        message = []
+        message.append(msg)
+        message.append("")
+        message.append("%s" % exc_value)
+        message.append("The current environment is %s." % self.__env.name)
+        message.append("")
+        message.append("Code Traceback:")
+        message.extend(traceback_str.split("\n"))
+        
+        self.log_error("\n".join(message))
         
     ##########################################################################################
     # private and protected methods
@@ -452,16 +453,15 @@ class Engine(TankBundle):
             except TankError, e:
                 # validation error - probably some issue with the settings!
                 # report this as an error message.
-                self.log_error("App configuration Error for %s. It will not "
-                               "be loaded. \n\nDetails: %s" % (app_instance_name, e))
+                self.log_error("App configuration Error for %s. It will not be loaded: %s" % (app_instance_name, e))
                 continue
             
-            except Exception, e:
+            except Exception:
                 # code execution error in the validation. Report this as an error 
                 # with the engire call stack!
-                self.log_exception("A general exception was caught while trying to" 
+                self.log_exception("A general exception was caught while trying to " 
                                    "validate the configuration for app %s. "
-                                   "The app will not be loaded.\n%s" % (app_instance_name, e))
+                                   "The app will not be loaded." % app_instance_name)
                 continue
             
                                     
@@ -482,9 +482,12 @@ class Engine(TankBundle):
                     app.init_app()
                 finally:
                     self.__currently_initializing_app = None
-            except Exception, e:
-                self.log_exception("App %s failed to initialize - "
-                                   "it will not be loaded:\n%s" % (app_dir, e))
+            
+            except TankError, e:
+                self.log_error("App %s failed to initialize. It will not be loaded: %s" % (app_dir, e))
+                
+            except Exception:
+                self.log_exception("App %s failed to initialize. It will not be loaded." % app_dir)
             else:
                 # note! Apps are keyed by their instance name, meaning that we 
                 # could theoretically have multiple instances of the same app.

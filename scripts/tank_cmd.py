@@ -381,11 +381,10 @@ def run_core_project_command(log, pipeline_config_root, command, args):
                 callback(entity_type, entity_ids)
             else:
                 # std tank app launch
-                callback()
-            
+                callback()            
         else:
-            # unknown command
-            raise TankError("A command named '%s' is not registered with Tank!" % action_name)
+            # unknown command - this typically is caused by apps failing to initialize.
+            e.log_error("A command named '%s' is not registered with Tank!" % action_name)
     
     
     elif command == "shotgun_cache_actions":
@@ -693,8 +692,7 @@ if __name__ == "__main__":
 
     except TankError, e:
         # one line report
-        msg = ("An error occurred: %s. Run this command "
-              "with a --help parameter for more information." % e)
+        msg = ("%s. Run this command with a --help parameter for more information." % e)
         log.info("")
         log.info("")
         log.error(msg)
