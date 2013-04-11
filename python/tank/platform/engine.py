@@ -329,8 +329,13 @@ class Engine(TankBundle):
         
         :returns: the created widget_class instance
         """
+        if not self.has_ui:
+            self.log_error("Sorry, this environment does not support UI display! Cannot show "
+                           "the requested window '%s'." % title)
+            return
+
         from .qt import tankqdialog 
-        from .qt import QtCore, QtGui
+        from .qt import QtCore, QtGui        
         
         # first construct the widget object 
         obj = widget_class(*args, **kwargs)
@@ -363,6 +368,11 @@ class Engine(TankBundle):
 
         :returns: (a standard QT dialog status return code, the created widget_class instance)
         """
+        if not self.has_ui:
+            self.log_error("Sorry, this environment does not support UI display! Cannot show "
+                           "the requested window '%s'." % title)
+            return
+        
         from .qt import tankqdialog 
         from .qt import QtCore, QtGui
         
