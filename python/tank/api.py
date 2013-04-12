@@ -388,7 +388,13 @@ class Tank(object):
         return hook.execute_hook(hook_path, self, **kwargs)
 
     def ensure_cache_entry_exist(self, entity_type, entity_id, path):
+        """
+        Ensures that a cache entry exists for the given shotgun object and a path.
         
+        :param enttiy_type: Shotgun entity type
+        :param entity_id: Shotgun entity id
+        :param path: path on disk
+        """
         path_cache = PathCache(self.project_path)
         try:
             if not path_cache.get_entity(path):
