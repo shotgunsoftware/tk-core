@@ -17,6 +17,7 @@ from . import context
 from . import root
 from .util import shotgun
 from .errors import TankError
+from .folder.folder_io import folder_preflight_checks
 from .path_cache import PathCache
 from .template import read_templates, TemplatePath
 from .platform import constants as platform_constants
@@ -386,7 +387,38 @@ class Tank(object):
         hook_path = _get_hook_path(hook_name, self.project_path)
         return hook.execute_hook(hook_path, self, **kwargs)
 
-    
+    def ensure_cache_entry_exist(self, entity_type, entity_id, path):
+        
+        path_cache = PathCache(self.project_path)
+        try:
+            if not path_cache.get_entity(path):
+                # get the code field from shotgun
+                name_field = "code"
+                if entity_type == "Project":
+                    name_field = "name"
+                elif entity_type == "Task":
+                    name_field = "content"
+                elif entity_type == "HumanUser":
+                    name_field = "login"
+
+                data = self.shotgun.find_one(entity_type, [["id", "is", entity_id]], [name_field])
+                if data is None:
+                    raise TankError("Cannot add to path cache: %s %s does not exist in "
+                                    "shotgun!" % (entity_type, entity_id))
+                entity_name = data.get(name_field)
+                if entity_name is None:
+                    raise TankError("Path Cache Creation: Name field %s for %s %s cannot "
+                                    "be None!" % (name_field, entity_type, entity_id))
+                
+                # check consistency and integrity
+                folder_preflight_checks(self, path_cache, path, entity_type, entity_id, entity_name)
+                
+                # finally add the record
+                path_cache.add_mapping(entity_type, entity_id, entity_name, path)
+            
+        finally:
+            path_cache.close()
+        
 
 ##########################################################################################
 # module methods
