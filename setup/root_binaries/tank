@@ -3,7 +3,6 @@
 # Copyright (c) 2012 Shotgun Software, Inc
 # ----------------------------------------------------
 
-
 # get absolute location of this script
 SELF_PATH=$(cd -P -- "$(dirname -- "$0")" && pwd -P) && SELF_PATH=$SELF_PATH/$(basename -- "$0")
  
@@ -20,6 +19,33 @@ done
 
 # chop off the file name
 SELF_PATH=$(dirname $SELF_PATH)
+
+
+# first of all, for performance, check if the command is shotgun_get_actions
+# syntax ./tank shotgun_get_actions cache_file_name env_yml_file_name
+# returns 0 and outputs action cache contents to stdout on success
+# returns 1 if the cache file is older than the yml file.
+# returns 2 if the yml file does not exist
+if [ -n "$1" ] && [ "$1" = "shotgun_get_actions" ]; then
+    
+    CACHE_FILE="$SELF_PATH/cache/$2"
+    ENV_FILE="$SELF_PATH/config/env/$3"
+    
+    # return 2 if the yml file does not exist
+    if [ ! -f "$ENV_FILE" ];
+    then
+        exit 2
+    fi    
+    
+    # return cache contents if cache is up to date
+    if [ "$CACHE_FILE" -nt "$ENV_FILE" ]; then
+        cat "$CACHE_FILE"
+        exit 0
+    else
+        exit 1
+    fi
+fi
+
 
 # if we have a local install of the core, this is the script to dispatch to
 LOCAL_SCRIPT="$SELF_PATH/install/core/scripts/tank_cmd.sh"
