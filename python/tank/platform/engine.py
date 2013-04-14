@@ -588,7 +588,7 @@ def find_app_settings(engine_name, app_name, tk, context):
     
     # get the environment via the pick_environment hook
     env_name = __pick_environment(engine_name, tk, context)
-
+    
     # get the path to the environment file given its name
     env_path = constants.get_environment_path(env_name, tk.project_path)
 
@@ -626,8 +626,11 @@ def find_app_settings(engine_name, app_name, tk, context):
                     raise TankError("The app could not be loaded since it only supports "
                                     "the following engines: %s" % supported_engines)
                 
-                # finally validate the configuration:
-                validation.validate_settings(app, tk, context, schema, settings)
+                # finally validate the configuration.  
+                # Note: context is set to None as we don't 
+                # want to fail validation because of an 
+                # incomplete context at this stage!
+                validation.validate_settings(app, tk, None, schema, settings)
             except TankError:
                 # ignore any Tank exceptions to skip invalid apps
                 continue
