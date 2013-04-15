@@ -195,7 +195,7 @@ def _write_shotgun_cache(tk, entity_type, cache_file_name):
     
     # insert special system commands
     if entity_type == "Project":
-        engine_commands["__core_info"] = { "properties": {"title": "Core API Status"} } 
+        engine_commands["__core_info"] = { "properties": {"title": "Check for Core Upgrades..."} } 
     
     # extract actions into cache file
     res = []
