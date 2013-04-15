@@ -654,7 +654,17 @@ if __name__ == "__main__":
     if len(cmd_line) > 0 and cmd_line[-1].startswith("--pc="):
         pipeline_config_root = cmd_line[-1][5:] 
     else:
-        pipeline_config_root = None
+        # now PC parameter passed. But it could be that we are using a localized core
+        # meaning that the core is contained inside the project itself. In that case,
+        # the install root is the same as the pipeline config root. We can check this my
+        # looking for a file which exists in every project.
+        templates_file = os.path.join(install_root, "config", "core", "templates.yml")
+        if os.path.exists(templates_file):
+            # looks like our code resides inside a project!
+            log.debug("Found file %s - means we have a localized core!" % templates_file)
+            pipeline_config_root = install_root
+        else:
+            pipeline_config_root = None
         
     # and strip out the --pc args
     cmd_line = [arg for arg in cmd_line if not arg.startswith("--pc=")]
