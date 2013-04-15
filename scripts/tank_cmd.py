@@ -610,7 +610,7 @@ if __name__ == "__main__":
     log = logging.getLogger("tank.setup_project")
     log.setLevel(logging.INFO)
     
-    ch = logging.StreamHandler()
+    ch = logging.StreamHandler(stream=sys.stdout)
     formatter = AltCustomFormatter()
     ch.setFormatter(formatter)
     log.addHandler(ch)
