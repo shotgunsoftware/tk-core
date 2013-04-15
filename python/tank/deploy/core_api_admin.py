@@ -46,12 +46,18 @@ def show_core_info(log, code_root, pc_root):
     Display details about the core version etc
     """
     
-    code_css = "display: block; padding: 0.5em 1em; border: 1px solid #bebab0; background: #faf8f0;"
+    code_css_block = "display: block; padding: 0.5em 1em; border: 1px solid #bebab0; background: #faf8f0;"
+    
     
     installer = TankCoreUpgrader(code_root, log)
     cv = installer.get_current_version_number()
     lv = installer.get_latest_version_number()
     log.info("You are currently running version %s of the Tank Platform." % cv)
+    
+    if code_root != pc_root:
+        log.info("")
+        log.info("Your core API is located in <code>%s</code> and is shared with other "
+                 "projects." % code_root)
     log.info("")
     
     status = installer.get_update_status()
@@ -70,12 +76,9 @@ def show_core_info(log, code_root, pc_root):
                 
         log.info("<b>A new version of the Tank API (%s) is available!</b>" % lv)
         log.info("")
-        log.info("<b>Change Summary:</b> %s <a href='%s'>Click for detailed Release Notes</a>" % (summary, url))
+        log.info("<b>Change Summary:</b> %s <a href='%s' target=_new>"
+                 "Click for detailed Release Notes</a>" % (summary, url))
         log.info("")
-        if code_root != pc_root:
-            log.info("<b>Please Note!</b> This Tank Core API is shared between multiple projects. " 
-                     "Running an upgrade would affect all associated projects.")
-            log.info("")
         log.info("In order to upgrade, execute the following command in a shell:")
         log.info("")
         
@@ -84,31 +87,13 @@ def show_core_info(log, code_root, pc_root):
         else:
             tank_cmd = os.path.join(code_root, "tank")
         
-        log.info("<code style='%s'>%s core</code>" % (code_css, tank_cmd))
+        log.info("<code style='%s'>%s core</code>" % (code_css_block, tank_cmd))
         
         log.info("")
                     
     else:
         raise TankError("Unknown Upgrade state!")
     
-    if code_root != pc_root:
-        log.info("")
-        log.info("")
-        log.info("<b>Note:</b> You are running a shared version of the Tank Core API for this "
-                 "pipeline configuration. This means that when you make an upgrade to that shared API, all "
-                 "the different projects that share it will be upgraded. This makes the upgrade "
-                 "process quick and easy. However, sometimes you also want to break out of a shared "
-                 "environment, for example if you want to test a new version of Tank. ")
-        log.info("")
-        log.info("In order to change this pipeline configuration to use its own indepedent version "
-                 " of the Tank API, you can execute the following command: ")
-    
-        if sys.platform == "win32":
-            tank_cmd = os.path.join(pc_root, "tank.bat")
-        else:
-            tank_cmd = os.path.join(pc_root, "tank")
-
-        log.info("<code style='%s'>%s core localize</code>" % (code_css, tank_cmd))
     
 
 def install_local_core(log, pc, code_root, pc_root):
