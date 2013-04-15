@@ -4,6 +4,49 @@ Copyright (c) 2012 Shotgun Software, Inc
 """
 
 from distutils.version import LooseVersion
+import os
+import sys
+import shutil
+
+def _copy_folder(log, src, dst): 
+    """
+    Alternative implementation to shutil.copytree
+    Copies recursively with very open permissions.
+    Creates folders if they don't already exist.
+    """
+    files = []
+    
+    if not os.path.exists(dst):
+        log.debug("mkdir 0777 %s" % dst)
+        os.mkdir(dst, 0777)
+
+    names = os.listdir(src) 
+    for name in names:
+
+        srcname = os.path.join(src, name) 
+        dstname = os.path.join(dst, name) 
+                
+        try: 
+            if os.path.isdir(srcname): 
+                files.extend( _copy_folder(log, srcname, dstname) )             
+            else: 
+                shutil.copy(srcname, dstname)
+                log.debug("Copy %s -> %s" % (srcname, dstname))
+                files.append(srcname)
+                # if the file extension is sh, set executable permissions
+                if dstname.endswith(".sh") or dstname.endswith(".bat"):
+                    try:
+                        # make it readable and executable for everybody
+                        os.chmod(dstname, 0777)
+                        log.debug("CHMOD 777 %s" % dstname)
+                    except Exception, e:
+                        log.error("Can't set executable permissions on %s: %s" % (dstname, e))
+        
+        except Exception, e: 
+            log.error("Can't copy %s to %s: %s" % (srcname, dstname, e)) 
+    
+    return files
+
 
 
 ################################################################################################

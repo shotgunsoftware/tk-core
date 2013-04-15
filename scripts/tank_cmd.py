@@ -363,7 +363,7 @@ def run_core_non_project_command(log, install_root, pipeline_config_root, comman
                                 "Navigate to the Tank Configuration you want to operate on, "
                                 "and run the tank command from there. Details: %s" % e)
             
-            core_api_admin.install_local_core(log, pc)
+            core_api_admin.install_local_core(log, pc, install_root, pipeline_config_root)
         
         else:
             raise TankError("Invalid arguments! Please run tank --help for more information.")

@@ -10,7 +10,9 @@ import os
 import sys
 import textwrap
 import uuid
+import stat
 import tempfile
+import datetime
 from tank_vendor import yaml
 
 
@@ -56,11 +58,11 @@ def show_core_info(log, code_root, pc_root):
     req_sg = installer.get_required_sg_version_for_upgrade()
     
     if status == TankCoreUpgrader.UP_TO_DATE:
-        log.info("There is no need to update the Tank Core API at this time!")
+        log.info("<b>There is no need to update the Tank Core API at this time!</b>")
 
     elif status == TankCoreUpgrader.UPGRADE_BLOCKED_BY_SG:
-        log.warning("A new version (%s) of the core API is available however "
-                    "it requires a more recent version (%s) of Shotgun!" % (lv, req_sg))
+        log.warning("<b>A new version (%s) of the core API is available however "
+                    "it requires a more recent version (%s) of Shotgun!</b>" % (lv, req_sg))
         
     elif status == TankCoreUpgrader.UPGRADE_POSSIBLE:
         
@@ -88,15 +90,78 @@ def show_core_info(log, code_root, pc_root):
                     
     else:
         raise TankError("Unknown Upgrade state!")
-        
     
+    if code_root != pc_root:
+        log.info("")
+        log.info("")
+        log.info("<b>Note:</b> You are running a shared version of the Tank Core API for this "
+                 "pipeline configuration. This means that when you make an upgrade to that shared API, all "
+                 "the different projects that share it will be upgraded. This makes the upgrade "
+                 "process quick and easy. However, sometimes you also want to break out of a shared "
+                 "environment, for example if you want to test a new version of Tank. ")
+        log.info("")
+        log.info("In order to change this pipeline configuration to use its own indepedent version "
+                 " of the Tank API, you can execute the following command: ")
+    
+        if sys.platform == "win32":
+            tank_cmd = os.path.join(pc_root, "tank.bat")
+        else:
+            tank_cmd = os.path.join(pc_root, "tank")
+
+        log.info("<code style='%s'>%s core localize</code>" % (code_css, tank_cmd))
     
 
-def install_local_core(log):
+def install_local_core(log, pc, code_root, pc_root):
     """
     Install a local tank core into this pipeline configuration
     """
-    log.info("Localize core!")
+    log.info("")
+    if code_root == pc_root:
+        raise TankError("Looks like the pipeline configuration %s already has a local install "
+                        "of the core!" % pc_root)
+    
+    log.info("This will copy the Core API in %s into the Pipeline configuration %s." % (code_root, pc_root) )
+    log.info("")
+    if _ask_question("Do you want to proceed"):
+        log.info("")
+        
+        source_core = os.path.join(code_root, "install", "core")
+        target_core = os.path.join(pc_root, "install", "core")
+        backup_location = os.path.join(pc_root, "install", "core.backup")
+        
+        # move this into backup location
+        backup_folder_name = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        backup_path = os.path.join(backup_location, backup_folder_name)
+        log.debug("Backing up Core API: %s -> %s" % (target_core, backup_path))
+        src_files = util._copy_folder(log, target_core, backup_path)
+        
+        # now clear out the install location
+        log.debug("Clearing out target location...")
+        for f in src_files:
+            try:
+                # on windows, ensure all files are writable
+                if sys.platform == "win32":
+                    attr = os.stat(f)[0]
+                    if (not attr & stat.S_IWRITE):
+                        # file is readonly! - turn off this attribute
+                        os.chmod(f, stat.S_IWRITE)
+                os.remove(f)
+                log.debug("Deleted %s" % f)
+            except Exception, e:
+                log.error("Could not delete file %s: %s" % (f, e))
+            
+        # create new core folder
+        log.info("Installing %s -> %s" % (source_core, target_core))
+        util._copy_folder(log, source_core, target_core)
+        
+        log.info("Localize complete! This pipeline configuration now has an independent API. "
+                 "If you upgrade the API for this configuration (using the 'tank core' command), "
+                 "no other configurations or projects will be affected.")
+        
+        
+    else:
+        log.info("Operation cancelled.")
+        
 
 
 def interactive_update(log, code_root):
