@@ -17,45 +17,113 @@ from .. import pipelineconfig
 from ..errors import TankError
 from ..api import Tank
 
+import sys
+import os
+import shutil
+
 
 ##########################################################################################
 # core commands
 
 
-def clone_configuration(log, tk, target_folder):
+def _copy_folder(log, src, dst): 
     """
-    Clones the current configuration
+    Alternative implementation to shutil.copytree
+    Copies recursively with very open permissions.
+    Creates folders if they don't already exist.
     """
-    log.info("%s Clone into %s " % (tk, target_folder))
+    files = []
     
+    if not os.path.exists(dst):
+        log.debug("mkdir 0777 %s" % dst)
+        os.mkdir(dst, 0777)
+
+    names = os.listdir(src) 
+    for name in names:
+
+        srcname = os.path.join(src, name) 
+        dstname = os.path.join(dst, name) 
         
-def switch_locator(log, tk, item_str, path_to_dev_location):
-    """
-    Clones the current configuration
-    """
-    log.info("Switch Locator")
+        # get rid of system files
+        if name in [".svn", ".git", ".gitignore", "__MACOSX", ".DS_Store"]: 
+            log.debug("SKIP %s" % srcname)
+            continue
+        
+        try: 
+            if os.path.isdir(srcname): 
+                files.extend( _copy_folder(log, srcname, dstname) )             
+            else: 
+                shutil.copy(srcname, dstname)
+                log.debug("Copy %s -> %s" % (srcname, dstname))
+                files.append(srcname)
+                # if the file extension is sh, set executable permissions
+                if dstname.endswith(".sh") or dstname.endswith(".bat"):
+                    try:
+                        # make it readable and executable for everybody
+                        os.chmod(dstname, 0777)
+                        log.debug("CHMOD 777 %s" % dstname)
+                    except Exception, e:
+                        log.error("Can't set executable permissions on %s: %s" % (dstname, e))
+        
+        except Exception, e: 
+            log.error("Can't copy %s to %s: %s" % (srcname, dstname, e)) 
     
-def revert_locator(log, tk, item_str):
+    return files
+
+
+def clone_configuration(log, tk, source_pc_id, user_id, target_linux, target_mac, target_win):
     """
     Clones the current configuration
     """
-    log.info("revert Locator")
-     
 
+    curr_os = {"linux2":"linux_path", "win32":"windows_path", "darwin":"mac_path" }[sys.platform]    
+    source_pc = tk.shotgun.find_one("PipelineConfiguration", 
+                                    [["id", "is", source_pc_id]], 
+                                    ["code", "project", "linux_path", "windows_path", "mac_path"])
+    source_folder = source_pc.get(curr_os)
+    
+    target_folder = {"linux2":target_linux, "win32":target_win, "darwin":target_mac }[sys.platform] 
+    
+    log.debug("Cloning %s -> %s" % (source_folder, target_folder))
+    
+    if not os.path.exists(source_folder):
+        raise TankError("Cannot clone! Source folder '%s' does not exist!" % source_folder)
+    
+    if os.path.exists(target_folder):
+        raise TankError("Cannot clone! Target folder '%s' already exists!" % target_folder)
+    
+    # copy files and folders across
+    old_umask = os.umask(0)
+    try:
+        os.mkdir(target_folder, 0777)
+        os.mkdir(os.path.join(target_folder, "cache"), 0777)
+        _copy_folder(log, os.path.join(source_folder, "config"), os.path.join(target_folder, "config"))
+        _copy_folder(log, os.path.join(source_folder, "install"), os.path.join(target_folder, "install"))
+        shutil.copy(os.path.join(source_folder, "tank"), os.path.join(target_folder, "tank"))
+        shutil.copy(os.path.join(source_folder, "tank.bat"), os.path.join(target_folder, "tank.bat"))
+        os.chmod(os.path.join(target_folder, "tank.bat"), 0777)
+        os.chmod(os.path.join(target_folder, "tank"), 0777)
+    finally:
+        os.umask(old_umask)
 
-def join_configuration(log, tk):
-    """
-    Join the current configuration
-    """
-    log.info("%s Join " % tk) 
+    # now register this with the cache file for each storage
+    for dr in tk.pipeline_configuration.get_data_roots().values():
+        scm = pipelineconfig.StorageConfigurationMapping(dr)
+        scm.add_pipeline_configuration(target_mac, target_win, target_linux)
+    
+    # finally register with shotgun
+    data = {"linux_path": target_linux,
+            "windows_path":target_win,
+            "mac_path": target_mac,
+            "code": "%s Clone" % source_pc["code"],
+            "project": source_pc["project"],
+            "users": [ {"type": "HumanUser", "id": user_id} ] 
+            }
+    log.debug("Create sg: %s" % str(data))
+    tk.shotgun.create("PipelineConfiguration", data)
 
-
-def leave_configuration(log, tk):
-    """
-    Join the current configuration
-    """
-    log.info("%s Leave " % tk) 
-
+    log.info("<b>Clone Complete!</b>")
+    log.info("Your configuration has been copied from %s to %s." % (source_folder, target_folder))
 
 ##########################################################################################
 # helpers

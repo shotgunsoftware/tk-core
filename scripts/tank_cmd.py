@@ -420,9 +420,17 @@ def run_core_project_command(log, pipeline_config_root, command, args):
         if action_name == "__clone_pc":
             # special data passed in entity_type: USER_ID:NEW_PATH
             user_id = int(entity_type.split(":")[0])
-            new_path = entity_type.split(":")[1]
+            new_path_linux = entity_type.split(":")[1]
+            new_path_mac = entity_type.split(":")[2]
+            new_path_windows = entity_type.split(":")[3]
             pc_entity_id = entity_ids[0]            
-            administrator.clone_configuration(log, tk, pc_entity_id, user_id, new_path)
+            administrator.clone_configuration(log, 
+                                              tk, 
+                                              pc_entity_id,
+                                              user_id, 
+                                              new_path_linux, 
+                                              new_path_mac, 
+                                              new_path_windows)
                     
         elif action_name == "__core_info":            
             core_api_admin.show_core_info(log, true)
@@ -748,18 +756,16 @@ if __name__ == "__main__":
 
     except TankError, e:
         # one line report
-        msg = ("%s. Run the tank command with a --help parameter for more information." % e)
         log.info("")
-        log.info("")
-        log.error(msg)
+        log.error(str(e))
         log.info("")
         exit_code = 5
         
     except Exception, e:
         # call stack
         log.info("")
-        log.info("")        
         log.exception("An exception was reported: %s" % e)
+        log.info("")                
         exit_code = 6
     
     log.debug("Exiting with exit code %s" % exit_code)

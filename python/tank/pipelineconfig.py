@@ -108,12 +108,6 @@ class PipelineConfiguration(object):
             raise TankError("Project name not defined in config metadata for %s! "
                             "Please contact support." % self) 
         
-        self._sg_entity = data.get("shotgun_entity")
-        if self._sg_entity is None:
-            raise TankError("SG link not defined in config metadata for %s! "
-                            "Please contact support." % self)
-        
-        
     
     def __load_roots_meatadata(self):
         """
