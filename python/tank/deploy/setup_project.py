@@ -783,6 +783,12 @@ def _interactive_setup(log, pipeline_config_root):
     log.info("  - on Linux:   %s" % locations_dict["linux2"])
     log.info("  - on Windows: %s" % locations_dict["win32"])
     log.info("")
+    core_api_locations = _get_current_core_file_location()
+    log.info("* The Pipeline configuration will use the following Core API:")
+    log.info("  - on Macosx:  %s" % core_api_locations["Darwin"])
+    log.info("  - on Linux:   %s" % core_api_locations["Linux"])
+    log.info("  - on Windows: %s" % core_api_locations["Windows"])
+    log.info("")
 
     for x in resolved_storages:
 
