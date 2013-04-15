@@ -429,43 +429,36 @@ def from_entity(entity_type, entity_id):
         raise TankError("Cannot resolve a pipeline configuration object from %s %s - "
                         "could not find a location on disk for any configuration!" % (entity_type, entity_id)) 
 
+    # first base our resolve on a call or python import directly
+    # from a specific PC
+    if "TANK_CURRENT_PC" in os.environ:
+        curr_pc_path = os.environ["TANK_CURRENT_PC"]
+        if curr_pc_path in existing_matching_pcs:
+            # ok found our PC
+            return PipelineConfiguration(curr_pc_path)
+        else:
+            # Weird. environment variable path not in list of choices!            
+            # This could be because we are running a PC which is not associated with our user.
+            # it could also mean we are running a PC which is not associated with the project.
+            raise TankError("Cannot create a Tank Configuration for %s %s by running "
+                "the Tank command in '%s'! Make sure that you are assigned to the configuration! "
+                "To check this, navigate to the appropriate project in Shotgun, then go to the "
+                "pipeline configurations view." % (entity_type, entity_id, curr_pc_path))
 
-
-    
-    selected_pc_path = None
+    # ok if we are here, we are running a generic tank command
     
     # if there is a single entry things are easy....
     if len(existing_matching_pcs) == 1:
-        selected_pc_path = existing_matching_pcs[0]
+        return PipelineConfiguration(existing_matching_pcs[0])
     
     else:
         # ok so there are more than one PC. 
-        # Use the TANK_CURRENT_PC env var to 
-        # see which one is correct. The TANK_CURRENT_PC pic contains the path 
-        # to the PC that tank was started from. So if we find a matching PC
-        # in this list, we know that is the match.
-        if "TANK_CURRENT_PC" in os.environ:
-            curr_pc_path = os.environ["TANK_CURRENT_PC"]
-            if curr_pc_path in existing_matching_pcs:
-                # ok found our PC
-                selected_pc_path = curr_pc_path
-            else:
-                # weird. environment variable path not in list of choices
-                # looks like we are coming from a rogue PC which isn't registered in shotgun.
-                # alternatively, this PC is not assigned to the current user.
-                # in this case, allow this to happen!
-                selected_pc_path = curr_pc_path
-                
-        else:
-            # more than one match!
-            raise TankError("Cannot create a Tank Configuration from %s %s - there are more than "
-                            "one user pipeline configuration registered for your user, and Tank "
-                            "was not able to determine which one is the right one to use. Try "
-                            "launching Tank directly from the pipeline config that you want to use, "
-                            "and make sure that you have associated your user with that " 
-                            "configuration." % (entity_type, entity_id))
+        raise TankError("Cannot create a Tank Configuration from %s %s - there are more than "
+                        "one pipeline configuration to choose from, and Tank "
+                        "was not able to determine which one is the right one to use. Try "
+                        "launching Tank directly from the pipeline config that you want to "
+                        "use! " % (entity_type, entity_id))
         
-    return PipelineConfiguration(selected_pc_path)
     
 
 def from_path(path):
