@@ -46,7 +46,9 @@ class TankGitDescriptor(AppDescriptor):
         Returns a short name, suitable for use in configuration files
         and for folders on disk
         """
-        return os.path.basename(self._path)
+        bn = os.path.basename(self._path)
+        (name, ext) = os.path.splitext(bn)
+        return name
 
     def get_version(self):
         """
