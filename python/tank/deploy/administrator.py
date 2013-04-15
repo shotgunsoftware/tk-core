@@ -103,6 +103,8 @@ def clone_configuration(log, tk, source_pc_id, user_id, target_linux, target_mac
         shutil.copy(os.path.join(source_folder, "tank.bat"), os.path.join(target_folder, "tank.bat"))
         os.chmod(os.path.join(target_folder, "tank.bat"), 0777)
         os.chmod(os.path.join(target_folder, "tank"), 0777)
+    except Exception, e:
+        raise TankError("Could not create file system structure: %s" % e)
     finally:
         os.umask(old_umask)
 
@@ -123,6 +125,7 @@ def clone_configuration(log, tk, source_pc_id, user_id, target_linux, target_mac
     tk.shotgun.create("PipelineConfiguration", data)
 
     log.info("<b>Clone Complete!</b>")
+    log.info("")
     log.info("Your configuration has been copied from %s to %s." % (source_folder, target_folder))
 
 ##########################################################################################
