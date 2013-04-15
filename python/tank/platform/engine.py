@@ -454,7 +454,8 @@ class Engine(TankBundle):
                 supported_engines = descriptor.get_supported_engines()
                 if supported_engines and self.name not in supported_engines:
                     raise TankError("The app could not be loaded since it only supports "
-                                    "the following engines: %s" % supported_engines)
+                                    "the following engines: %s. Your current engine has been "
+                                    "identified as '%s'" % (supported_engines, self.name))
                 
                 # now validate the configuration                
                 validation.validate_settings(app_instance_name, self.tank, self.context, app_schema, app_settings)
