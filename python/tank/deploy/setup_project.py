@@ -862,8 +862,26 @@ def _interactive_setup(log, pipeline_config_root):
     for (uname, path) in _get_current_core_file_location().items():
         core_path = os.path.join(current_os_pc_location, "install", "core", "core_%s.cfg" % uname)
         fh = open(core_path, "wt")
-        fh.write(path)
+        if path is None:
+            fh.write("undefined")
+        else:
+            fh.write(path)
         fh.close()
+        
+    # write a file location file for our new setup
+    sg_code_location = os.path.join(current_os_pc_location, "config", "core", "install_location.yml")
+    fh = open(sg_code_location, "wt")
+    fh.write("# Tank configuration file\n")
+    fh.write("# This file was automatically created by setup_project\n")
+    fh.write("\n")
+    fh.write("Windows: '%s'\n" % locations_dict["win32"])
+    fh.write("Darwin: '%s'\n" % locations_dict["darwin"])    
+    fh.write("Linux: '%s'\n" % locations_dict["linux2"])                    
+    fh.write("\n")
+    fh.write("# End of file.\n")
+    fh.close()    
+    os.chmod(sg_code_location, 0444)
+    
         
     # update the roots file in the config to match our settings
     log.debug("Writing roots.yml...")

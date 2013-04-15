@@ -10,6 +10,7 @@ import os
 import sys
 import textwrap
 import uuid
+import shutil
 import stat
 import tempfile
 import datetime
@@ -134,10 +135,30 @@ def install_local_core(log, pc, code_root, pc_root):
             except Exception, e:
                 log.error("Could not delete file %s: %s" % (f, e))
             
-        # create new core folder
         log.info("Installing %s -> %s" % (source_core, target_core))
-        util._copy_folder(log, source_core, target_core)
-        
+        old_umask = os.umask(0)
+        try:
+            # copy core distro
+            util._copy_folder(log, source_core, target_core)
+            # copy some core config files across
+            file_names = ["app_store.yml", 
+                          "shotgun.yml", 
+                          "interpreter_Darwin.cfg", 
+                          "interpreter_Linux.cfg", 
+                          "interpreter_Windows.cfg"]
+            for fn in file_names:
+                src = os.path.join(code_root, "config", "core", fn)
+                tgt = os.path.join(pc_root, "config", "core", fn)
+                log.debug("Copy %s -> %s" % (src, tgt))
+                shutil.copy(src, tgt)
+                os.chmod(tgt, 0444)
+                
+        except Exception, e:
+            raise TankError("Could not copy Core API: %s" % e)
+        finally:
+            os.umask(old_umask)
+                
+        log.info("")
         log.info("Localize complete! This pipeline configuration now has an independent API. "
                  "If you upgrade the API for this configuration (using the 'tank core' command), "
                  "no other configurations or projects will be affected.")

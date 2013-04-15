@@ -60,6 +60,20 @@ def clone_configuration(log, tk, source_pc_id, user_id, target_linux, target_mac
         shutil.copy(os.path.join(source_folder, "tank.bat"), os.path.join(target_folder, "tank.bat"))
         os.chmod(os.path.join(target_folder, "tank.bat"), 0777)
         os.chmod(os.path.join(target_folder, "tank"), 0777)
+
+        sg_code_location = os.path.join(target_folder, "config", "core", "install_location.yml")
+        fh = open(sg_code_location, "wt")
+        fh.write("# Tank configuration file\n")
+        fh.write("# This file was automatically created by tank clone\n")
+        fh.write("\n")
+        fh.write("Windows: '%s'\n" % target_win)
+        fh.write("Darwin: '%s'\n" % target_mac)    
+        fh.write("Linux: '%s'\n" % target_linux)                    
+        fh.write("\n")
+        fh.write("# End of file.\n")
+        fh.close()    
+        os.chmod(sg_code_location, 0444)
+    
     except Exception, e:
         raise TankError("Could not create file system structure: %s" % e)
     finally:
