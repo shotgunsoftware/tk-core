@@ -59,7 +59,10 @@ fi
 # this is to help the tank core API figure out for example tank.tank_from_path()
 # when using multiple work dev areas.
 # since we are recursing upwards, only set it if it is not already set. 
-if [ -z "$TANK_CURRENT_PC" ]; then
+# we only set this when it is a pipeline location. Check this by looking for 
+# the templates file
+TEMPLATES_FILE="$SELF_PATH/config/core/templates.yml"
+if [ -z "$TANK_CURRENT_PC" ] && [ -f "$TEMPLATES_FILE" ]; then
     export TANK_CURRENT_PC=$SELF_PATH
 fi  
 

@@ -487,11 +487,11 @@ def run_engine_cmd(log, install_root, pipeline_config_root, context_items, engin
             if using_cwd:
                 # no specific stuff
                 raise TankError("You are trying to start Tank in your current working directory "
-                                "(%s) but this is not a location that is "
-                                "recongnized by Tank!" % ctx_path)
+                                "(%s) but Tank Reported a problem. Details: %s" % (ctx_path, e))
             else:
                 # a bad path was specified by a user
-                raise TankError("The path '%s' is not a path that is recognized by Tank!" % ctx_path )
+                raise TankError("Error when trying to start from path '%s'. "
+                                "Details: %s" % (ctx_path, e) )
             
         log.debug("Resolved path %s into tank instance %s" % (ctx_path, tk))
         
@@ -530,25 +530,14 @@ def run_engine_cmd(log, install_root, pipeline_config_root, context_items, engin
         log.debug("Resolved %s %s into tank instance %s" % (entity_type, item, tk))
     
     sys.stderr.write(" %s" % tk.version)
+    if install_root != pipeline_config_root:
+        # generic tank command - so indicate which config was picked
+        sys.stderr.write(", [%s]" % tk.pipeline_configuration.get_path())
     
     # attach our logger to the tank instance
     # this will be detected by the shotgun and shell engines
     # and used.
     tk.log = log
-
-    # now check if the pipeline configuration matches the resolved PC
-    if pipeline_config_root is not None:
-        # we are running the tank command from a PC location
-        # make sure it is matching the PC resolved here.
-        if pipeline_config_root != tk.pipeline_configuration.get_path():
-            log.error("")
-            log.error("%s is currently associated with a pipeline configuration" % " ".join(context_items))
-            log.error("located in '%s', however you are trying to access it" % tk.pipeline_configuration.get_path())
-            log.error("via the tank command in %s." % pipeline_config_root)
-            log.error("")
-            log.error("Try running the same command from %s instead!" % tk.pipeline_configuration.get_path())
-            log.error("")
-            raise TankError("Configuration mismatch. Aborting.")
         
     # and create a context
     if uses_shotgun_context:
