@@ -48,7 +48,6 @@ def show_core_info(log, code_root, pc_root):
     
     code_css_block = "display: block; padding: 0.5em 1em; border: 1px solid #bebab0; background: #faf8f0;"
     
-    
     installer = TankCoreUpgrader(code_root, log)
     cv = installer.get_current_version_number()
     lv = installer.get_latest_version_number()

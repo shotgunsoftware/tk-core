@@ -345,10 +345,7 @@ def run_core_non_project_command(log, install_root, pipeline_config_root, comman
             if install_root != pipeline_config_root:
                 # we are updating a parent install that is shared
                 log.info("")
-                log.warning("You are potentially about to update the Core API for "
-                            "multiple projects. Before proceeding, we recommend "
-                            "that you run the tank information tool inside of Shotgun "
-                            "for a summary.")
+                log.warning("You are potentially about to update the Core API for multiple projects.")
                 log.info("")
             
             core_api_admin.interactive_update(log, install_root)
@@ -419,14 +416,16 @@ def run_core_project_command(log, install_root, pipeline_config_root, command, a
             new_path_linux = entity_type.split(":")[1]
             new_path_mac = entity_type.split(":")[2]
             new_path_windows = entity_type.split(":")[3]
-            pc_entity_id = entity_ids[0]            
+            pc_entity_id = entity_ids[0]      
+            source_pc_has_shared_core_api = (install_root != pipeline_config_root)     
             administrator.clone_configuration(log, 
                                               tk, 
                                               pc_entity_id,
                                               user_id, 
                                               new_path_linux, 
                                               new_path_mac, 
-                                              new_path_windows)
+                                              new_path_windows,
+                                              source_pc_has_shared_core_api)
                     
         elif action_name == "__core_info":            
             core_api_admin.show_core_info(log, install_root, pipeline_config_root)

@@ -28,7 +28,7 @@ import shutil
 
 
 
-def clone_configuration(log, tk, source_pc_id, user_id, target_linux, target_mac, target_win):
+def clone_configuration(log, tk, source_pc_id, user_id, target_linux, target_mac, target_win, source_pc_has_shared_core_api):
     """
     Clones the current configuration
     """
@@ -83,7 +83,33 @@ def clone_configuration(log, tk, source_pc_id, user_id, target_linux, target_mac
 
     log.info("<b>Clone Complete!</b>")
     log.info("")
-    log.info("Your configuration has been copied from %s to %s." % (source_folder, target_folder))
+    log.info("Your configuration has been copied from <code>%s</code> "
+             "to <code>%s</code>." % (source_folder, target_folder))
+
+    # if this new clone is using a shared core API, tell people how to localize.
+    
+    if source_pc_has_shared_core_api:
+        log.info("")
+        log.info("")
+        log.info("<b>Note:</b> You are running a shared version of the Tank Core API for this new clone. "
+                 "This means that when you make an upgrade to that shared API, all "
+                 "the different projects that share it will be upgraded. This makes the upgrade "
+                 "process quick and easy. However, sometimes you also want to break out of a shared "
+                 "environment, for example if you want to test a new version of Tank. ")
+        log.info("")
+        log.info("In order to change this pipeline configuration to use its own independent version "
+                 "of the Tank API, you can execute the following command: ")
+    
+        if sys.platform == "win32":
+            tank_cmd = os.path.join(target_folder, "tank.bat")
+        else:
+            tank_cmd = os.path.join(target_folder, "tank")
+        
+        log.info("")
+        code_css_block = "display: block; padding: 0.5em 1em; border: 1px solid #bebab0; background: #faf8f0;"
+        log.info("<code style='%s'>%s core localize</code>" % (code_css_block, tank_cmd))
+
+
 
 ##########################################################################################
 # helpers
