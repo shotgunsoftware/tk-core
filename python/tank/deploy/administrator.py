@@ -28,7 +28,7 @@ import shutil
 
 
 
-def clone_configuration(log, tk, source_pc_id, user_id, target_linux, target_mac, target_win, source_pc_has_shared_core_api):
+def clone_configuration(log, tk, source_pc_id, user_id, name, target_linux, target_mac, target_win, source_pc_has_shared_core_api):
     """
     Clones the current configuration
     """
@@ -88,7 +88,7 @@ def clone_configuration(log, tk, source_pc_id, user_id, target_linux, target_mac
     data = {"linux_path": target_linux,
             "windows_path":target_win,
             "mac_path": target_mac,
-            "code": "%s Clone" % source_pc["code"],
+            "code": name,
             "project": source_pc["project"],
             "users": [ {"type": "HumanUser", "id": user_id} ] 
             }

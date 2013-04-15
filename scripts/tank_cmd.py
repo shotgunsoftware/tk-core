@@ -413,15 +413,17 @@ def run_core_project_command(log, install_root, pipeline_config_root, command, a
         if action_name == "__clone_pc":
             # special data passed in entity_type: USER_ID:NEW_PATH
             user_id = int(entity_type.split(":")[0])
-            new_path_linux = entity_type.split(":")[1]
-            new_path_mac = entity_type.split(":")[2]
-            new_path_windows = entity_type.split(":")[3]
+            new_name = entity_type.split(":")[1]
+            new_path_linux = entity_type.split(":")[2]
+            new_path_mac = entity_type.split(":")[3]
+            new_path_windows = entity_type.split(":")[4]
             pc_entity_id = entity_ids[0]      
             source_pc_has_shared_core_api = (install_root != pipeline_config_root)     
             administrator.clone_configuration(log, 
                                               tk, 
                                               pc_entity_id,
                                               user_id, 
+                                              new_name,
                                               new_path_linux, 
                                               new_path_mac, 
                                               new_path_windows,
