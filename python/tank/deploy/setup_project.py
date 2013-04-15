@@ -937,7 +937,6 @@ def _interactive_setup(log, pipeline_config_root):
     log.debug("Writing to pc cache file %s" % pipe_config_sg_id_path)
     
     data = {}
-    data["shotgun_entity"] = {"id": pc_entity["id"], "type": pc_entity["type"]}
     data["project_name"] = project_disk_folder
     
     try:
