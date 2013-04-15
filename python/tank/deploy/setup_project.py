@@ -923,6 +923,10 @@ def _interactive_setup(log, pipeline_config_root):
         cache_path = os.path.join(tank_path, "cache")
         if not os.path.exists(cache_path):
             _make_folder(log, cache_path, 0777)
+
+        config_path = os.path.join(tank_path, "config")
+        if not os.path.exists(config_path):
+            _make_folder(log, config_path, 0777)
         
         if s["code"] == constants.PRIMARY_STORAGE_NAME:
             # primary storage - make sure there is a path cache file
