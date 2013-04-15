@@ -62,6 +62,7 @@ def clone_configuration(log, tk, source_pc_id, user_id, name, target_linux, targ
         os.chmod(os.path.join(target_folder, "tank"), 0777)
 
         sg_code_location = os.path.join(target_folder, "config", "core", "install_location.yml")
+        os.remove(sg_code_location)
         fh = open(sg_code_location, "wt")
         fh.write("# Tank configuration file\n")
         fh.write("# This file was automatically created by tank clone\n")
