@@ -39,17 +39,64 @@ def _ask_question(question):
 
     return False   
 
-def show_core_info(log):
+def show_core_info(log, code_root, pc_root):
     """
     Display details about the core version etc
     """
-    log.info("core info")
+    
+    code_css = "display: block; padding: 0.5em 1em; border: 1px solid #bebab0; background: #faf8f0;"
+    
+    installer = TankCoreUpgrader(code_root, log)
+    cv = installer.get_current_version_number()
+    lv = installer.get_latest_version_number()
+    log.info("You are currently running version %s of the Tank Platform." % cv)
+    log.info("")
+    
+    status = installer.get_update_status()
+    req_sg = installer.get_required_sg_version_for_upgrade()
+    
+    if status == TankCoreUpgrader.UP_TO_DATE:
+        log.info("There is no need to update the Tank Core API at this time!")
+
+    elif status == TankCoreUpgrader.UPGRADE_BLOCKED_BY_SG:
+        log.warning("A new version (%s) of the core API is available however "
+                    "it requires a more recent version (%s) of Shotgun!" % (lv, req_sg))
+        
+    elif status == TankCoreUpgrader.UPGRADE_POSSIBLE:
+        
+        (summary, url) = installer.get_release_notes()
+                
+        log.info("<b>A new version of the Tank API (%s) is available!</b>" % lv)
+        log.info("")
+        log.info("<b>Change Summary:</b> %s <a href='%s'>Click for detailed Release Notes</a>" % (summary, url))
+        log.info("")
+        if code_root != pc_root:
+            log.info("<b>Please Note!</b> This Tank Core API is shared between multiple projects. " 
+                     "Running an upgrade would affect all associated projects.")
+            log.info("")
+        log.info("In order to upgrade, execute the following command in a shell:")
+        log.info("")
+        
+        if sys.platform == "win32":
+            tank_cmd = os.path.join(code_root, "tank.bat")
+        else:
+            tank_cmd = os.path.join(code_root, "tank")
+        
+        log.info("<code style='%s'>%s core</code>" % (code_css, tank_cmd))
+        
+        log.info("")
+                    
+    else:
+        raise TankError("Unknown Upgrade state!")
+        
+    
     
 
 def install_local_core(log):
     """
     Install a local tank core into this pipeline configuration
     """
+    log.info("Localize core!")
 
 
 def interactive_update(log, code_root):

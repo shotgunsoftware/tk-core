@@ -130,8 +130,7 @@ The following admin commands are available:
 > tank setup_project - create a new project
 > tank folders entity_type name [--preview] -- create new folders on disk
 > tank validate - validates your configuration
-> tank core - Show information about the core API
-> tank core update - update to latest version of the core API
+> tank core - Check version and update the Core API.
 > tank core localize - run a local version of the core API
 
 Note! Additional configuration is available inside of Shotgun.
@@ -196,7 +195,7 @@ def _write_shotgun_cache(tk, entity_type, cache_file_name):
     
     # insert special system commands
     if entity_type == "Project":
-        engine_commands["__core_info"] = { "properties": {"title": "Tank System Information..."} } 
+        engine_commands["__core_info"] = { "properties": {"title": "Core API Status"} } 
     
     # extract actions into cache file
     res = []
@@ -233,9 +232,9 @@ def _write_shotgun_cache(tk, entity_type, cache_file_name):
 
     try:
         # if file does not exist, make sure it is created with open permissions    
-        db_file_created = False
+        cache_file_created = False
         if not os.path.exists(cache_path):
-            db_file_created = True
+            cache_file_created = True
         
         # Write to cache file
         f = open(cache_path, "wt")
@@ -342,9 +341,6 @@ def run_core_non_project_command(log, install_root, pipeline_config_root, comman
         # core install  > get local core
         
         if len(args) == 0:
-            core_api_admin.show_core_info(log, false)
-        
-        elif len(args) == 1 and args[0] == "update":
             
             if install_root != pipeline_config_root:
                 # we are updating a parent install that is shared
@@ -377,7 +373,7 @@ def run_core_non_project_command(log, install_root, pipeline_config_root, comman
 
 
 
-def run_core_project_command(log, pipeline_config_root, command, args):
+def run_core_project_command(log, install_root, pipeline_config_root, command, args):
     """
     Execute one of the built in commands
     """
@@ -433,7 +429,7 @@ def run_core_project_command(log, pipeline_config_root, command, args):
                                               new_path_windows)
                     
         elif action_name == "__core_info":            
-            core_api_admin.show_core_info(log, true)
+            core_api_admin.show_core_info(log, install_root, pipeline_config_root)
 
         else:        
             _run_shotgun_command(log, tk, action_name, entity_type, entity_ids)
@@ -688,6 +684,7 @@ if __name__ == "__main__":
                      
         elif cmd_line[0] in CORE_PROJECT_COMMANDS:
             exit_code = run_core_project_command(log, 
+                                                 install_root,
                                                  pipeline_config_root, 
                                                  cmd_line[0], 
                                                  cmd_line[1:])
