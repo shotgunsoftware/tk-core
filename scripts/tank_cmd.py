@@ -5,6 +5,7 @@
 
 import sys
 import os
+import cgi
 import re
 import logging
 import tank
@@ -20,27 +21,55 @@ from tank import folder
 CORE_NON_PROJECT_COMMANDS = ["setup_project", "core", "folders"]
 
 # built in commands that run against a specific project
-CORE_PROJECT_COMMANDS = ["validate", "shotgun_run_action", "shotgun_cache_actions", "dev"]
+CORE_PROJECT_COMMANDS = ["validate", "shotgun_run_action", "shotgun_cache_actions"]
 
 DEFAULT_ENGINE = "tk-shell"
-
 
 class AltCustomFormatter(logging.Formatter):
     """ 
     Custom logging output
     """
+    def __init__(self, *args, **kwargs):
+        # passthrough so we can init stuff
+        self._html = False
+        super(AltCustomFormatter, self).__init__(*args, **kwargs)
+    
+    def enable_html_mode(self):
+        self._html = True
+    
     def format(self, record):
         
-        if record.levelno in (logging.WARNING, logging.ERROR, logging.CRITICAL, logging.DEBUG):
-            message = '%s: %s' % (record.levelname, record.msg)
+        if self._html:
+            # html logging for shotgun. 
+            # The logging mechanisms in Shotgun tend to filter out any output
+            # which does not start with an html tag, so we need to make sure we got that.
+            if record.levelno in (logging.WARNING, logging.ERROR, logging.CRITICAL, logging.DEBUG):
+                # for errors and warnings, we turn all special chars into codes using cgi
+                message = "<b>%s:</b> %s" % (record.levelname, cgi.escape(record.msg)) 
+            else:
+                # info logging allows html chars to be passed so no cgi encode
+                message = record.msg
+            
+            # now make sure each distinct line is wrapped in a span so the shotgun 
+            # logger will pick them up.
+            lines = []
+            for line in message.split("\n"):
+                lines.append("<span>%s</span>" % line)
+                
+            record.msg = "\n".join(lines)
+            
         else:
-            message = record.msg
-        
-        lines = []
-        for x in textwrap.wrap(message, width=78):
-            lines.append(x)
-        
-        record.msg = "\n".join(lines)
+            # shell based logging. Cut nicely at 80 chars width.        
+            if record.levelno in (logging.WARNING, logging.ERROR, logging.CRITICAL, logging.DEBUG):
+                message = '%s: %s' % (record.levelname, record.msg)
+            else:
+                message = record.msg
+            
+            lines = []
+            for x in textwrap.wrap(message, width=78):
+                lines.append(x)
+            
+            record.msg = "\n".join(lines)
         
         return super(AltCustomFormatter, self).format(record)
     
@@ -99,15 +128,13 @@ Administering Tank
 The following admin commands are available:
 
 > tank setup_project - create a new project
-
 > tank folders entity_type name [--preview] -- create new folders on disk
-
-> tank core           - information about the core API
-> tank core update    - update the core API
-> tank core localize  - install the core API into this configuration
-
 > tank validate - validates your configuration
+> tank core - Show information about the core API
+> tank core update - update to latest version of the core API
+> tank core localize - run a local version of the core API
 
+Note! Additional configuration is available inside of Shotgun.
 
 
 """
@@ -164,9 +191,16 @@ def _write_shotgun_cache(tk, entity_type, cache_file_name):
     # start the shotgun engine, load the apps
     e = engine.start_shotgun_engine(tk, entity_type)
     
-    # get actions
+    # get list of actions
+    engine_commands = e.commands
+    
+    # insert special system commands
+    if entity_type == "Project":
+        engine_commands["__core_info"] = { "properties": {"title": "Tank System Information..."} } 
+    
+    # extract actions into cache file
     res = []
-    for (cmd_name, cmd_params) in e.commands.items():
+    for (cmd_name, cmd_params) in engine_commands.items():
         
         # some apps provide a special deny_platforms entry
         if "deny_platforms" in cmd_params["properties"]:
@@ -196,11 +230,28 @@ def _write_shotgun_cache(tk, entity_type, cache_file_name):
         res.append("$".join(entry))
 
     data = "\n".join(res)
-    
-    # Write to cache file
-    f = open(cache_path, "wt")
-    f.write(data)
-    f.close()
+
+    try:
+        # if file does not exist, make sure it is created with open permissions    
+        db_file_created = False
+        if not os.path.exists(cache_path):
+            db_file_created = True
+        
+        # Write to cache file
+        f = open(cache_path, "wt")
+        f.write(data)
+        f.close()
+        
+        # make sure cache file has proper permissions
+        if cache_file_created:
+            old_umask = os.umask(0)
+            try:
+                os.chmod(cache_path, 0666)
+            finally:
+                os.umask(old_umask)
+                            
+    except Exception, e:
+        raise TankError("Could not write to cache file %s: %s" % (cache_path, e))
     
 
 
@@ -237,7 +288,6 @@ def run_core_non_project_command(log, install_root, pipeline_config_root, comman
         # fetch other options
         entity_type = args[0]
         item = args[1]
-        
         
         log.info("Will process folders for %s %s" % (entity_type, item))        
         
@@ -284,9 +334,6 @@ def run_core_non_project_command(log, install_root, pipeline_config_root, comman
             log.error("Folder Creation Error: %s" % e)
             
 
-        
-
-    
     elif command == "core":
         # update the core in this pipeline config
         
@@ -295,7 +342,7 @@ def run_core_non_project_command(log, install_root, pipeline_config_root, comman
         # core install  > get local core
         
         if len(args) == 0:
-            core_api_admin.show_core_info(log)
+            core_api_admin.show_core_info(log, false)
         
         elif len(args) == 1 and args[0] == "update":
             
@@ -304,20 +351,21 @@ def run_core_non_project_command(log, install_root, pipeline_config_root, comman
                 log.info("")
                 log.warning("You are potentially about to update the Core API for "
                             "multiple projects. Before proceeding, we recommend "
-                            "that you run 'tank core info' for a summary.")
+                            "that you run the tank information tool inside of Shotgun "
+                            "for a summary.")
                 log.info("")
             
             core_api_admin.interactive_update(log, install_root)
 
         elif len(args) == 1 and args[0] == "localize":
-            # a special case which actually requires a pipleine config object
+            # a special case which actually requires a pipeline config object
             try:
                 pc = pipelineconfig.from_path(pipeline_config_root)            
-            except TankError:
+            except TankError, e:
                 raise TankError("You must run the core install command against a specific "
                                 "Tank Configuration, not against a shared core location. "
                                 "Navigate to the Tank Configuration you want to operate on, "
-                                "and run the tank command from there!")
+                                "and run the tank command from there. Details: %s" % e)
             
             core_api_admin.install_local_core(log, pc)
         
@@ -339,10 +387,15 @@ def run_core_project_command(log, pipeline_config_root, command, args):
  
     try:
         tk = tank.tank_from_path(pipeline_config_root)
-    except TankError:
+        # attach our logger to the tank instance
+        # this will be detected by the shotgun and shell engines
+        # and used.
+        tk.log = log
+        
+    except TankError, e:
         raise TankError("You must run the command '%s' against a specific Tank Configuration, not "
                         "against a shared studio location. Navigate to the Tank Configuration you "
-                        "want to operate on, and run the tank command from there!" % command)
+                        "want to operate on, and run the tank command from there! Details: %s" % (command, e) )
 
     if command == "validate":
         # fork a pipeline config        
@@ -350,41 +403,11 @@ def run_core_project_command(log, pipeline_config_root, command, args):
             raise TankError("Invalid arguments. Run tank --help for more information.")
         validate_config.validate_configuration(log, tk)
 
-    elif command == "clone":
-        # fork a pipeline config
-        if len(args) != 1:
-            raise TankError("Invalid arguments. Run tank --help for more information.")
-        administrator.clone_configuration(log, tk, args[0])
-            
-    elif command == "join":
-        # join this PC
-        if len(args) != 0:
-            raise TankError("Invalid arguments. Run tank --help for more information.")
-
-        administrator.join_configuration(log, tk)
-        
-    elif command == "leave":
-        # leave this PC
-        if len(args) != 0:
-            raise TankError("Invalid arguments. Run tank --help for more information.")
-
-        administrator.leave_configuration(log, tk)
-
-    elif command == "switch":
-        # leave this PC
-        if len(args) != 2:
-            raise TankError("Invalid arguments. Run tank --help for more information.")
-
-        administrator.switch_locator(log, tk, args[0], args[1])
-
-    elif command == "revert":
-        # leave this PC
-        if len(args) != 1:
-            raise TankError("Invalid arguments. Run tank --help for more information.")
-
-        administrator.revert_locator(log, tk, args[0])
-
     elif command == "shotgun_run_action":
+        
+        # we are talking to shotgun! First of all, make sure we switch on our html style logging
+        log.handlers[0].formatter.enable_html_mode()
+
         # params: action_name, entity_type, entity_ids
         if len(args) != 3:
             raise TankError("Invalid arguments! Pass action_name, entity_type, comma_separated_entity_ids")
@@ -394,27 +417,33 @@ def run_core_project_command(log, pipeline_config_root, command, args):
         entity_ids_str = args[2].split(",")
         entity_ids = [int(x) for x in entity_ids_str]   
         
-        
-        try:
+        if action_name == "__clone_pc":
+            # special data passed in entity_type: USER_ID:NEW_PATH
+            user_id = int(entity_type.split(":")[0])
+            new_path = entity_type.split(":")[1]
+            pc_entity_id = entity_ids[0]            
+            administrator.clone_configuration(log, tk, pc_entity_id, user_id, new_path)
+                    
+        elif action_name == "__core_info":            
+            core_api_admin.show_core_info(log, true)
+
+        else:        
             _run_shotgun_command(log, tk, action_name, entity_type, entity_ids)
-        except TankError, e:
-            # for any uncaught TankErrors, format them nicely with html 
-            print("<b>ERROR: </b>%s" % e)
+            
     
     
     elif command == "shotgun_cache_actions":
+        
+        # we are talking to shotgun! First of all, make sure we switch on our html style logging
+        log.handlers[0].formatter.enable_html_mode()
+        
         # params: entity_type, cache_file_name
         if len(args) != 2:
             raise TankError("Invalid arguments! Pass entity_type, cache_file_name")
         
         entity_type = args[0]
-        cache_file_name = args[1]
-        
-        try:
-            _write_shotgun_cache(tk, entity_type, cache_file_name)
-        except TankError, e:
-            # for any uncaught TankErrors, format them nicely with html 
-            print("<b>ERROR: </b>%s" % e)
+        cache_file_name = args[1]        
+        _write_shotgun_cache(tk, entity_type, cache_file_name)
         
     else:
         raise TankError("Unknown command '%s'. Run tank --help for more information" % command)
@@ -498,6 +527,11 @@ def run_engine_cmd(log, install_root, pipeline_config_root, context_items, engin
         log.debug("Resolved %s %s into tank instance %s" % (entity_type, item, tk))
     
     sys.stderr.write(" %s" % tk.version)
+    
+    # attach our logger to the tank instance
+    # this will be detected by the shotgun and shell engines
+    # and used.
+    tk.log = log
 
     # now check if the pipeline configuration matches the resolved PC
     if pipeline_config_root is not None:
@@ -523,8 +557,6 @@ def run_engine_cmd(log, install_root, pipeline_config_root, context_items, engin
             
     # kick off mr engine.
     e = tank.platform.start_engine(engine_name, tk, ctx)
-    if e.name == "tk-shell":
-        e.set_logger(log)
         
     log.debug("Started engine %s" % e)
     
@@ -716,17 +748,19 @@ if __name__ == "__main__":
 
     except TankError, e:
         # one line report
-        msg = ("%s. Run this command with a --help parameter for more information." % e)
+        msg = ("%s. Run the tank command with a --help parameter for more information." % e)
         log.info("")
         log.info("")
         log.error(msg)
         log.info("")
+        exit_code = 5
         
     except Exception, e:
         # call stack
         log.info("")
         log.info("")        
         log.exception("An exception was reported: %s" % e)
+        exit_code = 6
     
     log.debug("Exiting with exit code %s" % exit_code)
     sys.exit(exit_code)
