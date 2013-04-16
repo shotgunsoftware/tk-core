@@ -384,7 +384,6 @@ class TestSchemaCreateFoldersMultiRoot(TankTestBase):
         expected_paths = []
         
         expected_paths.append(self.alt_root_1)
-        expected_paths.append(os.path.join(self.alt_root_1, "tank", "config", "primary_project.yml"))
         expected_paths.append(os.path.join(self.alt_root_1, "assets"))
         expected_paths.append(os.path.join(self.alt_root_1, "alternate_reference"))        
         
@@ -424,7 +423,6 @@ class TestSchemaCreateFoldersMultiRoot(TankTestBase):
         expected_paths.append(os.path.join(self.project_root, "reference", "footage"))
 
         expected_paths.append(self.alt_root_1)
-        expected_paths.append(os.path.join(self.alt_root_1, "tank", "config", "primary_project.yml"))
         expected_paths.append(os.path.join(self.alt_root_1, "assets"))
         expected_paths.append(os.path.join(self.alt_root_1, "alternate_reference"))
                 

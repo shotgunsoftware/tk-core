@@ -6,6 +6,8 @@ import os
 
 from tank_test.tank_test_base import *
 
+from mock import Mock, patch
+
 from tank import context
 from tank.errors import TankError
 from tank.template import TemplatePath
@@ -89,7 +91,11 @@ class TestEq(TestContext):
         not_context = object()
         self.assertFalse(context_1 == not_context)
 
-    def test_lazy_load_user(self):
+    @patch("tank.util.login.get_current_user")
+    def test_lazy_load_user(self, get_current_user):
+        
+        get_current_user.return_value = self.current_user
+        
         # bug ticket 20272
         context_1 = context.Context(**self.kws)
         kws2 = self.kws.copy()
@@ -294,7 +300,14 @@ class TestFromEntity(TestContext):
                      "step": self.step}
         self.add_to_sg_mock_db(self.task)
 
-    def test_entity_from_cache(self):
+    
+        
+
+    @patch("tank.util.login.get_current_user")
+    def test_entity_from_cache(self, get_current_user):
+        
+        get_current_user.return_value = self.current_user
+        
         result =  context.from_entity(self.tk, self.shot["type"], self.shot["id"])
 
         self.check_entity(self.project, result.project)
@@ -308,10 +321,15 @@ class TestFromEntity(TestContext):
         self.assertEquals(None, result.task)
         self.assertEquals(None, result.step)
 
-    def test_step_higher_entity(self):
+    
+    @patch("tank.util.login.get_current_user")
+    def test_step_higher_entity(self, get_current_user):
         """
         Case that step appears in path above entity.
         """
+        
+        get_current_user.return_value = self.current_user
+        
         # Add shot below step
         step_path = os.path.join(self.seq_path, "step_short_name")
         shot_path = os.path.join(step_path, "shot_code")
@@ -323,12 +341,15 @@ class TestFromEntity(TestContext):
         self.check_entity(self.shot, result.entity)
         self.check_entity(self.current_user, result.user)
 
-    def test_task_from_sg(self):
+    @patch("tank.util.login.get_current_user")
+    def test_task_from_sg(self, get_current_user):
         """
         Case that all data is found from shotgun query
         Note that additional field is specified in a
         context_additional_entities hook.
         """
+        get_current_user.return_value = self.current_user
+        
         # add additional field value to task
         add_value = {"name":"additional", "id": 3, "type": "add_type"}
         self.task["additional_field"] = add_value

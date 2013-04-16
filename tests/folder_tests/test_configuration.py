@@ -22,20 +22,7 @@ class TestFolderConfiguration(TankTestBase):
     """
     def setUp(self):
         super(TestFolderConfiguration, self).setUp()
-        self.tk = tank.Tank(self.project_root)
         self.schema_location = os.path.join(self.project_root, "tank", "config", "core", "schema")
-
-    def test_project_missing(self):
-        """Case that project directory is missing from schema"""
-        self.setup_fixtures()
-        
-        # should be fine
-        folder.configuration.FolderConfiguration(self.tk, self.schema_location)
-        
-        project_schema = os.path.join(self.project_root, "tank", "config", "core", "schema", "project")
-        shutil.rmtree(project_schema)
-        
-        self.assertRaises(TankError, folder.configuration.FolderConfiguration, self.tk, self.schema_location)
 
     def test_project_root_mismatch(self):
         """
@@ -43,21 +30,22 @@ class TestFolderConfiguration(TankTestBase):
         """
         # remove root name from the roots file
         self.setup_multi_root_fixtures()
+        self.tk = tank.Tank(self.project_root)
         
         # should be fine
         folder.configuration.FolderConfiguration(self.tk, self.schema_location)
-        
-        project_name = os.path.basename(self.project_root)
-        
-        roots_path = tank.constants.get_roots_file_location(self.pipeline_configuration_path)        
-        roots_file = open(roots_path, "r")
-        roots = yaml.load(roots_file)
-        roots_file.close()
-        del(roots["alternate_1"])
 
-        roots_file = open(roots_path, "w")
-        roots_file.write(yaml.dump(roots))
-        roots_file.close()
+        roots_file = os.path.join(self.tk.pipeline_configuration.get_path(), "config", "core", "schema", "alternate_1.yml")
+        
+        fh = open(roots_file, "r")
+        data = yaml.load(fh)
+        fh.close()
+        data["root_name"] = "some_bogus_Data"
+        fh = open(roots_file, "w")
+        fh.write(yaml.dump(data))
+        fh.close()
+
+        self.tk = tank.Tank(self.project_root)
 
         self.assertRaises(TankError,
                           folder.configuration.FolderConfiguration,
@@ -69,6 +57,7 @@ class TestFolderConfiguration(TankTestBase):
         Case that there are mutiple projects, one non-primary without yaml a file
         """
         self.setup_multi_root_fixtures()
+        self.tk = tank.Tank(self.project_root)
         
         # should be fine
         folder.configuration.FolderConfiguration(self.tk, self.schema_location)

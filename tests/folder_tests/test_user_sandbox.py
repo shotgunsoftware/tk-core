@@ -4,20 +4,13 @@ Copyright (c) 2012 Shotgun Software, Inc
 import os
 import unittest
 import shutil
-from mock import Mock
+from mock import Mock, patch
 import tank
 from tank_vendor import yaml
 from tank import TankError
 from tank import hook
 from tank import folder
 from tank_test.tank_test_base import *
-
-
-def login_foo():
-    return "foo"
-
-def login_bar():
-    return "bar"
 
 
 class TestHumanUser(TankTestBase):
@@ -44,17 +37,14 @@ class TestHumanUser(TankTestBase):
         self.user_path = os.path.join(self.project_root, "foo", "shot_code")
         self.user_path2 = os.path.join(self.project_root, "bar", "shot_code")
 
-        self.TankCurLoginBackup = tank.util.login.get_login_name 
 
-    def tearDown(self):
-        tank.util.login.get_login_name = self.TankCurLoginBackup
-
-    def test_not_made_default(self):
+    @patch("tank.util.login.get_current_user")
+    def test_not_made_default(self, get_current_user):
         
         self.assertFalse(os.path.exists(self.user_path))
-        tank.util.login.g_shotgun_user_cache = None
-        tank.util.login.get_login_name = login_foo
-
+        
+        get_current_user.return_value = self.humanuser
+        
         folder.process_filesystem_structure(self.tk, 
                                             self.shot["type"], 
                                             self.shot["id"], 
@@ -63,13 +53,12 @@ class TestHumanUser(TankTestBase):
 
         self.assertFalse(os.path.exists(self.user_path))
 
-
-    def test_made_string(self):
+    @patch("tank.util.login.get_current_user")
+    def test_made_string(self, get_current_user):
         self.assertFalse(os.path.exists(self.user_path))
         
-        tank.util.login.g_shotgun_user_cache = None
-        tank.util.login.get_login_name = login_foo
-
+        get_current_user.return_value = self.humanuser
+        
         folder.process_filesystem_structure(self.tk, 
                                             self.shot["type"], 
                                             self.shot["id"], 
@@ -78,8 +67,7 @@ class TestHumanUser(TankTestBase):
 
         self.assertTrue(os.path.exists(self.user_path))
         
-        tank.util.login.g_shotgun_user_cache = None
-        tank.util.login.get_login_name = login_bar        
+        get_current_user.return_value = self.humanuser2
 
         folder.process_filesystem_structure(self.tk, 
                                             self.shot["type"], 
@@ -96,14 +84,13 @@ class TestHumanUser(TankTestBase):
         self.assertEquals(ctx_foo.filesystem_locations, [self.user_path])
         self.assertEquals(ctx_bar.filesystem_locations, [self.user_path2])        
         
-    def test_login_not_in_shotgun(self):
+    @patch("tank.util.login.get_current_user")
+    def test_login_not_in_shotgun(self, get_current_user):
         # make sure that if there is no loncal login matching, raise
         # an error when file system folders are created
         
+        get_current_user.return_value = None 
         
-        # change the record in the mock db to not match the local login
-        self.humanuser["login"] = "not the local login"
-
         self.assertRaises(TankError,
                           folder.process_filesystem_structure,
                           self.tk,
