@@ -547,6 +547,15 @@ class TemplatePathParser(object):
                 start_index = self.find_index_of_token(cur_key, cur_token, input_path, last_index)
                 if start_index is None:
                     return None
+                
+                if cur_key.length is not None:
+                    # there is a minimum length imposed on this key
+                    if last_index and (start_index-last_index) < cur_key.length:
+                        # we may have stopped early. One more click ahead
+                        start_index = self.find_index_of_token(cur_key, cur_token, input_path, start_index+1)
+                        if start_index is None:
+                            return None
+                        
 
                 end_index = start_index + len(cur_token)
             else:
@@ -579,7 +588,7 @@ class TemplatePathParser(object):
 
     def find_index_of_token(self, key, token, input_path, last_index):
         """
-        Determines starting index of a sub-string in the remainig portion of a path.
+        Determines starting index of a sub-string in the remaining portion of a path.
 
         If possible, domain knowledge will be used to improve the accuracy.
         :param key: The the key whose value should start after the token.
@@ -620,8 +629,7 @@ class TemplatePathParser(object):
             # key has not been previously processed
             # Check that the static token exists in the remaining input string
             if not token in input_path_lower[last_index:]:
-                msg = ("Tried to extract fields from path '%s'," + 
-                       "but path does not fit the template.")
+                msg = "Tried to extract fields from path '%s', but path does not fit the template."
                 self.last_error = msg % input_path
                 return None
 

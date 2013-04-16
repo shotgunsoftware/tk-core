@@ -20,7 +20,8 @@ class TemplateKey(object):
                  shotgun_entity_type=None,
                  shotgun_field_name=None,
                  exclusions=None,
-                 abstract=False):
+                 abstract=False, 
+                 length = None):
         """
         :param name: Key's name.
         :param default: Default value for this key.
@@ -29,6 +30,7 @@ class TemplateKey(object):
         :param shotgun_field_name: For keys directly linked to a shotgun field, the field name.
         :param exclusions: List of values which are not allowed.
         :param abstract: Bool, should this key be treated as abstract.
+        :param length: int, should this key be fixed length
         """
         self.name = name
         self.default = default
@@ -37,6 +39,7 @@ class TemplateKey(object):
         self.shotgun_entity_type = shotgun_entity_type
         self.shotgun_field_name = shotgun_field_name
         self.is_abstract = abstract
+        self.length = length
         self._last_error = ""
 
         # Validation
@@ -107,6 +110,11 @@ class TemplateKey(object):
             if str(value).lower() not in [str(x).lower() for x in self.choices]:
                 self._last_error = "%s Illegal value: '%s' not in choices: %s" % (self, value, str(self.choices))
                 return False
+        
+        if self.length is not None and len(str(value)) != self.length:
+            self._last_error = ("%s Illegal value: '%s' does not have a length of "
+                                "%d characters." % (self, value, self.length))
+            return False
                         
         return True
 
@@ -136,7 +144,8 @@ class StringKey(TemplateKey):
                  shotgun_entity_type=None,
                  shotgun_field_name=None, 
                  exclusions=None,
-                 abstract=False):
+                 abstract=False, 
+                 length=None):
         """
         :param name: Name by which the key will be refered.
         :param default: Default value for the key.
@@ -147,6 +156,7 @@ class StringKey(TemplateKey):
         :param shotgun_field_name: For keys directly linked to a shotgun field, the field name.
         :param exclusions: List of forbidden values.
         :param abstract: Bool, should this key be treated as abstract.
+        :param length: int, should this key be fixed length
         """
         self.filter_by = filter_by
         if self.filter_by == "alphanumeric":
@@ -160,10 +170,10 @@ class StringKey(TemplateKey):
                                         shotgun_entity_type=shotgun_entity_type,
                                         shotgun_field_name=shotgun_field_name,
                                         exclusions=exclusions,
-                                        abstract=abstract)
+                                        abstract=abstract,
+                                        length=length)
 
     def validate(self, value):
-
         if self._filter_regex and self._filter_regex.search(value):
             self._last_error = "%s Illegal value '%s' does not fit filter" % (self, value)
             return False
@@ -186,7 +196,8 @@ class IntegerKey(TemplateKey):
                  shotgun_entity_type=None,
                  shotgun_field_name=None,
                  exclusions=None,
-                 abstract=False):
+                 abstract=False,
+                 length=None):
         """
         :param name: Key's name.
         :param default: Default value for this key.
@@ -198,6 +209,7 @@ class IntegerKey(TemplateKey):
         :param shotgun_field_name: For keys directly linked to a shotgun field, the field name.
         :param exclusions: List of forbidden values.
         :param abstract: Bool, should this key be treated as abstract.
+        :param length: int, should this key be fixed length
         """
         super(IntegerKey, self).__init__(name,
                                          default=default,
@@ -205,7 +217,8 @@ class IntegerKey(TemplateKey):
                                          shotgun_entity_type=shotgun_entity_type,
                                          shotgun_field_name=shotgun_field_name,
                                          exclusions=exclusions,
-                                         abstract=abstract)
+                                         abstract=abstract,
+                                         length=length)
 
         if not(format_spec is None or isinstance(format_spec, basestring)):
             msg = "Format_spec for TemplateKey %s is not of type string: %s"
