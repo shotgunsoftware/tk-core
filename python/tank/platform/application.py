@@ -20,7 +20,7 @@ class Application(TankBundle):
     Base class for an app in Tank.
     """
     
-    def __init__(self, engine, descriptor, settings):
+    def __init__(self, engine, descriptor, settings, instance_name):
         """
         Called by the app loader framework. The constructor
         is not supposed to be overridden by deriving classes.
@@ -34,6 +34,7 @@ class Application(TankBundle):
         TankBundle.__init__(self, engine.tank, engine.context, settings, descriptor)
         
         self.__engine = engine
+        self.__instance_name = instance_name
 
         self.log_debug("App init: Instantiating %s" % self)
                 
@@ -60,6 +61,13 @@ class Application(TankBundle):
 
     ##########################################################################################
     # properties
+        
+    @property
+    def instance_name(self):
+        """
+        The name for this app instance
+        """
+        return self.__instance_name
         
     @property
     def engine(self):
@@ -105,7 +113,7 @@ class Application(TankBundle):
         self.engine.log_exception(msg)
 
 
-def get_application(engine, app_folder, descriptor, settings):
+def get_application(engine, app_folder, descriptor, settings, instance_name):
     """
     Internal helper method. 
     (Removed from the engine base class to make it easier to run unit tests).
@@ -120,6 +128,6 @@ def get_application(engine, app_folder, descriptor, settings):
         
     # Instantiate the app
     class_obj = loader.load_plugin(plugin_file, Application)
-    obj = class_obj(engine, descriptor, settings)
+    obj = class_obj(engine, descriptor, settings, instance_name)
     return obj
 

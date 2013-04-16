@@ -44,6 +44,8 @@ class Engine(TankBundle):
         self.__currently_initializing_app = None
         self.__created_qt_dialogs = []
         
+        self.__commands_that_need_prefixing = []
+        
         # get the engine settings
         settings = self.__env.get_engine_settings(self.__engine_instance_name)
         
@@ -246,6 +248,25 @@ class Engine(TankBundle):
         if self.__currently_initializing_app is not None:
             # track which apps this request came from
             properties["app"] = self.__currently_initializing_app
+        
+        # check for duplicates!
+        if name in self.__commands:
+            # already something in the dict with this name
+            existing_item = self.__commands[name]
+            if existing_item["properties"].get("app"):
+                # we know the app for the existing item.
+                # so prefix with app name
+                new_name_for_existing = "%s:%s" % (existing_item["properties"].get("app").instance_name, name)
+                self.__commands[new_name_for_existing] = existing_item
+                del(self.__commands[name])
+                # add it to our list
+                self.__commands_that_need_prefixing.append(name) 
+                      
+        if name in self.__commands_that_need_prefixing:
+            # try to append a prefix if possible
+            if properties.get("app"):
+                name = "%s:%s" % (properties.get("app").instance_name, name)
+            
         self.__commands[name] = { "callback": callback, "properties": properties }
         
                 
@@ -482,7 +503,7 @@ class Engine(TankBundle):
                 app_dir = descriptor.get_path()
 
                 # create the object, run the constructor
-                app = application.get_application(self, app_dir, descriptor, app_settings)
+                app = application.get_application(self, app_dir, descriptor, app_settings, app_instance_name)
                 
                 # load any frameworks required
                 setup_frameworks(self, app, self.__env, descriptor)
