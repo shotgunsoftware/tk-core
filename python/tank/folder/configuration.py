@@ -130,31 +130,32 @@ class FolderConfiguration(object):
         Scan the config and build objects structure
         """
                 
-        project_dirs = self._get_sub_directories(schema_config_path)
+        project_folders = self._get_sub_directories(schema_config_path)
         
         # make some space in our obj/entity type mapping
         self._entity_nodes_by_type["Project"] = []
         
-        for project_dir in project_dirs:
-            
-            schema_config_project_folder = os.path.join(schema_config_path, project_dir)
-            
+        for project_folder in project_folders:
+
             # read metadata to determine root path 
-            metadata = self._read_metadata(schema_config_project_folder)
+            metadata = self._read_metadata(project_folder)
             
             if metadata is None:
-                raise TankError("Project directory missing required metadata file: %s" % schema_config_project_folder)
+                if os.path.basename(project_folder) == "project":
+                    metadata = {"type": "project", "root_name": "primary"}
+                else:
+                    raise TankError("Project directory missing required yml file: %s.yml" % project_folder)
             
             if metadata.get("type") != "project":
-                raise TankError("Only items of type 'project' are allowed at the root level: %s" % schema_config_project_folder)
+                raise TankError("Only items of type 'project' are allowed at the root level: %s" % project_folder)
                             
-            project_obj = Project.create(self._tk, schema_config_project_folder, metadata)
+            project_obj = Project.create(self._tk, project_folder, metadata)
 
             # store it in our lookup tables
             self._entity_nodes_by_type["Project"].append(project_obj)
             
             # recursively process the rest
-            self._process_config_r(project_obj, schema_config_project_folder)
+            self._process_config_r(project_obj, project_folder)
         
 
     def _process_config_r(self, parent_node, parent_path):
