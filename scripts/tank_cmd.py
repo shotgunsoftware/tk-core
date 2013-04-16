@@ -61,16 +61,15 @@ class AltCustomFormatter(logging.Formatter):
         else:
             # shell based logging. Cut nicely at 80 chars width.        
             if record.levelno in (logging.WARNING, logging.ERROR, logging.CRITICAL, logging.DEBUG):
-                message = '%s: %s' % (record.levelname, record.msg)
-            else:
-                message = record.msg
+                record.msg = '%s: %s' % (record.levelname, record.msg)
             
-            lines = []
-            for x in textwrap.wrap(message, width=78):
-                lines.append(x)
+            if "Code Traceback" not in record.msg:
+                # do not wrap exceptions 
+                lines = []
+                for x in textwrap.wrap(record.msg, width=78):
+                    lines.append(x)
+                record.msg = "\n".join(lines)
             
-            record.msg = "\n".join(lines)
-        
         return super(AltCustomFormatter, self).format(record)
     
 
