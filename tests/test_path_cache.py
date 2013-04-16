@@ -36,18 +36,9 @@ class TestInit(TestPathCache):
     def test_root_map(self):
         """Test that mapping of project root locations is created"""
         # More specific testing of loading roots happens in test_root
-        self.assertIn("primary", self.path_cache.roots)
-        self.assertEquals(self.project_root, self.path_cache.roots["primary"])
+        self.assertIn("primary", self.path_cache._roots)
+        self.assertEquals(self.project_root, self.path_cache._roots["primary"])
         
-
-    def test_pass_in_root_mapping(self):
-        """Test that if a mapping of project root locations is passed in, it is used."""
-        mapping = {'root_name':'root_path'}
-        #FIXME!!!
-        pc_obj = path_cache.PathCache(self.pipeline_configuration, roots=mapping)
-        for root_name, root_path in mapping.items():
-            self.assertEquals(root_path, pc_obj.roots[root_name])
-
     def test_db_columns(self):
         """Test that expected columns are created in db"""
         expected = ["entity_type", "entity_id", "entity_name", "root", "path", "primary_entity"]

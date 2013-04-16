@@ -33,34 +33,6 @@ class TestGetProjectRoots(TankTestBase):
         result = pc.get_data_roots()
         self.assertEqual(expected, result)
 
-    def test_primary_missing(self):
-        """Case roots file does not define primary root"""
-        del(self.roots["primary"])
-        root_file = open(self.root_file_path, "w") 
-        root_file.write(yaml.dump(self.roots))
-        root_file.close()
-
-        # expect primary will be set using primary argument
-        pc = tank.pipelineconfig.from_path(self.project_root)
-        result = pc.get_data_roots()
-        self.assertEqual(self.project_root, result["primary"])
-
-    def test_primary_mismatch(self):
-        """Case that file primary path does not match primary path argument"""
-        bad_path = os.path.join(self.tank_temp, "other_root")
-        for os_name in ["mac_path", "windows_path", "linux_path"]:
-            self.roots["primary"][os_name] = bad_path
-        root_file = open(self.root_file_path, "w") 
-        root_file.write(yaml.dump(self.roots))
-        root_file.close()
-        bad_project_path = os.path.join(bad_path, os.path.basename(self.project_root)) 
-        
-        pc = tank.pipelineconfig.from_path(self.project_root)
-        
-        expected = ("Primary root defined in roots.yml file does not match that passed as argument" + 
-                   " (likely from Tank local storage): \n%s\n%s" % (bad_project_path, self.project_root))
-        self.check_error_message(tank.errors.TankError, expected, pc.get_data_roots)
-
     def test_paths(self):
         """Test paths match those in roots for current os."""
         root_file =  open(self.root_file_path, "w") 
@@ -68,7 +40,7 @@ class TestGetProjectRoots(TankTestBase):
         root_file.close()
 
         pc = tank.pipelineconfig.from_path(self.project_root)
-        result = pc.get_data_roots(self.project_root)
+        result = pc.get_data_roots()
         
         # Determine platform
         system = sys.platform.lower()

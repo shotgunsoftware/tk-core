@@ -133,30 +133,7 @@ class FolderIOReceiver(object):
         self._items.append({"source_path": src_path, 
                             "target_path": target_path, 
                             "metadata": metadata, 
-                            "action": "copy"})  
-    
-    def prepare_project_root(self, root_path, metadata):
-        """
-        Called when the project root is created.
-        """
-        if root_path != self._tk.project_path:
-            
-            # this is one of those non-primary project roots
-            # used when there are multiple roots configured
-            # ensure that we have a primary_project.yml file
-            primary_roots_file = os.path.join(root_path, "tank", "config", "primary_project.yml")
-
-            # get the content for this file
-            primary_roots_content = root.platform_paths_for_root("primary", self._tk.project_path)
-            
-            # and translate that into yaml
-            primary_roots_content_yaml = yaml.dump(primary_roots_content)
-                        
-            self._items.append({"path": primary_roots_file, 
-                                "metadata": metadata, 
-                                "action": "create_file",
-                                "content": primary_roots_content_yaml})
-            
+                            "action": "copy"})              
 
 
 

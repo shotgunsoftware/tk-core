@@ -127,6 +127,7 @@ class PathCache(object):
                 root_name = cur_root_name
                 # chop off root
                 relative_path = full_path[len(root_path):]
+                break
 
         if not root_name:
             raise TankError("The path '%s' does not belong to the project!" % full_path)

@@ -399,6 +399,7 @@ class TestTankFromPath(TankTestBase):
         Test path from primary branch.
         """
         child_path = os.path.join(self.project_root, "child_dir")
+        os.mkdir(os.path.join(self.project_root, "child_dir"))
         result = tank.tank_from_path(child_path)
         self.assertIsInstance(result, Tank)
         self.assertEquals(result.project_path, self.project_root)
@@ -407,6 +408,7 @@ class TestTankFromPath(TankTestBase):
         """
         Test path not from primary branch.
         """
+        os.mkdir(os.path.join(self.alt_root_1, "child_dir"))
         child_path = os.path.join(self.alt_root_1, "child_dir")
         result = tank.tank_from_path(child_path)
         self.assertIsInstance(result, Tank)

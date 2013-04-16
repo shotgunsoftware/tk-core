@@ -134,6 +134,7 @@ class TankTestBase(unittest.TestCase):
                         "name": "project_name"}
 
         self.project_root = os.path.join(self.tank_temp, self.project["tank_name"])
+          
         # create project directory
         self._move_project_data()
         os.mkdir(self.project_root)
@@ -147,9 +148,27 @@ class TankTestBase(unittest.TestCase):
         project_cache_dir = os.path.join(project_tank, "cache")
         os.mkdir(project_cache_dir)
 
+        # create back-link file from project storage
+        data = "- {darwin: '%s', linux2: '%s', win32: '%s'}" % (project_tank, project_tank, project_tank) 
+        self.create_file(os.path.join(project_tank, "config", "tank_configs.yml"), data)
+
+        # add files needed by the pipeline config
+        self.create_file(os.path.join(project_tank, "config", "core", "pipeline_configuration.yml"), "project_name: %s" % self.project["tank_name"])
+        
+        roots = {"primary": {}}
+        for os_name in ["windows_path", "linux_path", "mac_path"]:
+            #TODO make os specific roots
+            roots["primary"][os_name] = os.path.dirname(self.project_root)        
+        roots_path = os.path.join(project_tank, "config", "core", "roots.yml")
+        roots_file = open(roots_path, "w") 
+        roots_file.write(yaml.dump(roots))
+        roots_file.close()        
+        
+        self.pipeline_configuration = tank.pipelineconfig.from_path(project_tank)        
+
         # add project to mock sg and path cache db
         self.add_production_path(self.project_root, self.project)
-
+        
         # change to return our shotgun object
         def return_sg(*args, **kws):
             return self.sg_mock
@@ -166,12 +185,12 @@ class TankTestBase(unittest.TestCase):
         test_data_path = os.path.join(self.tank_source_path, "tests", "data")
         core_source = os.path.join(test_data_path, core_config)
         core_target = os.path.join(self.project_config, "core")
-        shutil.copytree(core_source, core_target)
+        self._copy_folder(core_source, core_target)
 
         for config_dir in ["env", "hooks", "test_app", "test_engine"]:
             config_source = os.path.join(test_data_path, config_dir)
             config_target = os.path.join(self.project_config, config_dir)
-            shutil.copytree(config_source, config_target)
+            self._copy_folder(config_source, config_target)
         
         # Edit the test environment with correct hard-coded paths to the test engine and app
         src = open(os.path.join(test_data_path, "env", "test.yml"))
@@ -193,6 +212,13 @@ class TankTestBase(unittest.TestCase):
         project_name = os.path.basename(self.project_root)
         self.alt_root_1 = os.path.join(self.tank_temp, "alternate_1", project_name)
         self.alt_root_2 = os.path.join(self.tank_temp, "alternate_2", project_name)
+        
+        # add backlink files to storage
+        tank_code = os.path.join(self.project_root, "tank")
+        data = "- {darwin: '%s', linux2: '%s', win32: '%s'}" % (tank_code, tank_code, tank_code) 
+        self.create_file(os.path.join(self.alt_root_1, "tank", "config", "tank_configs.yml"), data)
+        self.create_file(os.path.join(self.alt_root_2, "tank", "config", "tank_configs.yml"), data)
+
 
         # Write roots file
         roots = {"primary": {}, "alternate_1": {}, "alternate_2": {}}
@@ -201,11 +227,14 @@ class TankTestBase(unittest.TestCase):
             roots["primary"][os_name]     = os.path.dirname(self.project_root)
             roots["alternate_1"][os_name] = os.path.dirname(self.alt_root_1)
             roots["alternate_2"][os_name] = os.path.dirname(self.alt_root_2)
-        roots_path = tank.constants.get_roots_file_location(self.pipeline_configuration_path)        
+        roots_path = os.path.join(self.project_root, "tank", "config", "core", "roots.yml")     
         roots_file = open(roots_path, "w") 
         roots_file.write(yaml.dump(roots))
         roots_file.close()
-
+        
+        # need a new PC object that is using the new roots def file we just created
+        self.pipeline_configuration = tank.pipelineconfig.from_path(os.path.join(self.project_root, "tank"))
+        
         # add project root folders
         # primary path was already added in base setUp
         self.add_production_path(self.alt_root_1, self.project)
@@ -214,6 +243,7 @@ class TankTestBase(unittest.TestCase):
         tk = tank.Tank(self.project_root)
         tk.create_filesystem_structure("Project", self.project["id"])
 
+        
 
     def add_production_path(self, path, entity=None):
         """
@@ -451,3 +481,33 @@ class TankTestBase(unittest.TestCase):
         _move_data(self.project_root)
         _move_data(self.alt_root_1)
         _move_data(self.alt_root_2)
+
+    def _copy_folder(self, src, dst): 
+        """
+        Alternative implementation to shutil.copytree
+        Copies recursively with very open permissions.
+        Creates folders if they don't already exist.
+        """
+        files = []
+        
+        if not os.path.exists(dst):
+            os.mkdir(dst, 0777)
+    
+        names = os.listdir(src) 
+        for name in names:
+    
+            srcname = os.path.join(src, name) 
+            dstname = os.path.join(dst, name) 
+                    
+            if os.path.isdir(srcname): 
+                files.extend( self._copy_folder(srcname, dstname) )             
+            else: 
+                shutil.copy(srcname, dstname)
+                files.append(srcname)
+                # if the file extension is sh, set executable permissions
+                if dstname.endswith(".sh") or dstname.endswith(".bat"):
+                    # make it readable and executable for everybody
+                    os.chmod(dstname, 0777)        
+        
+        return files
+    
