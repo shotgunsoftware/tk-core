@@ -251,7 +251,7 @@ class PipelineConfiguration(object):
         """
         returns the config folder for the project
         """
-        return os.path.join(self._pc_root, "config", "core")
+        return os.path.join(self._pc_root, "config")
 
     def get_hooks_location(self):
         """
