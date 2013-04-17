@@ -188,7 +188,7 @@ class CmdlineSetupInteraction(object):
         projs = self._sg.find("Project", filters, ["id", "name", "sg_description"])
     
         if len(projs) == 0:
-            raise TankError("Sorry, not projects found! All projects seem to have already been "
+            raise TankError("Sorry, no projects found! All projects seem to have already been "
                             "set up with Tank.")
             
         self._log.info("")
