@@ -245,6 +245,11 @@ class Engine(TankBundle):
         """
         if properties is None:
             properties = {}
+        
+        # uniqueness prefix, populated when there are several instances of the same app
+        properties["prefix"] = None
+        
+        # try to add an app key to the dict with the app requesting the command
         if self.__currently_initializing_app is not None:
             # track which apps this request came from
             properties["app"] = self.__currently_initializing_app
@@ -256,16 +261,21 @@ class Engine(TankBundle):
             if existing_item["properties"].get("app"):
                 # we know the app for the existing item.
                 # so prefix with app name
-                new_name_for_existing = "%s:%s" % (existing_item["properties"].get("app").instance_name, name)
+                prefix = existing_item["properties"].get("app").instance_name
+                new_name_for_existing = "%s:%s" % (prefix, name)
                 self.__commands[new_name_for_existing] = existing_item
+                self.__commands[new_name_for_existing]["properties"]["prefix"] = prefix 
                 del(self.__commands[name])
                 # add it to our list
-                self.__commands_that_need_prefixing.append(name) 
+                self.__commands_that_need_prefixing.append(name)
                       
         if name in self.__commands_that_need_prefixing:
             # try to append a prefix if possible
             if properties.get("app"):
-                name = "%s:%s" % (properties.get("app").instance_name, name)
+                prefix = properties.get("app").instance_name
+                name = "%s:%s" % (prefix, name)
+                # also add a prefix key in the properties dict
+                properties["prefix"] = prefix
             
         self.__commands[name] = { "callback": callback, "properties": properties }
         

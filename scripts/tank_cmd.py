@@ -617,12 +617,30 @@ def run_engine_cmd(log, install_root, pipeline_config_root, context_items, engin
         log.info("When the %s engine is running in the %s environment, the following commands "
                  "are available:" % (e.name, env_name))
         log.info("")
-        for c in e.commands:
-            log.info("- %s (%s)" % (c, e.commands[c]["properties"].get("title", "No description available.")))
-            formatted_cmd = c
-            if not re.match("^[a-zA-Z0-9]+$", c):
-                # funny chars - quote it!
-                formatted_cmd = "'%s'" % c
+        
+        for c in e.commands:    
+            
+            # custom properties dict
+            props = e.commands[c]["properties"]
+            
+            # the properties dict contains some goodies here that we can use
+            # look for a short_name, if that does not exist, fall back on the command name
+            # prefix will hold a prefix that guarantees uniqueness, if needed
+            cmd_name = c
+            if "short_name" in props:
+                if props["prefix"]:
+                    # need a prefix to produce a unique command
+                    cmd_name = "%s:%s" % (props["prefix"], props["short_name"])
+                else:
+                    # unique without a prefix
+                    cmd_name = props["short_name"]
+            
+            description = e.commands[c]["properties"].get("description", "No description available.")
+            
+            log.info("- %s" % cmd_name)
+            log.info("  %s" % description)
+            log.info("")
+            
             
         log.info("")
         log.info("  To run a command in the current work area, type 'tank command'")
