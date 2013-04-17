@@ -474,7 +474,7 @@ def run_engine_cmd(log, install_root, pipeline_config_root, context_items, engin
     log.debug("Command: %s" % command)
 
     log.info("")
-    sys.stderr.write("This is Tank")
+    log.info("Welcome to Tank!")
 
     # now resolve the location and start      
     if len(context_items) == 1:        
@@ -491,7 +491,7 @@ def run_engine_cmd(log, install_root, pipeline_config_root, context_items, engin
                                 "(%s) but Tank Reported a problem. Details: %s" % (ctx_path, e))
             else:
                 # a bad path was specified by a user
-                raise TankError("Error when trying to start from path '%s'. "
+                raise TankError("Could not launch Tank from path '%s'! "
                                 "Details: %s" % (ctx_path, e) )
             
         log.debug("Resolved path %s into tank instance %s" % (ctx_path, tk))
@@ -506,34 +506,81 @@ def run_engine_cmd(log, install_root, pipeline_config_root, context_items, engin
         except:
             # it wasn't an id. So resolve the id
             sg = shotgun.create_sg_connection()
+            
+            name_field = "code"
+            if entity_type == "Project":
+                name_field = "name"
+            elif entity_type == "Task":
+                name_field = "content"
+            elif entity_type == "HumanUser":
+                name_field = "login"
+            
             try:       
-                entity = sg.find(entity_type, [["code", "is", item]])
-            except:
-                raise TankError("Could not find a record of type %s with name %s in Shotgun!" % (entity_type, item))
+                entities = sg.find(entity_type, 
+                                   [[name_field, "contains", item]], 
+                                   [name_field, "description", "entity", "link"])
+            except Exception, e:
+                raise TankError("An error occurred when searching in Shotgun: %s" % e)
                  
-            if len(entity) == 0:
-                raise TankError("Could not find %s '%s' in Shotgun!" % (entity_type, item))
-            elif len(entity) > 1:
-                raise TankError("More than one item matching %s '%s'. Please specify a shotgun id "
-                                "instead of a name (e.g %s:1234)" % (item, entity_type))
+            if len(entities) == 0:
+                log.info("")
+                log.error("Could not find a %s with a name containing '%s' in Shotgun!" % (entity_type, item))
+                raise TankError("Try searching for something more else, alternatively use a "
+                                "Shotgun id to locate your object. For more information, run "
+                                "tank --help.")
+            
+            elif len(entities) > 1:
+                log.info("")
+                log.error("More than one item matching %s '%s'!" % (entity_type, item))
+                log.info("")
+                log.info("Found the following %ss:" % entity_type)
+                for x in entities:
+                    chunks = []
+                    chunks.append(" [%d] %s" % (x["id"], x[name_field]))
+                    
+                    if x.get("entity"):
+                        try: # <-- in case this is ever not a link field
+                            chunks.append( " (%s %s)" % (x.get("entity").get("type"), 
+                                                         x.get("entity").get("name")))
+                        except:
+                            pass
+                    
+                    if x.get("link"):
+                        try: # <-- in case this is ever not a link field
+                            chunks.append( " (%s %s)" % (x.get("link").get("type"), 
+                                                         x.get("link").get("name")))
+                        except:
+                            pass
+
+                    if x.get("description"):
+                        chunks.append( " (%s)" % x.get("description"))
+                    
+                    log.info("".join(chunks))
+                
+                raise TankError("Please specify a full name from the list above! If there are "
+                                "more than one item with the same name, you can use the id instead.")
             else:
                 # single match yay
-                entity_id = entity[0]["id"]
+                entity = entities[0]
+                log.info("- Found %s %s" % (entity_type, entity[name_field]))
+                entity_id = entity["id"]
             
         # sweet we got a type and an id. Start up tank.
         try:
             tk = tank.tank_from_entity(entity_type, entity_id)
         except TankError, e:
             # invalid entity
-            raise TankError("The Shotgun item %s %s is not recognized by Tank. "
+            raise TankError("The Shotgun item %s id %s is not recognized by Tank. "
                             "Details: %s" % (entity_type, entity_id, e))
             
         log.debug("Resolved %s %s into tank instance %s" % (entity_type, item, tk))
     
-    sys.stderr.write(" %s" % tk.version)
     if install_root != pipeline_config_root:
         # generic tank command - so indicate which config was picked
-        sys.stderr.write(", [%s]" % tk.pipeline_configuration.get_path())
+        log.info("- Starting Tank %s from %s." % (tk.version, tk.pipeline_configuration.get_path()))
+    else:
+        log.info("- Starting Tank %s." % tk.version)
+        
     
     # attach our logger to the tank instance
     # this will be detected by the shotgun and shell engines
@@ -545,8 +592,8 @@ def run_engine_cmd(log, install_root, pipeline_config_root, context_items, engin
         ctx = tk.context_from_entity(entity_type, entity_id)
     else:
         ctx = tk.context_from_path(ctx_path)
-    log.debug("Resolved %s into context %s" % (" ".join(context_items), ctx))
-    sys.stderr.write(", for %s" % ctx)
+    log.debug("Resolved %s into context %r" % (" ".join(context_items), ctx))
+    log.info("- Setting the Context to %s." % ctx)
             
     # kick off mr engine.
     e = tank.platform.start_engine(engine_name, tk, ctx)
@@ -554,7 +601,7 @@ def run_engine_cmd(log, install_root, pipeline_config_root, context_items, engin
     log.debug("Started engine %s" % e)
     
     env_name = e.environment["name"].capitalize()
-    sys.stderr.write(", running %s in the %s environment.\n" % (e.name, env_name))
+    log.info("- Loaded the %s environment." % env_name)
 
     # lastly, run the command
     if command is None:
