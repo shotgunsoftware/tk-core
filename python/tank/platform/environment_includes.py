@@ -190,7 +190,7 @@ def process_includes(file_name, data, context):
     try:
         resolved_data = _resolve_refs_r(lookup_dict, data)
     except TankError, e:
-        raise TankError("Include error. Could not resolve references for %s: %s" (file_name, e))
+        raise TankError("Include error. Could not resolve references for %s: %s" % (file_name, e))
     
     return resolved_data
     
