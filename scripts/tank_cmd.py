@@ -560,7 +560,12 @@ def run_engine_cmd(log, install_root, pipeline_config_root, context_items, engin
                             pass
 
                     if x.get("description"):
-                        chunks.append( " (%s)" % x.get("description"))
+                        desc = x.get("description")
+                        # pick up all words in the first 75 chars of desc
+                        chopped_desc = re.match(r'(.{,50})(\W|$)', desc).group(1)
+                        if len(chopped_desc) < len(desc):
+                            chopped_desc += "..."
+                        chunks.append( " (%s)" % chopped_desc)
                     
                     log.info("".join(chunks))
                 
