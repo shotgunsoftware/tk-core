@@ -520,7 +520,14 @@ def run_engine_cmd(log, install_root, pipeline_config_root, context_items, engin
                                    [[name_field, "contains", item]], 
                                    [name_field, "description", "entity", "link"])
             except Exception, e:
-                raise TankError("An error occurred when searching in Shotgun: %s" % e)
+                
+                # API read() invalid/missing string entity 'type'
+                if str(e).startswith("API read() invalid/missing string entity 'type'"):
+                    # bad entity type
+                    raise TankError("The entity type '%s' does not exist in Shotgun!" % entity_type)
+                else:
+                    # some other error
+                    raise TankError("An error occurred when searching in Shotgun: %s" % e)
                  
             if len(entities) == 0:
                 log.info("")
