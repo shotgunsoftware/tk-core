@@ -604,43 +604,60 @@ def run_engine_cmd(log, install_root, pipeline_config_root, context_items, engin
     log.info("- Loaded the %s environment." % env_name)
 
     # lastly, run the command
+    command_found = True
+        
     if command is None:
         log.info("")
-        log.info("You didn't specify a command to run!")  
-    elif command not in e.commands:
+        log.info("You didn't specify a command to run!")
+        command_found = False
+
+    ########################################################################
+    # make a list of commands, format them and make them look nice
+    
+    formatted_commands = {}
+    for c in e.commands:    
+        
+        # custom properties dict
+        props = e.commands[c]["properties"]
+        
+        # the properties dict contains some goodies here that we can use
+        # look for a short_name, if that does not exist, fall back on the command name
+        # prefix will hold a prefix that guarantees uniqueness, if needed
+        cmd_name = c
+        if "short_name" in props:
+            if props["prefix"]:
+                # need a prefix to produce a unique command
+                cmd_name = "%s:%s" % (props["prefix"], props["short_name"])
+            else:
+                # unique without a prefix
+                cmd_name = props["short_name"]
+        
+        description = e.commands[c]["properties"].get("description", "No description available.")
+
+        formatted_commands[cmd_name] = {"description": description, "key": c}
+
+          
+    if command is not None and command not in formatted_commands:
         log.info("")
         log.error("Unknown command: '%s'" % command)
+        command_found = False
         
-    if command is None or command not in e.commands:
+    if command_found:
+        # run the app!
+        log.info("Executing the %s command." % command)
+        cmd_key = formatted_commands[command]["key"]
+        return e.commands[cmd_key]["callback"]()
 
+    else:
         log.info("")
         log.info("When the %s engine is running in the %s environment, the following commands "
                  "are available:" % (e.name, env_name))
         log.info("")
         
-        for c in e.commands:    
-            
-            # custom properties dict
-            props = e.commands[c]["properties"]
-            
-            # the properties dict contains some goodies here that we can use
-            # look for a short_name, if that does not exist, fall back on the command name
-            # prefix will hold a prefix that guarantees uniqueness, if needed
-            cmd_name = c
-            if "short_name" in props:
-                if props["prefix"]:
-                    # need a prefix to produce a unique command
-                    cmd_name = "%s:%s" % (props["prefix"], props["short_name"])
-                else:
-                    # unique without a prefix
-                    cmd_name = props["short_name"]
-            
-            description = e.commands[c]["properties"].get("description", "No description available.")
-            
-            log.info("- %s" % cmd_name)
-            log.info("  %s" % description)
+        for c in formatted_commands:    
+            log.info("- %s" % c)
+            log.info("  %s" % formatted_commands[c]["description"])
             log.info("")
-            
             
         log.info("")
         log.info("  To run a command in the current work area, type 'tank command'")
@@ -649,13 +666,7 @@ def run_engine_cmd(log, install_root, pipeline_config_root, context_items, engin
         
         log.info("")
         log.info("")
-                
-        return
-
     
-    # run the app!
-    log.info("Executing the %s command." % command)
-    return e.commands[command]["callback"]()
             
 
 
