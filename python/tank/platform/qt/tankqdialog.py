@@ -57,9 +57,9 @@ class TankQDialog(TankDialogBase):
             if p is None:
                 return "Undefined"
             elif show_type:
-                return "%s %s" % (p["type"], p["name"])
+                return "%s %s" % (p.get("type"), p.get("name"))
             else:
-                return "%s" % p["name"]
+                return "%s" % p.get("name")
     
         tooltip = "<b>Work Area Details:</b>"
         tooltip += "<br><b>Project</b>: %s" % _format_context_property(self._bundle.context.project)
@@ -127,8 +127,7 @@ class TankQDialog(TankDialogBase):
         for setting, params in self._bundle.descriptor.get_configuration_schema().items():        
             value = self._bundle.settings.get(setting)
             self._add_settings_item(setting, params, value)
-        
-        
+                
     def _handle_child_close(self, event):
         """
         Callback from the hosted widget's closeEvent.
