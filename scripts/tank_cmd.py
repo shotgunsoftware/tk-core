@@ -834,12 +834,17 @@ if __name__ == "__main__":
         log.info("")
         exit_code = 5
         
+    except KeyboardInterrupt, e:
+        log.info("")
+        log.info("Exiting.")
+        exit_code = 6
+    
     except Exception, e:
         # call stack
         log.info("")
         log.exception("An exception was reported: %s" % e)
         log.info("")                
-        exit_code = 6
+        exit_code = 7
     
     log.debug("Exiting with exit code %s" % exit_code)
     sys.exit(exit_code)
