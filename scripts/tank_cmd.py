@@ -662,8 +662,7 @@ def run_engine_cmd(log, install_root, pipeline_config_root, context_items, engin
 
     else:
         log.info("")
-        log.info("When the %s engine is running in the %s environment, the following commands "
-                 "are available:" % (e.name, env_name))
+        log.info("The following commands are available:")
         log.info("")
         
         for c in formatted_commands:    
