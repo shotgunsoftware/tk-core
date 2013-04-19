@@ -26,8 +26,11 @@ def get_login_name():
         except:
             return None
 
-g_shotgun_user_cache = None
-g_shotgun_current_user_cache = None
+# note! Because the shotgun caching method can return None, to indicate that no
+# user was found, we cannot use a None value to indicate that the cache has not been
+# populated. 
+g_shotgun_user_cache = "unknown"
+g_shotgun_current_user_cache = "unknown"
 
 def get_shotgun_user(sg):
     """
@@ -48,8 +51,8 @@ def get_shotgun_user(sg):
     
     This method connects to shotgun.
     """    
-    global g_shotgun_user_cache
-    if g_shotgun_user_cache is None:        
+    global g_shotgun_user_cache    
+    if g_shotgun_user_cache == "unknown":        
         fields = ["id", "type", "email", "login", "name", "image"]
         local_login = get_login_name()
         g_shotgun_user_cache = sg.find_one("HumanUser", filters=[["login", "is", local_login]], fields=fields)
@@ -73,7 +76,7 @@ def get_current_user(tk):
     This method connects to shotgun.
     """    
     global g_shotgun_current_user_cache
-    if g_shotgun_current_user_cache is None:        
+    if g_shotgun_current_user_cache == "unknown":
     
         # call hook to get current login
         current_login = tk.execute_hook(constants.CURRENT_LOGIN_HOOK_NAME)

@@ -42,9 +42,7 @@ class TestHumanUser(TankTestBase):
     def test_not_made_default(self, get_current_user):
         
         self.assertFalse(os.path.exists(self.user_path))
-        
-        get_current_user.return_value = self.humanuser
-        
+        get_current_user.return_value = self.humanuser        
         folder.process_filesystem_structure(self.tk, 
                                             self.shot["type"], 
                                             self.shot["id"], 
@@ -58,7 +56,6 @@ class TestHumanUser(TankTestBase):
         self.assertFalse(os.path.exists(self.user_path))
         
         get_current_user.return_value = self.humanuser
-        
         folder.process_filesystem_structure(self.tk, 
                                             self.shot["type"], 
                                             self.shot["id"], 
@@ -68,7 +65,6 @@ class TestHumanUser(TankTestBase):
         self.assertTrue(os.path.exists(self.user_path))
         
         get_current_user.return_value = self.humanuser2
-
         folder.process_filesystem_structure(self.tk, 
                                             self.shot["type"], 
                                             self.shot["id"], 

@@ -59,7 +59,8 @@ class ConfigItem(QtGui.QWidget):
         elif param_type == "template":
             # resolve the template
             value_str = "<b>Value:</b> %s<br>" % value
-            template_def = bundle.tank.templates.get(value).definition
+            template_value = bundle.tank.templates.get(value)
+            template_def = template_value.definition if template_value else "None"
             value_str += "<b>Resolved Value:</b> <code>%s</code><br>" % template_def  
         
         elif param_type in ["dict", "list"]:
