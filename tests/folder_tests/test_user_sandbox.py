@@ -52,7 +52,7 @@ class TestHumanUser(TankTestBase):
     def test_not_made_default(self):
         
         self.assertFalse(os.path.exists(self.user_path))
-        tank.util.login.g_shotgun_user_cache = None
+        tank.util.login.g_shotgun_user_cache = "unknown"
         tank.util.login.get_login_name = login_foo
 
         folder.process_filesystem_structure(self.tk, 
@@ -67,7 +67,7 @@ class TestHumanUser(TankTestBase):
     def test_made_string(self):
         self.assertFalse(os.path.exists(self.user_path))
         
-        tank.util.login.g_shotgun_user_cache = None
+        tank.util.login.g_shotgun_user_cache = "unknown"
         tank.util.login.get_login_name = login_foo
 
         folder.process_filesystem_structure(self.tk, 
@@ -78,7 +78,7 @@ class TestHumanUser(TankTestBase):
 
         self.assertTrue(os.path.exists(self.user_path))
         
-        tank.util.login.g_shotgun_user_cache = None
+        tank.util.login.g_shotgun_user_cache = "unknown"
         tank.util.login.get_login_name = login_bar        
 
         folder.process_filesystem_structure(self.tk, 

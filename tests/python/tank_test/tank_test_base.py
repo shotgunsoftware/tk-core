@@ -55,7 +55,7 @@ def setUpModule():
     install_dir = os.path.join(studio_tank, "install")
 
     # reset the global cache
-    tank.util.login.g_shotgun_user_cache = None
+    tank.util.login.g_shotgun_user_cache = "unknown"
 
     # copy tank engine code into place
     TANK_SOURCE_PATH = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", ".."))
