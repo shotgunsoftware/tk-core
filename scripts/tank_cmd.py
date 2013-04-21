@@ -23,7 +23,7 @@ CORE_NON_PROJECT_COMMANDS = ["setup_project", "core", "folders"]
 # built in commands that run against a specific project
 CORE_PROJECT_COMMANDS = ["validate", "shotgun_run_action", "shotgun_cache_actions"]
 
-DEFAULT_ENGINE = "tk-shell"
+SHELL_ENGINE = "tk-shell"
 
 class AltCustomFormatter(logging.Formatter):
     """ 
@@ -167,6 +167,7 @@ def _run_shotgun_command(log, tk, action_name, entity_type, entity_ids):
         # params entity_type and entity_ids            
         if arg_count > 1:
             # old style shotgun app launch - takes entity_type and ids as args
+            
             callback(entity_type, entity_ids)
         else:
             # std tank app launch
@@ -194,7 +195,8 @@ def _write_shotgun_cache(tk, entity_type, cache_file_name):
     
     # insert special system commands
     if entity_type == "Project":
-        engine_commands["__core_info"] = { "properties": {"title": "Check for Core Upgrades..."} } 
+        engine_commands["__core_info"] = { "properties": {"title": "Check for Core Upgrades...",
+                                                          "deny_permissions": "Artist "} } 
     
     # extract actions into cache file
     res = []
@@ -454,7 +456,7 @@ def run_core_project_command(log, install_root, pipeline_config_root, command, a
 
 
 
-def run_engine_cmd(log, install_root, pipeline_config_root, context_items, engine_name, command, using_cwd):
+def run_engine_cmd(log, install_root, pipeline_config_root, context_items, command, using_cwd):
     """
     Launches an engine and potentially executed a command.
     
@@ -469,7 +471,7 @@ def run_engine_cmd(log, install_root, pipeline_config_root, context_items, engin
     :param using_cwd: Was the context passed based on the current work folder?
     """
     log.debug("")
-    log.debug("Will start engine %s" % engine_name)
+    log.debug("Will start engine %s" % SHELL_ENGINE)
     log.debug("Context items: %s" % str(context_items))    
     log.debug("Command: %s" % command)
 
@@ -608,7 +610,7 @@ def run_engine_cmd(log, install_root, pipeline_config_root, context_items, engin
     log.info("- Setting the Context to %s." % ctx)
             
     # kick off mr engine.
-    e = tank.platform.start_engine(engine_name, tk, ctx)
+    e = tank.platform.start_engine(SHELL_ENGINE, tk, ctx)
         
     log.debug("Started engine %s" % e)
     
@@ -658,7 +660,8 @@ def run_engine_cmd(log, install_root, pipeline_config_root, context_items, engin
         # run the app!
         log.info("Executing the %s command." % command)
         cmd_key = formatted_commands[command]["key"]
-        return e.commands[cmd_key]["callback"]()
+        # special shell engine specific method  
+        return e.execute_command(cmd_key)
 
     else:
         log.info("")
@@ -713,14 +716,6 @@ if __name__ == "__main__":
         log.debug("")
     cmd_line = [arg for arg in cmd_line if arg != "--debug"]
     
-    # check if there is an --engine flag anywhere in the args list.
-    # in that case try to use this engine
-    engine_to_use = DEFAULT_ENGINE
-    for x in cmd_line:
-        if x.startswith("--engine="):
-            engine_to_use = x[9:]
-    cmd_line = [arg for arg in cmd_line if not arg.startswith("--engine=")]
-
     # help requested?
     for x in cmd_line:
         if x == "--help" or x == "-h":
@@ -765,7 +760,6 @@ if __name__ == "__main__":
                                        install_root, 
                                        pipeline_config_root, 
                                        [os.getcwd()], 
-                                       engine_to_use,
                                        None,
                                        True)
                      
@@ -834,7 +828,6 @@ if __name__ == "__main__":
                                        install_root, 
                                        pipeline_config_root, 
                                        ctx_list, 
-                                       engine_to_use,
                                        cmd_name,
                                        using_cwd)
 
