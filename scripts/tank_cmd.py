@@ -563,8 +563,11 @@ def run_engine_cmd(log, install_root, pipeline_config_root, context_items, comma
 
                     if x.get("description"):
                         desc = x.get("description")
-                        # pick up all words in the first 75 chars of desc
-                        chopped_desc = re.match(r'(.{,50})(\W|$)', desc).group(1)
+                        # now use the rest of our line for desc.
+                        chars_used = sum([len(x) for x in chunks])
+                        chars_available = 60 - chars_used
+                        # clever regex to chop on word boundaries
+                        chopped_desc = re.match(r'(.{,%d})(\W|$)' % chars_available, desc).group(1)
                         if len(chopped_desc) < len(desc):
                             chopped_desc += "..."
                         chunks.append( " (%s)" % chopped_desc)
@@ -572,7 +575,7 @@ def run_engine_cmd(log, install_root, pipeline_config_root, context_items, comma
                     log.info("".join(chunks))
                 
                 raise TankError("Please specify a full name from the list above! If there are "
-                                "more than one item with the same name, you can use the id instead.")
+                                "more than one item with the same name, you can use the [id] instead.")
             else:
                 # single match yay
                 entity = entities[0]
