@@ -167,11 +167,10 @@ def _run_shotgun_command(log, tk, action_name, entity_type, entity_ids):
         # params entity_type and entity_ids            
         if arg_count > 1:
             # old style shotgun app launch - takes entity_type and ids as args
-            
-            callback(entity_type, entity_ids)
+            e.execute_old_style_command(action_name, entity_type, entity_ids)
         else:
             # std tank app launch
-            callback()            
+            e.execute_command(action_name)
     else:
         # unknown command - this typically is caused by apps failing to initialize.
         e.log_error("The action could not be executed! This is typically because there "
