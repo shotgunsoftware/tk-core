@@ -28,7 +28,7 @@ import sys
 from tank_vendor import yaml
 
 from ..errors import TankError
-from ..template import Template
+from ..template import TemplatePath
 from ..templatekey import StringKey
 
 from . import constants
@@ -52,7 +52,6 @@ def _resolve_includes(file_name, data, context):
         
         if "{" in include:
             # it's a template path
-            
             if context is None:
                 # skip - these paths are optional always
                 continue
@@ -62,6 +61,10 @@ def _resolve_includes(file_name, data, context):
             regex = r"(?<={)%s(?=})" % _key_name_regex
             key_names = re.findall(regex, include)
     
+            # get all the data roots for this project
+            primary_data_root = context.tank.pipeline_configuration.get_primary_data_root()
+    
+            # try to construct a path object for each template
             try:
                 # create template key objects        
                 template_keys = {}
@@ -69,7 +72,7 @@ def _resolve_includes(file_name, data, context):
                     template_keys[key_name] = StringKey(key_name)
         
                 # Make a template
-                template = Template(include, template_keys)
+                template = TemplatePath(include, template_keys, primary_data_root)
             except TankError, e:
                 raise TankError("Syntax error in %s: Could not transform include path '%s' "
                                 "into a template: %s" % (file_name, include, e))
@@ -84,7 +87,7 @@ def _resolve_includes(file_name, data, context):
             
             if not os.path.exists(full_path):
                 # skip - these paths are optional always
-                continue                
+                continue       
         
         elif "/" in include and not include.startswith("/"):
             # relative path!
