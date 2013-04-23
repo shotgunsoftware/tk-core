@@ -65,15 +65,30 @@ class FolderConfiguration(object):
         Also ignores any files mentioned in the ignore files list
         """
         file_paths = []
-        for file_name in os.listdir(parent_path):
+        items_in_folder = os.listdir(parent_path)
+        
+        folders = [f for f in items_in_folder if os.path.isdir(os.path.join(parent_path, f))]
+        
+        for file_name in items_in_folder:
 
-            # don't process files matching ignore pattern(s)
-            if not any(fnmatch.fnmatch(file_name, p) for p in self._ignore_files):
+            full_path = os.path.join(parent_path, file_name)
+            
+            if not os.path.isfile(full_path):
+                # not a file path!
+                continue
+            
+            if any(fnmatch.fnmatch(file_name, p) for p in self._ignore_files):
+                # don't process files matching ignore pattern(s)
+                continue
 
-                full_path = os.path.join(parent_path, file_name)
-                # yml files - those are our config files
-                if os.path.isfile(full_path) and not full_path.endswith(".yml"):
-                    file_paths.append(full_path)
+            if file_name.endswith(".yml") and os.path.splitext(file_name)[0] in folders:
+                # this is a foo.yml and we have a folder called foo
+                # this means that this is a config file!
+                continue
+            
+            # this is a file path and it
+            file_paths.append(full_path)
+                    
 
         return file_paths
                     
