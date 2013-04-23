@@ -69,7 +69,7 @@ class Environment(object):
             raise TankError("Could not parse file %s. "
                             "Error reported from parser: %s" % (self.__env_path, exp))
      
-        self.__env_data = environment_includes.process_includes(env_file, data, self.__context)
+        self.__env_data = environment_includes.process_includes(self.__env_path, data, self.__context)
         
         if not self.__env_data:
             raise TankError('No data in env file: %s' % (self.__env_path))
@@ -108,7 +108,6 @@ class Environment(object):
         handles the checks to see if an item is disabled
         """
         location_dict = settings.get(constants.ENVIRONMENT_LOCATION_KEY)
-        
         # Check for disabled and deny_platforms
         is_disabled = location_dict.get("disabled", False)
         if is_disabled:

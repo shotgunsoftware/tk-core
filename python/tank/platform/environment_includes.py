@@ -79,8 +79,8 @@ def _resolve_includes(file_name, data, context):
                 f = context.as_template_fields(template)
                 full_path = template.apply_fields(f)
             except TankError, e:
-                raise TankError("Syntax error in %s: Could not transform include path '%s' (%s) "
-                                "into a path using context %s: %s" % (file_name, include, template, context, e))
+                # if this path could not be resolved, that's ok! These paths are always optional.
+                continue
             
             if not os.path.exists(full_path):
                 # skip - these paths are optional always
