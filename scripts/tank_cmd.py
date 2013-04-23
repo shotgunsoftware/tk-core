@@ -32,10 +32,14 @@ class AltCustomFormatter(logging.Formatter):
     def __init__(self, *args, **kwargs):
         # passthrough so we can init stuff
         self._html = False
+        self._num_items = 0
         super(AltCustomFormatter, self).__init__(*args, **kwargs)
     
     def enable_html_mode(self):
         self._html = True
+    
+    def get_num_items(self):
+        return self._num_items
     
     def format(self, record):
         
@@ -69,7 +73,8 @@ class AltCustomFormatter(logging.Formatter):
                 for x in textwrap.wrap(record.msg, width=78):
                     lines.append(x)
                 record.msg = "\n".join(lines)
-            
+        
+        self._num_items += 1
         return super(AltCustomFormatter, self).format(record)
     
 
@@ -195,8 +200,11 @@ def _write_shotgun_cache(tk, entity_type, cache_file_name):
     # insert special system commands
     if entity_type == "Project":
         engine_commands["__core_info"] = { "properties": {"title": "Check for Core Upgrades...",
-                                                          "deny_permissions": "Artist "} } 
-    
+                                                          "deny_permissions": "Artist "} }
+        
+        engine_commands["__upgrade_check"] = { "properties": {"title": "Check for App Upgrades...",
+                                                              "deny_permissions": "Artist "} }
+
     # extract actions into cache file
     res = []
     for (cmd_name, cmd_params) in engine_commands.items():
@@ -432,6 +440,8 @@ def run_core_project_command(log, install_root, pipeline_config_root, command, a
         elif action_name == "__core_info":            
             core_api_admin.show_core_info(log, install_root, pipeline_config_root)
 
+        elif action_name == "__upgrade_check":
+            core_api_admin.show_upgrade_info(log, install_root, pipeline_config_root)
         else:        
             _run_shotgun_command(log, tk, action_name, entity_type, entity_ids)
             
@@ -442,13 +452,40 @@ def run_core_project_command(log, install_root, pipeline_config_root, command, a
         # we are talking to shotgun! First of all, make sure we switch on our html style logging
         log.handlers[0].formatter.enable_html_mode()
         
+        
         # params: entity_type, cache_file_name
         if len(args) != 2:
             raise TankError("Invalid arguments! Pass entity_type, cache_file_name")
         
         entity_type = args[0]
-        cache_file_name = args[1]        
-        _write_shotgun_cache(tk, entity_type, cache_file_name)
+        cache_file_name = args[1]
+
+        num_log_messages_before = log.handlers[0].formatter.get_num_items()    
+        try:            
+            _write_shotgun_cache(tk, entity_type, cache_file_name)
+        except TankError, e:
+            log.error("Error writing shotgun cache file: %s" % e)
+        except Exception, e:
+            log.exception("A general error occurred.")
+        num_log_messages_after = log.handlers[0].formatter.get_num_items()
+        
+        # check if there were any log output. This is an indication that something
+        # weird and unexpected has happened...
+        if (num_log_messages_after - num_log_messages_before) > 0:
+            log.info("")
+            log.warning("Generating the cache file for this environment may have resulted in some "
+                        "actions being omitted because of configuration errors. You may need to "
+                        "clear the cache by running the following command:")
+            
+            code_css_block = "display: block; padding: 0.5em 1em; border: 1px solid #bebab0; background: #faf8f0;"
+        
+            log.info("")
+            if sys.platform == "win32":
+                tank_cmd = os.path.join(pipeline_config_root, "tank.bat")
+            else:
+                tank_cmd = os.path.join(pipeline_config_root, "tank")
+            log.info("<code style='%s'>%s clear_cache</code>" % (code_css_block, tank_cmd))
+            log.info("")
         
     else:
         raise TankError("Unknown command '%s'. Run tank --help for more information" % command)

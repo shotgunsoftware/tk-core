@@ -42,6 +42,30 @@ def _ask_question(question):
 
     return False   
 
+def show_upgrade_info(log, code_root, pc_root):
+    """
+    Display details of how to get latest apps
+    """
+    
+    code_css_block = "display: block; padding: 0.5em 1em; border: 1px solid #bebab0; background: #faf8f0;"
+    
+    log.info("In order to check if your installed apps and engines are up to date, "
+             "you can run the following command in a console:")
+    
+    log.info("")
+    
+    if sys.platform == "win32":
+        tank_cmd = os.path.join(pc_root, "tank.bat")
+    else:
+        tank_cmd = os.path.join(pc_root, "tank")
+    
+    log.info("<code style='%s'>%s upgrades</code>" % (code_css_block, tank_cmd))
+    
+    log.info("")
+                    
+    
+    
+
 def show_core_info(log, code_root, pc_root):
     """
     Display details about the core version etc
