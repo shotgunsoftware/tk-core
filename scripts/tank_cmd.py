@@ -21,7 +21,7 @@ from tank import folder
 CORE_NON_PROJECT_COMMANDS = ["setup_project", "core", "folders"]
 
 # built in commands that run against a specific project
-CORE_PROJECT_COMMANDS = ["validate", "shotgun_run_action", "shotgun_cache_actions"]
+CORE_PROJECT_COMMANDS = ["validate", "shotgun_run_action", "shotgun_cache_actions", "clear_cache"]
 
 SHELL_ENGINE = "tk-shell"
 
@@ -486,6 +486,15 @@ def run_core_project_command(log, install_root, pipeline_config_root, command, a
                 tank_cmd = os.path.join(pipeline_config_root, "tank")
             log.info("<code style='%s'>%s clear_cache</code>" % (code_css_block, tank_cmd))
             log.info("")
+        
+    elif command == "clear_cache":
+        cache_folder = tk.pipeline_configuration.get_cache_location()
+        # cache files are on the form shotgun_mac_project.txt
+        for f in os.listdir(cache_folder):
+            if f.startswith("shotgun") and f.endswith(".txt"):
+                full_path = os.path.join(cache_folder, f)
+                log.debug("Deleting cache file %s..." % full_path)
+                os.remove(full_path) 
         
     else:
         raise TankError("Unknown command '%s'. Run tank --help for more information" % command)
