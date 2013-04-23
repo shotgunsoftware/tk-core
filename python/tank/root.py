@@ -28,12 +28,16 @@ def get_project_roots(project_root):
     for root_name, platform_paths in roots_data.items():
         # Use platform appropriate root path
         platform_path = platform_paths[platform_name]
-        roots[root_name] = os.path.join(platform_path, project_name)
+        # Note, these paths may have been written from a different platform
+        # so the slash direction may not be uniform.  To accomodate this
+        # we convert _all_ slashes to the current os.path.sep here
+        roots[root_name] = os.path.join(platform_path, project_name).replace("\\", os.path.sep).replace("/", os.path.sep)
 
     # Use argument to check/set primary root
-    if roots.get("primary", project_root) != project_root:
+    primary_root = roots.get("primary", project_root)
+    if primary_root != project_root:
         err_msg = ("Primary root defined in roots.yml file does not match that passed as argument" + 
-                  " (likely from Tank local storage): \n%s\n%s" % (roots["primary"], project_root))
+                  " (likely from Tank local storage): \n%s\n%s" % (primary_root, project_root))
         raise TankError(err_msg)
     roots["primary"] = project_root
     
@@ -107,7 +111,10 @@ def get_primary_root(input_path):
         finally:
             open_file.close()
         platform_name = _determine_platform()
-        return primary_paths.get(platform_name)
+        primary_path = primary_paths.get(platform_name)
+        if primary_path:
+            primary_path = primary_path.replace("\\", os.path.sep).replace("/", os.path.sep)
+        return primary_path
     else:
         schema_path = os.path.join(config_path, "core", "schema")
         # primary root file missing, check if it's project or studio path
