@@ -78,6 +78,7 @@ def upgrade_tank(tank_install_root, log):
         valid &= os.path.exists(os.path.join(tank_install_root)) 
         valid &= os.path.exists(os.path.join(tank_install_root, "engines"))
         valid &= os.path.exists(os.path.join(tank_install_root, "core"))
+        valid &= os.path.exists(os.path.join(tank_install_root, "core.backup"))
         valid &= os.path.exists(os.path.join(tank_install_root, "apps"))
         if not valid:
             log.error("The specified tank install root '%s' doesn't look valid!\n"
@@ -90,6 +91,14 @@ def upgrade_tank(tank_install_root, log):
         # get target locations
         core_install_location = os.path.join(tank_install_root, "core")
         core_backup_location = os.path.join(tank_install_root, "core.backup")
+
+        # check that the activation script version is acceptable if this is the very first
+        # time an upgrade happens
+        backups = os.listdir(core_backup_location)
+        if len(backups) == 0:
+            # empty backup directory! This is an indication that an old activation script was used.
+            log.error("Looks like you are using an old activation script! Please contact support!")
+            return
         
         if os.path.exists(core_install_location):
             # move this into backup location
