@@ -51,7 +51,7 @@ def install_app(log, tk, env_name, engine_instance_name, app_name):
 
     # find engine
     app_descriptor = TankAppStoreDescriptor.find_item(tk.pipeline_configuration, AppDescriptor.APP, app_name)
-    log.info("Successfully located %s..." % engine_descriptor)
+    log.info("Successfully located %s..." % app_descriptor)
     log.info("")
 
     # note! Some of these methods further down are likely to pull the apps local
