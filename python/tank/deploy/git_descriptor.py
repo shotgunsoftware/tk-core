@@ -10,6 +10,7 @@ import os
 import copy
 import uuid
 import tempfile
+import subprocess
 
 from .util import subprocess_check_output
 from ..api import Tank
@@ -18,10 +19,12 @@ from ..platform import constants
 from .descriptor import AppDescriptor
 from .zipfilehelper import unzip_file
 
+LATEST = "latest"
+
 class TankGitDescriptor(AppDescriptor):
     """
     Represents a repository in git. New versions are represented by new tags.
-    
+
     path can be on the form:
     git@github.com:manneohrstrom/tk-hiero-publish.git
     https://github.com/manneohrstrom/tk-hiero-publish.git
@@ -36,6 +39,7 @@ class TankGitDescriptor(AppDescriptor):
         self._tk = Tank(project_root)
         self._path = location_dict.get("path")
         self._version = location_dict.get("version")
+        self._branch = location_dict.get("branch", "master")
 
         if self._path is None or self._version is None:
             raise TankError("Git descriptor is not valid: %s" % str(location_dict))
@@ -59,7 +63,7 @@ class TankGitDescriptor(AppDescriptor):
         returns the path to the folder where this item resides
         """
         # git@github.com:manneohrstrom/tk-hiero-publish.git -> tk-hiero-publish
-        # /full/path/to/local/repo.git -> repo.git        
+        # /full/path/to/local/repo.git -> repo.git
         name = os.path.basename(self._path)
         return self._get_local_location(self._type, "git", name, self._version)
 
@@ -75,14 +79,30 @@ class TankGitDescriptor(AppDescriptor):
         Will exit early if app already exists local.
         """
         if self.exists_local():
-            # nothing to do!
+            # if using "live mode" perform a git pull for latest.
+            if self._version == LATEST:
+                self._pull_latest()
             return
 
         target = self.get_path()
         if not os.path.exists(target):
             old_umask = os.umask(0)
             os.makedirs(target, 0777)
-            os.umask(old_umask)                
+            os.umask(old_umask)
+
+        cwd = os.getcwd()
+        if self._version == LATEST:
+            try:
+                os.chdir(os.path.dirname(target))
+                if os.system('git clone "%s" %s'%(self._path, os.path.basename(target))) != 0:
+                    raise TankError("Could not clone git repository '%s'!" % self._path)
+                if self._branch != "master":
+                    os.chdir(target)
+                    if os.system('git checkout %s'%(self._branch)) != 0:
+                        raise TankError("Could not checkout git branch '%s'!" % self._branch)
+            finally:
+                os.chdir(cwd)
+            return
 
         # now first clone the repo into a tmp location
         # then zip up the tag we are looking for
@@ -91,24 +111,39 @@ class TankGitDescriptor(AppDescriptor):
         clone_tmp = os.path.join(tempfile.gettempdir(), "%s_tank_clone" % uuid.uuid4().hex)
         old_umask = os.umask(0)
         os.makedirs(clone_tmp, 0777)
-        os.umask(old_umask)                
+        os.umask(old_umask)
 
         # now clone and archive
-        cwd = os.getcwd()
+
         try:
             # Note: git doesn't like paths in single quotes when running on windows!
             if os.system("git clone -q \"%s\" %s" % (self._path, clone_tmp)) != 0:
                 raise TankError("Could not clone git repository '%s'!" % self._path)
-            
+
             os.chdir(clone_tmp)
-            
+
             if os.system("git archive --format zip --output %s %s" % (zip_tmp, self._version)) != 0:
                 raise TankError("Could not find tag %s in git repository %s!" % (self._version, self._path))
         finally:
             os.chdir(cwd)
-        
+
         # unzip core zip file to app target location
         unzip_file(zip_tmp, target)
+
+    def _pull_latest(self):
+        """
+        Pulls the latest changes from remote.
+
+        Probably needs a more robust check for local changes before performing
+        the pull.  As it is, it's very naive.
+        """
+        cwd = os.getcwd()
+        try:
+            os.chdir(self.get_path())
+            if os.system("git pull") != 0:
+                raise TankError("Could not update git repository '%s'!" % self._path)
+        finally:
+            os.chdir(cwd)
 
     def find_latest_version(self):
         """
@@ -118,7 +153,7 @@ class TankGitDescriptor(AppDescriptor):
         clone_tmp = os.path.join(tempfile.gettempdir(), "%s_tank_clone" % uuid.uuid4().hex)
         old_umask = os.umask(0)
         os.makedirs(clone_tmp, 0777)
-        os.umask(old_umask)                
+        os.umask(old_umask)
 
         # get the most recent tag hash
         cwd = os.getcwd()
@@ -126,9 +161,9 @@ class TankGitDescriptor(AppDescriptor):
             # Note: git doesn't like paths in single quotes when running on windows!
             if os.system("git clone -q \"%s\" %s" % (self._path, clone_tmp)) != 0:
                 raise TankError("Could not clone git repository '%s'!" % self._path)
-            
+
             os.chdir(clone_tmp)
-            
+
             try:
                 git_hash = subprocess_check_output("git rev-list --tags --max-count=1", shell=True).strip()
             except Exception, e:
@@ -138,7 +173,7 @@ class TankGitDescriptor(AppDescriptor):
                 latest_version = subprocess_check_output("git describe --tags %s" % git_hash, shell=True).strip()
             except Exception, e:
                 raise TankError("Could not get tag for hash %s: %s" % (hash, e))
-        
+
         finally:
             os.chdir(cwd)
 
