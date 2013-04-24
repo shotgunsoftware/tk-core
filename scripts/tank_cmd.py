@@ -24,6 +24,7 @@ CORE_NON_PROJECT_COMMANDS = ["setup_project", "core", "folders"]
 CORE_PROJECT_COMMANDS = ["validate", 
                          "shotgun_run_action", 
                          "shotgun_cache_actions", 
+                         "updates",
                          "clear_cache",
                          "install_app",
                          "install_engine"]
@@ -522,6 +523,14 @@ def run_core_project_command(log, install_root, pipeline_config_root, command, a
         env_name = args[0]
         engine_name = args[1]   
         env_admin.install_engine(log, tk, env_name, engine_name)
+
+    elif command == "updates":
+
+        if len(args) != 0:
+            raise TankError("Invalid arguments! Run with --help for more details.")
+        env_admin.check_for_updates(log, tk)
+
+
 
     else:
         raise TankError("Unknown command '%s'. Run tank --help for more information" % command)
