@@ -129,8 +129,12 @@ class TankGitDescriptor(AppDescriptor):
         unzip_file(zip_tmp, target)
 
     def _pull_latest(self):
-        os.chdir(self.get_path())
-        os.system("git pull")
+        cwd = os.getcwd()
+        try:
+            os.chdir(self.get_path())
+            os.system("git pull")
+        finally:
+            os.chdir(cwd)
 
     def find_latest_version(self):
         """
