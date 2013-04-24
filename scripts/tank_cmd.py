@@ -11,7 +11,7 @@ import logging
 import tank
 import textwrap
 from tank import TankError
-from tank.deploy import setup_project, validate_config, administrator, core_api_admin
+from tank.deploy import setup_project, validate_config, administrator, core_api_admin, env_admin
 from tank import pipelineconfig
 from tank.util import shotgun
 from tank.platform import engine
@@ -21,7 +21,12 @@ from tank import folder
 CORE_NON_PROJECT_COMMANDS = ["setup_project", "core", "folders"]
 
 # built in commands that run against a specific project
-CORE_PROJECT_COMMANDS = ["validate", "shotgun_run_action", "shotgun_cache_actions", "clear_cache"]
+CORE_PROJECT_COMMANDS = ["validate", 
+                         "shotgun_run_action", 
+                         "shotgun_cache_actions", 
+                         "clear_cache",
+                         "install_app",
+                         "install_engine"]
 
 SHELL_ENGINE = "tk-shell"
 
@@ -136,6 +141,11 @@ The following admin commands are available:
 > tank validate - validates your configuration
 > tank core - Check version and update the Core API.
 > tank core localize - run a local version of the core API
+> tank clear_cache - clears the tank shotgun actions cache
+
+> tank install_app - installs a new app from the tank store.
+> tank install_engine - installs a new engine from the tank store.
+> tank upgrades - check for upgrades to apps and engines
 
 Note! Additional configuration is available inside of Shotgun.
 
@@ -399,7 +409,7 @@ def run_core_project_command(log, install_root, pipeline_config_root, command, a
                         "want to operate on, and run the tank command from there! Details: %s" % (command, e) )
 
     if command == "validate":
-        # fork a pipeline config        
+        # validate a pipeline config        
         if len(args) != 0:
             raise TankError("Invalid arguments. Run tank --help for more information.")
         validate_config.validate_configuration(log, tk)
@@ -496,6 +506,23 @@ def run_core_project_command(log, install_root, pipeline_config_root, command, a
                 log.debug("Deleting cache file %s..." % full_path)
                 os.remove(full_path) 
         
+    elif command == "install_app":
+        
+        if len(args) != 3:
+            raise TankError("Invalid arguments! Syntax: install_app environment_name engine_name app_name")
+        env_name = args[0]   
+        engine_name = args[1]
+        app_name = args[2]
+        env_admin.install_app(log, tk, env_name, engine_name, app_name)
+        
+    elif command == "install_engine":
+
+        if len(args) != 2:
+            raise TankError("Invalid arguments! Syntax: install_engine environment_name engine_name")
+        env_name = args[0]
+        engine_name = args[1]   
+        env_admin.install_engine(log, tk, env_name, engine_name)
+
     else:
         raise TankError("Unknown command '%s'. Run tank --help for more information" % command)
 
