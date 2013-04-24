@@ -254,6 +254,10 @@ class Engine(TankBundle):
             # track which apps this request came from
             properties["app"] = self.__currently_initializing_app
         
+        # add some defaults. If there isn't a description key, add it from the app's manifest
+        if "description" not in properties and self.__currently_initializing_app:
+            properties["description"] = self.__currently_initializing_app.description
+        
         # check for duplicates!
         if name in self.__commands:
             # already something in the dict with this name
