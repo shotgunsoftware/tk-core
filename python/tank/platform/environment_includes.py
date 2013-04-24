@@ -24,6 +24,7 @@ relative paths are always required and context based paths are always optional.
 import os
 import re
 import sys
+import copy 
 
 from tank_vendor import yaml
 
@@ -149,8 +150,9 @@ def _resolve_refs_r(lookup_dict, data):
         ref_token = data[1:]
         if ref_token not in lookup_dict:
             raise TankError("Undefined Reference %s!" % ref_token)
-        
-        processed_val = lookup_dict[ref_token]
+        # other parts of the code is making changes nilly-willy do data
+        # structures (ick) so flatten everything out here.... :(
+        processed_val = copy.deepcopy(lookup_dict[ref_token])
         
     return processed_val
             
