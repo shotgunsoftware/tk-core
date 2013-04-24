@@ -274,7 +274,7 @@ class TankBundle(object):
         
         return sys.modules[mod_name]
 
-    def __post_process_settings_r(self, value, schema):
+    def __post_process_settings_r(self, key, value, schema):
         """
         Recursive post-processing of settings values
         """
@@ -285,14 +285,14 @@ class TankBundle(object):
             processed_val = []
             value_schema = schema["values"]
             for x in value:
-                processed_val.append(self.__post_process_settings_r(x, value_schema))
+                processed_val.append(self.__post_process_settings_r(key, x, value_schema))
         
         elif isinstance(value, dict):
             items = schema.get("items", {})
             # note - we assign the original values here because we 
             processed_val = value
             for (key, value_schema) in items.items():            
-                processed_val[key] = self.__post_process_settings_r(value[key], value_schema)
+                processed_val[key] = self.__post_process_settings_r(key, value[key], value_schema)
             
         
         elif settings_type == "config_path":
@@ -349,7 +349,7 @@ class TankBundle(object):
         
         if schema:
             # post process against schema
-            value = self.__post_process_settings_r(value, schema)
+            value = self.__post_process_settings_r(key, value, schema)
             
         return value
 
