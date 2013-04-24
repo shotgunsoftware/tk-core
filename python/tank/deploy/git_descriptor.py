@@ -94,10 +94,12 @@ class TankGitDescriptor(AppDescriptor):
         if self._version == LATEST:
             try:
                 os.chdir(os.path.dirname(target))
-                os.system('git clone "%s" %s'%(self._path, os.path.basename(target)))
+                if os.system('git clone "%s" %s'%(self._path, os.path.basename(target))) != 0:
+                    raise TankError("Could not clone git repository '%s'!" % self._path)
                 if self._branch != "master":
                     os.chdir(target)
-                    os.system('git checkout %s'%(self._branch))
+                    if os.system('git checkout %s'%(self._branch)) != 0:
+                        raise TankError("Could not checkout git branch '%s'!" % self._branch)
             finally:
                 os.chdir(cwd)
             return
@@ -138,7 +140,8 @@ class TankGitDescriptor(AppDescriptor):
         cwd = os.getcwd()
         try:
             os.chdir(self.get_path())
-            os.system("git pull")
+            if os.system("git pull") != 0:
+                raise TankError("Could not update git repository '%s'!" % self._path)
         finally:
             os.chdir(cwd)
 
@@ -155,13 +158,8 @@ class TankGitDescriptor(AppDescriptor):
         # get the most recent tag hash
         cwd = os.getcwd()
         try:
-<<<<<<< Updated upstream
             # Note: git doesn't like paths in single quotes when running on windows!
             if os.system("git clone -q \"%s\" %s" % (self._path, clone_tmp)) != 0:
-=======
-
-            if os.system("git clone -q '%s' %s" % (self._path, clone_tmp)) != 0:
->>>>>>> Stashed changes
                 raise TankError("Could not clone git repository '%s'!" % self._path)
 
             os.chdir(clone_tmp)
