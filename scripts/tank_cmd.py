@@ -17,6 +17,26 @@ from tank.util import shotgun
 from tank.platform import engine
 from tank import folder
 
+SHOTGUN_ENTITY_TYPES = ['Playlist', 'AssetSceneConnection', 'Note', 'TaskDependency', 'PageHit', 
+                        'ActionMenuItem', 'Attachment', 'AssetMocapTakeConnection', 
+                        'Department', 'Group', 'PlaylistVersionConnection', 
+                        'Booking', 'CutVersionConnection', 'CameraMocapTakeConnection', 
+                        'AssetElementConnection', 'ReleaseTicketConnection', 
+                        'RevisionRevisionConnection', 'MocapTakeRangeShotConnection', 'TimeLog', 
+                        'Step', 'AssetBlendshapeConnection', 'PerformerMocapTakeConnection', 
+                        'Phase', 'Ticket', 'AssetShotConnection', 'TicketTicketConnection', 
+                        'Icon', 'PageSetting', 'Status', 'Reply', 'Task', 'ApiUser', 
+                        'ProjectUserConnection', 'LaunchShotConnection', 'ShotShotConnection', 
+                        'PerformerRoutineConnection', 'AppWelcomeUserConnection', 'HumanUser', 
+                        'Project', 'LocalStorage', 'TaskTemplate', 'RevisionTicketConnection', 
+                        'PerformerShootDayConnection', 'PipelineConfiguration', 'LaunchSceneConnection', 
+                        'GroupUserConnection', 'AssetSequenceConnection', 'Page', 
+                        'ShootDaySceneConnection', 'TankType', 'PhysicalAssetMocapTakeConnection', 
+                        'Shot', 'TankPublishedFile', 'Sequence', 'BannerUserConnection', 
+                        'AssetAssetConnection', 'Version', 'ElementShotConnection', 
+                        'PermissionRuleSet', 'EventLogEntry', 'TankDependency', 
+                        'AssetShootDayConnection', 'Asset']
+
 # built in commands that can run without a project
 CORE_NON_PROJECT_COMMANDS = ["setup_project", "core", "folders"]
 
@@ -101,7 +121,7 @@ General options and info
 
 Running Apps
 ----------------------------------------------
-Syntax: tank [command] [context]
+Syntax: tank [context] command [args]
 
  - Context is a location on disk where you want the tank command to operate. 
    It can also be a Shotgun Entity on the form Type id or Type name describing
@@ -123,13 +143,13 @@ Launch maya for your current path (assuming this command exists):
 > tank launch_maya
 
 Launch maya for a Shot in Shotgun:
-> tank launch_maya Shot ABC123
+> tank Shot ABC123 launch_maya
 
 Launch maya for a Task in Shotgun using an id:
-> tank launch_maya Task 234
+> tank Task 234 launch_maya
 
 Launch maya for a folder:
-> tank launch_maya /studio/proj_xyz/shots/ABC123
+> tank /studio/proj_xyz/shots/ABC123 launch_maya
 
 
 Administering Tank
@@ -537,7 +557,7 @@ def run_core_project_command(log, install_root, pipeline_config_root, command, a
 
 
 
-def run_engine_cmd(log, install_root, pipeline_config_root, context_items, command, using_cwd):
+def run_engine_cmd(log, install_root, pipeline_config_root, context_items, command, using_cwd, args):
     """
     Launches an engine and potentially executed a command.
     
@@ -555,6 +575,7 @@ def run_engine_cmd(log, install_root, pipeline_config_root, context_items, comma
     log.debug("Will start engine %s" % SHELL_ENGINE)
     log.debug("Context items: %s" % str(context_items))    
     log.debug("Command: %s" % command)
+    log.debug("Additional args: %s" % str(args))
 
     log.info("")
     log.info("Welcome to Tank!")
@@ -745,7 +766,7 @@ def run_engine_cmd(log, install_root, pipeline_config_root, context_items, comma
         log.info("Executing the %s command." % command)
         cmd_key = formatted_commands[command]["key"]
         # special shell engine specific method  
-        return e.execute_command(cmd_key)
+        return e.execute_command(cmd_key, args)
 
     else:
         log.info("")
@@ -845,7 +866,8 @@ if __name__ == "__main__":
                                        pipeline_config_root, 
                                        [os.getcwd()], 
                                        None,
-                                       True)
+                                       True,
+                                       [])
                      
         elif cmd_line[0] in CORE_PROJECT_COMMANDS:
             exit_code = run_core_project_command(log, 
@@ -866,18 +888,20 @@ if __name__ == "__main__":
             #
             # > tank command_name
             
-            # > tank command_name /path
-            # > tank /path
+            # > tank /path command_name [params]
+            # > tank /path [params]
             
-            # > tank command_name Shot 123
-            # > tank command_name Shot foo
+            # > tank Shot 123 command_name [params]
+            # > tank Shot foo command_name [params]
             # > tank Shot 123
             # > tank Shot foo
             
             using_cwd = False
+            ctx_list = []
+            cmd_args = []
             
             if len(cmd_line) == 1:
-                # tank path
+                # tank /path
                 # tank command
                 if ("/" in cmd_line[0]) or ("\\" in cmd_line[0]):
                     # tank /foo/bar
@@ -891,29 +915,51 @@ if __name__ == "__main__":
             
             elif len(cmd_line) == 2:
                 # tank Shot 123
-                # tank command_name /path
-                if ("/" in cmd_line[1]) or ("\\" in cmd_line[1]):
-                    # tank command_name /foo/bar
-                    ctx_list = [ cmd_line[1] ]
-                    cmd_name = cmd_line[0]
-                else:
+                # tank /path command_name
+                # tank command_name param1
+                if ("/" in cmd_line[0]) or ("\\" in cmd_line[0]):
+                    # tank /foo/bar command_name
+                    ctx_list = [ cmd_line[0] ]
+                    cmd_name = cmd_line[1]
+                elif cmd_line[0] in SHOTGUN_ENTITY_TYPES:
                     # tank Shot 123
                     cmd_name = None
-                    ctx_list = [ cmd_line[0], cmd_line[1] ]
+                    ctx_list = [ cmd_line[0], cmd_line[1] ]                    
+                else:
+                    # tank command_name param1
+                    cmd_name = cmd_line[0]
+                    cmd_args = [ cmd_line[1] ]
+                    ctx_list = [ os.getcwd() ] # path
                 
-            elif len(cmd_line) == 3:
-                # > tank command_name Shot 123
-                cmd_name = cmd_line[0]
-                ctx_list = [ cmd_line[1], cmd_line[2] ]
-            else:
-                raise TankError("Invalid syntax. Please run tank --help for more info.")
+            elif len(cmd_line) > 2:
+                # tank Shot 123 command_name param1 param2 param3 ...
+                # tank /path command param1 param2 param3 ...
+                # tank command param1 param2 param3 ...
+
+                if ("/" in cmd_line[0]) or ("\\" in cmd_line[0]):
+                    # tank /foo/bar command_name param1
+                    ctx_list = [ cmd_line[0] ]
+                    cmd_name = cmd_line[1]
+                    cmd_args = cmd_line[2:]
+                elif cmd_line[0] in SHOTGUN_ENTITY_TYPES:
+                    # tank Shot 123 command_name
+                    cmd_name = cmd_line[2]
+                    ctx_list = [ cmd_line[0], cmd_line[1] ]
+                    cmd_args = cmd_line[3:]
+                else:
+                    # tank command_name param1 param2
+                    cmd_name = cmd_line[0]
+                    cmd_args = cmd_line[1:]
+                    ctx_list = [ os.getcwd() ] # path
+                
 
             exit_code = run_engine_cmd(log, 
                                        install_root, 
                                        pipeline_config_root, 
                                        ctx_list, 
                                        cmd_name,
-                                       using_cwd)
+                                       using_cwd,
+                                       cmd_args)
 
     except TankError, e:
         # one line report
