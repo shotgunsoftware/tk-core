@@ -33,10 +33,8 @@ def setUpModule():
     temp_dir = tempfile.gettempdir()
     # make a unique test dir for each file
     temp_dir_name = "tankTemporaryTestData"
-    # If running on the windows CI server then append time to
-    # the temp directory name
-    if os.getenv('JOB_NAME') == 'tank_trunk_core_windows':
-        temp_dir_name += "_%f" % time.time()
+    # Append time to the temp directory name
+    temp_dir_name += "_%f" % time.time()
 
     TANK_TEMP = os.path.join(temp_dir, temp_dir_name)
     # print out the temp data location

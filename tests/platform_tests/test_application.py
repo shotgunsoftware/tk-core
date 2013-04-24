@@ -4,6 +4,7 @@ Copyright (c) 2012 Shotgun Software, Inc
 """
 import sys
 import os
+import tempfile
 
 from tank_test.tank_test_base import *
 import tank
@@ -114,7 +115,7 @@ class TestExecuteHook(TestApplication):
     def test_request_folder(self):
         app = self.engine.apps["test_app"]
         
-        path = "/tmp/tank_unit_test_test_request_folder"
+        path = os.path.join( tempfile.gettempdir(), "tank_unit_test_test_request_folder")
     
         self.assertFalse(os.path.exists(path))
         app.ensure_folder_exists(path)
