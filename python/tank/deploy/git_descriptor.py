@@ -79,7 +79,7 @@ class TankGitDescriptor(AppDescriptor):
         Will exit early if app already exists local.
         """
         if self.exists_local():
-            # nothing to do!
+            # if using "live mode" perform a git pull for latest.
             if self._version == LATEST:
                 self._pull_latest()
             return
@@ -129,6 +129,12 @@ class TankGitDescriptor(AppDescriptor):
         unzip_file(zip_tmp, target)
 
     def _pull_latest(self):
+        """
+        Pulls the latest changes from remote.
+
+        Probably needs a more robust check for local changes before performing
+        the pull.  As it is, it's very naive.
+        """
         cwd = os.getcwd()
         try:
             os.chdir(self.get_path())
