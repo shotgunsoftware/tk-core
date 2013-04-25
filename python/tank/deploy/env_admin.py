@@ -79,8 +79,7 @@ def install_app(log, tk, env_name, engine_instance_name, app_name):
 
     # next step is to add the new configuration values to the environment
     env.create_app_settings(engine_instance_name, app_instance_name)
-    env.update_app_settings(engine_instance_name, app_instance_name, params)
-    env.update_app_location(engine_instance_name, app_instance_name, app_descriptor.get_location())
+    env.update_app_settings(engine_instance_name, app_instance_name, params, app_descriptor.get_location())
 
     log.info("")
     log.info("")
@@ -147,8 +146,7 @@ def install_engine(log, tk, env_name, engine_name):
     
     # next step is to add the new configuration values to the environment
     env.create_engine_settings(engine_instance_name)
-    env.update_engine_settings(engine_instance_name, params)
-    env.update_engine_location(engine_instance_name, engine_descriptor.get_location())
+    env.update_engine_settings(engine_instance_name, params, engine_descriptor.get_location())
 
     log.info("")
     log.info("")
@@ -198,16 +196,14 @@ def _update_item(log, tk, env, status, engine_name, app_name=None):
         data = env.get_engine_settings(engine_name)
         # update with the new settings
         data.update(params)
-        env.update_engine_settings(engine_name, data)
-        env.update_engine_location(engine_name, new_descriptor.get_location())
+        env.update_engine_settings(engine_name, data, new_descriptor.get_location())
 
     else:
 
         data = env.get_app_settings(engine_name, app_name)
         # update with the new settings
         data.update(params)
-        env.update_app_settings(engine_name, app_name, data)
-        env.update_app_location(engine_name, app_name, new_descriptor.get_location())
+        env.update_app_settings(engine_name, app_name, data, new_descriptor.get_location())
 
 def _process_framework(log, env, framework_name):
     """

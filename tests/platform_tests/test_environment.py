@@ -95,60 +95,6 @@ class TestUpdateEnvironment(TankTestBase):
         self.env = tk.pipeline_configuration.get_environment(self.test_env)
         
         
-    def test_update_engine_location(self):
-        
-        self.assertRaises(TankError, self.env.update_engine_location, "bad_engine", {})
-        
-        # get raw environment before
-        env_file = os.path.join(self.project_config, "env", "test.yml")
-        fh = open(env_file)
-        env_before = yaml.load(fh)
-        fh.close()
-        
-        self.env.update_engine_location("test_engine", {"type":"dev", "path":"foo"})
-        
-        # get raw environment after
-        env_file = os.path.join(self.project_config, "env", "test.yml")
-        fh = open(env_file)
-        env_after = yaml.load(fh)
-        fh.close()
-        
-        # ensure that disk was updated
-        self.assertNotEqual(env_after, env_before)
-        env_before["engines"]["test_engine"]["location"] = {"type":"dev", "path":"foo"}
-        self.assertEqual(env_after, env_before)
-        
-        # ensure memory was updated
-        desc_after = self.env.get_engine_descriptor("test_engine")
-        self.assertEqual(desc_after.get_location(), {"type":"dev", "path":"foo"})
-        
-    def test_update_app_location(self):
-        
-        self.assertRaises(TankError, self.env.update_app_location, "bad_engine", "bad_app", {})
-        
-        # get raw environment before
-        env_file = os.path.join(self.project_config, "env", "test.yml")
-        fh = open(env_file)
-        env_before = yaml.load(fh)
-        fh.close()
-        
-        self.env.update_app_location("test_engine", "test_app", {"type":"dev", "path":"foo1"})
-        
-        # get raw environment after
-        env_file = os.path.join(self.project_config, "env", "test.yml")
-        fh = open(env_file)
-        env_after = yaml.load(fh)
-        fh.close()
-        
-        # ensure that disk was updated
-        self.assertNotEqual(env_after, env_before)
-        env_before["engines"]["test_engine"]["apps"]["test_app"]["location"] = {"type":"dev", "path":"foo1"}
-        self.assertEqual(env_after, env_before)
-        
-        # ensure memory was updated
-        desc_after = self.env.get_app_descriptor("test_engine", "test_app")
-        self.assertEqual(desc_after.get_location(), {"type":"dev", "path":"foo1"})
-        
         
     def test_add_engine(self):
         
@@ -212,7 +158,7 @@ class TestUpdateEnvironment(TankTestBase):
         
     def test_update_engine_settings(self):
         
-        self.assertRaises(TankError, self.env.update_engine_settings, "bad_engine", {})
+        self.assertRaises(TankError, self.env.update_engine_settings, "bad_engine", {}, {})
         
         # get raw environment before
         env_file = os.path.join(self.project_config, "env", "test.yml")
@@ -221,7 +167,7 @@ class TestUpdateEnvironment(TankTestBase):
         fh.close()
         prev_settings = self.env.get_engine_settings("test_engine")
         
-        self.env.update_engine_settings("test_engine", {"foo":"bar"})
+        self.env.update_engine_settings("test_engine", {"foo":"bar"}, {"type":"dev", "path":"foo"})
         
         # get raw environment after
         env_file = os.path.join(self.project_config, "env", "test.yml")
@@ -232,6 +178,7 @@ class TestUpdateEnvironment(TankTestBase):
         # ensure that disk was updated
         self.assertNotEqual(env_after, env_before)
         env_before["engines"]["test_engine"]["foo"] = "bar"
+        env_before["engines"]["test_engine"]["location"] = {"type":"dev", "path":"foo"}
         self.assertEqual(env_after, env_before)
         
         # ensure memory was updated
@@ -239,9 +186,18 @@ class TestUpdateEnvironment(TankTestBase):
         prev_settings.update({"foo":"bar"})
         self.assertEqual(new_settings, prev_settings)
         
+        desc_after = self.env.get_engine_descriptor("test_engine")
+        self.assertEqual(desc_after.get_location(), {"type":"dev", "path":"foo"})
+        
+        
+        
+        
+        
+        
+        
     def test_update_app_settings(self):
         
-        self.assertRaises(TankError, self.env.update_app_settings, "bad_engine", "bad_app", {})
+        self.assertRaises(TankError, self.env.update_app_settings, "bad_engine", "bad_app", {}, {})
         
         # get raw environment before
         env_file = os.path.join(self.project_config, "env", "test.yml")
@@ -250,7 +206,7 @@ class TestUpdateEnvironment(TankTestBase):
         fh.close()
         prev_settings = self.env.get_app_settings("test_engine", "test_app")
         
-        self.env.update_app_settings("test_engine", "test_app", {"foo":"bar1"})
+        self.env.update_app_settings("test_engine", "test_app", {"foo":"bar1"}, {"type":"dev", "path":"foo1"})
         
         # get raw environment after
         env_file = os.path.join(self.project_config, "env", "test.yml")
@@ -261,11 +217,14 @@ class TestUpdateEnvironment(TankTestBase):
         # ensure that disk was updated
         self.assertNotEqual(env_after, env_before)
         env_before["engines"]["test_engine"]["apps"]["test_app"]["foo"] = "bar1"
+        env_before["engines"]["test_engine"]["apps"]["test_app"]["location"] = {"type":"dev", "path":"foo1"}
         self.assertEqual(env_after, env_before)
         
         # ensure memory was updated
         new_settings = self.env.get_app_settings("test_engine", "test_app")
         prev_settings.update({"foo":"bar1"})
         self.assertEqual(new_settings, prev_settings)
-    
+        
+        desc_after = self.env.get_app_descriptor("test_engine", "test_app")
+        self.assertEqual(desc_after.get_location(), {"type":"dev", "path":"foo1"})
     

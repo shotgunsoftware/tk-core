@@ -350,57 +350,8 @@ class Environment(object):
         
         # sync internal data with disk
         self.__refresh()
-
-    def update_framework_location(self, framework_name, new_location):
-        """
-        Updates the location dictionary for a framework
-        """
-        if self.__env_data.get("frameworks") is None:
-            self.__env_data["frameworks"] = {}
             
-        if framework_name not in self.__env_data.get("frameworks"):
-            raise TankError("Framework %s does not exist in environment %s" % (framework_name, self.__env_path) )
-        
-        self.__env_data["frameworks"][framework_name][constants.ENVIRONMENT_LOCATION_KEY] = new_location
-        self.__update_file_on_disk()
-    
-    def update_engine_location(self, engine_name, new_location):
-        """
-        Updates the location dictionary for an engine
-        """
-        if engine_name not in self.__env_data["engines"]:
-            raise TankError("Engine %s does not exist in environment %s" % (engine_name, self.__env_path) )
-        
-        self.__env_data["engines"][engine_name][constants.ENVIRONMENT_LOCATION_KEY] = new_location
-        self.__update_file_on_disk()
-        
-    def update_app_location(self, engine_name, app_name, new_location):
-        """
-        Updates the location dictionary for an engine
-        """
-        if engine_name not in self.__env_data["engines"]:
-            raise TankError("Engine %s does not exist in environment %s" % (engine_name, self.__env_path) )
-        if app_name not in self.__env_data["engines"][engine_name]["apps"]:
-            raise TankError("App %s.%s does not exist in environment %s" % (engine_name, app_name, self) )
-        
-        self.__env_data["engines"][engine_name]["apps"][app_name][constants.ENVIRONMENT_LOCATION_KEY] = new_location        
-        self.__update_file_on_disk()
-        
-    def update_framework_settings(self, framework_name, new_data):
-        """
-        Updates the framework configuration
-        """
-        if self.__env_data.get("frameworks") is None:
-            self.__env_data["frameworks"] = {}
-        
-        if framework_name not in self.__env_data["frameworks"]:
-            raise TankError("Framework %s does not exist in environment %s" % (framework_name, self.__env_path) )
-        
-        data = self.__env_data["frameworks"][framework_name]
-        data.update(new_data)
-        self.__update_file_on_disk()
-    
-    def update_engine_settings(self, engine_name, new_data):
+    def update_engine_settings(self, engine_name, new_data, new_location):
         """
         Updates the engine configuration
         """
@@ -408,10 +359,11 @@ class Environment(object):
             raise TankError("Engine %s does not exist in environment %s" % (engine_name, self.__env_path) )
         
         data = self.__env_data["engines"][engine_name]
+        data[constants.ENVIRONMENT_LOCATION_KEY] = new_location
         data.update(new_data)
         self.__update_file_on_disk()
         
-    def update_app_settings(self, engine_name, app_name, new_data):
+    def update_app_settings(self, engine_name, app_name, new_data, new_location):
         """
         Updates the app configuration
         """
@@ -420,11 +372,12 @@ class Environment(object):
         if app_name not in self.__env_data["engines"][engine_name]["apps"]:
             raise TankError("App %s.%s does not exist in environment %s" % (engine_name, app_name, self.__env_path) )
         
-        data = self.__env_data["engines"][engine_name]["apps"][app_name]
+        data = self.__env_data["engines"][engine_name]["apps"][app_name]        
+        data[constants.ENVIRONMENT_LOCATION_KEY] = new_location
         data.update(new_data)
         self.__update_file_on_disk()
             
-    def create_framework_settings(self, framework_name):
+    def create_framework_settings(self, framework_name, params, location):
         """
         Creates a new empty framework settings in the config
         """
@@ -435,8 +388,8 @@ class Environment(object):
             raise TankError("Framework %s already exists in environment %s" % (framework_name, self.__env_path) )
         
         self.__env_data["frameworks"][framework_name] = {}
-        # and make sure we also create the location key
-        self.__env_data["frameworks"][framework_name][constants.ENVIRONMENT_LOCATION_KEY] = {}
+        self.__env_data["frameworks"][framework_name][constants.ENVIRONMENT_LOCATION_KEY] = location
+        self.__env_data["frameworks"][framework_name].update(params)
         self.__update_file_on_disk()
             
     def create_engine_settings(self, engine_name):
