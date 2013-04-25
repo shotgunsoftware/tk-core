@@ -27,8 +27,8 @@ if NOT EXISTS "%LOCAL_SCRIPT%" GOTO NO_LOCAL_INSTALL
 rem -- this is a local install! Run the wrapper script
 call "%LOCAL_SCRIPT%" "%SELF_PATH%" %*
 
-rem -- and exit cleanly
-exit /b 0
+rem -- pass along the return code
+exit /b %ERRORLEVEL%
 
 
 rem --------------------------------------------------------------------------------------------
@@ -47,8 +47,8 @@ IF NOT EXIST "%PARENT_LOCATION%" GOTO NO_PARENT_LOCATION
 rem -- all good, execute tank script in parent location
 "%PARENT_LOCATION%\tank.bat" %* --pc="%SELF_PATH%"
 
-exit /b 0
-
+rem -- pass along the return code
+exit /b %ERRORLEVEL%
 
 
 rem --------------------------------------------------------------------------------------------
