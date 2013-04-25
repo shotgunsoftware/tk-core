@@ -59,7 +59,7 @@ class AltCustomFormatter(logging.Formatter):
         # passthrough so we can init stuff
         self._html = False
         self._num_items = 0
-        super(AltCustomFormatter, self).__init__(*args, **kwargs)
+        logging.Formatter.__init__(self, *args, **kwargs)
     
     def enable_html_mode(self):
         self._html = True
@@ -100,8 +100,8 @@ class AltCustomFormatter(logging.Formatter):
                     lines.append(x)
                 record.msg = "\n".join(lines)
         
-        self._num_items += 1
-        return super(AltCustomFormatter, self).format(record)
+        self._num_items += 1        
+        return logging.Formatter.format(self, record)
     
 
 def show_help(log):
@@ -801,7 +801,7 @@ if __name__ == "__main__":
     log = logging.getLogger("tank.setup_project")
     log.setLevel(logging.INFO)
     
-    ch = logging.StreamHandler(stream=sys.stdout)
+    ch = logging.StreamHandler(sys.stdout)
     formatter = AltCustomFormatter()
     ch.setFormatter(formatter)
     log.addHandler(ch)
