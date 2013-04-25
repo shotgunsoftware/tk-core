@@ -333,7 +333,7 @@ class Environment(object):
         
     ##########################################################################################
     # Public methods - data update
-    
+            
     # todo - add methods to check time stamps so that we can detect if someone else 
     # is making changes!
     def __update_file_on_disk(self):
@@ -350,6 +350,36 @@ class Environment(object):
         
         # sync internal data with disk
         self.__refresh()
+            
+    def __load_data(self, path):
+        """
+        loads the main data from disk, raw form
+        """
+        # load the data in 
+        try:
+            env_file = open(path, "r")
+            try:
+                data = yaml.load(env_file)
+            finally:
+                env_file.close()
+        except Exception, exp:
+            raise TankError("Could not parse file %s. "
+                            "Error reported from parser: %s" % (self.__env_path, exp))
+        return data
+    
+    def __write_data(self, path, data):
+        """
+        writes the main data to disk, raw form
+        """
+        try:
+            env_file = open(path, "wt")
+            yaml.dump(data, env_file)
+            env_file.close()
+        except Exception, exp:
+            raise TankError("Could not write to environment file %s. "
+                            "Error reported: %s" % (self.__env_path, exp))
+        
+        
             
     def update_engine_settings(self, engine_name, new_data, new_location):
         """
@@ -379,44 +409,70 @@ class Environment(object):
             
     def create_framework_settings(self, framework_name, params, location):
         """
-        Creates a new empty framework settings in the config
-        """
-        if self.__env_data.get("frameworks") is None:
-            self.__env_data["frameworks"] = {}
+        Creates a new empty framework settings.
         
-        if framework_name in self.__env_data["frameworks"]:
+        The descriptor object indicates the app or engine that reqires this framework.
+        The framework should be written to the file which is suitable for that scope.
+        
+        """
+        
+        path = environment_includes.get_path_from_location(self.__env_path, location)
+        
+        data = self.__load_data(path)
+        
+        if data.get("frameworks") is None:
+            data["frameworks"] = {}
+        
+        if framework_name in data["frameworks"]:
             raise TankError("Framework %s already exists in environment %s" % (framework_name, self.__env_path) )
         
-        self.__env_data["frameworks"][framework_name] = {}
-        self.__env_data["frameworks"][framework_name][constants.ENVIRONMENT_LOCATION_KEY] = location
-        self.__env_data["frameworks"][framework_name].update(params)
-        self.__update_file_on_disk()
-            
+        data["frameworks"][framework_name] = {}
+        data["frameworks"][framework_name][constants.ENVIRONMENT_LOCATION_KEY] = location
+        data["frameworks"][framework_name].update(params)
+        
+        self.__write_data(path, data)
+        # sync internal data with disk
+        self.__refresh()
+
+        
     def create_engine_settings(self, engine_name):
         """
-        Creates a new empty engine settings in the config
+        Creates a new engine settings chunk in the root file of the env tree
         """
-        if engine_name in self.__env_data["engines"]:
+        
+        data = self.__load_data(self.__env_path)
+        
+        if engine_name in data["engines"]:
             raise TankError("Engine %s already exists in environment %s" % (engine_name, self.__env_path) )
         
-        self.__env_data["engines"][engine_name] = {}
+        data["engines"][engine_name] = {}
         # and make sure we also create the location key
-        self.__env_data["engines"][engine_name][constants.ENVIRONMENT_LOCATION_KEY] = {}
+        data["engines"][engine_name][constants.ENVIRONMENT_LOCATION_KEY] = {}
         # and make sure we also create the apps key
-        self.__env_data["engines"][engine_name]["apps"] = {}
-        self.__update_file_on_disk()
+        data["engines"][engine_name]["apps"] = {}
+        
+        self.__write_data(self.__env_path, data)
+        # sync internal data with disk
+        self.__refresh()
+        
         
     def create_app_settings(self, engine_name, app_name):
         """
-        Creates a new empty app configuration
+        Creates a new app settings chunk in the root file of the env tree
         """
-        if engine_name not in self.__env_data["engines"]:
+        
+        data = self.__load_data(self.__env_path)
+        
+        if engine_name not in data["engines"]:
             raise TankError("Engine %s does not exist in environment %s" % (engine_name, self.__env_path) )
-        if app_name in self.__env_data["engines"][engine_name]["apps"]:
+        if app_name in data["engines"][engine_name]["apps"]:
             raise TankError("App %s.%s already exists in environment %s" % (engine_name, app_name, self.__env_path) )
         
-        self.__env_data["engines"][engine_name]["apps"][app_name] = {}
+        data["engines"][engine_name]["apps"][app_name] = {}
         # and make sure we also create the location key
-        self.__env_data["engines"][engine_name]["apps"][app_name][constants.ENVIRONMENT_LOCATION_KEY] = {}
-        self.__update_file_on_disk()
+        data["engines"][engine_name]["apps"][app_name][constants.ENVIRONMENT_LOCATION_KEY] = {}
+    
+        self.__write_data(self.__env_path, data)
+        # sync internal data with disk
+        self.__refresh()
     
