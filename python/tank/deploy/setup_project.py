@@ -864,6 +864,10 @@ def _interactive_setup(log, pipeline_config_root):
     tank_proxy = os.path.join(core_api_root, "setup", "tank_api_proxy")
     _copy_folder(log, tank_proxy, os.path.join(current_os_pc_location, "install", "core", "python"))
     
+    log.debug("Copying windows utils...")
+    tank_proxy = os.path.join(core_api_root, "setup", "windows")
+    _copy_folder(log, tank_proxy, os.path.join(current_os_pc_location, "install", "core", "setup", "windows"))
+    
     # specify the parent files in install/core/core_PLATFORM.cfg
     log.debug("Creating core redirection config files...")
     for (uname, path) in _get_current_core_file_location().items():
