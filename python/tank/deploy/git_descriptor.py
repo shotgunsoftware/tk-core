@@ -98,7 +98,8 @@ class TankGitDescriptor(AppDescriptor):
         # now clone and archive
         cwd = os.getcwd()
         try:
-            if os.system("git clone -q '%s' %s" % (self._path, clone_tmp)) != 0:
+            # Note: git doesn't like paths in single quotes when running on windows!
+            if os.system("git clone -q \"%s\" %s" % (self._path, clone_tmp)) != 0:
                 raise TankError("Could not clone git repository '%s'!" % self._path)
             
             os.chdir(clone_tmp)
@@ -124,8 +125,8 @@ class TankGitDescriptor(AppDescriptor):
         # get the most recent tag hash
         cwd = os.getcwd()
         try:
-            
-            if os.system("git clone -q '%s' %s" % (self._path, clone_tmp)) != 0:
+            # Note: git doesn't like paths in single quotes when running on windows!
+            if os.system("git clone -q \"%s\" %s" % (self._path, clone_tmp)) != 0:
                 raise TankError("Could not clone git repository '%s'!" % self._path)
             
             os.chdir(clone_tmp)

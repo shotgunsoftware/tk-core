@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'tank_dialog.ui'
 #
-# Created: Mon Mar  4 14:32:23 2013
+# Created: Mon Apr 22 17:00:18 2013
 #      by: pyside-uic 0.2.13 running on PySide 1.1.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -76,6 +76,7 @@ class Ui_TankDialog(object):
         self.horizontalLayout.addWidget(self.lbl_context)
         self.details = QtGui.QToolButton(self.top_group)
         self.details.setMinimumSize(QtCore.QSize(34, 34))
+        self.details.setFocusPolicy(QtCore.Qt.ClickFocus)
         self.details.setStyleSheet("QToolButton{\n"
 "width: 12px;\n"
 "height: 20px;\n"
@@ -254,7 +255,7 @@ class Ui_TankDialog(object):
         self.page2_scroll.setWidgetResizable(True)
         self.page2_scroll.setObjectName("page2_scroll")
         self.page2_scrollcontents = QtGui.QWidget()
-        self.page2_scrollcontents.setGeometry(QtCore.QRect(0, 0, 359, 465))
+        self.page2_scrollcontents.setGeometry(QtCore.QRect(0, 0, 335, 59))
         self.page2_scrollcontents.setObjectName("page2_scrollcontents")
         self.verticalLayout_5 = QtGui.QVBoxLayout(self.page2_scrollcontents)
         self.verticalLayout_5.setSpacing(4)
