@@ -39,12 +39,11 @@ class Environment(object):
         self.__app_locations = {}
         self.__framework_locations = {}
         self.__context = context
+        self.__pipeline_config = pipeline_config
         
         # validate and populate config
         self.__refresh()
         
-        # pc path for this environment
-        self.__pipeline_config = pipeline_config
         
     def __repr__(self):
         return "<Tank Environment %s>" % self.__env_path
