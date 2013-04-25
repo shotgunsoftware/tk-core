@@ -156,7 +156,21 @@ def _resolve_refs_r(lookup_dict, data):
         
     return processed_val
             
+def _resolve_frameworks(lookup_dict, data):
+    """
+    Resolves any framework related includes
+    """
+    if "frameworks" in lookup_dict:
+        # cool, we got some frameworks in our lookup section
+        # add them to the main data
 
+        fw = lookup_dict["frameworks"]
+        if "frameworks" not in data:
+            data["frameworks"] = {}
+        data["frameworks"].update(fw)    
+    
+    return data
+    
 
         
 def process_includes(file_name, data, context):
@@ -193,11 +207,12 @@ def process_includes(file_name, data, context):
     # now go through our own data, recursively, and replace any refs.
     # recurse down in dicts and lists
     try:
-        resolved_data = _resolve_refs_r(lookup_dict, data)
+        data = _resolve_refs_r(lookup_dict, data)
+        data = _resolve_frameworks(lookup_dict, data)
     except TankError, e:
         raise TankError("Include error. Could not resolve references for %s: %s" % (file_name, e))
     
-    return resolved_data
+    return data
     
     
     
