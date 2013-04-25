@@ -10,7 +10,7 @@ import re
 import logging
 import tank
 import textwrap
-from tank import TankError
+from tank import TankError, TankEngineInitError
 from tank.deploy import setup_project, validate_config, administrator, core_api_admin, env_admin
 from tank import pipelineconfig
 from tank.util import shotgun
@@ -715,7 +715,12 @@ def run_engine_cmd(log, install_root, pipeline_config_root, context_items, comma
     log.info("- Setting the Context to %s." % ctx)
             
     # kick off mr engine.
-    e = tank.platform.start_engine(SHELL_ENGINE, tk, ctx)
+    try:
+        e = tank.platform.start_engine(SHELL_ENGINE, tk, ctx)
+    except TankEngineInitError, err:
+        raise TankError("Could not start the Tank Shell Engine! Please double check that the shell "
+                        "engine has been configured and is part of the current environment. Error "
+                        "reported: %s" % err )
         
     log.debug("Started engine %s" % e)
     
