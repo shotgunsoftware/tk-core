@@ -170,6 +170,11 @@ class PipelineConfiguration(object):
             if current_os_root is None:
                 proj_roots[r] = None
             else:
+                
+                # Note, these paths may have been written from a different platform
+                # so the slash direction may not be uniform.  To accomodate this
+                # we convert _all_ slashes to the current os.path.sep here
+                current_os_root = current_os_root.replace("\\", os.path.sep).replace("/", os.path.sep)
                 proj_roots[r] = os.path.join(current_os_root, self._project_name)
         
         return proj_roots
