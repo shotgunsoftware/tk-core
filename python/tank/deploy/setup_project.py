@@ -840,6 +840,7 @@ def _interactive_setup(log, pipeline_config_root):
     _make_folder(log, os.path.join(current_os_pc_location, "install"), 0775)
     _make_folder(log, os.path.join(current_os_pc_location, "install", "core"), 0777)
     _make_folder(log, os.path.join(current_os_pc_location, "install", "core", "python"), 0777)
+    _make_folder(log, os.path.join(current_os_pc_location, "install", "core", "setup"), 0777)
     _make_folder(log, os.path.join(current_os_pc_location, "install", "core.backup"), 0777)
     _make_folder(log, os.path.join(current_os_pc_location, "install", "core.backup", "activation_13"), 0777)
     _make_folder(log, os.path.join(current_os_pc_location, "install", "engines"), 0777)
