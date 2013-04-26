@@ -98,7 +98,7 @@ def _upgrade_to_013(tank_install_root, log):
         return
 
     # okay so no pipeline configurations! Means we need to upgrade!
-    log.debug("Begin migration to 0.13")
+    log.info("Converting your Tank installation from v0.12 -> v0.13 compliant structure...")
     log.debug("Tank Storage: %s" % tank_storage)
     
     # first see if there is a storage named primary - if not, create it and set
@@ -196,13 +196,29 @@ def _upgrade_to_013(tank_install_root, log):
                         
             # copy the python stubs
             log.debug("Copying python stubs...")
-            tank_proxy = os.path.join(new_code_root, "setup", "tank_api_proxy")
-            _copy_folder(log, tank_proxy, os.path.join(project_tank_folder, "install", "core", "python"))
+            _copy_folder(log, 
+                         os.path.join(new_code_root, "setup", "tank_api_proxy"), 
+                         os.path.join(project_tank_folder, "install", "core", "python"))
             
             log.debug("Copying windows utils...")
-            tank_proxy = os.path.join(new_code_root, "setup", "windows")
-            _copy_folder(log, tank_proxy, os.path.join(project_tank_folder, "install", "core", "setup", "windows"))
+            _copy_folder(log, 
+                         os.path.join(new_code_root, "setup", "windows"), 
+                         os.path.join(project_tank_folder, "install", "core", "setup", "windows"))
             
+            log.info("Copying apps...")
+            _copy_folder(log, 
+                         os.path.join(studio_root, "install", "apps"), 
+                         os.path.join(project_tank_folder, "install", "apps"))
+
+            log.info("Copying engines...")
+            _copy_folder(log, 
+                         os.path.join(studio_root, "install", "engines"), 
+                         os.path.join(project_tank_folder, "install", "engines"))
+
+            log.info("Copying frameworks...")
+            _copy_folder(log, 
+                         os.path.join(studio_root, "install", "frameworks"), 
+                         os.path.join(project_tank_folder, "install", "frameworks"))
             
             project_file_locations = {"Darwin": None, "Linux": None, "Windows": None}
             if tank_storage["mac_path"]:
