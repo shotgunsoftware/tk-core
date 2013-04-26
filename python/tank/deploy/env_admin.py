@@ -14,6 +14,7 @@ from ..errors import TankError
 
 from .descriptor import AppDescriptor
 from .app_store_descriptor import TankAppStoreDescriptor
+from ..platform import environment_includes 
 
 import sys
 import os
@@ -69,7 +70,11 @@ def install_app(log, tk, env_name, engine_instance_name, app_name):
     # okay to install!
     
     # ensure that all required frameworks have been installed
-    console_utils.ensure_frameworks_installed(log, tk, app_descriptor, env)
+    
+    # find the file where our app is being installed
+    # when adding new items, we always add them to the root env file
+    fw_location = env.disk_location
+    console_utils.ensure_frameworks_installed(log, tk, fw_location, app_descriptor, env)
 
     # create required shotgun fields
     app_descriptor.ensure_shotgun_fields_exist()
@@ -128,7 +133,10 @@ def install_engine(log, tk, env_name, engine_name):
     # okay to install!
 
     # ensure that all required frameworks have been installed
-    console_utils.ensure_frameworks_installed(log, tk, engine_descriptor, env)
+    # find the file where our app is being installed
+    # when adding new items, we always add them to the root env file
+    fw_location = env.disk_location    
+    console_utils.ensure_frameworks_installed(log, tk, fw_location, engine_descriptor, env)
 
     # note! Some of these methods further down are likely to pull the apps local
     # in order to do deep introspection. In order to provide better error reporting,
@@ -181,7 +189,14 @@ def _update_item(log, tk, env, status, engine_name, app_name=None):
     new_descriptor.ensure_shotgun_fields_exist()
 
     # ensure that all required frameworks have been installed
-    console_utils.ensure_frameworks_installed(log, tk, new_descriptor, env)
+    # find the file where our item is being installed
+    if app_name is None:
+        # it's an engine
+        (tokens, yml_file) = env.find_location_for_engine(engine_name)
+    else:
+        (tokens, yml_file) = env.find_location_for_app(engine_name, app_name)
+    
+    console_utils.ensure_frameworks_installed(log, tk, yml_file, new_descriptor, env)
 
     # now get data for all new settings values in the config
     params = console_utils.get_configuration(log, tk, new_descriptor, old_descriptor)

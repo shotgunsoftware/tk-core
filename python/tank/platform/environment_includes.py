@@ -150,7 +150,7 @@ def _resolve_refs_r(lookup_dict, data):
         ref_token = data[1:]
         if ref_token not in lookup_dict:
             raise TankError("Undefined Reference %s!" % ref_token)
-        # other parts of the code is making changes nilly-willy do data
+        # other parts of the code is making changes nilly-willy to data
         # structures (ick) so flatten everything out here.... :(
         processed_val = copy.deepcopy(lookup_dict[ref_token])
         
@@ -215,6 +215,39 @@ def process_includes(file_name, data, context):
     return data
     
     
+def find_reference(file_name, context, token):
+    """
+    Non-recursive. Looks at all include files and searches
+    for @token. Returns the file in which it is found.
+    """
+    
+    # load the data in 
+    try:
+        fh = open(file_name, "r")
+        data = yaml.load(fh)
+    except Exception, exp:
+        raise TankError("Could not parse file %s. Error reported: %s" % (file_name, exp))
+    finally:
+        fh.close()
+    
+    # first build our big fat lookup dict
+    include_files = _resolve_includes(file_name, data, context)
+    
+    found_file = None
+    
+    for include_file in include_files:
+                
+        # path exists, so try to read it
+        fh = open(include_file, "r")
+        try:
+            included_data = yaml.load(fh) or {}
+        finally:
+            fh.close()
+        
+        if token in included_data:
+            found_file = include_file
+        
+    return found_file
     
     
     

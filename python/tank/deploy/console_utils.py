@@ -157,7 +157,7 @@ def format_bundle_info(log, descriptor):
     log.info("\%s" % ("-" * 70))
 
 
-def ensure_frameworks_installed(log, tank_api_instance, descriptor, environment):
+def ensure_frameworks_installed(log, tank_api_instance, file_location, descriptor, environment):
     """
     Recursively check that all required frameworks are installed.
     Anything not installed will be downloaded from the app store.
@@ -203,10 +203,10 @@ def ensure_frameworks_installed(log, tank_api_instance, descriptor, environment)
         params = get_configuration(log, tank_api_instance, fw_descriptor, None)
     
         # next step is to add the new configuration values to the environment
-        environment.create_framework_settings(fw_instance_name, params, fw_descriptor.get_location())
+        environment.create_framework_settings(file_location, fw_instance_name, params, fw_descriptor.get_location())
         
         # now make sure these guys have all their required frameworks installed
-        ensure_frameworks_installed(log, tank_api_instance, fw_descriptor, environment)
+        ensure_frameworks_installed(log, tank_api_instance, file_location, fw_descriptor, environment)
         
     
     

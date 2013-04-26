@@ -60,13 +60,11 @@ class Environment(object):
         
         try:
             env_file = open(self.__env_path, "r")
-            try:
-                data = yaml.load(env_file)
-            finally:
-                env_file.close()
+            data = yaml.load(env_file)
         except Exception, exp:
-            raise TankError("Could not parse file %s. "
-                            "Error reported from parser: %s" % (self.__env_path, exp))
+            raise TankError("Could not parse file %s. Error reported: %s" % (self.__env_path, exp))
+        finally:
+            env_file.close()
      
         self.__env_data = environment_includes.process_includes(self.__env_path, data, self.__context)
         
@@ -333,24 +331,7 @@ class Environment(object):
         
     ##########################################################################################
     # Public methods - data update
-            
-    # todo - add methods to check time stamps so that we can detect if someone else 
-    # is making changes!
-    def __update_file_on_disk(self):
-        """
-        Updates the file on disk
-        """
-        try:
-            env_file = open(self.__env_path, "wt")
-            yaml.dump(self.__env_data, env_file)
-            env_file.close()
-        except Exception, exp:
-            raise TankError("Could not write to environment file %s. "
-                            "Error reported: %s" % (self.__env_path, exp))
-        
-        # sync internal data with disk
-        self.__refresh()
-            
+                        
     def __load_data(self, path):
         """
         loads the main data from disk, raw form
@@ -358,13 +339,12 @@ class Environment(object):
         # load the data in 
         try:
             env_file = open(path, "r")
-            try:
-                data = yaml.load(env_file)
-            finally:
-                env_file.close()
+            data = yaml.load(env_file)
         except Exception, exp:
-            raise TankError("Could not parse file %s. "
-                            "Error reported from parser: %s" % (self.__env_path, exp))
+            raise TankError("Could not parse file %s. Error reported: %s" % (path, exp))
+        finally:
+            env_file.close()
+        
         return data
     
     def __write_data(self, path, data):
@@ -374,12 +354,74 @@ class Environment(object):
         try:
             env_file = open(path, "wt")
             yaml.dump(data, env_file)
-            env_file.close()
         except Exception, exp:
-            raise TankError("Could not write to environment file %s. "
-                            "Error reported: %s" % (self.__env_path, exp))
+            raise TankError("Could not write environment file %s. Error reported: %s" % (path, exp))
+        finally:
+            env_file.close()
         
         
+    def find_location_for_engine(self, engine_name):
+        """
+        Returns the filename and a list of dictionary keys where an engine instance resides.
+        The dictionary key list (tokens) can be nested, for example
+        [engines, tk-maya] or just flat [tk-maya-ref]
+        """
+        # get the raw data
+        root_yml_data = self.__load_data(self.__env_path)
+        eng_data = root_yml_data["engines"][engine_name]
+        
+        if isinstance(eng_data, basestring) and eng_data.startswith("@"):
+            # this is a reference - try to load it in!
+            token = eng_data[1:]
+            tokens = [token]
+            yml_file = environment_includes.find_reference(self.__env_path, self.__context, token)
+        else:
+            tokens = ["engines", engine_name]
+            yml_file = self.__env_path 
+        
+        return (tokens, yml_file)
+         
+    def find_location_for_app(self, engine_name, app_name):
+        """
+        Returns the filename and the dictionary key where an app instance resides.
+        The dictionary key list (tokens) can be nested, for example
+        [engines, tk-maya, apps, tk-multi-about] or just flat [tk-mylti-about-def]
+        """
+        
+        (engine_tokens, engine_yml_file) = self.find_location_for_engine(engine_name)
+
+        # now update the yml file where the engine is defined
+        engine_yml_data = self.__load_data(engine_yml_file)
+        
+        # now the token may be either "my-maya-ref" or "engines/tk-maya"
+        # find the right chunk in the file
+        
+        # track the location of our app in the yml hierarchy
+        # (e..g ["engines", "tk-maya"] 
+        engine_data = engine_yml_data
+        for x in engine_tokens:
+            engine_data = engine_data.get(x)
+        
+        app_tokens = engine_tokens
+                
+        # now that we have found the file in which the engine is defined, 
+        # find the file where the app is defined
+        app_data = engine_data["apps"][app_name]
+
+        if isinstance(app_data, basestring) and app_data.startswith("@"):
+            # this is a reference!
+            # now we are at the top of the token stack again because we switched files
+            app_token = app_data[1:]
+            app_tokens = [app_token]
+            app_yml_file = environment_includes.find_reference(engine_yml_file, self.__context, app_token)
+            
+        else:
+            # engine is defined in current file
+            app_tokens.append("apps")
+            app_tokens.append(app_name)
+            app_yml_file = engine_yml_file
+
+        return (app_tokens, app_yml_file)
             
     def update_engine_settings(self, engine_name, new_data, new_location):
         """
@@ -388,56 +430,79 @@ class Environment(object):
         if engine_name not in self.__env_data["engines"]:
             raise TankError("Engine %s does not exist in environment %s" % (engine_name, self.__env_path) )
         
-        data = self.__env_data["engines"][engine_name]
-        data[constants.ENVIRONMENT_LOCATION_KEY] = new_location
-        data.update(new_data)
-        self.__update_file_on_disk()
+        (tokens, yml_file) = self.find_location_for_engine(engine_name)
+        
+        # now update the yml file where the engine is defined
+        yml_data = self.__load_data(yml_file)
+        
+        # now the token may be either [my-maya-ref] or [engines, tk-maya]
+        # find the right chunk in the file
+        engine_data = yml_data 
+        for x in tokens:
+            engine_data = engine_data.get(x)
+        
+        engine_data[constants.ENVIRONMENT_LOCATION_KEY] = new_location
+        engine_data.update(new_data)
+        self.__write_data(yml_file, yml_data)
+        # sync internal data with disk
+        self.__refresh()
+            
         
     def update_app_settings(self, engine_name, app_name, new_data, new_location):
         """
-        Updates the app configuration
+        Updates the app configuration.
         """
         if engine_name not in self.__env_data["engines"]:
             raise TankError("Engine %s does not exist in environment %s" % (engine_name, self.__env_path) )
         if app_name not in self.__env_data["engines"][engine_name]["apps"]:
             raise TankError("App %s.%s does not exist in environment %s" % (engine_name, app_name, self.__env_path) )
         
-        data = self.__env_data["engines"][engine_name]["apps"][app_name]        
-        data[constants.ENVIRONMENT_LOCATION_KEY] = new_location
-        data.update(new_data)
-        self.__update_file_on_disk()
+        (tokens, yml_file) = self.find_location_for_app(engine_name, app_name)
+        
+        # now update the yml file where the engine is defined
+        yml_data = self.__load_data(yml_file)
+        
+        # now the token may be either [my-maya-ref] or [engines, tk-maya]
+        # find the right chunk in the file
+        app_data = yml_data 
+        for x in tokens:
+            app_data = app_data.get(x)
+        
+        # finally update the file        
+        app_data[constants.ENVIRONMENT_LOCATION_KEY] = new_location
+        app_data.update(new_data)
+
+        self.__write_data(yml_file, yml_data)
+        # sync internal data with disk
+        self.__refresh()
+        
+        
             
-    def create_framework_settings(self, framework_name, params, location):
+    def create_framework_settings(self, yml_file, framework_name, params, location):
         """
-        Creates a new empty framework settings.
-        
-        The descriptor object indicates the app or engine that reqires this framework.
-        The framework should be written to the file which is suitable for that scope.
-        
+        Creates new framework settings.        
         """
         
-        path = environment_includes.get_path_from_location(self.__env_path, location)
-        
-        data = self.__load_data(path)
+        data = self.__load_data(yml_file)
         
         if data.get("frameworks") is None:
             data["frameworks"] = {}
         
         if framework_name in data["frameworks"]:
-            raise TankError("Framework %s already exists in environment %s" % (framework_name, self.__env_path) )
+            raise TankError("Framework %s already exists in environment %s" % (framework_name, yml_file) )
         
         data["frameworks"][framework_name] = {}
         data["frameworks"][framework_name][constants.ENVIRONMENT_LOCATION_KEY] = location
         data["frameworks"][framework_name].update(params)
         
-        self.__write_data(path, data)
+        self.__write_data(yml_file, data)
         # sync internal data with disk
         self.__refresh()
 
         
     def create_engine_settings(self, engine_name):
         """
-        Creates a new engine settings chunk in the root file of the env tree
+        Creates a new engine settings chunk in the root file of the env tree.
         """
         
         data = self.__load_data(self.__env_path)
@@ -458,7 +523,7 @@ class Environment(object):
         
     def create_app_settings(self, engine_name, app_name):
         """
-        Creates a new app settings chunk in the root file of the env tree
+        Creates a new app settings chunk in the root file of the env tree.
         """
         
         data = self.__load_data(self.__env_path)
