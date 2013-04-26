@@ -167,6 +167,8 @@ def _resolve_frameworks(lookup_dict, data):
         fw = lookup_dict["frameworks"]
         if "frameworks" not in data:
             data["frameworks"] = {}
+        if data["frameworks"] is None:
+            data["frameworks"] = {}
         data["frameworks"].update(fw)    
     
     return data

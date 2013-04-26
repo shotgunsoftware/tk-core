@@ -166,7 +166,7 @@ The following admin commands are available:
 
 > tank install_app - installs a new app from the tank store.
 > tank install_engine - installs a new engine from the tank store.
-> tank upgrades - check for upgrades to apps and engines
+> tank updates - check for updates to apps and engines
 
 Note! Additional configuration is available inside of Shotgun.
 
