@@ -118,11 +118,15 @@ class TestUser(TestContext):
         kws1["step"] = self.step
         self.context = context.Context(**kws1)
 
-    def test_local_login(self):
+    @patch("tank.util.login.get_current_user")
+    def test_local_login(self, get_current_user):
         """
         Test that if user is not supplied, the human user matching the
         local login is used.
         """
+        
+        get_current_user.return_value = self.current_user
+        
         self.assertEquals(self.current_user["id"], self.context.user["id"])
         self.assertEquals(self.current_user["type"], self.context.user["type"])
         self.assertEquals(len(self.context.user), 3)

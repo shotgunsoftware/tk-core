@@ -4,7 +4,7 @@ Copyright (c) 2012 Shotgun Software, Inc
 import os
 import unittest
 import shutil
-from mock import Mock
+from mock import Mock, patch
 import tank
 from tank_vendor import yaml
 from tank import TankError
@@ -438,8 +438,11 @@ class TestSchemaCreateFoldersStepAndUserSandbox(TankTestBase):
         folder.folder_io.FolderIOReceiver.execute_folder_creation = self.FolderIOReceiverBackup
 
 
-    def test_shot(self):
+    @patch("tank.util.login.get_current_user")
+    def test_shot(self, get_current_user):
         """Tests paths used in making a shot are as expected."""
+        
+        get_current_user.return_value = self.humanuser
         
         expected_paths = []
         
@@ -458,8 +461,11 @@ class TestSchemaCreateFoldersStepAndUserSandbox(TankTestBase):
         assert_paths_to_create(expected_paths)
 
 
-    def test_step_a(self):
+    @patch("tank.util.login.get_current_user")
+    def test_step_a(self, get_current_user):
         """Tests paths used in making a shot are as expected."""
+
+        get_current_user.return_value = self.humanuser
 
         folder.process_filesystem_structure(self.tk, 
                                             self.task["type"], 
