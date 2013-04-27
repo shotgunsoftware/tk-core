@@ -148,7 +148,10 @@ class TestCreateEmpty(TestContext):
 
 class TestFromPath(TestContext):
 
-    def test_shot(self):
+    @patch("tank.util.login.get_current_user")
+    def test_shot(self, get_current_user):
+        
+        get_current_user.return_value = self.current_user
         shot_path_abs = os.path.join(self.project_root, self.shot_path)
         result = self.tk.context_from_path(shot_path_abs)
 
@@ -162,7 +165,9 @@ class TestFromPath(TestContext):
         self.assertIsNone(result.step)
         self.assertIsNone(result.task)
 
-    def test_external_path(self):
+    @patch("tank.util.login.get_current_user")
+    def test_external_path(self, get_current_user):
+        get_current_user.return_value = self.current_user
         shot_path_abs = os.path.abspath(os.path.join(self.project_root, ".."))
         result = self.tk.context_from_path(shot_path_abs)
         # check context's attributes
@@ -173,9 +178,12 @@ class TestFromPath(TestContext):
         self.assertIsNone(result.step)
         self.assertIsNone(result.project)
 
-    def test_non_primary_path(self):
-        """Check that path which is not child of primary root create context."""
 
+    @patch("tank.util.login.get_current_user")
+    def test_non_primary_path(self, get_current_user):
+        """Check that path which is not child of primary root create context."""
+        get_current_user.return_value = self.current_user
+        
         result = self.tk.context_from_path(self.alt_1_shot_path)
         # check context's attributes
         self.assertEquals(self.shot["id"], result.entity["id"])
@@ -222,9 +230,12 @@ class TestFromPathWithPrevious(TestContext):
 
         return context.from_entity(self.tk, self.task["type"], self.task["id"])
 
+    
+    @patch("tank.util.login.get_current_user")
+    def test_shot(self, get_current_user):
 
-    def test_shot(self):
-
+        get_current_user.return_value = self.current_user
+        
         prev_ctx = self.get_task_context()
 
         shot_path_abs = os.path.join(self.project_root, self.shot_path)
@@ -383,10 +394,14 @@ class TestFromEntity(TestContext):
         # Check that the shotgun method find_one was used
         self.assertTrue(self.sg_mock.find_one.called)
 
-    def test_data_missing_non_task(self):
+
+    @patch("tank.util.login.get_current_user")
+    def test_data_missing_non_task(self, get_current_user):
         """
         Case that entity does not exist on local cache or in shotgun
         """
+        get_current_user.return_value = self.current_user
+        
         # Use entity we have not setup in path cache not in mocked sg
         shot = {"type": "Shot", "id": 13, "name": "never_seen_me_before"}
         result = context.from_entity(self.tk, shot["type"], shot["id"])
