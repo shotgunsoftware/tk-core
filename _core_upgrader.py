@@ -98,12 +98,18 @@ def _upgrade_to_013(tank_install_root, log):
         return
 
     # okay so no pipeline configurations! Means we need to upgrade!
-    log.info("Converting your Tank installation from v0.12 -> v0.13 compliant structure...")
+    log.info("Converting your Tank installation from v0.12 -> v0.13...")
     log.debug("Tank Storage: %s" % tank_storage)
     
     # first see if there is a storage named primary - if not, create it and set
     # it to be a copy of the tank storage
     primary_storage = sg.find_one("LocalStorage", [["code", "is", "primary"]], ["mac_path", "linux_path", "windows_path"])
+    # also see if there is one in the discard pile
+    deleted_primary_storage = sg.find("LocalStorage", [["code", "is", "primary"]], ["mac_path", "linux_path", "windows_path"], retired_only=True)
+    if len(deleted_primary_storage) > 0:
+        raise Exception("Cannot upgrade! There is a deleted storage named 'primary'. Please "
+                        "contact support.")
+    
     if primary_storage is None:
         data = {"code": "primary", 
                 "mac_path": tank_storage.get("mac_path"),
