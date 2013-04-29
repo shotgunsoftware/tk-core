@@ -198,15 +198,26 @@ def _run_shotgun_command(log, tk, action_name, entity_type, entity_ids):
         callback = cmd["callback"]
         # introspect and get number of args for this fn
         arg_count = callback.func_code.co_argcount
-        # choose between simple style callbacks or complex style
-        # special shotgun callbacks - these always take two
-        # params entity_type and entity_ids            
-        if arg_count > 1:
-            # old style shotgun app launch - takes entity_type and ids as args
-            e.execute_old_style_command(action_name, entity_type, entity_ids)
+        
+        # check if we are running a pre-013 engine 
+        # (this can be removed at a later point)
+        if hasattr(e, "execute_old_style_command"): 
+            # 013 compliant engine!
+            # choose between simple style callbacks or complex style
+            # special shotgun callbacks - these always take two
+            # params entity_type and entity_ids            
+            if arg_count > 1:
+                # old style shotgun app launch - takes entity_type and ids as args
+                e.execute_old_style_command(action_name, entity_type, entity_ids)
+            else:
+                # std tank app launch
+                e.execute_command(action_name)
         else:
-            # std tank app launch
-            e.execute_command(action_name)
+            # engine that is pre-013
+            # this engine does not have any specific callbacks
+            # all apps that are pre-013 take two args
+            callback(entity_type, entity_ids)
+            
     else:
         # unknown command - this typically is caused by apps failing to initialize.
         e.log_error("The action could not be executed! This is typically because there "
@@ -718,10 +729,11 @@ def run_engine_cmd(log, install_root, pipeline_config_root, context_items, comma
     try:
         e = tank.platform.start_engine(SHELL_ENGINE, tk, ctx)
     except TankEngineInitError, err:
-        raise TankError("Could not start the Tank Shell Engine! Please double check that the shell "
-                        "engine has been configured and is part of the current environment. Error "
-                        "reported: %s" % err )
-        
+        raise TankError("Could not start the Tank Shell Engine! For the tank command to work, "
+                        "the shell engine needs to be installed. Try installing it using "
+                        "the 'tank install_engine' command. "
+                        "(Error details: %s) " % err)
+                
     log.debug("Started engine %s" % e)
     
     env_name = e.environment["name"].capitalize()
@@ -970,6 +982,8 @@ if __name__ == "__main__":
         # one line report
         log.info("")
         log.error(str(e))
+        log.info("")
+        log.info("For more information try tank --help")
         log.info("")
         exit_code = 5
         
