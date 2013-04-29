@@ -308,7 +308,6 @@ def run_core_non_project_command(log, install_root, pipeline_config_root, comman
     """
     Execute one of the built in commands
     """
-    
     log.debug("Running built in command %s" % command)
     log.debug("Arguments passed: %s" % args)
  
@@ -428,17 +427,19 @@ def run_core_project_command(log, install_root, pipeline_config_root, command, a
     log.debug("Running built in command %s" % command)
     log.debug("Arguments passed: %s" % args)
  
+    if pipeline_config_root is None:
+        raise TankError("You must run the command '%s' against a specific Tank Configuration, not "
+                        "against a shared studio location. Navigate to the Tank Configuration you "
+                        "want to operate on, and run the tank command from there!" % command )
+        
     try:
         tk = tank.tank_from_path(pipeline_config_root)
         # attach our logger to the tank instance
         # this will be detected by the shotgun and shell engines
         # and used.
         tk.log = log
-        
     except TankError, e:
-        raise TankError("You must run the command '%s' against a specific Tank Configuration, not "
-                        "against a shared studio location. Navigate to the Tank Configuration you "
-                        "want to operate on, and run the tank command from there! Details: %s" % (command, e) )
+        raise TankError("Could not instantiate a Tank API Object! Details: %s" % e )
 
     if command == "validate":
         # validate a pipeline config        
@@ -560,8 +561,6 @@ def run_core_project_command(log, install_root, pipeline_config_root, command, a
         if len(args) != 0:
             raise TankError("Invalid arguments! Run with --help for more details.")
         env_admin.check_for_updates(log, tk)
-
-
 
     else:
         raise TankError("Unknown command '%s'. Run tank --help for more information" % command)
