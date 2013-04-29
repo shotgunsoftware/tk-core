@@ -636,9 +636,20 @@ def run_engine_cmd(log, install_root, pipeline_config_root, context_items, comma
         except TankError, e:
             # this path was not right. Fall back on default message
             if using_cwd:
-                # no specific stuff
-                raise TankError("You are trying to start Tank in your current working directory "
-                                "(%s) but Tank Reported a problem. Details: %s" % (ctx_path, e))
+                if command is None:
+                    # someone just ran "tank" in CWD
+                    raise TankError("Your current directory (%s) is not associated with "
+                                    "any Tank setup. Try navigating to a folder inside a Tank "
+                                    "project and running the tank command there to see a listing "
+                                    "of all the commands that are available. Alternatively, you can "
+                                    "do maintenance and admin operations using the Tank command - "
+                                    "for a list of options, run tank with the --help parameter. "
+                                    "(Detailed error message: %s)" % (ctx_path, e))
+                else: 
+                    # someone ran tank COMMAND
+                    raise TankError("You are trying to start run the command '%s' in your "
+                                    "current working directory (%s) but looks like Tank Reported "
+                                    "a problem. Details: %s" % (command, ctx_path, e))
             else:
                 # a bad path was specified by a user
                 raise TankError("Could not launch Tank from path '%s'! "
@@ -735,8 +746,7 @@ def run_engine_cmd(log, install_root, pipeline_config_root, context_items, comma
             tk = tank.tank_from_entity(entity_type, entity_id)
         except TankError, e:
             # invalid entity
-            raise TankError("The Shotgun item %s id %s is not recognized by Tank. "
-                            "Details: %s" % (entity_type, entity_id, e))
+            raise TankError("Could not start up Tank! Details: %s" % e)
             
         log.debug("Resolved %s %s into tank instance %s" % (entity_type, item, tk))
     
@@ -1018,7 +1028,7 @@ if __name__ == "__main__":
         log.info("")
         log.error(str(e))
         log.info("")
-        log.info("For more information try tank --help")
+        log.info("For more information try tank --help.")
         log.info("")
         exit_code = 5
         

@@ -399,9 +399,9 @@ def from_entity(entity_type, entity_id):
                            ["core", "windows_path", "mac_path", "linux_path", "users"])
     
     if len(pipe_configs) == 0:
-        raise TankError("Cannot resolve a pipeline configuration object from %s %s - its "
-                        "associated project does not link to a "
-                        "Tank installation!" % (entity_type, entity_id))
+        raise TankError("Cannot resolve a pipeline configuration object from %s %s - looks "
+                        "like its associated Shotgun Project '%s' has not yet been set up with "
+                        "Tank!" % (entity_type, entity_id, proj.get("name")))
     
     # get the current user (none if not found)
     current_user = login.get_shotgun_user(sg)
