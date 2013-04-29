@@ -565,7 +565,7 @@ if __name__ == "__main__":
         formatter = logging.Formatter("%(levelname)s %(message)s")
         ch.setFormatter(formatter)
         log.addHandler(ch)
-        upgrade_tank("/studio/tank/install", log)
+        upgrade_tank(path, log)
         sys.exit(0)
         
     else:
