@@ -370,6 +370,11 @@ def _upgrade_to_013(tank_install_root, log):
                     yaml.dump(full_env_data, fh)
                     fh.close()                
                     
+                # lastly, rename the shotgun file
+                try:
+                    os.rename(sg_env_file, "%s.bak" % sg_env_file)
+                except:
+                    log.warning("Could not rename %s" % sg_env_file)
             
 
             # create PC record in SG
