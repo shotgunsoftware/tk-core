@@ -703,6 +703,33 @@ def _interactive_setup(log, pipeline_config_root):
     # create pipeline configuration record - ask for paths
     # disk friendly name for project by replacing white space by underscore    
     suggested_path = os.path.abspath( os.path.join(pipeline_config_root, "..", project_disk_folder) )
+    
+    # find the primary storage path and see where it points to
+    primary_local_path = ""
+    for s in resolved_storages:
+        if s.get("code") == constants.PRIMARY_STORAGE_NAME:
+            primary_local_path = s.get(SG_LOCAL_STORAGE_OS_MAP[sys.platform])
+            break
+
+    # handle old setup - in the old setup, we would have the following structure: 
+    # /studio
+    # /studio/tank         <--- studio install
+    # /studio/project      <--- project location
+    # /studio/project/tank <--- install location
+    #
+    # typical new style setup
+    # /software/studio <-- studio install
+    # /software/projX  <-- project install
+    # /projects/projX  <-- project data location
+    
+    if os.path.join(primary_local_path, project_disk_folder) == suggested_path:
+        suggested_path = os.path.join(suggested_path, "tank")
+        log.info("")
+        log.info("Note! As of Tank 0.13, you can keep your configuration completely")
+        log.info("separate from the production data. To stay consistent with previous")
+        log.info("projects, the suggested default points at a location in the production")
+        log.info("data storage, but you can change it to any arbitrary location.")
+        
     locations_dict = cmdline_ui.get_disk_location(suggested_path)
 
     ##################################################################
