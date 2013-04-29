@@ -1028,6 +1028,13 @@ if __name__ == "__main__":
         log.info("")
         log.error(str(e))
         log.info("")
+        log.info("tank command quick overview:")
+        log.info("- To see a list of apps for a shot, run 'tank Shot XYZ'")
+        log.info("- To check for updates, run 'tank updates' or 'tank core'.")
+        log.info("- To install new things run 'tank install_app' or install_engine.")
+        log.info("- To create folders for a shot, run 'tank folders Shot XYZ'.")
+        log.info("- To set up a new project, run 'tank setup_project'.")
+        log.info("")
         log.info("For more information try tank --help.")
         log.info("")
         exit_code = 5
