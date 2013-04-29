@@ -479,9 +479,17 @@ def from_path(path):
 
     path = os.path.abspath(path)
     
-    if not os.path.exists(path):
-        raise TankError("Cannot create a Tank Configuration from path '%s' - the path does "
-                        "not exist on disk!" % path)
+    # make sure folder exists on disk
+    if not os.path.exists(path):        
+        # there are cases when a PC is being created from a _file_ which does not yet 
+        # exist on disk. To try to be reasonable with this case, try this check on the
+        # parent folder of the path as a last resort.
+        parent_path = os.path.dirname(path)
+        if os.path.exists(parent_path):
+            path = parent_path
+        else:
+            raise TankError("Cannot create a Tank Configuration from path '%s' - the path does "
+                            "not exist on disk!" % path)
     
     # first see if this path is a pipeline configuration
     pc_config = os.path.join(path, "config", "core", "pipeline_configuration.yml")
