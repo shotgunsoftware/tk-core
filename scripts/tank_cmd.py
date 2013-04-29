@@ -428,9 +428,45 @@ def run_core_project_command(log, install_root, pipeline_config_root, command, a
     log.debug("Arguments passed: %s" % args)
  
     if pipeline_config_root is None:
-        raise TankError("You must run the command '%s' against a specific Tank Configuration, not "
-                        "against a shared studio location. Navigate to the Tank Configuration you "
-                        "want to operate on, and run the tank command from there!" % command )
+        
+        log.info("")
+        log.info("The '%s' command is configuration specific. This means that you need to "
+                  "run it against a specific pipeline configuration or project rather than "
+                  "the generic studio tank command. Below is a list of the available "
+                  "pipeline configurations and their tank commands:" % command )
+        
+        # present a list of the possible tank commands
+        sg = tank.util.shotgun.create_sg_connection()
+        current_user = tank.util.login.get_shotgun_user(sg)
+        current_user_id = None
+        if current_user:
+            current_user_id = current_user["id"]
+        data = sg.find("PipelineConfiguration", 
+                       [], 
+                       ["code", "users", "project", "linux_path", "windows_path", "mac_path", "project"])
+        
+        log.info("")
+        for pc in data:
+            
+            associated_user_ids = [ x["id"] for x in pc["users"] ]
+            
+            if len(associated_user_ids) > 0 and current_user_id not in associated_user_ids:
+                # not our user sandbox
+                continue
+            
+            curr_path = {"linux2":"linux_path", "win32":"windows_path", "darwin":"mac_path" }[sys.platform]
+            
+            if pc[curr_path] is None:
+                continue
+            
+            tank_cmd = os.path.join(pc[curr_path], "tank")
+            
+            log.info("Project %s (%s)" % (pc["project"]["name"], pc["code"]))
+            log.info("> %s" % tank_cmd)
+            log.info("")
+            
+        raise TankError("Try executing the command against one of the project specific " 
+                        "tank commands in the list above!")
         
     try:
         tk = tank.tank_from_path(pipeline_config_root)
