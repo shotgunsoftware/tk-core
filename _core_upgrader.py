@@ -65,7 +65,6 @@ def __create_sg_connection(log, shotgun_cfg_path):
                  config_data["api_key"],
                  http_proxy=http_proxy)
 
-
     return sg
 
 
@@ -97,6 +96,31 @@ def _upgrade_to_013(tank_install_root, log):
     if tank_storage is None:
         # no tank storage. Assume that we are in a clean install - no need to migrate!
         return
+
+
+    log.info("---------------------------------------------------------------------")
+    log.info("Welcome to Tank v0.13!")
+    log.info("---------------------------------------------------------------------")
+    log.info("")
+    log.info("Tank v0.13 contains a number of structural changes. Therefore, ")
+    log.info("a migration script will upgrade all your existing Tank projects.")
+    log.info("")
+    log.info("Here's what will happen when you upgrade:")
+    log.info("")
+    log.info("- Each project will get its own apps and engines install. Apps")
+    log.info("  and engines will be copied across from the previously central")
+    log.info("  location into each project. This may take some time and may require")
+    log.info("  some additional disk space.")
+    log.info("- Additional configuration files will be created for each project.")
+    log.info("- Pipeline Configurations will be created for each project in Shotgun.")
+    log.info("- Tank commands will be added to all projects and to the central install.")
+    log.info("")
+    log.info("If you have any questions or concerns, you can always contact us prior")
+    log.info("to upgrading. Just drop us a line on tanksupport@shotgunsoftware.com")
+    log.info("")
+    val = raw_input("Continue with Tank v0.13 upgrade (Yes/No)? [Yes]: ")
+    if val != "" and not val.lower().startswith("y"):
+        raise Exception("You have aborted the upgrade.")
 
     # okay so no pipeline configurations! Means we need to upgrade!
     log.info("Converting your Tank installation from v0.12 -> v0.13...")
