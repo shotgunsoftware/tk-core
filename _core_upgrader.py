@@ -73,6 +73,7 @@ def _make_folder(log, folder, permissions):
     if not os.path.exists(folder):
         log.debug("Creating folder %s.." % folder)
         os.mkdir(folder, permissions)
+    
 
 def _upgrade_to_013(tank_install_root, log):
     """
@@ -326,8 +327,45 @@ def _upgrade_to_013(tank_install_root, log):
                     yaml.dump(data, fh)
                     fh.close()                
                 
+            # convert the shotgun.yml environment into multiple encs.
+            sg_env_file = os.path.join(project_tank_folder, "config", "env", "shotgun.yml")
+            if os.path.exists(sg_env_file):
+                log.debug("Splitting %s" % sg_env_file)
+                fh = open(sg_env_file)
+                sg_env_data = yaml.load(fh)
+                fh.close()
+                
+                new_envs = {}
+                
+                # split up env per type
+                for (app_instance, app_config) in sg_env_data["engines"]["tk-shotgun"]["apps"].items():
+                    entity_types = app_config.get("entity_types")
+                    if app_instance == "tk-shotgun-launchpublish":
+                        entity_types = ["TankPublishedFile"]
+                    if entity_types is None:
+                        continue
+                    for et in entity_types:
+                        if et not in new_envs:
+                            new_envs[et] = {}
+                        new_envs[et][app_instance] = app_config
+                
+                # now write out all these files
+                for (et, apps) in new_envs.items():
+                    file_name = "shotgun_%s.yml" % et.lower()
+                    full_path = os.path.join(project_tank_folder, "config", "env", file_name)
+                    full_env_data = {}
+                    full_env_data["engines"] = {}
+                    full_env_data["engines"]["tk-shotgun"] = {"apps": {}, 
+                                                              "debug_logging": False,
+                                                              "location": sg_env_data["engines"]["tk-shotgun"]["location"]}
+                    full_env_data["engines"]["tk-shotgun"]["apps"] = apps
+                    fh = open(full_path, "wt")
+                    yaml.dump(full_env_data, fh)
+                    fh.close()                
+                    
             
 
+            # create PC record in SG
             log.info("Setting up pipeline configuration for project %s..." % p.get("name"))
             pc_data = {"code": "Primary", 
                        "project": p, 
