@@ -125,10 +125,14 @@ def _upgrade_to_013(tank_install_root, log):
     new_code_root = os.path.abspath(os.path.dirname(__file__))
     studio_root = os.path.abspath(os.path.join(tank_install_root, ".."))
     
+    tank_commands = []
+    
     ############################################################################################
     # first stage -- upgrade the studio location
     
     log.debug("Upgrading studio location %s..." % studio_root)
+    
+    tank_commands.append(os.path.join(studio_root, "tank"))
     
     log.debug("Copying tank binary files to studio location...")
     src_dir = os.path.join(new_code_root, "setup", "root_binaries")
@@ -175,9 +179,12 @@ def _upgrade_to_013(tank_install_root, log):
         try:
             main_studio_folder = os.path.abspath(os.path.join(studio_root, ".."))
             project_tank_folder = os.path.join(main_studio_folder, p.get("tank_name"), "tank")
+            
             if not os.path.exists(project_tank_folder):
                 log.info("Project does not exist on disk (%s) - skipping..." % project_tank_folder)
                 continue
+            
+            tank_commands.append(os.path.join(project_tank_folder, "tank"))
             
             log.debug("Project tank folder is %s" % project_tank_folder)
             
@@ -380,8 +387,23 @@ def _upgrade_to_013(tank_install_root, log):
             log.error("\n\nCould not upgrade project %s! Please contact support! \nError: %s" % (p, e))
     
     
-        
+    log.info("")
+    log.info("")
     log.info("Tank v0.12 --> v0.13 Migration complete!")
+    log.info("_________________________________________________________")
+    log.info("")
+    log.info("The following tank commands were added:")
+    for x in tank_commands:
+        log.info("> %s" % x)
+    log.info("")
+    log.info("We recommend that you add %s to your PATH for easy access." % tank_commands[0])
+    log.info("")
+    log.info("NOTE! We strongly recommend that you now upgrade your apps and engines.")
+    log.info("")
+    log.info("_________________________________________________________")
+    log.info("")
+    log.info("")
+        
     
 
 def _copy_folder(log, src, dst): 
@@ -509,7 +531,7 @@ if __name__ == "__main__":
     if len(sys.argv) == 3 and sys.argv[1] == "migrate":
         path = sys.argv[2]
         log = logging.getLogger("tank.update")
-        log.setLevel(logging.DEBUG)
+        log.setLevel(logging.INFO)
         ch = logging.StreamHandler()
         formatter = logging.Formatter("%(levelname)s %(message)s")
         ch.setFormatter(formatter)
