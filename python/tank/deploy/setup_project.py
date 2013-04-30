@@ -156,8 +156,17 @@ class CmdlineSetupInteraction(object):
                 if os.path.exists(proj_path):
                     self._log.info(" - %s: %s [OK]" % (storage_name, proj_path))
                 else:
-                    self._log.error(" - %s: %s [NOT FOUND]" % (storage_name, proj_path))
-                    storages_valid = False
+                    
+                    # try to create the folders
+                    try:
+                        os.mkdir(proj_path, 0777)
+                        self._log.info(" - %s: %s [Created]" % (storage_name, proj_path))
+                        storages_valid = True
+                    except Exception, e:
+                        self._log.error(" - %s: %s [Not created]" % (storage_name, proj_path))
+                        self._log.error("   Please create path manually.")
+                        self._log.error("   Details: %s" % e)
+                        storages_valid = False
             
             self._log.info("")
             
