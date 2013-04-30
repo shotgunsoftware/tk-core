@@ -419,7 +419,7 @@ def _upgrade_to_013(tank_install_root, log):
     log.info("")
     log.info("")
     log.info("Tank v0.12 --> v0.13 Migration complete!")
-    log.info("_________________________________________________________")
+    log.info("---------------------------------------------------------------------")
     log.info("")
     log.info("The following tank commands were added:")
     for x in tank_commands:
@@ -428,8 +428,12 @@ def _upgrade_to_013(tank_install_root, log):
     log.info("We recommend that you add %s to your PATH for easy access." % tank_commands[0])
     log.info("")
     log.info("NOTE! We strongly recommend that you now upgrade your apps and engines.")
+    log.info("In v0.13, the update has changed. It is now done by running the tank command ")
+    log.info("with an updates parameter, e.g")
+    log.info("> %s updates" % tank_commands[0])
     log.info("")
-    log.info("_________________________________________________________")
+    log.info("")
+    log.info("---------------------------------------------------------------------")
     log.info("")
     log.info("")
         
