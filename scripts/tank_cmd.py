@@ -492,39 +492,44 @@ def run_core_project_command(log, install_root, pipeline_config_root, command, a
         if len(args) != 3:
             raise TankError("Invalid arguments! Pass action_name, entity_type, comma_separated_entity_ids")
 
-        action_name = args[0]   
-        entity_type = args[1]
-        entity_ids_str = args[2].split(",")
-        entity_ids = [int(x) for x in entity_ids_str]   
-        
-        if action_name == "__clone_pc":
-            # special data passed in entity_type: USER_ID:NEW_PATH
-            user_id = int(entity_type.split(":")[0])
-            new_name = entity_type.split(":")[1]
-            new_path_linux = entity_type.split(":")[2]
-            new_path_mac = entity_type.split(":")[3]
-            new_path_windows = entity_type.split(":")[4]
-            pc_entity_id = entity_ids[0]      
-            source_pc_has_shared_core_api = (install_root != pipeline_config_root)     
-            administrator.clone_configuration(log, 
-                                              tk, 
-                                              pc_entity_id,
-                                              user_id, 
-                                              new_name,
-                                              new_path_linux, 
-                                              new_path_mac, 
-                                              new_path_windows,
-                                              source_pc_has_shared_core_api)
-                    
-        elif action_name == "__core_info":            
-            core_api_admin.show_core_info(log, install_root, pipeline_config_root)
+        # wrap in a big try-catch so that we handle error feedback rather than letting it through
+        # into the big master trap (which is designed for command line interaction)
+        try:
 
-        elif action_name == "__upgrade_check":
-            core_api_admin.show_upgrade_info(log, install_root, pipeline_config_root)
-        else:        
-            _run_shotgun_command(log, tk, action_name, entity_type, entity_ids)
+            action_name = args[0]   
+            entity_type = args[1]
+            entity_ids_str = args[2].split(",")
+            entity_ids = [int(x) for x in entity_ids_str]   
             
+            if action_name == "__clone_pc":
+                # special data passed in entity_type: USER_ID:NEW_PATH
+                user_id = int(entity_type.split(":")[0])
+                new_name = entity_type.split(":")[1]
+                new_path_linux = entity_type.split(":")[2]
+                new_path_mac = entity_type.split(":")[3]
+                new_path_windows = entity_type.split(":")[4]
+                pc_entity_id = entity_ids[0]      
+                source_pc_has_shared_core_api = (install_root != pipeline_config_root)     
+                administrator.clone_configuration(log, 
+                                                  tk, 
+                                                  pc_entity_id,
+                                                  user_id, 
+                                                  new_name,
+                                                  new_path_linux, 
+                                                  new_path_mac, 
+                                                  new_path_windows,
+                                                  source_pc_has_shared_core_api)
+                        
+            elif action_name == "__core_info":            
+                core_api_admin.show_core_info(log, install_root, pipeline_config_root)
     
+            elif action_name == "__upgrade_check":
+                core_api_admin.show_upgrade_info(log, install_root, pipeline_config_root)
+            else:        
+                _run_shotgun_command(log, tk, action_name, entity_type, entity_ids)
+            
+        except TankError, e:
+            log.error("Could not execute command! Details: %s" % e)
     
     elif command == "shotgun_cache_actions":
         
