@@ -792,8 +792,8 @@ def run_engine_cmd(log, install_root, pipeline_config_root, context_items, comma
         # because it does not exist in that environment.
         raise TankError("Could not start the Tank Shell Engine! For the tank command to be able "
                         "to run apps, the shell engine needs to be installed. "
-                        "You can install it by running the command '%s install_engine %s tk-shell'. "
-                        "(Error details: %s) " % (local_tank_cmd, env.name, err))
+                        "You can install it by running the command '%s install_engine %s %s'. "
+                        "(Error details: %s) " % (local_tank_cmd, env.name, SHELL_ENGINE, err))
                 
     log.debug("Started engine %s" % e)
     
@@ -846,6 +846,20 @@ def run_engine_cmd(log, install_root, pipeline_config_root, context_items, comma
         # special shell engine specific method  
         return e.execute_command(cmd_key, args)
 
+    elif len(formatted_commands) == 0:
+        log.info("")
+        log.info("There are no commands currently registered!")
+        log.info("")
+        
+        local_tank_cmd = os.path.join(e.tank.pipeline_configuration.get_path(), "tank")
+        env_name = e.environment["name"]
+        
+        log.info("In order to add apps, you need to run the install_app command."
+                 "For example, in order to install the work area info app, execute "
+                 "the following command:")
+        log.info("> %s install_app %s %s tk-multi-about" % (local_tank_cmd, env_name, SHELL_ENGINE))
+        log.info("")
+        
     else:
         log.info("")
         log.info("The following commands are available:")
@@ -858,8 +872,8 @@ def run_engine_cmd(log, install_root, pipeline_config_root, context_items, comma
             
         log.info("")
         log.info("  To run a command in the current work area, type 'tank command'")
-        log.info("  To run a command for a folder, type 'tank command /path/to/location'" )
-        log.info("  To run a command for a Shotgun item, type 'tank command Shot ABC'" )
+        log.info("  To run a command for a folder, type 'tank /path/to/location command'" )
+        log.info("  To run a command for a Shotgun item, type 'tank Shot ABC command'" )
         
         log.info("")
         log.info("")
