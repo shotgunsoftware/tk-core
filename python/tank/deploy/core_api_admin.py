@@ -186,7 +186,10 @@ def install_local_core(log, pc, code_root, pc_root):
         log.info("Localize complete! This pipeline configuration now has an independent API. "
                  "If you upgrade the API for this configuration (using the 'tank core' command), "
                  "no other configurations or projects will be affected.")
-        
+        log.info("")
+        log.info("Now please run the app update command to ensure that all apps and engines exist "
+                 "in your localized location.")
+        log.info("")
         
     else:
         log.info("Operation cancelled.")

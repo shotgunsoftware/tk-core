@@ -209,23 +209,48 @@ class PipelineConfiguration(object):
         """
         return os.path.join(self._pc_root, "install", "core", "python")
 
+    def __get_install_location(self):
+        """
+        Returns the install location, the location where tank caches engines and apps.
+        This location is local to the install, so if you run localized core, it will
+        be in your PC, if you run studio location core, it will be a shared cache.
+        
+        If you are a developer and are symlinking the core, this may not work.
+        In that case set an environment env TANK_INSTALL_LOCATION and point
+        that at the install location.
+        """
+            
+        # locate the studio install root as a location local to this file
+        studio_root = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", ".."))
+        install_path = os.path.join(studio_root, "install")
+        
+        if not os.path.exists(install_path):
+            if "TANK_INSTALL_LOCATION" in os.environ:
+                install_path = os.environ["TANK_INSTALL_LOCATION"]
+            else:
+                raise TankError("Cannot resolve the install location from the location of the Tank Code! "
+                                "This can happen if you try to move or symlink the Tank API. "
+                                "Please contact support." )
+        return install_path
+
+
     def get_apps_location(self):
         """
         Returns the location where apps are stored
         """
-        return os.path.join(self._pc_root, "install", "apps")
+        return os.path.join(self.__get_install_location(), "apps")        
             
     def get_engines_location(self):
         """
         Returns the location where apps are stored
         """
-        return os.path.join(self._pc_root, "install", "engines")
+        return os.path.join(self.__get_install_location(), "engines")
             
     def get_frameworks_location(self):
         """
         Returns the location where apps are stored
         """
-        return os.path.join(self._pc_root, "install", "frameworks")
+        return os.path.join(self.__get_install_location(), "frameworks")
             
     ########################################################################################
     # cache

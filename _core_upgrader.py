@@ -107,10 +107,6 @@ def _upgrade_to_013(tank_install_root, log):
     log.info("")
     log.info("Here's what will happen when you upgrade:")
     log.info("")
-    log.info("- Each project will get its own apps and engines install. Apps")
-    log.info("  and engines will be copied across from the previously central")
-    log.info("  location into each project. This may take some time and may require")
-    log.info("  some additional disk space.")
     log.info("- Additional configuration files will be created for each project.")
     log.info("- Pipeline Configurations will be created for each project in Shotgun.")
     log.info("- Tank commands will be added to all projects and to the central install.")
@@ -242,22 +238,7 @@ def _upgrade_to_013(tank_install_root, log):
             _copy_folder(log, 
                          os.path.join(new_code_root, "setup", "windows"), 
                          os.path.join(project_tank_folder, "install", "core", "setup", "windows"))
-            
-            log.info("Copying apps...")
-            _copy_folder(log, 
-                         os.path.join(studio_root, "install", "apps"), 
-                         os.path.join(project_tank_folder, "install", "apps"))
-
-            log.info("Copying engines...")
-            _copy_folder(log, 
-                         os.path.join(studio_root, "install", "engines"), 
-                         os.path.join(project_tank_folder, "install", "engines"))
-
-            log.info("Copying frameworks...")
-            _copy_folder(log, 
-                         os.path.join(studio_root, "install", "frameworks"), 
-                         os.path.join(project_tank_folder, "install", "frameworks"))
-            
+                        
             project_file_locations = {"Darwin": None, "Linux": None, "Windows": None}
             if tank_storage["mac_path"]:
                 project_file_locations["Darwin"] = "%s/%s/tank" % (tank_storage["mac_path"], p.get("tank_name"))
