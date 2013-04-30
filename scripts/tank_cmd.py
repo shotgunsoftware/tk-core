@@ -774,10 +774,21 @@ def run_engine_cmd(log, install_root, pipeline_config_root, context_items, comma
     try:
         e = tank.platform.start_engine(SHELL_ENGINE, tk, ctx)
     except TankEngineInitError, err:
-        raise TankError("Could not start the Tank Shell Engine! For the tank command to work, "
-                        "the shell engine needs to be installed. Try installing it using "
-                        "the 'tank install_engine' command. "
-                        "(Error details: %s) " % err)
+        local_tank_cmd = os.path.join(tk.pipeline_configuration.get_path(), "tank")
+        # now try to figure out the environment to use
+        # note that this may raise exceptions too, caught by the main trap
+        try:
+            env = tank.platform.engine.get_environment_from_context(tk, ctx)
+        except TankError, e:
+            raise TankError("Could not start the Tank Shell Engine! Tank could not determine "
+                            "which environment configuration to use for your current context. "
+                            "Details: %s" % e)
+        # ok we got the context, the environment but the engine wouldn't start. Most likely
+        # because it does not exist in that environment.
+        raise TankError("Could not start the Tank Shell Engine! For the tank command to be able "
+                        "to run apps, the shell engine needs to be installed. "
+                        "You can install it by running the command '%s install_engine %s tk-shell'. "
+                        "(Error details: %s) " % (local_tank_cmd, env.name, err))
                 
     log.debug("Started engine %s" % e)
     

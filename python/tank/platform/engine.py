@@ -719,6 +719,22 @@ def start_shotgun_engine(tk, entity_type, context=None):
 
     return obj
 
+def get_environment_from_context(tk, context):
+    """
+    Returns an environment object given a context
+    """
+    try:
+        env_name = tk.execute_hook(constants.PICK_ENVIRONMENT_CORE_HOOK_NAME, context=context)
+    except Exception, e:
+        raise TankError("Could tno resolve an environment for context '%s'. The pick "
+                        "environment hook reported the following error: %s" % (context, e))
+    
+    if env_name is None:
+        raise TankError("Cannot get an environment from the context '%s'." % context)
+    
+    return tk.pipeline_configuration.get_environment(env_name, context)
+
+
 ##########################################################################################
 # utilities
 
