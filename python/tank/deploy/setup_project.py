@@ -730,8 +730,8 @@ def _interactive_setup(log, pipeline_config_root):
     # /software/studio <-- studio install
     # /software/projX  <-- project install
     # /projects/projX  <-- project data location
-    
-    if os.path.join(primary_local_path, project_disk_folder) == suggested_path:
+    # (note the lower case check to make windows happy)
+    if os.path.join(primary_local_path, project_disk_folder).lower() == suggested_path.lower():
         suggested_path = os.path.join(suggested_path, "tank")
         log.info("")
         log.info("Note! As of Tank 0.13, you can keep your configuration completely")
