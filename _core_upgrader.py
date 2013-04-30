@@ -81,11 +81,6 @@ def _upgrade_to_013(tank_install_root, log):
     gracefully do the right thing if a new version is already in place.
     """
     
-    # first try to figure out the currently installed version of tank
-    current_core_info_yml = os.path.join(tank_install_root, "config", "core", "shotgun.yml")
-    
-    
-    
     # first need a connection to the associated shotgun site
     shotgun_cfg = os.path.abspath(os.path.join(tank_install_root, "..", "config", "core", "shotgun.yml"))
     sg = __create_sg_connection(log, shotgun_cfg)

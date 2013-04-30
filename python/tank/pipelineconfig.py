@@ -197,19 +197,13 @@ class PipelineConfiguration(object):
     ########################################################################################
     # apps and engines
                         
-    def get_install_root(self):
-        """
-        returns the install root for apps, engines, core
-        """
-        return os.path.join(self._pc_root, "install")
-            
     def get_python_location(self):
         """
         returns the python root for this install.
         """
-        return os.path.join(self._pc_root, "install", "core", "python")
+        return os.path.join(self.get_install_root(), "core", "python")
 
-    def __get_install_location(self):
+    def get_install_root(self):
         """
         Returns the install location, the location where tank caches engines and apps.
         This location is local to the install, so if you run localized core, it will
@@ -237,19 +231,19 @@ class PipelineConfiguration(object):
         """
         Returns the location where apps are stored
         """
-        return os.path.join(self.__get_install_location(), "apps")        
+        return os.path.join(self.get_install_root(), "apps")        
             
     def get_engines_location(self):
         """
         Returns the location where apps are stored
         """
-        return os.path.join(self.__get_install_location(), "engines")
+        return os.path.join(self.get_install_root(), "engines")
             
     def get_frameworks_location(self):
         """
         Returns the location where apps are stored
         """
-        return os.path.join(self.__get_install_location(), "frameworks")
+        return os.path.join(self.get_install_root(), "frameworks")
             
     ########################################################################################
     # cache
