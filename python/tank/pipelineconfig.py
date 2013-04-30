@@ -547,7 +547,7 @@ def from_path(path):
             # weird. environment variable path not in list of choices.
             # means we started tank from a PC which is not associated with this project.
             raise TankError("Cannot create a Tank Configuration for path '%s' by running "
-                            "the Tank command in '%s' - that configuration is not associated "
+                            "the Tank command '%s' - that configuration is not associated "
                             "with the data in %s! Make sure that you launch tank from a "
                             "pipeline configuration that is associated with the folder. You "
                             "can easily see which configurations are valid by going to the "
