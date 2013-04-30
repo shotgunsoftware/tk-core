@@ -388,11 +388,14 @@ def from_entity(entity_type, entity_id):
         raise TankError("Cannot resolve a pipeline configuration object from %s %s - this object "
                         "does not exist in Shotgun!" % (entity_type, entity_id))
     
-    if e.get("project") is None:
-        raise TankError("Cannot resolve a pipeline configuration object from %s %s - this object "
-                        "is not linked to a project!" % (entity_type, entity_id))
-    
-    proj = e.get("project")
+    if entity_type == "Project":
+        proj = {"type": "Project", "id": entity_id}
+
+    else:
+        if e.get("project") is None:
+            raise TankError("Cannot resolve a pipeline configuration object from %s %s - this object "
+                            "is not linked to a project!" % (entity_type, entity_id))    
+        proj = e.get("project")
     
     pipe_configs = sg.find(constants.PIPELINE_CONFIGURATION_ENTITY, 
                            [["project", "is", proj]], 
