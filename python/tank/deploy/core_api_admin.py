@@ -274,7 +274,7 @@ class TankCoreUpgrader(object):
      ) = range(3)
         
         
-    def __init__(self, pipeline_configuration, logger):
+    def __init__(self, code_root, logger):
         self._log = logger
         
         (sg_app_store, script_user) = shotgun.create_sg_app_store_connection()
@@ -284,7 +284,7 @@ class TankCoreUpgrader(object):
         self._local_sg = shotgun.create_sg_connection()      
         self._latest_ver = self.__get_latest_version()
         
-        self._pipeline_configuration = pipeline_configuration
+        self._install_root = os.path.join(code_root, "install")
         
         self._current_ver = pipelineconfig.get_core_api_version_based_on_current_code()
          
@@ -442,8 +442,7 @@ class TankCoreUpgrader(object):
         sys.path.insert(0, extract_tmp)
         try:
             import _core_upgrader            
-            install_folder = self._pipeline_configuration.get_install_root()
-            _core_upgrader.upgrade_tank(install_folder, self._log)
+            _core_upgrader.upgrade_tank(self._install_root, self._log)
         except Exception, e:
             self._log.exception(e)
             raise Exception("Could not run upgrade script! Error reported: %s" % e)
