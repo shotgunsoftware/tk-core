@@ -221,8 +221,7 @@ class PipelineConfiguration(object):
         """
             
         # locate the studio install root as a location local to this file
-        studio_root = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", ".."))
-        install_path = os.path.join(studio_root, "install")
+        install_path = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", ".."))
         
         if not os.path.exists(install_path):
             if "TANK_INSTALL_LOCATION" in os.environ:
