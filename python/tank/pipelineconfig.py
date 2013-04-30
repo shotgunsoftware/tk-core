@@ -437,10 +437,18 @@ def from_entity(entity_type, entity_id):
         raise TankError("Cannot resolve a pipeline configuration object from %s %s - "
                         "could not find a location on disk for any configuration!" % (entity_type, entity_id)) 
 
-    # first base our resolve on a call or python import directly
-    # from a specific PC
+    # first base our resolve on a call or python import directly from a specific PC
     if "TANK_CURRENT_PC" in os.environ:
         curr_pc_path = os.environ["TANK_CURRENT_PC"]
+        
+        # windows paths can end with a space
+        if curr_pc_path.endswith(" "):
+            curr_pc_path = curr_pc_path[:-1]   
+        
+        # windows tends to end with a backslash
+        if curr_pc_path.endswith("\\"):
+            curr_pc_path = curr_pc_path[:-1]    
+        
         if curr_pc_path in existing_matching_pcs:
             # ok found our PC
             return PipelineConfiguration(curr_pc_path)
@@ -449,7 +457,7 @@ def from_entity(entity_type, entity_id):
             # This could be because we are running a PC which is not associated with our user.
             # it could also mean we are running a PC which is not associated with the project.
             raise TankError("Cannot create a Tank Configuration for %s %s by running "
-                "the Tank command in '%s'! Make sure that you are assigned to the configuration! "
+                "the Tank command in the folder '%s'! Make sure that you are assigned to the configuration! "
                 "To check this, navigate to the appropriate project in Shotgun, then go to the "
                 "pipeline configurations view." % (entity_type, entity_id, curr_pc_path))
 
@@ -537,8 +545,17 @@ def from_path(path):
             existing_matching_pcs.append(pc)
 
     # first see if we came from a specific PC/tank command. In that case, we should use that
-    if "TANK_CURRENT_PC" in os.environ:    
+    if "TANK_CURRENT_PC" in os.environ:
         curr_pc_path = os.environ["TANK_CURRENT_PC"]
+        
+        # windows paths can end with a space
+        if curr_pc_path.endswith(" "):
+            curr_pc_path = curr_pc_path[:-1]   
+
+        # windows tends to end with a backslash
+        if curr_pc_path.endswith("\\"):
+            curr_pc_path = curr_pc_path[:-1]   
+
         if curr_pc_path in existing_matching_pcs:
             # ok found our PC
             return PipelineConfiguration(curr_pc_path)
@@ -547,7 +564,7 @@ def from_path(path):
             # weird. environment variable path not in list of choices.
             # means we started tank from a PC which is not associated with this project.
             raise TankError("Cannot create a Tank Configuration for path '%s' by running "
-                            "the Tank command '%s' - that configuration is not associated "
+                            "the Tank command located in '%s' - that configuration is not associated "
                             "with the data in %s! Make sure that you launch tank from a "
                             "pipeline configuration that is associated with the folder. You "
                             "can easily see which configurations are valid by going to the "
