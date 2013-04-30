@@ -56,7 +56,14 @@ class CmdlineSetupInteraction(object):
         
         self._log.info("")
         self._log.info("")
-        self._log.info("Now it is time to decide where the Tank configuration files should go.")
+        self._log.info("Now it is time to decide where the configuration for this project should go. ")
+        self._log.info("As of Tank v0.13, you can specify any location you want on disk. ")
+        self._log.info("Typically, this is in a software install area where you keep ")
+        self._log.info("all your Tank code and configuration. Based on your Tank studio install, ")
+        self._log.info("the suggested location is '%s'." % hinted_default)
+        self._log.info("")
+        self._log.info("If you want to run this project on platforms other than '%s', " % os_nice_name)
+        self._log.info("you may need to enter the equivalent paths for those platforms.")
         self._log.info("")
         self._log.info("You can press ENTER to accept the default value or to skip.")
         
