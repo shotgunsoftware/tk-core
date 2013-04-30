@@ -59,7 +59,7 @@ def show_upgrade_info(log, code_root, pc_root):
     else:
         tank_cmd = os.path.join(pc_root, "tank")
     
-    log.info("<code style='%s'>%s upgrades</code>" % (code_css_block, tank_cmd))
+    log.info("<code style='%s'>%s updates</code>" % (code_css_block, tank_cmd))
     
     log.info("")
                     
