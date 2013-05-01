@@ -338,7 +338,33 @@ def _upgrade_to_013(tank_install_root, log):
                     fh = open(back_config, "wt")
                     yaml.dump(data, fh)
                     fh.close()                
-                
+            
+            # if there is a asset and a shot yml, see if we can add in a std shell engine            
+            std_shell_engine = {"apps": {}, 
+                                "debug_logging": False, 
+                                "location": {"name": "tk-shell", 
+                                             "type": "app_store", 
+                                             "version": "v0.2.2"} }
+            
+            shot_env = os.path.join(project_tank_folder, "config", "env", "shot.yml")
+            asset_env = os.path.join(project_tank_folder, "config", "env", "asset.yml")
+
+            for env_file in [shot_env, asset_env]:            
+                if os.path.exists(env_file):
+                    try:
+                        fh = open(env_file)
+                        env_data = yaml.load(fh)
+                        fh.close()
+                    
+                        if "tk-shell" not in env_data["engines"].keys():
+                            env_data["engines"]["tk-shell"] = std_shell_engine
+                    
+                        fh = open(env_file, "wt")
+                        yaml.dump(env_data, fh)
+                        fh.close()                
+                    except:
+                        log.warning("Could not add shell engine to environemnt!")
+            
             # convert the shotgun.yml environment into multiple encs.
             sg_env_file = os.path.join(project_tank_folder, "config", "env", "shotgun.yml")
             if os.path.exists(sg_env_file):
@@ -402,21 +428,30 @@ def _upgrade_to_013(tank_install_root, log):
     log.info("Tank v0.12 --> v0.13 Migration complete!")
     log.info("---------------------------------------------------------------------")
     log.info("")
-    log.info("The following tank commands were added:")
-    for x in tank_commands:
+    log.info("A tank command has been added which makes it easy to reach common Tank ")
+    log.info("operations across multiple projects. We recommend that you add ")
+    log.info("this to your PATH for easy access. The studio level tank command ")
+    log.info("is located here: %s" % tank_commands[0])
+    log.info("")
+    log.info("Each project also has its own tank command. This is used when you want ")
+    log.info("to perform operations on an specific project, such as checking for updates ")
+    log.info("or creating dev sandboxes. The following project level tank commands ")
+    log.info("have been created:")
+    log.info("")
+    for x in tank_commands[1:]:
         log.info("> %s" % x)
     log.info("")
-    log.info("We recommend that you add %s to your PATH for easy access." % tank_commands[0])
     log.info("")
-    log.info("NOTE! We strongly recommend that you now upgrade your apps and engines.")
-    log.info("In v0.13, the update has changed. It is now done by running the tank command ")
-    log.info("with an updates parameter, e.g")
-    log.info("> %s updates" % tank_commands[0])
+    log.info("NOTE! The 0.13 core release is accompanied by several app and engine ")
+    log.info("updates. We strongly recommend that you now run the tank app and engine ")
+    log.info("update for all your projects. You can do this by running the 'updates'")
+    log.info("command for each project, like this:")
     log.info("")
+    for x in tank_commands[1:]:
+        log.info("> %s updates" % x)
     log.info("")
     log.info("---------------------------------------------------------------------")
-    log.info("")
-    log.info("")
+    
         
     
 
