@@ -539,7 +539,24 @@ def upgrade_tank(tank_install_root, log):
         backups = os.listdir(core_backup_location)
         if len(backups) == 0:
             # empty backup directory! This is an indication that an old activation script was used.
-            log.error("Looks like you are using an old activation script! Please contact support!")
+            log.error("")
+            log.error("")
+            log.error("")
+            log.error("")
+            log.error("")
+            log.error("------------------------------------------------------------------------")
+            log.error("A critical error has occurred! Installation cannot proceed!")
+            log.error("")
+            log.error("The activation script you are using was designed to be used with")
+            log.error("an older version of Tank. Please contact support to get a new version")
+            log.error("of the Tank activation script. ")
+            log.error("------------------------------------------------------------------------")
+            log.error("")
+            log.error("")
+            log.error("")
+            log.error("")
+            log.error("")
+            log.error("")
             return
         
         if os.path.exists(core_install_location):
