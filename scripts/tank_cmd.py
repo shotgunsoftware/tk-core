@@ -507,7 +507,7 @@ def run_core_project_command(log, install_root, pipeline_config_root, command, a
                 new_name = entity_type.split(":")[1]
                 new_path_linux = entity_type.split(":")[2]
                 new_path_mac = entity_type.split(":")[3]
-                new_path_windows = entity_type.split(":")[4]
+                new_path_windows = ":".join(entity_type.split(":")[4:])
                 pc_entity_id = entity_ids[0]      
                 source_pc_has_shared_core_api = (install_root != pipeline_config_root)     
                 administrator.clone_configuration(log, 
