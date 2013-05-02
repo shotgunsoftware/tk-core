@@ -81,9 +81,8 @@ class CmdlineSetupInteraction(object):
         
         # first ask about current platform
         val = raw_input("%s [%s]: " % (os_nice_name[curr_os], location[curr_os]))
-        if val == "":
-            val = location[curr_os]
-        location[curr_os] = val
+        if val != "":
+            location[curr_os] = val.strip()
         
         # do other platforms
         for x in [k for k in location.keys() if k != curr_os]:
@@ -96,7 +95,7 @@ class CmdlineSetupInteraction(object):
             if val == "":
                 self._log.info("Skipping. This Pipeline configuration will not support %s." % os_nice_name[x])
             else:
-                location[x] = val
+                location[x] = val.strip()
 
         return location
 
@@ -111,7 +110,7 @@ class CmdlineSetupInteraction(object):
         self._log.info("You can either type in a name of a config in the Tank Store")
         self._log.info("or specify a path to a config on disk. Hit enter to use the ")
         self._log.info("standard Tank Starter configuration.")
-        config_name = raw_input("[%s]: " % constants.DEFAULT_CFG)
+        config_name = raw_input("[%s]: " % constants.DEFAULT_CFG).strip()
         if config_name == "":
             config_name = constants.DEFAULT_CFG
         return config_name
@@ -152,7 +151,7 @@ class CmdlineSetupInteraction(object):
 
         while True:
             self._log.info("")
-            proj_name = raw_input("Please enter a folder name [%s]: " % suggested_folder_name)
+            proj_name = raw_input("Please enter a folder name [%s]: " % suggested_folder_name).strip()
             if proj_name == "":
                 proj_name = suggested_folder_name
             self._log.info("...that corresponds to the following data locations:")
