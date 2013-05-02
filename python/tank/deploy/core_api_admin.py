@@ -159,12 +159,16 @@ def install_local_core(log, pc, code_root, pc_root):
             except Exception, e:
                 log.error("Could not delete file %s: %s" % (f, e))
             
-        log.info("Installing %s -> %s" % (source_core, target_core))
+        
         old_umask = os.umask(0)
         try:
+            
             # copy core distro
+            log.info("Localizing Core: %s -> %s" % (source_core, target_core))
             util._copy_folder(log, source_core, target_core)
+            
             # copy some core config files across
+            log.info("Copying Core Configuration Files...")
             file_names = ["app_store.yml", 
                           "shotgun.yml", 
                           "interpreter_Darwin.cfg", 
@@ -177,18 +181,36 @@ def install_local_core(log, pc, code_root, pc_root):
                 shutil.copy(src, tgt)
                 os.chmod(tgt, 0444)
                 
+            # copy apps, engines, frameworks
+            source_apps = os.path.join(code_root, "install", "apps")
+            target_apps = os.path.join(pc_root, "install", "apps")
+            log.info("Localizing Apps: %s -> %s" % (source_apps, target_apps))
+            util._copy_folder(log, source_apps, target_apps)
+            
+            source_engines = os.path.join(code_root, "install", "engines")
+            target_engines = os.path.join(pc_root, "install", "engines")
+            log.info("Localizing Engines: %s -> %s" % (source_engines, target_engines))
+            util._copy_folder(log, source_engines, target_engines)
+
+            source_frameworks = os.path.join(code_root, "install", "frameworks")
+            target_frameworks = os.path.join(pc_root, "install", "frameworks")
+            log.info("Localizing Frameworks: %s -> %s" % (source_frameworks, target_frameworks))
+            util._copy_folder(log, source_frameworks, target_frameworks)
+                
         except Exception, e:
-            raise TankError("Could not copy Core API: %s" % e)
+            raise TankError("Could not localize: %s" % e)
         finally:
             os.umask(old_umask)
+            
+            
                 
+        log.info("The Core API was successfully localized.")
+
         log.info("")
         log.info("Localize complete! This pipeline configuration now has an independent API. "
                  "If you upgrade the API for this configuration (using the 'tank core' command), "
                  "no other configurations or projects will be affected.")
         log.info("")
-        log.info("Now please run the app update command to ensure that all apps and engines exist "
-                 "in your localized location.")
         log.info("")
         
     else:
