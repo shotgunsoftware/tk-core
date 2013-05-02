@@ -286,10 +286,6 @@ def check_for_updates(log, tk):
     Check for updates.
     """
 
-    log.info("Welcome to the Tank update checker!")
-    log.info("This script will check that all apps and engines are up to date.")
-    log.info("")
-
     pc = tk.pipeline_configuration
     environments = [ pc.get_environment(x) for x in pc.get_environments()]
 

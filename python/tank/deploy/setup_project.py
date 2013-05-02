@@ -15,8 +15,10 @@ import tempfile
 import uuid
 from ..errors import TankError
 from ..util import shotgun
+from .. import api
 from ..platform import constants
 from . import util as deploy_util
+from . import env_admin
 from .. import pipelineconfig
 
 from .zipfilehelper import unzip_file
@@ -1067,6 +1069,16 @@ def _interactive_setup(log, pipeline_config_root):
     log.info("Tank Project Creation Complete.")
     log.info("")
 
+    log.info("")
+    log.info("Tank will now run the update checker to make sure that you are running")
+    log.info("the most recent versions of all apps and engines.")
+    tk = api.Tank(pc)
+    env_admin.check_for_updates(log, tk)
+
+    log.info("")
+    log.info("Your Tank Project has been fully set up.")
+    log.info("")
+
     # show the readme file if it exists
     readme_file = os.path.join(current_os_pc_location, "config", "README")
     if os.path.exists(readme_file):
@@ -1077,11 +1089,6 @@ def _interactive_setup(log, pipeline_config_root):
             print line.strip()
         fh.close()
     
-    log.info("")
-    log.info("Project setup complete!")
-    log.info("")
-    log.info("We now recommend that you run the update app to ensure that all")
-    log.info("the Apps and Engines that came with the config are up to date! ")
     log.info("")
     log.info("For more Apps, Support, Documentation and the Tank Community, go to")
     log.info("https://tank.shotgunsoftware.com")
