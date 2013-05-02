@@ -378,10 +378,25 @@ def _upgrade_to_013(tank_install_root, log):
                 # split up env per type
                 for (app_instance, app_config) in sg_env_data["engines"]["tk-shotgun"]["apps"].items():
                     entity_types = app_config.get("entity_types")
+                    if entity_types is None:
+                        entity_types = []
+                    
+                    # special case for launch publish which may not have a type param
                     if app_instance == "tk-shotgun-launchpublish":
                         entity_types = ["TankPublishedFile"]
-                    if entity_types is None:
-                        continue
+                    
+                    # special case for all the launch apps - these need to
+                    # be added to the published file environment explicitly
+                    launch_apps = [ "tk-shotgun-launch3dsmax",
+                                    "tk-shotgun-launchmaya",
+                                    "tk-shotgun-launchmotionbuilder",
+                                    "tk-shotgun-launchnuke",
+                                    "tk-shotgun-launchphotoshop",
+                                    "tk-shotgun-launchhiero",
+                                    "tk-shotgun-launchsoftimage" ]  
+                    if app_instance in launch_apps:
+                        entity_types.append("TankPublishedFile")
+                     
                     for et in entity_types:
                         if et not in new_envs:
                             new_envs[et] = {}
