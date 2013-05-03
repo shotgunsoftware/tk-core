@@ -65,7 +65,6 @@ set LOCAL_BASH=%SELF_PATH%install\core\setup\windows\bash.exe
 set LOCAL_BASH_SCRIPT=%SELF_PATH%install\core\setup\windows\cache_check.sh
 
 %LOCAL_BASH% %LOCAL_BASH_SCRIPT% %CACHE_FILE% %ENV_FILE%
-echo Error level %ERRORLEVEL%
 if "%ERRORLEVEL%" == "1" exit /b 1
 if "%ERRORLEVEL%" == "2" exit /b 2 
 rem -- cache is up to date - display it on screen
