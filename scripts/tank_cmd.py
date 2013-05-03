@@ -242,10 +242,10 @@ def _write_shotgun_cache(tk, entity_type, cache_file_name):
     # insert special system commands
     if entity_type == "Project":
         engine_commands["__core_info"] = { "properties": {"title": "Check for Core Upgrades...",
-                                                          "deny_permissions": "Artist "} }
+                                                          "deny_permissions": ["Artist"] } }
         
         engine_commands["__upgrade_check"] = { "properties": {"title": "Check for App Upgrades...",
-                                                              "deny_permissions": "Artist "} }
+                                                              "deny_permissions": ["Artist"] } }
 
     # extract actions into cache file
     res = []
