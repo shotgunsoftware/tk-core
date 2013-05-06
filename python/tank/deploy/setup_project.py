@@ -1079,6 +1079,9 @@ def _interactive_setup(log, pipeline_config_root):
         fh.close()
     
     log.info("")
+    log.info("We recommend that you now run 'tank updates' to get the latest")
+    log.info("versions of all apps and engines for this project.")
+    log.info("")
     log.info("For more Apps, Support, Documentation and the Tank Community, go to")
     log.info("https://tank.shotgunsoftware.com")
     log.info("")        
