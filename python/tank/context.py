@@ -11,6 +11,7 @@ import os
 from tank_vendor import yaml
 
 import tank
+import pickle
 from .util import login
 from .util import shotgun_entity
 from .util import shotgun
@@ -236,8 +237,6 @@ class Context(object):
         # fall back on just the site main url
         return self.__tk.shotgun.base_url
         
-        
-
     @property
     def filesystem_locations(self):
         """
@@ -683,6 +682,47 @@ def from_path(tk, path, previous_context=None):
             context["task"] = previous_context.task
 
     return Context(**context)
+
+################################################################################################
+# serialization
+
+def serialize(context):
+    """
+    Serializes the context into a string
+    """
+    data = {
+        "project": context.project,
+        "entity": context.entity,
+        "user": context.user,
+        "step": context.step,
+        "task": context.task,
+        "additional_entities": context.additional_entities,
+        "_pc_path": context.tank.pipeline_configuration.get_path()
+    }
+    return pickle.dumps(data)
+    
+    
+def deserialize(context_str):
+    """
+    Deserializaes a string created with serialize() into a context object
+    """
+    data = pickle.loads(context_str)
+
+    # first get the pc path out of the dict
+    pipeline_config_path = data["_pc_path"] 
+    del data["_pc_path"]
+    
+    # create a tank API instance.
+    tk = tank.Tank(pipeline_config_path)
+
+    # add it to the constructor instance
+    data["tk"] = tk
+
+    # and lastly make the obejct
+    return Context(**data)
+    
+
+
 
 ################################################################################################
 # YAML representer/constructor
