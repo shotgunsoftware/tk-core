@@ -1065,23 +1065,6 @@ def _interactive_setup(log, pipeline_config_root):
         log.info("Post install phase complete!")
 
     log.info("")
-    log.info("Tank Project Creation Complete.")
-    log.info("")
-
-    log.info("")
-    log.info("Tank will now run the update checker to make sure that you are running")
-    log.info("the most recent versions of all apps and engines.")
-    tk = api.Tank(pc)
-    env_admin.check_for_updates(log, tk)
-
-    log.info("")
-    log.info("Creating tank folders for the project level...")
-    try:
-        tk.create_filesystem_structure("Project", project_id)
-    except Exception, e:
-        log.error("Could not create folders: %s" % e)
-
-    log.info("")
     log.info("Your Tank Project has been fully set up.")
     log.info("")
 
