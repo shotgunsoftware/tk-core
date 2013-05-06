@@ -1075,6 +1075,13 @@ def _interactive_setup(log, pipeline_config_root):
     env_admin.check_for_updates(log, tk)
 
     log.info("")
+    log.info("Creating tank folders for the project level...")
+    try:
+        tk.create_filesystem_structure("Project", project_id)
+    except Exception, e:
+        log.error("Could not create folders: %s" % e)
+
+    log.info("")
     log.info("Your Tank Project has been fully set up.")
     log.info("")
 
