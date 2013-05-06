@@ -41,7 +41,7 @@ set PARENT_CONFIG_FILE=%SELF_PATH%install\core\core_Windows.cfg
 IF NOT EXIST "%PARENT_CONFIG_FILE%" GOTO NO_PARENT_CONFIG
 
 rem -- get contents of file
-set /p PARENT_LOCATION= < "%PARENT_CONFIG_FILE%"
+for /f %%G in (%PARENT_CONFIG_FILE%) do (SET PARENT_LOCATION=%%G)
 IF NOT EXIST "%PARENT_LOCATION%" GOTO NO_PARENT_LOCATION
 
 rem -- all good, execute tank script in parent location
