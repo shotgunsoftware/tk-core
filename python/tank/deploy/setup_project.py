@@ -748,16 +748,24 @@ def _interactive_setup(log, pipeline_config_root):
         log.info("data storage, but you can change it to any arbitrary location.")
         
     locations_dict = cmdline_ui.get_disk_location(suggested_path)
+    current_os_pc_location = locations_dict[sys.platform]
 
     ##################################################################
     # validate the local storages
     #
+    
     
     for s in resolved_storages:
         
         # note! at this point, the storage has been checked and exists on disk.        
         current_os_path = s.get( SG_LOCAL_STORAGE_OS_MAP[sys.platform] )
         project_path = os.path.join(current_os_path, project_disk_folder)
+        
+        # make sure that the storage location is not the same folder
+        # as the pipeline config location. That will confuse tank.
+        if current_os_pc_location == project_path:
+            raise TankError("Your configuration location %s has been set to the same "
+                            "as one of the storage locations. This is not supported!" % current_os_pc_location)
         
         if not os.path.exists(project_path):
             raise TankError("The Project path %s for storage %s does not exist on disk! "
@@ -782,7 +790,6 @@ def _interactive_setup(log, pipeline_config_root):
     ##################################################################
     # validate the install location
     #
-    current_os_pc_location = locations_dict[sys.platform]
     
     if os.path.exists(current_os_pc_location):
         # pc location already exists - make sure it doesn't already contain
