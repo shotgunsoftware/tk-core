@@ -75,10 +75,13 @@ class AltCustomFormatter(logging.Formatter):
             # which does not start with an html tag, so we need to make sure we got that.
             if record.levelno in (logging.WARNING, logging.ERROR, logging.CRITICAL, logging.DEBUG):
                 # for errors and warnings, we turn all special chars into codes using cgi
-                message = "<b>%s:</b> %s" % (record.levelname, cgi.escape(record.msg)) 
+                # before converting, make sure the record is a string, sometimes 
+                # people pass in all sorts of crap into the logger
+                message_str = str(record.msg)
+                message = "<b>%s:</b> %s" % (record.levelname, cgi.escape(message_str)) 
             else:
                 # info logging allows html chars to be passed so no cgi encode
-                message = record.msg
+                message = str(record.msg)
             
             # now make sure each distinct line is wrapped in a span so the shotgun 
             # logger will pick them up.
