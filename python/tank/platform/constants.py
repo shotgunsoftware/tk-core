@@ -74,6 +74,7 @@ TANK_ENGINE_INIT_HOOK_NAME = "engine_init"
 # hook that is executed whenever a bundle has initialized
 TANK_BUNDLE_INIT_HOOK_NAME = "bundle_init"
 
+# hook that is executed if the path cache db folder is missing.
 PATH_CACHE_DB_FOLDER_CREATE_HOOK_NAME = "path_cache_db_folder_create"
 
 # hook to get current login

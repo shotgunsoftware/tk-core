@@ -40,7 +40,9 @@ class PathCache(object):
         # note that the cache folder is inside of the tank folder
         # so no need to attempt a recursive creation here.
         db_path = pipeline_configuration.get_path_cache_location()
-        pipeline_configuration.execute_hook(constants.PATH_CACHE_DB_FOLDER_CREATE_HOOK_NAME, db_path=db_path)
+        cache_folder = os.path.dirname(db_path)
+        if not os.path.exists(cache_folder):
+            pipeline_configuration.execute_hook(constants.PATH_CACHE_DB_FOLDER_CREATE_HOOK_NAME, cache_folder=cache_folder)
 
         # make sure to set open permissions on the db file if we are the first ones
         # to create it
