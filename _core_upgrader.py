@@ -212,6 +212,10 @@ def _convert_tank_bat(tank_install_root, log):
                                                                         pc.get("project").get("name")))
         
             local_os_path = pc.get(SG_LOCAL_STORAGE_OS_MAP[sys.platform])
+            
+            if local_os_path is None:
+                log.info("No pipeline configurations registered for this OS. Skipping...")
+                continue
         
             if not os.path.exists(local_os_path):
                 log.info("Pipeline Config does not exist on disk (%s) - skipping..." % local_os_path)
@@ -231,7 +235,7 @@ def _convert_tank_bat(tank_install_root, log):
 
             
         except Exception, e:
-            log.error("\n\nCould not upgrade PC %s! Please contact support! \nError: %s" % (str(pc), e))
+            log.error("\n\n\nCould not upgrade PC %s! Please contact support! \nError: %s\n\n\n" % (str(pc), e))
     
 
 def _upgrade_to_013(tank_install_root, log):
@@ -664,7 +668,6 @@ def upgrade_tank(tank_install_root, log):
             _convert_tank_bat(tank_install_root, log)
             
         log.debug("Migrations have completed. Now doing the actual upgrade...")
-        return
 
         # check that the tank_install_root looks sane
         # expect folders: core, engines, apps
