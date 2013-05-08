@@ -605,7 +605,9 @@ class TemplatePathParser(object):
         # Handle keys which already have values (they exist more than once in definition)
         if key.name and key.name in self.fields:
             # value is treated as string as it is compared to input path
-            value = str(self.fields[key.name])
+            # have to format correctly though otherwise search may fail!
+            value = key.str_from_value(self.fields[key.name])
+            
             # check that value exists in the remaining input path
             if value in input_path[last_index:]:
                 value_index = input_path.index(value, last_index) + len(value)
