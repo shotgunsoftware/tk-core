@@ -18,6 +18,7 @@ import sys
 import stat
 import datetime
 import shutil
+from distutils.version import LooseVersion
 
 SG_LOCAL_STORAGE_OS_MAP = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
 
@@ -28,6 +29,59 @@ sys.path.append(vendor)
 import yaml
 from shotgun_api3 import Shotgun
 
+###################################################################################################
+# migration utilities
+
+def __is_upgrade(tank_install_root):
+    """
+    Returns true if this is not the first time the tank code is being 
+    installed (activation).
+    """
+    return os.path.exists(os.path.join(tank_install_root, "core", "info.yml"))
+    
+def __current_version_less_than(tank_install_root, ver):
+    """
+    returns true if the current API version installed is less than the 
+    specified version. ver is "v0.1.2"
+    """
+    log.debug("Checking if the currently installed version is less than %s..." % ver)
+    
+    if __is_upgrade(tank_install_root) == False:
+        # there is no current version. So it is definitely
+        # not at least version X
+        log.debug("There is no current version. This is the first time the core is being installed.")
+        return True
+    
+    try:
+        current_api_manifest = os.path.join(tank_install_root, "core", "info.yml")
+        fh = open(current_api_manifest, "r")
+        try:
+            data = yaml.load(fh)
+        finally:
+            fh.close()
+        current_api_version = str(data.get("version"))
+    except Exception, e:
+        # current version unknown
+        log.warning("Could not determine the version of the current code: %s" % e)
+        # not sure to do here - report that current version is NOT less than XYZ
+        return False
+    
+    log.debug("The current API version is '%s'" % current_api_version)
+     
+    if current_api_version.lower() in ["head", "master"]:
+        # current version is greater than anything else
+        return False
+    
+    if current_api_version.startswith("v"):
+        current_api_version = current_api_version[1:]
+    if ver.startswith("v"):
+        ver = ver[1:]
+
+    return LooseVersion(current_api_version) < LooseVersion(ver)
+
+
+###################################################################################################
+# helpers
 
 def __create_sg_connection(log, shotgun_cfg_path):
     """
@@ -60,6 +114,7 @@ def __create_sg_connection(log, shotgun_cfg_path):
         http_proxy = config_data["http_proxy"]
 
     # create API
+    log.debug("Connecting to %s..." % config_data["host"])
     sg = Shotgun(config_data["host"],
                  config_data["api_script"],
                  config_data["api_key"],
@@ -73,6 +128,111 @@ def _make_folder(log, folder, permissions):
         log.debug("Creating folder %s.." % folder)
         os.mkdir(folder, permissions)
     
+    
+def _copy_folder(log, src, dst): 
+    """
+    Alternative implementation to shutil.copytree
+    Copies recursively with very open permissions.
+    Creates folders if they don't already exist.
+    """
+    files = []
+    
+    if not os.path.exists(dst):
+        log.debug("mkdir 0777 %s" % dst)
+        os.mkdir(dst, 0777)
+
+    names = os.listdir(src) 
+    for name in names:
+
+        srcname = os.path.join(src, name) 
+        dstname = os.path.join(dst, name) 
+        
+        # get rid of system files
+        if name in [".svn", ".git", ".gitignore", "__MACOSX", ".DS_Store"]: 
+            log.debug("SKIP %s" % srcname)
+            continue
+        
+        try: 
+            if os.path.isdir(srcname): 
+                files.extend( _copy_folder(log, srcname, dstname) )             
+            else: 
+                shutil.copy(srcname, dstname)
+                log.debug("Copy %s -> %s" % (srcname, dstname))
+                files.append(srcname)
+                # if the file extension is sh, set executable permissions
+                if dstname.endswith(".sh") or dstname.endswith(".bat") or dstname.endswith(".exe"):
+                    try:
+                        # make it readable and executable for everybody
+                        os.chmod(dstname, 0777)
+                        log.debug("CHMOD 777 %s" % dstname)
+                    except Exception, e:
+                        log.error("Can't set executable permissions on %s: %s" % (dstname, e))
+        
+        except Exception, e: 
+            log.error("Can't copy %s to %s: %s" % (srcname, dstname, e)) 
+    
+    return files
+
+
+###################################################################################################
+# Migrations
+
+def _convert_tank_bat(tank_install_root, log):
+    """
+    Migration to upgrade from v0.13.x to v0.13.13
+    This replaces the tank.bat files for all projects with the most current one.
+    """
+    log.info("Updating the tank.bat file for all projects...")
+    
+    # first need a connection to the associated shotgun site
+    shotgun_cfg = os.path.abspath(os.path.join(tank_install_root, "..", "config", "core", "shotgun.yml"))
+    sg = __create_sg_connection(log, shotgun_cfg)
+    log.debug("Shotgun API: %s" % sg)
+    
+    # first do the studio location tank.bat
+    studio_tank_bat = os.path.abspath(os.path.join(tank_install_root, "..", "tank.bat"))
+    if os.path.exists(studio_tank_bat):
+        log.info("Updating %s..." % studio_tank_bat)         
+        try:
+            this_folder = os.path.abspath(os.path.join( os.path.dirname(__file__)))
+            new_tank_bat = os.path.join(this_folder, "setup", "root_binaries", "tank.bat")
+            log.debug("copying %s -> %s" % (new_tank_bat, studio_tank_bat))
+            shutil.copy(new_tank_bat, studio_tank_bat)
+            os.chmod(studio_tank_bat, 0775)
+        except Exception, e:
+            log.error("\n\nCould not upgrade core! Please contact support! \nError: %s" % e)
+    
+    
+    pcs = sg.find("PipelineConfiguration", [], ["code", "project", "windows_path", "mac_path", "linux_path"])
+    
+    for pc in pcs:
+        
+        try:
+            log.info("Processing Pipeline Config %s (Project %s)..." % (pc.get("code"), 
+                                                                        pc.get("project").get("name")))
+        
+            local_os_path = pc.get(SG_LOCAL_STORAGE_OS_MAP[sys.platform])
+        
+            if not os.path.exists(local_os_path):
+                log.info("Pipeline Config does not exist on disk (%s) - skipping..." % local_os_path)
+                continue
+            
+            tank_bat = os.path.join(local_os_path, "tank.bat")
+            if not os.path.exists(tank_bat):
+                log.warning("Could not find file: %s" % tank_bat)
+                continue
+
+            # copy new tank.bat!
+            this_folder = os.path.abspath(os.path.join( os.path.dirname(__file__)))
+            new_tank_bat = os.path.join(this_folder, "setup", "root_binaries", "tank.bat")
+            log.debug("copying %s -> %s" % (new_tank_bat, tank_bat))
+            shutil.copy(new_tank_bat, tank_bat)
+            os.chmod(tank_bat, 0775)
+
+            
+        except Exception, e:
+            log.error("\n\nCould not upgrade PC %s! Please contact support! \nError: %s" % (str(pc), e))
+    
 
 def _upgrade_to_013(tank_install_root, log):
     """
@@ -80,7 +240,7 @@ def _upgrade_to_013(tank_install_root, log):
     Can be run at any point in time. Will
     gracefully do the right thing if a new version is already in place.
     """
-    
+        
     # first need a connection to the associated shotgun site
     shotgun_cfg = os.path.abspath(os.path.join(tank_install_root, "..", "config", "core", "shotgun.yml"))
     sg = __create_sg_connection(log, shotgun_cfg)
@@ -95,6 +255,7 @@ def _upgrade_to_013(tank_install_root, log):
     tank_storage = sg.find_one("LocalStorage", [["code", "is", "Tank"]], ["mac_path", "linux_path", "windows_path"])
     if tank_storage is None:
         # no tank storage. Assume that we are in a clean install - no need to migrate!
+        log.warning("Cannot migrate to 0.13! No Tank Storage found!")
         return
 
 
@@ -470,63 +631,40 @@ def _upgrade_to_013(tank_install_root, log):
         
     
 
-def _copy_folder(log, src, dst): 
-    """
-    Alternative implementation to shutil.copytree
-    Copies recursively with very open permissions.
-    Creates folders if they don't already exist.
-    """
-    files = []
-    
-    if not os.path.exists(dst):
-        log.debug("mkdir 0777 %s" % dst)
-        os.mkdir(dst, 0777)
 
-    names = os.listdir(src) 
-    for name in names:
+###################################################################################################
+# Upgrade entry point
 
-        srcname = os.path.join(src, name) 
-        dstname = os.path.join(dst, name) 
-        
-        # get rid of system files
-        if name in [".svn", ".git", ".gitignore", "__MACOSX", ".DS_Store"]: 
-            log.debug("SKIP %s" % srcname)
-            continue
-        
-        try: 
-            if os.path.isdir(srcname): 
-                files.extend( _copy_folder(log, srcname, dstname) )             
-            else: 
-                shutil.copy(srcname, dstname)
-                log.debug("Copy %s -> %s" % (srcname, dstname))
-                files.append(srcname)
-                # if the file extension is sh, set executable permissions
-                if dstname.endswith(".sh") or dstname.endswith(".bat") or dstname.endswith(".exe"):
-                    try:
-                        # make it readable and executable for everybody
-                        os.chmod(dstname, 0777)
-                        log.debug("CHMOD 777 %s" % dstname)
-                    except Exception, e:
-                        log.error("Can't set executable permissions on %s: %s" % (dstname, e))
-        
-        except Exception, e: 
-            log.error("Can't copy %s to %s: %s" % (srcname, dstname, e)) 
-    
-    return files
 
 def upgrade_tank(tank_install_root, log):
     """
     Upgrades the tank core API located in tank_install_root
     based on files located locally to this script
     """
-        
+       
+    # get our location
+    this_folder = os.path.abspath(os.path.join( os.path.dirname(__file__)))
+
+    
     # ensure permissions are not overridden by umask
     old_umask = os.umask(0)
     try:
 
         log.debug("First running migrations...")
-        _upgrade_to_013(tank_install_root, log)    
+
+        # check if we need to perform the 0.13 upgrade
+        did_013_upgrade = False
+        if __is_upgrade(tank_install_root) and __current_version_less_than(tank_install_root, "v0.13.6"):
+            log.debug("Upgrading from an earlier version to to 0.13.6 or later.")
+            _upgrade_to_013(tank_install_root, log)
+            did_013_upgrade = True    
+        
+        if __is_upgrade(tank_install_root) and __current_version_less_than(tank_install_root, "v0.13.13") and not did_013_upgrade:
+            log.debug("Upgrading from v0.13.6+ to v0.13.13. Running tank.bat replacement migration...")
+            _convert_tank_bat(tank_install_root, log)
+            
         log.debug("Migrations have completed. Now doing the actual upgrade...")
+        return
 
         # check that the tank_install_root looks sane
         # expect folders: core, engines, apps
@@ -540,9 +678,6 @@ def upgrade_tank(tank_install_root, log):
             log.error("The specified tank install root '%s' doesn't look valid!\n"
                       "Typically the install root path ends with /install." % tank_install_root)
             return
-
-        # get our location
-        this_folder = os.path.abspath(os.path.join( os.path.dirname(__file__)))
         
         # get target locations
         core_install_location = os.path.join(tank_install_root, "core")
@@ -612,7 +747,7 @@ if __name__ == "__main__":
     if len(sys.argv) == 3 and sys.argv[1] == "migrate":
         path = sys.argv[2]
         log = logging.getLogger("tank.update")
-        log.setLevel(logging.INFO)
+        log.setLevel(logging.DEBUG)
         ch = logging.StreamHandler()
         formatter = logging.Formatter("%(levelname)s %(message)s")
         ch.setFormatter(formatter)
