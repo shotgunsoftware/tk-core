@@ -404,15 +404,15 @@ def run_core_non_project_command(log, install_root, pipeline_config_root, comman
 
         elif len(args) == 1 and args[0] == "localize":
             # a special case which actually requires a pipeline config object
-            try:
-                pc = pipelineconfig.from_path(pipeline_config_root)            
-            except TankError, e:
+            if pipeline_config_root is None:
                 raise TankError("You must run the core install command against a specific "
                                 "Tank Configuration, not against a shared core location. "
                                 "Navigate to the Tank Configuration you want to operate on, "
-                                "and run the tank command from there. Details: %s" % e)
+                                "and run the tank command from there. To see the pipeline "
+                                "configurations available, go to the pipeline configurations "
+                                "page in Shotgun.")
             
-            core_api_admin.install_local_core(log, pc, install_root, pipeline_config_root)
+            core_api_admin.install_local_core(log, install_root, pipeline_config_root)
         
         else:
             raise TankError("Invalid arguments! Please run tank --help for more information.")

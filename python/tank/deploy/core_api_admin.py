@@ -120,10 +120,12 @@ def show_core_info(log, code_root, pc_root):
     
     
 
-def install_local_core(log, pc, code_root, pc_root):
+def install_local_core(log, code_root, pc_root):
     """
     Install a local tank core into this pipeline configuration
     """
+    log.debug("Executing the core localize command. Code root: %s. PC Root: %s" % (code_root, pc_root))
+    
     log.info("")
     if code_root == pc_root:
         raise TankError("Looks like the pipeline configuration %s already has a local install "
