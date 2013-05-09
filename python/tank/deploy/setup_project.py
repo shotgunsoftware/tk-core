@@ -936,6 +936,8 @@ def _interactive_setup(log, pipeline_config_root):
     fh = open(sg_code_location, "wt")
     fh.write("# Tank configuration file\n")
     fh.write("# This file was automatically created by setup_project\n")
+    fh.write("# This file reflects the paths in the primary pipeline\n")
+    fh.write("# configuration defined for this project.\n")
     fh.write("\n")
     fh.write("Windows: '%s'\n" % locations_dict["win32"])
     fh.write("Darwin: '%s'\n" % locations_dict["darwin"])    
@@ -1013,7 +1015,7 @@ def _interactive_setup(log, pipeline_config_root):
             "linux_path": locations_dict["linux2"],
             "windows_path": locations_dict["win32"],
             "mac_path": locations_dict["darwin"],
-            "code": "Primary"}
+            "code": constants.PRIMARY_PIPELINE_CONFIG_NAME}
     pc_entity = sg.create(constants.PIPELINE_CONFIGURATION_ENTITY, data)
     log.debug("Created data: %s" % pc_entity)
     

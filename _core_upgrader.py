@@ -420,6 +420,8 @@ def _upgrade_to_013(tank_install_root, log):
                 fh = open(install_location, "wt")
                 fh.write("# Tank configuration file\n")
                 fh.write("# This file was automatically created by the 0.12 migration\n")
+                fh.write("# This file reflects the paths in the pipeline configuration\n")
+                fh.write("# entity which is associated with this location.\n")
                 fh.write("\n")
                 for (uname, path) in project_file_locations.items():
                     fh.write("%s: '%s'\n" % (uname, path))                        

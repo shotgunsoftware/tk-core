@@ -67,6 +67,8 @@ def clone_configuration(log, tk, source_pc_id, user_id, name, target_linux, targ
         fh = open(sg_code_location, "wt")
         fh.write("# Tank configuration file\n")
         fh.write("# This file was automatically created by tank clone\n")
+        fh.write("# This file reflects the paths in the pipeline configuration\n")
+        fh.write("# entity which is associated with this location (%s).\n" % name)
         fh.write("\n")
         fh.write("Windows: '%s'\n" % target_win)
         fh.write("Darwin: '%s'\n" % target_mac)    

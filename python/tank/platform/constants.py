@@ -114,6 +114,9 @@ VALID_SG_ENTITY_NAME_REGEX = "^[0-9A-Za-z_\-\.]+$"
 VALID_SG_ENTITY_NAME_EXPLANATION = ("letters, numbers and the characters period(.), "
                                     "dash(-) and underscore(_)")
 
+# the name of the primary pipeline configuration
+PRIMARY_PIPELINE_CONFIG_NAME = "Primary"
+
 # app store: the entity that represents the core api
 TANK_CORE_VERSION_ENTITY = "CustomNonProjectEntity01"
 
