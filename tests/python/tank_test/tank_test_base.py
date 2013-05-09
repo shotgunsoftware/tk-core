@@ -148,7 +148,13 @@ class TankTestBase(unittest.TestCase):
         self.create_file(os.path.join(project_tank, "config", "tank_configs.yml"), data)
 
         # add files needed by the pipeline config
-        self.create_file(os.path.join(project_tank, "config", "core", "pipeline_configuration.yml"), "project_name: %s" % self.project["tank_name"])
+        pc_yml = os.path.join(project_tank, "config", "core", "pipeline_configuration.yml")
+        pc_yml_data = "project_name: %s" % self.project["tank_name"]
+        self.create_file(pc_yml, pc_yml_data)
+        
+        loc_yml = os.path.join(project_tank, "config", "core", "install_location.yml")
+        loc_yml_data = "Windows: '%s'\nDarwin: '%s'\nLinux: '%s'" % (project_tank, project_tank, project_tank)
+        self.create_file(loc_yml, loc_yml_data)
         
         roots = {"primary": {}}
         for os_name in ["windows_path", "linux_path", "mac_path"]:

@@ -56,8 +56,7 @@ class PipelineConfiguration(object):
         
         self._roots = self.__load_roots_meatadata()
         self.__load_config_metadata()
-        
-
+        self._pc_registered_location = get_pc_registered_location(self._pc_root)
         
                 
     def __repr__(self):
@@ -108,6 +107,7 @@ class PipelineConfiguration(object):
             raise TankError("Project name not defined in config metadata for %s! "
                             "Please contact support." % self) 
         
+
     
     def __load_roots_meatadata(self):
         """
@@ -150,6 +150,20 @@ class PipelineConfiguration(object):
         Returns the master root for this pipeline configuration
         """
         return self._pc_root
+        
+    def get_registered_location_path(self):
+        """
+        Returns the path that has been registered for this pipeline configuration 
+        for the current OS.
+        This is the path that has been defined in shotgun. It is also the path that is being
+        used in the inverse pointer files that exist in each storage.
+        
+        This is useful when drive letter mappings or symlinks are being used - in these
+        cases get_path() may not return the same value as get_registered_location_path().
+        
+        This may return None if no path has been registered for the current os.
+        """
+        return self._pc_registered_location
         
     def get_data_roots(self):
         """
@@ -417,81 +431,99 @@ def from_entity(entity_type, entity_id):
     
     pipe_configs = sg.find(constants.PIPELINE_CONFIGURATION_ENTITY, 
                            [["project", "is", proj]], 
-                           ["core", "windows_path", "mac_path", "linux_path", "users"])
+                           ["windows_path", "mac_path", "linux_path", "code"])
     
     if len(pipe_configs) == 0:
-        raise TankError("Cannot resolve a pipeline configuration object from %s %s - looks "
+        raise TankError("Cannot resolve a pipeline configuration object from %s with id %s - looks "
                         "like its associated Shotgun Project '%s' has not yet been set up with "
                         "Tank!" % (entity_type, entity_id, proj.get("name")))
     
-    # get the current user (none if not found)
-    current_user = login.get_shotgun_user(sg)
+    #############################################################################################
+    # ok now we have all the PCs in Shotgun for this project.
+    # apply the following logic:
+    #
+    # if this method was called from a generic tank command, just find the primary PC 
+    # and use that.
+    #
+    # if this was called from a specific tank command, use that. 
     
-    # pass 1 - find primary and per user PC
-    matching_pcs = []
-    for p in pipe_configs:
-        if p.get("users") is None or len(p.get("users")) == 0:
-            matching_pcs.append(p)
-        elif current_user is not None:
-            # we have a current user
-            # we have users associated with PC
-            user_ids = [ x.get("id") for x in p.get("users") ]
-            if current_user.get("id") in user_ids:
-                matching_pcs.append(p)
-    
-    if len(matching_pcs) == 0:
-        raise TankError("Cannot resolve a pipeline configuration object from %s %s - "
-                        "Could not find any configs associated with the current user!" % (entity_type, entity_id)) 
-    
-    # pass 2 - see which ones actually exist on disk
-    existing_matching_pcs = []
-    for p in matching_pcs:
-        path = p.get(platform_lookup[sys.platform])
-        if path is not None and os.path.exists(path):
-            existing_matching_pcs.append(path)
-    
-    # now for the resolve!
-    if len(existing_matching_pcs) == 0:
-        raise TankError("Cannot resolve a pipeline configuration object from %s %s - "
-                        "could not find a location on disk for any configuration!" % (entity_type, entity_id)) 
+    if "TANK_CURRENT_PC" not in os.environ:
+        # we are running the generic tank command, the code that we are running
+        # is not connected to any particular PC.
+        # in this case, find the primary pipeline config and use that
+        primary_pc = None
+        for pc in pipe_configs:
+            if pc.get("code") == constants.PRIMARY_PIPELINE_CONFIG_NAME:
+                primary_pc = pc
+                break
+        if primary_pc is None:
+            raise TankError("The Shotgun Project '%s' does not have a default Pipeline "
+                            "Configuration! This is required by Tank. It needs to be named '%s'. "
+                            "Please double check by opening to the Pipeline configuration Page in "
+                            "Shotgun for the given project." % (proj.get("name"), constants.PRIMARY_PIPELINE_CONFIG_NAME))
+        
+        # check that there is a path for our platform
+        current_os_path = primary_pc.get(platform_lookup[sys.platform])
+        if current_os_path is None:
+            raise TankError("The Shotgun Project '%s' has a Primary pipeline configuration but "
+                            "it has not been configured to work with the current "
+                            "operating system." % proj.get("name"))
 
-    # first base our resolve on a call or python import directly from a specific PC
-    if "TANK_CURRENT_PC" in os.environ:
+        # ok there is a path - now check that the path exists!
+        if not os.path.exists(current_os_path):
+            raise TankError("The Shotgun Project '%s' has a Primary pipeline configuration registered "
+                            "to be located in '%s', however this path does cannot be "
+                            "found!" % (proj.get("name"), current_os_path))
+        
+        # looks good, we got a primary pipeline config that exists
+        return PipelineConfiguration(current_os_path)
+        
+        
+        
+        
+    else:
+        # we are running the tank command from a specific PC.
+        # in this case we need to check that the entity actually belongs to the project
         curr_pc_path = os.environ["TANK_CURRENT_PC"]
         
-        # windows paths can end with a space
+        # do a bit of cleanup - windows paths can end with a space
         if curr_pc_path.endswith(" "):
             curr_pc_path = curr_pc_path[:-1]   
-        
         # windows tends to end with a backslash
         if curr_pc_path.endswith("\\"):
-            curr_pc_path = curr_pc_path[:-1]    
+            curr_pc_path = curr_pc_path[:-1]   
+            
+        # the path stored in the TANK_CURRENT_PC env var may be a symlink etc.
+        # now we need to find which PC entity this corresponds to in Shotgun.
+        # Once found, we can double check that the current Entity is actually
+        # associated with the projec that the PC is associated with.
         
-        if curr_pc_path in existing_matching_pcs:
-            # ok found our PC
-            return PipelineConfiguration(curr_pc_path)
-        else:
-            # Weird. environment variable path not in list of choices!            
-            # This could be because we are running a PC which is not associated with our user.
-            # it could also mean we are running a PC which is not associated with the project.
-            raise TankError("Cannot create a Tank Configuration for %s %s by running "
-                "the Tank command in the folder '%s'! Make sure that you are assigned to the configuration! "
-                "To check this, navigate to the appropriate project in Shotgun, then go to the "
-                "pipeline configurations view." % (entity_type, entity_id, curr_pc_path))
+        pc_registered_path = get_pc_registered_location(curr_pc_path)
 
-    # ok if we are here, we are running a generic tank command
-    
-    # if there is a single entry things are easy....
-    if len(existing_matching_pcs) == 1:
-        return PipelineConfiguration(existing_matching_pcs[0])
-    
-    else:
-        # ok so there are more than one PC. 
-        raise TankError("Cannot create a Tank Configuration from %s %s - there are more than "
-                        "one pipeline configuration to choose from, and Tank "
-                        "was not able to determine which one is the right one to use. Try "
-                        "launching Tank directly from the pipeline config that you want to "
-                        "use! " % (entity_type, entity_id))
+        if pc_registered_path is None:
+            raise TankError("Error starting tank from the tank command located in '%s' - "
+                            "it looks like this pipeline configuration and tank command "
+                            "has not been configured for the current operating system." % curr_pc_path)
+        
+        # now that we have the proper pc path, we can find which PC entity this is
+        current_os_path = None
+        for pc in pipe_configs:
+            curr_path = pc.get(platform_lookup[sys.platform])
+            if curr_path == pc_registered_path:
+                current_os_path = curr_path
+                break
+        
+        if current_os_path is None:
+            raise TankError("Error launching tank for %s with id %s (Belonging to the project '%s') "
+                            "from the tank command located in '%s'. This tank command is not " 
+                            "associated with that project. For a list of which tank commands can be " 
+                            "used with this project, go to the Pipeline Configurations page in "
+                            "Shotgun for the project." % (entity_type, entity_id, proj.get("name"), curr_pc_path))
+        
+        # ok we got a pipeline config matching the tank command from which we launched.
+        # because we found the PC in the list of PCs for this project, we know that it must be valid!
+        return PipelineConfiguration(current_os_path)
+         
         
     
 
@@ -667,5 +699,38 @@ def get_core_api_version_based_on_current_code():
 
     return data
 
+def get_pc_registered_location(pipeline_config_root_path):
+    """
+    Loads the location metadata file from install_location.yml
+    This contains a reflection of the paths given in the pc entity.
 
+    Returns the path that has been registered for this pipeline configuration 
+    for the current OS.
+    This is the path that has been defined in shotgun. It is also the path that is being
+    used in the inverse pointer files that exist in each storage.
+    
+    This is useful when drive letter mappings or symlinks are being used - in these
+    cases get_path() may not return the same value as get_registered_location_path().
+    
+    This may return None if no path has been registered for the current os.
+    """
+    # now read in the pipeline_configuration.yml file
+    cfg_yml = os.path.join(pipeline_config_root_path, "config", "core", "install_location.yml")
+    fh = open(cfg_yml, "rt")
+    try:
+        data = yaml.load(fh)
+    except Exception, e:
+        raise TankError("Looks like a config file is corrupt. Please contact "
+                        "support! File: '%s' Error: %s" % (cfg_yml, e))
+    finally:
+        fh.close()
+    
+    if sys.platform == "linux2":
+        return data.get("Linux")
+    elif sys.platform == "win32":
+        return data.get("Windows")
+    elif sys.platform == "darwin":
+        return data.get("Darwin")
+    else:
+        raise TankError("Unsupported platform '%s'" % sys.platform)
 
