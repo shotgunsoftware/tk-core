@@ -80,9 +80,9 @@ class PipelineConfiguration(object):
                     data = yaml.load(info_fh)
                 finally:
                     info_fh.close()
-                data = str(data.get("version", "unknown"))
+                data = data.get("version")
             except:
-                data = "unknown"
+                data = None
         else:
             data = None
 
