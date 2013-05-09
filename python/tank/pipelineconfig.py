@@ -501,7 +501,7 @@ def from_entity(entity_type, entity_id):
         pc_registered_path = get_pc_registered_location(curr_pc_path)
 
         if pc_registered_path is None:
-            raise TankError("Error starting tank from the tank command located in '%s' - "
+            raise TankError("Error starting tank from the configuration located in '%s' - "
                             "it looks like this pipeline configuration and tank command "
                             "has not been configured for the current operating system." % curr_pc_path)
         
@@ -515,7 +515,7 @@ def from_entity(entity_type, entity_id):
         
         if current_os_path is None:
             raise TankError("Error launching tank for %s with id %s (Belonging to the project '%s') "
-                            "from the tank command located in '%s'. This tank command is not " 
+                            "from the configuration located in '%s'. This config is not " 
                             "associated with that project. For a list of which tank commands can be " 
                             "used with this project, go to the Pipeline Configurations page in "
                             "Shotgun for the project." % (entity_type, entity_id, proj.get("name"), curr_pc_path))
@@ -552,14 +552,20 @@ def from_path(path):
             raise TankError("Cannot create a Tank Configuration from path '%s' - the path does "
                             "not exist on disk!" % path)
     
+    
+    ########################################################################################
     # first see if this path is a pipeline configuration
+    
     pc_config = os.path.join(path, "config", "core", "pipeline_configuration.yml")
     if os.path.exists(pc_config):
         # done deal!
         return PipelineConfiguration(path)
     
-    # if not, walk up until a tank folder is found, 
-    # find tank config directory
+    
+    ########################################################################################
+    # assume it is a data path.
+    # walk up the file system until a tank folder is found, then find tank config directory
+    
     cur_path = path
     config_path = None
     while True:
@@ -570,11 +576,11 @@ def from_path(path):
         parent_path = os.path.dirname(cur_path)
         if parent_path == cur_path:
             # Topped out without finding config
-            raise TankError("Cannot create a Tank Configuration from path '%s' - the path does "
+            raise TankError("Cannot create a Tank Configuration from path '%s' - this path does "
                             "not belong to a Tank Project!" % path)
         cur_path = parent_path
     
-    # all right - now read the config and find the right pipeline configuration
+    # all right - now read the config and get all the registered pipeline configs.
     try:
         fh = open(config_path, "r")
         try:
@@ -584,99 +590,90 @@ def from_path(path):
     except Exception, e:        
         raise TankError("Looks like a config file is corrupt. Please contact "
                         "support! File: '%s' Error: %s" % (config_path, e))
-        
+    
     # get all the registered pcs for the current platform
     current_os_pcs = [ x.get(sys.platform) for x in data if x is not None]
 
-    # find PCs that exist on disk
-    existing_matching_pcs = []
-    for pc in current_os_pcs:
-        if os.path.exists(pc):
-            existing_matching_pcs.append(pc)
-
-    # first see if we came from a specific PC/tank command. In that case, we should use that
-    if "TANK_CURRENT_PC" in os.environ:
-        curr_pc_path = os.environ["TANK_CURRENT_PC"]
+    # Now if we are running a studio tank command, find the Primary PC and use that
+    # if we are using a specific tank command, try to use that PC
+    
+    if "TANK_CURRENT_PC" not in os.environ:
+        # we are running a studio level tank command - not associated with 
+        # a particular PC. Out of the list of PCs associated with this location, 
+        # find the Primary PC and use that.
         
-        # windows paths can end with a space
+        # in the list of paths found in the inverse lookup table on disk, find the primary.
+        sg = shotgun.create_sg_connection()
+        platform_lookup = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
+        filters = [platform_lookup[sys.platform], "in"]
+        filters.extend(current_os_pcs)
+        primary_pc = sg.find_one(constants.PIPELINE_CONFIGURATION_ENTITY, 
+                                 [filters, ["code", "is", constants.PRIMARY_PIPELINE_CONFIG_NAME]], 
+                                 ["windows_path", "mac_path", "linux_path", "project"])
+        
+        if primary_pc is None:
+            raise TankError("Cannot find a Primary Pipeline Configuration for path '%s'. "
+                            "The following Pipeline configuration are associated with the "
+                            "path, but none of them is marked as Primary: %s" % (path, current_os_pcs))
+        
+        # check that there is a path for our platform
+        current_os_path = primary_pc.get(platform_lookup[sys.platform])
+        if current_os_path is None:
+            raise TankError("The Shotgun Project '%s' has a Primary pipeline configuration but "
+                            "it has not been configured to work with the current "
+                            "operating system." % primary_pc.get("project").get("name"))
+
+        # ok there is a path - now check that the path exists!
+        if not os.path.exists(current_os_path):
+            raise TankError("The Shotgun Project '%s' has a Primary pipeline configuration registered "
+                            "to be located in '%s', however this path does cannot be "
+                            "found!" % (primary_pc.get("project"), current_os_path))
+        
+        # looks good, we got a primary pipeline config that exists
+        return PipelineConfiguration(current_os_path)
+        
+        
+        
+        
+    else:
+        
+        # we are running a tank command coming from a particular PC!
+        # make sure that this PC is actually associated with this project
+        # and then use it.
+        curr_pc_path = os.environ["TANK_CURRENT_PC"]
+    
+        # do a bit of cleanup - windows paths can end with a space
         if curr_pc_path.endswith(" "):
             curr_pc_path = curr_pc_path[:-1]   
-
         # windows tends to end with a backslash
         if curr_pc_path.endswith("\\"):
             curr_pc_path = curr_pc_path[:-1]   
-
-        if curr_pc_path in existing_matching_pcs:
-            # ok found our PC
-            return PipelineConfiguration(curr_pc_path)
-        
-        else:
-            # weird. environment variable path not in list of choices.
-            # means we started tank from a PC which is not associated with this project.
-            raise TankError("Cannot create a Tank Configuration for path '%s' by running "
-                            "the Tank command located in '%s' - that configuration is not associated "
-                            "with the data in %s! Make sure that you launch tank from a "
-                            "pipeline configuration that is associated with the folder. You "
-                            "can easily see which configurations are valid by going to the "
-                            "Shotgun project that the path '%s' belongs to, and "
-                            "navigating to the 'pipeline configurations' page." % (path, curr_pc_path, path, path))
-        
-    # if we are here, we launched tank from a generic studio command.
-
-    # if there is a single entry things are easy....
-    if len(existing_matching_pcs) == 1:
-        return PipelineConfiguration(existing_matching_pcs[0])
-    
-    else:
-        # ok so we launched from the studio location and there is ambiguity. 
-        # query shotgun to resolve this.
-        sg = shotgun.create_sg_connection()
-        platform_lookup = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
-        # get all PCs which has our path
-        filters = [platform_lookup[sys.platform], "in"]
-        filters.extend(existing_matching_pcs)
-        pipe_configs = sg.find(constants.PIPELINE_CONFIGURATION_ENTITY, 
-                               [filters], 
-                               ["code", "users", "windows_path", "mac_path", "linux_path"])
-
-        # get the current user (none if not found)
-        current_user = login.get_shotgun_user(sg)
-
-        # find relevant PCs
-        matching_pcs = []
-        for p in pipe_configs:
-            if p.get("users") is None or len(p.get("users")) == 0:
-                # an open PC
-                matching_pcs.append(p)
-            elif current_user is not None:
-                # we have a current user
-                # we have users associated with PC
-                user_ids = [ x.get("id") for x in p.get("users") ]
-                if current_user.get("id") in user_ids:
-                    matching_pcs.append(p)
-        
-        if len(matching_pcs) == 0:
-            raise TankError("Cannot resolve a pipeline configuration object from path '%s' - "
-                            "No valid Configurations found in Shotgun! Navigate to Shotgun, "
-                            "select the project that the path '%s' belongs to and choose "
-                            "the pipeline configurations page. Check that there is a configuration " 
-                            "which you can access. Alternatively, start tank specifically from "
-                            "the pipeline configuration you would like to use." % (path, path))
-        
-        elif len(matching_pcs) > 1:
-            pc_names = ", ".join([x.get("code") for x in matching_pcs])
-            tk_cmds = ", ".join([x.get(platform_lookup[sys.platform]) for x in matching_pcs])
-            raise TankError("Cannot resolve a pipeline configuration object from path '%s' - "
-                            "The following configurations are all matching: %s. Tank does not "
-                            "know which one to pick. Try executing the tank command directly "
-                            "from one of the locations: %s" % (path, pc_names, tk_cmds)) 
-
-        else:
-            pc_path = matching_pcs[0][ platform_lookup[sys.platform] ]
-            return PipelineConfiguration(pc_path)
             
+        # the path stored in the TANK_CURRENT_PC env var may be a symlink etc.
+        # now we need to find which PC entity this corresponds to in Shotgun.        
+        pc_registered_path = get_pc_registered_location(curr_pc_path)
 
-    
+        if pc_registered_path is None:
+            raise TankError("Error starting tank from the configuration located in '%s' - "
+                            "it looks like this pipeline configuration and tank command "
+                            "has not been configured for the current operating system." % curr_pc_path)
+
+        # now if this tank command is associated with the path, the registered path should be in 
+        # in the list of paths found in the tank data backlink file
+        if pc_registered_path not in current_os_pcs:
+            raise TankError("You are trying to start using the configuration and tank command "
+                            "located in '%s'. The path '%s' you are trying to load is not "
+                            "associated with that configuration. The path you are trying to load "
+                            "is associated with the following configurations: %s. "
+                            "Please use the tank command or Tank API in any of those "
+                            "locations in order to start Tank." % (curr_pc_path, path, current_os_pcs))
+            
+        # okay so this PC is valid!
+        PipelineConfiguration(curr_pc_path) 
+
+
+
+
 
 
         
