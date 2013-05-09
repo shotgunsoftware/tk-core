@@ -48,54 +48,138 @@ class CmdlineSetupInteraction(object):
             raise TankError("Please answer Yes, y, no, n or press ENTER!")
         
     
-    def get_disk_location(self, hinted_default):
+    def get_disk_location(self, resolved_storages, project_disk_name, install_root):
         """
         Ask the user where the pipeline configuration should be located on disk.
         Returns a dictionary with keys according to sys.platform: win32, darwin, linux2
         """
-        os_nice_name = {"darwin": "Macosx", "linux2": "Linux", "win32": "Windows"}
-        curr_os = sys.platform
         
         self._log.info("")
         self._log.info("")
         self._log.info("Now it is time to decide where the configuration for this project should go. ")
         self._log.info("As of Tank v0.13, you can specify any location you want on disk. ")
         self._log.info("Typically, this is in a software install area where you keep ")
-        self._log.info("all your Tank code and configuration. Based on your Tank studio install, ")
-        self._log.info("the suggested location is '%s'." % hinted_default)
-        self._log.info("")
-        self._log.info("If you want to run this project on platforms other than '%s', " % os_nice_name[curr_os])
-        self._log.info("you may need to enter the equivalent paths for those platforms.")
+        self._log.info("all your Tank code and configuration. We will suggest defaults ")
+        self._log.info("based on your current tank install.")
+        
+        # figure out the config install location. There are three cases to deal with
+        # - 0.13 style layout, where they all sit together in an install location
+        # - 0.12 style layout, where there is a tank folder which is the studio location
+        #   and each project has its own folder.
+        # - something else!
+        
+        # find the primary storage path and see where it points to
+        primary_local_path = ""
+        primary_local_storage = None
+        for s in resolved_storages:
+            if s.get("code") == constants.PRIMARY_STORAGE_NAME:
+                primary_local_path = s.get(SG_LOCAL_STORAGE_OS_MAP[sys.platform])
+                primary_local_storage = s
+                break
+        
+        # handle old setup - in the old setup, we would have the following structure: 
+        # /studio              <--- primary storage
+        # /studio/tank         <--- studio install
+        # /studio/project      <--- project location
+        # /studio/project/tank <--- install location
+        #
+        # typical new style setup (not showing data locations)
+        # /software/studio <-- studio install
+        # /software/projX  <-- project install
+        
+        location = {"darwin": None, "linux2": None, "win32": None}
+        os_nice_name = {"darwin": "Macosx", "linux2": "Linux", "win32": "Windows"}
+        curr_os = sys.platform
+
+        
+        if os.path.abspath(os.path.join(install_root, "..")).lower() == primary_local_path.lower():
+            # ok the parent of the install root matches the primary storage - means OLD STYLE!
+            
+            self._log.info("")
+            self._log.info("Note! Your setup looks like it was created with Tank v0.12! While ")
+            self._log.info("it is now possible to put your configuration anywhere you like, we ")
+            self._log.info("will suggest defaults compatible with your existing installation.")
+            
+            if primary_local_storage.get("mac_path"):
+                pp = primary_local_storage.get("mac_path")
+                if pp.endswith("/"):
+                    pp = pp[:-1] 
+                location["darwin"] = "%s/%s/tank" % (pp, project_disk_name)
+                
+            if primary_local_storage.get("windows_path"):
+                pp = primary_local_storage.get("windows_path")
+                if pp.endswith("\\"):
+                    pp = pp[:-1] 
+                location["win32"] = "%s\\%s\\tank" % (pp, project_disk_name)
+                
+            if primary_local_storage.get("linux_path"):
+                pp = primary_local_storage.get("linux_path")
+                if pp.endswith("/"):
+                    pp = pp[:-1] 
+                location["linux2"] = "%s/%s/tank" % (pp, project_disk_name)
+            
+        else:
+            # assume new style setup - in this case we need to go figure out the different
+            # OS paths to the install location. These are kept in a config file.
+            
+            # now read in the pipeline_configuration.yml file
+            cfg_yml = os.path.join(install_root, "config", "core", "install_location.yml")
+            fh = open(cfg_yml, "rt")
+            try:
+                data = yaml.load(fh)
+            finally:
+                fh.close()
+            
+            linux_install_root = data.get("Linux")
+            windows_install_root = data.get("Windows")
+            mac_install_root = data.get("Darwin")
+            
+            # typical new style setup (not showing data locations)
+            # /software/studio <-- studio install
+            # /software/projX  <-- project install
+            
+            if linux_install_root is not None and linux_install_root.startswith("/"):
+                chunks = linux_install_root.split("/")
+                # pop the studio bit
+                chunks.pop()
+                # append project name
+                chunks.append(project_disk_name)
+                location["linux2"] = "/".join(chunks)
+            
+            if mac_install_root is not None and mac_install_root.startswith("/"):
+                chunks = mac_install_root.split("/")
+                # pop the studio bit
+                chunks.pop()
+                # append project name
+                chunks.append(project_disk_name)
+                location["darwin"] = "/".join(chunks)
+            
+            if windows_install_root is not None and (windows_install_root.startswith("\\") or windows_install_root[1] == ":"):
+                chunks = windows_install_root.split("\\")
+                # pop the studio bit
+                chunks.pop()
+                # append project name
+                chunks.append(project_disk_name)
+                location["win32"] = "\\".join(chunks)
+            
+            
         self._log.info("")
         self._log.info("You can press ENTER to accept the default value or to skip.")
         
-        # start by asking for the current platform, the the other two platforms
-        location = {"darwin": None, "linux2": None, "win32": None}
-        
-        # set default values
-        if curr_os in ["darwin", "linux2"]:
-            location["darwin"] = hinted_default
-            location["linux2"] = hinted_default
-        elif curr_os == "win32":
-            location["win32"] = hinted_default
-        
-        # first ask about current platform
-        val = raw_input("%s [%s]: " % (os_nice_name[curr_os], location[curr_os]))
-        if val != "":
-            location[curr_os] = val.strip()
-        
-        # do other platforms
-        for x in [k for k in location.keys() if k != curr_os]:
+        for x in location:
             curr_val = location[x]
+
             if curr_val is None:
                 val = raw_input("%s : " % os_nice_name[x])
+                if val == "":
+                    self._log.info("Skipping. This Pipeline configuration will not support %s." % os_nice_name[x])
+                else:
+                    location[x] = val.strip()
+                    
             else:
                 val = raw_input("%s [%s]: " % (os_nice_name[x], location[x]))
-                        
-            if val == "":
-                self._log.info("Skipping. This Pipeline configuration will not support %s." % os_nice_name[x])
-            else:
-                location[x] = val.strip()
+                if val != "":
+                    location[x] = val.strip()
 
         return location
 
@@ -653,14 +737,14 @@ def _install_environment(env_obj, log):
 ########################################################################################
 # main methods and entry points
 
-def interactive_setup(log, pipeline_config_root):
+def interactive_setup(log, install_root):
     old_umask = os.umask(0)
     try:
-        return _interactive_setup(log, pipeline_config_root)
+        return _interactive_setup(log, install_root)
     finally:
         os.umask(old_umask)
     
-def _interactive_setup(log, pipeline_config_root):
+def _interactive_setup(log, install_root):
     """
     interactive setup which will ask questions via the console.
     """
@@ -717,37 +801,8 @@ def _interactive_setup(log, pipeline_config_root):
         raise TankError("Invalid project folder '%s'! Please stick to alphanumerics, "
                         "underscores and dashes." % project_disk_folder)
     
-    # create pipeline configuration record - ask for paths
-    # disk friendly name for project by replacing white space by underscore    
-    suggested_path = os.path.abspath( os.path.join(pipeline_config_root, "..", project_disk_folder) )
-    
-    # find the primary storage path and see where it points to
-    primary_local_path = ""
-    for s in resolved_storages:
-        if s.get("code") == constants.PRIMARY_STORAGE_NAME:
-            primary_local_path = s.get(SG_LOCAL_STORAGE_OS_MAP[sys.platform])
-            break
-
-    # handle old setup - in the old setup, we would have the following structure: 
-    # /studio
-    # /studio/tank         <--- studio install
-    # /studio/project      <--- project location
-    # /studio/project/tank <--- install location
-    #
-    # typical new style setup
-    # /software/studio <-- studio install
-    # /software/projX  <-- project install
-    # /projects/projX  <-- project data location
-    # (note the lower case check to make windows happy)
-    if os.path.join(primary_local_path, project_disk_folder).lower() == suggested_path.lower():
-        suggested_path = os.path.join(suggested_path, "tank")
-        log.info("")
-        log.info("Note! As of Tank 0.13, you can keep your configuration completely")
-        log.info("separate from the production data. To stay consistent with previous")
-        log.info("projects, the suggested default points at a location in the production")
-        log.info("data storage, but you can change it to any arbitrary location.")
-        
-    locations_dict = cmdline_ui.get_disk_location(suggested_path)
+    # now ask the user where the config should go    
+    locations_dict = cmdline_ui.get_disk_location(resolved_storages, project_disk_folder, install_root)
     current_os_pc_location = locations_dict[sys.platform]
 
     ##################################################################
