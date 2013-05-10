@@ -17,6 +17,8 @@ from .. import pipelineconfig
 from ..errors import TankError
 from ..api import Tank
 
+from tank_vendor import yaml
+
 import sys
 import os
 import shutil
@@ -97,7 +99,42 @@ def clone_configuration(log, tk, source_pc_id, user_id, name, target_linux, targ
             "users": [ {"type": "HumanUser", "id": user_id} ] 
             }
     log.debug("Create sg: %s" % str(data))
-    tk.shotgun.create("PipelineConfiguration", data)
+    pc_entity = tk.shotgun.create("PipelineConfiguration", data)
+    log.debug("Created in SG: %s" % str(pc_entity))
+
+    # lastly, update the pipeline_configuration.yml file
+    old_umask = os.umask(0)
+    try:
+        
+        sg_pc_location = os.path.join(target_folder, "config", "core", "pipeline_configuration.yml")
+        # read the file first
+        fh = open(sg_pc_location, "rt")
+        try:
+            data = yaml.load(fh)
+        finally:
+            fh.close()
+
+        # now delete it        
+        if os.path.exists(sg_pc_location):
+            os.remove(sg_pc_location)
+
+        # now update some fields            
+        data["pc_id"] = pc_entity["id"]
+        data["pc_name"] = name 
+        
+        # and write the new file
+        fh = open(sg_pc_location, "wt")
+        yaml.dump(data, fh)
+        fh.close()                        
+        os.chmod(sg_pc_location, 0444)
+
+    except Exception, e:
+        raise TankError("Could not update pipeline_configuration.yml file: %s" % e)
+    
+    finally:
+        os.umask(old_umask)
+        
+        
 
     log.info("<b>Clone Complete!</b>")
     log.info("")

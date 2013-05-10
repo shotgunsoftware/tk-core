@@ -54,9 +54,10 @@ class PipelineConfiguration(object):
                                                                               self.get_python_location()))
         
         
-        self._roots = self.__load_roots_meatadata()
-        self.__load_config_metadata()
-        self._pc_registered_location = get_pc_registered_location(self._pc_root)
+        self._roots = get_pc_roots_metadata(self._pc_root)
+        self._pc_registered_location = get_pc_registered_location(self._pc_root)        
+        (self._project_name, self._pipeline_config_name) = get_pc_metadata(self._pc_root)
+        
         
                 
     def __repr__(self):
@@ -87,60 +88,6 @@ class PipelineConfiguration(object):
 
         return data
     
-    def __load_config_metadata(self):
-        """
-        Loads the config metadata file
-        """
-        # now read in the pipeline_configuration.yml file
-        cfg_yml = os.path.join(self._pc_root, "config", "core", "pipeline_configuration.yml")
-        fh = open(cfg_yml, "rt")
-        try:
-            data = yaml.load(fh)
-        except Exception, e:
-            raise TankError("Looks like a config file is corrupt. Please contact "
-                            "support! File: '%s' Error: %s" % (cfg_yml, e))
-        finally:
-            fh.close()
-        
-        self._project_name = data.get("project_name")
-        if self._project_name is None:
-            raise TankError("Project name not defined in config metadata for %s! "
-                            "Please contact support." % self) 
-        
-
-    
-    def __load_roots_meatadata(self):
-        """
-        Loads and validates the roots metadata file
-        """
-        # now read in the roots.yml file
-        # this will contain something like
-        # {'primary': {'mac_path': '/studio', 'windows_path': None, 'linux_path': '/studio'}}
-        roots_yml = os.path.join(self._pc_root, "config", "core", "roots.yml")  
-                 
-        fh = open(roots_yml, "rt")
-        try:
-            data = yaml.load(fh)
-        except Exception, e:
-            raise TankError("Looks like the roots file is corrupt. Please contact "
-                            "support! File: '%s' Error: %s" % (roots_yml, e))
-        finally:
-            fh.close()
-        
-        # sanity check that there is a primary root
-        if constants.PRIMARY_STORAGE_NAME not in data:
-            raise TankError("Could not find a primary storage in roots file for %s!" % self)        
-        
-        # make sure that all paths are correctly ended without a path separator
-        for s in data:
-            if data[s]["mac_path"] and data[s]["mac_path"].endswith("/"):
-                data[s]["mac_path"] = data[s]["mac_path"][:-1]
-            if data[s]["linux_path"] and data[s]["linux_path"].endswith("/"):
-                data[s]["linux_path"] = data[s]["linux_path"][:-1]
-            if data[s]["windows_path"] and data[s]["windows_path"].endswith("\\"):
-                data[s]["windows_path"] = data[s]["windows_path"][:-1]
-                
-        return data
     
     ########################################################################################
     # data roots access
@@ -150,6 +97,12 @@ class PipelineConfiguration(object):
         Returns the master root for this pipeline configuration
         """
         return self._pc_root
+        
+    def get_name(self):
+        """
+        Returns the name of this PC. May return None if no name can be found.
+        """
+        return self._pipeline_config_name
         
     def get_registered_location_path(self):
         """
@@ -602,6 +555,24 @@ def from_path(path):
         # a particular PC. Out of the list of PCs associated with this location, 
         # find the Primary PC and use that.
         
+        # try to figure out what the primary storage is by looking for a metadata 
+        # file in each PC
+        primary_pc_path = None
+        for pc_path in current_os_pcs:
+            try:
+                (_, pc_name) = get_pc_metadata(pc_path)
+                if pc_name == constants.PRIMARY_PIPELINE_CONFIG_NAME:
+                    primary_pc_path = pc_path
+            except Exception, e:
+                # defensive approach here. For some reason could not get the config file
+                # for a PC. In this case fall back onto shotgun lookup.
+                pass
+        
+        if primary_pc_path is not None:
+            return PipelineConfiguration(primary_pc_path)
+        
+        # so we couldn't find the primary PC by looking at configs.
+        # now fall back on to a shotgun lookup
         # in the list of paths found in the inverse lookup table on disk, find the primary.
         sg = shotgun.create_sg_connection()
         platform_lookup = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
@@ -636,7 +607,6 @@ def from_path(path):
         
         
     else:
-        
         # we are running a tank command coming from a particular PC!
         # make sure that this PC is actually associated with this project
         # and then use it.
@@ -669,7 +639,7 @@ def from_path(path):
                             "locations in order to start Tank." % (curr_pc_path, path, current_os_pcs))
             
         # okay so this PC is valid!
-        PipelineConfiguration(curr_pc_path) 
+        return PipelineConfiguration(curr_pc_path) 
 
 
 
@@ -677,6 +647,10 @@ def from_path(path):
 
 
         
+
+################################################################################################
+# method for loading configuration data. 
+
 def get_core_api_version_based_on_current_code():
     """
     Returns the version number string for the core API, based on the code that is currently
@@ -695,6 +669,7 @@ def get_core_api_version_based_on_current_code():
         data = "unknown"
 
     return data
+
 
 def get_pc_registered_location(pipeline_config_root_path):
     """
@@ -731,3 +706,65 @@ def get_pc_registered_location(pipeline_config_root_path):
     else:
         raise TankError("Unsupported platform '%s'" % sys.platform)
 
+def get_pc_metadata(pipeline_config_root_path):
+    """
+    Loads the config metadata file.
+    
+    returns (project_name, pc_name)
+    
+    pc_name can be None, indicating that the name of the pipeline configuration is not known.
+    
+    """
+    # now read in the pipeline_configuration.yml file
+    cfg_yml = os.path.join(pipeline_config_root_path, "config", "core", "pipeline_configuration.yml")
+    fh = open(cfg_yml, "rt")
+    try:
+        data = yaml.load(fh)
+    except Exception, e:
+        raise TankError("Looks like a config file is corrupt. Please contact "
+                        "support! File: '%s' Error: %s" % (cfg_yml, e))
+    finally:
+        fh.close()
+        
+    project_name = data.get("project_name")
+    if project_name is None:
+        raise TankError("Project name not defined in config metadata for config %s! "
+                        "Please contact support." % pipeline_config_root_path) 
+    
+    pc_name = data.get("pc_name")
+    
+    return( project_name, pc_name )
+
+def get_pc_roots_metadata(pipeline_config_root_path):
+    """
+    Loads and validates the roots metadata file
+    """
+    # now read in the roots.yml file
+    # this will contain something like
+    # {'primary': {'mac_path': '/studio', 'windows_path': None, 'linux_path': '/studio'}}
+    roots_yml = os.path.join(pipeline_config_root_path, "config", "core", "roots.yml")  
+             
+    fh = open(roots_yml, "rt")
+    try:
+        data = yaml.load(fh)
+    except Exception, e:
+        raise TankError("Looks like the roots file is corrupt. Please contact "
+                        "support! File: '%s' Error: %s" % (roots_yml, e))
+    finally:
+        fh.close()
+    
+    # sanity check that there is a primary root
+    if constants.PRIMARY_STORAGE_NAME not in data:
+        raise TankError("Could not find a primary storage in roots file "
+                        "for configuration %s!" % pipeline_config_root_path)        
+    
+    # make sure that all paths are correctly ended without a path separator
+    for s in data:
+        if data[s]["mac_path"] and data[s]["mac_path"].endswith("/"):
+            data[s]["mac_path"] = data[s]["mac_path"][:-1]
+        if data[s]["linux_path"] and data[s]["linux_path"].endswith("/"):
+            data[s]["linux_path"] = data[s]["linux_path"][:-1]
+        if data[s]["windows_path"] and data[s]["windows_path"].endswith("\\"):
+            data[s]["windows_path"] = data[s]["windows_path"][:-1]
+            
+    return data

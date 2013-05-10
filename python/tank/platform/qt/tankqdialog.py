@@ -11,6 +11,7 @@ from . import ui_tank_dialog
 from . import TankDialogBase
 from .config_item import ConfigItem
 from .. import engine
+from .. import constants
 from ...errors import TankError
 
 import sys
@@ -48,7 +49,27 @@ class TankQDialog(TankDialogBase):
         self.ui.label.setToolTip("This is part of the Tank App %s" % self._bundle.name)
         
         # Add our context to the header
-        self.ui.lbl_context.setText( "Current Work Area:\n%s" % self._bundle.context)
+        # two lines - top line covers PC and Project
+        # second line covers context (entity, step etc)
+        
+        first_line = ""
+        if self._bundle.context.project:
+            first_line = "%s" % self._bundle.context.project.get("name")
+        else:
+            first_line = "No Project Set"
+            
+        pc = self._bundle.context.tank.pipeline_configuration 
+        if pc.get_name() and pc.get_name() != constants.PRIMARY_PIPELINE_CONFIG_NAME:
+            # we are using a non-default pipeline config
+            first_line = "<b style='color: #9cbfff'>[%s]</b>" % pc.get_name() 
+        
+        second_line = ""
+        # don't show the second line if we are in a project only context
+        # e.g. if the entity has not been defined.
+        if self._bundle.context.entity:
+            second_line = str(self._bundle.context)
+        
+        self.ui.lbl_context.setText( "%s<br>%s" % (first_line, second_line))
 
         ########################################################################################
         # add more detailed context info for the tooltip

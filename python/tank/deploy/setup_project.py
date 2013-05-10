@@ -1080,6 +1080,8 @@ def _interactive_setup(log, install_root):
     
     data = {}
     data["project_name"] = project_disk_folder
+    data["pc_id"] = pc_entity["id"]
+    data["pc_name"] = constants.PRIMARY_PIPELINE_CONFIG_NAME 
     
     try:
         fh = open(pipe_config_sg_id_path, "wt")
