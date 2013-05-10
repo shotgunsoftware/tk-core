@@ -65,6 +65,7 @@ def clone_configuration(log, tk, source_pc_id, user_id, name, target_linux, targ
 
         sg_code_location = os.path.join(target_folder, "config", "core", "install_location.yml")
         if os.path.exists(sg_code_location):
+            os.chmod(sg_code_location, 0666)
             os.remove(sg_code_location)
         fh = open(sg_code_location, "wt")
         fh.write("# Tank configuration file\n")
@@ -107,6 +108,7 @@ def clone_configuration(log, tk, source_pc_id, user_id, name, target_linux, targ
     try:
         
         sg_pc_location = os.path.join(target_folder, "config", "core", "pipeline_configuration.yml")
+        
         # read the file first
         fh = open(sg_pc_location, "rt")
         try:
@@ -116,6 +118,7 @@ def clone_configuration(log, tk, source_pc_id, user_id, name, target_linux, targ
 
         # now delete it        
         if os.path.exists(sg_pc_location):
+            os.chmod(sg_pc_location, 0666)
             os.remove(sg_pc_location)
 
         # now update some fields            
