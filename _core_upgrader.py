@@ -39,7 +39,7 @@ def __is_upgrade(tank_install_root):
     """
     return os.path.exists(os.path.join(tank_install_root, "core", "info.yml"))
     
-def __current_version_less_than(tank_install_root, ver):
+def __current_version_less_than(log, tank_install_root, ver):
     """
     returns true if the current API version installed is less than the 
     specified version. ver is "v0.1.2"
@@ -660,12 +660,12 @@ def upgrade_tank(tank_install_root, log):
 
         # check if we need to perform the 0.13 upgrade
         did_013_upgrade = False
-        if __is_upgrade(tank_install_root) and __current_version_less_than(tank_install_root, "v0.13.6"):
+        if __is_upgrade(tank_install_root) and __current_version_less_than(log, tank_install_root, "v0.13.6"):
             log.debug("Upgrading from an earlier version to to 0.13.6 or later.")
             _upgrade_to_013(tank_install_root, log)
             did_013_upgrade = True    
         
-        if __is_upgrade(tank_install_root) and __current_version_less_than(tank_install_root, "v0.13.13") and not did_013_upgrade:
+        if __is_upgrade(tank_install_root) and __current_version_less_than(log, tank_install_root, "v0.13.13") and not did_013_upgrade:
             log.debug("Upgrading from v0.13.6+ to v0.13.13. Running tank.bat replacement migration...")
             _convert_tank_bat(tank_install_root, log)
             
@@ -751,13 +751,13 @@ if __name__ == "__main__":
     
     if len(sys.argv) == 3 and sys.argv[1] == "migrate":
         path = sys.argv[2]
-        log = logging.getLogger("tank.update")
-        log.setLevel(logging.DEBUG)
+        migrate_log = logging.getLogger("tank.update")
+        migrate_log.setLevel(logging.DEBUG)
         ch = logging.StreamHandler()
         formatter = logging.Formatter("%(levelname)s %(message)s")
         ch.setFormatter(formatter)
-        log.addHandler(ch)
-        upgrade_tank(path, log)
+        migrate_log.addHandler(ch)
+        upgrade_tank(path, migrate_log)
         sys.exit(0)
         
     else:
