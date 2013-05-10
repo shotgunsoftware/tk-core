@@ -661,8 +661,8 @@ def upgrade_tank(tank_install_root, log):
             _upgrade_to_013(tank_install_root, log)
             did_013_upgrade = True    
         
-        if __is_upgrade(tank_install_root) and __current_version_less_than(log, tank_install_root, "v0.13.13") and not did_013_upgrade:
-            log.debug("Upgrading from v0.13.6+ to v0.13.13. Running tank.bat replacement migration...")
+        if __is_upgrade(tank_install_root) and __current_version_less_than(log, tank_install_root, "v0.13.16") and not did_013_upgrade:
+            log.debug("Upgrading from v0.13.6+ to v0.13.16. Running tank.bat replacement migration...")
             _convert_tank_bat(tank_install_root, log)
             
         log.debug("Migrations have completed. Now doing the actual upgrade...")
