@@ -52,20 +52,22 @@ class TankQDialog(TankDialogBase):
         # two lines - top line covers PC and Project
         # second line covers context (entity, step etc)
         
+        # top line will contain the project name
         first_line = ""
         if self._bundle.context.project:
-            first_line = "%s" % self._bundle.context.project.get("name")
+            first_line = "Project %s" % self._bundle.context.project.get("name", "Undefined")
         else:
             first_line = "No Project Set"
-            
+        
+        # ...unless we are running a non-Primary PC
         pc = self._bundle.context.tank.pipeline_configuration 
         if pc.get_name() and pc.get_name() != constants.PRIMARY_PIPELINE_CONFIG_NAME:
             # we are using a non-default pipeline config
             first_line = "<b style='color: #9cbfff'>[%s]</b>" % pc.get_name() 
         
+        # second line contains the entity and task, step
+        # unless we are in a project only context...
         second_line = ""
-        # don't show the second line if we are in a project only context
-        # e.g. if the entity has not been defined.
         if self._bundle.context.entity:
             second_line = str(self._bundle.context)
         
