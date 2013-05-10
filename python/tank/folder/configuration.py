@@ -12,6 +12,7 @@ import fnmatch
 from .folder_types import Static, ListField, Entity, Project, UserWorkspace, ShotgunStep, ShotgunTask
 
 from ..errors import TankError
+from ..platform import constants
 
 from tank_vendor import yaml
 
@@ -157,7 +158,9 @@ class FolderConfiguration(object):
             
             if metadata is None:
                 if os.path.basename(project_folder) == "project":
-                    metadata = {"type": "project", "root_name": "primary"}
+                    # this is a project folder with no project.yml file specified
+                    # in this case, just assume it is the primary storage 
+                    metadata = {"type": "project", "root_name": constants.PRIMARY_STORAGE_NAME}
                 else:
                     raise TankError("Project directory missing required yml file: %s.yml" % project_folder)
             
