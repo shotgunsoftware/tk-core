@@ -399,10 +399,6 @@ def _upgrade_to_013(tank_install_root, log):
                          os.path.join(new_code_root, "setup", "tank_api_proxy"), 
                          os.path.join(project_tank_folder, "install", "core", "python"))
             
-            log.debug("Copying windows utils...")
-            _copy_folder(log, 
-                         os.path.join(new_code_root, "setup", "windows"), 
-                         os.path.join(project_tank_folder, "install", "core", "setup", "windows"))
                         
             project_file_locations = {"Darwin": None, "Linux": None, "Windows": None}
             if tank_storage["mac_path"]:

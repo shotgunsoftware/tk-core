@@ -61,13 +61,20 @@ rem -- returns 2 if the yml file does not exist
 
 set CACHE_FILE=%SELF_PATH%cache\%2
 set ENV_FILE=%SELF_PATH%config\env\%3
-set LOCAL_BASH=%SELF_PATH%install\core\setup\windows\bash.exe
-set LOCAL_BASH_SCRIPT=%SELF_PATH%install\core\setup\windows\cache_check.sh
 
-%LOCAL_BASH% %LOCAL_BASH_SCRIPT% %CACHE_FILE% %ENV_FILE%
-if "%ERRORLEVEL%" == "1" exit /b 1
-if "%ERRORLEVEL%" == "2" exit /b 2 
-rem -- cache is up to date - display it on screen
+rem -- if env file does not exist exit with error code 2
+IF NOT EXIST "%ENV_FILE%" exit /b 2
+
+rem -- if cache file does not exist, exit with error code 1
+IF NOT EXIST "%CACHE_FILE%" exit /b 1
+
+rem -- check if env file is newer
+For /F "Delims=" %%I In ('xcopy /DHYL "%ENV_FILE%" "%CACHE_FILE%" ^|Findstr /I "File"') Do set /a ENV_IS_NEWER=%%I 2>Nul
+
+rem -- env file is more recent than cache file - exit with error code 1
+if "%ENV_IS_NEWER%" == "1" exit /b 1
+
+rem -- cool, looks like cache is up to date! - display it on screen
 type "%CACHE_FILE%"
 exit /b 0
 
