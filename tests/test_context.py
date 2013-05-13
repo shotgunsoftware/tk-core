@@ -773,8 +773,14 @@ class TestSerailize(TestContext):
         self.kws["step"] = self.step
         self.kws["task"] = {"id": 45, "type": "Task"}
 
-    def test_equal(self):
+    def test_equal_yml(self):
         context_1 = context.Context(**self.kws)
         serialized = yaml.dump(context_1)
         context_2 = yaml.load(serialized)
+        self.assertTrue(context_1 == context_2)
+
+    def test_equal_custom(self):
+        context_1 = context.Context(**self.kws)
+        serialized = tank.context.serialize(context_1)
+        context_2 = tank.context.deserialize(serialized)
         self.assertTrue(context_1 == context_2)
