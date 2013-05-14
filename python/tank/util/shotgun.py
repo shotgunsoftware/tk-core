@@ -222,24 +222,42 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
     # ...we need to group the paths per storage and then for each storage do a 
     # shotgun query on the form find all records where path_cache, in, /foo, /bar, /baz etc. 
     published_files = {}
-    for root_name, storage_info in storages_paths.items():
-        local_storage = tk.shotgun.find_one("LocalStorage", [["code", "is", root_name]])
+
+    # get a list of all storages that we should look up.
+    # for 0.12 backwards compatibility, add the Tank Storage.
+    local_storage_names = storages_paths.keys()
+    if constants.PRIMARY_STORAGE_NAME in local_storage_names:
+        local_storage_names.append("Tank")
+
+    for local_storage_name in local_storage_names:
+        
+        local_storage = tk.shotgun.find_one("LocalStorage", [["code", "is", local_storage_name]])
         if not local_storage:
-            raise TankError("Unable to locate LocalStorage matching root name %s." % root_name +
-                           " Ensure that all project roots defined in the project's roots file" +
-                           " have matching LocalStorage's set up in Shotgun.")
+            # fail gracefully here - it may be a storage which has been deleted
+            published_files[local_storage_name] = []
+            continue
 
         # make copy
         sg_filters = filters[:]
         path_cache_filter = ["path_cache", "in"]
-        for path_cache_path in storage_info:
+        
+        # now get the list of normalized files for this storage
+        # 0.12 backwards compatibility: if the storage name is Tank,
+        # this is the same as the primary storage.
+        if local_storage_name == "Tank":
+            normalized_paths = storages_paths[constants.PRIMARY_STORAGE_NAME].keys()
+        else:
+            normalized_paths = storages_paths[local_storage_name].keys()
+                
+        # add all of those to the query filter
+        for path_cache_path in normalized_paths:
             path_cache_filter.append(path_cache_path)
 
         sg_filters.append(path_cache_filter)
         sg_filters.append( ["path_cache_storage", "is", local_storage] )
 
         # organize the returned data by storage
-        published_files[root_name] = tk.shotgun.find("TankPublishedFile", sg_filters, sg_fields)
+        published_files[local_storage_name] = tk.shotgun.find("TankPublishedFile", sg_filters, sg_fields)
     
     
     # PASS 2
@@ -248,16 +266,33 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
     #
     matches = {}
 
-    for root_name, publishes in published_files.items():
-        storage_info = storages_paths[root_name]
-        for publish in publishes:
-            path_cache = publish["path_cache"]
+    for local_storage_name, publishes in published_files.items():
 
-            for full_path in storage_info.get(path_cache, []):
-                cur_publish = matches.get(full_path, publish)
-                # We want the most recent
-                if not cur_publish["created_at"] > publish["created_at"]:
+        # get a dictionary which maps shotgun paths to file system paths
+        if local_storage_name == "Tank":
+            normalized_path_lookup_dict = storages_paths[constants.PRIMARY_STORAGE_NAME]
+        else:
+            normalized_path_lookup_dict = storages_paths[local_storage_name]
+        
+        # now go through all publish entities found for current storage
+        for publish in publishes:
+            
+            path_cache = publish["path_cache"]
+            
+            # get the list of real paths matching this entry
+            for full_path in normalized_path_lookup_dict.get(path_cache, []):
+                
+                if full_path not in matches:
+                    # this path not yet in the list of matching publish entity data
                     matches[full_path] = publish
+                    
+                else:
+                    # found a match! This is most likely because the same file
+                    # has been published more than once. In this case, we return
+                    # the entity data for the file that is more recent.
+                    existing_publish = matches[full_path]
+                    if existing_publish["created_at"] < publish["created_at"]:
+                        matches[full_path] = publish
 
     # PASS 3 -
     # clean up resultset
