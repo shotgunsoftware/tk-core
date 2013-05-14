@@ -760,11 +760,11 @@ def get_pc_roots_metadata(pipeline_config_root_path):
     
     # make sure that all paths are correctly ended without a path separator
     for s in data:
-        if data[s]["mac_path"] and data[s]["mac_path"].endswith("/"):
-            data[s]["mac_path"] = data[s]["mac_path"][:-1]
-        if data[s]["linux_path"] and data[s]["linux_path"].endswith("/"):
-            data[s]["linux_path"] = data[s]["linux_path"][:-1]
-        if data[s]["windows_path"] and data[s]["windows_path"].endswith("\\"):
-            data[s]["windows_path"] = data[s]["windows_path"][:-1]
+        if data[s]["mac_path"]:
+            data[s]["mac_path"] = data[s]["mac_path"].rstrip("/\\")
+        if data[s]["linux_path"]:
+            data[s]["linux_path"] = data[s]["linux_path"].rstrip("/\\")
+        if data[s]["windows_path"]:
+            data[s]["windows_path"] = data[s]["windows_path"].rstrip("/\\")
             
     return data
