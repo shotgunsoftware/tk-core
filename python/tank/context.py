@@ -516,6 +516,13 @@ def from_entity(tk, entity_type, entity_id):
 
     :returns: a context object
     """
+    
+    if entity_type is None:
+        raise TankError("Cannot create a context from an entity type 'None'!")
+    
+    if entity_id is None:
+        raise TankError("Cannot create a context from an entity id set to 'None'!")
+    
     # prep our return data structure
     context = {
         "tk": tk,

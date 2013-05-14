@@ -636,7 +636,11 @@ def from_path(path):
                             "associated with that configuration. The path you are trying to load "
                             "is associated with the following configurations: %s. "
                             "Please use the tank command or Tank API in any of those "
-                            "locations in order to start Tank." % (curr_pc_path, path, current_os_pcs))
+                            "locations in order to start Tank. This error can occur if you "
+                            "have moved a Tank Configuration on disk without correctly updating "
+                            "it. It can also occur if you are trying to use a tank command "
+                            "associated with Project A to try to operate on a Shot or Asset that "
+                            "that belongs to a project B." % (curr_pc_path, path, current_os_pcs))
             
         # okay so this PC is valid!
         return PipelineConfiguration(curr_pc_path) 
