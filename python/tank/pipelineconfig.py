@@ -724,6 +724,8 @@ def get_pc_metadata(pipeline_config_root_path):
     fh = open(cfg_yml, "rt")
     try:
         data = yaml.load(fh)
+        if data is None:
+            raise Exception("File contains no data!")
     except Exception, e:
         raise TankError("Looks like a config file is corrupt. Please contact "
                         "support! File: '%s' Error: %s" % (cfg_yml, e))
