@@ -43,6 +43,7 @@ import copy
 import stat         # used for attachment upload
 import sys
 import time
+import types
 import urllib
 import urllib2      # used for image upload
 import urlparse
@@ -58,19 +59,6 @@ LOG.setLevel(logging.WARN)
 
 SG_TIMEZONE = SgTimezone()
 
-try:
-    import simplejson as json
-except ImportError:
-    LOG.debug("simplejson not found, dropping back to json")
-    try:
-        import json as json
-    except ImportError:
-        LOG.debug("json not found, dropping back to embedded simplejson")
-        dir_path = os.path.dirname(__file__)
-        lib_path = os.path.join(dir_path, 'lib')
-        sys.path.append(lib_path)
-        import simplejson as json
-        sys.path.pop()
 
 try:
     import ssl
@@ -81,7 +69,7 @@ except ImportError:
 
 # ----------------------------------------------------------------------------
 # Version
-__version__ = "3.0.9.beta2"
+__version__ = "3.0.13"
 
 # ----------------------------------------------------------------------------
 # Errors
@@ -115,12 +103,15 @@ class ServerCapabilities(object):
 
         #Version from server is major.minor.rev or major.minor.rev."Dev"
         #Store version as triple and check dev flag
-        self.version = meta.get("version", None)
+        try:
+            self.version = meta.get("version", None)
+        except AttributeError:
+            self.version = None
         if not self.version:
             raise ShotgunError("The Shotgun Server didn't respond with a version number. "
                                "This may be because you are running an older version of "
                                "Shotgun against a more recent version of the Shotgun API. "
-                               "For more information, please contact the Shotgun Support.")
+                               "For more information, please contact Shotgun Support.")
 
         if len(self.version) > 3 and self.version[3] == "Dev":
             self.is_dev = True
@@ -222,7 +213,8 @@ class Shotgun(object):
                  convert_datetimes_to_utc=True,
                  http_proxy=None,
                  ensure_ascii=True,
-                 connect=True):
+                 connect=True,
+				 ca_certs=None):
         """Initialises a new instance of the Shotgun client.
 
         :param base_url: http or https url to the shotgun server.
@@ -243,13 +235,18 @@ class Shotgun(object):
         form [username:pass@]proxy.com[:8080]
 
         :param connect: If True, connect to the server. Only used for testing.
+		
+		:param ca_certs: The path to the SSL certificate file. Useful for users
+		who would like to package their application into an executable.
         """
+
         self.config = _Config()
         self.config.api_key = api_key
         self.config.script_name = script_name
         self.config.convert_datetimes_to_utc = convert_datetimes_to_utc
         self.config.no_ssl_validation = NO_SSL_VALIDATION
         self._connection = None
+        self.__ca_certs = ca_certs
 
         self.base_url = (base_url or "").lower()
         self.config.scheme, self.config.server, api_base, _, _ = \
@@ -259,6 +256,8 @@ class Shotgun(object):
                 self.base_url)
         self.config.api_path = urlparse.urljoin(urlparse.urljoin(
             api_base or "/", self.config.api_ver + "/"), "json")
+
+        self.reset_user_agent()
 
         # if the service contains user information strip it out
         # copied from the xmlrpclib which turned the user:password into
@@ -506,14 +505,14 @@ class Shotgun(object):
         Return group and summary information for entity_type for summary_fields
         based on the given filters.
         """
-        if not isinstance(filters, list):
-            raise ValueError("summarize() 'filters' parameter must be a list")
 
         if not isinstance(grouping, list) and grouping != None:
             msg = "summarize() 'grouping' parameter must be a list or None"
             raise ValueError(msg)
 
-        filters = _translate_filters(filters, filter_operator)
+        if isinstance(filters, (list, tuple)):
+            filters = _translate_filters(filters, filter_operator)
+
         params = {"type": entity_type,
                   "summaries": summary_fields,
                   "filters": filters}
@@ -536,8 +535,7 @@ class Shotgun(object):
         :returns: dict of the requested fields.
         """
 
-        data = copy.deepcopy(data)
-
+        data = data.copy()
         if not return_fields:
             return_fields = ["id"]
 
@@ -552,19 +550,10 @@ class Shotgun(object):
                     "higher, server is %s" % (self.server_caps.version,))
             upload_filmstrip_image = data.pop('filmstrip_image')
 
-        temp_return_fields = copy.deepcopy(return_fields)
-        if upload_image and "image" in temp_return_fields:
-            temp_return_fields.remove("image")
-        # end if
-
-        if upload_filmstrip_image and "filmstrip_image" in temp_return_fields:
-            temp_return_fields.remove("filmstrip_image")
-        # end if
-
         params = {
             "type" : entity_type,
             "fields" : self._dict_to_list(data),
-            "return_fields" : temp_return_fields
+            "return_fields" : return_fields
         }
 
         record = self._call_rpc("create", params, first=True)
@@ -573,22 +562,15 @@ class Shotgun(object):
         if upload_image:
             image_id = self.upload_thumbnail(entity_type, result['id'],
                                              upload_image)
-            result['image_id'] = image_id
-        # end if
-
-        if "image" in return_fields:
             image = self.find_one(entity_type, [['id', 'is', result.get('id')]],
                                   fields=['image'])
             result['image'] = image.get('image')
 
         if upload_filmstrip_image:
             filmstrip_id = self.upload_filmstrip_thumbnail(entity_type, result['id'], upload_filmstrip_image)
-            result['filmstrip_image_id'] = filmstrip_id
-
-        if "filmstrip_image" in return_fields:
             filmstrip = self.find_one(entity_type,
-                                      [['id', 'is', result.get('id')]],
-                                      fields=['filmstrip_image'])
+                                     [['id', 'is', result.get('id')]],
+                                     fields=['filmstrip_image'])
             result['filmstrip_image'] = filmstrip.get('filmstrip_image')
 
         return result
@@ -606,12 +588,10 @@ class Shotgun(object):
         id added.
         """
 
-        data = copy.deepcopy(data)
-
+        data = data.copy()
         upload_image = None
-        if 'image' in data:
+        if 'image' in data and data['image'] is not None:
             upload_image = data.pop('image')
-
         upload_filmstrip_image = None
         if 'filmstrip_image' in data:
             if not self.server_caps.version or self.server_caps.version < (3, 1, 0):
@@ -625,7 +605,6 @@ class Shotgun(object):
                 "id" : entity_id,
                 "fields" : self._dict_to_list(data)
             }
-
             record = self._call_rpc("update", params)
             result = self._parse_records(record)[0]
         else:
@@ -634,14 +613,12 @@ class Shotgun(object):
         if upload_image:
             image_id = self.upload_thumbnail(entity_type, entity_id,
                                              upload_image)
-            result['image_id'] = image_id
             image = self.find_one(entity_type, [['id', 'is', result.get('id')]],
                                   fields=['image'])
             result['image'] = image.get('image')
 
         if upload_filmstrip_image:
             filmstrip_id = self.upload_filmstrip_thumbnail(entity_type, result['id'], upload_filmstrip_image)
-            result['filmstrip_image_id'] = filmstrip_id
             filmstrip = self.find_one(entity_type,
                                      [['id', 'is', result.get('id')]],
                                      fields=['filmstrip_image'])
@@ -707,6 +684,11 @@ class Shotgun(object):
         if not isinstance(requests, list):
             raise ShotgunError("batch() expects a list.  Instead was sent "\
                 "a %s" % type(requests))
+
+        # If we have no requests, just return an empty list immediately.
+        # Nothing to process means nothing to get results of.
+        if len(requests) == 0:
+            return []
 
         calls = []
 
@@ -920,6 +902,21 @@ class Shotgun(object):
 
         return self._call_rpc("schema_field_delete", params)
 
+    def add_user_agent(self, agent):
+        """Add agent to the user-agent header
+
+        Append agent to the string passed in as the user-agent to be logged
+        in events for this API session.
+
+        :param agent: Required, string to append to user-agent.
+        """
+        self._user_agents.append(agent)
+
+    def reset_user_agent(self):
+        """Reset user agent to the default
+        """
+        self._user_agents = ["shotgun-json (%s)" % __version__]
+
     def set_session_uuid(self, session_uuid):
         """Sets the browser session_uuid for this API session.
 
@@ -931,13 +928,13 @@ class Shotgun(object):
 
         self.config.session_uuid = session_uuid
         return
-        
-    def share_thumbnail(self, entities, thumbnail_path=None, source_entity=None, 
+
+    def share_thumbnail(self, entities, thumbnail_path=None, source_entity=None,
         filmstrip_thumbnail=False, **kwargs):
         if not self.server_caps.version or self.server_caps.version < (4, 0, 0):
             raise ShotgunError("Thumbnail sharing support requires server "\
                 "version 4.0 or higher, server is %s" % (self.server_caps.version,))
-        
+
         if not isinstance(entities, list) or len(entities) == 0:
             raise ShotgunError("'entities' parameter must be a list of entity "\
                 "hashes and may not be empty")
@@ -957,10 +954,10 @@ class Shotgun(object):
         if thumbnail_path:
             source_entity = entities.pop(0)
             if filmstrip_thumbnail:
-                thumb_id = self.upload_filmstrip_thumbnail(source_entity['type'], 
+                thumb_id = self.upload_filmstrip_thumbnail(source_entity['type'],
                     source_entity['id'], thumbnail_path, **kwargs)
             else:
-                thumb_id = self.upload_thumbnail(source_entity['type'], 
+                thumb_id = self.upload_thumbnail(source_entity['type'],
                     source_entity['id'], thumbnail_path, **kwargs)
         else:
             if not isinstance(source_entity, dict) or 'id' not in source_entity \
@@ -977,7 +974,7 @@ class Shotgun(object):
         entities_str = []
         for e in entities:
             entities_str.append("%s_%s" % (e['type'], e['id']))
-        # format for post request 
+        # format for post request
         if filmstrip_thumbnail:
             filmstrip_thumbnail = 1
         params = {
@@ -1006,14 +1003,18 @@ class Shotgun(object):
                     "\n%s\n(%s)\n%s\n\n" % (url, params, e))
             else:
                 raise ShotgunError("Unanticipated error occurred %s" % (e))
-        else: 
+        else:
             if not str(result).startswith("1"):
                 raise ShotgunError("Unable to share thumbnail: %s" % result)
             else:
-                attachment_id = int(str(result).split(":")[1].split("\n")[0])
-                
+                # clearing thumbnail returns no attachment_id
+                try:
+                    attachment_id = int(str(result).split(":")[1].split("\n")[0])
+                except ValueError:
+                    attachment_id = None
+
         return attachment_id
-    
+
     def upload_thumbnail(self, entity_type, entity_id, path, **kwargs):
         """Convenience function for uploading thumbnails, see upload.
         """
@@ -1170,13 +1171,10 @@ class Shotgun(object):
 
         try:
             data = self.find_one('HumanUser', [['sg_status_list', 'is', 'act'], ['login', 'is', user_login]], ['id', 'login'], '', 'all')
-            if data:
-                return data
-            else:
-                None
             # Set back to default - There finally and except cannot be used together in python2.4
             self.config.user_login = None
             self.config.user_password = None
+            return data
         except Fault:
             # Set back to default - There finally and except cannot be used together in python2.4
             self.config.user_login = None
@@ -1251,7 +1249,7 @@ class Shotgun(object):
         }
         http_status, resp_headers, body = self._make_call("POST",
             self.config.api_path, encoded_payload, req_headers)
-        LOG.debug("Completed rpc call to %s" % (method))                
+        LOG.debug("Completed rpc call to %s" % (method))
         try:
             self._parse_http_status(http_status)
         except ProtocolError, e:
@@ -1333,7 +1331,7 @@ class Shotgun(object):
 
         attempt = 0
         req_headers = {
-            "user-agent" : "shotgun-json",
+            "user-agent": "; ".join(self._user_agents),
         }
         if self.config.authorization:
             req_headers["Authorization"] = self.config.authorization
@@ -1571,10 +1569,10 @@ class Shotgun(object):
             pi = ProxyInfo(socks.PROXY_TYPE_HTTP, self.config.proxy_server,
                  self.config.proxy_port, proxy_user=self.config.proxy_user,
                  proxy_pass=self.config.proxy_pass)
-            self._connection = Http(timeout=self.config.timeout_secs,
+            self._connection = Http(timeout=self.config.timeout_secs, ca_certs=self.__ca_certs,
                 proxy_info=pi, disable_ssl_certificate_validation=self.config.no_ssl_validation)
         else:
-            self._connection = Http(timeout=self.config.timeout_secs,
+            self._connection = Http(timeout=self.config.timeout_secs, ca_certs=self.__ca_certs,
                 disable_ssl_certificate_validation=self.config.no_ssl_validation)
 
         return self._connection
@@ -1596,8 +1594,12 @@ class Shotgun(object):
     # Utility
 
     def _parse_records(self, records):
-        """Parses 'records' returned from the api to insert thumbnail urls
-        or local file paths.
+        """Parses 'records' returned from the api to do local modifications:
+
+        - Insert thumbnail urls
+        - Insert local file paths.
+        - Revert &lt; html entities that may be the result of input sanitization
+          mechanisms back to a litteral < character.
 
         :param records: List of records (dicts) to process or a single record.
 
@@ -1619,6 +1621,10 @@ class Shotgun(object):
             for k, v in rec.iteritems():
                 if not v:
                     continue
+
+                # Check for html entities in strings
+                if isinstance(v, types.StringTypes):
+                    rec[k] = rec[k].replace('&lt;', '<')
 
                 # check for thumbnail for older version (<3.3.0) of shotgun
                 if k == 'image' and \
@@ -1747,13 +1753,56 @@ class FormPostHandler(urllib2.BaseHandler):
 def _translate_filters(filters, filter_operator):
     '''_translate_filters translates filters params into data structure
     expected by rpc call.'''
-    new_filters = {}
+    wrapped_filters = {
+        "filter_operator": filter_operator or "all",
+        "filters": filters
+    }
 
-    if not filter_operator or filter_operator == "all":
+    return _translate_filters_dict(wrapped_filters)
+
+def _translate_filters_dict(sg_filter):
+    new_filters = {}
+    filter_operator = sg_filter.get("filter_operator")
+    
+    if filter_operator == "all" or filter_operator == "and":
         new_filters["logical_operator"] = "and"
-    else:
+    elif filter_operator == "any" or filter_operator == "or":
         new_filters["logical_operator"] = "or"
-    conditions = [{"path":f[0], "relation":f[1], "values":f[2:]}
-                                                for f in filters]
-    new_filters["conditions"] = conditions
+    else:
+        raise ShotgunError("Invalid filter_operator %s" % filter_operator)
+
+    if not isinstance(sg_filter["filters"], (list,tuple)):
+        raise ShotgunError("Invalid filters, expected a list or a tuple, got %s" % sg_filter["filters"])
+        
+    new_filters["conditions"] = _translate_filters_list(sg_filter["filters"])
+    
     return new_filters
+    
+def _translate_filters_list(filters):
+    conditions = []
+    
+    for sg_filter in filters:
+        if isinstance(sg_filter, (list,tuple)):
+            conditions.append(_translate_filters_simple(sg_filter))
+        elif isinstance(sg_filter, dict):
+            conditions.append(_translate_filters_dict(sg_filter))
+        else:
+            raise ShotgunError("Invalid filters, expected a list, tuple or dict, got %s" % sg_filter)
+    
+    return conditions
+
+def _translate_filters_simple(sg_filter):
+    condition = {
+        "path": sg_filter[0],
+        "relation": sg_filter[1]
+    }
+    
+    values = sg_filter[2:]
+    if len(values) == 1 and isinstance(values[0], (list, tuple)):
+        values = values[0]
+
+    condition["values"] = values
+
+    return condition
+
+     
