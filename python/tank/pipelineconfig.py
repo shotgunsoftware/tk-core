@@ -30,6 +30,13 @@ class PipelineConfiguration(object):
         """
         Constructor. Do not call this directly, use the factory methods
         at the bottom of this file.
+        
+        NOTE ABOUT SYMLINKS!
+        
+        The pipeline_configuration_path is always populated by the paths
+        that were registered in shotgun, regardless of how the symlink setup
+        is handled on the OS level.
+        
         """
         self._pc_root = pipeline_configuration_path
         
@@ -54,9 +61,19 @@ class PipelineConfiguration(object):
                                                                               self.get_python_location()))
         
         
-        self._roots = get_pc_roots_metadata(self._pc_root)
-        self._pc_registered_location = get_pc_registered_location(self._pc_root)        
-        (self._project_name, self._pipeline_config_name) = get_pc_metadata(self._pc_root)
+        self._roots = get_pc_roots_metadata(self._pc_root) 
+        
+        # get the project tank disk name (Project.tank_name), stored in the PC metadata file.
+        data = get_pc_disk_metadata(self._pc_root)
+        if data.get("project_name") is None:
+            raise TankError("Project name not defined in config metadata for config %s! "
+                            "Please contact support." % self._pc_root) 
+        self._project_name = data.get("project_name")
+    
+        # cache fields lazily populated on getter access
+        self._project_id = None
+        self._pc_id = None
+        self._pc_name = None
         
         
                 
@@ -97,26 +114,75 @@ class PipelineConfiguration(object):
         Returns the master root for this pipeline configuration
         """
         return self._pc_root
+    
+    def _load_metadata_from_sg(self):
+        """
+        Caches PC metadata from shotgun.
+        """
+        sg = shotgun.create_sg_connection()
+        platform_lookup = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
+        sg_path_field = platform_lookup[sys.platform]
+        data = sg.find_one(constants.PIPELINE_CONFIGURATION_ENTITY, 
+                           [[sg_path_field, "is", self._pc_root]], 
+                           ["id", "project", "code"])
+        if data is None:
+            raise TankError("Cannot find a Pipeline configuration in Shotgun that has its %s "
+                            "set to '%s'!" % (sg_path_field, self._pc_root))
+            
+        self._project_id = data.get("project").get("id")
+        self._pc_id = data.get("id")
+        self._pc_name = data.get("code")
+        
         
     def get_name(self):
         """
-        Returns the name of this PC. May return None if no name can be found.
+        Returns the name of this PC.
+        May connect to Shotgun to retrieve this.
         """
-        return self._pipeline_config_name
+        if self._pc_name is None:
+            # try to get it from the cache file
+            data = get_pc_disk_metadata(self._pc_root)
+            self._pc_name = data.get("pc_name")
+
+            if self._pc_name is None:
+                # not in metadata file on disk. Fall back on SG lookup
+                self._load_metadata_from_sg()
         
-    def get_registered_location_path(self):
+        return self._pc_name
+        
+        
+    def get_shotgun_id(self):
         """
-        Returns the path that has been registered for this pipeline configuration 
-        for the current OS.
-        This is the path that has been defined in shotgun. It is also the path that is being
-        used in the inverse pointer files that exist in each storage.
-        
-        This is useful when drive letter mappings or symlinks are being used - in these
-        cases get_path() may not return the same value as get_registered_location_path().
-        
-        This may return None if no path has been registered for the current os.
+        Returns the shotgun id for this PC. 
+        May connect to Shotgun to retrieve this.
         """
-        return self._pc_registered_location
+        if self._pc_id is None:
+            # try to get it from the cache file
+            data = get_pc_disk_metadata(self._pc_root)
+            self._pc_id = data.get("pc_id")
+            
+            if self._pc_id is None:
+                # not in metadata file on disk. Fall back on SG lookup
+                self._load_metadata_from_sg()
+                            
+        return self._pc_id
+        
+    def get_project_id(self):
+        """
+        Returns the shotgun id for the project associated with this PC. 
+        May connect to Shotgun to retrieve this.
+        """
+        if self._project_id is None:
+            # try to get it from the cache file
+            data = get_pc_disk_metadata(self._pc_root)
+            self._project_id = data.get("project_id")
+            
+            if self._project_id is None:
+                # not in metadata file on disk. Fall back on SG lookup
+                self._load_metadata_from_sg()
+                            
+        return self._project_id
+        
         
     def get_data_roots(self):
         """
@@ -357,7 +423,6 @@ class StorageConfigurationMapping(object):
         return current_os_paths
         
     
-
 def from_entity(entity_type, entity_id):
     """
     Factory method that constructs a PC given a shotgun object
@@ -449,8 +514,7 @@ def from_entity(entity_type, entity_id):
         # the path stored in the TANK_CURRENT_PC env var may be a symlink etc.
         # now we need to find which PC entity this corresponds to in Shotgun.
         # Once found, we can double check that the current Entity is actually
-        # associated with the projec that the PC is associated with.
-        
+        # associated with the project that the PC is associated with.
         pc_registered_path = get_pc_registered_location(curr_pc_path)
 
         if pc_registered_path is None:
@@ -459,23 +523,22 @@ def from_entity(entity_type, entity_id):
                             "has not been configured for the current operating system." % curr_pc_path)
         
         # now that we have the proper pc path, we can find which PC entity this is
-        current_os_path = None
-        for pc in pipe_configs:
-            curr_path = pc.get(platform_lookup[sys.platform])
-            if curr_path == pc_registered_path:
-                current_os_path = curr_path
+        found_matching_path = False
+        for sg_pc in pipe_configs:
+            if sg_pc.get(platform_lookup[sys.platform]) == pc_registered_path:
+                found_matching_path = True
                 break
         
-        if current_os_path is None:
+        if not found_matching_path:
             raise TankError("Error launching tank for %s with id %s (Belonging to the project '%s') "
                             "from the configuration located in '%s'. This config is not " 
                             "associated with that project. For a list of which tank commands can be " 
                             "used with this project, go to the Pipeline Configurations page in "
-                            "Shotgun for the project." % (entity_type, entity_id, proj.get("name"), curr_pc_path))
+                            "Shotgun for the project." % (entity_type, entity_id, proj.get("name"), pc_registered_path))
         
         # ok we got a pipeline config matching the tank command from which we launched.
         # because we found the PC in the list of PCs for this project, we know that it must be valid!
-        return PipelineConfiguration(current_os_path)
+        return PipelineConfiguration(pc_registered_path)
          
         
     
@@ -512,7 +575,17 @@ def from_path(path):
     pc_config = os.path.join(path, "config", "core", "pipeline_configuration.yml")
     if os.path.exists(pc_config):
         # done deal!
-        return PipelineConfiguration(path)
+        
+        # resolve the "real" location that is stored in Shotgun and 
+        # cached in the file system
+        pc_registered_path = get_pc_registered_location(path)
+        
+        if pc_registered_path is None:
+            raise TankError("Error starting tank from the configuration located in '%s' - "
+                            "it looks like this pipeline configuration and tank command "
+                            "has not been configured for the current operating system." % path)        
+        
+        return PipelineConfiguration(pc_registered_path)
     
     
     ########################################################################################
@@ -556,27 +629,20 @@ def from_path(path):
         # find the Primary PC and use that.
         
         # try to figure out what the primary storage is by looking for a metadata 
-        # file in each PC
-        primary_pc_path = None
+        # file in each PC. 
         for pc_path in current_os_pcs:
-            try:
-                (_, pc_name) = get_pc_metadata(pc_path)
-                if pc_name == constants.PRIMARY_PIPELINE_CONFIG_NAME:
-                    primary_pc_path = pc_path
-            except Exception, e:
-                # defensive approach here. For some reason could not get the config file
-                # for a PC. In this case fall back onto shotgun lookup.
-                pass
+            data = get_pc_disk_metadata(pc_path)            
+            pc_name = data.get("pc_name")
+            if pc_name == constants.PRIMARY_PIPELINE_CONFIG_NAME:
+                return PipelineConfiguration(pc_path)
         
-        if primary_pc_path is not None:
-            return PipelineConfiguration(primary_pc_path)
-        
-        # so we couldn't find the primary PC by looking at configs.
-        # now fall back on to a shotgun lookup
+        # no luck - this may be because some projects don't have this 
+        # metadata cached. Now try by looking in Shotgun instead.
+
         # in the list of paths found in the inverse lookup table on disk, find the primary.
         sg = shotgun.create_sg_connection()
         platform_lookup = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
-        filters = [platform_lookup[sys.platform], "in"]
+        filters = [ platform_lookup[sys.platform], "in"]
         filters.extend(current_os_pcs)
         primary_pc = sg.find_one(constants.PIPELINE_CONFIGURATION_ENTITY, 
                                  [filters, ["code", "is", constants.PRIMARY_PIPELINE_CONFIG_NAME]], 
@@ -602,10 +668,7 @@ def from_path(path):
         
         # looks good, we got a primary pipeline config that exists
         return PipelineConfiguration(current_os_path)
-        
-        
-        
-        
+                
     else:
         # we are running a tank command coming from a particular PC!
         # make sure that this PC is actually associated with this project
@@ -643,7 +706,7 @@ def from_path(path):
                             "that belongs to a project B." % (curr_pc_path, path, current_os_pcs))
             
         # okay so this PC is valid!
-        return PipelineConfiguration(curr_pc_path) 
+        return PipelineConfiguration(pc_registered_path) 
 
 
 
@@ -692,6 +755,10 @@ def get_pc_registered_location(pipeline_config_root_path):
     """
     # now read in the pipeline_configuration.yml file
     cfg_yml = os.path.join(pipeline_config_root_path, "config", "core", "install_location.yml")
+    
+    if not os.path.exists(cfg_yml):
+        raise TankError("Location metadata file '%s' missing! Please contact support." % cfg_yml)
+    
     fh = open(cfg_yml, "rt")
     try:
         data = yaml.load(fh)
@@ -710,17 +777,18 @@ def get_pc_registered_location(pipeline_config_root_path):
     else:
         raise TankError("Unsupported platform '%s'" % sys.platform)
 
-def get_pc_metadata(pipeline_config_root_path):
+
+def get_pc_disk_metadata(pipeline_config_root_path):
     """
-    Loads the config metadata file.
-    
-    returns (project_name, pc_name)
-    
-    pc_name can be None, indicating that the name of the pipeline configuration is not known.
-    
+    Loads the config metadata file from disk.    
     """
+    
     # now read in the pipeline_configuration.yml file
     cfg_yml = os.path.join(pipeline_config_root_path, "config", "core", "pipeline_configuration.yml")
+
+    if not os.path.exists(cfg_yml):
+        raise TankError("Configuration metadata file '%s' missing! Please contact support." % cfg_yml)
+    
     fh = open(cfg_yml, "rt")
     try:
         data = yaml.load(fh)
@@ -732,23 +800,21 @@ def get_pc_metadata(pipeline_config_root_path):
     finally:
         fh.close()
         
-    project_name = data.get("project_name")
-    if project_name is None:
-        raise TankError("Project name not defined in config metadata for config %s! "
-                        "Please contact support." % pipeline_config_root_path) 
+    return data
+
     
-    pc_name = data.get("pc_name")
-    
-    return( project_name, pc_name )
 
 def get_pc_roots_metadata(pipeline_config_root_path):
     """
-    Loads and validates the roots metadata file
+    Loads and validates the roots metadata file.
     """
     # now read in the roots.yml file
     # this will contain something like
     # {'primary': {'mac_path': '/studio', 'windows_path': None, 'linux_path': '/studio'}}
     roots_yml = os.path.join(pipeline_config_root_path, "config", "core", "roots.yml")  
+
+    if not os.path.exists(roots_yml):
+        raise TankError("Roots metadata file '%s' missing! Please contact support." % roots_yml)
              
     fh = open(roots_yml, "rt")
     try:

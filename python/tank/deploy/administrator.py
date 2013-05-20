@@ -165,7 +165,7 @@ def clone_configuration(log, tk, source_pc_id, user_id, name, target_linux, targ
         
         log.info("")
         code_css_block = "display: block; padding: 0.5em 1em; border: 1px solid #bebab0; background: #faf8f0;"
-        log.info("<code style='%s'>%s core localize</code>" % (code_css_block, tank_cmd))
+        log.info("<code style='%s'>%s localize</code>" % (code_css_block, tank_cmd))
 
 
 
