@@ -718,6 +718,24 @@ def from_path(path):
 ################################################################################################
 # method for loading configuration data. 
 
+def get_core_api_version_for_pc(pc_root):
+    """
+    Returns the version number string for the core API, based on a given path
+    """
+    # read this from info.yml
+    info_yml_path = os.path.join(pc_root, "install", "core", "info.yml")
+    try:
+        info_fh = open(info_yml_path, "r")
+        try:
+            data = yaml.load(info_fh)
+        finally:
+            info_fh.close()
+        data = str(data.get("version", "unknown"))
+    except:
+        data = "unknown"
+
+    return data
+
 def get_core_api_version_based_on_current_code():
     """
     Returns the version number string for the core API, based on the code that is currently
