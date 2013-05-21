@@ -432,14 +432,14 @@ def from_entity(entity_type, entity_id):
     
     sg = shotgun.create_sg_connection()
     
-    e = sg.find_one(entity_type, [["id", "is", entity_id]], ["project"])
+    e = sg.find_one(entity_type, [["id", "is", entity_id]], ["project", "name"])
     
     if e is None:
         raise TankError("Cannot resolve a pipeline configuration object from %s %s - this object "
                         "does not exist in Shotgun!" % (entity_type, entity_id))
     
     if entity_type == "Project":
-        proj = {"type": "Project", "id": entity_id}
+        proj = {"type": "Project", "id": entity_id, "name": e.get("name")}
 
     else:
         if e.get("project") is None:
