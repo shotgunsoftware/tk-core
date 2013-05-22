@@ -1016,6 +1016,11 @@ def _interactive_setup(log, install_root):
         
     # write a file location file for our new setup
     sg_code_location = os.path.join(current_os_pc_location, "config", "core", "install_location.yml")
+    
+    # if we are basing our setup on an existing project setup, make sure we can write to the file.
+    if os.path.exists(sg_code_location):
+        os.chmod(sg_code_location, 0666)
+
     fh = open(sg_code_location, "wt")
     fh.write("# Tank configuration file\n")
     fh.write("# This file was automatically created by setup_project\n")
