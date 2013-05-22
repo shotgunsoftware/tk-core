@@ -57,7 +57,7 @@ class MovePCAction(Action):
                         log.warning("Could not remove folder %s. Error Reported: %s" % (full_path, e))
                             
     
-    def _copy_folder(self, level, log, src, dst): 
+    def _copy_folder(self, log, level, src, dst): 
         """
         Alternative implementation to shutil.copytree
         Copies recursively with very open permissions.
@@ -93,6 +93,12 @@ class MovePCAction(Action):
     
     def run(self, log, args):
         
+        sg = shotgun.create_sg_connection()
+        pipeline_config_id = self.tk.pipeline_configuration.get_shotgun_id()
+        data = sg.find_one(constants.PIPELINE_CONFIGURATION_ENTITY, 
+                           [["id", "is", pipeline_config_id]],
+                           ["code", "mac_path", "windows_path", "linux_path"])
+
         if len(args) != 3:
             log.info("Syntax: move_configuration linux_path windows_path mac_path")
             log.info("")
@@ -104,7 +110,15 @@ class MovePCAction(Action):
                      "if you want a configuration which only works on windows, do like this: ")
             log.info("")
             log.info('> tank move_configuration "" "p:\\configs\\my_config" ""')
-            raise TankError("Wrong number of parameters!")
+            log.info("")
+            log.info("")
+            log.info("Your config '%s' is currently located in:" % data.get("code"))
+            log.info("--------------------------------------------------------------")
+            log.info("Current Linux Path:   %s" % data.get("linux_path"))
+            log.info("Current Windows Path: %s" % data.get("windows_path"))
+            log.info("Current Mac Path:     %s" % data.get("mac_path"))
+            log.info("")
+            raise TankError("Please specify three target locations!")
         
         linux_path = args[0]
         windows_path = args[1]
@@ -112,13 +126,7 @@ class MovePCAction(Action):
         new_paths = {"mac_path": mac_path, 
                      "windows_path": windows_path, 
                      "linux_path": linux_path}
-        
-        sg = shotgun.create_sg_connection()
-        pipeline_config_id = self.tk.pipeline_configuration.get_shotgun_id()
-        data = sg.find_one(constants.PIPELINE_CONFIGURATION_ENTITY, 
-                           [["id", "is", pipeline_config_id]],
-                           ["code", "mac_path", "windows_path", "linux_path"])
-        
+                
         if data is None:
             raise TankError("Could not find this Pipeline Configuration in Shotgun!")
         
@@ -155,7 +163,7 @@ class MovePCAction(Action):
         # (because these may be referred to by other PCs that are using their API
         # TODO: later on, support moving these. For now, just error out.
         api_file = os.path.join(local_source_path, "install", "core", "_core_upgrader.py")
-        if not os.path.exists(api_file):
+        if os.path.exists(api_file):
             raise TankError("Looks like the Configuration you are trying to move has a localized "
                             "API. This is not currently supported.")
         
