@@ -57,14 +57,12 @@ class MovePCAction(Action):
                         log.warning("Could not remove folder %s. Error Reported: %s" % (full_path, e))
                             
     
-    def _copy_folder(self, log, src, dst): 
+    def _copy_folder(self, level, log, src, dst): 
         """
         Alternative implementation to shutil.copytree
         Copies recursively with very open permissions.
         Creates folders if they don't already exist.
         """
-        files = []
-        
         if not os.path.exists(dst):
             log.debug("mkdir 0777 %s" % dst)
             os.mkdir(dst, 0777)
@@ -76,21 +74,21 @@ class MovePCAction(Action):
             dstname = os.path.join(dst, name) 
                     
             if os.path.isdir(srcname): 
-                files.extend( self._copy_folder(log, srcname, dstname) )             
+                if level < 3:
+                    log.info("Copying %s..." % srcname)
+                self._copy_folder(log, level+1, srcname, dstname)             
             else: 
                 if dstname.endswith("tank_configs.yml") and os.path.dirname(dstname).endswith("config"):
                     log.debug("NOT COPYING CONFIG FILE %s -> %s" % (srcname, dstname))
                 else:
                     shutil.copy(srcname, dstname)
                     log.debug("Copy %s -> %s" % (srcname, dstname))
-                    files.append(srcname)
                     # if the file extension is sh, set executable permissions
                     if dstname.endswith(".sh") or dstname.endswith(".bat"):
                         # make it readable and executable for everybody
                         os.chmod(dstname, 0777)
                         log.debug("CHMOD 777 %s" % dstname)
         
-        return files
     
     
     def run(self, log, args):
@@ -161,7 +159,6 @@ class MovePCAction(Action):
             raise TankError("Looks like the Configuration you are trying to move has a localized "
                             "API. This is not currently supported.")
         
-
         # sanity check target folder
         parent_target = os.path.dirname(local_target_path)
         if not os.path.exists(parent_target):
@@ -175,7 +172,7 @@ class MovePCAction(Action):
         try:
 
             log.info("Copying '%s' -> '%s'" % (local_source_path, local_target_path))            
-            self._copy_folder(log, local_source_path, local_target_path)
+            self._copy_folder(log, 0, local_source_path, local_target_path)
             
             sg_code_location = os.path.join(local_target_path, "config", "core", "install_location.yml")
             log.info("Updating cached locations in %s..." % sg_code_location)
