@@ -780,7 +780,6 @@ def run_engine_cmd(log, install_root, pipeline_config_root, context_items, comma
                 # when we run our commands later. This may be if we for example have
                 # just run tank setup_project from any random folder
                 log.debug("Instantiating Tank raised: %s" % e)
-                log.warning("Cannot find an associated Tank Install. Global commands only will be shown.")
                 tk = None
         
         # now try to extract a context
