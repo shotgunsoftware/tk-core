@@ -1077,6 +1077,7 @@ def _interactive_setup(log, install_root):
     data = {}
     data["project_name"] = project_disk_folder
     data["pc_id"] = pc_entity["id"]
+    data["project_id"] = project_id
     data["pc_name"] = constants.PRIMARY_PIPELINE_CONFIG_NAME 
     
     try:

@@ -62,7 +62,7 @@ class TankQDialog(TankDialogBase):
                 # we are using a non-default pipeline config
                 first_line = "<b style='color: #9cbfff'>Config %s</b>" % pc.get_name()
             else:
-                first_line = ""
+                first_line = "Tank %s" % self._bundle.context.tank.version
             
             # second line contains the project
             if self._bundle.context.project:
@@ -77,7 +77,7 @@ class TankQDialog(TankDialogBase):
             if self._bundle.context.project:
                 first_line = "Project %s" % self._bundle.context.project.get("name", "Undefined")
             else:
-                first_line = "No Project Set"
+                first_line = "No Project Set" # can this happen?
             
             # ...unless we are running a non-Primary PC
             pc = self._bundle.context.tank.pipeline_configuration 
@@ -102,14 +102,24 @@ class TankQDialog(TankDialogBase):
             else:
                 return "%s" % p.get("name")
     
-        tooltip = "<b>Work Area Details:</b>"
-        tooltip += "<br><b>Project</b>: %s" % _format_context_property(self._bundle.context.project)
-        tooltip += "<br><b>Item</b>: %s" % _format_context_property(self._bundle.context.entity, True)
-        tooltip += "<br><b>Pipeline Step</b>: %s" % _format_context_property(self._bundle.context.step)
-        tooltip += "<br><b>Task</b>: %s" % _format_context_property(self._bundle.context.task)
-        tooltip += "<br><b>User</b>: %s" % _format_context_property(self._bundle.context.user)
+        tooltip = ""
+        tooltip += "<b>Your Current Context</b>"
+        tooltip += "<hr>"
+        tooltip += "<b>Project</b>: %s<br>" % _format_context_property(self._bundle.context.project)
+        tooltip += "<b>Entity</b>: %s<br>" % _format_context_property(self._bundle.context.entity, True)
+        tooltip += "<b>Pipeline Step</b>: %s<br>" % _format_context_property(self._bundle.context.step)
+        tooltip += "<b>Task</b>: %s<br>" % _format_context_property(self._bundle.context.task)
+        tooltip += "<b>User</b>: %s<br>" % _format_context_property(self._bundle.context.user)
         for e in self._bundle.context.additional_entities:
-            tooltip += "<br><b>Additional Item</b>: %s" % _format_context_property(e, True) 
+            tooltip += "<b>Additional Item</b>: %s<br>" % _format_context_property(e, True) 
+        
+        tooltip += "<br>"
+        tooltip += "<b>System Information</b>"
+        tooltip += "<hr>"
+        tooltip += "<b>Tank Version: </b>%s<br>" % self._bundle.tank.version
+        tooltip += "<b>Pipeline Config: </b>%s<br>" % pc.get_name()
+        tooltip += "<b>Config Path: </b>%s<br>" % pc.get_path()
+        
         self.ui.lbl_context.setToolTip(tooltip)
         
         ########################################################################################
