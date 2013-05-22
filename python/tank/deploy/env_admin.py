@@ -207,18 +207,10 @@ def _update_item(log, tk, env, status, engine_name, app_name=None):
 
     # next step is to add the new configuration values to the environment
     if app_name is None:
-
-        data = env.get_engine_settings(engine_name)
-        # update with the new settings
-        data.update(params)
-        env.update_engine_settings(engine_name, data, new_descriptor.get_location())
+        env.update_engine_settings(engine_name, params, new_descriptor.get_location())
 
     else:
-
-        data = env.get_app_settings(engine_name, app_name)
-        # update with the new settings
-        data.update(params)
-        env.update_app_settings(engine_name, app_name, data, new_descriptor.get_location())
+        env.update_app_settings(engine_name, app_name, params, new_descriptor.get_location())
 
 def _process_framework(log, env, framework_name):
     """
@@ -293,7 +285,7 @@ def check_for_updates(log, tk):
     items = []
     for env in environments:
         log.info("")
-        log.info("Processing Environment %s..." % env.name)
+        log.info("Processing %s..." % env.disk_location)
         log.info("")
                 
         for engine in env.get_engines():
