@@ -53,7 +53,6 @@ class CreateFoldersAction(Action):
         log.info("In total, %s folders were processed." % len(f))
         log.info("")
 
-################################################################################################
 
 class PreviewFoldersAction(Action):
     

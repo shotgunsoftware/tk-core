@@ -18,8 +18,6 @@ from .action_base import Action
 import sys
 import os
 
-################################################################################################
-
 
 class PCBreakdownAction(Action):
     

@@ -19,10 +19,12 @@ import sys
 import os
 import shutil
 
-################################################################################################
 
 
 class MoveStudioInstallAction(Action):
+    """
+    Moves the studio installation location. 
+    """
     
     def __init__(self):
         Action.__init__(self, 
@@ -51,14 +53,13 @@ class MoveStudioInstallAction(Action):
                     log.warning("Could not remove folder %s. Error Reported: %s" % (full_path, e))
                             
     
-    def _copy_folder(self, log, src, dst): 
+    def _copy_folder(self, log, level, src, dst): 
         """
         Alternative implementation to shutil.copytree
         Copies recursively with very open permissions.
         Creates folders if they don't already exist.
         """
-        files = []
-        
+
         if not os.path.exists(dst):
             log.debug("mkdir 0777 %s" % dst)
             os.mkdir(dst, 0777)
@@ -70,18 +71,19 @@ class MoveStudioInstallAction(Action):
             dstname = os.path.join(dst, name) 
                     
             if os.path.isdir(srcname): 
-                files.extend( self._copy_folder(log, srcname, dstname) )             
+                if level < 3:
+                    log.info("Copying %s..." % srcname)
+                self._copy_folder(log, level+1, srcname, dstname)             
             else: 
                 shutil.copy(srcname, dstname)
                 log.debug("Copy %s -> %s" % (srcname, dstname))
-                files.append(srcname)
                 # if the file extension is sh, set executable permissions
                 if dstname.endswith(".sh") or dstname.endswith(".bat"):
                     # make it readable and executable for everybody
                     os.chmod(dstname, 0777)
                     log.debug("CHMOD 777 %s" % dstname)
         
-        return files
+        
     
     def update_pipeline_config(self, log, shotgun_pc_data, current_studio_paths, new_studio_paths ):
         """
@@ -90,17 +92,17 @@ class MoveStudioInstallAction(Action):
         storage_map = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
         
         log.info("")
-        log.info("Analyzing Pipeline Configuration %s:%s..." % (shotgun_pc_data["project"]["name"], 
+        log.info("Analyzing Config %s:%s..." % (shotgun_pc_data["project"]["name"], 
                                                                 shotgun_pc_data["code"]))                
         
         local_pc_path = shotgun_pc_data.get(storage_map[sys.platform])
         
         if local_pc_path is None:
-            log.error("This configuration is not defined for the current OS. Please update by hand. ")
+            log.error("> This configuration is not defined for the current OS. Please update by hand. ")
             return
                 
         if not os.path.exists(local_pc_path):
-            log.error("The location '%s' does not exist on disk! Skipping." % local_pc_path)
+            log.error(">The location '%s' does not exist on disk! Skipping." % local_pc_path)
             return
         
         studio_linkback_files = {"windows_path": os.path.join(local_pc_path, "install", "core", "core_Windows.cfg"), 
@@ -109,14 +111,14 @@ class MoveStudioInstallAction(Action):
         
         # check if this PC has a studio link (checking one OS only, should be enough)
         if not os.path.exists(studio_linkback_files["windows_path"]):
-            log.info("This Config has its own API. No changes needed.")
+            log.info("> This Config has its own API. No changes needed.")
             return
            
         # read in all the existing data
         current_studio_refs = {}
         for x in ["windows_path", "linux_path", "mac_path"]:
             try:
-                fh = open(studio_linkback_files[x], "wt")
+                fh = open(studio_linkback_files[x], "rt")
                 data = fh.read()
                 if data in ["None", "undefined"]:
                     current_studio_refs[x] = None
@@ -134,20 +136,26 @@ class MoveStudioInstallAction(Action):
                 matching = False
         
         if not matching:
-            log.info("This config is not associated with the studio root you are moving. "
+            log.info("> This config is not associated with the studio root you are moving. "
                      "It is using the following studio roots: %s" % str(current_studio_refs))
             return
             
         # all right, all looks good. Write new locations to the files.
+        errors = False
         for x in ["windows_path", "linux_path", "mac_path"]:
             try:
+                os.chmod(studio_linkback_files[x], 0666)
                 fh = open(studio_linkback_files[x], "wt")
                 fh.write(str(new_studio_paths[x]))
                 fh.close()
             except Exception, e:
-                log.error("Could not update the file %s: %s" % (studio_linkback_files[x], e))
+                log.error("> Could not update the file %s: %s" % (studio_linkback_files[x], e))
+                errors = True
             else:
-                log.info("Updated %s to point to %s..." % (new_studio_paths[x], studio_linkback_files[x]))
+                log.debug("> Updated %s to point to %s..." % (new_studio_paths[x], studio_linkback_files[x]))
+        
+        if not errors:
+            log.info("> Pipeline Config updated to point at new Studio location.")
     
     
     def run(self, log, args):
@@ -183,6 +191,9 @@ class MoveStudioInstallAction(Action):
         if not os.path.exists(current_path):
             raise TankError("Path '%s' does not exist!" % current_path)
         
+        if os.path.exists(local_target_path):
+            raise TankError("The path %s already exists on disk!" % local_target_path)
+        
         # probe for some key file
         api_file = os.path.join(current_path, "install", "core", "_core_upgrader.py")
         if not os.path.exists(api_file):
@@ -190,7 +201,7 @@ class MoveStudioInstallAction(Action):
             
         # make sure this is NOT a PC
         pc_file = os.path.join(current_path, "config", "info.yml")
-        if not os.path.exists(pc_file):
+        if os.path.exists(pc_file):
             raise TankError("Path '%s' does not look like a pipeline configuration. Move it "
                             "using the move_configuration command instead!" % current_path)
                 
@@ -218,12 +229,12 @@ class MoveStudioInstallAction(Action):
         log.info("--------------------------------------------------------------")
         log.info("")
         log.info("Current Linux Path:   %s" % current_paths["linux_path"])
-        log.info("Current Windows Path:   %s" % current_paths["windows_path"])
-        log.info("Current Mac Path:   %s" % current_paths["mac_path"])
+        log.info("Current Windows Path: %s" % current_paths["windows_path"])
+        log.info("Current Mac Path:     %s" % current_paths["mac_path"])
         log.info("")
-        log.info("New Linux Path:   %s" % new_paths["linux_path"])
-        log.info("New Windows Path: %s" % new_paths["windows_path"])
-        log.info("New Mac Path:     %s" % new_paths["mac_path"])
+        log.info("New Linux Path:       %s" % new_paths["linux_path"])
+        log.info("New Windows Path:     %s" % new_paths["windows_path"])
+        log.info("New Mac Path:         %s" % new_paths["mac_path"])
         log.info("")
         
         log.info("This will move the studio API location and update all connected projects"
@@ -241,6 +252,7 @@ class MoveStudioInstallAction(Action):
         parent_target = os.path.dirname(local_target_path)
         if not os.path.exists(parent_target):
             raise TankError("The path '%s' does not exist!" % parent_target)
+        
         if not os.access(parent_target, os.W_OK|os.R_OK|os.X_OK):
             raise TankError("The permissions setting for '%s' is too strict. The current user "
                             "cannot create folders in this location." % parent_target)
@@ -250,12 +262,11 @@ class MoveStudioInstallAction(Action):
         try:
 
             log.info("Copying '%s' -> '%s'" % (current_path, local_target_path))            
-            self._copy_folder(log, current_path, local_target_path)
+            self._copy_folder(log, 0, current_path, local_target_path)
             
             sg_code_location = os.path.join(local_target_path, "config", "core", "install_location.yml")
             log.info("Updating cached locations in %s..." % sg_code_location)
-            if os.path.exists(sg_code_location):
-                os.chmod(sg_code_location, 0666)
+            os.chmod(sg_code_location, 0666)
             fh = open(sg_code_location, "wt")
             fh.write("# Tank configuration file\n")
             fh.write("# This file reflects the paths in the pipeline configuration\n")
@@ -294,6 +305,8 @@ class MoveStudioInstallAction(Action):
         self._cleanup_old_location(log, current_path)
         log.info("")
         log.info("All done! Your studio location has been successfully moved.")
+        log.info("If you have added the studio level tank command to your PATH, "
+                 "don't forget to change it to point at the new location.")
             
             
         

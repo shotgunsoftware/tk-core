@@ -57,14 +57,12 @@ class MovePCAction(Action):
                         log.warning("Could not remove folder %s. Error Reported: %s" % (full_path, e))
                             
     
-    def _copy_folder(self, log, src, dst): 
+    def _copy_folder(self, log, level, src, dst): 
         """
         Alternative implementation to shutil.copytree
         Copies recursively with very open permissions.
         Creates folders if they don't already exist.
         """
-        files = []
-        
         if not os.path.exists(dst):
             log.debug("mkdir 0777 %s" % dst)
             os.mkdir(dst, 0777)
@@ -76,25 +74,31 @@ class MovePCAction(Action):
             dstname = os.path.join(dst, name) 
                     
             if os.path.isdir(srcname): 
-                files.extend( self._copy_folder(log, srcname, dstname) )             
+                if level < 3:
+                    log.info("Copying %s..." % srcname)
+                self._copy_folder(log, level+1, srcname, dstname)             
             else: 
                 if dstname.endswith("tank_configs.yml") and os.path.dirname(dstname).endswith("config"):
                     log.debug("NOT COPYING CONFIG FILE %s -> %s" % (srcname, dstname))
                 else:
                     shutil.copy(srcname, dstname)
                     log.debug("Copy %s -> %s" % (srcname, dstname))
-                    files.append(srcname)
                     # if the file extension is sh, set executable permissions
                     if dstname.endswith(".sh") or dstname.endswith(".bat"):
                         # make it readable and executable for everybody
                         os.chmod(dstname, 0777)
                         log.debug("CHMOD 777 %s" % dstname)
         
-        return files
     
     
     def run(self, log, args):
         
+        sg = shotgun.create_sg_connection()
+        pipeline_config_id = self.tk.pipeline_configuration.get_shotgun_id()
+        data = sg.find_one(constants.PIPELINE_CONFIGURATION_ENTITY, 
+                           [["id", "is", pipeline_config_id]],
+                           ["code", "mac_path", "windows_path", "linux_path"])
+
         if len(args) != 3:
             log.info("Syntax: move_configuration linux_path windows_path mac_path")
             log.info("")
@@ -106,7 +110,15 @@ class MovePCAction(Action):
                      "if you want a configuration which only works on windows, do like this: ")
             log.info("")
             log.info('> tank move_configuration "" "p:\\configs\\my_config" ""')
-            raise TankError("Wrong number of parameters!")
+            log.info("")
+            log.info("")
+            log.info("Your config '%s' is currently located in:" % data.get("code"))
+            log.info("--------------------------------------------------------------")
+            log.info("Current Linux Path:   %s" % data.get("linux_path"))
+            log.info("Current Windows Path: %s" % data.get("windows_path"))
+            log.info("Current Mac Path:     %s" % data.get("mac_path"))
+            log.info("")
+            raise TankError("Please specify three target locations!")
         
         linux_path = args[0]
         windows_path = args[1]
@@ -114,13 +126,7 @@ class MovePCAction(Action):
         new_paths = {"mac_path": mac_path, 
                      "windows_path": windows_path, 
                      "linux_path": linux_path}
-        
-        sg = shotgun.create_sg_connection()
-        pipeline_config_id = self.tk.pipeline_configuration.get_shotgun_id()
-        data = sg.find_one(constants.PIPELINE_CONFIGURATION_ENTITY, 
-                           [["id", "is", pipeline_config_id]],
-                           ["code", "mac_path", "windows_path", "linux_path"])
-        
+                
         if data is None:
             raise TankError("Could not find this Pipeline Configuration in Shotgun!")
         
@@ -157,11 +163,10 @@ class MovePCAction(Action):
         # (because these may be referred to by other PCs that are using their API
         # TODO: later on, support moving these. For now, just error out.
         api_file = os.path.join(local_source_path, "install", "core", "_core_upgrader.py")
-        if not os.path.exists(api_file):
+        if os.path.exists(api_file):
             raise TankError("Looks like the Configuration you are trying to move has a localized "
                             "API. This is not currently supported.")
         
-
         # sanity check target folder
         parent_target = os.path.dirname(local_target_path)
         if not os.path.exists(parent_target):
@@ -175,7 +180,7 @@ class MovePCAction(Action):
         try:
 
             log.info("Copying '%s' -> '%s'" % (local_source_path, local_target_path))            
-            self._copy_folder(log, local_source_path, local_target_path)
+            self._copy_folder(log, 0, local_source_path, local_target_path)
             
             sg_code_location = os.path.join(local_target_path, "config", "core", "install_location.yml")
             log.info("Updating cached locations in %s..." % sg_code_location)

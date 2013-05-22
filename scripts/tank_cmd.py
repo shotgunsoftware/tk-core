@@ -17,6 +17,7 @@ from tank.deploy import administrator
 from tank.deploy import core_api_admin
 from tank.deploy import env_admin
 from tank.deploy import tank_command
+from tank.deploy.tank_commands.action_base import Action
 from tank import pipelineconfig
 from tank.util import shotgun
 from tank.platform import engine
@@ -451,7 +452,7 @@ def _list_commands(log, tk, ctx):
             log.info(cmd.description)
             log.info("")
             # keep track of number of engine commands
-            if cmd.mode == tank_command.Action.ENGINE:
+            if cmd.mode == Action.ENGINE:
                 num_engine_commands += 1
         
     

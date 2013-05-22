@@ -188,12 +188,44 @@ class CmdlineSetupInteraction(object):
         """
         Ask the user which config to use. Returns a config string.
         """
+        
+        
         self._log.info("")
         self._log.info("")
+        self._log.info("------------------------------------------------------------------")
         self._log.info("Which configuration would you like to associate with this project?")
-        self._log.info("You can either type in a name of a config in the Tank Store")
-        self._log.info("or specify a path to a config on disk. Hit enter to use the ")
-        self._log.info("standard Tank Starter configuration.")
+        
+        primary_pcs = self._sg.find(constants.PIPELINE_CONFIGURATION_ENTITY, 
+                                    [["code", "is", constants.PRIMARY_PIPELINE_CONFIG_NAME]],
+                                    ["code", "project", "mac_path", "windows_path", "linux_path"])        
+
+        if len(primary_pcs) > 0:
+            self._log.info("")
+            self._log.info("You can use the configuration from an existing project as a "
+                           "template for this new project. All settings, apps and folder "
+                           "configuration settings will be copied over to your new project. "
+                           "The following configurations were found: ")
+            self._log.info("")
+            for ppc in primary_pcs:
+                pc_path = ppc.get(SG_LOCAL_STORAGE_OS_MAP[sys.platform])
+                config_path = os.path.join(pc_path, "config")
+                self._log.info("   %s: '%s'" % (ppc.get("project").get("name"), config_path))
+    
+            self._log.info("")
+            self._log.info("If you want to use any of the configs listed about for your new project, "
+                           "just type in its path when prompted below.")
+    
+        self._log.info("")
+        self._log.info("You can use the Tank Default Configuration for your "
+                       "new project. The tank default configuration is a good sample config, "
+                       "demonstrating a typical basic setup of Tank using the latest apps "
+                       "and engines. Tank will use this by default if you just hit enter below.")
+        self._log.info("")
+        self._log.info("If you have a configuration stored somewhere on disk, you can "
+                       "just enter the path to this config and tank will use that for the "
+                       "new project.")
+        self._log.info("")
+        
         config_name = raw_input("[%s]: " % constants.DEFAULT_CFG).strip()
         if config_name == "":
             config_name = constants.DEFAULT_CFG
@@ -984,6 +1016,11 @@ def _interactive_setup(log, install_root):
         
     # write a file location file for our new setup
     sg_code_location = os.path.join(current_os_pc_location, "config", "core", "install_location.yml")
+    
+    # if we are basing our setup on an existing project setup, make sure we can write to the file.
+    if os.path.exists(sg_code_location):
+        os.chmod(sg_code_location, 0666)
+
     fh = open(sg_code_location, "wt")
     fh.write("# Tank configuration file\n")
     fh.write("# This file was automatically created by setup_project\n")
