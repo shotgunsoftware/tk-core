@@ -19,10 +19,12 @@ import sys
 import os
 import shutil
 
-################################################################################################
 
 
 class MoveStudioInstallAction(Action):
+    """
+    Moves the studio installation location. 
+    """
     
     def __init__(self):
         Action.__init__(self, 

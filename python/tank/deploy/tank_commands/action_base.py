@@ -10,7 +10,7 @@ Methods for handling of the tank command
 
 class Action(object):
     """
-    Describes an executable action
+    Describes an executable action. Baseclass that all tank command actions derive from
     """
     
     # GLOBAL - works everywhere, requires self.code_install_root only
