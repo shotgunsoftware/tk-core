@@ -150,7 +150,6 @@ class PipelineConfiguration(object):
         
         return self._pc_name
         
-        
     def get_shotgun_id(self):
         """
         Returns the shotgun id for this PC. 
@@ -183,7 +182,20 @@ class PipelineConfiguration(object):
                             
         return self._project_id
         
-        
+    def get_published_file_entity_type(self):
+        """
+        Returns the type of entity being used
+        for the 'published file' entity
+        """
+        return "TankPublishedFile"
+    
+    def get_published_file_type_entity_type(self):
+        """
+        Returns the type of entity being used
+        for the 'published file type' entity
+        """        
+        return "TankType"  
+            
     def get_data_roots(self):
         """
         Returns a dictionary of all the data roots available for this PC,
