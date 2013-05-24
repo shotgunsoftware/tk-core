@@ -471,6 +471,7 @@ def _list_commands(log, tk, ctx):
                      "are only getting a small number of global system commands in the list of "
                      "commands. Try pointing the tank command to a project location, for example: ")
             log.info("")
+            log.info("> tank Project XYZ")
             log.info("> tank Shot ABC123")
             log.info("> tank Asset ALL")
             log.info("> tank /mnt/projects/my_project/shots/ABC123")
