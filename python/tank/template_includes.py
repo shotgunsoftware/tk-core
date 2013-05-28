@@ -180,10 +180,11 @@ def process_includes(file_name, data):
         if template_str.startswith("@"):
             # string template on the form 
             # maya_shot_work: @other_template/work/maya/{name}.v{version}.ma
-            reference_template_name = d.split("/")[0][1:]
+            template_parts = template_str.split("/")
+            reference_template_name = template_parts[0][1:]
             # replace it with the resolved value
             val = get_template_str(resolved_includes_data, reference_template_name)
-            rest_of_path = "/".join(d.split("/")[1:])
+            rest_of_path = "/".join(template_parts[1:])
             resolved_template = "%s/%s" % (val, rest_of_path)
             
             # put the value back:
