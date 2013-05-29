@@ -187,14 +187,10 @@ class PipelineConfiguration(object):
         Returns the type of entity being used
         for the 'published file' entity
         """
+        # Initial version is hard-coded to return the TankPublishedFile entity type
+        # A future version will replace this with a type returned from a preference
+        # set when the entity migration has been run.
         return "TankPublishedFile"
-    
-    def get_published_file_type_entity_type(self):
-        """
-        Returns the type of entity being used
-        for the 'published file type' entity
-        """        
-        return "TankType"  
             
     def get_data_roots(self):
         """

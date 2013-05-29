@@ -408,6 +408,12 @@ def create_event_log_entry(tk, context, event_type, description, metadata=None):
     
     return tk.shotgun.create("EventLogEntry", data)
 
+def get_published_file_entity_type(tk):
+    """
+    Return the Published File entity type
+    currently being used in Shotgun
+    """
+    return tk.pipeline_configuration.get_published_file_entity_type()
 
 def register_publish(tk, context, path, name, version_number, **kwargs):
     """
