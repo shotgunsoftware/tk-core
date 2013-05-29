@@ -407,8 +407,6 @@ def create_event_log_entry(tk, context, event_type, description, metadata=None):
         data["user"] = sg_user
     
     return tk.shotgun.create("EventLogEntry", data)
-    
-
 
 
 def register_publish(tk, context, path, name, version_number, **kwargs):
@@ -450,12 +448,18 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
                            as dependencies. Files in this listing that do not appear as publishes
                            in shotgun will be ignored.
 
-        tank_type - a tank type in the form of a string which should match a tank type
-                    that is registered in Shotgun.
-
+        published_file_type - a tank type in the form of a string which should match a tank type
+                            that is registered in Shotgun.
+        
         update_entity_thumbnail - push thumbnail up to the attached entity
 
         update_task_thumbnail - push thumbnail up to the attached task
+        
+        created_by - override for the user that will be marked as creating the publish.  This should
+                    be in the form of shotgun entity, e.g. {"type":"HumanUser", "id":7}
+                    
+        created_at - override for the date the publish is created at.  This should be a python
+                    datetime object
 
     Future:
     - error handling
@@ -470,28 +474,33 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
     thumbnail_path = kwargs.get("thumbnail_path")
     comment = kwargs.get("comment")
     dependency_paths = kwargs.get('dependency_paths', [])
-    tank_type = kwargs.get('tank_type')
+    published_file_type = kwargs.get("published_file_type")
+    if not published_file_type:
+        # check for legacy name:
+        published_file_type = kwargs.get('tank_type')
     update_entity_thumbnail = kwargs.get("update_entity_thumbnail", False)
     update_task_thumbnail = kwargs.get("update_task_thumbnail", False)
+    created_by_user = kwargs.get("created_by")
+    created_at = kwargs.get("created_at")
 
     # convert the abstract fields to their defaults
     path = _translate_abstract_fields(tk, path)
 
-    sg_tank_type = None
-    # query shotgun for the tank_type
-    if tank_type:
-        if not isinstance(tank_type, basestring):
-            raise TankError("tank_type must be a string")
+    sg_published_file_type = None
+    # query shotgun for the published_file_type
+    if published_file_type:
+        if not isinstance(published_file_type, basestring):
+            raise TankError("published_file_type must be a string")
 
-        filters = [ ["code", "is", tank_type], ["project", "is", context.project] ]
-        sg_tank_type = tk.shotgun.find_one('TankType', filters=filters)
+        filters = [ ["code", "is", published_file_type], ["project", "is", context.project] ]
+        sg_published_file_type = tk.shotgun.find_one('TankType', filters=filters)
 
-        if not sg_tank_type:
+        if not sg_published_file_type:
             # create a tank type on the fly
-            sg_tank_type = tk.shotgun.create("TankType", {"code": tank_type, "project": context.project})
+            sg_published_file_type = tk.shotgun.create("TankType", {"code": published_file_type, "project": context.project})
 
     # create the publish
-    entity = _create_published_file(tk, context, path, name, version_number, task, comment, sg_tank_type)
+    entity = _create_published_file(tk, context, path, name, version_number, task, comment, sg_published_file_type, created_by_user, created_at)
 
     # upload thumbnails
     if thumbnail_path and os.path.exists(thumbnail_path):
@@ -556,7 +565,7 @@ def _create_dependencies(tk, entity, dependency_paths):
             tk.shotgun.create('TankDependency', data)
 
 
-def _create_published_file(tk, context, path, name, version_number, task, comment, tank_type):
+def _create_published_file(tk, context, path, name, version_number, task, comment, published_file_type, created_by_user, created_at):
     """
     Creates a publish entity in shotgun given some standard fields.
     """
@@ -575,12 +584,19 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
         "path_cache": path_cache,
     }
 
-    sg_user = login.get_current_user(tk)
-    if sg_user:
-        data["created_by"] = sg_user
+    if created_by_user:
+        data["created_by"] = created_by_user
+    else:
+        # use current user
+        sg_user = login.get_current_user(tk)
+        if sg_user:
+            data["created_by"] = sg_user
+            
+    if created_at:
+        data['created_at'] = created_at
 
-    if tank_type:
-        data['tank_type'] = tank_type
+    if published_file_type:
+        data['tank_type'] = published_file_type
 
     # now call out to hook just before publishing
     data = tk.execute_hook(constants.TANK_PUBLISH_HOOK_NAME, shotgun_data=data, context=context)
