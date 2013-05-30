@@ -229,6 +229,7 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
     if constants.PRIMARY_STORAGE_NAME in local_storage_names:
         local_storage_names.append("Tank")
 
+    published_file_entity_type = get_published_file_entity_type(tk)
     for local_storage_name in local_storage_names:
         
         local_storage = tk.shotgun.find_one("LocalStorage", [["code", "is", local_storage_name]])
@@ -257,7 +258,7 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
         sg_filters.append( ["path_cache_storage", "is", local_storage] )
 
         # organize the returned data by storage
-        published_files[local_storage_name] = tk.shotgun.find("TankPublishedFile", sg_filters, sg_fields)
+        published_files[local_storage_name] = tk.shotgun.find(published_file_entity_type, sg_filters, sg_fields)
     
     
     # PASS 2
@@ -492,18 +493,28 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
     # convert the abstract fields to their defaults
     path = _translate_abstract_fields(tk, path)
 
+    published_file_entity_type = get_published_file_entity_type(tk)
+
     sg_published_file_type = None
     # query shotgun for the published_file_type
     if published_file_type:
         if not isinstance(published_file_type, basestring):
             raise TankError("published_file_type must be a string")
 
-        filters = [ ["code", "is", published_file_type], ["project", "is", context.project] ]
-        sg_published_file_type = tk.shotgun.find_one('TankType', filters=filters)
-
-        if not sg_published_file_type:
-            # create a tank type on the fly
-            sg_published_file_type = tk.shotgun.create("TankType", {"code": published_file_type, "project": context.project})
+        if published_file_entity_type == "PublishedFile":
+            filters = [["code", "is", published_file_type]]
+            sg_published_file_type = tk.shotgun.find_one('PublishedFileType', filters=filters)
+    
+            if not sg_published_file_type:
+                # create a published file type on the fly
+                sg_published_file_type = tk.shotgun.create("PublishedFileType", {"code": published_file_type})
+        else:# == TankPublishedFile
+            filters = [ ["code", "is", published_file_type], ["project", "is", context.project] ]
+            sg_published_file_type = tk.shotgun.find_one('TankType', filters=filters)
+    
+            if not sg_published_file_type:
+                # create a tank type on the fly
+                sg_published_file_type = tk.shotgun.create("TankType", {"code": published_file_type, "project": context.project})
 
     # create the publish
     entity = _create_published_file(tk, context, path, name, version_number, task, comment, sg_published_file_type, created_by_user, created_at)
@@ -512,7 +523,7 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
     if thumbnail_path and os.path.exists(thumbnail_path):
 
         # publish
-        tk.shotgun.upload_thumbnail("TankPublishedFile", entity["id"], thumbnail_path)
+        tk.shotgun.upload_thumbnail(published_file_entity_type, entity["id"], thumbnail_path)
 
         # entity
         if update_entity_thumbnail == True and context.entity is not None:
@@ -528,7 +539,7 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
         # no thumbnail found - instead use the default one
         this_folder = os.path.abspath(os.path.dirname(__file__))
         no_thumb = os.path.join(this_folder, "no_preview.jpg")
-        tk.shotgun.upload_thumbnail("TankPublishedFile", entity.get("id"), no_thumb)
+        tk.shotgun.upload_thumbnail(published_file_entity_type, entity.get("id"), no_thumb)
 
 
     # register dependencies
@@ -560,21 +571,32 @@ def _create_dependencies(tk, entity, dependency_paths):
     Creates dependencies in shotgun from a given entity to
     a list of paths. Paths not recognized are skipped.
     """
+    published_file_entity_type = get_published_file_entity_type(tk)
+    
     publishes = find_publish(tk, dependency_paths)
     
     for dependency_path in dependency_paths:
         published_file = publishes.get(dependency_path)
         if published_file:
-            data = { "tank_published_file": entity,
-                     "dependent_tank_published_file": published_file }
 
-            tk.shotgun.create('TankDependency', data)
+            if published_file_entity_type == "PublishedFile":
+                data = { "published_file": entity,
+                         "dependent_published_file": published_file }
+    
+                tk.shotgun.create('PublishedFileDependency', data)
+            else:# == "TankPublishedFile"
+                data = { "tank_published_file": entity,
+                         "dependent_tank_published_file": published_file }
+    
+                tk.shotgun.create('TankDependency', data)
 
 
 def _create_published_file(tk, context, path, name, version_number, task, comment, published_file_type, created_by_user, created_at):
     """
     Creates a publish entity in shotgun given some standard fields.
     """
+    published_file_entity_type = get_published_file_entity_type(tk)
+    
     # Make path platform agnostic.
     _, path_cache = _calc_path_cache(tk, path)
 
@@ -602,12 +624,15 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
         data['created_at'] = created_at
 
     if published_file_type:
-        data['tank_type'] = published_file_type
+        if published_file_entity_type == "PublishedFile":
+            data["published_file_type"] = published_file_type
+        else:# == TankPublishedFile
+            data["tank_type"] = published_file_type
 
     # now call out to hook just before publishing
     data = tk.execute_hook(constants.TANK_PUBLISH_HOOK_NAME, shotgun_data=data, context=context)
 
-    return tk.shotgun.create("TankPublishedFile", data)
+    return tk.shotgun.create(published_file_entity_type, data)
 
 def _calc_path_cache(tk, path):
     """
