@@ -74,6 +74,7 @@ class PipelineConfiguration(object):
         self._project_id = None
         self._pc_id = None
         self._pc_name = None
+        self._published_file_entity_type = None
         
         
                 
@@ -187,10 +188,18 @@ class PipelineConfiguration(object):
         Returns the type of entity being used
         for the 'published file' entity
         """
-        # Initial version is hard-coded to return the TankPublishedFile entity type
-        # A future version will replace this with a type returned from a preference
-        # set when the entity migration has been run.
-        return "TankPublishedFile"
+        if self._published_file_entity_type is None:
+            # try to get it from the cache file
+            data = get_pc_disk_metadata(self._pc_root)
+            self._published_file_entity_type = data.get("published_file_entity_type")
+
+            if self._published_file_entity_type is None:
+                # fall back to legacy type:
+                self._published_file_entity_type = "TankPublishedFile"
+                
+        return self._published_file_entity_type    
+    
+    
             
     def get_data_roots(self):
         """
