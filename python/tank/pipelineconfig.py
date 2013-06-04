@@ -225,7 +225,9 @@ class PipelineConfiguration(object):
                 # so the slash direction may not be uniform.  To accomodate this
                 # we convert _all_ slashes to the current os.path.sep here
                 current_os_root = current_os_root.replace("\\", os.path.sep).replace("/", os.path.sep)
-                # join the project name to the root - note, uses '+' to be OS independent!
+                # join the project name to the root - note, uses '+' so that this behaves correctly
+                # on windows - doing os.path.join("C:", "foo") results in 'C:foo' without the
+                # back slash which is a relative path on the C: drive!
                 proj_roots[r] = os.path.join(current_os_root + os.path.sep, self._project_name)
         
         return proj_roots
