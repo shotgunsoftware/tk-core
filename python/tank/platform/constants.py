@@ -74,6 +74,9 @@ TANK_ENGINE_INIT_HOOK_NAME = "engine_init"
 # hook that is executed whenever a bundle has initialized
 TANK_BUNDLE_INIT_HOOK_NAME = "bundle_init"
 
+# hook that is executed if the path cache db folder is missing.
+PATH_CACHE_DB_FOLDER_CREATE_HOOK_NAME = "path_cache_db_folder_create"
+
 # hook to get current login
 CURRENT_LOGIN_HOOK_NAME = "get_current_login"
 
@@ -150,7 +153,7 @@ TANK_CODE_PAYLOAD_FIELD = "sg_payload"
 # app store: dummy project required when writing event data to the system
 TANK_APP_STORE_DUMMY_PROJECT = {"type": "Project", "id": 64}
 
-# Shotgun: The entity that represents Pipeline Configurations in Shotgun 
+# Shotgun: The entity that represents Pipeline Configurations in Shotgun
 PIPELINE_CONFIGURATION_ENTITY = "PipelineConfiguration"
 
 # The name of the default config

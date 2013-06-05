@@ -2,76 +2,73 @@
 Copyright (c) 2012 Shotgun Software, Inc
 ----------------------------------------------------
 
-Methods relating to the Path cache, a central repository where metadata about 
-all Tank items in the file system are kept. 
+Methods relating to the Path cache, a central repository where metadata about
+all Tank items in the file system are kept.
 
 """
 
 import sqlite3
 import os
 
-from .errors import TankError 
+from .errors import TankError
+from .platform import constants
 
 class PathCache(object):
     """
     A global cache which holds the mapping between a shotgun entity and a location on disk.
-    
+
     NOTE! This uses sqlite and the db is typically hosted on an NFS storage.
     Ensure that the code is developed with the constraints that this entails in mind.
     """
-    
+
     def __init__(self, pipeline_configuration):
         """
         Constructor
         :param pipeline_configuration: pipeline config object
         """
-        db_path = pipeline_configuration.get_path_cache_location()
         self._connection = None
-        self._init_db(db_path)
+        self._init_db(pipeline_configuration)
         self._roots = pipeline_configuration.get_data_roots()
-        
-    
-    def _init_db(self, db_path):
+
+
+    def _init_db(self, pipeline_configuration):
         """
         Sets up the database
         """
-        
+
         # first check that the cache folder exists
         # note that the cache folder is inside of the tank folder
         # so no need to attempt a recursive creation here.
+        db_path = pipeline_configuration.get_path_cache_location()
         cache_folder = os.path.dirname(db_path)
         if not os.path.exists(cache_folder):
-            old_umask = os.umask(0)
-            try:
-                os.mkdir(cache_folder, 0777)
-            finally:
-                os.umask(old_umask)            
-        
-        # make sure to set open permissions on the db file if we are the first ones 
+            pipeline_configuration.execute_hook(constants.PATH_CACHE_DB_FOLDER_CREATE_HOOK_NAME, cache_folder=cache_folder)
+
+        # make sure to set open permissions on the db file if we are the first ones
         # to create it
         db_file_created = False
         if not os.path.exists(db_path):
             db_file_created = True
-        
+
         self._connection = sqlite3.connect(db_path)
-        
+
         # this is to handle unicode properly - make sure that sqlite returns str objects
         # for TEXT fields rather than unicode.
         self._connection.text_factory = str
-        
+
         c = self._connection.cursor()
         c.executescript("""
             CREATE TABLE IF NOT EXISTS path_cache (entity_type text, entity_id integer, entity_name text, root text, path text, primary_entity integer);
-        
+
             CREATE INDEX IF NOT EXISTS path_cache_entity ON path_cache(entity_type, entity_id);
-        
+
             CREATE INDEX IF NOT EXISTS path_cache_path ON path_cache(root, path, primary_entity);
-        
+
             CREATE UNIQUE INDEX IF NOT EXISTS path_cache_all ON path_cache(entity_type, entity_id, root, path, primary_entity);
         """)
-        
+
         ret = c.execute("PRAGMA table_info(path_cache)")
-        
+
         # check for primary field
         if "primary_entity" not in [x[1] for x in ret.fetchall()]:
             c.executescript("""
@@ -80,23 +77,23 @@ class PathCache(object):
 
                 DROP INDEX path_cache_path;
                 CREATE INDEX IF NOT EXISTS path_cache_path ON path_cache(root, path, primary_entity);
-                
+
                 DROP INDEX path_cache_all;
                 CREATE UNIQUE INDEX IF NOT EXISTS path_cache_all ON path_cache(entity_type, entity_id, root, path, primary_entity);
-                
+
             """)
 
         self._connection.commit()
         c.close()
-        
+
         # and open up permissions if the file was just created
         if db_file_created:
             old_umask = os.umask(0)
             try:
                 os.chmod(db_path, 0666)
             finally:
-                os.umask(old_umask)            
-    
+                os.umask(old_umask)
+
     def _path_to_dbpath(self, relative_path):
         """
         converts a  relative path to a db path form
@@ -140,7 +137,7 @@ class PathCache(object):
         converts a dbpath to path for the local platform
 
         linux:    /foo/bar --> /studio/proj/foo/bar
-        windows:  /foo/bar --> \\studio\proj\foo\bar         
+        windows:  /foo/bar --> \\studio\proj\foo\bar
 
         :param root_path: Project root path
         :param db_path: Relative path
@@ -161,7 +158,7 @@ class PathCache(object):
         if self._connection is not None:
             self._connection.close()
             self._connection = None
-        
+
     def delete_path_tree(self, path):
         """
         Deletes all records that are associated with the given path
@@ -174,14 +171,14 @@ class PathCache(object):
         c.execute(query, (root_name,) )
         self._connection.commit()
         c.close()
-        
+
 
     def add_mapping(self, entity_type, entity_id, entity_name, path, primary=True):
         """
         Adds an association to the database. If the association already exists, it will
         do nothing, just return.
-        
-        If there is another association which conflicts with the association that is 
+
+        If there is another association which conflicts with the association that is
         to be inserted, a TankError is raised.
 
         :param entity_type: a shotgun entity type
@@ -190,27 +187,27 @@ class PathCache(object):
         :param entity_name: a shotgun entity name
         :param path: a path on disk representing the entity.
         """
-        
+
         if primary:
-            # the primary entity must be unique: path/id/type 
+            # the primary entity must be unique: path/id/type
             # see if there are any records for this path
             # note that get_entity does not return secondary entities
             curr_entity = self.get_entity(path)
             new_entity = {"id": entity_id, "type": entity_type, "name": entity_name}
-            
+
             if curr_entity is not None:
                 # this path is already registered. Ensure it is connected to
                 # our entity! Note! We are only comparing against the type and the id
                 # not against the name. It should be perfectly valid to rename something
                 # in shotgun and if folders are then recreated for that item, nothing happens
-                # because there is already a folder which repreents that item. (although now with 
+                # because there is already a folder which repreents that item. (although now with
                 # an incorrect name)
                 if curr_entity["type"] != entity_type or curr_entity["id"] != entity_id:
-    
+
                     # format entities nicely for error message
                     curr_nice_name = "%s %s (id %s)" % (curr_entity["type"], curr_entity["name"], curr_entity["id"])
                     new_nice_name = "%s %s (id %s)" % (new_entity["type"], new_entity["name"], new_entity["id"])
-    
+
                     raise TankError("The path '%s' is already associated with Shotgun "
                                     "%s. You are trying to associate the same "
                                     "path with %s. This typically happens "
@@ -219,12 +216,12 @@ class PathCache(object):
                                     "you have made big changes to the folder configuration. "
                                     "Please contact support on tanksupport@shotgunsoftware.com "
                                     "if you need help or advice!" % (path, curr_nice_name, new_nice_name ))
-                    
+
                 else:
                     # the entry that exists in the db matches what we are trying to insert
                     # so skip it
                     return
-                
+
         else:
             # secondary entity
             # in this case, it is okay with more than one record for a path
@@ -238,9 +235,9 @@ class PathCache(object):
         c = self._connection.cursor()
         root_name, relative_path = self._seperate_root(path)
         db_path = self._path_to_dbpath(relative_path)
-        c.execute("INSERT INTO path_cache VALUES(?, ?, ?, ?, ?, ?)", (entity_type, 
-                                                                entity_id, 
-                                                                entity_name, 
+        c.execute("INSERT INTO path_cache VALUES(?, ?, ?, ?, ?, ?)", (entity_type,
+                                                                entity_id,
+                                                                entity_name,
                                                                 root_name,
                                                                 db_path,
                                                                 primary))
@@ -265,29 +262,29 @@ class PathCache(object):
         for row in res:
             root_name = row[0]
             relative_path = row[1]
-            
+
             root_path = self._roots.get(root_name)
             if not root_path:
                 # The root name doesn't match a recognized name, so skip this entry
                 continue
-            
+
             # assemble path
             path_str = self._dbpath_to_path(root_path, relative_path)
             paths.append(path_str)
-        
+
         c.close()
         return paths
 
     def get_entity(self, path):
         """
         Returns an entity given a path.
-        
+
         If this path is made up of nested entities (e.g. has a folder creation expression
-        on the form Shot: "{code}_{sg_sequence.Sequence.code}"), the primary entity (in 
+        on the form Shot: "{code}_{sg_sequence.Sequence.code}"), the primary entity (in
         this case the Shot) will be returned.
 
         :param path: a path on disk
-        :returns: Shotgun entity dict, e.g. {"type": "Shot", "name": "xxx", "id": 123} 
+        :returns: Shotgun entity dict, e.g. {"type": "Shot", "name": "xxx", "id": 123}
                   or None if not found
         """
         c = self._connection.cursor()
@@ -302,7 +299,7 @@ class PathCache(object):
         res = c.execute("SELECT entity_type, entity_id, entity_name FROM path_cache WHERE path = ? AND root = ? and primary_entity = 1", (db_path, root_path))
         data = list(res)
         c.close()
-        
+
         if len(data) > 1:
             # never supposed to happen!
             raise TankError("More than one entry in path database for %s!" % path)
@@ -317,9 +314,9 @@ class PathCache(object):
     def get_secondary_entities(self, path):
         """
         Returns all the secondary entities for a path.
-        
+
         :param path: a path on disk
-        :returns: list of shotgun entity dicts, e.g. [{"type": "Shot", "name": "xxx", "id": 123}] 
+        :returns: list of shotgun entity dicts, e.g. [{"type": "Shot", "name": "xxx", "id": 123}]
                   or [] if no entities associated.
         """
         c = self._connection.cursor()
@@ -336,11 +333,11 @@ class PathCache(object):
         c.close()
 
         matches = []
-        for d in data:        
+        for d in data:
             # convert to string, not unicode!
             type_str = str(d[0])
             name_str = str(d[2])
             matches.append( {"type": type_str, "id": d[1], "name": name_str } )
 
         return matches
-    
+
