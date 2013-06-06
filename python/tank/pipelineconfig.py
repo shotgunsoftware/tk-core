@@ -201,8 +201,6 @@ class PipelineConfiguration(object):
 
         return self._published_file_entity_type
 
-
-
     def get_data_roots(self):
         """
         Returns a dictionary of all the data roots available for this PC,
@@ -222,18 +220,53 @@ class PipelineConfiguration(object):
             if current_os_root is None:
                 proj_roots[r] = None
             else:
-
-                # Note, these paths may have been written from a different platform
-                # so the slash direction may not be uniform.  To accomodate this
-                # we convert _all_ slashes to the current os.path.sep here
-                current_os_root = current_os_root.replace("\\", os.path.sep).replace("/", os.path.sep)
-                # join the project name to the root - note, uses '+' so that this behaves correctly
-                # on windows - doing os.path.join("C:", "foo") results in 'C:foo' without the
-                # back slash which is a relative path on the C: drive!
-                proj_roots[r] = os.path.join(current_os_root + os.path.sep, self._project_name)
+                proj_roots[r] = self.__append_project_name_to_root(current_os_root)
 
         return proj_roots
 
+    def get_all_data_roots(self):
+        """
+        Returns a dictionary containing dictionaries of all the data roots
+        available for this PC, keyed by their storage name and {os}_path
+
+        Returns for example:
+
+        {
+          "primary": {
+                        "linux_path":"/studio/my_project",
+                        "mac_path":"/studio/my_project",
+                        "windows_path":"P:/studio/my_project"
+          "textures": {
+                        "linux_path":"/textures/my_project",
+                        "mac_path":"/textures/my_project",
+                        "windows_path":"P:/textures/my_project"
+                      }
+        }
+
+        """
+
+        # now pick current os and append project root
+        proj_roots = {}
+        for r in self._roots:
+            proj_roots[r] = {}
+            for p in self._roots[r]:
+                current_root = self._roots[r][p]
+                if current_root is None:
+                    proj_roots[r][p] = None
+                else:
+                    proj_roots[r][p] = self.__append_project_name_to_root(current_root)
+
+        return proj_roots
+
+    def __append_project_name_to_root(self, root_value):
+        # Note, these paths may have been written from a different platform
+        # so the slash direction may not be uniform.  To accomodate this
+        # we convert _all_ slashes to the current os.path.sep here
+        root_value = root_value.replace("\\", os.path.sep).replace("/", os.path.sep)
+        # join the project name to the root - note, uses '+' so that this behaves correctly
+        # on windows - doing os.path.join("C:", "foo") results in 'C:foo' without the
+        # back slash which is a relative path on the C: drive!
+        return os.path.join(root_value + os.path.sep, self._project_name)
 
     def get_primary_data_root(self):
         """
