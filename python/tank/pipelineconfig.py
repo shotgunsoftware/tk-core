@@ -185,6 +185,30 @@ class PipelineConfiguration(object):
 
         return self._project_id
 
+    def get_project_name(self):
+        """
+        Returns the project name for the project associated with this PC.
+        May connect to Shotgun to retrieve this.
+        """
+        if self._project_name is None:
+            # try to get it from the cache file
+            data = get_pc_disk_metadata(self._pc_root)
+            self._project_name = data.get("project_name")
+
+            if self._project_name is None:
+                # not in metadata file on disk. Fall back on SG lookup
+                self._load_metadata_from_sg()
+
+        return self._project_name
+
+    def set_project_name(self, project_name):
+        """
+        Sets the internal project_name.  This is temporary and only available
+        while this instance is in memory.  Will not affect the metadata on
+        disk nor in Shotgun.
+        """
+        self._project_name = project_name
+
     def get_published_file_entity_type(self):
         """
         Returns the type of entity being used
