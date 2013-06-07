@@ -19,24 +19,24 @@ from . import login
 def __get_api_core_config_location():
     """
     Given the location of the code, find the core config location.
-    
+
     Walk from the location of this file on disk to the config area.
     this operation is guaranteed to work on any valid tank installation
-    
+
     Pipeline Configuration
        |
        |- Install
-       |     \- Core 
+       |     \- Core
        |          \- Python
        |                \- tank
        |
        \- Config
              \- Core
     """
-    
+
     core_api_root = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "..", "..", ".."))
     core_cfg = os.path.join(core_api_root, "config", "core")
-    
+
     if not os.path.exists(core_cfg):
         if "TANK_CORE_LOCATION_OVERRIDE" in os.environ:
             core_cfg = os.environ["TANK_CORE_LOCATION_OVERRIDE"]
@@ -46,27 +46,52 @@ def __get_api_core_config_location():
                             "This can happen if you try to move or symlink the Tank API. The "
                             "Tank API is currently picked up from %s which is an "
                             "invalid location." % full_path_to_file)
-    
+
     return core_cfg
-    
+
 def __get_sg_config():
     """
     Returns the sg config yml file for this install
     """
     core_cfg = __get_api_core_config_location()
     return os.path.join(core_cfg, "shotgun.yml")
-    
+
 def __get_app_store_config():
     """
     Returns the sg config yml file for this install
     """
     core_cfg = __get_api_core_config_location()
     return os.path.join(core_cfg, "app_store.yml")
-       
-   
-def __create_sg_connection(shotgun_cfg_path, evaluate_script_user):
+
+
+def __create_sg_connection(shotgun_cfg_path, evaluate_script_user, user="default"):
     """
     Creates a standard tank shotgun connection.
+
+    The shotgun.yml may look like:
+
+    host: str
+    api_script: str
+    api_key: str
+    http_proxy: str
+
+    or may now look like:
+
+    <User>:
+        host: str
+        api_script: str
+        api_key: str
+        http_proxy: str
+
+    <User>:
+        host: str
+        api_script: str
+        api_key: str
+        http_proxy: str
+
+    The optional user param refers to the <User> in the shotgun.yml.
+    If a user is not found the old style is attempted.
+
     """
 
     if not os.path.exists(shotgun_cfg_path):
@@ -82,6 +107,11 @@ def __create_sg_connection(shotgun_cfg_path, evaluate_script_user):
     except Exception, error:
         raise TankError("Cannot load config file '%s'. Error: %s" % (shotgun_cfg_path, error))
 
+    # try to find the user option first.  try default in the case the passed
+    # user isn't reachable.  Do not throw an error if missing for backwards
+    # compatibility.
+    config_data = config_data.get(user, config_data.get("default", config_data))
+
     # validate the config file
     if "host" not in config_data:
         raise TankError("Missing required field 'host' in config '%s'" % shotgun_cfg_path)
@@ -89,16 +119,12 @@ def __create_sg_connection(shotgun_cfg_path, evaluate_script_user):
         raise TankError("Missing required field 'api_script' in config '%s'" % shotgun_cfg_path)
     if "api_key" not in config_data:
         raise TankError("Missing required field 'api_key' in config '%s'" % shotgun_cfg_path)
-    if "http_proxy" not in config_data:
-        http_proxy = None
-    else:
-        http_proxy = config_data["http_proxy"]
 
     # create API
     sg = Shotgun(config_data["host"],
                  config_data["api_script"],
                  config_data["api_key"],
-                 http_proxy=http_proxy)
+                 http_proxy=config_data.get("http_proxy", None))
 
     script_user = None
 
@@ -114,11 +140,15 @@ def __create_sg_connection(shotgun_cfg_path, evaluate_script_user):
     return (sg, script_user)
 
 
-def create_sg_connection():
+def create_sg_connection(user="default"):
     """
     Creates a standard tank shotgun connection.
+    User refers to the shotgun user specified in the config shotgun.yml file.
+
+    :param user: Optional shotgun config user to use when
+                 connecting to shotgun.
     """
-    api_handle, _ = __create_sg_connection(__get_sg_config(), evaluate_script_user=False)
+    api_handle, _ = __create_sg_connection(__get_sg_config(), evaluate_script_user=False, user=user)
     return api_handle
 
 def create_sg_app_store_connection():
@@ -139,31 +169,31 @@ g_entity_display_name_lookup = None
 def get_entity_type_display_name(tk, entity_type_code):
     """
     Returns the display name for an entity type given its type name.
-    For example, if a custom entity is named "Workspace" in the 
-    Shotgun preferences, but is addressed as CustomEntity03 in the 
-    Shotgun API, this method will resolve 
+    For example, if a custom entity is named "Workspace" in the
+    Shotgun preferences, but is addressed as CustomEntity03 in the
+    Shotgun API, this method will resolve
     CustomEntity03 -> Workspace.
-    
+
     :param tk: tank handle
     :param entity_type code: API entity type name
     :returns: display name
     """
-    
+
     global g_entity_display_name_lookup
-    
-    if g_entity_display_name_lookup is None:    
+
+    if g_entity_display_name_lookup is None:
         # now resolve the entity types into display names using the schema_entity_read method.
         g_entity_display_name_lookup = tk.shotgun.schema_entity_read()
         # returns a dictionary on the following form:
         # { 'Booking': {'name': {'editable': False, 'value': 'Booking'}}, ... }
 
     display_name = entity_type_code
-    try: 
+    try:
         if entity_type_code in g_entity_display_name_lookup:
             display_name = g_entity_display_name_lookup[entity_type_code]["name"]["value"]
     except:
         pass
-    
+
     return display_name
 
 def find_publish(tk, list_of_paths, filters=None, fields=None):
@@ -179,7 +209,7 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
 
     By default, the shotgun id is returned for each successfully identified path.
     If you want to retrieve additional fields, you can specify these using
-    the fields parameter.    
+    the fields parameter.
 
     The method will return a dictionary, keyed by path. The value will be
     a standard shotgun query result dictionary, for example
@@ -204,7 +234,7 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
     # per path cache
     # {<storage name>: { path_cache: [full_path, full_path]}}
     storages_paths = _group_by_storage(tk, list_of_paths)
-    
+
     filters = filters or []
     fields = fields or []
 
@@ -219,8 +249,8 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
     # because the file locations are split for each publish in shotgun into two fields
     # - the path_cache which is a storage relative, platform agnostic path
     # - a link to a storage entity
-    # ...we need to group the paths per storage and then for each storage do a 
-    # shotgun query on the form find all records where path_cache, in, /foo, /bar, /baz etc. 
+    # ...we need to group the paths per storage and then for each storage do a
+    # shotgun query on the form find all records where path_cache, in, /foo, /bar, /baz etc.
     published_files = {}
 
     # get a list of all storages that we should look up.
@@ -231,7 +261,7 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
 
     published_file_entity_type = get_published_file_entity_type(tk)
     for local_storage_name in local_storage_names:
-        
+
         local_storage = tk.shotgun.find_one("LocalStorage", [["code", "is", local_storage_name]])
         if not local_storage:
             # fail gracefully here - it may be a storage which has been deleted
@@ -241,7 +271,7 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
         # make copy
         sg_filters = filters[:]
         path_cache_filter = ["path_cache", "in"]
-        
+
         # now get the list of normalized files for this storage
         # 0.12 backwards compatibility: if the storage name is Tank,
         # this is the same as the primary storage.
@@ -249,7 +279,7 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
             normalized_paths = storages_paths[constants.PRIMARY_STORAGE_NAME].keys()
         else:
             normalized_paths = storages_paths[local_storage_name].keys()
-                
+
         # add all of those to the query filter
         for path_cache_path in normalized_paths:
             path_cache_filter.append(path_cache_path)
@@ -259,8 +289,8 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
 
         # organize the returned data by storage
         published_files[local_storage_name] = tk.shotgun.find(published_file_entity_type, sg_filters, sg_fields)
-    
-    
+
+
     # PASS 2
     # take the published_files structure, containing the shotgun data
     # grouped by storage, and turn that into the final data structure
@@ -274,19 +304,19 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
             normalized_path_lookup_dict = storages_paths[constants.PRIMARY_STORAGE_NAME]
         else:
             normalized_path_lookup_dict = storages_paths[local_storage_name]
-        
+
         # now go through all publish entities found for current storage
         for publish in publishes:
-            
+
             path_cache = publish["path_cache"]
-            
+
             # get the list of real paths matching this entry
             for full_path in normalized_path_lookup_dict.get(path_cache, []):
-                
+
                 if full_path not in matches:
                     # this path not yet in the list of matching publish entity data
                     matches[full_path] = publish
-                    
+
                 else:
                     # found a match! This is most likely because the same file
                     # has been published more than once. In this case, we return
@@ -311,43 +341,43 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
         # remove fields
         for f in delete_fields:
             del matches[path][f]
-    
+
     return matches
 
 
 def _group_by_storage(tk, list_of_paths):
     """
-    Given a list of paths on disk, groups them into a data structure suitable for 
+    Given a list of paths on disk, groups them into a data structure suitable for
     shotgun. In shotgun, the path_cache field contains an abstracted representation
     of the publish field, with a normalized path and the storage chopped off.
-    
+
     This method aims to process the paths to make them useful for later shotgun processing.
-    
+
     Returns a dictionary, keyed by storage name. Each storage in the dict contains another dict,
-    with an item for each path_cache entry. 
-    
-    
+    with an item for each path_cache entry.
+
+
     Examples:
-    
+
     ['/studio/project_code/foo/bar.0003.exr', '/secondary_storage/foo/bar']
-    
-    {'Tank': 
+
+    {'Tank':
         {'project_code/foo/bar.%04d.exr': ['/studio/project_code/foo/bar.0003.exr'] }
-     
-     'Secondary_Storage': 
+
+     'Secondary_Storage':
         {'foo/bar': ['/secondary_storage/foo/bar'] }
     }
-    
-    
+
+
     ['c:\studio\project_code\foo\bar', '/secondary_storage/foo/bar']
-    
-    {'Tank': 
+
+    {'Tank':
         {'project_code/foo/bar': ['c:\studio\project_code\foo\bar'] }
-     
-     'Secondary_Storage': 
+
+     'Secondary_Storage':
         {'foo/bar': ['/secondary_storage/foo/bar'] }
     }
-    
+
     """
     storages_paths = {}
 
@@ -367,7 +397,7 @@ def _group_by_storage(tk, list_of_paths):
         paths.append(path)
         storage_info[dep_path_cache] = paths
         storages_paths[root_name] = storage_info
-        
+
     return storages_paths
 
 
@@ -375,27 +405,27 @@ def create_event_log_entry(tk, context, event_type, description, metadata=None):
     """
     Creates an event log entry inside of Shotgun.
     Event log entries can be handy if you want to track a process or a sequence of events.
-    
+
     :param tk: Tank API instance
-    
+
     :param context: Context which will be used to associate the event log entry
-    
+
     :param event_type: String which defines the event type. The Shotgun standard suggests
                        that this should be on the form Company_Item_Action. Examples include:
-                       
+
                        Shotgun_Asset_New
                        Shotgun_Asset_Change
                        Shotgun_User_Login
-                       
+
     :param description: A verbose description explaining the meaning of this event.
-    
+
     :param metadata: A dictionary of metadata information which will be attached to the event
                      log record in Shotgun. This dictionary may only contain simple data types
                      such as ints, strings etc.
-    
+
     :returns: The newly created shotgun record
     """
-    
+
     data = {}
     data["description"] = description
     data["event_type"] = event_type
@@ -406,7 +436,7 @@ def create_event_log_entry(tk, context, event_type, description, metadata=None):
     sg_user = login.get_current_user(tk)
     if sg_user:
         data["user"] = sg_user
-    
+
     return tk.shotgun.create("EventLogEntry", data)
 
 def get_published_file_entity_type(tk):
@@ -457,14 +487,14 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
 
         published_file_type - a tank type in the form of a string which should match a tank type
                             that is registered in Shotgun.
-        
+
         update_entity_thumbnail - push thumbnail up to the attached entity
 
         update_task_thumbnail - push thumbnail up to the attached task
-        
+
         created_by - override for the user that will be marked as creating the publish.  This should
                     be in the form of shotgun entity, e.g. {"type":"HumanUser", "id":7}
-                    
+
         created_at - override for the date the publish is created at.  This should be a python
                     datetime object
 
@@ -504,14 +534,14 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
         if published_file_entity_type == "PublishedFile":
             filters = [["code", "is", published_file_type]]
             sg_published_file_type = tk.shotgun.find_one('PublishedFileType', filters=filters)
-    
+
             if not sg_published_file_type:
                 # create a published file type on the fly
                 sg_published_file_type = tk.shotgun.create("PublishedFileType", {"code": published_file_type})
         else:# == TankPublishedFile
             filters = [ ["code", "is", published_file_type], ["project", "is", context.project] ]
             sg_published_file_type = tk.shotgun.find_one('TankType', filters=filters)
-    
+
             if not sg_published_file_type:
                 # create a tank type on the fly
                 sg_published_file_type = tk.shotgun.create("TankType", {"code": published_file_type, "project": context.project})
@@ -534,7 +564,7 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
         # task
         if update_task_thumbnail == True and task is not None:
             tk.shotgun.upload_thumbnail("Task", task["id"], thumbnail_path)
-            
+
     else:
         # no thumbnail found - instead use the default one
         this_folder = os.path.abspath(os.path.dirname(__file__))
@@ -572,9 +602,9 @@ def _create_dependencies(tk, entity, dependency_paths):
     a list of paths. Paths not recognized are skipped.
     """
     published_file_entity_type = get_published_file_entity_type(tk)
-    
+
     publishes = find_publish(tk, dependency_paths)
-    
+
     for dependency_path in dependency_paths:
         published_file = publishes.get(dependency_path)
         if published_file:
@@ -582,12 +612,12 @@ def _create_dependencies(tk, entity, dependency_paths):
             if published_file_entity_type == "PublishedFile":
                 data = { "published_file": entity,
                          "dependent_published_file": published_file }
-    
+
                 tk.shotgun.create('PublishedFileDependency', data)
             else:# == "TankPublishedFile"
                 data = { "tank_published_file": entity,
                          "dependent_tank_published_file": published_file }
-    
+
                 tk.shotgun.create('TankDependency', data)
 
 
@@ -596,7 +626,7 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
     Creates a publish entity in shotgun given some standard fields.
     """
     published_file_entity_type = get_published_file_entity_type(tk)
-    
+
     # Make path platform agnostic.
     _, path_cache = _calc_path_cache(tk, path)
 
@@ -619,7 +649,7 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
         sg_user = login.get_current_user(tk)
         if sg_user:
             data["created_by"] = sg_user
-            
+
     if created_at:
         data['created_at'] = created_at
 
