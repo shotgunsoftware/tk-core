@@ -104,19 +104,19 @@ class CmdlineSetupInteraction(object):
                 pp = primary_local_storage.get("mac_path")
                 if pp.endswith("/"):
                     pp = pp[:-1] 
-                location["darwin"] = "%s/%s/tank" % (pp, project_disk_name)
+                location["darwin"] = "%s/%s/shotgun" % (pp, project_disk_name)
                 
             if primary_local_storage.get("windows_path"):
                 pp = primary_local_storage.get("windows_path")
                 if pp.endswith("\\"):
                     pp = pp[:-1] 
-                location["win32"] = "%s\\%s\\tank" % (pp, project_disk_name)
+                location["win32"] = "%s\\%s\\shotgun" % (pp, project_disk_name)
                 
             if primary_local_storage.get("linux_path"):
                 pp = primary_local_storage.get("linux_path")
                 if pp.endswith("/"):
                     pp = pp[:-1] 
-                location["linux2"] = "%s/%s/tank" % (pp, project_disk_name)
+                location["linux2"] = "%s/%s/shotgun" % (pp, project_disk_name)
             
         else:
             # assume new style setup - in this case we need to go figure out the different
