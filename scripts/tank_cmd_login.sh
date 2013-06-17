@@ -17,16 +17,25 @@
 
 core_install_root="$1/install/core"
 
-# now add tank to the pythonpath
-export PYTHONPATH="$core_install_root/python":${PYTHONPATH}
-
 # now figure out which interpreter to use for Tank
 # this is stored in a config file
 curr_platform=`uname`
-if [[ "${curr_platform}" == MINGW32_NT* ]] || [[ "${curr_platform}" ==  CYGWIN_NT* ]];
+if [[ "$curr_platform" == MINGW32_NT* ]];
 then
-    curr_platform="Windows"
+	curr_platform="Windows"
+	core_install_root=`sh -c "(cd $1 2</dev/null && pwd -W) || echo $1 | sed 's/\\//\\\\/g;s/^\\\\\([a-z]\)\\\\/\\1:\\\\/'"`
+	core_install_root="${core_install_root}/install/core"
+	export PYTHONPATH="$core_install_root/python;"${PYTHONPATH}
+elif [[ "$curr_platform" ==  CYGWIN_NT* ]];
+then
+	curr_platform="Windows"
+	core_install_root="$( cygpath -lw $1 )/install/core"
+	export PYTHONPATH="$core_install_root/python;"${PYTHONPATH}
+else
+	core_install_root="$1/install/core"
+	export PYTHONPATH="$core_install_root/python":${PYTHONPATH}
 fi
+
 interpreter_config_file="$1/config/core/interpreter_${curr_platform}.cfg"
 
 if [ ! -f "$interpreter_config_file" ];

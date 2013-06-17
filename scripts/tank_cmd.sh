@@ -19,7 +19,8 @@ curr_platform=`uname`
 if [[ "$curr_platform" == MINGW32_NT* ]];
 then
 	curr_platform="Windows"
-	core_install_root="$( pwd -W )/install/core"
+	core_install_root=`sh -c "(cd $1 2</dev/null && pwd -W) || echo $1 | sed 's/\\//\\\\/g;s/^\\\\\([a-z]\)\\\\/\\1:\\\\/'"`
+	core_install_root="${core_install_root}/install/core"
 	export PYTHONPATH="$core_install_root/python;"${PYTHONPATH}
 elif [[ "$curr_platform" ==  CYGWIN_NT* ]];
 then
