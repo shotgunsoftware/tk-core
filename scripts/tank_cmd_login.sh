@@ -23,6 +23,10 @@ export PYTHONPATH="$core_install_root/python":${PYTHONPATH}
 # now figure out which interpreter to use for Tank
 # this is stored in a config file
 curr_platform=`uname`
+if [ "$curr_platform" == MINGW32_NT* ] || [ "$curr_platform" ==  CYGWIN_NT* ];
+then
+    curr_platform="Windows"
+fi
 interpreter_config_file="$1/config/core/interpreter_${curr_platform}.cfg"
 
 if [ ! -f "$interpreter_config_file" ];
