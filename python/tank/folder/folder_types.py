@@ -1221,30 +1221,45 @@ class ShotgunTask(Entity):
         
         # look up the tree for the first parent of type Entity
         # refer to this in our query expression
-        sg_parent = parent
+        sg_parent_entity = None
+        sg_parent_step = None
+        curr_parent = parent
+        
         while True:
-            if isinstance(sg_parent, Entity):            
-                break
-            elif sg_parent is None:
+            if curr_parent is None:
                 raise TankError("Error in configuration %s - node must be parented under a shotgun entity." % full_path)
-            else:
-                sg_parent = sg_parent.get_parent()
             
+            if isinstance(curr_parent, Entity) and not isinstance(curr_parent, ShotgunStep):
+                # found an entity! Job done!
+                sg_parent_entity = curr_parent
+                break
+            
+            elif isinstance(curr_parent, ShotgunStep):
+                sg_parent_step = curr_parent
+            
+            curr_parent = curr_parent.get_parent()
+        
         # get the parent name for the entity expression, e.g. $shot
-        parent_name = os.path.basename(sg_parent.get_path())
         # create a token object to represent the parent link
-        parent_expr_token = FilterExpressionToken(parent_name, sg_parent)
-        # now create the shotgun filter query for this
+        parent_entity_name = os.path.basename(sg_parent_entity.get_path())
+        parent_entity_expr_token = FilterExpressionToken(parent_entity_name, sg_parent_entity)
+        
+        # now create the base shotgun filter query for this
         filters = {
             "logical_operator": "and",
-            "conditions": [{"path": "entity", 
-                            "relation": "is", 
-                            "values": [parent_expr_token] }
-                           ]
+            "conditions": [{"path": "entity", "relation": "is", "values": [parent_entity_expr_token] }]
         }
         
+        # check if there is a step filter defined above this task node in the hierarchy
+        if sg_parent_step:
+            # this task has a step above it in the hierarchy
+            # make sure we include that in the filter
+            parent_step_name = os.path.basename(sg_parent_step.get_path())
+            parent_step_expr_token = FilterExpressionToken(parent_step_name, sg_parent_step)
+            filters["conditions"].append({"path": "step", "relation": "is", "values": [parent_step_expr_token]})
+        
         # if the create_with_parent setting is True, it means that if we create folders for a 
-        # shot, we want all the steps to be created at the same time.
+        # shot, we want all the tasks to be created at the same time.
         # however, if we have create_with_client set to False, we only want to create 
         # this node if we are creating folders for a task.
         if create_with_parent != True: 
