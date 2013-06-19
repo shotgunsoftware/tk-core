@@ -281,13 +281,13 @@ class TankBundle(object):
         
         settings_type = schema.get("type")
         
-        if isinstance(value, list):
+        if settings_type == "list":
             processed_val = []
             value_schema = schema["values"]
             for x in value:
                 processed_val.append(self.__post_process_settings_r(key, x, value_schema))
         
-        elif isinstance(value, dict):
+        elif settings_type == "dict":
             items = schema.get("items", {})
             # note - we assign the original values here because we 
             processed_val = value
