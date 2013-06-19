@@ -314,7 +314,7 @@ class Engine(TankBundle):
         Implemented in deriving class - however we provide a basic implementation here.
         """        
         # fall back to std out error reporting if deriving class does not implement this.
-        sys.stderr("Error: %s\n" % msg)
+        sys.stderr.write("Error: %s\n" % msg)
     
     def log_exception(self, msg):
         """
