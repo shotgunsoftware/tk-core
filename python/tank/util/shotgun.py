@@ -15,6 +15,7 @@ from ..errors import TankError
 from ..platform import constants
 from . import login
 
+g_app_store_connection = None
 
 def __get_api_core_config_location():
     """
@@ -164,8 +165,13 @@ def create_sg_app_store_connection():
     user that was used to connect to the app store,
     as a standard sg entity dictionary.
     """
-    (api_handle, script_user) = __create_sg_connection(__get_app_store_config(), evaluate_script_user=True)
-    return (api_handle, script_user)
+    global g_app_store_connection
+    
+    if g_app_store_connection is None:
+        g_app_store_connection = __create_sg_connection(__get_app_store_config(), evaluate_script_user=True)
+    
+    return g_app_store_connection
+
 
 g_entity_display_name_lookup = None
 
