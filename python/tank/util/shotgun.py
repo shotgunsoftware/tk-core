@@ -101,18 +101,21 @@ def __create_sg_connection(shotgun_cfg_path, evaluate_script_user, user="default
     try:
         open_file = open(shotgun_cfg_path)
         try:
-            config_data = yaml.load(open_file)
+            file_data = yaml.load(open_file)
         finally:
             open_file.close()
     except Exception, error:
         raise TankError("Cannot load config file '%s'. Error: %s" % (shotgun_cfg_path, error))
 
-    # try to find the user option first.  try default in the case the passed
-    # user isn't reachable.  Do not throw an error if missing for backwards
-    # compatibility.
-    config_data = config_data.get(user, config_data.get("default", config_data))
-
-    # validate the config file
+    if user in file_data:
+        # new config format!
+        # we have explicit users defined!
+        config_data = file_data[user]
+    else:
+        # old format - not grouped by user
+        config_data = file_data
+        
+    # validate the config data to ensure all fields are present
     if "host" not in config_data:
         raise TankError("Missing required field 'host' in config '%s'" % shotgun_cfg_path)
     if "api_script" not in config_data:
