@@ -535,7 +535,7 @@ class TankConfigInstaller(object):
             raise TankError("Don't know how to handle config '%s'" % cfg_string)
     
     
-    def validate_roots(self):
+    def validate_roots(self, check_storage_path_exists):
         """
         Validate that the roots exist in shotgun. 
         Returns the root paths from shotgun for each storage.
@@ -583,7 +583,7 @@ class TankConfigInstaller(object):
                             self._log.error("but it does not have a path configured for the current os platform! ")
                             self._log.error("Please go to the site preferences in shotgun and adjust.")
 
-                        elif not os.path.exists(local_storage_path):
+                        elif check_storage_path_exists and not os.path.exists(local_storage_path):
                             problems = True
                             self._log.error("")
                             self._log.error("=== File storage path does not exist! ===")
@@ -775,14 +775,14 @@ def _install_environment(env_obj, log):
 ########################################################################################
 # main methods and entry points
 
-def interactive_setup(log, install_root):
+def interactive_setup(log, install_root, check_storage_path_exists):
     old_umask = os.umask(0)
     try:
-        return _interactive_setup(log, install_root)
+        return _interactive_setup(log, install_root, check_storage_path_exists)
     finally:
         os.umask(old_umask)
     
-def _interactive_setup(log, install_root):
+def _interactive_setup(log, install_root, check_storage_path_exists):
     """
     interactive setup which will ask questions via the console.
     """
@@ -822,7 +822,7 @@ def _interactive_setup(log, install_root):
     cfg_installer.check_manifest(sg_version)
     
     # now look at the roots yml in the config
-    resolved_storages = cfg_installer.validate_roots()
+    resolved_storages = cfg_installer.validate_roots(check_storage_path_exists)
 
     # ask which project to operate on
     (project_id, project_name) = cmdline_ui.get_project()

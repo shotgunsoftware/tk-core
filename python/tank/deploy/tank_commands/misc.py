@@ -27,9 +27,22 @@ class SetupProjectAction(Action):
                         "Configuration")
         
     def run(self, log, args):
-        if len(args) != 0:
-            raise TankError("This command takes no arguments!")
-        setup_project.interactive_setup(log, self.code_install_root)
+        if len(args) not in [0, 1]:
+            raise TankError("Syntax: setup_project [--no-storage-check]")
+        
+        check_storage_path_exists = True
+        
+        if len(args) == 1 and args[0] == "--no-storage-check":
+            check_storage_path_exists = False
+            log.info("no-storage-check mode: Will not verify that the storage exists. This "
+                     "can be useful if the storage is pointing directly at a server via a "
+                     "Windows UNC mapping.")
+            
+        elif len(args) == 1 and args[0] != "--no-storage-check":
+            raise TankError("Syntax: setup_project [--no-storage-check]")
+            
+            check_storage_path_exists = False
+        setup_project.interactive_setup(log, self.code_install_root, check_storage_path_exists)
         
         
 class CoreUpgradeAction(Action):
