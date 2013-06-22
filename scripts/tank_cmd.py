@@ -761,7 +761,7 @@ def run_engine_cmd(log, install_root, pipeline_config_root, context_items, comma
 
     log.info("")
     log.info("Welcome to Tank!")
-
+    log.info("For documentation, see https://tank.shotgunsoftware.com/forums")
     # Now create a tk instance and a context if possible
 
     if len(context_items) == 1:
