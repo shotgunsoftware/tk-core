@@ -217,7 +217,7 @@ class PathCache(object):
                                     "when shots have been relinked to new sequences, if you are "
                                     "trying to create two shots with the same name or if "
                                     "you have made big changes to the folder configuration. "
-                                    "Please contact support on tanksupport@shotgunsoftware.com "
+                                    "Please contact support on sgtksupport@shotgunsoftware.com "
                                     "if you need help or advice!" % (path, curr_nice_name, new_nice_name ))
                     
                 else:
