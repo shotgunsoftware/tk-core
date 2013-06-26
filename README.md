@@ -1,6 +1,6 @@
-Welcome to the Tank Core API on GitHub
+Welcome to the Sgtk Core API on GitHub
 ======================================================
 
-This repository represents the Tank Core API.
+This repository represents the Sgtk Core API.
 
-Click here to go to the Tank Core API Wiki Documentation: https://github.com/shotgunsoftware/tk-core/wiki
+Click here to go to the Sgtk Core API Wiki Documentation: https://github.com/shotgunsoftware/tk-core/wiki
