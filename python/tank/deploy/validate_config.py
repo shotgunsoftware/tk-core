@@ -84,7 +84,7 @@ def validate_configuration(log, tk):
     
     log.info("")
     log.info("")
-    log.info("Welcome to the Tank Configuration validator!")
+    log.info("Welcome to the Shotgun Pipeline Toolkit Configuration validator!")
     log.info("")
 
     try:

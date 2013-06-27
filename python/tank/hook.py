@@ -16,7 +16,7 @@ class Hook(object):
     """
     Base class for a "hook", a simple extension mechanism that is used in the core,
     engines and apps. The "parent" of the hook is the object that executed the hook,
-    which presently could be an instance of the Tank API for core hooks, or an Engine
+    which presently could be an instance of the Sgtk API for core hooks, or an Engine
     or Application instance.
     """
     

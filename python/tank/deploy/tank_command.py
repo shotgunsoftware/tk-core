@@ -155,7 +155,7 @@ def _process_action(code_install_root, pipeline_config_root, log, tk, ctx, engin
     # now check that we actually have passed enough stuff to work with this mode
     if action.mode in (Action.PC_LOCAL, Action.CTX, Action.ENGINE) and tk is None:
         # we are missing a tk instance
-        log.error("Trying to launch %r without a tank instance." % action)
+        log.error("Trying to launch %r without an Sgtk instance." % action)
         raise TankError("The command '%s' needs a project to run. For example, if you want "
                         "to run it for project XYZ, execute "
                         "'tank Project XYZ %s'" % (action.name, action.name))

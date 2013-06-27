@@ -415,7 +415,7 @@ class _SettingsValidator:
         cur_template = self._tank_api.templates.get(template_name) 
         if cur_template is None:
             # this was not found in the master config!
-            raise TankError("The Tank Template '%s' referred to by the setting '%s' does "
+            raise TankError("The Template '%s' referred to by the setting '%s' does "
                             "not exist in the master template config file!" % (template_name, settings_key))
 
 
@@ -428,7 +428,7 @@ class _SettingsValidator:
             problems = self.__validate_new_style_template(cur_template, str(schema.get("fields")) )
             
             if len(problems) > 0:
-                msg = ("%s: The Tank Template '%s' referred to by the setting '%s' "
+                msg = ("%s: The Template '%s' referred to by the setting '%s' "
                        "does not validate. The following problems were "
                        "reported: " % (self._display_name, template_name, settings_key))
                 for p in problems:
@@ -457,7 +457,7 @@ class _SettingsValidator:
             # check required fields exist in template
             missing_fields = required_fields - template_fields
             if missing_fields:
-                raise TankError("The Tank Template '%s' referred to by the setting '%s' does "
+                raise TankError("The Template '%s' referred to by the setting '%s' does "
                                 "not contain required fields '%s'!" % (template_name, settings_key, list(missing_fields)))
     
     
@@ -613,7 +613,7 @@ class _SettingsValidator:
                         problems.append("The field '%s' is part of the template but %s does not "
                                         "know how to assign a value to it when calculating paths. "
                                         "The code inside %s will populate the following fields: %s. "
-                                        "Tank's current context (%s) will populate the following fields: "
+                                        "The current context (%s) will populate the following fields: "
                                         "%s." % (x, 
                                                  self._display_name, 
                                                  self._display_name, 

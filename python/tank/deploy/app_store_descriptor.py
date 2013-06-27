@@ -119,7 +119,7 @@ class TankAppStoreDescriptor(AppDescriptor):
         # first find the bundle level entity
         bundle = sg.find_one(bundle_entity, [["sg_system_name", "is", self._name]], ["sg_status_list", "sg_deprecation_message"])
         if bundle is None:
-            raise TankError("The Tank store does not contain an item named '%s'!" % self._name)
+            raise TankError("The App store does not contain an item named '%s'!" % self._name)
 
         # now get the version
         version = sg.find_one(version_entity,
@@ -129,7 +129,7 @@ class TankAppStoreDescriptor(AppDescriptor):
                                "sg_documentation",
                                constants.TANK_CODE_PAYLOAD_FIELD])
         if version is None:
-            raise TankError("The Tank store does not have a version "
+            raise TankError("The App store does not have a version "
                             "'%s' of item '%s'!" % (self._version, self._name))
 
         return {"bundle": bundle, "version": version}
@@ -223,9 +223,9 @@ class TankAppStoreDescriptor(AppDescriptor):
                                       order=[{"field_name": "created_at", "direction": "desc"}])
         if sg_version_data is None:
             if version is None:
-                raise TankError("Cannot find any versions for %s in the Tank store!" % name)
+                raise TankError("Cannot find any versions for %s in the App store!" % name)
             else:
-                raise TankError("Cannot find %s %s in the Tank store!" % (name, version))
+                raise TankError("Cannot find %s %s in the App store!" % (name, version))
 
 
 

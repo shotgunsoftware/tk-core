@@ -125,7 +125,7 @@ class TemplateKey(object):
         return str_value
 
     def __repr__(self):
-        return "<Tank %s %s>" % (self.__class__.__name__, self.name)
+        return "<Sgtk %s %s>" % (self.__class__.__name__, self.name)
 
     @property
     def has_abstraction(self):

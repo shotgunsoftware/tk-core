@@ -83,19 +83,19 @@ class TestRepr(TestTemplate):
     def test_template(self):
         template_name = "template_name"
         template = Template(self.definition, self.keys, name=template_name) 
-        expected = "<Tank Template %s: %s>" % (template_name, self.definition)
+        expected = "<Sgtk Template %s: %s>" % (template_name, self.definition)
         self.assertEquals(expected, template.__repr__())
 
     def test_optional(self):
         template_name = "tempalte_name"
         definition = "something/{Shot}[/{Step}]"
         template = Template(definition, self.keys, name=template_name) 
-        expected = "<Tank Template %s: %s>" % (template_name, definition)
+        expected = "<Sgtk Template %s: %s>" % (template_name, definition)
         self.assertEquals(expected, template.__repr__())
 
     def test_no_name(self):
         template = Template(self.definition, self.keys, "")
-        expected = "<Tank Template %s>" % self.definition
+        expected = "<Sgtk Template %s>" % self.definition
         self.assertEquals(expected, template.__repr__())
 
         

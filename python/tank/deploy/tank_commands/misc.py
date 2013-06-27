@@ -23,7 +23,7 @@ class SetupProjectAction(Action):
         Action.__init__(self, 
                         "setup_project", 
                         Action.GLOBAL, 
-                        "Sets up a new project with Tank.", 
+                        "Sets up a new project with the Shotgun Pipeline Toolkit.", 
                         "Configuration")
         
     def run(self, log, args):
@@ -51,7 +51,7 @@ class CoreUpgradeAction(Action):
         Action.__init__(self, 
                         "core", 
                         Action.GLOBAL, 
-                        "Checks that your Tank Core API install is up to date.", 
+                        "Checks that your Sgtk Core API install is up to date.", 
                         "Configuration")
             
     def run(self, log, args):
@@ -108,7 +108,7 @@ class ClearCacheAction(Action):
                         Action.PC_LOCAL, 
                         ("Clears the Shotgun Menu Cache associated with this Configuration. "
                          "This is sometimes useful after complex configuration changes if new "
-                         "or modified Tank menu items are not appearing inside Shotgun."), 
+                         "or modified Sgtk menu items are not appearing inside Shotgun."), 
                         "Admin")
     
     def run(self, log, args):

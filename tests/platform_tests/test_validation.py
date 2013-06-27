@@ -217,7 +217,7 @@ class TestValidateSettings(TankTestBase):
         # set up metadata about entry
         schema = {config_name:{"type":"template"}}
 
-        expected_msg = ("The Tank Template '%s' referred to by the setting '%s' does "
+        expected_msg = ("The Template '%s' referred to by the setting '%s' does "
                         "not exist in the master template config file!" % (cfg_val, config_name))
         self.check_error_message(TankError, expected_msg, validate_settings, self.app_name, self.tk, self.context, schema, settings)
 
@@ -237,7 +237,7 @@ class TestValidateSettings(TankTestBase):
         config_data = {"type":"template", "required_fields": required}
         schema = {config_name: config_data}
 
-        expected_msg = ("The Tank Template '%s' referred to by the setting '%s' does "
+        expected_msg = ("The Template '%s' referred to by the setting '%s' does "
                         "not contain required fields '%s'!" % (cfg_val, config_name, required))
         self.check_error_message(TankError, expected_msg, validate_settings, self.app_name, self.tk, self.context, schema, config)
 

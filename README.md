@@ -1,6 +1,7 @@
-Welcome to the Sgtk Core API on GitHub
-======================================================
+Welcome to the Shotgun Pipeline Toolkit Core API on GitHub
+==========================================================
 
-This repository represents the Sgtk Core API.
+This repository represents the Shotgun Pipeline Toolkit Core API.
 
-Click here to go to the Sgtk Core API Wiki Documentation: https://github.com/shotgunsoftware/tk-core/wiki
+Click here to go to the Shotgun Pipeline Toolkit Core API 
+Wiki Documentation: https://github.com/shotgunsoftware/tk-core/wiki

@@ -154,7 +154,7 @@ class TestStringKey(TankTestBase):
 
 
     def test_repr(self):
-        expected = "<Tank StringKey field_name>"
+        expected = "<Sgtk StringKey field_name>"
         self.assertEquals(expected, str(self.str_field))
 
 
@@ -225,7 +225,7 @@ class TestIntegerKey(TankTestBase):
         self.assertEquals(32, self.int_field.value_from_str(str_value))
 
     def test_repr(self):
-        expected = "<Tank IntegerKey field_name>"
+        expected = "<Sgtk IntegerKey field_name>"
         self.assertEquals(expected, str(self.int_field))
 
 

@@ -28,7 +28,7 @@ def install_app(log, tk, env_name, engine_instance_name, app_name):
     
     log.info("")
     log.info("")
-    log.info("Welcome to the Tank App installer!")
+    log.info("Welcome to the Shotgun Pipeline Toolkit App installer!")
     log.info("")
 
     try:
@@ -102,7 +102,7 @@ def install_engine(log, tk, env_name, engine_name):
     """
     log.info("")
     log.info("")
-    log.info("Welcome to the Tank Engine installer!")
+    log.info("Welcome to the Shotgun Pipeline Toolkit Engine installer!")
     log.info("")
 
     try:

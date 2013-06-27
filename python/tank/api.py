@@ -2,7 +2,7 @@
 Copyright (c) 2012 Shotgun Software, Inc
 ----------------------------------------------------
 
-Classes for the main Tank API.
+Classes for the main Sgtk API.
 
 """
 import os
@@ -48,10 +48,10 @@ class Tank(object):
         self.execute_hook(platform_constants.TANK_INIT_HOOK_NAME)
 
     def __repr__(self):
-        return "<Tank Core v%s@0x%08x Config %s>" % (self.version, id(self), self.__pipeline_config.get_path())
+        return "<Sgtk Core v%s@0x%08x Config %s>" % (self.version, id(self), self.__pipeline_config.get_path())
 
     def __str__(self):
-        return "Tank Core v%s, config %s" % (self.version, self.__pipeline_config.get_path())
+        return "Sgtk Core v%s, config %s" % (self.version, self.__pipeline_config.get_path())
 
     ################################################################################################
     # internal API
@@ -61,7 +61,7 @@ class Tank(object):
         """
         Internal Use Only - We provide no guarantees that this method
         will be backwards compatible. The returned objects are also
-        subject to change and are not part of the public tank API.
+        subject to change and are not part of the public Sgtk API.
         """
         return self.__pipeline_config
 
@@ -141,7 +141,7 @@ class Tank(object):
             return matched[0]
         else:
             # ambiguity!
-            msg = "%d Tank templates are matching the path '%s'.\n" % (len(matched), path)
+            msg = "%d templates are matching the path '%s'.\n" % (len(matched), path)
             msg += "The overlapping templates are:\n"
             msg += "\n".join([str(x) for x in matched])
             raise TankError(msg)
@@ -388,7 +388,7 @@ class Tank(object):
         """
         Executes a core level hook, passing it any keyword arguments supplied.
 
-        Note! This is part of the private Tank API and should not be called from ouside
+        Note! This is part of the private Sgtk API and should not be called from ouside
         the core API.
 
         :param hook_name: Name of hook to execute.
@@ -404,14 +404,20 @@ class Tank(object):
 
 def tank_from_path(path):
     """
-    Create a Tank API instance based on a path inside a project.
+    Create an Sgtk API instance based on a path inside a project.
     """
     return Tank(path)
 
 def tank_from_entity(entity_type, entity_id):
     """
-    Create a Tank API instance based on a path inside a project.
+    Create a Sgtk API instance based on a path inside a project.
     """
     pc = pipelineconfig.from_entity(entity_type, entity_id)
     return Tank(pc)
 
+##########################################################################################
+# sgtk API aliases
+
+Sgtk = Tank
+sgtk_from_path = tank_from_path
+sgtk_from_entity = tank_from_entity

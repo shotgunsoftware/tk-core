@@ -24,7 +24,7 @@ def sg_entity_to_string(tk, sg_entity_type, sg_id, sg_field_name, data):
     
     This method may also raise exceptions in the case the string value is not valid.
     
-    :param tk: tank api instance
+    :param tk: Sgtk api instance
     :param sg_entity_type: the shotgun entity type e.g. 'Shot'
     :param sg_id: The shotgun id for the record, e.g 1234
     :param sg_field_name: The field to generate value for, e.g. 'sg_sequence'
@@ -253,7 +253,7 @@ class EntityExpression(object):
         # now validate the entire value!
         if re.match(constants.VALID_SG_ENTITY_NAME_REGEX, val) is None:
             # not valid!!!
-            msg = ("The format string '%s' used in the Tank configuration "
+            msg = ("The format string '%s' used in the configuration "
                    "does not generate a valid folder name ('%s')! Valid "
                    "values are %s." % (expression, val, constants.VALID_SG_ENTITY_NAME_EXPLANATION))
             raise TankError(msg)      

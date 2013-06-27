@@ -30,7 +30,7 @@ class MoveStudioInstallAction(Action):
         Action.__init__(self, 
                         "move_studio_install", 
                         Action.GLOBAL, 
-                        ("Moves the studio code installation of Tank to a different location."), 
+                        ("Moves the Sgtk studio code installation to a different location."), 
                         "Admin")
     
     def _cleanup_old_location(self, log, path):
@@ -163,7 +163,7 @@ class MoveStudioInstallAction(Action):
 
             log.info("Syntax: move_studio_install current_path linux_path windows_path mac_path")
             log.info("")
-            log.info("This command will move the main location of the Tank config.")
+            log.info("This command will move the main location of the Sgtk config.")
             log.info("")
             log.info("Specify the current location of your studio install in the first parameter. "
                      "Specify the new location for each platform in the subsequent parameters.")
@@ -197,7 +197,7 @@ class MoveStudioInstallAction(Action):
         # probe for some key file
         api_file = os.path.join(current_path, "install", "core", "_core_upgrader.py")
         if not os.path.exists(api_file):
-            raise TankError("Path '%s' does not look like a tank install!" % current_path)
+            raise TankError("Path '%s' does not look like an Sgtk install!" % current_path)
             
         # make sure this is NOT a PC
         pc_file = os.path.join(current_path, "config", "info.yml")
@@ -225,7 +225,7 @@ class MoveStudioInstallAction(Action):
         ######################################################################################
         
         
-        log.info("Tank Core API Move Overview")
+        log.info("Sgtk Core API Move Overview")
         log.info("--------------------------------------------------------------")
         log.info("")
         log.info("Current Linux Path:   %s" % current_paths["linux_path"])
@@ -268,7 +268,7 @@ class MoveStudioInstallAction(Action):
             log.info("Updating cached locations in %s..." % sg_code_location)
             os.chmod(sg_code_location, 0666)
             fh = open(sg_code_location, "wt")
-            fh.write("# Tank configuration file\n")
+            fh.write("# Shotgun Pipeline Toolkit configuration file\n")
             fh.write("# This file reflects the paths in the pipeline configuration\n")
             fh.write("# entity which is associated with this location\n")
             fh.write("\n")

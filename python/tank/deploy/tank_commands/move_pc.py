@@ -186,7 +186,7 @@ class MovePCAction(Action):
             log.info("Updating cached locations in %s..." % sg_code_location)
             os.chmod(sg_code_location, 0666)
             fh = open(sg_code_location, "wt")
-            fh.write("# Tank configuration file\n")
+            fh.write("# Shotgun Pipeline Toolkit configuration file\n")
             fh.write("# This file reflects the paths in the pipeline configuration\n")
             fh.write("# entity which is associated with this location\n")
             fh.write("\n")

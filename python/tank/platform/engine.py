@@ -31,7 +31,7 @@ class Engine(TankBundle):
         """
         Constructor. Takes the following parameters:
         
-        :param tk: Tank API handle
+        :param tk: Sgtk API handle
         :param context: A context object to define the context on disk where the engine is operating
         :param engine_instance_name: The name of the engine as it has been defined in the environment.
         :param env: An Environment object to associate with this engine
@@ -109,7 +109,7 @@ class Engine(TankBundle):
         
         
     def __repr__(self):
-        return "<Tank Engine 0x%08x: %s, env: %s>" % (id(self),  
+        return "<Sgtk Engine 0x%08x: %s, env: %s>" % (id(self),  
                                                            self.name, 
                                                            self.__env.name)
 

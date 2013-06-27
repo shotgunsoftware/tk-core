@@ -43,10 +43,10 @@ class TankQDialog(TankDialogBase):
         self.ui = ui_tank_dialog.Ui_TankDialog() 
         self.ui.setupUi(self)
         self.ui.label.setText(title)
-        self.setWindowTitle("Tank: %s" % title)
+        self.setWindowTitle("Shotgun: %s" % title)
         
-        self.ui.tank_logo.setToolTip("This is part of the Tank App %s" % self._bundle.name)
-        self.ui.label.setToolTip("This is part of the Tank App %s" % self._bundle.name)
+        self.ui.tank_logo.setToolTip("This is part of the Shotgun App %s" % self._bundle.name)
+        self.ui.label.setToolTip("This is part of the Shotgun App %s" % self._bundle.name)
         
         # Add our context to the header
         # two lines - top line covers PC and Project
@@ -62,7 +62,7 @@ class TankQDialog(TankDialogBase):
                 # we are using a non-default pipeline config
                 first_line = "<b style='color: #9cbfff'>Config %s</b>" % pc.get_name()
             else:
-                first_line = "Tank %s" % self._bundle.context.tank.version
+                first_line = "Sgtk %s" % self._bundle.context.tank.version
             
             # second line contains the project
             if self._bundle.context.project:
@@ -116,7 +116,7 @@ class TankQDialog(TankDialogBase):
         tooltip += "<br>"
         tooltip += "<b>System Information</b>"
         tooltip += "<hr>"
-        tooltip += "<b>Tank Version: </b>%s<br>" % self._bundle.tank.version
+        tooltip += "<b>Shotgun Pipeline Toolkit Version: </b>%s<br>" % self._bundle.tank.version
         tooltip += "<b>Pipeline Config: </b>%s<br>" % pc.get_name()
         tooltip += "<b>Config Path: </b>%s<br>" % pc.get_path()
         
@@ -156,7 +156,7 @@ class TankQDialog(TankDialogBase):
         context_info = "Your current work area is %s. " % self._bundle.context
         # try get the environment - may not work - not all bundle classes have a .engine method
         try:
-            context_info += "You are currently running Tank in the %s environment." % (self._bundle.engine.environment["name"])
+            context_info += "You are currently running in the %s environment." % (self._bundle.engine.environment["name"])
         except:
             pass
         

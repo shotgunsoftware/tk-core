@@ -101,9 +101,9 @@ class Template(object):
     def __repr__(self):
         class_name = self.__class__.__name__
         if self.name:
-            return "<Tank %s %s: %s>" % (class_name, self.name, self._repr_def)
+            return "<Sgtk %s %s: %s>" % (class_name, self.name, self._repr_def)
         else:
-            return "<Tank %s %s>" % (class_name, self._repr_def)
+            return "<Sgtk %s %s>" % (class_name, self._repr_def)
 
     @property
     def definition(self):

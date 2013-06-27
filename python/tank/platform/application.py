@@ -50,7 +50,7 @@ class Application(TankBundle):
                 sys.path.append(python_path)
 
     def __repr__(self):        
-        return "<Tank App 0x%08x: %s, engine: %s>" % (id(self), self.name, self.engine)
+        return "<Sgtk App 0x%08x: %s, engine: %s>" % (id(self), self.name, self.engine)
 
     def _destroy_frameworks(self):
         """

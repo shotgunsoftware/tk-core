@@ -42,7 +42,7 @@ class ConfigItem(QtGui.QWidget):
             value_str = "<b>Value:</b> <code>%s</code>" % value
             value_str += "<br><br>"
             value_str += "This value uses a dynamic, hook based setting. When the value is computed, "
-            value_str += "Tank is calling the core hook specified in the setting. " 
+            value_str += "Sgtk is calling the core hook specified in the setting. " 
             value_str += "<br><br>The value is currently being computed by the "
             value_str += "hook to <code>'%s'</code>" % str(bundle.get_setting(setting)) 
         

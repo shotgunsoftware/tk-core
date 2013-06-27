@@ -46,7 +46,7 @@ class Environment(object):
         
         
     def __repr__(self):
-        return "<Tank Environment %s>" % self.__env_path
+        return "<Sgtk Environment %s>" % self.__env_path
     
     def __str__(self):
         return "Environment %s" % os.path.basename(self.__env_path)

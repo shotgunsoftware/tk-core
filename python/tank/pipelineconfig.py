@@ -51,7 +51,7 @@ class PipelineConfiguration(object):
             if util.is_version_older(current_api, our_version):
                 # currently running API is too old!
                 current_api_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-                raise TankError("You are currently running a Tank API located in '%s'. "
+                raise TankError("You are currently running an Sgtk API located in '%s'. "
                                 "The current Configuration '%s' has separately installed "
                                 "version of the API (%s) which is more recent than the currently "
                                 "running version (%s). In order to use this pipeline configuration, "
@@ -80,7 +80,7 @@ class PipelineConfiguration(object):
 
 
     def __repr__(self):
-        return "<Tank Configuration %s>" % self._pc_root
+        return "<Sgtk Configuration %s>" % self._pc_root
 
     ########################################################################################
     # helpers
@@ -324,8 +324,8 @@ class PipelineConfiguration(object):
             if "TANK_INSTALL_LOCATION" in os.environ:
                 install_path = os.environ["TANK_INSTALL_LOCATION"]
             else:
-                raise TankError("Cannot resolve the install location from the location of the Tank Code! "
-                                "This can happen if you try to move or symlink the Tank API. "
+                raise TankError("Cannot resolve the install location from the location of the Sgtk Code! "
+                                "This can happen if you try to move or symlink the Sgtk API. "
                                 "Please contact support.")
         return install_path
 
@@ -434,7 +434,7 @@ class PipelineConfiguration(object):
         """
         Executes a core level hook, passing it any keyword arguments supplied.
 
-        Note! This is part of the private Tank API and should not be called from ouside
+        Note! This is part of the private Sgtk API and should not be called from ouside
         the core API.
 
         :param hook_name: Name of hook to execute.
@@ -546,7 +546,7 @@ def from_entity(entity_type, entity_id):
     if len(pipe_configs) == 0:
         raise TankError("Cannot resolve a pipeline configuration object from %s with id %s - looks "
                         "like its associated Shotgun Project '%s' has not yet been set up with "
-                        "Tank!" % (entity_type, entity_id, proj.get("name")))
+                        "the Shotgun Pipeline Toolkit!" % (entity_type, entity_id, proj.get("name")))
 
     #############################################################################################
     # ok now we have all the PCs in Shotgun for this project.
@@ -568,7 +568,7 @@ def from_entity(entity_type, entity_id):
                 break
         if primary_pc is None:
             raise TankError("The Shotgun Project '%s' does not have a default Pipeline "
-                            "Configuration! This is required by Tank. It needs to be named '%s'. "
+                            "Configuration! This is required by the Sgtk. It needs to be named '%s'. "
                             "Please double check by opening to the Pipeline configuration Page in "
                             "Shotgun for the given project." % (proj.get("name"), constants.PRIMARY_PIPELINE_CONFIG_NAME))
 
@@ -610,7 +610,7 @@ def from_entity(entity_type, entity_id):
         pc_registered_path = get_pc_registered_location(curr_pc_path)
 
         if pc_registered_path is None:
-            raise TankError("Error starting tank from the configuration located in '%s' - "
+            raise TankError("Error starting from the configuration located in '%s' - "
                             "it looks like this pipeline configuration and tank command "
                             "has not been configured for the current operating system." % curr_pc_path)
 
@@ -622,7 +622,7 @@ def from_entity(entity_type, entity_id):
                 break
 
         if not found_matching_path:
-            raise TankError("Error launching tank for %s with id %s (Belonging to the project '%s') "
+            raise TankError("Error launching for %s with id %s (Belonging to the project '%s') "
                             "from the configuration located in '%s'. This config is not "
                             "associated with that project. For a list of which tank commands can be "
                             "used with this project, go to the Pipeline Configurations page in "
@@ -642,7 +642,7 @@ def from_path(path):
     """
 
     if not isinstance(path, basestring):
-        raise TankError("Cannot create a Tank Configuration from path '%s' - "
+        raise TankError("Cannot create a Configuration from path '%s' - "
                         "path must be a string!" % path)
 
     path = os.path.abspath(path)
@@ -656,7 +656,7 @@ def from_path(path):
         if os.path.exists(parent_path):
             path = parent_path
         else:
-            raise TankError("Cannot create a Tank Configuration from path '%s' - the path does "
+            raise TankError("Cannot create a Configuration from path '%s' - the path does "
                             "not exist on disk!" % path)
 
 
@@ -672,7 +672,7 @@ def from_path(path):
         pc_registered_path = get_pc_registered_location(path)
 
         if pc_registered_path is None:
-            raise TankError("Error starting tank from the configuration located in '%s' - "
+            raise TankError("Error starting from the configuration located in '%s' - "
                             "it looks like this pipeline configuration and tank command "
                             "has not been configured for the current operating system." % path)
 
@@ -693,8 +693,8 @@ def from_path(path):
         parent_path = os.path.dirname(cur_path)
         if parent_path == cur_path:
             # Topped out without finding config
-            raise TankError("Cannot create a Tank Configuration from path '%s' - this path does "
-                            "not belong to a Tank Project!" % path)
+            raise TankError("Cannot create a Configuration from path '%s' - this path does "
+                            "not belong to an Sgtk Project!" % path)
         cur_path = parent_path
 
     # all right - now read the config and get all the registered pipeline configs.
@@ -778,7 +778,7 @@ def from_path(path):
         pc_registered_path = get_pc_registered_location(curr_pc_path)
 
         if pc_registered_path is None:
-            raise TankError("Error starting tank from the configuration located in '%s' - "
+            raise TankError("Error starting from the configuration located in '%s' - "
                             "it looks like this pipeline configuration and tank command "
                             "has not been configured for the current operating system." % curr_pc_path)
 
@@ -789,9 +789,9 @@ def from_path(path):
                             "located in '%s'. The path '%s' you are trying to load is not "
                             "associated with that configuration. The path you are trying to load "
                             "is associated with the following configurations: %s. "
-                            "Please use the tank command or Tank API in any of those "
-                            "locations in order to start Tank. This error can occur if you "
-                            "have moved a Tank Configuration on disk without correctly updating "
+                            "Please use the tank command or Sgtk API in any of those "
+                            "locations in order to continue. This error can occur if you "
+                            "have moved a Configuration on disk without correctly updating "
                             "it. It can also occur if you are trying to use a tank command "
                             "associated with Project A to try to operate on a Shot or Asset that "
                             "that belongs to a project B." % (curr_pc_path, path, current_os_pcs))

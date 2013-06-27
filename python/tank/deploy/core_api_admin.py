@@ -76,7 +76,7 @@ def show_core_info(log, code_root, pc_root):
     installer = TankCoreUpgrader(code_root, log)
     cv = installer.get_current_version_number()
     lv = installer.get_latest_version_number()
-    log.info("You are currently running version %s of the Tank Platform." % cv)
+    log.info("You are currently running version %s of the Shotgun Pipeline Toolkit." % cv)
     
     if code_root != pc_root:
         log.info("")
@@ -88,7 +88,7 @@ def show_core_info(log, code_root, pc_root):
     req_sg = installer.get_required_sg_version_for_upgrade()
     
     if status == TankCoreUpgrader.UP_TO_DATE:
-        log.info("<b>There is no need to update the Tank Core API at this time!</b>")
+        log.info("<b>There is no need to update the Sgtk Core API at this time!</b>")
 
     elif status == TankCoreUpgrader.UPGRADE_BLOCKED_BY_SG:
         log.warning("<b>A new version (%s) of the core API is available however "
@@ -98,7 +98,7 @@ def show_core_info(log, code_root, pc_root):
         
         (summary, url) = installer.get_release_notes()
                 
-        log.info("<b>A new version of the Tank API (%s) is available!</b>" % lv)
+        log.info("<b>A new version of the Sgtk API (%s) is available!</b>" % lv)
         log.info("")
         log.info("<b>Change Summary:</b> %s <a href='%s' target=_new>"
                  "Click for detailed Release Notes</a>" % (summary, url))
@@ -225,22 +225,22 @@ def interactive_update(log, code_root):
     Perform an interactive core check and update
     """
     log.info("")
-    log.info("Welcome to the Tank update checker!")
-    log.info("This script will check if the Tank Core API ")
-    log.info("installed in %s" % code_root) 
+    log.info("Welcome to the Shotgun Pipeline Toolkit update checker!")
+    log.info("This script will check if the Sgtk Core API installed")
+    log.info("in %s" % code_root) 
     log.info("is up to date.")
     log.info("")
     
     installer = TankCoreUpgrader(code_root, log)
     cv = installer.get_current_version_number()
     lv = installer.get_latest_version_number()
-    log.info("You are currently running version %s of the Tank Platform" % cv)
+    log.info("You are currently running version %s of the Shotgun Pipeline Toolkit" % cv)
     
     status = installer.get_update_status()
     req_sg = installer.get_required_sg_version_for_upgrade()
     
     if status == TankCoreUpgrader.UP_TO_DATE:
-        log.info("No need to update the Tank Core API at this time!")
+        log.info("No need to update the Sgtk Core API at this time!")
     
     elif status == TankCoreUpgrader.UPGRADE_BLOCKED_BY_SG:
         log.warning("A new version (%s) of the core API is available however "
@@ -250,7 +250,7 @@ def interactive_update(log, code_root):
         
         (summary, url) = installer.get_release_notes()
                 
-        log.info("A new version of the Tank API (%s) is available!" % lv)
+        log.info("A new version of the Sgtk API (%s) is available!" % lv)
         log.info("")
         log.info("Change Summary:")
         for x in textwrap.wrap(summary, width=60):
@@ -260,7 +260,7 @@ def interactive_update(log, code_root):
         log.info("%s" % url)
         log.info("")
         log.info("Please note that this upgrade will affect all projects")
-        log.info("Associated with this tank installation.")
+        log.info("Associated with this Shotgun Pipeline Toolkit installation.")
         log.info("")
         
         if _ask_question("Update to the latest version of the Core API?"):
@@ -270,11 +270,11 @@ def interactive_update(log, code_root):
             log.info("")
             log.info("Now, please CLOSE THIS SHELL, as the upgrade process")
             log.info("has replaced the folder that this script resides in")
-            log.info("with a more recent version. Continuing Tank related ")
-            log.info("work in this shell beyond this point is not recommended.")
+            log.info("with a more recent version. Continuing work in this")
+            log.info("shell beyond this point is not recommended.")
             log.info("")
         else:
-            log.info("The Tank Platform will not be updated.")
+            log.info("The Shotgun Pipeline Toolkit will not be updated.")
             
     else:
         raise TankError("Unknown Upgrade state!")
@@ -321,7 +321,7 @@ class TankCoreUpgrader(object):
             
     def __get_latest_version(self):
         """
-        Returns info about the latest version of the Tank API from shotgun.
+        Returns info about the latest version of the Sgtk API from shotgun.
         Returns None if there is no latest version, otherwise a dictionary.
         """
         if constants.APP_STORE_QA_MODE_ENV_VAR in os.environ:
@@ -348,14 +348,14 @@ class TankCoreUpgrader(object):
     
     def get_latest_version_number(self):
         """
-        Returns the latest version of the Tank API from shotgun
+        Returns the latest version of the Sgtk API from shotgun
         Returns None if there is no latest version
         """
         return self._latest_ver["code"]
 
     def get_current_version_number(self):
         """
-        Returns the currently installed version of the Tank API
+        Returns the currently installed version of the Sgtk API
         """
         return self._current_ver
 
@@ -370,7 +370,7 @@ class TankCoreUpgrader(object):
 
     def get_release_notes(self):
         """
-        Returns the release notes for the most recent version of the tank API
+        Returns the release notes for the most recent version of the Sgtk API
         
         :returns: tuple with (summary_string, details_url_string)
         """
@@ -422,9 +422,9 @@ class TankCoreUpgrader(object):
         
         # download attachment
         if self._latest_ver[constants.TANK_CODE_PAYLOAD_FIELD] is None:
-            raise Exception("Cannot find a tank binary bundle for %s. Please contact support" % self._latest_ver["code"])
+            raise Exception("Cannot find a binary bundle for %s. Please contact support" % self._latest_ver["code"])
         
-        self._log.info("Begin downloading Tank Core API %s from the Tank App Store..." % self._latest_ver["code"])
+        self._log.info("Begin downloading Sgtk Core API %s from the App Store..." % self._latest_ver["code"])
         
         zip_tmp = os.path.join(tempfile.gettempdir(), "%s_tank_core.zip" % uuid.uuid4().hex)
         extract_tmp = os.path.join(tempfile.gettempdir(), "%s_tank_unzip" % uuid.uuid4().hex)
@@ -462,7 +462,7 @@ class TankCoreUpgrader(object):
         self._sg.create("EventLogEntry", data)
         
         
-        self._log.info("Extraction complete - now installing Tank Core")
+        self._log.info("Extraction complete - now installing Sgtk Core")
         sys.path.insert(0, extract_tmp)
         try:
             import _core_upgrader            

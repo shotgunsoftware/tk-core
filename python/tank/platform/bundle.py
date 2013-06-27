@@ -204,7 +204,7 @@ class TankBundle(object):
     @property
     def shotgun(self):
         """
-        Delegates to the Tank API instance's shotgun connection, which is lazily
+        Delegates to the Sgtk API instance's shotgun connection, which is lazily
         created the first time it is requested.
         
         :returns: Shotgun API handle
@@ -214,11 +214,14 @@ class TankBundle(object):
     @property
     def tank(self):
         """
-        Returns a Tank API instance associated with this item
+        Returns an Sgtk API instance associated with this item
         
-        :returns: Tank API handle 
+        :returns: Sgtk API handle 
         """
         return self.__tk
+    
+    # new name compatibility 
+    sgtk = tank
     
     @property
     def frameworks(self):

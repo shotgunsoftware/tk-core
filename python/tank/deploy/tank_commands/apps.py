@@ -18,7 +18,7 @@ class InstallAppAction(Action):
         Action.__init__(self, 
                         "install_app", 
                         Action.PC_LOCAL, 
-                        "Adds a new app to your tank configuration.", 
+                        "Adds a new app to your configuration.", 
                         "Configuration")
     
     def run(self, log, args):
@@ -46,7 +46,7 @@ class InstallEngineAction(Action):
         Action.__init__(self, 
                         "install_engine", 
                         Action.PC_LOCAL, 
-                        "Adds a new engine to your tank configuration.", 
+                        "Adds a new engine to your configuration.", 
                         "Configuration")
     
     def run(self, log, args):

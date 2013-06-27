@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'tank_dialog.ui'
 #
-# Created: Mon Apr 22 17:00:18 2013
+# Created: Fri Jun 21 14:12:54 2013
 #      by: pyside-uic 0.2.13 running on PySide 1.1.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -298,7 +298,7 @@ class Ui_TankDialog(object):
         self.lbl_context.setToolTip(QtGui.QApplication.translate("TankDialog", "foo bar", None, QtGui.QApplication.UnicodeUTF8))
         self.lbl_context.setText(QtGui.QApplication.translate("TankDialog", "Current Work Area:\n"
 "TextLabel", None, QtGui.QApplication.UnicodeUTF8))
-        self.details.setToolTip(QtGui.QApplication.translate("TankDialog", "Click for Tank App Details", None, QtGui.QApplication.UnicodeUTF8))
+        self.details.setToolTip(QtGui.QApplication.translate("TankDialog", "Click for App Details", None, QtGui.QApplication.UnicodeUTF8))
         self.label_6.setText(QtGui.QApplication.translate("TankDialog", "General Information", None, QtGui.QApplication.UnicodeUTF8))
         self.app_name.setText(QtGui.QApplication.translate("TankDialog", "Publish And Snapshot", None, QtGui.QApplication.UnicodeUTF8))
         self.app_description.setText(QtGui.QApplication.translate("TankDialog", "Tools to see what is out of date in your scene etc etc.", None, QtGui.QApplication.UnicodeUTF8))

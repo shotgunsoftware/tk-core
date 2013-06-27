@@ -115,10 +115,10 @@ class AltCustomFormatter(logging.Formatter):
 def show_help(log):
 
     info = """
-Welcome to Tank!
+Welcome to the Shotgun pipeline toolkit!
 
-This command lets you run control tank from a shell. You can run apps and
-engines via the Tank command. You can also run various tank admin commands.
+This command lets you run control Sgtk from a shell. You can run apps and
+engines via the Tank command. You can also run various admin commands.
 
 
 General options and info
@@ -131,13 +131,13 @@ Running Apps
 ----------------------------------------------
 Syntax: tank [context] command [args]
 
- - Context is a location on disk where you want the tank command to operate.
+ - Context is a location on disk where you want the command to operate.
    It can also be a Shotgun Entity on the form Type id or Type name describing
-   the object you want to operate on. If you leave this out, the tank command
+   the object you want to operate on. If you leave this out, the command
    will use your current working directory as the context.
 
- - Command is the engine command to execute. If you leave this out, Tank will
-   list the available commands.
+ - Command is the engine command to execute. If you leave this out then the
+   available commands will be listed.
 
 Examples:
 
@@ -321,7 +321,7 @@ def shotgun_cache_actions(log, install_root, pipeline_config_root, args):
         # and used.
         tk.log = log
     except TankError, e:
-        raise TankError("Could not instantiate a Tank API Object! Details: %s" % e )
+        raise TankError("Could not instantiate an Sgtk API Object! Details: %s" % e )
 
     # params: entity_type, cache_file_name
     if len(args) != 2:
@@ -376,7 +376,7 @@ def shotgun_run_action(log, install_root, pipeline_config_root, args):
         # and used.
         tk.log = log
     except TankError, e:
-        raise TankError("Could not instantiate a Tank API Object! Details: %s" % e )
+        raise TankError("Could not instantiate an Sgtk API Object! Details: %s" % e )
 
     # params: action_name, entity_type, entity_ids
     if len(args) != 3:
@@ -503,7 +503,7 @@ def _list_commands(log, tk, ctx):
             env = tank.platform.engine.get_environment_from_context(tk, ctx)
             if env is None:
                 # no environment for context
-                log.info("Your current context ('%s') does not have a matching environment in Tank. "
+                log.info("Your current context ('%s') does not have a matching Sgtk Environment. "
                          "An environment is a part of the configuration and is used to define what "
                          "tools are available in a certain part of the pipeline. For example, you "
                          "may have a Shot and and Asset environment, defining the different tools "
@@ -524,7 +524,7 @@ def _list_commands(log, tk, ctx):
                 # number engine commands is zero
                 log.info("Looks like you don't have any apps installed that can run in the shell "
                          "engine! Try installing apps using the install_app command or start a new "
-                         "project based on the latest Tank default starter configuration if you want "
+                         "project based on the latest Sgtk default starter configuration if you want "
                          "to get a working example of how the shell engine can be configured.")
 
 
@@ -756,12 +756,14 @@ def run_engine_cmd(log, install_root, pipeline_config_root, context_items, comma
     log.debug("Command: %s" % command)
     log.debug("Command Arguments: %s" % args)
     log.debug("Code Location Root: %s" % install_root)
-    log.debug("Tank Command Location: %s" % pipeline_config_root)
+    log.debug("Sgtk Pipeline Config Location: %s" % pipeline_config_root)
     log.debug("Location of this script (__file__): %s" % os.path.abspath(__file__))
 
     log.info("")
-    log.info("Welcome to Tank!")
+
+    log.info("Welcome to the Shotgun pipeline toolkit!")
     log.info("For documentation, see https://tank.shotgunsoftware.com/forums")
+
     # Now create a tk instance and a context if possible
 
     if len(context_items) == 1:
@@ -769,7 +771,7 @@ def run_engine_cmd(log, install_root, pipeline_config_root, context_items, comma
         ctx_path = context_items[0]
 
         if using_cwd:
-            log.info("Starting Tank for your current directory '%s'" % ctx_path)
+            log.info("Starting the Sgtk for your current directory '%s'" % ctx_path)
 
         # context str is a path
         if pipeline_config_root is not None:
@@ -784,7 +786,7 @@ def run_engine_cmd(log, install_root, pipeline_config_root, context_items, comma
                 # this path was not valid. That's ok - we just wont have a tank instance
                 # when we run our commands later. This may be if we for example have
                 # just run tank setup_project from any random folder
-                log.debug("Instantiating Tank raised: %s" % e)
+                log.debug("Instantiating Sgtk raised: %s" % e)
                 tk = None
 
         # now try to extract a context
@@ -827,16 +829,16 @@ def run_engine_cmd(log, install_root, pipeline_config_root, context_items, comma
         tk = tank.tank_from_entity(entity_type, entity_id)
         ctx = tk.context_from_entity(entity_type, entity_id)
 
-    log.debug("Tank API and Context resolve complete.")
-    log.debug("Tank API: %s" % tk)
+    log.debug("Sgtk API and Context resolve complete.")
+    log.debug("Sgtk API: %s" % tk)
     log.debug("Context: %s" % ctx)
 
     if tk is not None:
         if pipeline_config_root is None:
             # generic tank command - so indicate which config was picked
-            log.info("- Starting Tank %s using configuration %s." % (tk.version, tk.pipeline_configuration.get_path()))
+            log.info("- Starting the Shotgun pipeline toolkit %s using configuration %s." % (tk.version, tk.pipeline_configuration.get_path()))
         else:
-            log.info("- Starting Tank %s." % tk.version)
+            log.info("- Starting the Shotgun pipeline toolkit %s." % tk.version)
 
         # attach our logger to the tank instance
         # this will be detected by the shotgun and shell engines and used.

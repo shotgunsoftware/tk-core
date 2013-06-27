@@ -57,10 +57,10 @@ class CmdlineSetupInteraction(object):
         self._log.info("")
         self._log.info("")
         self._log.info("Now it is time to decide where the configuration for this project should go. ")
-        self._log.info("As of Tank v0.13, you can specify any location you want on disk. ")
+        self._log.info("As of Sgtk v0.13, you can specify any location you want on disk. ")
         self._log.info("Typically, this is in a software install area where you keep ")
-        self._log.info("all your Tank code and configuration. We will suggest defaults ")
-        self._log.info("based on your current tank install.")
+        self._log.info("all your Sgtk code and configuration. We will suggest defaults ")
+        self._log.info("based on your current install.")
         
         # figure out the config install location. There are three cases to deal with
         # - 0.13 style layout, where they all sit together in an install location
@@ -96,7 +96,7 @@ class CmdlineSetupInteraction(object):
             # ok the parent of the install root matches the primary storage - means OLD STYLE!
             
             self._log.info("")
-            self._log.info("Note! Your setup looks like it was created with Tank v0.12! While ")
+            self._log.info("Note! Your setup looks like it was created with Sgtk v0.12! While ")
             self._log.info("it is now possible to put your configuration anywhere you like, we ")
             self._log.info("will suggest defaults compatible with your existing installation.")
             
@@ -216,13 +216,14 @@ class CmdlineSetupInteraction(object):
                            "just type in its path when prompted below.")
     
         self._log.info("")
-        self._log.info("You can use the Tank Default Configuration for your "
-                       "new project. The tank default configuration is a good sample config, "
-                       "demonstrating a typical basic setup of Tank using the latest apps "
-                       "and engines. Tank will use this by default if you just hit enter below.")
+        self._log.info("You can use the Default Configuration for your new project.  "
+                       "The default configuration is a good sample config, demonstrating "
+                       "a typical basic setup of the Shotgun Pipeline Toolkit using the "
+                       "latest apps and engines. This will be used by default if you just "
+                       "hit enter below.")
         self._log.info("")
         self._log.info("If you have a configuration stored somewhere on disk, you can "
-                       "just enter the path to this config and tank will use that for the "
+                       "just enter the path to this config it will be used for the "
                        "new project.")
         self._log.info("")
         
@@ -240,8 +241,8 @@ class CmdlineSetupInteraction(object):
         self._log.info("")
         self._log.info("")
         self._log.info("")
-        self._log.info("Now you need to tell Tank where you are storing the data for this project.")
-        self._log.info("The selected tank config utilizes the following Local Storages, as ")
+        self._log.info("Now you need to tell Sgtk where you are storing the data for this project.")
+        self._log.info("The selected Sgtk config utilizes the following Local Storages, as ")
         self._log.info("defined in the Shotgun Site Preferences:")
         self._log.info("")
         for s in resolved_storages:
@@ -322,12 +323,12 @@ class CmdlineSetupInteraction(object):
     
         if len(projs) == 0:
             raise TankError("Sorry, no projects found! All projects seem to have already been "
-                            "set up with Tank.")
+                            "set up with the Shotgun Pipeline Toolkit.")
             
         self._log.info("")
         self._log.info("")
-        self._log.info("Below are all projects that have not yet been set up with Tank:")
-        self._log.info("------------------------------------------------------------------")
+        self._log.info("Below are all projects that have not yet been set up with the Sgtk:")
+        self._log.info("-------------------------------------------------------------------")
         self._log.info("")
         
         for x in projs:
@@ -386,7 +387,7 @@ class TankConfigInstaller(object):
         if constants.PRIMARY_STORAGE_NAME not in self._roots_data:
             # need a primary storage in every config
             raise TankError("Looks like your configuration does not have a primary storage. "
-                            "This is required by Tank. Please contact support for more info.")
+                            "This is required. Please contact support for more info.")
 
     def _read_roots_file(self):
         """
@@ -473,7 +474,7 @@ class TankConfigInstaller(object):
         except:
             raise TankError("Could not extract attachment id from data %s" % latest_cfg)
     
-        self._log.info("Downloading Config %s %s from the Tank Store..." % (config_name, latest_cfg["code"]))
+        self._log.info("Downloading Config %s %s from the App Store..." % (config_name, latest_cfg["code"]))
         
         zip_tmp = os.path.join(tempfile.gettempdir(), "%s_tank_cfg.zip" % uuid.uuid4().hex)
     
@@ -557,9 +558,9 @@ class TankConfigInstaller(object):
                 problems = True
                 self._log.error("")
                 self._log.error("=== Missing Local File Storage in Shotgun! ===")
-                self._log.error("The Tank configuration is referring to a storage location")
+                self._log.error("The Sgtk configuration is referring to a storage location")
                 self._log.error("named '%s'. However, no such storage has been defined " % s)
-                self._log.error("in Shotgun. Each Tank configuration defines one or more")
+                self._log.error("in Shotgun. Each configuration defines one or more")
                 self._log.error("data roots, to which files are written - all of these roots ")
                 self._log.error("need to be defined in Shotgun as Local File Storages.")
                 self._log.error("In order to fix this, go to your Shotgun, go into the ")
@@ -579,7 +580,7 @@ class TankConfigInstaller(object):
                             problems = True
                             self._log.error("")
                             self._log.error("=== Local file storage not configured ===")
-                            self._log.error("The local file storage %s is needed by the tank configuration " % s)
+                            self._log.error("The local file storage %s is needed by the Sgtk configuration " % s)
                             self._log.error("but it does not have a path configured for the current os platform! ")
                             self._log.error("Please go to the site preferences in shotgun and adjust.")
 
@@ -587,7 +588,7 @@ class TankConfigInstaller(object):
                             problems = True
                             self._log.error("")
                             self._log.error("=== File storage path does not exist! ===")
-                            self._log.error("The local file storage %s is needed by the tank configuration. " % s)
+                            self._log.error("The local file storage %s is needed by the Sgtk configuration. " % s)
                             self._log.error("It points to the path '%s' on the current os, " % local_storage_path)
                             self._log.error("but that path does not exist on disk.")
 
@@ -650,10 +651,10 @@ class TankConfigInstaller(object):
             curr_core_version = pipelineconfig.get_core_api_version_based_on_current_code()
     
             if deploy_util.is_version_newer(required_version, curr_core_version):        
-                raise TankError("This configuration requires Tank Core version %s "
+                raise TankError("This configuration requires Sgtk Core version %s "
                                 "but you are running version %s" % (required_version, curr_core_version))
             else:
-                self._log.debug("Config requires Tank Core %s. You are running %s which is fine." % (required_version, curr_core_version))
+                self._log.debug("Config requires Sgtk Core %s. You are running %s which is fine." % (required_version, curr_core_version))
 
 
 
@@ -674,9 +675,9 @@ def _get_current_core_file_location():
     
     if not os.path.exists(core_cfg):
         full_path_to_file = os.path.abspath(os.path.dirname(__file__))
-        raise TankError("Cannot resolve the core configuration from the location of the Tank Code! "
-                        "This can happen if you try to move or symlink the Tank API. The "
-                        "Tank API is currently picked up from %s which is an "
+        raise TankError("Cannot resolve the core configuration from the location of the Sgtk Code! "
+                        "This can happen if you try to move or symlink the Sgtk API. The "
+                        "Sgtk API is currently picked up from %s which is an "
                         "invalid location." % full_path_to_file)
     
 
@@ -703,7 +704,7 @@ def _make_folder(log, folder, permissions, create_placeholder_file = False):
     if create_placeholder_file:
         ph_path = os.path.join(folder, "placeholder")
         fh = open(ph_path, "wt")
-        fh.write("This placeholder file was automatically generated by tank.\n")
+        fh.write("This placeholder file was automatically generated by sgtk.\n")
         fh.close()
     
 
@@ -758,7 +759,7 @@ def _install_environment(env_obj, log):
     # ensure all apps are local - if not then download them
     for descriptor in descriptors:
         if not descriptor.exists_local():
-            log.info("Downloading %s to the local Tank install location..." % descriptor)            
+            log.info("Downloading %s to the local Sgtk install location..." % descriptor)            
             descriptor.download_local()
             
         else:
@@ -787,7 +788,7 @@ def _interactive_setup(log, install_root, check_storage_path_exists):
     interactive setup which will ask questions via the console.
     """
     log.info("")
-    log.info("Welcome to the Tank Project Setup!")
+    log.info("Welcome to the Shotgun Pipeline Toolkit Project Setup!")
     log.info("")
         
     # now connect to shotgun
@@ -800,10 +801,10 @@ def _interactive_setup(log, install_root, check_storage_path_exists):
         raise TankError("Could not connect to Shotgun server: %s" % e)
     
     try:
-        log.info("Connecting to the Tank App Store...")
+        log.info("Connecting to the App Store...")
         (sg_app_store, script_user) = shotgun.create_sg_app_store_connection()
         sg_version = ".".join([ str(x) for x in sg_app_store.server_info["version"]])
-        log.debug("Connected to Tank App Store! (v%s)" % sg_version)
+        log.debug("Connected to App Store! (v%s)" % sg_version)
     except Exception, e:
         raise TankError("Could not connect to App Store: %s" % e)
     
@@ -890,7 +891,7 @@ def _interactive_setup(log, install_root, check_storage_path_exists):
         if os.path.exists(os.path.join(current_os_pc_location, "install")) or \
            os.path.exists(os.path.join(current_os_pc_location, "config")):
             raise TankError("Looks like the location '%s' already contains a "
-                            "tank config!" % current_os_pc_location)
+                            "configuration!" % current_os_pc_location)
         # also make sure it has right permissions
         if not os.access(current_os_pc_location, os.W_OK|os.R_OK|os.X_OK):
             raise TankError("The permissions setting for '%s' is too strict. The current user "
@@ -919,10 +920,10 @@ def _interactive_setup(log, install_root, check_storage_path_exists):
     log.info("Project Creation Summary:")
     log.info("-------------------------")
     log.info("")
-    log.info("You are about to set up Tank for Project %s - %s " % (project_id, project_name))
+    log.info("You are about to set up the Shotgun Pipeline Toolkit for Project %s - %s " % (project_id, project_name))
     log.info("The following items will be created:")
     log.info("")
-    log.info("* A Tank Pipeline configuration will be created:" )
+    log.info("* A Shotgun Pipeline configuration will be created:" )
     log.info("  - on Macosx:  %s" % locations_dict["darwin"])
     log.info("  - on Linux:   %s" % locations_dict["linux2"])
     log.info("  - on Windows: %s" % locations_dict["win32"])
@@ -936,7 +937,7 @@ def _interactive_setup(log, install_root, check_storage_path_exists):
 
     for x in resolved_storages:
 
-        log.info("* Tank will connect to the project folder in Storage '%s':" % x["code"] )
+        log.info("* Sgtk will connect to the project folder in Storage '%s':" % x["code"] )
         
         if x["mac_path"] is None:
             log.info("  - on Macosx: No path defined")
@@ -995,7 +996,7 @@ def _interactive_setup(log, install_root, check_storage_path_exists):
     _copy_folder(log, cfg_installer.get_path(), os.path.join(current_os_pc_location, "config"))
     
     # copy the tank binaries to the top of the config
-    log.debug("Copying tank binaries...")
+    log.debug("Copying Sgtk binaries...")
     core_api_root = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", ".."))
     root_binaries_folder = os.path.join(core_api_root, "setup", "root_binaries")
     for file_name in os.listdir(root_binaries_folder):
@@ -1028,7 +1029,7 @@ def _interactive_setup(log, install_root, check_storage_path_exists):
         os.chmod(sg_code_location, 0666)
 
     fh = open(sg_code_location, "wt")
-    fh.write("# Tank configuration file\n")
+    fh.write("# Shotgun Pipeline Toolkit configuration file\n")
     fh.write("# This file was automatically created by setup_project\n")
     fh.write("# This file reflects the paths in the primary pipeline\n")
     fh.write("# configuration defined for this project.\n")
@@ -1134,7 +1135,7 @@ def _interactive_setup(log, install_root, check_storage_path_exists):
     # and write a custom event to the shotgun event log
     log.debug("Writing app store stats...")
     data = {}
-    data["description"] = "%s: A Tank Project named %s was created" % (sg.base_url, project_disk_folder)
+    data["description"] = "%s: An Sgtk Project named %s was created" % (sg.base_url, project_disk_folder)
     data["event_type"] = "TankAppStore_Project_Created"
     data["user"] = script_user
     data["project"] = constants.TANK_APP_STORE_DUMMY_PROJECT
@@ -1162,7 +1163,7 @@ def _interactive_setup(log, install_root, check_storage_path_exists):
     # run after project create script if it exists
     after_script_path = os.path.join(current_os_pc_location, "config", "after_project_create.py")
     if os.path.exists(after_script_path):
-        log.info("Found a tank post-install script %s" % after_script_path)
+        log.info("Found a post-install script %s" % after_script_path)
         log.info("Executing post-install commands...")
         sys.path.insert(0, os.path.dirname(after_script_path))
         import after_project_create
@@ -1171,7 +1172,7 @@ def _interactive_setup(log, install_root, check_storage_path_exists):
         log.info("Post install phase complete!")
 
     log.info("")
-    log.info("Your Tank Project has been fully set up.")
+    log.info("Your Sgtk Project has been fully set up.")
     log.info("")
 
     # show the readme file if it exists
@@ -1188,7 +1189,7 @@ def _interactive_setup(log, install_root, check_storage_path_exists):
     log.info("We recommend that you now run 'tank updates' to get the latest")
     log.info("versions of all apps and engines for this project.")
     log.info("")
-    log.info("For more Apps, Support, Documentation and the Tank Community, go to")
+    log.info("For more Apps, Support, Documentation and the Sgtk Community, go to")
     log.info("https://tank.shotgunsoftware.com")
     log.info("")        
 

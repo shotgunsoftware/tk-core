@@ -113,7 +113,7 @@ class AppDescriptor(object):
             file_path = os.path.join(bundle_root, constants.BUNDLE_METADATA_FILE)
         
             if not os.path.exists(file_path):
-                raise TankError("Tank metadata file '%s' missing." % file_path)
+                raise TankError("Sgtk metadata file '%s' missing." % file_path)
         
             try:
                 file_data = open(file_path)

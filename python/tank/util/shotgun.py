@@ -43,9 +43,9 @@ def __get_api_core_config_location():
             core_cfg = os.environ["TANK_CORE_LOCATION_OVERRIDE"]
         else:
             full_path_to_file = os.path.abspath(os.path.dirname(__file__))
-            raise TankError("Cannot resolve the core configuration from the location of the Tank Code! "
-                            "This can happen if you try to move or symlink the Tank API. The "
-                            "Tank API is currently picked up from %s which is an "
+            raise TankError("Cannot resolve the core configuration from the location of the Sgtk Code! "
+                            "This can happen if you try to move or symlink the Sgtk API. The "
+                            "Sgtk API is currently picked up from %s which is an "
                             "invalid location." % full_path_to_file)
 
     return core_cfg
@@ -139,7 +139,7 @@ def __create_sg_connection(shotgun_cfg_path, evaluate_script_user, user="default
                                           [["firstname", "is", config_data["api_script"]]],
                                           fields=["type", "id"])
         if script_user is None:
-            raise TankError("Could not evaluate the current Tank App Store User! Please contact support.")
+            raise TankError("Could not evaluate the current App Store User! Please contact support.")
 
     return (sg, script_user)
 
@@ -231,7 +231,7 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
     Fields that are not found, or filtered out by the filters parameter,
     are not returned in the dictionary.
 
-    :param tk: Tank API Instance
+    :param tk: Sgtk API Instance
     :param list_of_paths: List of full paths for which information should be retrieved
     :param filters: Optional list of shotgun filters to apply.
     :param fields: Optional list of fields from the matched entities to
@@ -415,7 +415,7 @@ def create_event_log_entry(tk, context, event_type, description, metadata=None):
     Creates an event log entry inside of Shotgun.
     Event log entries can be handy if you want to track a process or a sequence of events.
 
-    :param tk: Tank API instance
+    :param tk: Sgtk API instance
 
     :param context: Context which will be used to associate the event log entry
 
@@ -461,7 +461,7 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
 
     Required parameters:
 
-        tk - a Tank API instance
+        tk - a Sgtk API instance
 
         context - the context we want to associate with the publish
 

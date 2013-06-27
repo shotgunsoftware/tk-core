@@ -48,7 +48,7 @@ class Framework(TankBundle):
         self.log_debug("Framework init: Instantiating %s" % self)
                 
     def __repr__(self):        
-        return "<Tank Framework 0x%08x: %s, engine: %s>" % (id(self), self.name, self.engine)
+        return "<Sgtk Framework 0x%08x: %s, engine: %s>" % (id(self), self.name, self.engine)
 
     def _destroy_framework(self):
         """

@@ -11,6 +11,7 @@ import tempfile
 from mock import Mock
 import unittest2 as unittest
 
+import sgtk
 import tank
 from tank_vendor import yaml
 
@@ -76,7 +77,7 @@ def _move_data(path):
             os.rename(path, backup_path)
         except WindowsError:
             # On windows intermittent problems with sqlite db file occur
-            pc = tank.pipelineconfig.from_path(path)
+            pc = sgtk.pipelineconfig.from_path(path)
             db_path = pc.get_path_cache_location()
             if os.path.exists(db_path):
                 print 'Removing db %s' % db_path
@@ -166,7 +167,7 @@ class TankTestBase(unittest.TestCase):
         roots_file.write(yaml.dump(roots))
         roots_file.close()        
         
-        self.pipeline_configuration = tank.pipelineconfig.from_path(project_tank)        
+        self.pipeline_configuration = sgtk.pipelineconfig.from_path(project_tank)        
 
         # add project to mock sg and path cache db
         self.add_production_path(self.project_root, self.project)
@@ -175,7 +176,7 @@ class TankTestBase(unittest.TestCase):
         def return_sg(*args, **kws):
             return self.sg_mock
 
-        tank.util.shotgun.create_sg_connection = return_sg
+        sgtk.util.shotgun.create_sg_connection = return_sg
 
 
     def tearDown(self):
@@ -235,14 +236,14 @@ class TankTestBase(unittest.TestCase):
         roots_file.close()
         
         # need a new PC object that is using the new roots def file we just created
-        self.pipeline_configuration = tank.pipelineconfig.from_path(os.path.join(self.project_root, "tank"))
+        self.pipeline_configuration = sgtk.pipelineconfig.from_path(os.path.join(self.project_root, "tank"))
         
         # add project root folders
         # primary path was already added in base setUp
         self.add_production_path(self.alt_root_1, self.project)
         self.add_production_path(self.alt_root_2, self.project)
         # use Tank object to write project info
-        tk = tank.Tank(self.project_root)
+        tk = sgtk.Sgtk(self.project_root)
         tk.create_filesystem_structure("Project", self.project["id"])
 
         
@@ -269,12 +270,12 @@ class TankTestBase(unittest.TestCase):
 
     def add_to_path_cache(self, path, entity):
         """Adds a path and entity to the path cache sqlite db. Can also be done by useing
-        tank.path_cache.PathCache.
+        sgtk.path_cache.PathCache.
 
         :param path: Absolute path to add.
         :param entity: Entity dictionary with values for keys 'id', 'name', and 'type'
         """
-        path_cache = tank.path_cache.PathCache(self.pipeline_configuration)
+        path_cache = sgtk.path_cache.PathCache(self.pipeline_configuration)
         path_cache.add_mapping(entity["type"],
                                     entity["id"],
                                     entity["name"],

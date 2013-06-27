@@ -7,11 +7,10 @@ Management of the current context, e.g. the current shotgun entity/step/task.
 """
 
 import os
+import pickle
 
 from tank_vendor import yaml
 
-import tank
-import pickle
 from .util import login
 from .util import shotgun_entity
 from .util import shotgun
@@ -61,7 +60,7 @@ class Context(object):
         msg.append("  User: %s" % str(self.__user))
         msg.append("  Additional Entities: %s" % str(self.__additional_entities))
         
-        return "<Tank Context: %s>" % ("\n".join(msg))
+        return "<Sgtk Context: %s>" % ("\n".join(msg))
 
     def __str__(self):
         # smart looking string representation
@@ -292,9 +291,13 @@ class Context(object):
     @property
     def tank(self):
         """
-        A Tank API instance
+        An Sgtk API instance
         """
         return self.__tk
+
+    ################################################################################################
+    # new name
+    sgtk = tank
 
     ################################################################################################
     # public methods
@@ -302,7 +305,7 @@ class Context(object):
     def as_template_fields(self, template):
         """
         Returns the context object as a dictionary of template fields.
-        This is useful if you want to use a Context object as part of a call to the Tank API.
+        This is useful if you want to use a Context object as part of a call to the Sgtk API.
 
             >>> import tank
             >>> tk = tank.Tank("/studio.08/demo_project/sequences/AAA/ABC/Lighting/work")
@@ -315,7 +318,7 @@ class Context(object):
         :type  template: tank.TemplatePath.
 
         :returns: Dictionary of template files representing the context.
-                  Handy to pass in to the various Tank API methods
+                  Handy to pass in to the various Sgtk API methods
         """
         fields = {}
         # Get all entities into a dictionary
@@ -510,7 +513,7 @@ def from_entity(tk, entity_type, entity_id):
 
     If the entity is a Task a call to the Shotgun Server will be made.
 
-    :param tk:           Tank API handle
+    :param tk:           Sgtk API handle
     :param entity_type:  The shotgun entity type to produce a context for.
     :param entity_id:    The shotgun entity id to produce a context for.
 
@@ -565,7 +568,7 @@ def from_path(tk, path, previous_context=None):
 
     Depending on the location, the context contents may vary.
 
-    :param tk:   Tank API handle
+    :param tk:   Sgtk API handle
     :param path: a file system path
     :param previous_context: a context object to use to try to automatically extend the generated
                              context if it is incomplete when extracted from the path. For example,
@@ -713,14 +716,17 @@ def deserialize(context_str):
     """
     Deserializaes a string created with serialize() into a context object
     """
+    # lazy load this to avoid cyclic dependencies
+    from .api import Tank
+    
     data = pickle.loads(context_str)
 
     # first get the pc path out of the dict
     pipeline_config_path = data["_pc_path"] 
     del data["_pc_path"]
     
-    # create a tank API instance.
-    tk = tank.Tank(pipeline_config_path)
+    # create a Sgtk API instance.
+    tk = Tank(pipeline_config_path)
 
     # add it to the constructor instance
     data["tk"] = tk
@@ -763,6 +769,9 @@ def context_yaml_constructor(loader, node):
     Custom deserializer.
     Constructs a context object given the yaml data provided.
     """
+    # lazy load this to avoid cyclic dependencies
+    from .api import Tank
+    
     # get the dict from yaml
     context_constructor_dict = loader.construct_mapping(node)
     
@@ -770,8 +779,8 @@ def context_yaml_constructor(loader, node):
     pipeline_config_path = context_constructor_dict["_pc_path"] 
     del context_constructor_dict["_pc_path"]
     
-    # create a tank API instance.
-    tk = tank.Tank(pipeline_config_path)
+    # create a Sgtk API instance.
+    tk = Tank(pipeline_config_path)
 
     # add it to the constructor instance
     context_constructor_dict["tk"] = tk
@@ -794,7 +803,7 @@ def _task_from_sg(tk, task_id):
     Manne 9 April 2013: could we use the path cache primarily and fall back onto
                         a shotgun lookup? 
 
-    :param tk:           a Tank API instance
+    :param tk:           a Sgtk API instance
     :param task_id:      The shotgun task id to produce a context for.
     """
     context = {}
@@ -848,7 +857,7 @@ def _entity_from_sg(tk, entity_type, entity_id):
     Because we are constructing the context from a task, we will get a context
     which has both a project, an entity a step and a task associated with it.
 
-    :param tk:           a Tank API instance
+    :param tk:           a Sgtk API instance
     :param task_id:      The shotgun task id to produce a context for.
     """
 
@@ -879,7 +888,7 @@ def _entity_from_sg(tk, entity_type, entity_id):
 def _context_data_from_cache(tk, entity_type, entity_id):
     """Adds data to context based on path cache.
 
-    :param tk: a Tank API instance
+    :param tk: a Sgtk API instance
     :param entity_type: a Shotgun entity type
     :param entity_id: a Shotgun entity id
     """

@@ -148,7 +148,7 @@ TextLabel</string>
              <enum>Qt::ClickFocus</enum>
             </property>
             <property name="toolTip">
-             <string>Click for Tank App Details</string>
+             <string>Click for App Details</string>
             </property>
             <property name="styleSheet">
              <string notr="true">QToolButton{
