@@ -208,8 +208,12 @@ class CmdlineSetupInteraction(object):
             self._log.info("")
             for ppc in primary_pcs:
                 pc_path = ppc.get(SG_LOCAL_STORAGE_OS_MAP[sys.platform])
-                config_path = os.path.join(pc_path, "config")
-                self._log.info("   %s: '%s'" % (ppc.get("project").get("name"), config_path))
+                if pc_path is None or pc_path == "":
+                    # this sgtk config does not exist on a disk that is reachable from this os
+                    self._log.info("   %s: No valid config found for this OS!" % ppc.get("project").get("name"))
+                else:
+                    config_path = os.path.join(pc_path, "config")
+                    self._log.info("   %s: '%s'" % (ppc.get("project").get("name"), config_path))
     
             self._log.info("")
             self._log.info("If you want to use any of the configs listed about for your new project, "
