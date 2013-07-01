@@ -321,6 +321,7 @@ class CmdlineSetupInteraction(object):
         filters = [["name", "is_not", "Template Project"], 
                    ["sg_status", "is_not", "Archive"],
                    ["sg_status", "is_not", "Lost"],
+                   ["archived", "is_not", True],
                    ["tank_name", "is", None]]
          
         projs = self._sg.find("Project", filters, ["id", "name", "sg_description"])
