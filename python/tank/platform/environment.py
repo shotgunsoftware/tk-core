@@ -441,7 +441,9 @@ class Environment(object):
         for x in tokens:
             engine_data = engine_data.get(x)
         
-        engine_data[constants.ENVIRONMENT_LOCATION_KEY] = new_location
+        if new_location:
+            engine_data[constants.ENVIRONMENT_LOCATION_KEY] = new_location
+            
         engine_data.update(new_data)
         self.__write_data(yml_file, yml_data)
         # sync internal data with disk

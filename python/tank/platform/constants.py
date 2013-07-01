@@ -185,3 +185,6 @@ TEMPLATE_PATH_SECTION = "paths"
 
 # the shotgun engine always has this name
 SHOTGUN_ENGINE_NAME = "tk-shotgun"
+
+# the menu favourites key for an engine
+MENU_FAVOURITES_KEY = "menu_favourites"

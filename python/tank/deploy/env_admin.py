@@ -19,7 +19,7 @@ from ..platform import environment_includes
 import sys
 import os
 import shutil
-
+from distutils.version import LooseVersion
 
 def install_app(log, tk, env_name, engine_instance_name, app_name):
     """
@@ -164,10 +164,6 @@ def install_engine(log, tk, env_name, engine_name):
         log.info("For documentation, see %s" % engine_descriptor.get_doc_url())
     log.info("")
     log.info("")
-
-    
-    
-    
     
 
 def _update_item(log, tk, env, status, engine_name, app_name=None):
@@ -207,10 +203,51 @@ def _update_item(log, tk, env, status, engine_name, app_name=None):
 
     # next step is to add the new configuration values to the environment
     if app_name is None:
+        # update engine
         env.update_engine_settings(engine_name, params, new_descriptor.get_location())
-
     else:
+        # update app
         env.update_app_settings(engine_name, app_name, params, new_descriptor.get_location())
+        
+        # migrate engine menu favourites for this app:
+        _migrate_engine_menu_favourites(log, env, engine_name, new_descriptor)
+
+            
+def _migrate_engine_menu_favourites(log, env, engine_name, app_descriptor):
+    """
+    Lets also check the engine settings to see if
+    we need to update any menu favourites following
+    the rename from Tank to Sgtk:
+    """
+    
+    # only want to update favourites for tk-multi-workfiles:
+    if app_descriptor.get_system_name() == "tk-multi-workfiles":
+            
+        # Only care about versions of tk-multi-workfiles >= v0.3.0
+        if LooseVersion(app_descriptor.get_version()) < LooseVersion("v0.3.0"):
+            return
+        
+        # get the menu favourites for the engine:
+        engine_settings = env.get_engine_settings(engine_name)
+        menu_favourites = engine_settings.get(constants.MENU_FAVOURITES_KEY)
+        if not menu_favourites:
+            return
+    
+        # migrate menu favourites for tk-multi-workfiles:
+        for mf in menu_favourites:
+            if mf.get("app_instance") != "tk-multi-workfiles":
+                continue
+            
+            mf_name = mf.get("name")
+            if mf_name == "Tank File Manager...":
+                mf["name"] = "Shotgun File Manager..."
+            elif mf_name == "Tank Save As...":
+                mf["name"] = "Shotgun Save As..."
+        
+        # finally, update the menu favourites for the engine:
+        log.info("Updating menu favourites for engine %s..." % engine_name)
+        env.update_engine_settings(engine_name, {constants.MENU_FAVOURITES_KEY:menu_favourites}, None)
+        
 
 def _process_framework(log, env, framework_name):
     """
