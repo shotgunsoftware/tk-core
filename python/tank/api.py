@@ -311,7 +311,22 @@ class Tank(object):
         :returns: Context object.
         """
         return context.create_empty(self)
-
+    
+    def context_from_context(self, ctx, project=None, entity=None, step=None, task=None, user=None, additional_entities=None):
+        """
+        Derive a context from another context.
+        
+        :param ctx: base context to derive from
+        :param project: if specified, overrides the project 
+        :param entity: if specified, overrides the entity
+        :param step: if specified, overrides the step
+        :param task: if specified, overrides the task
+        :param user: if specified, overrides the user
+        :param additional_entities: if specified, overrides the additional_entities
+        :returns: Context object
+        """
+        return context.from_context(self, ctx, project, entity, step, task, user, additional_entities)
+        
     def context_from_path(self, path, previous_context=None):
         """
         Derive a context from a path.
