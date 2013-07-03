@@ -2,6 +2,7 @@
 rem 
 rem Copyright (c) 2012 Shotgun Software, Inc
 rem ----------------------------------------------------
+setlocal EnableExtensions
 
 rem -- this script is called by the main tank script
 rem -- the first parameter contains the path to the pipeline config root

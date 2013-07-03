@@ -2,6 +2,7 @@
 rem 
 rem Copyright (c) 2012 Shotgun Software, Inc
 rem ----------------------------------------------------
+setlocal EnableExtensions
 
 rem -- get absolute location of this folder (note- always ends with a \)
 set SELF_PATH=%~dp0
