@@ -505,30 +505,24 @@ def create_empty(tk):
     """
     return Context(tk)
 
-def from_context(tk, ctx, project=None, entity=None, step=None, task=None, user=None, additional_entities=None):
+def from_context(tk, ctx, user=None):
     """
     Construct a context from another context.
     
     :param tk:                   Sgtk API handle
-    :param ctx:                  base context to derive from
-    :param project:              if specified, overrides the project 
-    :param entity:               if specified, overrides the entity
-    :param step:                 if specified, overrides the step
-    :param task:                 if specified, overrides the task
     :param user:                 if specified, overrides the user
-    :param additional_entities:  if specified, overrides the additional_entities
     
     :returns: Context object
     """
     # prep our return data structure
     context = {
         "tk": tk,
-        "project": project if project != None else copy.deepcopy(ctx.project),
-        "entity": entity if entity != None else copy.deepcopy(ctx.entity),
-        "step": step if step != None else copy.deepcopy(ctx.step),
+        "project": copy.deepcopy(ctx.project),
+        "entity": copy.deepcopy(ctx.entity),
+        "step": copy.deepcopy(ctx.step),
         "user": user if user != None else copy.deepcopy(ctx.user),
-        "task": task if task != None else copy.deepcopy(ctx.task),
-        "additional_entities": additional_entities if additional_entities != None else copy.deepcopy(ctx.additional_entities)
+        "task": copy.deepcopy(ctx.task),
+        "additional_entities": copy.deepcopy(ctx.additional_entities)
     }
     
     return Context(**context)
