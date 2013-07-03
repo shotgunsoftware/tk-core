@@ -311,16 +311,6 @@ class Tank(object):
         :returns: Context object.
         """
         return context.create_empty(self)
-    
-    def context_from_context(self, ctx, user=None):
-        """
-        Derive a context from another context.
-        
-        :param ctx: base context to derive from
-        :param user: if specified, overrides the user
-        :returns: Context object
-        """
-        return context.from_context(self, ctx, user)
         
     def context_from_path(self, path, previous_context=None):
         """

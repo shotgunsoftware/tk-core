@@ -118,6 +118,27 @@ class Context(object):
 
         return equal
 
+    def __deepcopy__(self, memo):
+        """
+        Allow Context objects to be deepcopied - Note that the tk
+        member is _never_ copied
+        """
+        # construct copy with current api instance:
+        ctx_copy = Context(self.__tk)
+        
+        # deepcopy all other members:
+        ctx_copy.__project = copy.deepcopy(self.__project, memo)
+        ctx_copy.__entity = copy.deepcopy(self.__entity, memo)
+        ctx_copy.__step = copy.deepcopy(self.__step, memo)
+        ctx_copy.__task = copy.deepcopy(self.__task, memo)
+        ctx_copy.__user = copy.deepcopy(self.__user, memo)        
+        ctx_copy.__additional_entities = copy.deepcopy(self.__additional_entities, memo)
+        
+        # except:
+        # ctx_copy._entity_fields_cache
+        
+        return ctx_copy
+
     ################################################################################################
     # properties
 
@@ -352,6 +373,19 @@ class Context(object):
         fields.update(self._fields_from_shotgun(template, entities))
         return fields
 
+    def create_copy_for_user(self, user):
+        """
+        Duplicate the context for the specified 
+        user
+        
+        :param user:    overrides the user
+        
+        :returns: Context object
+        """
+        ctx_copy = copy.deepcopy(self)
+        ctx_copy.__user = user
+        return ctx_copy       
+
     ################################################################################################
     # private methods
 
@@ -504,29 +538,6 @@ def create_empty(tk):
     :returns: a context object
     """
     return Context(tk)
-
-def from_context(tk, ctx, user=None):
-    """
-    Construct a context from another context.
-    
-    :param tk:                   Sgtk API handle
-    :param user:                 if specified, overrides the user
-    
-    :returns: Context object
-    """
-    # prep our return data structure
-    context = {
-        "tk": tk,
-        "project": copy.deepcopy(ctx.project),
-        "entity": copy.deepcopy(ctx.entity),
-        "step": copy.deepcopy(ctx.step),
-        "user": user if user != None else copy.deepcopy(ctx.user),
-        "task": copy.deepcopy(ctx.task),
-        "additional_entities": copy.deepcopy(ctx.additional_entities)
-    }
-    
-    return Context(**context)
-
 
 def from_entity(tk, entity_type, entity_id):
     """
