@@ -122,7 +122,7 @@ class CmdlineSetupInteraction(object):
             # assume new style setup - in this case we need to go figure out the different
             # OS paths to the install location. These are kept in a config file.
             
-            # now read in the pipeline_configuration.yml file
+            # now read in the install_location.yml file
             cfg_yml = os.path.join(install_root, "config", "core", "install_location.yml")
             fh = open(cfg_yml, "rt")
             try:
@@ -774,6 +774,29 @@ def _install_environment(env_obj, log):
     for descriptor in descriptors:
         descriptor.ensure_shotgun_fields_exist()
     
+def _get_published_file_entity_type(log, sg):
+    """
+    Find the published file entity type to use for this project.
+    
+    Returns 'PublishedFile' if the PublishedFile entity type has
+    been enabled, otherwise returns 'TankPublishedFile'
+    """
+    log.debug("Retrieving schema from Shotgun to determine entity type " 
+              "to use for published files")
+    
+    pf_entity_type = "TankPublishedFile"
+    try:
+        sg_schema = sg.schema_read()
+        if ("PublishedFile" in sg_schema
+            and "PublishedFileType" in sg_schema
+            and "PublishedFileDependency" in sg_schema):
+            pf_entity_type = "PublishedFile"
+    except Exception, e:
+        raise TankError("Could not retrieve the Shotgun schema: %s" % e)
+
+    log.debug(" > Using %s entity type for published files" % pf_entity_type)
+
+    return pf_entity_type
     
 
 
@@ -848,6 +871,9 @@ def _interactive_setup(log, install_root, check_storage_path_exists):
     # now ask the user where the config should go    
     locations_dict = cmdline_ui.get_disk_location(resolved_storages, project_disk_folder, install_root)
     current_os_pc_location = locations_dict[sys.platform]
+    
+    # determine the entity type to use for Published Files:
+    pf_entity_type = _get_published_file_entity_type(log, sg)
 
     ##################################################################
     # validate the local storages
@@ -1128,13 +1154,14 @@ def _interactive_setup(log, install_root, check_storage_path_exists):
     data["pc_id"] = pc_entity["id"]
     data["project_id"] = project_id
     data["pc_name"] = constants.PRIMARY_PIPELINE_CONFIG_NAME 
+    data["published_file_entity_type"] = pf_entity_type
     
     try:
         fh = open(pipe_config_sg_id_path, "wt")
         yaml.dump(data, fh)
         fh.close()
     except Exception, exp:
-        raise TankError("Could not write to shotgun cache file %s. "
+        raise TankError("Could not write to pipeline configuration cache file %s. "
                         "Error reported: %s" % (pipe_config_sg_id_path, exp))
     
     # and write a custom event to the shotgun event log
@@ -1171,10 +1198,27 @@ def _interactive_setup(log, install_root, check_storage_path_exists):
         log.info("Found a post-install script %s" % after_script_path)
         log.info("Executing post-install commands...")
         sys.path.insert(0, os.path.dirname(after_script_path))
-        import after_project_create
-        after_project_create.create(sg=sg, project_id=project_id, log=log)
-        sys.path.pop(0)
-        log.info("Post install phase complete!")
+        try:
+            import after_project_create
+            after_project_create.create(sg=sg, project_id=project_id, log=log)
+        except Exception, e:
+            if ("API read() invalid/missing string entity" in e.__str__()
+                and "\"type\"=>\"TankType\"" in e.__str__()):
+                # Handle a specific case where an old version of the 
+                # after_project_create script set up TankType entities which
+                # are now disabled following the migration to the 
+                # new PublishedFileType entity
+                log.info("")
+                log.warning("The post install script failed to complete.  This is most likely because it "
+                            "is from an old configuration that is attempting to create 'TankType' entities "
+                            "which are now disabled in Shotgun.")
+            else:
+                log.info("")
+                log.error("The post install script failed to complete: %s" % e)
+        else:
+            log.info("Post install phase complete!")            
+        finally:
+            sys.path.pop(0)
 
     log.info("")
     log.info("Your Sgtk Project has been fully set up.")

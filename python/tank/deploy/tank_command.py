@@ -8,7 +8,7 @@ Methods for handling of the tank command
 
 
 from .tank_commands.action_base import Action 
-from .tank_commands import apps, folders, misc, move_pc, move_studio, pc_overview
+from .tank_commands import apps, folders, misc, move_pc, move_studio, pc_overview, migrate_entities
 
 from ..platform import constants
 from ..platform.engine import start_engine, get_environment_from_context
@@ -29,7 +29,8 @@ BUILT_IN_ACTIONS = [misc.SetupProjectAction,
                     folders.PreviewFoldersAction,
                     move_pc.MovePCAction,
                     pc_overview.PCBreakdownAction,
-                    move_studio.MoveStudioInstallAction
+                    move_studio.MoveStudioInstallAction,
+                    migrate_entities.MigratePublishedFileEntitiesAction
                     ]
 
 
