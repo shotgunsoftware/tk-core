@@ -600,7 +600,7 @@ class TankConfigInstaller(object):
         if problems:
             raise TankError("One or more issues with local storage setup detected. "
                             "Setup cannot continue! If you have any questions, you can "
-                            "always drop us a line on sgtksupport@shotgunsoftware.com")
+                            "always drop us a line on toolkitsupport@shotgunsoftware.com")
         
         return storages
 

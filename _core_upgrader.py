@@ -277,7 +277,7 @@ def _upgrade_to_013(tank_install_root, log):
     log.info("- Tank commands will be added to all projects and to the central install.")
     log.info("")
     log.info("If you have any questions or concerns, you can always contact us prior")
-    log.info("to upgrading. Just drop us a line on sgtksupport@shotgunsoftware.com")
+    log.info("to upgrading. Just drop us a line on toolkitsupport@shotgunsoftware.com")
     log.info("")
     val = raw_input("Continue with Tank v0.13 upgrade (Yes/No)? [Yes]: ")
     if val != "" and not val.lower().startswith("y"):
