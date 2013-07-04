@@ -69,9 +69,10 @@ class TestGetApplication(TestApplication):
         
     def test_good_path(self):
         app_path = os.path.join(self.project_config, "test_app")
+        tk = tank.Tank(self.project_root)
         # make a dev location and create descriptor
         app_desc = descriptor.get_from_location(descriptor.AppDescriptor.APP, 
-                                                self.project_config, 
+                                                tk.pipeline_configuration, 
                                                 {"type": "dev", "path": app_path})
         result = application.get_application(self.engine, app_path, app_desc, {}, "instance_name")
         self.assertIsInstance(result, application.Application)
