@@ -35,11 +35,15 @@ class TankDevDescriptor(AppDescriptor):
             raise TankError("Invalid dev descriptor! Could not find a path or a %s entry in the "
                             "location dict %s." % (platform_key, location_dict))
 
+        # replace magic token {PIPELINE_CONFIG} with path to pipeline configuration
+        self._path = self._path.replace("{PIPELINE_CONFIG}", pipeline_config.get_path()) 
+        
         # lastly, resolve environment variables
         self._path = os.path.expandvars(self._path)
+        
         # and normalise:
         self._path = os.path.normpath(self._path)
-
+        
         # if there is a version defined in the location dict
         # (this is handy when doing framework development, but totally
         #  non-required for finding the code) 
