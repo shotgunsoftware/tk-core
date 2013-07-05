@@ -639,12 +639,18 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
     # Make path platform agnostic.
     _, path_cache = _calc_path_cache(tk, path)
 
+    # if the context does not have an entity, link it up to the project
+    if context.entity is None:
+        linked_entity = context.project
+    else:
+        linked_entity = context.entity
+
     data = {
         "code": os.path.basename(path),
         "description": comment,
         "name": name,
         "project": context.project,
-        "entity": context.entity,
+        "entity": linked_entity,
         "task": task,
         "version_number": version_number,
         "path": { "local_path": path },
