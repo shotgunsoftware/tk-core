@@ -740,24 +740,22 @@ class EntityMigrator(object):
             except Exception, e:
                 self._migration_errors.append("Failed to create/update %d %s entities in Shotgun - %s"
                                               % (len(requests), self._dst_type, e))
+            else:
+                # result is garunteed to be returned in the same order the requests submitted
+                # so we can easily match the new entities up to their original source entities
+                for entity_idx, (src_entity, _) in enumerate(entities_to_create):
+                    new_entity = created_entities[entity_idx]
+                    src_entity_id = src_entity["id"]
+                    new_entity_id = new_entity["id"]
+                    
+                    # update mapping info:
+                    src_map[src_entity_id]["id"] = new_entity_id
+                    
+                    # and add entity to be linked:
+                    entities_to_link.append((src_entity_id, new_entity_id))                
             finally:
                 # allow derived objects to do any cleanup:
                 self._post_entity_migration()
-            
-            # result is garunteed to be returned in the same order the requests submitted
-            # so we can easily match the new entities up to their original source entities
-            for entity_idx, (src_entity, _) in enumerate(entities_to_create):
-                new_entity = created_entities[entity_idx]
-                #for entity_idx, new_entity in enumerate(created_entities):
-                #src_entity,_ = entities_to_create[entity_idx]
-                src_entity_id = src_entity["id"]
-                new_entity_id = new_entity["id"]
-                
-                # update mapping info:
-                src_map[src_entity_id]["id"] = new_entity_id
-                
-                # and add entity to be linked:
-                entities_to_link.append((src_entity_id, new_entity_id))
             
         # link source entities to destination entities
         # so that the migration can be tracked   
@@ -781,7 +779,9 @@ class EntityMigrator(object):
             
             # Unfortunately we can't batch this and it can be really slow!
             for src_id in entities_with_thumbnails:
-                dst_id = src_map[src_id]["id"]
+                dst_id = src_map[src_id].get("id")
+                if dst_id == None:
+                    continue
                 
                 src_entity = {"id":src_id, "type":self._src_type}
                 dst_entity = {"id":dst_id, "type":self._dst_type}
