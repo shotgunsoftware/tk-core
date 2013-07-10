@@ -77,6 +77,14 @@ class Tank(object):
         return self.__pipeline_config.get_primary_data_root()
 
     @property
+    def roots(self):
+        """
+        Returns a dictionary of root names to root paths. 
+        In the case of a single project root, there will only be one entry. 
+        """
+        return self.__pipeline_config.get_data_roots()
+
+    @property
     def shotgun(self):
         """
         Lazily create a Shotgun API handle
