@@ -53,6 +53,7 @@ class EntityMigrator(object):
         self._schema_errors_and_warnings = []
         self._tracking_field = None
         self._entity_field_details = {}
+        self._dst_field_default_values = {}
         self._linked_entity_field_details = {}
 
         self._migration_errors = []
@@ -149,13 +150,37 @@ class EntityMigrator(object):
                         self.__log_schema_warning("Source %s field '%s.%s' is not compatible with '%s.%s' as it accepts different valid entity types.  Data for this field will not be migrated!" 
                                               % (src_field_data_type, self._src_type, src_field, self._dst_type, dst_field))
                         continue
+                    
+                # if specific values are set then check they are consistent:
+                src_valid_values = src_properties["properties"].get("valid_values", {}).get("value")
+                dst_valid_values = dst_properties["properties"].get("valid_values", {}).get("value")
+                if src_valid_values == None and dst_valid_values != None:
+                    self.__log_schema_warning("Destination field '%s.%s' is restricted to specific values but the source field '%s.%s' is not.  Data for this field will not be migrated!" 
+                                              % (self._dst_type, dst_field, self._src_type, src_field))
+                    continue
+                elif src_valid_values != None and dst_valid_values == None:
+                    # this is probably ok as the destination is less restrictive than the source
+                    pass
+                elif src_valid_values != None and dst_valid_values != None:
+                    # make sure the values are the same:
+                    values_match = True
+                    for sv in src_valid_values:
+                        if not sv in dst_valid_values:
+                            values_match = False
+                            break
+                    if not values_match:
+                        self.__log_schema_warning("Destination field '%s.%s' is restricted to different specific values than the source field '%s.%s'.  Data for this field will not be migrated!" 
+                                              % (self._dst_type, dst_field, self._src_type, src_field))
+                        continue
+                
+            dst_default_value = dst_properties["properties"].get("default_value", {}).get("value")
                 
             # add field to list of fields to migrate:
-            self._entity_field_details[src_field] = dst_field
+            #self._entity_field_details[src_field] = dst_field
             self._entity_field_details[src_field] = {"src_data_type":src_field_data_type,
                                                     "dst_field":dst_field,
                                                     "dst_data_type":dst_field_data_type}
-            
+            self._dst_field_default_values[dst_field] = dst_default_value
             
         # next, look for all fields on all entities that accept
         # entities of type 'src_type' and have a valid field to migrate
@@ -680,7 +705,7 @@ class EntityMigrator(object):
             self._log.debug("Updating %d existing entities" % len(entities_to_update))
             
             # We need to get the existing data as we only 
-            # want to update fields that are empty:
+            # want to update fields that are empty/non-default:
             dst_fields = set()
             dst_entity_ids = []
             for _, dst_entity, dst_entity_id, image_field in entities_to_update:
@@ -692,7 +717,7 @@ class EntityMigrator(object):
                 
             range_start = min(dst_entity_ids)-1
             range_end = max(dst_entity_ids)
-            
+
             # get data for existing entities:
             try:
                 existing_entities = self._sg.find(self._dst_type, 
@@ -703,7 +728,7 @@ class EntityMigrator(object):
                                               % (len(entities_to_update, self._dst_type, e)))
             else:
                 existing_entities_by_id = dict((entity["id"], entity) for entity in existing_entities)
-                
+
                 # now, we only want to update empty fields for existing entities:
                 for src_entity, dst_entity, dst_entity_id, image_field in entities_to_update:
                     existing_entity = existing_entities_by_id[dst_entity_id]
@@ -714,10 +739,12 @@ class EntityMigrator(object):
                     
                     update_data = {}
                     for field, value in dst_entity.iteritems():
-                        if existing_entity.get(field):
-                            # don't update fields that already have data
-                            continue
                         
+                        dst_default_value = self._dst_field_default_values[field]
+                        if existing_entity.get(field) != dst_default_value:
+                            # don't update fields that already have non-default data
+                            continue
+
                         if field == image_field:
                             # images are updated later using the share_thumbnail api:
                             entities_with_thumbnails.append(src_entity["id"])
