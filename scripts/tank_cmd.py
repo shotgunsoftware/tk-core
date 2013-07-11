@@ -288,7 +288,11 @@ def _write_shotgun_cache(tk, entity_type, cache_file_name):
             cache_file_created = True
 
         # Write to cache file
-        f = open(cache_path, "wt")
+        # Note that we are using binary form here to ensure that the line
+        # endings are written out consistently on all different OSes
+        # otherwise with wt mode, \n on windows will be turned into \n\r 
+        # which is not interpreted correctly by the jacascript code.
+        f = open(cache_path, "wb")
         f.write(data)
         f.close()
 
