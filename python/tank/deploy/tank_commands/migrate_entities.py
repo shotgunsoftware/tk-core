@@ -32,7 +32,7 @@ class EntityMigrator(object):
     """
     
     # common entity fields that shouldn't be touched/written to:
-    READ_ONLY_FIELDS = ["id", "updated_by", "updated_at", "open_notes_count"]
+    READ_ONLY_FIELDS = ["id", "updated_by", "updated_at", "open_notes_count", "open_notes"]
     
     # Entity types that should not be modified:
     READ_ONLY_ENTITY_TYPES = ["EventLogEntry"]
