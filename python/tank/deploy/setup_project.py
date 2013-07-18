@@ -312,29 +312,42 @@ class CmdlineSetupInteraction(object):
 
 
         
-    def get_project(self):
+    def get_project(self, force):
         """
         Returns the project id and name for a project for which setup should be done.
         Will request the user to input console input to select project.
         """
-    
+
         filters = [["name", "is_not", "Template Project"], 
                    ["sg_status", "is_not", "Archive"],
                    ["sg_status", "is_not", "Lost"],
-                   ["archived", "is_not", True],
-                   ["tank_name", "is", None]]
+                   ["archived", "is_not", True]]
+    
+        if force == False:
+            # not force mode. Only show non-set up projects
+            filters.append(["tank_name", "is", None])
          
-        projs = self._sg.find("Project", filters, ["id", "name", "sg_description"])
+        projs = self._sg.find("Project", filters, ["id", "name", "sg_description", "tank_name"])
     
         if len(projs) == 0:
             raise TankError("Sorry, no projects found! All projects seem to have already been "
-                            "set up with the Shotgun Pipeline Toolkit.")
+                            "set up with the Shotgun Pipeline Toolkit. If you are an expert "
+                            "user and want to run the setup on a project which already has been "
+                            "set up, run the setup_project command with a --force option.")
             
-        self._log.info("")
-        self._log.info("")
-        self._log.info("Below are all projects that have not yet been set up with the Sgtk:")
-        self._log.info("-------------------------------------------------------------------")
-        self._log.info("")
+        if force:
+            self._log.info("")
+            self._log.info("")
+            self._log.info("Below are all active projects, including ones that have been set up:")
+            self._log.info("--------------------------------------------------------------------")
+            self._log.info("")
+            
+        else:
+            self._log.info("")
+            self._log.info("")
+            self._log.info("Below are all projects that have not yet been set up with Toolkit:")
+            self._log.info("-------------------------------------------------------------------")
+            self._log.info("")
         
         for x in projs:
             # helper that formats a single project
@@ -347,6 +360,8 @@ class CmdlineSetupInteraction(object):
                 desc = "%s..." % desc[:50]
             
             self._log.info("[%2d] %s" % (x.get("id"), x.get("name")))
+            if x.get("tank_name"):
+                self._log.info("Note: This project has already been set up.")
             self._log.info("     %s" % desc)
             self._log.info("")
             
@@ -804,14 +819,14 @@ def _get_published_file_entity_type(log, sg):
 ########################################################################################
 # main methods and entry points
 
-def interactive_setup(log, install_root, check_storage_path_exists):
+def interactive_setup(log, install_root, check_storage_path_exists, force):
     old_umask = os.umask(0)
     try:
-        return _interactive_setup(log, install_root, check_storage_path_exists)
+        return _interactive_setup(log, install_root, check_storage_path_exists, force)
     finally:
         os.umask(old_umask)
     
-def _interactive_setup(log, install_root, check_storage_path_exists):
+def _interactive_setup(log, install_root, check_storage_path_exists, force):
     """
     interactive setup which will ask questions via the console.
     """
@@ -854,7 +869,7 @@ def _interactive_setup(log, install_root, check_storage_path_exists):
     resolved_storages = cfg_installer.validate_roots(check_storage_path_exists)
 
     # ask which project to operate on
-    (project_id, project_name) = cmdline_ui.get_project()
+    (project_id, project_name) = cmdline_ui.get_project(force)
     
     # construct a valid name - replace white space with underscore and lower case it.
     project_disk_folder = re.sub("\W", "_", project_name).lower()

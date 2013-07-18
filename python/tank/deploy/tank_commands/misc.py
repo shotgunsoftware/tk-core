@@ -28,9 +28,10 @@ class SetupProjectAction(Action):
         
     def run(self, log, args):
         if len(args) not in [0, 1]:
-            raise TankError("Syntax: setup_project [--no-storage-check]")
+            raise TankError("Syntax: setup_project [--no-storage-check] [--force]")
         
         check_storage_path_exists = True
+        force = False
         
         if len(args) == 1 and args[0] == "--no-storage-check":
             check_storage_path_exists = False
@@ -38,11 +39,15 @@ class SetupProjectAction(Action):
                      "can be useful if the storage is pointing directly at a server via a "
                      "Windows UNC mapping.")
             
-        elif len(args) == 1 and args[0] != "--no-storage-check":
-            raise TankError("Syntax: setup_project [--no-storage-check]")
+        if len(args) == 1 and args[0] == "--force":
+            force = True
+            log.info("force mode: Projects already set up with Toolkit can be set up again.")
+
+        elif len(args) == 1 and args[0] not in ["--no-storage-check", "--force"]:
+            raise TankError("Syntax: setup_project [--no-storage-check] [--force]")
             
             check_storage_path_exists = False
-        setup_project.interactive_setup(log, self.code_install_root, check_storage_path_exists)
+        setup_project.interactive_setup(log, self.code_install_root, check_storage_path_exists, force)
         
         
 class CoreUpgradeAction(Action):
