@@ -63,7 +63,7 @@ class CoreUpgradeAction(Action):
         Action.__init__(self, 
                         "core", 
                         Action.GLOBAL, 
-                        "Checks that your Sgtk Core API install is up to date.", 
+                        "Checks that your Toolkit Core API install is up to date.", 
                         "Configuration")
             
     def run(self, log, args):
@@ -120,7 +120,7 @@ class ClearCacheAction(Action):
                         Action.PC_LOCAL, 
                         ("Clears the Shotgun Menu Cache associated with this Configuration. "
                          "This is sometimes useful after complex configuration changes if new "
-                         "or modified Sgtk menu items are not appearing inside Shotgun."), 
+                         "or modified Toolkit menu items are not appearing inside Shotgun."), 
                         "Admin")
     
     def run(self, log, args):

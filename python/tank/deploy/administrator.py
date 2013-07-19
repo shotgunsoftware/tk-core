@@ -156,14 +156,14 @@ def clone_configuration(log, tk, source_pc_id, user_id, name, target_linux, targ
     if source_pc_has_shared_core_api:
         log.info("")
         log.info("")
-        log.info("<b>Note:</b> You are running a shared version of the Sgtk Core API for this new clone. "
+        log.info("<b>Note:</b> You are running a shared version of the Toolkit Core API for this new clone. "
                  "This means that when you make an upgrade to that shared API, all "
                  "the different projects that share it will be upgraded. This makes the upgrade "
                  "process quick and easy. However, sometimes you also want to break out of a shared "
                  "environment, for example if you want to test a new version of the Shotgun Pipeline Toolkit. ")
         log.info("")
         log.info("In order to change this pipeline configuration to use its own independent version "
-                 "of the Sgtk API, you can execute the following command: ")
+                 "of the Toolkit API, you can execute the following command: ")
     
         if sys.platform == "win32":
             tank_cmd = os.path.join(target_folder, "tank.bat")

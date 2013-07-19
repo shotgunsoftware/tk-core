@@ -69,7 +69,7 @@ class TankQDialog(TankDialogBase):
                 # we are using a non-default pipeline config
                 first_line = "<b style='color: #9cbfff'>Config %s</b>" % pc.get_name()
             else:
-                first_line = "Sgtk %s" % self._bundle.context.tank.version
+                first_line = "Toolkit %s" % self._bundle.context.tank.version
             
             # second line contains the project
             if self._bundle.context.project:

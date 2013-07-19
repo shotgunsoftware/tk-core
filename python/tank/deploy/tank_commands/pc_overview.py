@@ -103,16 +103,16 @@ class PCBreakdownAction(Action):
                 if os.path.exists(os.path.join(local_path, "install", "core", "_core_upgrader.py")):
                     api_version = pipelineconfig.get_core_api_version_for_pc(local_path)
                     log.info("This configuration is running its own version (%s)"
-                             " of the Sgtk API." % api_version)
+                             " of the Toolkit API." % api_version)
                     log.info("If you want to check for core API updates you can run:")
                     log.info("> %s core" % local_tank_command)
                     log.info("")
                     
                 else:
                     
-                    log.info("This configuration is using a shared version of the Sgtk API."
+                    log.info("This configuration is using a shared version of the Toolkit API."
                              "If you want it to run its own independent version "
-                             "of the Sgtk Core API, you can run:")
+                             "of the Toolkit Core API, you can run:")
                     log.info("> %s localize" % local_tank_command)
                     log.info("")
                 

@@ -64,9 +64,9 @@ class CmdlineSetupInteraction(object):
         self._log.info("")
         self._log.info("")
         self._log.info("Now it is time to decide where the configuration for this project should go. ")
-        self._log.info("As of Sgtk v0.13, you can specify any location you want on disk. ")
+        self._log.info("As of Toolkit v0.13, you can specify any location you want on disk. ")
         self._log.info("Typically, this is in a software install area where you keep ")
-        self._log.info("all your Sgtk code and configuration. We will suggest defaults ")
+        self._log.info("all your Toolkit code and configuration. We will suggest defaults ")
         self._log.info("based on your current install.")
         
         # figure out the config install location. There are three cases to deal with
@@ -103,7 +103,7 @@ class CmdlineSetupInteraction(object):
             # ok the parent of the install root matches the primary storage - means OLD STYLE!
             
             self._log.info("")
-            self._log.info("Note! Your setup looks like it was created with Sgtk v0.12! While ")
+            self._log.info("Note! Your setup looks like it was created with Toolkit v0.12! While ")
             self._log.info("it is now possible to put your configuration anywhere you like, we ")
             self._log.info("will suggest defaults compatible with your existing installation.")
             
@@ -216,7 +216,7 @@ class CmdlineSetupInteraction(object):
             for ppc in primary_pcs:
                 pc_path = ppc.get(SG_LOCAL_STORAGE_OS_MAP[sys.platform])
                 if pc_path is None or pc_path == "":
-                    # this sgtk config does not exist on a disk that is reachable from this os
+                    # this Toolkit config does not exist on a disk that is reachable from this os
                     self._log.info("   %s: No valid config found for this OS!" % ppc.get("project").get("name"))
                 else:
                     config_path = os.path.join(pc_path, "config")
@@ -252,8 +252,8 @@ class CmdlineSetupInteraction(object):
         self._log.info("")
         self._log.info("")
         self._log.info("")
-        self._log.info("Now you need to tell Sgtk where you are storing the data for this project.")
-        self._log.info("The selected Sgtk config utilizes the following Local Storages, as ")
+        self._log.info("Now you need to tell Toolkit where you are storing the data for this project.")
+        self._log.info("The selected Toolkit config utilizes the following Local Storages, as ")
         self._log.info("defined in the Shotgun Site Preferences:")
         self._log.info("")
         for s in resolved_storages:
@@ -585,7 +585,7 @@ class TankConfigInstaller(object):
                 problems = True
                 self._log.error("")
                 self._log.error("=== Missing Local File Storage in Shotgun! ===")
-                self._log.error("The Sgtk configuration is referring to a storage location")
+                self._log.error("The Toolkit configuration is referring to a storage location")
                 self._log.error("named '%s'. However, no such storage has been defined " % s)
                 self._log.error("in Shotgun. Each configuration defines one or more")
                 self._log.error("data roots, to which files are written - all of these roots ")
@@ -607,7 +607,7 @@ class TankConfigInstaller(object):
                             problems = True
                             self._log.error("")
                             self._log.error("=== Local file storage not configured ===")
-                            self._log.error("The local file storage %s is needed by the Sgtk configuration " % s)
+                            self._log.error("The local file storage %s is needed by the Toolkit configuration " % s)
                             self._log.error("but it does not have a path configured for the current os platform! ")
                             self._log.error("Please go to the site preferences in shotgun and adjust.")
 
@@ -615,7 +615,7 @@ class TankConfigInstaller(object):
                             problems = True
                             self._log.error("")
                             self._log.error("=== File storage path does not exist! ===")
-                            self._log.error("The local file storage %s is needed by the Sgtk configuration. " % s)
+                            self._log.error("The local file storage %s is needed by the Toolkit configuration. " % s)
                             self._log.error("It points to the path '%s' on the current os, " % local_storage_path)
                             self._log.error("but that path does not exist on disk.")
 
@@ -678,10 +678,10 @@ class TankConfigInstaller(object):
             curr_core_version = pipelineconfig.get_core_api_version_based_on_current_code()
     
             if deploy_util.is_version_newer(required_version, curr_core_version):        
-                raise TankError("This configuration requires Sgtk Core version %s "
+                raise TankError("This configuration requires Toolkit Core version %s "
                                 "but you are running version %s" % (required_version, curr_core_version))
             else:
-                self._log.debug("Config requires Sgtk Core %s. You are running %s which is fine." % (required_version, curr_core_version))
+                self._log.debug("Config requires Toolkit Core %s. You are running %s which is fine." % (required_version, curr_core_version))
 
 
 
@@ -702,9 +702,9 @@ def _get_current_core_file_location():
     
     if not os.path.exists(core_cfg):
         full_path_to_file = os.path.abspath(os.path.dirname(__file__))
-        raise TankError("Cannot resolve the core configuration from the location of the Sgtk Code! "
-                        "This can happen if you try to move or symlink the Sgtk API. The "
-                        "Sgtk API is currently picked up from %s which is an "
+        raise TankError("Cannot resolve the core configuration from the location of the Toolkit Code! "
+                        "This can happen if you try to move or symlink the Toolkit API. The "
+                        "Toolkit API is currently picked up from %s which is an "
                         "invalid location." % full_path_to_file)
     
 
@@ -731,7 +731,7 @@ def _make_folder(log, folder, permissions, create_placeholder_file = False):
     if create_placeholder_file:
         ph_path = os.path.join(folder, "placeholder")
         fh = open(ph_path, "wt")
-        fh.write("This placeholder file was automatically generated by sgtk.\n")
+        fh.write("This placeholder file was automatically generated by Toolkit.\n")
         fh.close()
     
 
@@ -786,7 +786,7 @@ def _install_environment(env_obj, log):
     # ensure all apps are local - if not then download them
     for descriptor in descriptors:
         if not descriptor.exists_local():
-            log.info("Downloading %s to the local Sgtk install location..." % descriptor)            
+            log.info("Downloading %s to the local Toolkit install location..." % descriptor)            
             descriptor.download_local()
             
         else:
@@ -990,7 +990,7 @@ def _interactive_setup(log, install_root, check_storage_path_exists, force):
 
     for x in resolved_storages:
 
-        log.info("* Sgtk will connect to the project folder in Storage '%s':" % x["code"] )
+        log.info("* Toolkit will connect to the project folder in Storage '%s':" % x["code"] )
         
         if x["mac_path"] is None:
             log.info("  - on Macosx: No path defined")
@@ -1049,7 +1049,7 @@ def _interactive_setup(log, install_root, check_storage_path_exists, force):
     _copy_folder(log, cfg_installer.get_path(), os.path.join(current_os_pc_location, "config"))
     
     # copy the tank binaries to the top of the config
-    log.debug("Copying Sgtk binaries...")
+    log.debug("Copying Toolkit binaries...")
     core_api_root = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", ".."))
     root_binaries_folder = os.path.join(core_api_root, "setup", "root_binaries")
     for file_name in os.listdir(root_binaries_folder):
@@ -1189,7 +1189,7 @@ def _interactive_setup(log, install_root, check_storage_path_exists, force):
     # and write a custom event to the shotgun event log
     log.debug("Writing app store stats...")
     data = {}
-    data["description"] = "%s: An Sgtk Project named %s was created" % (sg.base_url, project_disk_folder)
+    data["description"] = "%s: An Toolkit Project named %s was created" % (sg.base_url, project_disk_folder)
     data["event_type"] = "TankAppStore_Project_Created"
     data["user"] = script_user
     data["project"] = constants.TANK_APP_STORE_DUMMY_PROJECT
@@ -1243,7 +1243,7 @@ def _interactive_setup(log, install_root, check_storage_path_exists, force):
             sys.path.pop(0)
 
     log.info("")
-    log.info("Your Sgtk Project has been fully set up.")
+    log.info("Your Toolkit Project has been fully set up.")
     log.info("")
 
     # show the readme file if it exists
@@ -1260,7 +1260,7 @@ def _interactive_setup(log, install_root, check_storage_path_exists, force):
     log.info("We recommend that you now run 'tank updates' to get the latest")
     log.info("versions of all apps and engines for this project.")
     log.info("")
-    log.info("For more Apps, Support, Documentation and the Sgtk Community, go to")
+    log.info("For more Apps, Support, Documentation and the Toolkit Community, go to")
     log.info("https://tank.shotgunsoftware.com")
     log.info("")        
 
