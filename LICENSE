@@ -1,0 +1,146 @@
+SHOTGUN PIPELINE TOOLKIT SOURCE CODE LICENSE
+
+Version: 7/07/2013
+
+Shotgun Software Inc. ("Company") provides the Shotgun Pipeline Toolkit,
+software, including source code, in this package or repository folder (the
+"Shotgun Toolkit Code") subject to your acceptance of and compliance with 
+the following terms and conditions (the "License Terms"). By accessing,
+downloading, copying, using or modifying any of the Shotgun Toolkit Code, 
+you agree to these License Terms.
+
+Eligibility
+
+The following license to the Shotgun Toolkit Code is valid only if and while
+you are a customer of Company in good standing with either: (a) a current,
+paid-up (or free-for-evaluation) subscription or fixed-term license for
+Company's Shotgun Platform; or (b) a perpetual license and current, paid-up
+maintenance and support contract for the Shotgun Platform.
+
+Shotgun Toolkit Code License
+
+Subject to the eligibility criteria above and your compliance with these
+License Terms, Company grants to you a non-exclusive, limited license to
+reproduce, use, and make derivative works of (including by compiling object
+code versions of) the Shotgun Toolkit Code solely for your non-commercial or
+internal business purposes in connection with your authorized use of the
+Shotgun Platform.
+
+Company reserves all rights in the Shotgun Toolkit Code not expressly granted
+above. These License Terms do not grant or require Company to grant, by
+implication, estoppel, or otherwise, any other licenses or rights with respect
+to the Shotgun Toolkit Code or any of Company's other software or intellectual
+property rights. You agree not to take any action with respect to the Shotgun
+Toolkit Code that is not expressly authorized above.
+
+You must keep intact (and, in the case of copies, reproduce) all copyright 
+and other proprietary notices, including all references to and copies of these
+License Terms, as originally included on, in, or with the Shotgun Toolkit
+Code. You must ensure that all derivative works you make of the Shotgun
+Toolkit Code contain or are accompanied by comparable and conspicuous notices
+that the underlying Shotgun Toolkit Code is the confidential information of
+Company and is subject to Company's copyrights and these License Terms.
+
+No Redistribution or Disclosure
+
+You acknowledge that the Shotgun Toolkit Code is and contains proprietary and
+trade-secret information of Company. You may not distribute, disclose to any
+third party, operate for the benefit of third parties (for example, on a
+hosted basis), or otherwise commercially exploit the Shotgun Toolkit Code or
+any portion or derivative work thereof without Company's separate and express
+written consent. For purposes of this restriction, third parties do not
+include your employees or agents acting on your behalf who are bound to abide
+by these License Terms.
+
+No Warranties or Support
+
+The Shotgun Toolkit Code is provided "AS IS" and with all faults. Company
+makes no warranties whatsoever, whether express, implied, or otherwise,
+concerning the Shotgun Toolkit Code. Company has no obligation to provide
+maintenance or technical support for the Shotgun Toolkit Code (unless
+otherwise expressly agreed in a separate written agreement between you and
+Company).
+
+Liability
+
+You agree to be solely responsible for your use and modifications of the
+Shotgun Toolkit Code, and for any harm or liability arising out of such use 
+or modifications, including but not limited to any liability for infringement
+of third-party intellectual property rights.
+
+To the fullest extent permitted under applicable law, you agree that: (a)
+Company will not be liable under these License Terms or otherwise for any
+direct, indirect, incidental, special, consequential, or exemplary damages,
+including but not limited to damages for loss of profits, goodwill, use, data
+or other intangible losses, in relation to the Shotgun Toolkit Code or your
+use or inability to use the Shotgun Toolkit Code, even if Company has been
+advised of the possibility of such damages; and (b) in any event, Company's
+aggregate liability under these License Terms or in connection with the
+Shotgun Toolkit Code, regardless of the form of action and under any theory
+(whether in contract, tort, statutory, or otherwise), will not exceed the
+greater of $50 or the amount (if any) that you actually paid for access to 
+the Shotgun Toolkit Code.
+
+Ownership
+
+Company retains sole and exclusive ownership of the Shotgun Toolkit Code and
+all copyright and other intellectual property rights therein. You will own any
+derivative works you make to the Shotgun Toolkit Code, subject to: (a) the
+preceding sentence; and (b) the provisions below regarding ownership of any
+code you elect to contribute to Company.
+
+Contributions
+
+The following terms apply to any derivative works of the Shotgun Toolkit Code
+(or any other materials) that you choose to contribute to Company.
+
+For good and valuable consideration, receipt of which is acknowledged, you
+hereby transfer and assign to Company your entire right, title, and interest
+(including all rights under copyright) in: (a) any software code,
+documentation, and/or other materials that you deliver to Company for
+inclusion in, improvement of, use with, or documentation of Company's software
+program(s), including but not limited to any code, documentation, and/or other
+materials identified in a contribution form you submit to Company in an
+applicable form designated by Company; and (b) any future revisions of such
+code, documentation, and/or other materials that you make hereafter. The code,
+documentation, other materials, and future revisions described above are
+collectively referred to below as the "Contribution."
+
+As used below, the "Company Programs" means and includes the Company software
+program(s) identified on any contribution form you submit to Company, and any
+other software into which Company incorporates or with which Company uses or
+distributes the Contribution or any version or portion thereof.
+
+Company grants you a non-exclusive right to continue to modify, make
+derivative works of, reproduce, and use the Contribution for your
+non-commercial or internal business purposes, and to further Company's
+development of Company Programs. This grant does not: (a) limit Company's
+rights, (b) grant you any rights with respect to the Company Programs; nor 
+(c) permit you to distribute, operate for the benefit of third parties (for
+example, on a hosted basis), or otherwise commercially exploit the
+Contribution.
+
+You acknowledge that if Company elects to distribute the Contribution or any
+version or portion thereof, it may do so on any basis that it chooses
+(including under any proprietary or open-source licensing terms), without
+further compensation to you.
+
+You agree that if you have or acquire hereafter any patent or interface
+copyright or other intellectual property interest dominating the Contribution
+or any Company Programs (or use thereof), such dominating interest will not be
+used to undermine the effect of the assignment set forth above. Accordingly,
+Company and its direct and indirect licensees are licensed to make, use, sell,
+distribute, and otherwise exploit, in the Company Programs and their future
+versions and derivative works, without royalty or limitation, the subject
+matter of the dominating interest. This license provision will be binding on
+you and on any assignees of, or other successors to, the dominating interest.
+
+You hereby represent and warrant that you are the sole copyright holder for
+the Contribution and that you have the right and power to enter into this
+contract. You shall indemnify and hold harmless Company and its officers,
+employees, and agents against any and all claims, actions or damages
+(including attorney's reasonable fees) asserted by or paid to any party on
+account of a breach or alleged breach of the foregoing warranty. You make no
+other express or implied warranty (including without limitation any warranty
+of merchantability or fitness for a particular purpose) regarding the
+Contribution.

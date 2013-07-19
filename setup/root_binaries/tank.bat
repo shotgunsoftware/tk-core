@@ -1,7 +1,15 @@
 @echo off
-rem 
-rem Copyright (c) 2012 Shotgun Software, Inc
-rem ----------------------------------------------------
+
+rem  Copyright (c) 2013 Shotgun Software Inc.
+rem  
+rem  CONFIDENTIAL AND PROPRIETARY
+rem  
+rem  This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+rem  Source Code License included in this distribution package. See LICENSE.
+rem  By accessing, using, copying or modifying this work you indicate your 
+rem  agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+rem  not expressly granted therein are reserved by Shotgun Software Inc.
+
 setlocal EnableExtensions
 
 rem -- get absolute location of this folder (note- always ends with a \)
