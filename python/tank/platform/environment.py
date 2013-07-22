@@ -410,23 +410,32 @@ class Environment(object):
             engine_data = engine_data.get(x)
         
         app_tokens = engine_tokens
-                
+        app_yml_file = engine_yml_file
+                        
         # now that we have found the file in which the engine is defined, 
         # find the file where the app is defined
-        app_data = engine_data["apps"][app_name]
-
+        app_section = engine_data["apps"]
+        if isinstance(app_section, basestring) and app_section.startswith("@"):
+            # whole app section is a reference!
+            app_section_token = app_section[1:]
+            app_yml_file = environment_includes.find_reference(app_yml_file, self.__context, app_section_token)
+            app_yml_data = self.__load_data(app_yml_file)
+            app_data = app_yml_data[app_section_token]
+            app_tokens = [app_section_token]
+        else:
+            # found an apps section:
+            app_tokens.append("apps")
+            app_data = app_section[app_name]
+        
         if isinstance(app_data, basestring) and app_data.startswith("@"):
             # this is a reference!
             # now we are at the top of the token stack again because we switched files
             app_token = app_data[1:]
             app_tokens = [app_token]
-            app_yml_file = environment_includes.find_reference(engine_yml_file, self.__context, app_token)
-            
+            app_yml_file = environment_includes.find_reference(app_yml_file, self.__context, app_token)
         else:
-            # engine is defined in current file
-            app_tokens.append("apps")
+            # app is defined in current file
             app_tokens.append(app_name)
-            app_yml_file = engine_yml_file
 
         return (app_tokens, app_yml_file)
             
