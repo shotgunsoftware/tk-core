@@ -729,7 +729,12 @@ def from_path(path):
         # try to figure out what the primary storage is by looking for a metadata 
         # file in each PC. 
         for pc_path in current_os_pcs:
-            data = get_pc_disk_metadata(pc_path)
+            data = None
+            try:
+                data = get_pc_disk_metadata(pc_path)
+            except TankError:
+                # didn't find so just skip this pc
+                continue
             pc_name = data.get("pc_name")
             if pc_name == constants.PRIMARY_PIPELINE_CONFIG_NAME:
                 return PipelineConfiguration(pc_path)
