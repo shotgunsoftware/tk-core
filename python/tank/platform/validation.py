@@ -290,12 +290,11 @@ class _SchemaValidator:
     def __validate_schema_template(self, settings_key, schema):
         
         # new style template def: if there is a fields key, it should be a str
-        if "fields" in schema and type(schema["required_fields"]) != str:
+        if "fields" in schema and type(schema["fields"]) != str:
             params = (settings_key, self._display_name)
             raise TankError("Invalid 'fields' string in schema '%s' for '%s'!" % params)
         
-        
-        # If there's a required_fields key, it should contain a list of strs.
+        # old-style - if there's a required_fields key, it should contain a list of strs.
         if "required_fields" in schema and type(schema["required_fields"]) != list:
             params = (settings_key, self._display_name)
             raise TankError("Invalid 'required_fields' list in schema '%s' for '%s'!" % params)
@@ -305,7 +304,7 @@ class _SchemaValidator:
                 params = (field, settings_key, self._display_name)
                 raise TankError("Invalid 'required_fields' value '%s' in schema '%s' for '%s'!" % params)
 
-        # If there's an optional_fields key, it should contain a list of strs or be "*"
+        # old-style - if there's an optional_fields key, it should contain a list of strs or be "*"
         if "optional_fields" in schema and type(schema["optional_fields"]) == list:
             for field in schema.get("optional_fields",[]):
                 if type(field) != str:
