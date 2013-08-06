@@ -185,18 +185,47 @@ class Tank(object):
         skip_keys = skip_keys or []
         if isinstance(skip_keys, basestring):
             skip_keys = [skip_keys]
-        local_fields = fields.copy()
-        # Add wildcard for each key to skip
-        for skip_key in skip_keys:
-            local_fields[skip_key] = "*"
-        # Add wildcard for each field missing from the input fields
-        for missing_key in template.missing_keys(local_fields):
-            local_fields[missing_key] = "*"
-            skip_keys.append(missing_key)
-        glob_str = template._apply_fields(local_fields, ignore_types=skip_keys)
-        # Return all files which are valid for this template
-        found_files = glob.iglob(glob_str)
-        return [found_file for found_file in found_files if template.validate(found_file)]
+        
+        # construct local fields dictionary that
+        # doesn't include any skip keys:
+        local_fields = {}
+        for field, value in fields.iteritems():
+            if field not in skip_keys:
+                local_fields[field] = value
+         
+        # iterate for each set of keys in the template:
+        found_files = set()
+        globs_searched = set()
+        for keys in template._keys:
+            # create fields and skip keys with those that 
+            # are relevant for this key set:
+            current_local_fields = local_fields.copy()
+            current_skip_keys = []
+            for key in skip_keys:
+                if key in keys:
+                    current_skip_keys.append(key)
+                    current_local_fields[key] = "*"
+            
+            # Add wildcard for each field missing from the input fields
+            for missing_key in template._missing_keys(current_local_fields, keys, False):
+                current_local_fields[missing_key] = "*"
+                current_skip_keys.append(missing_key)
+            
+            # Apply the fields to build the glob string to search with:
+            glob_str = template._apply_fields(current_local_fields, ignore_types=current_skip_keys)
+            if glob_str in globs_searched:
+                # it's possible that multiple key sets return the same search
+                # string depending on the fields and skip-keys passed in
+                continue
+            globs_searched.add(glob_str)
+            
+            # Find all files which are valid for this key set
+            file_iterator = glob.iglob(glob_str)
+            for found_file in file_iterator:
+                if template.validate(found_file):
+                    found_files.add(found_file)
+                    
+        return list(found_files) 
 
     def abstract_paths_from_template(self, template, fields):
         """Returns an abstract path based on a template.

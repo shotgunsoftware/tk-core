@@ -140,9 +140,9 @@ class Template(object):
         is_optional("Shot") --> Returns False
         is_optional("name") --> Returns True
         """
-        # minimum set of required keys for this template
-        required_keys = self.missing_keys({})
-        if key_name in required_keys:
+        # the key is required if it's in the 
+        # minimum set of keys for this template
+        if key_name in min(self._keys):
             # this key is required
             return False
         else:
