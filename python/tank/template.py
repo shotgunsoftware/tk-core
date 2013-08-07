@@ -650,8 +650,13 @@ class TemplatePathParser(object):
         """
         Checks value is valid both for it's key and in relation to existing values for that key.
         """
-        value = cur_key.value_from_str(value_str)
         key_name = cur_key.name
+        value = None
+        try:
+            value = cur_key.value_from_str(value_str)
+        except TankError, e:
+            self.last_error = "%s: Failed to get value for key '%s' - %s" % (self, key_name, e)
+            return None
         
         if fields.get(key_name, value) != value:
             msg = "%s: Conflicting values found for key %s: %s and %s"
