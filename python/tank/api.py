@@ -161,7 +161,7 @@ class Tank(object):
             msg += "\n".join([str(x) for x in matched])
             raise TankError(msg)
 
-    def paths_from_template(self, template, fields, skip_keys=None):
+    def paths_from_template(self, template, fields, skip_keys=None, skip_missing_optional_keys=False):
         """
         Finds paths that match a template using field values passed.
 
@@ -169,6 +169,13 @@ class Tank(object):
         So if a template requires Shot, Sequence, Name and Version, and you
         omit the version fields from the fields dictionary, the method
         will return paths to all the different versions you can find.
+        
+        If an optional key is specified in skip_keys then all paths that
+        contain a match for that key as well as paths that don't contain
+        a value for the key will be returned.
+        
+        If skip_missing_optional_keys is True then all optional keys not
+        included in the fields dictionary will be considered as skip keys.
 
         For more information and examples, see the API documentation.
 
@@ -178,7 +185,10 @@ class Tank(object):
         :type  fields: Dictionary.
         :param skip_keys: Keys whose values should be ignored from the fields parameter.
         :type  skip_keys: List of key names.
-
+        :param skip_missing_optional_keys: Specify if optional keys should be skipped if they 
+                                        aren't found in the fields collection
+        :type skip_missing_optional_keys: Boolean
+        
         :returns: Matching file paths
         :rtype: List of strings.
         """
@@ -186,12 +196,15 @@ class Tank(object):
         if isinstance(skip_keys, basestring):
             skip_keys = [skip_keys]
         
-        # construct local fields dictionary that
-        # doesn't include any skip keys:
-        local_fields = {}
-        for field, value in fields.iteritems():
-            if field not in skip_keys:
-                local_fields[field] = value
+        # construct local fields dictionary that doesn't include any skip keys:
+        local_fields = dict((field, value) for field, value in fields.iteritems() if field not in skip_keys)
+        
+        # we always want to automatically skip 'required' keys that weren't
+        # specified in the fields so add wildcards for them to the local 
+        # fields.  The required fields are the minimal set of template._keys
+        for key in min(template._keys):
+            if key not in local_fields:
+                local_fields[key] = "*"
          
         # iterate for each set of keys in the template:
         found_files = set()
@@ -206,10 +219,18 @@ class Tank(object):
                     current_skip_keys.append(key)
                     current_local_fields[key] = "*"
             
-            # Add wildcard for each field missing from the input fields
-            for missing_key in template._missing_keys(current_local_fields, keys, False):
-                current_local_fields[missing_key] = "*"
-                current_skip_keys.append(missing_key)
+            # find remaining missing keys - these will all be optional keys:
+            missing_optional_keys = template._missing_keys(current_local_fields, keys, False)
+            if missing_optional_keys:
+                if skip_missing_optional_keys:
+                    # Add wildcard for each optional key missing from the input fields
+                    for missing_key in missing_optional_keys:
+                        current_local_fields[missing_key] = "*"
+                        current_skip_keys.append(missing_key)
+                else:
+                    # if there are missing fields then we won't be able to
+                    # form a valid path from them so skip this key set
+                    continue
             
             # Apply the fields to build the glob string to search with:
             glob_str = template._apply_fields(current_local_fields, ignore_types=current_skip_keys)
@@ -220,12 +241,10 @@ class Tank(object):
             globs_searched.add(glob_str)
             
             # Find all files which are valid for this key set
-            file_iterator = glob.iglob(glob_str)
-            for found_file in file_iterator:
-                if template.validate(found_file):
-                    found_files.add(found_file)
+            found_files.update([found_file for found_file in glob.iglob(glob_str) if template.validate(found_file)])
                     
         return list(found_files) 
+
 
     def abstract_paths_from_template(self, template, fields):
         """Returns an abstract path based on a template.
