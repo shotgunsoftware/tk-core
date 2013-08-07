@@ -200,12 +200,12 @@ class Tank(object):
         local_fields = dict((field, value) for field, value in fields.iteritems() if field not in skip_keys)
         
         # we always want to automatically skip 'required' keys that weren't
-        # specified in the fields so add wildcards for them to the local 
-        # fields.  The required fields are the minimal set of template._keys
-        for key in min(template._keys):
-            if key not in local_fields:
-                local_fields[key] = "*"
-         
+        # specified so add wildcards for them to the local fields
+        for key in template.missing_keys(local_fields):
+            if key not in skip_keys:
+                skip_keys.append(key)
+            local_fields[key] = "*"
+            
         # iterate for each set of keys in the template:
         found_files = set()
         globs_searched = set()
