@@ -613,7 +613,7 @@ class _SettingsValidator:
                         # we have a field that is in the template but which is not 
                         # covered, either in the context nor in the schema fields
                         
-                        required_and_optional_str = ", ".join(mandatory+optional)
+                        required_and_optional_str = ", ".join(mandatory | optional)
                         context_fields_str = ", ".join(context_fields)
                         
                         problems.append("The field '%s' is part of the template but %s does not "
@@ -634,7 +634,7 @@ class _SettingsValidator:
                         # we have a field that is in the template but which is not 
                         # covered by mandatory or optional
                         
-                        required_and_optional_str = ", ".join(mandatory+optional)
+                        required_and_optional_str = ", ".join(mandatory | optional)
                         
                         problems.append("The field '%s' is part of the template but %s does not "
                                         "know how to assign a value to it when calculating paths. "
