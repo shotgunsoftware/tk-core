@@ -48,8 +48,11 @@ class Tank(object):
             self.__pipeline_config = project_path
         else:
             self.__pipeline_config = pipelineconfig.from_path(project_path)
-
-        self.templates = read_templates(self.__pipeline_config)
+            
+        try:
+            self.templates = read_templates(self.__pipeline_config)
+        except TankError, e:
+            raise TankError("Could not read templates configuration: %s" % e)
 
         # execute a tank_init hook for developers to use.
         self.execute_hook(platform_constants.TANK_INIT_HOOK_NAME)
