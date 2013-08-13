@@ -677,33 +677,8 @@ class Entity(Folder):
         if filters is None:
             raise TankError("Missing filters token in yml metadata file %s" % full_path )
         
-        
-        # transform filter expressions into FilterExpressionTokens
-        # example:
-        # filters: [ { "path": "project", "relation": "is", "values": [ "$project" ] } ]
-        for sg_filter in filters:
-            values = sg_filter["values"]
-            new_values = []
-            for filter_value in values:
-                if isinstance(filter_value, basestring) and filter_value.startswith("$"):
-                    # this is a filter expression!
-                    try:
-                        expr_token = FilterExpressionToken(filter_value, parent)
-                    except TankError, e:
-                        # specialized message
-                        raise TankError("Error resolving filter expression "
-                                        "%s for %s: %s" % (filters, full_path, e))
-                    new_values.append(expr_token)
-                else:
-                    new_values.append(filter_value)
-                    
-            sg_filter["values"] = new_values
-        
-        # make a filters that the entity object expects
-        entity_filter = {}
-        entity_filter["logical_operator"] = "and"
-        entity_filter["conditions"] = filters
-        
+        entity_filter = _translate_filter_tokens(filters, parent, full_path)
+                
         return Entity(tk, parent, full_path, metadata, entity_type, sg_name_expression, entity_filter, create_with_parent)
     
     
@@ -1069,16 +1044,18 @@ class UserWorkspace(Entity):
         """
         # get config
         sg_name_expression = metadata.get("name")
+        filters = metadata.get("filters", [])
+        entity_filter = _translate_filter_tokens(filters, parent, full_path)
         
         # validate
         if sg_name_expression is None:
             raise TankError("Missing name token in yml metadata file %s" % full_path )
 
         
-        return UserWorkspace(tk, parent, full_path, metadata, sg_name_expression)
+        return UserWorkspace(tk, parent, full_path, metadata, sg_name_expression, entity_filter)
     
     
-    def __init__(self, tk, parent, full_path, metadata, field_name_expression):
+    def __init__(self, tk, parent, full_path, metadata, field_name_expression, entity_filter):
         """
         constructor
         """
@@ -1093,10 +1070,9 @@ class UserWorkspace(Entity):
             msg += "Check that the local login corresponds to a user in shotgun."
             raise TankError(msg)
 
-        filters = { "logical_operator": "and",
-                     "conditions": [ { "path": "id", "relation": "is", "values": [ user["id"] ] } ] 
-                  }
-        
+        user_filter = { "path": "id", "relation": "is", "values": [ user["id"] ] }
+        entity_filter["conditions"].append( user_filter )
+                
         # user work spaces are always deferred so make sure to add a setting to the metadata
         # note: This should ideally be a parameter passed to the base class.
         metadata["defer_creation"] = True
@@ -1108,7 +1084,7 @@ class UserWorkspace(Entity):
                         metadata,
                         "HumanUser", 
                         field_name_expression, 
-                        filters, 
+                        entity_filter, 
                         create_with_parent=True)
 
 
@@ -1124,17 +1100,18 @@ class ShotgunStep(Entity):
         """
         # get config
         sg_name_expression = metadata.get("name")
+        if sg_name_expression is None:
+            raise TankError("Missing name token in yml metadata file %s" % full_path )
 
         create_with_parent = metadata.get("create_with_parent", True)
 
-        # validate
-        if sg_name_expression is None:
-            raise TankError("Missing name token in yml metadata file %s" % full_path )
+        filters = metadata.get("filters", [])
+        entity_filter = _translate_filter_tokens(filters, parent, full_path)
         
-        return ShotgunStep(tk, parent, full_path, metadata, sg_name_expression, create_with_parent)
+        return ShotgunStep(tk, parent, full_path, metadata, sg_name_expression, create_with_parent, entity_filter)
     
     
-    def __init__(self, tk, parent, full_path, metadata, field_name_expression, create_with_parent):
+    def __init__(self, tk, parent, full_path, metadata, field_name_expression, create_with_parent, entity_filter):
         """
         constructor
         """
@@ -1160,17 +1137,12 @@ class ShotgunStep(Entity):
         
         # create a token object to represent the parent link
         parent_expr_token = FilterExpressionToken(parent_name, sg_parent)
-        # now create the shotgun filter query for this
-        # note that the query uses this weird special syntax to restrict 
-        # the pipeline steps created only to be ones actually used
-        # with the entity
-        filters = {
-            "logical_operator": "and",
-            "conditions": [{"path": "$FROM$Task.step.entity", 
-                            "relation": "is", 
-                            "values": [parent_expr_token] }
-                           ]
-        }
+
+        # now create the shotgun filter query for this note that the query 
+        # uses this weird special syntax to restrict the pipeline steps 
+        # created only to be ones actually used with the entity
+        step_filter = {"path": "$FROM$Task.step.entity", "relation": "is", "values": [parent_expr_token] }
+        entity_filter["conditions"].append( step_filter )
         
         # if the create_with_parent setting is True, it means that if we create folders for a 
         # shot, we want all the steps to be created at the same time.
@@ -1183,7 +1155,7 @@ class ShotgunStep(Entity):
             # add this to the filters so that we restrict the filter to be 
             # step id is 1234 (where 1234 is the current step derived from the current task
             # and the current task comes from the original folder create request).
-            filters["conditions"].append({"path": "id", "relation": "is", "values": [current_step_id_token]})
+            entity_filter["conditions"].append({"path": "id", "relation": "is", "values": [current_step_id_token]})
                     
         Entity.__init__(self, 
                         tk,
@@ -1192,7 +1164,7 @@ class ShotgunStep(Entity):
                         metadata,
                         "Step", 
                         field_name_expression, 
-                        filters, 
+                        entity_filter, 
                         create_with_parent=True)
                 
         
@@ -1211,17 +1183,18 @@ class ShotgunTask(Entity):
         """
         # get config
         sg_name_expression = metadata.get("name")
-
-        create_with_parent = metadata.get("create_with_parent", False)
-
-        # validate
         if sg_name_expression is None:
             raise TankError("Missing name token in yml metadata file %s" % full_path )
+
+        create_with_parent = metadata.get("create_with_parent", False)
         
-        return ShotgunTask(tk, parent, full_path, metadata, sg_name_expression, create_with_parent)
+        filters = metadata.get("filters", [])
+        entity_filter = _translate_filter_tokens(filters, parent, full_path)
+        
+        return ShotgunTask(tk, parent, full_path, metadata, sg_name_expression, create_with_parent, entity_filter)
     
     
-    def __init__(self, tk, parent, full_path, metadata, field_name_expression, create_with_parent):
+    def __init__(self, tk, parent, full_path, metadata, field_name_expression, create_with_parent, entity_filter):
         """
         constructor
         """
@@ -1252,18 +1225,16 @@ class ShotgunTask(Entity):
         parent_entity_expr_token = FilterExpressionToken(parent_entity_name, sg_parent_entity)
         
         # now create the base shotgun filter query for this
-        filters = {
-            "logical_operator": "and",
-            "conditions": [{"path": "entity", "relation": "is", "values": [parent_entity_expr_token] }]
-        }
-        
+        task_filter = {"path": "entity", "relation": "is", "values": [parent_entity_expr_token] }
+        entity_filter["conditions"].append( task_filter )
+                
         # check if there is a step filter defined above this task node in the hierarchy
         if sg_parent_step:
             # this task has a step above it in the hierarchy
             # make sure we include that in the filter
             parent_step_name = os.path.basename(sg_parent_step.get_path())
             parent_step_expr_token = FilterExpressionToken(parent_step_name, sg_parent_step)
-            filters["conditions"].append({"path": "step", "relation": "is", "values": [parent_step_expr_token]})
+            entity_filter["conditions"].append({"path": "step", "relation": "is", "values": [parent_step_expr_token]})
         
         # if the create_with_parent setting is True, it means that if we create folders for a 
         # shot, we want all the tasks to be created at the same time.
@@ -1276,7 +1247,7 @@ class ShotgunTask(Entity):
             # add this to the filters so that we restrict the filter to be 
             # step id is 1234 (where 1234 is the current step derived from the current task
             # and the current task comes from the original folder create request).
-            filters["conditions"].append({"path": "id", "relation": "is", "values": [current_task_id_token]})
+            entity_filter["conditions"].append({"path": "id", "relation": "is", "values": [current_task_id_token]})
                     
         Entity.__init__(self, 
                         tk,
@@ -1285,7 +1256,7 @@ class ShotgunTask(Entity):
                         metadata,
                         "Task", 
                         field_name_expression, 
-                        filters, 
+                        entity_filter, 
                         create_with_parent=True)
                 
         
@@ -1350,5 +1321,46 @@ class Project(Entity):
         
 
 
-
-
+def _translate_filter_tokens(filter_list, parent, yml_path):
+    """
+    Helper method to translate dynamic filter tokens into FilterExpressionTokens.
+    
+    For example - the following filter list:
+    [ { "path": "project", "relation": "is", "values": [ "$project" ] } ]
+    
+    Will be translated to:
+    
+    { "logical_operator": "and",
+      "conditions": [ { "path": "project", 
+                        "relation": "is", 
+                        "values": [ FilterExpressionTokens(project) ] } 
+                    ] }
+    """
+    
+    resolved_filters = copy.deepcopy(filter_list)
+    
+    for sg_filter in resolved_filters:
+        values = sg_filter["values"]
+        new_values = []
+        for filter_value in values:
+            if isinstance(filter_value, basestring) and filter_value.startswith("$"):
+                # this is a filter expression!
+                try:
+                    expr_token = FilterExpressionToken(filter_value, parent)
+                except TankError, e:
+                    # specialized message
+                    raise TankError("Error resolving filter expression "
+                                    "%s for %s: %s" % (filter_list, yml_path, e))
+                new_values.append(expr_token)
+            else:
+                new_values.append(filter_value)
+                
+        sg_filter["values"] = new_values
+    
+    # add the wrapper around the list to make shotgun happy 
+    entity_filter = {}
+    entity_filter["logical_operator"] = "and"
+    entity_filter["conditions"] = resolved_filters
+    
+    return entity_filter
+    
