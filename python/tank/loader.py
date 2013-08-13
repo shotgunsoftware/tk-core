@@ -27,8 +27,7 @@ def load_plugin(plugin_file, valid_base_class):
     # construct a uuid and use this as the module name to ensure
     # that each import is unique
     import uuid
-    module_uid = uuid.uuid4().hex
-    
+    module_uid = uuid.uuid4().hex 
     module = None
     try:
         imp.acquire_lock()
@@ -46,26 +45,38 @@ def load_plugin(plugin_file, valid_base_class):
         imp.release_lock()
     
     # cool, now validate the module
-    # TODO: when we version up the interface need to take this into account here
     found_classes = list()
-    error_reported = None
+    introspection_error_reported = None
     try:
         for var in dir(module):
             value = getattr(module, var)
             if isinstance(value, type) and issubclass(value, valid_base_class) and value != valid_base_class:
                 found_classes.append(value)
     except Exception, e:
-        error_reported = str(e)
-    
-    if len(found_classes) < 1:
-        if error_reported:
-            raise TankError("Trying to find %s class in %s generated the "
-                            "following error: %s" % (str(valid_base_class), plugin_file, e))
-        else:
-            raise TankError("Could not find %s class in %s!" % (str(valid_base_class), plugin_file))
+        introspection_error_reported = str(e)
+
+    if introspection_error_reported:
+            raise TankError("Introspection error while trying to load and introspect file %s. "
+                            "Error Reported: %s" % (plugin_file, e))
+
+    elif len(found_classes) < 1:
+        # missing class!
+        msg = ("Error loading the file '%s'. Couldn't find a class deriving from the base class '%s'. "
+               "You need to have exactly one class defined in the file deriving from that base class. "
+               "If your file looks fine, it is possible that the cached .pyc file that python "
+               "generates is invalid and this is causing the error. In that case, please delete "
+               "the pyc file and try again." % (plugin_file, valid_base_class.__name__))
+        
+        raise TankError(msg)
         
     elif len(found_classes) > 1:
-        raise TankError("Found more than one %s class in %s!" % (str(valid_base_class), plugin_file))
+        # more than one class!
+        msg = ("Error loading the file '%s'. Looks like this file contains more than one class "
+               "deriving from the '%s' base class. "
+               "You need to have exactly one class defined in the file deriving "
+               "from that base class. " % (plugin_file, valid_base_class.__name__))
+        
+        raise TankError(msg)
     
     return found_classes[0]
 
