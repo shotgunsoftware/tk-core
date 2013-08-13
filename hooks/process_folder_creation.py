@@ -33,7 +33,7 @@ class ProcessFolderCreation(Hook):
         with anything in Shotgun. It contains the following keys:
         
         * "action": "folder"
-        * "metadata": The configuration yaml file for this item
+        * "metadata": The configuration yaml data for this item
         * "path": path on disk to the item
         
         Entity Folder
@@ -42,7 +42,7 @@ class ProcessFolderCreation(Hook):
         shotgun entity. It contains the following keys:
         
         * "action": "entity_folder"
-        * "metadata": The configuration yaml file for this item
+        * "metadata": The configuration yaml data for this item
         * "path": path on disk to the item
         * "entity": Shotgun entity link dict with keys type, id and name.
         
@@ -52,7 +52,7 @@ class ProcessFolderCreation(Hook):
         It contains the following keys:
         
         * "action": "copy"
-        * "metadata": The configuration yaml file associated with the directory level 
+        * "metadata": The configuration yaml data associated with the directory level 
                       on which this object exists.
         * "source_path": location of the file that should be copied
         * "target_path": target location to where the file should be copied.
@@ -64,7 +64,7 @@ class ProcessFolderCreation(Hook):
         of data is specified. It contains the following keys:
         
         * "action": "create_file"
-        * "metadata": The configuration yaml file associated with the directory level 
+        * "metadata": The configuration yaml data associated with the directory level 
                       on which this object exists.
         * "content": file content
         * "target_path": target location to where the file should be copied.
