@@ -21,6 +21,8 @@ from .. import core_api_admin
 
 from .action_base import Action
 
+import code
+import sys
 import os
 
              
@@ -139,4 +141,46 @@ class ClearCacheAction(Action):
                     log.warning("Could not delete cache file '%s'!" % full_path)
         
         log.info("The Shotgun menu cache has been cleared.")
+        
+
+class InteractiveShellAction(Action):
+    
+    def __init__(self):
+        Action.__init__(self, 
+                        "shell", 
+                        Action.PC_LOCAL, 
+                        "Starts an interactive Python shell for the current location.", 
+                        "Developer")
+        
+        # hint that the shell engine should be started for this action, if possible
+        self.wants_running_shell_engine = True
+        
+    def run(self, log, args):
+
+        if len(args) != 0:
+            raise TankError("This command takes no arguments!")
+            
+        msg = []
+        msg.append("Welcome to Shotgun Pipeline Toolkit Python!")
+        msg.append(sys.version)
+        msg.append("Running on %s" % sys.platform)
+        msg.append("")
+            
+        tk_locals = {}
+
+        if self.tk:
+            tk_locals["tk"] = self.tk
+            tk_locals["shotgun"] = self.tk.shotgun
+            msg.append("- A tk API handle is available via the tk variable")
+            msg.append("- A Shotgun API handle is available via the shotgun variable")
+        
+        if self.context:
+            tk_locals["context"] = self.context
+            msg.append("- Your current context is stored in the context variable")
+            
+        if self.engine:
+            tk_locals["engine"] = self.engine
+            msg.append("- The shell engine can be accessed via the engine variable")
+            
+        code.interact(banner = "\n".join(msg), local=tk_locals)
         

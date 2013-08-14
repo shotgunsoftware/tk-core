@@ -32,6 +32,13 @@ class Action(object):
         self.description = description
         self.category = category
         
+        # special flag for commands that run in multiple contexts where an engine
+        # is optional, but beneficial. This is so that the system can determine
+        # whether it is worth starting the engine or not. 
+        self.wants_running_shell_engine = False
+        if self.mode == Action.ENGINE:
+            self.wants_running_shell_engine = True
+        
         # these need to be filled in by calling code prior to execution
         self.tk = None
         self.context = None

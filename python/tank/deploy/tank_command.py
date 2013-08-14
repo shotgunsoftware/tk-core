@@ -29,6 +29,7 @@ BUILT_IN_ACTIONS = [misc.SetupProjectAction,
                     misc.CoreLocalizeAction,
                     misc.ValidateConfigAction,
                     misc.ClearCacheAction,
+                    misc.InteractiveShellAction,
                     apps.InstallAppAction,
                     apps.InstallEngineAction,
                     apps.AppUpdatesAction,
@@ -198,7 +199,7 @@ def run_action(code_install_root, pipeline_config_root, log, tk, ctx, command, a
             found_action = x
             break
     
-    if found_action and found_action.mode != Action.ENGINE:
+    if found_action and found_action.wants_running_shell_engine == False:
         log.debug("No need to load up the engine for this command.")
     else:
         # try to load the engine.
