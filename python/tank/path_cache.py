@@ -118,7 +118,7 @@ class PathCache(object):
         norm_path = relative_path.replace(os.sep, "/")
         return norm_path
 
-    def _seperate_root(self, full_path):
+    def _separate_root(self, full_path):
         """
         Determines project root path and relative path.
 
@@ -175,7 +175,7 @@ class PathCache(object):
         """
         # there was no entity in the db. So let's create it!
         c = self._connection.cursor()
-        root_name, relative_path = self._seperate_root(path)
+        root_name, relative_path = self._separate_root(path)
         db_path = self._path_to_dbpath(relative_path)
         query = "DELETE FROM path_cache where root=? and path like '%s%%'" % db_path
         c.execute(query, (root_name,) )
@@ -243,7 +243,7 @@ class PathCache(object):
 
         # there was no entity in the db. So let's create it!
         c = self._connection.cursor()
-        root_name, relative_path = self._seperate_root(path)
+        root_name, relative_path = self._separate_root(path)
         db_path = self._path_to_dbpath(relative_path)
         c.execute("INSERT INTO path_cache VALUES(?, ?, ?, ?, ?, ?)", (entity_type, 
                                                                 entity_id, 
@@ -299,7 +299,7 @@ class PathCache(object):
         """
         c = self._connection.cursor()
         try:
-            root_path, relative_path = self._seperate_root(path)
+            root_path, relative_path = self._separate_root(path)
         except TankError:
             # fail gracefully if path is not a valid path
             # eg. doesn't belong to the project
@@ -331,7 +331,7 @@ class PathCache(object):
         """
         c = self._connection.cursor()
         try:
-            root_path, relative_path = self._seperate_root(path)
+            root_path, relative_path = self._separate_root(path)
         except TankError:
             # fail gracefully if path is not a valid path
             # eg. doesn't belong to the project

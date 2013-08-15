@@ -267,7 +267,7 @@ class Test_SeperateRoots(TestPathCache):
         relative_path = os.path.join("Some", "Path")
         full_path = os.path.join(self.project_root.swapcase(), relative_path)
 
-        root_name, relative_result = self.path_cache._seperate_root(full_path)
+        root_name, relative_result = self.path_cache._separate_root(full_path)
         self.assertEquals("primary", root_name)
         # returns relative path starting with seperator
         self.assertEquals(os.sep + relative_path, relative_result)
