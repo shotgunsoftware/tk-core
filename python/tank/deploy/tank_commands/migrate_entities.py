@@ -1376,7 +1376,7 @@ class MigratePublishedFileEntitiesAction(Action):
         
         log.info("")
         log.info("For further information please see the documentation which can be found here: "
-                 "https://tank.shotgunsoftware.com/entries/24515053")
+                 "https://toolkit.shotgunsoftware.com/entries/24515053")
         log.info("")        
         log.info("The migration can take a long time to run depending on the number of entities " 
                  "that need migrating.  Therefore, we advise running it outside of working "

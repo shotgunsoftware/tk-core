@@ -190,7 +190,7 @@ class AppDescriptor(object):
         meta = self._get_metadata()
         support_url = meta.get("support_url")
         if support_url is None:
-            support_url = "https://tank.shotgunsoftware.com" 
+            support_url = "https://toolkit.shotgunsoftware.com" 
         return support_url
 
     def get_doc_url(self):

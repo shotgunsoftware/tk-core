@@ -772,7 +772,7 @@ def run_engine_cmd(log, install_root, pipeline_config_root, context_items, comma
     log.info("")
 
     log.info("Welcome to the Shotgun pipeline toolkit!")
-    log.info("For documentation, see https://tank.shotgunsoftware.com/forums")
+    log.info("For documentation, see https://toolkit.shotgunsoftware.com/forums")
 
     # Now create a tk instance and a context if possible
 

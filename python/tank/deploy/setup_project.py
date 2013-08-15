@@ -1261,7 +1261,7 @@ def _interactive_setup(log, install_root, check_storage_path_exists, force):
     log.info("versions of all apps and engines for this project.")
     log.info("")
     log.info("For more Apps, Support, Documentation and the Toolkit Community, go to")
-    log.info("https://tank.shotgunsoftware.com")
+    log.info("https://toolkit.shotgunsoftware.com")
     log.info("")        
 
     
