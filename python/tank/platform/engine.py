@@ -26,6 +26,7 @@ from . import application
 from . import constants
 from . import validation
 from . import qt
+from . import black_list
 from .bundle import TankBundle
 from .framework import setup_frameworks
 
@@ -545,6 +546,16 @@ class Engine(TankBundle):
                 # note! Apps are keyed by their instance name, meaning that we 
                 # could theoretically have multiple instances of the same app.
                 self.__applications[app_instance_name] = app
+                
+            # lastly check if there are any compatibility warnings
+            messages = black_list.compare_against_black_list(descriptor)
+            if len(messages) > 0:
+                self.log_warning("Compatibility warnings were issued for %s:" % descriptor)
+                for msg in messages:
+                    self.log_warning("")
+                    self.log_warning(msg)
+                
+            
 
     def __destroy_apps(self):
         """
