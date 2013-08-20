@@ -73,21 +73,21 @@ class FolderIOReceiver(object):
                                                 preview_mode=self._preview_mode)
         
         # now handle the path cache
+        entries = []
+        
         if not self._preview_mode:    
             for i in self._items:
                 if i.get("action") == "entity_folder":
                     path = i.get("path")
-                    entity_type = i.get("entity").get("type")
-                    entity_id = i.get("entity").get("id")
-                    entity_name = i.get("entity").get("name")
-                    self._path_cache.add_mapping(entity_type, entity_id, entity_name, path)
+                    entity = i.get("entity")
+                    entries.append( {"entity": entity, "path": path, "secondary": False} )
                     
             for i in self._secondary_cache_entries:
                 path = i.get("path")
-                entity_type = i.get("entity").get("type")
-                entity_id = i.get("entity").get("id")
-                entity_name = i.get("entity").get("name")
-                self._path_cache.add_mapping(entity_type, entity_id, entity_name, path, False)
+                entity = i.get("entity")
+                entries.append( {"entity": entity, "path": path, "secondary": True} )
+                
+        self._path_cache.add_mappings(entries)
 
 
         # note that for backwards compatibility, we are returning all folders, not 

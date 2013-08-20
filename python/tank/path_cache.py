@@ -19,6 +19,16 @@ import os
 
 from .errors import TankError 
 
+
+SHOTGUN_ENTITY = "CustomEntity01"
+
+SG_ENTITY_FIELD = "sg_entity"
+SG_PATH_FIELD = "sg_relative_path"
+SG_ROOT_FIELD = "sg_root"
+SG_SECONDARY_ENTITIES_FIELD = "sg_secondary_entities"
+
+
+
 class PathCache(object):
     """
     A global cache which holds the mapping between a shotgun entity and a location on disk.
