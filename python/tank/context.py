@@ -114,7 +114,7 @@ class Context(object):
 
     def __eq__(self, other):
         if not isinstance(other, Context):
-            return False
+            return NotImplemented
 
         equal = True
         equal &= (self.project == other.project)
@@ -123,8 +123,13 @@ class Context(object):
         equal &= (self.task == other.task)
         equal &= (self.user == other.user)
         equal &= (self.additional_entities == other.additional_entities)
-
         return equal
+
+    def __ne__(self, other):
+        result = self.__eq__(other)
+        if result is NotImplemented:
+            return result
+        return not result
 
     def __deepcopy__(self, memo):
         """
