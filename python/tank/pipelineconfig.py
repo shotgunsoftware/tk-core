@@ -469,6 +469,20 @@ class StorageConfigurationMapping(object):
         self._root = data_root
         self._config_file = os.path.join(self._root, "tank", "config", constants.CONFIG_BACK_MAPPING_FILE)
 
+    def clear_mappings(self):
+        """
+        Removes any content from the storage mappings file
+        """
+        # and write the file
+        try:
+            fh = open(self._config_file, "wt")
+            fh.write("# this file is automatically created by the shotgun pipeline toolkit")
+            fh.write("# please do not edit by hand")
+            fh.close()
+        except Exception, exp:
+            raise TankError("Could not write to roots file %s. "
+                            "Error reported: %s" % (self._config_file, exp))
+        
     def add_pipeline_configuration(self, mac_path, win_path, linux_path):
         """
         Add pipeline configuration mapping to a storage
