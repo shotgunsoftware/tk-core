@@ -858,6 +858,7 @@ def _interactive_setup(log, install_root, check_storage_path_exists, force):
     except Exception, e:
         raise TankError("Could not connect to App Store: %s" % e)
     
+    
     ###############################################################################################
     # Stage 1 - information gathering
     
@@ -1025,6 +1026,15 @@ def _interactive_setup(log, install_root, check_storage_path_exists, force):
     log.info("")
     log.info("Starting project setup.")
     
+    # if we have the force flag enabled, remove any pipeline configurations
+    if force:
+        pcs = sg.find("PipelineConfiguration", 
+                      [["project", "is", {"id": project_id, "type": "Project"} ]],
+                      ["code"])
+        for x in pcs:
+            log.warning("Force mode: Deleting old pipeline configuration %s..." % x["code"])
+            sg.delete("PipelineConfiguration", x["id"])
+            
     # first do disk structure setup, this is most likely to fail.
     current_os_pc_location = locations_dict[sys.platform]    
     log.info("Installing configuration into '%s'..." % current_os_pc_location )
