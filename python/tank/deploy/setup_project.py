@@ -1149,6 +1149,19 @@ def _interactive_setup(log, install_root, check_storage_path_exists, force):
         log.debug("Setting up storage -> PC mapping...")
         project_root = os.path.join(current_os_path, project_disk_folder)
         scm = pipelineconfig.StorageConfigurationMapping(project_root)
+        
+        # make sure there is no existing backlinks associated with the config
+        #
+        # this can be the case if the config setup is using a pre-0.13 setup
+        # where the project tank folder and the install folder is the same,
+        # and the project was based on another project and thefore when the 
+        # files were copied across, the back mappings file also got accidentally
+        # copied.
+        #
+        # it can also happen when doing a force re-install of a project.
+        scm.clear_mappings()
+        
+        # and add our configuration
         scm.add_pipeline_configuration(locations_dict["darwin"], 
                                        locations_dict["win32"], 
                                        locations_dict["linux2"])    
