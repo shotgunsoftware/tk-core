@@ -546,10 +546,22 @@ class Environment(object):
         
         data = self.__load_data(self.__env_path)
         
+        # check that the engine name exists in the config
         if engine_name not in data["engines"]:
             raise TankError("Engine %s does not exist in environment %s" % (engine_name, self.__env_path) )
-        if app_name in data["engines"][engine_name]["apps"]:
+
+        # it is possible that the apps dictionary is actually an @include - in this case, raise an error
+        apps_section = data["engines"][engine_name]["apps"]
+        if isinstance( apps_section, str) and apps_section.startswith("@"):
+            raise TankError("The configuration for engine '%s' located in the environment file '%s' has an "
+                            "apps section which is referenced from another file ('%s'). This type "
+                            "of configuration arrangement cannot currently be automatically " 
+                            "modified - please edit it by hand!" % (engine_name, self.__env_path, apps_section))
+        
+        # check that it doesn't already exist
+        if app_name in apps_section:
             raise TankError("App %s.%s already exists in environment %s" % (engine_name, app_name, self.__env_path) )
+        
         
         data["engines"][engine_name]["apps"][app_name] = {}
         # and make sure we also create the location key
