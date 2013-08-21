@@ -473,11 +473,11 @@ class StorageConfigurationMapping(object):
         """
         Removes any content from the storage mappings file
         """
-        # and write the file
+        # open the file without append to overwrite any previous content
         try:
             fh = open(self._config_file, "wt")
-            fh.write("# this file is automatically created by the shotgun pipeline toolkit")
-            fh.write("# please do not edit by hand")
+            fh.write("# this file is automatically created by the shotgun pipeline toolkit\n")
+            fh.write("# please do not edit by hand\n\n")
             fh.close()
         except Exception, exp:
             raise TankError("Could not write to roots file %s. "
@@ -494,6 +494,9 @@ class StorageConfigurationMapping(object):
             fh = open(self._config_file, "rt")
             try:
                 data = yaml.load(fh)
+                # if clear_mappings was run, data is None
+                if data is None:
+                    data = []
             except Exception, e:
                 raise TankError("Looks like the config lookup file is corrupt. Please contact "
                                 "support! File: '%s' Error: %s" % (self._config_file, e))
