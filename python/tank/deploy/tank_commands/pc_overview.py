@@ -82,7 +82,7 @@ class PCBreakdownAction(Action):
                 mp = "[Not defined]"
             
             log.info("Linux Location:  %s" % lp )
-            log.info("Winows Location: %s" % wp )
+            log.info("Windows Location: %s" % wp )
             log.info("Mac Location:    %s" % mp )
             log.info("")
             
