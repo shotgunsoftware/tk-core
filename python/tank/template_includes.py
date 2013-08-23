@@ -147,35 +147,38 @@ def process_includes(file_name, data):
     # these are of the following form:
     # foo: bar
     # ttt: @foo/something
-    # you can only use these in the paths section
+    # you can only use these in the paths and strings sections
 
     # process the template paths section:
     template_paths = resolved_includes_data[constants.TEMPLATE_PATH_SECTION] 
     for template_name in template_paths.keys():
-        resolve_template_r(template_paths, template_name)
+        _resolve_template_path_r(template_paths, template_name)
         
     # and process the strings section:
-        
+    template_strings = resolved_includes_data[constants.TEMPLATE_STRING_SECTION] 
+    for template_name in template_strings.keys():
+        _resolve_template_string_r(template_strings, template_name)
+                
     return resolved_includes_data
         
 
-def resolve_template_r(templates, template_name, template_chain = None):
+def _resolve_template_path_r(templates, template_name, template_chain = None):
     """
-    Recursively resolve templates so that they are fully expanded.
+    Recursively resolve path templates so that they are fully expanded.
     """
 
     # check we haven't searched this template before and keep 
     # track of the ones we have visited    
     visited_templates = template_chain or []
     if template_name in visited_templates:
-        raise TankError("A cyclic template was found - template '%s' references itself (%s)" 
+        raise TankError("A cyclic path template was found - '%s' references itself (%s)" 
                         % (template_name, " -> ".join(visited_templates[visited_templates.index(template_name):] + [template_name])))
     visited_templates.append(template_name)
     
     # find the template definition:
     template_definition = templates.get(template_name)
     if not template_definition:
-        raise TankError("Could not resolve template reference @%s" % template_name)
+        raise TankError("Could not resolve path template reference @%s" % template_name)
     
     # find the template string from the definition:
     template_str = None
@@ -186,7 +189,7 @@ def resolve_template_r(templates, template_name, template_chain = None):
     elif isinstance(template_definition, basestring):
         template_str = template_definition
     if not template_str:
-        raise TankError("Invalid template configuration for %s" % (template_name))
+        raise TankError("Invalid template configuration for '%s'" % (template_name))
     
     # check for inline @ syntax:
     if template_str.startswith("@"):
@@ -196,7 +199,7 @@ def resolve_template_r(templates, template_name, template_chain = None):
         reference_template_name = template_parts[0][1:]
         
         # resolve the referenced template:
-        resolved_template_str = resolve_template_r(templates, reference_template_name, visited_templates)
+        resolved_template_str = _resolve_template_path_r(templates, reference_template_name, visited_templates)
         
         rest_of_path = "/".join(template_parts[1:])
         resolved_template_str = "%s/%s" % (resolved_template_str, rest_of_path)
@@ -213,7 +216,61 @@ def resolve_template_r(templates, template_name, template_chain = None):
         return template_str
     
     
+def _resolve_template_string_r(templates, template_name, template_chain = None):
+    """
+    Recursively resolve string templates so that they are fully expanded.
+    """
 
+    # check we haven't searched this template before and keep 
+    # track of the ones we have visited    
+    visited_templates = template_chain or []
+    if template_name in visited_templates:
+        raise TankError("A cyclic string template was found - '%s' references itself (%s)" 
+                        % (template_name, " -> ".join(visited_templates[visited_templates.index(template_name):] + [template_name])))
+    visited_templates.append(template_name)
+    
+    # find the template definition:
+    template_definition = templates.get(template_name)
+    if not template_definition:
+        raise TankError("Could not resolve string template reference @%s" % template_name)
+    
+    # find the template string from the definition:
+    template_str = None
+    if isinstance(template_definition, basestring):
+        template_str = template_definition
+    if not template_str:
+        raise TankError("Invalid template configuration for '%s'" % (template_name))
+    
+    # check for inline @ syntax:
+    if template_str.startswith("@"):
+        # string template of the form 
+        # nuke_shot_version_name: "@other_template_v{version}.{iteration}"
+
+        template_str = template_str[1:]
+        
+        # find a template that matches the start of the template string:
+        reference_template_name = None
+        for other_template_name in templates.keys():
+            if other_template_name == template_name:
+                continue
+            if template_str.startswith(other_template_name):
+                reference_template_name = other_template_name
+                break
+        
+        if not reference_template_name:
+            raise TankError("Failed to resolve template reference from '@%s' defined by the string template '%s'" % (template_str, template_name))
+        
+        # resolve the referenced template:
+        resolved_template_str = _resolve_template_string_r(templates, reference_template_name, visited_templates)
+        resolved_template_str = "%s%s" % (resolved_template_str, template_str[len(reference_template_name):])
+        
+        # put the value back:
+        templates[template_name] = resolved_template_str
+            
+        return resolved_template_str
+    else:
+        # just return the unmodified string:
+        return template_str
 
 
 
