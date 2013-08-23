@@ -193,7 +193,7 @@ def _resolve_template_path_r(templates, template_name, template_chain = None):
     
     # check for inline @ syntax:
     if template_str.startswith("@"):
-        # string template of the form 
+        # path template of the form 
         # maya_shot_work: @other_template/work/maya/{name}.v{version}.ma
         template_parts = template_str.split("/")
         reference_template_name = template_parts[0][1:]
@@ -236,7 +236,11 @@ def _resolve_template_string_r(templates, template_name, template_chain = None):
     
     # find the template string from the definition:
     template_str = None
-    if isinstance(template_definition, basestring):
+    complex_syntax = False
+    if isinstance(template_definition, dict):
+        template_str = template_definition["definition"]
+        complex_syntax = True
+    elif isinstance(template_definition, basestring):
         template_str = template_definition
     if not template_str:
         raise TankError("Invalid template configuration for '%s'" % (template_name))
@@ -265,7 +269,10 @@ def _resolve_template_string_r(templates, template_name, template_chain = None):
         resolved_template_str = "%s%s" % (resolved_template_str, template_str[len(reference_template_name):])
         
         # put the value back:
-        templates[template_name] = resolved_template_str
+        if complex_syntax:
+            templates[template_name]["definition"] = resolved_template_str
+        else:
+            templates[template_name] = resolved_template_str
             
         return resolved_template_str
     else:
