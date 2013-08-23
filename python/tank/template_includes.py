@@ -127,27 +127,6 @@ def _process_template_includes_r(file_name, data):
     
     return output_data
         
-
-def get_template_str(data, template_name):
-    """
-    Returns a path str given a template name
-    """
-    for t in data[constants.TEMPLATE_PATH_SECTION]:
-        if t == template_name:
-            d = data[constants.TEMPLATE_PATH_SECTION][t]
-            if isinstance(d, basestring):
-                return d
-            elif isinstance(d, dict):
-                # maya_shot_work:
-                #   definition: sequences/{Sequence}/{Shot}/{Step}/work/maya/{name}.v{version}.ma
-                #   root_name: film
-                return d["definition"]
-            else:
-                raise TankError("Invalid template definition %s. Please check config." % template_name)
-    
-    raise TankError("Could not resolve template reference @%s" % template_name)
-    
-        
 def process_includes(file_name, data):
     """
     Processes includes for the main templates file. Will look for 
@@ -161,46 +140,82 @@ def process_includes(file_name, data):
     3. lastly, process all @refs in the paths section
         
     """
-    
     # first recursively load all template data from includes
     resolved_includes_data = _process_template_includes_r(file_name, data)
     
-    # now process any @resolves.
-    # these are on the following form:
+    # now recursively process any @resolves.
+    # these are of the following form:
     # foo: bar
     # ttt: @foo/something
     # you can only use these in the paths section
-    # you can only use them on the first item
-    for t in resolved_includes_data[constants.TEMPLATE_PATH_SECTION]:
+
+    # process the template paths section:
+    template_paths = resolved_includes_data[constants.TEMPLATE_PATH_SECTION] 
+    for template_name in template_paths.keys():
+        resolve_template_r(template_paths, template_name)
         
-        d = resolved_includes_data[constants.TEMPLATE_PATH_SECTION][t]
+    # and process the strings section:
         
-        complex_syntax = False
-        if isinstance(d, dict):
-            template_str = d["definition"]
-            complex_syntax = True
-        elif isinstance(d, basestring):
-            template_str = d
-        else:
-            raise TankError("Invalid template files configuration in %s for %s" % (file_name, t))
-        
-        if template_str.startswith("@"):
-            # string template on the form 
-            # maya_shot_work: @other_template/work/maya/{name}.v{version}.ma
-            template_parts = template_str.split("/")
-            reference_template_name = template_parts[0][1:]
-            # replace it with the resolved value
-            val = get_template_str(resolved_includes_data, reference_template_name)
-            rest_of_path = "/".join(template_parts[1:])
-            resolved_template = "%s/%s" % (val, rest_of_path)
-            
-            # put the value back:
-            if complex_syntax:
-                resolved_includes_data[constants.TEMPLATE_PATH_SECTION][t]["definition"] = resolved_template
-            else:
-                resolved_includes_data[constants.TEMPLATE_PATH_SECTION][t] = resolved_template 
-            
     return resolved_includes_data
         
+
+def resolve_template_r(templates, template_name, template_chain = None):
+    """
+    Recursively resolve templates so that they are fully expanded.
+    """
+
+    # check we haven't searched this template before and keep 
+    # track of the ones we have visited    
+    visited_templates = template_chain or []
+    if template_name in visited_templates:
+        raise TankError("A cyclic template was found - template '%s' references itself (%s)" 
+                        % (template_name, " -> ".join(visited_templates[visited_templates.index(template_name):] + [template_name])))
+    visited_templates.append(template_name)
+    
+    # find the template definition:
+    template_definition = templates.get(template_name)
+    if not template_definition:
+        raise TankError("Could not resolve template reference @%s" % template_name)
+    
+    # find the template string from the definition:
+    template_str = None
+    complex_syntax = False
+    if isinstance(template_definition, dict):
+        template_str = template_definition["definition"]
+        complex_syntax = True
+    elif isinstance(template_definition, basestring):
+        template_str = template_definition
+    if not template_str:
+        raise TankError("Invalid template configuration for %s" % (template_name))
+    
+    # check for inline @ syntax:
+    if template_str.startswith("@"):
+        # string template of the form 
+        # maya_shot_work: @other_template/work/maya/{name}.v{version}.ma
+        template_parts = template_str.split("/")
+        reference_template_name = template_parts[0][1:]
         
+        # resolve the referenced template:
+        resolved_template_str = resolve_template_r(templates, reference_template_name, visited_templates)
+        
+        rest_of_path = "/".join(template_parts[1:])
+        resolved_template_str = "%s/%s" % (resolved_template_str, rest_of_path)
+        
+        # put the value back:
+        if complex_syntax:
+            templates[template_name]["definition"] = resolved_template_str
+        else:
+            templates[template_name] = resolved_template_str
+            
+        return resolved_template_str
+    else:
+        # just return the unmodified string:
+        return template_str
+    
+    
+
+
+
+
+
     
