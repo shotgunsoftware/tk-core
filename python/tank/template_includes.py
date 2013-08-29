@@ -199,13 +199,13 @@ def _find_matching_ref_template(template_paths, template_strings, ref_string):
     will find the longest/best match and will look at both path and string
     templates
     """
-    matching_templates = set()
+    matching_templates = []
     
     # find all templates that match the start of the ref string:
     for templates, template_type in [(template_paths, "path"), (template_strings, "string")]:
         for name, definition in templates.iteritems():
             if ref_string.startswith(name):
-                matching_templates.add((name, definition, template_type))
+                matching_templates.append((name, definition, template_type))
             
     # if there are more than one then choose the one with the longest
     # name/longest match:
