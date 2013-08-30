@@ -68,12 +68,17 @@ class ProcessFolderName(Hook):
             except KeyError:
                 str_value = str(value)
         
+        elif isinstance(value, basestring):
+            # no conversion required
+            str_value = value
+            
         else:
-            # assume all other value types convert straight
+            # assume all other value types convert to
+            # a string
             str_value = str(value)
             
-        # replace white space with dashes
-        str_value = re.sub("\W", "-", str_value) 
+        # replace all non-alphanumeric characters with dashes:
+        str_value = self._replace_non_alphanumeric(str_value)
 
         # validation can be implemented by raising an exception:        
         #
@@ -82,3 +87,24 @@ class ProcessFolderName(Hook):
         #
         
         return str_value
+    
+    def _replace_non_alphanumeric(self, src):
+        """
+        Safely replace all non-alphanumeric characters 
+        with dashes (-).
+        
+        Note, this handles non-ascii characters correctly
+        """
+        # regex to find non-alphanumeric characters
+        import re
+        exp = re.compile(u"\W", re.UNICODE)    
+        
+        if isinstance(src, unicode):
+            # src is unicode so we don't need to convert!
+            return exp.sub("-", src)
+        else:
+            # assume utf-8 encoding so decode, replace
+            # and re-encode the returned result
+            u_src = src.decode("utf-8")
+            return exp.sub("-", u_src).encode("utf-8")
+    

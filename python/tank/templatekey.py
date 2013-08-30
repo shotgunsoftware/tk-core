@@ -80,7 +80,7 @@ class TemplateKey(object):
             else:
                 value = self.default
         elif ignore_type:
-            return str(value)
+            return value if isinstance(value, basestring) else str(value)
 
         if self.validate(value):
             return self._as_string(value)
@@ -109,18 +109,20 @@ class TemplateKey(object):
 
         :returns: Bool
         """
+        
+        str_value = value if isinstance(value, basestring) else str(value)
 
         # We are not case sensitive
-        if str(value).lower() in [str(x).lower() for x in self.exclusions]:
+        if str_value.lower() in [str(x).lower() for x in self.exclusions]:
             self._last_error = "%s Illegal value: %s is forbidden for this key." % (self, value)
             return False
 
         if not((value is None) or (self.choices == [])):
-            if str(value).lower() not in [str(x).lower() for x in self.choices]:
+            if str_value.lower() not in [str(x).lower() for x in self.choices]:
                 self._last_error = "%s Illegal value: '%s' not in choices: %s" % (self, value, str(self.choices))
                 return False
         
-        if self.length is not None and len(str(value)) != self.length:
+        if self.length is not None and len(str_value) != self.length:
             self._last_error = ("%s Illegal value: '%s' does not have a length of "
                                 "%d characters." % (self, value, self.length))
             return False
@@ -169,9 +171,11 @@ class StringKey(TemplateKey):
         """
         self.filter_by = filter_by
         if self.filter_by == "alphanumeric":
-            self._filter_regex = re.compile("[^a-zA-Z0-9]")
+            # build regex to search for all non-alphanumeric 
+            # characters or undeerscores
+            self._filter_regex_u = re.compile(u"[\W_]", re.UNICODE)#[^a-zA-Z0-9]")
         else: 
-            self._filter_regex = None
+            self._filter_regex_u = None
 
         super(StringKey, self).__init__(name,
                                         default=default,
@@ -183,14 +187,21 @@ class StringKey(TemplateKey):
                                         length=length)
 
     def validate(self, value):
-        if self._filter_regex and self._filter_regex.search(value):
-            self._last_error = "%s Illegal value '%s' does not fit filter" % (self, value)
-            return False
-        else:
-            return super(StringKey, self).validate(value)
+        if self._filter_regex_u:
+            u_value = value
+            if not isinstance(u_value, unicode):
+                # handle non-ascii characters correctly by
+                # decoding to unicode assuming utf-8 encoding
+                u_value = value.decode("utf-8")
+                
+            if self._filter_regex_u.search(u_value):
+                self._last_error = "%s Illegal value '%s' does not fit filter" % (self, value)
+                return False
+        
+        return super(StringKey, self).validate(value)
 
     def _as_string(self, value):
-        return str(value)
+        return value if isinstance(value, basestring) else str(value)
 
 
 class IntegerKey(TemplateKey):

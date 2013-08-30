@@ -258,7 +258,7 @@ class EntityExpression(object):
                             "Data: %s" % (expression, error, str_data))
             
         # now validate the entire value!
-        if re.match(constants.VALID_SG_ENTITY_NAME_REGEX, val) is None:
+        if not self._validate_name(val):
             # not valid!!!
             msg = ("The format string '%s' used in the configuration "
                    "does not generate a valid folder name ('%s')! Valid "
@@ -267,4 +267,18 @@ class EntityExpression(object):
             
         return val
 
+    def _validate_name(self, name):
+        """
+        Safely replace all non-alphanumeric characters 
+        with dashes (-).
+        """    
+        # regex to find non-alphanumeric characters
+        exp = re.compile(constants.VALID_SG_ENTITY_NAME_REGEX, re.UNICODE)    
+        
+        if isinstance(name, unicode):
+            return bool(exp.match(name))
+        else:
+            # try decoding from utf-8:
+            u_name = name.decode("utf-8")
+            return bool(exp.match(u_name))
 
