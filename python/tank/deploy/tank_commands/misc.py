@@ -168,6 +168,11 @@ class InteractiveShellAction(Action):
             
         tk_locals = {}
 
+        # add sgtk module to locals:
+        import sgtk
+        tk_locals["sgtk"] = sgtk
+
+        # add some useful variables:
         if self.tk:
             tk_locals["tk"] = self.tk
             tk_locals["shotgun"] = self.tk.shotgun
