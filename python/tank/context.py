@@ -66,6 +66,7 @@ class Context(object):
         msg.append("  Step: %s" % str(self.__step))
         msg.append("  Task: %s" % str(self.__task))
         msg.append("  User: %s" % str(self.__user))
+        msg.append("  Shotgun URL: %s" % self.shotgun_url)
         msg.append("  Additional Entities: %s" % str(self.__additional_entities))
         
         return "<Sgtk Context: %s>" % ("\n".join(msg))
@@ -113,7 +114,7 @@ class Context(object):
 
     def __eq__(self, other):
         if not isinstance(other, Context):
-            return False
+            return NotImplemented
 
         equal = True
         equal &= (self.project == other.project)
@@ -122,8 +123,13 @@ class Context(object):
         equal &= (self.task == other.task)
         equal &= (self.user == other.user)
         equal &= (self.additional_entities == other.additional_entities)
-
         return equal
+
+    def __ne__(self, other):
+        result = self.__eq__(other)
+        if result is NotImplemented:
+            return result
+        return not result
 
     def __deepcopy__(self, memo):
         """
@@ -349,7 +355,6 @@ class Context(object):
         :returns: Dictionary of template files representing the context.
                   Handy to pass in to the various Sgtk API methods
         """
-        fields = {}
         # Get all entities into a dictionary
         entities = {}
 
@@ -370,9 +375,33 @@ class Context(object):
             if add_entity["type"] not in entities:
                 entities[add_entity["type"]] = add_entity
 
+        fields = {}
+        
         # Try to populate fields using paths caches for entity
         if isinstance(template, TemplatePath):
-            fields.update(self._fields_from_entity_paths(template))
+            
+            # first, sanity check that we actually have a path cache entry
+            # this relates to ticket 22541 where it is possible to create 
+            # a context object purely from Shotgun without having it in the path cache
+            # (using tk.context_from_entity(Task, 1234) for example)
+            #
+            # Such a context can result in erronous lookups in the later commands
+            # since these make the assumption that the path cache contains the information
+            # that is being saught after.
+            # 
+            # therefore, if the context object contains an entity object and this entity is
+            # not represented in the path cache, raise an exception.
+            if self.entity and len(self.entity_locations) == 0:
+                # context has an entity associated but no path cache entries
+                raise TankError("Cannot resolve template data for context '%s' - this context "
+                                "does not have any associated folders created on disk yet and "
+                                "therefore no template data can be extracted. Please run the folder "
+                                "creation for %s and try again!" % (self, self.shotgun_url))
+            
+            # first look at which ENTITY paths are associated with this context object
+            # and use these to extract the right fields for this template
+            fields = self._fields_from_entity_paths(template)
+            
             # Determine field values by walking down the template tree
             fields.update(self._fields_from_template_tree(template, fields, entities))
 
@@ -481,8 +510,15 @@ class Context(object):
         fields = {}
         project_roots = self.__tk.pipeline_configuration.get_data_roots().values()
 
-        for cur_path in self.entity_locations:
-            # walk up path until match and get value
+        # get all locations on disk for our context object from the path cache
+        path_cache_locations = self.entity_locations 
+        
+        # now loop over all those locations and check if one of the locations 
+        # are matching the template that is passed in. In that case, try to
+        # extract the fields values.
+        for cur_path in path_cache_locations:
+            
+            # walk up path until we reach the project root and get values
             while cur_path not in project_roots:
                 if template.validate(cur_path):
                     cur_fields = template.get_fields(cur_path)
@@ -495,6 +531,7 @@ class Context(object):
                     break
                 else:
                     cur_path = os.path.dirname(cur_path)
+                    
         return fields
 
     def _fields_from_template_tree(self, template, fields, entities):
@@ -502,19 +539,30 @@ class Context(object):
         Determines values for a template's keys based on the context by walking down the template tree
         matching template keys with entity types.
         """
-        # Make copy of fields with no None values for filtering
+        
+        # Step 1 - Cull out ambigious templates
         fields = fields.copy()
         for key, value in fields.items():
             if value is None:
+                # Note: A none value here indicates an ambiguity 
+                # and was set in the _fields_from_entity_paths method.
                 del(fields[key])
 
 
         # Step 2 - Walk up the template tree and collect templates
+        #
+        # Use cached paths to find field values
+        # these will be returned in top-down order:
+        # [<Sgtk TemplatePath sequences/{Sequence}>, 
+        #  <Sgtk TemplatePath sequences/{Sequence}/{Shot}>, 
+        #  <Sgtk TemplatePath sequences/{Sequence}/{Shot}/{Step}>, 
+        #  <Sgtk TemplatePath sequences/{Sequence}/{Shot}/{Step}/publish>, 
+        #  <Sgtk TemplatePath sequences/{Sequence}/{Shot}/{Step}/publish/maya>, 
+        #  <Sgtk TemplatePath maya_shot_publish: sequences/{Sequence}/{Shot}/{Step}/publish/maya/{name}.v{version}.ma>]
         templates = _get_template_ancestors(template)
 
-        # Use cached paths to find field values
+        # get a path cache handle
         path_cache = PathCache(self.__tk.pipeline_configuration)
-
         try:
             # Step 3 - walk templates from the root down,
             # for each template, get all paths we have stored in the database
@@ -984,18 +1032,24 @@ def _values_from_path_cache(entity, cur_template, path_cache, fields):
     """
     Determine values for templates fields based on an entities cached paths.
     """
+    
     # use the databsae to go from shotgun type/id --> paths
     entity_paths = path_cache.get_paths(entity["type"], entity["id"])
-    # get a list of paths that validate against our current template
+    
+    # get a list of path cache paths that validate against our current template
+    # with the existing field values we have plugged into that template
     matches = [epath for epath in entity_paths if cur_template.validate(epath, fields=fields)]
+    
     # Mapping for field values found in conjunction with this entities paths
     temp_fields = {}
     # keys whose values should be removed from return values
     remove_keys = set()
 
     for matched_path in matches:
+        
         # Get the filed values for each path
         matched_fields = cur_template.get_fields(matched_path)
+        
         # Check values against those found for other paths
         for m_key, m_value in matched_fields.items():
             if m_key in temp_fields and m_value != temp_fields[m_key]:
@@ -1013,6 +1067,7 @@ def _values_from_path_cache(entity, cur_template, path_cache, fields):
                     # ambiguity for Static key
                     temp_fields[m_key] = None
                     remove_keys.add(m_key)
+            
             else:
                 temp_fields[m_key] = m_value
 

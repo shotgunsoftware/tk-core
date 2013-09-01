@@ -127,27 +127,6 @@ def _process_template_includes_r(file_name, data):
     
     return output_data
         
-
-def get_template_str(data, template_name):
-    """
-    Returns a path str given a template name
-    """
-    for t in data[constants.TEMPLATE_PATH_SECTION]:
-        if t == template_name:
-            d = data[constants.TEMPLATE_PATH_SECTION][t]
-            if isinstance(d, basestring):
-                return d
-            elif isinstance(d, dict):
-                # maya_shot_work:
-                #   definition: sequences/{Sequence}/{Shot}/{Step}/work/maya/{name}.v{version}.ma
-                #   root_name: film
-                return d["definition"]
-            else:
-                raise TankError("Invalid template definition %s. Please check config." % template_name)
-    
-    raise TankError("Could not resolve template reference @%s" % template_name)
-    
-        
 def process_includes(file_name, data):
     """
     Processes includes for the main templates file. Will look for 
@@ -161,46 +140,149 @@ def process_includes(file_name, data):
     3. lastly, process all @refs in the paths section
         
     """
-    
     # first recursively load all template data from includes
     resolved_includes_data = _process_template_includes_r(file_name, data)
     
-    # now process any @resolves.
-    # these are on the following form:
-    # foo: bar
-    # ttt: @foo/something
-    # you can only use these in the paths section
-    # you can only use them on the first item
-    for t in resolved_includes_data[constants.TEMPLATE_PATH_SECTION]:
+    # Now recursively process any @resolves.
+    # these are of the following form:
+    #   foo: bar
+    #   ttt: @foo/something
+    # You can only use these in the paths and strings sections.
+    #
+    # @ can be used anywhere in the template definition.  @ should
+    # be used to escape itself if required.  e.g.:
+    #   foo: bar
+    #   ttt: @foo/something/@@/_@foo_
+    # Would result in:
+    #   bar/something/@/_bar_
+    template_paths = resolved_includes_data[constants.TEMPLATE_PATH_SECTION]
+    template_strings = resolved_includes_data[constants.TEMPLATE_STRING_SECTION] 
+    
+    # process the template paths section:
+    for template_name, template_definition in template_paths.iteritems():
+        _resolve_template_r(template_paths, template_strings, template_name, template_definition, "path")
         
-        d = resolved_includes_data[constants.TEMPLATE_PATH_SECTION][t]
-        
-        complex_syntax = False
-        if isinstance(d, dict):
-            template_str = d["definition"]
-            complex_syntax = True
-        elif isinstance(d, basestring):
-            template_str = d
-        else:
-            raise TankError("Invalid template files configuration in %s for %s" % (file_name, t))
-        
-        if template_str.startswith("@"):
-            # string template on the form 
-            # maya_shot_work: @other_template/work/maya/{name}.v{version}.ma
-            template_parts = template_str.split("/")
-            reference_template_name = template_parts[0][1:]
-            # replace it with the resolved value
-            val = get_template_str(resolved_includes_data, reference_template_name)
-            rest_of_path = "/".join(template_parts[1:])
-            resolved_template = "%s/%s" % (val, rest_of_path)
+    # and process the strings section:
+    for template_name, template_definition in template_strings.iteritems():
+        _resolve_template_r(template_paths, template_strings, template_name, template_definition, "string")
+                
+    # finally, resolve escaped @'s in template definitions:
+    for templates in [template_paths, template_strings]:
+        for template_name, template_definition in templates.iteritems():
+            # find the template string from the definition:
+            template_str = None
+            complex_syntax = False
+            if isinstance(template_definition, dict):
+                template_str = template_definition["definition"]
+                complex_syntax = True
+            elif isinstance(template_definition, basestring):
+                template_str = template_definition
+            if not template_str:
+                raise TankError("Invalid template configuration for '%s'" % (template_name))
             
-            # put the value back:
+            # resolve escaped @'s
+            resolved_template_str = template_str.replace("@@", "@")
+            if resolved_template_str == template_str:
+                continue
+                
+            # set the value back again:
             if complex_syntax:
-                resolved_includes_data[constants.TEMPLATE_PATH_SECTION][t]["definition"] = resolved_template
+                templates[template_name]["definition"] = resolved_template_str
             else:
-                resolved_includes_data[constants.TEMPLATE_PATH_SECTION][t] = resolved_template 
-            
+                templates[template_name] = resolved_template_str
+                
     return resolved_includes_data
         
-        
+def _find_matching_ref_template(template_paths, template_strings, ref_string):
+    """
+    Find a template whose name matches a portion of ref_string.  This
+    will find the longest/best match and will look at both path and string
+    templates
+    """
+    matching_templates = []
     
+    # find all templates that match the start of the ref string:
+    for templates, template_type in [(template_paths, "path"), (template_strings, "string")]:
+        for name, definition in templates.iteritems():
+            if ref_string.startswith(name):
+                matching_templates.append((name, definition, template_type))
+            
+    # if there are more than one then choose the one with the longest
+    # name/longest match:
+    best_match = None
+    best_match_len = 0
+    for name, definition, template_type in matching_templates:
+        name_len = len(name)
+        if name_len > best_match_len:
+            best_match_len = name_len
+            best_match = (name, definition, template_type)
+            
+    return best_match
+
+def _resolve_template_r(template_paths, template_strings, template_name, template_definition, template_type, template_chain = None):
+    """
+    Recursively resolve path templates so that they are fully expanded.
+    """
+
+    # check we haven't searched this template before and keep 
+    # track of the ones we have visited
+    template_key = (template_name, template_type)
+    visited_templates = list(template_chain or [])
+    if template_key in visited_templates:
+        raise TankError("A cyclic %s template was found - '%s' references itself (%s)" 
+                        % (template_type, template_name, " -> ".join([name for name, _ in visited_templates[visited_templates.index(template_key):]] + [template_name])))
+    visited_templates.append(template_key)
+    
+    # find the template string from the definition:
+    template_str = None
+    complex_syntax = False
+    if isinstance(template_definition, dict):
+        template_str = template_definition["definition"]
+        complex_syntax = True
+    elif isinstance(template_definition, basestring):
+        template_str = template_definition
+    if not template_str:
+        raise TankError("Invalid template configuration for '%s'" % (template_name))
+    
+    # look for @ specified in template definition.  This can be escaped by
+    # using @@ so split out escaped @'s first:
+    template_str_parts = template_str.split("@@")
+    resolved_template_str_parts = []
+    for part in template_str_parts:
+        
+        # split to find seperate @ include parts:
+        ref_parts = part.split("@")
+        resolved_ref_parts = ref_parts[:1]
+        for ref_part in ref_parts[1:]:
+
+            if not ref_part:
+                # this would have been an @ so ignore!
+                continue
+                
+            # find a template that matches the start of the template string:                
+            ref_template = _find_matching_ref_template(template_paths, template_strings, ref_part)
+            if not ref_template:
+                raise TankError("Failed to resolve template reference from '@%s' defined by the %s template '%s'" % (ref_part, template_type, template_name))
+                
+            # resolve the referenced template:
+            ref_template_name, ref_template_definition, ref_template_type = ref_template
+            resolved_ref_str = _resolve_template_r(template_paths, template_strings, ref_template_name, ref_template_definition, ref_template_type, visited_templates)
+            resolved_ref_str = "%s%s" % (resolved_ref_str, ref_part[len(ref_template_name):])
+                                    
+            resolved_ref_parts.append(resolved_ref_str)
+        
+        # rejoin resolved parts:
+        resolved_template_str_parts.append("".join(resolved_ref_parts))
+        
+    # re-join resolved parts with escaped @:
+    resolved_template_str = "@@".join(resolved_template_str_parts)
+    
+    # put the value back:
+    templates = {"path":template_paths, "string":template_strings}[template_type]
+    if complex_syntax:
+        templates[template_name]["definition"] = resolved_template_str
+    else:
+        templates[template_name] = resolved_template_str
+        
+    return resolved_template_str
+

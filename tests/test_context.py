@@ -84,6 +84,7 @@ class TestEq(TestContext):
         context_1 = context.Context(**self.kws)
         context_2 = context.Context(**self.kws)
         self.assertTrue(context_1 == context_2)
+        self.assertFalse(context_1 != context_2)
 
     def test_not_equal(self):
         context_1 = context.Context(**self.kws)
@@ -91,11 +92,13 @@ class TestEq(TestContext):
         kws2["task"] = {"id":45, "type": "Task"}
         context_2 = context.Context(**kws2)
         self.assertFalse(context_1 == context_2)
+        self.assertTrue(context_1 != context_2)
 
     def test_not_context(self):
         context_1 = context.Context(**self.kws)
         not_context = object()
         self.assertFalse(context_1 == not_context)
+        self.assertTrue(context_1 != not_context)
 
     @patch("tank.util.login.get_current_user")
     def test_lazy_load_user(self, get_current_user):
@@ -113,6 +116,7 @@ class TestEq(TestContext):
         # automatically by the equals operator
         context_2 = context.Context(**kws2)
         self.assertTrue(context_1 == context_2)
+        self.assertFalse(context_1 != context_2)
 
 class TestUser(TestContext):
     def setUp(self):

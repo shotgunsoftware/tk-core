@@ -188,7 +188,8 @@ def _process_action(code_install_root, pipeline_config_root, log, tk, ctx, engin
 
 def run_action(code_install_root, pipeline_config_root, log, tk, ctx, command, args):
     """
-    Find an action and start execution
+    Find an action and start execution. 
+    
     """
     engine = None
 
@@ -225,7 +226,13 @@ def run_action(code_install_root, pipeline_config_root, log, tk, ctx, command, a
                     
     # ok we now have all the pieces we need
     if found_action is None:
-        log.error("The command '%s' could not be found!" % command)
+        log.info("")
+        log.info("")
+        log.error("The action '%s' could not be found!" % command)
+        log.info("")
+        log.info("In order to list all action that are available, try running the same command, " 
+                 "but omit the '%s' part at the end." % command)
+        log.info("")
     
     else:
         _process_action(code_install_root, 

@@ -118,7 +118,7 @@ PRIMARY_STORAGE_NAME = "primary"
 FRAMEWORK_FILE = "framework.py"
 
 # regex pattern that all folder names must validate against
-VALID_SG_ENTITY_NAME_REGEX = "^[0-9A-Za-z_\-\.]+$"
+VALID_SG_ENTITY_NAME_REGEX = "^[\w\-\.]+$"
 
 # a human readable explanation of the regex above - used in error messages
 VALID_SG_ENTITY_NAME_EXPLANATION = ("letters, numbers and the characters period(.), "
@@ -189,6 +189,9 @@ TEMPLATE_SECTIONS = ["keys", "paths", "strings"]
 
 # the path section in a templates file
 TEMPLATE_PATH_SECTION = "paths"
+
+# the string section in a templates file
+TEMPLATE_STRING_SECTION = "strings"
 
 # the shotgun engine always has this name
 SHOTGUN_ENGINE_NAME = "tk-shotgun"

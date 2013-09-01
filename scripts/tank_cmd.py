@@ -639,34 +639,28 @@ def _resolve_shotgun_entity(log, entity_type, entity_search_token, constrain_by_
     except Exception, e:
         raise TankError("An error occurred when searching in Shotgun: %s" % e)
 
+    selected_entity = None
+
     if len(entities) == 0:
         log.info("")
         log.info("Could not find a %s with a name containing '%s' in Shotgun!" % (entity_type, entity_only_search_token))
         raise TankError("Try searching for something else. Alternatively, specify ALL in order to see all %ss." % entity_type)
 
+
+    elif entity_only_search_token in [ x[name_field] for x in entities ]:
+        # multiple matches but one matches the search term exactly!!
+        # find which one:
+        for x in entities:
+            if x[name_field] == entity_only_search_token:
+                selected_entity = x
+
+
     elif len(entities) == 1:
         # single match yay
-        entity = entities[0]
-
-        # make sure there is a project associated with this entity!
-        if entity_type != "Project":
-            if entity.get("project") is None:
-                raise TankError("Found %s %s however this item is not associated with "
-                                "a Project!" % (entity_type, entity[name_field]))
-
-            log.info("- Found %s %s (Project '%s')" % (entity_type,
-                                                     entity[name_field],
-                                                     entity["project"]["name"]))
-
-        else:
-            # project case
-            log.info("- Found %s %s" % (entity_type, entity[name_field]))
-
-
-        return entity["id"]
-
+        selected_entity = entities[0]
+    
+    
     else:
-
         # More than one item matching Shot 'P':
         #
         # [860] Shot P12 (The ghosts of Pere Lachaise)
@@ -741,6 +735,29 @@ def _resolve_shotgun_entity(log, entity_type, entity_search_token, constrain_by_
 
         log.info("")
         raise TankError("Please try again with a more specific search!")
+    
+    
+    
+    # make sure there is a project associated with this entity!
+    # selected_entity now has an entity populated in it.
+    if entity_type != "Project":
+        if selected_entity.get("project") is None:
+            raise TankError("Found %s %s however this item is not associated with "
+                            "a Project!" % (entity_type, selected_entity[name_field]))
+
+        log.info("- Found %s %s (Project '%s')" % (entity_type,
+                                                 selected_entity[name_field],
+                                                 selected_entity["project"]["name"]))
+
+    else:
+        # project case
+        log.info("- Found %s %s" % (entity_type, selected_entity[name_field]))
+
+
+    return selected_entity["id"]
+
+    
+
 
 
 
