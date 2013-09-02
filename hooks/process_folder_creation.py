@@ -46,6 +46,18 @@ class ProcessFolderCreation(Hook):
         * "path": path on disk to the item
         * "entity": Shotgun entity link dict with keys type, id and name.
         
+        Remote Entity Folder
+        --------------------
+        This is the same as an entity folder, except that it was originally
+        created in another location. A remote folder request means that your
+        local toolkit instance has detected that folders have been created by
+        a different file system setup. It contains the following keys:
+        
+        * "action": "remote_entity_folder"
+        * "metadata": The configuration yaml data for this item
+        * "path": path on disk to the item
+        * "entity": Shotgun entity link dict with keys type, id and name.
+
         File Copy
         ---------
         This represents a file copy operation which should be carried out.
@@ -81,7 +93,7 @@ class ProcessFolderCreation(Hook):
                 
                 action = i.get("action")
                 
-                if action == "entity_folder" or action == "folder":
+                if action in ["entity_folder", "folder", "remote_entity_folder"]:
                     # folder creation
                     path = i.get("path")    
                     if not os.path.exists(path):
