@@ -23,9 +23,13 @@ from .errors import TankError
 SHOTGUN_ENTITY = "CustomEntity01"
 
 SG_ENTITY_FIELD = "sg_entity"
-SG_PATH_FIELD = "sg_relative_path"
-SG_ROOT_FIELD = "sg_root"
-SG_SECONDARY_ENTITIES_FIELD = "sg_secondary_entities"
+SG_PATH_FIELD = "sg_path"
+SG_IS_PRIMARY_FIELD = "sg_primary"
+SG_ENTITY_ID_FIELD = "sg_type_id_creation"
+SG_ENTITY_TYPE_FIELD = "sg_type_at_creation"
+SG_ENTITY_NAME_FIELD = "code"
+
+
 
 
 
@@ -72,8 +76,13 @@ class PathCache(object):
         
         self._connection = sqlite3.connect(db_path)
         
-        # this is to handle unicode properly - make sure that sqlite returns str objects
-        # for TEXT fields rather than unicode.
+        # this is to handle unicode properly - make sure that sqlite returns 
+        # str objects for TEXT fields rather than unicode. Note that any unicode
+        # objects that are passed into the database will be automatically
+        # converted to UTF-8 strs, so this text_factory guarantuees that any character
+        # representation will work for any language, as long as data is either input
+        # as UTF-8 (byte string) or unicode. And in the latter case, the returned data
+        # will always be unicode.
         self._connection.text_factory = str
         
         c = self._connection.cursor()
@@ -178,22 +187,41 @@ class PathCache(object):
         if self._connection is not None:
             self._connection.close()
             self._connection = None
+                
+    def synchronize(self):
+        """
+        Ensure the local path cache is in sync with Shotgun.
         
-    def delete_path_tree(self, path):
+        Returns a list of remote items which were detected, created remotely
+        and not existing in this path cache. These are returned as a list of 
+        dictionaries, each with keys id, type, name, configuration and path.
         """
-        Deletes all records that are associated with the given path
+        return []
+
+
+    def add_mappings(self, data):
         """
-        # there was no entity in the db. So let's create it!
-        c = self._connection.cursor()
-        root_name, relative_path = self._separate_root(path)
-        db_path = self._path_to_dbpath(relative_path)
-        query = "DELETE FROM path_cache where root=? and path like '%s%%'" % db_path
-        c.execute(query, (root_name,) )
-        self._connection.commit()
-        c.close()
+        Adds a collection of mappings to the path cache in case they are not 
+        already there. 
+        
+        :param data: list of dictionaries. Each dictionary contains 
+                     the following keys:
+                      - entity: a dictionary with keys name, id and type
+                      - path: a path on disk
+                      - primary: a boolean indicating if this is a primary entry
+        """
+        
+        # step 1 - synchronize the path cache db against shotgun
+        # todo - write this code!
+        
+        # step 2 - insert all entries into the path cache
+        
+        # step 3 - insert all path cache entries into shotgun
+        
+        
         
 
-    def add_mapping(self, entity_type, entity_id, entity_name, path, primary=True):
+    def _add_mapping(self, entity_type, entity_id, entity_name, path, primary):
         """
         Adds an association to the database. If the association already exists, it will
         do nothing, just return.
