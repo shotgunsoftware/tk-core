@@ -231,10 +231,10 @@ class PathCache(object):
                       - metadata: configuration metadata
         """
         for d in data:
-            self._validate_maping(d["path"], d["entity"], d["primary"])
+            self._validate_mapping(d["path"], d["entity"], d["primary"])
         
         
-    def _validate_maping(self, path, entity, is_primary):
+    def _validate_mapping(self, path, entity, is_primary):
         """
         Consistency checks happening prior to folder creation. May raise a TankError
         if an inconsistency is detected.
@@ -243,7 +243,7 @@ class PathCache(object):
         :param entity: Sg entity dict with keys id, type and name
         """
         
-        # Check 1. make sure that there isn't already a record with the same
+        # Make sure that there isn't already a record with the same
         # name in the database and file system, but with a different id.
         # We only do this for primary items - for secondary items, multiple items can exist
         if is_primary:
@@ -280,7 +280,7 @@ class PathCache(object):
         #
         # note: this can also happen if the folder creation rules change.
         #
-        # we only check for ingoing primary entities, doing the check for secondary
+        # we only check for primary entities, doing the check for secondary
         # would only be to carry out the same check twice.
         if is_primary:
             for p in self.get_paths(entity["type"], entity["id"], primary_only=False):
@@ -335,6 +335,12 @@ class PathCache(object):
             project_link = {"type": "Project", 
                             "id": self._tk.pipeline_configuration.get_project_id() }
             
+            # get a name for the clickable url in the path field
+            # this will include the name of the storage
+            root_name, relative_path = self._separate_root(d["path"])
+            db_path = self._path_to_dbpath(relative_path)
+            path_display_name = "[%s] %s" % (root_name, db_path) 
+            
             req = {"request_type":"create", 
                    "entity_type": SHOTGUN_ENTITY, 
                    "data": {"project": project_link,
@@ -346,7 +352,7 @@ class PathCache(object):
                             SG_ENTITY_ID_FIELD: d["entity"]["id"],
                             SG_ENTITY_TYPE_FIELD: d["entity"]["type"],
                             SG_ENTITY_NAME_FIELD: d["entity"]["name"],
-                            SG_PATH_FIELD: { "local_path": d["path"] }
+                            SG_PATH_FIELD: { "local_path": d["path"], "name": path_display_name }
                             } }
             
             sg_batch_data.append(req)
@@ -361,6 +367,7 @@ class PathCache(object):
             
             # now analyze the response and get the past 
             import pprint
+            print "We put in: %s" % pprint.pformat(sg_batch_data)
             print "SG says: %s" % pprint.pformat(response)
         
         
