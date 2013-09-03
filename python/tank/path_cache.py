@@ -314,13 +314,18 @@ class PathCache(object):
                       - path: a path on disk
                       - primary: a boolean indicating if this is a primary entry
         """
-                
+        
+        data_for_sg = []        
+        
         for d in data:
-            self._add_db_mapping(d["path"], d["entity"], d["primary"])
+            if self._add_db_mapping(d["path"], d["entity"], d["primary"]):
+                # add db mapping returned true. Means it wasn't in the path cache db
+                # and we should add it to shotgun too!
+                data_for_sg.append(d)
 
         # now add mappings to shotgun. Pass it as a single request via batch
         sg_batch_data = []
-        for d in data:
+        for d in data_for_sg:
             
             pc_link = {"type": "PipelineConfiguration",
                        "id": self._tk.pipeline_configuration.get_shotgun_id() }
@@ -363,7 +368,9 @@ class PathCache(object):
 
         :param path: a path on disk representing the entity.
         :param entity: a shotgun entity dict with keys type, id and name
-        :param primary: is this the primary entry for this particular path        
+        :param primary: is this the primary entry for this particular path     
+        
+        :returns: True if an entry was added to the database, False if it was not necessary   
         """
         
         if primary:
@@ -392,7 +399,7 @@ class PathCache(object):
                     
                 else:   
                     # the entry that exists in the db matches what we are trying to insert so skip it
-                    return
+                    return False
                 
         else:
             # secondary entity
@@ -401,7 +408,7 @@ class PathCache(object):
             paths = self.get_paths(entity["type"], entity["id"], primary_only=False)
             if path in paths:
                 # we already have the association present in the db.
-                return
+                return False
 
         # there was no entity in the db. So let's create it!
         c = self._connection.cursor()
@@ -415,6 +422,8 @@ class PathCache(object):
                                                                       primary))
         self._connection.commit()
         c.close()
+        
+        return True
 
 
     
