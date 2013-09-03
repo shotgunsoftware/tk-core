@@ -25,6 +25,8 @@ json = shotgun_api3.shotgun.json
 
 from .errors import TankError 
 
+from .util.login import get_current_user 
+
 
 SHOTGUN_ENTITY = "CustomEntity01"
 
@@ -336,6 +338,7 @@ class PathCache(object):
             req = {"request_type":"create", 
                    "entity_type": SHOTGUN_ENTITY, 
                    "data": {"project": project_link,
+                            "created_by": get_current_user(self._tk),
                             SG_ENTITY_FIELD: d["entity"],
                             SG_IS_PRIMARY_FIELD: d["primary"],
                             SG_PIPELINE_CONFIG_FIELD: pc_link,
@@ -349,12 +352,16 @@ class PathCache(object):
             sg_batch_data.append(req)
         
         # push to shotgun in a single xact
-        try:    
-            self._tk.shotgun.batch(sg_batch_data)
-        except Exception, e:
-            raise TankError("Critical! Could not update Shotgun with the folder "
-                            "creation information. Please contact support. Error details: %s" % e)
+        if len(sg_batch_data) > 0:
+            try:    
+                response = self._tk.shotgun.batch(sg_batch_data)
+            except Exception, e:
+                raise TankError("Critical! Could not update Shotgun with the folder "
+                                "creation information. Please contact support. Error details: %s" % e)
             
+            # now analyze the response and get the past 
+            import pprint
+            print "SG says: %s" % pprint.pformat(response)
         
         
 
