@@ -310,7 +310,29 @@ class PathCache(object):
         for d in data:
             self._add_db_mapping(d["path"], d["entity"], d["primary"])
 
-        # now add mappings to shotgun!
+        # now add mappings to shotgun. Pass it as a single request via batch
+        sg_batch_data = []
+        for d in data:
+            
+            req = {"request_type":"create", 
+                   "entity_type": SHOTGUN_ENTITY, 
+                   "data": {SG_ENTITY_FIELD: d["entity"],
+                            SG_IS_PRIMARY_FIELD: d["primary"],
+                            SG_ENTITY_ID_FIELD: d["entity"]["id"],
+                            SG_ENTITY_TYPE_FIELD: d["entity"]["type"],
+                            SG_ENTITY_NAME_FIELD: d["entity"]["name"],
+                            SG_PATH_FIELD: { "local_path": d["path"] }
+                            } }
+            sg_batch_data.append(req)
+        
+        # push to shotgun in a single xact
+        try:    
+            self._tk.shotgun.batch(sg_batch_data)
+        except Exception, e:
+            raise TankError("Critical! Could not update Shotgun with the folder "
+                            "creation information. Please contact support. Error details: %s" % e)
+            
+        
         
 
     def _add_db_mapping(self, path, entity, primary):
