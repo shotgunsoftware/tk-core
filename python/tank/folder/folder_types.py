@@ -814,7 +814,7 @@ class Entity(Folder):
         for lf in self._entity_expression.get_shotgun_link_fields():
             
             entity_link = entity[lf]
-            io_receiver.register_secondary_entity(path, entity_link)
+            io_receiver.register_secondary_entity(path, entity_link, self._config_metadata)
 
     def __get_entities(self, sg_data):
         """
