@@ -17,6 +17,12 @@ all Tank items in the file system are kept.
 import sqlite3
 import os
 
+# use api json to cover py 2.5
+# todo - replace with proper external library  
+from tank_vendor import shotgun_api3  
+json = shotgun_api3.shotgun.json
+
+
 from .errors import TankError 
 
 
@@ -26,7 +32,7 @@ SG_ENTITY_FIELD = "sg_entity"
 SG_PATH_FIELD = "sg_path"
 SG_METADATA_FIELD = "sg_configuration_metadata"
 SG_IS_PRIMARY_FIELD = "sg_primary"
-SG_ENTITY_ID_FIELD = "sg_type_id_creation"
+SG_ENTITY_ID_FIELD = "sg_id_at_creation"
 SG_ENTITY_TYPE_FIELD = "sg_type_at_creation"
 SG_ENTITY_NAME_FIELD = "code"
 SG_PIPELINE_CONFIG_FIELD = "sg_pipeline_configuration"
@@ -319,17 +325,22 @@ class PathCache(object):
             pc_link = {"type": "PipelineConfiguration",
                        "id": self._tk.pipeline_configuration.get_shotgun_id() }
             
+            project_link = {"type": "Project", 
+                            "id": self._tk.pipeline_configuration.get_project_id() }
+            
             req = {"request_type":"create", 
                    "entity_type": SHOTGUN_ENTITY, 
-                   "data": {SG_ENTITY_FIELD: d["entity"],
+                   "data": {"project": project_link,
+                            SG_ENTITY_FIELD: d["entity"],
                             SG_IS_PRIMARY_FIELD: d["primary"],
                             SG_PIPELINE_CONFIG_FIELD: pc_link,
-                            SG_METADATA_FIELD: d["metadata"],
+                            SG_METADATA_FIELD: json.dumps(d["metadata"]),
                             SG_ENTITY_ID_FIELD: d["entity"]["id"],
                             SG_ENTITY_TYPE_FIELD: d["entity"]["type"],
                             SG_ENTITY_NAME_FIELD: d["entity"]["name"],
                             SG_PATH_FIELD: { "local_path": d["path"] }
                             } }
+            
             sg_batch_data.append(req)
         
         # push to shotgun in a single xact

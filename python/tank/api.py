@@ -21,7 +21,6 @@ from . import folder
 from . import context
 from .util import shotgun
 from .errors import TankError
-from .folder.folder_io import folder_preflight_checks
 from .path_cache import PathCache
 from .template import read_templates
 from .platform import constants as platform_constants
