@@ -24,10 +24,12 @@ SHOTGUN_ENTITY = "CustomEntity01"
 
 SG_ENTITY_FIELD = "sg_entity"
 SG_PATH_FIELD = "sg_path"
+SG_METADATA_FIELD = "sg_configuration_metadata"
 SG_IS_PRIMARY_FIELD = "sg_primary"
 SG_ENTITY_ID_FIELD = "sg_type_id_creation"
 SG_ENTITY_TYPE_FIELD = "sg_type_at_creation"
 SG_ENTITY_NAME_FIELD = "code"
+SG_PIPELINE_CONFIG_FIELD = "sg_pipeline_configuration"
 
 
 
@@ -314,10 +316,15 @@ class PathCache(object):
         sg_batch_data = []
         for d in data:
             
+            pc_link = {"type": "PipelineConfiguration",
+                       "id": self._tk.pipeline_configuration.get_shotgun_id() }
+            
             req = {"request_type":"create", 
                    "entity_type": SHOTGUN_ENTITY, 
                    "data": {SG_ENTITY_FIELD: d["entity"],
                             SG_IS_PRIMARY_FIELD: d["primary"],
+                            SG_PIPELINE_CONFIG_FIELD: pc_link,
+                            SG_METADATA_FIELD: d["metadata"],
                             SG_ENTITY_ID_FIELD: d["entity"]["id"],
                             SG_ENTITY_TYPE_FIELD: d["entity"]["type"],
                             SG_ENTITY_NAME_FIELD: d["entity"]["name"],
