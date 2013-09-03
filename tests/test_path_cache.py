@@ -21,7 +21,7 @@ class TestPathCache(TankTestBase):
     def setUp(self):
         super(TestPathCache, self).setUp()
         self.setup_multi_root_fixtures()
-        self.path_cache = path_cache.PathCache(self.pipeline_configuration)
+        self.path_cache = path_cache.PathCache(self.tk)
 
     def tearDown(self):
         self.path_cache.close()
@@ -35,7 +35,7 @@ class TestInit(TestPathCache):
             self.path_cache.close()
             os.remove(db_path)
         self.assertFalse(os.path.exists(db_path))
-        pc = path_cache.PathCache(self.pipeline_configuration)
+        pc = path_cache.PathCache(self.tk)
         pc.close()
         self.assertTrue(os.path.exists(db_path))
 

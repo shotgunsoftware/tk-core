@@ -770,7 +770,7 @@ class TestFolderCreationEdgeCases(TankTestBase):
         
         self.tk = tank.Tank(self.project_root)
         
-        self.path_cache = path_cache.PathCache(self.tk.pipeline_configuration)
+        self.path_cache = path_cache.PathCache(self.tk)
 
     def tearDown(self):
         

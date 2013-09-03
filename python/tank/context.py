@@ -562,7 +562,7 @@ class Context(object):
         templates = _get_template_ancestors(template)
 
         # get a path cache handle
-        path_cache = PathCache(self.__tk.pipeline_configuration)
+        path_cache = PathCache(self.__tk)
         try:
             # Step 3 - walk templates from the root down,
             # for each template, get all paths we have stored in the database
@@ -682,7 +682,7 @@ def from_path(tk, path, previous_context=None):
     additional_types = tk.execute_hook("context_additional_entities").get("entity_types_in_path", [])
 
     # get a cache handle
-    path_cache = PathCache(tk.pipeline_configuration)
+    path_cache = PathCache(tk)
 
     # gather all roots as lower case
     project_roots = [x.lower() for x in tk.pipeline_configuration.get_data_roots().values()]
@@ -993,7 +993,7 @@ def _context_data_from_cache(tk, entity_type, entity_id):
 
     # Use the path cache to look up all paths linked to the entity and use that to extract
     # extra entities we should include in the context
-    path_cache = PathCache(tk.pipeline_configuration)
+    path_cache = PathCache(tk)
 
     # Grab all project roots
     project_roots = tk.pipeline_configuration.get_data_roots().values()

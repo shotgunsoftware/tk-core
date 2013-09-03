@@ -41,16 +41,16 @@ class PathCache(object):
     Ensure that the code is developed with the constraints that this entails in mind.
     """
     
-    def __init__(self, pipeline_configuration):
+    def __init__(self, tk):
         """
         Constructor
         :param pipeline_configuration: pipeline config object
         """
-        db_path = pipeline_configuration.get_path_cache_location()
+        db_path = tk.pipeline_configuration.get_path_cache_location()
         self._connection = None
         self._init_db(db_path)
-        self._roots = pipeline_configuration.get_data_roots()
-        
+        self._roots = tk.pipeline_configuration.get_data_roots()
+        self._tk = tk
     
     def _init_db(self, db_path):
         """
@@ -188,16 +188,112 @@ class PathCache(object):
             self._connection.close()
             self._connection = None
                 
+    ############################################################################################
+    # shotgun synchronization (SG data pushed into path cache database)
+
     def synchronize(self):
         """
         Ensure the local path cache is in sync with Shotgun.
         
         Returns a list of remote items which were detected, created remotely
         and not existing in this path cache. These are returned as a list of 
-        dictionaries, each with keys id, type, name, configuration and path.
+        dictionaries, each containing keys:
+            - entity
+            - metadata 
+            - path
         """
         return []
 
+
+    ############################################################################################
+    # pre-insertion validation
+
+    def validate_mappings(self, data):
+        """
+        Adds a collection of mappings to the path cache in case they are not 
+        already there. 
+        
+        :param data: list of dictionaries. Each dictionary should contain 
+                     the following keys:
+                      - entity: a dictionary with keys name, id and type
+                      - path: a path on disk
+                      - primary: a boolean indicating if this is a primary entry
+                      - metadata: configuration metadata
+        """
+        for d in data:
+            self._validate_maping(d["path"], d["entity"], d["primary"])
+        
+        
+    def _validate_maping(self, path, entity, is_primary):
+        """
+        Consistency checks happening prior to folder creation. May raise a TankError
+        if an inconsistency is detected.
+        
+        :param path: The path calculated
+        :param entity: Sg entity dict with keys id, type and name
+        """
+        
+        # Check 1. make sure that there isn't already a record with the same
+        # name in the database and file system, but with a different id.
+        # We only do this for primary items - for secondary items, multiple items can exist
+        if is_primary:
+            entity_in_db = self.get_entity(path)
+            
+            if entity_in_db is not None:
+                if entity_in_db["id"] != entity["id"] or entity_in_db["type"] != entity["type"]:
+                    
+                    # there is already a record in the database for this path,
+                    # but associated with another entity! Display an error message
+                    # and ask that the user investigates using special tank commands.
+                    #
+                    # Note! We are only comparing against the type and the id
+                    # not against the name. It should be perfectly valid to rename something
+                    # in shotgun and if folders are then recreated for that item, nothing happens
+                    # because there is already a folder which repreents that item. (although now with 
+                    # an incorrect name)
+
+                    msg  = "The path '%s' cannot be processed because it is already associated " % path
+                    msg += "with %s '%s' (id %s) in Shotgun. " % (entity_in_db["id"], entity_in_db["type"], entity_in_db["name"])
+                    msg += "You are now trying to associate it with %s '%s' (id %s). " % (entity["type"], entity["id"], entity["name"])
+                    msg += "Please run the command 'tank check_folders %s %s' " % (entity["type"], entity["id"])
+                    msg += "to get a more detailed overview of why you are getting this message "
+                    msg += "and what you can do to resolve this situation."
+                    raise TankError(msg)
+                
+        # Check 2. Check if a folder for this shot has already been created,
+        # but with another name. This can happen if someone
+        # - creates a shot AAA
+        # - creates folders on disk for Shot AAA
+        # - renamed the shot to BBB
+        # - tries to create folders. Now we don't want to create folders for BBB,
+        #   since we already have a location on disk for this shot. 
+        #
+        # note: this can also happen if the folder creation rules change.
+        #
+        # we only check for ingoing primary entities, doing the check for secondary
+        # would only be to carry out the same check twice.
+        if is_primary:
+            for p in self.get_paths(entity["type"], entity["id"], primary_only=False):
+                # so we got a path that matches our entity
+                if p != path and os.path.dirname(p) == os.path.dirname(path):
+                    # this path is identical to our path we are about to create except for the name. 
+                    # there is still a folder on disk. Abort folder creation
+                    # with a descriptive error message
+                    msg  = "The path '%s' cannot be created because another " % path
+                    msg += "path '%s' is already associated with %s %s. " % (p, entity["type"], entity["name"])
+                    msg += "This typically happens if an item in Shotgun is renamed or "
+                    msg += "if the path naming in the folder creation configuration "
+                    msg += "is changed. "
+                    msg += "Please run the command 'tank check_folders %s %s' " % (entity["type"], entity["id"])
+                    msg += "to get a more detailed overview of why you are getting this message "
+                    msg += "and what you can do to resolve this situation."
+                    
+                    raise TankError(msg)
+
+
+
+    ############################################################################################
+    # database insertion methods
 
     def add_mappings(self, data):
         """
@@ -210,18 +306,14 @@ class PathCache(object):
                       - path: a path on disk
                       - primary: a boolean indicating if this is a primary entry
         """
-        
-        # step 1 - synchronize the path cache db against shotgun
-        # todo - write this code!
-        
-        # step 2 - insert all entries into the path cache
-        
-        # step 3 - insert all path cache entries into shotgun
-        
-        
+                
+        for d in data:
+            self._add_db_mapping(d["path"], d["entity"], d["primary"])
+
+        # now add mappings to shotgun!
         
 
-    def _add_mapping(self, entity_type, entity_id, entity_name, path, primary):
+    def _add_db_mapping(self, path, entity, primary):
         """
         Adds an association to the database. If the association already exists, it will
         do nothing, just return.
@@ -229,11 +321,9 @@ class PathCache(object):
         If there is another association which conflicts with the association that is 
         to be inserted, a TankError is raised.
 
-        :param entity_type: a shotgun entity type
-        :param entity_id: a shotgun entity id
-        :param primary: is this the primary entry for this particular path
-        :param entity_name: a shotgun entity name
         :param path: a path on disk representing the entity.
+        :param entity: a shotgun entity dict with keys type, id and name
+        :param primary: is this the primary entry for this particular path        
         """
         
         if primary:
@@ -241,40 +331,34 @@ class PathCache(object):
             # see if there are any records for this path
             # note that get_entity does not return secondary entities
             curr_entity = self.get_entity(path)
-            new_entity = {"id": entity_id, "type": entity_type, "name": entity_name}
             
             if curr_entity is not None:
                 # this path is already registered. Ensure it is connected to
-                # our entity! Note! We are only comparing against the type and the id
+                # our entity! 
+                #
+                # Note! We are only comparing against the type and the id
                 # not against the name. It should be perfectly valid to rename something
                 # in shotgun and if folders are then recreated for that item, nothing happens
                 # because there is already a folder which repreents that item. (although now with 
                 # an incorrect name)
-                if curr_entity["type"] != entity_type or curr_entity["id"] != entity_id:
-    
-                    # format entities nicely for error message
-                    curr_nice_name = "%s %s (id %s)" % (curr_entity["type"], curr_entity["name"], curr_entity["id"])
-                    new_nice_name = "%s %s (id %s)" % (new_entity["type"], new_entity["name"], new_entity["id"])
-    
-                    raise TankError("The path '%s' is already associated with Shotgun "
-                                    "%s. You are trying to associate the same "
-                                    "path with %s. This typically happens "
-                                    "when shots have been relinked to new sequences, if you are "
-                                    "trying to create two shots with the same name or if "
-                                    "you have made big changes to the folder configuration. "
-                                    "Please contact support on toolkitsupport@shotgunsoftware.com "
-                                    "if you need help or advice!" % (path, curr_nice_name, new_nice_name ))
+                # 
+                # also note that we have already done this once as part of the validation checks -
+                # this time round, we are doing it more as an integrity check.
+                #                
+                if curr_entity["type"] != entity["type"] or curr_entity["id"] != entity["id"]:    
+                    raise TankError("Database concurrency problems: The path '%s' is " 
+                                    "already associated with Shotgun entity %s. Please re-run "
+                                    "folder creation to try again." % (path, str(curr_entity) ))
                     
-                else:
-                    # the entry that exists in the db matches what we are trying to insert
-                    # so skip it
+                else:   
+                    # the entry that exists in the db matches what we are trying to insert so skip it
                     return
                 
         else:
             # secondary entity
             # in this case, it is okay with more than one record for a path
             # but we don't want to insert the exact same record over and over again
-            paths = self.get_paths(entity_type, entity_id, primary_only=False)
+            paths = self.get_paths(entity["type"], entity["id"], primary_only=False)
             if path in paths:
                 # we already have the association present in the db.
                 return
@@ -283,14 +367,19 @@ class PathCache(object):
         c = self._connection.cursor()
         root_name, relative_path = self._separate_root(path)
         db_path = self._path_to_dbpath(relative_path)
-        c.execute("INSERT INTO path_cache VALUES(?, ?, ?, ?, ?, ?)", (entity_type, 
-                                                                entity_id, 
-                                                                entity_name, 
-                                                                root_name,
-                                                                db_path,
-                                                                primary))
+        c.execute("INSERT INTO path_cache VALUES(?, ?, ?, ?, ?, ?)", (entity["type"], 
+                                                                      entity["id"], 
+                                                                      entity["name"], 
+                                                                      root_name,
+                                                                      db_path,
+                                                                      primary))
         self._connection.commit()
         c.close()
+
+
+    
+    ############################################################################################
+    # database accessor methods
 
     def get_paths(self, entity_type, entity_id, primary_only=True):
         """

@@ -38,7 +38,7 @@ class FolderIOReceiver(object):
         self._preview_mode = preview
         self._items = list()
         self._secondary_cache_entries = list()
-        self._path_cache = PathCache(tk.pipeline_configuration)
+        self._path_cache = PathCache(tk)
         
     
     ####################################################################################
@@ -101,8 +101,9 @@ class FolderIOReceiver(object):
                 self._tk.execute_hook(constants.PROCESS_FOLDER_CREATION_HOOK_NAME, 
                                       items=remote_items, 
                                       preview_mode=self._preview_mode)
+            
             # ok folders created for synced stuff. Now re-raise validation error
-            raise e 
+            raise TankError("Folder creation aborted: %s" % e) 
         
         
         # validation passed!

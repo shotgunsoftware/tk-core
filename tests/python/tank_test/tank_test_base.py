@@ -284,7 +284,7 @@ class TankTestBase(unittest.TestCase):
         :param path: Absolute path to add.
         :param entity: Entity dictionary with values for keys 'id', 'name', and 'type'
         """
-        path_cache = sgtk.path_cache.PathCache(self.pipeline_configuration)
+        path_cache = sgtk.path_cache.PathCache(self.tk)
         path_cache.add_mapping(entity["type"],
                                     entity["id"],
                                     entity["name"],

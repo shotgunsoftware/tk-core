@@ -348,7 +348,7 @@ class Tank(object):
         """
 
         # Use the path cache to look up all paths associated with this entity
-        path_cache = PathCache(self.pipeline_configuration)
+        path_cache = PathCache(self)
         paths = path_cache.get_paths(entity_type, entity_id)
         path_cache.close()
 
@@ -364,7 +364,7 @@ class Tank(object):
                   if no path was associated.
         """
         # Use the path cache to look up all paths associated with this entity
-        path_cache = PathCache(self.pipeline_configuration)
+        path_cache = PathCache(self)
         entity = path_cache.get_entity(path)
         path_cache.close()
 
