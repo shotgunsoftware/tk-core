@@ -193,7 +193,7 @@ def process_filesystem_structure(tk, entity_type, entity_ids, preview, engine):
     config = FolderConfiguration(tk, schema_cfg_folder)
     
     # create an object to receive all IO requests
-    io_receiver = FolderIOReceiver(tk, preview)
+    io_receiver = FolderIOReceiver(tk, preview, entity_type, entity_ids)
 
     # now loop over all individual objects and create folders
     for i in items:        

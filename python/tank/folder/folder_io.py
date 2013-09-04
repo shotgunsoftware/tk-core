@@ -30,15 +30,23 @@ class FolderIOReceiver(object):
     Class that encapsulates all the IO operations from the various folder classes.
     """
     
-    def __init__(self, tk, preview):
+    def __init__(self, tk, preview, entity_type, entity_ids):
         """
-        Constructor
+        Constructor.
+        
+        :param tk: A tk api instance
+        :param preview: boolean set to true if run in preview mode
+        :param entity_type: string with the sg entity type from the main folder creation request
+        :param entity_ids: list of ids of the sg object for which folder creation was requested.
+        
         """
         self._tk = tk
         self._preview_mode = preview
         self._items = list()
         self._secondary_cache_entries = list()
         self._path_cache = PathCache(tk)
+        self._entity_type = entity_type
+        self._entity_ids = entity_ids
         
     
     ####################################################################################
@@ -120,7 +128,7 @@ class FolderIOReceiver(object):
         # database data was validated, folders on disk created
         # finally store all our new data in the path cache and in shotgun
         if not self._preview_mode:
-            self._path_cache.add_mappings(db_entries)
+            self._path_cache.add_mappings(db_entries, self._entity_type, self._entity_ids)
 
         # note that for backwards compatibility, we are returning all folders, not 
         # just the ones that were created

@@ -104,6 +104,8 @@ class PathCache(object):
             CREATE INDEX IF NOT EXISTS path_cache_path ON path_cache(root, path, primary_entity);
         
             CREATE UNIQUE INDEX IF NOT EXISTS path_cache_all ON path_cache(entity_type, entity_id, root, path, primary_entity);
+            
+            CREATE TABLE IF NOT EXISTS event_log_sync (last_id integer);
         """)
         
         ret = c.execute("PRAGMA table_info(path_cache)")
@@ -305,7 +307,7 @@ class PathCache(object):
     ############################################################################################
     # database insertion methods
 
-    def add_mappings(self, data):
+    def add_mappings(self, data, entity_type, entity_ids):
         """
         Adds a collection of mappings to the path cache in case they are not 
         already there. 
@@ -315,6 +317,11 @@ class PathCache(object):
                       - entity: a dictionary with keys name, id and type
                       - path: a path on disk
                       - primary: a boolean indicating if this is a primary entry
+                      
+        :param entity_type: sg entity type for the original high level folder creation 
+                            request that represents this series of mappings
+        :param entity_ids: list of sg entity ids (ints) that represents this series of
+                           path mappings
         """
         
         data_for_sg = []        
@@ -365,11 +372,35 @@ class PathCache(object):
                 raise TankError("Critical! Could not update Shotgun with the folder "
                                 "creation information. Please contact support. Error details: %s" % e)
             
-            # now analyze the response and get the past 
-            import pprint
-            print "We put in: %s" % pprint.pformat(sg_batch_data)
-            print "SG says: %s" % pprint.pformat(response)
+            # now register the created ids in the event log
+            # this will later on be read by the synchronization
+            
+            # first, a summary of what we are up to
+            entity_ids = ", ".join([str(x) for x in entity_ids])
+            desc = ("Toolkit %s: Created folders on disk for "
+                    "%ss with id: %s" % (self._tk.version, entity_type, entity_ids))
+            
+            # now, based on the entities we just created, assemble a metadata chunk that 
+            # the sync calls can use later on.
+            meta = {}
+            # the api version used is always useful to know
+            meta["core_api_version"] = self._tk.version
+            # shotgun ids created
+            meta["sg_folder_ids"] = [ x["id"] for x in response]
+            
+            data = {}
+            data["event_type"] = "Toolkit_Folders"
+            data["attribute_name"] = "Create"
+            data["description"] = desc
+            data["project"] = project_link
+            data["entity"] = pc_link
+            data["meta"] = meta        
+            data["user"] = get_current_user(self._tk)
         
+            response = self._tk.shotgun.create("EventLogEntry", data)
+            
+            # lastly, id of this event log entry for purpose of future syncing
+            event_log_id = response["id"]
         
 
     def _add_db_mapping(self, path, entity, primary):
