@@ -1002,7 +1002,7 @@ def _context_data_from_cache(tk, entity_type, entity_id):
     # always points at a project.
     context["project"] = path_cache.get_entity(tk.pipeline_configuration.get_primary_data_root())
 
-    paths = path_cache.get_paths(entity_type, entity_id)
+    paths = path_cache.get_paths(entity_type, entity_id, primary_only=True)
 
     for path in paths:
         # now recurse upwards and look for entity types we haven't found yet
@@ -1034,7 +1034,7 @@ def _values_from_path_cache(entity, cur_template, path_cache, fields):
     """
     
     # use the databsae to go from shotgun type/id --> paths
-    entity_paths = path_cache.get_paths(entity["type"], entity["id"])
+    entity_paths = path_cache.get_paths(entity["type"], entity["id"], primary_only=True)
     
     # get a list of path cache paths that validate against our current template
     # with the existing field values we have plugged into that template

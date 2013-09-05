@@ -15,6 +15,7 @@ all Tank items in the file system are kept.
 """
 
 import sqlite3
+import sys
 import os
 
 # use api json to cover py 2.5
@@ -39,7 +40,7 @@ SG_ENTITY_TYPE_FIELD = "sg_type_at_creation"
 SG_ENTITY_NAME_FIELD = "code"
 SG_PIPELINE_CONFIG_FIELD = "sg_pipeline_configuration"
 
-
+MAX_EVENTS_BEFORE_FULL_SYNC = 100
 
 
 
@@ -214,8 +215,164 @@ class PathCache(object):
             - metadata 
             - path
         """
-        return []
+        
+        # first get the last synchronized event log event.
+        c = self._connection.cursor()
+        res = c.execute("SELECT max(last_id) FROM event_log_sync")
+        data = list(res)
+        c.close()
+        
+        # expect back something like [(249660,)] for a running cache and [(None,)] for a clear
+        if len(data) != 1 or data[0] is None:
+            # we should do a full sync
+            return self._do_full_sync()
 
+        # we have an event log id - so check if there are any more recent events
+        event_log_id = data[0]
+        
+        project_link = {"type": "Project", 
+                        "id": self._tk.pipeline_configuration.get_project_id() }
+        
+        
+        response = self._tk.shotgun.find("EventLogEntry", 
+                                         [ ["event_type", "is", "Toolkit_Folders"], 
+                                           ["id", "greater_than", event_log_id],
+                                           ["project", "is", project_link] ],
+                                         ["id", "meta", "attribute_name"],
+                                         [{"field_name": "id", "direction": "desc"},] )   
+    
+        # todo - maybe do a time check here too to say that if our last sync date
+        # more than a month ago or something, then fall back on full sync.
+    
+        if len(response) > MAX_EVENTS_BEFORE_FULL_SYNC:
+            # lots of activity since last sync. Fall back on a full refresh
+            return self._do_full_sync()
+                
+        else:
+            # small amount of change. Patch the cache
+            return self._do_incremental_sync(response)
+
+
+    def _do_full_sync(self):
+        """
+        Ensure the local path cache is in sync with Shotgun.
+        
+        Returns a list of remote items which were detected, created remotely
+        and not existing in this path cache. These are returned as a list of 
+        dictionaries, each containing keys:
+            - entity
+            - metadata 
+            - path
+        """
+        return self._replay_folder_entities()
+
+    def _do_incremental_sync(self, sg_data):
+        """
+        Ensure the local path cache is in sync with Shotgun.
+        
+        Patch the existing cache with the events passed via sg_data.
+        
+        This is a list of dicts ordered by id from low to high (old to new), 
+        each with keys
+            - id
+            - meta
+            - attribute_name
+        
+        Example of item:
+        {'attribute_name': 'Create', 
+         'meta': {'core_api_version': 'HEAD', 
+                  'sg_folder_ids': [123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133]}, 
+         'type': 'EventLogEntry', 
+         'id': 249240}
+        
+        Returns a list of remote items which were detected, created remotely
+        and not existing in this path cache. These are returned as a list of 
+        dictionaries, each containing keys:
+            - entity
+            - metadata 
+            - path
+        """
+        
+        all_folder_ids = []
+        
+        for d in sg_data:
+            if d["attribute_name"] == "Create":
+                # this is a creation request! Replay it on our database
+                all_folder_ids.append( d["meta"]["sg_folder_ids"] )
+
+        return self._replay_folder_entities(all_folder_ids)
+
+    def _replay_folder_entities(self, ids=None):
+        """
+        Does the actual download from shotgun and pushes those changes
+        to the path cache. If ids is None, this indicates a full sync, and 
+        the path cache db table is cleared first. If not, the table
+        is appended to.
+        
+        Returns a list of remote items which were detected, created remotely
+        and not existing in this path cache. These are returned as a list of 
+        dictionaries, each containing keys:
+            - entity
+            - metadata 
+            - path
+        
+        """
+        if ids is None:
+            # get all folder data from shotgun
+            sg_data = self._tk.shotgun.find(SHOTGUN_ENTITY, 
+                                  [],
+                                  [SG_METADATA_FIELD, 
+                                   SG_IS_PRIMARY_FIELD, 
+                                   SG_ENTITY_ID_FIELD,
+                                   SG_ENTITY_TYPE_FIELD, 
+                                   SG_ENTITY_NAME_FIELD],
+                                  [{"field_name": "id", "direction": "desc"},])
+        else:
+            # get the ids that are missing from shotgun
+            sg_data = self._tk.shotgun.find(SHOTGUN_ENTITY, 
+                                  [["id", "in", ids]],
+                                  [SG_METADATA_FIELD, 
+                                   SG_IS_PRIMARY_FIELD, 
+                                   SG_ENTITY_ID_FIELD,
+                                   SG_ENTITY_TYPE_FIELD, 
+                                   SG_ENTITY_NAME_FIELD],
+                                  [{"field_name": "id", "direction": "desc"},])
+            
+        c = self._connection.cursor()
+        
+        # now start a single transaction in which we do all our work
+        if ids is None:
+            # complete sync - clear our table first
+            c.execute("DELETE FROM event_log_sync")
+            
+        return_data = []
+            
+        for x in sg_data:
+            
+            # get the local path from our attachment entity dict
+            sg_local_storage_os_map = {"linux2": "linux_path", 
+                                       "win32": "windows_path", 
+                                       "darwin": "mac_path" }
+            local_os_path_field = sg_local_storage_os_map[sys.platform]
+            local_os_path = x[SG_PATH_FIELD][local_os_path_field]
+            
+            entity = {"id": x[SG_ENTITY_ID_FIELD], 
+                      "name": x[SG_ENTITY_NAME_FIELD], 
+                      "type": x[SG_ENTITY_TYPE_FIELD]}
+            is_primary = x[SG_IS_PRIMARY_FIELD]
+            
+            if self._add_db_mapping(c, local_os_path, entity, is_primary):
+                # add db mapping returned true. Means it wasn't in the path cache db
+                # and we should return it
+                return_data.append({"entity": entity, 
+                                    "path": local_os_path, 
+                                    "metadata": SG_METADATA_FIELD})
+            
+            
+        self._connection.commit()
+        c.close()
+
+        return return_data
 
     ############################################################################################
     # pre-insertion validation
@@ -326,11 +483,16 @@ class PathCache(object):
         
         data_for_sg = []        
         
+        c = self._connection.cursor()
         for d in data:
-            if self._add_db_mapping(d["path"], d["entity"], d["primary"]):
+            if self._add_db_mapping(c, d["path"], d["entity"], d["primary"]):
                 # add db mapping returned true. Means it wasn't in the path cache db
                 # and we should add it to shotgun too!
                 data_for_sg.append(d)
+                
+        self._connection.commit()
+        c.close()
+                
 
         # now add mappings to shotgun. Pass it as a single request via batch
         sg_batch_data = []
@@ -400,10 +562,15 @@ class PathCache(object):
             response = self._tk.shotgun.create("EventLogEntry", data)
             
             # lastly, id of this event log entry for purpose of future syncing
-            event_log_id = response["id"]
-        
+            event_log_id = response["id"]        
+            c = self._connection.cursor()
+            c.execute("INSERT INTO event_log_sync VALUES(?)", (event_log_id, ))
+            self._connection.commit()
+            c.close()
 
-    def _add_db_mapping(self, path, entity, primary):
+
+
+    def _add_db_mapping(self, cursor, path, entity, primary):
         """
         Adds an association to the database. If the association already exists, it will
         do nothing, just return.
@@ -411,6 +578,7 @@ class PathCache(object):
         If there is another association which conflicts with the association that is 
         to be inserted, a TankError is raised.
 
+        :param cursor: database cursor to use
         :param path: a path on disk representing the entity.
         :param entity: a shotgun entity dict with keys type, id and name
         :param primary: is this the primary entry for this particular path     
@@ -422,7 +590,7 @@ class PathCache(object):
             # the primary entity must be unique: path/id/type 
             # see if there are any records for this path
             # note that get_entity does not return secondary entities
-            curr_entity = self.get_entity(path)
+            curr_entity = self.get_entity(path, cursor)
             
             if curr_entity is not None:
                 # this path is already registered. Ensure it is connected to
@@ -450,23 +618,21 @@ class PathCache(object):
             # secondary entity
             # in this case, it is okay with more than one record for a path
             # but we don't want to insert the exact same record over and over again
-            paths = self.get_paths(entity["type"], entity["id"], primary_only=False)
+            paths = self.get_paths(entity["type"], entity["id"], primary_only=False, cursor)
             if path in paths:
                 # we already have the association present in the db.
                 return False
 
         # there was no entity in the db. So let's create it!
-        c = self._connection.cursor()
+        
         root_name, relative_path = self._separate_root(path)
         db_path = self._path_to_dbpath(relative_path)
-        c.execute("INSERT INTO path_cache VALUES(?, ?, ?, ?, ?, ?)", (entity["type"], 
-                                                                      entity["id"], 
-                                                                      entity["name"], 
-                                                                      root_name,
-                                                                      db_path,
-                                                                      primary))
-        self._connection.commit()
-        c.close()
+        cursor.execute("INSERT INTO path_cache VALUES(?, ?, ?, ?, ?, ?)", (entity["type"], 
+                                                                           entity["id"], 
+                                                                           entity["name"], 
+                                                                           root_name,
+                                                                           db_path,
+                                                                           primary))
         
         return True
 
@@ -475,7 +641,7 @@ class PathCache(object):
     ############################################################################################
     # database accessor methods
 
-    def get_paths(self, entity_type, entity_id, primary_only=True):
+    def get_paths(self, entity_type, entity_id, primary_only, cursor=None):
         """
         Returns a path given a shotgun entity (type/id pair)
 
@@ -484,7 +650,12 @@ class PathCache(object):
         :returns: a path on disk
         """
         paths = []
-        c = self._connection.cursor()
+        
+        if cursor is None:
+            c = self._connection.cursor()
+        else:
+            c = cursor
+        
         if primary_only:
             res = c.execute("SELECT root, path FROM path_cache WHERE entity_type = ? AND entity_id = ? and primary_entity = 1", (entity_type, entity_id))
         else:
@@ -503,10 +674,12 @@ class PathCache(object):
             path_str = self._dbpath_to_path(root_path, relative_path)
             paths.append(path_str)
         
-        c.close()
+        if cursor is None:
+            c.close()
+        
         return paths
 
-    def get_entity(self, path):
+    def get_entity(self, path, cursor=None):
         """
         Returns an entity given a path.
         
@@ -518,7 +691,7 @@ class PathCache(object):
         :returns: Shotgun entity dict, e.g. {"type": "Shot", "name": "xxx", "id": 123} 
                   or None if not found
         """
-        c = self._connection.cursor()
+            
         try:
             root_path, relative_path = self._separate_root(path)
         except TankError:
@@ -526,10 +699,17 @@ class PathCache(object):
             # eg. doesn't belong to the project
             return None
 
+        if cursor is None:
+            c = self._connection.cursor()
+        else:
+            c = cursor
+
         db_path = self._path_to_dbpath(relative_path)
         res = c.execute("SELECT entity_type, entity_id, entity_name FROM path_cache WHERE path = ? AND root = ? and primary_entity = 1", (db_path, root_path))
         data = list(res)
-        c.close()
+        
+        if cursor is None:
+            c.close()
         
         if len(data) > 1:
             # never supposed to happen!

@@ -348,7 +348,7 @@ class Tank(object):
 
         # Use the path cache to look up all paths associated with this entity
         path_cache = PathCache(self)
-        paths = path_cache.get_paths(entity_type, entity_id)
+        paths = path_cache.get_paths(entity_type, entity_id, primary_only=True)
         path_cache.close()
 
         return paths
