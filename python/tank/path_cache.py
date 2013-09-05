@@ -219,8 +219,11 @@ class PathCache(object):
         # first get the last synchronized event log event.
         c = self._connection.cursor()
         res = c.execute("SELECT max(last_id) FROM event_log_sync")
-        data = list(res)
+        # get first item in the data set
+        data = list(res)[0]
         c.close()
+        
+        print "Got last event log id from path cache: %s" % data
         
         # expect back something like [(249660,)] for a running cache and [(None,)] for a clear
         if len(data) != 1 or data[0] is None:
@@ -238,8 +241,7 @@ class PathCache(object):
                                          [ ["event_type", "is", "Toolkit_Folders"], 
                                            ["id", "greater_than", event_log_id],
                                            ["project", "is", project_link] ],
-                                         ["id", "meta", "attribute_name"],
-                                         [{"field_name": "id", "direction": "desc"},] )   
+                                         ["id", "meta", "attribute_name"] )   
     
         # todo - maybe do a time check here too to say that if our last sync date
         # more than a month ago or something, then fall back on full sync.
@@ -264,7 +266,16 @@ class PathCache(object):
             - metadata 
             - path
         """
-        return self._replay_folder_entities()
+        print "doing full sync!"
+        
+        # find the max event log id. Will we store this in the sync db later.
+        sg_data = self._tk.shotgun.find_one("EventLogEntry", 
+                                            [], 
+                                            ["id"], 
+                                            [{"field_name": "id", "direction": "desc"},])
+        max_event_log_id = sg_data["id"]
+        
+        return self._replay_folder_entities(max_event_log_id)
 
     def _do_incremental_sync(self, sg_data):
         """
@@ -289,20 +300,30 @@ class PathCache(object):
         and not existing in this path cache. These are returned as a list of 
         dictionaries, each containing keys:
             - entity
-            - metadata 
+            - metadata
             - path
         """
+        
+        if len(sg_data) == 0:
+            # nothing to do!
+            print "no syncing needed - path cache is up to date!"
+            return []
+        
+        print "doing incremental sync: %s" % sg_data
+        
+        # find the max event log id in sg_data. Will we store this in the sync db later.
+        max_event_log_id = max( [x["id"] for x in sg_data] )
         
         all_folder_ids = []
         
         for d in sg_data:
             if d["attribute_name"] == "Create":
                 # this is a creation request! Replay it on our database
-                all_folder_ids.append( d["meta"]["sg_folder_ids"] )
+                all_folder_ids.extend( d["meta"]["sg_folder_ids"] )
 
-        return self._replay_folder_entities(all_folder_ids)
+        return self._replay_folder_entities(max_event_log_id, all_folder_ids)
 
-    def _replay_folder_entities(self, ids=None):
+    def _replay_folder_entities(self, max_event_log_id, ids=None):
         """
         Does the actual download from shotgun and pushes those changes
         to the path cache. If ids is None, this indicates a full sync, and 
@@ -317,26 +338,36 @@ class PathCache(object):
             - path
         
         """
+        
         if ids is None:
             # get all folder data from shotgun
+            print "getting all path data from shotgun."
             sg_data = self._tk.shotgun.find(SHOTGUN_ENTITY, 
                                   [],
                                   [SG_METADATA_FIELD, 
                                    SG_IS_PRIMARY_FIELD, 
                                    SG_ENTITY_ID_FIELD,
+                                   SG_PATH_FIELD,
                                    SG_ENTITY_TYPE_FIELD, 
                                    SG_ENTITY_NAME_FIELD],
-                                  [{"field_name": "id", "direction": "desc"},])
+                                  [{"field_name": "id", "direction": "asc"},])
         else:
             # get the ids that are missing from shotgun
+            print "getting path data from shotgun. Ids: %s" % ids
+            # need to use this weird special filter syntax
+            id_in_filter = ["id", "in"]
+            id_in_filter.extend(ids)
             sg_data = self._tk.shotgun.find(SHOTGUN_ENTITY, 
-                                  [["id", "in", ids]],
+                                  [id_in_filter],
                                   [SG_METADATA_FIELD, 
                                    SG_IS_PRIMARY_FIELD, 
                                    SG_ENTITY_ID_FIELD,
+                                   SG_PATH_FIELD,
                                    SG_ENTITY_TYPE_FIELD, 
                                    SG_ENTITY_NAME_FIELD],
-                                  [{"field_name": "id", "direction": "desc"},])
+                                  [{"field_name": "id", "direction": "asc"},])
+            
+        print "...done! Got %s records" % len(sg_data)
             
         c = self._connection.cursor()
         
@@ -350,9 +381,9 @@ class PathCache(object):
         for x in sg_data:
             
             # get the local path from our attachment entity dict
-            sg_local_storage_os_map = {"linux2": "linux_path", 
-                                       "win32": "windows_path", 
-                                       "darwin": "mac_path" }
+            sg_local_storage_os_map = {"linux2": "local_path_linux", 
+                                       "win32": "local_path_windows", 
+                                       "darwin": "local_path_mac" }
             local_os_path_field = sg_local_storage_os_map[sys.platform]
             local_os_path = x[SG_PATH_FIELD][local_os_path_field]
             
@@ -364,10 +395,15 @@ class PathCache(object):
             if self._add_db_mapping(c, local_os_path, entity, is_primary):
                 # add db mapping returned true. Means it wasn't in the path cache db
                 # and we should return it
+                print "sg->path sync: added path %s" % local_os_path
                 return_data.append({"entity": entity, 
                                     "path": local_os_path, 
                                     "metadata": SG_METADATA_FIELD})
+            else:
+                print "sg->path sync: didn't add path %s" % local_os_path
             
+        # lastly, id of this event log entry for purpose of future syncing
+        c.execute("INSERT INTO event_log_sync VALUES(?)", (max_event_log_id, ))
             
         self._connection.commit()
         c.close()
@@ -618,7 +654,7 @@ class PathCache(object):
             # secondary entity
             # in this case, it is okay with more than one record for a path
             # but we don't want to insert the exact same record over and over again
-            paths = self.get_paths(entity["type"], entity["id"], primary_only=False, cursor)
+            paths = self.get_paths(entity["type"], entity["id"], primary_only=False, cursor=cursor)
             if path in paths:
                 # we already have the association present in the db.
                 return False
