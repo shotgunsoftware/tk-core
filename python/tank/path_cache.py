@@ -342,8 +342,12 @@ class PathCache(object):
         if ids is None:
             # get all folder data from shotgun
             print "getting all path data from shotgun."
+            
+            project_link = {"type": "Project", 
+                            "id": self._tk.pipeline_configuration.get_project_id() }
+            
             sg_data = self._tk.shotgun.find(SHOTGUN_ENTITY, 
-                                  [],
+                                  [["project", "is", project_link]],
                                   [SG_METADATA_FIELD, 
                                    SG_IS_PRIMARY_FIELD, 
                                    SG_ENTITY_ID_FIELD,
