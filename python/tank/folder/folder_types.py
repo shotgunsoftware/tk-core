@@ -277,7 +277,7 @@ class Static(Folder):
         """
         
         # get data
-        constrain_by_entity = metadata.get("constrainted_by_entity")
+        constrain_by_entity = metadata.get("constrain_by_entity")
         constraints = metadata.get("constraints")
         
         # validate
@@ -286,7 +286,7 @@ class Static(Folder):
         
         if constraints is not None and constrain_by_entity is None:
             raise TankError("Configuration error in %s: Need to have a "
-                            "constrained_by_entity token in order "
+                            "constrain_by_entity token in order "
                             "for the constraints parameter to be picked up." % full_path )
 
         # resolve dynamic constraints filter ($shot, $step etc).
@@ -306,14 +306,14 @@ class Static(Folder):
                     curr_parent = curr_parent.get_parent()
             
             if resolved_constrain_node is None:
-                raise TankError("Configuration error in %s: constrained_by_entity '%s' could not "
+                raise TankError("Configuration error in %s: constrain_by_entity '%s' could not "
                             "be resolved into a parent node. It needs to be on the form '$name', "
                             "where name is the name of a parent yaml "
                             "configuration file."  % (full_path, constrain_by_entity))
 
         
             if not isinstance(resolved_constrain_node, Entity):
-                raise TankError("Configuration error in %s: constrained_by_entity points "
+                raise TankError("Configuration error in %s: constrain_by_entity points "
                                 "at a node which is not associated with any Shotgun data. " 
                                 "You can only constrain based on nodes which have a Shotgun "
                                 "representation." % full_path )
