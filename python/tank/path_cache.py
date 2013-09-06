@@ -238,7 +238,7 @@ class PathCache(object):
         
         
         response = self._tk.shotgun.find("EventLogEntry", 
-                                         [ ["event_type", "is", "Toolkit_Folders"], 
+                                         [ ["event_type", "is", "Toolkit_Folders_Create"], 
                                            ["id", "greater_than", event_log_id],
                                            ["project", "is", project_link] ],
                                          ["id", "meta", "attribute_name"] )   
@@ -591,8 +591,7 @@ class PathCache(object):
             meta["sg_folder_ids"] = [ x["id"] for x in response]
             
             data = {}
-            data["event_type"] = "Toolkit_Folders"
-            data["attribute_name"] = "Create"
+            data["event_type"] = "Toolkit_Folders_Create"
             data["description"] = desc
             data["project"] = project_link
             data["entity"] = pc_link
