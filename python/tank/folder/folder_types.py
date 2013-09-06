@@ -337,6 +337,8 @@ class Static(Folder):
         self._constrain_node = constrain_node
         self._constraints_filter = constraints_filter 
         self._tk = tk
+        
+        self._cached_sg_data = {}
     
     def is_dynamic(self):
         """
@@ -383,19 +385,22 @@ class Static(Folder):
             id_filter = {'path': 'id', 'values': [constrain_entity_id], 'relation': 'is'}
             resolved_filters["conditions"].append(id_filter)
             
-            # call out to shotgun
-            data = self._tk.shotgun.find_one(self._constrain_node.get_entity_type(), 
-                                             resolved_filters)
+            # depending on the filter, it is possible that the same static query will 
+            # be generated more than once - so cache the results so that we can minimize
+            # shotgun queries.
+            hash_key = hash(str(resolved_filters))
             
-            import pprint
+            if hash_key in self._cached_sg_data:
+                data = self._cached_sg_data[hash_key]
             
-            print "%s shotgun constraints check: %s returned %s" % (self, resolved_filters, data)
-            
-            print "sg_data: %s\n" % pprint.pformat(sg_data)
-            
+            else:
+                # call out to shotgun
+                data = self._tk.shotgun.find_one(self._constrain_node.get_entity_type(), resolved_filters)
+                # and cache it
+                self._cached_sg_data[hash_key] = data
+                        
             if data is None:
-                # no match! this means that our constraints filter did not match
-                # the current object
+                # no match! this means that our constraints filter did not match the current object
                 return []
         
         # create our folder
