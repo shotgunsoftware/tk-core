@@ -275,9 +275,57 @@ class Static(Folder):
         """
         Factory method for this class
         """
-        return Static(parent, full_path, metadata)
+        
+        # get data
+        constrain_by_entity = metadata.get("constrain_by_entity")
+        constraints = metadata.get("constraints")
+        
+        # validate
+        if constrain_by_entity is not None and constraints is None:
+            raise TankError("Missing constraints parameter in yml metadata file %s" % full_path )
+        
+        if constraints is not None and constrain_by_entity is None:
+            raise TankError("Configuration error in %s: Need to have a "
+                            "constrain_by_entity token in order "
+                            "for the constraints parameter to be picked up." % full_path )
+
+        # resolve dynamic constraints filter ($shot, $step etc).
+        if constraints:
+            constraints_filter = _translate_filter_tokens(constraints, parent, full_path)
+            
+            # resolve the constrained_by_entity ($shot, $step etc) 
+            resolved_constrain_node = None
+            curr_parent = parent
+            while curr_parent:
+                full_folder_path = curr_parent.get_path()
+                folder_name = os.path.basename(full_folder_path)
+                if folder_name == constrain_by_entity[1:]:
+                    resolved_constrain_node = curr_parent
+                    break
+                else:
+                    curr_parent = curr_parent.get_parent()
+            
+            if resolved_constrain_node is None:
+                raise TankError("Configuration error in %s: constrain_by_entity '%s' could not "
+                            "be resolved into a parent node. It needs to be on the form '$name', "
+                            "where name is the name of a parent yaml "
+                            "configuration file."  % (full_path, constrain_by_entity))
+
+        
+            if not isinstance(resolved_constrain_node, Entity):
+                raise TankError("Configuration error in %s: constrain_by_entity points "
+                                "at a node which is not associated with any Shotgun data. " 
+                                "You can only constrain based on nodes which have a Shotgun "
+                                "representation." % full_path )
+                   
+        else:
+            # no constraints active for this static node
+            resolved_constrain_node = None
+            constraints_filter = None
+                        
+        return Static(parent, full_path, metadata, tk, resolved_constrain_node, constraints_filter)
     
-    def __init__(self, parent, full_path, metadata):
+    def __init__(self, parent, full_path, metadata, tk, constrain_node, constraints_filter):
         """
         Constructor.
         """
@@ -285,6 +333,12 @@ class Static(Folder):
         
         # The name parameter represents the folder name that will be created in the file system.
         self._name = os.path.basename(full_path)
+        
+        self._constrain_node = constrain_node
+        self._constraints_filter = constraints_filter 
+        self._tk = tk
+        
+        self._cached_sg_data = {}
     
     def is_dynamic(self):
         """
@@ -296,6 +350,59 @@ class Static(Folder):
         """
         Creates a static folder.
         """
+        
+        # first check if we have any conditionals that need evaluating
+        if self._constrain_node:
+            
+            # resolve our sg filter expression based on the current shotgun data
+            # for the current parent objects (for example if the query expression
+            # contains $shot or other dynamic tokens)
+            resolved_filters = _resolve_shotgun_filters(self._constraints_filter, sg_data)
+            
+            # so now resolved_filters is something like:
+            # {'logical_operator': 'and', 
+            #  'conditions': [{'path': 'code', 'values': ['a'], 'relation': 'contains'}] }
+            # 
+            # and the configuration states that the constraint object is $shot
+            # which is resolved into self._constrain_node
+            #
+            # now we want to get the current parent $shot id. This can be extrated
+            # from the sg_data dict which is on the form:
+            # {'Project': {'id': 88, 'type': 'Project'},
+            # 'Sequence': {'id': 32, 'type': 'Sequence'},
+            # 'Shot': {'id': 1184, 'type': 'Shot'},
+            # 'Step': {'id': 5, 'type': 'Step'},
+            # 'current_step_id': None,
+            # 'current_task_id': None}
+            # 
+            # once extracted, we can add that to the sg filter to get our final filter:
+            # 
+            # {'logical_operator': 'and', 
+            #  'conditions': [{'path': 'code', 'values': ['a'], 'relation': 'contains'},
+            #                 {'path': 'id', 'values': [1184], 'relation': 'is'} ] }
+            
+            constrain_entity_id = sg_data[ self._constrain_node.get_entity_type() ]["id"]
+            id_filter = {'path': 'id', 'values': [constrain_entity_id], 'relation': 'is'}
+            resolved_filters["conditions"].append(id_filter)
+            
+            # depending on the filter, it is possible that the same static query will 
+            # be generated more than once - so cache the results so that we can minimize
+            # shotgun queries.
+            hash_key = hash(str(resolved_filters))
+            
+            if hash_key in self._cached_sg_data:
+                data = self._cached_sg_data[hash_key]
+            
+            else:
+                # call out to shotgun
+                data = self._tk.shotgun.find_one(self._constrain_node.get_entity_type(), resolved_filters)
+                # and cache it
+                self._cached_sg_data[hash_key] = data
+                        
+            if data is None:
+                # no match! this means that our constraints filter did not match the current object
+                return []
+        
         # create our folder
         my_path = os.path.join(parent_path, self._name)
         
@@ -706,39 +813,7 @@ class Entity(Folder):
         self._entity_type = entity_type
         self._entity_expression = shotgun_entity.EntityExpression(self._tk, self._entity_type, field_name_expression)
         self._filters = filters
-        self._create_with_parent = create_with_parent
-    
-    
-    def __resolve_shotgun_filters(self, sg_data):
-        """
-        Replace Token instances in the filters with a real value from the tokens dictionary.
-
-        This method processes the filters dictionary and replaces tokens with data found
-        in the tokens dictionary. It returns a resolved filter dictionary that can be passed to 
-        a shotgun query.
-        """
-        # TODO: Support nested conditions
-        resolved_filters = copy.deepcopy(self._filters)
-        for condition in resolved_filters["conditions"]:
-            vals = condition["values"]
-            
-            if vals[0] and isinstance(vals[0], FilterExpressionToken):
-                # we got a $filter! - replace with resolved value
-                expr_token = vals[0]
-                vals[0] = expr_token.resolve_shotgun_data(sg_data)
-            
-            if vals[0] and isinstance(vals[0], CurrentStepExpressionToken):
-                # we got a current step filter! - replace with resolved value
-                expr_token = vals[0]
-                vals[0] = expr_token.resolve_shotgun_data(sg_data)
-
-            if vals[0] and isinstance(vals[0], CurrentTaskExpressionToken):
-                # we got a current task filter! - replace with resolved value
-                expr_token = vals[0]
-                vals[0] = expr_token.resolve_shotgun_data(sg_data)                
-
-        return resolved_filters
-    
+        self._create_with_parent = create_with_parent    
     
     def __get_name_field_for_et(self, entity_type):
         """
@@ -824,7 +899,7 @@ class Entity(Folder):
         # we should only process this single entity. If not, then use the query filter
         
         # first, resolve the filter queries for the current ids passed in via tokens
-        resolved_filters = self.__resolve_shotgun_filters(sg_data)
+        resolved_filters = _resolve_shotgun_filters(self._filters, sg_data)
         
         # see if the sg_data dictionary has a "seed" entity type matching our entity type
         my_sg_data_key = FilterExpressionToken.sg_data_key_for_folder_obj(self)
@@ -1319,6 +1394,36 @@ class Project(Entity):
         """
         return self._storage_root_path
         
+
+def _resolve_shotgun_filters(filters, sg_data):
+    """
+    Replace Token instances in the filters with a real value from the tokens dictionary.
+
+    This method processes the filters dictionary and replaces tokens with data found
+    in the tokens dictionary. It returns a resolved filter dictionary that can be passed to 
+    a shotgun query.
+    """
+    # TODO: Support nested conditions
+    resolved_filters = copy.deepcopy(filters)
+    for condition in resolved_filters["conditions"]:
+        vals = condition["values"]
+        
+        if vals[0] and isinstance(vals[0], FilterExpressionToken):
+            # we got a $filter! - replace with resolved value
+            expr_token = vals[0]
+            vals[0] = expr_token.resolve_shotgun_data(sg_data)
+        
+        if vals[0] and isinstance(vals[0], CurrentStepExpressionToken):
+            # we got a current step filter! - replace with resolved value
+            expr_token = vals[0]
+            vals[0] = expr_token.resolve_shotgun_data(sg_data)
+
+        if vals[0] and isinstance(vals[0], CurrentTaskExpressionToken):
+            # we got a current task filter! - replace with resolved value
+            expr_token = vals[0]
+            vals[0] = expr_token.resolve_shotgun_data(sg_data)                
+
+    return resolved_filters
 
 
 def _translate_filter_tokens(filter_list, parent, yml_path):
