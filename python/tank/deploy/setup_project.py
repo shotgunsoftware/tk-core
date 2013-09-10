@@ -55,10 +55,30 @@ class CmdlineSetupInteraction(object):
             raise TankError("Please answer Yes, y, no, n or press ENTER!")
         
     
+    def _convert_slashes(self, path, target_slash):
+        """
+        Convert the separators in a path to the target slash specified.
+        """
+        converted_path = path.replace("/", target_slash)
+        converted_path = converted_path.replace("\\", target_slash)
+        return converted_path
+    
     def get_disk_location(self, resolved_storages, project_disk_name, install_root):
         """
         Ask the user where the pipeline configuration should be located on disk.
         Returns a dictionary with keys according to sys.platform: win32, darwin, linux2
+        
+        :param project_disk_name: The name of the project on disk. Can contain slashes for
+                                  multi level project names.
+        :param resolved_storages: All the storage roots (Local storage entities in shotgun)
+                                  needed for this configuration. For example: 
+                                  [{'code': 'primary', 
+                                    'id': 1,
+                                    'mac_path': '/tank_demo/project_data', 
+                                    'windows_path': None, 
+                                    'type': 'LocalStorage',  
+                                    'linux_path': None}]
+        :param install_root: location of the core code
         """
         
         self._log.info("")
@@ -111,23 +131,30 @@ class CmdlineSetupInteraction(object):
                 pp = primary_local_storage.get("mac_path")
                 if pp.endswith("/"):
                     pp = pp[:-1] 
-                location["darwin"] = "%s/%s/tank" % (pp, project_disk_name)
+                pp += "/%s/tank" % project_disk_name
+                location["darwin"] = self._convert_slashes(pp, "/")
                 
             if primary_local_storage.get("windows_path"):
                 pp = primary_local_storage.get("windows_path")
                 if pp.endswith("\\"):
                     pp = pp[:-1] 
-                location["win32"] = "%s\\%s\\tank" % (pp, project_disk_name)
+                pp += "/%s/tank" % project_disk_name
+                location["win32"] = self._convert_slashes(pp, "\\")
                 
             if primary_local_storage.get("linux_path"):
                 pp = primary_local_storage.get("linux_path")
                 if pp.endswith("/"):
                     pp = pp[:-1] 
-                location["linux2"] = "%s/%s/tank" % (pp, project_disk_name)
+                pp += "/%s/tank" % project_disk_name
+                location["linux2"] = self._convert_slashes(pp, "/")
             
         else:
             # assume new style setup - in this case we need to go figure out the different
             # OS paths to the install location. These are kept in a config file.
+            
+            # note! we must read this value from a file like this - cannot just determine it
+            # based on the currently running code - because we need to know the path on all
+            # three platforms.
             
             # now read in the install_location.yml file
             cfg_yml = os.path.join(install_root, "config", "core", "install_location.yml")
@@ -295,7 +322,7 @@ class CmdlineSetupInteraction(object):
                     
                     # try to create the folders
                     try:
-                        os.mkdir(proj_path, 0777)
+                        os.makedirs(proj_path, 0777)
                         self._log.info(" - %s: %s [Created]" % (storage_name, proj_path))
                         storages_valid = True
                     except Exception, e:
@@ -836,6 +863,12 @@ def interactive_setup(log, install_root, check_storage_path_exists, force):
 def _interactive_setup(log, install_root, check_storage_path_exists, force):
     """
     interactive setup which will ask questions via the console.
+    
+    :param install_root: location of the core code
+    :param check_storage_path_exists: whether or not to check that the storage root exists
+                                      this can be useful sometimes when setting up windows
+                                      UNC paths.
+    :param force: allow to set up an already set up project 
     """
     log.info("")
     log.info("Welcome to the Shotgun Pipeline Toolkit Project Setup!")
@@ -886,9 +919,9 @@ def _interactive_setup(log, install_root, check_storage_path_exists, force):
     project_disk_folder = cmdline_ui.get_project_folder_name(project_disk_folder, resolved_storages)
     
     # validate that this is not crazy
-    if re.match("^[a-zA-Z0-9_-]+$", project_disk_folder) is None:
+    if re.match("^[/a-zA-Z0-9_-]+$", project_disk_folder) is None:
         # bad name
-        raise TankError("Invalid project folder '%s'! Please stick to alphanumerics, "
+        raise TankError("Invalid project folder '%s'! Please use alphanumerics, "
                         "underscores and dashes." % project_disk_folder)
     
     # now ask the user where the config should go    
