@@ -690,32 +690,6 @@ def upgrade_tank(tank_install_root, log):
         # get target locations
         core_install_location = os.path.join(tank_install_root, "core")
         core_backup_location = os.path.join(tank_install_root, "core.backup")
-
-        # check that the activation script version is acceptable if this is the very first
-        # time an upgrade happens. Old pre012 activation script would leave the backup
-        # location empty - new 0.13+ scripts write an initial folder.
-        backups = os.listdir(core_backup_location)
-        if len(backups) == 0:
-            # empty backup directory! This is an indication that an old activation script was used.
-            log.error("")
-            log.error("")
-            log.error("")
-            log.error("")
-            log.error("")
-            log.error("------------------------------------------------------------------------")
-            log.error("A critical error has occurred! Installation cannot proceed!")
-            log.error("")
-            log.error("The activation script you are using was designed to be used with")
-            log.error("an older version of Tank. Please contact support to get a new version")
-            log.error("of the Tank activation script. ")
-            log.error("------------------------------------------------------------------------")
-            log.error("")
-            log.error("")
-            log.error("")
-            log.error("")
-            log.error("")
-            log.error("")
-            return
         
         if os.path.exists(core_install_location):
             # move this into backup location
