@@ -55,13 +55,6 @@ class CmdlineSetupInteraction(object):
             raise TankError("Please answer Yes, y, no, n or press ENTER!")
         
     
-    def _convert_slashes(self, path, target_slash):
-        """
-        Convert the separators in a path to the target slash specified.
-        """
-        converted_path = path.replace("/", target_slash)
-        converted_path = converted_path.replace("\\", target_slash)
-        return converted_path
     
     def get_disk_location(self, resolved_storages, project_disk_name, install_root):
         """
@@ -118,6 +111,11 @@ class CmdlineSetupInteraction(object):
         os_nice_name = {"darwin": "Macosx", "linux2": "Linux", "win32": "Windows"}
         curr_os = sys.platform
 
+        # now for the location of the pipeline configuration, for projects where
+        # there are nested folders in the project root, we want to flatten those 
+        # into a single name
+        pipeline_config_name = project_disk_name.replace("/", "_")
+        
         
         if os.path.abspath(os.path.join(install_root, "..")).lower() == primary_local_path.lower():
             # ok the parent of the install root matches the primary storage - means OLD STYLE!
@@ -177,7 +175,7 @@ class CmdlineSetupInteraction(object):
                 # pop the studio bit
                 chunks.pop()
                 # append project name
-                chunks.append(project_disk_name)
+                chunks.append(pipeline_config_name)
                 location["linux2"] = "/".join(chunks)
             
             if mac_install_root is not None and mac_install_root.startswith("/"):
@@ -185,7 +183,7 @@ class CmdlineSetupInteraction(object):
                 # pop the studio bit
                 chunks.pop()
                 # append project name
-                chunks.append(project_disk_name)
+                chunks.append(pipeline_config_name)
                 location["darwin"] = "/".join(chunks)
             
             if windows_install_root is not None and (windows_install_root.startswith("\\") or windows_install_root[1] == ":"):
@@ -193,7 +191,7 @@ class CmdlineSetupInteraction(object):
                 # pop the studio bit
                 chunks.pop()
                 # append project name
-                chunks.append(project_disk_name)
+                chunks.append(pipeline_config_name)
                 location["win32"] = "\\".join(chunks)
             
             
