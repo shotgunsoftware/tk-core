@@ -32,6 +32,43 @@ class TankQDialog(TankDialogBase):
     in addition to the user object that it is hosting.
     """
 
+    @staticmethod
+    def wrap_widget_class(widget_class):
+        """
+        Return a new class derived from widget_class that overrides
+        the closeEvent method and emits a signal if the event is
+        accepted by the widget_class implementation.
+        
+        This is the cleanest way I've found to catch when the widget
+        has been closed that doesn't mess with either Qt or Python
+        memory/gc management!
+        """
+        derived_class_name = "__" + widget_class.__name__ + "_TkWidgetWrapper__"
+        def closeEvent(self, event):
+            """
+            close event handled for the wrapper class.  This
+            calls the widget_class.closeEvent method and then
+            if the event was accepted it emits the widget
+            closed signal.
+            """
+            # call base class closeEvent:
+            widget_class.closeEvent(self, event)
+            # if accepted then emit signal:            
+            if event.isAccepted():
+                self._tk_widgetwrapper_widget_closed.emit()
+        
+        # create the derived widget class:
+        derived_widget_class = type(derived_class_name, (widget_class, ), 
+                                    {"_tk_widgetwrapper_widget_closed":QtCore.Signal(), 
+                                     "closeEvent":closeEvent})
+        return derived_widget_class
+    
+    # Signal emitted when dialog is closed
+    # either via closing the dialog directly
+    # or as a result of the child widget 
+    # being closed.
+    dialog_closed = QtCore.Signal(object)    
+
     def __init__(self, title, bundle, widget, parent):
         """
         Constructor
@@ -41,6 +78,7 @@ class TankQDialog(TankDialogBase):
         # indicates that we are showing the info pane
         self._info_mode = False
         self._bundle = bundle
+        self._widget = widget
         
         self._config_items = []
         
@@ -132,21 +170,34 @@ class TankQDialog(TankDialogBase):
         ########################################################################################
         # parent the widget we are hosting into the dialog area
         
-        widget.setParent(self.ui.page_1)
-        self.ui.target.insertWidget(0, widget)
-        # keep track of the widget
-        self._widget = widget
+        self._widget.setParent(self.ui.page_1)
+        self.ui.target.insertWidget(0, self._widget)
         
         # adjust size of the outer window to match the hosted widget size
-        self.resize(widget.width(), widget.height() + TANK_TOOLBAR_HEIGHT)
+        self.resize(self._widget.width(), self._widget.height() + TANK_TOOLBAR_HEIGHT)
         
         ########################################################################################
-        # intercept the close event of the child widget
-        # so that when the close event is emitted from the hosted widget,
-        # we make sure to clo
-        
-        widget.closeEvent = lambda event: self._handle_child_close(event)
-        
+        # keep track of widget so that when
+        # it closes we also close this dialog
+        self._orig_widget_closeEvent = None
+        if hasattr(self._widget, "_tk_widgetwrapper_widget_closed"):
+            # This is a wrapped widget so we can cleanly connect to the closed
+            # signal it provides.
+            #
+            # Doing things this way will result in gc being able to clean up
+            # properly when the widget object is no longer referenced!
+            self._widget._tk_widgetwrapper_widget_closed.connect(self._on_widget_closed)
+        else:
+            # This is a non-wrapped widget so lets use the less
+            # memory friendly version by bypassing the closeEvent method!
+            # Note, as soon as we do this, python thinks there is a circular 
+            # reference between the widget and the bound method so it won't clean
+            # it up straight away...
+            #
+            # If widget also has a __del__ method then this will stop it 
+            # being gc'd at all!
+            self._orig_widget_closeEvent = self._widget.closeEvent
+            self._widget.closeEvent = self._widget_closeEvent
         
         ########################################################################################
         # now setup the info page with all the details
@@ -186,23 +237,80 @@ class TankQDialog(TankDialogBase):
         for setting, params in self._bundle.descriptor.get_configuration_schema().items():        
             value = self._bundle.settings.get(setting)
             self._add_settings_item(setting, params, value)
-                
-    def _handle_child_close(self, event):
+
+    def done(self, exit_code):
         """
-        Callback from the hosted widget's closeEvent.
-        Make sure that when a close() is issued for the hosted widget,
-        the parent widget is closed too.
+        Override 'done' method to emit dialog_closed
+        event.  This method is called regardless of
+        how the dialog is closed.
         """
-        # ACK the event to tell QT to proceed with the close 
-        event.accept()
+        # detach the widget:
+        self._detach_widget()
         
-        # use accepted as the default exit code
-        exit_code = QtGui.QDialog.Accepted    
+        # call base implementation:
+        TankDialogBase.done(self, exit_code)
+
+        # and emit signal:
+        self.dialog_closed.emit(self)
+          
+    def _detach_widget(self):
+        """
+        Detach the widget from the dialog so that it 
+        remains alive when the dialog is removed/closed
+        """
+        if not self._widget:
+            return
+        
+        # stop watching for the widget being closed:
+        if hasattr(self._widget, "_tk_widgetwrapper_widget_closed"):
+            # disconnect from the widget closed signal
+            self._widget._tk_widgetwrapper_widget_closed.disconnect(self._on_widget_closed)
+        elif self._orig_widget_closeEvent:
+            # reset the widget closeEvent function.  Note that 
+            # python still thinks there is a circular reference
+            # (inst->bound method->inst) so this will get gc'd 
+            # but not straight away!
+            self._widget.closeEvent = self._orig_widget_closeEvent
+            self._orig_widget_closeEvent = None
+        
+        # unparent the widget from the dialog:
+        if self._widget.parent() == self.ui.page_1:
+            self._widget.setParent(None)
+            
+        self._widget = None
+             
+    def _widget_closeEvent(self, event):
+        """
+        Called if the contained widget isn't a wrapped widget
+        and it's closed by calling widget.close()
+        """
+        if self._orig_widget_closeEvent:
+            # call the original closeEvent
+            self._orig_widget_closeEvent(event)
+
+        if not event.isAccepted():
+            # widget didn't accept the close
+            # so stop!
+            return
+        
+        # the widget is going to close so
+        # lets handle it!
+        self._on_widget_closed()
+        
+    def _on_widget_closed(self):
+        """
+        This is called when the contained widget
+        is closed - it handles the event and then
+        closes the dialog
+        """
+        exit_code = QtGui.QDialog.Accepted
+        
         # look if the hosted widget has an exit_code we should pick up
-        if hasattr(self._widget, "exit_code"):
-            exit_code = self._widget.exit_code
+        if self._widget and hasattr(self._widget, "exit_code"):
+            exit_code = self._widget.exit_code        
         
-        # close QDialog
+        # and call done to close the dialog with
+        # the correct exit code
         self.done(exit_code)
         
     def _on_arrow(self):
