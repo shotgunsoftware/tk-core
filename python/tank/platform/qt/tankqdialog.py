@@ -35,24 +35,24 @@ class TankQDialog(TankDialogBase):
     """
 
     @staticmethod
-    def _stop_pre_v0_1_17_browser_widget_workers(widget):
+    def _stop_buggy_background_worker_qthreads(widget):
         """
-        Determine if a pre-v0.1.17 tk-framework-widget BrowserWidget exists within the
-        dialog.
-        
         There is a bug in the worker/threading code in the BrowserWidget that was fixed
-        in v0.1.17.  This would result in a fatal crash if the BrowserWidget was cleaned 
-        up properly!  
+        in v0.1.17 and the tk-multi-workfiles Save As dialog that was fixed in v0.3.22.  
+        
+        The bug results in a fatal crash if the BrowserWidget is cleaned up properly or
+        if the Save As dialog is closed before the thread has completely stopped!  
         
         However, because the engine was previously not releasing any dialogs, the cleanup 
         code was never running which meant the bug was hidden!
         
         Now the engine has been fixed so that it cleans up correctly, all old versions 
-        of apps using a pre-v0.1.17 version of the BrowserWidget have become extremely 
-        unstable.
+        of Multi Publish and apps using a pre-v0.1.17 version of the BrowserWidget became
+        extremely unstable.
         
-        As a workaround, this function finds all pre-v0.1.17 BrowserWidgets and applies
-        the fix (basically waits for the worker thread to stop) to avoid instability!
+        As a workaround, this function finds all pre-v0.1.17 BrowserWidgets and 
+        pre-v0.3.22 SaveAsForms and applies a fix (basically waits for the worker thread 
+        to stop) to avoid instability!
         """
         checked_classes = {}
         
@@ -62,48 +62,60 @@ class TankQDialog(TankDialogBase):
             # look through class hierarchy - can't use isinstance here 
             # because we don't know which module the BrowserWidget would
             # be from! 
-            is_browser_widget = False
+            cls_type = None
             for cls in inspect.getmro(type(w)):
-                
-                checked_result = checked_classes.get(cls, None)
-                if checked_result != None:
-                    is_browser_widget = checked_result
+
+                # stop if we've previously checked this class:
+                cls_type = checked_classes.get(cls, None)
+                if cls_type != None:
                     break 
-                
-                checked_classes[cls] = False
+                checked_classes[cls] = ""
                     
-                # only care about classes explicitly called 'BrowserWidget':
-                if cls.__name__ != "BrowserWidget":
-                    continue
+                # only care about certain specific classes:
+                if cls.__name__ == "BrowserWidget":
+                    # tk-framework-widget.BrowserWidget
                     
-                # check the class has some members we know about:
-                if (not hasattr(w, "_worker") or not isinstance(w._worker, QtCore.QThread)
-                    or not hasattr(w, "_app") or not isinstance(w._app, application.Application)
-                    or not hasattr(w, "_spin_icons") or not isinstance(w._spin_icons, list)):
-                    continue
-    
-                # ok, so we can assume this widget is derived from a 
-                # tk-framework-widget BrowserWidget
-                checked_classes[cls] = True
-                is_browser_widget = True                    
-                break
+                    # check the class has some members we know about:
+                    if (hasattr(w, "_worker") and isinstance(w._worker, QtCore.QThread)
+                        and hasattr(w, "_app") and isinstance(w._app, application.Application)
+                        and hasattr(w, "_spin_icons") and isinstance(w._spin_icons, list)):
+                        # assume that this is derived from an actual tk-framework-widget.BrowserWidget!
+                        cls_type = "BrowserWidget"
+                elif cls.__name__ == "SaveAsForm":
+                    # tk-multi-workfiles.SaveAsForm
                 
-            if is_browser_widget:
+                    # check the class has some members we know about:
+                    if (hasattr(w, "_preview_updater") and isinstance(w._preview_updater, QtCore.QThread)
+                        and hasattr(w, "_reset_version") and isinstance(w._reset_version, bool)):
+                        # assume that this is derived from an actual tk-multi-workfiles.SaveAsForm! 
+                        cls_type = "SaveAsForm"
     
-                # lets see if it contains the threading fix...
-                if hasattr(w, "_TK_FRAMEWORK_BROWSERWIDGET_HAS_V_0_1_17_THREADING_FIX__"):
+                if cls_type != None:
+                    checked_classes[cls] = cls_type
+                    break
+
+            if cls_type:
+                worker = None                
+                if cls_type == "BrowserWidget":
+                    worker = w._worker
+                elif cls_type == "SaveAsForm":
+                    worker = w._preview_updater
+                else:
+                    continue
+
+                # now check to see if the worker already contains the fix:
+                if hasattr(worker, "_SGTK_IMPLEMENTS_QTHREAD_CRASH_FIX_"):
                     # this is already fixed so we don't need to do anything more!
                     continue
-                
-                # so this is a pre v0.1.17 version of the BrowserWidget so
+                    
                 # lets make sure the worker is stopped...
-                w._worker.stop()
+                worker.stop()
                 # and wait for the thread to finish - this line is the fix!
-                w._worker.wait()
-    
+                worker.wait()
             else:
                 # add all child widgets to list to be checked
                 widgets.extend(w.children())
+                continue
 
 
     @staticmethod
@@ -130,7 +142,7 @@ class TankQDialog(TankDialogBase):
             
             # apply fix to make sure all workers in pre v0.1.17 tk-framework-widget
             # BrowserWidgets are stopped correctly!
-            TankQDialog._stop_pre_v0_1_17_browser_widget_workers(self)
+            TankQDialog._stop_buggy_background_worker_qthreads(self)
             
             # if accepted then emit signal:            
             if event.isAccepted():
@@ -351,7 +363,7 @@ class TankQDialog(TankDialogBase):
             # BrowserWidgets are stopped correctly!
             # Note, this is the only place this can be done for non-wrapped
             # widgets as once it's detached we have no further access to it!
-            TankQDialog._stop_pre_v0_1_17_browser_widget_workers(self)
+            TankQDialog._stop_buggy_background_worker_qthreads(self)
             
             # reset the widget closeEvent function.  Note that 
             # python still thinks there is a circular reference
