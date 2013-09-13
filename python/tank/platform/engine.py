@@ -16,7 +16,8 @@ Defines the base class for all Tank Engines.
 import os
 import sys
 import traceback
-
+import weakref
+        
 from .. import loader
 from .. import hook
 from ..errors import TankError, TankEngineInitError
@@ -50,7 +51,9 @@ class Engine(TankBundle):
         self.__applications = {}
         self.__commands = {}
         self.__currently_initializing_app = None
+        
         self.__created_qt_dialogs = []
+        self.__qt_debug_info = {}
         
         self.__commands_that_need_prefixing = []
         
@@ -359,6 +362,67 @@ class Engine(TankBundle):
     ##########################################################################################
     # private and protected methods
     
+    def _get_dialog_parent(self):
+        """
+        Get the QWidget parent for all dialogs created through
+        show_dialog & show_modal.
+        """
+        # By default, this will return the QApplication's active window:
+        from .qt import QtGui
+        return QtGui.QApplication.activeWindow()
+                
+    def _create_dialog(self, title, bundle, widget_class, *args, **kwargs):
+        """
+        Create an sgtk dialog with a widget instantiated from widget_class
+        embeded in the main section.
+        """
+        if not self.has_ui:
+            self.log_error("Sorry, this environment does not support UI display! Cannot show "
+                           "the requested window '%s'." % title)
+            return None
+
+        from .qt import tankqdialog
+        
+        # construct the widget object
+        derived_widget_class = tankqdialog.TankQDialog.wrap_widget_class(widget_class)
+        widget = derived_widget_class(*args, **kwargs)
+        
+        # get the parent for the dialog:
+        parent = self._get_dialog_parent()
+        
+        # create a dialog to put it inside
+        dialog = tankqdialog.TankQDialog(title, bundle, widget, parent)
+
+        # keep a reference to all created dialogs to make GC happy
+        self.__created_qt_dialogs.append(dialog)
+        
+        # watch for the dialog closing so that we can clean up
+        dialog.dialog_closed.connect(self._on_dialog_closed)
+        
+        # keep track of some info for debugging object lifetime
+        self.__qt_debug_info[widget.__repr__()] = weakref.ref(widget)
+        self.__qt_debug_info[dialog.__repr__()] = weakref.ref(dialog)
+        
+        return (dialog, widget)        
+    
+    def _on_dialog_closed(self, dlg):
+        """
+        Called when a dialog created by this engine is
+        closed.
+        """
+        if dlg in self.__created_qt_dialogs:
+            # don't need to track this dialog any longer
+            self.__created_qt_dialogs.remove(dlg)
+        
+        # finally, let Qt know this dialog can be deleted
+        dlg.deleteLater()    
+
+    def get_qt_debug(self):
+        """
+        Print debug info about created Qt dialogs and widgets
+        """
+        return self.__qt_debug_info
+    
     def show_dialog(self, title, bundle, widget_class, *args, **kwargs):
         """
         Shows a non-modal dialog window in a way suitable for this engine. 
@@ -372,30 +436,17 @@ class Engine(TankBundle):
         
         :returns: the created widget_class instance
         """
-        if not self.has_ui:
-            self.log_error("Sorry, this environment does not support UI display! Cannot show "
-                           "the requested window '%s'." % title)
+        # create the dialog:
+        res = self._create_dialog(title, bundle, widget_class, *args, **kwargs)
+        if not res:
             return
-
-        from .qt import tankqdialog 
-        from .qt import QtCore, QtGui        
+        dialog, widget = res        
         
-        # first construct the widget object 
-        obj = widget_class(*args, **kwargs)
-        
-        # now create a dialog to put it inside
-        # parent it to the active window by default
-        parent = QtGui.QApplication.activeWindow()
-        dialog = tankqdialog.TankQDialog(title, bundle, obj, parent)
-        
-        # keep a reference to all created dialogs to make GC happy
-        self.__created_qt_dialogs.append(dialog)
-        
-        # finally show it        
+        # show the dialog        
         dialog.show()
         
-        # lastly, return the instantiated class
-        return obj
+        # lastly, return the instantiated widget
+        return widget
     
     def show_modal(self, title, bundle, widget_class, *args, **kwargs):
         """
@@ -411,30 +462,17 @@ class Engine(TankBundle):
 
         :returns: (a standard QT dialog status return code, the created widget_class instance)
         """
-        if not self.has_ui:
-            self.log_error("Sorry, this environment does not support UI display! Cannot show "
-                           "the requested window '%s'." % title)
+        # create the dialog:
+        res = self._create_dialog(title, bundle, widget_class, *args, **kwargs)
+        if not res:
             return
+        dialog, widget = res        
         
-        from .qt import tankqdialog 
-        from .qt import QtCore, QtGui
-        
-        # first construct the widget object 
-        obj = widget_class(*args, **kwargs)
-        
-        # now create a dialog to put it inside
-        # parent it to the active window by default
-        parent = QtGui.QApplication.activeWindow()
-        dialog = tankqdialog.TankQDialog(title, bundle, obj, parent)
-        
-        # keep a reference to all created dialogs to make GC happy
-        self.__created_qt_dialogs.append(dialog)
-        
-        # finally launch it, modal state        
+        # finally launch it, modal state
         status = dialog.exec_()
         
-        # lastly, return the instantiated class
-        return (status, obj)
+        # lastly, return the instantiated widget
+        return (status, widget)
     
     def _define_qt_base(self):
         """
