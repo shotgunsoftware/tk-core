@@ -501,6 +501,8 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
                            as dependencies. Files in this listing that do not appear as publishes
                            in shotgun will be ignored.
 
+        dependency_ids - a list of publish ids which should be registered as dependencies.
+
         published_file_type - a tank type in the form of a string which should match a tank type
                             that is registered in Shotgun.
 
@@ -527,6 +529,7 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
     thumbnail_path = kwargs.get("thumbnail_path")
     comment = kwargs.get("comment")
     dependency_paths = kwargs.get('dependency_paths', [])
+    dependency_ids = kwargs.get('dependency_ids', [])
     published_file_type = kwargs.get("published_file_type")
     if not published_file_type:
         # check for legacy name:
@@ -589,7 +592,7 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
 
 
     # register dependencies
-    _create_dependencies(tk, entity, dependency_paths)
+    _create_dependencies(tk, entity, dependency_paths, dependency_ids)
 
     return entity
 
@@ -612,29 +615,81 @@ def _translate_abstract_fields(tk, path):
             path = template.apply_fields(cur_fields)
     return path
 
-def _create_dependencies(tk, entity, dependency_paths):
+def _create_dependencies(tk, publish_entity, dependency_paths, dependency_ids):
     """
     Creates dependencies in shotgun from a given entity to
-    a list of paths. Paths not recognized are skipped.
+    a list of paths and ids. Paths not recognized are skipped.
+    
+    :param tk: API handle
+    :param publish_entity: The publish entity to set the dependencies for. This is a dictionary
+                           with keys type and id.
+    :param dependency_paths: List of paths on disk. List of strings.
+    :param dependency_ids: List of publish entity ids to associate. List of ints
+    
     """
     published_file_entity_type = get_published_file_entity_type(tk)
 
     publishes = find_publish(tk, dependency_paths)
 
+    # create a single batch request for maximum speed
+    sg_batch_data = []
+
     for dependency_path in dependency_paths:
+        
+        # did we manage to resolve this file path against
+        # a publish in shotgun?
         published_file = publishes.get(dependency_path)
+        
         if published_file:
-
             if published_file_entity_type == "PublishedFile":
-                data = { "published_file": entity,
-                         "dependent_published_file": published_file }
 
-                tk.shotgun.create('PublishedFileDependency', data)
+                req = {"request_type": "create", 
+                       "entity_type": "PublishedFileDependency", 
+                       "data": {"published_file": publish_entity,
+                                "dependent_published_file": published_file
+                                }
+                        } 
+                sg_batch_data.append(req)    
+            
             else:# == "TankPublishedFile"
-                data = { "tank_published_file": entity,
-                         "dependent_tank_published_file": published_file }
 
-                tk.shotgun.create('TankDependency', data)
+                req = {"request_type": "create", 
+                       "entity_type": "TankDependency", 
+                       "data": {"tank_published_file": publish_entity,
+                                "dependent_tank_published_file": published_file
+                                }
+                        } 
+                sg_batch_data.append(req)
+
+
+    for dependency_id in dependency_ids:
+        if published_file_entity_type == "PublishedFile":
+
+            req = {"request_type": "create", 
+                   "entity_type": "PublishedFileDependency", 
+                   "data": {"published_file": publish_entity,
+                            "dependent_published_file": {"type": "PublishedFile", 
+                                                         "id": dependency_id }
+                            }
+                    } 
+            sg_batch_data.append(req)
+            
+        else:# == "TankPublishedFile"
+            
+            req = {"request_type": "create", 
+                   "entity_type": "TankDependency", 
+                   "data": {"tank_published_file": publish_entity,
+                            "dependent_tank_published_file": {"type": "TankPublishedFile", 
+                                                              "id": dependency_id }
+                            }
+                    } 
+            sg_batch_data.append(req)
+
+
+    # push to shotgun in a single xact
+    if len(sg_batch_data) > 0:
+        tk.shotgun.batch(sg_batch_data)
+                
 
 
 def _create_published_file(tk, context, path, name, version_number, task, comment, published_file_type, created_by_user, created_at):
