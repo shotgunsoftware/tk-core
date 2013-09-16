@@ -76,22 +76,8 @@ def create_single_folder_item(tk, config_obj, io_receiver, entity_type, entity_i
         project_folder = folder_objects_to_recurse.pop()
         
         # get the parent path of the project folder
-        parent_project_path = os.path.abspath(os.path.join(project_folder.get_data_root(), ".."))
-        
-        # handle a special case for UNC paths and windows
-        # if the project is \\server\share, the parent resolve above
-        # will return \\server\share which is obviously wrong: we want it
-        # to return \\server. Handle this case as a special case:
-        if project_folder.get_data_root() == parent_project_path and sys.platform == "win32":
-            
-            # os.path.split does the trick:
-            # >>> os.path.split("\\\\server\\share\\drive")
-            # ('\\\\server\\share', 'drive')
-            # >>> os.path.split("\\\\server\\share")
-            # ('\\\\server', 'share')
-            # >>> os.path.split("\\\\server\\share")
-            parent_project_path = os.path.split(parent_project_path)[0]
-        
+        storage_root_path = project_folder.get_storage_root()
+                
         # now walk down, starting from the project level until we reach our entity 
         # and create all the structure.
         #
@@ -101,7 +87,7 @@ def create_single_folder_item(tk, config_obj, io_receiver, entity_type, entity_i
         # the shotgun_entity_data dictionary contains all the shotgun data needed in order to create
         # all the folders down this particular recursion path
         project_folder.create_folders(io_receiver, 
-                                      parent_project_path, 
+                                      storage_root_path, 
                                       shotgun_entity_data, 
                                       True,
                                       folder_objects_to_recurse,

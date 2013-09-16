@@ -223,6 +223,20 @@ class PipelineConfiguration(object):
 
         return self._published_file_entity_type
 
+    def get_local_storage_roots(self):
+        """
+        Returns local OS paths to all shotgun local storages used by toolkit. 
+        """
+        
+        platform_lookup = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
+
+        # now pick current os and append project root
+        proj_roots = {}
+        for r in self._roots:
+            proj_roots[r] = self._roots[r][ platform_lookup[sys.platform] ]
+        return proj_roots
+        
+
     def get_data_roots(self):
         """
         Returns a dictionary of all the data roots available for this PC,
