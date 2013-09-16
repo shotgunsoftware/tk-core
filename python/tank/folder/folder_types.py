@@ -598,6 +598,9 @@ class CurrentStepExpressionToken(object):
     def __init__(self, sg_task_step_link_field):
         self._sg_task_step_link_field = sg_task_step_link_field
     
+    def __repr__(self):
+        return "<CurrentStepId token. Task link field: %s>" % self._sg_task_step_link_field
+    
     def resolve_shotgun_data(self, shotgun_data):
         """
         Given a shotgun data dictionary, return an appropriate value 
@@ -637,6 +640,9 @@ class CurrentTaskExpressionToken(object):
     
     def __init__(self):
         pass
+    
+    def __repr__(self):
+        return "<CurrentTaskId token>"
     
     def resolve_shotgun_data(self, shotgun_data):
         """
@@ -706,6 +712,8 @@ class FilterExpressionToken(object):
         # store that too so that for later use
         self._associated_entity_type = referenced_node.get_entity_type() 
         
+    def __repr__(self):
+        return "<FilterExpression '%s' >" % self._expression
 
     def _resolve_ref_r(self, folder_obj):
         """
@@ -1204,20 +1212,43 @@ class ShotgunStep(Entity):
             raise TankError("Missing name token in yml metadata file %s" % full_path )
 
         create_with_parent = metadata.get("create_with_parent", True)
-
+        
+        entity_type = metadata.get("entity_type", "Step")
+        task_link_field = metadata.get("task_link_field", "step")
+        
         filters = metadata.get("filters", [])
         entity_filter = _translate_filter_tokens(filters, parent, full_path)
         
-        return ShotgunStep(tk, parent, full_path, metadata, sg_name_expression, create_with_parent, entity_filter)
+        return ShotgunStep(tk, 
+                           parent, 
+                           full_path, 
+                           metadata, 
+                           sg_name_expression, 
+                           create_with_parent, 
+                           entity_filter,
+                           entity_type,
+                           task_link_field)
     
     
-    def __init__(self, tk, parent, full_path, metadata, field_name_expression, create_with_parent, entity_filter):
+    def __init__(self, 
+                 tk, 
+                 parent, 
+                 full_path, 
+                 metadata, 
+                 field_name_expression, 
+                 create_with_parent, 
+                 entity_filter, 
+                 entity_type, 
+                 task_link_field):
         """
         constructor
         """
         
+        self._entity_type = entity_type
+        self._task_link_field = task_link_field
+        
         # look up the tree for the first parent of type Entity which is not a User
-        # this is because the user is typically assiged to a sandbox
+        # this is because the user is typically assigned to a sandbox
         # and no-one would have steps actually associated with a user anyways 
         # (seems like a highly unlikely case anyone would even do that)
         # so skip over user in order to support folder configs where
@@ -1279,7 +1310,7 @@ class ShotgunStep(Entity):
         Each step node is associated with a task via special link field on task.
         This method returns the name of that link field as a string
         """
-        return "step"
+        return self._task_link_field
     
     def get_step_entity_type(self):
         """
@@ -1288,7 +1319,7 @@ class ShotgunStep(Entity):
         into distinct sets, however it is sometimes useful to be able to use a different
         entity to perform this grouping.
         """
-        return "Step"
+        return self._entity_type
 
 
 class ShotgunTask(Entity):
@@ -1354,7 +1385,9 @@ class ShotgunTask(Entity):
             # make sure we include that in the filter
             parent_step_name = os.path.basename(sg_parent_step.get_path())
             parent_step_expr_token = FilterExpressionToken(parent_step_name, sg_parent_step)
-            entity_filter["conditions"].append({"path": "step", "relation": "is", "values": [parent_step_expr_token]})
+            entity_filter["conditions"].append({"path": sg_parent_step.get_task_link_field(), 
+                                                "relation": "is", 
+                                                "values": [parent_step_expr_token]})
         
         # if the create_with_parent setting is True, it means that if we create folders for a 
         # shot, we want all the tasks to be created at the same time.
@@ -1368,6 +1401,8 @@ class ShotgunTask(Entity):
             # step id is 1234 (where 1234 is the current step derived from the current task
             # and the current task comes from the original folder create request).
             entity_filter["conditions"].append({"path": "id", "relation": "is", "values": [current_task_id_token]})
+        
+        print entity_filter
                     
         Entity.__init__(self, 
                         tk,
