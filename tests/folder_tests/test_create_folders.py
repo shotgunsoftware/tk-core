@@ -160,6 +160,24 @@ class TestSchemaCreateFolders(TankTestBase):
         
         assert_paths_to_create(expected_paths)
 
+    def test_unicode(self):
+        # make illegal value
+        
+        # some japanese characters, UTF-8 encoded, just like we would get the from
+        # the shotgun API.
+        
+        self.shot["code"] = "\xe3\x81\xbe\xe3\x82\x93\xe3\x81\x88 foo bar"
+        
+        expected_paths = self._construct_shot_paths(shot_name="\xe3\x81\xbe\xe3\x82\x93\xe3\x81\x88-foo-bar")
+
+        folder.process_filesystem_structure(self.tk, 
+                                            self.shot["type"], 
+                                            self.shot["id"], 
+                                            preview=False,
+                                            engine=None)        
+        
+        assert_paths_to_create(expected_paths)
+
     def test_illegal_chars(self):
         illegal_chars = ["~", "!", "@", "#", "$", "%", "^", "&", "*", "(", ")",
                          "+", "=", ":", ";", "'", "\"", "<", ">", "/", "?", 
