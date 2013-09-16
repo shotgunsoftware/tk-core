@@ -371,9 +371,7 @@ class Static(Folder):
             # {'Project': {'id': 88, 'type': 'Project'},
             # 'Sequence': {'id': 32, 'type': 'Sequence'},
             # 'Shot': {'id': 1184, 'type': 'Shot'},
-            # 'Step': {'id': 5, 'type': 'Step'},
-            # 'current_step_id': None,
-            # 'current_task_id': None}
+            # 'Step': {'id': 5, 'type': 'Step'}}
             # 
             # once extracted, we can add that to the sg filter to get our final filter:
             # 
@@ -597,19 +595,39 @@ class CurrentStepExpressionToken(object):
     Represents the current step
     """
     
-    def __init__(self):
-        pass
+    def __init__(self, sg_task_step_link_field):
+        self._sg_task_step_link_field = sg_task_step_link_field
     
     def resolve_shotgun_data(self, shotgun_data):
         """
         Given a shotgun data dictionary, return an appropriate value 
         for this expression. 
+        
+        Because the entire design is centered around "normal" entities, 
+        the task data is preloaded prior to calling the folder recursion.
+        If there is a notion of a current task, this data is contained
+        in a current_task_data dictionary which contains information about 
+        the current task and its connections (for example to a pipeline step).
         """
         
-        if "current_step_id" in shotgun_data:
-            return shotgun_data["current_step_id"]
-        else:
-            return None
+        sg_task_data = shotgun_data.get("current_task_data")
+        
+        if sg_task_data:
+            # we have information about the currently processed task
+            # now see if there is a link field to a step
+            
+            if self._sg_task_step_link_field in sg_task_data:
+                # this is a link field linking the task to its associated step
+                # (a step does not necessarily need to be a pipeline step)
+                # now get the id for this target entity. 
+                sg_task_shot_link_data = sg_task_data[self._sg_task_step_link_field]
+                
+                if sg_task_shot_link_data:
+                    # there is a link from task -> step present
+                    return sg_task_shot_link_data["id"]
+        
+        # if data is missing, return None to indicate this.
+        return None
     
 
 class CurrentTaskExpressionToken(object):
@@ -624,10 +642,17 @@ class CurrentTaskExpressionToken(object):
         """
         Given a shotgun data dictionary, return an appropriate value 
         for this expression.
-        """
         
-        if "current_task_id" in shotgun_data:
-            return shotgun_data["current_task_id"]
+        Because the entire design is centered around "normal" entities, 
+        the task data is preloaded prior to calling the folder recursion.
+        If there is a notion of a current task, this data is contained
+        in a current_task_data dictionary which contains information about 
+        the current task and its connections (for example to a pipeline step).
+        """
+        sg_task_data = shotgun_data.get("current_task_data")
+        
+        if sg_task_data:            
+            return sg_task_data.get("id")
         else:
             return None
 
@@ -1216,7 +1241,12 @@ class ShotgunStep(Entity):
         # now create the shotgun filter query for this note that the query 
         # uses this weird special syntax to restrict the pipeline steps 
         # created only to be ones actually used with the entity
-        step_filter = {"path": "$FROM$Task.step.entity", "relation": "is", "values": [parent_expr_token] }
+        
+        # The syntax here is $FROM$Task.CONNECTION_FIELD.entity, where the connection field
+        # is "step" by default
+        step_filter_path = "$FROM$Task.%s.entity" % self.get_task_link_field() 
+        
+        step_filter = {"path": step_filter_path, "relation": "is", "values": [parent_expr_token] }
         entity_filter["conditions"].append( step_filter )
         
         # if the create_with_parent setting is True, it means that if we create folders for a 
@@ -1225,8 +1255,9 @@ class ShotgunStep(Entity):
         # this node if we are creating folders for a task.
         if create_with_parent != True: 
             # do not auto-create with parent - only create when a task has been specified.
-            # create an expression object to represent the current step
-            current_step_id_token = CurrentStepExpressionToken()
+            # create an expression object to represent the current step.
+            # we pass in the field which is the connection between the task and the step field
+            current_step_id_token = CurrentStepExpressionToken( self.get_task_link_field() )
             # add this to the filters so that we restrict the filter to be 
             # step id is 1234 (where 1234 is the current step derived from the current task
             # and the current task comes from the original folder create request).
@@ -1237,13 +1268,27 @@ class ShotgunStep(Entity):
                         parent, 
                         full_path,
                         metadata,
-                        "Step", 
+                        self.get_step_entity_type(), 
                         field_name_expression, 
                         entity_filter, 
                         create_with_parent=True)
                 
         
-        
+    def get_task_link_field(self):       
+        """
+        Each step node is associated with a task via special link field on task.
+        This method returns the name of that link field as a string
+        """
+        return "step"
+    
+    def get_step_entity_type(self):
+        """
+        Returns the Shotgun entity type which is used to represent the pipeline step.
+        Shotgun has a built in pipeline step which is a way of grouping tasks together
+        into distinct sets, however it is sometimes useful to be able to use a different
+        entity to perform this grouping.
+        """
+        return "Step"
 
 
 class ShotgunTask(Entity):
