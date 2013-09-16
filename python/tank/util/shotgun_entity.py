@@ -269,11 +269,14 @@ class EntityExpression(object):
 
     def _validate_name(self, name):
         """
-        Safely replace all non-alphanumeric characters 
-        with dashes (-).
+        Check that the name meets basic file system naming standards.
         """    
-        # regex to find non-alphanumeric characters
-        exp = re.compile(constants.VALID_SG_ENTITY_NAME_REGEX, re.UNICODE)    
+        
+        if self._entity_type == "Project":
+            # allow slashes in project names
+            exp = re.compile(constants.VALID_SG_PROJECT_NAME_REGEX, re.UNICODE)
+        else:
+            exp = re.compile(constants.VALID_SG_ENTITY_NAME_REGEX, re.UNICODE)    
         
         if isinstance(name, unicode):
             return bool(exp.match(name))
