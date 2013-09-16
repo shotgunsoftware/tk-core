@@ -370,6 +370,19 @@ class Engine(TankBundle):
         # By default, this will return the QApplication's active window:
         from .qt import QtGui
         return QtGui.QApplication.activeWindow()
+              
+    def _debug_track_qt_widget(self, widget):
+        """
+        Add the qt widget to a list of objects to be tracked. 
+        """
+        if widget:
+            self.__qt_debug_info[widget.__repr__()] = weakref.ref(widget)
+                
+    def get_debug_tracked_qt_widgets(self):
+        """
+        Print debug info about created Qt dialogs and widgets
+        """
+        return self.__qt_debug_info                
                 
     def _create_dialog(self, title, bundle, widget_class, *args, **kwargs):
         """
@@ -400,8 +413,8 @@ class Engine(TankBundle):
         dialog.dialog_closed.connect(self._on_dialog_closed)
         
         # keep track of some info for debugging object lifetime
-        self.__qt_debug_info[widget.__repr__()] = weakref.ref(widget)
-        self.__qt_debug_info[dialog.__repr__()] = weakref.ref(dialog)
+        self._debug_track_qt_widget(widget)
+        self._debug_track_qt_widget(dialog)
         
         return (dialog, widget)        
     
@@ -417,12 +430,6 @@ class Engine(TankBundle):
         # finally, let Qt know this dialog can be deleted
         dlg.deleteLater()    
 
-    def get_qt_debug(self):
-        """
-        Print debug info about created Qt dialogs and widgets
-        """
-        return self.__qt_debug_info
-    
     def show_dialog(self, title, bundle, widget_class, *args, **kwargs):
         """
         Shows a non-modal dialog window in a way suitable for this engine. 
