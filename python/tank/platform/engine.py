@@ -52,6 +52,7 @@ class Engine(TankBundle):
         self.__commands = {}
         self.__currently_initializing_app = None
         
+        self._qt_widget_trash = []
         self.__created_qt_dialogs = []
         self.__qt_debug_info = {}
         
@@ -362,15 +363,6 @@ class Engine(TankBundle):
     ##########################################################################################
     # private and protected methods
     
-    def _get_dialog_parent(self):
-        """
-        Get the QWidget parent for all dialogs created through
-        show_dialog & show_modal.
-        """
-        # By default, this will return the QApplication's active window:
-        from .qt import QtGui
-        return QtGui.QApplication.activeWindow()
-              
     def _debug_track_qt_widget(self, widget):
         """
         Add the qt widget to a list of objects to be tracked. 
@@ -383,25 +375,23 @@ class Engine(TankBundle):
         Print debug info about created Qt dialogs and widgets
         """
         return self.__qt_debug_info                
-                
-    def _create_dialog(self, title, bundle, widget_class, *args, **kwargs):
-        """
-        Create an sgtk dialog with a widget instantiated from widget_class
-        embeded in the main section.
-        """
-        if not self.has_ui:
-            self.log_error("Sorry, this environment does not support UI display! Cannot show "
-                           "the requested window '%s'." % title)
-            return None
 
+    def _get_dialog_parent(self):
+        """
+        Get the QWidget parent for all dialogs created through
+        show_dialog & show_modal.
+        """
+        # By default, this will return the QApplication's active window:
+        from .qt import QtGui
+        return QtGui.QApplication.activeWindow()
+                
+    def _create_dialog(self, title, bundle, widget, parent):
+        """
+        Create a TankQDialog with the specified widget embedded.
+        This also connects to the dialogs dialog_closed event so
+        that it can clean up when the dialog is closed.
+        """
         from .qt import tankqdialog
-        
-        # construct the widget object
-        derived_widget_class = tankqdialog.TankQDialog.wrap_widget_class(widget_class)
-        widget = derived_widget_class(*args, **kwargs)
-        
-        # get the parent for the dialog:
-        parent = self._get_dialog_parent()
         
         # create a dialog to put it inside
         dialog = tankqdialog.TankQDialog(title, bundle, widget, parent)
@@ -413,22 +403,109 @@ class Engine(TankBundle):
         dialog.dialog_closed.connect(self._on_dialog_closed)
         
         # keep track of some info for debugging object lifetime
-        self._debug_track_qt_widget(widget)
         self._debug_track_qt_widget(dialog)
         
-        return (dialog, widget)        
+        return dialog
+
+    def _create_widget(self, widget_class, *args, **kwargs):
+        """
+        Create an instance of the specified widget_class.  This 
+        wraps the widget_class so that the TankQDialog it is
+        embedded in can connect to it more easily in order to
+        handle the close event
+        """
+        from .qt import tankqdialog
+                
+        # construct the widget object
+        derived_widget_class = tankqdialog.TankQDialog.wrap_widget_class(widget_class)
+        widget = derived_widget_class(*args, **kwargs)
+        
+        # keep track of some info for debugging object lifetime
+        self._debug_track_qt_widget(widget)
+        
+        return widget
+    
+    def _create_dialog_with_widget(self, title, bundle, widget_class, *args, **kwargs):
+        """
+        Create an sgtk TankQDialog with a widget instantiated from widget_class
+        embeded in the main section.
+        """
+        # get the parent for the dialog:
+        parent = self._get_dialog_parent()
+        
+        # create the widget:
+        widget = self._create_widget(widget_class, *args, **kwargs)
+        
+        # create the dialog:
+        dialog = self._create_dialog(title, bundle, widget, parent)
+        return (dialog, widget)
     
     def _on_dialog_closed(self, dlg):
         """
         Called when a dialog created by this engine is
         closed.
         """
+        # first, detach the widget from the dialog.  This allows
+        # the two objects to be cleaned up seperately menaing the
+        # lifetime of the widget can be better managed
+        widget = dlg.detach_widget()
+        
+        # add the dlg and it's contained widget to the list
+        # of widgets to delete at some point!
+        self._qt_widget_trash.append(dlg)
+        self._qt_widget_trash.append(widget)
+        
         if dlg in self.__created_qt_dialogs:
             # don't need to track this dialog any longer
             self.__created_qt_dialogs.remove(dlg)
+            
+        # disconnect from the dialog:
+        dlg.dialog_closed.disconnect(self._on_dialog_closed)
         
-        # finally, let Qt know this dialog can be deleted
-        dlg.deleteLater()    
+        # clear temps
+        dlg = None
+        widget = None
+        
+        # finally, clean up the widget trash:
+        self._cleanup_widget_trash()
+        
+
+    def _cleanup_widget_trash(self):
+        """
+        Run through the widget trash and clean up any widgets
+        that are no longer referenced by anything else.
+        
+        Notes:  This is pretty dumb and only looks at reference
+        counts.  This means that if a widget has cyclic references
+        then it will never get released.
+        
+        Better to be safe though as deleting/releasing a widget that
+        still has events in the event queue will cause a hard crash!
+        """
+        still_trash = []
+        for widget in self._qt_widget_trash:
+            # There should be 3 references:
+            # 1. self._qt_widget_trash[n]
+            # 2. widget temporary
+            # 3. temporary used by sys.getrefcount
+            if sys.getrefcount(widget) <= 3:
+                # we have the only references to the widget
+                # so lets delete it!
+                try:
+                    widget.deleteLater()
+                except RuntimeError:
+                    # this is most likely because the Qt C++ widget has 
+                    # already been deleted elsewhere so we can safely 
+                    # ignore it!
+                    pass
+            else:
+                # there are still other references to this widget 
+                # out there so we should still keep track of it
+                still_trash.append(widget)
+    
+        # update widget trash
+        self._qt_widget_trash = still_trash
+        self.log_debug("Widget trash contains %d widgets" % (len(self._qt_widget_trash)))
 
     def show_dialog(self, title, bundle, widget_class, *args, **kwargs):
         """
@@ -443,11 +520,13 @@ class Engine(TankBundle):
         
         :returns: the created widget_class instance
         """
+        if not self.has_ui:
+            self.log_error("Sorry, this environment does not support UI display! Cannot show "
+                           "the requested window '%s'." % title)
+            return None
+        
         # create the dialog:
-        res = self._create_dialog(title, bundle, widget_class, *args, **kwargs)
-        if not res:
-            return
-        dialog, widget = res        
+        dialog, widget = self._create_dialog_with_widget(title, bundle, widget_class, *args, **kwargs)
         
         # show the dialog        
         dialog.show()
@@ -469,11 +548,13 @@ class Engine(TankBundle):
 
         :returns: (a standard QT dialog status return code, the created widget_class instance)
         """
+        if not self.has_ui:
+            self.log_error("Sorry, this environment does not support UI display! Cannot show "
+                           "the requested window '%s'." % title)
+            return None
+        
         # create the dialog:
-        res = self._create_dialog(title, bundle, widget_class, *args, **kwargs)
-        if not res:
-            return
-        dialog, widget = res        
+        dialog, widget = self._create_dialog_with_widget(title, bundle, widget_class, *args, **kwargs)
         
         # finally launch it, modal state
         status = dialog.exec_()

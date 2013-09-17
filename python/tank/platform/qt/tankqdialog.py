@@ -75,7 +75,8 @@ class TankQDialog(TankDialogBase):
                 if cls.__name__ == "BrowserWidget":
                     # tk-framework-widget.BrowserWidget
                     
-                    # check the class has some members we know about:
+                    # check the class has some members we know about and that
+                    # have been there since the first version of the code:
                     if (hasattr(w, "_worker") and isinstance(w._worker, QtCore.QThread)
                         and hasattr(w, "_app") and isinstance(w._app, application.Application)
                         and hasattr(w, "_spin_icons") and isinstance(w._spin_icons, list)):
@@ -84,7 +85,8 @@ class TankQDialog(TankDialogBase):
                 elif cls.__name__ == "SaveAsForm":
                     # tk-multi-workfiles.SaveAsForm
                 
-                    # check the class has some members we know about:
+                    # check the class has some members we know about and that
+                    # have been there since the first version of the code:
                     if (hasattr(w, "_preview_updater") and isinstance(w._preview_updater, QtCore.QThread)
                         and hasattr(w, "_reset_version") and isinstance(w._reset_version, bool)):
                         # assume that this is derived from an actual tk-multi-workfiles.SaveAsForm! 
@@ -140,13 +142,15 @@ class TankQDialog(TankDialogBase):
             # call base class closeEvent:
             widget_class.closeEvent(self, event)
             
+            if not event.isAccepted():
+                return
+            
             # apply fix to make sure all workers in pre v0.1.17 tk-framework-widget
             # BrowserWidgets are stopped correctly!
             TankQDialog._stop_buggy_background_worker_qthreads(self)
             
-            # if accepted then emit signal:            
-            if event.isAccepted():
-                self._tk_widgetwrapper_widget_closed.emit()
+            # if accepted then emit signal:
+            self._tk_widgetwrapper_widget_closed.emit()
         
         # create the derived widget class:
         derived_widget_class = type(derived_class_name, (widget_class, ), 
@@ -286,7 +290,7 @@ class TankQDialog(TankDialogBase):
             # it up straight away...
             #
             # If widget also has a __del__ method then this will stop it 
-            # being gc'd at all!
+            # being gc'd at all... ever..!
             self._orig_widget_closeEvent = self._widget.closeEvent
             self._widget.closeEvent = self._widget_closeEvent
         
@@ -331,27 +335,35 @@ class TankQDialog(TankDialogBase):
 
     def done(self, exit_code):
         """
-        Override 'done' method to emit dialog_closed
-        event.  This method is called regardless of
-        how the dialog is closed.
+        Override 'done' method to emit the dialog_closed
+        event.  This method is called regardless of how 
+        the dialog is closed.
         """
         if self._widget:
-            # detach the widget:
-            self._detach_widget(True)
+            # explicitly call close on the widget - this ensures 
+            # any custom closeEvent code is executed properly
+            self._widget.close()
         
-        # call base implementation:
+        self._do_done(exit_code)
+        
+    def _do_done(self, exit_code):
+        """
+        Internal method used to execute the base class done() method
+        and emit the dialog_closed signal.
+        """
+        # call base done() implementation:
         TankDialogBase.done(self, exit_code)
 
         # and emit signal:
         self.dialog_closed.emit(self)
           
-    def _detach_widget(self, close_widget):
+    def detach_widget(self):
         """
         Detach the widget from the dialog so that it 
-        remains alive when the dialog is removed/closed
+        remains alive when the dialog is removed gc'd
         """
         if not self._widget:
-            return
+            return None
         
         # stop watching for the widget being closed:
         if hasattr(self._widget, "_tk_widgetwrapper_widget_closed"):
@@ -375,28 +387,12 @@ class TankQDialog(TankDialogBase):
         # unparent the widget from the dialog:
         if self._widget.parent() == self.ui.page_1:
             self._widget.setParent(None)
-            
-        if close_widget:
-            # close the widget - this makes sure that the closeEvent event
-            # in the widget is triggered:
-            self._widget.close()
-            
-            # finally, if there are no other references to widget
-            # then we need to call deleteLater.  The is because
-            # there may still be events waiting to be sent to the 
-            # widget which will cause a crash if the widget is gc'd
-            # before the events are sent.  deleteLater clears the
-            # event queue for all events with the widget (and 
-            # children) as the reciever stopping these crashes!
-            #
-            # Note, it seems that this scenario only happens if
-            # _detach_widget(True) executes as a result of another
-            # signal, e.g. key-press for the escape key causing
-            # the dialog to be closed.
-            if sys.getrefcount(self._widget) <= 2:
-                self._widget.deleteLater()
-            
+        
+        # clear self._widget and return it
+        widget = self._widget    
         self._widget = None
+        return widget
+        
         
     def _widget_closeEvent(self, event):
         """
@@ -428,12 +424,9 @@ class TankQDialog(TankDialogBase):
         if self._widget and hasattr(self._widget, "exit_code"):
             exit_code = self._widget.exit_code        
         
-        # detach the widget from the dialog:
-        self._detach_widget(False)
-        
         # and call done to close the dialog with
         # the correct exit code
-        self.done(exit_code)
+        self._do_done(exit_code)
 
     def _on_arrow(self):
         """
