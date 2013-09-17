@@ -27,6 +27,7 @@ from ..platform import constants
 from . import util as deploy_util
 from . import env_admin
 from .. import pipelineconfig
+from .. import hook
 
 from .zipfilehelper import unzip_file
 
@@ -56,13 +57,11 @@ class CmdlineSetupInteraction(object):
         
     
     
-    def get_disk_location(self, resolved_storages, project_disk_name, install_root):
+    def get_disk_location(self, resolved_storages, project_name, project_id, install_root):
         """
         Ask the user where the pipeline configuration should be located on disk.
         Returns a dictionary with keys according to sys.platform: win32, darwin, linux2
         
-        :param project_disk_name: The name of the project on disk. Can contain slashes for
-                                  multi level project names.
         :param resolved_storages: All the storage roots (Local storage entities in shotgun)
                                   needed for this configuration. For example: 
                                   [{'code': 'primary', 
@@ -71,9 +70,22 @@ class CmdlineSetupInteraction(object):
                                     'windows_path': None, 
                                     'type': 'LocalStorage',  
                                     'linux_path': None}]
+
+        :param project_name: The Project.name field in Shotgun for the selected project.
+        :param project_id: The Project.id field in Shotgun for the selected project.
         :param install_root: location of the core code
         """
         
+        # see if there is a hook to procedurally evaluate this
+        # 
+        project_name_hook = shotgun.get_project_name_studio_hook_location()
+        if os.path.exists(project_name_hook):
+            # custom hook is available!
+            project_disk_name = hook.execute_hook(project_name_hook, parent=None, project_id=project_id)
+        else:
+            # construct a valid name - replace white space with underscore and lower case it.
+            project_disk_name = re.sub("\W", "_", project_name).lower()
+                    
         self._log.info("")
         self._log.info("")
         self._log.info("Now it is time to decide where the configuration for this project should go. ")
@@ -109,13 +121,7 @@ class CmdlineSetupInteraction(object):
         
         location = {"darwin": None, "linux2": None, "win32": None}
         os_nice_name = {"darwin": "Macosx", "linux2": "Linux", "win32": "Windows"}
-        curr_os = sys.platform
 
-        # now for the location of the pipeline configuration, for projects where
-        # there are nested folders in the project root, we want to flatten those 
-        # into a single name
-        pipeline_config_name = project_disk_name.replace("/", "_")
-        
         
         if os.path.abspath(os.path.join(install_root, "..")).lower() == primary_local_path.lower():
             # ok the parent of the install root matches the primary storage - means OLD STYLE!
@@ -175,7 +181,7 @@ class CmdlineSetupInteraction(object):
                 # pop the studio bit
                 chunks.pop()
                 # append project name
-                chunks.append(pipeline_config_name)
+                chunks.append(project_disk_name)
                 location["linux2"] = "/".join(chunks)
             
             if mac_install_root is not None and mac_install_root.startswith("/"):
@@ -183,7 +189,7 @@ class CmdlineSetupInteraction(object):
                 # pop the studio bit
                 chunks.pop()
                 # append project name
-                chunks.append(pipeline_config_name)
+                chunks.append(project_disk_name)
                 location["darwin"] = "/".join(chunks)
             
             if windows_install_root is not None and (windows_install_root.startswith("\\") or windows_install_root[1] == ":"):
@@ -191,7 +197,7 @@ class CmdlineSetupInteraction(object):
                 # pop the studio bit
                 chunks.pop()
                 # append project name
-                chunks.append(pipeline_config_name)
+                chunks.append(project_disk_name)
                 location["win32"] = "\\".join(chunks)
             
             
@@ -268,11 +274,15 @@ class CmdlineSetupInteraction(object):
             config_name = constants.DEFAULT_CFG
         return config_name
         
-    def get_project_folder_name(self, suggested_folder_name, resolved_storages):
+    def get_project_folder_name(self, project_name, project_id, resolved_storages):
         """
         Returns a project name given a project folder.
         Resolved storages are guaranteed to exist on disk etc.
         """
+        
+        # construct a valid name - replace white space with underscore and lower case it.
+        suggested_folder_name = re.sub("\W", "_", project_name).lower()
+
         
         self._log.info("")
         self._log.info("")
@@ -282,7 +292,10 @@ class CmdlineSetupInteraction(object):
         self._log.info("defined in the Shotgun Site Preferences:")
         self._log.info("")
         for s in resolved_storages:
-            # [{'code': 'primary', 'mac_path': '/tank_demo/project_data', 'windows_path': None, 'type': 'LocalStorage', 'id': 1, 'linux_path': None}]
+            # [{'code': 'primary', 'mac_path': '/tank_demo/project_data', 
+            #   'windows_path': None, 
+            #   'type': 'LocalStorage', 
+            #   'id': 1, 'linux_path': None}]
             current_os_path = s.get(SG_LOCAL_STORAGE_OS_MAP[sys.platform])
             storage_name = s.get("code").capitalize()
             self._log.info(" - %s: %s" % (storage_name, current_os_path))
@@ -910,11 +923,8 @@ def _interactive_setup(log, install_root, check_storage_path_exists, force):
     # ask which project to operate on
     (project_id, project_name) = cmdline_ui.get_project(force)
     
-    # construct a valid name - replace white space with underscore and lower case it.
-    project_disk_folder = re.sub("\W", "_", project_name).lower()
-    
     # ask the user to confirm the folder name
-    project_disk_folder = cmdline_ui.get_project_folder_name(project_disk_folder, resolved_storages)
+    project_disk_folder = cmdline_ui.get_project_folder_name(project_name, project_id, resolved_storages)
     
     # validate that this is not crazy
     if re.match("^[/a-zA-Z0-9_-]+$", project_disk_folder) is None:
@@ -923,7 +933,7 @@ def _interactive_setup(log, install_root, check_storage_path_exists, force):
                         "underscores and dashes." % project_disk_folder)
     
     # now ask the user where the config should go    
-    locations_dict = cmdline_ui.get_disk_location(resolved_storages, project_disk_folder, install_root)
+    locations_dict = cmdline_ui.get_disk_location(resolved_storages, project_name, project_id, install_root)
     current_os_pc_location = locations_dict[sys.platform]
     
     # determine the entity type to use for Published Files:

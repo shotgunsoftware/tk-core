@@ -71,6 +71,12 @@ def __get_app_store_config():
     core_cfg = __get_api_core_config_location()
     return os.path.join(core_cfg, "app_store.yml")
 
+def get_project_name_studio_hook_location():
+    """
+    Returns the path to the studio level project naming hook
+    """
+    core_cfg = __get_api_core_config_location()
+    return os.path.join(core_cfg, "project_name.py")
 
 def __create_sg_connection(shotgun_cfg_path, evaluate_script_user, user="default"):
     """
