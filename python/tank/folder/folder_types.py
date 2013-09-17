@@ -1402,8 +1402,6 @@ class ShotgunTask(Entity):
             # and the current task comes from the original folder create request).
             entity_filter["conditions"].append({"path": "id", "relation": "is", "values": [current_task_id_token]})
         
-        print entity_filter
-                    
         Entity.__init__(self, 
                         tk,
                         parent, 
