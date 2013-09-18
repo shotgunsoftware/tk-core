@@ -195,7 +195,6 @@ class PipelineConfiguration(object):
     def get_project_disk_name(self):
         """
         Returns the project name for the project associated with this PC.
-        May connect to Shotgun to retrieve this.
         """
         return self._project_name
 
@@ -256,7 +255,7 @@ class PipelineConfiguration(object):
             if current_os_root is None:
                 proj_roots[r] = None
             else:
-                proj_roots[r] = self.__append_project_name_to_root(current_os_root)
+                proj_roots[r] = self.__append_project_name_to_root(current_os_root, sys.platform)
 
         return proj_roots
 
@@ -280,6 +279,11 @@ class PipelineConfiguration(object):
         }
 
         """
+        
+        # mapping from an entity dict 
+        platform_lookup = {"linux_path": "linux2", 
+                           "windows_path": "win32", 
+                           "mac_path": "darwin" }
 
         # now pick current os and append project root
         proj_roots = {}
@@ -290,20 +294,40 @@ class PipelineConfiguration(object):
                 if current_root is None:
                     proj_roots[r][p] = None
                 else:
-                    proj_roots[r][p] = self.__append_project_name_to_root(current_root)
+                    os_name = platform_lookup[p]
+                    proj_roots[r][p] = self.__append_project_name_to_root(current_root, os_name)
 
         return proj_roots
 
-    def __append_project_name_to_root(self, root_value):
-        # Note, these paths may have been written from a different platform
-        # so the slash direction may not be uniform.  To accomodate this
-        # we convert _all_ slashes to the current os.path.sep here
-        root_value = root_value.replace("\\", os.path.sep).replace("/", os.path.sep)
-        # join the project name to the root - note, uses '+' so that this behaves correctly
-        # on windows - doing os.path.join("C:", "foo") results in 'C:foo' without the
-        # back slash which is a relative path on the C: drive!
-        return os.path.join(root_value + os.path.sep, self._project_name)
-
+    def __append_project_name_to_root(self, root_value, os_name):
+        """
+        Multi-os method that creates a project root path.
+        Note that this method does not use any of the os.path methods,
+        since we may for example be evaulating a windows path on linux.
+        
+        :param root_value: A root path, for example /mnt/projects or c:\foo
+        :param os_name: sys.platform name for the path's platform.
+          
+        :returns: the project disk name properly concatenated onto the root_value
+        """
+        
+        # get the valid separator for this path
+        separators = {"linux2": "/", "win32": "\\", "darwin": "/" }
+        separator = separators[os_name] 
+        
+        # get rid of any slashes at the end
+        root_value = root_value.rstrip("/\\")
+        # now root value is "/foo/bar", "c:" or "\\hello" 
+        
+        # concat the full path.
+        full_path = root_value + separator + self._project_name
+        
+        # note that project name may be "foo/bar/baz" even on windows.
+        # now get all the separators adjusted.
+        full_path = full_path.replace("\\", separator).replace("/", separator)
+        
+        return full_path
+        
     def get_primary_data_root(self):
         """
         Returns the path to the primary data root for the current platform
