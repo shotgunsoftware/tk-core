@@ -321,13 +321,17 @@ def check_for_updates(log, tk):
     """
     Check for updates.
     """
-
     pc = tk.pipeline_configuration
-    environments = [ pc.get_environment(x) for x in pc.get_environments()]
 
     # check engines and apps
     items = []
-    for env in environments:
+    for env_name in pc.get_environments():
+        
+        # (AD) - Previously all environments were loaded before processing but 
+        # this could lead to errors if an update doesn't know about previous 
+        # updates to the same share files (includes)
+        env = pc.get_environment(env_name)
+        
         log.info("")
         log.info("Processing %s..." % env.disk_location)
         log.info("")

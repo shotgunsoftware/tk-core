@@ -24,15 +24,14 @@ from ..errors import TankError
 from ..platform import constants
 
 
-def create_single_folder_item(tk, config_obj, io_receiver, entity_type, entity_id, step_id, task_id, engine):
+def create_single_folder_item(tk, config_obj, io_receiver, entity_type, entity_id, sg_task_data, engine):
     """
     Creates folders for an entity type and an entity id.
     :param config_obj: a FolderConfiguration object representing the folder configuration
     :param io_receiver: a FolderIOReceiver representing the folder operation callbacks
     :param entity_type: Shotgun entity type
     :param entity_id: Shotgun entity id
-    :param task_id: shotgun task id if this folder creation is associated with a particular task
-    :param step_id: shotgun step id if this folder creation is associated with a particular step
+    :param sg_task_data: shotgun task id if this folder creation is associated with a particular task
     :param engine: Engine to create folders for / indicate second pass if not None.
     """
     # TODO: Confirm this entity exists and is in this project
@@ -48,8 +47,7 @@ def create_single_folder_item(tk, config_obj, io_receiver, entity_type, entity_i
         # fill in the information we know about this entity now
         entity_id_seed = { 
             entity_type: { "type": entity_type, "id": entity_id },
-            "current_task_id": task_id,
-            "current_step_id": step_id 
+            "current_task_data": sg_task_data 
         }
         
         # now go from the folder object, deep inside the hierarchy,
@@ -132,6 +130,9 @@ def process_filesystem_structure(tk, entity_type, entity_ids, preview, engine):
     if len(entity_ids) == 0:
         return
 
+    # create schema builder
+    schema_cfg_folder = tk.pipeline_configuration.get_schema_config_location()   
+    config = FolderConfiguration(tk, schema_cfg_folder)
 
     # all things to create
     items = []
@@ -155,28 +156,34 @@ def process_filesystem_structure(tk, entity_type, entity_ids, preview, engine):
         filters = ["id", "in"]
         filters.extend(entity_ids) # weird filter format here
         
-        data = tk.shotgun.find(entity_type, [filters], ["entity", "step"])
+        # "steps" are a grouping mechanism that sits
+        # on the "side" and allows for Shotgun to group tasks into 
+        # smaller sets (lighting, modeling etc). By default, the Step
+        # entity in Shotgun is controlling this, but it is possible to customize
+        # this behaviour in the step node, to use a different entity type as a "step".
+        # (this can be useful if you want standard Steps for scheduling but 
+        # a different breakdown for your disk setup).
+        #
+        # We need to capture the connection data between a task and other entities,
+        # both the parent entity and these steps, so first figure out all the different
+        # connection fields from Task -> Step that this configuration needs.
+        task_link_fields = [ sn.get_task_link_field() for sn in config.get_task_step_nodes() ]
+        
+        # and of course we always need the entity link
+        task_link_fields.append("entity")
+        
+        data = tk.shotgun.find(entity_type, [filters], task_link_fields)
         for sg_entry in data:
-            if sg_entry["entity"]: # task may not be associated with an entity
-                
-                # get the current step
-                step_id = None
-                if sg_entry["step"]:
-                    step_id = sg_entry["step"]["id"]
-
+            if sg_entry["entity"]: # task may not be associated with an entity                
                 items.append( { "type":    sg_entry["entity"]["type"], 
                                 "id":      sg_entry["entity"]["id"], 
-                                "step_id": step_id, 
-                                "task_id": sg_entry["id"] } )
+                                "sg_task_data": sg_entry } )
             
     else:
         # normal entities
         for i in entity_ids:
-            items.append( { "type": entity_type, "id": i, "step_id": None, "task_id": None } )
+            items.append( { "type": entity_type, "id": i, "sg_task_data": None } )
         
-    # create schema builder
-    schema_cfg_folder = tk.pipeline_configuration.get_schema_config_location()   
-    config = FolderConfiguration(tk, schema_cfg_folder)
     
     # create an object to receive all IO requests
     io_receiver = FolderIOReceiver(tk, preview)
@@ -188,8 +195,7 @@ def process_filesystem_structure(tk, entity_type, entity_ids, preview, engine):
                                   io_receiver, 
                                   i["type"], 
                                   i["id"], 
-                                  i["step_id"],
-                                  i["task_id"],
+                                  i["sg_task_data"],
                                   engine)
 
     folders_created = io_receiver.execute_folder_creation()

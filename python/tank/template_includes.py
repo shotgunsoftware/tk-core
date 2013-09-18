@@ -173,12 +173,12 @@ def process_includes(file_name, data):
             template_str = None
             complex_syntax = False
             if isinstance(template_definition, dict):
-                template_str = template_definition["definition"]
+                template_str = template_definition.get("definition")
                 complex_syntax = True
             elif isinstance(template_definition, basestring):
                 template_str = template_definition
             if not template_str:
-                raise TankError("Invalid template configuration for '%s'" % (template_name))
+                raise TankError("Invalid template configuration for '%s' - it looks like the definition is missing!" % (template_name))
             
             # resolve escaped @'s
             resolved_template_str = template_str.replace("@@", "@")
@@ -237,12 +237,12 @@ def _resolve_template_r(template_paths, template_strings, template_name, templat
     template_str = None
     complex_syntax = False
     if isinstance(template_definition, dict):
-        template_str = template_definition["definition"]
+        template_str = template_definition.get("definition")
         complex_syntax = True
     elif isinstance(template_definition, basestring):
         template_str = template_definition
     if not template_str:
-        raise TankError("Invalid template configuration for '%s'" % (template_name))
+        raise TankError("Invalid template configuration for '%s' - it looks like the definition is missing!" % (template_name))
     
     # look for @ specified in template definition.  This can be escaped by
     # using @@ so split out escaped @'s first:

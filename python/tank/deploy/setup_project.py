@@ -1272,11 +1272,10 @@ def _interactive_setup(log, install_root, check_storage_path_exists, force):
     # and write a custom event to the shotgun event log
     log.debug("Writing app store stats...")
     data = {}
-    data["description"] = "%s: An Toolkit Project named %s was created" % (sg.base_url, project_disk_folder)
+    data["description"] = "%s: An Toolkit Project was created" % sg.base_url
     data["event_type"] = "TankAppStore_Project_Created"
     data["user"] = script_user
     data["project"] = constants.TANK_APP_STORE_DUMMY_PROJECT
-    data["attribute_name"] = project_disk_folder
     sg_app_store.create("EventLogEntry", data)
     
     

@@ -143,6 +143,9 @@ def __create_sg_connection(shotgun_cfg_path, evaluate_script_user, user="default
                  config_data["api_key"],
                  http_proxy=config_data.get("http_proxy", None))
 
+    # bolt on our custom user agent manager
+    sg.tk_user_agent_handler = ToolkitUserAgentHandler(sg)
+
     script_user = None
 
     if evaluate_script_user:
@@ -156,7 +159,11 @@ def __create_sg_connection(shotgun_cfg_path, evaluate_script_user, user="default
 
     return (sg, script_user)
 
-
+    
+    
+    
+    
+    
 def create_sg_connection(user="default"):
     """
     Creates a standard tank shotgun connection.
@@ -507,6 +514,8 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
                            as dependencies. Files in this listing that do not appear as publishes
                            in shotgun will be ignored.
 
+        dependency_ids - a list of publish ids which should be registered as dependencies.
+
         published_file_type - a tank type in the form of a string which should match a tank type
                             that is registered in Shotgun.
 
@@ -533,6 +542,7 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
     thumbnail_path = kwargs.get("thumbnail_path")
     comment = kwargs.get("comment")
     dependency_paths = kwargs.get('dependency_paths', [])
+    dependency_ids = kwargs.get('dependency_ids', [])
     published_file_type = kwargs.get("published_file_type")
     if not published_file_type:
         # check for legacy name:
@@ -595,7 +605,7 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
 
 
     # register dependencies
-    _create_dependencies(tk, entity, dependency_paths)
+    _create_dependencies(tk, entity, dependency_paths, dependency_ids)
 
     return entity
 
@@ -618,29 +628,81 @@ def _translate_abstract_fields(tk, path):
             path = template.apply_fields(cur_fields)
     return path
 
-def _create_dependencies(tk, entity, dependency_paths):
+def _create_dependencies(tk, publish_entity, dependency_paths, dependency_ids):
     """
     Creates dependencies in shotgun from a given entity to
-    a list of paths. Paths not recognized are skipped.
+    a list of paths and ids. Paths not recognized are skipped.
+    
+    :param tk: API handle
+    :param publish_entity: The publish entity to set the dependencies for. This is a dictionary
+                           with keys type and id.
+    :param dependency_paths: List of paths on disk. List of strings.
+    :param dependency_ids: List of publish entity ids to associate. List of ints
+    
     """
     published_file_entity_type = get_published_file_entity_type(tk)
 
     publishes = find_publish(tk, dependency_paths)
 
+    # create a single batch request for maximum speed
+    sg_batch_data = []
+
     for dependency_path in dependency_paths:
+        
+        # did we manage to resolve this file path against
+        # a publish in shotgun?
         published_file = publishes.get(dependency_path)
+        
         if published_file:
-
             if published_file_entity_type == "PublishedFile":
-                data = { "published_file": entity,
-                         "dependent_published_file": published_file }
 
-                tk.shotgun.create('PublishedFileDependency', data)
+                req = {"request_type": "create", 
+                       "entity_type": "PublishedFileDependency", 
+                       "data": {"published_file": publish_entity,
+                                "dependent_published_file": published_file
+                                }
+                        } 
+                sg_batch_data.append(req)    
+            
             else:# == "TankPublishedFile"
-                data = { "tank_published_file": entity,
-                         "dependent_tank_published_file": published_file }
 
-                tk.shotgun.create('TankDependency', data)
+                req = {"request_type": "create", 
+                       "entity_type": "TankDependency", 
+                       "data": {"tank_published_file": publish_entity,
+                                "dependent_tank_published_file": published_file
+                                }
+                        } 
+                sg_batch_data.append(req)
+
+
+    for dependency_id in dependency_ids:
+        if published_file_entity_type == "PublishedFile":
+
+            req = {"request_type": "create", 
+                   "entity_type": "PublishedFileDependency", 
+                   "data": {"published_file": publish_entity,
+                            "dependent_published_file": {"type": "PublishedFile", 
+                                                         "id": dependency_id }
+                            }
+                    } 
+            sg_batch_data.append(req)
+            
+        else:# == "TankPublishedFile"
+            
+            req = {"request_type": "create", 
+                   "entity_type": "TankDependency", 
+                   "data": {"tank_published_file": publish_entity,
+                            "dependent_tank_published_file": {"type": "TankPublishedFile", 
+                                                              "id": dependency_id }
+                            }
+                    } 
+            sg_batch_data.append(req)
+
+
+    # push to shotgun in a single xact
+    if len(sg_batch_data) > 0:
+        tk.shotgun.batch(sg_batch_data)
+                
 
 
 def _create_published_file(tk, context, path, name, version_number, task, comment, published_file_type, created_by_user, created_at):
@@ -719,3 +781,122 @@ def _calc_path_cache(tk, path):
             return root_name, path_cache
     # not found, return None values
     return None, None
+
+
+
+#################################################################################################
+# wrappers around the shotgun API's http header API methods
+
+    
+class ToolkitUserAgentHandler(object):
+    """
+    Convenience wrapper to handle the user agent management
+    """
+    
+    def __init__(self, sg):
+        self._sg = sg
+        
+        self._app = None
+        self._framework = None
+        self._engine = None
+        
+        self._core_version = None
+        
+    def __clear_bundles(self):
+        """
+        Resets the currently active bundle.
+        """
+        self._app = None
+        self._framework = None
+        self._engine = None
+
+        
+    def set_current_app(self, name, version, engine_name, engine_version):
+        """
+        Update the user agent headers for the currently active app 
+        """
+        # first clear out the other bundle settings - there can only
+        # be one active bundle at a time
+        self.__clear_bundles()
+
+        # populate the currently running bundle data        
+        self._app = (name, version)
+        self._engine = (engine_name, engine_version)
+        
+        # push to shotgun
+        self.__update()
+        
+    def set_current_framework(self, name, version, engine_name, engine_version):
+        """
+        Update the user agent headers for the currently active framework 
+        """
+        # first clear out the other bundle settings - there can only
+        # be one active bundle at a time
+        self.__clear_bundles()
+
+        # populate the currently running bundle data        
+        self._framework = (name, version)
+        self._engine = (engine_name, engine_version)
+        
+        # push to shotgun
+        self.__update()
+
+    def set_current_engine(self, name, version):
+        """
+        Update the user agent headers for the currently active engine 
+        """
+        # first clear out the other bundle settings - there can only
+        # be one active bundle at a time
+        self.__clear_bundles()
+
+        # populate the currently running bundle data        
+        self._engine = (name, version)
+        
+        # push to shotgun
+        self.__update()
+
+    def set_current_core(self, core_version):
+        """
+        Update the user agent headers for the currently active core
+        """
+        self._core_version = core_version
+        self.__update()
+        
+    def __update(self):
+        """
+        Perform changes to the Shotgun API
+        """
+        # note that because of shortcomings in the API, 
+        # we have to reference the member variable directly.
+        #
+        # sg._user_agents is a list of strings. By default,
+        # its value is [ "shotgun-json (1.2.3)" ] 
+        
+        # First, remove any old toolkit settings
+        new_agents = []
+        for x in self._sg._user_agents:
+            if x.startswith("tk-core") or \
+               x.startswith("tk-app") or \
+               x.startswith("tk-engine") or \
+               x.startswith("tk-fw"):
+                continue
+            new_agents.append(x)
+         
+        # Add new toolkit settings
+        if self._core_version:
+            new_agents.append("tk-core (%s)" % self._core_version)
+
+        if self._engine:
+            new_agents.append("tk-engine (%s %s)" % self._engine)
+        
+        if self._app:
+            new_agents.append("tk-app (%s %s)" % self._app)
+
+        if self._framework:
+            new_agents.append("tk-fw (%s %s)" % self._framework)
+
+        # and update shotgun
+        self._sg._user_agents = new_agents
+        
+        
+        
