@@ -78,12 +78,13 @@ def execute_folder_creation_proxy(self):
 
 
 class TestSchemaCreateFolders(TankTestBase):
-    def setUp(self):
+    
+    def setUp(self, project_tank_name = "project_code"):
         """Sets up entities in mocked shotgun database and creates Mock objects
         to pass in as callbacks to Schema.create_folders. The mock objects are
         then queried to see what paths the code attempted to create.
         """
-        super(TestSchemaCreateFolders, self).setUp()
+        super(TestSchemaCreateFolders, self).setUp(project_tank_name)
         self.setup_fixtures()
         self.seq = {"type": "Sequence",
                     "id": 2,
@@ -338,7 +339,27 @@ class TestSchemaCreateFolders(TankTestBase):
         expected_paths.append(os.path.join(step_path, "work", "snapshots"))
         expected_paths.append(os.path.join(step_path, "work", "workspace.mel"))
         expected_paths.append(os.path.join(step_path, "out"))
+        
         return expected_paths
+
+
+
+
+
+
+
+class TestSchemaCreateFoldersMultiLevelProjectRoot(TestSchemaCreateFolders):
+
+    """ 
+    Test a setup where there are more than a single folder in the Project.tank_name.
+    
+    We just run the standard tests but with an extended project root path. 
+    """
+
+    def setUp(self):        
+        super(TestSchemaCreateFoldersMultiLevelProjectRoot, self).setUp(project_tank_name="multi/root/project/name")
+
+
 
 
 
