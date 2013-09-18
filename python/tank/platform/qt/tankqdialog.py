@@ -35,24 +35,24 @@ class TankQDialog(TankDialogBase):
     """
 
     @staticmethod
-    def _stop_pre_v0_1_17_browser_widget_workers(widget):
+    def _stop_buggy_background_worker_qthreads(widget):
         """
-        Determine if a pre-v0.1.17 tk-framework-widget BrowserWidget exists within the
-        dialog.
-        
         There is a bug in the worker/threading code in the BrowserWidget that was fixed
-        in v0.1.17.  This would result in a fatal crash if the BrowserWidget was cleaned 
-        up properly!  
+        in v0.1.17 and the tk-multi-workfiles Save As dialog that was fixed in v0.3.22.  
+        
+        The bug results in a fatal crash if the BrowserWidget is cleaned up properly or
+        if the Save As dialog is closed before the thread has completely stopped!  
         
         However, because the engine was previously not releasing any dialogs, the cleanup 
         code was never running which meant the bug was hidden!
         
         Now the engine has been fixed so that it cleans up correctly, all old versions 
-        of apps using a pre-v0.1.17 version of the BrowserWidget have become extremely 
-        unstable.
+        of Multi Publish and apps using a pre-v0.1.17 version of the BrowserWidget became
+        extremely unstable.
         
-        As a workaround, this function finds all pre-v0.1.17 BrowserWidgets and applies
-        the fix (basically waits for the worker thread to stop) to avoid instability!
+        As a workaround, this function finds all pre-v0.1.17 BrowserWidgets and 
+        pre-v0.3.22 SaveAsForms and applies a fix (basically waits for the worker thread 
+        to stop) to avoid instability!
         """
         checked_classes = {}
         
@@ -62,48 +62,62 @@ class TankQDialog(TankDialogBase):
             # look through class hierarchy - can't use isinstance here 
             # because we don't know which module the BrowserWidget would
             # be from! 
-            is_browser_widget = False
+            cls_type = None
             for cls in inspect.getmro(type(w)):
-                
-                checked_result = checked_classes.get(cls, None)
-                if checked_result != None:
-                    is_browser_widget = checked_result
+
+                # stop if we've previously checked this class:
+                cls_type = checked_classes.get(cls, None)
+                if cls_type != None:
                     break 
-                
-                checked_classes[cls] = False
+                checked_classes[cls] = ""
                     
-                # only care about classes explicitly called 'BrowserWidget':
-                if cls.__name__ != "BrowserWidget":
-                    continue
+                # only care about certain specific classes:
+                if cls.__name__ == "BrowserWidget":
+                    # tk-framework-widget.BrowserWidget
                     
-                # check the class has some members we know about:
-                if (not hasattr(w, "_worker") or not isinstance(w._worker, QtCore.QThread)
-                    or not hasattr(w, "_app") or not isinstance(w._app, application.Application)
-                    or not hasattr(w, "_spin_icons") or not isinstance(w._spin_icons, list)):
-                    continue
-    
-                # ok, so we can assume this widget is derived from a 
-                # tk-framework-widget BrowserWidget
-                checked_classes[cls] = True
-                is_browser_widget = True                    
-                break
+                    # check the class has some members we know about and that
+                    # have been there since the first version of the code:
+                    if (hasattr(w, "_worker") and isinstance(w._worker, QtCore.QThread)
+                        and hasattr(w, "_app") and isinstance(w._app, application.Application)
+                        and hasattr(w, "_spin_icons") and isinstance(w._spin_icons, list)):
+                        # assume that this is derived from an actual tk-framework-widget.BrowserWidget!
+                        cls_type = "BrowserWidget"
+                elif cls.__name__ == "SaveAsForm":
+                    # tk-multi-workfiles.SaveAsForm
                 
-            if is_browser_widget:
+                    # check the class has some members we know about and that
+                    # have been there since the first version of the code:
+                    if (hasattr(w, "_preview_updater") and isinstance(w._preview_updater, QtCore.QThread)
+                        and hasattr(w, "_reset_version") and isinstance(w._reset_version, bool)):
+                        # assume that this is derived from an actual tk-multi-workfiles.SaveAsForm! 
+                        cls_type = "SaveAsForm"
     
-                # lets see if it contains the threading fix...
-                if hasattr(w, "_TK_FRAMEWORK_BROWSERWIDGET_HAS_V_0_1_17_THREADING_FIX__"):
+                if cls_type != None:
+                    checked_classes[cls] = cls_type
+                    break
+
+            if cls_type:
+                worker = None                
+                if cls_type == "BrowserWidget":
+                    worker = w._worker
+                elif cls_type == "SaveAsForm":
+                    worker = w._preview_updater
+                else:
+                    continue
+
+                # now check to see if the worker already contains the fix:
+                if hasattr(worker, "_SGTK_IMPLEMENTS_QTHREAD_CRASH_FIX_"):
                     # this is already fixed so we don't need to do anything more!
                     continue
-                
-                # so this is a pre v0.1.17 version of the BrowserWidget so
+                    
                 # lets make sure the worker is stopped...
-                w._worker.stop()
+                worker.stop()
                 # and wait for the thread to finish - this line is the fix!
-                w._worker.wait()
-    
+                worker.wait()
             else:
                 # add all child widgets to list to be checked
                 widgets.extend(w.children())
+                continue
 
 
     @staticmethod
@@ -128,13 +142,15 @@ class TankQDialog(TankDialogBase):
             # call base class closeEvent:
             widget_class.closeEvent(self, event)
             
+            if not event.isAccepted():
+                return
+            
             # apply fix to make sure all workers in pre v0.1.17 tk-framework-widget
             # BrowserWidgets are stopped correctly!
-            TankQDialog._stop_pre_v0_1_17_browser_widget_workers(self)
+            TankQDialog._stop_buggy_background_worker_qthreads(self)
             
-            # if accepted then emit signal:            
-            if event.isAccepted():
-                self._tk_widgetwrapper_widget_closed.emit()
+            # if accepted then emit signal:
+            self._tk_widgetwrapper_widget_closed.emit()
         
         # create the derived widget class:
         derived_widget_class = type(derived_class_name, (widget_class, ), 
@@ -274,7 +290,7 @@ class TankQDialog(TankDialogBase):
             # it up straight away...
             #
             # If widget also has a __del__ method then this will stop it 
-            # being gc'd at all!
+            # being gc'd at all... ever..!
             self._orig_widget_closeEvent = self._widget.closeEvent
             self._widget.closeEvent = self._widget_closeEvent
         
@@ -319,27 +335,35 @@ class TankQDialog(TankDialogBase):
 
     def done(self, exit_code):
         """
-        Override 'done' method to emit dialog_closed
-        event.  This method is called regardless of
-        how the dialog is closed.
+        Override 'done' method to emit the dialog_closed
+        event.  This method is called regardless of how 
+        the dialog is closed.
         """
         if self._widget:
-            # detach the widget:
-            self._detach_widget(True)
+            # explicitly call close on the widget - this ensures 
+            # any custom closeEvent code is executed properly
+            self._widget.close()
         
-        # call base implementation:
+        self._do_done(exit_code)
+        
+    def _do_done(self, exit_code):
+        """
+        Internal method used to execute the base class done() method
+        and emit the dialog_closed signal.
+        """
+        # call base done() implementation:
         TankDialogBase.done(self, exit_code)
 
         # and emit signal:
         self.dialog_closed.emit(self)
           
-    def _detach_widget(self, close_widget):
+    def detach_widget(self):
         """
         Detach the widget from the dialog so that it 
-        remains alive when the dialog is removed/closed
+        remains alive when the dialog is removed gc'd
         """
         if not self._widget:
-            return
+            return None
         
         # stop watching for the widget being closed:
         if hasattr(self._widget, "_tk_widgetwrapper_widget_closed"):
@@ -351,7 +375,7 @@ class TankQDialog(TankDialogBase):
             # BrowserWidgets are stopped correctly!
             # Note, this is the only place this can be done for non-wrapped
             # widgets as once it's detached we have no further access to it!
-            TankQDialog._stop_pre_v0_1_17_browser_widget_workers(self)
+            TankQDialog._stop_buggy_background_worker_qthreads(self)
             
             # reset the widget closeEvent function.  Note that 
             # python still thinks there is a circular reference
@@ -363,28 +387,12 @@ class TankQDialog(TankDialogBase):
         # unparent the widget from the dialog:
         if self._widget.parent() == self.ui.page_1:
             self._widget.setParent(None)
-            
-        if close_widget:
-            # close the widget - this makes sure that the closeEvent event
-            # in the widget is triggered:
-            self._widget.close()
-            
-            # finally, if there are no other references to widget
-            # then we need to call deleteLater.  The is because
-            # there may still be events waiting to be sent to the 
-            # widget which will cause a crash if the widget is gc'd
-            # before the events are sent.  deleteLater clears the
-            # event queue for all events with the widget (and 
-            # children) as the reciever stopping these crashes!
-            #
-            # Note, it seems that this scenario only happens if
-            # _detach_widget(True) executes as a result of another
-            # signal, e.g. key-press for the escape key causing
-            # the dialog to be closed.
-            if sys.getrefcount(self._widget) <= 2:
-                self._widget.deleteLater()
-            
+        
+        # clear self._widget and return it
+        widget = self._widget    
         self._widget = None
+        return widget
+        
         
     def _widget_closeEvent(self, event):
         """
@@ -416,12 +424,9 @@ class TankQDialog(TankDialogBase):
         if self._widget and hasattr(self._widget, "exit_code"):
             exit_code = self._widget.exit_code        
         
-        # detach the widget from the dialog:
-        self._detach_widget(False)
-        
         # and call done to close the dialog with
         # the correct exit code
-        self.done(exit_code)
+        self._do_done(exit_code)
 
     def _on_arrow(self):
         """
