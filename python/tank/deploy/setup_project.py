@@ -348,22 +348,22 @@ class CmdlineSetupInteraction(object):
             self._log.info("it is now possible to put your configuration anywhere you like, we ")
             self._log.info("will suggest defaults compatible with your existing installation.")
             
-            for os in SG_LOCAL_STORAGE_OS_MAP:
+            for curr_os in SG_LOCAL_STORAGE_OS_MAP:
                 
-                sg_storage_path_value = primary_local_storage.get( SG_LOCAL_STORAGE_OS_MAP[os] )
+                sg_storage_path_value = primary_local_storage.get( SG_LOCAL_STORAGE_OS_MAP[curr_os] )
             
                 if sg_storage_path_value:
                     # chop off any end slashes
                     sg_storage_path_value.rstrip("/\\")
                     sg_storage_path_value += "/%s/tank" % project_disk_name
-                    if os == "win32":
+                    if curr_os == "win32":
                         # ensure back slashes all the way
                         sg_storage_path_value = sg_storage_path_value.replace("/", "\\")
                     else:
                         # ensure slashes all the way
                         sg_storage_path_value = sg_storage_path_value.replace("\\", "/")
                         
-                    location[ os ] = sg_storage_path_value        
+                    location[ curr_os ] = sg_storage_path_value        
             
         else:
             # assume new style setup - in this case we need to go figure out the different
@@ -1001,15 +1001,29 @@ def _interactive_setup(log, install_root, check_storage_path_exists, force):
         # path does not exist! 
         # make sure parent exists and is writable
     
-        parent_os_pc_location = os.path.dirname(current_os_pc_location)
-        if not os.path.exists(parent_os_pc_location):
-            raise TankError("The folder '%s' does not exist! Please create "
-                            "it before proceeding!" % parent_os_pc_location)
+        # find an existing parent path
+        parent_os_pc_location = None
+        curr_path = current_os_pc_location
+        while curr_path != os.path.dirname(curr_path):
+            
+            # get parent folder
+            curr_path = os.path.dirname(curr_path)
+            if os.path.exists(curr_path):
+                parent_os_pc_location = curr_path 
+                break
     
+        if parent_os_pc_location is None:
+            raise TankError("The folder '%s' does not exist! Please create "
+                            "it before proceeding!" % current_os_pc_location)
+                
         # and make sure we can create a folder in it
         if not os.access(parent_os_pc_location, os.W_OK|os.R_OK|os.X_OK):
-            raise TankError("The permissions setting for '%s' is too strict. The current user "
-                            "cannot create folders in this location." % parent_os_pc_location)
+            raise TankError("Cannot create a project configuration in location '%s'! "
+                            "The permissions setting for the closest parent folder that "
+                            "can be detected, '%s', is too strict. The current user "
+                            "cannot create folders in this location. Please create the "
+                            "project configuration folder by hand and then re-run the project "
+                            "setup." % (current_os_pc_location, parent_os_pc_location))
     
     
     ###############################################################################################
