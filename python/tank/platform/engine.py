@@ -122,8 +122,8 @@ class Engine(TankBundle):
         
     def __repr__(self):
         return "<Sgtk Engine 0x%08x: %s, env: %s>" % (id(self),  
-                                                           self.name, 
-                                                           self.__env.name)
+                                                      self.name, 
+                                                      self.__env.name)
 
     def get_env(self):
         """
@@ -136,6 +136,27 @@ class Engine(TankBundle):
     
     ##########################################################################################
     # properties
+
+    @property
+    def shotgun(self):
+        """
+        Delegates to the Sgtk API instance's shotgun connection, which is lazily
+        created the first time it is requested.
+        
+        :returns: Shotgun API handle
+        """
+        # pass on information to the user agent manager which bundle is returning
+        # this sg handle. This information will be passed to the web server logs
+        # in the shotgun data centre and makes it easy to track which app and engine versions
+        # are being used by clients
+        try:
+            self.tank.shotgun.tk_user_agent_handler.set_current_engine(self.name, self.version)
+        except AttributeError:
+            # looks like this sg instance for some reason does not have a
+            # tk user agent handler associated.
+            pass
+        
+        return self.tank.shotgun        
 
     @property
     def environment(self):
