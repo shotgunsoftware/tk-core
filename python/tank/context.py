@@ -634,18 +634,18 @@ def from_entity(tk, entity_type, entity_id):
     else:
         # Get data from path cache
         entity_context = _context_data_from_cache(tk, entity_type, entity_id)
-        
-        if entity_type == "Project":
-            # no need to set entity to point at project in this case
-            # that only produces double entries.
-            entity_context["entity"] = None
-            
+                    
         # make sure this was actually found in the cache
         # fall back on a shotgun lookup if not found
         if entity_context["project"] is None:
             entity_context = _entity_from_sg(tk, entity_type, entity_id)
         
         context.update(entity_context)
+
+    if entity_type == "Project":
+        # no need to set entity to point at project in this case
+        # that only produces double entries.
+        context["entity"] = None
 
     return Context(**context)
 
@@ -779,6 +779,12 @@ def from_path(tk, path, previous_context=None):
         # now try to assign previous task but only if the step matches!
         if context.get("task") is None and context.get("step") == previous_context.step:
             context["task"] = previous_context.task
+
+    # ensure that we don't have a Project as the entity. Projects should only 
+    # appear on the projects level, despite being entities.
+    if context["project"] and context["entity"] and context["entity"]["type"] == "Project":
+        # remove double entry!
+        context["entity"] = None
 
     return Context(**context)
 
