@@ -102,6 +102,17 @@ class Tank(object):
         if self.__sg is None:
             self.__sg = shotgun.create_sg_connection()
 
+        # pass on information to the user agent manager which core version is returning
+        # this sg handle. This information will be passed to the web server logs
+        # in the shotgun data centre and makes it easy to track which core versions
+        # are being used by clients
+        try:
+            self.__sg.tk_user_agent_handler.set_current_core(self.version)
+        except AttributeError:
+            # looks like this sg instance for some reason does not have a
+            # tk user agent handler associated.
+            pass
+
         return self.__sg
 
     @property

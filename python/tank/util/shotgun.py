@@ -137,6 +137,9 @@ def __create_sg_connection(shotgun_cfg_path, evaluate_script_user, user="default
                  config_data["api_key"],
                  http_proxy=config_data.get("http_proxy", None))
 
+    # bolt on our custom user agent manager
+    sg.tk_user_agent_handler = ToolkitUserAgentHandler(sg)
+
     script_user = None
 
     if evaluate_script_user:
@@ -150,7 +153,11 @@ def __create_sg_connection(shotgun_cfg_path, evaluate_script_user, user="default
 
     return (sg, script_user)
 
-
+    
+    
+    
+    
+    
 def create_sg_connection(user="default"):
     """
     Creates a standard tank shotgun connection.
@@ -713,3 +720,122 @@ def _calc_path_cache(tk, path):
             return root_name, path_cache
     # not found, return None values
     return None, None
+
+
+
+#################################################################################################
+# wrappers around the shotgun API's http header API methods
+
+    
+class ToolkitUserAgentHandler(object):
+    """
+    Convenience wrapper to handle the user agent management
+    """
+    
+    def __init__(self, sg):
+        self._sg = sg
+        
+        self._app = None
+        self._framework = None
+        self._engine = None
+        
+        self._core_version = None
+        
+    def __clear_bundles(self):
+        """
+        Resets the currently active bundle.
+        """
+        self._app = None
+        self._framework = None
+        self._engine = None
+
+        
+    def set_current_app(self, name, version, engine_name, engine_version):
+        """
+        Update the user agent headers for the currently active app 
+        """
+        # first clear out the other bundle settings - there can only
+        # be one active bundle at a time
+        self.__clear_bundles()
+
+        # populate the currently running bundle data        
+        self._app = (name, version)
+        self._engine = (engine_name, engine_version)
+        
+        # push to shotgun
+        self.__update()
+        
+    def set_current_framework(self, name, version, engine_name, engine_version):
+        """
+        Update the user agent headers for the currently active framework 
+        """
+        # first clear out the other bundle settings - there can only
+        # be one active bundle at a time
+        self.__clear_bundles()
+
+        # populate the currently running bundle data        
+        self._framework = (name, version)
+        self._engine = (engine_name, engine_version)
+        
+        # push to shotgun
+        self.__update()
+
+    def set_current_engine(self, name, version):
+        """
+        Update the user agent headers for the currently active engine 
+        """
+        # first clear out the other bundle settings - there can only
+        # be one active bundle at a time
+        self.__clear_bundles()
+
+        # populate the currently running bundle data        
+        self._engine = (name, version)
+        
+        # push to shotgun
+        self.__update()
+
+    def set_current_core(self, core_version):
+        """
+        Update the user agent headers for the currently active core
+        """
+        self._core_version = core_version
+        self.__update()
+        
+    def __update(self):
+        """
+        Perform changes to the Shotgun API
+        """
+        # note that because of shortcomings in the API, 
+        # we have to reference the member variable directly.
+        #
+        # sg._user_agents is a list of strings. By default,
+        # its value is [ "shotgun-json (1.2.3)" ] 
+        
+        # First, remove any old toolkit settings
+        new_agents = []
+        for x in self._sg._user_agents:
+            if x.startswith("tk-core") or \
+               x.startswith("tk-app") or \
+               x.startswith("tk-engine") or \
+               x.startswith("tk-fw"):
+                continue
+            new_agents.append(x)
+         
+        # Add new toolkit settings
+        if self._core_version:
+            new_agents.append("tk-core (%s)" % self._core_version)
+
+        if self._engine:
+            new_agents.append("tk-engine (%s %s)" % self._engine)
+        
+        if self._app:
+            new_agents.append("tk-app (%s %s)" % self._app)
+
+        if self._framework:
+            new_agents.append("tk-fw (%s %s)" % self._framework)
+
+        # and update shotgun
+        self._sg._user_agents = new_agents
+        
+        
+        
