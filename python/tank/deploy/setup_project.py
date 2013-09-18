@@ -1100,7 +1100,7 @@ def _interactive_setup(log, install_root, check_storage_path_exists, force):
     log.info("Installing configuration into '%s'..." % current_os_pc_location )
     if not os.path.exists(current_os_pc_location):
         # note that we have already validated that creation is possible
-        _make_folder(log, current_os_pc_location, 0775)
+        os.makedirs(current_os_pc_location, 0775)
     
     # create pipeline config base folder structure            
     _make_folder(log, os.path.join(current_os_pc_location, "cache"), 0777)    
