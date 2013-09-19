@@ -887,6 +887,11 @@ class Entity(Folder):
 
             # generate the field name            
             folder_name = self._entity_expression.generate_name(entity)
+            
+            # now for the case where the project name is encoded with slashes,
+            # we need to translate those into a native representation
+            folder_name = folder_name.replace("/", os.path.sep)
+            
             my_path = os.path.join(parent_path, folder_name)
                         
             # get the name field - which depends on the entity type

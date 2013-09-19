@@ -28,10 +28,21 @@ def assert_paths_to_create(expected_paths):
     # Check paths sent to make_folder
     for expected_path in expected_paths:
         if expected_path not in g_paths_created:
-            assert False, "\n%s\nnot found in: [\n%s]" % (expected_path, "\n".join(g_paths_created))
+            msg = "\n------------------\n"
+            msg += "Expected path '%s' not found in paths created on disk:\n" % expected_path
+            msg += "\n".join(g_paths_created)
+            msg += "------------------\n"
+            assert False, msg
     for actual_path in g_paths_created:
         if actual_path not in expected_paths:
-            assert False, "Unexpected path slated for creation: %s \nPaths: %s" % (actual_path, "\n".join(g_paths_created))
+            msg = "\n------------------\n"
+            msg += "Unexpected path '%s' created by system.\n\n" % actual_path
+            msg += "List of paths created on disk:\n"
+            msg += "\n".join(g_paths_created)
+            msg += "\nList of paths expected to be created:\n"
+            msg += "\n".join(expected_paths)
+            msg += "------------------\n"
+            assert False, msg
 
 
 g_paths_created = []
@@ -201,21 +212,17 @@ class TestSchemaCreateFolders(TankTestBase):
         # expected paths here are based on sg_standard start-config
         # define paths we expect for entities
         
-        # normalize multi level proj names
-        project_root = self.project_root.replace("/", os.path.sep)
-        
-        
-        static_assets = os.path.join(project_root, "assets")
+        static_assets = os.path.join(self.project_root, "assets")
         asset_type_path = os.path.join(static_assets, self.asset["sg_asset_type"])
         asset_path = os.path.join(asset_type_path, self.asset["code"])        
         step_path = os.path.join(asset_path, self.step["short_name"])
         
-        expected_paths = [project_root,
-                          os.path.join(project_root, "reference"),
-                          os.path.join(project_root, "scenes"),
-                          os.path.join(project_root, "sequences"),
-                          os.path.join(project_root, "reference", "artwork"),
-                          os.path.join(project_root, "reference", "footage"),
+        expected_paths = [self.project_root,
+                          os.path.join(self.project_root, "reference"),
+                          os.path.join(self.project_root, "scenes"),
+                          os.path.join(self.project_root, "sequences"),
+                          os.path.join(self.project_root, "reference", "artwork"),
+                          os.path.join(self.project_root, "reference", "footage"),
                           static_assets,
                           asset_type_path, 
                           asset_path, 
@@ -258,26 +265,22 @@ class TestSchemaCreateFolders(TankTestBase):
         
         self.add_to_sg_mock_db([scene, extra_step])
         
-        # normalize multi level proj names
-        project_root = self.project_root.replace("/", os.path.sep)
-        
-        
-        expected_paths = [project_root,
-                          os.path.join(project_root, "reference"),
-                          os.path.join(project_root, "sequences"),
-                          os.path.join(project_root, "assets"),
-                          os.path.join(project_root, "reference", "artwork"),
-                          os.path.join(project_root, "reference", "footage"),                          
+        expected_paths = [self.project_root,
+                          os.path.join(self.project_root, "reference"),
+                          os.path.join(self.project_root, "sequences"),
+                          os.path.join(self.project_root, "assets"),
+                          os.path.join(self.project_root, "reference", "artwork"),
+                          os.path.join(self.project_root, "reference", "footage"),                          
                           ]
                 
                               
-        expected_paths.append(os.path.join(project_root, "scenes"))
-        expected_paths.append(os.path.join(project_root, "scenes", "step_short_name"))
-        expected_paths.append(os.path.join(project_root, "scenes", "step_short_name", "scenename"))
-        expected_paths.append(os.path.join(project_root, "scenes", "step_short_name", "scenename", "work"))
-        expected_paths.append(os.path.join(project_root, "scenes", "extra_short_name"))
-        expected_paths.append(os.path.join(project_root, "scenes", "extra_short_name", "scenename"))
-        expected_paths.append(os.path.join(project_root, "scenes", "extra_short_name", "scenename", "work"))
+        expected_paths.append(os.path.join(self.project_root, "scenes"))
+        expected_paths.append(os.path.join(self.project_root, "scenes", "step_short_name"))
+        expected_paths.append(os.path.join(self.project_root, "scenes", "step_short_name", "scenename"))
+        expected_paths.append(os.path.join(self.project_root, "scenes", "step_short_name", "scenename", "work"))
+        expected_paths.append(os.path.join(self.project_root, "scenes", "extra_short_name"))
+        expected_paths.append(os.path.join(self.project_root, "scenes", "extra_short_name", "scenename"))
+        expected_paths.append(os.path.join(self.project_root, "scenes", "extra_short_name", "scenename", "work"))
         
         folder.process_filesystem_structure(self.tk, 
                                             scene["type"], 
@@ -289,19 +292,16 @@ class TestSchemaCreateFolders(TankTestBase):
 
     def test_project(self):
         """Tests paths used in making a project are as expected."""
-        
-        # normalize multi level proj names
-        project_root = self.project_root.replace("/", os.path.sep)
-        
+                
         # paths based on sg_standard starter config
         expected_paths = []
-        expected_paths.append(project_root)
-        expected_paths.append(os.path.join(project_root, "sequences"))
-        expected_paths.append(os.path.join(project_root, "scenes"))
-        expected_paths.append(os.path.join(project_root, "assets"))
-        expected_paths.append(os.path.join(project_root, "reference"))
-        expected_paths.append(os.path.join(project_root, "reference", "artwork"))
-        expected_paths.append(os.path.join(project_root, "reference", "footage"))
+        expected_paths.append(self.project_root)
+        expected_paths.append(os.path.join(self.project_root, "sequences"))
+        expected_paths.append(os.path.join(self.project_root, "scenes"))
+        expected_paths.append(os.path.join(self.project_root, "assets"))
+        expected_paths.append(os.path.join(self.project_root, "reference"))
+        expected_paths.append(os.path.join(self.project_root, "reference", "artwork"))
+        expected_paths.append(os.path.join(self.project_root, "reference", "footage"))
 
         folder.process_filesystem_structure(self.tk, 
                                             self.project["type"], 
@@ -326,20 +326,17 @@ class TestSchemaCreateFolders(TankTestBase):
         if not sequence_name:
             sequence_name = self.seq["code"]
 
-        # normalize multi level proj names
-        project_root = self.project_root.replace("/", os.path.sep)
+        static_seq = os.path.join(self.project_root, "sequences")        
 
-        static_seq = os.path.join(project_root, "sequences")        
-
-        expected_paths = [project_root, 
-                          os.path.join(project_root, "reference"),
-                          os.path.join(project_root, "scenes"),
-                          os.path.join(project_root, "assets"),
-                          os.path.join(project_root, "reference", "artwork"),
-                          os.path.join(project_root, "reference", "footage"),                          
+        expected_paths = [self.project_root, 
+                          os.path.join(self.project_root, "reference"),
+                          os.path.join(self.project_root, "scenes"),
+                          os.path.join(self.project_root, "assets"),
+                          os.path.join(self.project_root, "reference", "artwork"),
+                          os.path.join(self.project_root, "reference", "footage"),                          
                           static_seq]
 
-        sequence_path = os.path.join(project_root, "sequences", sequence_name)
+        sequence_path = os.path.join(self.project_root, "sequences", sequence_name)
         if not shot_name:
             shot_name = self.shot["code"]
         shot_path = os.path.join(sequence_path, shot_name)
