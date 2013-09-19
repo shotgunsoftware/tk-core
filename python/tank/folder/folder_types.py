@@ -1435,10 +1435,10 @@ class Project(Entity):
             raise TankError("Missing or invalid value for 'root_name' in metadata: %s" % schema_config_project_folder)
         
         # now resolve the disk location for the storage specified in the project config
-        storage_root_path = tk.pipeline_configuration.get_data_roots().get(storage_name)
+        storage_root_path = tk.pipeline_configuration.get_local_storage_roots().get(storage_name)
         if storage_root_path is None:
             raise TankError("The storage '%s' specified in the folder config %s.yml "
-                            "does not exist!" % (storage_name, schema_config_project_folder))
+                            "is not defined on this operating system!" % (storage_name, schema_config_project_folder))
         
         return Project(tk, schema_config_project_folder, metadata, storage_root_path)
     
@@ -1466,9 +1466,13 @@ class Project(Entity):
                         no_filters, 
                         create_with_parent=False)
                 
-    def get_data_root(self):
+    def get_storage_root(self):
         """
-        Returns the data root folder for this project
+        Local storages are defined in the Shotgun preferences.
+        This method returns the local OS path that is associated with the
+        local storage that this project node is associated with.
+        (By default, this is the primary storage, but if you have a multi
+        root config, there may be more than one project node.)        
         """
         return self._storage_root_path
         
