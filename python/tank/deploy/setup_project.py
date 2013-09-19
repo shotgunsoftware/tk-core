@@ -233,7 +233,8 @@ class CmdlineSetupInteraction(object):
         self._log.info("")
         for s in resolved_storages:
             current_os_path = s.get(SG_LOCAL_STORAGE_OS_MAP[sys.platform])
-            proj_path = os.path.join(current_os_path, suggested_folder_name)
+            # note how we replace slashes in the name with backslashes on windows...
+            proj_path = os.path.join(current_os_path, suggested_folder_name.replace("/", os.path.sep))
             storage_name = s.get("code").capitalize()
             self._log.info(" - %s: %s" % (storage_name, proj_path))
         
