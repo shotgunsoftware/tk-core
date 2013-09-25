@@ -380,6 +380,16 @@ class Tank(object):
 
         return entity
 
+    def sync_path_cache(self):
+        """
+        Synchronizes the path cache with Shotgun.
+        """
+        # Use the path cache to look up all paths associated with this entity
+        path_cache = PathCache(self)
+        path_cache.synchronize()
+        path_cache.close()
+
+
     def context_empty(self):
         """
         Creates an empty context.
