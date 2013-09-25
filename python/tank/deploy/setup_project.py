@@ -27,6 +27,7 @@ from ..platform import constants
 from . import util as deploy_util
 from . import env_admin
 from .. import pipelineconfig
+from .. import hook
 
 from .zipfilehelper import unzip_file
 
@@ -54,144 +55,7 @@ class CmdlineSetupInteraction(object):
         else:
             raise TankError("Please answer Yes, y, no, n or press ENTER!")
         
-    
-    def get_disk_location(self, resolved_storages, project_disk_name, install_root):
-        """
-        Ask the user where the pipeline configuration should be located on disk.
-        Returns a dictionary with keys according to sys.platform: win32, darwin, linux2
-        """
-        
-        self._log.info("")
-        self._log.info("")
-        self._log.info("Now it is time to decide where the configuration for this project should go. ")
-        self._log.info("As of Toolkit v0.13, you can specify any location you want on disk. ")
-        self._log.info("Typically, this is in a software install area where you keep ")
-        self._log.info("all your Toolkit code and configuration. We will suggest defaults ")
-        self._log.info("based on your current install.")
-        
-        # figure out the config install location. There are three cases to deal with
-        # - 0.13 style layout, where they all sit together in an install location
-        # - 0.12 style layout, where there is a tank folder which is the studio location
-        #   and each project has its own folder.
-        # - something else!
-        
-        # find the primary storage path and see where it points to
-        primary_local_path = ""
-        primary_local_storage = None
-        for s in resolved_storages:
-            if s.get("code") == constants.PRIMARY_STORAGE_NAME:
-                primary_local_path = s.get(SG_LOCAL_STORAGE_OS_MAP[sys.platform])
-                primary_local_storage = s
-                break
-        
-        # handle old setup - in the old setup, we would have the following structure: 
-        # /studio              <--- primary storage
-        # /studio/tank         <--- studio install
-        # /studio/project      <--- project location
-        # /studio/project/tank <--- install location
-        #
-        # typical new style setup (not showing data locations)
-        # /software/studio <-- studio install
-        # /software/projX  <-- project install
-        
-        location = {"darwin": None, "linux2": None, "win32": None}
-        os_nice_name = {"darwin": "Macosx", "linux2": "Linux", "win32": "Windows"}
-        curr_os = sys.platform
-
-        
-        if os.path.abspath(os.path.join(install_root, "..")).lower() == primary_local_path.lower():
-            # ok the parent of the install root matches the primary storage - means OLD STYLE!
-            
-            self._log.info("")
-            self._log.info("Note! Your setup looks like it was created with Toolkit v0.12! While ")
-            self._log.info("it is now possible to put your configuration anywhere you like, we ")
-            self._log.info("will suggest defaults compatible with your existing installation.")
-            
-            if primary_local_storage.get("mac_path"):
-                pp = primary_local_storage.get("mac_path")
-                if pp.endswith("/"):
-                    pp = pp[:-1] 
-                location["darwin"] = "%s/%s/tank" % (pp, project_disk_name)
-                
-            if primary_local_storage.get("windows_path"):
-                pp = primary_local_storage.get("windows_path")
-                if pp.endswith("\\"):
-                    pp = pp[:-1] 
-                location["win32"] = "%s\\%s\\tank" % (pp, project_disk_name)
-                
-            if primary_local_storage.get("linux_path"):
-                pp = primary_local_storage.get("linux_path")
-                if pp.endswith("/"):
-                    pp = pp[:-1] 
-                location["linux2"] = "%s/%s/tank" % (pp, project_disk_name)
-            
-        else:
-            # assume new style setup - in this case we need to go figure out the different
-            # OS paths to the install location. These are kept in a config file.
-            
-            # now read in the install_location.yml file
-            cfg_yml = os.path.join(install_root, "config", "core", "install_location.yml")
-            fh = open(cfg_yml, "rt")
-            try:
-                data = yaml.load(fh)
-            finally:
-                fh.close()
-            
-            linux_install_root = data.get("Linux")
-            windows_install_root = data.get("Windows")
-            mac_install_root = data.get("Darwin")
-            
-            # typical new style setup (not showing data locations)
-            # /software/studio <-- studio install
-            # /software/projX  <-- project install
-            
-            if linux_install_root is not None and linux_install_root.startswith("/"):
-                chunks = linux_install_root.split("/")
-                # pop the studio bit
-                chunks.pop()
-                # append project name
-                chunks.append(project_disk_name)
-                location["linux2"] = "/".join(chunks)
-            
-            if mac_install_root is not None and mac_install_root.startswith("/"):
-                chunks = mac_install_root.split("/")
-                # pop the studio bit
-                chunks.pop()
-                # append project name
-                chunks.append(project_disk_name)
-                location["darwin"] = "/".join(chunks)
-            
-            if windows_install_root is not None and (windows_install_root.startswith("\\") or windows_install_root[1] == ":"):
-                chunks = windows_install_root.split("\\")
-                # pop the studio bit
-                chunks.pop()
-                # append project name
-                chunks.append(project_disk_name)
-                location["win32"] = "\\".join(chunks)
-            
-            
-        self._log.info("")
-        self._log.info("You can press ENTER to accept the default value or to skip.")
-        
-        for x in location:
-            curr_val = location[x]
-
-            if curr_val is None:
-                val = raw_input("%s : " % os_nice_name[x])
-                if val == "":
-                    self._log.info("Skipping. This Pipeline configuration will not support %s." % os_nice_name[x])
-                else:
-                    location[x] = val.strip()
-                    
-            else:
-                val = raw_input("%s [%s]: " % (os_nice_name[x], location[x]))
-                if val != "":
-                    location[x] = val.strip()
-
-        return location
-
-        
-    def get_config(self):
+    def select_template_configuration(self):
         """
         Ask the user which config to use. Returns a config string.
         """
@@ -243,83 +107,8 @@ class CmdlineSetupInteraction(object):
             config_name = constants.DEFAULT_CFG
         return config_name
         
-    def get_project_folder_name(self, suggested_folder_name, resolved_storages):
-        """
-        Returns a project name given a project folder.
-        Resolved storages are guaranteed to exist on disk etc.
-        """
-        
-        self._log.info("")
-        self._log.info("")
-        self._log.info("")
-        self._log.info("Now you need to tell Toolkit where you are storing the data for this project.")
-        self._log.info("The selected Toolkit config utilizes the following Local Storages, as ")
-        self._log.info("defined in the Shotgun Site Preferences:")
-        self._log.info("")
-        for s in resolved_storages:
-            # [{'code': 'primary', 'mac_path': '/tank_demo/project_data', 'windows_path': None, 'type': 'LocalStorage', 'id': 1, 'linux_path': None}]
-            current_os_path = s.get(SG_LOCAL_STORAGE_OS_MAP[sys.platform])
-            storage_name = s.get("code").capitalize()
-            self._log.info(" - %s: %s" % (storage_name, current_os_path))
-        
-        self._log.info("")
-        self._log.info("Each of the above locations need to have a data folder which is ")
-        self._log.info("specific to this project. These folders all need to be named the same thing.")
-        self._log.info("They also need to exist on disk.")
-        self._log.info("For example, if you named the project '%s', " % suggested_folder_name)
-        self._log.info("the following folders would need to exist on disk:")
-        self._log.info("")
-        for s in resolved_storages:
-            current_os_path = s.get(SG_LOCAL_STORAGE_OS_MAP[sys.platform])
-            proj_path = os.path.join(current_os_path, suggested_folder_name)
-            storage_name = s.get("code").capitalize()
-            self._log.info(" - %s: %s" % (storage_name, proj_path))
-        
-        self._log.info("")
-
-        while True:
-            self._log.info("")
-            proj_name = raw_input("Please enter a folder name [%s]: " % suggested_folder_name).strip()
-            if proj_name == "":
-                proj_name = suggested_folder_name
-            self._log.info("...that corresponds to the following data locations:")
-            self._log.info("")
-            storages_valid = True
-            for s in resolved_storages:
-                current_os_path = s.get(SG_LOCAL_STORAGE_OS_MAP[sys.platform])
-                proj_path = os.path.join(current_os_path, proj_name)
-                storage_name = s.get("code").capitalize()
-                if os.path.exists(proj_path):
-                    self._log.info(" - %s: %s [OK]" % (storage_name, proj_path))
-                else:
-                    
-                    # try to create the folders
-                    try:
-                        os.mkdir(proj_path, 0777)
-                        self._log.info(" - %s: %s [Created]" % (storage_name, proj_path))
-                        storages_valid = True
-                    except Exception, e:
-                        self._log.error(" - %s: %s [Not created]" % (storage_name, proj_path))
-                        self._log.error("   Please create path manually.")
-                        self._log.error("   Details: %s" % e)
-                        storages_valid = False
-            
-            self._log.info("")
-            
-            if storages_valid:
-                # looks like folders exist on disk
-                
-                val = raw_input("Paths look valid. Continue? (Yes/No)? [Yes]: ")
-                if val == "" or val.lower().startswith("y"):
-                    break
-            else:
-                self._log.info("Please make sure that folders exist on disk for your project name!")
-        
-        return proj_name
-
-
-        
-    def get_project(self, force):
+    
+    def select_project(self, force):
         """
         Returns the project id and name for a project for which setup should be done.
         Will request the user to input console input to select project.
@@ -392,6 +181,260 @@ class CmdlineSetupInteraction(object):
                 break
                             
         return (project_id, project_name)
+        
+    def get_project_folder_name(self, project_name, project_id, resolved_storages):
+        """
+        Given a project entity in Shotgun (name, id), decide where the project data
+        root should be on disk. This will verify that the selected folder exists
+        in each of the storages required by the configuration. It will prompt the user
+        and can create these root folders if required (with open permissions).
+
+        Returns the project disk name which is selected, this name may 
+        include slashes if the selected location is multi-directory.
+        """
+        
+        # see if there is a hook to procedurally evaluate this
+        # 
+        project_name_hook = shotgun.get_project_name_studio_hook_location()
+        if os.path.exists(project_name_hook):
+            # custom hook is available!
+            suggested_folder_name = hook.execute_hook(project_name_hook, 
+                                                      parent=None, 
+                                                      sg=self._sg, 
+                                                      project_id=project_id)
+        else:
+            # construct a valid name - replace white space with underscore and lower case it.
+            suggested_folder_name = re.sub("\W", "_", project_name).lower()
+
+        
+        self._log.info("")
+        self._log.info("")
+        self._log.info("")
+        self._log.info("Now you need to tell Toolkit where you are storing the data for this project.")
+        self._log.info("The selected Toolkit config utilizes the following Local Storages, as ")
+        self._log.info("defined in the Shotgun Site Preferences:")
+        self._log.info("")
+        for s in resolved_storages:
+            # [{'code': 'primary', 'mac_path': '/tank_demo/project_data', 
+            #   'windows_path': None, 
+            #   'type': 'LocalStorage', 
+            #   'id': 1, 'linux_path': None}]
+            current_os_path = s.get(SG_LOCAL_STORAGE_OS_MAP[sys.platform])
+            storage_name = s.get("code").capitalize()
+            self._log.info(" - %s: %s" % (storage_name, current_os_path))
+        
+        # first, display a preview
+        self._log.info("")
+        self._log.info("Each of the above locations need to have a data folder which is ")
+        self._log.info("specific to this project. These folders all need to be named the same thing.")
+        self._log.info("They also need to exist on disk.")
+        self._log.info("For example, if you named the project '%s', " % suggested_folder_name)
+        self._log.info("the following folders would need to exist on disk:")
+        self._log.info("")
+        for s in resolved_storages:
+            current_os_path = s.get(SG_LOCAL_STORAGE_OS_MAP[sys.platform])
+            # note how we replace slashes in the name with backslashes on windows...
+            proj_path = os.path.join(current_os_path, suggested_folder_name.replace("/", os.path.sep))
+            storage_name = s.get("code").capitalize()
+            self._log.info(" - %s: %s" % (storage_name, proj_path))
+        
+        self._log.info("")
+
+        # now ask for a value and validate
+        while True:
+            self._log.info("")
+            proj_name = raw_input("Please enter a folder name [%s]: " % suggested_folder_name).strip()
+            if proj_name == "":
+                proj_name = suggested_folder_name
+            self._log.info("...that corresponds to the following data locations:")
+            self._log.info("")
+            storages_valid = True
+            for s in resolved_storages:
+                current_os_path = s.get(SG_LOCAL_STORAGE_OS_MAP[sys.platform])
+                # note how we replace slashes in the name with backslashes on windows...
+                proj_path = os.path.join(current_os_path, proj_name.replace("/", os.path.sep))
+                storage_name = s.get("code").capitalize()
+                if os.path.exists(proj_path):
+                    self._log.info(" - %s: %s [OK]" % (storage_name, proj_path))
+                else:
+                    
+                    # try to create the folders
+                    try:
+                        os.makedirs(proj_path, 0777)
+                        self._log.info(" - %s: %s [Created]" % (storage_name, proj_path))
+                        storages_valid = True
+                    except Exception, e:
+                        self._log.error(" - %s: %s [Not created]" % (storage_name, proj_path))
+                        self._log.error("   Please create path manually.")
+                        self._log.error("   Details: %s" % e)
+                        storages_valid = False
+            
+            self._log.info("")
+            
+            if storages_valid:
+                # looks like folders exist on disk
+                
+                val = raw_input("Paths look valid. Continue? (Yes/No)? [Yes]: ")
+                if val == "" or val.lower().startswith("y"):
+                    break
+            else:
+                self._log.info("Please make sure that folders exist on disk for your project name!")
+        
+        return proj_name
+
+
+        
+    
+    
+    def get_disk_location(self, resolved_storages, project_disk_name, install_root):
+        """
+        Ask the user where the pipeline configuration should be located on disk.
+        Returns a dictionary with keys according to sys.platform: win32, darwin, linux2
+        
+        :param resolved_storages: All the storage roots (Local storage entities in shotgun)
+                                  needed for this configuration. For example: 
+                                  [{'code': 'primary', 
+                                    'id': 1,
+                                    'mac_path': '/tank_demo/project_data', 
+                                    'windows_path': None, 
+                                    'type': 'LocalStorage',  
+                                    'linux_path': None}]
+
+        :param project_name: The Project.name field in Shotgun for the selected project.
+        :param project_id: The Project.id field in Shotgun for the selected project.
+        :param install_root: location of the core code
+        """
+                            
+        self._log.info("")
+        self._log.info("")
+        self._log.info("Now it is time to decide where the configuration for this project should go. ")
+        self._log.info("As of Toolkit v0.13, you can specify any location you want on disk. ")
+        self._log.info("Typically, this is in a software install area where you keep ")
+        self._log.info("all your Toolkit code and configuration. We will suggest defaults ")
+        self._log.info("based on your current install.")
+        
+        # figure out the config install location. There are three cases to deal with
+        # - 0.13 style layout, where they all sit together in an install location
+        # - 0.12 style layout, where there is a tank folder which is the studio location
+        #   and each project has its own folder.
+        # - something else!
+        
+        # find the primary storage path and see where it points to
+        primary_local_path = ""
+        primary_local_storage = None
+        for s in resolved_storages:
+            if s.get("code") == constants.PRIMARY_STORAGE_NAME:
+                primary_local_path = s.get(SG_LOCAL_STORAGE_OS_MAP[sys.platform])
+                primary_local_storage = s
+                break
+        
+        # handle old setup - in the old setup, we would have the following structure: 
+        # /studio              <--- primary storage
+        # /studio/tank         <--- studio install
+        # /studio/project      <--- project location
+        # /studio/project/tank <--- install location
+        #
+        # typical new style setup (not showing data locations)
+        # /software/studio <-- studio install
+        # /software/projX  <-- project install
+        
+        location = {"darwin": None, "linux2": None, "win32": None}
+        os_nice_name = {"darwin": "Macosx", "linux2": "Linux", "win32": "Windows"}
+        
+        if os.path.abspath(os.path.join(install_root, "..")).lower() == primary_local_path.lower():
+            # ok the parent of the install root matches the primary storage - means OLD STYLE!
+            
+            self._log.info("")
+            self._log.info("Note! Your setup looks like it was created with Toolkit v0.12! While ")
+            self._log.info("it is now possible to put your configuration anywhere you like, we ")
+            self._log.info("will suggest defaults compatible with your existing installation.")
+            
+            for curr_os in SG_LOCAL_STORAGE_OS_MAP:
+                
+                sg_storage_path_value = primary_local_storage.get( SG_LOCAL_STORAGE_OS_MAP[curr_os] )
+            
+                if sg_storage_path_value:
+                    # chop off any end slashes
+                    sg_storage_path_value.rstrip("/\\")
+                    sg_storage_path_value += "/%s/tank" % project_disk_name
+                    if curr_os == "win32":
+                        # ensure back slashes all the way
+                        sg_storage_path_value = sg_storage_path_value.replace("/", "\\")
+                    else:
+                        # ensure slashes all the way
+                        sg_storage_path_value = sg_storage_path_value.replace("\\", "/")
+                        
+                    location[ curr_os ] = sg_storage_path_value        
+            
+        else:
+            # assume new style setup - in this case we need to go figure out the different
+            # OS paths to the install location. These are kept in a config file.
+            
+            # note! we must read this value from a file like this - cannot just determine it
+            # based on the currently running code - because we need to know the path on all
+            # three platforms.
+            
+            # now read in the install_location.yml file
+            cfg_yml = os.path.join(install_root, "config", "core", "install_location.yml")
+            fh = open(cfg_yml, "rt")
+            try:
+                data = yaml.load(fh)
+            finally:
+                fh.close()
+            
+            linux_install_root = data.get("Linux")
+            windows_install_root = data.get("Windows")
+            mac_install_root = data.get("Darwin")
+            
+            # typical new style setup (not showing data locations)
+            # /software/studio <-- studio install
+            # /software/projX  <-- project install
+            
+            if linux_install_root is not None and linux_install_root.startswith("/"):
+                chunks = linux_install_root.split("/")
+                # pop the studio bit
+                chunks.pop()
+                # append project name
+                chunks.extend( project_disk_name.split("/") ) 
+                location["linux2"] = "/".join(chunks)
+            
+            if mac_install_root is not None and mac_install_root.startswith("/"):
+                chunks = mac_install_root.split("/")
+                # pop the studio bit
+                chunks.pop()
+                # append project name
+                chunks.extend( project_disk_name.split("/") )
+                location["darwin"] = "/".join(chunks)
+            
+            if windows_install_root is not None and (windows_install_root.startswith("\\") or windows_install_root[1] == ":"):
+                chunks = windows_install_root.split("\\")
+                # pop the studio bit
+                chunks.pop()
+                # append project name
+                chunks.extend( project_disk_name.split("/") )
+                location["win32"] = "\\".join(chunks)
+            
+            
+        self._log.info("")
+        self._log.info("You can press ENTER to accept the default value or to skip.")
+        
+        for x in location:
+            curr_val = location[x]
+
+            if curr_val is None:
+                val = raw_input("%s : " % os_nice_name[x])
+                if val == "":
+                    self._log.info("Skipping. This Pipeline configuration will not support %s." % os_nice_name[x])
+                else:
+                    location[x] = val.strip()
+                    
+            else:
+                val = raw_input("%s [%s]: " % (os_nice_name[x], location[x]))
+                if val != "":
+                    location[x] = val.strip()
+
+        return location
+
     
     
 ###############################################################################################
@@ -836,6 +879,12 @@ def interactive_setup(log, install_root, check_storage_path_exists, force):
 def _interactive_setup(log, install_root, check_storage_path_exists, force):
     """
     interactive setup which will ask questions via the console.
+    
+    :param install_root: location of the core code
+    :param check_storage_path_exists: whether or not to check that the storage root exists
+                                      this can be useful sometimes when setting up windows
+                                      UNC paths.
+    :param force: allow to set up an already set up project 
     """
     log.info("")
     log.info("Welcome to the Shotgun Pipeline Toolkit Project Setup!")
@@ -865,7 +914,7 @@ def _interactive_setup(log, install_root, check_storage_path_exists, force):
     cmdline_ui = CmdlineSetupInteraction(log, sg)
     
     # now ask which config to use. Download if necessary and examine
-    config_name = cmdline_ui.get_config()
+    config_name = cmdline_ui.select_template_configuration()
 
     # now try to load the config
     cfg_installer = TankConfigInstaller(config_name, sg, sg_app_store, script_user, log)
@@ -877,18 +926,16 @@ def _interactive_setup(log, install_root, check_storage_path_exists, force):
     resolved_storages = cfg_installer.validate_roots(check_storage_path_exists)
 
     # ask which project to operate on
-    (project_id, project_name) = cmdline_ui.get_project(force)
-    
-    # construct a valid name - replace white space with underscore and lower case it.
-    project_disk_folder = re.sub("\W", "_", project_name).lower()
+    (project_id, project_name) = cmdline_ui.select_project(force)
     
     # ask the user to confirm the folder name
-    project_disk_folder = cmdline_ui.get_project_folder_name(project_disk_folder, resolved_storages)
+    project_disk_folder = cmdline_ui.get_project_folder_name(project_name, project_id, resolved_storages)
     
     # validate that this is not crazy
-    if re.match("^[a-zA-Z0-9_-]+$", project_disk_folder) is None:
+    # note that the value can contain slashes and span across multiple folders
+    if re.match("^[/a-zA-Z0-9_-]+$", project_disk_folder) is None:
         # bad name
-        raise TankError("Invalid project folder '%s'! Please stick to alphanumerics, "
+        raise TankError("Invalid project folder '%s'! Please use alphanumerics, "
                         "underscores and dashes." % project_disk_folder)
     
     # now ask the user where the config should go    
@@ -955,15 +1002,29 @@ def _interactive_setup(log, install_root, check_storage_path_exists, force):
         # path does not exist! 
         # make sure parent exists and is writable
     
-        parent_os_pc_location = os.path.dirname(current_os_pc_location)
-        if not os.path.exists(parent_os_pc_location):
-            raise TankError("The folder '%s' does not exist! Please create "
-                            "it before proceeding!" % parent_os_pc_location)
+        # find an existing parent path
+        parent_os_pc_location = None
+        curr_path = current_os_pc_location
+        while curr_path != os.path.dirname(curr_path):
+            
+            # get parent folder
+            curr_path = os.path.dirname(curr_path)
+            if os.path.exists(curr_path):
+                parent_os_pc_location = curr_path 
+                break
     
+        if parent_os_pc_location is None:
+            raise TankError("The folder '%s' does not exist! Please create "
+                            "it before proceeding!" % current_os_pc_location)
+                
         # and make sure we can create a folder in it
         if not os.access(parent_os_pc_location, os.W_OK|os.R_OK|os.X_OK):
-            raise TankError("The permissions setting for '%s' is too strict. The current user "
-                            "cannot create folders in this location." % parent_os_pc_location)
+            raise TankError("Cannot create a project configuration in location '%s'! "
+                            "The permissions setting for the closest parent folder that "
+                            "can be detected, '%s', is too strict. The current user "
+                            "cannot create folders in this location. Please create the "
+                            "project configuration folder by hand and then re-run the project "
+                            "setup." % (current_os_pc_location, parent_os_pc_location))
     
     
     ###############################################################################################
@@ -1040,7 +1101,7 @@ def _interactive_setup(log, install_root, check_storage_path_exists, force):
     log.info("Installing configuration into '%s'..." % current_os_pc_location )
     if not os.path.exists(current_os_pc_location):
         # note that we have already validated that creation is possible
-        _make_folder(log, current_os_pc_location, 0775)
+        os.makedirs(current_os_pc_location, 0775)
     
     # create pipeline config base folder structure            
     _make_folder(log, os.path.join(current_os_pc_location, "cache"), 0777)    
@@ -1212,11 +1273,10 @@ def _interactive_setup(log, install_root, check_storage_path_exists, force):
     # and write a custom event to the shotgun event log
     log.debug("Writing app store stats...")
     data = {}
-    data["description"] = "%s: An Toolkit Project named %s was created" % (sg.base_url, project_disk_folder)
+    data["description"] = "%s: An Toolkit Project was created" % sg.base_url
     data["event_type"] = "TankAppStore_Project_Created"
     data["user"] = script_user
     data["project"] = constants.TANK_APP_STORE_DUMMY_PROJECT
-    data["attribute_name"] = project_disk_folder
     sg_app_store.create("EventLogEntry", data)
     
     

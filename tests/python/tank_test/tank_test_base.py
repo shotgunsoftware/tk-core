@@ -124,7 +124,7 @@ class TankTestBase(unittest.TestCase):
         # project level config directories
         self.project_config = None
 
-    def setUp(self):
+    def setUp(self, project_tank_name = "project_code"):
         """Creates and registers test project."""
         self.tank_temp = TANK_TEMP
         self.tank_source_path = TANK_SOURCE_PATH
@@ -135,14 +135,16 @@ class TankTestBase(unittest.TestCase):
         # define entity for test project
         self.project = {"type": "Project",
                         "id": 1,
-                        "tank_name": "project_code",
+                        "tank_name": project_tank_name,
                         "name": "project_name"}
 
-        self.project_root = os.path.join(self.tank_temp, self.project["tank_name"])
+        self.project_root = os.path.join(self.tank_temp, self.project["tank_name"].replace("/", os.path.sep) )
           
         # create project directory
         self._move_project_data()
-        os.mkdir(self.project_root)
+        
+        os.makedirs(self.project_root)
+        
         project_tank = os.path.join(self.project_root, "tank")
         os.mkdir(project_tank)
 
@@ -170,7 +172,7 @@ class TankTestBase(unittest.TestCase):
         roots = {"primary": {}}
         for os_name in ["windows_path", "linux_path", "mac_path"]:
             #TODO make os specific roots
-            roots["primary"][os_name] = os.path.dirname(self.project_root)        
+            roots["primary"][os_name] = self.tank_temp        
         roots_path = os.path.join(project_tank, "config", "core", "roots.yml")
         roots_file = open(roots_path, "w") 
         roots_file.write(yaml.dump(roots))

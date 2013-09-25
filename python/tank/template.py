@@ -824,8 +824,12 @@ def _process_templates_data(data, template_type):
             dups_msg += "%s: %s\n" % (", ".join(template_names), definition)
 
     if dups_msg:
-        raise TankError("Duplicate definitions: multiple templates found sharing the same defintion.\n%s" %
-                         dups_msg)
+        raise TankError("It looks like you have one or more "
+                        "duplicate entries in your templates.yml file. Each template path that you " 
+                        "define in the templates.yml file needs to be unique, otherwise toolkit "
+                        "will not be able to resolve which template a particular path on disk "
+                        "corresponds to. The following duplicate "
+                        "templates were detected:\n %s" % dups_msg) 
 
     return templates_data
 

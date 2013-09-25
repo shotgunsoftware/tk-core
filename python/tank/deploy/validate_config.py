@@ -23,15 +23,30 @@ from ..platform import validation
 g_templates = set()
 g_hooks = set()
 
-def _validate_bundle(log, tk, name, settings, manifest):
+def _validate_bundle(log, tk, name, settings, descriptor):
 
     log.info("")
     log.info("Validating %s..." % name)
+
+    if not descriptor.exists_local():
+        log.info("Please wait, downloading...")
+        descriptor.download_local()
     
+    #if len(descriptor.get_required_frameworks()) > 0:
+    #    log.info("  Using frameworks: %s" % descriptor.get_required_frameworks())
+        
+    # out of date check
+    latest_desc = descriptor.find_latest_version()
+    if descriptor.get_version() != latest_desc.get_version():
+        log.info(  "WARNING: Latest version is %s. You are running %s." % (latest_desc.get_version(), 
+                                                                        descriptor.get_version()))
+    
+    
+    manifest = descriptor.get_configuration_schema()
     
     for s in settings.keys():
         if s not in manifest.keys():
-            log.error("Parameter not needed: %s" % s)
+            log.info("  WARNING - Parameter not needed: %s" % s)
         
         else: 
             default = manifest[s].get("default_value")
@@ -40,18 +55,27 @@ def _validate_bundle(log, tk, name, settings, manifest):
             try:
                 validation.validate_single_setting(name, tk, manifest, s, value)
             except TankError, e:
-                log.error("  Parameter %s - Invalid value: %s" % (s,e))
+                log.info("  ERROR - Parameter %s - Invalid value: %s" % (s,e))
             else:
                 # validation is ok
                 if default is None:
                     # no default value
-                    log.info("  Parameter %s - OK [no default value specified in manifest]" % s)
+                    # don't report this
+                    pass
+                    #log.info("  Parameter %s - OK [no default value specified in manifest]" % s)
+                
                 elif manifest[s].get("type") == "hook" and value == "default":
-                    log.info("  Parameter %s - OK [using hook 'default']" % s)
+                    # don't display when default values are used.
+                    pass
+                    #log.info("  Parameter %s - OK [using hook 'default']" % s)
+                
                 elif default == value:
-                    log.info("  Parameter %s - OK [using default value]" % s)
+                    pass
+                    # don't display when default values are used.
+                    #log.info("  Parameter %s - OK [using default value]" % s)
+                
                 else:
-                    log.warning("  Parameter %s - OK [using non-default value]" % s)
+                    log.info("  Parameter %s - OK [using non-default value]" % s)
                     log.info("    |---> Current: %s" % value)
                     log.info("    \---> Default: %s" % default)
                     
@@ -73,14 +97,14 @@ def _process_environment(log, tk, env):
 
     for e in env.get_engines():  
         s = env.get_engine_settings(e)
-        cfg_schema = env.get_engine_descriptor(e).get_configuration_schema()
-        name = "Engine %s [environment %s]" % (e, env.name)
-        _validate_bundle(log, tk, name, s, cfg_schema)
+        descriptor = env.get_engine_descriptor(e)
+        name = "Engine %s / %s" % (env.name, e)
+        _validate_bundle(log, tk, name, s, descriptor)
         for a in env.get_apps(e):
             s = env.get_app_settings(e, a)
-            cfg_schema = env.get_app_descriptor(e, a).get_configuration_schema()
-            name = "App %s: %s [environment %s]" % (e, a, env.name)
-            _validate_bundle(log, tk, name, s, cfg_schema)
+            descriptor = env.get_app_descriptor(e, a)
+            name = "%s / %s / %s" % (env.name, e, a)
+            _validate_bundle(log, tk, name, s, descriptor)
     
     
     
@@ -117,6 +141,8 @@ def validate_configuration(log, tk):
     # check templates that are orphaned
     unused_templates = set(tk.templates.keys()) - g_templates 
 
+    log.info("")
+    log.info("------------------------------------------------------------------------")
     log.info("The following templates are not being used directly in any environments:")
     log.info("(they may be used inside complex data structures)")
     for ut in unused_templates:
@@ -127,12 +153,16 @@ def validate_configuration(log, tk):
     log.info("")
     
     # check hooks that are unused
-    hooks = os.listdir(tk.pipeline_configuration.get_hooks_location())
-    # strip extension from file name
-    all_hooks = set([ x[:-3] for x in hooks ])
+    all_hooks = []
+    # get rid of files not ending with .py and strip extension
+    for hook in os.listdir(tk.pipeline_configuration.get_hooks_location()):
+        if hook.endswith(".py"):
+            all_hooks.append( hook[:-3] )
+    
+    unused_hooks = set(all_hooks) - g_hooks 
 
-    unused_hooks = all_hooks - g_hooks 
-
+    log.info("")
+    log.info("--------------------------------------------------------------------")
     log.info("The following hooks are not being used directly in any environments:")
     log.info("(they may be used inside complex data structures)")
     for uh in unused_hooks:

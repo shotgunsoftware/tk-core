@@ -16,7 +16,11 @@ a field in shotgun. Should for example spaces be replaced by underscores
 or periods when folders are created?
 
 Also this conversion hook may raise exceptions in order to indicate a validation, 
-for example if an invalid naming convention is being used.
+for example if an invalid naming convention is being used:
+
+if entity_type == "Shot" and str_value.startswith("AA"):
+   raise TankError("Shot names cannot start with AA!")
+
 """
 
 from tank import Hook
@@ -37,9 +41,9 @@ class ProcessFolderName(Hook):
         Generates a string value given some shotgun value.
         Doing smart conversions, so that for example
         a {"type":"Shot", "id":123, "name":"foo"} ==> "foo"
+        
         """
-        
-        
+                
         if value.__class__ == dict and "name" in value:
             # it is a dictionary with a name key - assume this is what we want
             # this is normally an entity link
@@ -77,27 +81,30 @@ class ProcessFolderName(Hook):
             # a string
             str_value = str(value)
             
-        # replace all non-alphanumeric characters with dashes:
-        str_value = self._replace_non_alphanumeric(str_value)
-
-        # validation can be implemented by raising an exception:        
-        #
-        #if entity_type == "Shot" and str_value.startswith("AA"):
-        #    raise TankError("Shot names cannot start with AA!")
-        #
+        # replace all non-alphanumeric characters with dashes, 
+        # except for the project entity, where accept slashes
+        # as a valid character.
+        preserve_slashes = (entity_type == "Project")
+        str_value = self._replace_non_alphanumeric(str_value, preserve_slashes)
         
         return str_value
     
-    def _replace_non_alphanumeric(self, src):
+    def _replace_non_alphanumeric(self, src, preserve_slashes):
         """
         Safely replace all non-alphanumeric characters 
         with dashes (-).
         
         Note, this handles non-ascii characters correctly
         """
-        # regex to find non-alphanumeric characters
-        import re
-        exp = re.compile(u"\W", re.UNICODE)    
+        
+        if preserve_slashes:
+            # regex to find non-word characters, except slashes, which are preserved
+            exp = re.compile(u"[^\w/]", re.UNICODE)
+        else:        
+            # regex to find non-word characters - in ascii land, that is [^A-Za-z0-9_]
+            # note that we use a unicode expression, meaning that it will include other
+            # "word" characters, not just A-Z.  
+            exp = re.compile(u"\W", re.UNICODE)
         
         if isinstance(src, unicode):
             # src is unicode so we don't need to convert!

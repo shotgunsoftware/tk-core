@@ -275,9 +275,57 @@ class Static(Folder):
         """
         Factory method for this class
         """
-        return Static(parent, full_path, metadata)
+        
+        # get data
+        constrain_by_entity = metadata.get("constrain_by_entity")
+        constraints = metadata.get("constraints")
+        
+        # validate
+        if constrain_by_entity is not None and constraints is None:
+            raise TankError("Missing constraints parameter in yml metadata file %s" % full_path )
+        
+        if constraints is not None and constrain_by_entity is None:
+            raise TankError("Configuration error in %s: Need to have a "
+                            "constrain_by_entity token in order "
+                            "for the constraints parameter to be picked up." % full_path )
+
+        # resolve dynamic constraints filter ($shot, $step etc).
+        if constraints:
+            constraints_filter = _translate_filter_tokens(constraints, parent, full_path)
+            
+            # resolve the constrained_by_entity ($shot, $step etc) 
+            resolved_constrain_node = None
+            curr_parent = parent
+            while curr_parent:
+                full_folder_path = curr_parent.get_path()
+                folder_name = os.path.basename(full_folder_path)
+                if folder_name == constrain_by_entity[1:]:
+                    resolved_constrain_node = curr_parent
+                    break
+                else:
+                    curr_parent = curr_parent.get_parent()
+            
+            if resolved_constrain_node is None:
+                raise TankError("Configuration error in %s: constrain_by_entity '%s' could not "
+                            "be resolved into a parent node. It needs to be on the form '$name', "
+                            "where name is the name of a parent yaml "
+                            "configuration file."  % (full_path, constrain_by_entity))
+
+        
+            if not isinstance(resolved_constrain_node, Entity):
+                raise TankError("Configuration error in %s: constrain_by_entity points "
+                                "at a node which is not associated with any Shotgun data. " 
+                                "You can only constrain based on nodes which have a Shotgun "
+                                "representation." % full_path )
+                   
+        else:
+            # no constraints active for this static node
+            resolved_constrain_node = None
+            constraints_filter = None
+                        
+        return Static(parent, full_path, metadata, tk, resolved_constrain_node, constraints_filter)
     
-    def __init__(self, parent, full_path, metadata):
+    def __init__(self, parent, full_path, metadata, tk, constrain_node, constraints_filter):
         """
         Constructor.
         """
@@ -285,6 +333,12 @@ class Static(Folder):
         
         # The name parameter represents the folder name that will be created in the file system.
         self._name = os.path.basename(full_path)
+        
+        self._constrain_node = constrain_node
+        self._constraints_filter = constraints_filter 
+        self._tk = tk
+        
+        self._cached_sg_data = {}
     
     def is_dynamic(self):
         """
@@ -296,6 +350,57 @@ class Static(Folder):
         """
         Creates a static folder.
         """
+        
+        # first check if we have any conditionals that need evaluating
+        if self._constrain_node:
+            
+            # resolve our sg filter expression based on the current shotgun data
+            # for the current parent objects (for example if the query expression
+            # contains $shot or other dynamic tokens)
+            resolved_filters = _resolve_shotgun_filters(self._constraints_filter, sg_data)
+            
+            # so now resolved_filters is something like:
+            # {'logical_operator': 'and', 
+            #  'conditions': [{'path': 'code', 'values': ['a'], 'relation': 'contains'}] }
+            # 
+            # and the configuration states that the constraint object is $shot
+            # which is resolved into self._constrain_node
+            #
+            # now we want to get the current parent $shot id. This can be extrated
+            # from the sg_data dict which is on the form:
+            # {'Project': {'id': 88, 'type': 'Project'},
+            # 'Sequence': {'id': 32, 'type': 'Sequence'},
+            # 'Shot': {'id': 1184, 'type': 'Shot'},
+            # 'Step': {'id': 5, 'type': 'Step'}}
+            # 
+            # once extracted, we can add that to the sg filter to get our final filter:
+            # 
+            # {'logical_operator': 'and', 
+            #  'conditions': [{'path': 'code', 'values': ['a'], 'relation': 'contains'},
+            #                 {'path': 'id', 'values': [1184], 'relation': 'is'} ] }
+            
+            constrain_entity_id = sg_data[ self._constrain_node.get_entity_type() ]["id"]
+            id_filter = {'path': 'id', 'values': [constrain_entity_id], 'relation': 'is'}
+            resolved_filters["conditions"].append(id_filter)
+            
+            # depending on the filter, it is possible that the same static query will 
+            # be generated more than once - so cache the results so that we can minimize
+            # shotgun queries.
+            hash_key = hash(str(resolved_filters))
+            
+            if hash_key in self._cached_sg_data:
+                data = self._cached_sg_data[hash_key]
+            
+            else:
+                # call out to shotgun
+                data = self._tk.shotgun.find_one(self._constrain_node.get_entity_type(), resolved_filters)
+                # and cache it
+                self._cached_sg_data[hash_key] = data
+                        
+            if data is None:
+                # no match! this means that our constraints filter did not match the current object
+                return []
+        
         # create our folder
         my_path = os.path.join(parent_path, self._name)
         
@@ -490,19 +595,42 @@ class CurrentStepExpressionToken(object):
     Represents the current step
     """
     
-    def __init__(self):
-        pass
+    def __init__(self, sg_task_step_link_field):
+        self._sg_task_step_link_field = sg_task_step_link_field
+    
+    def __repr__(self):
+        return "<CurrentStepId token. Task link field: %s>" % self._sg_task_step_link_field
     
     def resolve_shotgun_data(self, shotgun_data):
         """
         Given a shotgun data dictionary, return an appropriate value 
         for this expression. 
+        
+        Because the entire design is centered around "normal" entities, 
+        the task data is preloaded prior to calling the folder recursion.
+        If there is a notion of a current task, this data is contained
+        in a current_task_data dictionary which contains information about 
+        the current task and its connections (for example to a pipeline step).
         """
         
-        if "current_step_id" in shotgun_data:
-            return shotgun_data["current_step_id"]
-        else:
-            return None
+        sg_task_data = shotgun_data.get("current_task_data")
+        
+        if sg_task_data:
+            # we have information about the currently processed task
+            # now see if there is a link field to a step
+            
+            if self._sg_task_step_link_field in sg_task_data:
+                # this is a link field linking the task to its associated step
+                # (a step does not necessarily need to be a pipeline step)
+                # now get the id for this target entity. 
+                sg_task_shot_link_data = sg_task_data[self._sg_task_step_link_field]
+                
+                if sg_task_shot_link_data:
+                    # there is a link from task -> step present
+                    return sg_task_shot_link_data["id"]
+        
+        # if data is missing, return None to indicate this.
+        return None
     
 
 class CurrentTaskExpressionToken(object):
@@ -513,14 +641,24 @@ class CurrentTaskExpressionToken(object):
     def __init__(self):
         pass
     
+    def __repr__(self):
+        return "<CurrentTaskId token>"
+    
     def resolve_shotgun_data(self, shotgun_data):
         """
         Given a shotgun data dictionary, return an appropriate value 
         for this expression.
-        """
         
-        if "current_task_id" in shotgun_data:
-            return shotgun_data["current_task_id"]
+        Because the entire design is centered around "normal" entities, 
+        the task data is preloaded prior to calling the folder recursion.
+        If there is a notion of a current task, this data is contained
+        in a current_task_data dictionary which contains information about 
+        the current task and its connections (for example to a pipeline step).
+        """
+        sg_task_data = shotgun_data.get("current_task_data")
+        
+        if sg_task_data:            
+            return sg_task_data.get("id")
         else:
             return None
 
@@ -574,6 +712,8 @@ class FilterExpressionToken(object):
         # store that too so that for later use
         self._associated_entity_type = referenced_node.get_entity_type() 
         
+    def __repr__(self):
+        return "<FilterExpression '%s' >" % self._expression
 
     def _resolve_ref_r(self, folder_obj):
         """
@@ -706,39 +846,7 @@ class Entity(Folder):
         self._entity_type = entity_type
         self._entity_expression = shotgun_entity.EntityExpression(self._tk, self._entity_type, field_name_expression)
         self._filters = filters
-        self._create_with_parent = create_with_parent
-    
-    
-    def __resolve_shotgun_filters(self, sg_data):
-        """
-        Replace Token instances in the filters with a real value from the tokens dictionary.
-
-        This method processes the filters dictionary and replaces tokens with data found
-        in the tokens dictionary. It returns a resolved filter dictionary that can be passed to 
-        a shotgun query.
-        """
-        # TODO: Support nested conditions
-        resolved_filters = copy.deepcopy(self._filters)
-        for condition in resolved_filters["conditions"]:
-            vals = condition["values"]
-            
-            if vals[0] and isinstance(vals[0], FilterExpressionToken):
-                # we got a $filter! - replace with resolved value
-                expr_token = vals[0]
-                vals[0] = expr_token.resolve_shotgun_data(sg_data)
-            
-            if vals[0] and isinstance(vals[0], CurrentStepExpressionToken):
-                # we got a current step filter! - replace with resolved value
-                expr_token = vals[0]
-                vals[0] = expr_token.resolve_shotgun_data(sg_data)
-
-            if vals[0] and isinstance(vals[0], CurrentTaskExpressionToken):
-                # we got a current task filter! - replace with resolved value
-                expr_token = vals[0]
-                vals[0] = expr_token.resolve_shotgun_data(sg_data)                
-
-        return resolved_filters
-    
+        self._create_with_parent = create_with_parent    
     
     def __get_name_field_for_et(self, entity_type):
         """
@@ -779,6 +887,11 @@ class Entity(Folder):
 
             # generate the field name            
             folder_name = self._entity_expression.generate_name(entity)
+            
+            # now for the case where the project name is encoded with slashes,
+            # we need to translate those into a native representation
+            folder_name = folder_name.replace("/", os.path.sep)
+            
             my_path = os.path.join(parent_path, folder_name)
                         
             # get the name field - which depends on the entity type
@@ -824,7 +937,7 @@ class Entity(Folder):
         # we should only process this single entity. If not, then use the query filter
         
         # first, resolve the filter queries for the current ids passed in via tokens
-        resolved_filters = self.__resolve_shotgun_filters(sg_data)
+        resolved_filters = _resolve_shotgun_filters(self._filters, sg_data)
         
         # see if the sg_data dictionary has a "seed" entity type matching our entity type
         my_sg_data_key = FilterExpressionToken.sg_data_key_for_folder_obj(self)
@@ -1104,20 +1217,43 @@ class ShotgunStep(Entity):
             raise TankError("Missing name token in yml metadata file %s" % full_path )
 
         create_with_parent = metadata.get("create_with_parent", True)
-
+        
+        entity_type = metadata.get("entity_type", "Step")
+        task_link_field = metadata.get("task_link_field", "step")
+        
         filters = metadata.get("filters", [])
         entity_filter = _translate_filter_tokens(filters, parent, full_path)
         
-        return ShotgunStep(tk, parent, full_path, metadata, sg_name_expression, create_with_parent, entity_filter)
+        return ShotgunStep(tk, 
+                           parent, 
+                           full_path, 
+                           metadata, 
+                           sg_name_expression, 
+                           create_with_parent, 
+                           entity_filter,
+                           entity_type,
+                           task_link_field)
     
     
-    def __init__(self, tk, parent, full_path, metadata, field_name_expression, create_with_parent, entity_filter):
+    def __init__(self, 
+                 tk, 
+                 parent, 
+                 full_path, 
+                 metadata, 
+                 field_name_expression, 
+                 create_with_parent, 
+                 entity_filter, 
+                 entity_type, 
+                 task_link_field):
         """
         constructor
         """
         
+        self._entity_type = entity_type
+        self._task_link_field = task_link_field
+        
         # look up the tree for the first parent of type Entity which is not a User
-        # this is because the user is typically assiged to a sandbox
+        # this is because the user is typically assigned to a sandbox
         # and no-one would have steps actually associated with a user anyways 
         # (seems like a highly unlikely case anyone would even do that)
         # so skip over user in order to support folder configs where
@@ -1141,7 +1277,12 @@ class ShotgunStep(Entity):
         # now create the shotgun filter query for this note that the query 
         # uses this weird special syntax to restrict the pipeline steps 
         # created only to be ones actually used with the entity
-        step_filter = {"path": "$FROM$Task.step.entity", "relation": "is", "values": [parent_expr_token] }
+        
+        # The syntax here is $FROM$Task.CONNECTION_FIELD.entity, where the connection field
+        # is "step" by default
+        step_filter_path = "$FROM$Task.%s.entity" % self.get_task_link_field() 
+        
+        step_filter = {"path": step_filter_path, "relation": "is", "values": [parent_expr_token] }
         entity_filter["conditions"].append( step_filter )
         
         # if the create_with_parent setting is True, it means that if we create folders for a 
@@ -1150,8 +1291,9 @@ class ShotgunStep(Entity):
         # this node if we are creating folders for a task.
         if create_with_parent != True: 
             # do not auto-create with parent - only create when a task has been specified.
-            # create an expression object to represent the current step
-            current_step_id_token = CurrentStepExpressionToken()
+            # create an expression object to represent the current step.
+            # we pass in the field which is the connection between the task and the step field
+            current_step_id_token = CurrentStepExpressionToken( self.get_task_link_field() )
             # add this to the filters so that we restrict the filter to be 
             # step id is 1234 (where 1234 is the current step derived from the current task
             # and the current task comes from the original folder create request).
@@ -1162,13 +1304,27 @@ class ShotgunStep(Entity):
                         parent, 
                         full_path,
                         metadata,
-                        "Step", 
+                        self.get_step_entity_type(), 
                         field_name_expression, 
                         entity_filter, 
                         create_with_parent=True)
                 
         
-        
+    def get_task_link_field(self):       
+        """
+        Each step node is associated with a task via special link field on task.
+        This method returns the name of that link field as a string
+        """
+        return self._task_link_field
+    
+    def get_step_entity_type(self):
+        """
+        Returns the Shotgun entity type which is used to represent the pipeline step.
+        Shotgun has a built in pipeline step which is a way of grouping tasks together
+        into distinct sets, however it is sometimes useful to be able to use a different
+        entity to perform this grouping.
+        """
+        return self._entity_type
 
 
 class ShotgunTask(Entity):
@@ -1234,7 +1390,9 @@ class ShotgunTask(Entity):
             # make sure we include that in the filter
             parent_step_name = os.path.basename(sg_parent_step.get_path())
             parent_step_expr_token = FilterExpressionToken(parent_step_name, sg_parent_step)
-            entity_filter["conditions"].append({"path": "step", "relation": "is", "values": [parent_step_expr_token]})
+            entity_filter["conditions"].append({"path": sg_parent_step.get_task_link_field(), 
+                                                "relation": "is", 
+                                                "values": [parent_step_expr_token]})
         
         # if the create_with_parent setting is True, it means that if we create folders for a 
         # shot, we want all the tasks to be created at the same time.
@@ -1248,7 +1406,7 @@ class ShotgunTask(Entity):
             # step id is 1234 (where 1234 is the current step derived from the current task
             # and the current task comes from the original folder create request).
             entity_filter["conditions"].append({"path": "id", "relation": "is", "values": [current_task_id_token]})
-                    
+        
         Entity.__init__(self, 
                         tk,
                         parent, 
@@ -1282,10 +1440,10 @@ class Project(Entity):
             raise TankError("Missing or invalid value for 'root_name' in metadata: %s" % schema_config_project_folder)
         
         # now resolve the disk location for the storage specified in the project config
-        storage_root_path = tk.pipeline_configuration.get_data_roots().get(storage_name)
+        storage_root_path = tk.pipeline_configuration.get_local_storage_roots().get(storage_name)
         if storage_root_path is None:
             raise TankError("The storage '%s' specified in the folder config %s.yml "
-                            "does not exist!" % (storage_name, schema_config_project_folder))
+                            "is not defined on this operating system!" % (storage_name, schema_config_project_folder))
         
         return Project(tk, schema_config_project_folder, metadata, storage_root_path)
     
@@ -1313,12 +1471,46 @@ class Project(Entity):
                         no_filters, 
                         create_with_parent=False)
                 
-    def get_data_root(self):
+    def get_storage_root(self):
         """
-        Returns the data root folder for this project
+        Local storages are defined in the Shotgun preferences.
+        This method returns the local OS path that is associated with the
+        local storage that this project node is associated with.
+        (By default, this is the primary storage, but if you have a multi
+        root config, there may be more than one project node.)        
         """
         return self._storage_root_path
         
+
+def _resolve_shotgun_filters(filters, sg_data):
+    """
+    Replace Token instances in the filters with a real value from the tokens dictionary.
+
+    This method processes the filters dictionary and replaces tokens with data found
+    in the tokens dictionary. It returns a resolved filter dictionary that can be passed to 
+    a shotgun query.
+    """
+    # TODO: Support nested conditions
+    resolved_filters = copy.deepcopy(filters)
+    for condition in resolved_filters["conditions"]:
+        vals = condition["values"]
+        
+        if vals[0] and isinstance(vals[0], FilterExpressionToken):
+            # we got a $filter! - replace with resolved value
+            expr_token = vals[0]
+            vals[0] = expr_token.resolve_shotgun_data(sg_data)
+        
+        if vals[0] and isinstance(vals[0], CurrentStepExpressionToken):
+            # we got a current step filter! - replace with resolved value
+            expr_token = vals[0]
+            vals[0] = expr_token.resolve_shotgun_data(sg_data)
+
+        if vals[0] and isinstance(vals[0], CurrentTaskExpressionToken):
+            # we got a current task filter! - replace with resolved value
+            expr_token = vals[0]
+            vals[0] = expr_token.resolve_shotgun_data(sg_data)                
+
+    return resolved_filters
 
 
 def _translate_filter_tokens(filter_list, parent, yml_path):

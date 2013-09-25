@@ -70,6 +70,30 @@ class Application(TankBundle):
     # properties
         
     @property
+    def shotgun(self):
+        """
+        Delegates to the Sgtk API instance's shotgun connection, which is lazily
+        created the first time it is requested.
+        
+        :returns: Shotgun API handle
+        """
+        # pass on information to the user agent manager which bundle is returning
+        # this sg handle. This information will be passed to the web server logs
+        # in the shotgun data centre and makes it easy to track which app and engine versions
+        # are being used by clients
+        try:
+            self.tank.shotgun.tk_user_agent_handler.set_current_app(self.name, 
+                                                                    self.version,
+                                                                    self.engine.name,
+                                                                    self.engine.version)
+        except AttributeError:
+            # looks like this sg instance for some reason does not have a
+            # tk user agent handler associated.
+            pass
+        
+        return self.tank.shotgun        
+        
+    @property
     def instance_name(self):
         """
         The name for this app instance

@@ -28,10 +28,21 @@ def assert_paths_to_create(expected_paths):
     # Check paths sent to make_folder
     for expected_path in expected_paths:
         if expected_path not in g_paths_created:
-            assert False, "\n%s\nnot found in: [\n%s]" % (expected_path, "\n".join(g_paths_created))
+            msg = "\n------------------\n"
+            msg += "Expected path '%s' not found in paths created on disk:\n" % expected_path
+            msg += "\n".join(g_paths_created)
+            msg += "------------------\n"
+            assert False, msg
     for actual_path in g_paths_created:
         if actual_path not in expected_paths:
-            assert False, "Unexpected path slated for creation: %s \nPaths: %s" % (actual_path, "\n".join(g_paths_created))
+            msg = "\n------------------\n"
+            msg += "Unexpected path '%s' created by system.\n\n" % actual_path
+            msg += "List of paths created on disk:\n"
+            msg += "\n".join(g_paths_created)
+            msg += "\nList of paths expected to be created:\n"
+            msg += "\n".join(expected_paths)
+            msg += "------------------\n"
+            assert False, msg
 
 
 g_paths_created = []
@@ -78,12 +89,13 @@ def execute_folder_creation_proxy(self):
 
 
 class TestSchemaCreateFolders(TankTestBase):
-    def setUp(self):
+    
+    def setUp(self, project_tank_name = "project_code"):
         """Sets up entities in mocked shotgun database and creates Mock objects
         to pass in as callbacks to Schema.create_folders. The mock objects are
         then queried to see what paths the code attempted to create.
         """
-        super(TestSchemaCreateFolders, self).setUp()
+        super(TestSchemaCreateFolders, self).setUp(project_tank_name)
         self.setup_fixtures()
         self.seq = {"type": "Sequence",
                     "id": 2,
@@ -151,6 +163,24 @@ class TestSchemaCreateFolders(TankTestBase):
         self.shot["code"] = "name with spaces"
         
         expected_paths = self._construct_shot_paths(shot_name="name-with-spaces")
+
+        folder.process_filesystem_structure(self.tk, 
+                                            self.shot["type"], 
+                                            self.shot["id"], 
+                                            preview=False,
+                                            engine=None)        
+        
+        assert_paths_to_create(expected_paths)
+
+    def test_unicode(self):
+        # make illegal value
+        
+        # some japanese characters, UTF-8 encoded, just like we would get the from
+        # the shotgun API.
+        
+        self.shot["code"] = "\xe3\x81\xbe\xe3\x82\x93\xe3\x81\x88 foo bar"
+        
+        expected_paths = self._construct_shot_paths(shot_name="\xe3\x81\xbe\xe3\x82\x93\xe3\x81\x88-foo-bar")
 
         folder.process_filesystem_structure(self.tk, 
                                             self.shot["type"], 
@@ -262,6 +292,7 @@ class TestSchemaCreateFolders(TankTestBase):
 
     def test_project(self):
         """Tests paths used in making a project are as expected."""
+                
         # paths based on sg_standard starter config
         expected_paths = []
         expected_paths.append(self.project_root)
@@ -320,7 +351,27 @@ class TestSchemaCreateFolders(TankTestBase):
         expected_paths.append(os.path.join(step_path, "work", "snapshots"))
         expected_paths.append(os.path.join(step_path, "work", "workspace.mel"))
         expected_paths.append(os.path.join(step_path, "out"))
+        
         return expected_paths
+
+
+
+
+
+
+
+class TestSchemaCreateFoldersMultiLevelProjectRoot(TestSchemaCreateFolders):
+
+    """ 
+    Test a setup where there are more than a single folder in the Project.tank_name.
+    
+    We just run the standard tests but with an extended project root path. 
+    """
+
+    def setUp(self):        
+        super(TestSchemaCreateFoldersMultiLevelProjectRoot, self).setUp(project_tank_name="multi/root/project/name")
+
+        
 
 
 

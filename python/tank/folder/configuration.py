@@ -55,10 +55,16 @@ class FolderConfiguration(object):
         Constructor
         """
         self._tk = tk
+        
         # access shotgun nodes by their entity_type
         self._entity_nodes_by_type = {}
+        
+        # maintain a list of all Step nodes for special introspection
+        self._step_fields = []
+        
         # read skip files config
         self._ignore_files = read_ignore_files(schema_config_path)
+        
         # load schema
         self._load_schema(schema_config_path)
 
@@ -72,6 +78,11 @@ class FolderConfiguration(object):
         """
         return self._entity_nodes_by_type.get(entity_type, [])
 
+    def get_task_step_nodes(self):
+        """
+        Returns all step nodes in the configuration
+        """
+        return self._step_fields
 
     ####################################################################################
     # utility methods
@@ -215,6 +226,7 @@ class FolderConfiguration(object):
 
                 elif node_type == "shotgun_step":
                     cur_node = ShotgunStep.create(self._tk, parent_node, full_path, metadata)
+                    self._step_fields.append(cur_node)
 
                 elif node_type == "shotgun_task":
                     cur_node = ShotgunTask.create(self._tk, parent_node, full_path, metadata)
