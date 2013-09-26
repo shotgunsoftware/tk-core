@@ -959,8 +959,10 @@ def _entity_from_sg(tk, entity_type, entity_id):
     # deal with funny naming for certain entities 
     if entity_type == "HumanUser":
         name_field = "login"
+        
     elif entity_type == "Project":
         name_field = "name"
+    
     else:
         name_field = "code"
 
@@ -971,11 +973,13 @@ def _entity_from_sg(tk, entity_type, entity_id):
 
     # create context
     context = {}
-    context["entity"] = {"type": entity_type, "id": entity_id, "name": data[name_field]}
+    
     if entity_type == "Project":
-        context["project"] = {"type":"Project", "id": entity_id}
+        context["project"] = {"type":"Project", "id": entity_id, "name": data.get(name_field) }
+    
     else:
-        context["project"] = data["project"]     
+        context["entity"] = {"type": entity_type, "id": entity_id, "name": data.get(name_field) }
+        context["project"] = data.get("project")     
 
     return context
 
