@@ -38,13 +38,13 @@ class PipelineConfiguration(object):
         """
         Constructor. Do not call this directly, use the factory methods
         at the bottom of this file.
-        
+
         NOTE ABOUT SYMLINKS!
-        
+
         The pipeline_configuration_path is always populated by the paths
         that were registered in shotgun, regardless of how the symlink setup
         is handled on the OS level.
-        
+
         """
         self._pc_root = pipeline_configuration_path
 
@@ -162,7 +162,7 @@ class PipelineConfiguration(object):
 
     def get_shotgun_id(self):
         """
-        Returns the shotgun id for this PC. 
+        Returns the shotgun id for this PC.
         May connect to Shotgun to retrieve this.
         """
         if self._pc_id is None:
@@ -178,7 +178,7 @@ class PipelineConfiguration(object):
 
     def get_project_id(self):
         """
-        Returns the shotgun id for the project associated with this PC. 
+        Returns the shotgun id for the project associated with this PC.
         May connect to Shotgun to retrieve this.
         """
         if self._project_id is None:
@@ -339,7 +339,12 @@ class PipelineConfiguration(object):
         """
         Returns the path to the path cache file.
         """
-        return os.path.join(self.get_primary_data_root(), "tank", "cache", constants.CACHE_DB_FILENAME)
+
+        # PSYOP
+        project_pc_location = os.getenv("TANK_PROJECT_PC_PATH", "tank")
+        # END PSYOP
+
+        return os.path.join(self.get_primary_data_root(), project_pc_location, "cache", constants.CACHE_DB_FILENAME)
 
 
     ########################################################################################
@@ -505,7 +510,12 @@ class StorageConfigurationMapping(object):
 
     def __init__(self, data_root):
         self._root = data_root
-        self._config_file = os.path.join(self._root, "tank", "config", constants.CONFIG_BACK_MAPPING_FILE)
+
+        # PSYOP
+        project_pc_location = os.getenv("TANK_PROJECT_PC_PATH", "tank")
+        # END PSYOP
+
+        self._config_file = os.path.join(self._root, project_pc_location, "config", constants.CONFIG_BACK_MAPPING_FILE)
 
     def clear_mappings(self):
         """
@@ -614,10 +624,10 @@ def from_entity(entity_type, entity_id):
     # ok now we have all the PCs in Shotgun for this project.
     # apply the following logic:
     #
-    # if this method was called from a generic tank command, just find the primary PC 
+    # if this method was called from a generic tank command, just find the primary PC
     # and use that.
     #
-    # if this was called from a specific tank command, use that. 
+    # if this was called from a specific tank command, use that.
 
     if "TANK_CURRENT_PC" not in os.environ:
         # we are running the generic tank command, the code that we are running
@@ -729,7 +739,7 @@ def from_path(path):
     if os.path.exists(pc_config):
         # done deal!
 
-        # resolve the "real" location that is stored in Shotgun and 
+        # resolve the "real" location that is stored in Shotgun and
         # cached in the file system
         pc_registered_path = get_pc_registered_location(path)
 
@@ -747,8 +757,13 @@ def from_path(path):
 
     cur_path = path
     config_path = None
+
+    # PSYOP
+    project_pc_location = os.getenv("TANK_PROJECT_PC_PATH", "tank")
+    # END PSYOP
+
     while True:
-        config_path = os.path.join(cur_path, "tank", "config", constants.CONFIG_BACK_MAPPING_FILE)
+        config_path = os.path.join(cur_path, project_pc_location, "config", constants.CONFIG_BACK_MAPPING_FILE)
         # need to test for something in project vs studio config
         if os.path.exists(config_path):
             break
@@ -777,12 +792,12 @@ def from_path(path):
     # if we are using a specific tank command, try to use that PC
 
     if "TANK_CURRENT_PC" not in os.environ:
-        # we are running a studio level tank command - not associated with 
-        # a particular PC. Out of the list of PCs associated with this location, 
+        # we are running a studio level tank command - not associated with
+        # a particular PC. Out of the list of PCs associated with this location,
         # find the Primary PC and use that.
 
-        # try to figure out what the primary storage is by looking for a metadata 
-        # file in each PC. 
+        # try to figure out what the primary storage is by looking for a metadata
+        # file in each PC.
         for pc_path in current_os_pcs:
             data = None
             try:
@@ -794,7 +809,7 @@ def from_path(path):
             if pc_name == constants.PRIMARY_PIPELINE_CONFIG_NAME:
                 return PipelineConfiguration(pc_path)
 
-        # no luck - this may be because some projects don't have this 
+        # no luck - this may be because some projects don't have this
         # metadata cached. Now try by looking in Shotgun instead.
 
         # in the list of paths found in the inverse lookup table on disk, find the primary.
@@ -841,7 +856,7 @@ def from_path(path):
             curr_pc_path = curr_pc_path[:-1]
 
         # the path stored in the TANK_CURRENT_PC env var may be a symlink etc.
-        # now we need to find which PC entity this corresponds to in Shotgun.        
+        # now we need to find which PC entity this corresponds to in Shotgun.
         pc_registered_path = get_pc_registered_location(curr_pc_path)
 
         if pc_registered_path is None:
@@ -849,7 +864,7 @@ def from_path(path):
                             "it looks like this pipeline configuration and tank command "
                             "has not been configured for the current operating system." % curr_pc_path)
 
-        # now if this tank command is associated with the path, the registered path should be in 
+        # now if this tank command is associated with the path, the registered path should be in
         # in the list of paths found in the tank data backlink file
         if pc_registered_path not in current_os_pcs:
             raise TankError("You are trying to start using the configuration and tank command "
@@ -874,7 +889,7 @@ def from_path(path):
 
 
 ################################################################################################
-# method for loading configuration data. 
+# method for loading configuration data.
 
 def get_core_api_version_for_pc(pc_root):
     """
@@ -919,14 +934,14 @@ def get_pc_registered_location(pipeline_config_root_path):
     Loads the location metadata file from install_location.yml
     This contains a reflection of the paths given in the pc entity.
 
-    Returns the path that has been registered for this pipeline configuration 
+    Returns the path that has been registered for this pipeline configuration
     for the current OS.
     This is the path that has been defined in shotgun. It is also the path that is being
     used in the inverse pointer files that exist in each storage.
-    
+
     This is useful when drive letter mappings or symlinks are being used - in these
     cases get_path() may not return the same value as get_registered_location_path().
-    
+
     This may return None if no path has been registered for the current os.
     """
     # now read in the pipeline_configuration.yml file
@@ -956,7 +971,7 @@ def get_pc_registered_location(pipeline_config_root_path):
 
 def get_pc_disk_metadata(pipeline_config_root_path):
     """
-    Loads the config metadata file from disk.    
+    Loads the config metadata file from disk.
     """
 
     # now read in the pipeline_configuration.yml file
