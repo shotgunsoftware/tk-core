@@ -907,7 +907,9 @@ if __name__ == "__main__":
 
     # check if there is a --debug flag anywhere in the args list.
     # in that case turn on debug logging and remove the flag
+    debug_mode = False
     if "--debug" in cmd_line:
+        debug_mode = True
         logger.setLevel(logging.DEBUG)
         logger.debug("")
         logger.debug("Running with debug output enabled.")
@@ -1049,9 +1051,13 @@ if __name__ == "__main__":
                                        cmd_args)
 
     except TankError, e:
-        # one line report
         logger.info("")
-        logger.error(str(e))
+        if debug_mode:
+            # full stack trace
+            logger.exception("A TankError was raised: %s" % e)
+        else:
+            # one line report
+            logger.error(str(e))
         logger.info("")
         exit_code = 5
 
