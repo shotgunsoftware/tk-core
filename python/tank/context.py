@@ -631,6 +631,27 @@ def from_entity(tk, entity_type, entity_id):
         task_context = _task_from_sg(tk, entity_id)
         context.update(task_context)
 
+    elif entity_type in ["PublishedFile", "TankPublishedFile"]:
+        
+        sg_entity = tk.shotgun.find_one(entity_type, 
+                                        [["id", "is", entity_id]], 
+                                        ["project", "entity", "task"])
+        
+        if sg_entity is None:
+            raise TankError("Entity %s with id %s not found in Shotgun!" % (entity_type, entity_id))
+        
+        if sg_entity.get("task"):
+            # base the context on the task for the published file
+            return from_entity(tk, "Task", sg_entity["task"]["id"])
+        
+        elif sg_entity.get("entity"):
+            # base the context on the entity that the published is linked with
+            return from_entity(tk, sg_entity["entity"]["type"], sg_entity["entity"]["id"])
+        
+        elif sg_entity.get("project"):
+            # base the context on the project that the published is linked with
+            return from_entity(tk, "Project", sg_entity["project"]["id"])
+    
     else:
         # Get data from path cache
         entity_context = _context_data_from_cache(tk, entity_type, entity_id)
