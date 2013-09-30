@@ -1006,13 +1006,44 @@ def get_pc_roots_metadata(pipeline_config_root_path):
         raise TankError("Could not find a primary storage in roots file "
                         "for configuration %s!" % pipeline_config_root_path)
 
+
+
+
+
     # make sure that all paths are correctly ended without a path separator
+    #
+    # Examples of paths in the metadata file and how they should be processed:
+    #
+    # 1. /foo/bar      - unchanged
+    # 2. /foo/bar/     - /foo/bar
+    # 3. z:/foo/       - z:\foo
+    # 4. z:/           - z:\
+    # 5. z:\           - z:\
+    # 6. \\foo\bar\    - \\foo\bar
+    
+
+    def _convert_helper(path, separator):
+        # ensures slashes are correct.
+        
+        # first, get rid of any slashes at the end
+        # path value will be "/foo/bar", "c:" or "\\hello"
+        path = path.rstrip("/\\")
+        
+        # add slash for drive letters: c: --> c:/
+        if len(path) == 2 and path.endswith(":"):
+            path += "/"
+        
+        # and convert to the right separators
+        return path.replace("\\", separator).replace("/", separator)
+        
+
+    # now use our helper function to process the paths    
     for s in data:
         if data[s]["mac_path"]:
-            data[s]["mac_path"] = data[s]["mac_path"].rstrip("/\\")
+            data[s]["mac_path"] = _convert_helper(data[s]["mac_path"], "/")
         if data[s]["linux_path"]:
-            data[s]["linux_path"] = data[s]["linux_path"].rstrip("/\\")
+            data[s]["linux_path"] = _convert_helper(data[s]["linux_path"], "/")
         if data[s]["windows_path"]:
-            data[s]["windows_path"] = data[s]["windows_path"].rstrip("/\\")
+            data[s]["windows_path"] = _convert_helper(data[s]["windows_path"], "\\")
 
     return data
