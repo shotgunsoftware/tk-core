@@ -15,6 +15,7 @@ import re
 import logging
 import tank
 import textwrap
+import datetime
 from tank import TankError, TankEngineInitError
 from tank.deploy import setup_project
 from tank.deploy import validate_config
@@ -104,8 +105,14 @@ class AltCustomFormatter(logging.Formatter):
 
         else:
             # shell based logging. Cut nicely at 80 chars width.
-            if record.levelno in (logging.WARNING, logging.ERROR, logging.CRITICAL, logging.DEBUG):
+            if record.levelno in (logging.WARNING, logging.ERROR, logging.CRITICAL):
                 record.msg = '%s: %s' % (record.levelname, record.msg)
+
+            if record.levelno == logging.DEBUG:
+                # time stamps in debug logging!
+                record.msg = 'DEBUG [%s %s]: %s' % (datetime.datetime.now().strftime("%H:%M:%S"), 
+                                                    record.msecs, 
+                                                    record.msg)
 
             if "Code Traceback" not in record.msg:
                 # do not wrap exceptions
