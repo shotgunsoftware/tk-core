@@ -17,25 +17,11 @@ from .application import Application
 from .engine import Engine
 from .framework import Framework
 
-def import_framework(framework, module):
-    """
-    Helper method for frameworks.
-    
-    This method is intended to replace an import statement.
-    Instead of typing 
-    
-    > from . import foo_bar
-    
-    You use the following syntax to load a framework module
-    
-    > foo_bar = tank.platform.import_framework("tk-framework-mystuff", "foo_bar")
-    
-    In order for this to work, the calling module need to have been imported 
-    using Tank's standard reload mechanism.
+################################################################################################
+# internal methods
 
-    :param framework: framework to access
-    :param module: module to load from framework
-    """
+def _get_current_bundle():
+
     import sys
     from .framework import CURRENT_BUNDLE_DOING_IMPORT
     
@@ -59,7 +45,7 @@ def import_framework(framework, module):
     
         try:
             # get the caller's stack frame
-            caller = sys._getframe(1)
+            caller = sys._getframe(2)
             # get the package name from the caller
             # for example: 0b3d7089471e42a998027fa668adfbe4.tk_multi_about.environment_browser
             calling_name_str = caller.f_globals["__name__"]
@@ -82,12 +68,97 @@ def import_framework(framework, module):
             raise Exception("import_framework could not access current app/engine on calling module %s. "
                             "You can only use this method on items imported using the import_module() "
                             "method!" % parent_module)
+ 
+    return current_bundle
 
 
+################################################################################################
+# Public API methods
+
+
+def current_bundle():
+    """
+    Returns the bundle (app, engine or framework) instance for the
+    app that the calling code is associated with. This is a special method, designed to 
+    be used inside python modules that belong to apps, engines or frameworks.
+    
+    The calling code needs to have been imported using toolkit's standard import 
+    mechanism, import_module(), otherwise an exception will be raised.
+    
+    This special helper method can be useful when code deep inside an app needs
+    to reach out to for example grab a configuration value. Then you can simply do
+    
+    app = sgtk.platform.current_bundle()
+    app.get_setting("frame_range")
+
+    :returns: app, engine or framework instance
+    """ 
+    return _get_current_bundle()
+
+
+def get_framework(framework):
+    """
+    Convenience method that returns a framework instance given a framework name.
+    
+    This is a special method, designed to 
+    be used inside python modules that belong to apps, engines or frameworks.
+    
+    The calling code needs to have been imported using toolkit's standard import 
+    mechanism, import_module(), otherwise an exception will be raised.    
+    
+    For example, if your app code requires the tk-framework-helpers framework, and you
+    need to retrieve a configuration setting from this framework, then you can 
+    simply do
+    
+    fw = sgtk.platform.get_framework("tk-framework-helpers")
+    app.get_setting("frame_range")
+
+    :param framework: name of the framework object to access, as defined in the app's
+                      info.yml manifest.
+    :returns: framework instance
+    """
+
+    current_bundle = _get_current_bundle()
+    
     if framework not in current_bundle.frameworks:
         raise Exception("import_framework: %s does not have a framework %s associated!" % (current_bundle, framework))
 
     fw = current_bundle.frameworks[framework]
+    
+    return fw
+
+
+def import_framework(framework, module):
+    """
+    Convenience method for using frameworks code inside of apps, engines and other frameworks.
+    
+    This method is intended to replace an import statement.
+    Instead of typing 
+    
+    > from . import foo_bar
+    
+    You use the following syntax to load a framework module
+    
+    > foo_bar = tank.platform.import_framework("tk-framework-mystuff", "foo_bar")
+    
+    This is a special method, designed to 
+    be used inside python modules that belong to apps, engines or frameworks.
+    
+    The calling code needs to have been imported using toolkit's standard import 
+    mechanism, import_module(), otherwise an exception will be raised.    
+
+    :param framework: name of the framework object to access, as defined in the app's
+                      info.yml manifest.
+    :param module: module to load from framework
+    """
+    
+    current_bundle = _get_current_bundle()
+
+    if framework not in current_bundle.frameworks:
+        raise Exception("import_framework: %s does not have a framework %s associated!" % (current_bundle, framework))
+
+    fw = current_bundle.frameworks[framework]    
+    
     mod = fw.import_module(module)
 
     return mod
