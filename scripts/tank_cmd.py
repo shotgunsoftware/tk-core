@@ -15,6 +15,7 @@ import re
 import logging
 import tank
 import textwrap
+import datetime
 from tank import TankError, TankEngineInitError
 from tank.deploy import setup_project
 from tank.deploy import validate_config
@@ -104,8 +105,14 @@ class AltCustomFormatter(logging.Formatter):
 
         else:
             # shell based logging. Cut nicely at 80 chars width.
-            if record.levelno in (logging.WARNING, logging.ERROR, logging.CRITICAL, logging.DEBUG):
+            if record.levelno in (logging.WARNING, logging.ERROR, logging.CRITICAL):
                 record.msg = '%s: %s' % (record.levelname, record.msg)
+
+            if record.levelno == logging.DEBUG:
+                # time stamps in debug logging!
+                record.msg = 'DEBUG [%s %s]: %s' % (datetime.datetime.now().strftime("%H:%M:%S"), 
+                                                    record.msecs, 
+                                                    record.msg)
 
             if "Code Traceback" not in record.msg:
                 # do not wrap exceptions
@@ -907,7 +914,9 @@ if __name__ == "__main__":
 
     # check if there is a --debug flag anywhere in the args list.
     # in that case turn on debug logging and remove the flag
+    debug_mode = False
     if "--debug" in cmd_line:
+        debug_mode = True
         logger.setLevel(logging.DEBUG)
         logger.debug("")
         logger.debug("Running with debug output enabled.")
@@ -1049,9 +1058,13 @@ if __name__ == "__main__":
                                        cmd_args)
 
     except TankError, e:
-        # one line report
         logger.info("")
-        logger.error(str(e))
+        if debug_mode:
+            # full stack trace
+            logger.exception("A TankError was raised: %s" % e)
+        else:
+            # one line report
+            logger.error(str(e))
         logger.info("")
         exit_code = 5
 

@@ -207,5 +207,20 @@ class InteractiveShellAction(Action):
             tk_locals["engine"] = self.engine
             msg.append("- The shell engine can be accessed via the engine variable")
             
+        # attempt install tab command completion
+        try:
+            import rlcompleter
+            import readline
+        
+            if "libedit" in readline.__doc__:
+                # macosx, some versions - see 
+                # http://stackoverflow.com/questions/7116038
+                readline.parse_and_bind("bind ^I rl_complete")
+            else:
+                readline.parse_and_bind("tab: complete")
+        except:
+            pass        
+        
         code.interact(banner = "\n".join(msg), local=tk_locals)
+        
         
