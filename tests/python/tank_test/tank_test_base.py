@@ -17,6 +17,8 @@ import time
 import shutil
 import tempfile
 
+from .mockgun import Shotgun as MockGun_Shotgun 
+
 from mock import Mock
 import unittest2 as unittest
 
@@ -35,9 +37,6 @@ def setUpModule():
     """
     global TANK_TEMP
     global TANK_SOURCE_PATH
-
-    
-
 
     # determine tests root location 
     temp_dir = tempfile.gettempdir()
@@ -71,44 +70,14 @@ def setUpModule():
 
 
 
-def _move_data(path):
-    """
-    Rename directory to backup name, if backup currently exists replace it.
-    """
-    if path and os.path.exists(path):
-        dirname, basename = os.path.split(path)
-        new_basename = "%s.old" % basename
-        backup_path = os.path.join(dirname, new_basename)
-        if os.path.exists(backup_path):
-            shutil.rmtree(backup_path)
-
-        try: 
-            os.rename(path, backup_path)
-        except WindowsError:
-            # On windows intermittent problems with sqlite db file occur
-            pc = sgtk.pipelineconfig.from_path(path)
-            db_path = pc.get_path_cache_location()
-            if os.path.exists(db_path):
-                print 'Removing db %s' % db_path
-                # Importing pdb allows the deletion of the sqlite db sometimes...
-                import pdb
-                # try multiple times, waiting longer in between
-                for count in range(5):
-                    try:
-                        os.remove(db_path)
-                        break
-                    except WindowsError:
-                        time.sleep(count*2) 
-            os.rename(path, backup_path)
 
 
 class TankTestBase(unittest.TestCase):
     """Test base class which manages fixtures for tank related tests."""
+    
     def __init__(self, *args, **kws):
         super(TankTestBase, self).__init__(*args, **kws)
-        # simple mocked shotgun
-        self.sg_mock = self._setup_sg_mock()
-
+        
         # Below are attributes which will be set during setUp
 
         # Path to temp directory
@@ -128,9 +97,6 @@ class TankTestBase(unittest.TestCase):
         """Creates and registers test project."""
         self.tank_temp = TANK_TEMP
         self.tank_source_path = TANK_SOURCE_PATH
-
-        # mocking shotgun data (see add_to_sg_mock)
-        self._sg_mock_db = {}
 
         # define entity for test project
         self.project = {"type": "Project",
@@ -162,7 +128,7 @@ class TankTestBase(unittest.TestCase):
         # add files needed by the pipeline config
         
         pc_yml = os.path.join(project_tank, "config", "core", "pipeline_configuration.yml")
-        pc_yml_data = "{ project_name: %s, pc_id: 123, project_id: 12345, pc_name: Primary}\n\n" % self.project["tank_name"]        
+        pc_yml_data = "{ project_name: %s, pc_id: 123, project_id: 1, pc_name: Primary}\n\n" % self.project["tank_name"]        
         self.create_file(pc_yml, pc_yml_data)
         
         loc_yml = os.path.join(project_tank, "config", "core", "install_location.yml")
@@ -178,22 +144,19 @@ class TankTestBase(unittest.TestCase):
         roots_file.write(yaml.dump(roots))
         roots_file.close()        
         
-        self.pipeline_configuration = sgtk.pipelineconfig.from_path(project_tank)        
+        self.pipeline_configuration = sgtk.pipelineconfig.from_path(project_tank)
+        self.tk = tank.Tank(self.pipeline_configuration)
+        self.tk._Tank__sg = MockGun_Shotgun("http://unit_test_mock_sg", "mock_user", "mock_key")
 
         # add project to mock sg and path cache db
         self.add_production_path(self.project_root, self.project)
         
-        # change to return our shotgun object
-        def return_sg(*args, **kws):
-            return self.sg_mock
-
-        sgtk.util.shotgun.create_sg_connection = return_sg
-
-
+        
+        
+        
     def tearDown(self):
         """Cleans up after tests."""
         self._move_project_data()
-
         
     def setup_fixtures(self, core_config="default_core"):
         test_data_path = os.path.join(self.tank_source_path, "tests", "data")
@@ -248,17 +211,17 @@ class TankTestBase(unittest.TestCase):
         
         # need a new PC object that is using the new roots def file we just created
         self.pipeline_configuration = sgtk.pipelineconfig.from_path(os.path.join(self.project_root, "tank"))
+        # push this new PC into the tk api
+        self.tk._Tank__pipeline_config = self.pipeline_configuration 
         
         # add project root folders
         # primary path was already added in base setUp
         self.add_production_path(self.alt_root_1, self.project)
         self.add_production_path(self.alt_root_2, self.project)
-        # use Tank object to write project info
-        tk = sgtk.Sgtk(self.project_root)
-        tk.create_filesystem_structure("Project", self.project["id"])
+        
+        self.tk.create_filesystem_structure("Project", self.project["id"])
 
         
-
     def add_production_path(self, path, entity=None):
         """
         Creates project directories, populates path cache and mocked shotgun from a
@@ -280,45 +243,45 @@ class TankTestBase(unittest.TestCase):
             self.add_to_sg_mock_db(entity)
 
     def add_to_path_cache(self, path, entity):
-        """Adds a path and entity to the path cache sqlite db. Can also be done by useing
-        sgtk.path_cache.PathCache.
+        """
+        Adds a path and entity to the path cache sqlite db. 
 
         :param path: Absolute path to add.
         :param entity: Entity dictionary with values for keys 'id', 'name', and 'type'
         """
-        path_cache = sgtk.path_cache.PathCache(self.tk)
-        path_cache.add_mapping(entity["type"],
-                                    entity["id"],
-                                    entity["name"],
-                                    path)
+        
+        path_cache = tank.path_cache.PathCache(self.tk)
+        
+        data = [ {"entity": {"id": entity["id"], 
+                             "type": entity["type"], 
+                             "name": entity["name"]}, 
+                  "metadata": [],
+                  "path": path, 
+                  "primary": False } ]
+        path_cache.add_mappings(data, None, [])
+        
         # On windows path cache has persisted, interfering with teardowns, so get rid of it.
         path_cache.close()
         del(path_cache)
-                                    
-
+                                
     def add_to_sg_mock_db(self, entities):
-        """Adds an entity or entities to the mocked shotgun database.
+        """
+        Adds an entity or entities to the mocked shotgun database.
 
         :param entities: A shotgun style dictionary with keys for id, type, and name
                          defined. A list of such dictionaries is also valid.
-        """
+        """        
         # make sure it's a list
         if isinstance(entities, dict):
             entities = [entities] 
         for entity in entities:
-            # (type, id): {"id": 2, "type":"Shot", "name":...}
-            self._sg_mock_db[(entity["type"], entity["id"])] = entity
-
-    def add_to_sg_schema_db(self, entity_type, field_name, data):
-        """Adds a schema info dictionary to the mocked up database.
-        This will be returned when a a call to 
-        schema_field_read(entity_type, field_name) is made.
-        
-        :param entity_type: The Shotgun Entity type that the field is associated with
-        :param field_name: The field name to associate the schema data with
-        :param data: schema data that schema_field_read should return
-        """
-        self._sg_mock_db[("schema_field_read", entity_type, field_name)] = data
+            # entity: {"id": 2, "type":"Shot", "name":...}
+            # wedge it into the mockgun database            
+            et = entity["type"]
+            eid = entity["id"]
+            # add for mockgun
+            entity["__retired"] = False
+            self.tk.shotgun._db[et][eid] = entity            
 
     def create_file(self, file_path, data=""):
         """Creates a file on disk with specified data. First the file's directory path will be 
@@ -338,136 +301,6 @@ class TankTestBase(unittest.TestCase):
         open_file.write(data)
         open_file.close()
             
-
-    def _setup_sg_mock(self):
-        """Primitive mocking of shotgun api. Should be used only when
-        queries being mocked are limited(see implementations below for restrictions).
-        """
-
-        def find_one(entity_type, filters, fields=None, *args, **kws):
-            """
-            Version of find_one which only returns values when filtered by id.
-            """
-            for item in self._sg_mock_db.values():
-                
-                # first make sure that this record is right type
-                if item.get("type") != entity_type:
-                    continue
-                
-                # now check filters
-                
-                # complex style
-                # {'conditions': [{'path': 'id', 'relation': 'is', 'values': [1]}], 'logical_operator': 'and'}
-                
-                # turn these into simple style
-                new_filters = []
-                if isinstance(filters, dict):
-                    if filters.get("logical_operator") != "and":
-                        raise Exception("unsupported sg mock find_one filter %s" % filters)
-                    for c in filters.get("conditions"):
-                        if c["relation"] != "is":
-                            raise Exception("Unsupported sg mock find one filter %s" % filters)
-                        field = c["path"]
-                        value = c["values"][0]
-                        if len(c["values"]) > 1:
-                            raise Exception("Unsupported sg mock find one filter %s" % filters)
-                        new_filters.append( [field, "is", value])
-                    filters = new_filters
-                
-
-                found = True
-                for f in filters:
-
-                    # assume operator is equals: e.g
-                    # filter = ["field", "is", "value"]
-                    field = f[0]
-                    if f[1] != "is":
-                        raise Exception("Unsupported sg mock find one filter %s" % filters)
-                    value = f[2]
-
-                    # now search through item to see if we got it
-                    if field in item and item[field] == value:
-                        # it is a match! Keep going...
-                        pass
-                    else:
-                        # no match!
-                        found = False
-                        break
-                    
-                # did we find it?
-                if found:
-                    return item
-            
-            # no match
-            return None            
-
-        def find(entity_type, filters, *args, **kws):
-            """
-            Returns all entries for specified type. 
-            Filters are ignored in many cases, check code.
-            """
-            results = [self._sg_mock_db[key] for key in self._sg_mock_db if key[0] == entity_type]
-            
-            # support [['id', 'in', 23, 34]]
-            if isinstance(filters, list) and len(filters) ==1:
-                # we have a [[something]] structure
-                inner_filter = filters[0]
-                if isinstance(inner_filter, list) and len(inner_filter) > 2 and inner_filter[0] == "id" and inner_filter[1] == "in":
-                    all_items_of_type = [self._sg_mock_db[key] for key in self._sg_mock_db if key[0] == entity_type]
-                    ids_to_find = inner_filter[2:]
-                    matches = []
-                    for i in all_items_of_type:
-                        if i["id"] in ids_to_find:
-                            matches.append(i)
-                    
-                    # assign to final matches structure
-                    results = matches
-                
-            # support dict style with 'is' relation
-            if isinstance(filters, dict):
-                for sg_filter in filters.get("conditions", []):
-                    if sg_filter["relation"] == "is":
-                        
-                        if sg_filter["values"] == [None] and sg_filter["path"] == "id":
-                            # always return empty for this
-                            results = [] 
-                        
-                        if isinstance(sg_filter["values"][0], (int, str)):
-                            # only handling simple string and number relations
-                            field_name = sg_filter["path"]
-                            # filter only if value exists in mocked data (if field not there don't skip)
-                            results = [result for result in results if result.get(field_name, sg_filter["values"][0]) in sg_filter["values"]]
-                        #TODO add entity filtering?
-
-            return results
-        
-        def schema_field_read(entity_type, field_name):
-            """
-            Returns the schema info dictionary for a field
-            """
-            key = ("schema_field_read", entity_type, field_name)
-            data = self._sg_mock_db.get(key, {})
-            # wrap the returned data with a field name key
-            # see https://github.com/shotgunsoftware/python-api/wiki/Reference%3A-Methods#wiki-schema_field_read
-            return {field_name: data}
-        
-        def upload_thumbnail(entity_type, entity_id, path):
-            """
-            Nop thumb uploader
-            """
-            # do nothing
-        
-        mock_find_one = Mock(side_effect=find_one)
-        mock_find = Mock(side_effect=find)
-        mock_schema_field_read = Mock(side_effect=schema_field_read)
-        sg = Mock()
-        sg.base_url = "http://unit_test_mock_sg"
-        sg.find_one = mock_find_one
-        sg.find = mock_find
-        sg.upload_thumbnail = upload_thumbnail
-        sg.schema_field_read = mock_schema_field_read
-        return sg
-
     def check_error_message(self, Error, message, func, *args, **kws):
         """
         Check that the correct exception is raised with the correct message.
@@ -525,3 +358,37 @@ class TankTestBase(unittest.TestCase):
         
         return files
     
+
+
+
+
+
+def _move_data(path):
+    """
+    Rename directory to backup name, if backup currently exists replace it.
+    """
+    if path and os.path.exists(path):
+        dirname, basename = os.path.split(path)
+        new_basename = "%s.old" % basename
+        backup_path = os.path.join(dirname, new_basename)
+        if os.path.exists(backup_path):
+            shutil.rmtree(backup_path)
+
+        try: 
+            os.rename(path, backup_path)
+        except WindowsError:
+            # On windows intermittent problems with sqlite db file occur
+            pc = sgtk.pipelineconfig.from_path(path)
+            db_path = pc.get_path_cache_location()
+            if os.path.exists(db_path):
+                print 'Removing db %s' % db_path
+                # Importing pdb allows the deletion of the sqlite db sometimes...
+                import pdb
+                # try multiple times, waiting longer in between
+                for count in range(5):
+                    try:
+                        os.remove(db_path)
+                        break
+                    except WindowsError:
+                        time.sleep(count*2) 
+            os.rename(path, backup_path)

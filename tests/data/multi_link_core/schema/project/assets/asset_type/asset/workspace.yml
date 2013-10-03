@@ -15,7 +15,7 @@ type: "shotgun_entity"
 name: "code"
 
 # the shotgun entity type to connect to
-entity_type: "Workspace"
+entity_type: "CustomEntity02"
 
 # when our parent folder is created, create this folder too
 create_with_parent: True

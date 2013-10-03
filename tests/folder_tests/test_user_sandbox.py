@@ -23,9 +23,9 @@ from tank_test.tank_test_base import *
 class TestHumanUser(TankTestBase):
     def setUp(self):
         super(TestHumanUser, self).setUp()
+        
         self.setup_fixtures("humanuser_core")
-        self.tk = tank.Tank(self.project_root)
-
+        
         self.shot = {"type": "Shot",
                      "id": 1,
                      "code": "shot_code",

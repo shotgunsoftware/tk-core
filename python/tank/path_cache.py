@@ -272,6 +272,7 @@ class PathCache(object):
                                             [], 
                                             ["id"], 
                                             [{"field_name": "id", "direction": "desc"},])
+
         max_event_log_id = sg_data["id"]
         
         return self._replay_folder_entities(max_event_log_id)
@@ -516,8 +517,7 @@ class PathCache(object):
         :param entity_ids: list of sg entity ids (ints) that represents which objects triggered 
                            the high level folder creation request.
                            
-        """
-        
+        """        
         data_for_sg = []        
         
         c = self._connection.cursor()
@@ -606,6 +606,7 @@ class PathCache(object):
             # error processing shotgun. Make sure we roll back the sqlite path cache
             # transaction
             self._connection.rollback()
+            raise
         
         else:
             # Shotgun insert complete! Now we can commit path cache transaction

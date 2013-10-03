@@ -46,7 +46,6 @@ class TestStartEngine(TankTestBase):
         fh.close()
         
         
-        self.tk = tank.Tank(self.project_root)
         self.context = self.tk.context_from_path(self.shot_step_path)
 
     def test_get_engine_path(self):

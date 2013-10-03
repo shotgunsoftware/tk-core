@@ -20,73 +20,7 @@ from tank import path_cache
 from tank import folder
 from tank_test.tank_test_base import *
 
-
-def assert_paths_to_create(expected_paths):
-    """
-    No file system operations are performed.
-    """
-    # Check paths sent to make_folder
-    for expected_path in expected_paths:
-        if expected_path not in g_paths_created:
-            msg = "\n------------------\n"
-            msg += "Expected path '%s' not found in paths created on disk:\n" % expected_path
-            msg += "\n".join(g_paths_created)
-            msg += "------------------\n"
-            assert False, msg
-    for actual_path in g_paths_created:
-        if actual_path not in expected_paths:
-            msg = "\n------------------\n"
-            msg += "Unexpected path '%s' created by system.\n\n" % actual_path
-            msg += "List of paths created on disk:\n"
-            msg += "\n".join(g_paths_created)
-            msg += "\nList of paths expected to be created:\n"
-            msg += "\n".join(expected_paths)
-            msg += "------------------\n"
-            assert False, msg
-
-
-g_paths_created = []
-
-def execute_folder_creation_proxy(self):
-    """
-    Proxy stub for folder creation tests
-    """
-        
-    # now handle the path cache
-    if not self._preview_mode: 
-        for i in self._items:
-            if i.get("action") == "entity_folder":
-                path = i.get("path")
-                entity_type = i.get("entity").get("type")
-                entity_id = i.get("entity").get("id")
-                entity_name = i.get("entity").get("name")
-                self._path_cache.add_mapping(entity_type, entity_id, entity_name, path)
-        for i in self._secondary_cache_entries:
-            path = i.get("path")
-            entity_type = i.get("entity").get("type")
-            entity_id = i.get("entity").get("id")
-            entity_name = i.get("entity").get("name")
-            self._path_cache.add_mapping(entity_type, entity_id, entity_name, path, False)
-        
-
-    # finally, build a list of all paths calculated
-    folders = list()
-    for i in self._items:
-        action = i.get("action")
-        if action in ["entity_folder", "create_file", "folder"]:
-            folders.append( i["path"] )
-        elif action == "copy":
-            folders.append( i["target_path"] )
-    
-    global g_paths_created
-    g_paths_created = folders
-    
-    return folders
-
-
-
-
-
+from . import assert_paths_to_create, execute_folder_creation_proxy
 
 class TestSchemaCreateFolders(TankTestBase):
     
@@ -97,6 +31,7 @@ class TestSchemaCreateFolders(TankTestBase):
         """
         super(TestSchemaCreateFolders, self).setUp(project_tank_name)
         self.setup_fixtures()
+        
         self.seq = {"type": "Sequence",
                     "id": 2,
                     "code": "seq_code",
@@ -109,6 +44,7 @@ class TestSchemaCreateFolders(TankTestBase):
         self.step = {"type": "Step",
                      "id": 3,
                      "code": "step_code",
+                     "entity_type": "Shot",
                      "short_name": "step_short_name"}
         self.asset = {"type": "Asset",
                     "id": 4,
@@ -125,17 +61,6 @@ class TestSchemaCreateFolders(TankTestBase):
 
         # Add these to mocked shotgun
         self.add_to_sg_mock_db(entities)
-
-        self.tk = tank.Tank(self.project_root)
-
-        # add mock schema data so that a list of the asset type enum values can be returned
-        data = {}
-        data["properties"] = {}
-        data["properties"]["valid_values"] = {}
-        data["properties"]["valid_values"]["value"] = ["assettype"]
-        data["data_type"] = {}
-        data["data_type"]["value"] = "list"        
-        self.add_to_sg_schema_db("Asset", "sg_asset_type", data)
 
         self.schema_location = os.path.join(self.project_root, "tank", "config", "core", "schema")
 
@@ -236,8 +161,6 @@ class TestSchemaCreateFolders(TankTestBase):
         expected_paths.append(os.path.join(step_path, "work", "snapshots"))
         expected_paths.append(os.path.join(step_path, "out"))
 
-        self.tk = tank.Tank(self.project_root)
-
         folder.process_filesystem_structure(self.tk, 
                                             self.asset["type"], 
                                             self.asset["id"], 
@@ -259,8 +182,9 @@ class TestSchemaCreateFolders(TankTestBase):
         extra_step = {
             "type": "Step",
             "id": 6,
-            "code": "step_code",
-            "short_name": "extra_short_name"
+            "entity_type": "Scene",
+            "code": "scene_step_code",
+            "short_name": "scene_step_name"
         }
         
         self.add_to_sg_mock_db([scene, extra_step])
@@ -275,12 +199,9 @@ class TestSchemaCreateFolders(TankTestBase):
                 
                               
         expected_paths.append(os.path.join(self.project_root, "scenes"))
-        expected_paths.append(os.path.join(self.project_root, "scenes", "step_short_name"))
-        expected_paths.append(os.path.join(self.project_root, "scenes", "step_short_name", "scenename"))
-        expected_paths.append(os.path.join(self.project_root, "scenes", "step_short_name", "scenename", "work"))
-        expected_paths.append(os.path.join(self.project_root, "scenes", "extra_short_name"))
-        expected_paths.append(os.path.join(self.project_root, "scenes", "extra_short_name", "scenename"))
-        expected_paths.append(os.path.join(self.project_root, "scenes", "extra_short_name", "scenename", "work"))
+        expected_paths.append(os.path.join(self.project_root, "scenes", "scene_step_name"))
+        expected_paths.append(os.path.join(self.project_root, "scenes", "scene_step_name", "scenename"))
+        expected_paths.append(os.path.join(self.project_root, "scenes", "scene_step_name", "scenename", "work"))
         
         folder.process_filesystem_structure(self.tk, 
                                             scene["type"], 
@@ -388,7 +309,9 @@ class TestSchemaCreateFoldersMultiRoot(TankTestBase):
         then queried to see what paths the code attempted to create.
         """
         super(TestSchemaCreateFoldersMultiRoot, self).setUp()
+        
         self.setup_multi_root_fixtures()
+        
         self.seq = {"type": "Sequence",
                     "id": 2,
                     "code": "seq_code",
@@ -411,7 +334,7 @@ class TestSchemaCreateFoldersMultiRoot(TankTestBase):
         # Add these to mocked shotgun
         self.add_to_sg_mock_db([self.shot, self.seq, self.step, self.project, self.asset])
 
-        self.tk = tank.Tank(self.project_root)
+        
 
         self.FolderIOReceiverBackup = folder.folder_io.FolderIOReceiver.execute_folder_creation
         folder.folder_io.FolderIOReceiver.execute_folder_creation = execute_folder_creation_proxy
@@ -538,8 +461,6 @@ class TestCreateFilesystemStructure(TankTestBase):
         super(TestCreateFilesystemStructure, self).setUp()
         self.setup_fixtures()
         
-        self.tk = tank.Tank(self.project_root)
-        
         self.seq = {"type": "Sequence",
                     "id": 2,
                     "code": "seq_code",
@@ -568,17 +489,6 @@ class TestCreateFilesystemStructure(TankTestBase):
         # Add these to mocked shotgun
         self.add_to_sg_mock_db([self.shot, self.seq, self.step, self.project, self.asset, self.task])
         
-        self.tk = tank.Tank(self.project_root)
-        
-        # add mock schema data so that a list of the asset type enum values can be returned
-        data = {}
-        data["properties"] = {}
-        data["properties"]["valid_values"] = {}
-        data["properties"]["valid_values"]["value"] = ["assettype"]
-        data["data_type"] = {}
-        data["data_type"]["value"] = "list"
-        self.add_to_sg_schema_db("Asset", "sg_asset_type", data)
-
 
     def test_create_task(self):
         # Task should create folders for it's entity
@@ -666,20 +576,24 @@ class TestSchemaCreateFoldersWorkspaces(TankTestBase):
         then queried to see what paths the code attempted to create.
         """
         super(TestSchemaCreateFoldersWorkspaces, self).setUp()
+        
         self.setup_fixtures("multi_link_core")
         
         self.seq = {"type": "Sequence",
                     "id": 2,
                     "code": "seq_code",
                     "project": self.project}
+        
         self.shot = {"type": "Shot",
                      "id": 1,
                      "code": "shot_code",
                      "sg_sequence": self.seq,
                      "project": self.project}
-        self.workspace = {"type": "Workspace",
+        
+        self.workspace = {"type": "CustomEntity02",
                      "id": 3,
                      "sg_entity": self.shot,
+                     "project": self.project,
                      "code": "workspace_code_shot"}
 
         
@@ -689,10 +603,25 @@ class TestSchemaCreateFoldersWorkspaces(TankTestBase):
                     "code": "assetname",
                     "project": self.project}
 
-        self.workspace2 = {"type": "Workspace",
+        self.workspace2 = {"type": "CustomEntity02",
                      "id": 5,
                      "sg_entity": self.asset,
+                     "project": self.project,
                      "code": "workspace_code_asset"}
+
+        # need to register the sg_entity link we just made up with the mocker
+        field_def = {'data_type': {'editable': False, 'value': 'entity'},
+                     'description': {'editable': True, 'value': ''},
+                     'editable': {'editable': False, 'value': True},
+                     'entity_type': {'editable': False, 'value': 'CustomEntity02'},
+                     'mandatory': {'editable': False, 'value': False},
+                     'name': {'editable': True, 'value': 'Entity'},
+                     'properties': {'default_value': {'editable': False, 'value': None},
+                     'summary_default': {'editable': True, 'value': 'none'},
+                     'valid_types': {'editable': True, 'value': ['Shot', 'Asset']}},
+                     'unique': {'editable': False, 'value': False}}
+        
+        self.tk._Tank__sg._schema["CustomEntity02"]["sg_entity"] = field_def
 
 
         entities = [self.shot, 
@@ -704,17 +633,8 @@ class TestSchemaCreateFoldersWorkspaces(TankTestBase):
 
         # Add these to mocked shotgun
         self.add_to_sg_mock_db(entities)
-
-        self.tk = tank.Tank(self.project_root)
-
-        # add mock schema data so that a list of the asset type enum values can be returned
-        data = {}
-        data["properties"] = {}
-        data["properties"]["valid_values"] = {}
-        data["properties"]["valid_values"]["value"] = ["assettype"]
-        data["data_type"] = {}
-        data["data_type"]["value"] = "list"        
-        self.add_to_sg_schema_db("Asset", "sg_asset_type", data)
+        print self.project
+        print self.tk._Tank__sg._db["CustomEntity01"]
 
         self.schema_location = os.path.join(self.project_root, "tank", "config", "core", "schema")
 
@@ -792,9 +712,8 @@ class TestFolderCreationEdgeCases(TankTestBase):
     """
     def setUp(self):
         super(TestFolderCreationEdgeCases, self).setUp()
-        self.setup_fixtures()
         
-        self.tk = tank.Tank(self.project_root)
+        self.setup_fixtures()
         
         self.seq = {"type": "Sequence",
                     "id": 2,
@@ -819,8 +738,6 @@ class TestFolderCreationEdgeCases(TankTestBase):
         # Add these to mocked shotgun
         self.add_to_sg_mock_db([self.shot, self.seq, self.step, self.project, self.task])
         
-        self.tk = tank.Tank(self.project_root)
-        
         self.path_cache = path_cache.PathCache(self.tk)
 
     def tearDown(self):
@@ -840,7 +757,7 @@ class TestFolderCreationEdgeCases(TankTestBase):
         # 4. when creating folders, it should delete the previous records and replace with new
         
 
-        self.assertEquals(self.path_cache.get_paths("Shot", self.shot["id"]), [])
+        self.assertEquals(self.path_cache.get_paths("Shot", self.shot["id"], False), [])
         
         folder.process_filesystem_structure(self.tk, 
                                             self.task["type"], 
@@ -850,14 +767,14 @@ class TestFolderCreationEdgeCases(TankTestBase):
         
         # check that it is in the db
         shot_path = os.path.join(self.project_root, "sequences", "seq_code", "shot_code")
-        paths_in_db = self.path_cache.get_paths("Shot", self.shot["id"])
+        paths_in_db = self.path_cache.get_paths("Shot", self.shot["id"], False)
         self.assertEquals(paths_in_db, [shot_path])
         
         # change the id of the shot - effectively deleting and creating a shot!
         old_id = self.shot["id"]
         self.shot["id"] = 12345
         
-        self.assertEquals(self.path_cache.get_paths("Shot", self.shot["id"]), [])
+        self.assertEquals(self.path_cache.get_paths("Shot", self.shot["id"], False), [])
         
         folder.process_filesystem_structure(self.tk, 
                                             self.task["type"], 

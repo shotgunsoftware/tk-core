@@ -172,14 +172,13 @@ class TestPathsFromTemplate(TankTestBase):
         
         definition = "sequences/{Sequence}/{Shot}/{Step}/work/{name}.v{version}.nk"
         template = TemplatePath(definition, keys, self.project_root, "my_template")
-        tk = tank.Tank(self.project_root)
-        tk._templates = {template.name: template}
+        self.tk._templates = {template.name: template}
         bad_file_path = os.path.join(self.project_root, "sequences", "Sequence1", "Shot1", "Foot", "work", "name1.va.nk")
         good_file_path = os.path.join(self.project_root, "sequences", "Sequence1", "Shot1", "Foot", "work", "name.v001.nk")
         self.create_file(bad_file_path)
         self.create_file(good_file_path)
         ctx_fields = {"Sequence": "Sequence1", "Shot": "Shot1", "Step": "Foot"}
-        result = tk.paths_from_template(template, ctx_fields)
+        result = self.tk.paths_from_template(template, ctx_fields)
         self.assertIn(good_file_path, result)
         self.assertNotIn(bad_file_path, result)
 
@@ -190,7 +189,6 @@ class TestAbstractPathsFromTemplate(TankTestBase):
         super(TestAbstractPathsFromTemplate, self).setUp()
         self.setup_fixtures()
 
-        self.tk = tank.Tank(self.project_root)
 
         keys = {"Sequence": StringKey("Sequence"),
                 "Shot": StringKey("Shot"),

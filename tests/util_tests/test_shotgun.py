@@ -78,10 +78,15 @@ class TestShotgunFindPublish(TankTestBase):
                     "path_cache_storage": {"type": "LocalStorage", "id": 43, "code": "alternate_1"}}
 
         # Add these to mocked shotgun
-        self.add_to_sg_mock_db([self.storage_1, self.storage_2,
-                                self.pub_1, self.pub_2, self.pub_3, self.pub_4, self.pub_5])
-        self.tk = tank.Tank(self.project_root)
-        self.tk._tank__sg = self.sg_mock
+        self.add_to_sg_mock_db([self.storage_1, 
+                                         self.storage_2,
+                                         self.pub_1, 
+                                         self.pub_2, 
+                                         self.pub_3, 
+                                         self.pub_4, 
+                                         self.pub_5])
+        
+        
 
     def test_find(self):        
         paths = [os.path.join(self.project_root, "foo", "bar")]
@@ -162,7 +167,6 @@ class TestShotgunFindPublishTankStorage(TankTestBase):
         #self.setup_fixtures()
         self.setup_multi_root_fixtures()
 
-        
         self.storage_1 = {"type": "LocalStorage", "id": 1, "code": "Tank"}
         self.storage_2 = {"type": "LocalStorage", "id": 43, "code": "alternate_1"}
         
@@ -207,10 +211,14 @@ class TestShotgunFindPublishTankStorage(TankTestBase):
                     "path_cache_storage": {"type": "LocalStorage", "id": 43, "code": "alternate_1"}}
 
         # Add these to mocked shotgun
-        self.add_to_sg_mock_db([self.storage_1, self.storage_2,
-                                self.pub_1, self.pub_2, self.pub_3, self.pub_4, self.pub_5])
-        self.tk = tank.Tank(self.project_root)
-        self.tk._tank__sg = self.sg_mock
+        self.add_to_sg_mock_db([self.storage_1, 
+                                         self.storage_2,
+                                         self.pub_1, 
+                                         self.pub_2, 
+                                         self.pub_3, 
+                                         self.pub_4, 
+                                         self.pub_5])
+        
 
     def test_find(self):        
         paths = [os.path.join(self.project_root, "foo", "bar")]
@@ -333,9 +341,12 @@ class TestShotgunFindPublishMissingStorage(TankTestBase):
 
         # Add these to mocked shotgun
         self.add_to_sg_mock_db([self.storage_2,
-                                self.pub_1, self.pub_2, self.pub_3, self.pub_4, self.pub_5])
-        self.tk = tank.Tank(self.project_root)
-        self.tk._tank__sg = self.sg_mock
+                                         self.pub_1, 
+                                         self.pub_2, 
+                                         self.pub_3, 
+                                         self.pub_4, 
+                                         self.pub_5])
+        
 
     def test_find(self):  
         """
@@ -367,8 +378,7 @@ class TestShotgunRegisterPublish(TankTestBase):
 
         # Add these to mocked shotgun
         self.add_to_sg_mock_db([self.storage, self.tank_type_1])
-        self.tk = tank.Tank(self.project_root)
-        self.tk.__tank_sg = self.sg_mock
+        
 
         self.shot = {"type": "Shot",
                     "name": "shot_name",
@@ -391,20 +401,17 @@ class TestShotgunRegisterPublish(TankTestBase):
     def test_sequence_abstracted_path(self):
         """Test that if path supplied represents a sequence, the abstract version of that
         sequence is used."""
-        tk = tank.Tank(self.project_root)
-        # mock shotgun
-        tk._tank__sg = self.sg_mock
 
         # make sequence key
         keys = { "seq": tank.templatekey.SequenceKey("seq", format_spec="03")}
         # make sequence template
         seq_template = tank.template.TemplatePath("/folder/name_{seq}.ext", keys, self.project_root)
-        tk.templates["sequence_template"] = seq_template
+        self.tk.templates["sequence_template"] = seq_template
 
         seq_path = os.path.join(self.project_root, "folder", "name_001.ext")
 
         # mock sg.create, check it for path value
-        tank.util.register_publish(tk, self.context, seq_path, self.name, self.version)
+        tank.util.register_publish(self.tk, self.context, seq_path, self.name, self.version)
 
         # check that path is modified before sent to shotgun
         expected_path = os.path.join(self.project_root, "folder", "name_%03d.ext")
@@ -412,8 +419,8 @@ class TestShotgunRegisterPublish(TankTestBase):
         expected_path_cache = "%s/%s/%s" % (project_name, "folder", "name_%03d.ext")
 
         # look at values sent to the Mocked shotgun.create
-        actual_path = tk.shotgun.create.call_args[0][1]["path"]["local_path"]
-        actual_path_cache = tk.shotgun.create.call_args[0][1]["path_cache"]
+        actual_path = self.tk.shotgun.create.call_args[0][1]["path"]["local_path"]
+        actual_path_cache = self.tk.shotgun.create.call_args[0][1]["path_cache"]
 
         self.assertEqual(expected_path, actual_path)
         self.assertEqual(expected_path_cache, actual_path_cache)
@@ -429,14 +436,13 @@ class TestCalcPathCache(TankTestBase):
         Bug Ticket #18116
         """
         get_data_roots.return_value = {"primary" : self.project_root}
-        tk = tank.Tank(self.project_root)
         
         relative_path = os.path.join("Some","Path")
         wrong_case_root = self.project_root.swapcase()
         expected = os.path.join(os.path.basename(wrong_case_root), relative_path).replace(os.sep, "/")
 
         input_path = os.path.join(wrong_case_root, relative_path)
-        root_name, path_cache = tank.util.shotgun._calc_path_cache(tk, input_path)
+        root_name, path_cache = tank.util.shotgun._calc_path_cache(self.tk, input_path)
         self.assertEqual("primary", root_name)
         self.assertEqual(expected, path_cache)
 

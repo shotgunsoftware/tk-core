@@ -19,60 +19,7 @@ from tank import hook
 from tank import folder
 from tank_test.tank_test_base import *
 
-
-def assert_paths_to_create(expected_paths):
-    """
-    No file system operations are performed.
-    """
-    # Check paths sent to make_folder
-    for expected_path in expected_paths:
-        if expected_path not in g_paths_created:
-            assert False, "\n%s\nnot found in: [\n%s]" % (expected_path, "\n".join(g_paths_created))
-    for actual_path in g_paths_created:
-        if actual_path not in expected_paths:
-            assert False, "Unexpected path slated for creation: %s \nPaths: %s" % (actual_path, "\n".join(g_paths_created))
-
-
-g_paths_created = []
-
-def execute_folder_creation_proxy(self):
-    """
-    Proxy stub for folder creation tests
-    """
-    
-    # now handle the path cache
-    if not self._preview_mode: 
-        for i in self._items:
-            if i.get("action") == "entity_folder":
-                path = i.get("path")
-                entity_type = i.get("entity").get("type")
-                entity_id = i.get("entity").get("id")
-                entity_name = i.get("entity").get("name")
-                self._path_cache.add_mapping(entity_type, entity_id, entity_name, path)
-        for i in self._secondary_cache_entries:
-            path = i.get("path")
-            entity_type = i.get("entity").get("type")
-            entity_id = i.get("entity").get("id")
-            entity_name = i.get("entity").get("name")
-            self._path_cache.add_mapping(entity_type, entity_id, entity_name, path, False)
-                
-
-    # finally, build a list of all paths calculated
-    folders = list()
-    for i in self._items:
-        action = i.get("action")
-        if action in ["entity_folder", "create_file", "folder"]:
-            folders.append( i["path"] )
-        elif action == "copy":
-            folders.append( i["target_path"] )
-    
-    global g_paths_created
-    g_paths_created = folders
-    
-    return folders
-
-
-
+from . import assert_paths_to_create, execute_folder_creation_proxy
 
 # test against a step node where create_with_parent is false
 
@@ -83,7 +30,9 @@ class TestSchemaCreateFoldersSingleStep(TankTestBase):
         then queried to see what paths the code attempted to create.
         """
         super(TestSchemaCreateFoldersSingleStep, self).setUp()
+        
         self.setup_fixtures("shotgun_single_step_core")
+        
         self.seq = {"type": "Sequence",
                     "id": 2,
                     "code": "seq_code",
@@ -131,17 +80,6 @@ class TestSchemaCreateFoldersSingleStep(TankTestBase):
 
         # Add these to mocked shotgun
         self.add_to_sg_mock_db(entities)
-
-        self.tk = tank.Tank(self.project_root)
-
-        # add mock schema data so that a list of the asset type enum values can be returned
-        data = {}
-        data["properties"] = {}
-        data["properties"]["valid_values"] = {}
-        data["properties"]["valid_values"]["value"] = ["assettype"]
-        data["data_type"] = {}
-        data["data_type"]["value"] = "list"        
-        self.add_to_sg_schema_db("Asset", "sg_asset_type", data)
 
         self.schema_location = os.path.join(self.project_root, "tank", "config", "core", "schema")
 
@@ -246,7 +184,9 @@ class TestSchemaCreateFoldersMultiStep(TankTestBase):
         then queried to see what paths the code attempted to create.
         """
         super(TestSchemaCreateFoldersMultiStep, self).setUp()
+        
         self.setup_fixtures("shotgun_multi_step_core")
+        
         self.seq = {"type": "Sequence",
                     "id": 2,
                     "code": "seq_code",
@@ -294,17 +234,6 @@ class TestSchemaCreateFoldersMultiStep(TankTestBase):
 
         # Add these to mocked shotgun
         self.add_to_sg_mock_db(entities)
-
-        self.tk = tank.Tank(self.project_root)
-
-        # add mock schema data so that a list of the asset type enum values can be returned
-        data = {}
-        data["properties"] = {}
-        data["properties"]["valid_values"] = {}
-        data["properties"]["valid_values"]["value"] = ["assettype"]
-        data["data_type"] = {}
-        data["data_type"]["value"] = "list"        
-        self.add_to_sg_schema_db("Asset", "sg_asset_type", data)
 
         self.schema_location = os.path.join(self.project_root, "tank", "config", "core", "schema")
 
@@ -394,7 +323,9 @@ class TestSchemaCreateFoldersStepAndUserSandbox(TankTestBase):
         then queried to see what paths the code attempted to create.
         """
         super(TestSchemaCreateFoldersStepAndUserSandbox, self).setUp()
+        
         self.setup_fixtures("humanuser_step_core")
+        
         self.seq = {"type": "Sequence",
                     "id": 2,
                     "code": "seq_code",
@@ -433,7 +364,7 @@ class TestSchemaCreateFoldersStepAndUserSandbox(TankTestBase):
         # Add these to mocked shotgun
         self.add_to_sg_mock_db(entities)
 
-        self.tk = tank.Tank(self.project_root)
+        
 
         self.schema_location = os.path.join(self.project_root, "tank", "config", "core", "schema")
 
@@ -512,7 +443,9 @@ class TestSchemaCreateFoldersCustomStep(TankTestBase):
         then queried to see what paths the code attempted to create.
         """
         super(TestSchemaCreateFoldersCustomStep, self).setUp()
+        
         self.setup_fixtures("shotgun_single_custom_step_core")
+        
         self.seq = {"type": "Sequence",
                     "id": 2,
                     "code": "seq_code",
@@ -563,17 +496,6 @@ class TestSchemaCreateFoldersCustomStep(TankTestBase):
 
         # Add these to mocked shotgun
         self.add_to_sg_mock_db(entities)
-
-        self.tk = tank.Tank(self.project_root)
-
-        # add mock schema data so that a list of the asset type enum values can be returned
-        data = {}
-        data["properties"] = {}
-        data["properties"]["valid_values"] = {}
-        data["properties"]["valid_values"]["value"] = ["assettype"]
-        data["data_type"] = {}
-        data["data_type"]["value"] = "list"        
-        self.add_to_sg_schema_db("Asset", "sg_asset_type", data)
 
         self.schema_location = os.path.join(self.project_root, "tank", "config", "core", "schema")
 

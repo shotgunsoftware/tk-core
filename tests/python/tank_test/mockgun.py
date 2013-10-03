@@ -1,7 +1,10 @@
 import os, copy, datetime
 import cPickle as pickle
 
-from shotgun_api3 import sg_timezone, ShotgunError, Shotgun
+
+
+
+from tank_vendor.shotgun_api3 import sg_timezone, ShotgunError, Shotgun
 
 _schema_filename = "schema.pickle"
 _schema_entity_filename = "schema_entity.pickle"
@@ -23,6 +26,7 @@ def generate_schema(sg_url, sg_script, sg_key, schema_file_path, schema_entity_f
     
 
 class Shotgun(object):
+    
     def __init__(self, base_url, script_name, api_key, convert_datetimes_to_utc=True, http_proxy=None):
         # set up the schema (must be generated with generate_schema)
         module_dir = os.path.split(__file__)[0]
@@ -37,6 +41,14 @@ class Shotgun(object):
 
         # initialize the "database"
         self._db = dict((entity, {}) for entity in self._schema)
+
+        self.base_url = base_url
+        
+        # let's make sure there is at least one event log id in our mock db
+        data = {}
+        data["event_type"] = "Hello_Mockgun_World"
+        data["description"] = "Mockgun was born. Yay."
+        self.create("EventLogEntry", data)
 
 
     def schema_read(self):
@@ -71,6 +83,11 @@ class Shotgun(object):
         self._validate_entity_fields(entity_type, data.keys())
 
         for field, item in data.items():
+            
+            if item is None:
+                # none is always ok
+                continue
+            
             field_info = self._schema[entity_type][field]
 
             if field_info["data_type"]["value"] == "multi_entity":
@@ -99,11 +116,12 @@ class Shotgun(object):
                                    "float": float,
                                    "checkbox": bool,
                                    "text": basestring,
+                                   "serializable": dict,
                                    "date": datetime.date,
                                    "date_time": datetime.datetime,
                                    "url": dict}[sg_type]
                 except KeyError:
-                    raise ShotgunError("Handling for Shotgun type %s is not implemented" % sg_type) 
+                    raise ShotgunError("Field %s.%s: Handling for Shotgun type %s is not implemented" % (entity_type, field, sg_type)) 
                 
                 if not isinstance(item, python_type):
                     raise ShotgunError("%s.%s is of type %s, but data %s is not of type %s" % (entity_type, field, type(item), sg_type, python_type))
@@ -162,11 +180,25 @@ class Shotgun(object):
                 return lval < rval[0] or lval > rval[1]
             elif operator == "in":
                 return lval in rval
+        elif field_type == "list":
+            if operator == "is":
+                return lval == rval
+            elif operator == "is_not":
+                return lval != rval
+            elif operator == "in":
+                return lval in rval
+            elif operator == "not_in":
+                return lval not in rval
+        elif field_type == "entity_type":
+            if operator == "is":
+                return lval == rval
         elif field_type == "text":
             if operator == "is":
                 return lval == rval
             elif operator == "is_not":
                 return lval != rval
+            elif operator == "in":
+                return lval in rval            
             elif operator == "contains":
                 return lval in rval
             elif operator == "not_contains":
@@ -259,17 +291,71 @@ class Shotgun(object):
             raise ShotgunError("%s is not a valid filter operator" % filter_operator)
 
     def find(self, entity_type, filters, fields=None, order=None, filter_operator=None, limit=0, retired_only=False, page=0):
+        
+#        print ""
+#        import traceback
+#        stack_frame = traceback.extract_stack()
+#        traceback_str = "".join(traceback.format_list(stack_frame))
+#        print traceback_str
+#        print "> find %s %s" % (entity_type, filters)
+        
         self._validate_entity_type(entity_type)
         self._validate_entity_fields(entity_type, fields)
         
-        results = [row for row in self._db[entity_type].values() if self._row_matches_filters(entity_type, row, filters, filter_operator, retired_only)]
+        if isinstance(filters, dict):
+            # complex filter style!
+            # {'conditions': [{'path': 'id', 'relation': 'is', 'values': [1]}], 'logical_operator': 'and'}
+            
+            resolved_filters = []
+            for f in filters["conditions"]:
+                
+                if f["path"].startswith("$FROM$"):
+                    # special $FROM$Task.step.entity syntax
+                    # skip this for now
+                    continue
+                    
+                if len(f["values"]) != 1:
+                    # {'path': 'id', 'relation': 'in', 'values': [1,2,3]} --> ["id", "in", [1,2,3]]
+                    resolved_filters.append([ f["path"], f["relation"], f["values"] ])
+                else:
+                    # {'path': 'id', 'relation': 'is', 'values': [3]} --> ["id", "is", 3]
+                    resolved_filters.append([ f["path"], f["relation"], f["values"][0] ])
+                
+        else:
+            # traditiona style sg filters
+            resolved_filters = filters        
+        
+        # now translate ["field", "in", 2,3,4] --> ["field", "in", [2, 3, 4]]
+        resolved_filters_2 = []
+        for f in resolved_filters:
+            
+            
+            if len(f) > 3:
+                # ["field", "in", 2,3,4] --> ["field", "in", [2, 3, 4]]
+                new_filter = [ f[0], f[1], f[2:] ]
+            
+            elif f[1] == "in" and not isinstance(f[2], list):
+                # ["field", "in", 2] --> ["field", "in", [2]]
+                new_filter = [ f[0], f[1], [ f[2] ] ]
+            
+            else:
+                new_filter = f
+                
+            resolved_filters_2.append(new_filter)
+            
+        results = [row for row in self._db[entity_type].values() if self._row_matches_filters(entity_type, row, resolved_filters_2, filter_operator, retired_only)]
         
         if fields is None:
             fields = set(["type", "id"])
         else:
             fields = set(fields) | set(["type", "id"])
         
-        return [dict((field, self._get_field_from_row(entity_type, row, field)) for field in fields) for row in results]
+        val = [dict((field, self._get_field_from_row(entity_type, row, field)) for field in fields) for row in results]
+    
+#        print "> Data: %s" % val
+#        print ""
+        return val
+    
     
     def find_one(self, entity_type, filters, fields=None, order=None, filter_operator=None, retired_only=False):
         results = self.find(entity_type, filters, fields=fields, order=order, filter_operator=filter_operator, retired_only=retired_only)
@@ -292,7 +378,7 @@ class Shotgun(object):
     def _update_row(self, entity_type, row, data):
         for field in data:
             field_type = self._get_field_type(entity_type, field)
-            if field_type == "entity":
+            if field_type == "entity" and data[field]:
                 row[field] = {"type": data[field]["type"], "id": data[field]["id"]}
             elif field_type == "multi_entity":
                 row[field] = [{"type": item["type"], "id": item["id"]} for item in data[field]]
@@ -303,20 +389,19 @@ class Shotgun(object):
         self._validate_entity_type(entity_type)
         self._validate_entity_data(entity_type, data)
         self._validate_entity_fields(entity_type, return_fields)
-        
         try:
             # get next id in this table
             next_id = max(self._db[entity_type]) + 1
         except ValueError:
             next_id = 1
-
+        
         row = self._get_new_row(entity_type)
-
+        
         self._update_row(entity_type, row, data)        
         row["id"] = next_id
         
         self._db[entity_type][next_id] = row
-
+        
         if return_fields is None:
             result = dict((field, self._get_field_from_row(entity_type, row, field)) for field in data)
         else:

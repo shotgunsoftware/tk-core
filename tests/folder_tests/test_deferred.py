@@ -25,7 +25,7 @@ class TestDeferredFolderCreation(TankTestBase):
     def setUp(self):
         super(TestDeferredFolderCreation, self).setUp()
         self.setup_fixtures("deferred_core")
-        self.tk = tank.Tank(self.project_root)
+
 
         self.shot = {"type": "Shot", 
                      "id": 1,
@@ -39,13 +39,6 @@ class TestDeferredFolderCreation(TankTestBase):
                     "project": self.project}
 
         self.add_to_sg_mock_db([self.shot, self.asset])
-
-        # add mock schema data so that a list of the asset type enum values can be returned
-        data = {}
-        data["properties"] = {}
-        data["properties"]["valid_values"] = {}
-        data["properties"]["valid_values"]["value"] = ["assettype"]
-        self.add_to_sg_schema_db("Asset", "sg_asset_type", data)
 
         self.deferred_absent = os.path.join(self.project_root, "deferred_absent", "shot_code")
         self.deferred_false = os.path.join(self.project_root, "deferred_false", "shot_code")

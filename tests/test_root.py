@@ -66,8 +66,9 @@ class TestGetProjectRoots(TankTestBase):
 class TestGetPrimaryRoot(TankTestBase):
     def setUp(self):
         super(TestGetPrimaryRoot, self).setUp()
+        
         self.setup_multi_root_fixtures()
-        self.tk = tank.Tank(self.project_root)
+        
         # create shot and asset data
         self.seq = {"type": "Sequence",
                     "id": 2,

@@ -26,7 +26,6 @@ class  TestContext(TankTestBase):
         super(TestContext, self).setUp()
         self.setup_multi_root_fixtures()
 
-        self.tk = tank.Tank(self.project_root)
 
         self.keys = {"Sequence": StringKey("Sequence"),
                      "Shot": StringKey("Shot"),
@@ -48,6 +47,7 @@ class  TestContext(TankTestBase):
         # One human user matching the current login
         self.current_login = tank.util.login.get_login_name()
         self.current_user = {"type":"HumanUser", "name":"user_name", "id":2, "login": self.current_login}
+        
         self.add_to_sg_mock_db(self.current_user)
 
         self.seq_path = os.path.join(self.project_root, "sequence/Seq")
@@ -141,18 +141,6 @@ class TestUser(TestContext):
         self.assertEquals(self.current_user["type"], self.context.user["type"])
         self.assertEquals(len(self.context.user), 3)
 
-    def test_sg_called_once(self):
-        """
-        Test that shotgun is only queried the first time user is called.
-        """
-        self.sg_mock.find_one.reset_mock()
-        self.sg_mock.find_one.called == 0
-        self.context.user
-        self.sg_mock.find_one.called == 1
-        self.context.user
-        self.sg_mock.find_one.called == 1
-
-
 class TestCreateEmpty(TestContext):
     def test_empty_context(self):
         empty_context = context.Context(self.tk)
@@ -240,6 +228,7 @@ class TestFromPathWithPrevious(TestContext):
                      "project": self.project,
                      "entity": self.shot,
                      "step": self.step}
+        
         self.add_to_sg_mock_db(self.task)
 
         return context.from_entity(self.tk, self.task["type"], self.task["id"])
@@ -280,6 +269,7 @@ class TestUrl(TestContext):
                      "project": self.project,
                      "entity": self.shot,
                      "step": self.step}
+        
         self.add_to_sg_mock_db(self.task)
 
     def test_project(self):
@@ -323,6 +313,7 @@ class TestFromEntity(TestContext):
                      "project": self.project,
                      "entity": self.shot,
                      "step": self.step}
+        
         self.add_to_sg_mock_db(self.task)
 
     
