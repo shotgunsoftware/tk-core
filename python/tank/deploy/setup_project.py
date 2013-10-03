@@ -515,6 +515,9 @@ class TankConfigInstaller(object):
         Downloads a config zip from the app store and unzips it
         """
         
+        if self._sg_app_store is None:
+            raise TankError("Cannot download config - you are not connected to the app store!")
+        
         # try download from app store...
         parent_entity = self._sg_app_store.find_one(constants.TANK_CONFIG_ENTITY, 
                                               [["sg_system_name", "is", config_name ]],
