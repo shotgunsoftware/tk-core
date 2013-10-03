@@ -342,8 +342,8 @@ class Context(object):
         Returns the context object as a dictionary of template fields.
         This is useful if you want to use a Context object as part of a call to the Sgtk API.
 
-            >>> import tank
-            >>> tk = tank.Tank("/studio.08/demo_project/sequences/AAA/ABC/Lighting/work")
+            >>> import sgtk
+            >>> tk = sgtk.sgtk_from_path("/studio.08/demo_project/sequences/AAA/ABC/Lighting/work")
             >>> template = tk.templates['lighting_work']
             >>> ctx = tk.context_from_path("/studio.08/demo_project/sequences/AAA/ABC/Lighting/work")
             >>> ctx.as_template_fields(template)
