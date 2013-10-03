@@ -34,6 +34,22 @@ class TestSchemaCreateFoldersSecondaryEntity(TankTestBase):
         
         self.setup_fixtures("optional_folder_fields")
         
+        # set up our schema for sg_other_field (string)        
+        field_def = {'data_type': {'editable': False, 'value': 'entity'},
+                     'description': {'editable': True, 'value': ''},
+                     'editable': {'editable': False, 'value': True},
+                     'entity_type': {'editable': False, 'value': 'Shot'},
+                     'mandatory': {'editable': False, 'value': False},
+                     'name': {'editable': True, 'value': 'Other Field'},
+                     'properties': {'default_value': {'editable': False, 'value': None},
+                     'summary_default': {'editable': True, 'value': 'none'},
+                     'valid_types': {'editable': True, 'value': []}},
+                     'unique': {'editable': False, 'value': False}}
+        
+        self.tk._Tank__sg._schema["Shot"]["sg_other_field"] = field_def
+        
+        
+        
         self.shot = {"type": "Shot",
                      "id": 1,
                      "code": "shot_code",
