@@ -515,6 +515,9 @@ class TankConfigInstaller(object):
         Downloads a config zip from the app store and unzips it
         """
         
+        if self._sg_app_store is None:
+            raise TankError("Cannot download config - you are not connected to the app store!")
+        
         # try download from app store...
         parent_entity = self._sg_app_store.find_one(constants.TANK_CONFIG_ENTITY, 
                                               [["sg_system_name", "is", config_name ]],
@@ -905,7 +908,12 @@ def _interactive_setup(log, install_root, check_storage_path_exists, force):
         sg_version = ".".join([ str(x) for x in sg_app_store.server_info["version"]])
         log.debug("Connected to App Store! (v%s)" % sg_version)
     except Exception, e:
-        raise TankError("Could not connect to App Store: %s" % e)
+        log.warning("Could not establish a connection to the app store! You can "
+                    "still create new projects, but you have to base them on "
+                    "configurations that reside on your local disk.")
+        log.debug("The following error was raised: %s" % e)
+        sg_app_store = None
+        script_user = None
     
     
     ###############################################################################################
@@ -1270,14 +1278,16 @@ def _interactive_setup(log, install_root, check_storage_path_exists, force):
         raise TankError("Could not write to pipeline configuration cache file %s. "
                         "Error reported: %s" % (pipe_config_sg_id_path, exp))
     
-    # and write a custom event to the shotgun event log
-    log.debug("Writing app store stats...")
-    data = {}
-    data["description"] = "%s: An Toolkit Project was created" % sg.base_url
-    data["event_type"] = "TankAppStore_Project_Created"
-    data["user"] = script_user
-    data["project"] = constants.TANK_APP_STORE_DUMMY_PROJECT
-    sg_app_store.create("EventLogEntry", data)
+    if sg_app_store:
+        # we have an app store connection
+        # write a custom event to the shotgun event log
+        log.debug("Writing app store stats...")
+        data = {}
+        data["description"] = "%s: An Toolkit Project was created" % sg.base_url
+        data["event_type"] = "TankAppStore_Project_Created"
+        data["user"] = script_user
+        data["project"] = constants.TANK_APP_STORE_DUMMY_PROJECT
+        sg_app_store.create("EventLogEntry", data)
     
     
     ##########################################################################################
