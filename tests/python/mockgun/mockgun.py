@@ -1,28 +1,26 @@
 import os, copy, datetime
 import cPickle as pickle
 
-from shotgun_api3 import sg_timezone, ShotgunError
+from shotgun_api3 import sg_timezone, ShotgunError, Shotgun
 
 _schema_filename = "schema.pickle"
 _schema_entity_filename = "schema_entity.pickle"
 
-def generate_schema():
-    module_dir = os.path.split(__file__)[0]
-    schema_path = os.path.join(module_dir, _schema_filename)
-    schema_entity_path = os.path.join(module_dir, _schema_entity_filename)
-    
-    import tank.constants
-    sg = tank.constants.get_sg_connection()
+def generate_schema(sg_url, sg_script, sg_key, schema_file_path, schema_entity_file_path):
+    """
+    Generates the schema files needed by the mocker.
+    """
+    sg = Shotgun(sg_url, sg_script, sg_key)
     
     schema = sg.schema_read()
-    with open(schema_path, "w") as f:
+    with open(schema_file_path, "w") as f:
         pickle.dump(schema, f)
         
     schema_entity = sg.schema_entity_read()
-    with open(schema_entity_path, "w") as f:
+    with open(schema_entity_file_path, "w") as f:
         pickle.dump(schema_entity, f)
     
-    print "Schema generated."
+    
 
 class Shotgun(object):
     def __init__(self, base_url, script_name, api_key, convert_datetimes_to_utc=True, http_proxy=None):
