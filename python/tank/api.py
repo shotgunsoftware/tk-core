@@ -35,13 +35,13 @@ class Tank(object):
         :param project_path: Any path inside one of the data locations
         """
 
+        self.__sg = None
+
+
         # special stuff to make sure we maintain backwards compatibility in the constructor
         # if the 'project_path' parameter contains a pipeline config object,
         # just use this straight away. If the param contains a string, assume
         # this is a path and try to construct a pc from the path
-
-        self.__sg = None
-
         if isinstance(project_path, pipelineconfig.PipelineConfiguration):
             # this is actually a pc object
             self.__pipeline_config = project_path
@@ -380,13 +380,15 @@ class Tank(object):
 
         return entity
 
-    def sync_path_cache(self):
+    def sync_path_cache(self, force_full_sync=False):
         """
         Synchronizes the path cache with Shotgun.
+        
+        :param force_full_sync: Force a full sync. 
         """
         # Use the path cache to look up all paths associated with this entity
         path_cache = PathCache(self)
-        path_cache.synchronize()
+        path_cache.synchronize(force_full_sync)
         path_cache.close()
 
 

@@ -150,16 +150,26 @@ class SynchronizePathCache(Action):
         Action.__init__(self, 
                         "sync_path_cache", 
                         Action.PC_LOCAL, 
-                        ("Ensures that the local path cache file is up to date with Shotgun."), 
+                        ("Ensures that the local path cache file is up to date with Shotgun. Run "
+                         "with a --full option to force a full resync."), 
                         "Admin")
     
     def run(self, log, args):
-        if len(args) != 0:
-            raise TankError("This command takes no arguments!")
+        
+        if len(args) == 1 and args[1] == "--full":
+            force = True
+        
+        elif len(args) == 0:
+            force = False
+            
+        else:
+            raise TankError("Syntax: sync_path_cache [--full]!")
         
         log.info("Ensuring the path cache file is up to date...")
+        if force:
+            log.info("Doing a full sync.")
         pc = path_cache.PathCache(self.tk)
-        pc.synchronize()
+        pc.synchronize(force)
         log.info("The path cache has been synchronized.")
 
 

@@ -204,9 +204,10 @@ class PathCache(object):
     ############################################################################################
     # shotgun synchronization (SG data pushed into path cache database)
 
-    def synchronize(self):
+    def synchronize(self, force=False):
         """
-        Ensure the local path cache is in sync with Shotgun.
+        Ensure the local path cache is in sync with Shotgun. Setting the force
+        flag to true causes a full cache sync.
         
         Returns a list of remote items which were detected, created remotely
         and not existing in this path cache. These are returned as a list of 
@@ -223,8 +224,6 @@ class PathCache(object):
         data = list(res)[0]
         c.close()
         
-        print "Got last event log id from path cache: %s" % data
-        
         # expect back something like [(249660,)] for a running cache and [(None,)] for a clear
         if len(data) != 1 or data[0] is None:
             # we should do a full sync
@@ -238,7 +237,9 @@ class PathCache(object):
         
         
         response = self._tk.shotgun.find("EventLogEntry", 
-                                         [ ["event_type", "is", "Toolkit_Folders_Create"], 
+                                         [ ["event_type", "in", ["Toolkit_Folders_Create", 
+                                                                 "Toolkit_Folders_Rename", 
+                                                                 "Toolkit_Folders_Delete"]], 
                                            ["id", "greater_than", event_log_id],
                                            ["project", "is", project_link] ],
                                          ["id", "meta", "attribute_name"] )   
@@ -246,7 +247,7 @@ class PathCache(object):
         # todo - maybe do a time check here too to say that if our last sync date
         # more than a month ago or something, then fall back on full sync.
     
-        if len(response) > MAX_EVENTS_BEFORE_FULL_SYNC:
+        if force or len(response) > MAX_EVENTS_BEFORE_FULL_SYNC:
             # lots of activity since last sync. Fall back on a full refresh
             return self._do_full_sync()
                 
@@ -266,8 +267,6 @@ class PathCache(object):
             - metadata 
             - path
         """
-        print "doing full sync!"
-        
         # find the max event log id. Will we store this in the sync db later.
         sg_data = self._tk.shotgun.find_one("EventLogEntry", 
                                             [], 
@@ -306,10 +305,7 @@ class PathCache(object):
         
         if len(sg_data) == 0:
             # nothing to do!
-            print "no syncing needed - path cache is up to date!"
             return []
-        
-        print "doing incremental sync: %s" % sg_data
         
         # find the max event log id in sg_data. Will we store this in the sync db later.
         max_event_log_id = max( [x["id"] for x in sg_data] )
@@ -341,8 +337,6 @@ class PathCache(object):
         
         if ids is None:
             # get all folder data from shotgun
-            print "getting all path data from shotgun."
-            
             project_link = {"type": "Project", 
                             "id": self._tk.pipeline_configuration.get_project_id() }
             
@@ -357,7 +351,6 @@ class PathCache(object):
                                   [{"field_name": "id", "direction": "asc"},])
         else:
             # get the ids that are missing from shotgun
-            print "getting path data from shotgun. Ids: %s" % ids
             # need to use this weird special filter syntax
             id_in_filter = ["id", "in"]
             id_in_filter.extend(ids)
@@ -371,14 +364,13 @@ class PathCache(object):
                                    SG_ENTITY_NAME_FIELD],
                                   [{"field_name": "id", "direction": "asc"},])
             
-        print "...done! Got %s records" % len(sg_data)
-            
         c = self._connection.cursor()
         
         # now start a single transaction in which we do all our work
         if ids is None:
-            # complete sync - clear our table first
+            # complete sync - clear our tables first
             c.execute("DELETE FROM event_log_sync")
+            c.execute("DELETE FROM path_cache")
             
         return_data = []
             
@@ -399,12 +391,15 @@ class PathCache(object):
             if self._add_db_mapping(c, local_os_path, entity, is_primary):
                 # add db mapping returned true. Means it wasn't in the path cache db
                 # and we should return it
-                print "sg->path sync: added path %s" % local_os_path
                 return_data.append({"entity": entity, 
                                     "path": local_os_path, 
                                     "metadata": SG_METADATA_FIELD})
+            
             else:
-                print "sg->path sync: didn't add path %s" % local_os_path
+                # Note: edge case - for some reason there was already an entry in the path cache
+                # representing this. This could be because of duplicate entries and is
+                # not necessarily an anomaly.
+                pass  
             
         # lastly, id of this event log entry for purpose of future syncing
         c.execute("INSERT INTO event_log_sync VALUES(?)", (max_event_log_id, ))
@@ -419,8 +414,8 @@ class PathCache(object):
 
     def validate_mappings(self, data):
         """
-        Adds a collection of mappings to the path cache in case they are not 
-        already there. 
+        Checkcs a series of path mappings to ensure that they don't conflict with
+        existing path cache data.
         
         :param data: list of dictionaries. Each dictionary should contain 
                      the following keys:
@@ -533,6 +528,10 @@ class PathCache(object):
         self._connection.commit()
         c.close()
                 
+        # special unit test switch
+        if entity_type is None:
+            return
+
 
         # now add mappings to shotgun. Pass it as a single request via batch
         sg_batch_data = []
