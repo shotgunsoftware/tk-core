@@ -509,11 +509,13 @@ class PathCache(object):
                       - entity: a dictionary with keys name, id and type
                       - path: a path on disk
                       - primary: a boolean indicating if this is a primary entry
+                      - metadata: folder configuration metadata
                       
         :param entity_type: sg entity type for the original high level folder creation 
                             request that represents this series of mappings
-        :param entity_ids: list of sg entity ids (ints) that represents this series of
-                           path mappings
+        :param entity_ids: list of sg entity ids (ints) that represents which objects triggered 
+                           the high level folder creation request.
+                           
         """
         
         data_for_sg = []        
@@ -525,86 +527,93 @@ class PathCache(object):
                 # and we should add it to shotgun too!
                 data_for_sg.append(d)
                 
-        self._connection.commit()
-        c.close()
+        try:
+                                
+            # now add mappings to shotgun. Pass it as a single request via batch
+            sg_batch_data = []
+            for d in data_for_sg:
                 
-        # special unit test switch
-        if entity_type is None:
-            return
+                pc_link = {"type": "PipelineConfiguration",
+                           "id": self._tk.pipeline_configuration.get_shotgun_id() }
+                
+                project_link = {"type": "Project", 
+                                "id": self._tk.pipeline_configuration.get_project_id() }
+                
+                # get a name for the clickable url in the path field
+                # this will include the name of the storage
+                root_name, relative_path = self._separate_root(d["path"])
+                db_path = self._path_to_dbpath(relative_path)
+                path_display_name = "[%s] %s" % (root_name, db_path) 
+                
+                req = {"request_type":"create", 
+                       "entity_type": SHOTGUN_ENTITY, 
+                       "data": {"project": project_link,
+                                "created_by": get_current_user(self._tk),
+                                SG_ENTITY_FIELD: d["entity"],
+                                SG_IS_PRIMARY_FIELD: d["primary"],
+                                SG_PIPELINE_CONFIG_FIELD: pc_link,
+                                SG_METADATA_FIELD: json.dumps(d["metadata"]),
+                                SG_ENTITY_ID_FIELD: d["entity"]["id"],
+                                SG_ENTITY_TYPE_FIELD: d["entity"]["type"],
+                                SG_ENTITY_NAME_FIELD: d["entity"]["name"],
+                                SG_PATH_FIELD: { "local_path": d["path"], "name": path_display_name }
+                                } }
+                
+                sg_batch_data.append(req)
+            
+            # push to shotgun in a single xact
+            if len(sg_batch_data) > 0:
+                try:    
+                    response = self._tk.shotgun.batch(sg_batch_data)
+                except Exception, e:
+                    raise TankError("Critical! Could not update Shotgun with the folder "
+                                    "creation information. Please contact support. Error details: %s" % e)
+                
+                # now register the created ids in the event log
+                # this will later on be read by the synchronization
+                
+                # first, a summary of what we are up to
+                entity_ids = ", ".join([str(x) for x in entity_ids])
+                desc = ("Toolkit %s: Created folders on disk for "
+                        "%ss with id: %s" % (self._tk.version, entity_type, entity_ids))
+                
+                # now, based on the entities we just created, assemble a metadata chunk that 
+                # the sync calls can use later on.
+                meta = {}
+                # the api version used is always useful to know
+                meta["core_api_version"] = self._tk.version
+                # shotgun ids created
+                meta["sg_folder_ids"] = [ x["id"] for x in response]
+                
+                data = {}
+                data["event_type"] = "Toolkit_Folders_Create"
+                data["description"] = desc
+                data["project"] = project_link
+                data["entity"] = pc_link
+                data["meta"] = meta        
+                data["user"] = get_current_user(self._tk)
+            
+                response = self._tk.shotgun.create("EventLogEntry", data)
+                
+                # lastly, id of this event log entry for purpose of future syncing
+                event_log_id = response["id"]        
+                c = self._connection.cursor()
+                c.execute("INSERT INTO event_log_sync VALUES(?)", (event_log_id, ))
+                self._connection.commit()
+                c.close()
 
-
-        # now add mappings to shotgun. Pass it as a single request via batch
-        sg_batch_data = []
-        for d in data_for_sg:
-            
-            pc_link = {"type": "PipelineConfiguration",
-                       "id": self._tk.pipeline_configuration.get_shotgun_id() }
-            
-            project_link = {"type": "Project", 
-                            "id": self._tk.pipeline_configuration.get_project_id() }
-            
-            # get a name for the clickable url in the path field
-            # this will include the name of the storage
-            root_name, relative_path = self._separate_root(d["path"])
-            db_path = self._path_to_dbpath(relative_path)
-            path_display_name = "[%s] %s" % (root_name, db_path) 
-            
-            req = {"request_type":"create", 
-                   "entity_type": SHOTGUN_ENTITY, 
-                   "data": {"project": project_link,
-                            "created_by": get_current_user(self._tk),
-                            SG_ENTITY_FIELD: d["entity"],
-                            SG_IS_PRIMARY_FIELD: d["primary"],
-                            SG_PIPELINE_CONFIG_FIELD: pc_link,
-                            SG_METADATA_FIELD: json.dumps(d["metadata"]),
-                            SG_ENTITY_ID_FIELD: d["entity"]["id"],
-                            SG_ENTITY_TYPE_FIELD: d["entity"]["type"],
-                            SG_ENTITY_NAME_FIELD: d["entity"]["name"],
-                            SG_PATH_FIELD: { "local_path": d["path"], "name": path_display_name }
-                            } }
-            
-            sg_batch_data.append(req)
+        except:
+            # error processing shotgun. Make sure we roll back the sqlite path cache
+            # transaction
+            self._connection.rollback()
         
-        # push to shotgun in a single xact
-        if len(sg_batch_data) > 0:
-            try:    
-                response = self._tk.shotgun.batch(sg_batch_data)
-            except Exception, e:
-                raise TankError("Critical! Could not update Shotgun with the folder "
-                                "creation information. Please contact support. Error details: %s" % e)
-            
-            # now register the created ids in the event log
-            # this will later on be read by the synchronization
-            
-            # first, a summary of what we are up to
-            entity_ids = ", ".join([str(x) for x in entity_ids])
-            desc = ("Toolkit %s: Created folders on disk for "
-                    "%ss with id: %s" % (self._tk.version, entity_type, entity_ids))
-            
-            # now, based on the entities we just created, assemble a metadata chunk that 
-            # the sync calls can use later on.
-            meta = {}
-            # the api version used is always useful to know
-            meta["core_api_version"] = self._tk.version
-            # shotgun ids created
-            meta["sg_folder_ids"] = [ x["id"] for x in response]
-            
-            data = {}
-            data["event_type"] = "Toolkit_Folders_Create"
-            data["description"] = desc
-            data["project"] = project_link
-            data["entity"] = pc_link
-            data["meta"] = meta        
-            data["user"] = get_current_user(self._tk)
-        
-            response = self._tk.shotgun.create("EventLogEntry", data)
-            
-            # lastly, id of this event log entry for purpose of future syncing
-            event_log_id = response["id"]        
-            c = self._connection.cursor()
-            c.execute("INSERT INTO event_log_sync VALUES(?)", (event_log_id, ))
+        else:
+            # Shotgun insert complete! Now we can commit path cache transaction
             self._connection.commit()
+        
+        finally:
             c.close()
+
 
 
 
