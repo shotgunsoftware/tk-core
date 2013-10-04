@@ -74,6 +74,16 @@ class Tank(object):
         """
         return self.__pipeline_config
 
+    def reload_templates(self):
+        """
+        Reloads the template definitions. If reload fails, the previous 
+        template definitions will be preserved.
+        """
+        try:
+            self.templates = read_templates(self.__pipeline_config)
+        except TankError, e:
+            raise TankError("Templates could not be reloaded: %s" % e)
+
     ################################################################################################
     # properties
 
