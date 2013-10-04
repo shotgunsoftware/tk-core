@@ -279,8 +279,29 @@ class TankTestBase(unittest.TestCase):
             # wedge it into the mockgun database            
             et = entity["type"]
             eid = entity["id"]
-            # add for mockgun
+            
+            # special retired flag for mockgun
             entity["__retired"] = False
+            
+            # turn any dicts into proper type/id/name refs
+            for x in entity:
+                if isinstance(entity[x], dict):
+                    # make a std sg link dict with name, id, type
+                    link_dict = {"type": entity[x]["type"], "id": entity[x]["id"] }
+                    if entity[x]["type"] == "Project":
+                        link_dict["name"] = entity[x]["name"]  
+                    elif entity[x]["type"] == "HumanUser":
+                        link_dict["name"] = entity[x]["name"]  
+                    elif entity[x]["type"] == "Task":
+                        link_dict["name"] = entity[x]["content"]  
+                    elif "code" not in entity[x]:
+                        # auto generate a code field
+                        link_dict["name"] = "%s_id_%s" % (entity[x]["type"], entity[x]["id"])
+                    else:
+                        link_dict["name"] = entity[x]["code"]  
+                    # print "Swapping link dict %s -> %s" % (entity[x], link_dict) 
+                    entity[x] = link_dict
+            
             self.tk.shotgun._db[et][eid] = entity            
 
     def create_file(self, file_path, data=""):

@@ -48,7 +48,7 @@ class TestApplication(TankTestBase):
         
         context = self.tk.context_from_path(self.shot_step_path)
         self.engine = tank.platform.start_engine("test_engine", self.tk, context)
-        
+
         
     def tearDown(self):
         # engine is held as global, so must be destroyed.

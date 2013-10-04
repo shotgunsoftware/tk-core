@@ -352,6 +352,7 @@ class TestSchemaCreateFoldersStepAndUserSandbox(TankTestBase):
         
         self.humanuser = {"type": "HumanUser",
                           "id": 2,
+                          "name": "Mr Current Login",
                           "login": cur_login}
 
         entities = [self.shot, 

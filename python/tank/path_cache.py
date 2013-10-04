@@ -633,7 +633,6 @@ class PathCache(object):
         
         :returns: True if an entry was added to the database, False if it was not necessary   
         """
-        
         if primary:
             # the primary entity must be unique: path/id/type 
             # see if there are any records for this path
@@ -672,7 +671,6 @@ class PathCache(object):
                 return False
 
         # there was no entity in the db. So let's create it!
-        
         root_name, relative_path = self._separate_root(path)
         db_path = self._path_to_dbpath(relative_path)
         cursor.execute("INSERT INTO path_cache VALUES(?, ?, ?, ?, ?, ?)", (entity["type"], 

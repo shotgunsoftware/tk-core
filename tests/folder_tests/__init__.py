@@ -60,11 +60,11 @@ def execute_folder_creation_proxy(self):
         # the folder creation hook. This way, folders can be auto created
         # across multiple locations if desirable.            
         for i in rd:
+            
             remote_items.append( {"action": "remote_entity_folder",
                                   "path": i["path"],
                                   "metadata": i["metadata"],
                                   "entity": i["entity"] })
-
     # put together a list of entries we should pass to the database
     db_entries = []
     
@@ -90,11 +90,11 @@ def execute_folder_creation_proxy(self):
         self._path_cache.validate_mappings(db_entries)
     except TankError, e:
         raise TankError("Folder creation aborted: %s" % e) 
-        
-    # validation passed!
-    # now request the IO operations to take place
-    # note that we pass both the items that were created from syncing with remote
-    # and the new folders that have been computed
+    
+    # database data was validated, folders on disk created
+    # finally store all our new data in the path cache and in shotgun
+    if not self._preview_mode:
+        self._path_cache.add_mappings(db_entries, self._entity_type, self._entity_ids)
     
     folder_creation_items = remote_items + self._items
     

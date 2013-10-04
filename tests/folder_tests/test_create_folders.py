@@ -633,8 +633,6 @@ class TestSchemaCreateFoldersWorkspaces(TankTestBase):
 
         # Add these to mocked shotgun
         self.add_to_sg_mock_db(entities)
-        print self.project
-        print self.tk._Tank__sg._db["CustomEntity01"]
 
         self.schema_location = os.path.join(self.project_root, "tank", "config", "core", "schema")
 

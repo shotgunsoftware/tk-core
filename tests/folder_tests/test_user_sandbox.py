@@ -32,11 +32,13 @@ class TestHumanUser(TankTestBase):
                      "project": self.project}
 
         self.humanuser = {"type": "HumanUser",
+                          "name": "Mr Foo",
                           "id": 2,
                           "login": "foo"}
 
         self.humanuser2 = {"type": "HumanUser",
                           "id": 4,
+                          "name": "Mr Bar",
                           "login": "bar"}
 
         self.add_to_sg_mock_db([self.shot, self.humanuser, self.humanuser2])
