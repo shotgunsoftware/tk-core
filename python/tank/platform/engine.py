@@ -654,15 +654,16 @@ class Engine(TankBundle):
             except TankError, e:
                 # validation error - probably some issue with the settings!
                 # report this as an error message.
-                self.log_error("App configuration Error for %s. It will not be loaded: %s" % (app_instance_name, e))
+                self.log_error("App configuration Error for %s (configured in in environment '%s'). "
+                               "It will not be loaded: %s" % (app_instance_name, self.__env.disk_location, e))
                 continue
             
             except Exception:
                 # code execution error in the validation. Report this as an error 
                 # with the engire call stack!
-                self.log_exception("A general exception was caught while trying to " 
-                                   "validate the configuration for app %s. "
-                                   "The app will not be loaded." % app_instance_name)
+                self.log_exception("A general exception was caught while trying to "
+                                   "validate the configuration loaded from '%s' for app %s. "
+                                   "The app will not be loaded." % (self.__env.disk_location, app_instance_name))
                 continue
             
                                     
