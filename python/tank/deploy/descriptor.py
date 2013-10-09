@@ -388,27 +388,17 @@ class AppDescriptor(object):
     def run_post_install(self):
         """
         If a post install hook exists in a descriptor, execute it. In the
-        metadata (info.yml) for an app or engine, it is possible to define
-        a section for this:
-
-        # the post-install hook that this app requires to operate correctly
-        post_install_hook: post_install
-
-        This method will retrieve the metadata and ensure that the hook is
-        executed upon each installation.
+        hooks directory for an app or engine, if a 'post_install.py' hook
+        exists, the hook will be executed upon each installation.
         """
-
-        meta = self._get_metadata()
-        post_install_hook = meta.get('post_install_hook')
-
-        if post_install_hook:
-            from .. import hook 
-
-            post_install_hook_path = os.path.join(self.get_path(), "hooks",
-                                                  "%s.py" % post_install_hook)
+        
+        post_install_hook_path = os.path.join(self.get_path(), "hooks",
+                                              "post_install.py")
+        if os.path.exists(post_install_hook_path):
+            from .. import hook
             hook.execute_hook(post_install_hook_path, self._pipeline_config,
-                              pipeline_config=self._pipeline_config,
-                              descriptor=self)
+                              shotgun_object=shotgun.create_sg_connection(),
+                              app_path=self.get_path())
         # end if
     # end run_post_install
 
