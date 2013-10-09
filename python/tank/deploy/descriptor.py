@@ -101,7 +101,6 @@ class AppDescriptor(object):
         if sg_field_name not in sg_field_schema:
             sg.schema_field_create(sg_type, sg_data_type, ui_field_name)
 
-
     def _get_metadata(self):
         """
         Returns the info.yml metadata associated with this descriptor.
@@ -385,6 +384,23 @@ class AppDescriptor(object):
                     sg_data_type = field["type"]
                     sg_field_name = field["system_name"]
                     self.__ensure_sg_field_exists(sg, sg_entity_type, sg_field_name, sg_data_type)
+
+    def run_post_install(self):
+        """
+        If a post install hook exists in a descriptor, execute it. In the
+        hooks directory for an app or engine, if a 'post_install.py' hook
+        exists, the hook will be executed upon each installation.
+        """
+        
+        post_install_hook_path = os.path.join(self.get_path(), "hooks",
+                                              "post_install.py")
+        if os.path.exists(post_install_hook_path):
+            from .. import hook
+            hook.execute_hook(post_install_hook_path, self._pipeline_config,
+                              shotgun_object=shotgun.create_sg_connection(),
+                              app_path=self.get_path())
+        # end if
+    # end run_post_install
 
 
 ################################################################################################

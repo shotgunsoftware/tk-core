@@ -841,6 +841,8 @@ def _install_environment(env_obj, log):
     # create required shotgun fields
     for descriptor in descriptors:
         descriptor.ensure_shotgun_fields_exist()
+        # run post install hook
+        descriptor.run_post_install()
     
 def _get_published_file_entity_type(log, sg):
     """
