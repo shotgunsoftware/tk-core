@@ -24,7 +24,7 @@ set INTERPRETER_CONFIG_FILE=%1config\core\interpreter_Windows.cfg
 IF NOT EXIST "%INTERPRETER_CONFIG_FILE%" GOTO NO_INTERPRETER_CONFIG
 
 rem -- now get path to python interpreter by reading config file
-for /f %%G in (%INTERPRETER_CONFIG_FILE%) do (SET PYTHON_INTERPRETER=%%G)
+for /f "tokens=*" %%G in (%INTERPRETER_CONFIG_FILE%) do (SET PYTHON_INTERPRETER=%%G)
 IF NOT EXIST %PYTHON_INTERPRETER% GOTO NO_INTERPRETER
 
 rem -- execute the python script which does the actual work.
