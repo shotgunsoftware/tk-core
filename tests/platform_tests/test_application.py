@@ -27,16 +27,15 @@ class TestApplication(TankTestBase):
         self.setup_fixtures()
         
         # setup shot
-        seq = {"type":"Sequence", "name":"seq_name", "id":3}
-        seq_path = os.path.join(self.project_root, "sequences/Seq")
+        seq = {"type":"Sequence", "code": "seq_name", "id":3 }
+        seq_path = os.path.join(self.project_root, "sequences/Seq/seq_name")
         self.add_production_path(seq_path, seq)
-        shot = {"type":"Shot",
-                "name": "shot_name",
-                "id":2,
-                "project": self.project}
-        shot_path = os.path.join(seq_path, "shot_code")
+        
+        shot = {"type":"Shot", "code": "shot_name", "id":2, "sg_sequence": seq, "project": self.project}
+        shot_path = os.path.join(seq_path, "shot_name")
         self.add_production_path(shot_path, shot)
-        step = {"type":"Step", "name":"step_name", "id":4}
+        
+        step = {"type":"Step", "code": "step_name", "id":4 }
         self.shot_step_path = os.path.join(shot_path, "step_name")
         self.add_production_path(self.shot_step_path, step)
 
