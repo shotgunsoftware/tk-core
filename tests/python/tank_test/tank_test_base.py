@@ -15,6 +15,7 @@ Base class for engine and app testing
 import os
 import time
 import shutil
+import pprint
 import tempfile
 
 from .mockgun import Shotgun as MockGun_Shotgun 
@@ -159,6 +160,9 @@ class TankTestBase(unittest.TestCase):
         self._move_project_data()
         
     def setup_fixtures(self, core_config="default_core"):
+        
+        
+        
         test_data_path = os.path.join(self.tank_source_path, "tests", "data")
         core_source = os.path.join(test_data_path, core_config)
         core_target = os.path.join(self.project_config, "core")
@@ -182,9 +186,12 @@ class TankTestBase(unittest.TestCase):
         
         src.close()
         dst.close()
+                
     
     def setup_multi_root_fixtures(self):
+
         self.setup_fixtures(core_config="multi_root_core")
+        
         # Add multiple project roots
         project_name = os.path.basename(self.project_root)
         self.alt_root_1 = os.path.join(self.tank_temp, "alternate_1", project_name)
@@ -213,6 +220,9 @@ class TankTestBase(unittest.TestCase):
         self.pipeline_configuration = sgtk.pipelineconfig.from_path(os.path.join(self.project_root, "tank"))
         # push this new PC into the tk api
         self.tk._Tank__pipeline_config = self.pipeline_configuration 
+        
+        # force reload templates
+        self.tk.reload_templates()
         
         # add project root folders
         # primary path was already added in base setUp
@@ -250,6 +260,10 @@ class TankTestBase(unittest.TestCase):
         :param entity: Entity dictionary with values for keys 'id', 'name', and 'type'
         """
         
+        # fix name/code discrepancy
+        if "code" in entity:
+            entity["name"] = entity["code"]
+        
         path_cache = tank.path_cache.PathCache(self.tk)
         
         data = [ {"entity": {"id": entity["id"], 
@@ -257,12 +271,33 @@ class TankTestBase(unittest.TestCase):
                              "name": entity["name"]}, 
                   "metadata": [],
                   "path": path, 
-                  "primary": False } ]
+                  "primary": True } ]
         path_cache.add_mappings(data, None, [])
         
         # On windows path cache has persisted, interfering with teardowns, so get rid of it.
         path_cache.close()
         del(path_cache)
+                       
+    def debug_dump(self):
+        
+        print ""
+        print "-----------------------------------------------------------------------------"
+        print " Shotgun contents:"
+        
+        print pprint.pformat(self.tk.shotgun._db)
+        print ""
+        print ""
+        print "Path Cache contents:"
+        
+        path_cache = tank.path_cache.PathCache(self.tk)
+        c = path_cache._connection.cursor()
+        for x in list(c.execute("select * from path_cache" )):
+            print x
+        c.close()
+        path_cache.close()
+        
+        print "-----------------------------------------------------------------------------"
+        print ""
                                 
     def add_to_sg_mock_db(self, entities):
         """
@@ -288,17 +323,23 @@ class TankTestBase(unittest.TestCase):
                 if isinstance(entity[x], dict):
                     # make a std sg link dict with name, id, type
                     link_dict = {"type": entity[x]["type"], "id": entity[x]["id"] }
+                    
                     if entity[x]["type"] == "Project":
                         link_dict["name"] = entity[x]["name"]  
+                    
                     elif entity[x]["type"] == "HumanUser":
                         link_dict["name"] = entity[x]["name"]  
+                    
                     elif entity[x]["type"] == "Task":
                         link_dict["name"] = entity[x]["content"]  
+                    
                     elif "code" not in entity[x]:
                         # auto generate a code field
                         link_dict["name"] = "%s_id_%s" % (entity[x]["type"], entity[x]["id"])
+                    
                     else:
                         link_dict["name"] = entity[x]["code"]  
+                    
                     # print "Swapping link dict %s -> %s" % (entity[x], link_dict) 
                     entity[x] = link_dict
             
