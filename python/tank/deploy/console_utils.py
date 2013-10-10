@@ -205,6 +205,9 @@ def ensure_frameworks_installed(log, tank_api_instance, file_location, descripto
     
         # create required shotgun fields
         fw_descriptor.ensure_shotgun_fields_exist()
+
+        # run post install hook
+        fw_descriptor.run_post_install()
     
         # now get data for all new settings values in the config
         params = get_configuration(log, tank_api_instance, fw_descriptor, None)
