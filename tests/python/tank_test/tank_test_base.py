@@ -186,6 +186,11 @@ class TankTestBase(unittest.TestCase):
         
         src.close()
         dst.close()
+        
+        if core_config != "multi_root_core":
+            # setup_multi_root_fixtures is messing a bunch with the 
+            # templates so it does a separate reload
+            self.tk.reload_templates()
                 
     
     def setup_multi_root_fixtures(self):

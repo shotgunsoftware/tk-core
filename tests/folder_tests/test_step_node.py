@@ -451,17 +451,19 @@ class TestSchemaCreateFoldersCustomStep(TankTestBase):
                     "id": 2,
                     "code": "seq_code",
                     "project": self.project}
+        
         self.shot = {"type": "Shot",
                      "id": 1,
                      "code": "shot_code",
                      "sg_sequence": self.seq,
                      "project": self.project}
-        self.step = {"type": "FooStep",
+        
+        self.step = {"type": "CustomEntity03",
                      "id": 3,
                      "code": "step_code",
                      "short_name": "step_short_name"}
 
-        self.step2 = {"type": "FooStep",
+        self.step2 = {"type": "CustomEntity03",
                      "id": 33,
                      "code": "step_code_2",
                      "short_name": "step_short_name_2"}

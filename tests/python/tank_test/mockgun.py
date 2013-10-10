@@ -106,8 +106,8 @@ class Shotgun(object):
                     raise ShotgunError("%s.%s is of type entity, but data %s is not a dictionary" % (entity_type, field, item))
                 elif "id" not in item or "type" not in item:
                     raise ShotgunError("%s.%s is of type entity, but data %s does not contain 'type' and 'id'" % (entity_type, field, item))
-                elif item["type"] not in field_info["properties"]["valid_types"]["value"]:
-                    raise ShotgunError("%s.%s is of type entity, but data %s has an invalid type (expected one of %s)" % (entity_type, field, item, field_info["properties"]["valid_types"]["value"]))
+                #elif item["type"] not in field_info["properties"]["valid_types"]["value"]:
+                #    raise ShotgunError("%s.%s is of type entity, but data %s has an invalid type (expected one of %s)" % (entity_type, field, item, field_info["properties"]["valid_types"]["value"]))
 
             else:
                 try:
@@ -300,7 +300,7 @@ class Shotgun(object):
 #        print "> find %s %s" % (entity_type, filters)
         
         self._validate_entity_type(entity_type)
-        self._validate_entity_fields(entity_type, fields)
+        #self._validate_entity_fields(entity_type, fields)
         
         if isinstance(filters, dict):
             # complex filter style!
