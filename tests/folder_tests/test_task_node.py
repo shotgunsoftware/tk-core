@@ -90,6 +90,10 @@ class TestSchemaCreateFoldersSingleStep(TankTestBase):
 
     def tearDown(self):
         
+        # important to call base class so it can clean up memory
+        super(TestSchemaCreateFoldersSingleStep, self).tearDown()
+        
+        # and do local teardown                                                                                
         folder.folder_io.FolderIOReceiver.execute_folder_creation = self.FolderIOReceiverBackup
 
 
@@ -246,6 +250,10 @@ class TestSchemaCreateFoldersMultiStep(TankTestBase):
 
     def tearDown(self):
         
+        # important to call base class so it can clean up memory
+        super(TestSchemaCreateFoldersMultiStep, self).tearDown()
+        
+        # and do local teardown                                                                                        
         folder.folder_io.FolderIOReceiver.execute_folder_creation = self.FolderIOReceiverBackup
 
 

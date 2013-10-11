@@ -69,6 +69,10 @@ class TestSchemaCreateFolders(TankTestBase):
 
     def tearDown(self):
         
+        # important to call base class so it can clean up memory
+        super(TestSchemaCreateFolders, self).tearDown()
+        
+        # and do local teardown
         folder.folder_io.FolderIOReceiver.execute_folder_creation = self.FolderIOReceiverBackup
 
 
@@ -341,6 +345,10 @@ class TestSchemaCreateFoldersMultiRoot(TankTestBase):
 
     def tearDown(self):
         
+        # important to call base class so it can clean up memory
+        super(TestSchemaCreateFoldersMultiRoot, self).tearDown()
+        
+        # and do local teardown        
         folder.folder_io.FolderIOReceiver.execute_folder_creation = self.FolderIOReceiverBackup
         
 
@@ -641,6 +649,10 @@ class TestSchemaCreateFoldersWorkspaces(TankTestBase):
 
     def tearDown(self):
         
+        # important to call base class so it can clean up memory
+        super(TestSchemaCreateFoldersWorkspaces, self).tearDown()
+        
+        # and do local teardown                
         folder.folder_io.FolderIOReceiver.execute_folder_creation = self.FolderIOReceiverBackup
 
 
@@ -740,6 +752,10 @@ class TestFolderCreationEdgeCases(TankTestBase):
 
     def tearDown(self):
         
+        # important to call base class so it can clean up memory
+        super(TestFolderCreationEdgeCases, self).tearDown()
+        
+        # and do local teardown                        
         # making sure that no file handles remain active 
         # leftover handles cause problems on windows! 
         self.path_cache.close()

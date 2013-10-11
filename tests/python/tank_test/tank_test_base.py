@@ -18,7 +18,7 @@ import shutil
 import pprint
 import tempfile
 
-from .mockgun import Shotgun as MockGun_Shotgun 
+from mockgun import Shotgun as MockGun_Shotgun 
 
 from mock import Mock
 import unittest2 as unittest
@@ -158,6 +158,9 @@ class TankTestBase(unittest.TestCase):
     def tearDown(self):
         """Cleans up after tests."""
         self._move_project_data()
+        # important to delete this to free memory
+        self.tk = None
+        
         
     def setup_fixtures(self, core_config="default_core"):
         

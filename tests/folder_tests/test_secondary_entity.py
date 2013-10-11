@@ -97,7 +97,10 @@ class TestSchemaCreateFoldersSecondaryEntity(TankTestBase):
         folder.folder_io.FolderIOReceiver.execute_folder_creation = execute_folder_creation_proxy
 
     def tearDown(self):
+        # important to call base class so it can clean up memory
+        super(TestSchemaCreateFoldersSecondaryEntity, self).tearDown()
         
+        # and do local teardown                                        
         folder.folder_io.FolderIOReceiver.execute_folder_creation = self.FolderIOReceiverBackup
 
 
