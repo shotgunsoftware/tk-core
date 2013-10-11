@@ -279,8 +279,7 @@ class TestShotgunFindPublishTankStorage(TankTestBase):
         # make sure we got the latest matching publish
         sg_data = d.get(paths[0])
         
-        # SG MOCKER DOES NOT SUPPORT THIS
-        #self.assertEqual(sg_data["id"], self.pub_5["id"])
+        self.assertEqual(sg_data["id"], self.pub_5["id"])
         
         # make sure we are only getting the ID back.
         self.assertEqual(sg_data.keys(), ["type", "id"])
@@ -410,17 +409,30 @@ class TestShotgunRegisterPublish(TankTestBase):
 
         seq_path = os.path.join(self.project_root, "folder", "name_001.ext")
 
+        create_data = []
+        # wrap create so we can keep tabs of things 
+        def create_mock(entity_type, data, return_fields=None):
+            create_data.append(data)
+            return real_create(entity_type, data, return_fields)
+        
+        real_create = self.tk.shotgun.create 
+        self.tk.shotgun.create = create_mock
+
         # mock sg.create, check it for path value
-        tank.util.register_publish(self.tk, self.context, seq_path, self.name, self.version)
+        try:
+            tank.util.register_publish(self.tk, self.context, seq_path, self.name, self.version)
+        finally:
+            self.tk.shotgun.create = real_create
+
 
         # check that path is modified before sent to shotgun
         expected_path = os.path.join(self.project_root, "folder", "name_%03d.ext")
         project_name = os.path.basename(self.project_root)
         expected_path_cache = "%s/%s/%s" % (project_name, "folder", "name_%03d.ext")
 
-        # look at values sent to the Mocked shotgun.create
-        actual_path = self.tk.shotgun.create.call_args[0][1]["path"]["local_path"]
-        actual_path_cache = self.tk.shotgun.create.call_args[0][1]["path_cache"]
+        
+        actual_path = create_data[0]["path"]["local_path"]
+        actual_path_cache = create_data[0]["path_cache"]
 
         self.assertEqual(expected_path, actual_path)
         self.assertEqual(expected_path_cache, actual_path_cache)
