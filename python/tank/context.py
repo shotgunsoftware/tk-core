@@ -1037,6 +1037,15 @@ def _context_data_from_cache(tk, entity_type, entity_id):
         # now recurse upwards and look for entity types we haven't found yet
         curr_path = path
         curr_entity = path_cache.get_entity(curr_path)
+        
+        if curr_entity is None:
+            # this is some sort of anomaly! the path returned by get_paths
+            # does not resolve in get_entity. This can happen if the storage
+            # mappings are not consistent or if there is not a 1 to 1 relationship
+            raise TankError("The path '%s' associated with %s id %s does not " 
+                            "resolve correctly. This may be an indication of an issue "
+                            "with the local storage setup. Please contact " 
+                            "sgtksupport@shotgunsoftware.com" % (curr_path, entity_type, entity_id))
 
         # grab the name for the context entity
         if curr_entity["type"] == entity_type and curr_entity["id"] == entity_id:

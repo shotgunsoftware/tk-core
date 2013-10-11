@@ -504,8 +504,7 @@ class StorageConfigurationMapping(object):
     """
 
     def __init__(self, data_root):
-        self._root = data_root
-        self._config_file = os.path.join(self._root, "tank", "config", constants.CONFIG_BACK_MAPPING_FILE)
+        self._config_file = os.path.join(data_root, "tank", "config", constants.CONFIG_BACK_MAPPING_FILE)
 
     def clear_mappings(self):
         """
@@ -979,10 +978,74 @@ def get_pc_disk_metadata(pipeline_config_root_path):
     return data
 
 
+def _sanitize_path(path, separator):
+    """
+    Sanitize and clean up paths that may be incorrect.
+    
+    The following modifications will be carried out:
+    
+    None returns None
+    
+    Trailing slashes are removed:
+    1. /foo/bar      - unchanged
+    2. /foo/bar/     - /foo/bar
+    3. z:/foo/       - z:\foo
+    4. z:/           - z:\
+    5. z:\           - z:\
+    6. \\foo\bar\    - \\foo\bar
+
+    Double slashes are removed:
+    1. //foo//bar    - /foo/bar
+    2. \\foo\\bar    - \\foo\bar
+    
+    :param path: the path to clean up
+    :param separator: the os.sep to adjust the path for. / on nix, \ on win.
+    :returns: cleaned up path
+    """
+    if path is None:
+        return None
+    
+    # first, get rid of any slashes at the end
+    # after this step, path value will be "/foo/bar", "c:" or "\\hello"
+    path = path.rstrip("/\\")
+    
+    # add slash for drive letters: c: --> c:/
+    if len(path) == 2 and path.endswith(":"):
+        path += "/"
+    
+    # and convert to the right separators
+    # after this we have a path with the correct slashes and no end slash
+    local_path = path.replace("\\", separator).replace("/", separator)
+
+    # now weed out any duplicated slashes. iterate until done
+    while True:
+        new_path = local_path.replace("//", "/")
+        if new_path == local_path:
+            break
+        else:
+            local_path = new_path
+    
+    # for windows, remove duplicated backslashes, except if they are 
+    # at the beginning of the path
+    while True:
+        new_path = local_path[0] + local_path[1:].replace("\\\\", "\\")
+        if new_path == local_path:
+            break
+        else:
+            local_path = new_path
+
+    return local_path
 
 def get_pc_roots_metadata(pipeline_config_root_path):
     """
     Loads and validates the roots metadata file.
+    
+    The roots.yml file is a reflection of the local storages setup in Shotgun
+    at project setup time and may contain anomalies in the path layout structure.
+    
+    The roots data will be prepended to paths and used for comparison so it is 
+    critical that the paths are on a correct normalized form once they have been 
+    loaded into the system.    
     """
     # now read in the roots.yml file
     # this will contain something like
@@ -1006,44 +1069,10 @@ def get_pc_roots_metadata(pipeline_config_root_path):
         raise TankError("Could not find a primary storage in roots file "
                         "for configuration %s!" % pipeline_config_root_path)
 
-
-
-
-
-    # make sure that all paths are correctly ended without a path separator
-    #
-    # Examples of paths in the metadata file and how they should be processed:
-    #
-    # 1. /foo/bar      - unchanged
-    # 2. /foo/bar/     - /foo/bar
-    # 3. z:/foo/       - z:\foo
-    # 4. z:/           - z:\
-    # 5. z:\           - z:\
-    # 6. \\foo\bar\    - \\foo\bar
-    
-
-    def _convert_helper(path, separator):
-        # ensures slashes are correct.
-        
-        # first, get rid of any slashes at the end
-        # path value will be "/foo/bar", "c:" or "\\hello"
-        path = path.rstrip("/\\")
-        
-        # add slash for drive letters: c: --> c:/
-        if len(path) == 2 and path.endswith(":"):
-            path += "/"
-        
-        # and convert to the right separators
-        return path.replace("\\", separator).replace("/", separator)
-        
-
     # now use our helper function to process the paths    
     for s in data:
-        if data[s]["mac_path"]:
-            data[s]["mac_path"] = _convert_helper(data[s]["mac_path"], "/")
-        if data[s]["linux_path"]:
-            data[s]["linux_path"] = _convert_helper(data[s]["linux_path"], "/")
-        if data[s]["windows_path"]:
-            data[s]["windows_path"] = _convert_helper(data[s]["windows_path"], "\\")
+        data[s]["mac_path"] = _sanitize_path(data[s]["mac_path"], "/")
+        data[s]["linux_path"] = _sanitize_path(data[s]["linux_path"], "/")
+        data[s]["windows_path"] = _sanitize_path(data[s]["windows_path"], "\\")
 
     return data

@@ -280,6 +280,8 @@ class Static(Folder):
         constrain_by_entity = metadata.get("constrain_by_entity")
         constraints = metadata.get("constraints")
         
+        create_with_parent = metadata.get("create_with_parent", True)
+        
         # validate
         if constrain_by_entity is not None and constraints is None:
             raise TankError("Missing constraints parameter in yml metadata file %s" % full_path )
@@ -323,9 +325,15 @@ class Static(Folder):
             resolved_constrain_node = None
             constraints_filter = None
                         
-        return Static(parent, full_path, metadata, tk, resolved_constrain_node, constraints_filter)
+        return Static(parent, 
+                      full_path, 
+                      metadata, 
+                      tk, 
+                      create_with_parent, 
+                      resolved_constrain_node, 
+                      constraints_filter)
     
-    def __init__(self, parent, full_path, metadata, tk, constrain_node, constraints_filter):
+    def __init__(self, parent, full_path, metadata, tk, create_with_parent, constrain_node, constraints_filter):
         """
         Constructor.
         """
@@ -336,6 +344,7 @@ class Static(Folder):
         
         self._constrain_node = constrain_node
         self._constraints_filter = constraints_filter 
+        self._create_with_parent = create_with_parent 
         self._tk = tk
         
         self._cached_sg_data = {}
@@ -345,6 +354,19 @@ class Static(Folder):
         Returns true if this folder node requires some sort of dynamic input
         """
         return False
+    
+    def _should_item_be_processed(self, engine_str, is_primary):
+        """
+        Checks if this node should be processed, given its deferred status.        
+        """
+        # check our special condition - is this node set to be auto-created with its parent node?
+        # note that primary nodes are always created with their parent nodes!
+        if is_primary == False and self._create_with_parent == False:
+            return False
+        
+        # base class implementation
+        return super(Static, self)._should_item_be_processed(engine_str, is_primary)
+    
     
     def _create_folders_impl(self, io_receiver, parent_path, sg_data):
         """

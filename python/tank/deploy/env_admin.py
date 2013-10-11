@@ -86,6 +86,9 @@ def install_app(log, tk, env_name, engine_instance_name, app_name):
     # create required shotgun fields
     app_descriptor.ensure_shotgun_fields_exist()
 
+    # run post install hook
+    app_descriptor.run_post_install()
+
     # now get data for all new settings values in the config
     params = console_utils.get_configuration(log, tk, app_descriptor, None)
 
@@ -156,6 +159,9 @@ def install_engine(log, tk, env_name, engine_name):
     # create required shotgun fields
     engine_descriptor.ensure_shotgun_fields_exist()
 
+    # run post install hook
+    engine_descriptor.run_post_install()
+
     # now get data for all new settings values in the config
     params = console_utils.get_configuration(log, tk, engine_descriptor, None)
     
@@ -190,6 +196,9 @@ def _update_item(log, tk, env, status, engine_name, app_name=None):
 
     # create required shotgun fields
     new_descriptor.ensure_shotgun_fields_exist()
+
+    # run post install hook
+    new_descriptor.run_post_install()
 
     # ensure that all required frameworks have been installed
     # find the file where our item is being installed

@@ -733,6 +733,8 @@ class PathCache(object):
         on the form Shot: "{code}_{sg_sequence.Sequence.code}"), the primary entity (in 
         this case the Shot) will be returned.
 
+        Note that if the lookup fails, none is returned.
+
         :param path: a path on disk
         :returns: Shotgun entity dict, e.g. {"type": "Shot", "name": "xxx", "id": 123} 
                   or None if not found

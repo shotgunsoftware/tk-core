@@ -609,6 +609,28 @@ class Engine(TankBundle):
         
         return base
         
+    def _get_standard_qt_stylesheet(self):
+        """
+        For environments which do not have a well defined QT style sheet,
+        Toolkit maintains a "standard style" which is similar to the look and
+        feel that Maya and Nuke has. 
+        
+        This is intended to be used in conjunction with QTs cleanlooks mode.
+        The init code inside an engine would typically look something like this:
+        
+            QtGui.QApplication.setStyle("cleanlooks")
+            qt_application = QtGui.QApplication([])
+            qt_application.setStyleSheet( self._get_standard_qt_stylesheet() )         
+        
+        :returns: The style sheet data, as a string.
+        """
+        this_folder = os.path.abspath(os.path.dirname(__file__))
+        css_file = os.path.join(this_folder, "qt", "toolkit_std_dark.css")
+        f = open(css_file)
+        css_data = f.read()
+        f.close()
+        return css_data
+        
             
     ##########################################################################################
     # private         

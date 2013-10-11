@@ -841,6 +841,8 @@ def _install_environment(env_obj, log):
     # create required shotgun fields
     for descriptor in descriptors:
         descriptor.ensure_shotgun_fields_exist()
+        # run post install hook
+        descriptor.run_post_install()
     
 def _get_published_file_entity_type(log, sg):
     """
@@ -938,6 +940,11 @@ def _interactive_setup(log, install_root, check_storage_path_exists, force):
     
     # ask the user to confirm the folder name
     project_disk_folder = cmdline_ui.get_project_folder_name(project_name, project_id, resolved_storages)
+    
+    # make sure that the project disk folder does not end in a slash - this is causing lots of 
+    # problems in the context resolve later on (#23222)
+    if project_disk_folder.endswith("/"):
+        project_disk_folder = project_disk_folder[:-1]
     
     # validate that this is not crazy
     # note that the value can contain slashes and span across multiple folders
