@@ -771,21 +771,25 @@ class TestFolderCreationEdgeCases(TankTestBase):
         # change the id of the shot - effectively deleting and creating a shot!
         old_id = self.shot["id"]
         self.shot["id"] = 12345
+        # make sure to null the link going from the task too - this is how shotgun
+        # would have done a retirement.
+        self.task["entity"] = self.shot
         
-        self.assertEquals(self.path_cache.get_paths("Shot", self.shot["id"], False), [])
+        self.assertEquals( self.path_cache.get_paths("Shot", self.shot["id"], False), [])
         
-        folder.process_filesystem_structure(self.tk, 
-                                            self.task["type"], 
-                                            self.task["id"], 
-                                            preview=False, 
-                                            engine=None)
+        with self.assertRaises(TankError) as cm:
+            folder.process_filesystem_structure(self.tk, self.task["type"], self.task["id"], preview=False, engine=None)
+        exception_msg = str(cm.exception)
         
-        # now check that the path is associated with the new id and not the old
-        shot_path = os.path.join(self.project_root, "sequences", "seq_code", "shot_code")
-        paths_in_db = self.path_cache.get_paths("Shot", self.shot["id"])
-        self.assertEquals(paths_in_db, [shot_path])
-        self.assertEquals(self.path_cache.get_paths("Shot", old_id), [])
-
+        # Folder creation aborted: The path '/var/folders/3n/7r4bsy015cb63sssgyj02t1h0000gn/T/tankTemporaryTestData_1381488758.615949/project_code/sequences/seq_code/XYZ' 
+        # cannot be created because another path '/var/folders/3n/7r4bsy015cb63sssgyj02t1h0000gn/T/tankTemporaryTestData_1381488758.615949/project_code/sequences/seq_code/shot_code' is 
+        # already associated with Shot XYZ. This typically happens if an item in Shotgun is renamed or if the path naming in the folder creation configuration is changed. Please run the 
+        # command 'tank check_folders Shot 1' to get a more detailed overview of why you are getting this message and what you can do to resolve this situation.        
+        
+        self.assertTrue( "tank check_folders Shot %d" % self.shot["id"], exception_msg )
+        self.assertTrue( "Folder creation aborted: The path", exception_msg )
+        
+        
         
         
         
@@ -806,27 +810,38 @@ class TestFolderCreationEdgeCases(TankTestBase):
         # rename the shot
         self.shot["code"] = "XYZ"
 
-        self.assertRaises(TankError, 
-                          folder.process_filesystem_structure, 
-                          self.tk,
-                          self.task["type"],
-                          self.task["id"],
-                          preview=False,
-                          engine=None)
+        with self.assertRaises(TankError) as cm:
+            folder.process_filesystem_structure(self.tk, self.task["type"], self.task["id"], preview=False, engine=None)
+        exception_msg = str(cm.exception)
         
-        # but if I delete the old folder on disk, the folder creation should proceed
+        # Folder creation aborted: The path '/var/folders/3n/7r4bsy015cb63sssgyj02t1h0000gn/T/tankTemporaryTestData_1381488758.615949/project_code/sequences/seq_code/XYZ' 
+        # cannot be created because another path '/var/folders/3n/7r4bsy015cb63sssgyj02t1h0000gn/T/tankTemporaryTestData_1381488758.615949/project_code/sequences/seq_code/shot_code' is 
+        # already associated with Shot XYZ. This typically happens if an item in Shotgun is renamed or if the path naming in the folder creation configuration is changed. Please run the 
+        # command 'tank check_folders Shot 1' to get a more detailed overview of why you are getting this message and what you can do to resolve this situation.        
+        
+        self.assertTrue( "tank check_folders Shot %d" % self.shot["id"], exception_msg )
+        self.assertTrue( "Folder creation aborted: The path", exception_msg )
+
+
+        # Previously, if I deleted the old folder on disk, the folder creation should have proceeded
+        # now, it just gives the same error message
         shot_path = os.path.join(self.project_root, "sequences", "seq_code", "shot_code")
         renamed_shot_path = os.path.join(self.project_root, "sequences", "seq_code", "shot_code_renamed")
         shutil.move(shot_path, renamed_shot_path)
         
-        folder.process_filesystem_structure(self.tk, 
-                                            self.task["type"], 
-                                            self.task["id"], 
-                                            preview=False, 
-                                            engine=None)
+        with self.assertRaises(TankError) as cm:
+            folder.process_filesystem_structure(self.tk, self.task["type"], self.task["id"], preview=False, engine=None)
+        exception_msg = str(cm.exception)
         
-        new_shot_path = os.path.join(self.project_root, "sequences", "seq_code", "XYZ")
-        self.assertTrue( os.path.exists(new_shot_path))
+        # Folder creation aborted: The path '/var/folders/3n/7r4bsy015cb63sssgyj02t1h0000gn/T/tankTemporaryTestData_1381488758.615949/project_code/sequences/seq_code/XYZ' 
+        # cannot be created because another path '/var/folders/3n/7r4bsy015cb63sssgyj02t1h0000gn/T/tankTemporaryTestData_1381488758.615949/project_code/sequences/seq_code/shot_code' is 
+        # already associated with Shot XYZ. This typically happens if an item in Shotgun is renamed or if the path naming in the folder creation configuration is changed. Please run the 
+        # command 'tank check_folders Shot 1' to get a more detailed overview of why you are getting this message and what you can do to resolve this situation.        
+        
+        self.assertTrue( "tank check_folders Shot %d" % self.shot["id"], exception_msg )
+        self.assertTrue( "Folder creation aborted: The path", exception_msg )
+
+        
               
      
 
