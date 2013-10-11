@@ -33,9 +33,10 @@ class  TestContext(TankTestBase):
                      "static_key": StringKey("static_key")}
 
         # set up test data with single sequence, shot, step and human user
-        self.seq = {"type":"Sequence", "name":"seq_name", "id":3}
+        self.seq = {"type":"Sequence", "code":"seq_name", "id":3}
+        
         self.shot = {"type":"Shot",
-                    "name": "shot_name",
+                    "code": "shot_name",
                     "id":2,
                     "extra_field": "extravalue", # used to test query from template
                     "sg_sequence": self.seq,
@@ -48,8 +49,6 @@ class  TestContext(TankTestBase):
         self.current_login = tank.util.login.get_login_name()
         self.current_user = {"type":"HumanUser", "name":"user_name", "id":2, "login": self.current_login}
         
-        self.add_to_sg_mock_db(self.current_user)
-
         self.seq_path = os.path.join(self.project_root, "sequence/Seq")
         self.add_production_path(self.seq_path, self.seq)
         self.shot_path = os.path.join(self.seq_path, "shot_code")
@@ -219,8 +218,11 @@ class TestFromPath(TestContext):
 
 class TestFromPathWithPrevious(TestContext):
 
-    def get_task_context(self):
+    @patch("tank.util.login.get_current_user")
+    def test_shot(self, get_current_user):
 
+        get_current_user.return_value = self.current_user
+        
         # Add data to mocked shotgun
         self.task = {"id": 1,
                      "type": "Task",
@@ -230,16 +232,10 @@ class TestFromPathWithPrevious(TestContext):
                      "step": self.step}
         
         self.add_to_sg_mock_db(self.task)
-
-        return context.from_entity(self.tk, self.task["type"], self.task["id"])
-
-    
-    @patch("tank.util.login.get_current_user")
-    def test_shot(self, get_current_user):
-
-        get_current_user.return_value = self.current_user
         
-        prev_ctx = self.get_task_context()
+        
+        prev_ctx = context.from_entity(self.tk, self.task["type"], self.task["id"])
+
 
         shot_path_abs = os.path.join(self.project_root, self.shot_path)
         result = self.tk.context_from_path(shot_path_abs, prev_ctx)
@@ -294,9 +290,6 @@ class TestUrl(TestContext):
         add_value = {"name":"additional", "id": 3, "type": "add_type"}
         self.task["additional_field"] = add_value
         
-        # reset call count on mocked shotgun.find_one method so we can check it later
-        self.sg_mock.find_one.reset_mock()
-
         result = context.from_entity(self.tk, self.task["type"], self.task["id"])
         self.assertEquals(result.shotgun_url, "http://unit_test_mock_sg/detail/Task/1" )
 
@@ -370,8 +363,8 @@ class TestFromEntity(TestContext):
         add_value = {"name":"additional", "id": 3, "type": "add_type"}
         self.task["additional_field"] = add_value
         
-        # reset call count on mocked shotgun.find_one method so we can check it later
-        self.sg_mock.find_one.reset_mock()
+        # store the find call count
+        num_finds_before = self.tk.shotgun.finds
 
         result = context.from_entity(self.tk, self.task["type"], self.task["id"])
         self.check_entity(self.project, result.project)
@@ -397,7 +390,8 @@ class TestFromEntity(TestContext):
         self.check_entity(add_value, add_result)
 
         # Check that the shotgun method find_one was used
-        self.assertTrue(self.sg_mock.find_one.called)
+        num_finds_after = self.tk.shotgun.finds
+        self.assertTrue( (num_finds_after-num_finds_before) == 1 )
 
 
     @patch("tank.util.login.get_current_user")
@@ -514,14 +508,14 @@ class TestAsTemplateFields(TestContext):
         self.assertEquals("extravalue", result["shot_extra"])
 
         # clear mock history so we can check it.
-        self.sg_mock.find_one.reset_mock()
+        finds = self.tk.shotgun.finds
 
         # do same query again
         result = self.ctx.as_template_fields(template)
         self.assertEquals("extravalue", result["shot_extra"])
 
         # Check that the shotgun method find_one was not used
-        self.assertFalse(self.sg_mock.find_one.called)
+        self.assertEqual(finds, self.tk.shotgun.finds)
 
     def test_shot_step(self):
         expected_step_name = "step_short_name"

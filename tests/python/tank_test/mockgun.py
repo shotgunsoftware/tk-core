@@ -1,6 +1,6 @@
 import os, copy, datetime
 import cPickle as pickle
-
+import pprint
 
 
 
@@ -50,6 +50,7 @@ class Shotgun(object):
         data["description"] = "Mockgun was born. Yay."
         self.create("EventLogEntry", data)
 
+        self.finds = 0
 
     def schema_read(self):
         return self._schema
@@ -235,23 +236,42 @@ class Shotgun(object):
         raise ShotgunError("The %s operator is not supported on the %s type" % (operator, field_type))
 
     def _get_field_from_row(self, entity_type, row, field):
-        # split dotted form fields
+        # split dotted form fields        
         try:
+            # is it something like sg_sequence.Sequence.code ?
             field2, entity_type2, field3 = field.split(".", 2)
+            
             if field2 in row:
-                row2 = row[field2]
-                if "type" in row2 and "id" in row2:
-                    return self._get_field_from_row(entity_type2, self._db[row2["type"]][row2["id"]], field3)
+                
+                field_value = row[field2]
+                
+                # all deep links need to be link fields
+                if not isinstance(field_value, dict):                    
+                    raise ShotgunError("Invalid deep query field %s.%s" % (entity_type, field))
+                    
+                # make sure that types in the query match type in the linked field
+                if entity_type2 != field_value["type"]:
+                    raise ShotgunError("Deep query field %s.%s does not match type "
+                                       "with data %s" % (entity_type, field, field_value))
+                     
+                # ok so looks like the value is an entity link
+                # e.g. db contains: {"sg_sequence": {"type":"Sequence", "id": 123 } }
+                linked_row = self._db[ field_value["type"] ][ field_value["id"] ]
+                if field3 in linked_row:
+                    return linked_row[field3]
                 else:
-                    return self._get_field_from_row(entity_type2, row2, field3)
+                    return None
+
             else:
+                # sg returns none for unknown stuff
                 return None
+        
         except ValueError:
+            # this is not a deep-linked field - just something like "code"
             if field in row:
                 return row[field]
-            elif "type" in row and "id" in row:
-                return self._db[row["type"]][row["id"]]
             else:
+                # sg returns none for unknown stuff
                 return None
 
     def _get_field_type(self, entity_type, field):
@@ -292,14 +312,28 @@ class Shotgun(object):
 
     def find(self, entity_type, filters, fields=None, order=None, filter_operator=None, limit=0, retired_only=False, page=0):
         
+        self.finds += 1
+        
+        
+#        print "" 
 #        print ""
+#        print "----------------------------------------------------------------------"
+#        print "> find %s %s" % (entity_type, filters)
+#        print "Current data in mock db:"
+#        print pprint.pformat(self._db[entity_type])
+#        
+#        print ""
+#        print "Code Location:"
 #        import traceback
 #        stack_frame = traceback.extract_stack()
 #        traceback_str = "".join(traceback.format_list(stack_frame))
 #        print traceback_str
-#        print "> find %s %s" % (entity_type, filters)
+#        
+#        print "----------------------------------------------------------------------"
+#        print ""
         
         self._validate_entity_type(entity_type)
+        # do not validate custom fields - this makes it hard to mock up a field quickly
         #self._validate_entity_fields(entity_type, fields)
         
         if isinstance(filters, dict):
@@ -349,6 +383,7 @@ class Shotgun(object):
             fields = set(["type", "id"])
         else:
             fields = set(fields) | set(["type", "id"])
+        
         
         val = [dict((field, self._get_field_from_row(entity_type, row, field)) for field in fields) for row in results]
     

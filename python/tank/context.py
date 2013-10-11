@@ -701,7 +701,6 @@ def from_path(tk, path, previous_context=None):
 
     # ask hook for extra entity types we should recognize and insert into the additional_entities list.
     additional_types = tk.execute_hook("context_additional_entities").get("entity_types_in_path", [])
-
     # get a cache handle
     path_cache = PathCache(tk)
 
@@ -933,9 +932,8 @@ def _task_from_sg(tk, task_id):
 
     # ask hook for extra Task entity fields we should query and insert into the additional_entities list.
     additional_fields = tk.execute_hook("context_additional_entities").get("entity_fields_on_task", [])
-
+    
     task = tk.shotgun.find_one("Task", [["id","is",task_id]], standard_fields + additional_fields)
-
     if not task:
         raise TankError("Unable to locate Task with id %s in Shotgun" % task_id)
 
