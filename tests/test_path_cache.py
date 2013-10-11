@@ -16,6 +16,12 @@ from tank_test.tank_test_base import *
 from tank import path_cache
 from tank.platform import constants
 
+def add_item_to_cache(path_cache, entity, path, primary = True):
+    
+    data = [{"entity": entity, "path": path, "primary": primary, "metadata": {} }]    
+    path_cache.add_mappings(data, None, [])    
+    
+
 class TestPathCache(TankTestBase):
     """Base class for path cache tests."""
     def setUp(self):
@@ -73,7 +79,7 @@ class TestAddMapping(TestPathCache):
         """
         relative_path = "shot"
         full_path = os.path.join(self.project_root, relative_path)
-        self.path_cache.add_mapping(self.entity["type"], self.entity["id"], self.entity["name"], full_path)
+        add_item_to_cache(self.path_cache, self.entity, full_path)
 
         res = self.db_cursor.execute("SELECT path, root FROM path_cache WHERE entity_type = ? AND entity_id = ?", (self.entity["type"], self.entity["id"]))
         entry = res.fetchall()[0]
@@ -86,16 +92,18 @@ class TestAddMapping(TestPathCache):
         """
         relative_path = "shot"
         full_path = os.path.join(self.project_root, relative_path)
-        self.path_cache.add_mapping(self.entity["type"], self.entity["id"], self.entity["name"], full_path)
+        add_item_to_cache(self.path_cache, self.entity, full_path)
         
         # and a second time - this should be fine as the mapping is the same
-        self.path_cache.add_mapping(self.entity["type"], self.entity["id"], self.entity["name"], full_path)
+        add_item_to_cache(self.path_cache, self.entity, full_path)
 
         # and a third time - this should be fine as the id and type is the same
-        self.path_cache.add_mapping(self.entity["type"], self.entity["id"], "foo", full_path)
+        ne = {"type": self.entity["type"], "id": self.entity["id"], "name": "foo"}
+        add_item_to_cache(self.path_cache, ne, full_path)
 
         # and a fourth time - this should be bad because id is not matching
-        self.assertRaises(tank.TankError, self.path_cache.add_mapping, self.entity["type"], self.entity["id"]+1, "foo", full_path)         
+        ne2 = {"type": self.entity["type"], "id": self.entity["id"]+1, "name": "foo"}
+        self.assertRaises(tank.TankError, add_item_to_cache, self.path_cache, ne2, full_path)         
 
         # finally, make sure that there is exactly a single record in the db representing the path
         res = self.db_cursor.execute("SELECT path, root FROM path_cache WHERE entity_type = ? AND entity_id = ?", (self.entity["type"], self.entity["id"]))
@@ -109,26 +117,32 @@ class TestAddMapping(TestPathCache):
         """
         relative_path = "shot"
         full_path = os.path.join(self.project_root, relative_path)
-        self.path_cache.add_mapping(self.entity["type"], self.entity["id"], self.entity["name"], full_path)
-        self.path_cache.add_mapping(self.entity["type"], self.entity["id"]+1, self.entity["name"], full_path, primary=False)
-        self.path_cache.add_mapping(self.entity["type"], self.entity["id"]+2, self.entity["name"], full_path, primary=False)
-        self.path_cache.add_mapping(self.entity["type"], self.entity["id"]+3, self.entity["name"], full_path, primary=False)
+        
+        et = self.entity["type"]
+        eid = self.entity["id"]
+        en = self.entity["name"] 
+        
+        add_item_to_cache(self.path_cache, {"type": et, "id": eid, "name": en}, full_path)
+        add_item_to_cache(self.path_cache, {"type": et, "id": eid+1, "name": en}, full_path, primary=False)
+        add_item_to_cache(self.path_cache, {"type": et, "id": eid+2, "name": en}, full_path, primary=False)
+        add_item_to_cache(self.path_cache, {"type": et, "id": eid+3, "name": en}, full_path, primary=False)
         
         # adding the same thing over and over should be fine (but not actually insert anything into the db)
-        self.path_cache.add_mapping(self.entity["type"], self.entity["id"]+3, self.entity["name"], full_path, primary=False)
-        self.path_cache.add_mapping(self.entity["type"], self.entity["id"]+3, self.entity["name"], full_path, primary=False)
-        self.path_cache.add_mapping(self.entity["type"], self.entity["id"]+3, self.entity["name"], full_path, primary=False)
-        self.path_cache.add_mapping(self.entity["type"], self.entity["id"]+3, self.entity["name"], full_path, primary=False)
-
+        add_item_to_cache(self.path_cache, {"type": et, "id": eid+3, "name": en}, full_path, primary=False)
+        add_item_to_cache(self.path_cache, {"type": et, "id": eid+3, "name": en}, full_path, primary=False)
+        add_item_to_cache(self.path_cache, {"type": et, "id": eid+3, "name": en}, full_path, primary=False)
+        add_item_to_cache(self.path_cache, {"type": et, "id": eid+3, "name": en}, full_path, primary=False)
+        add_item_to_cache(self.path_cache, {"type": et, "id": eid+3, "name": en}, full_path, primary=False)
+        
         # get path should return the primary record
         self.assertEquals( self.path_cache.get_entity(full_path), {'type': 'EntityType', 'id': 1, 'name': 'EntityName'} )
         
         # check lookup from other direction
-        paths = self.path_cache.get_paths(self.entity["type"], self.entity["id"])
+        paths = self.path_cache.get_paths(self.entity["type"], self.entity["id"], primary_only=True)
         self.assertEquals( len(paths), 1)
         self.assertEquals( paths[0], full_path)
 
-        paths = self.path_cache.get_paths(self.entity["type"], self.entity["id"]+1)
+        paths = self.path_cache.get_paths(self.entity["type"], self.entity["id"]+1, primary_only=True)
         self.assertEquals( len(paths), 0)
 
         paths = self.path_cache.get_paths(self.entity["type"], self.entity["id"]+1, primary_only=False)
@@ -155,7 +169,7 @@ class TestAddMapping(TestPathCache):
         """
         relative_path = "shot"
         full_path = os.path.join(self.alt_root_1, relative_path)
-        self.path_cache.add_mapping(self.entity["type"], self.entity["id"], self.entity["name"], full_path)
+        add_item_to_cache(self.path_cache, self.entity, full_path)
 
         res = self.db_cursor.execute("SELECT path, root FROM path_cache WHERE entity_type = ? AND entity_id = ?", (self.entity["type"], self.entity["id"]))
         entry = res.fetchall()[0]
@@ -171,7 +185,7 @@ class TestAddMapping(TestPathCache):
         entity_type = "Shot"
         entity_id = 12
         entity_name = "someunicode\xe8"
-        self.path_cache.add_mapping(entity_type, entity_id, entity_name, full_path)
+        add_item_to_cache(self.path_cache, {"name":entity_name, "id":entity_id, "type":entity_type}, full_path)
 
         res = self.db_cursor.execute("SELECT entity_name FROM path_cache WHERE entity_type = ? AND entity_id = ?", (entity_type, entity_id))
         entry = res.fetchall()[0]
@@ -189,17 +203,19 @@ class TestGetEntity(TestPathCache):
                             "id":999,
                             "name":"NonProjectName"}
         # adding project roots
-        self.path_cache.add_mapping("Project", self.project["id"], self.project["name"], self.project_root)
-        self.path_cache.add_mapping("Project", self.project["id"], self.project["name"], self.alt_root_1)
-        self.path_cache.add_mapping("Project", self.project["id"], self.project["name"], self.alt_root_2)
+        
+        proj = {"type": "Project", "id": self.project["id"], "name": self.project["name"] }
+        add_item_to_cache(self.path_cache, proj, self.project_root)
+        add_item_to_cache(self.path_cache, proj, self.alt_root_1)
+        add_item_to_cache(self.path_cache, proj, self.alt_root_2)        
 
     def test_non_project_primary_path(self):
         """Test finding a non-project entity whose path includes the primary project root."""
         shot_path = os.path.join(self.project_root, "seq", "shot_name")
-        self.path_cache.add_mapping(self.non_project["type"],
-                                    self.non_project["id"],
-                                    self.non_project["name"],
-                                    shot_path)
+        
+        non_proj = {"type": self.non_project["type"], "id": self.non_project["id"], "name": self.non_project["name"] }
+        add_item_to_cache(self.path_cache, non_proj, shot_path)        
+        
         result = self.path_cache.get_entity(shot_path)
         self.assertIsNotNone(result)
         self.assertEquals(self.non_project["type"], result["type"])
@@ -209,10 +225,10 @@ class TestGetEntity(TestPathCache):
     def test_non_project_alternate(self):
         """Test finding a non-project entity whose path includes a non-primary root"""
         shot_path = os.path.join(self.alt_root_1, "seq", "shot_name")
-        self.path_cache.add_mapping(self.non_project["type"],
-                                    self.non_project["id"],
-                                    self.non_project["name"],
-                                    shot_path)
+        
+        non_proj = {"type": self.non_project["type"], "id": self.non_project["id"], "name": self.non_project["name"] }
+        add_item_to_cache(self.path_cache, non_proj, shot_path)        
+                
         result = self.path_cache.get_entity(shot_path)
         self.assertIsNotNone(result)
         self.assertEquals(self.non_project["type"], result["type"])
@@ -244,17 +260,24 @@ class TestGetPaths(TestPathCache):
         shot_name = "shot_name"
         primary_shot_path = os.path.join(self.project_root, "seq", shot_name)
         alt_shot_path = os.path.join(self.alt_root_1, "seq", shot_name)
-        self.path_cache.add_mapping("Shot", shot_id, shot_name, primary_shot_path)
-        self.path_cache.add_mapping("Shot", shot_id, shot_name, alt_shot_path)
-        result = self.path_cache.get_paths("Shot", shot_id)
+        
+        e = {"type": "Shot", "id": shot_id, "name": shot_name }
+        
+        add_item_to_cache(self.path_cache, e, primary_shot_path)
+        add_item_to_cache(self.path_cache, e, alt_shot_path)
+                
+        result = self.path_cache.get_paths("Shot", shot_id, primary_only=True)
         self.assertIsNotNone(result)
         self.assertIn(primary_shot_path, result)
         self.assertIn(alt_shot_path, result)
 
     def test_add_and_find_project(self):
-        self.path_cache.add_mapping("Project", self.project["id"], self.project["name"], self.project_root)
-        self.path_cache.add_mapping("Project", self.project["id"], self.project["name"], self.alt_root_1)
-        result = self.path_cache.get_paths("Project", self.project["id"])
+        
+        e = {"type": "Project", "id": self.project["id"], "name": self.project["name"] }
+        add_item_to_cache(self.path_cache, e, self.project_root)
+        add_item_to_cache(self.path_cache, e, self.alt_root_1)
+        
+        result = self.path_cache.get_paths("Project", self.project["id"], primary_only=True)
         self.assertIsNotNone(result)
         self.assertIn(self.project_root, result)
         self.assertIn(self.alt_root_1, result)
