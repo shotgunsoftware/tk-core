@@ -50,17 +50,15 @@ class TestApplication(TankTestBase):
 
         
     def tearDown(self):
-        
-        # important to call base class so it can clean up memory
-        super(TestApplication, self).tearDown()
-        
-        # and do local teardown                                                                                
-        
+                
         # engine is held as global, so must be destroyed.
         cur_engine = tank.platform.current_engine()
         if cur_engine:
             cur_engine.destroy()
         os.remove(self.test_resource)
+
+        # important to call base class so it can clean up memory
+        super(TestApplication, self).tearDown()
 
 
 class TestGetApplication(TestApplication):

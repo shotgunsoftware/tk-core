@@ -71,15 +71,15 @@ class TestStartEngine(TankTestBase):
     
     def tearDown(self):
         
-        # important to call base class so it can clean up memory
-        super(TestStartEngine, self).tearDown()
-        
-        # and do local teardown                                                                                
         
         cur_engine = tank.platform.current_engine()
         if cur_engine:
             cur_engine.destroy()
         os.remove(self.test_resource)
+
+        # important to call base class so it can clean up memory
+        super(TestStartEngine, self).tearDown()
+
 
     def test_properties(self):
         """
