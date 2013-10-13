@@ -15,7 +15,14 @@ Methods for handling of the tank command
 
 
 from .tank_commands.action_base import Action 
-from .tank_commands import apps, folders, misc, move_pc, move_studio, pc_overview, migrate_entities
+from .tank_commands import apps
+from .tank_commands import folders
+from .tank_commands import misc
+from .tank_commands import move_pc
+from .tank_commands import move_studio
+from .tank_commands import pc_overview
+from .tank_commands import migrate_entities
+from .tank_commands import path_cache
 
 from ..platform import constants
 from ..platform.engine import start_engine, get_environment_from_context
@@ -39,7 +46,10 @@ BUILT_IN_ACTIONS = [misc.SetupProjectAction,
                     move_pc.MovePCAction,
                     pc_overview.PCBreakdownAction,
                     move_studio.MoveStudioInstallAction,
-                    migrate_entities.MigratePublishedFileEntitiesAction
+                    migrate_entities.MigratePublishedFileEntitiesAction,
+                    path_cache.DeleteFolderAction,
+                    path_cache.RenameFolderAction,
+                    path_cache.PathCacheInfoAction
                     ]
 
 
