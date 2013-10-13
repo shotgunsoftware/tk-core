@@ -460,7 +460,7 @@ class PathCache(object):
                     msg  = "The path '%s' cannot be processed because it is already associated " % path
                     msg += "with %s '%s' (id %s) in Shotgun. " % (entity_in_db["type"], entity_in_db["name"], entity_in_db["id"])
                     msg += "You are now trying to associate it with %s '%s' (id %s). " % (entity["type"], entity["name"], entity["id"])
-                    msg += "Please run the command 'tank check_folders %s %s' " % (entity["type"], entity["id"])
+                    msg += "Please run the command 'tank folder_info %s %s' " % (entity["type"], entity["id"])
                     msg += "to get a more detailed overview of why you are getting this message "
                     msg += "and what you can do to resolve this situation."
                     raise TankError(msg)
@@ -489,7 +489,7 @@ class PathCache(object):
                     msg += "This typically happens if an item in Shotgun is renamed or "
                     msg += "if the path naming in the folder creation configuration "
                     msg += "is changed. "
-                    msg += "Please run the command 'tank check_folders %s %s' " % (entity["type"], entity["id"])
+                    msg += "Please run the command 'tank folder_info %s %s' " % (entity["type"], entity["id"])
                     msg += "to get a more detailed overview of why you are getting this message "
                     msg += "and what you can do to resolve this situation."
                     

@@ -800,9 +800,9 @@ class TestFolderCreationEdgeCases(TankTestBase):
         # Folder creation aborted: The path '/var/folders/3n/7r4bsy015cb63sssgyj02t1h0000gn/T/tankTemporaryTestData_1381488758.615949/project_code/sequences/seq_code/XYZ' 
         # cannot be created because another path '/var/folders/3n/7r4bsy015cb63sssgyj02t1h0000gn/T/tankTemporaryTestData_1381488758.615949/project_code/sequences/seq_code/shot_code' is 
         # already associated with Shot XYZ. This typically happens if an item in Shotgun is renamed or if the path naming in the folder creation configuration is changed. Please run the 
-        # command 'tank check_folders Shot 1' to get a more detailed overview of why you are getting this message and what you can do to resolve this situation.        
+        # command 'tank folder_info Shot 1' to get a more detailed overview of why you are getting this message and what you can do to resolve this situation.        
         
-        self.assertTrue( "tank check_folders Shot %d" % self.shot["id"], exception_msg )
+        self.assertTrue( "tank folder_info Shot %d" % self.shot["id"], exception_msg )
         self.assertTrue( "Folder creation aborted: The path", exception_msg )
         
         
@@ -833,9 +833,9 @@ class TestFolderCreationEdgeCases(TankTestBase):
         # Folder creation aborted: The path '/var/folders/3n/7r4bsy015cb63sssgyj02t1h0000gn/T/tankTemporaryTestData_1381488758.615949/project_code/sequences/seq_code/XYZ' 
         # cannot be created because another path '/var/folders/3n/7r4bsy015cb63sssgyj02t1h0000gn/T/tankTemporaryTestData_1381488758.615949/project_code/sequences/seq_code/shot_code' is 
         # already associated with Shot XYZ. This typically happens if an item in Shotgun is renamed or if the path naming in the folder creation configuration is changed. Please run the 
-        # command 'tank check_folders Shot 1' to get a more detailed overview of why you are getting this message and what you can do to resolve this situation.        
+        # command 'tank folder_info Shot 1' to get a more detailed overview of why you are getting this message and what you can do to resolve this situation.        
         
-        self.assertTrue( "tank check_folders Shot %d" % self.shot["id"], exception_msg )
+        self.assertTrue( "tank folder_info Shot %d" % self.shot["id"], exception_msg )
         self.assertTrue( "Folder creation aborted: The path", exception_msg )
 
 
@@ -852,9 +852,9 @@ class TestFolderCreationEdgeCases(TankTestBase):
         # Folder creation aborted: The path '/var/folders/3n/7r4bsy015cb63sssgyj02t1h0000gn/T/tankTemporaryTestData_1381488758.615949/project_code/sequences/seq_code/XYZ' 
         # cannot be created because another path '/var/folders/3n/7r4bsy015cb63sssgyj02t1h0000gn/T/tankTemporaryTestData_1381488758.615949/project_code/sequences/seq_code/shot_code' is 
         # already associated with Shot XYZ. This typically happens if an item in Shotgun is renamed or if the path naming in the folder creation configuration is changed. Please run the 
-        # command 'tank check_folders Shot 1' to get a more detailed overview of why you are getting this message and what you can do to resolve this situation.        
+        # command 'tank folder_info Shot 1' to get a more detailed overview of why you are getting this message and what you can do to resolve this situation.        
         
-        self.assertTrue( "tank check_folders Shot %d" % self.shot["id"], exception_msg )
+        self.assertTrue( "tank folder_info Shot %d" % self.shot["id"], exception_msg )
         self.assertTrue( "Folder creation aborted: The path", exception_msg )
 
         
