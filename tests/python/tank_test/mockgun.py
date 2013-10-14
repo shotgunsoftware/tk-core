@@ -420,6 +420,20 @@ class Shotgun(object):
                 row[field] = data[field]
             
     def create(self, entity_type, data, return_fields=None):
+        
+        # special handling of storage fields - if a field value
+        # is a dict with a key local_path, then add fields 
+        # local_path_linux, local_path_windows, local_path_mac 
+        # as a reflection of this
+        for d in data:
+            if isinstance(data[d], dict) and "local_path" in data[d]:
+                if "local_path_linux" not in data[d]:
+                    data[d]["local_path_linux"] = data[d]["local_path"]
+                if "local_path_windows" not in data[d]:
+                    data[d]["local_path_windows"] = data[d]["local_path"]
+                if "local_path_mac" not in data[d]:
+                    data[d]["local_path_mac"] = data[d]["local_path"]
+        
         self._validate_entity_type(entity_type)
         self._validate_entity_data(entity_type, data)
         self._validate_entity_fields(entity_type, return_fields)

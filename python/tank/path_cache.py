@@ -242,7 +242,7 @@ class PathCache(object):
                                                                  "Toolkit_Folders_Delete"]], 
                                            ["id", "greater_than", event_log_id],
                                            ["project", "is", project_link] ],
-                                         ["id", "meta", "attribute_name"] )   
+                                         ["id", "meta", "event_type"] )   
     
         # todo - maybe do a time check here too to say that if our last sync date
         # more than a month ago or something, then fall back on full sync.
@@ -290,7 +290,7 @@ class PathCache(object):
             - attribute_name
         
         Example of item:
-        {'attribute_name': 'Create', 
+        {'event_type': 'Toolkit_Folders_Create', 
          'meta': {'core_api_version': 'HEAD', 
                   'sg_folder_ids': [123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133]}, 
          'type': 'EventLogEntry', 
@@ -303,7 +303,6 @@ class PathCache(object):
             - metadata
             - path
         """
-        
         if len(sg_data) == 0:
             # nothing to do!
             return []
@@ -314,7 +313,7 @@ class PathCache(object):
         all_folder_ids = []
         
         for d in sg_data:
-            if d["attribute_name"] == "Create":
+            if d["event_type"] == "Toolkit_Folders_Create":
                 # this is a creation request! Replay it on our database
                 all_folder_ids.extend( d["meta"]["sg_folder_ids"] )
 

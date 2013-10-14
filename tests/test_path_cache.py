@@ -10,10 +10,12 @@
 
 import os
 import sqlite3
+import shutil
 
 from tank_test.tank_test_base import *
 
 from tank import path_cache
+from tank import folder
 from tank.platform import constants
 
 def add_item_to_cache(path_cache, entity, path, primary = True):
@@ -295,3 +297,123 @@ class Test_SeperateRoots(TestPathCache):
         # returns relative path starting with seperator
         self.assertEquals(os.sep + relative_path, relative_result)
 
+
+class TestShotgunSync(TankTestBase):
+    
+    def setUp(self, project_tank_name = "project_code"):
+        """Sets up entities in mocked shotgun database and creates Mock objects
+        to pass in as callbacks to Schema.create_folders. The mock objects are
+        then queried to see what paths the code attempted to create.
+        """
+        super(TestShotgunSync, self).setUp(project_tank_name)
+        self.setup_fixtures()
+        
+        self.seq = {"type": "Sequence",
+                    "id": 2,
+                    "code": "seq_code",
+                    "project": self.project}
+        self.shot = {"type": "Shot",
+                     "id": 1,
+                     "code": "shot_code",
+                     "sg_sequence": self.seq,
+                     "project": self.project}
+        self.step = {"type": "Step",
+                     "id": 3,
+                     "code": "step_code",
+                     "entity_type": "Shot",
+                     "short_name": "step_short_name"}
+        self.task = {"type": "Task",
+                     "id": 4,
+                     "entity": self.shot,
+                     "step": self.step,
+                     "project": self.project}
+
+        entities = [self.shot, self.seq, self.step, self.project, self.task]
+
+        # Add these to mocked shotgun
+        self.add_to_sg_mock_db(entities)
+
+        self.schema_location = os.path.join(self.project_root, "tank", "config", "core", "schema")
+
+    def _get_path_cache(self):
+        path_cache = tank.path_cache.PathCache(self.tk)
+        c = path_cache._connection.cursor()
+        cache = list(c.execute("select * from path_cache" ))
+        c.close()
+        path_cache.close()
+        return cache
+
+
+    def test_shot(self):
+        """Test full and incremental path cache sync."""
+        
+        self.assertEqual(len(self.tk.shotgun.find(tank.path_cache.SHOTGUN_ENTITY, [])), 1)        
+        self.assertEqual( len(self._get_path_cache()), 1)
+        
+        
+        folder.process_filesystem_structure(self.tk, 
+                                            self.seq["type"], 
+                                            self.seq["id"], 
+                                            preview=False,
+                                            engine=None)        
+        
+        # now have project / seq / shot / step 
+        self.assertEqual(len(self.tk.shotgun.find(tank.path_cache.SHOTGUN_ENTITY, [])), 2)
+        self.assertEqual( len(self._get_path_cache()), 2)
+                
+        # nothing should happen
+        self.tk.sync_path_cache()
+        self.assertEqual(len(self.tk.shotgun.find(tank.path_cache.SHOTGUN_ENTITY, [])), 2)
+        self.assertEqual( len(self._get_path_cache()), 2)
+
+        # make a copy of the path cache at this point
+        pcl = self.tk.pipeline_configuration.get_path_cache_location()
+        shutil.copy(pcl, "%s.snap1" % pcl) 
+
+        # now insert a new path in Shotgun
+        folder.process_filesystem_structure(self.tk, 
+                                            self.task["type"], 
+                                            self.task["id"], 
+                                            preview=False,
+                                            engine=None)        
+        
+        # now have project / seq / shot / step 
+        self.assertEqual(len(self.tk.shotgun.find(tank.path_cache.SHOTGUN_ENTITY, [])), 4)
+        self.assertEqual( len(self._get_path_cache()), 4)
+        path_cache_contents_1 = self._get_path_cache()
+        
+        # now replace our path cache with snap1
+        shutil.copy(pcl, "%s.snap2" % pcl) 
+        shutil.copy("%s.snap1" % pcl, pcl)
+        
+        # now path cache has not been synchronized but shotgun has an entry
+        self.assertEqual(len(self.tk.shotgun.find(tank.path_cache.SHOTGUN_ENTITY, [])), 4)
+        self.assertEqual( len(self._get_path_cache()), 2)
+        self.tk.sync_path_cache()
+        
+        # check that the sync happend
+        self.assertEqual(len(self.tk.shotgun.find(tank.path_cache.SHOTGUN_ENTITY, [])), 4)
+        self.assertEqual( len(self._get_path_cache()), 4)
+        
+        # and that the content is the same
+        path_cache_contents_2 = self._get_path_cache()
+        self.assertEqual(path_cache_contents_2, path_cache_contents_1)
+        
+        # now clear the path cache completely. This should trigger a full flush
+        os.remove(pcl)
+        self.tk.sync_path_cache()
+        
+        # check that the sync happend
+        self.assertEqual(len(self.tk.shotgun.find(tank.path_cache.SHOTGUN_ENTITY, [])), 4)
+        self.assertEqual( len(self._get_path_cache()), 4)
+        
+        # and that the content is the same
+        path_cache_contents_3 = self._get_path_cache()
+        self.assertEqual(path_cache_contents_3, path_cache_contents_1)
+        
+        
+        
+        
+        
+        
+        
