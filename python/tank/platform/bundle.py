@@ -419,7 +419,7 @@ class TankBundle(object):
             default_hook_name = manifest.get(key).get("default_value", "undefined")
             
             # special case - if the manifest default value contains the special token
-            # {ENGINE}, replace this with the name of the associated engine.
+            # {engine_name}, replace this with the name of the associated engine.
             # note that this bundle base class level has no notion of what an engine or app is
             # so we basically do this duck-type style, basically see if there is an engine
             # attribute and if so, attempt the replacement:
