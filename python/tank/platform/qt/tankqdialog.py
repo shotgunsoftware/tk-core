@@ -333,6 +333,23 @@ class TankQDialog(TankDialogBase):
             value = self._bundle.settings.get(setting)
             self._add_settings_item(setting, params, value)
 
+    def event(self, event):
+        """
+        To avoid key press events being posted to the host application (e.g. hotkeys 
+        in Maya), we need to filter them out.
+        
+        Events will still be handled by child controls (e.g. text edits) correctly, 
+        this just stops those events being posted any further up than this widget.
+        """
+        if event.type() == QtCore.QEvent.KeyPress and event.key() != QtCore.Qt.Key_Escape:
+            # Don't let the event go any further!
+            #self._bundle.log_debug("Ate key press event '%s'!" % event.key()) 
+            return True
+        else:
+            # standard event processing
+            return TankDialogBase.event(self, event)
+
+
     def done(self, exit_code):
         """
         Override 'done' method to emit the dialog_closed
