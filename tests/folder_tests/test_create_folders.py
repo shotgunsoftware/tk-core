@@ -751,15 +751,16 @@ class TestFolderCreationEdgeCases(TankTestBase):
         self.path_cache = path_cache.PathCache(self.tk)
 
     def tearDown(self):
-        
-        # important to call base class so it can clean up memory
-        super(TestFolderCreationEdgeCases, self).tearDown()
-        
+
         # and do local teardown                        
         # making sure that no file handles remain active 
         # leftover handles cause problems on windows! 
         self.path_cache.close()
         self.path_cache = None
+        
+        # important to call base class so it can clean up memory
+        super(TestFolderCreationEdgeCases, self).tearDown()
+        
 
 
 
