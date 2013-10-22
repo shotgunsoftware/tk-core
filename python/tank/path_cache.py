@@ -247,57 +247,60 @@ class PathCache(object):
         """
         c = self._connection.cursor()
         
-        # first of all, make sure we don't have any data in this path cache file
-        # which isn't already in Shotgun.
-        self._ensure_all_in_shotgun(c, log)
-        
-        # check if we should do a forced sync
-        if force:
-            return self._do_full_sync(c, log)
-        
-        # first get the last synchronized event log event.        
-        res = c.execute("SELECT max(last_id) FROM event_log_sync")
-        # get first item in the data set
-        data = list(res)[0]
-        c.close()
-        
-        # expect back something like [(249660,)] for a running cache and [(None,)] for a clear
-        if len(data) != 1 or data[0] is None:
-            # we should do a full sync
-            return self._do_full_sync(c, log)
-
-        # we have an event log id - so check if there are any more recent events
-        event_log_id = data[0]
-        
-        project_link = {"type": "Project", 
-                        "id": self._tk.pipeline_configuration.get_project_id() }
-        
-        # note! We search for all events greater than the prev event_log_id-1.
-        # this way, the first record returned should be the last record that was 
-        # synced. This is a way of detecting that the event log chain is not broken.
-        # it could break for example if someone has culled the event log table and in 
-        # that case we should fall back on a full sync.
-        
-        response = self._tk.shotgun.find("EventLogEntry", 
-                                         [ ["event_type", "in", ["Toolkit_Folders_Create", 
-                                                                 "Toolkit_Folders_Rename", 
-                                                                 "Toolkit_Folders_Delete"]], 
-                                           ["id", "greater_than", (event_log_id - 1)],
-                                           ["project", "is", project_link] ],
-                                         ["id", "meta", "event_type"] )   
+        try:
+            # first of all, make sure we don't have any data in this path cache file
+            # which isn't already in Shotgun.
+            self._ensure_all_in_shotgun(c, log)
+            
+            # check if we should do a forced sync
+            if force:
+                return self._do_full_sync(c, log)
+            
+            # first get the last synchronized event log event.        
+            res = c.execute("SELECT max(last_id) FROM event_log_sync")
+            # get first item in the data set
+            data = list(res)[0]
+            
+            # expect back something like [(249660,)] for a running cache and [(None,)] for a clear
+            if len(data) != 1 or data[0] is None:
+                # we should do a full sync
+                return self._do_full_sync(c, log)
     
-        if len(response) == 0 or response[0]["id"] != event_log_id:
-            # there is either no event log data at all or a gap
-            # in the event log. Assume that some culling has occured and
-            # fall back on a full sync
-            if log:
-                log.info("Cannot locate path cache tracking marker in Shotgun Event Log. "
-                         "Falling back onto a full synchronization.")
-            return self._do_full_sync(c, log)        
-        else:
-            # we have a complete trail of increments. 
-            # note that we skip the current entity.
-            return self._do_incremental_sync(c, log, response[1:])
+            # we have an event log id - so check if there are any more recent events
+            event_log_id = data[0]
+            
+            project_link = {"type": "Project", 
+                            "id": self._tk.pipeline_configuration.get_project_id() }
+            
+            # note! We search for all events greater than the prev event_log_id-1.
+            # this way, the first record returned should be the last record that was 
+            # synced. This is a way of detecting that the event log chain is not broken.
+            # it could break for example if someone has culled the event log table and in 
+            # that case we should fall back on a full sync.
+            
+            response = self._tk.shotgun.find("EventLogEntry", 
+                                             [ ["event_type", "in", ["Toolkit_Folders_Create", 
+                                                                     "Toolkit_Folders_Rename", 
+                                                                     "Toolkit_Folders_Delete"]], 
+                                               ["id", "greater_than", (event_log_id - 1)],
+                                               ["project", "is", project_link] ],
+                                             ["id", "meta", "event_type"] )   
+        
+            if len(response) == 0 or response[0]["id"] != event_log_id:
+                # there is either no event log data at all or a gap
+                # in the event log. Assume that some culling has occured and
+                # fall back on a full sync
+                if log:
+                    log.info("Cannot locate path cache tracking marker in Shotgun Event Log. "
+                             "Falling back onto a full synchronization.")
+                return self._do_full_sync(c, log)        
+            else:
+                # we have a complete trail of increments. 
+                # note that we skip the current entity.
+                return self._do_incremental_sync(c, log, response[1:])
+
+        finally:       
+            c.close()
 
     def _upload_cache_data_to_shotgun(self, data, event_log_desc, log=None):
         """
@@ -617,7 +620,6 @@ class PathCache(object):
         cursor.execute("INSERT INTO event_log_sync(last_id) VALUES(?)", (max_event_log_id, ))
             
         self._connection.commit()
-        cursor.close()
 
         return return_data
 
@@ -729,16 +731,18 @@ class PathCache(object):
                            the high level folder creation request.
                            
         """        
-        data_for_sg = []        
+        
         
         c = self._connection.cursor()
-        for d in data:
-            if self._add_db_mapping(c, d["path"], d["entity"], d["primary"]):
-                # add db mapping returned true. Means it wasn't in the path cache db
-                # and we should add it to shotgun too!
-                data_for_sg.append(d)
-                
         try:
+            data_for_sg = []
+            
+            for d in data:
+                if self._add_db_mapping(c, d["path"], d["entity"], d["primary"]):
+                    # add db mapping returned true. Means it wasn't in the path cache db
+                    # and we should add it to shotgun too!
+                    data_for_sg.append(d)
+                
             # first, a summary of what we are up to for the event log description
             entity_ids = ", ".join([str(x) for x in entity_ids])
             desc = ("Created folders on disk for %ss with id: %s" % (entity_type, entity_ids))
@@ -748,7 +752,6 @@ class PathCache(object):
         
             # and finally store in the db
             c.execute("INSERT INTO event_log_sync(last_id) VALUES(?)", (event_log_id, ))
-            c.close()
 
         except:
             # error processing shotgun. Make sure we roll back the sqlite path cache
@@ -862,26 +865,27 @@ class PathCache(object):
         else:
             c = cursor
         
-        if primary_only:
-            res = c.execute("SELECT root, path FROM path_cache WHERE entity_type = ? AND entity_id = ? and primary_entity = 1", (entity_type, entity_id))
-        else:
-            res = c.execute("SELECT root, path FROM path_cache WHERE entity_type = ? AND entity_id = ?", (entity_type, entity_id))
-
-        for row in res:
-            root_name = row[0]
-            relative_path = row[1]
-            
-            root_path = self._roots.get(root_name)
-            if not root_path:
-                # The root name doesn't match a recognized name, so skip this entry
-                continue
-            
-            # assemble path
-            path_str = self._dbpath_to_path(root_path, relative_path)
-            paths.append(path_str)
-        
-        if cursor is None:
-            c.close()
+        try:
+            if primary_only:
+                res = c.execute("SELECT root, path FROM path_cache WHERE entity_type = ? AND entity_id = ? and primary_entity = 1", (entity_type, entity_id))
+            else:
+                res = c.execute("SELECT root, path FROM path_cache WHERE entity_type = ? AND entity_id = ?", (entity_type, entity_id))
+    
+            for row in res:
+                root_name = row[0]
+                relative_path = row[1]
+                
+                root_path = self._roots.get(root_name)
+                if not root_path:
+                    # The root name doesn't match a recognized name, so skip this entry
+                    continue
+                
+                # assemble path
+                path_str = self._dbpath_to_path(root_path, relative_path)
+                paths.append(path_str)
+        finally:        
+            if cursor is None:
+                c.close()
         
         return paths
 
@@ -912,12 +916,13 @@ class PathCache(object):
         else:
             c = cursor
 
-        db_path = self._path_to_dbpath(relative_path)
-        res = c.execute("SELECT entity_type, entity_id, entity_name FROM path_cache WHERE path = ? AND root = ? and primary_entity = 1", (db_path, root_path))
-        data = list(res)
-        
-        if cursor is None:
-            c.close()
+        try:
+            db_path = self._path_to_dbpath(relative_path)
+            res = c.execute("SELECT entity_type, entity_id, entity_name FROM path_cache WHERE path = ? AND root = ? and primary_entity = 1", (db_path, root_path))
+            data = list(res)
+        finally:
+            if cursor is None:
+                c.close()
         
         if len(data) > 1:
             # never supposed to happen!
@@ -938,7 +943,6 @@ class PathCache(object):
         :returns: list of shotgun entity dicts, e.g. [{"type": "Shot", "name": "xxx", "id": 123}] 
                   or [] if no entities associated.
         """
-        c = self._connection.cursor()
         try:
             root_path, relative_path = self._separate_root(path)
         except TankError:
@@ -946,10 +950,13 @@ class PathCache(object):
             # eg. doesn't belong to the project
             return []
 
-        db_path = self._path_to_dbpath(relative_path)
-        res = c.execute("SELECT entity_type, entity_id, entity_name FROM path_cache WHERE path = ? AND root = ? and primary_entity = 0", (db_path, root_path))
-        data = list(res)
-        c.close()
+        c = self._connection.cursor()
+        try:
+            db_path = self._path_to_dbpath(relative_path)
+            res = c.execute("SELECT entity_type, entity_id, entity_name FROM path_cache WHERE path = ? AND root = ? and primary_entity = 0", (db_path, root_path))
+            data = list(res)
+        finally:
+            c.close()
 
         matches = []
         for d in data:        
