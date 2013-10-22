@@ -169,7 +169,7 @@ class SynchronizePathCache(Action):
         if force:
             log.info("Doing a full sync.")
         pc = path_cache.PathCache(self.tk)
-        pc.synchronize(force)
+        pc.synchronize(log, force)
         log.info("The path cache has been synchronized.")
 
 
