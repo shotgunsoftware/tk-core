@@ -18,6 +18,8 @@ import sqlite3
 import sys
 import os
 
+from .util import shotgun
+
 # use api json to cover py 2.5
 # todo - replace with proper external library  
 from tank_vendor import shotgun_api3  
@@ -90,43 +92,72 @@ class PathCache(object):
         # this is to handle unicode properly - make sure that sqlite returns 
         # str objects for TEXT fields rather than unicode. Note that any unicode
         # objects that are passed into the database will be automatically
-        # converted to UTF-8 strs, so this text_factory guarantuees that any character
+        # converted to UTF-8 strs, so this text_factory guarantees that any character
         # representation will work for any language, as long as data is either input
         # as UTF-8 (byte string) or unicode. And in the latter case, the returned data
         # will always be unicode.
         self._connection.text_factory = str
         
         c = self._connection.cursor()
-        c.executescript("""
-            CREATE TABLE IF NOT EXISTS path_cache (entity_type text, entity_id integer, entity_name text, root text, path text, primary_entity integer);
+        try:
         
-            CREATE INDEX IF NOT EXISTS path_cache_entity ON path_cache(entity_type, entity_id);
-        
-            CREATE INDEX IF NOT EXISTS path_cache_path ON path_cache(root, path, primary_entity);
-        
-            CREATE UNIQUE INDEX IF NOT EXISTS path_cache_all ON path_cache(entity_type, entity_id, root, path, primary_entity);
+            # get a list of tables in the current database
+            ret = c.execute("SELECT name FROM main.sqlite_master WHERE type='table';")
+            table_names = [x[0] for x in ret.fetchall()]
             
-            CREATE TABLE IF NOT EXISTS event_log_sync (last_id integer);
-        """)
-        
-        ret = c.execute("PRAGMA table_info(path_cache)")
-        
-        # check for primary field
-        if "primary_entity" not in [x[1] for x in ret.fetchall()]:
-            c.executescript("""
-                ALTER TABLE path_cache ADD COLUMN primary_entity integer;
-                UPDATE path_cache SET primary_entity=1;
-
-                DROP INDEX path_cache_path;
-                CREATE INDEX IF NOT EXISTS path_cache_path ON path_cache(root, path, primary_entity);
+            if len(table_names) == 0:
+                # we have a brand new database. Create all tables and indices
+                c.executescript("""
+                    CREATE TABLE path_cache (entity_type text, entity_id integer, entity_name text, root text, path text, primary_entity integer);
                 
-                DROP INDEX path_cache_all;
-                CREATE UNIQUE INDEX IF NOT EXISTS path_cache_all ON path_cache(entity_type, entity_id, root, path, primary_entity);
+                    CREATE INDEX path_cache_entity ON path_cache(entity_type, entity_id);
                 
-            """)
+                    CREATE INDEX path_cache_path ON path_cache(root, path, primary_entity);
+                
+                    CREATE UNIQUE INDEX path_cache_all ON path_cache(entity_type, entity_id, root, path, primary_entity);
+                    
+                    CREATE TABLE event_log_sync (last_id integer);
+                    
+                    CREATE TABLE shotgun_status (path_cache_id integer);
+                    """)
+                self._connection.commit()
+                
+            else:
+                
+                # we have an existing database! Ensure it is up to date
+                if "event_log_sync" not in table_names:
+                    # this is a pre-0.14 setup where the path cache does not have event log sync
+                    c.executescript("CREATE TABLE event_log_sync (last_id integer);")
+                    self._connection.commit()
+                
+                if "shotgun_status" not in table_names:
+                    # this is a pre-0.14 setup where the path cache does not have the shotgun_status table
+                    c.executescript("CREATE TABLE shotgun_status (path_cache_id integer);")
+                    self._connection.commit()
 
-        self._connection.commit()
-        c.close()
+                
+                # now ensure that some key fields that have been added during the dev cycle are there
+                ret = c.execute("PRAGMA table_info(path_cache)")
+                field_names = [ x[1] for x in ret.fetchall() ]
+                
+                # check for primary entity field - this was added back in 0.12.x
+                if "primary_entity" not in field_names:
+                    c.executescript("""
+                        ALTER TABLE path_cache ADD COLUMN primary_entity integer;
+                        UPDATE path_cache SET primary_entity=1;
+        
+                        DROP INDEX path_cache_path;
+                        CREATE INDEX IF NOT EXISTS path_cache_path ON path_cache(root, path, primary_entity);
+                        
+                        DROP INDEX path_cache_all;
+                        CREATE UNIQUE INDEX IF NOT EXISTS path_cache_all ON path_cache(entity_type, entity_id, root, path, primary_entity);
+                        """)
+        
+                    self._connection.commit()
+    
+        
+        finally:
+            c.close()
         
         # and open up permissions if the file was just created
         if db_file_created:
@@ -134,7 +165,7 @@ class PathCache(object):
             try:
                 os.chmod(db_path, 0666)
             finally:
-                os.umask(old_umask)            
+                os.umask(old_umask)                
     
     def _path_to_dbpath(self, relative_path):
         """
@@ -217,8 +248,13 @@ class PathCache(object):
             - path
         """
         
-        # first get the last synchronized event log event.
         c = self._connection.cursor()
+        
+        # first of all, make sure we don't have any data in this path cache file
+        # which isn't already in Shotgun.
+        self._ensure_all_in_shotgun(c)
+        
+        # first get the last synchronized event log event.        
         res = c.execute("SELECT max(last_id) FROM event_log_sync")
         # get first item in the data set
         data = list(res)[0]
@@ -254,6 +290,104 @@ class PathCache(object):
         else:
             # small amount of change. Patch the cache
             return self._do_incremental_sync(response)
+
+
+    def _ensure_all_in_shotgun(self, cursor):
+        """
+        Ensure that all the path cache data in this database is also registered in Shotgun.
+        
+        This method is primarily to ensure that any data written by pre-014 clients is
+        pushed to shotgun automatically. Once a system is fully running 0.14, this method is no
+        longer necessary.
+        """
+
+        # first determine which records are not yet in Shotgun.
+        pc_data = list(cursor.execute("""select pc.rowid,
+                                                pc.entity_type, 
+                                                pc.entity_id, 
+                                                pc.entity_name, 
+                                                pc.root, 
+                                                pc.path, 
+                                                pc.primary_entity 
+                                         from path_cache pc
+                                         left join shotgun_status ss on pc.rowid = ss.path_cache_id
+                                         where ss.path_cache_id is null
+                                         """))
+                                    
+        # construct a shotgun batch statement
+        sg_batch_data = []
+
+        pc_link = {"type": "PipelineConfiguration",
+                   "id": self._tk.pipeline_configuration.get_shotgun_id() }
+        
+        project_link = {"type": "Project", 
+                        "id": self._tk.pipeline_configuration.get_project_id() }
+
+        # inner loop - push to shotgun in chunks of 500
+        # and push each one separately
+        BATCH_SIZE = 400
+        pc_data_batches = [ pc_data[x:x+BATCH_SIZE] for x in xrange(0, len(pc_data), BATCH_SIZE)]
+                
+        for curr_batch in pc_data_batches:
+            
+            try:
+    
+                for d in curr_batch:
+                    entity_type = d[1]
+                    entity_id = d[2]
+                    entity_name = d[3]
+                    root_name = d[4]
+                    db_path = d[5]
+                    primary = d[6]
+                    
+                    # get a name for the clickable url in the path field
+                    # this will include the name of the storage
+                    path_display_name = "[%s] %s" % (root_name, db_path) 
+                    
+                    # resolve a local path
+                    root_path = self._roots.get(root_name)
+                    if not root_path:
+                        # The root name doesn't match a recognized name, so skip this entry
+                        continue
+                    
+                    local_os_path = self._dbpath_to_path(root_path, db_path)
+                    
+                    req = {"request_type":"create", 
+                           "entity_type": SHOTGUN_ENTITY, 
+                           "data": {"project": project_link,
+                                    "created_by": get_current_user(self._tk),
+                                    SG_ENTITY_FIELD: { "type": entity_type, "id": entity_id },
+                                    SG_IS_PRIMARY_FIELD: bool(primary),
+                                    SG_PIPELINE_CONFIG_FIELD: pc_link,
+                                    SG_METADATA_FIELD: json.dumps({"type": "core_migration"}),
+                                    SG_ENTITY_ID_FIELD: entity_id,
+                                    SG_ENTITY_TYPE_FIELD: entity_type,
+                                    SG_ENTITY_NAME_FIELD: entity_name,
+                                    SG_PATH_FIELD: { "local_path": local_os_path, "name": path_display_name }
+                                    } }
+                    
+                    sg_batch_data.append(req)
+        
+                try:
+                    self._tk.shotgun.batch(sg_batch_data)
+                except Exception, e:
+                    raise TankError("Critical! Could not update Shotgun with the folder "
+                                    "creation information. Please contact support. Error details: %s" % e)
+                        
+                # all good - now update the database to indicate that these fields have been pushed.
+                for d in curr_batch:
+                    rowid = d[0]
+                    cursor.execute("INSERT INTO shotgun_status(path_cache_id) VALUES(?)", (rowid,) )
+            
+            except:
+                # error processing shotgun. Make sure we roll back the sqlite transaction.
+                self._connection.rollback()
+                raise
+             
+            else:
+                # ok all good - data has been pushed to shotgun - we can safely commit!
+                self._connection.commit()
+
 
 
     def _do_full_sync(self):
@@ -402,7 +536,7 @@ class PathCache(object):
                 pass  
             
         # lastly, id of this event log entry for purpose of future syncing
-        c.execute("INSERT INTO event_log_sync VALUES(?)", (max_event_log_id, ))
+        c.execute("INSERT INTO event_log_sync(last_id) VALUES(?)", (max_event_log_id, ))
             
         self._connection.commit()
         c.close()
@@ -530,14 +664,15 @@ class PathCache(object):
                                 
             # now add mappings to shotgun. Pass it as a single request via batch
             sg_batch_data = []
+
+            pc_link = {"type": "PipelineConfiguration",
+                       "id": self._tk.pipeline_configuration.get_shotgun_id() }
+            
+            project_link = {"type": "Project", 
+                            "id": self._tk.pipeline_configuration.get_project_id() }
+
             for d in data_for_sg:
-                
-                pc_link = {"type": "PipelineConfiguration",
-                           "id": self._tk.pipeline_configuration.get_shotgun_id() }
-                
-                project_link = {"type": "Project", 
-                                "id": self._tk.pipeline_configuration.get_project_id() }
-                
+                                
                 # get a name for the clickable url in the path field
                 # this will include the name of the storage
                 root_name, relative_path = self._separate_root(d["path"])
@@ -596,8 +731,7 @@ class PathCache(object):
                 
                 # lastly, id of this event log entry for purpose of future syncing
                 event_log_id = response["id"]        
-                c = self._connection.cursor()
-                c.execute("INSERT INTO event_log_sync VALUES(?)", (event_log_id, ))
+                c.execute("INSERT INTO event_log_sync(last_id) VALUES(?)", (event_log_id, ))
                 self._connection.commit()
                 c.close()
 
@@ -665,6 +799,7 @@ class PathCache(object):
             # in this case, it is okay with more than one record for a path
             # but we don't want to insert the exact same record over and over again
             paths = self.get_paths(entity["type"], entity["id"], primary_only=False, cursor=cursor)
+
             if path in paths:
                 # we already have the association present in the db.
                 return False
@@ -672,12 +807,23 @@ class PathCache(object):
         # there was no entity in the db. So let's create it!
         root_name, relative_path = self._separate_root(path)
         db_path = self._path_to_dbpath(relative_path)
-        cursor.execute("INSERT INTO path_cache VALUES(?, ?, ?, ?, ?, ?)", (entity["type"], 
-                                                                           entity["id"], 
-                                                                           entity["name"], 
-                                                                           root_name,
-                                                                           db_path,
-                                                                           primary))
+        cursor.execute("""INSERT INTO path_cache(entity_type,
+                                                 entity_id,
+                                                 entity_name,
+                                                 root,
+                                                 path,
+                                                 primary_entity)
+                           VALUES(?, ?, ?, ?, ?, ?)""", 
+                        (entity["type"], 
+                         entity["id"], 
+                         entity["name"], 
+                         root_name, 
+                         db_path, 
+                         primary))
+        
+        # and create a corresponding record in the shotgun_status table
+        path_cache_id = cursor.lastrowid
+        cursor.execute("INSERT INTO shotgun_status(path_cache_id) VALUES(?)", (path_cache_id,) )
         
         return True
 
