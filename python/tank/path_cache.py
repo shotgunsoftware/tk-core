@@ -42,10 +42,6 @@ SG_ENTITY_TYPE_FIELD = "sg_type_at_creation"
 SG_ENTITY_NAME_FIELD = "code"
 SG_PIPELINE_CONFIG_FIELD = "sg_pipeline_configuration"
 
-MAX_EVENTS_BEFORE_FULL_SYNC = 100
-
-
-
 class PathCache(object):
     """
     A global cache which holds the mapping between a shotgun entity and a location on disk.
@@ -254,6 +250,10 @@ class PathCache(object):
         # which isn't already in Shotgun.
         self._ensure_all_in_shotgun(c)
         
+        # check if we should do a forced sync
+        if force:
+            return self._do_full_sync()
+        
         # first get the last synchronized event log event.        
         res = c.execute("SELECT max(last_id) FROM event_log_sync")
         # get first item in the data set
@@ -271,25 +271,28 @@ class PathCache(object):
         project_link = {"type": "Project", 
                         "id": self._tk.pipeline_configuration.get_project_id() }
         
+        # note! We search for all events greater than the prev event_log_id-1.
+        # this way, the first record returned should be the last record that was 
+        # synced. This is a way of detecting that the event log chain is not broken.
+        # it could break for example if someone has culled the event log table and in 
+        # that case we should fall back on a full sync.
         
         response = self._tk.shotgun.find("EventLogEntry", 
                                          [ ["event_type", "in", ["Toolkit_Folders_Create", 
                                                                  "Toolkit_Folders_Rename", 
                                                                  "Toolkit_Folders_Delete"]], 
-                                           ["id", "greater_than", event_log_id],
+                                           ["id", "greater_than", (event_log_id - 1)],
                                            ["project", "is", project_link] ],
                                          ["id", "meta", "event_type"] )   
     
-        # todo - maybe do a time check here too to say that if our last sync date
-        # more than a month ago or something, then fall back on full sync.
-    
-        if force or len(response) > MAX_EVENTS_BEFORE_FULL_SYNC:
-            # lots of activity since last sync. Fall back on a full refresh
-            return self._do_full_sync()
-                
+        if len(response) == 0 or response[0]["id"] != event_log_id:
+            # there is either no event log data at all or a gap
+            # in the event log. Assume that some culling has occured and
+            # fall back on a full sync
+            return self._do_full_sync()        
         else:
-            # small amount of change. Patch the cache
-            return self._do_incremental_sync(response)
+            # we have a complete trail of increments. 
+            return self._do_incremental_sync(response[1:])
 
 
     def _ensure_all_in_shotgun(self, cursor):
