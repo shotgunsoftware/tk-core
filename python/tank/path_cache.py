@@ -60,6 +60,7 @@ class PathCache(object):
         self._init_db(db_path)
         self._roots = tk.pipeline_configuration.get_data_roots()
         self._tk = tk
+        self._sync_with_sg = tk.pipeline_configuration.get_shotgun_path_cache_enabled()
     
     def _init_db(self, db_path):
         """
@@ -250,6 +251,13 @@ class PathCache(object):
             - metadata 
             - path
         """
+        
+        if not self._sync_with_sg:
+            if log:
+                log.info("Path cache synchronization is turned off for this project.")
+            return []
+        
+        
         c = self._connection.cursor()
         
         try:
@@ -760,11 +768,11 @@ class PathCache(object):
             entity_ids = ", ".join([str(x) for x in entity_ids])
             desc = ("Created folders on disk for %ss with id: %s" % (entity_type, entity_ids))
             
-            # now push to shotgun
-            event_log_id = self._upload_cache_data_to_shotgun(data_for_sg, desc)
-        
-            # and finally store in the db
-            c.execute("INSERT INTO event_log_sync(last_id) VALUES(?)", (event_log_id, ))
+            if self._sync_with_sg:
+                # now push to shotgun
+                event_log_id = self._upload_cache_data_to_shotgun(data_for_sg, desc)
+                # and finally store in the db
+                c.execute("INSERT INTO event_log_sync(last_id) VALUES(?)", (event_log_id, ))
 
         except:
             # error processing shotgun. Make sure we roll back the sqlite path cache

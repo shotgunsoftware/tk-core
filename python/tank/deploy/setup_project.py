@@ -1276,6 +1276,12 @@ def _interactive_setup(log, install_root, check_storage_path_exists, force):
     data["project_id"] = project_id
     data["pc_name"] = constants.PRIMARY_PIPELINE_CONFIG_NAME 
     data["published_file_entity_type"] = pf_entity_type
+    # all 0.14+ projects are pushing folders to Shotgun by default
+    data["use_shotgun_path_cache"] = True 
+    # and the location of the PC file is default
+    data["path_cache_location"] = {"mac_path": "cache/path_cache.db", 
+                                   "windows_path": "cache\\path_cache.db", 
+                                   "linux_path": "cache/path_cache.db"}
     
     try:
         fh = open(pipe_config_sg_id_path, "wt")

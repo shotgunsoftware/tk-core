@@ -495,7 +495,6 @@ class TestShotgunSync013AutoPush(TankTestBase):
         # and introduce duplicated on the shotgun side
         # but not in the path cache
         self.tk.sync_path_cache()
-        print self.tk.shotgun.find(tank.path_cache.SHOTGUN_ENTITY, [])
         self.assertEqual(len(self.tk.shotgun.find(tank.path_cache.SHOTGUN_ENTITY, [])), 8)
         self.assertEqual( len(self._get_path_cache()), 4)
         

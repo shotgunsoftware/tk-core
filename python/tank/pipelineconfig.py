@@ -83,6 +83,8 @@ class PipelineConfiguration(object):
         self._pc_id = None
         self._pc_name = None
         self._published_file_entity_type = None
+        self._path_cache_path = None
+        self._use_shotgun_path_cache = None
         self.execute_hook(constants.PIPELINE_CONFIGURATION_INIT_HOOK_NAME, parent=self)
 
 
@@ -222,6 +224,23 @@ class PipelineConfiguration(object):
 
         return self._published_file_entity_type
 
+    def get_shotgun_path_cache_enabled(self):
+        """
+        Returns true if the shotgun path cache should be used.
+        This should only ever return False for setups created before 0.14.
+        All projects created with 0.14+ automatically sets this to true.
+        """
+        if self._use_shotgun_path_cache is None:
+            # try to get it from the cache file
+            data = get_pc_disk_metadata(self._pc_root)
+            self._use_shotgun_path_cache = data.get("use_shotgun_path_cache")
+
+            if self._use_shotgun_path_cache is None:
+                # if not defined assume it is off
+                self._use_shotgun_path_cache = False
+
+        return self._use_shotgun_path_cache
+
     def get_local_storage_roots(self):
         """
         Returns local OS paths to all shotgun local storages used by toolkit. 
@@ -339,7 +358,40 @@ class PipelineConfiguration(object):
         """
         Returns the path to the path cache file.
         """
-        return os.path.join(self.get_primary_data_root(), "tank", "cache", constants.CACHE_DB_FILENAME)
+        
+        # the default value set by a project is
+        # data["path_cache_location"] = {"mac_path": "cache/path_cache.db", 
+        #                                "windows_path": "cache\\path_cache.db", 
+        #                                "linux_path": "cache/path_cache.db"}
+        
+        
+        if self._path_cache_path is None:
+            # try to get it from the cache file
+            data = get_pc_disk_metadata(self._pc_root)
+            pc_location = data.get("path_cache_location")
+            
+            if pc_location is None:
+                # undefined - fall back on the 0.13 setting, where the path cache
+                # is located in a tank folder in the project root 
+                self._path_cache_path = os.path.join(self.get_primary_data_root(), 
+                                                     "tank", 
+                                                     "cache", 
+                                                     constants.CACHE_DB_FILENAME)
+
+            else:
+                path_field = {"linux2": "linux_path", 
+                              "win32": "windows_path", 
+                              "darwin": "mac_path" }[sys.platform]
+                curr_path = pc_location[path_field]
+                if curr_path.startswith("/") or curr_path.startswith("\\"):
+                    # absolute path
+                    self._path_cache_path = curr_path
+                else:
+                    # relative path to PC
+                    self._path_cache_path = os.path.join( self.get_path(), curr_path )
+        
+        return self._path_cache_path
+        
 
 
     ########################################################################################

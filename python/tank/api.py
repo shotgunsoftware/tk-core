@@ -397,7 +397,7 @@ class Tank(object):
         """
         # Use the path cache to look up all paths associated with this entity
         path_cache = PathCache(self)
-        path_cache.synchronize(force_full_sync)
+        path_cache.synchronize(log=None, force=force_full_sync)
         path_cache.close()
 
 

@@ -129,7 +129,7 @@ class TankTestBase(unittest.TestCase):
         # add files needed by the pipeline config
         
         pc_yml = os.path.join(project_tank, "config", "core", "pipeline_configuration.yml")
-        pc_yml_data = "{ project_name: %s, pc_id: 123, project_id: 1, pc_name: Primary}\n\n" % self.project["tank_name"]        
+        pc_yml_data = "{ project_name: %s, use_shotgun_path_cache: true, pc_id: 123, project_id: 1, pc_name: Primary}\n\n" % self.project["tank_name"]        
         self.create_file(pc_yml, pc_yml_data)
         
         loc_yml = os.path.join(project_tank, "config", "core", "install_location.yml")
