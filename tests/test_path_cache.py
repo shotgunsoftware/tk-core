@@ -357,7 +357,7 @@ class TestShotgunSync(TankTestBase):
                                             preview=False,
                                             engine=None)        
         
-        # now have project / seq / shot / step 
+        # now have project / seq 
         self.assertEqual(len(self.tk.shotgun.find(tank.path_cache.SHOTGUN_ENTITY, [])), 2)
         self.assertEqual( len(self._get_path_cache()), 2)
                 
@@ -414,6 +414,110 @@ class TestShotgunSync(TankTestBase):
         
         
         
+class TestShotgunSync013AutoPush(TankTestBase):
+    
+    def setUp(self, project_tank_name = "project_code"):
+
+        super(TestShotgunSync013AutoPush, self).setUp(project_tank_name)
+        self.setup_fixtures()
         
+        self.seq = {"type": "Sequence",
+                    "id": 2,
+                    "code": "seq_code",
+                    "project": self.project}
+        self.shot = {"type": "Shot",
+                     "id": 1,
+                     "code": "shot_code",
+                     "sg_sequence": self.seq,
+                     "project": self.project}
+        self.step = {"type": "Step",
+                     "id": 3,
+                     "code": "step_code",
+                     "entity_type": "Shot",
+                     "short_name": "step_short_name"}
+        self.task = {"type": "Task",
+                     "id": 4,
+                     "entity": self.shot,
+                     "step": self.step,
+                     "project": self.project}
+
+        entities = [self.shot, self.seq, self.step, self.project, self.task]
+
+        # Add these to mocked shotgun
+        self.add_to_sg_mock_db(entities)
+
+        self.schema_location = os.path.join(self.project_root, "tank", "config", "core", "schema")
+
+    def _get_path_cache(self):
+        path_cache = tank.path_cache.PathCache(self.tk)
+        c = path_cache._connection.cursor()
+        cache = list(c.execute("select * from path_cache" ))
+        c.close()
+        path_cache.close()
+        return cache
+
+    def _get_status_table(self):
+        path_cache = tank.path_cache.PathCache(self.tk)
+        c = path_cache._connection.cursor()
+        cache = list(c.execute("select * from shotgun_status" ))
+        c.close()
+        path_cache.close()
+        return cache
+
+
+    def test_shot(self):
+        """Test full and incremental path cache sync."""
+        
+        self.assertEqual(len(self.tk.shotgun.find(tank.path_cache.SHOTGUN_ENTITY, [])), 1)        
+        self.assertEqual( len(self._get_path_cache()), 1)
+        
+        
+        folder.process_filesystem_structure(self.tk, 
+                                            self.task["type"], 
+                                            self.task["id"], 
+                                            preview=False,
+                                            engine=None)        
+        
+        # now have project / seq / shot / step 
+        self.assertEqual(len(self.tk.shotgun.find(tank.path_cache.SHOTGUN_ENTITY, [])), 4)
+        self.assertEqual( len(self._get_path_cache()), 4)
+        self.assertEqual( len(self._get_status_table()), 4)
+                
+        # now remove items from the pc sync table to simulate a 0.13 entry
+        path_cache = tank.path_cache.PathCache(self.tk)
+        c = path_cache._connection.cursor()
+        c.execute("delete from shotgun_status" )
+        path_cache._connection.commit()
+        c.close()
+        path_cache.close()
+                
+        # synchronize should trigger a push to sg
+        # and introduce duplicated on the shotgun side
+        # but not in the path cache
+        self.tk.sync_path_cache()
+        print self.tk.shotgun.find(tank.path_cache.SHOTGUN_ENTITY, [])
+        self.assertEqual(len(self.tk.shotgun.find(tank.path_cache.SHOTGUN_ENTITY, [])), 8)
+        self.assertEqual( len(self._get_path_cache()), 4)
+        
+        # further syncs should not affect the setup
+        self.tk.sync_path_cache()
+        self.assertEqual(len(self.tk.shotgun.find(tank.path_cache.SHOTGUN_ENTITY, [])), 8)
+        self.assertEqual( len(self._get_path_cache()), 4)
+
+        # full sync should be consistent
+        self.tk.sync_path_cache(force_full_sync=True)
+        self.assertEqual(len(self.tk.shotgun.find(tank.path_cache.SHOTGUN_ENTITY, [])), 8)
+        self.assertEqual( len(self._get_path_cache()), 4)
+        
+
+        
+        
+        
+        
+        
+        
+        
+        
+
         
         
