@@ -524,6 +524,8 @@ class PathCache(object):
         """
         if len(sg_data) == 0:
             # nothing to do!
+            if log:
+                log.info("Your path cache is already up to date!")
             return []
         
         # find the max event log id in sg_data. Will we store this in the sync db later.
@@ -537,7 +539,7 @@ class PathCache(object):
                 all_folder_ids.extend( d["meta"]["sg_folder_ids"] )
 
         if log:
-            log.info("Applying %s updates..." % len(all_folder_ids))
+            log.info("Incremental sync: Applying %s updates..." % len(all_folder_ids))
         
         return self._replay_folder_entities(cursor, log, max_event_log_id, all_folder_ids)
 

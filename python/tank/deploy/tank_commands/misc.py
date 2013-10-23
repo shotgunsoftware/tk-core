@@ -166,6 +166,8 @@ class SynchronizePathCache(Action):
             raise TankError("Syntax: sync_path_cache [--full]!")
         
         log.info("Ensuring the path cache file is up to date...")
+        log.info("Will try to do an incremental sync. If you want to force a complete resync "
+                 "to happen, run this command with a --full flag.")
         if force:
             log.info("Doing a full sync.")
         pc = path_cache.PathCache(self.tk)
