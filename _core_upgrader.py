@@ -639,6 +639,30 @@ def _upgrade_to_013(tank_install_root, log):
     
         
     
+def _upgrade_path_cache(tank_install_root, log):
+    """
+    Migration to upgrade from 0.13.x to 0.14. Push path cache data to Shotgun.
+    """
+
+    log.info("---------------------------------------------------------------------")
+    log.info("Welcome to Toolkit v0.14!")
+    log.info("---------------------------------------------------------------------")
+    log.info("")
+    log.info("Toolkit v0.14 features centralized tracking of the folders that are ")
+    log.info("created on disk. This makes it easier to work distributed and have local")
+    log.info("data setups.")
+    log.info("")
+    log.info("Once Toolkit 0.14 has been installed, new projects will automatically ")
+    log.info("have this feature enabled. Existing projects need to have this specifically ")
+    log.info("turned on. You can turn it on for a project by executing the command")
+    log.info("")
+    log.info("> tank Project project_name upgrade_folders")
+    log.info("")
+    log.info("---------------------------------------------------------------------")    
+    log.info("")
+    val = raw_input("Continue with Toolkit v0.14 upgrade (Yes/No)? [Yes]: ")
+    if val != "" and not val.lower().startswith("y"):
+        raise Exception("You have aborted the upgrade.")    
 
 
 ###################################################################################################
@@ -672,6 +696,10 @@ def upgrade_tank(tank_install_root, log):
             log.debug("Upgrading from v0.13.6+ to v0.13.16. Running tank.bat replacement migration...")
             _convert_tank_bat(tank_install_root, log)
             
+        if __is_upgrade(tank_install_root) and __current_version_less_than(log, tank_install_root, "v0.14.00"):
+            log.debug("Upgrading from v0.13 to v0.14.00. Prompting for path cache changes.")
+            _upgrade_path_cache(tank_install_root, log)
+
         log.debug("Migrations have completed. Now doing the actual upgrade...")
 
         # check that the tank_install_root looks sane
