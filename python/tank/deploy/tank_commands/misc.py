@@ -18,7 +18,6 @@ from ...errors import TankError
 from .. import setup_project
 from .. import validate_config
 from .. import core_api_admin
-from ... import path_cache
 
 from .action_base import Action
 
@@ -142,38 +141,6 @@ class ClearCacheAction(Action):
                     log.warning("Could not delete cache file '%s'!" % full_path)
         
         log.info("The Shotgun menu cache has been cleared.")
-        
-
-class SynchronizePathCache(Action):
-    
-    def __init__(self):
-        Action.__init__(self, 
-                        "sync_path_cache", 
-                        Action.PC_LOCAL, 
-                        ("Ensures that the local path cache file is up to date with Shotgun. Run "
-                         "with a --full option to force a full resync."), 
-                        "Admin")
-    
-    def run(self, log, args):
-        
-        if len(args) == 1 and args[1] == "--full":
-            force = True
-        
-        elif len(args) == 0:
-            force = False
-            
-        else:
-            raise TankError("Syntax: sync_path_cache [--full]!")
-        
-        log.info("Ensuring the path cache file is up to date...")
-        log.info("Will try to do an incremental sync. If you want to force a complete resync "
-                 "to happen, run this command with a --full flag.")
-        if force:
-            log.info("Doing a full sync.")
-        pc = path_cache.PathCache(self.tk)
-        pc.synchronize(log, force)
-        log.info("The path cache has been synchronized.")
-
 
 class InteractiveShellAction(Action):
     

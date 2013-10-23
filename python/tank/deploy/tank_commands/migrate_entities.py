@@ -1225,7 +1225,7 @@ class MigratePublishedFileEntitiesAction(Action):
                         "migrate_published_file_entities", 
                         Action.GLOBAL,#Action.PC_LOCAL, 
                         ("Migrates TankPublishedFile entities to PublishedFile entities & switches this configuration to use PublishedFile entities"), 
-                        "Admin")
+                        "Core Upgrade Related")
         
     def run(self, log, args):
         """

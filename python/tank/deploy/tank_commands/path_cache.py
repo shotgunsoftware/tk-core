@@ -13,17 +13,58 @@ Methods for handling of the tank command
 
 """
 
-from ... import pipelineconfig
-
-
-from ...util import shotgun
-from ...platform import constants
 from ...errors import TankError
+from ... import path_cache
 
 from .action_base import Action
 
-import sys
-import os
+
+class SynchronizePathCache(Action):
+    
+    def __init__(self):
+        Action.__init__(self, 
+                        "sync_folder_cache", 
+                        Action.PC_LOCAL, 
+                        ("Ensures that the local path cache is up to date with Shotgun."), 
+                        "Folders")
+    
+    def run(self, log, args):
+        
+        if len(args) == 1 and args[1] == "--full":
+            force = True
+        
+        elif len(args) == 0:
+            force = False
+            
+        else:
+            raise TankError("Syntax: sync_path_cache [--full]!")
+        
+        log.info("Ensuring the path cache file is up to date...")
+        log.info("Will try to do an incremental sync. If you want to force a complete re-sync "
+                 "to happen, run this command with a --full flag.")
+        if force:
+            log.info("Doing a full sync.")
+            
+        pc = path_cache.PathCache(self.tk)
+        pc.synchronize(log, force)
+        
+        log.info("The path cache has been synchronized.")
+
+class PathCacheMigrationAction(Action):
+    
+    def __init__(self):
+        Action.__init__(self, 
+                        "upgrade_folders", 
+                        Action.PC_LOCAL, 
+                        "Upgrades on old project to use the shared folder generation that was introduced in Toolkit 0.14", 
+                        "Core Upgrade Related")
+    
+    def run(self, log, args):
+        
+        log.info("Placeholder contents")
+
+
+
 
 
 class PathCacheInfoAction(Action):
@@ -33,7 +74,7 @@ class PathCacheInfoAction(Action):
                         "folder_info", 
                         Action.GLOBAL, 
                         "Shows a breakdown of all the folders created for a particular entity.", 
-                        "Admin")
+                        "Folders")
     
     def run(self, log, args):
         
@@ -47,7 +88,7 @@ class DeleteFolderAction(Action):
                         Action.GLOBAL, 
                         ("Controls deletion of folders that represent Shotgun entities "
                          "such as Shots and Assets."), 
-                        "Admin")
+                        "Folders")
     
     def run(self, log, args):
         
@@ -62,7 +103,7 @@ class RenameFolderAction(Action):
                         Action.GLOBAL, 
                         ("Controls renaming of folders that represent Shotgun entities "
                          "such as Shots and Assets."), 
-                        "Admin")
+                        "Folders")
     
     def run(self, log, args):
         
