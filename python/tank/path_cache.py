@@ -196,7 +196,12 @@ class PathCache(object):
                 break
 
         if not root_name:
-            raise TankError("The path '%s' does not belong to the project!" % full_path)
+            
+            storages_str = ",".join( self._roots.values() )
+            
+            raise TankError("The path '%s' could not be split up into a project centric path for "
+                            "any of the storages %s that are associated with this "
+                            "project." % (full_path, storages_str))
 
         return root_name, relative_path
 
@@ -551,12 +556,14 @@ class PathCache(object):
             - path
         
         """
+
+        if log:
+            log.info("Retrieving data from Shotgun...")
         
         if ids is None:
             # get all folder data from shotgun
             project_link = {"type": "Project", 
                             "id": self._tk.pipeline_configuration.get_project_id() }
-            
             sg_data = self._tk.shotgun.find(SHOTGUN_ENTITY, 
                                   [["project", "is", project_link]],
                                   [SG_METADATA_FIELD, 
@@ -580,6 +587,10 @@ class PathCache(object):
                                    SG_ENTITY_TYPE_FIELD, 
                                    SG_ENTITY_NAME_FIELD],
                                   [{"field_name": "id", "direction": "asc"},])
+        
+        if log:
+            log.info("...Retrieved %s records." % len(sg_data))
+        
             
         # now start a single transaction in which we do all our work
         if ids is None:
