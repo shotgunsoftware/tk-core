@@ -36,7 +36,7 @@ class SynchronizePathCache(Action):
     
     def run(self, log, args):
         
-        if len(args) == 1 and args[1] == "--full":
+        if len(args) == 1 and args[0] == "--full":
             force = True
         
         elif len(args) == 0:
