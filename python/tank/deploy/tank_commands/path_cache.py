@@ -77,7 +77,7 @@ class PathCacheMigrationAction(Action):
         
         log.info("Welome to the folder sync upgrade command!")
         log.info("")
-        log.info("Projects created with Toolkit v0.13 and earlier do not automatically synchronize "
+        log.info("Projects created with Toolkit v0.14 and earlier do not automatically synchronize "
                  "their folders on disk with Shotgun. You can use this command to turn on that folder "
                  "sync.")
         log.info("")

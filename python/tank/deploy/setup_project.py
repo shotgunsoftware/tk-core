@@ -308,7 +308,6 @@ class CmdlineSetupInteraction(object):
         self._log.info("")
         self._log.info("")
         self._log.info("Now it is time to decide where the configuration for this project should go. ")
-        self._log.info("As of Toolkit v0.13, you can specify any location you want on disk. ")
         self._log.info("Typically, this is in a software install area where you keep ")
         self._log.info("all your Toolkit code and configuration. We will suggest defaults ")
         self._log.info("based on your current install.")
@@ -981,18 +980,13 @@ def _interactive_setup(log, install_root, check_storage_path_exists, force):
             raise TankError("The Project path %s for storage %s does not exist on disk! "
                             "Please create it and try again!" % (project_path, s.get("code")))
     
-        tank_folder = os.path.join(project_path, "tank")
-        if os.path.exists(tank_folder):
-            # tank folder exists - make sure it is writable
-            if not os.access(tank_folder, os.W_OK|os.R_OK|os.X_OK):
-                raise TankError("The permissions setting for '%s' is too strict. The current user "
-                                "cannot create files or folders in this location." % tank_folder)
         else:
-            # not tank folder has been created in this storage
-            # make sure we can create it
+            # project folder exists!
+            # toolkit needs to write its backlinks-file here, so make sure that is possible
+            back_links_file = pipelineconfig.StorageConfigurationMapping.get_015_config_path(project_path)
             if not os.access(project_path, os.W_OK|os.R_OK|os.X_OK):
                 raise TankError("The permissions setting for '%s' is too strict. The current user "
-                                "cannot create a tank folder in this location." % project_path)
+                                "cannot create a '%s' file." % (project_path, back_links_file))
             
 
     
@@ -1208,29 +1202,7 @@ def _interactive_setup(log, install_root, check_storage_path_exists, force):
         log.debug("Storage: %s" % str(s))
         
         current_os_path = s.get( SG_LOCAL_STORAGE_OS_MAP[sys.platform] )
-        
-        tank_path = os.path.join(current_os_path, project_disk_folder, "tank")
-        if not os.path.exists(tank_path):
-            _make_folder(log, tank_path, 0777)
-        
-        cache_path = os.path.join(tank_path, "cache")
-        if not os.path.exists(cache_path):
-            _make_folder(log, cache_path, 0777)
-
-        config_path = os.path.join(tank_path, "config")
-        if not os.path.exists(config_path):
-            _make_folder(log, config_path, 0777)
-        
-        if s["code"] == constants.PRIMARY_STORAGE_NAME:
-            # primary storage - make sure there is a path cache file
-            # this is to secure the ownership of this file
-            cache_file = os.path.join(cache_path, "path_cache.db")
-            if not os.path.exists(cache_file):
-                log.debug("Touching path cache %s" % cache_file)
-                fh = open(cache_file, "wb")
-                fh.close()
-                os.chmod(cache_file, 0666)
-                
+                                
         # create file for configuration backlinks
         log.debug("Setting up storage -> PC mapping...")
         project_root = os.path.join(current_os_path, project_disk_folder)
@@ -1244,8 +1216,8 @@ def _interactive_setup(log, install_root, check_storage_path_exists, force):
         # files were copied across, the back mappings file also got accidentally
         # copied.
         #
-        # it can also happen when doing a force re-install of a project.
-        scm.clear_mappings()
+        # it can also happen when doing a force re-install of a project.        
+        scm.create_new_file()
         
         # and add our configuration
         scm.add_pipeline_configuration(locations_dict["darwin"], 

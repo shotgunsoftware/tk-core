@@ -570,21 +570,67 @@ class StorageConfigurationMapping(object):
     """
 
     def __init__(self, data_root):
-        self._config_file = os.path.join(data_root, "tank", "config", constants.CONFIG_BACK_MAPPING_FILE)
+        self._data_root = data_root
+         
+    @staticmethod
+    def get_013_config_path(path):
+        """
+        Looks for a 013 style config local to the path specified
+        """
+        return os.path.join(path, "tank", "config", "tank_configs.yml")
+    
+    @staticmethod
+    def get_015_config_path(path):
+        """
+        Looks for a 015 style config local to the path specified
+        """
+        return os.path.join(path, "toolkit_mappings.yml")
 
-    def clear_mappings(self):
+    def _get_config_path(self):
         """
-        Removes any content from the storage mappings file
+        Return the correct lookup file. Will first attempt to find a 0.15 style config,
+        then fall back on a 0.13 style config. If neither exists, it returns 0.15 style config.
         """
+        root15 = self.get_015_config_path(self._data_root)
+        root13 = self.get_013_config_path(self._data_root)
+        
+        if os.path.exists(root15):
+            return root15
+        
+        elif os.path.exists(root13):
+            return root13
+        
+        else:
+            # no file exists - return the new 0.15 preferred config
+            return root15
+
+    def create_new_file(self):
+        """
+        Sets up a new file in the project. If a file alredy exists, this is overridden.
+        Sets up open permissions on the file, so that users creating a clone can 
+        write to it.
+        """
+        
+        cfg_path = self._get_config_path()        
+        
+        new_file_created = ( os.path.exists( cfg_path ) == False )
         # open the file without append to overwrite any previous content
         try:
-            fh = open(self._config_file, "wt")
+            fh = open(cfg_path, "wt")
             fh.write("# this file is automatically created by the shotgun pipeline toolkit\n")
             fh.write("# please do not edit by hand\n\n")
             fh.close()
         except Exception, exp:
             raise TankError("Could not write to roots file %s. "
-                            "Error reported: %s" % (self._config_file, exp))
+                            "Error reported: %s" % (cfg_path, exp))
+        
+        if new_file_created:
+            old_umask = os.umask(0)
+            try:
+                os.chmod(cfg_path, 0666)
+            finally:
+                os.umask(old_umask)                
+            
         
     def add_pipeline_configuration(self, mac_path, win_path, linux_path):
         """
@@ -592,9 +638,9 @@ class StorageConfigurationMapping(object):
         """
         data = []
 
-        if os.path.exists(self._config_file):
+        if os.path.exists(self._get_config_path()):
             # we have a config already - so read it in
-            fh = open(self._config_file, "rt")
+            fh = open(self._get_config_path(), "rt")
             try:
                 data = yaml.load(fh)
                 # if clear_mappings was run, data is None
@@ -602,7 +648,7 @@ class StorageConfigurationMapping(object):
                     data = []
             except Exception, e:
                 raise TankError("Looks like the config lookup file is corrupt. Please contact "
-                                "support! File: '%s' Error: %s" % (self._config_file, e))
+                                "support! File: '%s' Error: %s" % (self._get_config_path(), e))
             finally:
                 fh.close()
 
@@ -613,12 +659,12 @@ class StorageConfigurationMapping(object):
 
         # and write the file
         try:
-            fh = open(self._config_file, "wt")
+            fh = open(self._get_config_path(), "wt")
             yaml.dump(data, fh)
             fh.close()
         except Exception, exp:
             raise TankError("Could not write to roots file %s. "
-                            "Error reported: %s" % (self._config_file, exp))
+                            "Error reported: %s" % (self._get_config_path(), exp))
 
 
     def get_pipeline_configs(self):
@@ -627,14 +673,14 @@ class StorageConfigurationMapping(object):
         """
         data = []
 
-        if os.path.exists(self._config_file):
+        if os.path.exists(self._get_config_path()):
             # we have a config already - so read it in
-            fh = open(self._config_file, "rt")
+            fh = open(self._get_config_path(), "rt")
             try:
                 data = yaml.load(fh)
             except Exception, e:
                 raise TankError("Looks like the config lookup file %s is corrupt. Please contact "
-                                "support! File: '%s' Error: %s" % (self._config_file, e))
+                                "support! File: '%s' Error: %s" % (self._get_config_path(), e))
             finally:
                 fh.close()
 
@@ -813,10 +859,21 @@ def from_path(path):
     cur_path = path
     config_path = None
     while True:
-        config_path = os.path.join(cur_path, "tank", "config", constants.CONFIG_BACK_MAPPING_FILE)
-        # need to test for something in project vs studio config
-        if os.path.exists(config_path):
+        
+        # probe both for old 0.13 style back mapping file (tank_configs.yml)
+        # and for new 0.15 style config
+        config13 = StorageConfigurationMapping.get_013_config_path(cur_path)
+        config15 = StorageConfigurationMapping.get_015_config_path(cur_path)
+        
+        if os.path.exists(config13):
+            config_path = config13
             break
+        
+        if os.path.exists(config15):
+            config_path = config15
+            break
+        
+        # if we are here, no configs were found at this folder level. So try parent level.
         parent_path = os.path.dirname(cur_path)
         if parent_path == cur_path:
             # Topped out without finding config
@@ -824,6 +881,7 @@ def from_path(path):
                             "not belong to an Sgtk Project!" % path)
         cur_path = parent_path
 
+    # if we are here, the back-ref config path exists and is in config_path
     # all right - now read the config and get all the registered pipeline configs.
     try:
         fh = open(config_path, "r")
