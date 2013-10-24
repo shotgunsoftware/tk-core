@@ -288,7 +288,10 @@ def upgrade_tank(tank_install_root, log):
 #######################################################################
 if __name__ == "__main__":
     
-    if len(sys.argv) == 3 and sys.argv[1] == "migrate":
+    # for debugging purposes, can run this command with the following syntax
+    # > python _core_upgrader.py manual /mnt/software/shotgun/studio/install
+    
+    if len(sys.argv) == 3 and sys.argv[1] in ["manual", "migrate"]:
         path = sys.argv[2]
         migrate_log = logging.getLogger("tank.update")
         migrate_log.setLevel(logging.DEBUG)
@@ -304,8 +307,8 @@ if __name__ == "__main__":
         desc = """
     This is a system script used by the upgrade process.
     
-    If you want to upgrade Tank, please run one of the upgrade
-    utilities located in the scripts folder.
+    If you want to upgrade the toolkit Core API, run the
+    'tank core' command.
     
     """
         print desc
