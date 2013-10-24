@@ -124,7 +124,9 @@ class TankTestBase(unittest.TestCase):
 
         # create back-link file from project storage
         data = "- {darwin: '%s', linux2: '%s', win32: '%s'}" % (project_tank, project_tank, project_tank) 
-        self.create_file(os.path.join(project_tank, "config", "tank_configs.yml"), data)
+        # old 0.13 file location
+        #self.create_file(os.path.join(project_tank, "config", "tank_configs.yml"), data)
+        self.create_file(os.path.join(self.project_root, "toolkit_mappings.yml"), data)
 
         # add files needed by the pipeline config
         
