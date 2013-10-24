@@ -1125,6 +1125,15 @@ def _interactive_setup(log, install_root, check_storage_path_exists, force):
     _make_folder(log, os.path.join(current_os_pc_location, "install", "apps"), 0777, True)
     _make_folder(log, os.path.join(current_os_pc_location, "install", "frameworks"), 0777, True)
     
+    # make sure there is a path cache file
+    # this is to secure the ownership of this file
+    cache_file = os.path.join(current_os_pc_location, "cache", constants.CACHE_DB_FILENAME)
+    if not os.path.exists(cache_file):
+        log.debug("Touching path cache %s" % cache_file)
+        fh = open(cache_file, "wb")
+        fh.close()
+        os.chmod(cache_file, 0666)    
+    
     # copy the configuration into place
     _copy_folder(log, cfg_installer.get_path(), os.path.join(current_os_pc_location, "config"))
     
@@ -1250,10 +1259,10 @@ def _interactive_setup(log, install_root, check_storage_path_exists, force):
     data["published_file_entity_type"] = pf_entity_type
     # all 0.14+ projects are pushing folders to Shotgun by default
     data["use_shotgun_path_cache"] = True 
-    # and the location of the PC file is default
-    data["path_cache_location"] = {"mac_path": "cache/path_cache.db", 
-                                   "windows_path": "cache\\path_cache.db", 
-                                   "linux_path": "cache/path_cache.db"}
+    # and tell toolkit where to store cache data
+    data["cache_location"] = {"mac_path": "cache", 
+                              "windows_path": "cache", 
+                              "linux_path": "cache"}
     
     try:
         fh = open(pipe_config_sg_id_path, "wt")

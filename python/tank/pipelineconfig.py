@@ -83,7 +83,7 @@ class PipelineConfiguration(object):
         self._pc_id = None
         self._pc_name = None
         self._published_file_entity_type = None
-        self._path_cache_path = None
+        self._cache_folder = None
         self._use_shotgun_path_cache = None
         self.execute_hook(constants.PIPELINE_CONFIGURATION_INIT_HOOK_NAME, parent=self)
 
@@ -126,7 +126,7 @@ class PipelineConfiguration(object):
         self._pc_id = None
         self._pc_name = None
         self._published_file_entity_type = None
-        self._path_cache_path = None
+        self._cache_folder = None
         self._use_shotgun_path_cache = None
 
 
@@ -367,25 +367,53 @@ class PipelineConfiguration(object):
         """
         return self.get_data_roots().get(constants.PRIMARY_STORAGE_NAME)
 
+    def get_cache_folder(self):
+        """
+        Returns the folder where cache data should be stored.
+        """
+        
+        if self._cache_folder is None:
+            # try to get it from the cache file
+            data = get_pc_disk_metadata(self._pc_root)
+            pc_location = data.get("cache_location")
+            
+            if pc_location is None:
+                # default to cache data stored locally in the PC, in a cache folder
+                pc_location = {"mac_path": "cache", 
+                               "windows_path": "cache", 
+                               "linux_path": "cache"}                
+
+            path_field = {"linux2": "linux_path", 
+                          "win32": "windows_path", 
+                          "darwin": "mac_path" }[sys.platform]
+            curr_path = pc_location[path_field]
+
+            if curr_path.startswith("/") or curr_path.startswith("\\") or \
+               ( len(curr_path) > 1 and curr_path[1] == ":" ):
+                # absolute path
+                self._cache_folder = curr_path
+            else:
+                # relative path to PC
+                self._cache_folder = os.path.join( self.get_path(), curr_path )
+        
+        return self._cache_folder
+
 
     def get_path_cache_location(self):
         """
-        Returns the path to the path cache file.
+        Returns the path to the path cache file. This logic is based around the cache_location
+        setting that is stored in the pipeline config and accessed via get_cache_folder(),
+        but with slightly different logic.
         """
-        
-        # the default value set by a project is
-        # data["path_cache_location"] = {"mac_path": "cache/path_cache.db", 
-        #                                "windows_path": "cache\\path_cache.db", 
-        #                                "linux_path": "cache/path_cache.db"}
-        
-        
+                
         if self._path_cache_path is None:
             # try to get it from the cache file
             data = get_pc_disk_metadata(self._pc_root)
-            pc_location = data.get("path_cache_location")
+            pc_location = data.get("cache_location")
             
             if pc_location is None:
-                # undefined - fall back on the 0.13 setting, where the path cache
+                # undefined - this means that the project was created before 0.15.
+                # fall back on the 0.13 setting, where the path cache
                 # is located in a tank folder in the project root 
                 self._path_cache_path = os.path.join(self.get_primary_data_root(), 
                                                      "tank", 
@@ -393,16 +421,8 @@ class PipelineConfiguration(object):
                                                      constants.CACHE_DB_FILENAME)
 
             else:
-                path_field = {"linux2": "linux_path", 
-                              "win32": "windows_path", 
-                              "darwin": "mac_path" }[sys.platform]
-                curr_path = pc_location[path_field]
-                if curr_path.startswith("/") or curr_path.startswith("\\"):
-                    # absolute path
-                    self._path_cache_path = curr_path
-                else:
-                    # relative path to PC
-                    self._path_cache_path = os.path.join( self.get_path(), curr_path )
+                # there is a cache location setting defined! Use it.
+                self._path_cache_path = os.path.join(self.get_cache_location(), constants.CACHE_DB_FILENAME)                
         
         return self._path_cache_path
         
