@@ -116,6 +116,19 @@ class PipelineConfiguration(object):
 
         return data
 
+    def force_reread_settings(self):
+        """
+        Force the pc object to reread its settings from disk.
+        Call this if you have made changes to config files and 
+        want these to be picked up
+        """
+        self._project_id = None
+        self._pc_id = None
+        self._pc_name = None
+        self._published_file_entity_type = None
+        self._path_cache_path = None
+        self._use_shotgun_path_cache = None
+
 
     ########################################################################################
     # data roots access
@@ -223,6 +236,7 @@ class PipelineConfiguration(object):
                 self._published_file_entity_type = "TankPublishedFile"
 
         return self._published_file_entity_type
+
 
     def get_shotgun_path_cache_enabled(self):
         """
