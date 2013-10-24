@@ -70,7 +70,8 @@ class PathCacheMigrationAction(Action):
         Action.__init__(self, 
                         "upgrade_folders", 
                         Action.PC_LOCAL, 
-                        "Upgrades on old project to use the shared folder generation that was introduced in Toolkit 0.14", 
+                        ("Upgrades on old project to use the shared folder "
+                        "generation that was introduced in Toolkit 0.15"), 
                         "Core Upgrade Related")
     
     def run(self, log, args):
