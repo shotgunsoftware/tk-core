@@ -84,6 +84,7 @@ class PipelineConfiguration(object):
         self._pc_name = None
         self._published_file_entity_type = None
         self._cache_folder = None
+        self._path_cache_path = None
         self._use_shotgun_path_cache = None
         self.execute_hook(constants.PIPELINE_CONFIGURATION_INIT_HOOK_NAME, parent=self)
 
