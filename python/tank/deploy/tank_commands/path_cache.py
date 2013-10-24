@@ -111,13 +111,17 @@ class PathCacheMigrationAction(Action):
         log.debug("New settings: %s" % pprint.pformat(curr_settings))
         log.debug("Writing to pc cache file %s" % pipe_config_sg_id_path)        
         
+        os.chmod(pipe_config_sg_id_path, 0666)
         try:
+            # and write the new file
             fh = open(pipe_config_sg_id_path, "wt")
             yaml.dump(curr_settings, fh)
-            fh.close()
         except Exception, exp:
-            raise TankError("Could not write to pipeline configuration cache file %s. "
+            raise TankError("Could not write to pipeline configuration settings file %s. "
                             "Error reported: %s" % (pipe_config_sg_id_path, exp))
+        finally:
+            fh.close()                        
+            os.chmod(pipe_config_sg_id_path, 0444)        
         
         # tell pipeline config object to reread settings...
         self.tk.pipeline_configuration.force_reread_settings()
