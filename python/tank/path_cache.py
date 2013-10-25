@@ -116,6 +116,8 @@ class PathCache(object):
                     CREATE TABLE event_log_sync (last_id integer);
                     
                     CREATE TABLE shotgun_status (path_cache_id integer);
+                    
+                    CREATE UNIQUE INDEX shotgun_status_id ON shotgun_status(path_cache_id);
                     """)
                 self._connection.commit()
                 
@@ -129,7 +131,8 @@ class PathCache(object):
                 
                 if "shotgun_status" not in table_names:
                     # this is a pre-0.14 setup where the path cache does not have the shotgun_status table
-                    c.executescript("CREATE TABLE shotgun_status (path_cache_id integer);")
+                    c.executescript("""CREATE TABLE shotgun_status (path_cache_id integer);
+                                       CREATE UNIQUE INDEX shotgun_status_id ON shotgun_status(path_cache_id);""")
                     self._connection.commit()
 
                 
@@ -606,6 +609,7 @@ class PathCache(object):
         if ids is None:
             # complete sync - clear our tables first
             cursor.execute("DELETE FROM event_log_sync")
+            cursor.execute("DELETE FROM shotgun_status")
             cursor.execute("DELETE FROM path_cache")
             
         return_data = []
