@@ -647,6 +647,7 @@ class PathCache(object):
                 pass  
             
         # lastly, id of this event log entry for purpose of future syncing
+        cursor.execute("DELETE FROM event_log_sync")
         cursor.execute("INSERT INTO event_log_sync(last_id) VALUES(?)", (max_event_log_id, ))
             
         self._connection.commit()
@@ -786,6 +787,7 @@ class PathCache(object):
                 # now push to shotgun
                 event_log_id = self._upload_cache_data_to_shotgun(data_for_sg, desc)
                 # store insertion marker in the db
+                c.execute("DELETE FROM event_log_sync")
                 c.execute("INSERT INTO event_log_sync(last_id) VALUES(?)", (event_log_id, ))
                 # and indicate in the path cache that all these records have been pushed
                 for path_cache_id in rowids_for_sg:
