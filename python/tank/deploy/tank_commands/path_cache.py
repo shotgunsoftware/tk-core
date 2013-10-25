@@ -32,7 +32,7 @@ class SynchronizePathCache(Action):
                         "sync_folder_cache", 
                         Action.PC_LOCAL, 
                         ("Ensures that the local path cache is up to date with Shotgun."), 
-                        "Folders")
+                        "Folder")
     
     def run(self, log, args):
         
@@ -139,43 +139,16 @@ class PathCacheMigrationAction(Action):
 
 
 
-class PathCacheInfoAction(Action):
-    
-    def __init__(self):
-        Action.__init__(self, 
-                        "folder_info", 
-                        Action.GLOBAL, 
-                        "Shows a breakdown of all the folders created for a particular entity.", 
-                        "Folders")
-    
-    def run(self, log, args):
-        
-        log.info("Placeholder contents")
-
-class DeleteFolderAction(Action):
-    
-    def __init__(self):
-        Action.__init__(self, 
-                        "delete_folder", 
-                        Action.GLOBAL, 
-                        ("Controls deletion of folders that represent Shotgun entities "
-                         "such as Shots and Assets."), 
-                        "Folders")
-    
-    def run(self, log, args):
-        
-        log.info("Placeholder contents")
 
 
 class RenameFolderAction(Action):
     
     def __init__(self):
         Action.__init__(self, 
-                        "rename_folder", 
-                        Action.GLOBAL, 
-                        ("Controls renaming of folders that represent Shotgun entities "
-                         "such as Shots and Assets."), 
-                        "Folders")
+                        "update_folder_name", 
+                        Action.CTX, 
+                        ("Updates folders on disk after an object in Shotgun has been renamed."), 
+                        "Folder")
     
     def run(self, log, args):
         

@@ -47,10 +47,8 @@ BUILT_IN_ACTIONS = [misc.SetupProjectAction,
                     move_studio.MoveStudioInstallAction,
                     migrate_entities.MigratePublishedFileEntitiesAction,
                     path_cache.SynchronizePathCache,
-                    path_cache.DeleteFolderAction,
                     path_cache.PathCacheMigrationAction,
-                    path_cache.RenameFolderAction,
-                    path_cache.PathCacheInfoAction
+                    path_cache.RenameFolderAction
                     ]
 
 

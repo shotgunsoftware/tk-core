@@ -698,15 +698,12 @@ class PathCache(object):
                     # Note! We are only comparing against the type and the id
                     # not against the name. It should be perfectly valid to rename something
                     # in shotgun and if folders are then recreated for that item, nothing happens
-                    # because there is already a folder which repreents that item. (although now with 
+                    # because there is already a folder which represents that item. (although now with 
                     # an incorrect name)
 
                     msg  = "The path '%s' cannot be processed because it is already associated " % path
                     msg += "with %s '%s' (id %s) in Shotgun. " % (entity_in_db["type"], entity_in_db["name"], entity_in_db["id"])
                     msg += "You are now trying to associate it with %s '%s' (id %s). " % (entity["type"], entity["name"], entity["id"])
-                    msg += "Please run the command 'tank folder_info %s %s' " % (entity["type"], entity["id"])
-                    msg += "to get a more detailed overview of why you are getting this message "
-                    msg += "and what you can do to resolve this situation."
                     raise TankError(msg)
                 
         # Check 2. Check if a folder for this shot has already been created,
@@ -732,11 +729,9 @@ class PathCache(object):
                     msg += "path '%s' is already associated with %s %s. " % (p, entity["type"], entity["name"])
                     msg += "This typically happens if an item in Shotgun is renamed or "
                     msg += "if the path naming in the folder creation configuration "
-                    msg += "is changed. "
-                    msg += "Please run the command 'tank folder_info %s %s' " % (entity["type"], entity["id"])
-                    msg += "to get a more detailed overview of why you are getting this message "
-                    msg += "and what you can do to resolve this situation."
-                    
+                    msg += "is changed. If you have renamed the Shotgun object and want to "
+                    msg += "update your folders on disk with this new name, please run the "
+                    msg += "'tank %s %s update_folder_name'" % (entity["type"], entity["name"])                    
                     raise TankError(msg)
 
 

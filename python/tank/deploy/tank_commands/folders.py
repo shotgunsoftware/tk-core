@@ -28,7 +28,7 @@ class CreateFoldersAction(Action):
                         ("Creates folders on disk for your current context. This command is "
                          "typically used in conjunction with a Shotgun entity, for example "
                          "'tank Shot P01 folders' in order to create folders on disk for Shot P01."), 
-                        "Folders")
+                        "Folder")
     
     def run(self, log, args):
         if len(args) != 0:
@@ -71,7 +71,7 @@ class PreviewFoldersAction(Action):
                          "typically used in conjunction with a Shotgun entity, for example "
                          "'tank Shot P01 preview_folders' in order to show what folders "
                          "would be created if you ran the folders command for Shot P01."), 
-                        "Folders")
+                        "Folder")
     
     def run(self, log, args):
         if len(args) != 0:
