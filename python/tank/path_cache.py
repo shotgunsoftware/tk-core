@@ -423,7 +423,7 @@ class PathCache(object):
         if len(pc_data) > 0 and log:
             log.info("Detected %s path entries that have not yet been uploaded to Shotgun." % len(pc_data))
         
-        # inner loop - push to shotgun in chunks of 500
+        # inner loop - push to shotgun in chunks
         # and push each one separately
         BATCH_SIZE = 400
         pc_data_batches = [ pc_data[x:x+BATCH_SIZE] for x in xrange(0, len(pc_data), BATCH_SIZE)]
@@ -465,8 +465,8 @@ class PathCache(object):
                 self._upload_cache_data_to_shotgun(sg_data, desc, log)
                 
                 # all good - now update the database to indicate that these fields have been pushed.
-                for d in curr_batch:
-                    rowid = d[0]
+                for sql_record in curr_batch:
+                    rowid = sql_record[0]
                     cursor.execute("INSERT INTO shotgun_status(path_cache_id) VALUES(?)", (rowid,) )
             
             except:
@@ -624,9 +624,14 @@ class PathCache(object):
                       "type": x[SG_ENTITY_TYPE_FIELD]}
             is_primary = x[SG_IS_PRIMARY_FIELD]
             
-            if self._add_db_mapping(cursor, local_os_path, entity, is_primary):
-                # add db mapping returned true. Means it wasn't in the path cache db
-                # and we should return it
+            new_rowid = self._add_db_mapping(cursor, local_os_path, entity, is_primary)
+            if new_rowid != 0:
+                # something was inserted into the db!
+                # because this record came from shotgun, insert a record in the
+                # shotgun_status table to indicate that this record exists in sg
+                cursor.execute("INSERT INTO shotgun_status(path_cache_id) VALUES(?)", (new_rowid,) )
+            
+                # and add this entry to our list of new things that we will return later on.
                 return_data.append({"entity": entity, 
                                     "path": local_os_path, 
                                     "metadata": SG_METADATA_FIELD})
@@ -757,22 +762,31 @@ class PathCache(object):
         c = self._connection.cursor()
         try:
             data_for_sg = []
+            rowids_for_sg = []
             
             for d in data:
-                if self._add_db_mapping(c, d["path"], d["entity"], d["primary"]):
-                    # add db mapping returned true. Means it wasn't in the path cache db
-                    # and we should add it to shotgun too!
+                new_rowid = self._add_db_mapping(c, d["path"], d["entity"], d["primary"]) 
+                if new_rowid != 0:
+                    # this entry wasn't already in the db. So add it to the list to
+                    # potentially upload to SG later on
                     data_for_sg.append(d)
+                    rowids_for_sg.append(new_rowid)
                 
-            # first, a summary of what we are up to for the event log description
-            entity_ids = ", ".join([str(x) for x in entity_ids])
-            desc = ("Created folders on disk for %ss with id: %s" % (entity_type, entity_ids))
             
             if self._sync_with_sg:
+
+                # first, a summary of what we are up to for the event log description
+                entity_ids = ", ".join([str(x) for x in entity_ids])
+                desc = ("Created folders on disk for %ss with id: %s" % (entity_type, entity_ids))
+
                 # now push to shotgun
                 event_log_id = self._upload_cache_data_to_shotgun(data_for_sg, desc)
-                # and finally store in the db
+                # store insertion marker in the db
                 c.execute("INSERT INTO event_log_sync(last_id) VALUES(?)", (event_log_id, ))
+                # and indicate in the path cache that all these records have been pushed
+                for path_cache_id in rowids_for_sg:
+                    c.execute("INSERT INTO shotgun_status(path_cache_id) VALUES(?)", (path_cache_id,) )
+                    
 
         except:
             # error processing shotgun. Make sure we roll back the sqlite path cache
@@ -803,7 +817,7 @@ class PathCache(object):
         :param entity: a shotgun entity dict with keys type, id and name
         :param primary: is this the primary entry for this particular path     
         
-        :returns: True if an entry was added to the database, False if it was not necessary   
+        :returns: 0 if nothing was added to the db, otherwise the ROWID for the new row   
         """
         if primary:
             # the primary entity must be unique: path/id/type 
@@ -831,7 +845,7 @@ class PathCache(object):
                     
                 else:   
                     # the entry that exists in the db matches what we are trying to insert so skip it
-                    return False
+                    return 0
                 
         else:
             # secondary entity
@@ -841,7 +855,7 @@ class PathCache(object):
 
             if path in paths:
                 # we already have the association present in the db.
-                return False
+                return 0
 
         # there was no entity in the db. So let's create it!
         root_name, relative_path = self._separate_root(path)
@@ -859,12 +873,8 @@ class PathCache(object):
                          root_name, 
                          db_path, 
                          primary))
-        
-        # and create a corresponding record in the shotgun_status table
-        path_cache_id = cursor.lastrowid
-        cursor.execute("INSERT INTO shotgun_status(path_cache_id) VALUES(?)", (path_cache_id,) )
-        
-        return True
+                
+        return cursor.lastrowid
 
 
     
