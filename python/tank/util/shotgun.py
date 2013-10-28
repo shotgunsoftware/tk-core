@@ -142,6 +142,9 @@ def __create_sg_connection(shotgun_cfg_path, evaluate_script_user, user="default
                  config_data["api_script"],
                  config_data["api_key"],
                  http_proxy=config_data.get("http_proxy", None))
+    if config_data.get('force_ssl_validation_off') and not sg.config.no_ssl_validation:
+        sg.config.no_ssl_validation = config_data['force_ssl_validation_off']
+    # end if
 
     # bolt on our custom user agent manager
     sg.tk_user_agent_handler = ToolkitUserAgentHandler(sg)
