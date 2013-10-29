@@ -19,6 +19,8 @@ from ... import pipelineconfig
 
 from .action_base import Action
 
+from ...util.login import get_current_user 
+
 from tank_vendor import yaml
 
 import pprint
@@ -130,8 +132,10 @@ class PathCacheMigrationAction(Action):
         # and synchronize path cache
         log.info("Running folder synchronization...")
         pc = path_cache.PathCache(self.tk)
-        pc.synchronize(log)
-        pc.close()
+        try:
+            pc.synchronize(log)
+        finally:
+            pc.close()
         
         log.info("All done! This project and pipeline configuration is now syncing its folders "
                  "with Shotgun.")
@@ -141,17 +145,122 @@ class PathCacheMigrationAction(Action):
 
 
 
-class RenameFolderAction(Action):
+class UnregisterFoldersAction(Action):
     
     def __init__(self):
         Action.__init__(self, 
-                        "update_folder_name", 
+                        "unregister_folders", 
                         Action.CTX, 
-                        ("Updates folders on disk after an object in Shotgun has been renamed."), 
+                        ("Unregisters the folders for an object in Shotgun."), 
                         "Folder")
     
     def run(self, log, args):
         
-        log.info("Placeholder contents")
+        if self.context.entity is None:
+            raise TankError("You need to specify a Shotgun entity - such as a Shot or Asset!")
 
+        entity = self.context.entity
 
+        pc = path_cache.PathCache(self.tk)
+        try:
+            pc.synchronize(log, force=False)
+        finally:
+            pc.close()
+        
+        sg_matches = self.tk.shotgun.find(path_cache.SHOTGUN_ENTITY, 
+                                       [[path_cache.SG_ENTITY_FIELD, "is", entity]],
+                                       ["id", path_cache.SG_PATH_FIELD])
+        
+        # now use the path cache to get a list of all folders (recursively) that are
+        # linked up to the folders registered for this entity.
+        
+        paths = []
+        pc = path_cache.PathCache(self.tk)
+        try:
+            for sg_match in sg_matches:
+                paths.extend( pc.get_folder_tree_from_sg_id( sg_match["id"] ) )
+        finally:
+            pc.close()
+        
+        if len(paths) == 0:
+            log.info("This entity does not have any folder associated!")
+            return
+        
+        log.info("")
+        log.info("The following folders are associated with %s %s:" % (entity["type"], entity["name"]))
+        for p in paths:
+            log.info(" - %s" % p["path"])
+        
+        log.info("")
+        log.info("Proceeding would unregister the above paths from Toolkit's folder database. "
+                 "This will not alter any of the content in the file system, but once you have "
+                 "unregistered the paths, they will not be recognized by Shotgun.")
+        log.info("")
+        log.info("This is useful if you for example have renamed an Asset or Shot and want to "
+                 "move the data around on disk. In this case, start by unregistering the existing "
+                 "folder entries in Shotgun, then rename the Shot or Asset in Shotgun. Next, "
+                 "create new folders on disk using Toolkit's 'create folders' command and lastly "
+                 "move all your file system data across from the old location to the new location.")
+        log.info("")
+        val = raw_input("Proceed with unregister? (Yes/No) ? [Yes]: ")
+        if val != "" and not val.lower().startswith("y"):
+            log.info("Exiting! Nothing was unregistered.")
+            return
+        
+        log.info("Removing items from Shotgun....")
+        log.info("")
+        
+        sg_batch_data = []
+        for p in paths:                            
+            req = {"request_type":"delete", 
+                   "entity_type": path_cache.SHOTGUN_ENTITY, 
+                   "entity_id": p["sg_id"] }
+            sg_batch_data.append(req)
+        
+        try:    
+            response = self.tk.shotgun.batch(sg_batch_data)
+        except Exception, e:
+            raise TankError("Shotgun Reported an error. Please contact support. "
+                            "Details: %s Data: %s" % (e, sg_batch_data))
+        
+        # now register the deleted ids in the event log
+        # this will later on be read by the synchronization            
+        # now, based on the entities we just deleted, assemble a metadata chunk that 
+        # the sync calls can use later on.
+        
+        pc_link = {"type": "PipelineConfiguration",
+                   "id": self.tk.pipeline_configuration.get_shotgun_id() }
+        
+        project_link = {"type": "Project", 
+                        "id": self.tk.pipeline_configuration.get_project_id() }
+        
+        meta = {}
+        # the api version used is always useful to know
+        meta["core_api_version"] = self.tk.version
+        # shotgun ids created
+        meta["sg_folder_ids"] = [ x["sg_id"] for x in paths]
+        
+        sg_event_data = {}
+        sg_event_data["event_type"] = "Toolkit_Folders_Delete"
+        sg_event_data["description"] = "Toolkit %s: Unregistered %s folders." % (self.tk.version, len(paths))
+        sg_event_data["project"] = project_link
+        sg_event_data["entity"] = pc_link
+        sg_event_data["meta"] = meta        
+        sg_event_data["user"] = get_current_user(self.tk)
+    
+        try:
+            self.tk.shotgun.create("EventLogEntry", sg_event_data)
+        except Exception, e:
+            raise TankError("Shotgun Reported an error. Please contact support. "
+                            "Details: %s Data: %s" % (e, sg_event_data))
+        
+        # lastly, another sync
+        pc = path_cache.PathCache(self.tk)
+        try:
+            pc.synchronize(log, force=False)
+        finally:
+            pc.close()
+
+        log.info("")
+        log.info("Unregister complete!")
+        

@@ -48,7 +48,7 @@ BUILT_IN_ACTIONS = [misc.SetupProjectAction,
                     migrate_entities.MigratePublishedFileEntitiesAction,
                     path_cache.SynchronizePathCache,
                     path_cache.PathCacheMigrationAction,
-                    path_cache.RenameFolderAction
+                    path_cache.UnregisterFoldersAction
                     ]
 
 

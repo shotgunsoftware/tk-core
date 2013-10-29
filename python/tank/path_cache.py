@@ -296,12 +296,20 @@ class PathCache(object):
             
             response = self._tk.shotgun.find("EventLogEntry", 
                                              [ ["event_type", "in", ["Toolkit_Folders_Create", 
-                                                                     "Toolkit_Folders_Rename", 
                                                                      "Toolkit_Folders_Delete"]], 
                                                ["id", "greater_than", (event_log_id - 1)],
                                                ["project", "is", project_link] ],
                                              ["id", "meta", "event_type"] )   
         
+            # count creation and deletion entries
+            num_deletions = 0
+            num_creations = 0
+            for r in response:
+                if r["event_type"] == "Toolkit_Folders_Create":
+                    num_creations += 1
+                if r["event_type"] == "Toolkit_Folders_Delete":
+                    num_deletions += 1
+                    
             if len(response) == 0 or response[0]["id"] != event_log_id:
                 # there is either no event log data at all or a gap
                 # in the event log. Assume that some culling has occured and
@@ -310,10 +318,25 @@ class PathCache(object):
                     log.info("Cannot locate path cache tracking marker in Shotgun Event Log. "
                              "Falling back onto a full synchronization.")
                 return self._do_full_sync(c, log)        
-            else:
+            
+            elif len(response) == 1 and response[0]["id"] == event_log_id:
+                # nothing has changed since the last sync
+                if log:
+                    log.info("Path cache syncing not necessary - local folders already up to date!")
+                return []
+            
+            elif num_deletions > 0:
+                # some stuff was deleted. fall back on full sync
+                return self._do_full_sync(c, log)
+            
+            elif num_creations > 0:
                 # we have a complete trail of increments. 
                 # note that we skip the current entity.
                 return self._do_incremental_sync(c, log, response[1:])
+            
+            else:
+                # should never be here
+                raise Exception("Unknown error - please contact support.")
 
         finally:       
             c.close()
@@ -522,9 +545,9 @@ class PathCache(object):
         
         # find the max event log id. Will we store this in the sync db later.
         sg_data = self._tk.shotgun.find_one("EventLogEntry", 
-                                            [], 
+                                            [["event_type", "in", ["Toolkit_Folders_Create", "Toolkit_Folders_Delete"]]], 
                                             ["id"], 
-                                            [{"field_name": "id", "direction": "desc"},])
+                                            [{"field_name": "id", "direction": "desc"}])
 
         max_event_log_id = sg_data["id"]
         
@@ -536,13 +559,17 @@ class PathCache(object):
         
         Patch the existing cache with the events passed via sg_data.
         
+        Assumptions:
+        - sg_data list always contains some entries
+        - sg_data list only contains Toolkit_Folders_Create records
+        
         This is a list of dicts ordered by id from low to high (old to new), 
         each with keys
             - id
             - meta
             - attribute_name
         
-        Example of item:
+        Example of items:
         {'event_type': 'Toolkit_Folders_Create', 
          'meta': {'core_api_version': 'HEAD', 
                   'sg_folder_ids': [123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133]}, 
@@ -556,26 +583,27 @@ class PathCache(object):
             - metadata
             - path
         """
+
         if len(sg_data) == 0:
-            # nothing to do!
-            if log:
-                log.info("Your path cache is already up to date!")
             return []
         
         # find the max event log id in sg_data. Will we store this in the sync db later.
         max_event_log_id = max( [x["id"] for x in sg_data] )
         
-        all_folder_ids = []
-        
+        created_folder_ids = []
         for d in sg_data:
             if d["event_type"] == "Toolkit_Folders_Create":
                 # this is a creation request! Replay it on our database
-                all_folder_ids.extend( d["meta"]["sg_folder_ids"] )
-
+                created_folder_ids.extend( d["meta"]["sg_folder_ids"] )
+            else:
+                # should never come here
+                raise Exception("Unsupported event type '%s'" % d)
+                
         if log:
-            log.info("Incremental sync: Applying %s updates..." % len(all_folder_ids))
-        
-        return self._replay_folder_entities(cursor, log, max_event_log_id, all_folder_ids)
+            log.info("Updating path cache - Applying %s updates..." % len(created_folder_ids))
+
+        return self._replay_folder_entities(cursor, log, max_event_log_id, created_folder_ids)
+
 
     def _replay_folder_entities(self, cursor, log, max_event_log_id, ids=None):
         """
@@ -730,6 +758,8 @@ class PathCache(object):
                     msg  = "The path '%s' cannot be processed because it is already associated " % path
                     msg += "with %s '%s' (id %s) in Shotgun. " % (entity_in_db["type"], entity_in_db["name"], entity_in_db["id"])
                     msg += "You are now trying to associate it with %s '%s' (id %s). " % (entity["type"], entity["name"], entity["id"])
+                    msg += "If you want to unregister your previously created folders, you can run "
+                    msg += "the following command: 'tank %s %s unregister_folders' " % (entity_in_db["type"], entity_in_db["name"])
                     raise TankError(msg)
                 
         # Check 2. Check if a folder for this shot has already been created,
@@ -755,9 +785,10 @@ class PathCache(object):
                     msg += "path '%s' is already associated with %s %s. " % (p, entity["type"], entity["name"])
                     msg += "This typically happens if an item in Shotgun is renamed or "
                     msg += "if the path naming in the folder creation configuration "
-                    msg += "is changed. If you have renamed the Shotgun object and want to "
-                    msg += "update your folders on disk with this new name, please run the "
-                    msg += "'tank %s %s update_folder_name'" % (entity["type"], entity["name"])                    
+                    msg += "is changed. In order to continue you can either change "
+                    msg += "the %s back to its previous name or you can unregister " % entity["type"]
+                    msg += "the currently associated folders by running the following command: "
+                    msg += "'tank %s %s unregister_folders' and then try again." % (entity["type"], entity["name"])                    
                     raise TankError(msg)
 
 
@@ -909,6 +940,49 @@ class PathCache(object):
     
     ############################################################################################
     # database accessor methods
+
+    def get_folder_tree_from_sg_id(self, shotgun_id):
+        """
+        Returns a list of items making up the subtree below a certain shotgun id
+        Each item in the list is a dictionary with keys path and sg_id.
+        """
+        
+        c = self._connection.cursor()
+        # first get the path
+        res = c.execute("""SELECT pc.root, pc.path 
+                          FROM path_cache pc
+                          INNER JOIN shotgun_status ss on pc.rowid = ss.path_cache_id
+                          WHERE ss.shotgun_id = ? """, (shotgun_id, ))
+         
+        res = list(res)
+        
+        if len(res) == 0:
+            return []
+        
+        matches = []
+        
+        # returns something like [('primary', '/assets/Character/foo')]
+        root_name = res[0][0]
+        path = res[0][1]
+        # first append this match
+        matches.append( {"path": self._dbpath_to_path(root_name, path), "sg_id": shotgun_id } )
+                         
+        
+        # now get all paths that are child paths
+        like_path = "%s/%%" % path
+        res = c.execute("""SELECT pc.root, pc.path, ss.shotgun_id
+                          FROM path_cache pc
+                          INNER JOIN shotgun_status ss on pc.rowid = ss.path_cache_id
+                          WHERE root = ? and path like ?""", (root_name, like_path))
+        
+        for x in list(res):
+            root_name = x[0]
+            path = x[1]
+            sg_id = x[2]
+            # first append this match
+            matches.append( {"path": self._dbpath_to_path(root_name, path), "sg_id": sg_id } )
+            
+        return matches
 
     def get_paths(self, entity_type, entity_id, primary_only, cursor=None):
         """
