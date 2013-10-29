@@ -115,7 +115,7 @@ class PathCache(object):
                     
                     CREATE TABLE event_log_sync (last_id integer);
                     
-                    CREATE TABLE shotgun_status (path_cache_id integer);
+                    CREATE TABLE shotgun_status (path_cache_id integer, shotgun_id integer);
                     
                     CREATE UNIQUE INDEX shotgun_status_id ON shotgun_status(path_cache_id);
                     """)
@@ -131,7 +131,7 @@ class PathCache(object):
                 
                 if "shotgun_status" not in table_names:
                     # this is a pre-0.14 setup where the path cache does not have the shotgun_status table
-                    c.executescript("""CREATE TABLE shotgun_status (path_cache_id integer);
+                    c.executescript("""CREATE TABLE shotgun_status (path_cache_id integer, shotgun_id integer);
                                        CREATE UNIQUE INDEX shotgun_status_id ON shotgun_status(path_cache_id);""")
                     self._connection.commit()
 
@@ -329,6 +329,13 @@ class PathCache(object):
         - primary - boolean to indicate if something is primary
         - metadata - metadata dict
         - path - local os path
+        - path_cache_row_id - the path cache db row id for the entry
+        
+        returns: (event_log_id, sg_id_lookup)
+        - event_log_id is the id for the event log entry which summarizes the 
+          creation event.
+        - sg_id_lookup is a dictionary where the keys are path cache row ids 
+          and the values are the newly created corresponding shotgun ids 
         """
         
         pc_link = {"type": "PipelineConfiguration",
@@ -372,6 +379,21 @@ class PathCache(object):
             raise TankError("Critical! Could not update Shotgun with folder "
                             "data. Please contact support. Error details: %s" % e)
         
+        # now create a dictionary where input path cache rowid (path_cache_row_id)
+        # is mapped to the shotgun ids that were just created
+        def _rowid_from_path(path):
+            for d in data:
+                if d["path"] == path:
+                    return d["path_cache_row_id"] 
+            raise TankError("Could not resolve row id for path! Please contact support! "
+                            "trying to resolve path '%s'. Source data set: %s" % (path, data))
+        
+        rowid_sgid_lookup = {}
+        for sg_obj in response:
+            sg_id = sg_obj["id"]
+            pc_row_id = _rowid_from_path( sg_obj[SG_PATH_FIELD]["local_path"] )
+            rowid_sgid_lookup[pc_row_id] = sg_id
+        
         # now register the created ids in the event log
         # this will later on be read by the synchronization            
         # now, based on the entities we just created, assemble a metadata chunk that 
@@ -397,7 +419,7 @@ class PathCache(object):
                             "history marker. Please contact support. Error details: %s" % e)            
         
         # return the event log id which represents this uploaded slab
-        return response["id"]
+        return (response["id"], rowid_sgid_lookup)
 
 
     def _ensure_all_in_shotgun(self, cursor, log):
@@ -458,6 +480,7 @@ class PathCache(object):
                     sg_record["path"] = local_os_path
                     sg_record["primary"] = bool(sql_record[6])
                     sg_record["metadata"] = {}
+                    sg_record["path_cache_row_id"] = sql_record[0]
                 
                     sg_data.append(sg_record)
                 
@@ -465,12 +488,12 @@ class PathCache(object):
                 desc = "Uploaded existing local path cache data to Shotgun."
                 
                 # and upload
-                self._upload_cache_data_to_shotgun(sg_data, desc, log)
+                (event_log_id, sg_id_lookup) = self._upload_cache_data_to_shotgun(sg_data, desc, log)
                 
                 # all good - now update the database to indicate that these fields have been pushed.
-                for sql_record in curr_batch:
-                    rowid = sql_record[0]
-                    cursor.execute("INSERT INTO shotgun_status(path_cache_id) VALUES(?)", (rowid,) )
+                for (pc_row_id, sg_id) in sg_id_lookup.items():
+                    cursor.execute("INSERT INTO shotgun_status(path_cache_id, shotgun_id) "
+                                   "VALUES(?, ?)", (pc_row_id, sg_id) )                
             
             except:
                 # error processing shotgun. Make sure we roll back the sqlite transaction.
@@ -579,7 +602,8 @@ class PathCache(object):
                             "id": self._tk.pipeline_configuration.get_project_id() }
             sg_data = self._tk.shotgun.find(SHOTGUN_ENTITY, 
                                   [["project", "is", project_link]],
-                                  [SG_METADATA_FIELD, 
+                                  ["id",
+                                   SG_METADATA_FIELD, 
                                    SG_IS_PRIMARY_FIELD, 
                                    SG_ENTITY_ID_FIELD,
                                    SG_PATH_FIELD,
@@ -593,7 +617,8 @@ class PathCache(object):
             id_in_filter.extend(ids)
             sg_data = self._tk.shotgun.find(SHOTGUN_ENTITY, 
                                   [id_in_filter],
-                                  [SG_METADATA_FIELD, 
+                                  ["id",
+                                   SG_METADATA_FIELD, 
                                    SG_IS_PRIMARY_FIELD, 
                                    SG_ENTITY_ID_FIELD,
                                    SG_PATH_FIELD,
@@ -633,7 +658,8 @@ class PathCache(object):
                 # something was inserted into the db!
                 # because this record came from shotgun, insert a record in the
                 # shotgun_status table to indicate that this record exists in sg
-                cursor.execute("INSERT INTO shotgun_status(path_cache_id) VALUES(?)", (new_rowid,) )
+                cursor.execute("INSERT INTO shotgun_status(path_cache_id, shotgun_id) "
+                               "VALUES(?, ?)", (new_rowid, x["id"]) )
             
                 # and add this entry to our list of new things that we will return later on.
                 return_data.append({"entity": entity, 
@@ -762,7 +788,6 @@ class PathCache(object):
         c = self._connection.cursor()
         try:
             data_for_sg = []
-            rowids_for_sg = []
             
             for d in data:
                 new_rowid = self._add_db_mapping(c, d["path"], d["entity"], d["primary"]) 
@@ -770,7 +795,9 @@ class PathCache(object):
                     # this entry wasn't already in the db. So add it to the list to
                     # potentially upload to SG later on
                     data_for_sg.append(d)
-                    rowids_for_sg.append(new_rowid)
+                    # append path cache row id to data
+                    d["path_cache_row_id"] = new_rowid
+                    
                 
             
             if self._sync_with_sg:
@@ -780,13 +807,14 @@ class PathCache(object):
                 desc = ("Created folders on disk for %ss with id: %s" % (entity_type, entity_ids))
 
                 # now push to shotgun
-                event_log_id = self._upload_cache_data_to_shotgun(data_for_sg, desc)
+                (event_log_id, sg_id_lookup) = self._upload_cache_data_to_shotgun(data_for_sg, desc)
                 # store insertion marker in the db
                 c.execute("DELETE FROM event_log_sync")
                 c.execute("INSERT INTO event_log_sync(last_id) VALUES(?)", (event_log_id, ))
                 # and indicate in the path cache that all these records have been pushed
-                for path_cache_id in rowids_for_sg:
-                    c.execute("INSERT INTO shotgun_status(path_cache_id) VALUES(?)", (path_cache_id,) )
+                for (pc_row_id, sg_id) in sg_id_lookup.items():
+                    c.execute("INSERT INTO shotgun_status(path_cache_id, shotgun_id) "
+                              "VALUES(?, ?)", (pc_row_id, sg_id) )
                     
 
         except:
