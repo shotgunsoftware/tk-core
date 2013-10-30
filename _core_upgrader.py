@@ -195,7 +195,7 @@ def _upgrade_path_cache(tank_install_root, log):
     log.info("")
     log.info("Toolkit v0.15 features centralized tracking of the folders that are ")
     log.info("created on disk. This makes it easier to work distributed and have local")
-    log.info("data setups.")
+    log.info("data setups. (For more details, see the release notes.)")
     log.info("")
     log.info("Once Toolkit 0.15 has been installed, new projects will automatically ")
     log.info("have this feature enabled. Existing projects need to have this specifically ")
