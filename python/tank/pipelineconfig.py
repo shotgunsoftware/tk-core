@@ -53,16 +53,17 @@ class PipelineConfiguration(object):
         
         # and get the version of the API currently in memory
         current_api_version = get_core_api_version_based_on_current_code()
-
+        
         if our_associated_api_version is not None and \
            util.is_version_older(current_api_version, our_associated_api_version):
             # currently running API is too old!
             current_api_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-            raise TankError("You are currently running the Core API %s located in '%s'. "
-                            "The current Pipeline Configuration ('%s') is associated with another API, "
-                            "%s, located here: '%s'. This Pipeline Configuration cannot be initialized, "
-                            "because it needs a more recent version of the Core API than the one "
-                            "currently loaded in memory. To fix this, please import "
+            raise TankError("You are currently running Core API %s located in '%s'. "
+                            "The Pipeline Configuration you are trying to create ('%s') is "
+                            "associated with a more recent version of the API, "
+                            "%s, located here: '%s'. Initialization cannot proceed at this point, "
+                            "because the currently running Core API is too old. "
+                            "To fix this, please import "
                             "the API located in '%s' and try again." % (current_api_version,
                                                                         current_api_path,
                                                                         self.get_path(),
@@ -383,7 +384,12 @@ class PipelineConfiguration(object):
                 pass
                 
             
-            if install_path is None:
+            if install_path is not None:
+                # the files point at the 'studio' location. This location in turn contains
+                # a config and an install area and it is the install area we should return.
+                install_path = os.path.join(install_path, "install")
+                
+            else:
                 # no luck determining the location of the core API through our two 
                 # established modus operandi. Fall back on the crude legacy
                 # approach, which is to grab and return the currently running code.
@@ -393,6 +399,7 @@ class PipelineConfiguration(object):
                     raise TankError("Cannot resolve the install location from the location of the Core Code! "
                                     "This can happen if you try to move or symlink the Sgtk API. "
                                     "Please contact support.")
+                    
         return install_path
 
 
