@@ -100,10 +100,8 @@ class PCBreakdownAction(Action):
                 # yay, exists on disk
                 local_tank_command = os.path.join(local_path, "tank")
                 
-                if os.path.exists(os.path.join(local_path, "install", "core", "_core_upgrader.py")):
-                    api_version = pipelineconfig.get_core_api_version_for_pc(local_path)
-                    log.info("This configuration is running its own version (%s)"
-                             " of the Toolkit API." % api_version)
+                if pipelineconfig.is_localized(local_path):
+                    log.info("This configuration is running its own version of the Toolkit API.")
                     log.info("If you want to check for core API updates you can run:")
                     log.info("> %s core" % local_tank_command)
                     log.info("")

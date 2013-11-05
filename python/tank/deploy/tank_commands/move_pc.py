@@ -169,8 +169,7 @@ class MovePCAction(Action):
         # also - we currently don't support moving PCs which have a localized API
         # (because these may be referred to by other PCs that are using their API
         # TODO: later on, support moving these. For now, just error out.
-        api_file = os.path.join(local_source_path, "install", "core", "_core_upgrader.py")
-        if os.path.exists(api_file):
+        if pipelineconfig.is_localized(local_source_path):        
             raise TankError("Looks like the Configuration you are trying to move has a localized "
                             "API. This is not currently supported.")
         

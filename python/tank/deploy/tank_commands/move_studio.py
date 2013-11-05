@@ -17,6 +17,7 @@ Methods for handling of the tank command
 from ...util import shotgun
 from ...platform import constants
 from ...errors import TankError
+from ... import pipelineconfig
 
 from .action_base import Action
 
@@ -202,8 +203,7 @@ class MoveStudioInstallAction(Action):
             raise TankError("The path %s already exists on disk!" % local_target_path)
         
         # probe for some key file
-        api_file = os.path.join(current_path, "install", "core", "_core_upgrader.py")
-        if not os.path.exists(api_file):
+        if not pipelineconfig.is_localized(current_path):
             raise TankError("Path '%s' does not look like an Toolkit install!" % current_path)
             
         # make sure this is NOT a PC
