@@ -111,7 +111,7 @@ def get_framework(framework):
     simply do
     
     fw = sgtk.platform.get_framework("tk-framework-helpers")
-    app.get_setting("frame_range")
+    fw.get_setting("frame_range")
 
     :param framework: name of the framework object to access, as defined in the app's
                       info.yml manifest.
