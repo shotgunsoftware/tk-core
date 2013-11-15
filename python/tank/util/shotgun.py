@@ -75,7 +75,7 @@ def get_project_name_studio_hook_location():
     core_cfg = __get_api_core_config_location()
     return os.path.join(core_cfg, "project_name.py")
 
-def __create_sg_connection(shotgun_cfg_path, evaluate_script_user, user="default"):
+def get_sg_config_data(shotgun_cfg_path=None, user="default"):
     """
     Creates a standard tank shotgun connection.
 
@@ -104,6 +104,8 @@ def __create_sg_connection(shotgun_cfg_path, evaluate_script_user, user="default
     If a user is not found the old style is attempted.
 
     """
+    if not shotgun_cfg_path:
+        shotgun_cfg_path = __get_sg_config()
 
     if not os.path.exists(shotgun_cfg_path):
         raise TankError("Could not find shotgun configuration file '%s'!" % shotgun_cfg_path)
@@ -125,7 +127,7 @@ def __create_sg_connection(shotgun_cfg_path, evaluate_script_user, user="default
     else:
         # old format - not grouped by user
         config_data = file_data
-        
+
     # validate the config data to ensure all fields are present
     if "host" not in config_data:
         raise TankError("Missing required field 'host' in config '%s'" % shotgun_cfg_path)
@@ -133,6 +135,12 @@ def __create_sg_connection(shotgun_cfg_path, evaluate_script_user, user="default
         raise TankError("Missing required field 'api_script' in config '%s'" % shotgun_cfg_path)
     if "api_key" not in config_data:
         raise TankError("Missing required field 'api_key' in config '%s'" % shotgun_cfg_path)
+
+    return config_data
+
+def __create_sg_connection(shotgun_cfg_path, evaluate_script_user, user="default"):
+
+    config_data = get_sg_config_data(shotgun_cfg_path, user)
 
     # create API
     sg = Shotgun(config_data["host"],
@@ -183,10 +191,10 @@ def create_sg_app_store_connection():
     as a standard sg entity dictionary.
     """
     global g_app_store_connection
-    
+
     if g_app_store_connection is None:
         g_app_store_connection = __create_sg_connection(__get_app_store_config(), evaluate_script_user=True)
-    
+
     return g_app_store_connection
 
 
