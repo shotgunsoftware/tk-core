@@ -179,97 +179,146 @@ class TankQDialog(TankDialogBase):
         
         ########################################################################################
         # set up the main UI and header
-        
         self.ui = ui_tank_dialog.Ui_TankDialog() 
         self.ui.setupUi(self)
         self.ui.label.setText(title)
         self.setWindowTitle("Shotgun: %s" % title)
         
-        self.ui.tank_logo.setToolTip("This is part of the Shotgun App %s" % self._bundle.name)
-        self.ui.label.setToolTip("This is part of the Shotgun App %s" % self._bundle.name)
+        # set the visibility of the title bar:
+        show_tk_title_bar = (not hasattr(self._widget, "hide_tk_title_bar") or not self._widget.hide_tk_title_bar)
+        self.ui.top_group.setVisible(show_tk_title_bar)
         
-        # Add our context to the header
-        # two lines - top line covers PC and Project
-        # second line covers context (entity, step etc)
-        
-        pc = self._bundle.context.tank.pipeline_configuration
-        
-        if self._bundle.context.entity is None:
-            # this is a project only context
+        if show_tk_title_bar:
             
-            # top line can contain the Pipeline Config
-            if pc.get_name() and pc.get_name() != constants.PRIMARY_PIPELINE_CONFIG_NAME:
-                # we are using a non-default pipeline config
-                first_line = "<b style='color: #9cbfff'>Config %s</b>" % pc.get_name()
+            ########################################################################################
+            # set up the title bar and configuration panel            
+            
+            self.ui.tank_logo.setToolTip("This is part of the Shotgun App %s" % self._bundle.name)
+            self.ui.label.setToolTip("This is part of the Shotgun App %s" % self._bundle.name)
+            
+            # Add our context to the header
+            # two lines - top line covers PC and Project
+            # second line covers context (entity, step etc)
+            
+            pc = self._bundle.context.tank.pipeline_configuration
+            
+            if self._bundle.context.entity is None:
+                # this is a project only context
+                
+                # top line can contain the Pipeline Config
+                if pc.get_name() and pc.get_name() != constants.PRIMARY_PIPELINE_CONFIG_NAME:
+                    # we are using a non-default pipeline config
+                    first_line = "<b style='color: #9cbfff'>Config %s</b>" % pc.get_name()
+                else:
+                    first_line = "Toolkit %s" % self._bundle.context.tank.version
+                
+                # second line contains the project
+                if self._bundle.context.project:
+                    second_line = "Project %s" % self._bundle.context.project.get("name", "Undefined")
+                else:
+                    second_line = "No Project Set"
+                
             else:
-                first_line = "Toolkit %s" % self._bundle.context.tank.version
-            
-            # second line contains the project
-            if self._bundle.context.project:
-                second_line = "Project %s" % self._bundle.context.project.get("name", "Undefined")
-            else:
-                second_line = "No Project Set"
-            
-        else:
-            # this is a standard context with an entity
-            
-            # top line will contain the project name
-            if self._bundle.context.project:
-                first_line = "Project %s" % self._bundle.context.project.get("name", "Undefined")
-            else:
-                first_line = "No Project Set" # can this happen?
-            
-            # ...unless we are running a non-Primary PC
-            pc = self._bundle.context.tank.pipeline_configuration 
-            if pc.get_name() and pc.get_name() != constants.PRIMARY_PIPELINE_CONFIG_NAME:
-                # we are using a non-default pipeline config
-                first_line = "<b style='color: #9cbfff'>Config %s</b>" % pc.get_name() 
-            
-            # second line contains the entity and task, step
-            second_line = str(self._bundle.context)
-
-        
-        self.ui.lbl_context.setText( "%s<br>%s" % (first_line, second_line))
-
-        ########################################################################################
-        # add more detailed context info for the tooltip
-
-        def _format_context_property(p, show_type=False):
-            if p is None:
-                return "Undefined"
-            elif show_type:
-                return "%s %s" % (p.get("type"), p.get("name"))
-            else:
-                return "%s" % p.get("name")
+                # this is a standard context with an entity
+                
+                # top line will contain the project name
+                if self._bundle.context.project:
+                    first_line = "Project %s" % self._bundle.context.project.get("name", "Undefined")
+                else:
+                    first_line = "No Project Set" # can this happen?
+                
+                # ...unless we are running a non-Primary PC
+                pc = self._bundle.context.tank.pipeline_configuration 
+                if pc.get_name() and pc.get_name() != constants.PRIMARY_PIPELINE_CONFIG_NAME:
+                    # we are using a non-default pipeline config
+                    first_line = "<b style='color: #9cbfff'>Config %s</b>" % pc.get_name() 
+                
+                # second line contains the entity and task, step
+                second_line = str(self._bundle.context)
     
-        tooltip = ""
-        tooltip += "<b>Your Current Context</b>"
-        tooltip += "<hr>"
-        tooltip += "<b>Project</b>: %s<br>" % _format_context_property(self._bundle.context.project)
-        tooltip += "<b>Entity</b>: %s<br>" % _format_context_property(self._bundle.context.entity, True)
-        tooltip += "<b>Pipeline Step</b>: %s<br>" % _format_context_property(self._bundle.context.step)
-        tooltip += "<b>Task</b>: %s<br>" % _format_context_property(self._bundle.context.task)
-        tooltip += "<b>User</b>: %s<br>" % _format_context_property(self._bundle.context.user)
-        for e in self._bundle.context.additional_entities:
-            tooltip += "<b>Additional Item</b>: %s<br>" % _format_context_property(e, True) 
+            
+            self.ui.lbl_context.setText( "%s<br>%s" % (first_line, second_line))
+    
+            ########################################################################################
+            # add more detailed context info for the tooltip
+    
+            def _format_context_property(p, show_type=False):
+                if p is None:
+                    return "Undefined"
+                elif show_type:
+                    return "%s %s" % (p.get("type"), p.get("name"))
+                else:
+                    return "%s" % p.get("name")
         
-        tooltip += "<br>"
-        tooltip += "<b>System Information</b>"
-        tooltip += "<hr>"
-        tooltip += "<b>Shotgun Pipeline Toolkit Version: </b>%s<br>" % self._bundle.tank.version
-        tooltip += "<b>Pipeline Config: </b>%s<br>" % pc.get_name()
-        tooltip += "<b>Config Path: </b>%s<br>" % pc.get_path()
+            tooltip = ""
+            tooltip += "<b>Your Current Context</b>"
+            tooltip += "<hr>"
+            tooltip += "<b>Project</b>: %s<br>" % _format_context_property(self._bundle.context.project)
+            tooltip += "<b>Entity</b>: %s<br>" % _format_context_property(self._bundle.context.entity, True)
+            tooltip += "<b>Pipeline Step</b>: %s<br>" % _format_context_property(self._bundle.context.step)
+            tooltip += "<b>Task</b>: %s<br>" % _format_context_property(self._bundle.context.task)
+            tooltip += "<b>User</b>: %s<br>" % _format_context_property(self._bundle.context.user)
+            for e in self._bundle.context.additional_entities:
+                tooltip += "<b>Additional Item</b>: %s<br>" % _format_context_property(e, True) 
+            
+            tooltip += "<br>"
+            tooltip += "<b>System Information</b>"
+            tooltip += "<hr>"
+            tooltip += "<b>Shotgun Pipeline Toolkit Version: </b>%s<br>" % self._bundle.tank.version
+            tooltip += "<b>Pipeline Config: </b>%s<br>" % pc.get_name()
+            tooltip += "<b>Config Path: </b>%s<br>" % pc.get_path()
+            
+            self.ui.lbl_context.setToolTip(tooltip)
         
-        self.ui.lbl_context.setToolTip(tooltip)
-        
+            ########################################################################################
+            # now setup the info page with all the details
+            
+            self.ui.details.clicked.connect( self._on_arrow )
+            self.ui.app_name.setText(self._bundle.display_name)
+            self.ui.app_description.setText(self._bundle.description)
+            # get the descriptor type (eg. git/app store/dev etc)
+            descriptor_type = self._bundle.descriptor.get_location().get("type", "Undefined")
+            self.ui.app_tech_details.setText("%s %s (Source: %s)" % (self._bundle.name, 
+                                                                     self._bundle.version,
+                                                                     descriptor_type))
+    
+            context_info = "Your current work area is %s. " % self._bundle.context
+            # try get the environment - may not work - not all bundle classes have a .engine method
+            try:
+                context_info += "You are currently running in the %s environment." % (self._bundle.engine.environment["name"])
+            except:
+                pass
+            
+            self.ui.app_work_area_info.setText(context_info)
+    
+            # see if there is an app icon, in that case display it
+            self.ui.app_icon.setPixmap(QtGui.QPixmap(self._bundle.icon_256))        
+    
+            self.ui.btn_documentation.clicked.connect( self._on_doc )
+            self.ui.btn_support.clicked.connect( self._on_support )
+            self.ui.btn_file_system.clicked.connect( self._on_filesystem )
+            self.ui.btn_shotgun.clicked.connect( self._on_shotgun )
+            self.ui.btn_reload.clicked.connect( self._on_reload )
+            self.ui.btn_edit_config.clicked.connect( self._on_edit_config )
+            self.ui.btn_add_parameter.clicked.connect( self._on_add_param )
+            
+            self.ui.btn_edit_config.setVisible(False)
+            self.ui.btn_add_parameter.setVisible(False)
+            
+            for setting, params in self._bundle.descriptor.get_configuration_schema().items():        
+                value = self._bundle.settings.get(setting)
+                self._add_settings_item(setting, params, value)
+
         ########################################################################################
         # parent the widget we are hosting into the dialog area
-        
         self._widget.setParent(self.ui.page_1)
         self.ui.target.insertWidget(0, self._widget)
         
         # adjust size of the outer window to match the hosted widget size
-        self.resize(self._widget.width(), self._widget.height() + TANK_TOOLBAR_HEIGHT)
+        dlg_height = self._widget.height()
+        if show_tk_title_bar:
+            dlg_height += TANK_TOOLBAR_HEIGHT
+        self.resize(self._widget.width(), dlg_height)
         
         ########################################################################################
         # keep track of widget so that when
@@ -292,46 +341,7 @@ class TankQDialog(TankDialogBase):
             # If widget also has a __del__ method then this will stop it 
             # being gc'd at all... ever..!
             self._orig_widget_closeEvent = self._widget.closeEvent
-            self._widget.closeEvent = self._widget_closeEvent
-        
-        ########################################################################################
-        # now setup the info page with all the details
-        
-        self.ui.details.clicked.connect( self._on_arrow )
-        self.ui.app_name.setText(self._bundle.display_name)
-        self.ui.app_description.setText(self._bundle.description)
-        # get the descriptor type (eg. git/app store/dev etc)
-        descriptor_type = self._bundle.descriptor.get_location().get("type", "Undefined")
-        self.ui.app_tech_details.setText("%s %s (Source: %s)" % (self._bundle.name, 
-                                                                 self._bundle.version,
-                                                                 descriptor_type))
-
-        context_info = "Your current work area is %s. " % self._bundle.context
-        # try get the environment - may not work - not all bundle classes have a .engine method
-        try:
-            context_info += "You are currently running in the %s environment." % (self._bundle.engine.environment["name"])
-        except:
-            pass
-        
-        self.ui.app_work_area_info.setText(context_info)
-
-        # see if there is an app icon, in that case display it
-        self.ui.app_icon.setPixmap(QtGui.QPixmap(self._bundle.icon_256))        
-
-        self.ui.btn_documentation.clicked.connect( self._on_doc )
-        self.ui.btn_support.clicked.connect( self._on_support )
-        self.ui.btn_file_system.clicked.connect( self._on_filesystem )
-        self.ui.btn_shotgun.clicked.connect( self._on_shotgun )
-        self.ui.btn_reload.clicked.connect( self._on_reload )
-        self.ui.btn_edit_config.clicked.connect( self._on_edit_config )
-        self.ui.btn_add_parameter.clicked.connect( self._on_add_param )
-        
-        self.ui.btn_edit_config.setVisible(False)
-        self.ui.btn_add_parameter.setVisible(False)
-        
-        for setting, params in self._bundle.descriptor.get_configuration_schema().items():        
-            value = self._bundle.settings.get(setting)
-            self._add_settings_item(setting, params, value)
+            self._widget.closeEvent = self._widget_closeEvent 
 
     def event(self, event):
         """
