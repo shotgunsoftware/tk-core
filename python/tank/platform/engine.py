@@ -105,6 +105,10 @@ class Engine(TankBundle):
         qt.QtGui = base_def.get("qt_gui")
         qt.TankDialogBase = base_def.get("dialog_base")
         
+        # create invoker to allow execution of functions on the
+        # main thread:
+        self._invoker = self.__create_main_thread_invoker()
+        
         # now load all apps and their settings
         self.__load_apps()
         
@@ -114,11 +118,7 @@ class Engine(TankBundle):
         # emit an engine started event
         tk.execute_hook(constants.TANK_ENGINE_INIT_HOOK_NAME, engine=self)
         
-        
         self.log_debug("Init complete: %s" % self)
-        
-        
-        
         
     def __repr__(self):
         return "<Sgtk Engine 0x%08x: %s, env: %s>" % (id(self),  
@@ -316,6 +316,25 @@ class Engine(TankBundle):
             
         self.__commands[name] = { "callback": callback, "properties": properties }
         
+    def execute_in_main_thread(self, func, *args, **kwargs):
+        """
+        Execute the specified function in the main thread when called from a non-main
+        thread.  This will block the calling thread until the function returns.
+        
+        :param func: function to call
+        :param args: arguments to pass to the function
+        :param kwargs: named arguments to pass to the function
+        
+        :returns: the result of the function call
+        """
+        from .qt import QtGui, QtCore
+        if (QtGui.QApplication.instance() 
+            and QtCore.QThread.currentThread() != QtGui.QApplication.instance().thread()):
+            # invoke the function on the thread that the QtGui.QApplication was created on.
+            return self._invoker.invoke(func, *args, **kwargs)
+        else:
+            # we're already on the main thread so lets just call our function:
+            return func(*args, **kwargs)                
                 
     ##########################################################################################
     # logging interfaces
@@ -652,7 +671,38 @@ class Engine(TankBundle):
         css_data = f.read()
         f.close()
         return css_data
+
+    def __create_main_thread_invoker(self):
+        """
+        Create the object used to invoke function calls on the main thread when
+        called from a different thread.
         
+        :returns:  Invoker instance
+        """
+        from .qt import QtGui, QtCore
+        class Invoker(QtCore.QObject):
+            def __init__(self):
+                QtCore.QObject.__init__(self)
+                self._res = None
+                
+            def invoke(self, fn, *args, **kwargs):
+                self._fn = lambda: fn(*args, **kwargs) 
+                self._res = None
+                
+                QtCore.QMetaObject.invokeMethod(self, "_do_invoke", QtCore.Qt.BlockingQueuedConnection)
+                
+                return self._res
+        
+            @qt.QtCore.Slot()
+            def _do_invoke(self):
+                """
+                Execute function and return result
+                """
+                print "Running invoke!"
+                self._res = self._fn()
+                print "RES = %s" % self._res
+
+        return Invoker()
             
     ##########################################################################################
     # private         
