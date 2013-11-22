@@ -590,6 +590,15 @@ class TankQDialog(TankDialogBase):
         Reloads the engine and apps
         """
         try:
+            # first, reload the template defs
+            self._bundle.tank.reload_templates()
+        except TankError, e:
+            self._bundle.log_error(e)
+
+        try:
+            
+
+            # now restart the engine            
             current_context = self._bundle.context            
             current_engine_name = self._bundle.engine.name
             if engine.current_engine(): 
