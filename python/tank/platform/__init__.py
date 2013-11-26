@@ -17,6 +17,8 @@ from .application import Application
 from .engine import Engine
 from .framework import Framework
 
+from ..errors import TankError
+
 ################################################################################################
 # internal methods
 
@@ -74,6 +76,45 @@ def _get_current_bundle():
 
 ################################################################################################
 # Public API methods
+
+def restart():
+    """
+    Running restart will shut down any currently running engine, then refresh the templates
+    definitions and finally start up the engine again. 
+    
+    The template configuration, environment configuration and the actual app and engine code
+    will be reloaded.
+    
+    Any open windows will remain open and will use the old code base and settings. In order to
+    access any changes that have happened as part of a reload, you need to launch new app
+    windows and these will use the fresh code and configs.
+    """
+
+    engine = current_engine()
+    
+    if engine is None:
+        raise TankError("No engine is currently running! Run start_engine instead.")
+
+    try:
+        # first, reload the template defs
+        engine.tank.reload_templates()
+        engine.log_debug("Template definitions were reloaded.")
+    except TankError, e:
+        engine.log_error(e)
+
+    try:
+        # now restart the engine            
+        current_context = engine.context            
+        current_engine_name = engine.name
+        engine.destroy()
+        start_engine(current_engine_name, current_context.tank, current_context)
+    except TankError, e:
+        engine.log_error("Could not restart the engine: %s" % e)
+    except Exception:
+        engine.log_exception("Could not restart the engine!")
+    
+    engine.log_info("Toolkit platform was restarted.")
+
 
 
 def current_bundle():
