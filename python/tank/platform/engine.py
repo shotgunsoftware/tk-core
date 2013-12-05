@@ -687,32 +687,32 @@ class Engine(TankBundle):
         :returns:  Invoker instance
         """
         if self.has_ui:
-            
             from .qt import QtGui, QtCore
-            class Invoker(QtCore.QObject):
-                def __init__(self):
-                    QtCore.QObject.__init__(self)
-                    self._res = None
-                    
-                def invoke(self, fn, *args, **kwargs):
-                    self._fn = lambda: fn(*args, **kwargs) 
-                    self._res = None
-                    
-                    QtCore.QMetaObject.invokeMethod(self, "_do_invoke", QtCore.Qt.BlockingQueuedConnection)
-                    
-                    return self._res
-            
-                @qt.QtCore.Slot()
-                def _do_invoke(self):
-                    """
-                    Execute function and return result
-                    """
-                    self._res = self._fn()
-                    
-            return Invoker()
-        else:
-            # don't have ui so can't create an invoker!
-            return None
+            if QtGui and QtCore:
+                class Invoker(QtCore.QObject):
+                    def __init__(self):
+                        QtCore.QObject.__init__(self)
+                        self._res = None
+                        
+                    def invoke(self, fn, *args, **kwargs):
+                        self._fn = lambda: fn(*args, **kwargs) 
+                        self._res = None
+                        
+                        QtCore.QMetaObject.invokeMethod(self, "_do_invoke", QtCore.Qt.BlockingQueuedConnection)
+                        
+                        return self._res
+                
+                    @qt.QtCore.Slot()
+                    def _do_invoke(self):
+                        """
+                        Execute function and return result
+                        """
+                        self._res = self._fn()
+                        
+                return Invoker()
+
+        # don't have ui so can't create an invoker!
+        return None
 
             
     ##########################################################################################
