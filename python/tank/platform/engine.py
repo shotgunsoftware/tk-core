@@ -686,8 +686,9 @@ class Engine(TankBundle):
         
         :returns:  Invoker instance
         """
-        from .qt import QtGui, QtCore
-        if QtCore and QtGui:
+        if self.has_ui:
+            
+            from .qt import QtGui, QtCore
             class Invoker(QtCore.QObject):
                 def __init__(self):
                     QtCore.QObject.__init__(self)
@@ -710,7 +711,7 @@ class Engine(TankBundle):
                     
             return Invoker()
         else:
-            # don't have qt so can't create an invoker!
+            # don't have ui so can't create an invoker!
             return None
 
             
