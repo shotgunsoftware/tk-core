@@ -935,7 +935,6 @@ def _task_from_sg(tk, task_id):
     additional_fields = tk.execute_hook("context_additional_entities").get("entity_fields_on_task", [])
 
     task = tk.shotgun.find_one("Task", [["id","is",task_id]], standard_fields + additional_fields)
-
     if not task:
         raise TankError("Unable to locate Task with id %s in Shotgun" % task_id)
 
@@ -1044,6 +1043,9 @@ def _context_data_from_cache(tk, entity_type, entity_id):
             # this is some sort of anomaly! the path returned by get_paths
             # does not resolve in get_entity. This can happen if the storage
             # mappings are not consistent or if there is not a 1 to 1 relationship
+            #
+            # This can also happen if there are extra slashes at the end of the path
+            # in the local storage defs and in the pipeline_configuration.yml file.
             raise TankError("The path '%s' associated with %s id %s does not " 
                             "resolve correctly. This may be an indication of an issue "
                             "with the local storage setup. Please contact " 
