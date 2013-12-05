@@ -1,11 +1,11 @@
 # Copyright (c) 2013 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
@@ -17,7 +17,7 @@ import os
 import sys
 import traceback
 import weakref
-        
+
 from .. import loader
 from .. import hook
 from ..errors import TankError, TankEngineInitError
@@ -39,47 +39,47 @@ class Engine(TankBundle):
     def __init__(self, tk, context, engine_instance_name, env):
         """
         Constructor. Takes the following parameters:
-        
+
         :param tk: Sgtk API handle
         :param context: A context object to define the context on disk where the engine is operating
         :param engine_instance_name: The name of the engine as it has been defined in the environment.
         :param env: An Environment object to associate with this engine
         """
-        
+
         self.__env = env
         self.__engine_instance_name = engine_instance_name
         self.__applications = {}
         self.__commands = {}
         self.__currently_initializing_app = None
-        
+
         self.__qt_widget_trash = []
         self.__created_qt_dialogs = []
         self.__qt_debug_info = {}
-        
+
         self.__commands_that_need_prefixing = []
-        
+
         # get the engine settings
         settings = self.__env.get_engine_settings(self.__engine_instance_name)
-        
-        # get the descriptor representing the engine        
-        descriptor = self.__env.get_engine_descriptor(self.__engine_instance_name)        
-        
+
+        # get the descriptor representing the engine
+        descriptor = self.__env.get_engine_descriptor(self.__engine_instance_name)
+
         # init base class
         TankBundle.__init__(self, tk, context, settings, descriptor)
 
         # check that the context contains all the info that the app needs
         validation.validate_context(descriptor, context)
-        
+
         # make sure the current operating system platform is supported
         validation.validate_platform(descriptor)
 
         # Get the settings for the engine and then validate them
         engine_schema = descriptor.get_configuration_schema()
         validation.validate_settings(self.__engine_instance_name, tk, context, engine_schema, settings)
-        
+
         # set up any frameworks defined
         setup_frameworks(self, self, self.__env, descriptor)
-        
+
         # run the engine init
         self.log_debug("Engine init: Instantiating %s" % self)
         self.log_debug("Engine init: Current Context: %s" % context)
@@ -87,7 +87,7 @@ class Engine(TankBundle):
         # now if a folder named python is defined in the engine, add it to the pythonpath
         my_path = os.path.dirname(sys.modules[self.__module__].__file__)
         python_path = os.path.join(my_path, constants.BUNDLE_PYTHON_FOLDER)
-        if os.path.exists(python_path):            
+        if os.path.exists(python_path):
             # only append to python path if __init__.py does not exist
             # if __init__ exists, we should use the special tank import instead
             init_path = os.path.join(python_path, "__init__.py")
@@ -104,25 +104,27 @@ class Engine(TankBundle):
         qt.QtCore = base_def.get("qt_core")
         qt.QtGui = base_def.get("qt_gui")
         qt.TankDialogBase = base_def.get("dialog_base")
-        
+
         # create invoker to allow execution of functions on the
         # main thread:
         self._invoker = self.__create_main_thread_invoker()
-        
+
         # now load all apps and their settings
         self.__load_apps()
-        
+
         # now run the post app init
         self.post_app_init()
-        
+
         # emit an engine started event
         tk.execute_hook(constants.TANK_ENGINE_INIT_HOOK_NAME, engine=self)
-        
+
         self.log_debug("Init complete: %s" % self)
-        
+
+        self.init_finish()
+
     def __repr__(self):
-        return "<Sgtk Engine 0x%08x: %s, env: %s>" % (id(self),  
-                                                      self.name, 
+        return "<Sgtk Engine 0x%08x: %s, env: %s>" % (id(self),
+                                                      self.name,
                                                       self.__env.name)
 
     def get_env(self):
@@ -133,7 +135,7 @@ class Engine(TankBundle):
         and the object returned may also change. Do not use outside of the core api.
         """
         return self.__env
-    
+
     ##########################################################################################
     # properties
 
@@ -142,7 +144,7 @@ class Engine(TankBundle):
         """
         Delegates to the Sgtk API instance's shotgun connection, which is lazily
         created the first time it is requested.
-        
+
         :returns: Shotgun API handle
         """
         # pass on information to the user agent manager which bundle is returning
@@ -155,22 +157,22 @@ class Engine(TankBundle):
             # looks like this sg instance for some reason does not have a
             # tk user agent handler associated.
             pass
-        
-        return self.tank.shotgun        
+
+        return self.tank.shotgun
 
     @property
     def environment(self):
         """
         A dictionary with information about the environment.
         Returns keys name, description and disk_location.
-         
+
         :returns: dictionary
         """
         data = {}
         data["name"] = self.__env.name
         data["description"] = self.__env.description
         data["disk_location"] = self.__env.disk_location
-        
+
         return data
 
     @property
@@ -178,7 +180,7 @@ class Engine(TankBundle):
         """
         The instance name for this engine. The instance name
         is the entry that is defined in the environment file.
-        
+
         :returns: instance name as string
         """
         return self.__engine_instance_name
@@ -187,86 +189,98 @@ class Engine(TankBundle):
     def apps(self):
         """
         Dictionary of apps associated with this engine
-        
+
         :returns: dictionary with keys being app name and values being app objects
         """
         return self.__applications
-    
+
     @property
     def commands(self):
         """
         Returns a dictionary representing all the commands that have been registered
         by apps in this engine. Each dictionary item contains the following keys:
-        
+
         * callback - function pointer to function to execute for this command
         * properties - dictionary with free form options - these are typically
           engine specific and driven by convention.
-        
+
         :returns: commands dictionary, keyed by command name
         """
         return self.__commands
-    
+
     @property
     def has_ui(self):
         """
         Indicates that the host application that the engine is connected to has a UI enabled.
-        This always returns False for some engines (such as the shell engine) and may vary 
+        This always returns False for some engines (such as the shell engine) and may vary
         for some engines, depending if the host application for example is in batch mode or
         UI mode.
-        
+
         :returns: boolean value indicating if a UI currently exists
         """
         # default implementation is to assume a UI exists
         # this is since most engines are supporting a graphical application
         return True
-    
+
     ##########################################################################################
     # init and destroy
-    
+
     def init_engine(self):
         """
         Sets up the engine into an operational state.
-        
+
         Implemented by deriving classes.
         """
         pass
-    
+
+    def init_finish(self):
+        """
+        Runs after the engine is finished initializing.
+        Runs every loaded app's post_engine_init method allowing
+        apps to access sibling apps.
+        """
+        for app in self.__applications:
+            try:
+                self.__applications.get(app).post_engine_init()
+            except Exception, e:
+                self.log_warning("Failed to run the post_engine_init for %s: %s" % (app, e))
+
     def post_app_init(self):
         """
         Runs after all apps have been initialized.
-        
+
         Implemented by deriving classes.
         """
         pass
-    
+
     def destroy(self):
         """
         Destroy all apps, then call destroy_engine so subclasses can add their own tear down code.
-        
+
         This method should not be subclassed.
         """
         for fw in self.frameworks.values():
             fw._destroy_framework()
 
         self.__destroy_apps()
-        
+
         self.log_debug("Destroying %s" % self)
         self.destroy_engine()
-        
+
         # finally remove the current engine reference
         set_current_engine(None)
-        
-        # now clear the hooks cache to make sure fresh hooks are loaded the 
+
+        # now clear the hooks cache to make sure fresh hooks are loaded the
         # next time an engine is initialized
         hook.clear_hooks_cache()
-    
+
     def destroy_engine(self):
         """
         Called when the engine should tear down itself and all its apps.
         Implemented by deriving classes.
         """
         pass
-    
+
     ##########################################################################################
     # public methods
 
@@ -278,19 +292,19 @@ class Engine(TankBundle):
         """
         if properties is None:
             properties = {}
-        
+
         # uniqueness prefix, populated when there are several instances of the same app
         properties["prefix"] = None
-        
+
         # try to add an app key to the dict with the app requesting the command
         if self.__currently_initializing_app is not None:
             # track which apps this request came from
             properties["app"] = self.__currently_initializing_app
-        
+
         # add some defaults. If there isn't a description key, add it from the app's manifest
         if "description" not in properties and self.__currently_initializing_app:
             properties["description"] = self.__currently_initializing_app.description
-        
+
         # check for duplicates!
         if name in self.__commands:
             # already something in the dict with this name
@@ -301,11 +315,11 @@ class Engine(TankBundle):
                 prefix = existing_item["properties"].get("app").instance_name
                 new_name_for_existing = "%s:%s" % (prefix, name)
                 self.__commands[new_name_for_existing] = existing_item
-                self.__commands[new_name_for_existing]["properties"]["prefix"] = prefix 
+                self.__commands[new_name_for_existing]["properties"]["prefix"] = prefix
                 del(self.__commands[name])
                 # add it to our list
                 self.__commands_that_need_prefixing.append(name)
-                      
+
         if name in self.__commands_that_need_prefixing:
             # try to append a prefix if possible
             if properties.get("app"):
@@ -313,26 +327,26 @@ class Engine(TankBundle):
                 name = "%s:%s" % (prefix, name)
                 # also add a prefix key in the properties dict
                 properties["prefix"] = prefix
-            
+
         self.__commands[name] = { "callback": callback, "properties": properties }
-        
+
     def execute_in_main_thread(self, func, *args, **kwargs):
         """
         Execute the specified function in the main thread when called from a non-main
         thread.  This will block the calling thread until the function returns.
-        
+
         Note, this currently only works if Qt is available, otherwise it just
         executes on the current thread.
-        
+
         :param func: function to call
         :param args: arguments to pass to the function
         :param kwargs: named arguments to pass to the function
-        
+
         :returns: the result of the function call
         """
         if self._invoker:
             from .qt import QtGui, QtCore
-            if (QtGui.QApplication.instance() 
+            if (QtGui.QApplication.instance()
                 and QtCore.QThread.currentThread() != QtGui.QApplication.instance().thread()):
                 # invoke the function on the thread that the QtGui.QApplication was created on.
                 return self._invoker.invoke(func, *args, **kwargs)
@@ -342,7 +356,7 @@ class Engine(TankBundle):
         else:
             # we don't have an invoker so just call the function:
             return func(*args, **kwargs)
-                
+
     ##########################################################################################
     # logging interfaces
 
@@ -352,29 +366,29 @@ class Engine(TankBundle):
         Implemented in deriving class.
         """
         pass
-    
+
     def log_info(self, msg):
         """
         Info logging.
         Implemented in deriving class.
         """
         pass
-        
+
     def log_warning(self, msg):
         """
         Warning logging.
         Implemented in deriving class.
         """
         pass
-    
+
     def log_error(self, msg):
         """
         Debug logging.
         Implemented in deriving class - however we provide a basic implementation here.
-        """        
+        """
         # fall back to std out error reporting if deriving class does not implement this.
         sys.stderr.write("Shotgun Error: %s\n" % msg)
-    
+
     def log_exception(self, msg):
         """
         Helper method. Typically not overridden by deriving classes.
@@ -382,7 +396,7 @@ class Engine(TankBundle):
         which is logged as an error.
         """
         (exc_type, exc_value, exc_traceback) = sys.exc_info()
-        
+
         if exc_traceback is None:
             # we are not inside an exception handler right now.
             # someone is calling log_exception from the running code.
@@ -391,11 +405,11 @@ class Engine(TankBundle):
             stack_frame = traceback.extract_stack()
             traceback_str = "".join(traceback.format_list(stack_frame))
             exc_value = "No error details available."
-        
-        else:    
+
+        else:
             traceback_str = "".join( traceback.format_tb(exc_traceback))
-        
-        
+
+
         message = []
         message.append(msg)
         message.append("")
@@ -404,113 +418,113 @@ class Engine(TankBundle):
         message.append("")
         message.append("Code Traceback:")
         message.extend(traceback_str.split("\n"))
-        
+
         self.log_error("\n".join(message))
-        
+
     ##########################################################################################
-    # debug for tracking Qt Widgets & Dialogs created by the provided methods      
+    # debug for tracking Qt Widgets & Dialogs created by the provided methods
 
     def get_debug_tracked_qt_widgets(self):
         """
         Print debug info about created Qt dialogs and widgets
         """
-        return self.__qt_debug_info                
+        return self.__qt_debug_info
 
     def __debug_track_qt_widget(self, widget):
         """
-        Add the qt widget to a list of objects to be tracked. 
+        Add the qt widget to a list of objects to be tracked.
         """
         if widget:
             self.__qt_debug_info[widget.__repr__()] = weakref.ref(widget)
-        
+
     ##########################################################################################
     # private and protected methods
 
     def _get_dialog_parent(self):
         """
         Get the QWidget parent for all dialogs created through show_dialog & show_modal.
-        
-        Can be overriden in derived classes to return the QWidget to be used as the parent 
-        for all TankQDialog's 
+
+        Can be overriden in derived classes to return the QWidget to be used as the parent
+        for all TankQDialog's
         """
         # By default, this will return the QApplication's active window:
         from .qt import QtGui
         return QtGui.QApplication.activeWindow()
-                
+
     def _create_dialog(self, title, bundle, widget, parent):
         """
-        Create a TankQDialog with the specified widget embedded. This also connects to the 
+        Create a TankQDialog with the specified widget embedded. This also connects to the
         dialogs dialog_closed event so that it can clean up when the dialog is closed.
-        
+
         :param title: The title of the window
         :param bundle: The app, engine or framework object that is associated with this window
         :param widget: A QWidget instance to be embedded in the newly created dialog.
-        
+
         """
         from .qt import tankqdialog
-        
+
         # create a dialog to put it inside
         dialog = tankqdialog.TankQDialog(title, bundle, widget, parent)
 
         # keep a reference to all created dialogs to make GC happy
         self.__created_qt_dialogs.append(dialog)
-        
+
         # watch for the dialog closing so that we can clean up
         dialog.dialog_closed.connect(self._on_dialog_closed)
-        
+
         # keep track of some info for debugging object lifetime
         self.__debug_track_qt_widget(dialog)
-        
+
         return dialog
 
     def _create_widget(self, widget_class, *args, **kwargs):
         """
-        Create an instance of the specified widget_class.  This wraps the widget_class so that 
-        the TankQDialog it is embedded in can connect to it more easily in order to handle the 
+        Create an instance of the specified widget_class.  This wraps the widget_class so that
+        the TankQDialog it is embedded in can connect to it more easily in order to handle the
         close event
-        
-        :param widget_class: The class of the UI to be constructed. This must derive from QWidget.    
-            
+
+        :param widget_class: The class of the UI to be constructed. This must derive from QWidget.
+
         Additional parameters specified will be passed through to the widget_class constructor.
         """
         from .qt import tankqdialog
-                
+
         # construct the widget object
         derived_widget_class = tankqdialog.TankQDialog.wrap_widget_class(widget_class)
         widget = derived_widget_class(*args, **kwargs)
-        
+
         # keep track of some info for debugging object lifetime
         self.__debug_track_qt_widget(widget)
-        
+
         return widget
-    
+
     def _create_dialog_with_widget(self, title, bundle, widget_class, *args, **kwargs):
         """
-        Convenience method to create an sgtk TankQDialog with a widget instantiated from 
+        Convenience method to create an sgtk TankQDialog with a widget instantiated from
         widget_class embedded in the main section.
-        
+
         :param title: The title of the window
         :param bundle: The app, engine or framework object that is associated with this window
-        :param widget_class: The class of the UI to be constructed. This must derive from QWidget.    
-            
+        :param widget_class: The class of the UI to be constructed. This must derive from QWidget.
+
         Additional parameters specified will be passed through to the widget_class constructor.
         """
         # get the parent for the dialog:
         parent = self._get_dialog_parent()
-        
+
         # create the widget:
         widget = self._create_widget(widget_class, *args, **kwargs)
-        
+
         # create the dialog:
         dialog = self._create_dialog(title, bundle, widget, parent)
         return (dialog, widget)
-    
+
     def _on_dialog_closed(self, dlg):
         """
         Called when a dialog created by this engine is closed.
-        
+
         :param dlg: The dialog being closed
-        
+
         Derived implementations of this method should be sure to call
         the base implementation
         """
@@ -518,36 +532,36 @@ class Engine(TankBundle):
         # the two objects to be cleaned up seperately menaing the
         # lifetime of the widget can be better managed
         widget = dlg.detach_widget()
-        
+
         # add the dlg and it's contained widget to the list
         # of widgets to delete at some point!
         self.__qt_widget_trash.append(dlg)
         self.__qt_widget_trash.append(widget)
-        
+
         if dlg in self.__created_qt_dialogs:
             # don't need to track this dialog any longer
             self.__created_qt_dialogs.remove(dlg)
-            
+
         # disconnect from the dialog:
         dlg.dialog_closed.disconnect(self._on_dialog_closed)
-        
+
         # clear temps
         dlg = None
         widget = None
-        
+
         # finally, clean up the widget trash:
         self.__cleanup_widget_trash()
-        
+
 
     def __cleanup_widget_trash(self):
         """
         Run through the widget trash and clean up any widgets
         that are no longer referenced by anything else.
-        
+
         Notes:  This is pretty dumb and only looks at reference
         counts.  This means that if a widget has cyclic references
         then it will never get released.
-        
+
         Better to be safe though as deleting/releasing a widget that
         still has events in the event queue will cause a hard crash!
         """
@@ -563,56 +577,56 @@ class Engine(TankBundle):
                 try:
                     widget.deleteLater()
                 except RuntimeError:
-                    # this is most likely because the Qt C++ widget has 
-                    # already been deleted elsewhere so we can safely 
+                    # this is most likely because the Qt C++ widget has
+                    # already been deleted elsewhere so we can safely
                     # ignore it!
                     pass
             else:
-                # there are still other references to this widget 
+                # there are still other references to this widget
                 # out there so we should still keep track of it
                 still_trash.append(widget)
-    
+
         # update widget trash
         self.__qt_widget_trash = still_trash
         self.log_debug("Widget trash contains %d widgets" % (len(self.__qt_widget_trash)))
 
     def show_dialog(self, title, bundle, widget_class, *args, **kwargs):
         """
-        Shows a non-modal dialog window in a way suitable for this engine. 
+        Shows a non-modal dialog window in a way suitable for this engine.
         The engine will attempt to parent the dialog nicely to the host application.
-        
+
         :param title: The title of the window
         :param bundle: The app, engine or framework object that is associated with this window
         :param widget_class: The class of the UI to be constructed. This must derive from QWidget.
-        
+
         Additional parameters specified will be passed through to the widget_class constructor.
-        
+
         :returns: the created widget_class instance
         """
         if not self.has_ui:
             self.log_error("Sorry, this environment does not support UI display! Cannot show "
                            "the requested window '%s'." % title)
             return None
-        
+
         # create the dialog:
         dialog, widget = self._create_dialog_with_widget(title, bundle, widget_class, *args, **kwargs)
-        
-        # show the dialog        
+
+        # show the dialog
         dialog.show()
-        
+
         # lastly, return the instantiated widget
         return widget
-    
+
     def show_modal(self, title, bundle, widget_class, *args, **kwargs):
         """
         Shows a modal dialog window in a way suitable for this engine. The engine will attempt to
-        integrate it as seamlessly as possible into the host application. This call is blocking 
+        integrate it as seamlessly as possible into the host application. This call is blocking
         until the user closes the dialog.
-        
+
         :param title: The title of the window
         :param bundle: The app, engine or framework object that is associated with this window
         :param widget_class: The class of the UI to be constructed. This must derive from QWidget.
-        
+
         Additional parameters specified will be passed through to the widget_class constructor.
 
         :returns: (a standard QT dialog status return code, the created widget_class instance)
@@ -621,27 +635,27 @@ class Engine(TankBundle):
             self.log_error("Sorry, this environment does not support UI display! Cannot show "
                            "the requested window '%s'." % title)
             return None
-        
+
         # create the dialog:
         dialog, widget = self._create_dialog_with_widget(title, bundle, widget_class, *args, **kwargs)
-        
+
         # finally launch it, modal state
         status = dialog.exec_()
-        
+
         # lastly, return the instantiated widget
         return (status, widget)
-    
+
     def _define_qt_base(self):
         """
-        This will be called at initialisation time and will allow 
+        This will be called at initialisation time and will allow
         a user to control various aspects of how QT is being used
         by Tank. The method should return a dictionary with a number
-        of specific keys, outlined below. 
-        
+        of specific keys, outlined below.
+
         * qt_core - the QtCore module to use
         * qt_gui - the QtGui module to use
         * dialog_base - base class for to use for Tank's dialog factory
-        
+
         :returns: dict
         """
         # default to None
@@ -654,22 +668,22 @@ class Engine(TankBundle):
         except:
             self.log_debug("Default engine QT definition failed to find QT. "
                            "This may need to be subclassed.")
-        
+
         return base
-        
+
     def _get_standard_qt_stylesheet(self):
         """
         For environments which do not have a well defined QT style sheet,
         Toolkit maintains a "standard style" which is similar to the look and
-        feel that Maya and Nuke has. 
-        
+        feel that Maya and Nuke has.
+
         This is intended to be used in conjunction with QTs cleanlooks mode.
         The init code inside an engine would typically look something like this:
-        
+
             QtGui.QApplication.setStyle("cleanlooks")
             qt_application = QtGui.QApplication([])
-            qt_application.setStyleSheet( self._get_standard_qt_stylesheet() )         
-        
+            qt_application.setStyleSheet( self._get_standard_qt_stylesheet() )
+
         :returns: The style sheet data, as a string.
         """
         this_folder = os.path.abspath(os.path.dirname(__file__))
@@ -683,7 +697,7 @@ class Engine(TankBundle):
         """
         Create the object used to invoke function calls on the main thread when
         called from a different thread.
-        
+
         :returns:  Invoker instance
         """
         if self.has_ui:
@@ -693,43 +707,43 @@ class Engine(TankBundle):
                     def __init__(self):
                         QtCore.QObject.__init__(self)
                         self._res = None
-                        
+
                     def invoke(self, fn, *args, **kwargs):
-                        self._fn = lambda: fn(*args, **kwargs) 
+                        self._fn = lambda: fn(*args, **kwargs)
                         self._res = None
-                        
+
                         QtCore.QMetaObject.invokeMethod(self, "_do_invoke", QtCore.Qt.BlockingQueuedConnection)
-                        
+
                         return self._res
-                
+
                     @qt.QtCore.Slot()
                     def _do_invoke(self):
                         """
                         Execute function and return result
                         """
                         self._res = self._fn()
-                        
+
                 return Invoker()
 
         # don't have ui so can't create an invoker!
         return None
 
-            
+
     ##########################################################################################
-    # private         
-        
+    # private
+
     def __load_apps(self):
         """
         Populate the __applications dictionary, skip over apps that fail to initialize.
         """
         for app_instance_name in self.__env.get_apps(self.__engine_instance_name):
-            
+
             # get a handle to the app bundle
             descriptor = self.__env.get_app_descriptor(self.__engine_instance_name, app_instance_name)
             if not descriptor.exists_local():
                 self.log_error("Cannot start app! %s does not exist on disk." % descriptor)
                 continue
-            
+
             # Load settings for app - skip over the ones that don't validate
             try:
                 # get the app settings data and validate it.
@@ -737,40 +751,40 @@ class Engine(TankBundle):
                 app_settings = self.__env.get_app_settings(self.__engine_instance_name, app_instance_name)
 
                 # check that the context contains all the info that the app needs
-                if self.__engine_instance_name != constants.SHOTGUN_ENGINE_NAME: 
-                    # special case! The shotgun engine is special and does not have a 
+                if self.__engine_instance_name != constants.SHOTGUN_ENGINE_NAME:
+                    # special case! The shotgun engine is special and does not have a
                     # context until you actually run a command, so disable the valiation
                     validation.validate_context(descriptor, self.context)
-                
+
                 # make sure the current operating system platform is supported
                 validation.validate_platform(descriptor)
-                                
+
                 # for multi engine apps, make sure our engine is supported
                 supported_engines = descriptor.get_supported_engines()
                 if supported_engines and self.name not in supported_engines:
                     raise TankError("The app could not be loaded since it only supports "
                                     "the following engines: %s. Your current engine has been "
                                     "identified as '%s'" % (supported_engines, self.name))
-                
-                # now validate the configuration                
+
+                # now validate the configuration
                 validation.validate_settings(app_instance_name, self.tank, self.context, app_schema, app_settings)
-                
-                    
+
+
             except TankError, e:
                 # validation error - probably some issue with the settings!
                 # report this as an error message.
                 self.log_error("App configuration Error for %s. It will not be loaded: %s" % (app_instance_name, e))
                 continue
-            
+
             except Exception:
-                # code execution error in the validation. Report this as an error 
+                # code execution error in the validation. Report this as an error
                 # with the engire call stack!
-                self.log_exception("A general exception was caught while trying to " 
+                self.log_exception("A general exception was caught while trying to "
                                    "validate the configuration for app %s. "
                                    "The app will not be loaded." % app_instance_name)
                 continue
-            
-                                    
+
+
             # load the app
             try:
                 # now get the app location and resolve it into a version object
@@ -778,27 +792,27 @@ class Engine(TankBundle):
 
                 # create the object, run the constructor
                 app = application.get_application(self, app_dir, descriptor, app_settings, app_instance_name)
-                
+
                 # load any frameworks required
                 setup_frameworks(self, app, self.__env, descriptor)
-                
+
                 # track the init of the app
                 self.__currently_initializing_app = app
                 try:
                     app.init_app()
                 finally:
                     self.__currently_initializing_app = None
-            
+
             except TankError, e:
                 self.log_error("App %s failed to initialize. It will not be loaded: %s" % (app_dir, e))
-                
+
             except Exception:
                 self.log_exception("App %s failed to initialize. It will not be loaded." % app_dir)
             else:
-                # note! Apps are keyed by their instance name, meaning that we 
+                # note! Apps are keyed by their instance name, meaning that we
                 # could theoretically have multiple instances of the same app.
                 self.__applications[app_instance_name] = app
-                
+
             # lastly check if there are any compatibility warnings
             messages = black_list.compare_against_black_list(descriptor)
             if len(messages) > 0:
@@ -806,14 +820,13 @@ class Engine(TankBundle):
                 for msg in messages:
                     self.log_warning("")
                     self.log_warning(msg)
-                
-            
+
 
     def __destroy_apps(self):
         """
         Call the destroy_app method on all loaded apps
         """
-        
+
         for app in self.__applications.values():
             app._destroy_frameworks()
             self.log_debug("Destroying %s" % app)
@@ -894,57 +907,57 @@ def find_app_settings(engine_name, app_name, tk, context):
     """
     Utility method to find the settings for an app in an engine in the
     environment determined for the context by pick environment hook.
-    
+
     :param engine_name: system name of the engine to look for
     :param app_name: system name of the app to look for
     :param tk: tank instance
     :param context: context to use when picking environment
-    
-    :returns: list of dictionaries containing the engine name, 
+
+    :returns: list of dictionaries containing the engine name,
               application name and settings for any matching
               applications that are found and that have valid
               settings
-    """ 
+    """
     app_settings = []
-    
+
     # get the environment via the pick_environment hook
     env_name = __pick_environment(engine_name, tk, context)
 
     env = tk.pipeline_configuration.get_environment(env_name, context)
-    
+
     # now find all engines whose descriptor matches the engine_name:
     for eng in env.get_engines():
         eng_desc = env.get_engine_descriptor(eng)
         if eng_desc.get_system_name() != engine_name:
             continue
-        
+
         # ok, found engine so look for app:
         for app in env.get_apps(eng):
             app_desc = env.get_app_descriptor(eng, app)
             if app_desc.get_system_name() != app_name:
                 continue
-            
+
             # ok, found an app - lets validate the settings as
             # we want to ignore them if they're not valid
             try:
                 schema = app_desc.get_configuration_schema()
                 settings = env.get_app_settings(eng, app)
-                
+
                 # check that the context contains all the info that the app needs
                 validation.validate_context(app_desc, context)
-                
+
                 # make sure the current operating system platform is supported
                 validation.validate_platform(app_desc)
-                                
+
                 # for multi engine apps, make sure our engine is supported
                 supported_engines = app_desc.get_supported_engines()
                 if supported_engines and engine_name not in supported_engines:
                     raise TankError("The app could not be loaded since it only supports "
                                     "the following engines: %s" % supported_engines)
-                
-                # finally validate the configuration.  
-                # Note: context is set to None as we don't 
-                # want to fail validation because of an 
+
+                # finally validate the configuration.
+                # Note: context is set to None as we don't
+                # want to fail validation because of an
                 # incomplete context at this stage!
                 validation.validate_settings(app, tk, None, schema, settings)
             except TankError:
@@ -953,9 +966,9 @@ def find_app_settings(engine_name, app_name, tk, context):
 
             # settings are valid so add them to return list:
             app_settings.append({"engine_instance":eng, "app_instance":app, "settings":settings})
-                    
+
     return app_settings
-    
+
 
 def start_shotgun_engine(tk, entity_type, context=None):
     """
@@ -969,7 +982,7 @@ def start_shotgun_engine(tk, entity_type, context=None):
     # get the location for our engine
     if not constants.SHOTGUN_ENGINE_NAME in env.get_engines():
         raise TankEngineInitError("Cannot find a shotgun engine in %s. Please contact support." % env)
-    
+
     engine_descriptor = env.get_engine_descriptor(constants.SHOTGUN_ENGINE_NAME)
 
     # make sure it exists locally
@@ -991,18 +1004,18 @@ def start_shotgun_engine(tk, entity_type, context=None):
 
 def get_environment_from_context(tk, context):
     """
-    Returns an environment object given a context. 
-    Returns None if no environment was found. 
+    Returns an environment object given a context.
+    Returns None if no environment was found.
     """
     try:
         env_name = tk.execute_hook(constants.PICK_ENVIRONMENT_CORE_HOOK_NAME, context=context)
     except Exception, e:
         raise TankError("Could not resolve an environment for context '%s'. The pick "
                         "environment hook reported the following error: %s" % (context, e))
-    
+
     if env_name is None:
         return None
-    
+
     return tk.pipeline_configuration.get_environment(env_name, context)
 
 
@@ -1020,7 +1033,7 @@ def __get_env_and_descriptor_for_engine(engine_name, tk, context):
 
     # get the env object based on the name in the pick env hook
     env = tk.pipeline_configuration.get_environment(env_name, context)
-    
+
     # make sure that the environment has an engine instance with that name
     if not engine_name in env.get_engines():
         raise TankEngineInitError("Cannot find an engine instance %s in %s." % (engine_name, env))
