@@ -22,6 +22,7 @@ from .. import loader
 from .. import hook
 from ..errors import TankError, TankEngineInitError
 from ..deploy import descriptor
+from ..deploy.dev_descriptor import TankDevDescriptor
 
 from . import application
 from . import constants
@@ -112,13 +113,12 @@ class Engine(TankBundle):
         # now load all apps and their settings
         self.__load_apps()
         
-        # now run the post app init
-        self.post_app_init()
-        
-        # emit an engine started event
-        tk.execute_hook(constants.TANK_ENGINE_INIT_HOOK_NAME, engine=self)
-        
         # execute the post engine init for all apps
+        # note that this is executed before the post_app_init
+        # in the engine - this is because typically the post app
+        # init in the engine will contain code which captures the
+        # state of the apps - for example creates a menu, so at that 
+        # point we want to try and have all app initialization complete.
         for app in self.__applications.values():
 
             try:
@@ -130,6 +130,23 @@ class Engine(TankBundle):
                 self.log_exception("App %s failed run its post_engine_init. It is loaded, but"
                                    "may not operate in its desired state!" % app)
         
+        # Useful dev helpers: If there is one or more dev descriptors in the 
+        # loaded environment, add a reload button to the menu!
+        for app in self.__applications.values():
+            print "checking %s..." % app.descriptor
+            if isinstance(app.descriptor, TankDevDescriptor):
+                self.log_debug("App %s is registerered via a dev descriptor. Will add a reload "
+                               "button to the actions listings."  % app)
+                from . import restart 
+                self.register_command("Reload and Restart", restart, {"short_name": "restart", "type": "context_menu"})                
+                # only need one reload button, so don't keep iterating :)
+                break
+        
+        # now run the post app init
+        self.post_app_init()
+        
+        # emit an engine started event
+        tk.execute_hook(constants.TANK_ENGINE_INIT_HOOK_NAME, engine=self)
         
         self.log_debug("Init complete: %s" % self)
         
