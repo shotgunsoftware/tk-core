@@ -117,6 +117,15 @@ class Application(TankBundle):
         """
         pass
 
+    def post_engine_init(self):
+        """
+        Implemented by deriving classes in order to run code after the engine
+        has completely finished initializing itself and all its apps.
+        At this point, the engine has a fully populaed apps dictionary and
+        all loaded apps have been fully initialized and validated.
+        """
+        pass
+
     def destroy_app(self):
         """
         Implemented by deriving classes in order to tear down the app

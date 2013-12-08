@@ -118,6 +118,19 @@ class Engine(TankBundle):
         # emit an engine started event
         tk.execute_hook(constants.TANK_ENGINE_INIT_HOOK_NAME, engine=self)
         
+        # execute the post engine init for all apps
+        for app in self.__applications.values():
+
+            try:
+                app.post_engine_init()
+            except TankError, e:
+                self.log_error("App %s Failed to run its post_engine_init. It is loaded, but"
+                               "may not operate in its desired state! Details: %s" % (app, e))
+            except Exception:
+                self.log_exception("App %s failed run its post_engine_init. It is loaded, but"
+                                   "may not operate in its desired state!" % app)
+        
+        
         self.log_debug("Init complete: %s" % self)
         
     def __repr__(self):
