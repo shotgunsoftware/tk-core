@@ -150,6 +150,15 @@ class Engine(TankBundle):
         
         self.log_debug("Init complete: %s" % self)
         
+        # check if there are any compatibility warnings:
+        # do this now in case the engine fails to load!
+        messages = black_list.compare_against_black_list(descriptor)
+        if len(messages) > 0:
+            self.log_warning("Compatibility warnings were issued for %s:" % descriptor)
+            for msg in messages:
+                self.log_warning("")
+                self.log_warning(msg)
+        
     def __repr__(self):
         return "<Sgtk Engine 0x%08x: %s, env: %s>" % (id(self),  
                                                       self.name, 
