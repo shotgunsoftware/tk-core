@@ -525,6 +525,8 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
 
         created_at - override for the date the publish is created at.  This should be a python
                     datetime object
+                    
+        version_entity - the Shotgun version entity this published file should be linked to 
 
     Future:
     - error handling
@@ -548,6 +550,7 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
     update_task_thumbnail = kwargs.get("update_task_thumbnail", False)
     created_by_user = kwargs.get("created_by")
     created_at = kwargs.get("created_at")
+    version_entity = kwargs.get("version_entity")
 
     # convert the abstract fields to their defaults
     path = _translate_abstract_fields(tk, path)
@@ -576,7 +579,17 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
                 sg_published_file_type = tk.shotgun.create("TankType", {"code": published_file_type, "project": context.project})
 
     # create the publish
-    entity = _create_published_file(tk, context, path, name, version_number, task, comment, sg_published_file_type, created_by_user, created_at)
+    entity = _create_published_file(tk, 
+                                    context, 
+                                    path, 
+                                    name, 
+                                    version_number, 
+                                    task, 
+                                    comment, 
+                                    sg_published_file_type, 
+                                    created_by_user, 
+                                    created_at, 
+                                    version_entity)
 
     # upload thumbnails
     if thumbnail_path and os.path.exists(thumbnail_path):
@@ -702,7 +715,8 @@ def _create_dependencies(tk, publish_entity, dependency_paths, dependency_ids):
                 
 
 
-def _create_published_file(tk, context, path, name, version_number, task, comment, published_file_type, created_by_user, created_at):
+def _create_published_file(tk, context, path, name, version_number, task, comment, published_file_type, 
+                           created_by_user, created_at, version_entity):
     """
     Creates a publish entity in shotgun given some standard fields.
     """
@@ -745,6 +759,9 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
             data["published_file_type"] = published_file_type
         else:# == TankPublishedFile
             data["tank_type"] = published_file_type
+
+    if version_entity:
+        data["version"] = version_entity
 
     # now call out to hook just before publishing
     data = tk.execute_hook(constants.TANK_PUBLISH_HOOK_NAME, shotgun_data=data, context=context)
