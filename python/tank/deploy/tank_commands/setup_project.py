@@ -8,10 +8,6 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-"""
-Utils and logic for creating new tank projects
-"""
-
 SG_LOCAL_STORAGE_OS_MAP = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
 
 import re
@@ -20,18 +16,57 @@ import os
 import shutil
 import tempfile
 import uuid
-from ..errors import TankError
-from ..util import shotgun
-from .. import api
-from ..platform import constants
-from . import util as deploy_util
-from . import env_admin
-from .. import pipelineconfig
-from .. import hook
 
-from .zipfilehelper import unzip_file
+from .action_base import Action
+from ...util import shotgun
+from ...platform import constants
+from ...errors import TankError
+from ... import pipelineconfig
+from ... import hook
+from ..zipfilehelper import unzip_file
+from .. import util as deploy_util
 
 from tank_vendor import yaml
+
+class SetupProjectAction(Action):
+    """
+    Action that sets up a new Toolkit Project.
+    """    
+    def __init__(self):
+        Action.__init__(self, 
+                        "setup_project", 
+                        Action.GLOBAL, 
+                        "Sets up a new project with the Shotgun Pipeline Toolkit.", 
+                        "Configuration")
+        
+    def run(self, log, args):
+        if len(args) not in [0, 1]:
+            raise TankError("Syntax: setup_project [--no-storage-check] [--force]")
+        
+        check_storage_path_exists = True
+        force = False
+        
+        if len(args) == 1 and args[0] == "--no-storage-check":
+            check_storage_path_exists = False
+            log.info("no-storage-check mode: Will not verify that the storage exists. This "
+                     "can be useful if the storage is pointing directly at a server via a "
+                     "Windows UNC mapping.")
+            
+        if len(args) == 1 and args[0] == "--force":
+            force = True
+            log.info("force mode: Projects already set up with Toolkit can be set up again.")
+
+        elif len(args) == 1 and args[0] not in ["--no-storage-check", "--force"]:
+            raise TankError("Syntax: setup_project [--no-storage-check] [--force]")
+            check_storage_path_exists = False
+        
+        interactive_setup(log, self.code_install_root, check_storage_path_exists, force)
+        
+        
+
+
+
+
 
 
 ########################################################################################

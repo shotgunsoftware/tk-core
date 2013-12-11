@@ -16,18 +16,13 @@ import logging
 import tank
 import textwrap
 import datetime
-from tank import TankError, TankEngineInitError
-from tank.deploy import setup_project
-from tank.deploy import validate_config
-from tank.deploy import administrator
-from tank.deploy import core_api_admin
-from tank.deploy import env_admin
+from tank import TankError
+from tank.deploy.tank_commands.clone_configuration import clone_pipeline_configuration_html
 from tank.deploy import tank_command
+from tank.deploy.tank_commands.core import show_core_info_html
 from tank.deploy.tank_commands.action_base import Action
-from tank import pipelineconfig
 from tank.util import shotgun
 from tank.platform import engine
-from tank import folder
 
 
 
@@ -414,8 +409,8 @@ def shotgun_run_action(log, install_root, pipeline_config_root, args):
         # past the 4th chunk in the command is part of the windows path...
         new_path_windows = ":".join(entity_type.split(":")[4:])
         pc_entity_id = entity_ids[0]
-        source_pc_has_shared_core_api = (install_root != pipeline_config_root)
-        administrator.clone_configuration(log,
+        is_localized = (install_root == pipeline_config_root)
+        clone_pipeline_configuration_html(log,
                                           tk,
                                           pc_entity_id,
                                           user_id,
@@ -423,13 +418,31 @@ def shotgun_run_action(log, install_root, pipeline_config_root, args):
                                           new_path_linux,
                                           new_path_mac,
                                           new_path_windows,
-                                          source_pc_has_shared_core_api)
+                                          is_localized)
 
     elif action_name == "__core_info":
-        core_api_admin.show_core_info(log, install_root, pipeline_config_root)
+        show_core_info_html(log, install_root, pipeline_config_root)
 
     elif action_name == "__upgrade_check":
-        core_api_admin.show_upgrade_info(log, install_root, pipeline_config_root)
+        
+        # special built in command that simply tells the user to run the tank command
+        
+        code_css_block = "display: block; padding: 0.5em 1em; border: 1px solid #bebab0; background: #faf8f0;"
+        
+        log.info("In order to check if your installed apps and engines are up to date, "
+                 "you can run the following command in a console:")
+        
+        log.info("")
+        
+        if sys.platform == "win32":
+            tank_cmd = os.path.join(pipeline_config_root, "tank.bat")
+        else:
+            tank_cmd = os.path.join(pipeline_config_root, "tank")
+        
+        log.info("<code style='%s'>%s updates</code>" % (code_css_block, tank_cmd))
+        
+        log.info("")
+        
     else:
         _run_shotgun_command(log, tk, action_name, entity_type, entity_ids)
 
@@ -795,8 +808,8 @@ def run_engine_cmd(log, install_root, pipeline_config_root, context_items, comma
 
     log.info("")
 
-    log.info("Welcome to the Shotgun pipeline toolkit!")
-    log.info("For documentation, see https://toolkit.shotgunsoftware.com/forums")
+    log.info("Welcome to the Shotgun Pipeline Toolkit!")
+    log.info("For documentation, see https://toolkit.shotgunsoftware.com")
 
     # Now create a tk instance and a context if possible
 
@@ -805,7 +818,7 @@ def run_engine_cmd(log, install_root, pipeline_config_root, context_items, comma
         ctx_path = context_items[0]
 
         if using_cwd:
-            log.info("Starting the Sgtk for your current directory '%s'" % ctx_path)
+            log.info("Starting Toolkit for your current directory '%s'" % ctx_path)
 
         # context str is a path
         if pipeline_config_root is not None:
@@ -868,11 +881,8 @@ def run_engine_cmd(log, install_root, pipeline_config_root, context_items, comma
     log.debug("Context: %s" % ctx)
 
     if tk is not None:
-        if pipeline_config_root is None:
-            # generic tank command - so indicate which config was picked
-            log.info("- Starting the Shotgun pipeline toolkit %s using configuration %s." % (tk.version, tk.pipeline_configuration.get_path()))
-        else:
-            log.info("- Starting the Shotgun pipeline toolkit %s." % tk.version)
+        log.info("- Using configuration '%s' and Core %s" % (tk.pipeline_configuration.get_name(),
+                                                           tk.version))
 
         # attach our logger to the tank instance
         # this will be detected by the shotgun and shell engines and used.

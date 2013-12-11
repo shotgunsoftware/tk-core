@@ -495,7 +495,7 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
                name. For something like a render, it could be the scene
                name, the name of the AOV and the name of the render layer.
 
-        version_number - the verison numnber of the item we are publishing.
+        version_number - the version numnber of the item we are publishing.
 
     Optional arguments:
 
@@ -528,10 +528,6 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
                     
         version_entity - the Shotgun version entity this published file should be linked to 
 
-    Future:
-    - error handling
-    - look at a project level config to see if publish should succeed if Shotgun is down?
-    - if Shotgun is down, log to sqlite and try again later?
     """
     # get the task from the optional args, fall back on context task if not set
     task = kwargs.get("task")

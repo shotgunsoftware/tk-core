@@ -8,18 +8,10 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-"""
-Methods for handling of the tank command
-
-"""
-
 from ... import pipelineconfig
-
-
 from ...util import shotgun
 from ...platform import constants
 from ...errors import TankError
-
 from .action_base import Action
 
 import sys
@@ -27,7 +19,9 @@ import os
 
 
 class PCBreakdownAction(Action):
-    
+    """
+    Action that shows an overview of all the pipeline configurations for a project
+    """    
     def __init__(self):
         Action.__init__(self, 
                         "configurations", 

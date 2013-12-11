@@ -137,6 +137,12 @@ class PipelineConfiguration(object):
 
         return self._pc_name
 
+    def is_localized(self):
+        """
+        Returns true if this pipeline configuation has its own Core
+        """
+        return is_localized(self._pc_root)
+
     def get_shotgun_id(self):
         """
         Returns the shotgun id for this PC. 

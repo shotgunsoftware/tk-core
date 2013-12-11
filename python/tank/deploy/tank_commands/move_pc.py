@@ -8,11 +8,6 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-"""
-Methods for handling of the tank command
-
-"""
-
 from ... import pipelineconfig
 
 from ...util import shotgun
@@ -27,7 +22,9 @@ import shutil
 
 
 class MovePCAction(Action):
-    
+    """
+    Action that moves a pipeline configuration from one location to another
+    """    
     def __init__(self):
         Action.__init__(self, 
                         "move_configuration", 

@@ -8,12 +8,6 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-"""
-Methods for handling of the tank command
-
-"""
-
-
 from ...util import shotgun
 from ...platform import constants
 from ...errors import TankError
@@ -31,7 +25,7 @@ import shutil
 
 class MoveStudioInstallAction(Action):
     """
-    Moves the studio installation location. 
+    Action that moves the studio installation location. 
     """
     
     def __init__(self):
