@@ -61,6 +61,9 @@ class PushPCAction(Action):
         log.info("This command will push the configuration in the current pipeline configuration "
                  "('%s') to another pipeline configuration in the project." % current_pc_name)
         log.info("")
+        log.info("Your existing configuration will be backed up.")
+        log.info("")
+        
         log.info("The following pipeline configurations are available to push to:")
         path_hash = {}
         for pc in pipeline_configs:
@@ -130,27 +133,57 @@ class PushPCAction(Action):
         log.debug("Will push the config from %s to %s" % (source_path, target_path))
         log.info("Hold on, pushing config...")
         
-        # copy to temp location
-        try:
-            util._copy_folder(log, source_path, target_tmp_path)
-        except Exception, e:
-            raise TankError("Could not copy into temporary target folder '%s'. The target config "
-                            "has not been altered. Check permissions and try again! "
-                            "Error reported: %s" % (target_tmp_path, e))
         
-        # backup original config
+        ##########################################################################################
+        # I/O phase
+        old_umask = os.umask(0)
         try:
-            shutil.move(target_path, target_backup_path)
-        except Exception, e:
-            raise TankError("Could not move target folder from '%s' to '%s'. "
-                            "Error reported: %s" % (target_path, target_backup_path, e))
+        
+            # copy to temp location
+            try:
+                # copy everything!
+                util._copy_folder(log, source_path, target_tmp_path)
+                
+                # remove the two files which are pipeline configuraiton specific
+                # and replace them with our target PC data
+                target_tmp_install_location_yml = os.path.join(target_tmp_path, "core", "install_location.yml")
+                target_tmp_pipeline_configuration_yml = os.path.join(target_tmp_path, "core", "pipeline_configuration.yml")
+                
+                target_install_location_yml = os.path.join(target_path, "core", "install_location.yml")
+                target_pipeline_configuration_yml = os.path.join(target_path, "core", "pipeline_configuration.yml")
+                
+                os.chmod(target_tmp_install_location_yml, 0666)
+                os.remove(target_tmp_install_location_yml)
+                shutil.copy(target_install_location_yml, target_tmp_install_location_yml)
+                
+                os.chmod(target_tmp_pipeline_configuration_yml, 0666)
+                os.remove(target_tmp_pipeline_configuration_yml)
+                shutil.copy(target_pipeline_configuration_yml, target_tmp_pipeline_configuration_yml)
+                
+            except Exception, e:
+                raise TankError("Could not copy into temporary target folder '%s'. The target config "
+                                "has not been altered. Check permissions and try again! "
+                                "Error reported: %s" % (target_tmp_path, e))
             
-        # lastly, move new config into place
-        try:
-            shutil.move(target_tmp_path, target_path)
-        except Exception, e:
-            raise TankError("Could not move new config folder from '%s' to '%s'. "
-                            "Error reported: %s" % (target_tmp_path, target_path, e))
+            # backup original config
+            try:
+                shutil.move(target_path, target_backup_path)
+            except Exception, e:
+                raise TankError("Could not move target folder from '%s' to '%s'. "
+                                "Error reported: %s" % (target_path, target_backup_path, e))
+                
+            # lastly, move new config into place
+            try:
+                shutil.move(target_tmp_path, target_path)
+            except Exception, e:
+                raise TankError("Could not move new config folder from '%s' to '%s'. "
+                                "Error reported: %s" % (target_tmp_path, target_path, e))
+        
+        finally:
+            os.umask(old_umask)
+        
+        ##########################################################################################
+        # Post Process Phase
         
         # now download all apps
         log.info("Checking if there are any apps that need downloading...")        
