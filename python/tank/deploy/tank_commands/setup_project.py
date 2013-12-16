@@ -778,7 +778,7 @@ def _get_current_core_file_location():
     the installation location on all platforms.    
     """
     
-    core_api_root = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "..", "..", ".."))
+    core_api_root = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "..", "..", "..", ".."))
     core_cfg = os.path.join(core_api_root, "config", "core")
     
     if not os.path.exists(core_cfg):
@@ -1171,7 +1171,7 @@ def _interactive_setup(log, install_root, check_storage_path_exists, force):
     
     # copy the tank binaries to the top of the config
     log.debug("Copying Toolkit binaries...")
-    core_api_root = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", ".."))
+    core_api_root = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "..", ".."))
     root_binaries_folder = os.path.join(core_api_root, "setup", "root_binaries")
     for file_name in os.listdir(root_binaries_folder):
         src_file = os.path.join(root_binaries_folder, file_name)
