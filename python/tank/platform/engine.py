@@ -133,7 +133,6 @@ class Engine(TankBundle):
         # Useful dev helpers: If there is one or more dev descriptors in the 
         # loaded environment, add a reload button to the menu!
         for app in self.__applications.values():
-            print "checking %s..." % app.descriptor
             if isinstance(app.descriptor, TankDevDescriptor):
                 self.log_debug("App %s is registerered via a dev descriptor. Will add a reload "
                                "button to the actions listings."  % app)
