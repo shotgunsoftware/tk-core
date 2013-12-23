@@ -553,7 +553,7 @@ class _SettingsValidator:
         # name, *
         # context, *
         
-        # get all values in a list
+        # get all values in list
         field_chunks = fields_str.split(",")
         # chop whitespace
         field_chunks = [ x.strip() for x in field_chunks ]
@@ -574,75 +574,70 @@ class _SettingsValidator:
                 mandatory.add(x)
         
         # validate
-        # get all fields which do not have default values
-        fields_needing_values = set(cur_template.missing_keys({}, skip_defaults=True))
         problems = []
         
-        # pass 1: ensure all mandatory fields are present.
+        # First pass: Ensure all mandatory fields are present in template.
+        all_fields = set(cur_template.keys)        
         for m in mandatory:
-            if m not in fields_needing_values:
+            if m not in all_fields:
                 problems.append("The mandatory field '%s' is missing" % m)
+
+        if len(problems) > 0:
+            # one or more mandatory issues. No point checking further
+            return problems
         
         if star == True:
             # means an open ended number of fields can be used.
             # no need to do more validation
-            pass
+            return problems
         
-        elif self._context is None:
-            # we don't have the context (we are outside app rumtime mode)
+        if self._context is None:
+            # we don't have the context (we are outside app runtime mode)
             # and cannot do any further validation
-            pass
+            return problems
         
-        elif len(problems) > 0:
-            # one or more mandatory issues. No point checking further
-            pass
-        
+        # Second pass: There are a fixed number of fields that we need to populate so
+        # make sure we have populated exactly those fields
+        fields_needing_values = set(cur_template.missing_keys({}, skip_defaults=True))
+        remaining_fields = fields_needing_values - mandatory
+                        
+        if include_context:
+            # gather all the fields that will be covered by the context object
+            context_fields = set( self._context.as_template_fields(cur_template).keys() )
+            remaining_fields = remaining_fields - context_fields
+            
+            for x in remaining_fields:
+                if x not in optional:
+                    # we have a field that is in the template but which is not 
+                    # covered, either in the context nor in the schema fields
+                    required_and_optional_str = ", ".join(mandatory | optional)
+                    context_fields_str = ", ".join(context_fields)
+                    
+                    problems.append("The field '%s' is part of the template but %s does not "
+                                    "know how to assign a value to it when calculating paths. "
+                                    "The code inside %s will populate the following fields: %s. "
+                                    "The current context (%s) will populate the following fields: "
+                                    "%s." % (x, 
+                                             self._display_name, 
+                                             self._display_name, 
+                                             required_and_optional_str, 
+                                             str(self._context),
+                                             context_fields_str))
+                    
         else:
-            # there are a fixed number of fields that we need to populate
-            # make sure we have populated exactly those fields
-                        
-            remaining_fields = fields_needing_values - mandatory
-                        
-            if include_context:
-                # gather all the fields that will be covered by the context object
-                context_fields = set( self._context.as_template_fields(cur_template).keys() )
-                remaining_fields = remaining_fields - context_fields
+            # the context is not taken into account.
+            for x in remaining_fields:
+                if x not in optional:
+                    # we have a field that is in the template but which is not 
+                    # covered by mandatory or optional
+                    required_and_optional_str = ", ".join(mandatory | optional)
+                    
+                    problems.append("The field '%s' is part of the template but %s does not "
+                                    "know how to assign a value to it when calculating paths. "
+                                    "The code inside %s will populate the following fields: "
+                                    "%s." % (x, 
+                                             self._display_name, 
+                                             self._display_name, 
+                                             required_and_optional_str))
                 
-                for x in remaining_fields:
-                    if x not in optional:
-                        # we have a field that is in the template but which is not 
-                        # covered, either in the context nor in the schema fields
-                        
-                        required_and_optional_str = ", ".join(mandatory | optional)
-                        context_fields_str = ", ".join(context_fields)
-                        
-                        problems.append("The field '%s' is part of the template but %s does not "
-                                        "know how to assign a value to it when calculating paths. "
-                                        "The code inside %s will populate the following fields: %s. "
-                                        "The current context (%s) will populate the following fields: "
-                                        "%s." % (x, 
-                                                 self._display_name, 
-                                                 self._display_name, 
-                                                 required_and_optional_str, 
-                                                 str(self._context),
-                                                 context_fields_str))
-                        
-            else:
-                # the context is not taken into account.
-                for x in remaining_fields:
-                    if x not in optional:
-                        # we have a field that is in the template but which is not 
-                        # covered by mandatory or optional
-                        
-                        required_and_optional_str = ", ".join(mandatory | optional)
-                        
-                        problems.append("The field '%s' is part of the template but %s does not "
-                                        "know how to assign a value to it when calculating paths. "
-                                        "The code inside %s will populate the following fields: "
-                                        "%s." % (x, 
-                                                 self._display_name, 
-                                                 self._display_name, 
-                                                 required_and_optional_str))
-                
-        #####
         return problems
