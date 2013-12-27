@@ -181,6 +181,12 @@ CONTENT_TEMPLATES_FILE = "templates.yml"
 # the name of the file that holds the inverse root defs
 CONFIG_BACK_MAPPING_FILE = "tank_configs.yml"
 
+# the name of the file that holds the path to the non-project config
+CONFIG_NONPROJECT_FILE = "nonproject_config.yml"
+
+# the name for non-project pipeline configurations
+NONPROJECT_PIPELINE_CONFIG_NAME = "NonProject"
+
 # the name of the include section in env and template files
 SINGLE_INCLUDE_SECTION = "include"
 
