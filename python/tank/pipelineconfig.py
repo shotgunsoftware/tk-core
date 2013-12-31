@@ -836,7 +836,7 @@ def from_path(path):
         if not found_nonproject_config:
             # Topped out without finding config
             raise TankError("Cannot create a Configuration from path '%s' - this path does "
-                            "not belong to an Sgtk Project!" % path)
+                            "not belong to a Sgtk Project or have a non-project config!" % path)
 
     if found_nonproject_config:
         # load up a config to use when not in a project
@@ -1087,8 +1087,8 @@ def _sanitize_path(path, separator):
     :param separator: the os.sep to adjust the path for. / on nix, \ on win.
     :returns: cleaned up path
     """
-    if path is None:
-        return None
+    if not path:
+        return path
     
     # first, get rid of any slashes at the end
     # after this step, path value will be "/foo/bar", "c:" or "\\hello"
