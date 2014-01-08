@@ -246,12 +246,21 @@ class _SchemaValidator:
         data_type = schema.get("type")
         self.__validate_schema_type(settings_key, data_type)
 
-        if "default_value" in schema and not _validate_expected_data_type(data_type, schema["default_value"]):
-            params = (settings_key, 
-                      self._display_name, 
-                      type(schema["default_value"]).__name__, data_type)
-            err_msg = "Invalid type for default value in schema '%s' for '%s' - found '%s', expected '%s'" % params
-            raise TankError(err_msg)
+        if "default_value" in schema:
+            # validate the default value:
+            default_value = schema["default_value"]
+
+            # handle template setting with default_value == null            
+            if data_type == 'template' and default_value is None and schema.get('allows_empty', False):
+                # no more validation required
+                return
+
+            if not _validate_expected_data_type(data_type, default_value):
+                params = (settings_key, 
+                          self._display_name, 
+                          type(default_value).__name__, data_type)
+                err_msg = "Invalid type for default value in schema '%s' for '%s' - found '%s', expected '%s'" % params
+                raise TankError(err_msg)
 
         if data_type == "list":
             self.__validate_schema_list(settings_key, schema)
