@@ -88,7 +88,7 @@ def _do_clone(log, tk, source_pc_id, user_id, new_name, target_linux, target_mac
     try:
         os.mkdir(target_folder, 0777)
         os.mkdir(os.path.join(target_folder, "cache"), 0777)
-        util._copy_folder(log, os.path.join(source_folder, "config"), os.path.join(target_folder, "config"))
+        util._copy_folder(log, os.path.join(source_folder, "config"), os.path.join(target_folder, "config"), [".git"])
         util._copy_folder(log, os.path.join(source_folder, "install"), os.path.join(target_folder, "install"))
         shutil.copy(os.path.join(source_folder, "tank"), os.path.join(target_folder, "tank"))
         shutil.copy(os.path.join(source_folder, "tank.bat"), os.path.join(target_folder, "tank.bat"))
