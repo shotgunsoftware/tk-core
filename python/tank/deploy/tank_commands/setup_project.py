@@ -133,9 +133,13 @@ class CmdlineSetupInteraction(object):
                        "hit enter below.")
         self._log.info("")
         self._log.info("If you have a configuration stored somewhere on disk, you can "
-                       "just enter the path to this config it will be used for the "
+                       "enter the path to this config and it will be used for the "
                        "new project.")
         self._log.info("")
+        self._log.info("You can also enter an url pointing to a git repository. Toolkit will then "
+                       "clone this repository and base the config on its content.")
+        self._log.info("")
+        
         
         config_name = raw_input("[%s]: " % constants.DEFAULT_CFG).strip()
         if config_name == "":
@@ -480,13 +484,14 @@ class TankConfigInstaller(object):
     Functionality for handling installation and validation of tank configs
     """
     
-    def __init__(self, config_name, sg, sg_app_store, script_user, log):
+    def __init__(self, config_uri, sg, sg_app_store, script_user, log):
         self._sg = sg
         self._sg_app_store = sg_app_store
         self._script_user = script_user
         self._log = log
         # now extract the cfg and validate        
-        self._cfg_folder = self._process_config(config_name)
+        (self._cfg_folder, self._config_mode) = self._process_config(config_uri)
+        self._config_uri = config_uri
         self._roots_data = self._read_roots_file()
 
         if constants.PRIMARY_STORAGE_NAME not in self._roots_data:
@@ -616,6 +621,24 @@ class TankConfigInstaller(object):
         self._log.debug("Configuration looks valid!")
         return dir_path
         
+        
+    def _process_config_git(self, git_repo_str):
+        """
+        Validate that a git repo is correct, download it to a temp location
+        """
+        
+        self._log.debug("Attempting to clone git uri '%s' into a temp location "
+                        "for introspection..." % git_repo_str)
+        
+        clone_tmp = os.path.join(tempfile.gettempdir(), uuid.uuid4().hex)
+        self._log.info("Attempting to clone git repository '%s'..." % git_repo_str)
+
+        if os.system("git clone \"%s\" %s" % (git_repo_str, clone_tmp)) != 0:
+            raise TankError("Could not clone git repository '%s'!" % git_repo_str)
+        
+        return clone_tmp
+        
+        
     def _process_config(self, cfg_string):
         """
         Looks at the starter config string and tries to convert it into a folder
@@ -625,20 +648,24 @@ class TankConfigInstaller(object):
         # tk-config-xyz
         # /path/to/file.zip
         # /path/to/folder
-        if os.path.sep in cfg_string:
+        if cfg_string.endswith(".git"):
+            # this is a git repository!
+            return (self._process_config_git(cfg_string), "git")
+            
+        elif os.path.sep in cfg_string:
             # probably a file path!
             if os.path.exists(cfg_string):
                 # either a folder or zip file!
                 if cfg_string.endswith(".zip"):
-                    return self._process_config_zip(cfg_string)
+                    return (self._process_config_zip(cfg_string), "local")
                 else:
-                    return self._process_config_dir(cfg_string)
+                    return (self._process_config_dir(cfg_string), "local")
             else:
                 raise TankError("File path %s does not exist on disk!" % cfg_string)    
         
         elif cfg_string.startswith("tk-"):
             # app store!
-            return self._process_config_app_store(cfg_string)
+            return (self._process_config_app_store(cfg_string), "app_store")
         
         else:
             raise TankError("Don't know how to handle config '%s'" % cfg_string)
@@ -707,12 +734,6 @@ class TankConfigInstaller(object):
         
         return storages
 
-    def get_path(self):
-        """
-        Returns a path to a location on disk where this config resides
-        """
-        return self._cfg_folder
-
     def check_manifest(self, sg_version_str):
         """
         Looks for an info.yml manifest in the config and validates it
@@ -765,7 +786,19 @@ class TankConfigInstaller(object):
                 self._log.debug("Config requires Toolkit Core %s. You are running %s which is fine." % (required_version, curr_core_version))
 
 
-
+    def create_configuration(self, target_path):
+        """
+        Creates the configuration folder in the target path
+        """
+        if self._config_mode == "git":
+            # clone the config into place
+            self._log.info("Cloning git configuration into '%s'..." % target_path)
+            if os.system("git clone \"%s\" %s" % (self._config_uri, target_path)) != 0:
+                raise TankError("Could not clone git repository '%s'!" % self._config_uri)
+            
+        else:
+            # copy the config from its source location into place
+            _copy_folder(self._log, self._cfg_folder, target_path )
 
 
 
@@ -1167,7 +1200,8 @@ def _interactive_setup(log, install_root, check_storage_path_exists, force):
     _make_folder(log, os.path.join(current_os_pc_location, "install", "frameworks"), 0777, True)
     
     # copy the configuration into place
-    _copy_folder(log, cfg_installer.get_path(), os.path.join(current_os_pc_location, "config"))
+    cfg_installer.create_configuration( os.path.join(current_os_pc_location, "config") )
+    
     
     # copy the tank binaries to the top of the config
     log.debug("Copying Toolkit binaries...")
