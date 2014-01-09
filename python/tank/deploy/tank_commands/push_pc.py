@@ -28,6 +28,19 @@ import shutil
 
 SG_LOCAL_STORAGE_OS_MAP = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
 
+# core configuration files which are associated with the core API installation and not
+# the pipeline configuration.
+CORE_API_FILES = ["interpreter_Linux.cfg", 
+                  "interpreter_Windows.cfg",
+                  "interpreter_Darwin.cfg", 
+                  "app_store.yml", 
+                  "shotgun.yml"]
+
+# core configuration files which are associated with a particular PC and should not be moved
+CORE_PC_FILES = ["install_location.yml", "pipeline_configuration.yml"]
+
+
+
 class PushPCAction(Action):
     """
     Action that pushes a config from one pipeline configuration up to its parent
@@ -156,23 +169,23 @@ class PushPCAction(Action):
             # copy to temp location
             try:
                 # copy everything!
+                log.debug("Copying %s -> %s" % (source_path, target_tmp_path))
                 util._copy_folder(log, source_path, target_tmp_path)
                 
-                # remove the two files which are pipeline configuraiton specific
-                # and replace them with our target PC data
-                target_tmp_install_location_yml = os.path.join(target_tmp_path, "core", "install_location.yml")
-                target_tmp_pipeline_configuration_yml = os.path.join(target_tmp_path, "core", "pipeline_configuration.yml")
+                # unlock and remove all the special core files from the tmp folder
+                for core_file in CORE_API_FILES + CORE_PC_FILES:
+                    path = os.path.join(target_tmp_path, "core", core_file)
+                    if os.path.exists(path):
+                        os.chmod(path, 0666)
+                        log.debug("Removing system file %s" % path )
+                        os.remove(path)
                 
-                target_install_location_yml = os.path.join(target_path, "core", "install_location.yml")
-                target_pipeline_configuration_yml = os.path.join(target_path, "core", "pipeline_configuration.yml")
-                
-                os.chmod(target_tmp_install_location_yml, 0666)
-                os.remove(target_tmp_install_location_yml)
-                shutil.copy(target_install_location_yml, target_tmp_install_location_yml)
-                
-                os.chmod(target_tmp_pipeline_configuration_yml, 0666)
-                os.remove(target_tmp_pipeline_configuration_yml)
-                shutil.copy(target_pipeline_configuration_yml, target_tmp_pipeline_configuration_yml)
+                # copy the pc specific special core files from existing cfg to new cfg
+                for core_file in CORE_PC_FILES:
+                    curr_config_path = os.path.join(target_path, "core", core_file)
+                    new_config_path = os.path.join(target_tmp_path, "core", core_file)
+                    log.debug("Copying PC system file %s -> %s" % (curr_config_path, new_config_path) )
+                    shutil.copy(curr_config_path, new_config_path)
                 
             except Exception, e:
                 raise TankError("Could not copy into temporary target folder '%s'. The target config "
