@@ -52,6 +52,11 @@ class PushPCAction(Action):
                                                 [["project", "is", {"type": "Project", "id": project_id}]],
                                                 ["code", "linux_path", "windows_path", "mac_path"])
 
+        if len(args) == 1 and args[0] == "--symlink":
+            use_symlink = True
+        else:
+            use_symlink = False
+        
         if len(pipeline_configs) == 1:
             raise TankError("Only one pipeline configuration for this project! Need at least two "
                             "configurations in order to push. Please start by cloning a pipeline "
@@ -59,9 +64,17 @@ class PushPCAction(Action):
 
     
         log.info("This command will push the configuration in the current pipeline configuration "
-                 "('%s') to another pipeline configuration in the project." % current_pc_name)
+                 "('%s') to another pipeline configuration in the project. By default, the data "
+                 "will be copied to the target config folder. If pass a --symlink parameter, it will "
+                 "create a symlink instead." % current_pc_name) 
+                 
         log.info("")
         log.info("Your existing configuration will be backed up.")
+        
+        if use_symlink:
+            log.info("")
+            log.info("A symlink will be used.")
+        
         log.info("")
         
         log.info("The following pipeline configurations are available to push to:")
@@ -127,6 +140,7 @@ class PushPCAction(Action):
         
         source_path = os.path.join(self.tk.pipeline_configuration.get_path(), "config")
         target_tmp_path = os.path.join(target_pc_path, "config.tmp.%s" % date_suffix)
+        symlink_path = os.path.join(target_pc_path, "config.%s" % date_suffix)
         target_path = os.path.join(target_pc_path, "config")
         target_backup_path = os.path.join(target_pc_path, "config.bak.%s" % date_suffix)
 
@@ -167,17 +181,33 @@ class PushPCAction(Action):
             
             # backup original config
             try:
-                shutil.move(target_path, target_backup_path)
+                if os.path.islink(target_path):
+                    # if we are symlinked, no need to back up
+                    # just delete the current symlink
+                    os.remove(target_path)
+                    created_backup = False
+                else:
+                    # move data to backup folder
+                    shutil.move(target_path, target_backup_path)
+                    created_backup = True
             except Exception, e:
                 raise TankError("Could not move target folder from '%s' to '%s'. "
                                 "Error reported: %s" % (target_path, target_backup_path, e))
                 
             # lastly, move new config into place
-            try:
-                shutil.move(target_tmp_path, target_path)
-            except Exception, e:
-                raise TankError("Could not move new config folder from '%s' to '%s'. "
-                                "Error reported: %s" % (target_tmp_path, target_path, e))
+            if use_symlink:
+                try:
+                    shutil.move(target_tmp_path, symlink_path)
+                    os.symlink(os.path.basename(symlink_path), target_path)
+                except Exception, e:
+                    raise TankError("Could not move new config folder from '%s' to '%s' or create symlink."
+                                    "Error reported: %s" % (target_tmp_path, symlink_path, e))                
+            else:
+                try:
+                    shutil.move(target_tmp_path, target_path)
+                except Exception, e:
+                    raise TankError("Could not move new config folder from '%s' to '%s'. "
+                                    "Error reported: %s" % (target_tmp_path, target_path, e))
         
         finally:
             os.umask(old_umask)
@@ -204,7 +234,8 @@ class PushPCAction(Action):
         
         log.info("Push Complete!")
         log.info("")
-        log.info("Your old configuration has been backed up into the following folder: %s" % target_backup_path)
+        if created_backup:
+            log.info("Your old configuration has been backed up into the following folder: %s" % target_backup_path)
         log.info("")
         
         
