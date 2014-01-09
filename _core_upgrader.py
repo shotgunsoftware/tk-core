@@ -358,8 +358,7 @@ def _upgrade_to_013(tank_install_root, log):
             fh.write("%s: '%s'\n" % (uname, path))
         fh.write("\n")
         fh.write("# End of file.\n")
-        fh.close()    
-        os.chmod(install_location, 0444)
+        fh.close()
             
     ############################################################################################
     # second stage -- upgrade projects
@@ -430,8 +429,7 @@ def _upgrade_to_013(tank_install_root, log):
                     fh.write("%s: '%s'\n" % (uname, path))                        
                 fh.write("\n")
                 fh.write("# End of file.\n")
-                fh.close()    
-                os.chmod(install_location, 0444)
+                fh.close()
                 
             
             # parent files for the interpreter:

@@ -205,7 +205,6 @@ class CoreLocalizeAction(Action):
                     tgt = os.path.join(self.pipeline_config_root, "config", "core", fn)
                     log.debug("Copy %s -> %s" % (src, tgt))
                     shutil.copy(src, tgt)
-                    os.chmod(tgt, 0444)
                     
                 # copy apps, engines, frameworks
                 source_apps = os.path.join(self.code_install_root, "install", "apps")

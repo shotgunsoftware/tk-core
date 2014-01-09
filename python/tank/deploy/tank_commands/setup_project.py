@@ -1247,8 +1247,7 @@ def _interactive_setup(log, install_root, check_storage_path_exists, force):
     fh.write("Linux: '%s'\n" % locations_dict["linux2"])                    
     fh.write("\n")
     fh.write("# End of file.\n")
-    fh.close()    
-    os.chmod(sg_code_location, 0444)
+    fh.close()
     
         
     # update the roots file in the config to match our settings

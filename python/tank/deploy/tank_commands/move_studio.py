@@ -278,8 +278,7 @@ class MoveStudioInstallAction(Action):
             fh.write("Linux: '%s'\n" % linux_path)                    
             fh.write("\n")
             fh.write("# End of file.\n")
-            fh.close()    
-            os.chmod(sg_code_location, 0444)        
+            fh.close()
 
             # get all PCs, update the ones that are using this studio code.
             sg = shotgun.create_sg_connection()

@@ -1773,8 +1773,7 @@ class MigratePublishedFileEntitiesAction(Action):
                     fh = open(pc_path, "wt")
                     yaml.dump(pc_data, fh)
                 finally:
-                    fh.close()                        
-                    os.chmod(pc_path, 0444)
+                    fh.close()
         
                 log.debug("Successfully updated pipeline configuration '%s'" % pc_name)
         

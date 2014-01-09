@@ -198,8 +198,7 @@ class MovePCAction(Action):
             fh.write("Linux: '%s'\n" % linux_path)                    
             fh.write("\n")
             fh.write("# End of file.\n")
-            fh.close()    
-            os.chmod(sg_code_location, 0444)        
+            fh.close()
 
             for r in self.tk.pipeline_configuration.get_data_roots().values():
                 log.info("Updating storage root reference in %s.." % r)

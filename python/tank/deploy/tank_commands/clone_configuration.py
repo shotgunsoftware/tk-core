@@ -110,8 +110,7 @@ def _do_clone(log, tk, source_pc_id, user_id, new_name, target_linux, target_mac
         fh.write("Linux: '%s'\n" % target_linux)                    
         fh.write("\n")
         fh.write("# End of file.\n")
-        fh.close()    
-        os.chmod(sg_code_location, 0444)
+        fh.close()
     
     except Exception, e:
         raise TankError("Could not create file system structure: %s" % e)
@@ -160,8 +159,7 @@ def _do_clone(log, tk, source_pc_id, user_id, new_name, target_linux, target_mac
         # and write the new file
         fh = open(sg_pc_location, "wt")
         yaml.dump(data, fh)
-        fh.close()                        
-        os.chmod(sg_pc_location, 0444)
+        fh.close()
 
     except Exception, e:
         raise TankError("Could not update pipeline_configuration.yml file: %s" % e)
