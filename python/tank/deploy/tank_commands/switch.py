@@ -28,7 +28,7 @@ class SwitchAppAction(Action):
                         "Switches an app from one code location to another.", 
                         "Developer")
     
-    def run(self, log, args):
+    def run_interactive(self, log, args):
 
         if len(args) < 4:
             

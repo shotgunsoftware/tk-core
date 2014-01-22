@@ -55,7 +55,7 @@ class PushPCAction(Action):
                          "those updates back to your production configuration."), 
                         "Configuration")
         
-    def run(self, log, args):
+    def run_interactive(self, log, args):
 
         # get list of all PCs for this project
         project_id = self.tk.pipeline_configuration.get_project_id()

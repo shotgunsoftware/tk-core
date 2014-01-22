@@ -25,7 +25,7 @@ class CreateFoldersAction(Action):
                          "'tank Shot P01 folders' in order to create folders on disk for Shot P01."), 
                         "Production")
     
-    def run(self, log, args):
+    def run_interactive(self, log, args):
         if len(args) != 0:
             raise TankError("This command takes no arguments!")
 
@@ -70,7 +70,7 @@ class PreviewFoldersAction(Action):
                          "would be created if you ran the folders command for Shot P01."), 
                         "Production")
     
-    def run(self, log, args):
+    def run_interactive(self, log, args):
         if len(args) != 0:
             raise TankError("This command takes no arguments!")
 

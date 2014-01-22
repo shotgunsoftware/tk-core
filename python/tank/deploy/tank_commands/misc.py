@@ -30,7 +30,7 @@ class ClearCacheAction(Action):
                          "or modified Toolkit menu items are not appearing inside Shotgun."), 
                         "Admin")
     
-    def run(self, log, args):
+    def run_interactive(self, log, args):
         if len(args) != 0:
             raise TankError("This command takes no arguments!")
         
@@ -62,7 +62,7 @@ class InteractiveShellAction(Action):
         # hint that the shell engine should be started for this action, if possible
         self.wants_running_shell_engine = True
         
-    def run(self, log, args):
+    def run_interactive(self, log, args):
 
         if len(args) != 0:
             raise TankError("This command takes no arguments!")

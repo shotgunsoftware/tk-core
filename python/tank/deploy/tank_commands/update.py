@@ -23,7 +23,7 @@ class AppUpdatesAction(Action):
                         "Checks if there are any app or engine updates for the current configuration.", 
                         "Configuration")
     
-    def run(self, log, args):
+    def run_interactive(self, log, args):
                 
         if len(args) == 0:
             # update EVERYTHING!

@@ -39,7 +39,7 @@ class SetupProjectAction(Action):
                         "Sets up a new project with the Shotgun Pipeline Toolkit.", 
                         "Configuration")
         
-    def run(self, log, args):
+    def run_interactive(self, log, args):
         if len(args) not in [0, 1]:
             raise TankError("Syntax: setup_project [--no-storage-check] [--force]")
         

@@ -26,7 +26,7 @@ class ValidateConfigAction(Action):
                         "environments have been correctly configured."), 
                         "Configuration")
     
-    def run(self, log, args):
+    def run_interactive(self, log, args):
         if len(args) != 0:
             raise TankError("This command takes no arguments!")
         

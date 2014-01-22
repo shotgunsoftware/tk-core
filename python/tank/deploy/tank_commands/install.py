@@ -28,7 +28,7 @@ class InstallAppAction(Action):
                         "Adds a new app to your configuration.", 
                         "Configuration")
     
-    def run(self, log, args):
+    def run_interactive(self, log, args):
 
         if len(args) != 3:
             
@@ -185,7 +185,7 @@ class InstallEngineAction(Action):
                         "Adds a new engine to your configuration.", 
                         "Configuration")
     
-    def run(self, log, args):
+    def run_interactive(self, log, args):
 
         if len(args) != 2:
             

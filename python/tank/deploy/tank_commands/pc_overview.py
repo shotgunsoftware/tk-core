@@ -29,7 +29,7 @@ class PCBreakdownAction(Action):
                         ("Shows an overview of the different configurations registered with this project."), 
                         "Admin")
     
-    def run(self, log, args):
+    def run_interactive(self, log, args):
         if len(args) != 0:
             raise TankError("This command takes no arguments!")
         

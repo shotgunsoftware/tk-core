@@ -26,7 +26,7 @@ class CacheAppsAction(Action):
                         "to ensure that all necessary code exists in the cache. "), 
                         "Admin")
     
-    def run(self, log, args):
+    def run_interactive(self, log, args):
         
         log.info("This command will traverse the entire configuration and ensure that all "
                  "apps and engines code is correctly cached in your local installation.")

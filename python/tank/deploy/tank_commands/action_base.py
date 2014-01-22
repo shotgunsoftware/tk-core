@@ -26,6 +26,12 @@ class Action(object):
         self.description = description
         self.category = category
         
+        # set this property to True if your command supports API access
+        self.supports_api = False
+        # when using the API mode, need to specify the parameters
+        self.required_properties = []
+        self.optional_properties = []
+        
         # special flag for commands that run in multiple contexts where an engine
         # is optional, but beneficial. This is so that the system can determine
         # whether it is worth starting the engine or not. 
@@ -58,6 +64,16 @@ class Action(object):
         
         return "Command %s (Category %s)" % (self.name, self.category)
         
-    def run(self, log, args):
+        
+    def run_interactive(self, log, args):
+        """
+        Run this API in interactive mode. This mode may prompt the user for input via stdin.
+        """
         raise Exception("Need to implement this")
              
+    def run_noninteractive(self, log, args):
+        """
+        Run non-interactive. Needs to be implemented if the supports_api property is set to True.
+        """
+        
+        

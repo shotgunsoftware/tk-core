@@ -1225,7 +1225,7 @@ class MigratePublishedFileEntitiesAction(Action):
                         ("Migrates TankPublishedFile entities to PublishedFile entities & switches this configuration to use PublishedFile entities"), 
                         "Admin")
         
-    def run(self, log, args):
+    def run_interactive(self, log, args):
         """
         Run this action with the given args
         """

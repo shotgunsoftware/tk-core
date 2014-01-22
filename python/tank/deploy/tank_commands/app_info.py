@@ -23,7 +23,7 @@ class AppInfoAction(Action):
                         "Shows a breakdown of your installed apps.", 
                         "Developer")
     
-    def run(self, log, args):
+    def run_interactive(self, log, args):
 
         log.info("This command lists details about Apps and Engines.")
         log.info("--------------------------------------------------")

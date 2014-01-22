@@ -41,7 +41,7 @@ class CoreUpgradeAction(Action):
                         "Checks that your Toolkit Core API install is up to date.", 
                         "Configuration")
             
-    def run(self, log, args):
+    def run_interactive(self, log, args):
         
         if len(args) != 0:
             raise TankError("This command takes no arguments!")
@@ -141,7 +141,7 @@ class CoreLocalizeAction(Action):
                          "then run the localize command from your clone's tank command."), 
                         "Admin")
     
-    def run(self, log, args):
+    def run_interactive(self, log, args):
         
         if len(args) != 0:
             raise TankError("This command takes no arguments!")

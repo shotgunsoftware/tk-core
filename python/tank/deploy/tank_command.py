@@ -13,6 +13,7 @@ Methods for handling of the tank command
 
 """
 
+import logging
 
 from .tank_commands.action_base import Action 
 from .tank_commands import folders
@@ -70,7 +71,7 @@ def _get_built_in_actions():
     return actions
 
 ###############################################################################################
-# Shell engine tank commands - bridge for creating an action from an app
+# Shell engine tank commands - adapter for creating an action from an app
 
 class ShellEngineAction(Action):
     """
@@ -80,7 +81,7 @@ class ShellEngineAction(Action):
         Action.__init__(self, name, Action.ENGINE, description, "Shell Engine")
         self._command_key = command_key
     
-    def run(self, log, args):        
+    def run_interactive(self, log, args):        
         self.engine.execute_command(self._command_key, args)
         
 
@@ -114,11 +115,155 @@ def get_shell_engine_actions(engine_obj):
 
     return actions
 
-
-
-
 ###############################################################################################
-# Main entry points for accessing tank commands
+# Complete public API definitions for accessing toolkit commands
+# ------------------------------------------------------------
+# - The list_commands returns a list of available command names
+# - The create_command factory returns a SgtkSystemCommand class instance
+#   for a given command
+# - The SgtkSystemCommand class wraps around a command implementation and
+#   forms the actual interface which we expose via the interface.   
+
+def list_commands():
+    """
+    Lists the system commands registered with the system.
+
+    :returns: list of command names
+    """
+    action_names = []
+    for a in _get_built_in_actions():
+        if a.supports_api:
+            action_names.append(a.name)    
+    return action_names
+
+def create_command(command_name):
+    """
+    Creates a command object that can be used to execute a command
+    
+    :returns: SgtkSystemCommand object instance
+    """
+    for x in _get_built_in_actions():
+        if x.name == command_name and x.supports_api:
+            return SgtkSystemCommand(x)
+    # not found
+    raise TankError("The command '%s' does not exist. Use the list_commands method to "
+                    "see a list of all commands available via the API." % command_name)
+
+
+class SgtkSystemCommand(object):
+    """
+    Represents a toolkit system command.
+    
+    Toolkit commands can be one of two different types:
+    
+    - A global command executes without any type of state or context. 
+      Examples of global commands include setup_project, which can be 
+      carried out from an empty state without any project specified or
+      any type of normal toolkit environment present.
+    - A command that requires an API instance needs to be initialized
+      with a sgtk API instance in order to execute. The tk instance 
+      defines the pipeline configuration to use and which project to run.
+      Most commmands are of this class. For this command class to work,
+      the needs_
+      
+     You can query if an api instance is needed using the command_instance.needs_api
+     property. If this returns true, a api_instance parameter must be passed to
+     the execute() method when the command is executed. 
+    """
+    
+    # this class wraps around a tank.deploy.tank_commands.action_base.Action class
+    # and exposes the "official" interface for it.
+    
+    def __init__(self, pimpl):
+        self.__pimpl = pimpl
+        
+        # set up a default logger which can be overridden via the set_logger method
+        self.__log = logging.getLogger("sgtk.systemcommand")
+        self.__log.setLevel(logging.DEBUG)
+        ch = logging.StreamHandler()
+        formatter = logging.Formatter("%(levelname)s %(message)s")
+        ch.setFormatter(formatter)
+        self.__log.addHandler(ch)
+        
+        # only commands of type GLOBAL, PC_LOCAL are currently supported
+        if self.__pimpl.mode not in (Action.GLOBAL, Action.PC_LOCAL):
+            raise TankError("The command %r is not of a type which is supported by Toolkit. "
+                            "Please contact support on toolkitsupport@shotgunsoftware.com" % self.__pimpl)
+        
+    @property
+    def needs_api(self):
+        """
+        Returns true if a sgtk API is required to execute this command.
+        If so, an API instance needs to be passed to the execute method when the command
+        is executed.
+        """
+        return (self.__pimpl.mode == Action.PC_LOCAL)
+
+    @property
+    def description(self):
+        """
+        Returns a description of this command.
+        """
+        return self.__pimpl.description
+         
+    @property
+    def name(self):
+        """
+        Returns the name of this command.
+        """
+        return self.__pimpl.name
+
+    @property
+    def optional_parameters(self):
+        """
+        Returns a dictionary of all optional parameters. The key is
+        the parameter name and the value is the description.
+        """
+        return self.__pimpl.optional_properties
+
+    @property
+    def required_properties(self):
+        """
+        Returns a dictionary of required parameter. The key is
+        the parameter name and the value is the description.
+        """
+        return self.__pimpl.required_properties
+        
+    def set_logger(self, log):
+        """
+        Specify a standard python log instance to send logging output to.
+        If this is not specify, the standard output mechanism will be used.
+        
+        :param log: Standard python logging instance
+        """
+        self.__log = log
+
+    def execute(self, params, api_instance=None):
+        """
+        Execute this command.
+        
+        :param params: dictionary of parameters to pass to this command.
+                       the dictionary key is the name of the parameter and the value
+                       is the value you want to pass. You can query which parameters
+                       can be passed in using the required_parameters and optional_parameters
+                       class accessors.
+        :param api_instane: For commands which require a Toolkit API instance to operate, 
+                            pass it in via this parameter. You can find out if a command
+                            requires this via the needs_api property. 
+        """
+        
+#        if api_instance:
+#            self.
+            
+        self.__pimpl.run_noninteractive(self.__log, params)
+        
+        
+        
+    
+    
+    
+###############################################################################################
+# Main entry points for accessing tank commands from the tank command / shell engine
 
 def get_actions(log, tk, ctx):
     """

@@ -19,3 +19,5 @@ from .api import Sgtk, sgtk_from_path, sgtk_from_entity
 from .errors import TankError, TankEngineInitError
 from .template import TemplatePath, TemplateString
 from .hook import Hook
+
+from .deploy.tank_command import list_commands, create_command
