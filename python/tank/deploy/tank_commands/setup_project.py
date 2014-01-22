@@ -1016,7 +1016,7 @@ def _interactive_setup(log, install_root, check_storage_path_exists, force):
     
     # validate that this is not crazy
     # note that the value can contain slashes and span across multiple folders
-    if re.match("^[/a-zA-Z0-9_-]+$", project_disk_folder) is None:
+    if re.match("^[\./a-zA-Z0-9_-]+$", project_disk_folder) is None:
         # bad name
         raise TankError("Invalid project folder '%s'! Please use alphanumerics, "
                         "underscores and dashes." % project_disk_folder)
