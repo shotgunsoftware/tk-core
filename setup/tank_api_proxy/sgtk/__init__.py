@@ -38,8 +38,12 @@ if not os.path.exists(parent_python_path):
 
 # set up an env var to track the current pipeline configuration
 # this is to help the tank core API figure out for example tank.tank_from_path()
-# when using multiple work dev areas.
-os.environ["TANK_CURRENT_PC"] = current_folder
+# when using multiple work pipeline configurations for a single project
+
+# make sure the TANK_CURRENT_PC points at the root of this pipeline configuration
+pipeline_config = os.path.join(current_folder, "..", "..", "..", "..")
+pipeline_config = os.path.abspath(pipeline_config)
+os.environ["TANK_CURRENT_PC"] = pipeline_config
 
 # ok we got the parent location
 # prepend this to the python path and reload the module
