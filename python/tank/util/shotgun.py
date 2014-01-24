@@ -70,8 +70,17 @@ def __get_app_store_config():
 
 def get_project_name_studio_hook_location():
     """
-    Returns the path to the studio level project naming hook
+    Returns the path to the studio level project naming hook.
     """
+    
+    # NOTE! This code is located here because it needs to be able to run without a project.
+    # the natural place would probably have been to put this inside the pipeline configuration
+    # class, however this object assumes a project that exists.
+    #
+    # @todo longterm we should probably establish a place in the code where we define 
+    # an API or set of functions which can be executed outside the remit of a 
+    # pipeline configuration/toolkit project.
+    
     core_cfg = __get_api_core_config_location()
     return os.path.join(core_cfg, "project_name.py")
 
