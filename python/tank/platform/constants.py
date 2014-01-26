@@ -201,3 +201,9 @@ SHOTGUN_ENGINE_NAME = "tk-shotgun"
 
 # the menu favourites key for an engine
 MENU_FAVOURITES_KEY = "menu_favourites"
+
+# studio level core hook file name for computing the default name of a project
+STUDIO_HOOK_PROJECT_NAME = "project_name.py"
+
+# studio level core hook for specifying shotgun connection settings
+STUDIO_HOOK_SG_CONNECTION_SETTINGS = "sg_connection.py"
