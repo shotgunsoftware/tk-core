@@ -236,7 +236,7 @@ def download_url(sg, url, location):
         with open(location, "wb") as f:
             f.write(response.read())
     except Exception, e:
-        raise TankError("Could not download contents of url '%s'. Error reported: %s" % e)
+        raise TankError("Could not download contents of url '%s'. Error reported: %s" % (url, e))
     
 def create_sg_connection(user="default"):
     """
