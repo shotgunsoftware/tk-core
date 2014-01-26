@@ -233,8 +233,11 @@ def download_url(sg, url, location):
     # ok so the thumbnail was not in the cache. Get it.
     try:
         response = urllib2.urlopen(url)
-        with open(location, "wb") as f:
+        f = open(location, "wb")
+        try:
             f.write(response.read())
+        finally:
+            f.close()
     except Exception, e:
         raise TankError("Could not download contents of url '%s'. Error reported: %s" % (url, e))
     
