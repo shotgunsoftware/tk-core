@@ -136,9 +136,9 @@ def list_commands():
             action_names.append(a.name)    
     return action_names
 
-def create_command(command_name):
+def get_command(command_name):
     """
-    Creates a command object that can be used to execute a command
+    Returns an instance of a command object that can be used to execute a command
     
     :returns: SgtkSystemCommand object instance
     """
@@ -185,8 +185,8 @@ class SgtkSystemCommand(object):
         ch.setFormatter(formatter)
         self.__log.addHandler(ch)
         
-        # only commands of type GLOBAL, PC_LOCAL are currently supported
-        if self.__pimpl.mode not in (Action.GLOBAL, Action.PC_LOCAL):
+        # only commands of type GLOBAL, TK_INSTANCE are currently supported
+        if self.__pimpl.mode not in (Action.GLOBAL, Action.TK_INSTANCE):
             raise TankError("The command %r is not of a type which is supported by Toolkit. "
                             "Please contact support on toolkitsupport@shotgunsoftware.com" % self.__pimpl)
         
@@ -197,7 +197,7 @@ class SgtkSystemCommand(object):
         If so, an API instance needs to be passed to the execute method when the command
         is executed.
         """
-        return (self.__pimpl.mode == Action.PC_LOCAL)
+        return (self.__pimpl.mode == Action.TK_INSTANCE)
 
     @property
     def description(self):
@@ -300,7 +300,7 @@ def get_actions(log, tk, ctx):
         if a.mode == Action.GLOBAL:
             # globals are always possible to run
             actions.append(a)
-        if tk and a.mode == Action.PC_LOCAL:
+        if tk and a.mode == Action.TK_INSTANCE:
             # we have a PC!
             actions.append(a)
         if ctx and a.mode == Action.CTX:
@@ -311,52 +311,23 @@ def get_actions(log, tk, ctx):
             actions.append(a)
         
     return (actions, engine)
-
-
-def _process_action(code_install_root, pipeline_config_root, log, tk, ctx, engine, action, args):
-    """
-    Does the actual execution of an action object
-    """
-    # seed the action object with all the handles it may need
-    action.tk = tk
-    action.context = ctx
-    action.engine = engine
-    action.code_install_root = code_install_root
-    action.pipeline_config_root = pipeline_config_root
-    
-    # now check that we actually have passed enough stuff to work with this mode
-    if action.mode in (Action.PC_LOCAL, Action.CTX, Action.ENGINE) and tk is None:
-        # we are missing a tk instance
-        log.debug("Trying to launch %r without an Toolkit instance." % action)
-        raise TankError("The command '%s' needs a project to run. For example, if you want "
-                        "to run it for project XYZ, execute "
-                        "'tank Project XYZ %s'" % (action.name, action.name))
-    
-    if action.mode in (Action.CTX, Action.ENGINE) and ctx is None:
-        # we have a command that needs a context
-        log.debug("Trying to launch %r without a context." % action)
-        raise TankError("The command '%s' needs a work area to run." % action.name)
-        
-    if action.mode == Action.ENGINE and engine is None:
-        # we have a command that needs an engine
-        log.debug("Trying to launch %r without an engine." % action)
-        raise TankError("The command '%s' needs the shell engine running." % action.name)
-    
-    # ok all good
-    log.info("- Running command %s..." % action.name)
-    log.info("")
-    log.info("")
-    log.info("-" * 70)
-    log.info("Command: %s" % action.name.replace("_", " ").capitalize())
-    log.info("-" * 70)
-    log.info("")
-    return action.run(log, args)
-    
     
 
-def run_action(code_install_root, pipeline_config_root, log, tk, ctx, command, args):
+def run_action(log, tk, ctx, command, args):
     """
-    Find an action and start execution. 
+    Find an action and start execution. This method is tightly coupled with the tank_cmd script.
+    
+    The command handles multiple states and contains logic for validating that the mode of the desired command
+    is actually compatible with the state which is passed in.
+    
+    Because tank commands can run in environments with varying degrees of completeness (ranging from only
+    knowing the code location to having a fully qualified context), some of the parameters deliberately overlap.
+    
+    :param log: Python logger to pass command output to
+    :param tk: API instance to pass to command. For a state where no notion of a pipeline config/current project
+               exists, this will be None.
+    :param ctx: Context object. For a state where a current context is not known, this will be none.
+    :param args: list of strings forming additional arguments to be passed to the command.
     
     """
     engine = None
@@ -403,11 +374,38 @@ def run_action(code_install_root, pipeline_config_root, log, tk, ctx, command, a
         log.info("")
     
     else:
-        _process_action(code_install_root, 
-                        pipeline_config_root, 
-                        log, 
-                        tk, 
-                        ctx, 
-                        engine, 
-                        found_action, args)
-    
+
+        # seed the action object with all the handles it may need
+        found_action.tk = tk
+        found_action.context = ctx
+        found_action.engine = engine
+        
+        # now check that we actually have passed enough stuff to work with this mode
+        if found_action.mode in (Action.TK_INSTANCE, Action.CTX, Action.ENGINE) and tk is None:
+            # we are missing a tk instance
+            log.debug("Trying to launch %r without an Toolkit instance." % found_action)
+            raise TankError("The command '%s' needs a project to run. For example, if you want "
+                            "to run it for project XYZ, execute "
+                            "'tank Project XYZ %s'" % (found_action.name, found_action.name))
+        
+        if found_action.mode in (Action.CTX, Action.ENGINE) and ctx is None:
+            # we have a command that needs a context
+            log.debug("Trying to launch %r without a context." % found_action)
+            raise TankError("The command '%s' needs a work area to run." % found_action.name)
+            
+        if found_action.mode == Action.ENGINE and engine is None:
+            # we have a command that needs an engine
+            log.debug("Trying to launch %r without an engine." % found_action)
+            raise TankError("The command '%s' needs the shell engine running." % found_action.name)
+        
+        # ok all good
+        log.info("- Running command %s..." % found_action.name)
+        log.info("")
+        log.info("")
+        log.info("-" * 70)
+        log.info("Command: %s" % found_action.name.replace("_", " ").capitalize())
+        log.info("-" * 70)
+        log.info("")
+        return found_action.run_interactive(log, args)
+
+

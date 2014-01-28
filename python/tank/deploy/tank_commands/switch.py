@@ -24,7 +24,7 @@ class SwitchAppAction(Action):
     def __init__(self):
         Action.__init__(self, 
                         "switch_app", 
-                        Action.PC_LOCAL, 
+                        Action.TK_INSTANCE, 
                         "Switches an app from one code location to another.", 
                         "Developer")
     

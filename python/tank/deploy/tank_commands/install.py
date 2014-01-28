@@ -24,7 +24,7 @@ class InstallAppAction(Action):
     def __init__(self):
         Action.__init__(self, 
                         "install_app", 
-                        Action.PC_LOCAL, 
+                        Action.TK_INSTANCE, 
                         "Adds a new app to your configuration.", 
                         "Configuration")
     
@@ -181,7 +181,7 @@ class InstallEngineAction(Action):
     def __init__(self):
         Action.__init__(self, 
                         "install_engine", 
-                        Action.PC_LOCAL, 
+                        Action.TK_INSTANCE, 
                         "Adds a new engine to your configuration.", 
                         "Configuration")
     

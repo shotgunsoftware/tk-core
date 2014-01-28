@@ -32,7 +32,9 @@ from . import console_utils
         
 class CoreUpgradeAction(Action):
     """
-    Action to upgrade the Core API
+    Action to upgrade the Core API code that is associated with the currently running code.
+    
+    
     """
     def __init__(self):
         Action.__init__(self, 
@@ -46,21 +48,25 @@ class CoreUpgradeAction(Action):
         if len(args) != 0:
             raise TankError("This command takes no arguments!")
 
-        if self.code_install_root != self.pipeline_config_root:
-            # we are updating a parent install that is shared
-            log.info("")
-            log.info("Please note: You are updating the Core API for multiple projects.")
-            log.info("")
-        
+        # get the core api root of this installation by looking at the relative location of the running code.
+        code_install_root = pipelineconfig.get_current_code_install_root() 
         
         log.info("")
         log.info("Welcome to the Shotgun Pipeline Toolkit update checker!")
         log.info("This script will check if the Toolkit Core API installed")
-        log.info("in %s" % self.code_install_root) 
+        log.info("in %s" % code_install_root) 
         log.info("is up to date.")
         log.info("")
+        log.info("")
+        log.info("Please note that when you upgrade the core API, you typically affect "
+                 "more than one project. If you want to test a Core API upgrade in isolation "
+                 "prior to rolling it out to multiple projects, we recommend creating a "
+                 "special *localized* pipeline configuration. For more information about this, please "
+                 "see the Toolkit docuemntation.")
+        log.info("")
+        log.info("")    
         
-        installer = TankCoreUpgrader(self.code_install_root, log)
+        installer = TankCoreUpgrader(code_install_root, log)
         cv = installer.get_current_version_number()
         lv = installer.get_latest_version_number()
         log.info("You are currently running version %s of the Shotgun Pipeline Toolkit" % cv)
@@ -134,7 +140,7 @@ class CoreLocalizeAction(Action):
     def __init__(self):
         Action.__init__(self, 
                         "localize", 
-                        Action.PC_LOCAL, 
+                        Action.TK_INSTANCE, 
                         ("Installs the Core API into your current Configuration. This is typically "
                          "done when you want to test a Core API upgrade in an isolated way. If you "
                          "want to safely test an API upgrade, first clone your production configuration, "
@@ -146,23 +152,24 @@ class CoreLocalizeAction(Action):
         if len(args) != 0:
             raise TankError("This command takes no arguments!")
         
-        log.debug("Executing the localize command. Code root: %s. PC Root: %s" % (self.code_install_root, 
-                                                                                  self.pipeline_config_root))
+        log.debug("Executing the localize command for %r" % self.tk)
         
         log.info("")
-        if self.code_install_root == self.pipeline_config_root:
-            raise TankError("Looks like the pipeline configuration %s already has a local install "
-                            "of the core!" % self.pipeline_config_root)
+        if self.tk.pipeline_configuration.is_localized():
+            raise TankError("Looks like your current pipeline configuration already has a local install of the core!")
         
-        log.info("This will copy the Core API in %s into the Pipeline configuration %s." % (self.code_install_root, 
-                                                                                            self.pipeline_config_root) )
+        core_api_root = self.tk.pipeline_configuration.get_install_location()
+        pc_root = self.tk.pipeline_configuration.get_path()
+        
+        log.info("This will copy the Core API in %s into the Pipeline configuration %s." % (core_api_root, 
+                                                                                            pc_root) )
         log.info("")
         if console_utils.ask_yn_question("Do you want to proceed"):
             log.info("")
             
-            source_core = os.path.join(self.code_install_root, "install", "core")
-            target_core = os.path.join(self.pipeline_config_root, "install", "core")
-            backup_location = os.path.join(self.pipeline_config_root, "install", "core.backup")
+            source_core = os.path.join(core_api_root, "install", "core")
+            target_core = os.path.join(pc_root, "install", "core")
+            backup_location = os.path.join(pc_root, "install", "core.backup")
             
             # move this into backup location
             backup_folder_name = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -201,24 +208,24 @@ class CoreLocalizeAction(Action):
                               "interpreter_Linux.cfg", 
                               "interpreter_Windows.cfg"]
                 for fn in file_names:
-                    src = os.path.join(self.code_install_root, "config", "core", fn)
-                    tgt = os.path.join(self.pipeline_config_root, "config", "core", fn)
+                    src = os.path.join(core_api_root, "config", "core", fn)
+                    tgt = os.path.join(pc_root, "config", "core", fn)
                     log.debug("Copy %s -> %s" % (src, tgt))
                     shutil.copy(src, tgt)
                     
                 # copy apps, engines, frameworks
-                source_apps = os.path.join(self.code_install_root, "install", "apps")
-                target_apps = os.path.join(self.pipeline_config_root, "install", "apps")
+                source_apps = os.path.join(core_api_root, "install", "apps")
+                target_apps = os.path.join(pc_root, "install", "apps")
                 log.info("Localizing Apps: %s -> %s" % (source_apps, target_apps))
                 util._copy_folder(log, source_apps, target_apps)
                 
-                source_engines = os.path.join(self.code_install_root, "install", "engines")
-                target_engines = os.path.join(self.pipeline_config_root, "install", "engines")
+                source_engines = os.path.join(core_api_root, "install", "engines")
+                target_engines = os.path.join(pc_root, "install", "engines")
                 log.info("Localizing Engines: %s -> %s" % (source_engines, target_engines))
                 util._copy_folder(log, source_engines, target_engines)
     
-                source_frameworks = os.path.join(self.code_install_root, "install", "frameworks")
-                target_frameworks = os.path.join(self.pipeline_config_root, "install", "frameworks")
+                source_frameworks = os.path.join(core_api_root, "install", "frameworks")
+                target_frameworks = os.path.join(pc_root, "install", "frameworks")
                 log.info("Localizing Frameworks: %s -> %s" % (source_frameworks, target_frameworks))
                 util._copy_folder(log, source_frameworks, target_frameworks)
                     
@@ -241,80 +248,13 @@ class CoreLocalizeAction(Action):
             
 
 
-
-#################################################################################################
-
-
-
-
-
-def show_core_info_html(log, code_root, pc_root):
-    """
-    Display details about the core version etc. This is a special version intended to 
-    be run from the tank command / shotgun engine and it will output 
-    html code suitable for display inside Shotgun.
-    """
-    
-    code_css_block = "display: block; padding: 0.5em 1em; border: 1px solid #bebab0; background: #faf8f0;"
-    
-    installer = TankCoreUpgrader(code_root, log)
-    cv = installer.get_current_version_number()
-    lv = installer.get_latest_version_number()
-    log.info("You are currently running version %s of the Shotgun Pipeline Toolkit." % cv)
-    
-    if code_root != pc_root:
-        log.info("")
-        log.info("Your core API is located in <code>%s</code> and is shared with other "
-                 "projects." % code_root)
-    log.info("")
-    
-    status = installer.get_update_status()
-    req_sg = installer.get_required_sg_version_for_upgrade()
-    
-    if status == TankCoreUpgrader.UP_TO_DATE:
-        log.info("<b>There is no need to update the Toolkit Core API at this time!</b>")
-
-    elif status == TankCoreUpgrader.UPGRADE_BLOCKED_BY_SG:
-        log.warning("<b>A new version (%s) of the core API is available however "
-                    "it requires a more recent version (%s) of Shotgun!</b>" % (lv, req_sg))
-        
-    elif status == TankCoreUpgrader.UPGRADE_POSSIBLE:
-        
-        (summary, url) = installer.get_release_notes()
-                
-        log.info("<b>A new version of the Toolkit API (%s) is available!</b>" % lv)
-        log.info("")
-        log.info("<b>Change Summary:</b> %s <a href='%s' target=_new>"
-                 "Click for detailed Release Notes</a>" % (summary, url))
-        log.info("")
-        log.info("In order to upgrade, execute the following command in a shell:")
-        log.info("")
-        
-        if sys.platform == "win32":
-            tank_cmd = os.path.join(code_root, "tank.bat")
-        else:
-            tank_cmd = os.path.join(code_root, "tank")
-        
-        log.info("<code style='%s'>%s core</code>" % (code_css_block, tank_cmd))
-        
-        log.info("")
-                    
-    else:
-        raise TankError("Unknown Upgrade state!")
-    
-
-
-
-
 #################################################################################################
 
 
 class TankCoreUpgrader(object):
     """
     Class which handles the upgrade of the core API.
-    Note that this is not part of the descriptor framework since it is a bit different.
     """
-        
     
     # possible update status states
     (UP_TO_DATE,                    # all good, no update necessary  
@@ -323,7 +263,17 @@ class TankCoreUpgrader(object):
      ) = range(3)
         
         
-    def __init__(self, code_root, logger):
+    def __init__(self, installation_root, logger):
+        """
+        Constructor
+        
+        :param installation_root: The path to the installation to check. This is either a localized
+                                  Pipeline Configuration or a studio code location (omit the install folder).
+                                  Because we are passing this parameter in explicitly, the currently running
+                                  code base does not have to be related to the code base that is being upgraded,
+                                  e.g. you can run the upgrader as a totally separate thing.
+        :param logger: Logger to send output to.
+        """
         self._log = logger
         
         (sg_app_store, script_user) = shotgun.create_sg_app_store_connection()
@@ -333,7 +283,7 @@ class TankCoreUpgrader(object):
         self._local_sg = shotgun.create_sg_connection()      
         self._latest_ver = self.__get_latest_version()
         
-        self._install_root = os.path.join(code_root, "install")
+        self._install_root = os.path.join(installation_root, "install")
         
         self._current_ver = pipelineconfig.get_core_api_version_based_on_current_code()
          

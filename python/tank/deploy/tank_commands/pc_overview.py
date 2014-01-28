@@ -25,7 +25,7 @@ class PCBreakdownAction(Action):
     def __init__(self):
         Action.__init__(self, 
                         "configurations", 
-                        Action.PC_LOCAL, 
+                        Action.TK_INSTANCE, 
                         ("Shows an overview of the different configurations registered with this project."), 
                         "Admin")
     

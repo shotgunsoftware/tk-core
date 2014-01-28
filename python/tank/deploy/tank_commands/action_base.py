@@ -12,13 +12,42 @@
 class Action(object):
     """
     Describes an executable action. Base class that all tank command actions derive from.
+    
+    The execution payload should be defined in the run_* methods, which will be called
+    by the system, either via a tank command or via an API accessor.
+    
+    The action runs in an operational state controlled by the mode parameter.
+    At the point when one of the run_* method are called by the system, certain member 
+    variables are guaranteed to have been populated, depending on the *mode*.
+    
+    Action.GLOBAL
+    -------------
+    No state is set up. Basically, you don't even have access to a tk interface at this point.
+    Commands that run in this state are commands that handle things that happen outside a project.
+    Examples are project setup and upgrading the core api.
+    
+    Action.TK_INSTANCE
+    ------------------
+    A TK API instance exists. This implicitly means that a pipeline configuration also exists.
+    An executing action can access the associated tk instance via the self.tk member variable.
+    This is the most common state in which toolkit commands run. Examples include all commands
+    which operate on a project (install_app, updates, validation, cloning, etc).
+    
+    Action.CTX
+    ----------
+    A TK API instance exists and a context has been established. Your command can access the
+    member variables self.tk and self.context. An example of an Action / tank command that 
+    uses this mode is the folder creation and folder preview commands.
+    
+    Action.ENGINE
+    -------------
+    A TK API instance exists, a context has been established and an engine has been started.
+    The engine can be accessed via self.engine. An example of a command running using this level
+    is the Action brigde which connects App commands with tank commands; this is how app commands
+    are executed when you run the inside the Shell engine. 
     """
     
-    # GLOBAL - works everywhere, requires self.code_install_root only
-    # PC_LOCAL - works when a PC exists. requires GLOBAL + self.pipeline_config_root + self.tk
-    # CTX - works when a context exists. requires PC_LOCAL + self.context
-    # ENGINE - works when an engine exists. requires CTX + self.engine 
-    GLOBAL, PC_LOCAL, CTX, ENGINE = range(4)
+    GLOBAL, TK_INSTANCE, CTX, ENGINE = range(4)
     
     def __init__(self, name, mode, description, category):
         self.name = name
@@ -28,9 +57,9 @@ class Action(object):
         
         # set this property to True if your command supports API access
         self.supports_api = False
+        
         # when using the API mode, need to specify the parameters
-        self.required_properties = []
-        self.optional_properties = []
+        self.properties = []
         
         # special flag for commands that run in multiple contexts where an engine
         # is optional, but beneficial. This is so that the system can determine
@@ -43,16 +72,14 @@ class Action(object):
         self.tk = None
         self.context = None
         self.engine = None
-        self.code_install_root = None
-        self.pipeline_config_root = None
         
     def __repr__(self):
         
         mode_str = "UNKNOWN"
         if self.mode == Action.GLOBAL:
             mode_str = "GLOBAL"
-        elif self.mode == Action.PC_LOCAL:
-            mode_str = "PC_LOCAL"
+        elif self.mode == Action.TK_INSTANCE:
+            mode_str = "TK_INSTANCE"
         elif self.mode == Action.CTX:
             mode_str = "CTX"
         elif self.mode == Action.ENGINE:

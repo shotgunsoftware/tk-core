@@ -21,7 +21,7 @@ class ValidateConfigAction(Action):
     def __init__(self):
         Action.__init__(self, 
                         "validate", 
-                        Action.PC_LOCAL, 
+                        Action.TK_INSTANCE, 
                         ("Validates your current Configuration to check that all "
                         "environments have been correctly configured."), 
                         "Configuration")

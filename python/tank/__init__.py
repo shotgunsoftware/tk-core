@@ -20,4 +20,4 @@ from .errors import TankError, TankEngineInitError
 from .template import TemplatePath, TemplateString
 from .hook import Hook
 
-from .deploy.tank_command import list_commands, create_command
+from .deploy.tank_command import list_commands, get_command

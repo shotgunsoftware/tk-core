@@ -19,7 +19,7 @@ class AppUpdatesAction(Action):
     def __init__(self):
         Action.__init__(self, 
                         "updates", 
-                        Action.PC_LOCAL, 
+                        Action.TK_INSTANCE, 
                         "Checks if there are any app or engine updates for the current configuration.", 
                         "Configuration")
     

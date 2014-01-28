@@ -28,7 +28,7 @@ class MovePCAction(Action):
     def __init__(self):
         Action.__init__(self, 
                         "move_configuration", 
-                        Action.PC_LOCAL, 
+                        Action.TK_INSTANCE, 
                         ("Moves this configuration from its current disk location to a new location."), 
                         "Admin")
     

@@ -24,7 +24,7 @@ class ClearCacheAction(Action):
     def __init__(self):
         Action.__init__(self, 
                         "clear_cache", 
-                        Action.PC_LOCAL, 
+                        Action.TK_INSTANCE, 
                         ("Clears the Shotgun Menu Cache associated with this Configuration. "
                          "This is sometimes useful after complex configuration changes if new "
                          "or modified Toolkit menu items are not appearing inside Shotgun."), 
@@ -55,7 +55,7 @@ class InteractiveShellAction(Action):
     def __init__(self):
         Action.__init__(self, 
                         "shell", 
-                        Action.PC_LOCAL, 
+                        Action.TK_INSTANCE, 
                         "Starts an interactive Python shell for the current location.", 
                         "Developer")
         

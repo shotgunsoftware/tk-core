@@ -337,7 +337,7 @@ class PipelineConfiguration(object):
         """
         associated_api_root = self.get_install_location()
         
-        info_yml_path = os.path.join(associated_api_root, "core", "info.yml")
+        info_yml_path = os.path.join(associated_api_root, "install", "core", "info.yml")
 
         if os.path.exists(info_yml_path):
             try:
@@ -357,10 +357,24 @@ class PipelineConfiguration(object):
 
     def get_install_location(self):
         """
-        Returns the install location associated with this pipeline configuration.
+        Returns the core api install location associated with this pipeline configuration.
+        
+        This method will return the root point, so a pipeline config root if running 
+        a localized API or a studio location root if running a bare API.
         
         The install location is where toolkit caches engines, apps, frameworks and is
-        where it keeps the Core API.        
+        where it keeps the Core API.       
+        
+        Use this method whenever a pipeline configuration is available, since it is more
+        sophisticated. In cases when no pipeline configuration is available, revert to  
+        get_current_code_install_root() which will base the install location
+        on the current code.
+        
+        When a pipeline configuration exists, a specific relationship between the core
+        core and that configuration has also been established. This method will follow
+        this connection to return the actual associated core API rather than the 
+        running API. Usually these two are the same (or so they should be), but this is not
+        guaranteed.
         """
 
         if is_localized(self._pc_root):
@@ -389,22 +403,12 @@ class PipelineConfiguration(object):
             except:
                 pass
                 
-            
-            if install_path is not None:
-                # the files point at the 'studio' location. This location in turn contains
-                # a config and an install area and it is the install area we should return.
-                install_path = os.path.join(install_path, "install")
-                
-            else:
+            if install_path is None:
                 # no luck determining the location of the core API through our two 
                 # established modus operandi. Fall back on the crude legacy
                 # approach, which is to grab and return the currently running code.
-                install_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+                install_path = get_current_code_install_root()
 
-                if not os.path.exists(install_path):
-                    raise TankError("Cannot resolve the install location from the location of the Core Code! "
-                                    "This can happen if you try to move or symlink the Sgtk API. "
-                                    "Please contact support.")
                     
         return install_path
 
@@ -413,25 +417,25 @@ class PipelineConfiguration(object):
         """
         Returns the location where apps are stored
         """
-        return os.path.join(self.get_install_location(), "apps")
+        return os.path.join(self.get_install_location(), "install", "apps")
 
     def get_engines_location(self):
         """
         Returns the location where apps are stored
         """
-        return os.path.join(self.get_install_location(), "engines")
+        return os.path.join(self.get_install_location(), "install", "engines")
 
     def get_frameworks_location(self):
         """
         Returns the location where apps are stored
         """
-        return os.path.join(self.get_install_location(), "frameworks")
+        return os.path.join(self.get_install_location(), "install", "frameworks")
 
     def get_core_python_location(self):
         """
         returns the python root for this install.
         """
-        return os.path.join(self.get_install_location(), "core", "python")
+        return os.path.join(self.get_install_location(), "install", "core", "python")
 
 
     ########################################################################################
@@ -911,10 +915,28 @@ def from_path(path):
 
 
 
-
-
 ################################################################################################
-# method for loading configuration data. 
+# generic methods 
+
+def get_current_code_install_root():
+    """
+    Returns the root location of the currently executing code, assuming that this code is 
+    located inside a standard toolkit install setup. If the code that is running is part
+    of a localized pipeline configuration, its root path will be returned, otherwise 
+    a 'studio' root will be returned.
+    
+    This method may not return valid results if there has been any symlinks set up as part of
+    the install structure.
+    """
+    p = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "..", ".."))
+    if not os.path.exists(p):
+        raise TankError("Cannot resolve the install location from the location of the Core Code! "
+                        "This can happen if you try to move or symlink the Sgtk API. "
+                        "Please contact support.")
+    return p
+    
+    
+
 
 def get_core_api_version_based_on_current_code():
     """
@@ -1107,4 +1129,4 @@ def is_localized(pipeline_config_path):
     # look for a localized API by searching for a _core_upgrader.py file
     api_file = os.path.join(pipeline_config_path, "install", "core", "_core_upgrader.py")
     return os.path.exists(api_file)
-    
+

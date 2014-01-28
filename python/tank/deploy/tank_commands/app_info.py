@@ -19,7 +19,7 @@ class AppInfoAction(Action):
     def __init__(self):
         Action.__init__(self, 
                         "app_info", 
-                        Action.PC_LOCAL, 
+                        Action.TK_INSTANCE, 
                         "Shows a breakdown of your installed apps.", 
                         "Developer")
     
