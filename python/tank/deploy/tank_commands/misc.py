@@ -29,11 +29,28 @@ class ClearCacheAction(Action):
                          "This is sometimes useful after complex configuration changes if new "
                          "or modified Toolkit menu items are not appearing inside Shotgun."), 
                         "Admin")
+
+        # this method can be executed via the API
+        self.supports_api = True
+        
+    def run_noninteractive(self, log, parameters):
+        """
+        API accessor
+        """
+        return self._run(log)
     
     def run_interactive(self, log, args):
+        """
+        Tank command accessor
+        """
         if len(args) != 0:
             raise TankError("This command takes no arguments!")
+        return self._run(log)
         
+    def _run(self, log):
+        """
+        Actual execution payload
+        """             
         cache_folder = self.tk.pipeline_configuration.get_cache_location()
         # cache files are on the form shotgun_mac_project.txt
         for f in os.listdir(cache_folder):
