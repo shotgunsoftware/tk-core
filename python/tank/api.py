@@ -21,7 +21,6 @@ from . import folder
 from . import context
 from .util import shotgun
 from .errors import TankError
-from .folder.folder_io import folder_preflight_checks
 from .path_cache import PathCache
 from .template import read_templates
 from .platform import constants as platform_constants
@@ -159,6 +158,16 @@ class Tank(object):
     ##########################################################################################
     # public methods
 
+    def get_command(self, command_name):
+        """
+        Returns an instance of a command object that can be used to execute a command
+        
+        :returns: SgtkSystemCommand object instance
+        """
+        # avoid cyclic dependencies
+        from .deploy import tank_command
+        return tank_command.get_command(command_name, self) 
+        
     def template_from_path(self, path):
         """Finds a template that matches the input path.
 

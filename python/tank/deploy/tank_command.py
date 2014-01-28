@@ -136,17 +136,23 @@ def list_commands():
             action_names.append(a.name)    
     return action_names
 
-def get_command(command_name):
+def get_command(command_name, tk=None):
     """
-    Returns an instance of a command object that can be used to execute a command
+    Returns an instance of a command object that can be used to execute a command.
+    
+    :param command_name: Name of command to execute. Get a list of all available commands
+                         using the list_commands() method.
+    :param tk: Optional Toolkit API instance that can be passed to commands so require. 
+               Alternatively, you can also use the get_command() method on the Toolkit
+               API instance directly.
     
     :returns: SgtkSystemCommand object instance
     """
     for x in _get_built_in_actions():
         if x.name == command_name and x.supports_api:
-            return SgtkSystemCommand(x)
+            return SgtkSystemCommand(x, tk)
     # not found
-    raise TankError("The command '%s' does not exist. Use the list_commands method to "
+    raise TankError("The command '%s' does not exist. Use the sgtk.list_commands() method to "
                     "see a list of all commands available via the API." % command_name)
 
 
@@ -174,8 +180,23 @@ class SgtkSystemCommand(object):
     # this class wraps around a tank.deploy.tank_commands.action_base.Action class
     # and exposes the "official" interface for it.
     
-    def __init__(self, pimpl):
+    def __init__(self, pimpl, tk):
         self.__pimpl = pimpl
+        
+        # only commands of type GLOBAL, TK_INSTANCE are currently supported
+        if self.__pimpl.mode not in (Action.GLOBAL, Action.TK_INSTANCE):
+            raise TankError("The command %r is not of a type which is supported by Toolkit. "
+                            "Please contact support on toolkitsupport@shotgunsoftware.com" % self.__pimpl)
+        
+        # make sure we pass a tk api for actions that require it
+        if self.__pimpl.mode == Action.TK_INSTANCE and tk is None:
+            raise TankError("This command requires a Toolkit API instance to execute. Please "
+                            "provide this either as a parameter to the sgtk.get_command() method "
+                            "or alternatively execute the tk.get_command() method directly from "
+                            "a Toolkit API instance.") 
+
+        if tk:
+            self.__pimpl.tk = tk
         
         # set up a default logger which can be overridden via the set_logger method
         self.__log = logging.getLogger("sgtk.systemcommand")
@@ -185,10 +206,6 @@ class SgtkSystemCommand(object):
         ch.setFormatter(formatter)
         self.__log.addHandler(ch)
         
-        # only commands of type GLOBAL, TK_INSTANCE are currently supported
-        if self.__pimpl.mode not in (Action.GLOBAL, Action.TK_INSTANCE):
-            raise TankError("The command %r is not of a type which is supported by Toolkit. "
-                            "Please contact support on toolkitsupport@shotgunsoftware.com" % self.__pimpl)
         
     @property
     def needs_api(self):
@@ -198,6 +215,20 @@ class SgtkSystemCommand(object):
         is executed.
         """
         return (self.__pimpl.mode == Action.TK_INSTANCE)
+
+    @property
+    def parameters(self):
+        """
+        Returns the different parameters that needs to be specified and if a 
+        parameter has any default values. For example:
+        
+        { parameter_name: { "description": "Parameter info".
+                            "default": None,
+                            "type": "str" }, 
+         ...
+        }
+        """
+        return self.__pimpl.parameters
 
     @property
     def description(self):
@@ -212,23 +243,13 @@ class SgtkSystemCommand(object):
         Returns the name of this command.
         """
         return self.__pimpl.name
+    
+    def category(self):
+        """
+        Returns the category for this command. This is typically a short string like "Admin
+        """
+        return self.__pimpl.category
 
-    @property
-    def optional_parameters(self):
-        """
-        Returns a dictionary of all optional parameters. The key is
-        the parameter name and the value is the description.
-        """
-        return self.__pimpl.optional_properties
-
-    @property
-    def required_properties(self):
-        """
-        Returns a dictionary of required parameter. The key is
-        the parameter name and the value is the description.
-        """
-        return self.__pimpl.required_properties
-        
     def set_logger(self, log):
         """
         Specify a standard python log instance to send logging output to.
@@ -238,7 +259,7 @@ class SgtkSystemCommand(object):
         """
         self.__log = log
 
-    def execute(self, params, api_instance=None):
+    def execute(self, params):
         """
         Execute this command.
         
@@ -247,14 +268,7 @@ class SgtkSystemCommand(object):
                        is the value you want to pass. You can query which parameters
                        can be passed in using the required_parameters and optional_parameters
                        class accessors.
-        :param api_instane: For commands which require a Toolkit API instance to operate, 
-                            pass it in via this parameter. You can find out if a command
-                            requires this via the needs_api property. 
         """
-        
-#        if api_instance:
-#            self.
-            
         self.__pimpl.run_noninteractive(self.__log, params)
         
         

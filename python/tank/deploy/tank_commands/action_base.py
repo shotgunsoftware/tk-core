@@ -59,7 +59,13 @@ class Action(object):
         self.supports_api = False
         
         # when using the API mode, need to specify the parameters
-        self.properties = []
+        # this should be a dictionary on the form
+        # { "parameter_name": { "description": "Parameter info".
+        #                       "default": None,
+        #                       "type": "str" }, 
+        #    ...
+        # }
+        self.parameters = {}
         
         # special flag for commands that run in multiple contexts where an engine
         # is optional, but beneficial. This is so that the system can determine
@@ -74,7 +80,6 @@ class Action(object):
         self.engine = None
         
     def __repr__(self):
-        
         mode_str = "UNKNOWN"
         if self.mode == Action.GLOBAL:
             mode_str = "GLOBAL"
@@ -88,9 +93,7 @@ class Action(object):
         return "<Action Cmd: '%s' Category: '%s' MODE:%s>" % (self.name, self.category, mode_str)
             
     def __str__(self):
-        
         return "Command %s (Category %s)" % (self.name, self.category)
-        
         
     def run_interactive(self, log, args):
         """
@@ -98,9 +101,9 @@ class Action(object):
         """
         raise Exception("Need to implement this")
              
-    def run_noninteractive(self, log, args):
+    def run_noninteractive(self, log, parameters):
         """
         Run non-interactive. Needs to be implemented if the supports_api property is set to True.
         """
-        
+        raise Exception("Need to implement this")
         
