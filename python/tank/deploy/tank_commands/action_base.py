@@ -8,6 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from ...errors import TankError
 
 class Action(object):
     """
@@ -94,6 +95,43 @@ class Action(object):
             
     def __str__(self):
         return "Command %s (Category %s)" % (self.name, self.category)
+        
+    def _validate_parameters(self, parameters):
+        """
+        Helper method typically executed inside run_noninteractive.
+        validate the given parameters dict based on the self.parameters definition. 
+        
+        :returns: A dictionary which is a full and validated list of parameters, keyed by parameter name.
+                  Values not supplied by the user will have default values instead. 
+        """ 
+        new_param_values = {}
+        
+        # pass 1 - first get both user supplied and default values
+        # into target dictionary
+        for name in self.parameters:
+            if name in parameters:
+                # get param from input data
+                new_param_values[name] = parameters[name]
+            
+            elif self.parameters[name].get("default"):
+                # no user defined value, but a default value
+                # use default value from param def 
+                new_param_values[name] = self.parameters[name].get("default")
+        
+        # pass 2 - make sure all params are defined
+        for name in self.parameters:
+            if name not in new_param_values:
+                raise TankError("Cannot execute %s - parameter %s not specified!" % (self, name))
+            
+        # pass 3 - check types of all params.
+        for name in new_param_values:
+            val = new_param_values[name]
+            val_type = val.__class__.__name__
+            req_type = self.parameters[name].get("type")
+            if val_type != req_type:
+                raise TankError("Cannot execute %s - parameter %s not of required type %s" % (self, name, req_type))
+        
+        return new_param_values
         
     def run_interactive(self, log, args):
         """

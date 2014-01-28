@@ -43,7 +43,7 @@ class AppInfoAction(Action):
 
         return self._run(log)
         
-    def _run(self, log  ):
+    def _run(self, log):
         """
         Actual execution payload
         """ 

@@ -146,12 +146,31 @@ class CoreLocalizeAction(Action):
                          "want to safely test an API upgrade, first clone your production configuration, "
                          "then run the localize command from your clone's tank command."), 
                         "Admin")
+        
+        # this method can be executed via the API
+        self.supports_api = True
+        
+
+    def run_noninteractive(self, log, parameters):
+        """
+        API accessor
+        """
+        return self._run(log, False)
     
     def run_interactive(self, log, args):
-        
+        """
+        Tank command accessor
+        """
         if len(args) != 0:
             raise TankError("This command takes no arguments!")
-        
+
+        return self._run(log, True)
+    
+    def _run(self, log, prompt_user):
+        """
+        Actual execution payload
+        """ 
+
         log.debug("Executing the localize command for %r" % self.tk)
         
         log.info("")
@@ -164,7 +183,7 @@ class CoreLocalizeAction(Action):
         log.info("This will copy the Core API in %s into the Pipeline configuration %s." % (core_api_root, 
                                                                                             pc_root) )
         log.info("")
-        if console_utils.ask_yn_question("Do you want to proceed"):
+        if prompt_user == False or console_utils.ask_yn_question("Do you want to proceed"):
             log.info("")
             
             source_core = os.path.join(core_api_root, "install", "core")
