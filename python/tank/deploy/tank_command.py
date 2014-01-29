@@ -124,7 +124,7 @@ def get_shell_engine_actions(engine_obj):
 # - The SgtkSystemCommand class wraps around a command implementation and
 #   forms the actual interface which we expose via the interface.   
 
-def list_commands():
+def list_commands(tk=None):
     """
     Lists the system commands registered with the system.
 
@@ -132,8 +132,15 @@ def list_commands():
     """
     action_names = []
     for a in _get_built_in_actions():
+        
         if a.supports_api:
-            action_names.append(a.name)    
+        
+            if tk is None and a.mode != Action.GLOBAL:
+                # this command needs a tk api instance but we don't have that
+                continue
+
+            action_names.append(a.name)
+                
     return action_names
 
 def get_command(command_name, tk=None):
@@ -250,6 +257,7 @@ class SgtkSystemCommand(object):
         """
         return self.__pimpl.name
     
+    @property
     def category(self):
         """
         Returns the category for this command. This is typically a short string like "Admin

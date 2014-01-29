@@ -158,6 +158,16 @@ class Tank(object):
     ##########################################################################################
     # public methods
 
+    def list_commands(self):
+        """
+        Lists the system commands registered with the system.
+    
+        :returns: list of command names
+        """
+        # avoid cyclic dependencies
+        from .deploy import tank_command
+        return tank_command.list_commands(self) 
+
     def get_command(self, command_name):
         """
         Returns an instance of a command object that can be used to execute a command
