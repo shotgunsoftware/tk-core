@@ -31,16 +31,16 @@ from .errors import TankError
 from .util.login import get_current_user 
 
 
-SHOTGUN_ENTITY = "CustomEntity01"
+SHOTGUN_ENTITY = "FilesystemLocation"
 
-SG_ENTITY_FIELD = "sg_entity"
-SG_PATH_FIELD = "sg_path"
-SG_METADATA_FIELD = "sg_configuration_metadata"
-SG_IS_PRIMARY_FIELD = "sg_primary"
-SG_ENTITY_ID_FIELD = "sg_id_at_creation"
-SG_ENTITY_TYPE_FIELD = "sg_type_at_creation"
+SG_ENTITY_FIELD = "entity"
+SG_PATH_FIELD = "path"
+SG_METADATA_FIELD = "configuration_metadata"
+SG_IS_PRIMARY_FIELD = "is_primary"
+SG_ENTITY_ID_FIELD = "linked_entity_id"
+SG_ENTITY_TYPE_FIELD = "linked_entity_type"
 SG_ENTITY_NAME_FIELD = "code"
-SG_PIPELINE_CONFIG_FIELD = "sg_pipeline_configuration"
+SG_PIPELINE_CONFIG_FIELD = "pipeline_configuration"
 
 class PathCache(object):
     """
