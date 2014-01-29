@@ -18,11 +18,14 @@ import tempfile
 import uuid
 
 from .action_base import Action
+
 from ...util import shotgun
 from ...platform import constants
 from ...errors import TankError
 from ... import pipelineconfig
 from ... import hook
+from ...pipelineconfig import get_current_code_install_root
+
 from ..zipfilehelper import unzip_file
 from .. import util as deploy_util
 
@@ -39,7 +42,89 @@ class SetupProjectAction(Action):
                         "Sets up a new project with the Shotgun Pipeline Toolkit.", 
                         "Configuration")
         
+        # this method can be executed via the API
+        self.supports_api = True
+        
+        self.parameters = {}
+        
+        self.parameters["check_storage_path_exists"] = { "description": ("Check that the path to the storage exists. "
+                                                                         "this is enabled by default but can be turned "
+                                                                         "off in order to deal with certain expert "
+                                                                         "level use cases relating to UNC paths."),
+                                                         "default": True,
+                                                         "type": "bool" }
+        
+        self.parameters["force"] = { "description": ("Enabling this flag allows you to run the set up project on "
+                                                     "projects which have already been previously set up. "),
+                                               "default": False,
+                                               "type": "bool" }
+        
+        self.parameters["project_id"] = { "description": "Shotgun id for the project you want to set up.",
+                                                         "default": None,
+                                                         "type": "int" }
+        
+        self.parameters["project_folder_name"] = { "description": ("Name of the folder which you want to be the root "
+                                                                   "point of the created project. If a project already "
+                                                                   "exists, this parameter must reflect the name of the "
+                                                                   "top level folder of the project."),
+                                                   "default": None,
+                                                   "type": "str" }
+
+        self.parameters["project_folder_name"] = { "description": ("Name of the folder which you want to be the root "
+                                                                   "point of the created project. If a project already "
+                                                                   "exists, this parameter must reflect the name of the "
+                                                                   "top level folder of the project."),
+                                                   "default": None,
+                                                   "type": "str" }
+
+        self.parameters["config_uri"] = { "description": ("The configuration to use when setting up this project. "
+                                                          "This can be a path on disk to a directory containing a "
+                                                          "config, a path to a git bare repo or 'tk-config-default' "
+                                                          "to fetch the default config from the toolkit app store."),
+                                                   "default": "tk-config-default",
+                                                   "type": "str" }
+
+        # note how the current platform's default value is None in order to make that required
+        self.parameters["config_path_mac"] = { "description": ("The path on disk where the configuration should be "
+                                                               "installed on Macosx."),
+                                               "default": ( None if sys.platform == "darwin" else "" ),
+                                               "type": "str" }
+
+        self.parameters["config_path_win"] = { "description": ("The path on disk where the configuration should be "
+                                                               "installed on Windows."),
+                                               "default": ( None if sys.platform == "win32" else "" ),
+                                               "type": "str" }
+
+        self.parameters["config_path_linux"] = { "description": ("The path on disk where the configuration should be "
+                                                               "installed on Linux."),
+                                               "default": ( None if sys.platform == "linux2" else "" ),
+                                               "type": "str" }
+        
+
+        
+    def run_noninteractive(self, log, parameters):
+        """
+        API accessor
+        """
+        
+        computed_params = self._validate_parameters(parameters)
+        
+        interaction_handler = APISetupInteraction(log,
+                                                  computed_params["config_uri"], 
+                                                  computed_params["project_id"], 
+                                                  computed_params["project_folder_name"], 
+                                                  computed_params["config_path_mac"], 
+                                                  computed_params["config_path_linux"], 
+                                                  computed_params["config_path_win"])
+        
+        return _setup_wrapper(log,
+                              interaction_handler, 
+                              computed_params["check_storage_path_exists"], 
+                              computed_params["force"])
+        
+                
     def run_interactive(self, log, args):
+        
         if len(args) not in [0, 1]:
             raise TankError("Syntax: setup_project [--no-storage-check] [--force]")
         
@@ -60,23 +145,23 @@ class SetupProjectAction(Action):
             raise TankError("Syntax: setup_project [--no-storage-check] [--force]")
             check_storage_path_exists = False
         
-        interactive_setup(log, self.code_install_root, check_storage_path_exists, force)
+        
+        interaction_handler = CmdlineSetupInteraction(log)
+        
+        _setup_wrapper(log, interaction_handler, check_storage_path_exists, force)
         
         
-
-
-
-
 
 
 ########################################################################################
-# User Interaction
+# User Interaction is broken out in a separate class. When running in the API
+# mode, a headless, prepopulated APISetupInteraction class is used. When running in 
+# tank command mode, CmdlineSetupInteraction is used to prompt the user.
 
 class CmdlineSetupInteraction(object):
     
-    def __init__(self, log, sg):
+    def __init__(self, log):
         self._log = log
-        self._sg = sg
             
     def confirm_continue(self):
         """
@@ -90,7 +175,7 @@ class CmdlineSetupInteraction(object):
         else:
             raise TankError("Please answer Yes, y, no, n or press ENTER!")
         
-    def select_template_configuration(self):
+    def select_template_configuration(self, sg):
         """
         Ask the user which config to use. Returns a config string.
         """
@@ -101,7 +186,7 @@ class CmdlineSetupInteraction(object):
         self._log.info("------------------------------------------------------------------")
         self._log.info("Which configuration would you like to associate with this project?")
         
-        primary_pcs = self._sg.find(constants.PIPELINE_CONFIGURATION_ENTITY, 
+        primary_pcs = sg.find(constants.PIPELINE_CONFIGURATION_ENTITY, 
                                     [["code", "is", constants.PRIMARY_PIPELINE_CONFIG_NAME]],
                                     ["code", "project", "mac_path", "windows_path", "linux_path"])        
 
@@ -147,7 +232,7 @@ class CmdlineSetupInteraction(object):
         return config_name
         
     
-    def select_project(self, force):
+    def select_project(self, sg, force):
         """
         Returns the project id and name for a project for which setup should be done.
         Will request the user to input console input to select project.
@@ -162,7 +247,7 @@ class CmdlineSetupInteraction(object):
             # not force mode. Only show non-set up projects
             filters.append(["tank_name", "is", None])
          
-        projs = self._sg.find("Project", filters, ["id", "name", "sg_description", "tank_name"])
+        projs = sg.find("Project", filters, ["id", "name", "sg_description", "tank_name"])
     
         if len(projs) == 0:
             raise TankError("Sorry, no projects found! All projects seem to have already been "
@@ -221,7 +306,7 @@ class CmdlineSetupInteraction(object):
                             
         return (project_id, project_name)
         
-    def get_project_folder_name(self, project_name, project_id, resolved_storages):
+    def get_project_folder_name(self, sg, project_name, project_id, resolved_storages):
         """
         Given a project entity in Shotgun (name, id), decide where the project data
         root should be on disk. This will verify that the selected folder exists
@@ -239,7 +324,7 @@ class CmdlineSetupInteraction(object):
             # custom hook is available!
             suggested_folder_name = hook.execute_hook(project_name_hook, 
                                                       parent=None, 
-                                                      sg=self._sg, 
+                                                      sg=sg, 
                                                       project_id=project_id)
         else:
             # construct a valid name - replace white space with underscore and lower case it.
@@ -474,6 +559,80 @@ class CmdlineSetupInteraction(object):
 
         return location
 
+
+class APISetupInteraction(object):
+    
+    def __init__(self, log, configuration_uri, project_id, project_folder_name, mac_pc_location, linux_pc_location, win_pc_location):
+        self._log = log
+        self._configuration_uri = configuration_uri
+        self._project_id = project_id
+        self._project_folder_name = project_folder_name
+        
+        self._mac_pc_location = mac_pc_location
+        self._linux_pc_location = linux_pc_location
+        self._win_pc_location = win_pc_location
+            
+    def confirm_continue(self):
+        # API always continues.
+        return True
+        
+    def select_template_configuration(self, sg):
+        """
+        Ask the user which config to use. Returns a config string.
+        """
+        return self._configuration_uri        
+        
+    
+    def select_project(self, sg, force):
+        """
+        Returns the project id and name for a project for which setup should be done.
+        """
+
+        proj = sg.find_one("Project", [["id", "is", self._project_id]], ["name", "tank_name"])
+    
+        if proj is None:
+            raise TankError("Could not find a project with id %s!" % self._project_id)
+
+        # if force is false then tank_name must be empty
+        if force == False and proj["tank_name"] is not None:
+            raise TankError("You are trying to set up a project which has already been set up. If you want to do "
+                            "this, make sure to set the force parameter.")
+
+        return (self._project_id, proj["name"])
+        
+    def get_project_folder_name(self, sg, project_name, project_id, resolved_storages):
+        """
+        Given a project entity in Shotgun (name, id), decide where the project data
+        root should be on disk. This will verify that the selected folder exists
+        in each of the storages required by the configuration. It will prompt the user
+        and can create these root folders if required (with open permissions).
+
+        Returns the project disk name which is selected, this name may 
+        include slashes if the selected location is multi-directory.
+        """
+        return self._project_folder_name    
+    
+    def get_disk_location(self, resolved_storages, project_disk_name, install_root):
+        """
+        Ask the user where the pipeline configuration should be located on disk.
+        Returns a dictionary with keys according to sys.platform: win32, darwin, linux2
+        
+        :param resolved_storages: All the storage roots (Local storage entities in shotgun)
+                                  needed for this configuration. For example: 
+                                  [{'code': 'primary', 
+                                    'id': 1,
+                                    'mac_path': '/tank_demo/project_data', 
+                                    'windows_path': None, 
+                                    'type': 'LocalStorage',  
+                                    'linux_path': None}]
+
+        :param project_name: The Project.name field in Shotgun for the selected project.
+        :param project_id: The Project.id field in Shotgun for the selected project.
+        :param install_root: location of the core code
+        """        
+        return {"darwin": self._mac_pc_location, "linux2": self._linux_pc_location, "win32": self._win_pc_location}
+
+    
     
     
 ###############################################################################################
@@ -942,14 +1101,14 @@ def _get_published_file_entity_type(log, sg):
 ########################################################################################
 # main methods and entry points
 
-def interactive_setup(log, install_root, check_storage_path_exists, force):
+def _setup_wrapper(log, interaction_handler, check_storage_path_exists, force):
     old_umask = os.umask(0)
     try:
-        return _interactive_setup(log, install_root, check_storage_path_exists, force)
+        return _run_setup_project(log, interaction_handler, check_storage_path_exists, force)
     finally:
         os.umask(old_umask)
     
-def _interactive_setup(log, install_root, check_storage_path_exists, force):
+def _run_setup_project(log, interaction_handler, check_storage_path_exists, force):
     """
     interactive setup which will ask questions via the console.
     
@@ -962,7 +1121,9 @@ def _interactive_setup(log, install_root, check_storage_path_exists, force):
     log.info("")
     log.info("Welcome to the Shotgun Pipeline Toolkit Project Setup!")
     log.info("")
-        
+    
+    install_root = get_current_code_install_root()
+     
     # now connect to shotgun
     try:
         log.info("Connecting to Shotgun...")
@@ -989,10 +1150,8 @@ def _interactive_setup(log, install_root, check_storage_path_exists, force):
     ###############################################################################################
     # Stage 1 - information gathering
     
-    cmdline_ui = CmdlineSetupInteraction(log, sg)
-    
     # now ask which config to use. Download if necessary and examine
-    config_name = cmdline_ui.select_template_configuration()
+    config_name = interaction_handler.select_template_configuration(sg)
 
     # now try to load the config
     cfg_installer = TankConfigInstaller(config_name, sg, sg_app_store, script_user, log)
@@ -1004,10 +1163,10 @@ def _interactive_setup(log, install_root, check_storage_path_exists, force):
     resolved_storages = cfg_installer.validate_roots(check_storage_path_exists)
 
     # ask which project to operate on
-    (project_id, project_name) = cmdline_ui.select_project(force)
+    (project_id, project_name) = interaction_handler.select_project(sg, force)
     
     # ask the user to confirm the folder name
-    project_disk_folder = cmdline_ui.get_project_folder_name(project_name, project_id, resolved_storages)
+    project_disk_folder = interaction_handler.get_project_folder_name(sg, project_name, project_id, resolved_storages)
     
     # make sure that the project disk folder does not end in a slash - this is causing lots of 
     # problems in the context resolve later on (#23222)
@@ -1022,7 +1181,7 @@ def _interactive_setup(log, install_root, check_storage_path_exists, force):
                         "underscores and dashes." % project_disk_folder)
     
     # now ask the user where the config should go    
-    locations_dict = cmdline_ui.get_disk_location(resolved_storages, project_disk_folder, install_root)
+    locations_dict = interaction_handler.get_disk_location(resolved_storages, project_disk_folder, install_root)
     current_os_pc_location = locations_dict[sys.platform]
     
     # determine the entity type to use for Published Files:
@@ -1161,7 +1320,7 @@ def _interactive_setup(log, install_root, check_storage_path_exists, force):
     log.info("")
     log.info("")
     
-    if not cmdline_ui.confirm_continue():
+    if not interaction_handler.confirm_continue():
         raise TankError("Installation Aborted.")    
     
     ###############################################################################################

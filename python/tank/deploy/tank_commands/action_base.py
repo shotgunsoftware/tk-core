@@ -133,7 +133,7 @@ class Action(object):
                 # get param from input data
                 new_param_values[name] = parameters[name]
             
-            elif self.parameters[name].get("default"):
+            elif self.parameters[name].get("default") is not None:
                 # no user defined value, but a default value
                 # use default value from param def 
                 new_param_values[name] = self.parameters[name].get("default")
