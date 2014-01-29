@@ -61,11 +61,17 @@ class Action(object):
         
         # when using the API mode, need to specify the parameters
         # this should be a dictionary on the form
-        # { "parameter_name": { "description": "Parameter info".
-        #                       "default": None,
-        #                       "type": "str" }, 
-        #    ...
+        #
+        # { "parameter_name": { "description": "Parameter info",
+        #                    "default": None,
+        #                    "type": "str" }, 
+        #                    
+        #  ...
+        #
+        #  "return_value": { "description": "Return value (optional)",
+        #                   "type": "str" }
         # }
+        #
         self.parameters = {}
         
         # special flag for commands that run in multiple contexts where an engine
@@ -101,6 +107,16 @@ class Action(object):
         Helper method typically executed inside run_noninteractive.
         validate the given parameters dict based on the self.parameters definition. 
         
+        { "parameter_name": { "description": "Parameter info",
+                            "default": None,
+                            "type": "str" }, 
+                            
+         ...
+        
+         "return_value": { "description": "Return value (optional)",
+                           "type": "str" }
+        }        
+        
         :returns: A dictionary which is a full and validated list of parameters, keyed by parameter name.
                   Values not supplied by the user will have default values instead. 
         """ 
@@ -109,6 +125,10 @@ class Action(object):
         # pass 1 - first get both user supplied and default values
         # into target dictionary
         for name in self.parameters:
+            
+            if name == "return_value":
+                continue
+            
             if name in parameters:
                 # get param from input data
                 new_param_values[name] = parameters[name]
@@ -120,8 +140,12 @@ class Action(object):
         
         # pass 2 - make sure all params are defined
         for name in self.parameters:
+
+            if name == "return_value":
+                continue
+
             if name not in new_param_values:
-                raise TankError("Cannot execute %s - parameter %s not specified!" % (self, name))
+                raise TankError("Cannot execute %s - parameter '%s' not specified!" % (self, name))
             
         # pass 3 - check types of all params.
         for name in new_param_values:
@@ -129,7 +153,7 @@ class Action(object):
             val_type = val.__class__.__name__
             req_type = self.parameters[name].get("type")
             if val_type != req_type:
-                raise TankError("Cannot execute %s - parameter %s not of required type %s" % (self, name, req_type))
+                raise TankError("Cannot execute %s - parameter '%s' not of required type %s" % (self, name, req_type))
         
         return new_param_values
         

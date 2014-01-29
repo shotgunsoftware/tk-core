@@ -42,11 +42,39 @@ class CoreUpgradeAction(Action):
                         Action.GLOBAL, 
                         "Checks that your Toolkit Core API install is up to date.", 
                         "Configuration")
-            
-    def run_interactive(self, log, args):
         
+        # this method can be executed via the API
+        self.supports_api = True
+        
+        ret_val_doc = "Returns a dictionary with keys status (str) optional keys. The following status codes "
+        ret_val_doc += "are returned: 'up_to_date' if no update was needed, 'updated' if an update was "
+        ret_val_doc += "applied and 'update_blocked' if an update was available but could not be applied. "
+        ret_val_doc += "For the 'updated' status, data will contain new_version key with the version "
+        ret_val_doc += "number of the core that was updated to. "
+        ret_val_doc += "For the 'update_blocked' status, data will contain a reason key containing an explanation."
+
+        self.parameters = {"return_value": {"description": ret_val_doc, "type": "dict" }}
+            
+    def run_noninteractive(self, log, parameters):
+        """
+        API accessor
+        """
+        return self._run(log, True)
+    
+    def run_interactive(self, log, args):
+        """
+        Tank command accessor
+        """
         if len(args) != 0:
             raise TankError("This command takes no arguments!")
+        self._run(log, False)
+        
+    def _run(self, log, bypass_user_prompt):
+        """
+        Actual execution payload
+        """ 
+
+        return_status = {"status": "unknown"}
 
         # get the core api root of this installation by looking at the relative location of the running code.
         code_install_root = pipelineconfig.get_current_code_install_root() 
@@ -62,7 +90,7 @@ class CoreUpgradeAction(Action):
                  "more than one project. If you want to test a Core API upgrade in isolation "
                  "prior to rolling it out to multiple projects, we recommend creating a "
                  "special *localized* pipeline configuration. For more information about this, please "
-                 "see the Toolkit docuemntation.")
+                 "see the Toolkit documentation.")
         log.info("")
         log.info("")    
         
@@ -76,10 +104,13 @@ class CoreUpgradeAction(Action):
         
         if status == TankCoreUpgrader.UP_TO_DATE:
             log.info("No need to update the Toolkit Core API at this time!")
+            return_status = {"status": "up_to_date"}
         
         elif status == TankCoreUpgrader.UPGRADE_BLOCKED_BY_SG:
-            log.warning("A new version (%s) of the core API is available however "
+            msg = ("A new version (%s) of the core API is available however "
                         "it requires a more recent version (%s) of Shotgun!" % (lv, req_sg))
+            log.warning(msg)
+            return_status = {"status": "update_blocked", "reason": msg}
             
         elif status == TankCoreUpgrader.UPGRADE_POSSIBLE:
             
@@ -98,7 +129,7 @@ class CoreUpgradeAction(Action):
             log.info("Associated with this Shotgun Pipeline Toolkit installation.")
             log.info("")
             
-            if console_utils.ask_yn_question("Update to the latest version of the Core API?"):
+            if bypass_user_prompt or console_utils.ask_yn_question("Update to the latest version of the Core API?"):
                 # install it!
                 log.info("Downloading and installing a new version of the core...")
                 installer.do_install()
@@ -119,12 +150,15 @@ class CoreUpgradeAction(Action):
                 log.info("")
                 log.info("----------------------------------------------------------------")
                 log.info("")
+                return_status = {"status": "updated", "new_version": lv}
                 
             else:
                 log.info("The Shotgun Pipeline Toolkit will not be updated.")
-                
+            
         else:
             raise TankError("Unknown Upgrade state!")
+        
+        return return_status
     
 
 

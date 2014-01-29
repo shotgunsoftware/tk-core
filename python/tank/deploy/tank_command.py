@@ -224,10 +224,14 @@ class SgtkSystemCommand(object):
         Returns the different parameters that needs to be specified and if a 
         parameter has any default values. For example:
         
-        { parameter_name: { "description": "Parameter info".
+        { "parameter_name": { "description": "Parameter info",
                             "default": None,
                             "type": "str" }, 
+                            
          ...
+        
+         "return_value": { "description": "Return value (optional)",
+                           "type": "str" }
         }
         """
         return self.__pimpl.parameters
@@ -271,7 +275,7 @@ class SgtkSystemCommand(object):
                        can be passed in using the required_parameters and optional_parameters
                        class accessors.
         """
-        self.__pimpl.run_noninteractive(self.__log, params)
+        return self.__pimpl.run_noninteractive(self.__log, params)
         
         
         
