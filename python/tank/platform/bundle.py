@@ -374,16 +374,27 @@ class TankBundle(object):
             
     def get_template(self, key):
         """
-        A shortcut for looking up which template is referenced in the given setting, and
-        calling get_template_by_name() on it.
+        Returns a template object for a particular template setting in the Framework configuration.
+        This method will look at the app configuration, determine which template is being referred to 
+        in the setting, go into the main platform Template API and fetch that particular template object.
+    
+        This is a convenience method. Shorthand for `self.sgtk.templates[ self.get_setting(key) ]`.
         """
-
         template_name = self.get_setting(key)        
         return self.get_template_by_name(template_name)
     
     def get_template_by_name(self, template_name):
         """
-        Find the named template.
+        Note: This is for advanced use cases - Most of the time you should probably use 
+        get_template(). Find a particular template, the way it is named in the master 
+        config file templates.yml. This method will access the master templates file 
+        directly and pull out a specifically named template without using the app config. 
+        Note that using this method may result in code which is less portable across 
+        studios, since it makes assumptions about how templates are named and defined in 
+        the master config. Generally speaking, it is often better to access templates using 
+        the app configuration and the get_template() method.
+        
+        This is a convenience method. Shorthand for `self.sgtk.templates[template_name]`.
         """
         return self.tank.templates.get(template_name)
             

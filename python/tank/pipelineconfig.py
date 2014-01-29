@@ -44,29 +44,32 @@ class PipelineConfiguration(object):
         The pipeline_configuration_path is always populated by the paths
         that were registered in shotgun, regardless of how the symlink setup
         is handled on the OS level.
-        
         """
         self._pc_root = pipeline_configuration_path
 
         # validate that the current code version matches or is compatible with
         # the code that is locally stored in this config!!!!
-        our_version = self.__get_core_version()
-        if our_version is not None:
-            # we have an API installed locally
-            current_api = get_core_api_version_based_on_current_code()
-
-            if util.is_version_older(current_api, our_version):
-                # currently running API is too old!
-                current_api_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-                raise TankError("You are currently running an Sgtk API located in '%s'. "
-                                "The current Configuration '%s' has separately installed "
-                                "version of the API (%s) which is more recent than the currently "
-                                "running version (%s). In order to use this pipeline configuration, "
-                                "add %s to your PYTHONPATH and try again." % (current_api_path,
-                                                                              self.get_path(),
-                                                                              our_version,
-                                                                              current_api,
-                                                                              self.get_python_location()))
+        our_associated_api_version = self.get_associated_core_version()
+        
+        # and get the version of the API currently in memory
+        current_api_version = get_core_api_version_based_on_current_code()
+        
+        if our_associated_api_version is not None and \
+           util.is_version_older(current_api_version, our_associated_api_version):
+            # currently running API is too old!
+            current_api_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+            raise TankError("You are currently running Core API %s located in '%s'. "
+                            "The Pipeline Configuration you are trying to create ('%s') is "
+                            "associated with a more recent version of the API, "
+                            "%s, located here: '%s'. Initialization cannot proceed at this point, "
+                            "because the currently running Core API is too old. "
+                            "To fix this, please import "
+                            "the API located in '%s' and try again." % (current_api_version,
+                                                                        current_api_path,
+                                                                        self.get_path(),
+                                                                        our_associated_api_version,
+                                                                        self.get_install_location(),
+                                                                        self.get_core_python_location()))
 
 
         self._roots = get_pc_roots_metadata(self._pc_root)
@@ -91,45 +94,6 @@ class PipelineConfiguration(object):
 
     def __repr__(self):
         return "<Sgtk Configuration %s>" % self._pc_root
-
-    ########################################################################################
-    # helpers
-
-    def __get_core_version(self):
-        """
-        Returns the version string for the core api associated with this config,
-        none if it does not exist.
-        """
-        info_yml_path = os.path.join(self._pc_root, "install", "core", "info.yml")
-
-        if os.path.exists(info_yml_path):
-            try:
-                info_fh = open(info_yml_path, "r")
-                try:
-                    data = yaml.load(info_fh)
-                finally:
-                    info_fh.close()
-                data = data.get("version")
-            except:
-                data = None
-        else:
-            data = None
-
-        return data
-
-    def force_reread_settings(self):
-        """
-        Force the pc object to reread its settings from disk.
-        Call this if you have made changes to config files and 
-        want these to be picked up
-        """
-        self._project_id = None
-        self._pc_id = None
-        self._pc_name = None
-        self._published_file_entity_type = None
-        self._cache_folder = None
-        self._use_shotgun_path_cache = None
-
 
     ########################################################################################
     # data roots access
@@ -175,6 +139,12 @@ class PipelineConfiguration(object):
                 self._load_metadata_from_sg()
 
         return self._pc_name
+
+    def is_localized(self):
+        """
+        Returns true if this pipeline configuation has its own Core
+        """
+        return is_localized(self._pc_root)
 
     def get_shotgun_id(self):
         """
@@ -430,35 +400,86 @@ class PipelineConfiguration(object):
 
 
     ########################################################################################
-    # apps and engines
+    # paths, core info, apps and engines
 
-    def get_python_location(self):
+    def get_associated_core_version(self):
         """
-        returns the python root for this install.
+        Returns the version string for the core api associated with this config.
+        This method is 'forgiving' and in the case no associated core API can be 
+        found for this pipeline configuration, None will be returned rather than 
+        an exception raised. 
         """
-        return os.path.join(self.get_install_root(), "core", "python")
+        associated_api_root = self.get_install_location()
+        
+        info_yml_path = os.path.join(associated_api_root, "core", "info.yml")
 
-    def get_install_root(self):
+        if os.path.exists(info_yml_path):
+            try:
+                info_fh = open(info_yml_path, "r")
+                try:
+                    data = yaml.load(info_fh)
+                finally:
+                    info_fh.close()
+                data = data.get("version")
+            except:
+                data = None
+        else:
+            data = None
+
+        return data
+        
+
+    def get_install_location(self):
         """
-        Returns the install location, the location where tank caches engines and apps.
-        This location is local to the install, so if you run localized core, it will
-        be in your PC, if you run studio location core, it will be a shared cache.
-
-        If you are a developer and are symlinking the core, this may not work.
-        In that case set an environment env TANK_INSTALL_LOCATION and point
-        that at the install location.
+        Returns the install location associated with this pipeline configuration.
+        
+        The install location is where toolkit caches engines, apps, frameworks and is
+        where it keeps the Core API.        
         """
 
-        # locate the studio install root as a location local to this file
-        install_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+        if is_localized(self._pc_root):
+            # first, try to locate an install local to this pipeline configuration.
+            # this would find any localized APIs.
+            install_path = os.path.join( self._pc_root, "install" )
 
-        if not os.path.exists(install_path):
-            if "TANK_INSTALL_LOCATION" in os.environ:
-                install_path = os.environ["TANK_INSTALL_LOCATION"]
+        else:
+            # this PC is associated with a shared API (studio install)
+            # follow the links defined in the configuration to establish which 
+            # setup it has been associated with.
+            studio_linkback_files = {"win32": os.path.join(self._pc_root, "install", "core", "core_Windows.cfg"), 
+                                     "linux2": os.path.join(self._pc_root, "install", "core", "core_Linux.cfg"), 
+                                     "darwin": os.path.join(self._pc_root, "install", "core", "core_Darwin.cfg")}
+            
+            curr_linkback_file = studio_linkback_files[sys.platform]
+            
+            # this file will contain the path to the API which is meant to be used with this PC.
+            install_path = None
+            try:
+                fh = open(curr_linkback_file, "rt")
+                data = fh.read()
+                if data not in ["None", "undefined"] and os.path.exists(data):
+                    install_path = data
+                fh.close()                    
+            except:
+                pass
+                
+            
+            if install_path is not None:
+                # the files point at the 'studio' location. This location in turn contains
+                # a config and an install area and it is the install area we should return.
+                install_path = os.path.join(install_path, "install")
+                
             else:
-                raise TankError("Cannot resolve the install location from the location of the Sgtk Code! "
-                                "This can happen if you try to move or symlink the Sgtk API. "
-                                "Please contact support.")
+                # no luck determining the location of the core API through our two 
+                # established modus operandi. Fall back on the crude legacy
+                # approach, which is to grab and return the currently running code.
+                install_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+
+                if not os.path.exists(install_path):
+                    raise TankError("Cannot resolve the install location from the location of the Core Code! "
+                                    "This can happen if you try to move or symlink the Sgtk API. "
+                                    "Please contact support.")
+                    
         return install_path
 
 
@@ -466,19 +487,26 @@ class PipelineConfiguration(object):
         """
         Returns the location where apps are stored
         """
-        return os.path.join(self.get_install_root(), "apps")
+        return os.path.join(self.get_install_location(), "apps")
 
     def get_engines_location(self):
         """
         Returns the location where apps are stored
         """
-        return os.path.join(self.get_install_root(), "engines")
+        return os.path.join(self.get_install_location(), "engines")
 
     def get_frameworks_location(self):
         """
         Returns the location where apps are stored
         """
-        return os.path.join(self.get_install_root(), "frameworks")
+        return os.path.join(self.get_install_location(), "frameworks")
+
+    def get_core_python_location(self):
+        """
+        returns the python root for this install.
+        """
+        return os.path.join(self.get_install_location(), "core", "python")
+
 
     ########################################################################################
     # cache
@@ -578,7 +606,9 @@ class PipelineConfiguration(object):
         file_name = "%s.py" % hook_name
         hook_path = os.path.join(hook_folder, file_name)
         if not os.path.exists(hook_path):
-            # construct install hooks path if no project(override) hook
+            # no custom hook detected in the pipeline configuration
+            # fall back on the hooks that come with the currently running version
+            # of the core API.
             hooks_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "hooks"))
             hook_path = os.path.join(hooks_path, file_name)
 
@@ -781,8 +811,6 @@ def from_entity(entity_type, entity_id):
 
         # looks good, we got a primary pipeline config that exists
         return PipelineConfiguration(current_os_path)
-
-
 
 
     else:
@@ -1020,24 +1048,6 @@ def from_path(path):
 ################################################################################################
 # method for loading configuration data. 
 
-def get_core_api_version_for_pc(pc_root):
-    """
-    Returns the version number string for the core API, based on a given path
-    """
-    # read this from info.yml
-    info_yml_path = os.path.join(pc_root, "install", "core", "info.yml")
-    try:
-        info_fh = open(info_yml_path, "r")
-        try:
-            data = yaml.load(info_fh)
-        finally:
-            info_fh.close()
-        data = str(data.get("version", "unknown"))
-    except:
-        data = "unknown"
-
-    return data
-
 def get_core_api_version_based_on_current_code():
     """
     Returns the version number string for the core API, based on the code that is currently
@@ -1221,3 +1231,12 @@ def get_pc_roots_metadata(pipeline_config_root_path):
         data[s]["windows_path"] = _sanitize_path(data[s]["windows_path"], "\\")
 
     return data
+
+def is_localized(pipeline_config_path):
+    """
+    Returns true if the pipeline configuration contains a localized API
+    """
+    # look for a localized API by searching for a _core_upgrader.py file
+    api_file = os.path.join(pipeline_config_path, "install", "core", "_core_upgrader.py")
+    return os.path.exists(api_file)
+    

@@ -30,7 +30,48 @@ black_list = [
      "message": "Version v0.3.15 (and older) of the Shotgun File Manager contains logic which may "
                 "generate error messages when ran with future versions of the Core API. "
                 "We strongly recommend you to upgrade to the latest version of the workfiles "
-                "app as soon as you can." }
+                "app as soon as you can." },
+    
+    # Version v0.14.31 of the core introduced the engine.execute_in_main_thread() method.  Internally
+    # this makes use of the QtCore.Slot decorator which is named differently in PyQt requiring an
+    # update to all engines that include PyQt support.
+    #
+    # If one of these engines is used with PyQt without being updated then the engine may fail to
+    # start!
+    {"system_name":"tk-shell",
+     "version":"v0.3.4",
+     "message": "Version v0.3.4 of the tk-shell engine may not start correctly when run with the current "
+                "version of the core API if PyQt is installed on your system. "
+                "We strongly recommend that you upgrade to the latest version of the Shell engine "
+                "as soon as you can."},
+
+    {"system_name":"tk-shotgun",
+     "version":"v0.3.5",
+     "message": "Version v0.3.5 of the tk-shotgun engine may not start correctly when run with the current "
+                "version of the core API if PyQt is installed on your system. "
+                "We strongly recommend that you upgrade to the latest version of the Shotgun engine "
+                "as soon as you can."},
+              
+    {"system_name":"tk-3dsmax",
+     "version":"v0.2.12",
+     "message":"Version v0.2.12 of the tk-3dsmax engine may not start correctly when run with the current "
+                "version of the core API. "
+                "We strongly recommend that you upgrade to the latest version of the 3ds Max engine "
+                "as soon as you can."},
+              
+    {"system_name":"tk-houdini",
+     "version":"v0.1.6",
+     "message": "Version v0.1.6 of the tk-houdini engine may not start correctly when run with the current "
+                "version of the core API if PyQt is installed on your system. "
+                "We strongly recommend that you upgrade to the latest version of the Houdini engine "
+                "as soon as you can."},
+              
+    {"system_name":"tk-softimage",
+     "version":"v0.2.6",
+     "message": "Version v0.2.6 of the tk-softimage engine may not start correctly when run with the current "
+                "version of the core API if PyQt is installed on your system. "
+                "We strongly recommend that you upgrade to the latest version of the Softimage engine "
+                "as soon as you can."}
 
 ]
 

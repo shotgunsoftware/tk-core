@@ -8,15 +8,10 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-"""
-Methods for handling of the tank command
-
-"""
-
-
 from ...util import shotgun
 from ...platform import constants
 from ...errors import TankError
+from ... import pipelineconfig
 
 from .action_base import Action
 
@@ -30,7 +25,7 @@ import shutil
 
 class MoveStudioInstallAction(Action):
     """
-    Moves the studio installation location. 
+    Action that moves the studio installation location. 
     """
     
     def __init__(self):
@@ -202,8 +197,7 @@ class MoveStudioInstallAction(Action):
             raise TankError("The path %s already exists on disk!" % local_target_path)
         
         # probe for some key file
-        api_file = os.path.join(current_path, "install", "core", "_core_upgrader.py")
-        if not os.path.exists(api_file):
+        if not pipelineconfig.is_localized(current_path):
             raise TankError("Path '%s' does not look like an Toolkit install!" % current_path)
             
         # make sure this is NOT a PC
@@ -284,8 +278,7 @@ class MoveStudioInstallAction(Action):
             fh.write("Linux: '%s'\n" % linux_path)                    
             fh.write("\n")
             fh.write("# End of file.\n")
-            fh.close()    
-            os.chmod(sg_code_location, 0444)        
+            fh.close()
 
             # get all PCs, update the ones that are using this studio code.
             sg = shotgun.create_sg_connection()

@@ -8,16 +8,10 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-"""
-Methods for handling of the tank command
-
-"""
-
-
 
 class Action(object):
     """
-    Describes an executable action. Baseclass that all tank command actions derive from
+    Describes an executable action. Base class that all tank command actions derive from.
     """
     
     # GLOBAL - works everywhere, requires self.code_install_root only
@@ -60,6 +54,9 @@ class Action(object):
         
         return "<Action Cmd: '%s' Category: '%s' MODE:%s>" % (self.name, self.category, mode_str)
             
+    def __str__(self):
+        
+        return "Command %s (Category %s)" % (self.name, self.category)
         
     def run(self, log, args):
         raise Exception("Need to implement this")

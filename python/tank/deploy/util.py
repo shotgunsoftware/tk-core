@@ -14,7 +14,7 @@ import os
 import sys
 import shutil
 
-def _copy_folder(log, src, dst): 
+def _copy_folder(log, src, dst, skip_list=None): 
     """
     Alternative implementation to shutil.copytree
     Copies recursively with very open permissions.
@@ -28,6 +28,10 @@ def _copy_folder(log, src, dst):
 
     names = os.listdir(src) 
     for name in names:
+
+        if skip_list and name in skip_list:
+            # skip!
+            continue
 
         srcname = os.path.join(src, name) 
         dstname = os.path.join(dst, name) 

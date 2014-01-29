@@ -449,9 +449,8 @@ class ListField(Folder):
         # read configuration
         entity_type = metadata.get("entity_type")
         field_name = metadata.get("field_name")
-        skip_unused = metadata.get("skip_unused")
-        if skip_unused is None:
-            skip_unused = False
+        skip_unused = metadata.get("skip_unused", False)
+        create_with_parent = metadata.get("create_with_parent", False)
         
         # validate
         if entity_type is None:
@@ -460,9 +459,9 @@ class ListField(Folder):
         if field_name is None:
             raise TankError("Missing field_name token in yml metadata file %s" % full_path )
         
-        return ListField(tk, parent, full_path, metadata, entity_type, field_name, skip_unused)
+        return ListField(tk, parent, full_path, metadata, entity_type, field_name, skip_unused, create_with_parent)
 
-    def __init__(self, tk, parent, full_path, metadata, entity_type, field_expr, skip_unused):
+    def __init__(self, tk, parent, full_path, metadata, entity_type, field_expr, skip_unused, create_with_parent):
         """
         Constructor
         """
@@ -471,6 +470,7 @@ class ListField(Folder):
         
         self._tk = tk
         self._entity_type = entity_type
+        self._create_with_parent = create_with_parent 
         self._field_expr_obj = shotgun_entity.EntityExpression(self._tk, self._entity_type, field_expr)
         self._skip_unused = skip_unused    
         
@@ -491,7 +491,7 @@ class ListField(Folder):
         # list fields are only created when they are on the primary path,
         # e.g. we don't recurse down to create asset types when shots are created,
         # but only when assets are created.
-        if is_primary == False:
+        if is_primary == False and self._create_with_parent == False:
             return False
         
         # base class implementation
@@ -521,16 +521,15 @@ class ListField(Folder):
         # it also happens when we recurse upwards to preload the sg_data dict
         # from an entity.
         # 
-        
         token_name = FilterExpressionToken.sg_data_key_for_folder_obj(self)
-        
+                
         if token_name in sg_data:
             values = [ sg_data[token_name] ]
-        
+                
         else:
-            # get all fields from the schema in shotgun via the API
-            # (the SG API raises appropriate exceptions on failure so no need to catch) 
-            resp = self._tk.shotgun.schema_field_read(self._entity_type, self._field_name)
+            
+            # get all list field values from shotgun by querying the schema methods
+            # using schema_field_read()
             #
             # example response:
             #
@@ -551,20 +550,48 @@ class ListField(Folder):
             #                                                              'Environment',
             #                                                              'Matte Painting']}}}}
             #
+
             
-            # validate that the data type is of type list
-            field_type = resp[self._field_name]["data_type"]["value"]
+            if "." in self._field_name:
+                # this looks like a deep link - entity.EntityType.fieldname
+                # unfold the expression before getting the values
+                try:
+                    chunks = self._field_name.split(".")
+                    entity_type = chunks[1]
+                    field_name = chunks[2]
+                except:
+                    msg = "Folder creation error: Cannot resolve the field expression %s." % self._field_name
+                    raise TankError(msg)
+            
+            else:
+                # field name is a non-deep-link field (e.g 'sg_asset_type')
+                entity_type = self._entity_type
+                field_name = self._field_name
+                
+            try:
+                resp = self._tk.shotgun.schema_field_read(entity_type, field_name)
+            
+                # validate that the data type is of type list
+                field_type = resp[field_name]["data_type"]["value"]
+            except Exception, e:
+                msg = "Folder creation error: Cannot retrieve values for Shotgun list field "
+                msg += "%s.%s. Error reported: %s" % (entity_type, field_name, e)
+                raise TankError(msg)
+                
             if field_type != "list":
                 msg = "Folder creation error: Only list fields can be used with the list field type. "
-                msg += "%s.%s is of type %s which is unsupported." % (self._entity_type, self._field_name, field_type)
+                msg += "%s.%s is of type %s which is unsupported." % (entity_type, field_name, field_type)
                 raise TankError(msg)
             
             # get all values
-            values = resp[self._field_name]["properties"]["valid_values"]["value"]
+            values = resp[field_name]["properties"]["valid_values"]["value"]
                 
             if self._skip_unused:
-                # cull values based on their usage
-                values = self.__filter_unused_list_values(values, sg_data.get("Project"))
+                # cull values based on their usage - EXPENSIVE WITH ONE SG QUERY PER VALUE
+                values = self.__filter_unused_list_values(entity_type, 
+                                                          field_name, 
+                                                          values, 
+                                                          sg_data.get("Project"))
         
         # process each value independently
         products = []
@@ -590,22 +617,31 @@ class ListField(Folder):
             
         return products
         
-    def __filter_unused_list_values(self, values, project):
+    def __filter_unused_list_values(self, entity_type, field_name, values, project):
         """
         Remove values which are not used by entities in this project.
-        Will do a shotgun query for every value in values.
+        
+        - WARNING! SLOW! Will do a shotgun query for every value in values.
+        - WARNING! This logic will check if a value is 'unused' by looking at all items
+                   for that entity type. This may be perfectly fine (in the case of asset type
+                   and asset for example, however it will not be relevant if other filter criteria
+                   are also applied at the same time (e.g. if we are for example only processing 
+                   tasks of type Foo then we would ideally want to query the unused-ness based on 
+                   this subset, not based on all tasks in the project.
         """
         used_values = []
 
         for value in values:
             
             # eg. sg_asset_type is prop
-            filters = [ [self._field_name, "is", value] ] 
+            filters = [ [field_name, "is", value] ] 
             if project:
                 filters.append( ["project", "is", project] )
     
-            summary = self._tk.shotgun.summarize(self._entity_type, filters, [{'field':self._field_name, 'type': 'count'}])
-            if summary.get("summaries", {}).get(self._field_name):
+            summary = self._tk.shotgun.summarize(entity_type, 
+                                                 filters, 
+                                                 [{"field": field_name, "type": "count"}])
+            if summary.get("summaries", {}).get(field_name):
                 used_values.append(value)
 
         return used_values

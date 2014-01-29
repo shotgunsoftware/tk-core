@@ -160,11 +160,19 @@ def process_includes(file_name, data):
     
     # process the template paths section:
     for template_name, template_definition in template_paths.iteritems():
-        _resolve_template_r(template_paths, template_strings, template_name, template_definition, "path")
+        _resolve_template_r(template_paths, 
+                            template_strings, 
+                            template_name, 
+                            template_definition, 
+                            "path")
         
     # and process the strings section:
     for template_name, template_definition in template_strings.iteritems():
-        _resolve_template_r(template_paths, template_strings, template_name, template_definition, "string")
+        _resolve_template_r(template_paths, 
+                            template_strings, 
+                            template_name, 
+                            template_definition, 
+                            "string")
                 
     # finally, resolve escaped @'s in template definitions:
     for templates in [template_paths, template_strings]:
@@ -178,7 +186,8 @@ def process_includes(file_name, data):
             elif isinstance(template_definition, basestring):
                 template_str = template_definition
             if not template_str:
-                raise TankError("Invalid template configuration for '%s' - it looks like the definition is missing!" % (template_name))
+                raise TankError("Invalid template configuration for '%s' - "
+                                "it looks like the definition is missing!" % (template_name))
             
             # resolve escaped @'s
             resolved_template_str = template_str.replace("@@", "@")
@@ -242,7 +251,8 @@ def _resolve_template_r(template_paths, template_strings, template_name, templat
     elif isinstance(template_definition, basestring):
         template_str = template_definition
     if not template_str:
-        raise TankError("Invalid template configuration for '%s' - it looks like the definition is missing!" % (template_name))
+        raise TankError("Invalid template configuration for '%s' - it looks like the "
+                        "definition is missing!" % (template_name))
     
     # look for @ specified in template definition.  This can be escaped by
     # using @@ so split out escaped @'s first:
@@ -262,11 +272,17 @@ def _resolve_template_r(template_paths, template_strings, template_name, templat
             # find a template that matches the start of the template string:                
             ref_template = _find_matching_ref_template(template_paths, template_strings, ref_part)
             if not ref_template:
-                raise TankError("Failed to resolve template reference from '@%s' defined by the %s template '%s'" % (ref_part, template_type, template_name))
+                raise TankError("Failed to resolve template reference from '@%s' defined by "
+                                "the %s template '%s'" % (ref_part, template_type, template_name))
                 
             # resolve the referenced template:
             ref_template_name, ref_template_definition, ref_template_type = ref_template
-            resolved_ref_str = _resolve_template_r(template_paths, template_strings, ref_template_name, ref_template_definition, ref_template_type, visited_templates)
+            resolved_ref_str = _resolve_template_r(template_paths, 
+                                                   template_strings, 
+                                                   ref_template_name, 
+                                                   ref_template_definition, 
+                                                   ref_template_type, 
+                                                   visited_templates)
             resolved_ref_str = "%s%s" % (resolved_ref_str, ref_part[len(ref_template_name):])
                                     
             resolved_ref_parts.append(resolved_ref_str)

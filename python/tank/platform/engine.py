@@ -22,6 +22,7 @@ from .. import loader
 from .. import hook
 from ..errors import TankError, TankEngineInitError
 from ..deploy import descriptor
+from ..deploy.dev_descriptor import TankDevDescriptor
 
 from . import application
 from . import constants
@@ -52,7 +53,7 @@ class Engine(TankBundle):
         self.__commands = {}
         self.__currently_initializing_app = None
         
-        self._qt_widget_trash = []
+        self.__qt_widget_trash = []
         self.__created_qt_dialogs = []
         self.__qt_debug_info = {}
         
@@ -105,8 +106,40 @@ class Engine(TankBundle):
         qt.QtGui = base_def.get("qt_gui")
         qt.TankDialogBase = base_def.get("dialog_base")
         
+        # create invoker to allow execution of functions on the
+        # main thread:
+        self._invoker = self.__create_main_thread_invoker()
+        
         # now load all apps and their settings
         self.__load_apps()
+        
+        # execute the post engine init for all apps
+        # note that this is executed before the post_app_init
+        # in the engine - this is because typically the post app
+        # init in the engine will contain code which captures the
+        # state of the apps - for example creates a menu, so at that 
+        # point we want to try and have all app initialization complete.
+        for app in self.__applications.values():
+
+            try:
+                app.post_engine_init()
+            except TankError, e:
+                self.log_error("App %s Failed to run its post_engine_init. It is loaded, but"
+                               "may not operate in its desired state! Details: %s" % (app, e))
+            except Exception:
+                self.log_exception("App %s failed run its post_engine_init. It is loaded, but"
+                                   "may not operate in its desired state!" % app)
+        
+        # Useful dev helpers: If there is one or more dev descriptors in the 
+        # loaded environment, add a reload button to the menu!
+        for app in self.__applications.values():
+            if isinstance(app.descriptor, TankDevDescriptor):
+                self.log_debug("App %s is registerered via a dev descriptor. Will add a reload "
+                               "button to the actions listings."  % app)
+                from . import restart 
+                self.register_command("Reload and Restart", restart, {"short_name": "restart", "type": "context_menu"})                
+                # only need one reload button, so don't keep iterating :)
+                break
         
         # now run the post app init
         self.post_app_init()
@@ -114,11 +147,16 @@ class Engine(TankBundle):
         # emit an engine started event
         tk.execute_hook(constants.TANK_ENGINE_INIT_HOOK_NAME, engine=self)
         
-        
         self.log_debug("Init complete: %s" % self)
         
-        
-        
+        # check if there are any compatibility warnings:
+        # do this now in case the engine fails to load!
+        messages = black_list.compare_against_black_list(descriptor)
+        if len(messages) > 0:
+            self.log_warning("Compatibility warnings were issued for %s:" % descriptor)
+            for msg in messages:
+                self.log_warning("")
+                self.log_warning(msg)
         
     def __repr__(self):
         return "<Sgtk Engine 0x%08x: %s, env: %s>" % (id(self),  
@@ -316,6 +354,32 @@ class Engine(TankBundle):
             
         self.__commands[name] = { "callback": callback, "properties": properties }
         
+    def execute_in_main_thread(self, func, *args, **kwargs):
+        """
+        Execute the specified function in the main thread when called from a non-main
+        thread.  This will block the calling thread until the function returns.
+        
+        Note, this currently only works if Qt is available, otherwise it just
+        executes on the current thread.
+        
+        :param func: function to call
+        :param args: arguments to pass to the function
+        :param kwargs: named arguments to pass to the function
+        
+        :returns: the result of the function call
+        """
+        if self._invoker:
+            from .qt import QtGui, QtCore
+            if (QtGui.QApplication.instance() 
+                and QtCore.QThread.currentThread() != QtGui.QApplication.instance().thread()):
+                # invoke the function on the thread that the QtGui.QApplication was created on.
+                return self._invoker.invoke(func, *args, **kwargs)
+            else:
+                # we're already on the main thread so lets just call our function:
+                return func(*args, **kwargs)
+        else:
+            # we don't have an invoker so just call the function:
+            return func(*args, **kwargs)
                 
     ##########################################################################################
     # logging interfaces
@@ -382,25 +446,30 @@ class Engine(TankBundle):
         self.log_error("\n".join(message))
         
     ##########################################################################################
-    # private and protected methods
-    
-    def _debug_track_qt_widget(self, widget):
-        """
-        Add the qt widget to a list of objects to be tracked. 
-        """
-        if widget:
-            self.__qt_debug_info[widget.__repr__()] = weakref.ref(widget)
-                
+    # debug for tracking Qt Widgets & Dialogs created by the provided methods      
+
     def get_debug_tracked_qt_widgets(self):
         """
         Print debug info about created Qt dialogs and widgets
         """
         return self.__qt_debug_info                
 
+    def __debug_track_qt_widget(self, widget):
+        """
+        Add the qt widget to a list of objects to be tracked. 
+        """
+        if widget:
+            self.__qt_debug_info[widget.__repr__()] = weakref.ref(widget)
+        
+    ##########################################################################################
+    # private and protected methods
+
     def _get_dialog_parent(self):
         """
-        Get the QWidget parent for all dialogs created through
-        show_dialog & show_modal.
+        Get the QWidget parent for all dialogs created through show_dialog & show_modal.
+        
+        Can be overriden in derived classes to return the QWidget to be used as the parent 
+        for all TankQDialog's 
         """
         # By default, this will return the QApplication's active window:
         from .qt import QtGui
@@ -408,9 +477,13 @@ class Engine(TankBundle):
                 
     def _create_dialog(self, title, bundle, widget, parent):
         """
-        Create a TankQDialog with the specified widget embedded.
-        This also connects to the dialogs dialog_closed event so
-        that it can clean up when the dialog is closed.
+        Create a TankQDialog with the specified widget embedded. This also connects to the 
+        dialogs dialog_closed event so that it can clean up when the dialog is closed.
+        
+        :param title: The title of the window
+        :param bundle: The app, engine or framework object that is associated with this window
+        :param widget: A QWidget instance to be embedded in the newly created dialog.
+        
         """
         from .qt import tankqdialog
         
@@ -424,16 +497,19 @@ class Engine(TankBundle):
         dialog.dialog_closed.connect(self._on_dialog_closed)
         
         # keep track of some info for debugging object lifetime
-        self._debug_track_qt_widget(dialog)
+        self.__debug_track_qt_widget(dialog)
         
         return dialog
 
     def _create_widget(self, widget_class, *args, **kwargs):
         """
-        Create an instance of the specified widget_class.  This 
-        wraps the widget_class so that the TankQDialog it is
-        embedded in can connect to it more easily in order to
-        handle the close event
+        Create an instance of the specified widget_class.  This wraps the widget_class so that 
+        the TankQDialog it is embedded in can connect to it more easily in order to handle the 
+        close event
+        
+        :param widget_class: The class of the UI to be constructed. This must derive from QWidget.    
+            
+        Additional parameters specified will be passed through to the widget_class constructor.
         """
         from .qt import tankqdialog
                 
@@ -442,14 +518,20 @@ class Engine(TankBundle):
         widget = derived_widget_class(*args, **kwargs)
         
         # keep track of some info for debugging object lifetime
-        self._debug_track_qt_widget(widget)
+        self.__debug_track_qt_widget(widget)
         
         return widget
     
     def _create_dialog_with_widget(self, title, bundle, widget_class, *args, **kwargs):
         """
-        Create an sgtk TankQDialog with a widget instantiated from widget_class
-        embeded in the main section.
+        Convenience method to create an sgtk TankQDialog with a widget instantiated from 
+        widget_class embedded in the main section.
+        
+        :param title: The title of the window
+        :param bundle: The app, engine or framework object that is associated with this window
+        :param widget_class: The class of the UI to be constructed. This must derive from QWidget.    
+            
+        Additional parameters specified will be passed through to the widget_class constructor.
         """
         # get the parent for the dialog:
         parent = self._get_dialog_parent()
@@ -463,8 +545,12 @@ class Engine(TankBundle):
     
     def _on_dialog_closed(self, dlg):
         """
-        Called when a dialog created by this engine is
-        closed.
+        Called when a dialog created by this engine is closed.
+        
+        :param dlg: The dialog being closed
+        
+        Derived implementations of this method should be sure to call
+        the base implementation
         """
         # first, detach the widget from the dialog.  This allows
         # the two objects to be cleaned up seperately menaing the
@@ -473,8 +559,8 @@ class Engine(TankBundle):
         
         # add the dlg and it's contained widget to the list
         # of widgets to delete at some point!
-        self._qt_widget_trash.append(dlg)
-        self._qt_widget_trash.append(widget)
+        self.__qt_widget_trash.append(dlg)
+        self.__qt_widget_trash.append(widget)
         
         if dlg in self.__created_qt_dialogs:
             # don't need to track this dialog any longer
@@ -488,10 +574,10 @@ class Engine(TankBundle):
         widget = None
         
         # finally, clean up the widget trash:
-        self._cleanup_widget_trash()
+        self.__cleanup_widget_trash()
         
 
-    def _cleanup_widget_trash(self):
+    def __cleanup_widget_trash(self):
         """
         Run through the widget trash and clean up any widgets
         that are no longer referenced by anything else.
@@ -504,9 +590,9 @@ class Engine(TankBundle):
         still has events in the event queue will cause a hard crash!
         """
         still_trash = []
-        for widget in self._qt_widget_trash:
+        for widget in self.__qt_widget_trash:
             # There should be 3 references:
-            # 1. self._qt_widget_trash[n]
+            # 1. self.__qt_widget_trash[n]
             # 2. widget temporary
             # 3. temporary used by sys.getrefcount
             if sys.getrefcount(widget) <= 3:
@@ -525,8 +611,8 @@ class Engine(TankBundle):
                 still_trash.append(widget)
     
         # update widget trash
-        self._qt_widget_trash = still_trash
-        self.log_debug("Widget trash contains %d widgets" % (len(self._qt_widget_trash)))
+        self.__qt_widget_trash = still_trash
+        self.log_debug("Widget trash contains %d widgets" % (len(self.__qt_widget_trash)))
 
     def show_dialog(self, title, bundle, widget_class, *args, **kwargs):
         """
@@ -630,7 +716,42 @@ class Engine(TankBundle):
         css_data = f.read()
         f.close()
         return css_data
+
+    def __create_main_thread_invoker(self):
+        """
+        Create the object used to invoke function calls on the main thread when
+        called from a different thread.
         
+        :returns:  Invoker instance
+        """
+        if self.has_ui:
+            from .qt import QtGui, QtCore
+            if QtGui and QtCore:
+                class Invoker(QtCore.QObject):
+                    def __init__(self):
+                        QtCore.QObject.__init__(self)
+                        self._res = None
+                        
+                    def invoke(self, fn, *args, **kwargs):
+                        self._fn = lambda: fn(*args, **kwargs) 
+                        self._res = None
+                        
+                        QtCore.QMetaObject.invokeMethod(self, "_do_invoke", QtCore.Qt.BlockingQueuedConnection)
+                        
+                        return self._res
+                
+                    @qt.QtCore.Slot()
+                    def _do_invoke(self):
+                        """
+                        Execute function and return result
+                        """
+                        self._res = self._fn()
+                        
+                return Invoker()
+
+        # don't have ui so can't create an invoker!
+        return None
+
             
     ##########################################################################################
     # private         

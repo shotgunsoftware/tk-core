@@ -15,7 +15,6 @@ Methods for handling of the tank command
 
 
 from .tank_commands.action_base import Action 
-from .tank_commands import apps
 from .tank_commands import folders
 from .tank_commands import misc
 from .tank_commands import move_pc
@@ -23,6 +22,15 @@ from .tank_commands import move_studio
 from .tank_commands import pc_overview
 from .tank_commands import migrate_entities
 from .tank_commands import path_cache
+from .tank_commands import update
+from .tank_commands import push_pc
+from .tank_commands import setup_project
+from .tank_commands import validate_config
+from .tank_commands import cache_apps
+from .tank_commands import switch
+from .tank_commands import app_info
+from .tank_commands import core
+from .tank_commands import install
 
 from ..platform import constants
 from ..platform.engine import start_engine, get_environment_from_context
@@ -31,15 +39,19 @@ from ..errors import TankError
 ###############################################################################################
 # Built in actions (all in the tank_commands sub module)
 
-BUILT_IN_ACTIONS = [misc.SetupProjectAction, 
-                    misc.CoreUpgradeAction, 
-                    misc.CoreLocalizeAction,
-                    misc.ValidateConfigAction,
+BUILT_IN_ACTIONS = [setup_project.SetupProjectAction, 
+                    core.CoreUpgradeAction, 
+                    core.CoreLocalizeAction,
+                    validate_config.ValidateConfigAction,
+                    cache_apps.CacheAppsAction,
                     misc.ClearCacheAction,
+                    switch.SwitchAppAction,
+                    app_info.AppInfoAction,
                     misc.InteractiveShellAction,
-                    apps.InstallAppAction,
-                    apps.InstallEngineAction,
-                    apps.AppUpdatesAction,
+                    install.InstallAppAction,
+                    push_pc.PushPCAction,
+                    install.InstallEngineAction,
+                    update.AppUpdatesAction,
                     folders.CreateFoldersAction,
                     folders.PreviewFoldersAction,
                     move_pc.MovePCAction,
@@ -174,23 +186,28 @@ def _process_action(code_install_root, pipeline_config_root, log, tk, ctx, engin
     # now check that we actually have passed enough stuff to work with this mode
     if action.mode in (Action.PC_LOCAL, Action.CTX, Action.ENGINE) and tk is None:
         # we are missing a tk instance
-        log.error("Trying to launch %r without an Toolkit instance." % action)
+        log.debug("Trying to launch %r without an Toolkit instance." % action)
         raise TankError("The command '%s' needs a project to run. For example, if you want "
                         "to run it for project XYZ, execute "
                         "'tank Project XYZ %s'" % (action.name, action.name))
     
     if action.mode in (Action.CTX, Action.ENGINE) and ctx is None:
         # we have a command that needs a context
-        log.error("Trying to launch %r without a context." % action)
+        log.debug("Trying to launch %r without a context." % action)
         raise TankError("The command '%s' needs a work area to run." % action.name)
         
     if action.mode == Action.ENGINE and engine is None:
         # we have a command that needs an engine
-        log.error("Trying to launch %r without an engine." % action)
+        log.debug("Trying to launch %r without an engine." % action)
         raise TankError("The command '%s' needs the shell engine running." % action.name)
     
     # ok all good
-    log.info("- Running %s..." % action.name)
+    log.info("- Running command %s..." % action.name)
+    log.info("")
+    log.info("")
+    log.info("-" * 70)
+    log.info("Command: %s" % action.name.replace("_", " ").capitalize())
+    log.info("-" * 70)
     log.info("")
     return action.run(log, args)
     

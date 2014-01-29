@@ -8,19 +8,14 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-"""
-Methods for handling of the tank command
-
-"""
-
 from ... import folder
 from ...errors import TankError
 from .action_base import Action
 
-
-
 class CreateFoldersAction(Action):
-    
+    """
+    Action for creating folders on disk
+    """    
     def __init__(self):
         Action.__init__(self, 
                         "folders", 
@@ -62,7 +57,9 @@ class CreateFoldersAction(Action):
 
 
 class PreviewFoldersAction(Action):
-    
+    """
+    Action for doing a folder creation preview
+    """
     def __init__(self):
         Action.__init__(self, 
                         "preview_folders", 

@@ -57,10 +57,10 @@ class Tank(object):
         self.execute_hook(platform_constants.TANK_INIT_HOOK_NAME)
 
     def __repr__(self):
-        return "<Sgtk Core v%s@0x%08x Config %s>" % (self.version, id(self), self.__pipeline_config.get_path())
+        return "<Sgtk Core %s@0x%08x Config %s>" % (self.version, id(self), self.__pipeline_config.get_path())
 
     def __str__(self):
-        return "Sgtk Core v%s, config %s" % (self.version, self.__pipeline_config.get_path())
+        return "Sgtk Core %s, config %s" % (self.version, self.__pipeline_config.get_path())
 
     ################################################################################################
     # internal API

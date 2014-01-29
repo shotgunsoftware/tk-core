@@ -8,10 +8,6 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-"""
-Utils and logic for creating new tank projects
-"""
-
 SG_LOCAL_STORAGE_OS_MAP = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
 
 import re
@@ -20,18 +16,57 @@ import os
 import shutil
 import tempfile
 import uuid
-from ..errors import TankError
-from ..util import shotgun
-from .. import api
-from ..platform import constants
-from . import util as deploy_util
-from . import env_admin
-from .. import pipelineconfig
-from .. import hook
 
-from .zipfilehelper import unzip_file
+from .action_base import Action
+from ...util import shotgun
+from ...platform import constants
+from ...errors import TankError
+from ... import pipelineconfig
+from ... import hook
+from ..zipfilehelper import unzip_file
+from .. import util as deploy_util
 
 from tank_vendor import yaml
+
+class SetupProjectAction(Action):
+    """
+    Action that sets up a new Toolkit Project.
+    """    
+    def __init__(self):
+        Action.__init__(self, 
+                        "setup_project", 
+                        Action.GLOBAL, 
+                        "Sets up a new project with the Shotgun Pipeline Toolkit.", 
+                        "Configuration")
+        
+    def run(self, log, args):
+        if len(args) not in [0, 1]:
+            raise TankError("Syntax: setup_project [--no-storage-check] [--force]")
+        
+        check_storage_path_exists = True
+        force = False
+        
+        if len(args) == 1 and args[0] == "--no-storage-check":
+            check_storage_path_exists = False
+            log.info("no-storage-check mode: Will not verify that the storage exists. This "
+                     "can be useful if the storage is pointing directly at a server via a "
+                     "Windows UNC mapping.")
+            
+        if len(args) == 1 and args[0] == "--force":
+            force = True
+            log.info("force mode: Projects already set up with Toolkit can be set up again.")
+
+        elif len(args) == 1 and args[0] not in ["--no-storage-check", "--force"]:
+            raise TankError("Syntax: setup_project [--no-storage-check] [--force]")
+            check_storage_path_exists = False
+        
+        interactive_setup(log, self.code_install_root, check_storage_path_exists, force)
+        
+        
+
+
+
+
 
 
 ########################################################################################
@@ -98,9 +133,13 @@ class CmdlineSetupInteraction(object):
                        "hit enter below.")
         self._log.info("")
         self._log.info("If you have a configuration stored somewhere on disk, you can "
-                       "just enter the path to this config it will be used for the "
+                       "enter the path to this config and it will be used for the "
                        "new project.")
         self._log.info("")
+        self._log.info("You can also enter an url pointing to a git repository. Toolkit will then "
+                       "clone this repository and base the config on its content.")
+        self._log.info("")
+        
         
         config_name = raw_input("[%s]: " % constants.DEFAULT_CFG).strip()
         if config_name == "":
@@ -444,13 +483,14 @@ class TankConfigInstaller(object):
     Functionality for handling installation and validation of tank configs
     """
     
-    def __init__(self, config_name, sg, sg_app_store, script_user, log):
+    def __init__(self, config_uri, sg, sg_app_store, script_user, log):
         self._sg = sg
         self._sg_app_store = sg_app_store
         self._script_user = script_user
         self._log = log
         # now extract the cfg and validate        
-        self._cfg_folder = self._process_config(config_name)
+        (self._cfg_folder, self._config_mode) = self._process_config(config_uri)
+        self._config_uri = config_uri
         self._roots_data = self._read_roots_file()
 
         if constants.PRIMARY_STORAGE_NAME not in self._roots_data:
@@ -580,6 +620,24 @@ class TankConfigInstaller(object):
         self._log.debug("Configuration looks valid!")
         return dir_path
         
+        
+    def _process_config_git(self, git_repo_str):
+        """
+        Validate that a git repo is correct, download it to a temp location
+        """
+        
+        self._log.debug("Attempting to clone git uri '%s' into a temp location "
+                        "for introspection..." % git_repo_str)
+        
+        clone_tmp = os.path.join(tempfile.gettempdir(), uuid.uuid4().hex)
+        self._log.info("Attempting to clone git repository '%s'..." % git_repo_str)
+
+        if os.system("git clone \"%s\" %s" % (git_repo_str, clone_tmp)) != 0:
+            raise TankError("Could not clone git repository '%s'!" % git_repo_str)
+        
+        return clone_tmp
+        
+        
     def _process_config(self, cfg_string):
         """
         Looks at the starter config string and tries to convert it into a folder
@@ -589,20 +647,24 @@ class TankConfigInstaller(object):
         # tk-config-xyz
         # /path/to/file.zip
         # /path/to/folder
-        if os.path.sep in cfg_string:
+        if cfg_string.endswith(".git"):
+            # this is a git repository!
+            return (self._process_config_git(cfg_string), "git")
+            
+        elif os.path.sep in cfg_string:
             # probably a file path!
             if os.path.exists(cfg_string):
                 # either a folder or zip file!
                 if cfg_string.endswith(".zip"):
-                    return self._process_config_zip(cfg_string)
+                    return (self._process_config_zip(cfg_string), "local")
                 else:
-                    return self._process_config_dir(cfg_string)
+                    return (self._process_config_dir(cfg_string), "local")
             else:
                 raise TankError("File path %s does not exist on disk!" % cfg_string)    
         
         elif cfg_string.startswith("tk-"):
             # app store!
-            return self._process_config_app_store(cfg_string)
+            return (self._process_config_app_store(cfg_string), "app_store")
         
         else:
             raise TankError("Don't know how to handle config '%s'" % cfg_string)
@@ -671,12 +733,6 @@ class TankConfigInstaller(object):
         
         return storages
 
-    def get_path(self):
-        """
-        Returns a path to a location on disk where this config resides
-        """
-        return self._cfg_folder
-
     def check_manifest(self, sg_version_str):
         """
         Looks for an info.yml manifest in the config and validates it
@@ -729,7 +785,19 @@ class TankConfigInstaller(object):
                 self._log.debug("Config requires Toolkit Core %s. You are running %s which is fine." % (required_version, curr_core_version))
 
 
-
+    def create_configuration(self, target_path):
+        """
+        Creates the configuration folder in the target path
+        """
+        if self._config_mode == "git":
+            # clone the config into place
+            self._log.info("Cloning git configuration into '%s'..." % target_path)
+            if os.system("git clone \"%s\" %s" % (self._config_uri, target_path)) != 0:
+                raise TankError("Could not clone git repository '%s'!" % self._config_uri)
+            
+        else:
+            # copy the config from its source location into place
+            _copy_folder(self._log, self._cfg_folder, target_path )
 
 
 
@@ -742,7 +810,7 @@ def _get_current_core_file_location():
     the installation location on all platforms.    
     """
     
-    core_api_root = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "..", "..", ".."))
+    core_api_root = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "..", "..", "..", ".."))
     core_cfg = os.path.join(core_api_root, "config", "core")
     
     if not os.path.exists(core_cfg):
@@ -947,7 +1015,7 @@ def _interactive_setup(log, install_root, check_storage_path_exists, force):
     
     # validate that this is not crazy
     # note that the value can contain slashes and span across multiple folders
-    if re.match("^[/a-zA-Z0-9_-]+$", project_disk_folder) is None:
+    if re.match("^[\./a-zA-Z0-9_-]+$", project_disk_folder) is None:
         # bad name
         raise TankError("Invalid project folder '%s'! Please use alphanumerics, "
                         "underscores and dashes." % project_disk_folder)
@@ -1135,11 +1203,12 @@ def _interactive_setup(log, install_root, check_storage_path_exists, force):
         os.chmod(cache_file, 0666)    
     
     # copy the configuration into place
-    _copy_folder(log, cfg_installer.get_path(), os.path.join(current_os_pc_location, "config"))
+    cfg_installer.create_configuration( os.path.join(current_os_pc_location, "config") )
+    
     
     # copy the tank binaries to the top of the config
     log.debug("Copying Toolkit binaries...")
-    core_api_root = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", ".."))
+    core_api_root = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "..", ".."))
     root_binaries_folder = os.path.join(core_api_root, "setup", "root_binaries")
     for file_name in os.listdir(root_binaries_folder):
         src_file = os.path.join(root_binaries_folder, file_name)
@@ -1181,8 +1250,7 @@ def _interactive_setup(log, install_root, check_storage_path_exists, force):
     fh.write("Linux: '%s'\n" % locations_dict["linux2"])                    
     fh.write("\n")
     fh.write("# End of file.\n")
-    fh.close()    
-    os.chmod(sg_code_location, 0444)
+    fh.close()
     
         
     # update the roots file in the config to match our settings

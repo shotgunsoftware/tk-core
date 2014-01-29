@@ -8,11 +8,6 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-"""
-Methods for handling of the tank command
-
-"""
-
 from ... import pipelineconfig
 
 from ...util import shotgun
@@ -27,7 +22,9 @@ import shutil
 
 
 class MovePCAction(Action):
-    
+    """
+    Action that moves a pipeline configuration from one location to another
+    """    
     def __init__(self):
         Action.__init__(self, 
                         "move_configuration", 
@@ -169,8 +166,7 @@ class MovePCAction(Action):
         # also - we currently don't support moving PCs which have a localized API
         # (because these may be referred to by other PCs that are using their API
         # TODO: later on, support moving these. For now, just error out.
-        api_file = os.path.join(local_source_path, "install", "core", "_core_upgrader.py")
-        if os.path.exists(api_file):
+        if pipelineconfig.is_localized(local_source_path):        
             raise TankError("Looks like the Configuration you are trying to move has a localized "
                             "API. This is not currently supported.")
         
@@ -202,8 +198,7 @@ class MovePCAction(Action):
             fh.write("Linux: '%s'\n" % linux_path)                    
             fh.write("\n")
             fh.write("# End of file.\n")
-            fh.close()    
-            os.chmod(sg_code_location, 0444)        
+            fh.close()
 
             for r in self.tk.pipeline_configuration.get_data_roots().values():
                 log.info("Updating storage root reference in %s.." % r)
