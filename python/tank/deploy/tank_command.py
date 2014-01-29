@@ -200,7 +200,7 @@ class SgtkSystemCommand(object):
         
         # set up a default logger which can be overridden via the set_logger method
         self.__log = logging.getLogger("sgtk.systemcommand")
-        self.__log.setLevel(logging.DEBUG)
+        self.__log.setLevel(logging.INFO)
         # make sure that we have exactly one handler
         if len(self.__log.handlers) == 0:
             ch = logging.StreamHandler()
