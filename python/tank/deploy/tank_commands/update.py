@@ -23,7 +23,51 @@ class AppUpdatesAction(Action):
                         "Checks if there are any app or engine updates for the current configuration.", 
                         "Configuration")
     
+    
+        # this method can be executed via the API
+        self.supports_api = True
+        
+        self.parameters = {}
+        
+        self.parameters["environment_filter"] = { "description": "Name of environment to check.",
+                                                  "default": "ALL",
+                                                  "type": "str" }
+        self.parameters["engine_filter"] = { "description": "Name of engine to check.",
+                                             "default": "ALL",
+                                             "type": "str" }
+        self.parameters["app_filter"] = { "description": "Name of app to check.",
+                                          "default": "ALL",
+                                          "type": "str" }
+        
+        
+        
+        
+    def run_noninteractive(self, log, parameters):
+        """
+        API accessor
+        """
+        # validate params and seend default values
+        computed_params = self._validate_parameters(parameters) 
+        
+        if computed_params["environment_filter"] == "ALL":
+            computed_params["environment_filter"] = None
+        if computed_params["engine_filter"] == "ALL":
+            computed_params["engine_filter"] = None
+        if computed_params["app_filter"] == "ALL":
+            computed_params["app_filter"] = None
+        
+        return check_for_updates(log, 
+                                 self.tk,
+                                 computed_params["environment_filter"], 
+                                 computed_params["engine_filter"],
+                                 computed_params["app_filter"],
+                                 True )
+
+
     def run_interactive(self, log, args):
+        """
+        Tank command accessor
+        """
                 
         if len(args) == 0:
             # update EVERYTHING!
@@ -105,7 +149,7 @@ class AppUpdatesAction(Action):
 # helper methods for update
     
     
-def check_for_updates(log, tk, env_name=None, engine_instance_name=None, app_instance_name=None):
+def check_for_updates(log, tk, env_name=None, engine_instance_name=None, app_instance_name=None, suppress_prompts=False):
     """
     Runs the update checker.
     """
@@ -146,7 +190,7 @@ def check_for_updates(log, tk, env_name=None, engine_instance_name=None, app_ins
                 engines_to_process = []
         
         for engine in engines_to_process:
-            items.append( _process_item(log, tk, env, engine) )
+            items.append( _process_item(log, suppress_prompts, tk, env, engine) )
             log.info("")
             
             if app_instance_name is None:
@@ -163,7 +207,7 @@ def check_for_updates(log, tk, env_name=None, engine_instance_name=None, app_ins
                     apps_to_process = []
             
             for app in apps_to_process:
-                items.append( _process_item(log, tk, env, engine, app) )
+                items.append( _process_item(log, suppress_prompts, tk, env, engine, app) )
                 log.info("")
         
         for framework in env.get_frameworks():
@@ -191,11 +235,25 @@ def check_for_updates(log, tk, env_name=None, engine_instance_name=None, app_ins
             log.info(x)
         log.info("-" * 70)
 
-
     log.info("")
     
+    # generate return data for api access
+    ret_val = []
+    for x in items:
+        d = {}
+        d["engine_instance"] = x["engine_name"]
+        d["app_instance"] = x["app_name"]
+        d["environment"] = x["env_name"].name
+        d["updated"] = x["was_updated"]
+        if x["was_updated"]:
+            d["new_version"] = x["new_descriptor"].get_version()
+        ret_val.append(d)
+    
+    return ret_val
+        
+    
 
-def _update_item(log, tk, env, status, engine_name, app_name=None):
+def _update_item(log, suppress_prompts, tk, env, status, engine_name, app_name=None):
     """
     Performs an upgrade of an engine/app.
     """
@@ -224,10 +282,10 @@ def _update_item(log, tk, env, status, engine_name, app_name=None):
     else:
         (_, yml_file) = env.find_location_for_app(engine_name, app_name)
     
-    console_utils.ensure_frameworks_installed(log, tk, yml_file, new_descriptor, env)
+    console_utils.ensure_frameworks_installed(log, tk, yml_file, new_descriptor, env, suppress_prompts)
 
     # now get data for all new settings values in the config
-    params = console_utils.get_configuration(log, tk, new_descriptor, old_descriptor)
+    params = console_utils.get_configuration(log, tk, new_descriptor, old_descriptor, suppress_prompts)
 
     # awesome. got all the values we need.
     log.info("")
@@ -255,7 +313,7 @@ def _process_framework(log, env, framework_name):
         desc.download_local() 
 
 
-def _process_item(log, tk, env, engine_name, app_name=None):
+def _process_item(log, suppress_prompts, tk, env, engine_name, app_name=None):
     """
     Checks if an app/engine is up to date and potentially upgrades it.
 
@@ -263,6 +321,9 @@ def _process_item(log, tk, env, engine_name, app_name=None):
     - was_updated (bool)
     - old_descriptor
     - new_descriptor (may be None if was_updated is False)
+    - app_name
+    - engine_name
+    - env_name
     """
 
 
@@ -282,13 +343,13 @@ def _process_item(log, tk, env, engine_name, app_name=None):
         console_utils.format_bundle_info(log, status["latest"])
         
         # ask user
-        if console_utils.ask_question("Update to the above version?"):
-            _update_item(log, tk, env, status, engine_name, app_name)
+        if suppress_prompts or console_utils.ask_question("Update to the above version?"):
+            _update_item(log, suppress_prompts, tk, env, status, engine_name, app_name)
             item_was_updated = True
 
     elif status["out_of_date"] == False and not status["current"].exists_local():
         # app is not local! boo!
-        if console_utils.ask_question("Current version does not exist locally - download it now?"):
+        if suppress_prompts or console_utils.ask_question("Current version does not exist locally - download it now?"):
             log.info("Downloading %s..." % status["current"])
             status["current"].download_local()
 
@@ -304,6 +365,9 @@ def _process_item(log, tk, env, engine_name, app_name=None):
     d["was_updated"] = item_was_updated
     d["old_descriptor"] = status["current"]
     d["new_descriptor"] = status["latest"]
+    d["app_name"] = app_name
+    d["engine_name"] = engine_name
+    d["env_name"] = env
     return d
 
 

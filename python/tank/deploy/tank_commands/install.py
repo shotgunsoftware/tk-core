@@ -58,6 +58,7 @@ class InstallAppAction(Action):
         computed_params = self._validate_parameters(parameters) 
         
         return self._run(log, 
+                         True,
                          computed_params["environment"], 
                          computed_params["engine_instance"],
                          computed_params["app_uri"] )
@@ -128,10 +129,10 @@ class InstallAppAction(Action):
         engine_instance_name = args[1]
         app_name = args[2]
         
-        self._run(log, env_name, engine_instance_name, app_name)
+        self._run(log, False, env_name, engine_instance_name, app_name)
         
         
-    def _run(self, log, env_name, engine_instance_name, app_name):        
+    def _run(self, log, suppress_prompts, env_name, engine_instance_name, app_name):        
         
         
         log.info("")
@@ -195,7 +196,7 @@ class InstallAppAction(Action):
         # find the file where our app is being installed
         # when adding new items, we always add them to the root env file
         fw_location = env.disk_location
-        console_utils.ensure_frameworks_installed(log, self.tk, fw_location, app_descriptor, env)
+        console_utils.ensure_frameworks_installed(log, self.tk, fw_location, app_descriptor, env, suppress_prompts)
     
         # create required shotgun fields
         app_descriptor.ensure_shotgun_fields_exist()
@@ -204,7 +205,7 @@ class InstallAppAction(Action):
         app_descriptor.run_post_install()
     
         # now get data for all new settings values in the config
-        params = console_utils.get_configuration(log, self.tk, app_descriptor, None)
+        params = console_utils.get_configuration(log, self.tk, app_descriptor, None, suppress_prompts)
     
         # next step is to add the new configuration values to the environment
         env.create_app_settings(engine_instance_name, app_instance_name)
@@ -255,7 +256,7 @@ class InstallEngineAction(Action):
         # validate params and seend default values
         computed_params = self._validate_parameters(parameters) 
         
-        return self._run(log, computed_params["environment"], computed_params["engine_uri"])
+        return self._run(log, True, computed_params["environment"], computed_params["engine_uri"])
         
     
     def run_interactive(self, log, args):
@@ -318,10 +319,10 @@ class InstallEngineAction(Action):
         env_name = args[0]
         engine_name = args[1]
         
-        self._run(log, env_name, engine_name)   
+        self._run(log, False, env_name, engine_name)   
 
 
-    def _run(self, log, env_name, engine_name):
+    def _run(self, log, suppress_prompts, env_name, engine_name):
         """
         Actual execution payload
         """ 
@@ -378,7 +379,7 @@ class InstallEngineAction(Action):
         # find the file where our app is being installed
         # when adding new items, we always add them to the root env file
         fw_location = env.disk_location    
-        console_utils.ensure_frameworks_installed(log, self.tk, fw_location, engine_descriptor, env)
+        console_utils.ensure_frameworks_installed(log, self.tk, fw_location, engine_descriptor, env, suppress_prompts)
     
         # note! Some of these methods further down are likely to pull the apps local
         # in order to do deep introspection. In order to provide better error reporting,
@@ -395,7 +396,7 @@ class InstallEngineAction(Action):
         engine_descriptor.run_post_install()
     
         # now get data for all new settings values in the config
-        params = console_utils.get_configuration(log, self.tk, engine_descriptor, None)
+        params = console_utils.get_configuration(log, self.tk, engine_descriptor, None, suppress_prompts)
         
         # next step is to add the new configuration values to the environment
         env.create_engine_settings(engine_instance_name)

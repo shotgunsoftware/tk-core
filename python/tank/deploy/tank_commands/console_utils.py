@@ -115,7 +115,7 @@ def format_bundle_info(log, descriptor):
 
 
 
-def get_configuration(log, tank_api_instance, new_ver_descriptor, old_ver_descriptor):
+def get_configuration(log, tank_api_instance, new_ver_descriptor, old_ver_descriptor, suppress_prompts):
     """
     Retrieves all the parameters needed for an app, engine or framework.
     May prompt the user for information.
@@ -161,6 +161,10 @@ def get_configuration(log, tank_api_instance, new_ver_descriptor, old_ver_descri
             # note that value can be a tuple so need to cast to str
             log.info("Auto-populated with default value '%s'" % str(value))
 
+        elif suppress_prompts:
+            log.warning("Value set to None! Please update the environment by hand later!")
+            params[name] = None
+            
         else:
 
             # get value from user
@@ -193,7 +197,7 @@ def get_configuration(log, tank_api_instance, new_ver_descriptor, old_ver_descri
 
 
 
-def ensure_frameworks_installed(log, tank_api_instance, file_location, descriptor, environment):
+def ensure_frameworks_installed(log, tank_api_instance, file_location, descriptor, environment, suppress_prompts):
     """
     Recursively check that all required frameworks are installed.
     Anything not installed will be downloaded from the app store.
@@ -239,13 +243,13 @@ def ensure_frameworks_installed(log, tank_api_instance, file_location, descripto
         fw_descriptor.run_post_install()
     
         # now get data for all new settings values in the config
-        params = get_configuration(log, tank_api_instance, fw_descriptor, None)
+        params = get_configuration(log, tank_api_instance, fw_descriptor, None, suppress_prompts)
     
         # next step is to add the new configuration values to the environment
         environment.create_framework_settings(file_location, fw_instance_name, params, fw_descriptor.get_location())
         
         # now make sure these guys have all their required frameworks installed
-        ensure_frameworks_installed(log, tank_api_instance, file_location, fw_descriptor, environment)
+        ensure_frameworks_installed(log, tank_api_instance, file_location, fw_descriptor, environment, suppress_prompts)
         
     
     
