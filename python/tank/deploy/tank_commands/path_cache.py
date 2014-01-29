@@ -124,7 +124,6 @@ class PathCacheMigrationAction(Action):
                             "Error reported: %s" % (pipe_config_sg_id_path, exp))
         finally:
             fh.close()                        
-            os.chmod(pipe_config_sg_id_path, 0444)        
         
         # tell pipeline config object to reread settings...
         self.tk.pipeline_configuration.force_reread_settings()
