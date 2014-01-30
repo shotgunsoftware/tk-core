@@ -69,7 +69,7 @@ class CoreUpgradeAction(Action):
             raise TankError("This command takes no arguments!")
         self._run(log, False)
         
-    def _run(self, log, bypass_user_prompt):
+    def _run(self, log, suppress_prompts):
         """
         Actual execution payload
         """ 
@@ -129,7 +129,7 @@ class CoreUpgradeAction(Action):
             log.info("Associated with this Shotgun Pipeline Toolkit installation.")
             log.info("")
             
-            if bypass_user_prompt or console_utils.ask_yn_question("Update to the latest version of the Core API?"):
+            if suppress_prompts or console_utils.ask_yn_question("Update to the latest version of the Core API?"):
                 # install it!
                 log.info("Downloading and installing a new version of the core...")
                 installer.do_install()
@@ -189,7 +189,7 @@ class CoreLocalizeAction(Action):
         """
         API accessor
         """
-        return self._run(log, False)
+        return self._run(log, True)
     
     def run_interactive(self, log, args):
         """
@@ -198,9 +198,9 @@ class CoreLocalizeAction(Action):
         if len(args) != 0:
             raise TankError("This command takes no arguments!")
 
-        return self._run(log, True)
+        return self._run(log, False)
     
-    def _run(self, log, prompt_user):
+    def _run(self, log, suppress_prompts):
         """
         Actual execution payload
         """ 
@@ -217,7 +217,7 @@ class CoreLocalizeAction(Action):
         log.info("This will copy the Core API in %s into the Pipeline configuration %s." % (core_api_root, 
                                                                                             pc_root) )
         log.info("")
-        if prompt_user == False or console_utils.ask_yn_question("Do you want to proceed"):
+        if suppress_prompts or console_utils.ask_yn_question("Do you want to proceed"):
             log.info("")
             
             source_core = os.path.join(core_api_root, "install", "core")
