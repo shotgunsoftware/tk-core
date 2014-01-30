@@ -161,6 +161,13 @@ class Tank(object):
     def list_commands(self):
         """
         Lists the system commands registered with the system.
+        
+        This method will return all system commands which 
+        are available in the context of a project configuration will be returned.
+        This includes for example commands for configuration management, 
+        anything app or engine related and validation and overview functionality.
+        In addition to these commands, the global commands such as project setup
+        and core API check commands will also be returned.
     
         :returns: list of command names
         """
@@ -170,7 +177,16 @@ class Tank(object):
 
     def get_command(self, command_name):
         """
-        Returns an instance of a command object that can be used to execute a command
+        Returns an instance of a command object that can be used to execute a command.
+        
+        Once you have retrieved the command instance, you can perform introspection to 
+        check for example the required parameters for the command, name, description etc.
+        Lastly, you can execute the command by running the execute() method.
+        
+        In order to get a list of the available commands, use the list_commands() method.
+                
+        :param command_name: Name of command to execute. Get a list of all available commands
+                             using the tk.list_commands() method.
         
         :returns: SgtkSystemCommand object instance
         """

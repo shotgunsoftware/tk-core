@@ -129,7 +129,21 @@ def get_shell_engine_actions(engine_obj):
 def list_commands(tk=None):
     """
     Lists the system commands registered with the system.
+    
+    If you leave the optional tk parameter as None, a list of 
+    global commands will be returned. These commands can be executed
+    at any point and do not require a project or a configuration to 
+    be present. Examples of such commands are the core upgrade
+    check and the setup_project commands.
+    
+    If you pass in a tk API handle (or alternatively use the 
+    convenience method tk_api_obj.list_commands()), all commands which 
+    are available in the context of a project configuration will be returned.
+    This includes for example commands for configuration management, 
+    anything app or engine related and validation and overview functionality.
+    In addition to these commands, the global commands will also be returned.
 
+    :param tk: toolkit API instance
     :returns: list of command names
     """
     action_names = []
@@ -150,11 +164,19 @@ def get_command(command_name, tk=None):
     """
     Returns an instance of a command object that can be used to execute a command.
     
+    Once you have retrieved the command instance, you can perform introspection to 
+    check for example the required parameters for the command, name, description etc.
+    Lastly, you can execute the command by running the execute() method.
+    
+    In order to get a list of the available commands, use the list_commands() method.
+    
+    Certain commands require a project configuration context in order to operate. This
+    needs to be passed on in the form of a toolkit API instance via the tk parameter.
+    See the list_command() documentation for more details.
+    
     :param command_name: Name of command to execute. Get a list of all available commands
-                         using the list_commands() method.
-    :param tk: Optional Toolkit API instance that can be passed to commands so require. 
-               Alternatively, you can also use the get_command() method on the Toolkit
-               API instance directly.
+                         using the sgtk.list_commands() method.
+    :param tk: Optional Toolkit API instance that some commands require in order to operate.
     
     :returns: SgtkSystemCommand object instance
     """    
@@ -172,21 +194,10 @@ class SgtkSystemCommand(object):
     """
     Represents a toolkit system command.
     
-    Toolkit commands can be one of two different types:
+    You can use this object to introspect command properties such as 
+    name, description, parameters etc.
     
-    - A global command executes without any type of state or context. 
-      Examples of global commands include setup_project, which can be 
-      carried out from an empty state without any project specified or
-      any type of normal toolkit environment present.
-    - A command that requires an API instance needs to be initialized
-      with a sgtk API instance in order to execute. The tk instance 
-      defines the pipeline configuration to use and which project to run.
-      Most commmands are of this class. For this command class to work,
-      the needs_
-      
-     You can query if an api instance is needed using the command_instance.needs_api
-     property. If this returns true, a api_instance parameter must be passed to
-     the execute() method when the command is executed. 
+    Execution is carried out by calling the execute() method.    
     """
     
     # this class wraps around a tank.deploy.tank_commands.action_base.Action class
