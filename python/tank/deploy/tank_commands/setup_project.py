@@ -161,13 +161,18 @@ class SetupProjectAction(Action):
 # tank command mode, CmdlineSetupInteraction is used to prompt the user.
 
 class CmdlineSetupInteraction(object):
+    """
+    Handles interaction between the project setup logic and the user when 
+    running as a command line session. This code will propmpt the user to 
+    enter parameters etc.
+    """
     
     def __init__(self, log):
         self._log = log
             
     def confirm_continue(self):
         """
-        Yes no confirm to continue
+        Called when the logic needs an interactive session to issue a "ok to contine" prompt
         """
         val = raw_input("Continue with project setup (Yes/No)? [Yes]: ")
         if val == "" or val.lower().startswith("y"):
@@ -563,6 +568,13 @@ class CmdlineSetupInteraction(object):
 
 
 class APISetupInteraction(object):
+    """
+    Handles interaction between the project setup logic and the user when 
+    running via the API. This class implements the same methods as the 
+    CmdlineSetupInteraction class above but instead of prompting the user
+    interactively, it just dishes out a bunch of pre-defined values
+    in the various methods.
+    """
     
     def __init__(self, log, configuration_uri, project_id, project_folder_name, mac_pc_location, linux_pc_location, win_pc_location):
         self._log = log
@@ -575,12 +587,16 @@ class APISetupInteraction(object):
         self._win_pc_location = win_pc_location
             
     def confirm_continue(self):
-        # API always continues.
+        """
+        Called when the logic needs an interactive session to issue a "ok to contine" prompt
+        """
+        # When in API mode, we just continue without prompting
         return True
         
     def select_template_configuration(self, sg):
         """
-        Ask the user which config to use. Returns a config string.
+        The setup logic requests which configuration to use. 
+        Returns a config string.
         """
         return self._configuration_uri        
         
@@ -606,8 +622,7 @@ class APISetupInteraction(object):
         """
         Given a project entity in Shotgun (name, id), decide where the project data
         root should be on disk. This will verify that the selected folder exists
-        in each of the storages required by the configuration. It will prompt the user
-        and can create these root folders if required (with open permissions).
+        in each of the storages required by the configuration. 
 
         Returns the project disk name which is selected, this name may 
         include slashes if the selected location is multi-directory.
@@ -616,7 +631,7 @@ class APISetupInteraction(object):
     
     def get_disk_location(self, resolved_storages, project_disk_name, install_root):
         """
-        Ask the user where the pipeline configuration should be located on disk.
+        The project setup process is requesting where on disk it should place the project config.
         Returns a dictionary with keys according to sys.platform: win32, darwin, linux2
         
         :param resolved_storages: All the storage roots (Local storage entities in shotgun)
