@@ -48,14 +48,14 @@ class PushPCAction(Action):
     def __init__(self):
         Action.__init__(self, 
                         "push_configuration", 
-                        Action.PC_LOCAL, 
+                        Action.TK_INSTANCE, 
                         ("Pushes any configuration changes made here to another configuration. "
                          "This is typically used when you have cloned your production configuration "
                          "into a staging sandbox, updated the apps in this sandbox and want to push "
                          "those updates back to your production configuration."), 
                         "Configuration")
         
-    def run(self, log, args):
+    def run_interactive(self, log, args):
 
         # get list of all PCs for this project
         project_id = self.tk.pipeline_configuration.get_project_id()

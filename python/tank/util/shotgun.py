@@ -33,7 +33,7 @@ def __get_api_core_config_location():
     Walk from the location of this file on disk to the config area.
     this operation is guaranteed to work on any valid tank installation
 
-    Pipeline Configuration
+    Pipeline Configuration / Studio Location
        |
        |- Install
        |     \- Core
@@ -43,8 +43,9 @@ def __get_api_core_config_location():
        \- Config
              \- Core
     """
-
-    core_api_root = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "..", "..", ".."))
+    # local import to avoid cyclic references
+    from ..pipelineconfig import get_current_code_install_root
+    core_api_root = get_current_code_install_root()
     core_cfg = os.path.join(core_api_root, "config", "core")
 
     if not os.path.exists(core_cfg):

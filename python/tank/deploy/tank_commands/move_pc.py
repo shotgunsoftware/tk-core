@@ -28,7 +28,7 @@ class MovePCAction(Action):
     def __init__(self):
         Action.__init__(self, 
                         "move_configuration", 
-                        Action.PC_LOCAL, 
+                        Action.TK_INSTANCE, 
                         ("Moves this configuration from its current disk location to a new location."), 
                         "Admin")
     
@@ -95,7 +95,7 @@ class MovePCAction(Action):
         
     
     
-    def run(self, log, args):
+    def run_interactive(self, log, args):
         
         sg = shotgun.create_sg_connection()
         pipeline_config_id = self.tk.pipeline_configuration.get_shotgun_id()

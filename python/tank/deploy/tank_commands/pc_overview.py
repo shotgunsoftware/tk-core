@@ -25,13 +25,31 @@ class PCBreakdownAction(Action):
     def __init__(self):
         Action.__init__(self, 
                         "configurations", 
-                        Action.PC_LOCAL, 
+                        Action.TK_INSTANCE, 
                         ("Shows an overview of the different configurations registered with this project."), 
                         "Admin")
+
+        # this method can be executed via the API
+        self.supports_api = True        
     
-    def run(self, log, args):
+    def run_noninteractive(self, log, parameters):
+        """
+        API accessor
+        """
+        return self._run(log)
+   
+    def run_interactive(self, log, args):
+        """
+        Tank command accessor
+        """
         if len(args) != 0:
             raise TankError("This command takes no arguments!")
+        return self._run(log)
+
+    def _run(self, log):
+        """
+        Actual execution payload
+        """ 
         
         log.info("Fetching data from Shotgun...")
         project_id = self.tk.pipeline_configuration.get_project_id()
@@ -75,9 +93,9 @@ class PCBreakdownAction(Action):
             if mp is None:
                 mp = "[Not defined]"
             
-            log.info("Linux Location:  %s" % lp )
+            log.info("Linux Location:   %s" % lp )
             log.info("Windows Location: %s" % wp )
-            log.info("Mac Location:    %s" % mp )
+            log.info("Mac Location:     %s" % mp )
             log.info("")
             
             

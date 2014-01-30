@@ -160,7 +160,7 @@ class MoveStudioInstallAction(Action):
             log.info("> Pipeline Config updated to point at new Studio location.")
     
     
-    def run(self, log, args):
+    def run_interactive(self, log, args):
         if len(args) != 4:
 
             log.info("Syntax: move_studio_install current_path linux_path windows_path mac_path")

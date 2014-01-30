@@ -24,11 +24,50 @@ class InstallAppAction(Action):
     def __init__(self):
         Action.__init__(self, 
                         "install_app", 
-                        Action.PC_LOCAL, 
+                        Action.TK_INSTANCE, 
                         "Adds a new app to your configuration.", 
                         "Configuration")
+
+        # this method can be executed via the API
+        self.supports_api = True
+
+        self.parameters = {}
+        
+        self.parameters["environment"] = { "description": "Name of environment to install into.",
+                                           "default": None,
+                                           "type": "str" }
+        self.parameters["engine_instance"] = { "description": "Name of the engine instance to install into.",
+                                               "default": None,
+                                               "type": "str" }
+        self.parameters["app_uri"] = { "description": ("Address to app to install. If you specify the name of "
+                                                       "an app (e.g. tk-multi-loader), toolkit will try to download "
+                                                       "it from the Shotgun App Store. Alternatively, you can also "
+                                                       "specify the path to a bare git repo, for example in github. "
+                                                       "For more info, see the help for the install_app commmand."),
+                                               "default": None,
+                                               "type": "str" }
     
-    def run(self, log, args):
+
+    
+    def run_noninteractive(self, log, parameters):
+        """
+        API accessor
+        """
+        
+        # validate params and seed default values
+        computed_params = self._validate_parameters(parameters) 
+        
+        return self._run(log, 
+                         True,
+                         computed_params["environment"], 
+                         computed_params["engine_instance"],
+                         computed_params["app_uri"] )
+    
+
+    def run_interactive(self, log, args):
+        """
+        Tank command accessor
+        """
 
         if len(args) != 3:
             
@@ -89,6 +128,12 @@ class InstallAppAction(Action):
         env_name = args[0]
         engine_instance_name = args[1]
         app_name = args[2]
+        
+        self._run(log, False, env_name, engine_instance_name, app_name)
+        
+        
+    def _run(self, log, suppress_prompts, env_name, engine_instance_name, app_name):        
+        
         
         log.info("")
         log.info("Welcome to the Shotgun Pipeline Toolkit App installer!")
@@ -151,7 +196,7 @@ class InstallAppAction(Action):
         # find the file where our app is being installed
         # when adding new items, we always add them to the root env file
         fw_location = env.disk_location
-        console_utils.ensure_frameworks_installed(log, self.tk, fw_location, app_descriptor, env)
+        console_utils.ensure_frameworks_installed(log, self.tk, fw_location, app_descriptor, env, suppress_prompts)
     
         # create required shotgun fields
         app_descriptor.ensure_shotgun_fields_exist()
@@ -160,7 +205,7 @@ class InstallAppAction(Action):
         app_descriptor.run_post_install()
     
         # now get data for all new settings values in the config
-        params = console_utils.get_configuration(log, self.tk, app_descriptor, None)
+        params = console_utils.get_configuration(log, self.tk, app_descriptor, None, suppress_prompts)
     
         # next step is to add the new configuration values to the environment
         env.create_app_settings(engine_instance_name, app_instance_name)
@@ -181,15 +226,50 @@ class InstallEngineAction(Action):
     def __init__(self):
         Action.__init__(self, 
                         "install_engine", 
-                        Action.PC_LOCAL, 
+                        Action.TK_INSTANCE, 
                         "Adds a new engine to your configuration.", 
                         "Configuration")
+        
+        # this method can be executed via the API
+        self.supports_api = True
+
+        self.parameters = {}
+        
+        self.parameters["environment"] = { "description": "Name of environment to install into.",
+                                           "default": None,
+                                           "type": "str" }
+        self.parameters["engine_uri"] = { "description": ("Address to engine to install. If you specify the name of "
+                                                       "an engine (e.g. tk-maya), toolkit will try to download "
+                                                       "it from the Shotgun App Store. Alternatively, you can also "
+                                                       "specify the path to a bare git repo, for example in github. "
+                                                       "For more info, see the help for the install_engine commmand."),
+                                               "default": None,
+                                               "type": "str" }
     
-    def run(self, log, args):
+
+    
+    def run_noninteractive(self, log, parameters):
+        """
+        API accessor
+        """
+        
+        # validate params and seed default values
+        computed_params = self._validate_parameters(parameters) 
+        
+        return self._run(log, True, computed_params["environment"], computed_params["engine_uri"])
+        
+    
+    def run_interactive(self, log, args):
 
         if len(args) != 2:
             
-            log.info("This command adds an engine to an existing environment. ")
+            
+            log.info("This command adds an engine to an existing environment. "
+                     "You can either add engines from the Toolkit App Store or from git source control.")
+            log.info("")
+            log.info("")
+            log.info("Adding an engine from the Toolkit App Store")
+            log.info("----------------------------------------")
             log.info("")
             log.info("The standard mechanism through which apps and engines are distributed "
                      "is the Toolkit App Store. Items in the App Store are part of the official "
@@ -200,8 +280,34 @@ class InstallEngineAction(Action):
             log.info("To install an app store engine, use the following syntax:")
             log.info("> tank install_engine environment_name engine_name")
             log.info("")
-            log.info("For example, to install the tk-houdini engine into Asset environment:")
+            log.info("For example, to install the houdini engine into the Asset environment:")
             log.info("> tank install_engine Asset tk-houdini")
+            log.info("")
+            log.info("")
+            log.info("")
+            log.info("Adding an engine from git or github")
+            log.info("----------------------------------------")
+            log.info("")
+            log.info("You can also install engines directly from git or github. Toolkit will "
+                     "read a git repository's list of tags, try to interpret them as version numbers, and "
+                     "install the tag with the highest version number. Later on, when you run "
+                     "the 'tank updates' command, it will automatically detect if there are tags "
+                     "with higher version number than the currently installed and prompt you to "
+                     "update.")
+            log.info("")
+            log.info("We strongly recommend that your tags following the Semantic Version "
+                     "numbering scheme when working with Toolkit. You can read more about it "
+                     "here: http://semver.org")
+            log.info("")
+            log.info("To install an engine from git, use the following syntax:")
+            log.info("> tank install_engine environment_name git-repo")
+            log.info("")
+            log.info("The git_repo part is a repository location that can be understood by git. "
+                     "Examples include: ")
+            log.info(" - /path/to/repo.git")
+            log.info(" - user@remotehost:/path_to/repo.git")
+            log.info(" - git://github.com/manneohrstrom/tk-hiero-publish.git")
+            log.info(" - https://github.com/manneohrstrom/tk-hiero-publish.git")
             log.info("")
             log.info("")
             log.info("Handy tip: For a list of existing environments, engines and apps, "
@@ -210,10 +316,16 @@ class InstallEngineAction(Action):
             
             return
 
-
-                    
         env_name = args[0]
-        engine_name = args[1]   
+        engine_name = args[1]
+        
+        self._run(log, False, env_name, engine_name)   
+
+
+    def _run(self, log, suppress_prompts, env_name, engine_name):
+        """
+        Actual execution payload
+        """ 
 
         log.info("")
         log.info("")
@@ -225,9 +337,25 @@ class InstallEngineAction(Action):
         except Exception, e:
             raise TankError("Environment '%s' could not be loaded! Error reported: %s" % (env_name, e))
     
-        # find engine
-        engine_descriptor = TankAppStoreDescriptor.find_item(self.tk.pipeline_configuration, AppDescriptor.ENGINE, engine_name)
-        log.info("Successfully located %s..." % engine_descriptor)
+    
+        if engine_name.endswith(".git"):
+            # this is a git location!
+            # run descriptor factory method
+            log.info("Connecting to git...")
+            location = {"type": "git", "path": engine_name, "version": "v0.0.0"}
+            tmp_descriptor = get_from_location(AppDescriptor.ENGINE, 
+                                               self.tk.pipeline_configuration, 
+                                               location)
+            # now find latest
+            engine_descriptor = tmp_descriptor.find_latest_version()
+            log.info("Latest version in repository '%s' is %s." % (engine_name, engine_descriptor.get_version()))
+            
+        else:
+            # this is an app store app!
+            log.info("Connecting to the Toolkit App Store...")
+            engine_descriptor = TankAppStoreDescriptor.find_item(self.tk.pipeline_configuration, AppDescriptor.ENGINE, engine_name)
+            log.info("Latest approved App Store Version is %s." % engine_descriptor.get_version())
+        
         log.info("")
     
         # now assume a convention where we will name the engine instance that we create in the environment
@@ -251,13 +379,13 @@ class InstallEngineAction(Action):
         # find the file where our app is being installed
         # when adding new items, we always add them to the root env file
         fw_location = env.disk_location    
-        console_utils.ensure_frameworks_installed(log, self.tk, fw_location, engine_descriptor, env)
+        console_utils.ensure_frameworks_installed(log, self.tk, fw_location, engine_descriptor, env, suppress_prompts)
     
         # note! Some of these methods further down are likely to pull the apps local
         # in order to do deep introspection. In order to provide better error reporting,
         # pull the apps local before we start
         if not engine_descriptor.exists_local():
-            log.info("Downloading from App Store, hold on...")
+            log.info("Downloading, hold on...")
             engine_descriptor.download_local()
             log.info("")
     
@@ -268,7 +396,7 @@ class InstallEngineAction(Action):
         engine_descriptor.run_post_install()
     
         # now get data for all new settings values in the config
-        params = console_utils.get_configuration(log, self.tk, engine_descriptor, None)
+        params = console_utils.get_configuration(log, self.tk, engine_descriptor, None, suppress_prompts)
         
         # next step is to add the new configuration values to the environment
         env.create_engine_settings(engine_instance_name)
