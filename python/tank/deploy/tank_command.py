@@ -330,7 +330,7 @@ def get_actions(log, tk, ctx):
     # now only pick the ones that are working with our current state
     for a in all_actions:
         
-        if not(a.supports_tank_command):
+        if not a.supports_tank_command:
             # this action does not support tank command mode
             continue
         

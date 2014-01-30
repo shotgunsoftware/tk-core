@@ -433,7 +433,7 @@ def shotgun_run_action(log, install_root, pipeline_config_root, is_localized, ar
         lv = installer.get_latest_version_number()
         log.info("You are currently running version %s of the Shotgun Pipeline Toolkit." % cv)
         
-        if not(is_localized):
+        if not is_localized:
             log.info("")
             log.info("Your core API is located in <code>%s</code> and is shared with other "
                      "projects." % install_root)

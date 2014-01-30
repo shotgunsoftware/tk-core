@@ -114,7 +114,7 @@ def clone_pipeline_configuration_html(log, tk, source_pc_id, user_id, new_name, 
              "to <code>%s</code>." % (source_folder, target_folder))
 
     # if this new clone is using a shared core API, tell people how to localize.
-    if not(is_localized):
+    if not is_localized:
         log.info("")
         log.info("")
         log.info("Note: You are running a shared version of the Toolkit Core API for this new clone. "
