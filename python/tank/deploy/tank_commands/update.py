@@ -46,7 +46,7 @@ class AppUpdatesAction(Action):
         """
         API accessor
         """
-        # validate params and seend default values
+        # validate params and seed default values
         computed_params = self._validate_parameters(parameters) 
         
         if computed_params["environment_filter"] == "ALL":

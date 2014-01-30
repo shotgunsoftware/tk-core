@@ -14,9 +14,84 @@ from ...errors import TankError
 
 from tank_vendor import yaml
 
+from .action_base import Action
+
 import sys
 import os
 import shutil
+
+class CloneConfigAction(Action):
+    """
+    Action that looks at the config and validates all parameters
+    """    
+    def __init__(self):
+        Action.__init__(self, 
+                        "clone_configuration", 
+                        Action.TK_INSTANCE, 
+                        "Clones the current configuration.", 
+                        "Configuration")
+        
+        # no tank command support for this one
+        self.supports_tank_command = False
+
+        # this method can be executed via the API
+        self.supports_api = True
+        
+        self.parameters = {}
+        
+        self.parameters["source_id"] = { "description": "Id of source Pipeline Configuration to use.",
+                                         "default": None,
+                                         "type": "int" }
+        
+        self.parameters["user_id"] = { "description": "Shotgun user id to associate the cloned configuration with.",
+                                       "default": None,
+                                       "type": "int" }
+        
+        self.parameters["name"] = { "description": "The name of the new pipeline configuration.",
+                                    "default": None,
+                                    "type": "str" }
+        
+        # note how the current platform's default value is None in order to make that required
+        self.parameters["path_mac"] = { "description": "Path to the new configuration on Macosx.",
+                                        "default": ( None if sys.platform == "darwin" else "" ),
+                                        "type": "str" }
+
+        self.parameters["path_win"] = { "description": "Path to the new configuration on Windows.",
+                                        "default": ( None if sys.platform == "win32" else "" ),
+                                        "type": "str" }
+
+        self.parameters["path_linux"] = { "description": "Path to the new configuration on Linux.",
+                                          "default": ( None if sys.platform == "linux2" else "" ),
+                                          "type": "str" }
+        
+        self.parameters["return_value"] = { "description": "Returns the id of the created Pipeline Configuration",
+                                          "type": "int" }
+        
+        
+    def run_noninteractive(self, log, parameters):
+        """
+        API accessor
+        """
+
+        # validate params and seed default values
+        computed_params = self._validate_parameters(parameters) 
+        # execute
+        data = _do_clone(log, 
+                         self.tk, 
+                         computed_params["source_id"], 
+                         computed_params["user_id"], 
+                         computed_params["name"], 
+                         computed_params["path_linux"], 
+                         computed_params["path_mac"], 
+                         computed_params["path_win"])
+
+        return data["id"]
+    
+    def run_interactive(self, log, args):
+        """
+        Tank command accessor
+        """
+        raise TankError("This Action does not support command line access")
 
 
 def clone_pipeline_configuration_html(log, tk, source_pc_id, user_id, new_name, target_linux, target_mac, target_win, is_localized):
@@ -28,7 +103,10 @@ def clone_pipeline_configuration_html(log, tk, source_pc_id, user_id, new_name, 
     Configuration entry and go select the clone action.
     """
 
-    (source_folder, target_folder) = _do_clone(log, tk, source_pc_id, user_id, new_name, target_linux, target_mac, target_win)
+    data = _do_clone(log, tk, source_pc_id, user_id, new_name, target_linux, target_mac, target_win)
+
+    source_folder = data["source"]
+    target_folder = data["target"]
 
     log.info("<b>Clone Complete!</b>")
     log.info("")
@@ -167,7 +245,7 @@ def _do_clone(log, tk, source_pc_id, user_id, new_name, target_linux, target_mac
     finally:
         os.umask(old_umask)
         
-    return (source_folder, target_folder)
+    return {"source": source_folder, "target": target_folder, "id": pc_entity["id"] }
 
 
 

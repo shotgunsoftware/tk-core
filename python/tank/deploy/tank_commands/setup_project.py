@@ -107,6 +107,7 @@ class SetupProjectAction(Action):
         API accessor
         """
         
+        # validate params and seed default values
         computed_params = self._validate_parameters(parameters)
         
         interaction_handler = APISetupInteraction(log,

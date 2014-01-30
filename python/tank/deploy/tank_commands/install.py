@@ -54,7 +54,7 @@ class InstallAppAction(Action):
         API accessor
         """
         
-        # validate params and seend default values
+        # validate params and seed default values
         computed_params = self._validate_parameters(parameters) 
         
         return self._run(log, 
@@ -253,7 +253,7 @@ class InstallEngineAction(Action):
         API accessor
         """
         
-        # validate params and seend default values
+        # validate params and seed default values
         computed_params = self._validate_parameters(parameters) 
         
         return self._run(log, True, computed_params["environment"], computed_params["engine_uri"])

@@ -31,6 +31,7 @@ from .tank_commands import switch
 from .tank_commands import app_info
 from .tank_commands import core
 from .tank_commands import install
+from .tank_commands import clone_configuration
 
 from ..platform import constants
 from ..platform.engine import start_engine, get_environment_from_context
@@ -57,7 +58,8 @@ BUILT_IN_ACTIONS = [setup_project.SetupProjectAction,
                     move_pc.MovePCAction,
                     pc_overview.PCBreakdownAction,
                     move_studio.MoveStudioInstallAction,
-                    migrate_entities.MigratePublishedFileEntitiesAction
+                    migrate_entities.MigratePublishedFileEntitiesAction,
+                    clone_configuration.CloneConfigAction
                     ]
 
 
@@ -133,10 +135,11 @@ def list_commands(tk=None):
     action_names = []
     for a in _get_built_in_actions():
         
+        # check if this tank command has API support
         if a.supports_api:
         
+            # if we don't have a tk API instance, we can only access GLOBAL commands
             if tk is None and a.mode != Action.GLOBAL:
-                # this command needs a tk api instance but we don't have that
                 continue
 
             action_names.append(a.name)
@@ -154,13 +157,15 @@ def get_command(command_name, tk=None):
                API instance directly.
     
     :returns: SgtkSystemCommand object instance
-    """
+    """    
+    if command_name not in list_commands(tk):
+        # not found
+        raise TankError("The command '%s' does not exist. Use the sgtk.list_commands() method to "
+                        "see a list of all commands available via the API." % command_name)
+        
     for x in _get_built_in_actions():
         if x.name == command_name and x.supports_api:
             return SgtkSystemCommand(x, tk)
-    # not found
-    raise TankError("The command '%s' does not exist. Use the sgtk.list_commands() method to "
-                    "see a list of all commands available via the API." % command_name)
 
 
 class SgtkSystemCommand(object):
@@ -215,16 +220,6 @@ class SgtkSystemCommand(object):
             ch.setFormatter(formatter)
             self.__log.addHandler(ch)
         
-        
-    @property
-    def needs_api(self):
-        """
-        Returns true if a sgtk API is required to execute this command.
-        If so, an API instance needs to be passed to the execute method when the command
-        is executed.
-        """
-        return (self.__pimpl.mode == Action.TK_INSTANCE)
-
     @property
     def parameters(self):
         """
@@ -324,6 +319,10 @@ def get_actions(log, tk, ctx):
     
     # now only pick the ones that are working with our current state
     for a in all_actions:
+        
+        if not(a.supports_tank_command):
+            # this action does not support tank command mode
+            continue
         
         if a.mode == Action.GLOBAL:
             # globals are always possible to run

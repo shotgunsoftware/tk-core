@@ -56,6 +56,9 @@ class Action(object):
         self.description = description
         self.category = category
         
+        # set this property to False if your command doesn't support tank command access
+        self.supports_tank_command = True 
+        
         # set this property to True if your command supports API access
         self.supports_api = False
         
