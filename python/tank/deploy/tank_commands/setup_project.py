@@ -79,7 +79,8 @@ class SetupProjectAction(Action):
 
         self.parameters["config_uri"] = { "description": ("The configuration to use when setting up this project. "
                                                           "This can be a path on disk to a directory containing a "
-                                                          "config, a path to a git bare repo or 'tk-config-default' "
+                                                          "config, a path to a git bare repo (e.g. a git repo path "
+                                                          "which ends with .git) or 'tk-config-default' "
                                                           "to fetch the default config from the toolkit app store."),
                                                    "default": "tk-config-default",
                                                    "type": "str" }
