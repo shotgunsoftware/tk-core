@@ -266,7 +266,7 @@ class SgtkSystemCommand(object):
     @property
     def category(self):
         """
-        Returns the category for this command. This is typically a short string like "Admin
+        Returns the category for this command. This is typically a short string like "Admin".
         """
         return self.__pimpl.category
 
@@ -286,8 +286,7 @@ class SgtkSystemCommand(object):
         :param params: dictionary of parameters to pass to this command.
                        the dictionary key is the name of the parameter and the value
                        is the value you want to pass. You can query which parameters
-                       can be passed in using the required_parameters and optional_parameters
-                       class accessors.
+                       can be passed in via the parameters property.
         """
         return self.__pimpl.run_noninteractive(self.__log, params)
         
