@@ -203,23 +203,23 @@ class SgtkSystemCommand(object):
     # this class wraps around a tank.deploy.tank_commands.action_base.Action class
     # and exposes the "official" interface for it.
     
-    def __init__(self, pimpl, tk):
-        self.__pimpl = pimpl
+    def __init__(self, internal_action_object, tk):
+        self.__internal_action_obj = internal_action_object
         
         # only commands of type GLOBAL, TK_INSTANCE are currently supported
-        if self.__pimpl.mode not in (Action.GLOBAL, Action.TK_INSTANCE):
+        if self.__internal_action_obj.mode not in (Action.GLOBAL, Action.TK_INSTANCE):
             raise TankError("The command %r is not of a type which is supported by Toolkit. "
-                            "Please contact support on toolkitsupport@shotgunsoftware.com" % self.__pimpl)
+                            "Please contact support on toolkitsupport@shotgunsoftware.com" % self.__internal_action_obj)
         
         # make sure we pass a tk api for actions that require it
-        if self.__pimpl.mode == Action.TK_INSTANCE and tk is None:
+        if self.__internal_action_obj.mode == Action.TK_INSTANCE and tk is None:
             raise TankError("This command requires a Toolkit API instance to execute. Please "
                             "provide this either as a parameter to the sgtk.get_command() method "
                             "or alternatively execute the tk.get_command() method directly from "
                             "a Toolkit API instance.") 
 
         if tk:
-            self.__pimpl.tk = tk
+            self.__internal_action_obj.tk = tk
         
         # set up a default logger which can be overridden via the set_logger method
         self.__log = logging.getLogger("sgtk.systemcommand")
@@ -247,28 +247,28 @@ class SgtkSystemCommand(object):
                            "type": "str" }
         }
         """
-        return self.__pimpl.parameters
+        return self.__internal_action_obj.parameters
 
     @property
     def description(self):
         """
         Returns a description of this command.
         """
-        return self.__pimpl.description
+        return self.__internal_action_obj.description
          
     @property
     def name(self):
         """
         Returns the name of this command.
         """
-        return self.__pimpl.name
+        return self.__internal_action_obj.name
     
     @property
     def category(self):
         """
         Returns the category for this command. This is typically a short string like "Admin".
         """
-        return self.__pimpl.category
+        return self.__internal_action_obj.category
 
     def set_logger(self, log):
         """
@@ -288,7 +288,7 @@ class SgtkSystemCommand(object):
                        is the value you want to pass. You can query which parameters
                        can be passed in via the parameters property.
         """
-        return self.__pimpl.run_noninteractive(self.__log, params)
+        return self.__internal_action_obj.run_noninteractive(self.__log, params)
         
         
         
