@@ -337,7 +337,7 @@ sS'value'
 p181
 S'Step'
 p182
-sssS'AssetBlendshapeConnection'
+sssS'AssetLibrary'
 p183
 (dp184
 S'name'
@@ -348,7 +348,7 @@ p187
 I00
 sS'value'
 p188
-S'Asset Blendshape Connection'
+S'Asset Library'
 p189
 sssS'PerformerMocapTakeConnection'
 p190
@@ -428,7 +428,7 @@ sS'value'
 p230
 S'Ticket Ticket Connection'
 p231
-sssS'Icon'
+sssS'AssetBlendshapeConnection'
 p232
 (dp233
 S'name'
@@ -439,7 +439,7 @@ p236
 I00
 sS'value'
 p237
-S'Icon'
+S'Asset Blendshape Connection'
 p238
 sssS'PageSetting'
 p239
@@ -597,7 +597,7 @@ sS'value'
 p321
 S'Element'
 p322
-sssS'Project'
+sssS'TankType'
 p323
 (dp324
 S'name'
@@ -608,9 +608,9 @@ p327
 I00
 sS'value'
 p328
-S'Project'
+S'Tank Type'
 p329
-sssS'LocalStorage'
+sssS'Icon'
 p330
 (dp331
 S'name'
@@ -621,9 +621,9 @@ p334
 I00
 sS'value'
 p335
-S'Local Storage'
+S'Icon'
 p336
-sssS'TaskTemplate'
+sssS'LocalStorage'
 p337
 (dp338
 S'name'
@@ -634,9 +634,9 @@ p341
 I00
 sS'value'
 p342
-S'Task Template'
+S'Local Storage'
 p343
-sssS'RevisionTicketConnection'
+sssS'TaskTemplate'
 p344
 (dp345
 S'name'
@@ -647,9 +647,9 @@ p348
 I00
 sS'value'
 p349
-S'Revision Ticket Connection'
+S'Task Template'
 p350
-sssS'PerformerShootDayConnection'
+sssS'RevisionTicketConnection'
 p351
 (dp352
 S'name'
@@ -660,9 +660,9 @@ p355
 I00
 sS'value'
 p356
-S'Performer Shoot Day Connection'
+S'Revision Ticket Connection'
 p357
-sssS'PipelineConfiguration'
+sssS'PerformerShootDayConnection'
 p358
 (dp359
 S'name'
@@ -673,9 +673,9 @@ p362
 I00
 sS'value'
 p363
-S'Pipeline Configuration'
+S'Performer Shoot Day Connection'
 p364
-sssS'LaunchSceneConnection'
+sssS'PipelineConfiguration'
 p365
 (dp366
 S'name'
@@ -686,9 +686,9 @@ p369
 I00
 sS'value'
 p370
-S'Launch Scene Connection'
+S'Pipeline Configuration'
 p371
-sssS'GroupUserConnection'
+sssS'LaunchSceneConnection'
 p372
 (dp373
 S'name'
@@ -699,9 +699,9 @@ p376
 I00
 sS'value'
 p377
-S'Group User Connection'
+S'Launch Scene Connection'
 p378
-sssS'AssetSequenceConnection'
+sssS'GroupUserConnection'
 p379
 (dp380
 S'name'
@@ -712,9 +712,9 @@ p383
 I00
 sS'value'
 p384
-S'Asset Sequence Connection'
+S'Group User Connection'
 p385
-sssS'Page'
+sssS'AssetSequenceConnection'
 p386
 (dp387
 S'name'
@@ -725,9 +725,9 @@ p390
 I00
 sS'value'
 p391
-S'Page'
+S'Asset Sequence Connection'
 p392
-sssS'CustomEntity02'
+sssS'Page'
 p393
 (dp394
 S'name'
@@ -738,9 +738,9 @@ p397
 I00
 sS'value'
 p398
-S'Custom Entity02'
+S'Page'
 p399
-sssS'CustomEntity03'
+sssS'CustomEntity02'
 p400
 (dp401
 S'name'
@@ -751,9 +751,9 @@ p404
 I00
 sS'value'
 p405
-S'Custom Entity03'
+S'Custom Entity02'
 p406
-sssS'TankType'
+sssS'CustomEntity03'
 p407
 (dp408
 S'name'
@@ -764,9 +764,9 @@ p411
 I00
 sS'value'
 p412
-S'Tank Type'
+S'Custom Entity03'
 p413
-sssS'CustomEntity01'
+sssS'FilesystemLocation'
 p414
 (dp415
 S'name'
@@ -777,9 +777,9 @@ p418
 I00
 sS'value'
 p419
-S'Disk Location'
+S'Filesystem Location'
 p420
-sssS'Shot'
+sssS'CustomEntity01'
 p421
 (dp422
 S'name'
@@ -790,9 +790,9 @@ p425
 I00
 sS'value'
 p426
-S'Shot'
+S'Disk Location'
 p427
-sssS'TankPublishedFile'
+sssS'Shot'
 p428
 (dp429
 S'name'
@@ -803,9 +803,9 @@ p432
 I00
 sS'value'
 p433
-S'Tank Published File'
+S'Shot'
 p434
-sssS'CustomEntity04'
+sssS'TankPublishedFile'
 p435
 (dp436
 S'name'
@@ -816,9 +816,9 @@ p439
 I00
 sS'value'
 p440
-S'Custom Entity04'
+S'Tank Published File'
 p441
-sssS'Sequence'
+sssS'CustomEntity04'
 p442
 (dp443
 S'name'
@@ -829,9 +829,9 @@ p446
 I00
 sS'value'
 p447
-S'Sequence'
+S'Custom Entity04'
 p448
-sssS'BannerUserConnection'
+sssS'Sequence'
 p449
 (dp450
 S'name'
@@ -842,9 +842,9 @@ p453
 I00
 sS'value'
 p454
-S'Banner User Connection'
+S'Sequence'
 p455
-sssS'AssetAssetConnection'
+sssS'BannerUserConnection'
 p456
 (dp457
 S'name'
@@ -855,9 +855,9 @@ p460
 I00
 sS'value'
 p461
-S'Asset Asset Connection'
+S'Banner User Connection'
 p462
-sssS'Scene'
+sssS'AssetAssetConnection'
 p463
 (dp464
 S'name'
@@ -868,9 +868,9 @@ p467
 I00
 sS'value'
 p468
-S'Scene'
+S'Asset Asset Connection'
 p469
-sssS'Version'
+sssS'Scene'
 p470
 (dp471
 S'name'
@@ -881,9 +881,9 @@ p474
 I00
 sS'value'
 p475
-S'Version'
+S'Scene'
 p476
-sssS'ElementShotConnection'
+sssS'Project'
 p477
 (dp478
 S'name'
@@ -894,9 +894,9 @@ p481
 I00
 sS'value'
 p482
-S'Element Shot Connection'
+S'Project'
 p483
-sssS'HumanUser'
+sssS'Version'
 p484
 (dp485
 S'name'
@@ -907,9 +907,9 @@ p488
 I00
 sS'value'
 p489
-S'Person'
+S'Version'
 p490
-sssS'PermissionRuleSet'
+sssS'ElementShotConnection'
 p491
 (dp492
 S'name'
@@ -920,9 +920,9 @@ p495
 I00
 sS'value'
 p496
-S'Permission Rule Set'
+S'Element Shot Connection'
 p497
-sssS'EventLogEntry'
+sssS'HumanUser'
 p498
 (dp499
 S'name'
@@ -933,9 +933,9 @@ p502
 I00
 sS'value'
 p503
-S'Event Log Entry'
+S'Person'
 p504
-sssS'TankDependency'
+sssS'PermissionRuleSet'
 p505
 (dp506
 S'name'
@@ -946,9 +946,9 @@ p509
 I00
 sS'value'
 p510
-S'Tank Dependency'
+S'Permission Rule Set'
 p511
-sssS'AssetShootDayConnection'
+sssS'EventLogEntry'
 p512
 (dp513
 S'name'
@@ -959,9 +959,9 @@ p516
 I00
 sS'value'
 p517
-S'Asset Shoot Day Connection'
+S'Event Log Entry'
 p518
-sssS'Asset'
+sssS'TankDependency'
 p519
 (dp520
 S'name'
@@ -972,6 +972,32 @@ p523
 I00
 sS'value'
 p524
-S'Asset'
+S'Tank Dependency'
 p525
+sssS'AssetShootDayConnection'
+p526
+(dp527
+S'name'
+p528
+(dp529
+S'editable'
+p530
+I00
+sS'value'
+p531
+S'Asset Shoot Day Connection'
+p532
+sssS'Asset'
+p533
+(dp534
+S'name'
+p535
+(dp536
+S'editable'
+p537
+I00
+sS'value'
+p538
+S'Asset'
+p539
 sss.
