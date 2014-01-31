@@ -32,7 +32,7 @@ class SynchronizePathCache(Action):
     def __init__(self):
         Action.__init__(self, 
                         "sync_folder_cache", 
-                        Action.PC_LOCAL, 
+                        Action.TK_INSTANCE, 
                         ("Ensures that the local path cache is up to date with Shotgun."), 
                         "Folder")
     
@@ -71,7 +71,7 @@ class PathCacheMigrationAction(Action):
     def __init__(self):
         Action.__init__(self, 
                         "upgrade_folders", 
-                        Action.PC_LOCAL, 
+                        Action.TK_INSTANCE, 
                         ("Upgrades on old project to use the shared folder "
                         "generation that was introduced in Toolkit 0.15"), 
                         "Core Upgrade Related")
