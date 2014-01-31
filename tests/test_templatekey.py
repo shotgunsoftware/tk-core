@@ -21,7 +21,8 @@ class TestStringKey(TankTestBase):
     def setUp(self):
         super(TestStringKey, self).setUp()
         self.str_field = StringKey("field_name")
-        self.alpha_field = StringKey("field_name", filter_by="alphanumeric")
+        self.alphanum_field = StringKey("field_name", filter_by="alphanumeric")
+        self.alpha_field = StringKey("field_name", filter_by="alpha")
         self.choice_field = StringKey("field_name", choices=["a", "b"])
         self.default_field = StringKey("field_name", default="b")
 
@@ -77,10 +78,19 @@ class TestStringKey(TankTestBase):
 
     def test_validate_alphanum_good(self):
         value = "some0alphanumeric0string"
-        self.assertTrue(self.alpha_field.validate(value))
+        self.assertTrue(self.alphanum_field.validate(value))
 
     def test_validate_alphanum_bad(self):
         bad_values = ["a_b", "a b", "a-b", "*"]
+        for bad_value in bad_values:
+            self.assertFalse(self.alphanum_field.validate(bad_value))
+
+    def test_validate_alpha_good(self):
+        value = "somealphastring"
+        self.assertTrue(self.alpha_field.validate(value))
+
+    def test_validate_alpha_bad(self):
+        bad_values = ["a2b", "a_b", "a b", "a-b", "*"]
         for bad_value in bad_values:
             self.assertFalse(self.alpha_field.validate(bad_value))
 
@@ -119,24 +129,50 @@ class TestStringKey(TankTestBase):
     def test_str_from_value_alphanum_good(self):
         value = "a9b9C"
         expected = value
-        result = self.alpha_field.str_from_value(value)
+        result = self.alphanum_field.str_from_value(value)
         self.assertEquals(expected, result)
 
     def test_str_from_value_alphanum_empty(self):
         value = ""
         expected = value
-        result = self.alpha_field.str_from_value(value)
+        result = self.alphanum_field.str_from_value(value)
         self.assertEquals(expected, result)
 
     def test_str_from_value_alphanum_bad(self):
-        base_expected = "%s Illegal value '%%s' does not fit filter" % self.alpha_field
+        base_expected = "%s Illegal value '%%s' does not fit filter" % self.alphanum_field
         bad_values = ["a_b", "a b", "a-b", "*"]
+        for bad_value in bad_values:
+            expected = base_expected % bad_value
+            self.check_error_message(TankError, expected, self.alphanum_field.str_from_value, bad_value)
+
+    def test_str_from_value_ignore_type_alphanum(self):
+        bad_values = ["a_b", "a b", "a-b", "*"]
+        for bad_value in bad_values:
+            expected = bad_value
+            result = self.alphanum_field.str_from_value(bad_value, ignore_type=True)
+            self.assertEquals(expected, result)
+
+    def test_str_from_value_alpha_good(self):
+        value = "abC"
+        expected = value
+        result = self.alpha_field.str_from_value(value)
+        self.assertEquals(expected, result)
+
+    def test_str_from_value_alpha_empty(self):
+        value = ""
+        expected = value
+        result = self.alpha_field.str_from_value(value)
+        self.assertEquals(expected, result)
+
+    def test_str_from_value_alpha_bad(self):
+        base_expected = "%s Illegal value '%%s' does not fit filter" % self.alpha_field
+        bad_values = ["a2b", "a_b", "a b", "a-b", "*"]
         for bad_value in bad_values:
             expected = base_expected % bad_value
             self.check_error_message(TankError, expected, self.alpha_field.str_from_value, bad_value)
 
-    def test_str_from_value_ignore_type_alphanum(self):
-        bad_values = ["a_b", "a b", "a-b", "*"]
+    def test_str_from_value_ignore_type_alpha(self):
+        bad_values = ["a2b", "a_b", "a b", "a-b", "*"]
         for bad_value in bad_values:
             expected = bad_value
             result = self.alpha_field.str_from_value(bad_value, ignore_type=True)

@@ -161,8 +161,8 @@ class StringKey(TemplateKey):
         :param name: Name by which the key will be refered.
         :param default: Default value for the key.
         :param choices: List of possible values for this key.
-        :parma filter_by: Name of filter type to limit values for string. Currently
-                          only accepted values are 'alphanumeric' and None.
+        :param filter_by: Name of filter type to limit values for string. Currently
+                          only accepted values are 'alphanumeric', 'alpha' and None.
         :param shotgun_entity_type: For keys directly linked to a shotgun field, the entity type.
         :param shotgun_field_name: For keys directly linked to a shotgun field, the field name.
         :param exclusions: List of forbidden values.
@@ -170,10 +170,17 @@ class StringKey(TemplateKey):
         :param length: int, should this key be fixed length
         """
         self.filter_by = filter_by
+        
         if self.filter_by == "alphanumeric":
             # build regex to search for all non-alphanumeric 
-            # characters or undeerscores
+            # characters or underscores
             self._filter_regex_u = re.compile(u"[\W_]", re.UNICODE)#[^a-zA-Z0-9]")
+        
+        elif self.filter_by == "alpha":
+            # build regex to search for all non-alpha 
+            # characters or underscores
+            self._filter_regex_u = re.compile(u"[\W_0-9]", re.UNICODE)#[^a-zA-Z]")
+        
         else: 
             self._filter_regex_u = None
 
