@@ -170,16 +170,18 @@ class StringKey(TemplateKey):
         :param length: int, should this key be fixed length
         """
         self.filter_by = filter_by
-        
+
+        # Build regexes for alpha and alphanumeric filter_by clauses
+        #
+        # Note that we cannot use a traditional [^a-zA-Z0-9] regex since we want
+        # to support unicode and not just ascii. \W covers "Non-word characters",
+        # which is basically the international equivalent of 7-bit ascii 
+        #        
         if self.filter_by == "alphanumeric":
-            # build regex to search for all non-alphanumeric 
-            # characters or underscores
-            self._filter_regex_u = re.compile(u"[\W_]", re.UNICODE)#[^a-zA-Z0-9]")
+            self._filter_regex_u = re.compile(u"[\W_]", re.UNICODE)
         
         elif self.filter_by == "alpha":
-            # build regex to search for all non-alpha 
-            # characters or underscores
-            self._filter_regex_u = re.compile(u"[\W_0-9]", re.UNICODE)#[^a-zA-Z]")
+            self._filter_regex_u = re.compile(u"[\W_0-9]", re.UNICODE)
         
         else: 
             self._filter_regex_u = None
