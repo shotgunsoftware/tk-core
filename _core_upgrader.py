@@ -230,10 +230,18 @@ def upgrade_tank(tank_install_root, log):
 
         log.debug("First running migrations...")
 
+        # check that noone is still on 0.12/early 0.13 and in that case ask them to contact us
+        # so that we can advise that they reinstall their setup from scratch.     
+        if __current_version_less_than(log, tank_install_root, "v0.13.16"):
+            log.error("You are running a very old version of the Toolkit Core API. Automatic upgrades "
+                      "are no longer supported. Please contact toolkitsupport@shotgunsoftware.com.")
+            return
+
         if __is_upgrade(tank_install_root) and __current_version_less_than(log, tank_install_root, "v0.15.0"):
             log.debug("Upgrading to v0.15.0. Prompting for path cache changes.")
             _upgrade_path_cache(tank_install_root, log)
 
+            
         log.debug("Migrations have completed. Now doing the actual upgrade...")
 
         # check that the tank_install_root looks sane

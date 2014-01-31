@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from .action_base import Action
+from ...errors import TankError
 
 class CacheAppsAction(Action):
     """
@@ -17,7 +18,7 @@ class CacheAppsAction(Action):
     def __init__(self):
         Action.__init__(self, 
                         "cache_apps", 
-                        Action.PC_LOCAL, 
+                        Action.TK_INSTANCE, 
                         ("Toolkit manages an app cache to ensure that all versions of apps and "
                         "engines that are specified in the environments exists locally. This "
                         "cache is normally automatically managed by the update and install "
@@ -26,8 +27,27 @@ class CacheAppsAction(Action):
                         "to ensure that all necessary code exists in the cache. "), 
                         "Admin")
     
-    def run(self, log, args):
+        # this method can be executed via the API
+        self.supports_api = True
         
+    def run_noninteractive(self, log, parameters):
+        """
+        API accessor
+        """
+        return self._run(log)
+    
+    def run_interactive(self, log, args):
+        """
+        Tank command accessor
+        """
+        if len(args) != 0:
+            raise TankError("This command takes no arguments!")
+        return self._run(log)
+        
+    def _run(self, log):
+        """
+        Actual execution payload
+        """         
         log.info("This command will traverse the entire configuration and ensure that all "
                  "apps and engines code is correctly cached in your local installation.")
 

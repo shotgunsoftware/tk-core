@@ -21,14 +21,32 @@ class ValidateConfigAction(Action):
     def __init__(self):
         Action.__init__(self, 
                         "validate", 
-                        Action.PC_LOCAL, 
+                        Action.TK_INSTANCE, 
                         ("Validates your current Configuration to check that all "
                         "environments have been correctly configured."), 
                         "Configuration")
+        
+        # this method can be executed via the API
+        self.supports_api = True
+        
+    def run_noninteractive(self, log, parameters):
+        """
+        API accessor
+        """
+        return self._run(log)
     
-    def run(self, log, args):
+    def run_interactive(self, log, args):
+        """
+        Tank command accessor
+        """
         if len(args) != 0:
             raise TankError("This command takes no arguments!")
+        return self._run(log)
+        
+    def _run(self, log):
+        """
+        Actual execution payload
+        """ 
         
         log.info("")
         log.info("")

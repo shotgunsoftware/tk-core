@@ -24,16 +24,33 @@ class ClearCacheAction(Action):
     def __init__(self):
         Action.__init__(self, 
                         "clear_cache", 
-                        Action.PC_LOCAL, 
+                        Action.TK_INSTANCE, 
                         ("Clears the Shotgun Menu Cache associated with this Configuration. "
                          "This is sometimes useful after complex configuration changes if new "
                          "or modified Toolkit menu items are not appearing inside Shotgun."), 
                         "Admin")
+
+        # this method can be executed via the API
+        self.supports_api = True
+        
+    def run_noninteractive(self, log, parameters):
+        """
+        API accessor
+        """
+        return self._run(log)
     
-    def run(self, log, args):
+    def run_interactive(self, log, args):
+        """
+        Tank command accessor
+        """
         if len(args) != 0:
             raise TankError("This command takes no arguments!")
+        return self._run(log)
         
+    def _run(self, log):
+        """
+        Actual execution payload
+        """             
         cache_folder = self.tk.pipeline_configuration.get_cache_location()
         # cache files are on the form shotgun_mac_project.txt
         for f in os.listdir(cache_folder):
@@ -54,14 +71,14 @@ class InteractiveShellAction(Action):
     def __init__(self):
         Action.__init__(self, 
                         "shell", 
-                        Action.PC_LOCAL, 
+                        Action.TK_INSTANCE, 
                         "Starts an interactive Python shell for the current location.", 
                         "Developer")
         
         # hint that the shell engine should be started for this action, if possible
         self.wants_running_shell_engine = True
         
-    def run(self, log, args):
+    def run_interactive(self, log, args):
 
         if len(args) != 0:
             raise TankError("This command takes no arguments!")

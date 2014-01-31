@@ -24,11 +24,11 @@ class SwitchAppAction(Action):
     def __init__(self):
         Action.__init__(self, 
                         "switch_app", 
-                        Action.PC_LOCAL, 
+                        Action.TK_INSTANCE, 
                         "Switches an app from one code location to another.", 
                         "Developer")
     
-    def run(self, log, args):
+    def run_interactive(self, log, args):
 
         if len(args) < 4:
             
@@ -200,10 +200,10 @@ class SwitchAppAction(Action):
         # find the file where our item is being installed
         (_, yml_file) = env.find_location_for_app(engine_instance_name, app_instance_name)
         
-        console_utils.ensure_frameworks_installed(log, self.tk, yml_file, new_descriptor, env)
+        console_utils.ensure_frameworks_installed(log, self.tk, yml_file, new_descriptor, env, suppress_prompts=False)
     
         # now get data for all new settings values in the config
-        params = console_utils.get_configuration(log, self.tk, new_descriptor, descriptor)
+        params = console_utils.get_configuration(log, self.tk, new_descriptor, descriptor, suppress_prompts=False)
     
         # next step is to add the new configuration values to the environment
         env.update_app_settings(engine_instance_name, 

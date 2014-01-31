@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from .action_base import Action
+from ...errors import TankError
 
 
 class AppInfoAction(Action):
@@ -19,44 +20,61 @@ class AppInfoAction(Action):
     def __init__(self):
         Action.__init__(self, 
                         "app_info", 
-                        Action.PC_LOCAL, 
+                        Action.TK_INSTANCE, 
                         "Shows a breakdown of your installed apps.", 
                         "Developer")
-    
-    def run(self, log, args):
 
-        log.info("This command lists details about Apps and Engines.")
+        # this method can be executed via the API
+        self.supports_api = True
+        
+
+    def run_noninteractive(self, log, parameters):
+        """
+        API accessor
+        """
+        return self._run(log)
+    
+    def run_interactive(self, log, args):
+        """
+        Tank command accessor
+        """
+        if len(args) != 0:
+            raise TankError("This command takes no arguments!")
+
+        return self._run(log)
+        
+    def _run(self, log):
+        """
+        Actual execution payload
+        """ 
+
+        log.info("This command lists details about Apps and Engines")
         log.info("--------------------------------------------------")
         log.info("")
         log.info("Your current configuration is located here:")
         log.info(self.tk.pipeline_configuration.get_path())
+
+        log.info("")
+        log.info("This command will list all apps in all environments.")
+        log.info("The following environments exist:")
+        for env_name in self.tk.pipeline_configuration.get_environments():
+            log.info(" - %s" % env_name)
+        log.info("")
         log.info("")
 
-        if len(args) != 1:
+        for env_name in self.tk.pipeline_configuration.get_environments():
+            self._env_breakdown(log, env_name)       
             
-            log.info("Apps in Toolkit are organized in different environments. "
-                     "Environments are loaded depending on which Task is being "
-                     "worked on. Each environment then contains a number of engines, which "
-                     "are loaded in depending on the application which is being executed. "
-                     "Each engine contains a collection of apps which are the tools that will "
-                     "appear on the Shotgun menu.")
-            log.info("")
-            log.info("Use the syntax 'tank app_info environment_name' to view the engines and "
-                     "apps for an environment. The following environments are available:")
-            log.info("")
-            for env_name in self.tk.pipeline_configuration.get_environments():
-                log.info(" - %s" % env_name)            
-            log.info("")
-            return
-        
-        else:
-            
-            env_name = args[0]
-            log.info("Showing engines and apps for environment '%s'." % env_name)
+        log.info("")
+        log.info("")
+        log.info("")
+        log.info("- To install a new app, use the command tank install_app")
+        log.info("- To switch an app location, use the command tank switch")
+        log.info("")
+     
         
         
-        log.info("Below is a listing of all the apps in your current configuration:")
-        
+    def _env_breakdown(self, log, env_name):
 
         env = self.tk.pipeline_configuration.get_environment(env_name)
         log.info("")
@@ -83,8 +101,5 @@ class AppInfoAction(Action):
                 log.info("")
         
         log.info("")
-        log.info("")
-        log.info("- To install a new app, use the command tank install_app")
-        log.info("- To switch an app location, use the command tank switch")
         log.info("")
 
