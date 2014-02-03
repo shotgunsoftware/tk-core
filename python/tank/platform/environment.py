@@ -459,9 +459,10 @@ class Environment(object):
         
         if new_location:
             engine_data[constants.ENVIRONMENT_LOCATION_KEY] = new_location
-            
-        engine_data.update(new_data)
+
+        self._update_settings_recursive(engine_data, new_data)
         self.__write_data(yml_file, yml_data)
+        
         # sync internal data with disk
         self.__refresh()
             
@@ -488,13 +489,52 @@ class Environment(object):
         
         # finally update the file        
         app_data[constants.ENVIRONMENT_LOCATION_KEY] = new_location
-        app_data.update(new_data)
-
+        self._update_settings_recursive(app_data, new_data)
         self.__write_data(yml_file, yml_data)
+        
         # sync internal data with disk
         self.__refresh()
         
         
+    def _update_settings_recursive(self, settings, new_data):
+        """
+        Recurse through new data passed in and update settings structure accordingly.
+        
+        :param settings: settings dictionary to update with the new values
+        :parma new_data: new settings data to update into the settings dictionary
+        """
+        for name, data in new_data.iteritems():
+            # if data is a dictionary then we may need to recurse to update nested settings:
+            if isinstance(data, dict):
+                setting = settings.get(name)
+                if setting:
+                    if isinstance(setting, list):
+                        # need to handle a list of dictionaries so update
+                        # each item in the list with the new data:
+                        for item in setting:
+                            if isinstance(item, dict):
+                                # make sure we have a unique instance of the data 
+                                # for each item in the list
+                                item_data = copy.deepcopy(data)
+                                # recurse:
+                                self._update_settings_recursive(item, item_data)
+                            else:
+                                # setting type doesn't match data type so skip!
+                                pass
+                                
+                    elif isinstance(setting, dict):
+                        # recurse:
+                        self._update_settings_recursive(setting, data)
+                    else:
+                        # setting type doesn't match data type so skip!
+                        pass
+                else:
+                    # setting didn't exist before so just add it:
+                    settings[name] = data
+                    
+            else:
+                # add new or update existing setting:
+                settings[name] = data
             
     def create_framework_settings(self, yml_file, framework_name, params, location):
         """
@@ -511,7 +551,7 @@ class Environment(object):
         
         data["frameworks"][framework_name] = {}
         data["frameworks"][framework_name][constants.ENVIRONMENT_LOCATION_KEY] = location
-        data["frameworks"][framework_name].update(params)
+        self._update_settings_recursive(data["frameworks"][framework_name], params)
         
         self.__write_data(yml_file, data)
         # sync internal data with disk
