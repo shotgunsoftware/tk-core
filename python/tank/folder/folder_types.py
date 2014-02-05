@@ -105,8 +105,10 @@ class Folder(object):
         :param name: name of the symlink
         :param metadata: symlink target expression
         """
-        self._symlinks.append( {"name": name, "target_expression": target, "target_resolved": None })
-                
+        # first split the target expression into chunks
+        resolved_expression = [ SymlinkToken(x) for x in target.split("/") ]
+        self._symlinks.append({"name": name, "target": resolved_expression })
+        
     def create_folders(self, io_receiver, path, sg_data, is_primary, explicit_child_list, engine):
         """
         Recursive folder creation. Creates folders for this node and all its children.
@@ -264,11 +266,40 @@ class Folder(object):
         return False
         
 
+    def _process_symlinks(self, io_receiver, path, sg_data):
+        """
+        Helper method.
+        Resolves all symlinks and requests creation via the io_receiver object.
+        
+        :param io_receiver: IO handler instance
+        :param path: Path where the symlinks should be located
+        :param sg_data: std shotgun data collection for the current object
+        """ 
+        
+        for symlink in self._symlinks:
+            
+            full_path = os.path.join(path, symlink["name"])                        
+            
+            # resolve our symlink from the target expressions 
+            # this will resolve any $project, $shot etc.
+            # we get a list of strings representing resolved values for all levels of the symlink
+            resolved_target_chunks = [ x.resolve_token(self, sg_data) for x in symlink["target"] ]
+
+            # and join them up into a path string
+            resolved_target_path = os.path.sep.join(resolved_target_chunks)
+            
+            # register symlink with the IO receiver 
+            io_receiver.create_symlink(full_path, resolved_target_path, self._config_metadata)
+        
+
     def _copy_files_to_folder(self, io_receiver, path):
         """
         Helper.
         Copies all files that have been registered with this folder object
-        to a specific target folder on disk, using the dedicated hook
+        to a specific target folder on disk, using the dedicated hook.
+        
+        :param io_receiver: IO handler instance
+        :param path: Path where the symlinks should be located
         """
         for src_file in self._files:
             target_path = os.path.join(path, os.path.basename(src_file))
@@ -442,6 +473,9 @@ class Static(Folder):
 
         # copy files across
         self._copy_files_to_folder(io_receiver, my_path)
+
+        # process symlinks
+        self._process_symlinks(io_receiver, my_path, sg_data)
 
         return [ (my_path, sg_data) ]
 
@@ -622,7 +656,12 @@ class ListField(Folder):
             # create a new tokens dict including our own data. This will be used
             # by the main folder recursion when processing the child folder objects.
             new_sg_data = copy.deepcopy(sg_data)
-            new_sg_data[token_name] = sg_value
+            new_sg_data[token_name] = {"id": sg_value["id"], 
+                                       "type": sg_value["type"], 
+                                       "computed_name": folder_name} 
+
+            # process symlinks
+            self._process_symlinks(io_receiver, my_path, new_sg_data)
             
             products.append( (my_path, new_sg_data) )
             
@@ -658,6 +697,40 @@ class ListField(Folder):
         return used_values
 
 ################################################################################################
+
+class SymlinkToken(object):
+    """
+    Represents a folder level in a symlink target.
+    """
+    
+    def __init__(self, name):
+        self._name = name
+    
+    def __repr__(self):
+        return "<SymlinkToken token '%s'>" % self._name
+    
+    def resolve_token(self, folder_obj, sg_data):
+        """
+        Returns a resolved value for this token.
+        """
+        if self._name.startswith("$"):
+            
+            # strip the dollar sign
+            token = self._name[1:]
+            
+            if token not in sg_data:
+                raise TankError("Cannot compute symlink target for %s: The reference token %s cannot be resolved. "
+                                "Available tokens are %s." % (folder_obj, self._name, sg_data.keys())) 
+            
+            name_value = sg_data[token].get("computed_name")
+            
+            return name_value
+            
+        else:
+            # not an expression
+            return self._name
+
+
 
 class CurrentStepExpressionToken(object):
     """
@@ -981,7 +1054,10 @@ class Entity(Folder):
             # create a new entity dict including our own data and pass it down to children
             my_sg_data = copy.deepcopy(sg_data)
             my_sg_data_key = FilterExpressionToken.sg_data_key_for_folder_obj(self)
-            my_sg_data[my_sg_data_key] = { "type": self._entity_type, "id": entity["id"] }
+            my_sg_data[my_sg_data_key] = { "type": self._entity_type, "id": entity["id"], "computed_name": folder_name }
+
+            # process symlinks
+            self._process_symlinks(io_receiver, my_path, my_sg_data)
             
             items_created.append( (my_path, my_sg_data) )
             

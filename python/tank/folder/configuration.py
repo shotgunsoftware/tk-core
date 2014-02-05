@@ -125,6 +125,10 @@ class FolderConfiguration(object):
                 # this is a foo.yml and we have a folder called foo
                 # this means that this is a config file!
                 continue
+            
+            if file_name.endswith("symlink.yml"):
+                # symlink schema component
+                continue
 
             # this is a file path and it
             file_paths.append(full_path)
