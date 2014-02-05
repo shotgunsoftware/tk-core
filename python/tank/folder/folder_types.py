@@ -33,6 +33,7 @@ class Folder(object):
         self._full_path = full_path
         self._parent = parent
         self._files = []
+        self._symlinks = []
         
         if self._parent:
             # add me to parent's child list
@@ -95,6 +96,16 @@ class Folder(object):
         The file path should be absolute.
         """
         self._files.append(path)
+        
+    def add_symlink(self, name, target):
+        """
+        Adds a symlink definition to this node. As part of the processing phase, symlink
+        targets will be resolved and created.
+        
+        :param name: name of the symlink
+        :param metadata: symlink target expression
+        """
+        self._symlinks.append( {"name": name, "target_expression": target, "target_resolved": None })
                 
     def create_folders(self, io_receiver, path, sg_data, is_primary, explicit_child_list, engine):
         """
