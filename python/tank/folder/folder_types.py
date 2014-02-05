@@ -656,9 +656,7 @@ class ListField(Folder):
             # create a new tokens dict including our own data. This will be used
             # by the main folder recursion when processing the child folder objects.
             new_sg_data = copy.deepcopy(sg_data)
-            new_sg_data[token_name] = {"id": sg_value["id"], 
-                                       "type": sg_value["type"], 
-                                       "computed_name": folder_name} 
+            new_sg_data[token_name] = sg_value 
 
             # process symlinks
             self._process_symlinks(io_receiver, my_path, new_sg_data)
@@ -718,9 +716,14 @@ class SymlinkToken(object):
             # strip the dollar sign
             token = self._name[1:]
             
-            if token not in sg_data:
-                raise TankError("Cannot compute symlink target for %s: The reference token %s cannot be resolved. "
-                                "Available tokens are %s." % (folder_obj, self._name, sg_data.keys())) 
+            # check that the referenced token is matching one of the tokens which 
+            # has a computed name part to represent the dynamically created folder name
+            # this computed_name field exists for all entity folders for example.
+            valid_tokens = [x for x in sg_data if (isinstance(sg_data[x], dict) and sg_data[x].has_key("computed_name"))]
+            
+            if token not in valid_tokens:
+                raise TankError("Cannot compute symlink target for %s: The reference token '%s' cannot be resolved. "
+                                "Available tokens are %s." % (folder_obj, self._name, valid_tokens)) 
             
             name_value = sg_data[token].get("computed_name")
             
