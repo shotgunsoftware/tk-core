@@ -810,7 +810,8 @@ class TankConfigInstaller(object):
         self._log.info("Attempting to clone git repository '%s'..." % git_repo_str)
 
         if os.system("git clone \"%s\" %s" % (git_repo_str, clone_tmp)) != 0:
-            raise TankError("Could not clone git repository '%s'!" % git_repo_str)
+            raise TankError("Could not clone git repository '%s'. Note that in order to use this "
+                            "feature, git must be installed on your system and accessible via the PATH." % git_repo_str)
         
         return clone_tmp
         
