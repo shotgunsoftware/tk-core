@@ -127,7 +127,8 @@ class FolderConfiguration(object):
                 continue
             
             if file_name.endswith("symlink.yml"):
-                # symlink schema component
+                # this is symlink schema component and not a normal file, so 
+                # don't include it in the files enumeration
                 continue
 
             # this is a file path and it
