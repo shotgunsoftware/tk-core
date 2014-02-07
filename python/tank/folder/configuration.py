@@ -141,7 +141,7 @@ class FolderConfiguration(object):
         Returns all xxx.symlink.yml files in a location.
         
         :param parent_path: file system folder to scan
-        :returns: list of (name, target_expression) where name is the name of the symlink 
+        :returns: list of (name, target_expression, full_metadata) where name is the name of the symlink 
                   and target_expression is a target expression to be passed into the folder creation. 
                   For example, if the file in the schema location is called "foo_bar.symlink.yml", 
                   the name parameter will be 'foo_bar'. 
@@ -175,7 +175,7 @@ class FolderConfiguration(object):
             symlink_name = file_name[:-len(SYMLINK_SUFFIX)]
 
             # this is a file path and it
-            data.append( (symlink_name, target_expression) )
+            data.append( (symlink_name, target_expression, metadata) )
 
         return data
 
@@ -292,8 +292,8 @@ class FolderConfiguration(object):
             self._process_config_r(cur_node, full_path)
 
         # process symlinks
-        for (path, target) in self._get_symlinks_in_folder(parent_path):
-            parent_node.add_symlink(path, target)
+        for (path, target, metadata) in self._get_symlinks_in_folder(parent_path):
+            parent_node.add_symlink(path, target, metadata)
         
 
         # now process all files and add them to the parent_node token

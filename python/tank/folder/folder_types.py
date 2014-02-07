@@ -97,17 +97,18 @@ class Folder(object):
         """
         self._files.append(path)
         
-    def add_symlink(self, name, target):
+    def add_symlink(self, name, target, metadata):
         """
         Adds a symlink definition to this node. As part of the processing phase, symlink
         targets will be resolved and created.
         
         :param name: name of the symlink
-        :param metadata: symlink target expression
+        :param target: symlink target expression
+        :param metadata: full config yml metadata for symlink
         """
         # first split the target expression into chunks
         resolved_expression = [ SymlinkToken(x) for x in target.split("/") ]
-        self._symlinks.append({"name": name, "target": resolved_expression })
+        self._symlinks.append({"name": name, "target": resolved_expression, "metadata": metadata })
         
     def create_folders(self, io_receiver, path, sg_data, is_primary, explicit_child_list, engine):
         """
@@ -289,7 +290,7 @@ class Folder(object):
             resolved_target_path = os.path.sep.join(resolved_target_chunks)
             
             # register symlink with the IO receiver 
-            io_receiver.create_symlink(full_path, resolved_target_path, self._config_metadata)
+            io_receiver.create_symlink(full_path, resolved_target_path, symlink["metadata"])
         
 
     def _copy_files_to_folder(self, io_receiver, path):

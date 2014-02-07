@@ -57,7 +57,6 @@ class ProcessFolderCreation(Hook):
                       on which this object exists.
         * "source_path": location of the file that should be copied
         * "target_path": target location to where the file should be copied.
-                
         
         File Creation
         -------------
@@ -79,8 +78,7 @@ class ProcessFolderCreation(Hook):
         modifications.
         
         * "action": "symlink"
-        * "metadata": The configuration yaml data associated with the directory level 
-                      on which this object exists.
+        * "metadata": The raw configuration yaml data associated with symlink yml config file.
         * "path": the path to the symbolic link
         * "target": the target to which the symbolic link should point
         """
