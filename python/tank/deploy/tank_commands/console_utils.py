@@ -134,6 +134,10 @@ def get_configuration(log, tank_api_instance, new_ver_descriptor, old_ver_descri
 
         # recurse over new parameters:
         params = _get_configuration_recursive(log, tank_api_instance, new_ver_descriptor, param_diff, suppress_prompts)
+    
+    else:
+        # nothing new!
+        params = {}
 
     return params
 
