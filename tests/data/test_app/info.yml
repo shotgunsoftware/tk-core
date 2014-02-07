@@ -90,7 +90,7 @@ configuration:
             type: dict
             items:
                 test_str:
-                    type_str
+                    type: str
                 test_list:
                     type: list
                     values:
