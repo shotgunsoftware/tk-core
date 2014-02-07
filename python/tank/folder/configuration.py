@@ -125,12 +125,60 @@ class FolderConfiguration(object):
                 # this is a foo.yml and we have a folder called foo
                 # this means that this is a config file!
                 continue
+            
+            if file_name.endswith("symlink.yml"):
+                # this is symlink schema component and not a normal file, so 
+                # don't include it in the files enumeration
+                continue
 
-            # this is a file path and it
+            # by now should be left with regular non-system files only
             file_paths.append(full_path)
 
-
         return file_paths
+
+    def _get_symlinks_in_folder(self, parent_path):
+        """
+        Returns all xxx.symlink.yml files in a location.
+        
+        :param parent_path: file system folder to scan
+        :returns: list of (name, target_expression, full_metadata) where name is the name of the symlink 
+                  and target_expression is a target expression to be passed into the folder creation. 
+                  For example, if the file in the schema location is called "foo_bar.symlink.yml", 
+                  the name parameter will be 'foo_bar'. 
+        """
+        SYMLINK_SUFFIX = ".symlink.yml"
+        
+        data = []
+        
+        items_in_folder = os.listdir(parent_path)
+        symlinks = [f for f in items_in_folder if f.endswith(SYMLINK_SUFFIX) ]
+
+        for file_name in symlinks:
+
+            full_path = os.path.join(parent_path, file_name)
+
+            try:
+                fh = open(full_path)
+                try:
+                    metadata = yaml.load(fh)
+                finally:
+                    fh.close()
+            except Exception, error:
+                raise TankError("Cannot load config file '%s'. Error: %s" % (full_path, error))
+
+            if "target" not in metadata:
+                raise TankError("Did not find required 'target' parameter in "
+                                "symlink definition file '%s'" % full_path) 
+            
+            target_expression = metadata["target"]
+
+            symlink_name = file_name[:-len(SYMLINK_SUFFIX)]
+
+            # this is a file path and it
+            data.append( (symlink_name, target_expression, metadata) )
+
+        return data
+
 
     def _read_metadata(self, full_path):
         """
@@ -242,6 +290,11 @@ class FolderConfiguration(object):
 
             # and process children
             self._process_config_r(cur_node, full_path)
+
+        # process symlinks
+        for (path, target, metadata) in self._get_symlinks_in_folder(parent_path):
+            parent_node.add_symlink(path, target, metadata)
+        
 
         # now process all files and add them to the parent_node token
         for f in self._get_files_in_folder(parent_path):
