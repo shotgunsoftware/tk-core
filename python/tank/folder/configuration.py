@@ -131,7 +131,7 @@ class FolderConfiguration(object):
                 # don't include it in the files enumeration
                 continue
 
-            # this is a file path and it
+            # by now should be left with regular non-system files only
             file_paths.append(full_path)
 
         return file_paths
