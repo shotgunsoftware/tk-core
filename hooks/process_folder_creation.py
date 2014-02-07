@@ -113,13 +113,7 @@ class ProcessFolderCreation(Hook):
                     # rather than what symlink is pointing at
                     if not os.path.lexists(path):
                         if not preview_mode:
-                            # do a standard file copy
                             os.symlink(target, path)
-                            # set permissions to open
-                            # note that lchmod is python2.6+ so check 
-                            if sys.version_info[0] > 1 and sys.version_info[1] > 5:
-                                os.lchmod(path, 0666)
-                                
                         folders.append(path)
 
                 elif action == "copy":
