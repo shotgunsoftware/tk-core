@@ -380,7 +380,7 @@ class PipelineConfiguration(object):
         if is_localized(self._pc_root):
             # first, try to locate an install local to this pipeline configuration.
             # this would find any localized APIs.
-            install_path = os.path.join( self._pc_root, "install" )
+            install_path = self._pc_root
 
         else:
             # this PC is associated with a shared API (studio install)
