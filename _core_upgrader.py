@@ -202,7 +202,7 @@ def upgrade_tank(tank_install_root, log):
 
         # check that noone is still on 0.12/early 0.13 and in that case ask them to contact us
         # so that we can advise that they reinstall their setup from scratch.     
-        if __current_version_less_than(log, tank_install_root, "v0.13.16"):
+        if __is_upgrade(tank_install_root) and __current_version_less_than(log, tank_install_root, "v0.13.16"):
             log.error("You are running a very old version of the Toolkit Core API. Automatic upgrades "
                       "are no longer supported. Please contact toolkitsupport@shotgunsoftware.com.")
             return
