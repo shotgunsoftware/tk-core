@@ -42,6 +42,10 @@ class TankGitDescriptor(AppDescriptor):
         self._pipeline_config = pipeline_config
         self._type = type
         self._path = location_dict.get("path")
+        # strip trailing slashes - this is so that when we build
+        # the name later (using os.basename) we construct it correctly.
+        if self._path.endswith("/") or self._path.endswith("\\"):
+            self._path = self._path[:-1] 
         self._version = location_dict.get("version")
 
         if self._path is None or self._version is None:
