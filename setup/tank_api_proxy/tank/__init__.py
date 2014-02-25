@@ -28,7 +28,7 @@ if not os.path.exists(parent_cfg_path):
 # now read our parent file
 fh = open(parent_cfg_path, "rt")
 try:
-    parent_path = fh.readline()
+    parent_path = fh.readline().rstrip()
 finally:
     fh.close()
 
