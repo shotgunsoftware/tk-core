@@ -805,8 +805,17 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
     #
     #     scheme://netloc/path
     #
+    path_is_url = False
     res = urlparse.urlparse(path)
-    path_is_url = res.scheme or res.netloc
+    if res.scheme:
+        # handle windows drive letters - note this adds a limitation
+        # but one that is not likely to be a problem as single-character
+        # schemes are unlikely!
+        if len(res.scheme) > 1 or not res.scheme.isalpha():
+            path_is_url = True
+    elif res.netloc:
+        path_is_url = True
+        
     code = ""
     if path_is_url:
         code = os.path.basename(res.path)
