@@ -123,10 +123,13 @@ class SwitchAppAction(Action):
             raise TankError("Environment %s has no engine named %s!" % (env_name, engine_instance_name))
     
         # and the app
-        if app_instance_name not in env.get_apps(engine_instance_name):
-            raise TankError("Environment %s, engine %s has no app named %s!" % (env_name, 
-                                                                                engine_instance_name,
-                                                                                app_instance_name))
+        apps_for_engine = env.get_apps(engine_instance_name)
+        if app_instance_name not in apps_for_engine:
+            raise TankError("Environment %s, engine %s has no app named '%s'! "
+                            "Available app instances are: %s " % (env_name, 
+                                                                  engine_instance_name, 
+                                                                  app_instance_name, 
+                                                                  ", ".join(apps_for_engine) ))
 
         # get the descriptor
         descriptor = env.get_app_descriptor(engine_instance_name, app_instance_name)
