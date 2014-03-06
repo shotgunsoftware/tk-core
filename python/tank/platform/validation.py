@@ -119,7 +119,6 @@ def validate_and_return_frameworks(descriptor, environment):
     
     Will raise exceptions if there are frameworks missing from the environment. 
     """
-    
     required_frameworks = descriptor.get_required_frameworks()
     
     if len(required_frameworks) == 0:
@@ -129,7 +128,8 @@ def validate_and_return_frameworks(descriptor, environment):
     # key is the instance name in the environment
     # value is the descriptor object
     fw_descriptors = {}
-    for x in environment.get_frameworks():
+    fw_instances = environment.get_frameworks()
+    for x in fw_instances:
         fw_descriptors[x] = environment.get_framework_descriptor(x)
     
     # check that each framework required by this app is defined in the environment
@@ -140,11 +140,28 @@ def validate_and_return_frameworks(descriptor, environment):
         name = fw.get("name")
         version = fw.get("version")
         found = False
-        for d in fw_descriptors:
-            if fw_descriptors[d].get_version() == version and fw_descriptors[d].get_system_name() == name:
-                found = True
-                required_fw_instance_names.append(d)
-                break
+        
+        if "x" in version:
+            # we have a 'v1.2.x' or a 'v1.x.x' version
+            # in this case, look for a tk-framework-shotgunutils_v0.x.x instance 
+            # in the environment            
+            desired_fw_instance = "%s_%s" % (name, version)
+            for x in fw_instances:
+                if x == desired_fw_instance:
+                    found = True
+                    required_fw_instance_names.append(x)
+                    break
+            
+        else:
+            # this is an (old school) explicit version 
+            # search for an explicit match, and do not look at the 
+            # instance name that is being used
+            for d in fw_descriptors:
+                if fw_descriptors[d].get_version() == version and fw_descriptors[d].get_system_name() == name:
+                    found = True
+                    required_fw_instance_names.append(d)
+                    break
+
         if not found:
             msg =  "The framework %s %s required by %s " % (name, version, descriptor)
             msg += "can not be found in environment %s. \n" % str(environment)
@@ -161,7 +178,7 @@ def validate_and_return_frameworks(descriptor, environment):
             raise TankError(msg) 
         
     return required_fw_instance_names
-        
+                
 
 def validate_single_setting(app_or_engine_display_name, tank_api, schema, setting_name, setting_value):
     """
