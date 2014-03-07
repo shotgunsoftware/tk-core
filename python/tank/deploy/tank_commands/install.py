@@ -165,7 +165,7 @@ class InstallAppAction(Action):
         else:
             # this is an app store app!
             log.info("Connecting to the Toolkit App Store...")
-            app_descriptor = TankAppStoreDescriptor.find_item(self.tk.pipeline_configuration, AppDescriptor.APP, app_name)
+            app_descriptor = TankAppStoreDescriptor.find_latest_item(self.tk.pipeline_configuration, AppDescriptor.APP, app_name)
             log.info("Latest approved App Store Version is %s." % app_descriptor.get_version())
         
         # note! Some of these methods further down are likely to pull the apps local
@@ -353,7 +353,7 @@ class InstallEngineAction(Action):
         else:
             # this is an app store app!
             log.info("Connecting to the Toolkit App Store...")
-            engine_descriptor = TankAppStoreDescriptor.find_item(self.tk.pipeline_configuration, AppDescriptor.ENGINE, engine_name)
+            engine_descriptor = TankAppStoreDescriptor.find_latest_item(self.tk.pipeline_configuration, AppDescriptor.ENGINE, engine_name)
             log.info("Latest approved App Store Version is %s." % engine_descriptor.get_version())
         
         log.info("")

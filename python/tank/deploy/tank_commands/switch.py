@@ -138,9 +138,9 @@ class SwitchAppAction(Action):
         
         if mode == "app_store":
             
-            new_descriptor = TankAppStoreDescriptor.find_item(self.tk.pipeline_configuration, 
-                                                              AppDescriptor.APP, 
-                                                              descriptor.get_system_name())
+            new_descriptor = TankAppStoreDescriptor.find_latest_item(self.tk.pipeline_configuration, 
+                                                                     AppDescriptor.APP, 
+                                                                     descriptor.get_system_name())
         
         elif mode == "dev":
 

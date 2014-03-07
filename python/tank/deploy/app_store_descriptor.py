@@ -13,6 +13,7 @@ Tank App Store Connectivity.
 """
 
 import os
+import re
 import copy
 import uuid
 import tempfile
@@ -38,7 +39,7 @@ class TankAppStoreDescriptor(AppDescriptor):
     Note: Construction of instances of this class can happen in two ways:
 
     - via the factory method in descriptor.get_from_location()
-    - via the class method TankAppStoreDescriptor.find_item()
+    - via the class method TankAppStoreDescriptor.find_latest_item()
 
     """
 
@@ -165,7 +166,7 @@ class TankAppStoreDescriptor(AppDescriptor):
     # class methods
 
     @classmethod
-    def find_item(cls, pipeline_config, bundle_type, name, version=None):
+    def find_versioned_item(cls, pipeline_config, bundle_type, name, version_pattern):
         """
         Returns an TankAppStoreDescriptor object representing the latest version
         of the sought after object. If no matching item is found, an
@@ -174,7 +175,11 @@ class TankAppStoreDescriptor(AppDescriptor):
         This method is useful if you know the name of an app (after browsing in the
         app store for example) and want to get a formal "handle" to it.
 
-        If version is None, the latest version is returned.
+        the version_pattern parameter can be on the following forms:
+        
+        - v0.1.2, v0.12.3.2, v0.1.3beta - a specific version
+        - v0.12.x - get the highest v0.12 version
+        - v1.x.x - get the highest v1 version 
 
         :returns: TankAppStoreDescriptor instance
         """
@@ -182,18 +187,156 @@ class TankAppStoreDescriptor(AppDescriptor):
         # connect to the app store
         (sg, script_user) = shotgun.create_sg_app_store_connection()
 
-        if version is None:
-            # get latest
-            # get the filter logic for what to exclude
-            if constants.APP_STORE_QA_MODE_ENV_VAR in os.environ:
-                latest_filter = [["sg_status_list", "is_not", "bad" ]]
-            else:
-                latest_filter = [["sg_status_list", "is_not", "rev" ],
-                                 ["sg_status_list", "is_not", "bad" ]]
+        # set up some lookup tables so we look in the right table in sg
+        main_entity_map = { AppDescriptor.APP: constants.TANK_APP_ENTITY,
+                            AppDescriptor.FRAMEWORK: constants.TANK_FRAMEWORK_ENTITY,
+                            AppDescriptor.ENGINE: constants.TANK_ENGINE_ENTITY }
+
+        version_entity_map = { AppDescriptor.APP: constants.TANK_APP_VERSION_ENTITY,
+                               AppDescriptor.FRAMEWORK: constants.TANK_FRAMEWORK_VERSION_ENTITY,
+                               AppDescriptor.ENGINE: constants.TANK_ENGINE_VERSION_ENTITY }
+
+        link_field_map = { AppDescriptor.APP: "sg_tank_app",
+                           AppDescriptor.FRAMEWORK: "sg_tank_framework",
+                           AppDescriptor.ENGINE: "sg_tank_engine" }
+
+        # find the main entry
+        bundle = sg.find_one(main_entity_map[bundle_type], 
+                             [["sg_system_name", "is", name]], 
+                             ["id", "sg_status_list"])
+        if bundle is None:
+            raise TankError("App store does not contain an item named '%s'!" % name)
+
+        # check if this has been deprecated in the app store
+        # in that case we should ensure that the cache is cleared later
+        is_deprecated = False
+        if bundle["sg_status_list"] == "dep":
+            is_deprecated = True
+
+        # now get all versions
         
+        # get latest get the filter logic for what to exclude
+        if constants.APP_STORE_QA_MODE_ENV_VAR in os.environ:
+            latest_filter = [["sg_status_list", "is_not", "bad" ]]
         else:
-            # specific version
-            latest_filter = [["code", "is", version]]
+            latest_filter = [["sg_status_list", "is_not", "rev" ],
+                             ["sg_status_list", "is_not", "bad" ]]        
+        
+        link_field = link_field_map[bundle_type]
+        entity_type = version_entity_map[bundle_type]
+        sg_data = sg.find(entity_type, [[link_field, "is", bundle]] + latest_filter, ["code"])
+
+        if len(sg_data) == 0:
+            raise TankError("Cannot find any versions for %s in the App store!" % name)
+
+        # now put all version number strings which match the form
+        # vX.Y.Z into a nested dictionary where it is keyed by major,
+        # then minor then increment.
+        #
+        # For example, the following versions:
+        # v1.2.1, v1.2.2, v1.2.3, v1.4.3, v1.4.2, v1.4.1
+        # 
+        # Would generate the following:
+        # { "1": { "2": [1,2,3], "4": [3,3,3] } }
+        #  
+        
+        version_numbers = [x.get("code") for x in sg_data]
+        versions = {}
+        
+        for version_num in version_numbers:
+
+            try:
+                (major_str, minor_str, increment_str) = version_num[1:].split(".")
+                (major, minor, increment) = (int(major_str), int(minor_str), int(increment_str))
+            except:
+                # this version number was not on the form vX.Y.Z where X Y and Z are ints. skip.
+                continue
+            
+            if major not in versions:
+                versions[major] = {}
+            if minor not in versions[major]:
+                versions[major][minor] = []
+            if increment not in versions[major][minor]:
+                versions[major][minor].append(increment)
+
+
+        # now handle the different version strings
+        version_to_use = None
+        if "x" not in version_pattern:
+            # we are looking for a specific version
+            if version_pattern not in version_numbers:
+                raise TankError("Could not find requested version '%s' "
+                                "of '%s' in the App store!" % (version_pattern, name))
+            else:
+                # the requested version exists in the app store!
+                version_to_use = version_pattern 
+        
+        elif re.match("v[0-9]+\.x\.x", version_pattern):
+            # we have a v123.x.x pattern
+            (major, minor, increment) = x[1:].split(".")
+            
+            if major not in versions:
+                raise TankError("Cannot match a version pattern '%s' for '%s'. "
+                                "Available versions are: %s" % (version_pattern, name, ", ".join(version_numbers)))
+            # now find the max version
+            max_minor = max(versions[major].keys())            
+            max_increment = max(versions[major][max_minor])
+            version_to_use = "v%s.%s.%s" % (major, max_minor, max_increment)
+            
+            
+        elif re.match("v[0-9]+\.[0-9]+\.x", version_pattern):
+            # we have a v123.345.x pattern
+            (major, minor, increment) = x[1:].split(".")
+
+            # make sure the constraints are fulfilled
+            if (major not in versions) or (minor not in versions[major]):
+                raise TankError("Cannot match a version pattern '%s' for '%s'. "
+                                "Available versions are: %s" % (version_pattern, name, ", ".join(version_numbers)))
+            
+            # now find the max increment
+            max_increment = max(versions[major][minor])
+            version_to_use = "v%s.%s.%s" % (major, minor, max_increment)
+
+        # make a location dict
+        location_dict = {"type": "app_store", "name": name, "version": version_to_use}
+
+        # and return a descriptor instance
+        desc = TankAppStoreDescriptor(pipeline_config, location_dict, bundle_type)
+        
+        # now if this item has been deprecated, meaning that someone has gone in to the app
+        # store and updated the record's deprecation status, we want to make sure we download
+        # all this info the next time it is being requested. So we force clear the metadata
+        # cache.
+        if is_deprecated:
+            desc._remove_app_store_metadata()
+        
+        return desc
+
+    
+    
+    @classmethod
+    def find_latest_item(cls, pipeline_config, bundle_type, name):
+        """
+        Returns an TankAppStoreDescriptor object representing the latest version
+        of the sought after object. If no matching item is found, an
+        exception is raised.
+
+        This method is useful if you know the name of an app (after browsing in the
+        app store for example) and want to get a formal "handle" to it.
+
+        :returns: TankAppStoreDescriptor instance
+        """
+
+        # connect to the app store
+        (sg, script_user) = shotgun.create_sg_app_store_connection()
+
+        # get latest
+        # get the filter logic for what to exclude
+        if constants.APP_STORE_QA_MODE_ENV_VAR in os.environ:
+            latest_filter = [["sg_status_list", "is_not", "bad" ]]
+        else:
+            latest_filter = [["sg_status_list", "is_not", "rev" ],
+                             ["sg_status_list", "is_not", "bad" ]]
         
         # set up some lookup tables so we look in the right table in sg
         main_entity_map = { AppDescriptor.APP: constants.TANK_APP_ENTITY,
@@ -229,10 +372,7 @@ class TankAppStoreDescriptor(AppDescriptor):
                                       fields = ["code"],
                                       order=[{"field_name": "created_at", "direction": "desc"}])
         if sg_version_data is None:
-            if version is None:
-                raise TankError("Cannot find any versions for %s in the App store!" % name)
-            else:
-                raise TankError("Cannot find %s %s in the App store!" % (name, version))
+            raise TankError("Cannot find any versions for %s in the App store!" % name)
 
 
 
@@ -417,9 +557,10 @@ class TankAppStoreDescriptor(AppDescriptor):
 
     def find_latest_version(self):
         """
+        Convenience method
         Returns a descriptor object that represents the latest version
         """
-        latest_version = self.find_item(self._pipeline_config, self._type, self._name)
-        return latest_version
+        return self.find_latest_item(self._pipeline_config, self._type, self._name)
+        
 
 

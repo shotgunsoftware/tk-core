@@ -227,31 +227,35 @@ def ensure_frameworks_installed(log, tank_api_instance, file_location, descripto
     Anything not installed will be downloaded from the app store.
     """
     missing_fws = validation.get_missing_frameworks(descriptor, environment)
-    # (this returns dictionaries with name and version keys)
+    # this returns dictionaries with name and version keys, the way
+    # they are defined in the manifest for that descriptor
+    # [{'version': 'v0.1.x', 'name': 'tk-framework-widget'}]
     
     for fw_dict in missing_fws:
         
-        # see if we can get this from the app store...
-        fw_descriptor = TankAppStoreDescriptor.find_item(tank_api_instance.pipeline_configuration, 
-                                                         AppDescriptor.FRAMEWORK, 
-                                                         fw_dict["name"], 
-                                                         fw_dict["version"])
+        name = fw_dict["name"]
+        version_pattern = fw_dict["version"]
         
+        # version pattern number can be on the following forms:
+        # - exact and arbitrary, but not containing an x: v0.1.2, v0.1.2.34, v0.12.3b
+        # - minor: v1.x.x
+        # - increment: v1.2.x
+        
+        # get the latest version from the app store...
+        fw_descriptor = TankAppStoreDescriptor.find_versioned_item(tank_api_instance.pipeline_configuration, 
+                                                                   AppDescriptor.FRAMEWORK, 
+                                                                   name, 
+                                                                   version_pattern)
         
         # and now process this framework
-        log.info("Installing required framework %s..." % fw_descriptor)
+        log.info("Installing required framework %s %s. Downloading %s..." % (name, version_pattern, fw_descriptor))
         if not fw_descriptor.exists_local():
             fw_descriptor.download_local()
         
         # now assume a convention where we will name the fw_instance that we create in the environment
         # on the form name_version
         fw_instance_name = "%s_%s" % (fw_descriptor.get_system_name(), fw_descriptor.get_version())
-    
-        # check so that there is not an fw with that name already!
-        if fw_instance_name in environment.get_frameworks():
-            raise TankError("The environment already has a framework instance named %s! "
-                            "Please contact support." % fw_instance_name)
-    
+        
         # now make sure all constraints are okay
         try:
             check_constraints_for_item(fw_descriptor, environment)
