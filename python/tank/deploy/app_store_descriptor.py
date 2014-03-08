@@ -562,5 +562,16 @@ class TankAppStoreDescriptor(AppDescriptor):
         """
         return self.find_latest_item(self._pipeline_config, self._type, self._name)
         
+    def find_latest_version_for_pattern(self, version_pattern):
+        """
+        Convenience method.
+        Returns a descriptor object that represents the latest version, constrained
+        by the given version pattern. Version patterns are on the following forms:
+        
+        - v1.2.3 (means the descriptor returned will inevitably be same as self)
+        - v1.2.x 
+        - v1.x.x
+        """
+        return self.find_versioned_item(self._pipeline_config, self._type, self._name, version_pattern)
 
 
