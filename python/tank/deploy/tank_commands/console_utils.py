@@ -242,10 +242,10 @@ def ensure_frameworks_installed(log, tank_api_instance, file_location, descripto
         # - increment: v1.2.x
         
         # get the latest version from the app store...
-        fw_descriptor = TankAppStoreDescriptor.find_versioned_item(tank_api_instance.pipeline_configuration, 
-                                                                   AppDescriptor.FRAMEWORK, 
-                                                                   name, 
-                                                                   version_pattern)
+        fw_descriptor = TankAppStoreDescriptor.find_latest_item(tank_api_instance.pipeline_configuration, 
+                                                                AppDescriptor.FRAMEWORK, 
+                                                                name, 
+                                                                version_pattern)
         
         # and now process this framework
         log.info("Installing required framework %s %s. Downloading %s..." % (name, version_pattern, fw_descriptor))
