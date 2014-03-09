@@ -62,9 +62,18 @@ class TankManualDescriptor(AppDescriptor):
         """
         # do nothing!
 
-    def find_latest_version(self):
+    def find_latest_version(self, constraint_pattern=None):
         """
-        Returns a descriptor object that represents the latest version
+        Returns a descriptor object that represents the latest version.
+        
+        :param constraint_pattern: If this is specified, the query will be constrained
+        by the given pattern. Version patterns are on the following forms:
+        
+            - v1.2.3 (means the descriptor returned will inevitably be same as self)
+            - v1.2.x 
+            - v1.x.x
+
+        :returns: descriptor object
         """
         # since this descriptor has no way of updating and no way of knowing 
         # what is latest, just return our own version as representing the latest version.

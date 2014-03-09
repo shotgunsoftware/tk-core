@@ -14,6 +14,7 @@ It will base version numbering off tags in git.
 """
 
 import os
+import re
 import copy
 import uuid
 import tempfile
@@ -123,10 +124,149 @@ class TankGitDescriptor(AppDescriptor):
         # unzip core zip file to app target location
         unzip_file(zip_tmp, target)
 
-    def find_latest_version(self):
+    def find_latest_version(self, constraint_pattern=None):
         """
-        Returns a descriptor object that represents the latest version
+        Returns a descriptor object that represents the latest version.
+        
+        :param constraint_pattern: If this is specified, the query will be constrained
+        by the given pattern. Version patterns are on the following forms:
+        
+            - v1.2.3 (means the descriptor returned will inevitably be same as self)
+            - v1.2.x 
+            - v1.x.x
+
+        :returns: descriptor object
         """
+        if constraint_pattern:
+            return self._find_latest_by_pattern(constraint_pattern)
+        else:
+            return self._find_latest_version()
+
+
+    def _find_latest_by_pattern(self, pattern):
+        """
+        Returns a descriptor object that represents the latest 
+        version, but based on a version pattern.
+        
+        :param pattern: Version patterns are on the following forms:
+        
+            - v1.2.3 (means the descriptor returned will inevitably be same as self)
+            - v1.2.x 
+            - v1.x.x
+
+        :returns: descriptor object
+        """
+        # now first clone the repo into a tmp location
+        clone_tmp = os.path.join(tempfile.gettempdir(), "%s_tank_clone" % uuid.uuid4().hex)
+        old_umask = os.umask(0)
+        os.makedirs(clone_tmp, 0777)
+        os.umask(old_umask)                
+
+        # get the most recent tag hash
+        cwd = os.getcwd()
+        try:
+            # Note: git doesn't like paths in single quotes when running on windows!
+            if os.system("git clone -q \"%s\" %s" % (self._path, clone_tmp)) != 0:
+                raise TankError("Could not clone git repository '%s'!" % self._path)
+            
+            os.chdir(clone_tmp)
+            
+            try:
+                # get list of tags from git
+                git_tags = subprocess_check_output("git tag", shell=True).split("\n")
+            except Exception, e:
+                raise TankError("Could not get list of tags for %s: %s" % (self._path, e))
+
+        finally:
+            os.chdir(cwd)
+        
+        if len(git_tags) == 0:
+            raise TankError("Git repository %s doesn't seem to have any tags!" % self._path)
+
+        # now put all version number strings which match the form
+        # vX.Y.Z into a nested dictionary where it is keyed by major,
+        # then minor then increment.
+        #
+        # For example, the following versions:
+        # v1.2.1, v1.2.2, v1.2.3, v1.4.3, v1.4.2, v1.4.1
+        # 
+        # Would generate the following:
+        # { "1": { "2": [1,2,3], "4": [3,3,3] } }
+        #  
+        
+        versions = {}
+        
+        for version_num in git_tags:
+
+            try:
+                (major_str, minor_str, increment_str) = version_num[1:].split(".")
+                (major, minor, increment) = (int(major_str), int(minor_str), int(increment_str))
+            except:
+                # this version number was not on the form vX.Y.Z where X Y and Z are ints. skip.
+                continue
+            
+            if major not in versions:
+                versions[major] = {}
+            if minor not in versions[major]:
+                versions[major][minor] = []
+            if increment not in versions[major][minor]:
+                versions[major][minor].append(increment)
+
+
+        # now handle the different version strings
+        version_to_use = None
+        if "x" not in pattern:
+            # we are looking for a specific version
+            if pattern not in git_tags:
+                raise TankError("Could not find requested version '%s' in '%s'." % (pattern, self._path))
+            else:
+                # the requested version exists in the app store!
+                version_to_use = pattern 
+        
+        elif re.match("v[0-9]+\.x\.x", pattern):
+            # we have a v123.x.x pattern
+            (major, minor, increment) = pattern[1:].split(".")
+            
+            if major not in versions:
+                raise TankError("Cannot match a version pattern '%s' in '%s'. "
+                                "Available versions are: %s" % (pattern, self._path, ", ".join(git_tags)))
+            # now find the max version
+            max_minor = max(versions[major].keys())            
+            max_increment = max(versions[major][max_minor])
+            version_to_use = "v%s.%s.%s" % (major, max_minor, max_increment)
+            
+            
+        elif re.match("v[0-9]+\.[0-9]+\.x", pattern):
+            # we have a v123.345.x pattern
+            (major, minor, increment) = pattern[1:].split(".")
+
+            # make sure the constraints are fulfilled
+            if (major not in versions) or (minor not in versions[major]):
+                raise TankError("Cannot match a version pattern '%s' in '%s'. "
+                                "Available versions are: %s" % (pattern, self._path, ", ".join(git_tags)))
+            
+            # now find the max increment
+            max_increment = max(versions[major][minor])
+            version_to_use = "v%s.%s.%s" % (major, minor, max_increment)
+        
+        else:
+            raise TankError("Cannot parse version expression '%s'!" % pattern)
+
+
+        new_loc_dict = copy.deepcopy(self._location_dict)
+        new_loc_dict["version"] = version_to_use
+
+        return TankGitDescriptor(self._pipeline_config, new_loc_dict, self._type)
+        
+
+
+    def _find_latest_version(self):
+        """
+        Returns a descriptor object that represents the latest version.
+        
+        :returns: descriptor object
+        """
+        
         # now first clone the repo into a tmp location
         clone_tmp = os.path.join(tempfile.gettempdir(), "%s_tank_clone" % uuid.uuid4().hex)
         old_umask = os.umask(0)

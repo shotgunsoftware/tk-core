@@ -166,7 +166,7 @@ class TankAppStoreDescriptor(AppDescriptor):
     # class methods
 
     @classmethod
-    def find_versioned_item(cls, pipeline_config, bundle_type, name, version_pattern):
+    def _find_latest_for_pattern(cls, pipeline_config, bundle_type, name, version_pattern):
         """
         Returns an TankAppStoreDescriptor object representing the latest version
         of the sought after object. If no matching item is found, an
@@ -273,7 +273,7 @@ class TankAppStoreDescriptor(AppDescriptor):
         
         elif re.match("v[0-9]+\.x\.x", version_pattern):
             # we have a v123.x.x pattern
-            (major, minor, increment) = x[1:].split(".")
+            (major, minor, increment) = version_pattern[1:].split(".")
             
             if major not in versions:
                 raise TankError("Cannot match a version pattern '%s' for '%s'. "
@@ -286,7 +286,7 @@ class TankAppStoreDescriptor(AppDescriptor):
             
         elif re.match("v[0-9]+\.[0-9]+\.x", version_pattern):
             # we have a v123.345.x pattern
-            (major, minor, increment) = x[1:].split(".")
+            (major, minor, increment) = version_pattern[1:].split(".")
 
             # make sure the constraints are fulfilled
             if (major not in versions) or (minor not in versions[major]):
@@ -296,6 +296,9 @@ class TankAppStoreDescriptor(AppDescriptor):
             # now find the max increment
             max_increment = max(versions[major][minor])
             version_to_use = "v%s.%s.%s" % (major, minor, max_increment)
+        
+        else:
+            raise TankError("Cannot parse version expression '%s'!" % version_pattern)
 
         # make a location dict
         location_dict = {"type": "app_store", "name": name, "version": version_to_use}
@@ -315,7 +318,7 @@ class TankAppStoreDescriptor(AppDescriptor):
     
     
     @classmethod
-    def find_latest_item(cls, pipeline_config, bundle_type, name):
+    def _find_latest(cls, pipeline_config, bundle_type, name):
         """
         Returns an TankAppStoreDescriptor object representing the latest version
         of the sought after object. If no matching item is found, an
@@ -394,6 +397,31 @@ class TankAppStoreDescriptor(AppDescriptor):
             desc._remove_app_store_metadata()
         
         return desc
+
+    @classmethod
+    def find_latest_item(cls, pipeline_config, bundle_type, name, constraint_pattern=None):
+        """
+        Returns an TankAppStoreDescriptor object representing the latest version
+        of the sought after object. If no matching item is found, an
+        exception is raised. A constraint pattern can be specified if you want to search
+        a subset of the version space available.
+        
+        This pattern can be on the following forms:
+        
+        - v0.1.2, v0.12.3.2, v0.1.3beta - a specific version
+        - v0.12.x - get the highest v0.12 version
+        - v1.x.x - get the highest v1 version 
+
+        This method is useful if you know the name of an app (after browsing in the
+        app store for example) and want to get a formal "handle" to it.
+
+        :returns: TankAppStoreDescriptor instance
+        """
+        if constraint_pattern:
+            return cls._find_latest_for_pattern(pipeline_config, bundle_type, name, constraint_pattern)
+        else:
+            return cls._find_latest(pipeline_config, bundle_type, name)
+
 
 
     ###############################################################################################
@@ -555,23 +583,21 @@ class TankAppStoreDescriptor(AppDescriptor):
         else:
             raise TankError("Invalid bundle type")
 
-    def find_latest_version(self):
+    def find_latest_version(self, constraint_pattern=None):
         """
-        Convenience method
-        Returns a descriptor object that represents the latest version
-        """
-        return self.find_latest_item(self._pipeline_config, self._type, self._name)
+        Returns a descriptor object that represents the latest version.
         
-    def find_latest_version_for_pattern(self, version_pattern):
-        """
-        Convenience method.
-        Returns a descriptor object that represents the latest version, constrained
-        by the given version pattern. Version patterns are on the following forms:
+        :param constraint_pattern: If this is specified, the query will be constrained
+        by the given pattern. Version patterns are on the following forms:
         
-        - v1.2.3 (means the descriptor returned will inevitably be same as self)
-        - v1.2.x 
-        - v1.x.x
+            - v1.2.3 (means the descriptor returned will inevitably be same as self)
+            - v1.2.x 
+            - v1.x.x
+
+        :returns: descriptor object
         """
-        return self.find_versioned_item(self._pipeline_config, self._type, self._name, version_pattern)
+        return self.find_latest_item(self._pipeline_config, self._type, self._name, constraint_pattern)
+        
+        
 
 
