@@ -520,7 +520,7 @@ class Environment(object):
         """
         Updates the framework configuration
         """
-        if framework_name not in self.__env_data["engines"]:
+        if framework_name not in self.__env_data["frameworks"]:
             raise TankError("Framework %s does not exist in environment %s" % (framework_name, self.__env_path) )
         
         (tokens, yml_file) = self.find_location_for_framework(framework_name)
