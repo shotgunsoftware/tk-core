@@ -273,11 +273,12 @@ class TankAppStoreDescriptor(AppDescriptor):
         
         elif re.match("v[0-9]+\.x\.x", version_pattern):
             # we have a v123.x.x pattern
-            (major, minor, increment) = version_pattern[1:].split(".")
+            (major_str, _, _) = version_pattern[1:].split(".")
+            major = int(major_str)
             
             if major not in versions:
-                raise TankError("Cannot match a version pattern '%s' for '%s'. "
-                                "Available versions are: %s" % (version_pattern, name, ", ".join(version_numbers)))
+                raise TankError("%s does not have a version matching the pattern '%s'. "
+                                "Available versions are: %s" % (name, version_pattern, ", ".join(version_numbers)))
             # now find the max version
             max_minor = max(versions[major].keys())            
             max_increment = max(versions[major][max_minor])
@@ -286,12 +287,14 @@ class TankAppStoreDescriptor(AppDescriptor):
             
         elif re.match("v[0-9]+\.[0-9]+\.x", version_pattern):
             # we have a v123.345.x pattern
-            (major, minor, increment) = version_pattern[1:].split(".")
+            (major_str, minor_str, _) = version_pattern[1:].split(".")
+            major = int(major_str)
+            minor = int(minor_str)
 
             # make sure the constraints are fulfilled
             if (major not in versions) or (minor not in versions[major]):
-                raise TankError("Cannot match a version pattern '%s' for '%s'. "
-                                "Available versions are: %s" % (version_pattern, name, ", ".join(version_numbers)))
+                raise TankError("%s does not have a version matching the pattern '%s'. "
+                                "Available versions are: %s" % (name, version_pattern, ", ".join(version_numbers)))
             
             # now find the max increment
             max_increment = max(versions[major][minor])

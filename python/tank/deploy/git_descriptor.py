@@ -225,11 +225,13 @@ class TankGitDescriptor(AppDescriptor):
         
         elif re.match("v[0-9]+\.x\.x", pattern):
             # we have a v123.x.x pattern
-            (major, minor, increment) = pattern[1:].split(".")
+            (major_str, _, _) = pattern[1:].split(".")
+            major = int(major_str)
             
             if major not in versions:
-                raise TankError("Cannot match a version pattern '%s' in '%s'. "
-                                "Available versions are: %s" % (pattern, self._path, ", ".join(git_tags)))
+                raise TankError("%s does not have a version matching the pattern '%s'. "
+                                "Available versions are: %s" % (self._path, pattern, ", ".join(git_tags)))
+
             # now find the max version
             max_minor = max(versions[major].keys())            
             max_increment = max(versions[major][max_minor])
@@ -238,12 +240,14 @@ class TankGitDescriptor(AppDescriptor):
             
         elif re.match("v[0-9]+\.[0-9]+\.x", pattern):
             # we have a v123.345.x pattern
-            (major, minor, increment) = pattern[1:].split(".")
+            (major_str, minor_str, _) = pattern[1:].split(".")
+            major = int(major_str)
+            minor = int(minor_str)
 
             # make sure the constraints are fulfilled
             if (major not in versions) or (minor not in versions[major]):
-                raise TankError("Cannot match a version pattern '%s' in '%s'. "
-                                "Available versions are: %s" % (pattern, self._path, ", ".join(git_tags)))
+                raise TankError("%s does not have a version matching the pattern '%s'. "
+                                "Available versions are: %s" % (self._path, pattern, ", ".join(git_tags)))
             
             # now find the max increment
             max_increment = max(versions[major][minor])
