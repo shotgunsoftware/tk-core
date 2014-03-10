@@ -387,6 +387,27 @@ class Environment(object):
             yml_file = self.__env_path 
         
         return (tokens, yml_file)
+        
+    def find_location_for_framework(self, framework_name):
+        """
+        Returns the filename and a list of dictionary keys where a framework instance resides.
+        The dictionary key list (tokens) can be nested, for example
+        [frameworks, tk-frameork-widget_v0.2.x] or just flat [tk-frameork-widget_v0.2.x]
+        """
+        # get the raw data
+        root_yml_data = self.__load_data(self.__env_path)
+        fw_data = root_yml_data["frameworks"][framework_name]
+        
+        if isinstance(fw_data, basestring) and fw_data.startswith("@"):
+            # this is a reference - try to load it in!
+            token = fw_data[1:]
+            tokens = [token]
+            yml_file = environment_includes.find_reference(self.__env_path, self.__context, token)
+        else:
+            tokens = ["frameworks", framework_name]
+            yml_file = self.__env_path 
+        
+        return (tokens, yml_file)
          
     def find_location_for_app(self, engine_name, app_name):
         """
@@ -490,6 +511,33 @@ class Environment(object):
         # finally update the file        
         app_data[constants.ENVIRONMENT_LOCATION_KEY] = new_location
         self._update_settings_recursive(app_data, new_data)
+        self.__write_data(yml_file, yml_data)
+        
+        # sync internal data with disk
+        self.__refresh()
+        
+    def update_framework_settings(self, framework_name, new_data, new_location):
+        """
+        Updates the framework configuration
+        """
+        if framework_name not in self.__env_data["frameworks"]:
+            raise TankError("Framework %s does not exist in environment %s" % (framework_name, self.__env_path) )
+        
+        (tokens, yml_file) = self.find_location_for_framework(framework_name)
+        
+        # now update the yml file where the engine is defined
+        yml_data = self.__load_data(yml_file)
+        
+        # now the token may be either [my_fw_ref] or [frameworks, tk-framework-widget_v0.1.x]
+        # find the right chunk in the file
+        framework_data = yml_data 
+        for x in tokens:
+            framework_data = framework_data.get(x)
+        
+        if new_location:
+            framework_data[constants.ENVIRONMENT_LOCATION_KEY] = new_location
+
+        self._update_settings_recursive(framework_data, new_data)
         self.__write_data(yml_file, yml_data)
         
         # sync internal data with disk
