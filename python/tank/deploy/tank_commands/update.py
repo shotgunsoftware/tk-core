@@ -212,7 +212,6 @@ def check_for_updates(log, tk, env_name=None, engine_instance_name=None, app_ins
         
         if len(env.get_frameworks()) > 0:
             log.info("")
-            log.info("")
             log.info("Frameworks:")
             log.info("-" * 70)
 
