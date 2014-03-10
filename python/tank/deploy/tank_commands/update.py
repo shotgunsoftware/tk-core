@@ -210,8 +210,14 @@ def check_for_updates(log, tk, env_name=None, engine_instance_name=None, app_ins
                 items.append( _process_item(log, suppress_prompts, tk, env, engine, app) )
                 log.info("")
         
-        for framework in env.get_frameworks():
-            _process_framework(log, env, framework)
+        if len(env.get_frameworks()) > 0:
+            log.info("")
+            log.info("")
+            log.info("Frameworks:")
+            log.info("-" * 70)
+
+            for framework in env.get_frameworks():
+                items.append( _process_item(log, suppress_prompts, tk, env, framework_name=framework) )
         
 
     # display summary
@@ -299,20 +305,10 @@ def _update_item(log, suppress_prompts, tk, env, old_descriptor, new_descriptor,
             
         
 
-def _process_framework(log, env, framework_name):
-    """
-    Ensures that a framework exists on disk.
-    """
-    desc = env.get_framework_descriptor(framework_name)
-    
-    if not desc.exists_local():
-        log.info("Downloading %s..." % desc)
-        desc.download_local() 
 
-
-def _process_item(log, suppress_prompts, tk, env, engine_name, app_name=None):
+def _process_item(log, suppress_prompts, tk, env, engine_name=None, app_name=None, framework_name=None):
     """
-    Checks if an app/engine is up to date and potentially upgrades it.
+    Checks if an app/engine/framework is up to date and potentially upgrades it.
 
     Returns a dictionary with keys:
     - was_updated (bool)
@@ -323,15 +319,19 @@ def _process_item(log, suppress_prompts, tk, env, engine_name, app_name=None):
     - env_name
     """
 
+    if framework_name:
+        log.info("Framework %s (Environment %s)" % (framework_name, env.name))
 
-    if app_name is None:
+    elif app_name:
+        log.info("App %s (Engine %s, Environment %s)" % (app_name, engine_name, env.name))
+        
+    else:
         log.info("")
         log.info("-" * 70)
         log.info("Engine %s (Environment %s)" % (engine_name, env.name))
-    else:
-        log.info("App %s (Engine %s, Environment %s)" % (app_name, engine_name, env.name))
+        
 
-    status = _check_item_update_status(env, engine_name, app_name)
+    status = _check_item_update_status(env, engine_name, app_name, framework_name)
     item_was_updated = False
 
     if status["can_update"]:
@@ -343,11 +343,19 @@ def _process_item(log, suppress_prompts, tk, env, engine_name, app_name=None):
         if suppress_prompts or console_utils.ask_question("Update to the above version?"):
             new_descriptor = status["latest"]
             curr_descriptor = status["current"]            
-            _update_item(log, suppress_prompts, tk, env, curr_descriptor, new_descriptor, engine_name, app_name)
+            _update_item(log, 
+                         suppress_prompts, 
+                         tk, 
+                         env, 
+                         curr_descriptor, 
+                         new_descriptor, 
+                         engine_name, 
+                         app_name, 
+                         framework_name)
             item_was_updated = True
 
     elif status["out_of_date"] == False and not status["current"].exists_local():
-        # app is not local! boo!
+        # app does not exist in the local app download cache area 
         if suppress_prompts or console_utils.ask_question("Current version does not exist locally - download it now?"):
             log.info("Downloading %s..." % status["current"])
             status["current"].download_local()
