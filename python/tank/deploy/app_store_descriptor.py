@@ -237,7 +237,7 @@ class TankAppStoreDescriptor(AppDescriptor):
         # v1.2.1, v1.2.2, v1.2.3, v1.4.3, v1.4.2, v1.4.1
         # 
         # Would generate the following:
-        # { "1": { "2": [1,2,3], "4": [3,3,3] } }
+        # { "1": { "2": [1,2,3], "4": [3,2,1] } }
         #  
         
         version_numbers = [x.get("code") for x in sg_data]
