@@ -254,7 +254,7 @@ def ensure_frameworks_installed(log, tank_api_instance, file_location, descripto
         
         # now assume a convention where we will name the fw_instance that we create in the environment
         # on the form name_version
-        fw_instance_name = "%s_%s" % (fw_descriptor.get_system_name(), fw_descriptor.get_version())
+        fw_instance_name = "%s_%s" % (name, version_pattern)
         
         # now make sure all constraints are okay
         try:
