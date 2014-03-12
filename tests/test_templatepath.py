@@ -325,7 +325,7 @@ class TestApplyFields(TestTemplatePath):
 
         invalid_values = ["_underscore", "white space", "@mpersand", "par(enthes)", "###"]
         for invalid_value in invalid_values:
-            expected_msg = "%s Illegal value '%s' does not fit filter" % (str(key), invalid_value)
+            expected_msg = "%s Illegal value '%s' does not fit filter_by 'alphanumeric'" % (str(key), invalid_value)
             self.check_error_message(TankError, expected_msg, template.apply_fields, {"alpha_num": invalid_value})
 
     def test_good_alphanumeric(self):
