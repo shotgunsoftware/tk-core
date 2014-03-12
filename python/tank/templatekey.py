@@ -216,7 +216,7 @@ class StringKey(TemplateKey):
                 self._last_error = "%s Illegal value '%s' does not fit filter_by '%s'" % (self, value, self.filter_by)
                 return False
         
-        if self._custom_regex_u:
+        elif self._custom_regex_u:
             # check for any user specified regexes
             if self._custom_regex_u.match(u_value) is None:
                 self._last_error = "%s Illegal value '%s' does not fit filter_by '%s'" % (self, value, self.filter_by)
