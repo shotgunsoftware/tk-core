@@ -12,7 +12,15 @@ engines:
                 test_bool: true 
                 test_template: maya_publish_name
                 test_icon: "foo/bar.png"
-                test_hook: test_hook
+                
+                # 
+                
+                test_hook_std: test_hook
+                test_hook_default: default
+                test_hook_env_var: "{$TEST_ENV_VAR}/test_env_var_hook.py"
+                test_hook_self: "{self}/test_hook.py"
+                test_hook_config: "{config}/foo/bar.py"
+                
 
                 test_simple_dictionary:
                     test_str: a

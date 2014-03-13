@@ -423,13 +423,15 @@ class TankBundle(object):
         
         New style formats:
         
-        - hook_setting: /foo/bar.py             -- absolute path. Forward slashes for all OSes.
+        - hook_setting: {$HOOK_PATH}/path/to/foo.py  -- environment variable.
         - hook_setting: {self}/path/to/foo.py   -- looks in the hooks folder in the local bundle
         - hook_setting: {config}/path/to/foo.py -- looks in the hooks folder in the config
         - hook_setting: {tk-framework-perforce_v1.x.x}/path/to/foo.py -- looks in the hooks folder of an
           instance that exists in the current environment.
         
         """
+        if hook_name is None:
+            raise TankError("%s config setting %s: Configuration value cannot be None!" % (self, key))
         
         # first the default case
         if hook_name == constants.TANK_BUNDLE_DEFAULT_HOOK_SETTING:
@@ -476,12 +478,7 @@ class TankBundle(object):
                 hook_path = os.path.join(self.disk_location, "hooks", "%s.py" % default_hook_name)  
             
             ret_val = hook.execute_hook(hook_path, self, **kwargs)
-             
-        elif hook_name.startswith("/"):
-            # this is an absolute path            
-            path = hook_name.replace("/", os.path.sep)            
-            ret_val = hook.execute_hook(path, self, **kwargs)
-            
+                         
         elif hook_name.startswith("{self}"):
             # bundle local reference
             hooks_folder = os.path.join(self.disk_location, "hooks")
@@ -496,10 +493,22 @@ class TankBundle(object):
             path = path.replace("/", os.path.sep)
             ret_val = hook.execute_hook(path, self, **kwargs)
         
+        elif hook_name.startswith("{$") and "}" in hook_name:
+            # environment variable: {$HOOK_PATH}/path/to/foo.py
+            env_var = re.match("^\{\$([^\}]+)\}", hook_name).group(1)
+            if env_var not in os.environ:
+                raise TankError("%s config setting %s: This hook is referring to the configuration value '%s', "
+                                "but no environment variable named '%s' can be "
+                                "found!" % (self, key, hook_name, env_var))
+            env_var_value = os.environ[env_var]
+            path = hook_name.replace("{$%s}" % env_var, env_var_value)
+            path = path.replace("/", os.path.sep)
+            ret_val = hook.execute_hook(path, self, **kwargs)        
+        
         elif hook_name.startswith("{") and "}" in hook_name:
             # bundle instance (e.g. '{tk-framework-perforce_v1.x.x}/foo/bar.py' )
             # first find the bundle instance
-            instance = re.match("^\{([^\}]+)\}", hook_name).group(0)
+            instance = re.match("^\{([^\}]+)\}", hook_name).group(1)
             # for now, only look at framework instance names. Later on,
             # if the request ever comes up, we could consider extending
             # to supporting app instances etc. However we would need to

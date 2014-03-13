@@ -36,8 +36,25 @@ configuration:
         type: template
         required_fields: [name,version]
     
-    test_hook:
+    test_hook_std:
         type: hook
+    
+    test_hook_default:
+        type: hook
+        default_value: "test_hook"
+
+    test_hook_env_var:
+        type: hook
+
+    test_hook_self:
+        type: hook
+
+    test_hook_config:
+        type: hook
+
+
+    
+    
     
     test_icon:
         type: config_path

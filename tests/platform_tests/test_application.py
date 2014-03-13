@@ -10,6 +10,7 @@
 
 import sys
 import os
+import shutil
 import tempfile
 
 from tank_test.tank_test_base import *
@@ -115,10 +116,35 @@ class TestGetSetting(TestApplication):
         self.assertEqual("extra", test_item["test_extra"])
 
 class TestExecuteHook(TestApplication):
-    def test_call_hook(self):
+    
+    def test_standard_format(self):
         app = self.engine.apps["test_app"]
-        self.assertTrue(app.execute_hook("test_hook", dummy_param=True))
+        self.assertTrue(app.execute_hook("test_hook_std", dummy_param=True))
 
+    def test_self_format(self):
+        app = self.engine.apps["test_app"]
+        self.assertTrue(app.execute_hook("test_hook_self", dummy_param=True))
+
+    def test_config_format(self):
+        app = self.engine.apps["test_app"]
+        self.assertTrue(app.execute_hook("test_hook_config", dummy_param=True))
+
+    def test_default_format(self):
+        app = self.engine.apps["test_app"]
+        self.assertTrue(app.execute_hook("test_hook_default", dummy_param=True))
+
+    def test_env_var_format(self):
+        app = self.engine.apps["test_app"]
+        shutil.copy( os.path.join(app.disk_location, "hooks", "test_hook.py"), 
+                     os.path.join(self.project_root, "test_env_var_hook.py"))
+        os.environ["TEST_ENV_VAR"] = self.project_root
+        
+        self.assertTrue(app.execute_hook("test_hook_env_var", dummy_param=True))
+
+
+
+class TestRequestFolder(TestApplication):
+    
     def test_request_folder(self):
         app = self.engine.apps["test_app"]
         
@@ -138,7 +164,7 @@ class TestHookCache(TestApplication):
         tank.hook.clear_hooks_cache()
         self.assertTrue(len(tank.hook._HOOKS_CACHE) == 0)
         app = self.engine.apps["test_app"]
-        self.assertTrue(app.execute_hook("test_hook", dummy_param=True))
+        self.assertTrue(app.execute_hook("test_hook_std", dummy_param=True))
         self.assertTrue(len(tank.hook._HOOKS_CACHE) == 1)
         self.engine.destroy()
         self.assertTrue(len(tank.hook._HOOKS_CACHE) == 0)
