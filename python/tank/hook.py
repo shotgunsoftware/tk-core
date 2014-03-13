@@ -60,17 +60,32 @@ def clear_hooks_cache():
     _HOOKS_CACHE = {}
 
 def execute_hook(hook_path, parent, **kwargs):
-    hook_class = _get_hook_class(hook_path)
-    hook = hook_class(parent)
-    return hook.execute(**kwargs)
-
-def _get_hook_class(hook_path):
     """
-    Returns a hook class given its path
+    Executes a hook. A hook is a python file which 
+    contains exactly one class which derives (at some point 
+    in its inheritance tree) from the Hook base class.
+    
+    Once the file has been loaded (and cached), the execute()
+    method will be called and any optional arguments pass to 
+    this method will be forwarded on to that execute() method.
+    
+    :param hook_path: Full path to the hook python file
+    :param parent: Parent object. This will be accessible inside
+                   the hook as self.parent, and is typically an 
+                   app, engine or core object.
+    :returns: Whatever the hook returns.
     """
+    if not os.path.exists(hook_path):
+        raise TankError("Cannot execute hook '%s' - this file does not exist on disk!" % hook_path)
     
     if hook_path not in _HOOKS_CACHE:
         # cache it
         _HOOKS_CACHE[hook_path] = loader.load_plugin(hook_path, Hook)
     
-    return _HOOKS_CACHE[hook_path]
+    # get the class
+    hook_class = _HOOKS_CACHE[hook_path]
+    # instantiate the class
+    hook = hook_class(parent)
+    # execute the hook
+    return hook.execute(**kwargs)
+
