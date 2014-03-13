@@ -66,7 +66,7 @@ class Engine(TankBundle):
         descriptor = self.__env.get_engine_descriptor(self.__engine_instance_name)        
         
         # init base class
-        TankBundle.__init__(self, tk, context, settings, descriptor)
+        TankBundle.__init__(self, tk, context, settings, descriptor, env)
 
         # check that the context contains all the info that the app needs
         validation.validate_context(descriptor, context)
@@ -815,7 +815,12 @@ class Engine(TankBundle):
                 app_dir = descriptor.get_path()
 
                 # create the object, run the constructor
-                app = application.get_application(self, app_dir, descriptor, app_settings, app_instance_name)
+                app = application.get_application(self, 
+                                                  app_dir, 
+                                                  descriptor, 
+                                                  app_settings, 
+                                                  app_instance_name, 
+                                                  self.__env)
                 
                 # load any frameworks required
                 setup_frameworks(self, app, self.__env, descriptor)

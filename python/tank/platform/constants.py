@@ -57,9 +57,6 @@ ENGINE_FILE = "engine.py"
 # inside the engine location, the folder in which to look for apps
 ENGINE_APPS_LOCATION = "apps"
 
-# inside the engine config location, the folder in which to look for hooks
-ENGINE_HOOKS_LOCATIONS = "hooks"
-
 # app settings location
 ENGINE_APP_SETTINGS_LOCATION = "app_settings"
 

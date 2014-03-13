@@ -65,10 +65,10 @@ class TestGetApplication(TestApplication):
         
         self.assertRaises(TankError,
                           application.get_application,
-                          self.engine, bogus_path, "bogus_app", {}, "instance_name")
+                          self.engine, bogus_path, "bogus_app", {}, "instance_name", None)
         
         try:
-            application.get_application(self.engine, bogus_path, "bogus_app", {}, "instance_name")
+            application.get_application(self.engine, bogus_path, "bogus_app", {}, "instance_name", None)
         except TankError, cm:
             expected_msg = "Failed to load plugin"
             self.assertTrue(cm.message.startswith(expected_msg))
@@ -80,7 +80,7 @@ class TestGetApplication(TestApplication):
         app_desc = descriptor.get_from_location(descriptor.AppDescriptor.APP, 
                                                 tk.pipeline_configuration, 
                                                 {"type": "dev", "path": app_path})
-        result = application.get_application(self.engine, app_path, app_desc, {}, "instance_name")
+        result = application.get_application(self.engine, app_path, app_desc, {}, "instance_name", None)
         self.assertIsInstance(result, application.Application)
         
 
