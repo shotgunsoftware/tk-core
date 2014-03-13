@@ -148,7 +148,7 @@ def validate_and_return_frameworks(descriptor, environment):
                 break
 
         if not found:
-            msg =  "The framework %s %s required by %s " % (name, version, descriptor)
+            msg =  "The framework instance %s required by %s " % (desired_fw_instance, descriptor)
             msg += "can not be found in environment %s. \n" % str(environment)
             if len(fw_descriptors) == 0:
                 msg += "No frameworks are currently installed!"
