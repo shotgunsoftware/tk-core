@@ -205,8 +205,11 @@ class SwitchAppAction(Action):
         
         console_utils.ensure_frameworks_installed(log, self.tk, yml_file, new_descriptor, env, suppress_prompts=False)
     
+        # find the name of the engine
+        engine_system_name = env.get_engine_descriptor(engine_instance_name).get_system_name()    
+    
         # now get data for all new settings values in the config
-        params = console_utils.get_configuration(log, self.tk, new_descriptor, descriptor, suppress_prompts=False)
+        params = console_utils.get_configuration(log, self.tk, new_descriptor, descriptor, False, engine_system_name)
     
         # next step is to add the new configuration values to the environment
         env.update_app_settings(engine_instance_name, 

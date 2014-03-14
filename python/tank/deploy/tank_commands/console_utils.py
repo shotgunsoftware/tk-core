@@ -113,10 +113,15 @@ def format_bundle_info(log, descriptor):
 ##########################################################################################
 # displaying of info in the terminal, ascii-graphcics style
 
-def get_configuration(log, tank_api_instance, new_ver_descriptor, old_ver_descriptor, suppress_prompts):
+def get_configuration(log, tank_api_instance, new_descriptor, old_descriptor, suppress_prompts, parent_engine_name):
     """
     Retrieves all the parameters needed for an app, engine or framework.
     May prompt the user for information.
+    
+    For apps only, the parent_engine_name will contain the system name (e.g. tk-maya, tk-nuke) for 
+    the engine under which the app is parented. This is so that the configuration defaults logic
+    can resolve parameter values based on engine, for example the {engine_name} token used in 
+    hook settings. 
 
     Returns a hierarchical dictionary of param values to use:
 
@@ -124,16 +129,21 @@ def get_configuration(log, tank_api_instance, new_ver_descriptor, old_ver_descri
     """
     
     # first get data for all new settings values in the config
-    param_diff = _generate_settings_diff(new_ver_descriptor, old_ver_descriptor)
+    param_diff = _generate_settings_diff(parent_engine_name, new_descriptor, old_descriptor)
 
     if len(param_diff) > 0:
-        log.info("Several new settings are associated with %s." % new_ver_descriptor)
+        log.info("Several new settings are associated with %s." % new_descriptor)
         log.info("You will now be prompted to input values for all settings")
         log.info("that do not have default values defined.")
         log.info("")
 
         # recurse over new parameters:
-        params = _get_configuration_recursive(log, tank_api_instance, new_ver_descriptor, param_diff, suppress_prompts)
+        params = _get_configuration_recursive(log, 
+                                              tank_api_instance, 
+                                              new_descriptor, 
+                                              param_diff, 
+                                              suppress_prompts, 
+                                              parent_engine_name)
     
     else:
         # nothing new!
@@ -141,20 +151,26 @@ def get_configuration(log, tank_api_instance, new_ver_descriptor, old_ver_descri
 
     return params
 
-def _get_configuration_recursive(log, tank_api_instance, new_ver_descriptor, params, suppress_prompts, parent_path=[]):
+def _get_configuration_recursive(log, tank_api_instance, new_ver_descriptor, params, suppress_prompts, parent_engine_name, parent_path=None):
     """
     Retrieves all the parameters needed for an app, engine or framework.
     May prompt the user for information.
     
     Only values for leaf level parameters are retrieved.
     """
+    parent_path = parent_path or []
+    
     param_values = {}
     for param_name, param_data in params.iteritems():
         if "children" in param_data:
             # recurse to children:
             param_path = list(parent_path) + ["%s (type: %s)" % (param_name, param_data["type"])]
-            child_params = _get_configuration_recursive(log, tank_api_instance, new_ver_descriptor, 
-                                                        param_data["children"], suppress_prompts,
+            child_params = _get_configuration_recursive(log, 
+                                                        tank_api_instance, 
+                                                        new_ver_descriptor, 
+                                                        param_data["children"], 
+                                                        suppress_prompts,
+                                                        parent_engine_name,
                                                         param_path)
             param_values[param_name] = child_params
 
@@ -162,7 +178,6 @@ def _get_configuration_recursive(log, tank_api_instance, new_ver_descriptor, par
             # leaf param so need to get value:
             param_path = list(parent_path) + [param_name]
     
-            ######
             # output info about the setting
             log.info("")
             log.info("/%s" % ("-" * 70))
@@ -177,11 +192,40 @@ def _get_configuration_recursive(log, tank_api_instance, new_ver_descriptor, par
                 
             # don't ask user to input anything for values we already have:
             if "value" in param_data:
+                
                 if param_data["type"] == "hook":
-                    # for hooks, instead set the value to "default"
-                    # this means that the app will use its local hooks
-                    # rather than the ones provided.
-                    value = constants.TANK_BUNDLE_DEFAULT_HOOK_SETTING
+                    # hooks have special logic when their default values are resolved
+                    
+                    default_value = param_data["value"]
+                    
+                    # for hooks there are new style values and old 
+                    # style values. old style values are characterized
+                    # by not having a {xxx} structure, except for when they
+                    # are using the special {engine_name} token
+                    if "{" in default_value.replace(constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN, ""):
+                        # this is a new style hook, for example
+                        # - {$HOOK_PATH}/path/to/foo.py
+                        # - {self}/path/to/foo.py
+                        # - {config}/path/to/foo.py
+                        # - {tk-framework-perforce_v1.x.x}/path/to/foo.py
+                        #
+                        # for new style hooks, copy the value across into the 
+                        # environment. Resolve the {engine_name} token if it
+                        # exists.
+                        value = default_value
+                        
+                        if constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN in value:
+                            if parent_engine_name is None:
+                                # should not happen
+                                raise TankError("Cannot resolve dynamic engine token for "
+                                                "setting %s in %s!" % (param_name, new_ver_descriptor))
+                            value = value.replace(constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN, parent_engine_name)
+                        
+                    else:
+                        # this is an old style hook, where we want to 
+                        # populate the environment config with a 
+                        # 'magic' default value.
+                        value = constants.TANK_BUNDLE_DEFAULT_HOOK_SETTING
                 else:
                     # just copy the default value into the environment
                     value = param_data["value"]
@@ -271,7 +315,7 @@ def ensure_frameworks_installed(log, tank_api_instance, file_location, descripto
         fw_descriptor.run_post_install()
     
         # now get data for all new settings values in the config
-        params = get_configuration(log, tank_api_instance, fw_descriptor, None, suppress_prompts)
+        params = get_configuration(log, tank_api_instance, fw_descriptor, None, suppress_prompts, None)
     
         # next step is to add the new configuration values to the environment
         environment.create_framework_settings(file_location, fw_instance_name, params, fw_descriptor.get_location())
@@ -311,7 +355,7 @@ def check_constraints_for_item(descriptor, environment_obj, engine_instance_name
 # helpers
 
 
-def _generate_settings_diff(new_descriptor, old_descriptor=None):
+def _generate_settings_diff(parent_engine_name, new_descriptor, old_descriptor=None):
     """
     Returns a list of settings which are needed if we were to upgrade
     an environment based on old_descriptor to the one based on new_descriptor.
@@ -322,6 +366,10 @@ def _generate_settings_diff(new_descriptor, old_descriptor=None):
     By omitting old_descriptor you will effectively diff against nothing, meaning
     that all the settings for the new version of the item (except default ones)
     will be part of the listing.
+    
+    For apps, the parent_engine_name parameter is passed in. This holds the value
+    of the system name for the parent engine (e.g. tk-maya, tk-nuke) and is used
+    to resolve engine specific default values.
     
     Returns a hierarchical dictionary containing details for each new parameter and
     where it exists in the tree, e.g.:
@@ -334,7 +382,6 @@ def _generate_settings_diff(new_descriptor, old_descriptor=None):
                     "child_param2" : {"description" : "another child param", "type": "int", value: 123 }
                     }
     }
-    
     """
     # get the new metadata (this will download the app potentially)
     schema = new_descriptor.get_configuration_schema()
@@ -349,11 +396,11 @@ def _generate_settings_diff(new_descriptor, old_descriptor=None):
 
 
     # find all new config parameters
-    new_parameters = _generate_settings_diff_recursive(old_schema, schema)
+    new_parameters = _generate_settings_diff_recursive(parent_engine_name, old_schema, schema)
     return new_parameters
     
     
-def _generate_settings_diff_recursive(old_schema, new_schema):
+def _generate_settings_diff_recursive(parent_engine_name, old_schema, new_schema):
     """
     Recursively find all parameters in new_schema that don't exist in old_schema.
     
@@ -383,8 +430,30 @@ def _generate_settings_diff_recursive(old_schema, new_schema):
             # found a new param:
             new_params[param_name] = {"description": param_desc, "type": param_type}
             
-            # get any default value that was configured:
-            if "default_value" in new_param:
+            # get any default value that was configured
+            # the standard key to look for is "default_value"
+            # however, for apps there can also be an engine
+            # specific default values. These are on the form
+            # default_value_ENGINENAME and take precendence.
+            #
+            # An example of a default value in an app manifest
+            # where there are two specific defaults for maya and
+            # nuke and a general fallback may look like this:
+            #
+            # param_name:
+            #    type: str
+            #    default_value_tk-maya: "Used in maya"
+            #    default_value_tk-nuke: "Used in nuke"
+            #    default_value: "Used in all other engines"
+            #    description: "Example of engine specific defaults"
+            #
+            
+            # first try engine specific
+            if parent_engine_name and "default_value_%s" % parent_engine_name in new_param:
+                new_params[param_name]["value"] = new_param["default_value_%s" % parent_engine_name]
+            
+            elif "default_value" in new_param:
+                # fall back on generic default
                 new_params[param_name]["value"] = new_param["default_value"] 
         
             # special case handling for list params - check if 
@@ -404,7 +473,7 @@ def _generate_settings_diff_recursive(old_schema, new_schema):
                 new_items = new_param.get("items", {})
                 old_items = old_param.get("items", {})
                     
-                new_child_params = _generate_settings_diff_recursive(old_items, new_items)
+                new_child_params = _generate_settings_diff_recursive(parent_engine_name, old_items, new_items)
                 if new_child_params:
                     new_params[param_name] = {"description": param_desc, "type": param_type, "children":new_child_params}
             elif param_type == "list":
@@ -421,7 +490,7 @@ def _generate_settings_diff_recursive(old_schema, new_schema):
                     new_items = new_list_param_values.get("items", {})
                     old_items = old_list_param_values.get("items", {})
                     
-                    new_child_params = _generate_settings_diff_recursive(old_items, new_items)
+                    new_child_params = _generate_settings_diff_recursive(parent_engine_name, old_items, new_items)
                     if new_child_params:
                         new_params[param_name] = {"description": param_desc, "type": param_type, "children":new_child_params}
                 elif new_list_param_values_type == "list":

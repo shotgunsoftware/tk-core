@@ -286,8 +286,19 @@ def _update_item(log, suppress_prompts, tk, env, old_descriptor, new_descriptor,
         
     console_utils.ensure_frameworks_installed(log, tk, yml_file, new_descriptor, env, suppress_prompts)
 
+    # if we are updating an app, we pass the engine system name to the configuration method
+    # so that it can resolve engine based defaults
+    parent_engine_system_name = None
+    if app_name: 
+        parent_engine_system_name = env.get_engine_descriptor(engine_name).get_system_name()
+
     # now get data for all new settings values in the config
-    params = console_utils.get_configuration(log, tk, new_descriptor, old_descriptor, suppress_prompts)
+    params = console_utils.get_configuration(log, 
+                                             tk, 
+                                             new_descriptor, 
+                                             old_descriptor, 
+                                             suppress_prompts,
+                                             parent_engine_system_name)
 
     # awesome. got all the values we need.
     log.info("")
