@@ -113,10 +113,15 @@ def format_bundle_info(log, descriptor):
 ##########################################################################################
 # displaying of info in the terminal, ascii-graphcics style
 
-def get_configuration(log, tank_api_instance, new_ver_descriptor, old_ver_descriptor, suppress_prompts):
+def get_configuration(log, tank_api_instance, new_descriptor, old_descriptor, suppress_prompts, parent_engine_name):
     """
     Retrieves all the parameters needed for an app, engine or framework.
     May prompt the user for information.
+    
+    For apps only, the parent_engine_name will contain the system name (e.g. tk-maya, tk-nuke) for 
+    the engine under which the app is parented. This is so that the configuration defaults logic
+    can resolve parameter values based on engine, for example the {engine_name} token used in 
+    hook settings. 
 
     Returns a hierarchical dictionary of param values to use:
 
@@ -124,16 +129,21 @@ def get_configuration(log, tank_api_instance, new_ver_descriptor, old_ver_descri
     """
     
     # first get data for all new settings values in the config
-    param_diff = _generate_settings_diff(new_ver_descriptor, old_ver_descriptor)
+    param_diff = _generate_settings_diff(new_descriptor, old_descriptor)
 
     if len(param_diff) > 0:
-        log.info("Several new settings are associated with %s." % new_ver_descriptor)
+        log.info("Several new settings are associated with %s." % new_descriptor)
         log.info("You will now be prompted to input values for all settings")
         log.info("that do not have default values defined.")
         log.info("")
 
         # recurse over new parameters:
-        params = _get_configuration_recursive(log, tank_api_instance, new_ver_descriptor, param_diff, suppress_prompts)
+        params = _get_configuration_recursive(log, 
+                                              tank_api_instance, 
+                                              new_descriptor, 
+                                              param_diff, 
+                                              suppress_prompts, 
+                                              parent_engine_name)
     
     else:
         # nothing new!
@@ -141,20 +151,26 @@ def get_configuration(log, tank_api_instance, new_ver_descriptor, old_ver_descri
 
     return params
 
-def _get_configuration_recursive(log, tank_api_instance, new_ver_descriptor, params, suppress_prompts, parent_path=[]):
+def _get_configuration_recursive(log, tank_api_instance, new_ver_descriptor, params, suppress_prompts, parent_engine_name, parent_path=None):
     """
     Retrieves all the parameters needed for an app, engine or framework.
     May prompt the user for information.
     
     Only values for leaf level parameters are retrieved.
     """
+    parent_path = parent_path or []
+    
     param_values = {}
     for param_name, param_data in params.iteritems():
         if "children" in param_data:
             # recurse to children:
             param_path = list(parent_path) + ["%s (type: %s)" % (param_name, param_data["type"])]
-            child_params = _get_configuration_recursive(log, tank_api_instance, new_ver_descriptor, 
-                                                        param_data["children"], suppress_prompts,
+            child_params = _get_configuration_recursive(log, 
+                                                        tank_api_instance, 
+                                                        new_ver_descriptor, 
+                                                        param_data["children"], 
+                                                        suppress_prompts,
+                                                        parent_engine_name,
                                                         param_path)
             param_values[param_name] = child_params
 
@@ -178,10 +194,38 @@ def _get_configuration_recursive(log, tank_api_instance, new_ver_descriptor, par
             # don't ask user to input anything for values we already have:
             if "value" in param_data:
                 if param_data["type"] == "hook":
-                    # for hooks, instead set the value to "default"
-                    # this means that the app will use its local hooks
-                    # rather than the ones provided.
-                    value = constants.TANK_BUNDLE_DEFAULT_HOOK_SETTING
+                    
+                    default_value = param_data["value"]
+                    
+                    # for hooks there are new style values and old 
+                    # style values. old style values are characterized
+                    # by not having a {xxx} structure, except for when they
+                    # are using the special {engine_name} token
+                    
+                    if "{" in default_value.replace(constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN, ""):
+                        # this is a new style hook, for example
+                        # - {$HOOK_PATH}/path/to/foo.py
+                        # - {self}/path/to/foo.py
+                        # - {config}/path/to/foo.py
+                        # - {tk-framework-perforce_v1.x.x}/path/to/foo.py
+                        #
+                        # for new style hooks, copy the value across into the 
+                        # environment. Resolve the {engine_name} token if it
+                        # exists.
+                        value = default_value
+                        
+                        if constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN in value:
+                            if parent_engine_name is None:
+                                # should not happen
+                                raise TankError("Cannot resolve dynamic engine token for "
+                                                "setting %s in %s!" % (param_name, new_ver_descriptor))
+                            value = value.replace(constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN, parent_engine_name)
+                        
+                    else:
+                        # this is an old style hook, where we want to 
+                        # populate the environment config with a 
+                        # 'magic' default value.
+                        value = constants.TANK_BUNDLE_DEFAULT_HOOK_SETTING
                 else:
                     # just copy the default value into the environment
                     value = param_data["value"]
@@ -271,7 +315,7 @@ def ensure_frameworks_installed(log, tank_api_instance, file_location, descripto
         fw_descriptor.run_post_install()
     
         # now get data for all new settings values in the config
-        params = get_configuration(log, tank_api_instance, fw_descriptor, None, suppress_prompts)
+        params = get_configuration(log, tank_api_instance, fw_descriptor, None, suppress_prompts, None)
     
         # next step is to add the new configuration values to the environment
         environment.create_framework_settings(file_location, fw_instance_name, params, fw_descriptor.get_location())
