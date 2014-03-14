@@ -121,6 +121,10 @@ class TestExecuteHook(TestApplication):
         app = self.engine.apps["test_app"]
         self.assertTrue(app.execute_hook("test_hook_std", dummy_param=True))
 
+    def test_custom_method(self):
+        app = self.engine.apps["test_app"]
+        self.assertTrue(app.execute_hook_method("test_hook_std", "second_method", another_dummy_param=True))
+
     def test_self_format(self):
         app = self.engine.apps["test_app"]
         self.assertTrue(app.execute_hook("test_hook_self", dummy_param=True))

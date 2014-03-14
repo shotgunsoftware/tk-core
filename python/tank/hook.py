@@ -98,7 +98,11 @@ def execute_hook_method(hook_path, parent, method_name, **kwargs):
     hook = hook_class(parent)
     
     # get the method
-    hook_method = getattr(hook, method_name)
+    try:
+        hook_method = getattr(hook, method_name)
+    except AttributeError:
+        raise TankError("Cannot execute hook '%s' - the hook class does not "
+                        "have a '%s' method!" % (hook_path, method_name))
     
     # execute the method
     ret_val = hook_method(**kwargs)
