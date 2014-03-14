@@ -443,7 +443,7 @@ def _generate_settings_diff_recursive(parent_engine_name, old_schema, new_schema
             # param_name:
             #    type: str
             #    default_value_tk-maya: "Used in maya"
-            #    default_value_tk-nuke: "Used in maya"
+            #    default_value_tk-nuke: "Used in nuke"
             #    default_value: "Used in all other engines"
             #    description: "Example of engine specific defaults"
             #
