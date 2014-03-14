@@ -13,6 +13,7 @@ App configuration and schema validation.
 
 """
 import os
+import re
 import sys
 
 from . import constants
@@ -508,12 +509,39 @@ class _SettingsValidator:
         Validate that the value for a setting of type hook corresponds to a file in the hooks
         directory.
         """
-        # if setting is default, assume everything is fine
-        if hook_name == constants.TANK_BUNDLE_DEFAULT_HOOK_SETTING:
-            return
         
         hooks_folder = self._tank_api.pipeline_configuration.get_hooks_location()
-        hook_path = os.path.join(hooks_folder, "%s.py" % hook_name)
+        
+        # if setting is default, assume everything is fine
+        if hook_name == constants.TANK_BUNDLE_DEFAULT_HOOK_SETTING:
+            # assume that each app contains its correct hooks
+            return
+        
+        elif hook_name.startswith("{self}"):
+            # assume that each app contains its correct hooks
+            return
+        
+        elif hook_name.startswith("{config}"):
+            # config hook 
+            path = hook_name.replace("{config}", hooks_folder)
+            hook_path = path.replace("/", os.path.sep)
+        
+        elif hook_name.startswith("{$") and "}" in hook_name:
+            # environment variable: {$HOOK_PATH}/path/to/foo.py
+            # lazy (runtime) validation for this - it may be beneficial
+            # not to actually set the environment variable until later
+            # in the life cycle of the engine 
+            return
+        
+        elif hook_name.startswith("{") and "}" in hook_name:
+            # referencing other instances of items
+            # this cannot be easily validated at this point since
+            # no well defined runtime state exists at the time of validation
+            return
+
+        else:
+            # our standard case
+            hook_path = os.path.join(hooks_folder, "%s.py" % hook_name)
 
         if not os.path.exists(hook_path):
             msg = ("Invalid configuration setting '%s' for %s: "

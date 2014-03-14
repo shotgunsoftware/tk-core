@@ -14,6 +14,7 @@ Base class for Abstract classes for Engines, Apps and Frameworks
 """
 
 import os
+import re
 import sys
 import imp
 import uuid
@@ -26,7 +27,7 @@ class TankBundle(object):
     Abstract Base class for any engine, framework app etc in tank
     """
 
-    def __init__(self, tk, context, settings, descriptor):
+    def __init__(self, tk, context, settings, descriptor, env):
         """
         Constructor.
         """
@@ -37,6 +38,7 @@ class TankBundle(object):
         self.__module_uid = None
         self.__descriptor = descriptor    
         self.__frameworks = {}
+        self.__environment = env
 
         # emit an engine started event
         tk.execute_hook(constants.TANK_BUNDLE_INIT_HOOK_NAME, bundle=self)
@@ -408,12 +410,30 @@ class TankBundle(object):
         
     def __execute_hook_internal(self, hook_name, key, **kwargs):
         """
-        Internal method for executing the specified hook.  If hook
-        name is constants.TANK_BUNDLE_DEFAULT_HOOK_SETTING it will
-        look up the actual hook to use in the manifest, otherwise
-        it will assume that the hook lives in the 'hooks' directory
-        for the bundle.
+        Internal method for executing the specified hook. This method handles
+        resolving an environment configuration value into a path on disk.
+        
+        There are two generations of hook formats - old-style and new-style.
+        
+        Old style formats:
+        
+        - hook_setting: foo     -- Resolves 'foo' to CURRENT_PC/hooks/foo.py
+        - hook_setting: default -- Resolves the value from the info.yml manifest and uses 
+          the default hook code supplied by the bundle.
+        
+        New style formats:
+        
+        - hook_setting: {$HOOK_PATH}/path/to/foo.py  -- environment variable.
+        - hook_setting: {self}/path/to/foo.py   -- looks in the hooks folder in the local bundle
+        - hook_setting: {config}/path/to/foo.py -- looks in the hooks folder in the config
+        - hook_setting: {tk-framework-perforce_v1.x.x}/path/to/foo.py -- looks in the hooks folder of an
+          instance that exists in the current environment.
+        
         """
+        if hook_name is None:
+            raise TankError("%s config setting %s: Configuration value cannot be None!" % (self, key))
+        
+        # first the default case
         if hook_name == constants.TANK_BUNDLE_DEFAULT_HOOK_SETTING:
             # hook settings points to the default one.
             # find the name of the hook from the manifest
@@ -458,11 +478,69 @@ class TankBundle(object):
                 hook_path = os.path.join(self.disk_location, "hooks", "%s.py" % default_hook_name)  
             
             ret_val = hook.execute_hook(hook_path, self, **kwargs)
-             
-        else:
-            # use a specific hook in the user hooks folder
-            ret_val = self.execute_hook_by_name(hook_name, **kwargs)
+                         
+        elif hook_name.startswith("{self}"):
+            # bundle local reference
+            hooks_folder = os.path.join(self.disk_location, "hooks")
+            path = hook_name.replace("{self}", hooks_folder)
+            path = path.replace("/", os.path.sep)
+            ret_val = hook.execute_hook(path, self, **kwargs)
         
+        elif hook_name.startswith("{config}"):
+            # config hook 
+            hooks_folder = self.tank.pipeline_configuration.get_hooks_location()
+            path = hook_name.replace("{config}", hooks_folder)
+            path = path.replace("/", os.path.sep)
+            ret_val = hook.execute_hook(path, self, **kwargs)
+        
+        elif hook_name.startswith("{$") and "}" in hook_name:
+            # environment variable: {$HOOK_PATH}/path/to/foo.py
+            env_var = re.match("^\{\$([^\}]+)\}", hook_name).group(1)
+            if env_var not in os.environ:
+                raise TankError("%s config setting %s: This hook is referring to the configuration value '%s', "
+                                "but no environment variable named '%s' can be "
+                                "found!" % (self, key, hook_name, env_var))
+            env_var_value = os.environ[env_var]
+            path = hook_name.replace("{$%s}" % env_var, env_var_value)
+            path = path.replace("/", os.path.sep)
+            ret_val = hook.execute_hook(path, self, **kwargs)        
+        
+        elif hook_name.startswith("{") and "}" in hook_name:
+            # bundle instance (e.g. '{tk-framework-perforce_v1.x.x}/foo/bar.py' )
+            # first find the bundle instance
+            instance = re.match("^\{([^\}]+)\}", hook_name).group(1)
+            # for now, only look at framework instance names. Later on,
+            # if the request ever comes up, we could consider extending
+            # to supporting app instances etc. However we would need to
+            # have some implicit rules for handling ambiguity since
+            # there can be multiple items (engines, apps etc) potentially
+            # having the same instance name.
+            fw_instances = self.__environment.get_frameworks()
+            if instance not in fw_instances:
+                raise TankError("%s config setting %s: This hook is referring to the configuration value '%s', "
+                                "but no framework with instance name '%s' can be found in the currently "
+                                "running environment. The currently loaded frameworks "
+                                "are %s." % (self, key, hook_name, instance, ", ".join(fw_instances)))
+
+            fw_desc = self.__environment.get_framework_descriptor(instance)
+            if not(fw_desc.exists_local()):
+                raise TankError("%s config setting %s: This hook is referring to the configuration value '%s', "
+                                "but the framework with instance name '%s' does not exist on disk. Please run "
+                                "the tank cache_apps command." % (self, key, hook_name, instance))
+            
+            # get path to framework on disk
+            hooks_folder = os.path.join(fw_desc.get_path(), "hooks")
+            # create the path to the file
+            path = hook_name.replace("{%s}" % instance, hooks_folder)
+            path = path.replace("/", os.path.sep)
+            ret_val = hook.execute_hook(path, self, **kwargs)
+            
+        else:
+            # old school config hook name, e.g. just 'foo'
+            hook_folder = self.tank.pipeline_configuration.get_hooks_location()
+            path = os.path.join(hook_folder, "%s.py" % hook_name)
+            ret_val = hook.execute_hook(path, self, **kwargs)            
+
         return ret_val
 
     def execute_hook_by_name(self, hook_name, **kwargs):
