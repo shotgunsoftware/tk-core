@@ -87,6 +87,9 @@ CURRENT_LOGIN_HOOK_NAME = "get_current_login"
 # default value for hooks
 TANK_BUNDLE_DEFAULT_HOOK_SETTING = "default"
 
+# default method to execute on hooks
+DEFAULT_HOOK_METHOD = "execute"
+
 # if the engine name is included in a hook definition, include this in the manifest.
 TANK_HOOK_ENGINE_REFERENCE_TOKEN = "{engine_name}"
 

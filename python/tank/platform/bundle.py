@@ -107,7 +107,7 @@ class TankBundle(object):
         :param **kwargs: arguments to be passed to the hook
         """
         hook_name = self.get_setting_from(other_settings, key)
-        return self.__execute_hook_internal(hook_name, key, **kwargs)
+        return self.__execute_hook_internal(hook_name, key, None, **kwargs)
 
 
 
@@ -402,13 +402,35 @@ class TankBundle(object):
             
     def execute_hook(self, key, **kwargs):
         """
-        Shortcut for grabbing the hook name used in the settings, 
-        then calling execute_hook_by_name() on it.
+        Execute a hook that is part of the environment configuration for the current bundle.
+        
+        You simply pass the name of the hook setting that you want to execute and 
+        the accompanying arguments, and toolkit will find the correct hook file based
+        on the currently configured setting and then execute the execute() method for 
+        that hook. 
+        
+        :param key: The name of the hook setting you want to execute.
         """
         hook_name = self.get_setting(key)
-        return self.__execute_hook_internal(hook_name, key, **kwargs)
+        return self.__execute_hook_internal(hook_name, key, None, **kwargs)
         
-    def __execute_hook_internal(self, hook_name, key, **kwargs):
+    def execute_hook_method(self, key, method_name, **kwargs):
+        """
+        Execute a specific method in a hook that is part of the 
+        environment configuration for the current bundle.
+        
+        You simply pass the name of the hook setting that you want to execute, the 
+        name of the method you want to execute and the accompanying arguments. 
+        Toolkit will find the correct hook file based on the currently configured 
+        setting and then execute the specified method.
+        
+        :param key: The name of the hook setting you want to execute.
+        :param method_name: Name of the method to execute
+        """
+        hook_name = self.get_setting(key)
+        return self.__execute_hook_internal(hook_name, key, method_name, **kwargs)
+
+    def __execute_hook_internal(self, hook_name, key, method_name, **kwargs):
         """
         Internal method for executing the specified hook. This method handles
         resolving an environment configuration value into a path on disk.
@@ -462,36 +484,32 @@ class TankBundle(object):
                                     "when trying to access hook %s" % (self, hook_name))
                 
                 updated_hook_name = default_hook_name.replace(constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN, engine_name)
-                hook_path = os.path.join(self.disk_location, "hooks", "%s.py" % updated_hook_name)
+                path = os.path.join(self.disk_location, "hooks", "%s.py" % updated_hook_name)
 
-                if not os.path.exists(hook_path):
+                if not os.path.exists(path):
                     # produce user friendly error message
                     raise TankError("%s config setting %s: This hook is using an engine specific "
                                     "hook setup (e.g '%s') but no hook '%s' has been provided with the app. "
                                     "In order for this app to work with engine %s, you need to provide a "
                                     "custom hook implementation. Please contact support for more "
-                                    "information" % (self, key, default_hook_name, hook_path, engine_name))
+                                    "information" % (self, key, default_hook_name, path, engine_name))
                 
             else:
                 # no dynamic default value. No need to produce a special error message in this case
                 # if the file does not exist - the loader will check too.
-                hook_path = os.path.join(self.disk_location, "hooks", "%s.py" % default_hook_name)  
+                path = os.path.join(self.disk_location, "hooks", "%s.py" % default_hook_name)  
             
-            ret_val = hook.execute_hook(hook_path, self, **kwargs)
-                         
         elif hook_name.startswith("{self}"):
             # bundle local reference
             hooks_folder = os.path.join(self.disk_location, "hooks")
             path = hook_name.replace("{self}", hooks_folder)
             path = path.replace("/", os.path.sep)
-            ret_val = hook.execute_hook(path, self, **kwargs)
         
         elif hook_name.startswith("{config}"):
             # config hook 
             hooks_folder = self.tank.pipeline_configuration.get_hooks_location()
             path = hook_name.replace("{config}", hooks_folder)
             path = path.replace("/", os.path.sep)
-            ret_val = hook.execute_hook(path, self, **kwargs)
         
         elif hook_name.startswith("{$") and "}" in hook_name:
             # environment variable: {$HOOK_PATH}/path/to/foo.py
@@ -502,8 +520,7 @@ class TankBundle(object):
                                 "found!" % (self, key, hook_name, env_var))
             env_var_value = os.environ[env_var]
             path = hook_name.replace("{$%s}" % env_var, env_var_value)
-            path = path.replace("/", os.path.sep)
-            ret_val = hook.execute_hook(path, self, **kwargs)        
+            path = path.replace("/", os.path.sep)        
         
         elif hook_name.startswith("{") and "}" in hook_name:
             # bundle instance (e.g. '{tk-framework-perforce_v1.x.x}/foo/bar.py' )
@@ -533,15 +550,20 @@ class TankBundle(object):
             # create the path to the file
             path = hook_name.replace("{%s}" % instance, hooks_folder)
             path = path.replace("/", os.path.sep)
-            ret_val = hook.execute_hook(path, self, **kwargs)
             
         else:
             # old school config hook name, e.g. just 'foo'
             hook_folder = self.tank.pipeline_configuration.get_hooks_location()
-            path = os.path.join(hook_folder, "%s.py" % hook_name)
-            ret_val = hook.execute_hook(path, self, **kwargs)            
+            path = os.path.join(hook_folder, "%s.py" % hook_name)            
 
-        return ret_val
+        if method_name is None:
+            # old school hook - run the execute method
+            ret_value = hook.execute_hook(path, self, **kwargs)
+        else:
+            # run specific hook method
+            ret_value = hook.execute_hook_method(path, self, method_name, **kwargs)
+        
+        return ret_value
 
     def execute_hook_by_name(self, hook_name, **kwargs):
         """

@@ -59,6 +59,7 @@ def clear_hooks_cache():
     global _HOOKS_CACHE
     _HOOKS_CACHE = {}
 
+
 def execute_hook(hook_path, parent, **kwargs):
     """
     Executes a hook. A hook is a python file which 
@@ -75,6 +76,14 @@ def execute_hook(hook_path, parent, **kwargs):
                    app, engine or core object.
     :returns: Whatever the hook returns.
     """
+    return execute_hook_method(hook_path, parent, constants.DEFAULT_HOOK_METHOD, **kwargs)
+
+def execute_hook_method(hook_path, parent, method_name, **kwargs):
+    """
+    Exactly the same as execute_hook() but instead of 
+    executing the execute() method, the method given in 
+    method_name is executed
+    """
     if not os.path.exists(hook_path):
         raise TankError("Cannot execute hook '%s' - this file does not exist on disk!" % hook_path)
     
@@ -84,8 +93,24 @@ def execute_hook(hook_path, parent, **kwargs):
     
     # get the class
     hook_class = _HOOKS_CACHE[hook_path]
+    
     # instantiate the class
     hook = hook_class(parent)
-    # execute the hook
-    return hook.execute(**kwargs)
+    
+    # get the method
+    try:
+        hook_method = getattr(hook, method_name)
+    except AttributeError:
+        raise TankError("Cannot execute hook '%s' - the hook class does not "
+                        "have a '%s' method!" % (hook_path, method_name))
+    
+    # execute the method
+    ret_val = hook_method(**kwargs)
+    
+    return ret_val
 
+def get_hook_baseclass():
+    """
+    Returns the base class for a hook
+    """
+    return Hook
