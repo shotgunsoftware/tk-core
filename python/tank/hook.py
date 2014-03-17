@@ -108,3 +108,9 @@ def execute_hook_method(hook_path, parent, method_name, **kwargs):
     ret_val = hook_method(**kwargs)
     
     return ret_val
+
+def get_hook_baseclass():
+    """
+    Returns the base class for a hook
+    """
+    return Hook
