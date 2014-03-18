@@ -21,6 +21,9 @@ engines:
                 test_hook_self: "{self}/test_hook.py"
                 test_hook_config: "{config}/foo/bar.py"
                 
+                test_hook_inheritance_1: "{self}/inheritance1.py"
+                test_hook_inheritance_2: "{config}/inherit.py"
+                
 
                 test_simple_dictionary:
                     test_str: a
