@@ -53,7 +53,13 @@ configuration:
         type: hook
 
 
+    test_hook_inheritance_1:
+        type: hook
+        default_value: "{self}/inheritance1.py"
     
+    test_hook_inheritance_2:
+        type: hook
+        default_value: "{self}/inheritance2.py"
     
     
     test_icon:
