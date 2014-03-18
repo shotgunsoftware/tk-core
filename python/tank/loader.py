@@ -69,15 +69,9 @@ def load_plugin(plugin_file, valid_base_class):
         
         raise TankError(msg)
         
-    elif len(found_classes) > 1:
-        # more than one class!
-        msg = ("Error loading the file '%s'. Looks like this file contains more than one class "
-               "deriving from the '%s' base class. "
-               "You need to have exactly one class defined in the file deriving "
-               "from that base class. " % (plugin_file, valid_base_class.__name__))
-        
-        raise TankError(msg)
-    
-    return found_classes[0]
+    # when we do inheritance, the file effectively contains more than one class object
+    # make sure we return the last class definition in the file, e.g. the actual
+    # class and not the base class.
+    return found_classes[-1]
 
 

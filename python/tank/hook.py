@@ -110,7 +110,7 @@ def execute_hook_method(hook_paths, parent, method_name, **kwargs):
                    app, engine or core object.
     :param method_name: method to execute. If None, the default method will be executed.
     :returns: Whatever the hook returns.
-    """
+    """    
     global g_current_hook_baseclass
     
     if method_name is None:

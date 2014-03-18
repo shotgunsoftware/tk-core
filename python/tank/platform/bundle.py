@@ -526,7 +526,6 @@ class TankBundle(object):
           instance that exists in the current environment.
         
         """
-        
         # split up the config value into distinct items
         unresolved_hook_paths = settings_value.split(":")
         
@@ -540,10 +539,12 @@ class TankBundle(object):
         # in the manifest, so prepend it:
         # hook_paths: ["{self}/foo_tk-maya.py", "{config}/my_custom_hook.py" ]
         #
-        # Note that there can be more complex cases, where you may have 3 tiers:
-        # default hook in app > framework default hook > overridden config         
-        if not unresolved_hook_paths[0].startswith("{self}"):
-            # first item in our list is not the default app manifest thingie
+        #
+        
+        # Check only new-style hooks. All new style hooks start with a { 
+        if unresolved_hook_paths[0].startswith("{") and not unresolved_hook_paths[0].startswith("{self}"):
+            # this is a new style hook that is not the default hook value.
+            # now prepend the default hook first in the list 
             manifest = self.__descriptor.get_configuration_schema()
             default_value = manifest.get(settings_name).get("default_value")
             
