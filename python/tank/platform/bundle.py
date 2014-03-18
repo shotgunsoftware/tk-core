@@ -527,15 +527,35 @@ class TankBundle(object):
         
         """
         
-        # resolve path to hook
-        path = self.__resolve_hook_path(settings_name, settings_value)
+        # split up the config value into distinct items
+        unresolved_hook_paths = settings_value.split(":")
         
-        if method_name is None:
-            # old school hook - run the execute method
-            ret_value = hook.execute_hook(path, self, **kwargs)
-        else:
-            # run specific hook method
-            ret_value = hook.execute_hook_method(path, self, method_name, **kwargs)
+        # if the settings value is not {self} add this to the inheritance chain. 
+        # Basically, any overridden hook implicitly derives from the default hook
+        # specified in the manifest. Examples:
+        #
+        # Manifest: {self}/foo_{engine_name}.py
+        # In config: {config}/my_custom_hook.py
+        # The my_custom_hook.py implicitly derives from the python class defined 
+        # in the manifest, so prepend it:
+        # hook_paths: ["{self}/foo_tk-maya.py", "{config}/my_custom_hook.py" ]
+        #
+        # Note that there can be more complex cases, where you may have 3 tiers:
+        # default hook in app > framework default hook > overridden config         
+        if not unresolved_hook_paths[0].startswith("{self}"):
+            # first item in our list is not the default app manifest thingie
+            manifest = self.__descriptor.get_configuration_schema()
+            default_value = manifest.get(settings_name).get("default_value")
+            
+            if default_value: # possible not to have a default value!
+                default_value = default_value.replace(constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN, self.engine.name)
+                # add to inheritance path
+                unresolved_hook_paths.insert(0, default_value)
+        
+        # resolve paths into actual file paths
+        resolved_hook_paths = [self.__resolve_hook_path(settings_name, x) for x in unresolved_hook_paths]
+                
+        ret_value = hook.execute_hook_method(resolved_hook_paths, self, method_name, **kwargs)
         
         return ret_value
 
