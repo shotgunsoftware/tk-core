@@ -95,7 +95,7 @@ class FolderConfiguration(object):
         for file_name in os.listdir(parent_path):
             full_path = os.path.join(parent_path, file_name)
             # ignore files
-            if os.path.isdir(full_path) and not file_name.startswith("."):
+            if os.path.isdir(full_path):
                 directory_paths.append(full_path)
         return directory_paths
 
