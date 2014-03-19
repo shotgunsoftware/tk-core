@@ -68,10 +68,9 @@ class Environment(object):
         try:
             env_file = open(self.__env_path, "r")
             data = yaml.load(env_file)
-        except Exception, exp:
-            raise TankError("Could not parse file %s. Error reported: %s" % (self.__env_path, exp))
-        finally:
             env_file.close()
+        except Exception, exp:
+            raise TankError("Could not parse file %s. Error reported: %s" % (self.__env_path, exp))            
      
         self.__env_data = environment_includes.process_includes(self.__env_path, data, self.__context)
         
@@ -347,10 +346,9 @@ class Environment(object):
         try:
             env_file = open(path, "r")
             data = yaml.load(env_file)
+            env_file.close()
         except Exception, exp:
             raise TankError("Could not parse file %s. Error reported: %s" % (path, exp))
-        finally:
-            env_file.close()
         
         return data
     
@@ -361,10 +359,9 @@ class Environment(object):
         try:
             env_file = open(path, "wt")
             yaml.dump(data, env_file)
+            env_file.close()
         except Exception, exp:
             raise TankError("Could not write environment file %s. Error reported: %s" % (path, exp))
-        finally:
-            env_file.close()
         
         
     def find_location_for_engine(self, engine_name):
