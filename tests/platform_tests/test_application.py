@@ -145,6 +145,15 @@ class TestExecuteHook(TestApplication):
         
         self.assertTrue(app.execute_hook("test_hook_env_var", dummy_param=True))
 
+    def test_inheritance(self):
+        app = self.engine.apps["test_app"]
+        self.assertEqual(app.execute_hook_method("test_hook_inheritance_1", "foo", bar=True), "base class")
+
+    def test_inheritance_2(self):
+        app = self.engine.apps["test_app"]
+        self.assertEqual(app.execute_hook_method("test_hook_inheritance_2", "foo2", bar=True), "custom class base class")
+        
+
 
 
 class TestRequestFolder(TestApplication):
