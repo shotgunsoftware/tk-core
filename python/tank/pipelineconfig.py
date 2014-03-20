@@ -396,7 +396,7 @@ class PipelineConfiguration(object):
             install_path = None
             try:
                 fh = open(curr_linkback_file, "rt")
-                data = fh.read()
+                data = fh.read().strip() # remove any whitespace, keep text
                 if data not in ["None", "undefined"] and os.path.exists(data):
                     install_path = data
                 fh.close()                    

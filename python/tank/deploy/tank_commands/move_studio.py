@@ -121,7 +121,7 @@ class MoveStudioInstallAction(Action):
         for x in ["windows_path", "linux_path", "mac_path"]:
             try:
                 fh = open(studio_linkback_files[x], "rt")
-                data = fh.read()
+                data = fh.read().strip() # remove any whitespace, keep text
                 if data in ["None", "undefined"]:
                     current_studio_refs[x] = None
                 else:
