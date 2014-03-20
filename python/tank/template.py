@@ -655,7 +655,10 @@ class TemplatePathParser(object):
         try:
             value = cur_key.value_from_str(value_str)
         except TankError, e:
-            self.last_error = "%s: Failed to get value for key '%s' - %s" % (self, key_name, e)
+            # it appears some locales are not able to correctly encode
+            # the error message to str here, so use the %r form for the error
+            # (ticket 24810)
+            self.last_error = "%s: Failed to get value for key '%s' - %r" % (self, key_name, e)
             return None
         
         if fields.get(key_name, value) != value:
