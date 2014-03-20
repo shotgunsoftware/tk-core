@@ -719,7 +719,7 @@ def _resolve_shotgun_entity(log, entity_type, entity_search_token, constrain_by_
         raise TankError("Try searching for something else. Alternatively, specify ALL in order to see all %ss." % entity_type)
 
 
-    elif entity_only_search_token in [ x[name_field] for x in entities ]:
+    elif [ x[name_field] for x in entities ].count(entity_only_search_token) == 1:
         # multiple matches but one matches the search term exactly!!
         # find which one:
         for x in entities:
