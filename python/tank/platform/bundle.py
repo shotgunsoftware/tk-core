@@ -522,8 +522,11 @@ class TankBundle(object):
         - hook_setting: {$HOOK_PATH}/path/to/foo.py  -- environment variable.
         - hook_setting: {self}/path/to/foo.py   -- looks in the hooks folder in the local bundle
         - hook_setting: {config}/path/to/foo.py -- looks in the hooks folder in the config
-        - hook_setting: {tk-framework-perforce_v1.x.x}/path/to/foo.py -- looks in the hooks folder of an
-          instance that exists in the current environment.
+        - hook_setting: {tk-framework-perforce_v1.x.x}/path/to/foo.py -- looks in the hooks folder of a
+          framework instance that exists in the current environment. Basically, each entry inside the 
+          frameworks section in the current environment can be specified here - all these entries are 
+          on the form frameworkname_versionpattern, for example tk-framework-widget_v0.1.2 or 
+          tk-framework-shotgunutils_v1.3.x. 
         
         """
         # split up the config value into distinct items
