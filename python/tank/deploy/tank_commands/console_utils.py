@@ -416,17 +416,19 @@ def _generate_settings_diff_recursive(parent_engine_name, old_schema, new_schema
                     }
     }
     
-    Only leaf parameters should be considered 'new'.    
+    Only leaf parameters should be considered 'new'.        
     """
+
     new_params = {}
-    for param_name, new_param in new_schema.iteritems():
+    
+    for param_name, new_param_definition_dict in new_schema.iteritems():
         
-        param_type = new_param.get("type", "Unknown")
-        param_desc = new_param.get("description", "No description.")
+        param_type = new_param_definition_dict.get("type", "Unknown")
+        param_desc = new_param_definition_dict.get("description", "No description.")
         
-        old_param = old_schema.get(param_name)
+        old_param_definition_dict = old_schema.get(param_name)
         
-        if not old_param:
+        if not old_param_definition_dict:
             # found a new param:
             new_params[param_name] = {"description": param_desc, "type": param_type}
             
@@ -449,37 +451,37 @@ def _generate_settings_diff_recursive(parent_engine_name, old_schema, new_schema
             #
             
             # first try engine specific
-            if parent_engine_name and "default_value_%s" % parent_engine_name in new_param:
-                new_params[param_name]["value"] = new_param["default_value_%s" % parent_engine_name]
+            if parent_engine_name and "default_value_%s" % parent_engine_name in new_param_definition_dict:
+                new_params[param_name]["value"] = new_param_definition_dict["default_value_%s" % parent_engine_name]
             
-            elif "default_value" in new_param:
+            elif "default_value" in new_param_definition_dict:
                 # fall back on generic default
-                new_params[param_name]["value"] = new_param["default_value"] 
+                new_params[param_name]["value"] = new_param_definition_dict["default_value"] 
         
             # special case handling for list params - check if 
             # allows_empty == True, in that case set default value to []
             if (param_type == "list" 
                 and new_params[param_name].get("value") == None
-                and new_param.get("allows_empty") == True):
+                and new_param_definition_dict.get("allows_empty") == True):
                 new_params[param_name]["value"] = []
             
         else:
-            if old_param.get("type", "Unknown") != param_type:
+            if old_param_definition_dict.get("type", "Unknown") != param_type:
                 # param type has been changed - currently we don't handle this!
                 continue
 
             if param_type == "dict":
                 # compare schema items for new and old params:
-                new_items = new_param.get("items", {})
-                old_items = old_param.get("items", {})
+                new_items = new_param_definition_dict.get("items", {})
+                old_items = old_param_definition_dict.get("items", {})
                     
                 new_child_params = _generate_settings_diff_recursive(parent_engine_name, old_items, new_items)
                 if new_child_params:
                     new_params[param_name] = {"description": param_desc, "type": param_type, "children":new_child_params}
             elif param_type == "list":
                 # check to see if this is a list of dicts:
-                new_list_param_values = new_param.get("values", {})
-                old_list_param_values = old_param.get("values", {})
+                new_list_param_values = new_param_definition_dict.get("values", {})
+                old_list_param_values = old_param_definition_dict.get("values", {})
                 new_list_param_values_type = new_list_param_values.get("type")
 
                 if new_list_param_values_type != old_list_param_values.get("type"):
