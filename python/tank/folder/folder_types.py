@@ -1369,6 +1369,7 @@ class ShotgunStep(Entity):
         
         entity_type = metadata.get("entity_type", "Step")
         task_link_field = metadata.get("task_link_field", "step")
+        associated_entity_type = metadata.get("associated_entity_type")
         
         filters = metadata.get("filters", [])
         entity_filter = _translate_filter_tokens(filters, parent, full_path)
@@ -1381,7 +1382,8 @@ class ShotgunStep(Entity):
                            create_with_parent, 
                            entity_filter,
                            entity_type,
-                           task_link_field)
+                           task_link_field,
+                           associated_entity_type)
     
     
     def __init__(self, 
@@ -1393,7 +1395,8 @@ class ShotgunStep(Entity):
                  create_with_parent, 
                  entity_filter, 
                  entity_type, 
-                 task_link_field):
+                 task_link_field,
+                 associated_entity_type):
         """
         constructor
         """
@@ -1404,16 +1407,37 @@ class ShotgunStep(Entity):
         # look up the tree for the first parent of type Entity which is not a User
         # this is because the user is typically assigned to a sandbox
         # and no-one would have steps actually associated with a user anyways 
-        # (seems like a highly unlikely case anyone would even do that)
+        # (seems like a highly unlikely case anyone would ever do that)
         # so skip over user in order to support folder configs where
         # you have for example Asset -> User Sandbox -> (Asset) Step
-        # refer to this in our query expression
+        # refer to this in our query expression.
+        #
+        # It is also possible to set the associated_entity_type parameter
+        # if you want to specifically tie this step to a particular level.
+        # This is useful if you are setting up for example
+        # Asset > CUSTOM > Step - custom being workspace, application etc.
+        # and you want the step to associate.
+        #
         sg_parent = parent
         while True:
-            if isinstance(sg_parent, Entity) and sg_parent.get_entity_type() != "HumanUser":            
+                        
+            if associated_entity_type is None and \
+               isinstance(sg_parent, Entity) and \
+               sg_parent.get_entity_type() != "HumanUser":
+                # there is no specific entity type set so
+                # grab the first entity we'll find except user workspaces             
                 break
+            
+            elif associated_entity_type and \
+                 isinstance(sg_parent, Entity) and \
+                 sg_parent.get_entity_type() == associated_entity_type:
+                # we have found the specific parent that the step is associated with
+                break
+            
             elif sg_parent is None:
-                raise TankError("Error in configuration %s - node must be parented under a shotgun entity." % full_path)
+                raise TankError("Error in configuration %s - node must be parented "
+                                "under a shotgun entity." % full_path)
+            
             else:
                 sg_parent = sg_parent.get_parent()
             
@@ -1436,7 +1460,7 @@ class ShotgunStep(Entity):
         
         # if the create_with_parent setting is True, it means that if we create folders for a 
         # shot, we want all the steps to be created at the same time.
-        # however, if we have create_with_client set to False, we only want to create 
+        # however, if we have create_with_parent set to False, we only want to create 
         # this node if we are creating folders for a task.
         if create_with_parent != True: 
             # do not auto-create with parent - only create when a task has been specified.
@@ -1447,7 +1471,7 @@ class ShotgunStep(Entity):
             # step id is 1234 (where 1234 is the current step derived from the current task
             # and the current task comes from the original folder create request).
             entity_filter["conditions"].append({"path": "id", "relation": "is", "values": [current_step_id_token]})
-                    
+
         Entity.__init__(self, 
                         tk,
                         parent, 
@@ -1493,35 +1517,79 @@ class ShotgunTask(Entity):
 
         create_with_parent = metadata.get("create_with_parent", False)
         
+        associated_entity_type = metadata.get("associated_entity_type")
+        
         filters = metadata.get("filters", [])
         entity_filter = _translate_filter_tokens(filters, parent, full_path)
         
-        return ShotgunTask(tk, parent, full_path, metadata, sg_name_expression, create_with_parent, entity_filter)
+        return ShotgunTask(tk, 
+                           parent, 
+                           full_path, 
+                           metadata, 
+                           sg_name_expression, 
+                           create_with_parent, 
+                           entity_filter, 
+                           associated_entity_type)
     
     
-    def __init__(self, tk, parent, full_path, metadata, field_name_expression, create_with_parent, entity_filter):
+    def __init__(self, 
+                 tk, 
+                 parent, 
+                 full_path, 
+                 metadata, 
+                 field_name_expression, 
+                 create_with_parent, 
+                 entity_filter,
+                 associated_entity_type):
         """
         constructor
         """
         
         # look up the tree for the first parent of type Entity
         # refer to this in our query expression
+        
+        # look up the tree for the first parent of type Entity which is not a User
+        # this is because the user is typically assigned to a sandbox
+        # and no-one would have tasks actually associated with a user anyways 
+        # (seems like a highly unlikely case anyone would ever do that)
+        # so skip over user in order to support folder configs where
+        # you have for example Asset -> User Sandbox -> (Asset) Task
+        # refer to this in our query expression.
+        #
+        # It is also possible to set the associated_entity_type parameter
+        # if you want to specifically tie this task to a particular level.
+        # This is useful if you are setting up for example
+        # Asset > CUSTOM > Task - custom being workspace, application etc.
+        # and you want the step to associate.
+        #
         sg_parent_entity = None
         sg_parent_step = None
         curr_parent = parent
         
         while True:
-            if curr_parent is None:
-                raise TankError("Error in configuration %s - node must be parented under a shotgun entity." % full_path)
-            
-            if isinstance(curr_parent, Entity) and not isinstance(curr_parent, ShotgunStep):
+        
+            if associated_entity_type is None and \
+               isinstance(curr_parent, Entity) and \
+               not isinstance(curr_parent, ShotgunStep) and \
+               curr_parent.get_entity_type() != "HumanUser":
                 # found an entity! Job done!
                 sg_parent_entity = curr_parent
                 break
-            
+
             elif isinstance(curr_parent, ShotgunStep):
-                sg_parent_step = curr_parent
+                sg_parent_step = curr_parent            
+        
+            elif curr_parent is None:
+                raise TankError("Error in configuration %s - node must be parented "
+                                "under a shotgun entity." % full_path)
             
+            elif associated_entity_type and \
+                 isinstance(curr_parent, Entity) and \
+                 curr_parent.get_entity_type() == associated_entity_type:
+                # we have found the specific parent that the step is associated with
+                sg_parent_entity = curr_parent
+                break
+                        
             curr_parent = curr_parent.get_parent()
         
         # get the parent name for the entity expression, e.g. $shot
