@@ -52,8 +52,9 @@ class PathCache(object):
     
     def __init__(self, tk):
         """
-        Constructor
-        :param pipeline_configuration: pipeline config object
+        Constructor.
+        
+        :param tk: Toolkit API instance
         """
         db_path = tk.pipeline_configuration.get_path_cache_location()
         self._connection = None
