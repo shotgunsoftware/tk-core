@@ -34,10 +34,25 @@ class SynchronizePathCache(Action):
                         "sync_folder_cache", 
                         Action.TK_INSTANCE, 
                         ("Ensures that the local path cache is up to date with Shotgun."), 
-                        "Folder")
-    
-    def run(self, log, args):
+                        "Production")
+
+        # this method can be executed via the API
+        self.supports_api = True
+        self.parameters = {}        
+        self.parameters["full_sync"] = { "description": "Perform a full sync", "default": False, "type": "bool" }
         
+    def run_noninteractive(self, log, parameters):
+        """
+        API accessor
+        """
+        # validate params and seed default values
+        computed_params = self._validate_parameters(parameters)
+        return self._run(log, computed_params["full_sync"])
+    
+    def run_interactive(self, log, args):
+        """
+        Tank command accessor
+        """
         if len(args) == 1 and args[0] == "--full":
             force = True
         
@@ -45,8 +60,19 @@ class SynchronizePathCache(Action):
             force = False
             
         else:
-            raise TankError("Syntax: sync_path_cache [--full]!")
+            raise TankError("Syntax: sync_path_cache [--full]")
+
+        return self._run(log, force)
+    
+    
+    def _run(self, log, force):
+        """
+        Actual business logic for command
         
+        :param log: logger
+        :param force: boolean flag to indicate that a full sync should be carried out
+        """
+
         if self.tk.pipeline_configuration.get_shotgun_path_cache_enabled():
             log.info("Ensuring the path cache file is up to date...")
             log.info("Will try to do an incremental sync. If you want to force a complete re-sync "
@@ -66,6 +92,7 @@ class SynchronizePathCache(Action):
                      "If you want to turn on synchronization for this project, run "
                      "the 'upgrade_folders' tank command.")
 
+
 class PathCacheMigrationAction(Action):
     
     def __init__(self):
@@ -74,9 +101,9 @@ class PathCacheMigrationAction(Action):
                         Action.TK_INSTANCE, 
                         ("Upgrades on old project to use the shared folder "
                         "generation that was introduced in Toolkit 0.15"), 
-                        "Core Upgrade Related")
+                        "Admin")
     
-    def run(self, log, args):
+    def run_interactive(self, log, args):
         
         log.info("Welome to the folder sync upgrade command!")
         log.info("")
@@ -151,9 +178,9 @@ class UnregisterFoldersAction(Action):
                         "unregister_folders", 
                         Action.CTX, 
                         ("Unregisters the folders for an object in Shotgun."), 
-                        "Folder")
+                        "Admin")
     
-    def run(self, log, args):
+    def run_interactive(self, log, args):
         
         if self.context.entity is None:
             raise TankError("You need to specify a Shotgun entity - such as a Shot or Asset!")
