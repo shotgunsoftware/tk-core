@@ -739,6 +739,9 @@ class PathCache(object):
         
         :param path: The path calculated
         :param entity: Sg entity dict with keys id, type and name
+        :param is_primary: indicates that this is a primary mapping - each folder may have
+                           both primary and secondary entity associations - the secondary
+                           being more loosely tied to the path.
         """
         
         # Make sure that there isn't already a record with the same
