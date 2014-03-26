@@ -1223,7 +1223,7 @@ class MigratePublishedFileEntitiesAction(Action):
                         "migrate_published_file_entities", 
                         Action.GLOBAL,#Action.TK_INSTANCE, 
                         ("Migrates TankPublishedFile entities to PublishedFile entities & switches this configuration to use PublishedFile entities"), 
-                        "Core Upgrade Related")
+                        "Admin")
         
     def run_interactive(self, log, args):
         """
