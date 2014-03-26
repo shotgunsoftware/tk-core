@@ -1221,8 +1221,9 @@ class MigratePublishedFileEntitiesAction(Action):
         """
         Action.__init__(self, 
                         "migrate_published_file_entities", 
-                        Action.GLOBAL,#Action.TK_INSTANCE, 
-                        ("Migrates TankPublishedFile entities to PublishedFile entities & switches this configuration to use PublishedFile entities"), 
+                        Action.GLOBAL, 
+                        ("Migrates your publishes from TankPublishedFile to PublishedFile and "
+                         "sets this configuration to use PublishedFile whenever publishing."), 
                         "Admin")
         
     def run_interactive(self, log, args):
