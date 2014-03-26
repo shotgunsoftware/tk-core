@@ -550,7 +550,11 @@ class PathCache(object):
                                             ["id"], 
                                             [{"field_name": "id", "direction": "desc"}])
 
-        max_event_log_id = sg_data["id"]
+        if sg_data is None:
+            # event log was wiped or we haven't done any folder operations
+            max_event_log_id = 0
+        else:
+            max_event_log_id = sg_data["id"]
         
         return self._replay_folder_entities(cursor, log, max_event_log_id)
 
