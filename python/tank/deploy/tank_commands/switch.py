@@ -123,10 +123,13 @@ class SwitchAppAction(Action):
             raise TankError("Environment %s has no engine named %s!" % (env_name, engine_instance_name))
     
         # and the app
-        if app_instance_name not in env.get_apps(engine_instance_name):
-            raise TankError("Environment %s, engine %s has no app named %s!" % (env_name, 
-                                                                                engine_instance_name,
-                                                                                app_instance_name))
+        apps_for_engine = env.get_apps(engine_instance_name)
+        if app_instance_name not in apps_for_engine:
+            raise TankError("Environment %s, engine %s has no app named '%s'! "
+                            "Available app instances are: %s " % (env_name, 
+                                                                  engine_instance_name, 
+                                                                  app_instance_name, 
+                                                                  ", ".join(apps_for_engine) ))
 
         # get the descriptor
         descriptor = env.get_app_descriptor(engine_instance_name, app_instance_name)
@@ -135,9 +138,9 @@ class SwitchAppAction(Action):
         
         if mode == "app_store":
             
-            new_descriptor = TankAppStoreDescriptor.find_item(self.tk.pipeline_configuration, 
-                                                              AppDescriptor.APP, 
-                                                              descriptor.get_system_name())
+            new_descriptor = TankAppStoreDescriptor.find_latest_item(self.tk.pipeline_configuration, 
+                                                                     AppDescriptor.APP, 
+                                                                     descriptor.get_system_name())
         
         elif mode == "dev":
 
@@ -202,8 +205,11 @@ class SwitchAppAction(Action):
         
         console_utils.ensure_frameworks_installed(log, self.tk, yml_file, new_descriptor, env, suppress_prompts=False)
     
+        # find the name of the engine
+        engine_system_name = env.get_engine_descriptor(engine_instance_name).get_system_name()    
+    
         # now get data for all new settings values in the config
-        params = console_utils.get_configuration(log, self.tk, new_descriptor, descriptor, suppress_prompts=False)
+        params = console_utils.get_configuration(log, self.tk, new_descriptor, descriptor, False, engine_system_name)
     
         # next step is to add the new configuration values to the environment
         env.update_app_settings(engine_instance_name, 

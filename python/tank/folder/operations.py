@@ -27,6 +27,7 @@ from ..platform import constants
 def create_single_folder_item(tk, config_obj, io_receiver, entity_type, entity_id, sg_task_data, engine):
     """
     Creates folders for an entity type and an entity id.
+    
     :param config_obj: a FolderConfiguration object representing the folder configuration
     :param io_receiver: a FolderIOReceiver representing the folder operation callbacks
     :param entity_type: Shotgun entity type
@@ -37,6 +38,7 @@ def create_single_folder_item(tk, config_obj, io_receiver, entity_type, entity_i
     # TODO: Confirm this entity exists and is in this project
     # Recurse over entire tree and find find all Entity folders of this type
     folder_objects = config_obj.get_folder_objs_for_entity_type(entity_type)
+    
     # now we have folder objects representing the entity type we are after.
     # (for example there may be 3 SHOT nodes in the folder config tree)
     # For each folder, find the list of entities needed to build the full path and

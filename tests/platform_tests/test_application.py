@@ -10,6 +10,7 @@
 
 import sys
 import os
+import shutil
 import tempfile
 
 from tank_test.tank_test_base import *
@@ -67,10 +68,10 @@ class TestGetApplication(TestApplication):
         
         self.assertRaises(TankError,
                           application.get_application,
-                          self.engine, bogus_path, "bogus_app", {}, "instance_name")
+                          self.engine, bogus_path, "bogus_app", {}, "instance_name", None)
         
         try:
-            application.get_application(self.engine, bogus_path, "bogus_app", {}, "instance_name")
+            application.get_application(self.engine, bogus_path, "bogus_app", {}, "instance_name", None)
         except TankError, cm:
             expected_msg = "Failed to load plugin"
             self.assertTrue(cm.message.startswith(expected_msg))
@@ -81,7 +82,7 @@ class TestGetApplication(TestApplication):
         app_desc = descriptor.get_from_location(descriptor.AppDescriptor.APP, 
                                                 self.tk.pipeline_configuration, 
                                                 {"type": "dev", "path": app_path})
-        result = application.get_application(self.engine, app_path, app_desc, {}, "instance_name")
+        result = application.get_application(self.engine, app_path, app_desc, {}, "instance_name", None)
         self.assertIsInstance(result, application.Application)
         
 
@@ -116,10 +117,48 @@ class TestGetSetting(TestApplication):
         self.assertEqual("extra", test_item["test_extra"])
 
 class TestExecuteHook(TestApplication):
-    def test_call_hook(self):
+    
+    def test_standard_format(self):
         app = self.engine.apps["test_app"]
-        self.assertTrue(app.execute_hook("test_hook", dummy_param=True))
+        self.assertTrue(app.execute_hook("test_hook_std", dummy_param=True))
 
+    def test_custom_method(self):
+        app = self.engine.apps["test_app"]
+        self.assertTrue(app.execute_hook_method("test_hook_std", "second_method", another_dummy_param=True))
+
+    def test_self_format(self):
+        app = self.engine.apps["test_app"]
+        self.assertTrue(app.execute_hook("test_hook_self", dummy_param=True))
+
+    def test_config_format(self):
+        app = self.engine.apps["test_app"]
+        self.assertTrue(app.execute_hook("test_hook_config", dummy_param=True))
+
+    def test_default_format(self):
+        app = self.engine.apps["test_app"]
+        self.assertTrue(app.execute_hook("test_hook_default", dummy_param=True))
+
+    def test_env_var_format(self):
+        app = self.engine.apps["test_app"]
+        shutil.copy( os.path.join(app.disk_location, "hooks", "test_hook.py"), 
+                     os.path.join(self.project_root, "test_env_var_hook.py"))
+        os.environ["TEST_ENV_VAR"] = self.project_root
+        
+        self.assertTrue(app.execute_hook("test_hook_env_var", dummy_param=True))
+
+    def test_inheritance(self):
+        app = self.engine.apps["test_app"]
+        self.assertEqual(app.execute_hook_method("test_hook_inheritance_1", "foo", bar=True), "base class")
+
+    def test_inheritance_2(self):
+        app = self.engine.apps["test_app"]
+        self.assertEqual(app.execute_hook_method("test_hook_inheritance_2", "foo2", bar=True), "custom class base class")
+        
+
+
+
+class TestRequestFolder(TestApplication):
+    
     def test_request_folder(self):
         app = self.engine.apps["test_app"]
         
@@ -139,7 +178,7 @@ class TestHookCache(TestApplication):
         tank.hook.clear_hooks_cache()
         self.assertTrue(len(tank.hook._HOOKS_CACHE) == 0)
         app = self.engine.apps["test_app"]
-        self.assertTrue(app.execute_hook("test_hook", dummy_param=True))
+        self.assertTrue(app.execute_hook("test_hook_std", dummy_param=True))
         self.assertTrue(len(tank.hook._HOOKS_CACHE) == 1)
         self.engine.destroy()
         self.assertTrue(len(tank.hook._HOOKS_CACHE) == 0)

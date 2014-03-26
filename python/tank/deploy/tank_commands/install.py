@@ -165,7 +165,7 @@ class InstallAppAction(Action):
         else:
             # this is an app store app!
             log.info("Connecting to the Toolkit App Store...")
-            app_descriptor = TankAppStoreDescriptor.find_item(self.tk.pipeline_configuration, AppDescriptor.APP, app_name)
+            app_descriptor = TankAppStoreDescriptor.find_latest_item(self.tk.pipeline_configuration, AppDescriptor.APP, app_name)
             log.info("Latest approved App Store Version is %s." % app_descriptor.get_version())
         
         # note! Some of these methods further down are likely to pull the apps local
@@ -204,8 +204,16 @@ class InstallAppAction(Action):
         # run post install hook
         app_descriptor.run_post_install()
     
+        # find the name of the engine
+        engine_system_name = env.get_engine_descriptor(engine_instance_name).get_system_name()
+    
         # now get data for all new settings values in the config
-        params = console_utils.get_configuration(log, self.tk, app_descriptor, None, suppress_prompts)
+        params = console_utils.get_configuration(log, 
+                                                 self.tk, 
+                                                 app_descriptor, 
+                                                 None, 
+                                                 suppress_prompts, 
+                                                 engine_system_name)
     
         # next step is to add the new configuration values to the environment
         env.create_app_settings(engine_instance_name, app_instance_name)
@@ -353,7 +361,7 @@ class InstallEngineAction(Action):
         else:
             # this is an app store app!
             log.info("Connecting to the Toolkit App Store...")
-            engine_descriptor = TankAppStoreDescriptor.find_item(self.tk.pipeline_configuration, AppDescriptor.ENGINE, engine_name)
+            engine_descriptor = TankAppStoreDescriptor.find_latest_item(self.tk.pipeline_configuration, AppDescriptor.ENGINE, engine_name)
             log.info("Latest approved App Store Version is %s." % engine_descriptor.get_version())
         
         log.info("")
@@ -396,7 +404,7 @@ class InstallEngineAction(Action):
         engine_descriptor.run_post_install()
     
         # now get data for all new settings values in the config
-        params = console_utils.get_configuration(log, self.tk, engine_descriptor, None, suppress_prompts)
+        params = console_utils.get_configuration(log, self.tk, engine_descriptor, None, suppress_prompts, None)
         
         # next step is to add the new configuration values to the environment
         env.create_engine_settings(engine_instance_name)

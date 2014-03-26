@@ -113,88 +113,156 @@ def format_bundle_info(log, descriptor):
 ##########################################################################################
 # displaying of info in the terminal, ascii-graphcics style
 
-
-
-def get_configuration(log, tank_api_instance, new_ver_descriptor, old_ver_descriptor, suppress_prompts):
+def get_configuration(log, tank_api_instance, new_descriptor, old_descriptor, suppress_prompts, parent_engine_name):
     """
     Retrieves all the parameters needed for an app, engine or framework.
     May prompt the user for information.
+    
+    For apps only, the parent_engine_name will contain the system name (e.g. tk-maya, tk-nuke) for 
+    the engine under which the app is parented. This is so that the configuration defaults logic
+    can resolve parameter values based on engine, for example the {engine_name} token used in 
+    hook settings. 
+
+    Returns a hierarchical dictionary of param values to use:
+
+    {param1:value, param2:value, param3:{child_param1:value, child_param2:value}}
     """
     
     # first get data for all new settings values in the config
-    param_diff = _generate_settings_diff(new_ver_descriptor, old_ver_descriptor)
+    param_diff = _generate_settings_diff(parent_engine_name, new_descriptor, old_descriptor)
 
     if len(param_diff) > 0:
-        log.info("Several new settings are associated with %s." % new_ver_descriptor)
+        log.info("Several new settings are associated with %s." % new_descriptor)
         log.info("You will now be prompted to input values for all settings")
         log.info("that do not have default values defined.")
         log.info("")
 
-    params = {}
-    for (name, data) in param_diff.items():
-
-        ######
-        # output info about the setting
-        log.info("")
-        log.info("/%s" % ("-" * 70))
-        log.info("| Item:    %s" % name)
-        log.info("| Type:    %s" % data["type"])
-        str_to_wrap = "Summary: %s" % data["description"]
-        for x in textwrap.wrap(str_to_wrap, width=68, initial_indent="| ", subsequent_indent="|          "):
-            log.info(x)
-        log.info("\%s" % ("-" * 70))
-        
-
-        # don't ask user to input anything for default values
-        if data["value"] is not None:
-            
-            if data["type"] == "hook":
-                # for hooks, instead set the value to "default"
-                # this means that the app will use its local hooks
-                # rather than the ones provided.
-                value = constants.TANK_BUNDLE_DEFAULT_HOOK_SETTING
-            else:
-                # just copy the default value into the environment
-                value = data["value"]
-            params[name] = value
-
-            # note that value can be a tuple so need to cast to str
-            log.info("Auto-populated with default value '%s'" % str(value))
-
-        elif suppress_prompts:
-            log.warning("Value set to None! Please update the environment by hand later!")
-            params[name] = None
-            
-        else:
-
-            # get value from user
-            # loop around until happy
-            input_valid = False
-            while not input_valid:
-                # ask user
-                answer = raw_input("Please enter value (enter to skip): ")
-                if answer == "":
-                    # user chose to skip
-                    log.warning("You skipped this value! Please update the environment by hand later!")
-                    params[name] = None
-                    input_valid = True
-                else:
-                    # validate value
-                    try:
-                        obj_value = _validate_parameter(tank_api_instance, new_ver_descriptor, name, answer)
-                    except Exception, e:
-                        log.error("Validation failed: %s" % e)
-                    else:
-                        input_valid = True
-                        params[name] = obj_value
+        # recurse over new parameters:
+        params = _get_configuration_recursive(log, 
+                                              tank_api_instance, 
+                                              new_descriptor, 
+                                              param_diff, 
+                                              suppress_prompts, 
+                                              parent_engine_name)
     
+    else:
+        # nothing new!
+        params = {}
 
     return params
 
+def _get_configuration_recursive(log, tank_api_instance, new_ver_descriptor, params, suppress_prompts, parent_engine_name, parent_path=None):
+    """
+    Retrieves all the parameters needed for an app, engine or framework.
+    May prompt the user for information.
+    
+    Only values for leaf level parameters are retrieved.
+    """
+    parent_path = parent_path or []
+    
+    param_values = {}
+    for param_name, param_data in params.iteritems():
+        if "children" in param_data:
+            # recurse to children:
+            param_path = list(parent_path) + ["%s (type: %s)" % (param_name, param_data["type"])]
+            child_params = _get_configuration_recursive(log, 
+                                                        tank_api_instance, 
+                                                        new_ver_descriptor, 
+                                                        param_data["children"], 
+                                                        suppress_prompts,
+                                                        parent_engine_name,
+                                                        param_path)
+            param_values[param_name] = child_params
 
+        else:
+            # leaf param so need to get value:
+            param_path = list(parent_path) + [param_name]
+    
+            # output info about the setting
+            log.info("")
+            log.info("/%s" % ("-" * 70))
+            log.info("| Item:    %s" % param_path[0])
+            for level, name in enumerate(param_path[1:]):
+                log.info("|          %s  \ %s" % ("  " * level, name))
+            log.info("| Type:    %s" % param_data["type"])
+            str_to_wrap = "Summary: %s" % param_data["description"]     
+            for x in textwrap.wrap(str_to_wrap, width=68, initial_indent="| ", subsequent_indent="|          "):
+                log.info(x)
+            log.info("\%s" % ("-" * 70))
+                
+            # don't ask user to input anything for values we already have:
+            if "value" in param_data:
+                
+                if param_data["type"] == "hook":
+                    # hooks have special logic when their default values are resolved
+                    
+                    default_value = param_data["value"]
+                    
+                    # for hooks there are new style values and old 
+                    # style values. old style values are characterized
+                    # by not having a {xxx} structure, except for when they
+                    # are using the special {engine_name} token
+                    if "{" in default_value.replace(constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN, ""):
+                        # this is a new style hook, for example
+                        # - {$HOOK_PATH}/path/to/foo.py
+                        # - {self}/path/to/foo.py
+                        # - {config}/path/to/foo.py
+                        # - {tk-framework-perforce_v1.x.x}/path/to/foo.py
+                        #
+                        # for new style hooks, copy the value across into the 
+                        # environment. Resolve the {engine_name} token if it
+                        # exists.
+                        value = default_value
+                        
+                        if constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN in value:
+                            if parent_engine_name is None:
+                                # should not happen
+                                raise TankError("Cannot resolve dynamic engine token for "
+                                                "setting %s in %s!" % (param_name, new_ver_descriptor))
+                            value = value.replace(constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN, parent_engine_name)
+                        
+                    else:
+                        # this is an old style hook, where we want to 
+                        # populate the environment config with a 
+                        # 'magic' default value.
+                        value = constants.TANK_BUNDLE_DEFAULT_HOOK_SETTING
+                else:
+                    # just copy the default value into the environment
+                    value = param_data["value"]
+                    
+                param_values[param_name] = value
+    
+                # note that value can be a tuple so need to cast to str
+                log.info("Auto-populated with default value '%s'" % str(value))
+    
+            elif suppress_prompts:
 
+                log.warning("Value set to None! Please update the environment by hand later!")
+                params[name] = None    
 
-
+            else:
+                # get value from user
+                # loop around until happy
+                input_valid = False
+                while not input_valid:
+                    # ask user
+                    answer = raw_input("Please enter value (enter to skip): ")
+                    if answer == "":
+                        # user chose to skip
+                        log.warning("You skipped this value! Please update the environment by hand later!")
+                        param_values[param_name] = None
+                        input_valid = True
+                    else:
+                        # validate value
+                        try:
+                            obj_value = _validate_parameter(tank_api_instance, new_ver_descriptor, param_name, answer)
+                        except Exception, e:
+                            log.error("Validation failed: %s" % e)
+                        else:
+                            input_valid = True
+                            param_values[param_name] = obj_value
+                
+    return param_values
 
 
 def ensure_frameworks_installed(log, tank_api_instance, file_location, descriptor, environment, suppress_prompts):
@@ -203,31 +271,35 @@ def ensure_frameworks_installed(log, tank_api_instance, file_location, descripto
     Anything not installed will be downloaded from the app store.
     """
     missing_fws = validation.get_missing_frameworks(descriptor, environment)
-    # (this returns dictionaries with name and version keys)
+    # this returns dictionaries with name and version keys, the way
+    # they are defined in the manifest for that descriptor
+    # [{'version': 'v0.1.x', 'name': 'tk-framework-widget'}]
     
     for fw_dict in missing_fws:
         
-        # see if we can get this from the app store...
-        fw_descriptor = TankAppStoreDescriptor.find_item(tank_api_instance.pipeline_configuration, 
-                                                         AppDescriptor.FRAMEWORK, 
-                                                         fw_dict["name"], 
-                                                         fw_dict["version"])
+        name = fw_dict["name"]
+        version_pattern = fw_dict["version"]
         
+        # version pattern number can be on the following forms:
+        # - exact and arbitrary, but not containing an x: v0.1.2, v0.1.2.34, v0.12.3b
+        # - minor: v1.x.x
+        # - increment: v1.2.x
+        
+        # get the latest version from the app store...
+        fw_descriptor = TankAppStoreDescriptor.find_latest_item(tank_api_instance.pipeline_configuration, 
+                                                                AppDescriptor.FRAMEWORK, 
+                                                                name, 
+                                                                version_pattern)
         
         # and now process this framework
-        log.info("Installing required framework %s..." % fw_descriptor)
+        log.info("Installing required framework %s %s. Downloading %s..." % (name, version_pattern, fw_descriptor))
         if not fw_descriptor.exists_local():
             fw_descriptor.download_local()
         
         # now assume a convention where we will name the fw_instance that we create in the environment
         # on the form name_version
-        fw_instance_name = "%s_%s" % (fw_descriptor.get_system_name(), fw_descriptor.get_version())
-    
-        # check so that there is not an fw with that name already!
-        if fw_instance_name in environment.get_frameworks():
-            raise TankError("The environment already has a framework instance named %s! "
-                            "Please contact support." % fw_instance_name)
-    
+        fw_instance_name = "%s_%s" % (name, version_pattern)
+        
         # now make sure all constraints are okay
         try:
             check_constraints_for_item(fw_descriptor, environment)
@@ -243,7 +315,7 @@ def ensure_frameworks_installed(log, tank_api_instance, file_location, descripto
         fw_descriptor.run_post_install()
     
         # now get data for all new settings values in the config
-        params = get_configuration(log, tank_api_instance, fw_descriptor, None, suppress_prompts)
+        params = get_configuration(log, tank_api_instance, fw_descriptor, None, suppress_prompts, None)
     
         # next step is to add the new configuration values to the environment
         environment.create_framework_settings(file_location, fw_instance_name, params, fw_descriptor.get_location())
@@ -283,7 +355,7 @@ def check_constraints_for_item(descriptor, environment_obj, engine_instance_name
 # helpers
 
 
-def _generate_settings_diff(new_descriptor, old_descriptor=None):
+def _generate_settings_diff(parent_engine_name, new_descriptor, old_descriptor=None):
     """
     Returns a list of settings which are needed if we were to upgrade
     an environment based on old_descriptor to the one based on new_descriptor.
@@ -295,47 +367,140 @@ def _generate_settings_diff(new_descriptor, old_descriptor=None):
     that all the settings for the new version of the item (except default ones)
     will be part of the listing.
     
-    Returns dict keyed by setting names. Each value is a dict with keys description and type:
+    For apps, the parent_engine_name parameter is passed in. This holds the value
+    of the system name for the parent engine (e.g. tk-maya, tk-nuke) and is used
+    to resolve engine specific default values.
+    
+    Returns a hierarchical dictionary containing details for each new parameter and
+    where it exists in the tree, e.g.:
     
     {
         "param1": {"description" : "a required param (no default)", "type": "str", value: None }
-        "param1": {"description" : "an optional param (has default)", "type": "int", value: 123 }
+        "param2": {"description" : "an optional param (has default)", "type": "int", value: 123 }
+        "param3": {"description" : "param with new children", "type" : "dict", "children" : {
+                    "child_param1" : {"description" : "a child param", "type": "str", value: "foo" }
+                    "child_param2" : {"description" : "another child param", "type": "int", value: 123 }
+                    }
     }
-    
     """
     # get the new metadata (this will download the app potentially)
     schema = new_descriptor.get_configuration_schema()
-    new_config_items = schema.keys()
-    
-    if old_descriptor is None:
-        old_config_items = []
-    else:
+    old_schema = {}
+    if old_descriptor is not None:
         try:
             old_schema = old_descriptor.get_configuration_schema()
-            old_config_items = old_schema.keys()
         except TankError:
             # download to local failed? Assume that the old version is 
             # not valid. This is an edge case. 
-            old_config_items = []
+            old_schema = {}
+
+
+    # find all new config parameters
+    new_parameters = _generate_settings_diff_recursive(parent_engine_name, old_schema, schema)
+    return new_parameters
+    
+    
+def _generate_settings_diff_recursive(parent_engine_name, old_schema, new_schema):
+    """
+    Recursively find all parameters in new_schema that don't exist in old_schema.
+    
+    Returns a hierarchical dictionary containing details for each new parameter and
+    where it exists in the tree, e.g.:
+    
+    {
+        "param1": {"description" : "a required param (no default)", "type": "str", value: None }
+        "param2": {"description" : "an optional param (has default)", "type": "int", value: 123 }
+        "param3": {"description" : "param with new children", "type" : "dict", "children" : {
+                    "child_param1" : {"description" : "a child param", "type": "str", value: "foo" }
+                    "child_param2" : {"description" : "another child param", "type": "int", value: 123 }
+                    }
+    }
+    
+    Only leaf parameters should be considered 'new'.        
+    """
+
+    new_params = {}
+    
+    for param_name, new_param_definition_dict in new_schema.iteritems():
         
-    
-    new_parameters = set(new_config_items) - set(old_config_items)
-    
-    # add descriptions and types - skip default values!!!
-    data = {}
-    for x in new_parameters:        
-        desc = schema[x].get("description", "No description.")
-        schema_type = schema[x].get("type", "Unknown")
-        default_val = schema[x].get("default_value")
-        # check if allows_empty == True, in that case set default value to []
-        if schema[x].get("allows_empty") == True:
-            if default_val is None:
-                default_val = []
+        param_type = new_param_definition_dict.get("type", "Unknown")
+        param_desc = new_param_definition_dict.get("description", "No description.")
         
-        data[x] = {"description": desc, "type": schema_type, "value": default_val}
-    return data
-    
-    
+        old_param_definition_dict = old_schema.get(param_name)
+        
+        if not old_param_definition_dict:
+            # found a new param:
+            new_params[param_name] = {"description": param_desc, "type": param_type}
+            
+            # get any default value that was configured
+            # the standard key to look for is "default_value"
+            # however, for apps there can also be an engine
+            # specific default values. These are on the form
+            # default_value_ENGINENAME and take precendence.
+            #
+            # An example of a default value in an app manifest
+            # where there are two specific defaults for maya and
+            # nuke and a general fallback may look like this:
+            #
+            # param_name:
+            #    type: str
+            #    default_value_tk-maya: "Used in maya"
+            #    default_value_tk-nuke: "Used in nuke"
+            #    default_value: "Used in all other engines"
+            #    description: "Example of engine specific defaults"
+            #
+            
+            # first try engine specific
+            if parent_engine_name and "default_value_%s" % parent_engine_name in new_param_definition_dict:
+                new_params[param_name]["value"] = new_param_definition_dict["default_value_%s" % parent_engine_name]
+            
+            elif "default_value" in new_param_definition_dict:
+                # fall back on generic default
+                new_params[param_name]["value"] = new_param_definition_dict["default_value"] 
+        
+            # special case handling for list params - check if 
+            # allows_empty == True, in that case set default value to []
+            if (param_type == "list" 
+                and new_params[param_name].get("value") == None
+                and new_param_definition_dict.get("allows_empty") == True):
+                new_params[param_name]["value"] = []
+            
+        else:
+            if old_param_definition_dict.get("type", "Unknown") != param_type:
+                # param type has been changed - currently we don't handle this!
+                continue
+
+            if param_type == "dict":
+                # compare schema items for new and old params:
+                new_items = new_param_definition_dict.get("items", {})
+                old_items = old_param_definition_dict.get("items", {})
+                    
+                new_child_params = _generate_settings_diff_recursive(parent_engine_name, old_items, new_items)
+                if new_child_params:
+                    new_params[param_name] = {"description": param_desc, "type": param_type, "children":new_child_params}
+            elif param_type == "list":
+                # check to see if this is a list of dicts:
+                new_list_param_values = new_param_definition_dict.get("values", {})
+                old_list_param_values = old_param_definition_dict.get("values", {})
+                new_list_param_values_type = new_list_param_values.get("type")
+
+                if new_list_param_values_type != old_list_param_values.get("type"):
+                    # list param type has changed - currently we don't handle this!
+                    continue
+                    
+                if new_list_param_values_type == "dict":
+                    new_items = new_list_param_values.get("items", {})
+                    old_items = old_list_param_values.get("items", {})
+                    
+                    new_child_params = _generate_settings_diff_recursive(parent_engine_name, old_items, new_items)
+                    if new_child_params:
+                        new_params[param_name] = {"description": param_desc, "type": param_type, "children":new_child_params}
+                elif new_list_param_values_type == "list":
+                    # lists of lists are currently not handled!
+                    continue
+                        
+    return new_params
+
 
 
 g_sg_studio_version = None

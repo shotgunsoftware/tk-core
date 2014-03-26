@@ -57,9 +57,6 @@ ENGINE_FILE = "engine.py"
 # inside the engine location, the folder in which to look for apps
 ENGINE_APPS_LOCATION = "apps"
 
-# inside the engine config location, the folder in which to look for hooks
-ENGINE_HOOKS_LOCATIONS = "hooks"
-
 # app settings location
 ENGINE_APP_SETTINGS_LOCATION = "app_settings"
 
@@ -89,6 +86,9 @@ CURRENT_LOGIN_HOOK_NAME = "get_current_login"
 
 # default value for hooks
 TANK_BUNDLE_DEFAULT_HOOK_SETTING = "default"
+
+# default method to execute on hooks
+DEFAULT_HOOK_METHOD = "execute"
 
 # if the engine name is included in a hook definition, include this in the manifest.
 TANK_HOOK_ENGINE_REFERENCE_TOKEN = "{engine_name}"

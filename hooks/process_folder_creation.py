@@ -15,6 +15,7 @@ I/O Hook which creates folders on disk.
 
 from tank import Hook
 import os
+import sys
 import shutil
 
 class ProcessFolderCreation(Hook):
@@ -68,7 +69,6 @@ class ProcessFolderCreation(Hook):
                       on which this object exists.
         * "source_path": location of the file that should be copied
         * "target_path": target location to where the file should be copied.
-                
         
         File Creation
         -------------
@@ -81,6 +81,18 @@ class ProcessFolderCreation(Hook):
         * "content": file content
         * "target_path": target location to where the file should be copied.
  
+        Symbolic Links
+        -------------
+        This represents a request that a symbolic link is created. Note that symbolic links are not 
+        supported in the same way on all operating systems. The default hook therefore does not
+        implement symbolic link support on windows system. If you want to add symbolic link support
+        on windows, simply copy this hook to your project configuraton and make the necessary 
+        modifications.
+        
+        * "action": "symlink"
+        * "metadata": The raw configuration yaml data associated with symlink yml config file.
+        * "path": the path to the symbolic link
+        * "target": the target to which the symbolic link should point
         """
         
         # set the umask so that we get true permissions
@@ -102,6 +114,20 @@ class ProcessFolderCreation(Hook):
                             os.makedirs(path, 0777)
                         folders.append(path)
                 
+                elif action == "symlink":
+                    # symbolic link
+                    if sys.platform == "win32":
+                        # no windows support
+                        continue
+                    path = i.get("path")
+                    target = i.get("target")
+                    # note use of lexists to check existance of symlink
+                    # rather than what symlink is pointing at
+                    if not os.path.lexists(path):
+                        if not preview_mode:
+                            os.symlink(target, path)
+                        folders.append(path)
+
                 elif action == "copy":
                     # a file copy
                     source_path = i.get("source_path")

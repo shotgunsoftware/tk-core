@@ -18,6 +18,7 @@ from .platform import constants
 from .errors import TankError
 
 _HOOKS_CACHE = {}
+g_current_hook_baseclass = None
 
 class Hook(object):
     """
@@ -59,18 +60,98 @@ def clear_hooks_cache():
     global _HOOKS_CACHE
     _HOOKS_CACHE = {}
 
-def execute_hook(hook_path, parent, **kwargs):
-    hook_class = _get_hook_class(hook_path)
-    hook = hook_class(parent)
-    return hook.execute(**kwargs)
 
-def _get_hook_class(hook_path):
+def execute_hook(hook_path, parent, **kwargs):
     """
-    Returns a hook class given its path
+    Executes a hook, old-school style. 
+    
+    A hook is a python file which 
+    contains exactly one class which derives (at some point 
+    in its inheritance tree) from the Hook base class.
+    
+    Once the file has been loaded (and cached), the execute()
+    method will be called and any optional arguments pass to 
+    this method will be forwarded on to that execute() method.
+    
+    :param hook_path: Full path to the hook python file
+    :param parent: Parent object. This will be accessible inside
+                   the hook as self.parent, and is typically an 
+                   app, engine or core object.
+    :returns: Whatever the hook returns.
     """
+    return execute_hook_method([hook_path], parent, None, **kwargs)
+
+def execute_hook_method(hook_paths, parent, method_name, **kwargs):
+    """
+    New style hook execution, with method arguments and support for inheritance.
     
-    if hook_path not in _HOOKS_CACHE:
-        # cache it
-        _HOOKS_CACHE[hook_path] = loader.load_plugin(hook_path, Hook)
+    This method takes a list of hook paths and will load each of the classes
+    in, while maintaining the correct state of the class returned via 
+    get_hook_baseclass(). Once all classes have been successfully loaded, 
+    the last class in the list is instantiated and the specified method
+    is executed.
     
-    return _HOOKS_CACHE[hook_path]
+        Example: ["/tmp/a.py", "/tmp/b.py", "/tmp/c.py"]
+        
+        1. The code in a.py is loaded in. get_hook_baseclass() will return Hook
+           at this point. class HookA is returned from our plugin loader.
+        
+        2. /tmp/b.py is loaded in. get_hook_baseclass() now returns HookA, so 
+           if the hook code in B utilises get_hook_baseclass, this will will
+           set up an inheritance relationship with A
+        
+        3. /tmp/c.py is finally loaded in, get_hook_baseclass() now returns HookB.
+        
+        4. HookC class is instantiated and method method_name is executed.
+    
+    :param hook_paths: List of full paths to hooks, in inheritance order.
+    :param parent: Parent object. This will be accessible inside
+                   the hook as self.parent, and is typically an 
+                   app, engine or core object.
+    :param method_name: method to execute. If None, the default method will be executed.
+    :returns: Whatever the hook returns.
+    """    
+    global g_current_hook_baseclass
+    
+    if method_name is None:
+        method_name = constants.DEFAULT_HOOK_METHOD
+    
+    g_current_hook_baseclass = Hook
+    
+    for hook_path in hook_paths:
+
+        if not os.path.exists(hook_path):
+            raise TankError("Cannot execute hook '%s' - this file does not exist on disk!" % hook_path)
+    
+        if hook_path not in _HOOKS_CACHE:
+            # cache it
+            _HOOKS_CACHE[hook_path] = loader.load_plugin(hook_path, Hook)
+
+        # set current state
+        g_current_hook_baseclass = _HOOKS_CACHE[hook_path] 
+            
+    
+    # all class construction done. g_current_hook_baseclass contains
+    # the last class we iterated over. This is the one we want to 
+    # instantiate.
+    
+    # instantiate the class
+    hook = g_current_hook_baseclass(parent)
+    
+    # get the method
+    try:
+        hook_method = getattr(hook, method_name)
+    except AttributeError:
+        raise TankError("Cannot execute hook '%s' - the hook class does not "
+                        "have a '%s' method!" % (hook, method_name))
+    
+    # execute the method
+    ret_val = hook_method(**kwargs)
+    
+    return ret_val
+
+def get_hook_baseclass():
+    """
+    Returns the base class for a hook
+    """
+    return g_current_hook_baseclass

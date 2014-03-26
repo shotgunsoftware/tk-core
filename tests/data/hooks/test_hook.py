@@ -16,3 +16,5 @@ class TestHook(Hook):
     def execute(self, dummy_param):
         return True
         
+    def second_method(self, another_dummy_param):
+        return True

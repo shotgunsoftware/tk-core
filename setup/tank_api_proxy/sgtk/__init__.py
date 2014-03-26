@@ -17,7 +17,8 @@ import sys
 
 # first look for our parent file
 current_folder = os.path.abspath(os.path.dirname(__file__))
-parent_file_name =  "core_%s.cfg" % sys.platform
+file_name_lookup = {"linux2": "core_Linux.cfg", "win32": "core_Windows.cfg", "darwin": "core_Darwin.cfg" }
+parent_file_name =  file_name_lookup[sys.platform]
 parent_cfg_path = os.path.join(current_folder, "..", "..", parent_file_name)
 parent_cfg_path = os.path.abspath(parent_cfg_path)
 
@@ -27,7 +28,7 @@ if not os.path.exists(parent_cfg_path):
 # now read our parent file
 fh = open(parent_cfg_path, "rt")
 try:
-    parent_path = fh.readline()
+    parent_path = fh.readline().rstrip()
 finally:
     fh.close()
 

@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-DEPRECATED!! This hook is not used by the Tank Core Platform
+DEPRECATED!! This hook is not used by the Toolkit Core Platform
 and is just bundled for backwards compatibility. (20 Feb 2013)
 
 It will be removed at some stage - do not use it.

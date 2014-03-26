@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-Hook that gets executed every time a new tank instance is created.
+Hook that gets executed every time a new Toolkit API instance is created.
 
 """
 
@@ -20,6 +20,6 @@ class TankInit(Hook):
     
     def execute(self, **kwargs):
         """
-        Gets executed when a new Tank instance is initialized.
+        Gets executed when a new Toolkit API instance is initialized.
         """
         pass

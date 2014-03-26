@@ -33,6 +33,7 @@ class Folder(object):
         self._full_path = full_path
         self._parent = parent
         self._files = []
+        self._symlinks = []
         
         if self._parent:
             # add me to parent's child list
@@ -95,7 +96,20 @@ class Folder(object):
         The file path should be absolute.
         """
         self._files.append(path)
-                
+        
+    def add_symlink(self, name, target, metadata):
+        """
+        Adds a symlink definition to this node. As part of the processing phase, symlink
+        targets will be resolved and created.
+        
+        :param name: name of the symlink
+        :param target: symlink target expression
+        :param metadata: full config yml metadata for symlink
+        """
+        # first split the target expression into chunks
+        resolved_expression = [ SymlinkToken(x) for x in target.split("/") ]
+        self._symlinks.append({"name": name, "target": resolved_expression, "metadata": metadata })
+        
     def create_folders(self, io_receiver, path, sg_data, is_primary, explicit_child_list, engine):
         """
         Recursive folder creation. Creates folders for this node and all its children.
@@ -253,11 +267,40 @@ class Folder(object):
         return False
         
 
+    def _process_symlinks(self, io_receiver, path, sg_data):
+        """
+        Helper method.
+        Resolves all symlinks and requests creation via the io_receiver object.
+        
+        :param io_receiver: IO handler instance
+        :param path: Path where the symlinks should be located
+        :param sg_data: std shotgun data collection for the current object
+        """ 
+        
+        for symlink in self._symlinks:
+            
+            full_path = os.path.join(path, symlink["name"])                        
+            
+            # resolve our symlink from the target expressions 
+            # this will resolve any $project, $shot etc.
+            # we get a list of strings representing resolved values for all levels of the symlink
+            resolved_target_chunks = [ x.resolve_token(self, sg_data) for x in symlink["target"] ]
+
+            # and join them up into a path string
+            resolved_target_path = os.path.sep.join(resolved_target_chunks)
+            
+            # register symlink with the IO receiver 
+            io_receiver.create_symlink(full_path, resolved_target_path, symlink["metadata"])
+        
+
     def _copy_files_to_folder(self, io_receiver, path):
         """
         Helper.
         Copies all files that have been registered with this folder object
-        to a specific target folder on disk, using the dedicated hook
+        to a specific target folder on disk, using the dedicated hook.
+        
+        :param io_receiver: IO handler instance
+        :param path: Path where the symlinks should be located
         """
         for src_file in self._files:
             target_path = os.path.join(path, os.path.basename(src_file))
@@ -431,6 +474,9 @@ class Static(Folder):
 
         # copy files across
         self._copy_files_to_folder(io_receiver, my_path)
+
+        # process symlinks
+        self._process_symlinks(io_receiver, my_path, sg_data)
 
         return [ (my_path, sg_data) ]
 
@@ -611,7 +657,10 @@ class ListField(Folder):
             # create a new tokens dict including our own data. This will be used
             # by the main folder recursion when processing the child folder objects.
             new_sg_data = copy.deepcopy(sg_data)
-            new_sg_data[token_name] = sg_value
+            new_sg_data[token_name] = sg_value 
+
+            # process symlinks
+            self._process_symlinks(io_receiver, my_path, new_sg_data)
             
             products.append( (my_path, new_sg_data) )
             
@@ -647,6 +696,45 @@ class ListField(Folder):
         return used_values
 
 ################################################################################################
+
+class SymlinkToken(object):
+    """
+    Represents a folder level in a symlink target.
+    """
+    
+    def __init__(self, name):
+        self._name = name
+    
+    def __repr__(self):
+        return "<SymlinkToken token '%s'>" % self._name
+    
+    def resolve_token(self, folder_obj, sg_data):
+        """
+        Returns a resolved value for this token.
+        """
+        if self._name.startswith("$"):
+            
+            # strip the dollar sign
+            token = self._name[1:]
+            
+            # check that the referenced token is matching one of the tokens which 
+            # has a computed name part to represent the dynamically created folder name
+            # this computed_name field exists for all entity folders for example.
+            valid_tokens = [x for x in sg_data if (isinstance(sg_data[x], dict) and sg_data[x].has_key("computed_name"))]
+            
+            if token not in valid_tokens:
+                raise TankError("Cannot compute symlink target for %s: The reference token '%s' cannot be resolved. "
+                                "Available tokens are %s." % (folder_obj, self._name, valid_tokens)) 
+            
+            name_value = sg_data[token].get("computed_name")
+            
+            return name_value
+            
+        else:
+            # not an expression
+            return self._name
+
+
 
 class CurrentStepExpressionToken(object):
     """
@@ -970,7 +1058,10 @@ class Entity(Folder):
             # create a new entity dict including our own data and pass it down to children
             my_sg_data = copy.deepcopy(sg_data)
             my_sg_data_key = FilterExpressionToken.sg_data_key_for_folder_obj(self)
-            my_sg_data[my_sg_data_key] = { "type": self._entity_type, "id": entity["id"] }
+            my_sg_data[my_sg_data_key] = { "type": self._entity_type, "id": entity["id"], "computed_name": folder_name }
+
+            # process symlinks
+            self._process_symlinks(io_receiver, my_path, my_sg_data)
             
             items_created.append( (my_path, my_sg_data) )
             
@@ -1281,6 +1372,7 @@ class ShotgunStep(Entity):
         
         entity_type = metadata.get("entity_type", "Step")
         task_link_field = metadata.get("task_link_field", "step")
+        associated_entity_type = metadata.get("associated_entity_type")
         
         filters = metadata.get("filters", [])
         entity_filter = _translate_filter_tokens(filters, parent, full_path)
@@ -1293,7 +1385,8 @@ class ShotgunStep(Entity):
                            create_with_parent, 
                            entity_filter,
                            entity_type,
-                           task_link_field)
+                           task_link_field,
+                           associated_entity_type)
     
     
     def __init__(self, 
@@ -1305,7 +1398,8 @@ class ShotgunStep(Entity):
                  create_with_parent, 
                  entity_filter, 
                  entity_type, 
-                 task_link_field):
+                 task_link_field,
+                 associated_entity_type):
         """
         constructor
         """
@@ -1316,16 +1410,37 @@ class ShotgunStep(Entity):
         # look up the tree for the first parent of type Entity which is not a User
         # this is because the user is typically assigned to a sandbox
         # and no-one would have steps actually associated with a user anyways 
-        # (seems like a highly unlikely case anyone would even do that)
+        # (seems like a highly unlikely case anyone would ever do that)
         # so skip over user in order to support folder configs where
         # you have for example Asset -> User Sandbox -> (Asset) Step
-        # refer to this in our query expression
+        # refer to this in our query expression.
+        #
+        # It is also possible to set the associated_entity_type parameter
+        # if you want to specifically tie this step to a particular level.
+        # This is useful if you are setting up for example
+        # Asset > CUSTOM > Step - custom being workspace, application etc.
+        # and you want the step to associate.
+        #
         sg_parent = parent
         while True:
-            if isinstance(sg_parent, Entity) and sg_parent.get_entity_type() != "HumanUser":            
+                        
+            if associated_entity_type is None and \
+               isinstance(sg_parent, Entity) and \
+               sg_parent.get_entity_type() != "HumanUser":
+                # there is no specific entity type set so
+                # grab the first entity we'll find except user workspaces             
                 break
+            
+            elif associated_entity_type and \
+                 isinstance(sg_parent, Entity) and \
+                 sg_parent.get_entity_type() == associated_entity_type:
+                # we have found the specific parent that the step is associated with
+                break
+            
             elif sg_parent is None:
-                raise TankError("Error in configuration %s - node must be parented under a shotgun entity." % full_path)
+                raise TankError("Error in configuration %s - node must be parented "
+                                "under a shotgun entity." % full_path)
+            
             else:
                 sg_parent = sg_parent.get_parent()
             
@@ -1348,7 +1463,7 @@ class ShotgunStep(Entity):
         
         # if the create_with_parent setting is True, it means that if we create folders for a 
         # shot, we want all the steps to be created at the same time.
-        # however, if we have create_with_client set to False, we only want to create 
+        # however, if we have create_with_parent set to False, we only want to create 
         # this node if we are creating folders for a task.
         if create_with_parent != True: 
             # do not auto-create with parent - only create when a task has been specified.
@@ -1359,7 +1474,7 @@ class ShotgunStep(Entity):
             # step id is 1234 (where 1234 is the current step derived from the current task
             # and the current task comes from the original folder create request).
             entity_filter["conditions"].append({"path": "id", "relation": "is", "values": [current_step_id_token]})
-                    
+
         Entity.__init__(self, 
                         tk,
                         parent, 
@@ -1405,35 +1520,79 @@ class ShotgunTask(Entity):
 
         create_with_parent = metadata.get("create_with_parent", False)
         
+        associated_entity_type = metadata.get("associated_entity_type")
+        
         filters = metadata.get("filters", [])
         entity_filter = _translate_filter_tokens(filters, parent, full_path)
         
-        return ShotgunTask(tk, parent, full_path, metadata, sg_name_expression, create_with_parent, entity_filter)
+        return ShotgunTask(tk, 
+                           parent, 
+                           full_path, 
+                           metadata, 
+                           sg_name_expression, 
+                           create_with_parent, 
+                           entity_filter, 
+                           associated_entity_type)
     
     
-    def __init__(self, tk, parent, full_path, metadata, field_name_expression, create_with_parent, entity_filter):
+    def __init__(self, 
+                 tk, 
+                 parent, 
+                 full_path, 
+                 metadata, 
+                 field_name_expression, 
+                 create_with_parent, 
+                 entity_filter,
+                 associated_entity_type):
         """
         constructor
         """
         
         # look up the tree for the first parent of type Entity
         # refer to this in our query expression
+        
+        # look up the tree for the first parent of type Entity which is not a User
+        # this is because the user is typically assigned to a sandbox
+        # and no-one would have tasks actually associated with a user anyways 
+        # (seems like a highly unlikely case anyone would ever do that)
+        # so skip over user in order to support folder configs where
+        # you have for example Asset -> User Sandbox -> (Asset) Task
+        # refer to this in our query expression.
+        #
+        # It is also possible to set the associated_entity_type parameter
+        # if you want to specifically tie this task to a particular level.
+        # This is useful if you are setting up for example
+        # Asset > CUSTOM > Task - custom being workspace, application etc.
+        # and you want the step to associate.
+        #
         sg_parent_entity = None
         sg_parent_step = None
         curr_parent = parent
         
         while True:
-            if curr_parent is None:
-                raise TankError("Error in configuration %s - node must be parented under a shotgun entity." % full_path)
-            
-            if isinstance(curr_parent, Entity) and not isinstance(curr_parent, ShotgunStep):
+        
+            if associated_entity_type is None and \
+               isinstance(curr_parent, Entity) and \
+               not isinstance(curr_parent, ShotgunStep) and \
+               curr_parent.get_entity_type() != "HumanUser":
                 # found an entity! Job done!
                 sg_parent_entity = curr_parent
                 break
-            
+
             elif isinstance(curr_parent, ShotgunStep):
-                sg_parent_step = curr_parent
+                sg_parent_step = curr_parent            
+        
+            elif curr_parent is None:
+                raise TankError("Error in configuration %s - node must be parented "
+                                "under a shotgun entity." % full_path)
             
+            elif associated_entity_type and \
+                 isinstance(curr_parent, Entity) and \
+                 curr_parent.get_entity_type() == associated_entity_type:
+                # we have found the specific parent that the step is associated with
+                sg_parent_entity = curr_parent
+                break
+                        
             curr_parent = curr_parent.get_parent()
         
         # get the parent name for the entity expression, e.g. $shot

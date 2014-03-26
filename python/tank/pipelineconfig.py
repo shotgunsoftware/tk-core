@@ -467,7 +467,7 @@ class PipelineConfiguration(object):
         if is_localized(self._pc_root):
             # first, try to locate an install local to this pipeline configuration.
             # this would find any localized APIs.
-            install_path = os.path.join( self._pc_root, "install" )
+            install_path = self._pc_root
 
         else:
             # this PC is associated with a shared API (studio install)
@@ -483,7 +483,7 @@ class PipelineConfiguration(object):
             install_path = None
             try:
                 fh = open(curr_linkback_file, "rt")
-                data = fh.read()
+                data = fh.read().strip() # remove any whitespace, keep text
                 if data not in ["None", "undefined"] and os.path.exists(data):
                     install_path = data
                 fh.close()                    

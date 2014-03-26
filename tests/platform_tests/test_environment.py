@@ -189,22 +189,29 @@ class TestUpdateEnvironment(TankTestBase):
         
         
         
-        
-        
-        
-        
     def test_update_app_settings(self):
         
         self.assertRaises(TankError, self.env.update_app_settings, "bad_engine", "bad_app", {}, {})
+        
+        new_location = {"type":"dev", "path":"foo1"}
+        new_settings = {
+                        "foo":"bar",
+                        "test_simple_dictionary":{"foo":"bar"},
+                        "test_complex_dictionary":{"test_list": {"foo":"bar"}},
+                        "test_complex_list":{"foo":"bar"},
+                        "test_very_complex_list":{"test_list":{"foo":"bar"}}         
+                        }
+        
         
         # get raw environment before
         env_file = os.path.join(self.project_config, "env", "test.yml")
         fh = open(env_file)
         env_before = yaml.load(fh)
         fh.close()
-        prev_settings = self.env.get_app_settings("test_engine", "test_app")
+        settings_before = self.env.get_app_settings("test_engine", "test_app")
         
-        self.env.update_app_settings("test_engine", "test_app", {"foo":"bar1"}, {"type":"dev", "path":"foo1"})
+        # update settings:
+        self.env.update_app_settings("test_engine", "test_app", new_settings, new_location)
         
         # get raw environment after
         env_file = os.path.join(self.project_config, "env", "test.yml")
@@ -214,15 +221,43 @@ class TestUpdateEnvironment(TankTestBase):
         
         # ensure that disk was updated
         self.assertNotEqual(env_after, env_before)
-        env_before["engines"]["test_engine"]["apps"]["test_app"]["foo"] = "bar1"
-        env_before["engines"]["test_engine"]["apps"]["test_app"]["location"] = {"type":"dev", "path":"foo1"}
+
+        env_app_settings = env_before["engines"]["test_engine"]["apps"]["test_app"]
+        env_app_settings["location"] = new_location
+        env_app_settings["foo"] = "bar"
+        env_app_settings["test_simple_dictionary"]["foo"] = "bar"
+        for item in env_app_settings["test_complex_dictionary"]["test_list"]:
+            item["foo"] = "bar"
+        for item in env_app_settings["test_complex_list"]:
+            item["foo"] = "bar"
+        for item in env_app_settings["test_very_complex_list"]:
+            for sub_item in item["test_list"]:
+                sub_item["foo"] = "bar"
+        
         self.assertEqual(env_after, env_before)
         
         # ensure memory was updated
-        new_settings = self.env.get_app_settings("test_engine", "test_app")
-        prev_settings.update({"foo":"bar1"})
-        self.assertEqual(new_settings, prev_settings)
+        settings_after = self.env.get_app_settings("test_engine", "test_app")
+        
+        settings_before["foo"] = "bar"
+        settings_before["test_simple_dictionary"]["foo"] = "bar"
+        for item in settings_before["test_complex_dictionary"]["test_list"]:
+            item["foo"] = "bar"
+        for item in settings_before["test_complex_list"]:
+            item["foo"] = "bar"
+        for item in settings_before["test_very_complex_list"]:
+            for sub_item in item["test_list"]:
+                sub_item["foo"] = "bar"
+        
+        self.assertEqual(settings_after, settings_before)
         
         desc_after = self.env.get_app_descriptor("test_engine", "test_app")
-        self.assertEqual(desc_after.get_location(), {"type":"dev", "path":"foo1"})
+        self.assertEqual(desc_after.get_location(), new_location)
+    
+    
+    
+    
+    
+    
+    
     

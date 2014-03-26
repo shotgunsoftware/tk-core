@@ -14,7 +14,9 @@ Shotgun utilities
 """
 
 import os
+import urllib
 import urllib2
+import urlparse
 
 from tank_vendor.shotgun_api3 import Shotgun
 from tank_vendor import yaml
@@ -791,7 +793,6 @@ def _create_dependencies(tk, publish_entity, dependency_paths, dependency_ids):
         tk.shotgun.batch(sg_batch_data)
                 
 
-
 def _create_published_file(tk, context, path, name, version_number, task, comment, published_file_type, 
                            created_by_user, created_at, version_entity):
     """
@@ -799,8 +800,27 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
     """
     published_file_entity_type = get_published_file_entity_type(tk)
 
-    # Make path platform agnostic.
-    _, path_cache = _calc_path_cache(tk, path)
+    # Check if path is a url or a straight file path.  Path
+    # is assumed to be a url if it has a scheme or netloc, e.g.:
+    #
+    #     scheme://netloc/path
+    #
+    path_is_url = False
+    res = urlparse.urlparse(path)
+    if res.scheme:
+        # handle windows drive letters - note this adds a limitation
+        # but one that is not likely to be a problem as single-character
+        # schemes are unlikely!
+        if len(res.scheme) > 1 or not res.scheme.isalpha():
+            path_is_url = True
+    elif res.netloc:
+        path_is_url = True
+        
+    code = ""
+    if path_is_url:
+        code = os.path.basename(res.path)
+    else:
+        code = os.path.basename(path)
 
     # if the context does not have an entity, link it up to the project
     if context.entity is None:
@@ -809,16 +829,23 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
         linked_entity = context.entity
 
     data = {
-        "code": os.path.basename(path),
+        "code": code,
         "description": comment,
         "name": name,
         "project": context.project,
         "entity": linked_entity,
         "task": task,
         "version_number": version_number,
-        "path": { "local_path": path },
-        "path_cache": path_cache,
     }
+
+    if path_is_url:
+        data["path"] = { "url":path }
+    else:
+        # Make path platform agnostic.
+        _, path_cache = _calc_path_cache(tk, path)
+        
+        data["path"] = { "local_path": path }
+        data["path_cache"] = path_cache        
 
     if created_by_user:
         data["created_by"] = created_by_user

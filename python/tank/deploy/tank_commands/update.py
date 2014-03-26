@@ -210,8 +210,13 @@ def check_for_updates(log, tk, env_name=None, engine_instance_name=None, app_ins
                 items.append( _process_item(log, suppress_prompts, tk, env, engine, app) )
                 log.info("")
         
-        for framework in env.get_frameworks():
-            _process_framework(log, env, framework)
+        if len(env.get_frameworks()) > 0:
+            log.info("")
+            log.info("Frameworks:")
+            log.info("-" * 70)
+
+            for framework in env.get_frameworks():
+                items.append( _process_item(log, suppress_prompts, tk, env, framework_name=framework) )
         
 
     # display summary
@@ -253,14 +258,10 @@ def check_for_updates(log, tk, env_name=None, engine_instance_name=None, app_ins
         
     
 
-def _update_item(log, suppress_prompts, tk, env, status, engine_name, app_name=None):
+def _update_item(log, suppress_prompts, tk, env, old_descriptor, new_descriptor, engine_name=None, app_name=None, framework_name=None):
     """
-    Performs an upgrade of an engine/app.
+    Performs an upgrade of an engine/app/framework.
     """
-
-    new_descriptor = status["latest"]
-    old_descriptor = status["current"]
-
     # note! Some of these methods further down are likely to pull the apps local
     # in order to do deep introspection. In order to provide better error reporting,
     # pull the apps local before we start
@@ -276,46 +277,48 @@ def _update_item(log, suppress_prompts, tk, env, status, engine_name, app_name=N
 
     # ensure that all required frameworks have been installed
     # find the file where our item is being installed
-    if app_name is None:
-        # it's an engine
-        (_, yml_file) = env.find_location_for_engine(engine_name)
-    else:
+    if framework_name:
+        (_, yml_file) = env.find_location_for_framework(framework_name)
+    elif app_name:
         (_, yml_file) = env.find_location_for_app(engine_name, app_name)
-    
+    else:
+        (_, yml_file) = env.find_location_for_engine(engine_name)
+        
     console_utils.ensure_frameworks_installed(log, tk, yml_file, new_descriptor, env, suppress_prompts)
 
+    # if we are updating an app, we pass the engine system name to the configuration method
+    # so that it can resolve engine based defaults
+    parent_engine_system_name = None
+    if app_name: 
+        parent_engine_system_name = env.get_engine_descriptor(engine_name).get_system_name()
+
     # now get data for all new settings values in the config
-    params = console_utils.get_configuration(log, tk, new_descriptor, old_descriptor, suppress_prompts)
+    params = console_utils.get_configuration(log, 
+                                             tk, 
+                                             new_descriptor, 
+                                             old_descriptor, 
+                                             suppress_prompts,
+                                             parent_engine_system_name)
 
     # awesome. got all the values we need.
     log.info("")
     log.info("")
 
     # next step is to add the new configuration values to the environment
-    if app_name is None:
-        # update engine
-        env.update_engine_settings(engine_name, params, new_descriptor.get_location())
-    else:
-        # update app
+    if framework_name:
+        env.update_framework_settings(framework_name, params, new_descriptor.get_location())    
+    elif app_name:
         env.update_app_settings(engine_name, app_name, params, new_descriptor.get_location())
+    else:
+        env.update_engine_settings(engine_name, params, new_descriptor.get_location())
         
             
         
 
-def _process_framework(log, env, framework_name):
-    """
-    Ensures that a framework exists on disk.
-    """
-    desc = env.get_framework_descriptor(framework_name)
-    
-    if not desc.exists_local():
-        log.info("Downloading %s..." % desc)
-        desc.download_local() 
 
-
-def _process_item(log, suppress_prompts, tk, env, engine_name, app_name=None):
+def _process_item(log, suppress_prompts, tk, env, engine_name=None, app_name=None, framework_name=None):
     """
-    Checks if an app/engine is up to date and potentially upgrades it.
+    Checks if an app/engine/framework is up to date and potentially upgrades it.
 
     Returns a dictionary with keys:
     - was_updated (bool)
@@ -326,15 +329,19 @@ def _process_item(log, suppress_prompts, tk, env, engine_name, app_name=None):
     - env_name
     """
 
+    if framework_name:
+        log.info("Framework %s (Environment %s)" % (framework_name, env.name))
 
-    if app_name is None:
+    elif app_name:
+        log.info("App %s (Engine %s, Environment %s)" % (app_name, engine_name, env.name))
+        
+    else:
         log.info("")
         log.info("-" * 70)
         log.info("Engine %s (Environment %s)" % (engine_name, env.name))
-    else:
-        log.info("App %s (Engine %s, Environment %s)" % (app_name, engine_name, env.name))
+        
 
-    status = _check_item_update_status(env, engine_name, app_name)
+    status = _check_item_update_status(env, engine_name, app_name, framework_name)
     item_was_updated = False
 
     if status["can_update"]:
@@ -344,11 +351,21 @@ def _process_item(log, suppress_prompts, tk, env, engine_name, app_name=None):
         
         # ask user
         if suppress_prompts or console_utils.ask_question("Update to the above version?"):
-            _update_item(log, suppress_prompts, tk, env, status, engine_name, app_name)
+            new_descriptor = status["latest"]
+            curr_descriptor = status["current"]            
+            _update_item(log, 
+                         suppress_prompts, 
+                         tk, 
+                         env, 
+                         curr_descriptor, 
+                         new_descriptor, 
+                         engine_name, 
+                         app_name, 
+                         framework_name)
             item_was_updated = True
 
     elif status["out_of_date"] == False and not status["current"].exists_local():
-        # app is not local! boo!
+        # app does not exist in the local app download cache area 
         if suppress_prompts or console_utils.ask_question("Current version does not exist locally - download it now?"):
             log.info("Downloading %s..." % status["current"])
             status["current"].download_local()
@@ -371,9 +388,9 @@ def _process_item(log, suppress_prompts, tk, env, engine_name, app_name=None):
     return d
 
 
-def _check_item_update_status(environment_obj, engine_name, app_name = None):
+def _check_item_update_status(environment_obj, engine_name=None, app_name=None, framework_name=None):
     """
-    Checks if an engine or app is up to date.
+    Checks if an engine or app or framework is up to date.
     Will locate the latest version of the item and run a comparison.
     Will check for constraints and report about these 
     (if the new version requires minimum version of shotgun, the core API, etc.)
@@ -386,17 +403,30 @@ def _check_item_update_status(environment_obj, engine_name, app_name = None):
     - can_update:    Can we update?
     - update_status: String with details describing the status.  
     """
-    if app_name is None:
-        curr_desc = environment_obj.get_engine_descriptor(engine_name)
-        parent_engine_desc = None
-    else:
+    
+    parent_engine_desc = None
+    
+    if framework_name:
+        curr_desc = environment_obj.get_framework_descriptor(framework_name)
+        # framework_name follows a convention and is on the form 'frameworkname_version', 
+        # where version is on the form v1.2.3, v1.2.x, v1.x.x
+        version_pattern = framework_name.split("_")[-1]
+        # use this pattern as a constraint as we check for updates
+        latest_desc = curr_desc.find_latest_version(version_pattern)
+        
+    
+    elif app_name:
         curr_desc = environment_obj.get_app_descriptor(engine_name, app_name)
-        # this is an app we are checking!
         # for apps, also get the descriptor for their parent engine
         parent_engine_desc = environment_obj.get_engine_descriptor(engine_name)
+        # and get potential upgrades
+        latest_desc = curr_desc.find_latest_version()
 
-    # get latest version
-    latest_desc = curr_desc.find_latest_version()
+    else:
+        curr_desc = environment_obj.get_engine_descriptor(engine_name)
+        # and get potential upgrades
+        latest_desc = curr_desc.find_latest_version()
+
 
     # out of date check
     out_of_date = (latest_desc.get_version() != curr_desc.get_version())
