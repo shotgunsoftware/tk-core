@@ -24,6 +24,18 @@ def add_item_to_cache(path_cache, entity, path, primary = True):
     path_cache.add_mappings(data, None, [])    
     
 
+def sync_path_cache(tk, force_full_sync=False):
+    """
+    Synchronizes the path cache with Shotgun.
+    
+    :param force_full_sync: Force a full sync. 
+    """
+    # Use the path cache to look up all paths associated with this entity
+    pc = path_cache.PathCache(tk)
+    pc.synchronize(log=None, force=force_full_sync)
+    pc.close()
+
+
 class TestPathCache(TankTestBase):
     """Base class for path cache tests."""
     def setUp(self):
@@ -362,7 +374,7 @@ class TestShotgunSync(TankTestBase):
         self.assertEqual( len(self._get_path_cache()), 2)
                 
         # nothing should happen
-        self.tk.sync_path_cache()
+        sync_path_cache(self.tk)
         self.assertEqual(len(self.tk.shotgun.find(tank.path_cache.SHOTGUN_ENTITY, [])), 2)
         self.assertEqual( len(self._get_path_cache()), 2)
 
@@ -389,7 +401,7 @@ class TestShotgunSync(TankTestBase):
         # now path cache has not been synchronized but shotgun has an entry
         self.assertEqual(len(self.tk.shotgun.find(tank.path_cache.SHOTGUN_ENTITY, [])), 4)
         self.assertEqual( len(self._get_path_cache()), 2)
-        self.tk.sync_path_cache()
+        sync_path_cache(self.tk)
         
         # check that the sync happend
         self.assertEqual(len(self.tk.shotgun.find(tank.path_cache.SHOTGUN_ENTITY, [])), 4)
@@ -401,7 +413,7 @@ class TestShotgunSync(TankTestBase):
         
         # now clear the path cache completely. This should trigger a full flush
         os.remove(pcl)
-        self.tk.sync_path_cache()
+        sync_path_cache(self.tk)
         
         # check that the sync happend
         self.assertEqual(len(self.tk.shotgun.find(tank.path_cache.SHOTGUN_ENTITY, [])), 4)
@@ -494,17 +506,17 @@ class TestShotgunSync013AutoPush(TankTestBase):
         # synchronize should trigger a push to sg
         # and introduce duplicated on the shotgun side
         # but not in the path cache
-        self.tk.sync_path_cache()
+        sync_path_cache(self.tk)
         self.assertEqual(len(self.tk.shotgun.find(tank.path_cache.SHOTGUN_ENTITY, [])), 8)
         self.assertEqual( len(self._get_path_cache()), 4)
         
         # further syncs should not affect the setup
-        self.tk.sync_path_cache()
+        sync_path_cache(self.tk)
         self.assertEqual(len(self.tk.shotgun.find(tank.path_cache.SHOTGUN_ENTITY, [])), 8)
         self.assertEqual( len(self._get_path_cache()), 4)
 
         # full sync should be consistent
-        self.tk.sync_path_cache(force_full_sync=True)
+        sync_path_cache(self.tk, force_full_sync=True)
         self.assertEqual(len(self.tk.shotgun.find(tank.path_cache.SHOTGUN_ENTITY, [])), 8)
         self.assertEqual( len(self._get_path_cache()), 4)
         
