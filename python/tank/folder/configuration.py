@@ -93,10 +93,15 @@ class FolderConfiguration(object):
         """
         directory_paths = []
         for file_name in os.listdir(parent_path):
+            
+            # check our ignore list
+            if any(fnmatch.fnmatch(file_name, p) for p in self._ignore_files):
+                continue
+            
             full_path = os.path.join(parent_path, file_name)
-            # ignore files
-            if os.path.isdir(full_path) and not file_name.startswith("."):
+            if os.path.isdir(full_path):
                 directory_paths.append(full_path)
+                
         return directory_paths
 
     def _get_files_in_folder(self, parent_path):
