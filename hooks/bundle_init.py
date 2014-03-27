@@ -20,7 +20,7 @@ class BundleInit(Hook):
     
     def execute(self, bundle, **kwargs):
         """
-        Gets executed when the Tank bundle super class __init__
+        Gets executed when the Toolkit bundle super class __init__
         is fully initialized.
         """
         pass

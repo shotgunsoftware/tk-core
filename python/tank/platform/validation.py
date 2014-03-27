@@ -13,6 +13,7 @@ App configuration and schema validation.
 
 """
 import os
+import re
 import sys
 
 from . import constants
@@ -87,25 +88,23 @@ def get_missing_frameworks(descriptor, environment):
     :returns: list dictionaries, each with a name and a version key.
     """
     required_frameworks = descriptor.get_required_frameworks()
+    current_framework_instances = environment.get_frameworks()
     
     if len(required_frameworks) == 0:
         return []
 
-    # get all framework descriptors defined in the environment
-    # put a tuple with (name, version) into a list 
-    fws_in_env = [] 
-    for fw_instance_str in environment.get_frameworks():
-        descriptor = environment.get_framework_descriptor(fw_instance_str)
-        d_identifier = (descriptor.get_system_name(), descriptor.get_version())
-        fws_in_env.append( d_identifier )
-
-    # now check which frameworks are missing
     missing_fws = []
-    for fwd in required_frameworks:
-        identifier = (fwd["name"], fwd["version"])
-        if identifier not in fws_in_env:
-            # this descriptor is not available in the environment
-            missing_fws.append(fwd)
+    for fw in required_frameworks:
+        # the required_frameworks structure in the info.yml
+        # is a list of dicts, each dict having a name and a version key
+        name = fw.get("name")
+        version = fw.get("version")
+
+        # find it by naming convention based on the instance name        
+        desired_fw_instance = "%s_%s" % (name, version)
+
+        if desired_fw_instance not in current_framework_instances:
+            missing_fws.append(fw)
 
     return missing_fws
 
@@ -119,7 +118,6 @@ def validate_and_return_frameworks(descriptor, environment):
     
     Will raise exceptions if there are frameworks missing from the environment. 
     """
-    
     required_frameworks = descriptor.get_required_frameworks()
     
     if len(required_frameworks) == 0:
@@ -129,7 +127,8 @@ def validate_and_return_frameworks(descriptor, environment):
     # key is the instance name in the environment
     # value is the descriptor object
     fw_descriptors = {}
-    for x in environment.get_frameworks():
+    fw_instances = environment.get_frameworks()
+    for x in fw_instances:
         fw_descriptors[x] = environment.get_framework_descriptor(x)
     
     # check that each framework required by this app is defined in the environment
@@ -140,13 +139,17 @@ def validate_and_return_frameworks(descriptor, environment):
         name = fw.get("name")
         version = fw.get("version")
         found = False
-        for d in fw_descriptors:
-            if fw_descriptors[d].get_version() == version and fw_descriptors[d].get_system_name() == name:
+
+        # find it by naming convention based on the instance name        
+        desired_fw_instance = "%s_%s" % (name, version)
+        for x in fw_instances:
+            if x == desired_fw_instance:
                 found = True
-                required_fw_instance_names.append(d)
+                required_fw_instance_names.append(x)
                 break
+
         if not found:
-            msg =  "The framework %s %s required by %s " % (name, version, descriptor)
+            msg =  "The framework instance %s required by %s " % (desired_fw_instance, descriptor)
             msg += "can not be found in environment %s. \n" % str(environment)
             if len(fw_descriptors) == 0:
                 msg += "No frameworks are currently installed!"
@@ -161,7 +164,7 @@ def validate_and_return_frameworks(descriptor, environment):
             raise TankError(msg) 
         
     return required_fw_instance_names
-        
+                
 
 def validate_single_setting(app_or_engine_display_name, tank_api, schema, setting_name, setting_value):
     """
@@ -246,12 +249,21 @@ class _SchemaValidator:
         data_type = schema.get("type")
         self.__validate_schema_type(settings_key, data_type)
 
-        if "default_value" in schema and not _validate_expected_data_type(data_type, schema["default_value"]):
-            params = (settings_key, 
-                      self._display_name, 
-                      type(schema["default_value"]).__name__, data_type)
-            err_msg = "Invalid type for default value in schema '%s' for '%s' - found '%s', expected '%s'" % params
-            raise TankError(err_msg)
+        if "default_value" in schema:
+            # validate the default value:
+            default_value = schema["default_value"]
+
+            # handle template setting with default_value == null            
+            if data_type == 'template' and default_value is None and schema.get('allows_empty', False):
+                # no more validation required
+                return
+
+            if not _validate_expected_data_type(data_type, default_value):
+                params = (settings_key, 
+                          self._display_name, 
+                          type(default_value).__name__, data_type)
+                err_msg = "Invalid type for default value in schema '%s' for '%s' - found '%s', expected '%s'" % params
+                raise TankError(err_msg)
 
         if data_type == "list":
             self.__validate_schema_list(settings_key, schema)
@@ -497,12 +509,39 @@ class _SettingsValidator:
         Validate that the value for a setting of type hook corresponds to a file in the hooks
         directory.
         """
-        # if setting is default, assume everything is fine
-        if hook_name == constants.TANK_BUNDLE_DEFAULT_HOOK_SETTING:
-            return
         
         hooks_folder = self._tank_api.pipeline_configuration.get_hooks_location()
-        hook_path = os.path.join(hooks_folder, "%s.py" % hook_name)
+        
+        # if setting is default, assume everything is fine
+        if hook_name == constants.TANK_BUNDLE_DEFAULT_HOOK_SETTING:
+            # assume that each app contains its correct hooks
+            return
+        
+        elif hook_name.startswith("{self}"):
+            # assume that each app contains its correct hooks
+            return
+        
+        elif hook_name.startswith("{config}"):
+            # config hook 
+            path = hook_name.replace("{config}", hooks_folder)
+            hook_path = path.replace("/", os.path.sep)
+        
+        elif hook_name.startswith("{$") and "}" in hook_name:
+            # environment variable: {$HOOK_PATH}/path/to/foo.py
+            # lazy (runtime) validation for this - it may be beneficial
+            # not to actually set the environment variable until later
+            # in the life cycle of the engine 
+            return
+        
+        elif hook_name.startswith("{") and "}" in hook_name:
+            # referencing other instances of items
+            # this cannot be easily validated at this point since
+            # no well defined runtime state exists at the time of validation
+            return
+
+        else:
+            # our standard case
+            hook_path = os.path.join(hooks_folder, "%s.py" % hook_name)
 
         if not os.path.exists(hook_path):
             msg = ("Invalid configuration setting '%s' for %s: "
@@ -553,7 +592,7 @@ class _SettingsValidator:
         # name, *
         # context, *
         
-        # get all values in a list
+        # get all values in list
         field_chunks = fields_str.split(",")
         # chop whitespace
         field_chunks = [ x.strip() for x in field_chunks ]
@@ -574,75 +613,70 @@ class _SettingsValidator:
                 mandatory.add(x)
         
         # validate
-        # get all fields which do not have default values
-        fields_needing_values = set(cur_template.missing_keys({}, skip_defaults=True))
         problems = []
         
-        # pass 1: ensure all mandatory fields are present.
+        # First pass: Ensure all mandatory fields are present in template.
+        all_fields = set(cur_template.keys)        
         for m in mandatory:
-            if m not in fields_needing_values:
+            if m not in all_fields:
                 problems.append("The mandatory field '%s' is missing" % m)
+
+        if len(problems) > 0:
+            # one or more mandatory issues. No point checking further
+            return problems
         
         if star == True:
             # means an open ended number of fields can be used.
             # no need to do more validation
-            pass
+            return problems
         
-        elif self._context is None:
-            # we don't have the context (we are outside app rumtime mode)
+        if self._context is None:
+            # we don't have the context (we are outside app runtime mode)
             # and cannot do any further validation
-            pass
+            return problems
         
-        elif len(problems) > 0:
-            # one or more mandatory issues. No point checking further
-            pass
-        
+        # Second pass: There are a fixed number of fields that we need to populate so
+        # make sure we have populated exactly those fields
+        fields_needing_values = set(cur_template.missing_keys({}, skip_defaults=True))
+        remaining_fields = fields_needing_values - mandatory
+                        
+        if include_context:
+            # gather all the fields that will be covered by the context object
+            context_fields = set( self._context.as_template_fields(cur_template).keys() )
+            remaining_fields = remaining_fields - context_fields
+            
+            for x in remaining_fields:
+                if x not in optional:
+                    # we have a field that is in the template but which is not 
+                    # covered, either in the context nor in the schema fields
+                    required_and_optional_str = ", ".join(mandatory | optional)
+                    context_fields_str = ", ".join(context_fields)
+                    
+                    problems.append("The field '%s' is part of the template but %s does not "
+                                    "know how to assign a value to it when calculating paths. "
+                                    "The code inside %s will populate the following fields: %s. "
+                                    "The current context (%s) will populate the following fields: "
+                                    "%s." % (x, 
+                                             self._display_name, 
+                                             self._display_name, 
+                                             required_and_optional_str, 
+                                             str(self._context),
+                                             context_fields_str))
+                    
         else:
-            # there are a fixed number of fields that we need to populate
-            # make sure we have populated exactly those fields
-                        
-            remaining_fields = fields_needing_values - mandatory
-                        
-            if include_context:
-                # gather all the fields that will be covered by the context object
-                context_fields = set( self._context.as_template_fields(cur_template).keys() )
-                remaining_fields = remaining_fields - context_fields
+            # the context is not taken into account.
+            for x in remaining_fields:
+                if x not in optional:
+                    # we have a field that is in the template but which is not 
+                    # covered by mandatory or optional
+                    required_and_optional_str = ", ".join(mandatory | optional)
+                    
+                    problems.append("The field '%s' is part of the template but %s does not "
+                                    "know how to assign a value to it when calculating paths. "
+                                    "The code inside %s will populate the following fields: "
+                                    "%s." % (x, 
+                                             self._display_name, 
+                                             self._display_name, 
+                                             required_and_optional_str))
                 
-                for x in remaining_fields:
-                    if x not in optional:
-                        # we have a field that is in the template but which is not 
-                        # covered, either in the context nor in the schema fields
-                        
-                        required_and_optional_str = ", ".join(mandatory | optional)
-                        context_fields_str = ", ".join(context_fields)
-                        
-                        problems.append("The field '%s' is part of the template but %s does not "
-                                        "know how to assign a value to it when calculating paths. "
-                                        "The code inside %s will populate the following fields: %s. "
-                                        "The current context (%s) will populate the following fields: "
-                                        "%s." % (x, 
-                                                 self._display_name, 
-                                                 self._display_name, 
-                                                 required_and_optional_str, 
-                                                 str(self._context),
-                                                 context_fields_str))
-                        
-            else:
-                # the context is not taken into account.
-                for x in remaining_fields:
-                    if x not in optional:
-                        # we have a field that is in the template but which is not 
-                        # covered by mandatory or optional
-                        
-                        required_and_optional_str = ", ".join(mandatory | optional)
-                        
-                        problems.append("The field '%s' is part of the template but %s does not "
-                                        "know how to assign a value to it when calculating paths. "
-                                        "The code inside %s will populate the following fields: "
-                                        "%s." % (x, 
-                                                 self._display_name, 
-                                                 self._display_name, 
-                                                 required_and_optional_str))
-                
-        #####
         return problems

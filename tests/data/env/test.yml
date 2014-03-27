@@ -6,27 +6,68 @@ engines:
         apps:
             test_app:
                 location: {'type': 'dev', 'path': 'TEST_APP_LOCATION'}
+                test_str: a
+                test_int: 1 
+                test_float: 1.1
+                test_bool: true 
                 test_template: maya_publish_name
                 test_icon: "foo/bar.png"
-                test_hook: test_hook
+                
+                # 
+                
+                test_hook_std: test_hook
+                test_hook_default: default
+                test_hook_env_var: "{$TEST_ENV_VAR}/test_env_var_hook.py"
+                test_hook_self: "{self}/test_hook.py"
+                test_hook_config: "{config}/foo/bar.py"
+                
+                test_hook_inheritance_1: "{self}/inheritance1.py"
+                test_hook_inheritance_2: "{config}/inherit.py"
+                
+
+                test_simple_dictionary:
+                    test_str: a
+                    test_int: 1
+                    
+                test_complex_dictionary:
+                    test_str: a
+                    test_list:
+                        -   test_str: a
+                            test_int: 1
+                        -   test_str: b
+                            test_int: 2
+
                 test_simple_list: ['a','b','c','d']
+
                 test_complex_list:
-                    -
-                        test_str: a
+                
+                    -   test_str: a
                         test_int: 1
                         test_float: 1.1
                         test_bool: true
                         test_template: maya_shot_work
                         test_hook: test_hook
                         test_extra: extra
-                    -
-                        test_str: b
+                        
+                    -   test_str: b
                         test_int: 2
                         test_float: 2.2
                         test_bool: false
                         test_template: maya_shot_publish
                         test_hook: test_hook
                         test_extra: extra
+                        
+                test_very_complex_list:
+                
+                    -   test_str: a
+                        test_list:
+                            -   test_str: aa
+                            -   test_str: ab
+                            
+                    -   test_str: b
+                        test_list:
+                            -   test_str: ba
+                            -   test_str: bb
 
             disabled_app:
                 location: {'type': 'dev', 'path': 'DISABLED_APP_LOCATION', 'disabled': True}

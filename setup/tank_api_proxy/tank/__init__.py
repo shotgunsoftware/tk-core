@@ -17,7 +17,8 @@ import sys
 
 # first look for our parent file
 current_folder = os.path.abspath(os.path.dirname(__file__))
-parent_file_name =  "core_%s.cfg" % sys.platform
+file_name_lookup = {"linux2": "core_Linux.cfg", "win32": "core_Windows.cfg", "darwin": "core_Darwin.cfg" }
+parent_file_name =  file_name_lookup[sys.platform]
 parent_cfg_path = os.path.join(current_folder, "..", "..", parent_file_name)
 parent_cfg_path = os.path.abspath(parent_cfg_path)
 
@@ -27,7 +28,7 @@ if not os.path.exists(parent_cfg_path):
 # now read our parent file
 fh = open(parent_cfg_path, "rt")
 try:
-    parent_path = fh.readline()
+    parent_path = fh.readline().rstrip()
 finally:
     fh.close()
 
@@ -38,8 +39,12 @@ if not os.path.exists(parent_python_path):
 
 # set up an env var to track the current pipeline configuration
 # this is to help the tank core API figure out for example tank.tank_from_path()
-# when using multiple work dev areas.
-os.environ["TANK_CURRENT_PC"] = current_folder
+# when using multiple work pipeline configurations for a single project
+
+# make sure the TANK_CURRENT_PC points at the root of this pipeline configuration
+pipeline_config = os.path.join(current_folder, "..", "..", "..", "..")
+pipeline_config = os.path.abspath(pipeline_config)
+os.environ["TANK_CURRENT_PC"] = pipeline_config
 
 # ok we got the parent location
 # prepend this to the python path and reload the module

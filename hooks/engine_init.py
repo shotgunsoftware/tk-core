@@ -20,7 +20,7 @@ class EngineInit(Hook):
     
     def execute(self, engine, **kwargs):
         """
-        Gets executed when a Tank engine has fully initialized.
+        Gets executed when a Toolkit engine has fully initialized.
         At this point, all applications and frameworks have been loaded,
         and the engine is fully operational.
         """

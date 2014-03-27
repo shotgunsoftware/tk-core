@@ -16,18 +16,13 @@ import logging
 import tank
 import textwrap
 import datetime
-from tank import TankError, TankEngineInitError
-from tank.deploy import setup_project
-from tank.deploy import validate_config
-from tank.deploy import administrator
-from tank.deploy import core_api_admin
-from tank.deploy import env_admin
+from tank import TankError
+from tank.deploy.tank_commands.clone_configuration import clone_pipeline_configuration_html
 from tank.deploy import tank_command
+from tank.deploy.tank_commands.core import TankCoreUpgrader
 from tank.deploy.tank_commands.action_base import Action
-from tank import pipelineconfig
 from tank.util import shotgun
 from tank.platform import engine
-from tank import folder
 
 
 
@@ -189,6 +184,9 @@ Launch maya for a folder:
 ###############################################################################################
 # Shotgun Actions Management
 
+
+
+
 def _run_shotgun_command(log, tk, action_name, entity_type, entity_ids):
     """
     Helper method. Starts the shotgun engine and
@@ -320,7 +318,7 @@ def _write_shotgun_cache(tk, entity_type, cache_file_name):
         raise TankError("Could not write to cache file %s: %s" % (cache_path, e))
 
 
-def shotgun_cache_actions(log, install_root, pipeline_config_root, args):
+def shotgun_cache_actions(log, pipeline_config_root, args):
     """
     Executes the special shotgun cache actions command
     """
@@ -375,7 +373,7 @@ def shotgun_cache_actions(log, install_root, pipeline_config_root, args):
         log.info("")
 
 
-def shotgun_run_action(log, install_root, pipeline_config_root, args):
+def shotgun_run_action(log, install_root, pipeline_config_root, is_localized, args):
     """
     Executes the special shotgun run action command from inside of shotgun
     """
@@ -414,8 +412,7 @@ def shotgun_run_action(log, install_root, pipeline_config_root, args):
         # past the 4th chunk in the command is part of the windows path...
         new_path_windows = ":".join(entity_type.split(":")[4:])
         pc_entity_id = entity_ids[0]
-        source_pc_has_shared_core_api = (install_root != pipeline_config_root)
-        administrator.clone_configuration(log,
+        clone_pipeline_configuration_html(log,
                                           tk,
                                           pc_entity_id,
                                           user_id,
@@ -423,13 +420,81 @@ def shotgun_run_action(log, install_root, pipeline_config_root, args):
                                           new_path_linux,
                                           new_path_mac,
                                           new_path_windows,
-                                          source_pc_has_shared_core_api)
+                                          is_localized)
 
     elif action_name == "__core_info":
-        core_api_admin.show_core_info(log, install_root, pipeline_config_root)
+        
+        code_css_block = "display: block; padding: 0.5em 1em; border: 1px solid #bebab0; background: #faf8f0;"
+        
+        # create an upgrader instance that we can query if the install is up to date
+        installer = TankCoreUpgrader(install_root, log)
+        
+        cv = installer.get_current_version_number()
+        lv = installer.get_latest_version_number()
+        log.info("You are currently running version %s of the Shotgun Pipeline Toolkit." % cv)
+        
+        if not is_localized:
+            log.info("")
+            log.info("Your core API is located in <code>%s</code> and is shared with other "
+                     "projects." % install_root)
+        
+        log.info("")
+        
+        status = installer.get_update_status()
+        req_sg = installer.get_required_sg_version_for_upgrade()
+        
+        if status == TankCoreUpgrader.UP_TO_DATE:
+            log.info("<b>You are up to date! There is no need to update the Toolkit Core API at this time!</b>")
+    
+        elif status == TankCoreUpgrader.UPGRADE_BLOCKED_BY_SG:
+            log.warning("<b>A new version (%s) of the core API is available however "
+                        "it requires a more recent version (%s) of Shotgun!</b>" % (lv, req_sg))
+            
+        elif status == TankCoreUpgrader.UPGRADE_POSSIBLE:
+            
+            (summary, url) = installer.get_release_notes()
+                    
+            log.info("<b>A new version of the Toolkit API (%s) is available!</b>" % lv)
+            log.info("")
+            log.info("<b>Change Summary:</b> %s <a href='%s' target=_new>"
+                     "Click for detailed Release Notes</a>" % (summary, url))
+            log.info("")
+            log.info("In order to upgrade, execute the following command in a shell:")
+            log.info("")
+            
+            if sys.platform == "win32":
+                tank_cmd = os.path.join(install_root, "tank.bat")
+            else:
+                tank_cmd = os.path.join(install_root, "tank")
+            
+            log.info("<code style='%s'>%s core</code>" % (code_css_block, tank_cmd))
+            
+            log.info("")
+                        
+        else:
+            raise TankError("Unknown Upgrade state!")
+        
 
     elif action_name == "__upgrade_check":
-        core_api_admin.show_upgrade_info(log, install_root, pipeline_config_root)
+        
+        # special built in command that simply tells the user to run the tank command
+        
+        code_css_block = "display: block; padding: 0.5em 1em; border: 1px solid #bebab0; background: #faf8f0;"
+        
+        log.info("In order to check if your installed apps and engines are up to date, "
+                 "you can run the following command in a console:")
+        
+        log.info("")
+        
+        if sys.platform == "win32":
+            tank_cmd = os.path.join(pipeline_config_root, "tank.bat")
+        else:
+            tank_cmd = os.path.join(pipeline_config_root, "tank")
+        
+        log.info("<code style='%s'>%s updates</code>" % (code_css_block, tank_cmd))
+        
+        log.info("")
+        
     else:
         _run_shotgun_command(log, tk, action_name, entity_type, entity_ids)
 
@@ -654,7 +719,7 @@ def _resolve_shotgun_entity(log, entity_type, entity_search_token, constrain_by_
         raise TankError("Try searching for something else. Alternatively, specify ALL in order to see all %ss." % entity_type)
 
 
-    elif entity_only_search_token in [ x[name_field] for x in entities ]:
+    elif [ x[name_field] for x in entities ].count(entity_only_search_token) == 1:
         # multiple matches but one matches the search term exactly!!
         # find which one:
         for x in entities:
@@ -771,12 +836,11 @@ def _resolve_shotgun_entity(log, entity_type, entity_search_token, constrain_by_
 
 
 
-def run_engine_cmd(log, install_root, pipeline_config_root, context_items, command, using_cwd, args):
+def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd, args):
     """
     Launches an engine and potentially executes a command.
 
     :param log: logger
-    :param install_root: tank installation
     :param pipeline_config_root: PC config location
     :param context_items: list of strings to describe context. Either ["path"],
                                ["entity_type", "entity_id"] or ["entity_type", "entity_name"]
@@ -789,14 +853,13 @@ def run_engine_cmd(log, install_root, pipeline_config_root, context_items, comma
     log.debug("Context items: %s" % str(context_items))
     log.debug("Command: %s" % command)
     log.debug("Command Arguments: %s" % args)
-    log.debug("Code Location Root: %s" % install_root)
     log.debug("Sgtk Pipeline Config Location: %s" % pipeline_config_root)
     log.debug("Location of this script (__file__): %s" % os.path.abspath(__file__))
 
     log.info("")
 
-    log.info("Welcome to the Shotgun pipeline toolkit!")
-    log.info("For documentation, see https://toolkit.shotgunsoftware.com/forums")
+    log.info("Welcome to the Shotgun Pipeline Toolkit!")
+    log.info("For documentation, see https://toolkit.shotgunsoftware.com")
 
     # Now create a tk instance and a context if possible
 
@@ -805,7 +868,7 @@ def run_engine_cmd(log, install_root, pipeline_config_root, context_items, comma
         ctx_path = context_items[0]
 
         if using_cwd:
-            log.info("Starting the Sgtk for your current directory '%s'" % ctx_path)
+            log.info("Starting Toolkit for your current directory '%s'" % ctx_path)
 
         # context str is a path
         if pipeline_config_root is not None:
@@ -868,12 +931,7 @@ def run_engine_cmd(log, install_root, pipeline_config_root, context_items, comma
     log.debug("Context: %s" % ctx)
 
     if tk is not None:
-        if pipeline_config_root is None:
-            # generic tank command - so indicate which config was picked
-            log.info("- Starting the Shotgun pipeline toolkit %s using configuration %s." % (tk.version, tk.pipeline_configuration.get_path()))
-        else:
-            log.info("- Starting the Shotgun pipeline toolkit %s." % tk.version)
-
+        log.info("- Using configuration '%s' and Core %s" % (tk.pipeline_configuration.get_name(), tk.version))
         # attach our logger to the tank instance
         # this will be detected by the shotgun and shell engines and used.
         tk.log = log
@@ -884,7 +942,9 @@ def run_engine_cmd(log, install_root, pipeline_config_root, context_items, comma
     if command is None:
         return _list_commands(log, tk, ctx)
     else:
-        return tank_command.run_action(install_root, pipeline_config_root, log, tk, ctx, command, args)
+        # pass over to the tank commands api - this will take over command execution, 
+        # setup the objects accordingly etc.
+        return tank_command.run_action(log, tk, ctx, command, args)
 
 
 
@@ -946,6 +1006,9 @@ if __name__ == "__main__":
         else:
             pipeline_config_root = None
 
+    # determine if we are running a localized core API.
+    is_localized = (install_root == pipeline_config_root)
+    
     # and strip out the --pc args
     cmd_line = [arg for arg in cmd_line if not arg.startswith("--pc=")]
 
@@ -963,21 +1026,19 @@ if __name__ == "__main__":
         if len(cmd_line) == 0:
             # > tank, no arguments
             # engine mode, using CWD
-            exit_code = run_engine_cmd(logger,
-                                       install_root,
-                                       pipeline_config_root,
-                                       [os.getcwd()],
-                                       None,
-                                       True,
-                                       [])
+            exit_code = run_engine_cmd(logger, pipeline_config_root, [os.getcwd()], None, True, [])
 
         # special case when we are called from shotgun
         elif cmd_line[0] == "shotgun_run_action":
-            exit_code = shotgun_run_action(logger, install_root, pipeline_config_root, cmd_line[1:])
+            exit_code = shotgun_run_action(logger, 
+                                           install_root, 
+                                           pipeline_config_root, 
+                                           is_localized, 
+                                           cmd_line[1:])
 
         # special case when we are called from shotgun
         elif cmd_line[0] == "shotgun_cache_actions":
-            exit_code = shotgun_cache_actions(logger, install_root, pipeline_config_root, cmd_line[1:])
+            exit_code = shotgun_cache_actions(logger, pipeline_config_root, cmd_line[1:])
 
         else:
             # these choices remain:
@@ -1049,13 +1110,7 @@ if __name__ == "__main__":
                     ctx_list = [ os.getcwd() ] # path
 
 
-            exit_code = run_engine_cmd(logger,
-                                       install_root,
-                                       pipeline_config_root,
-                                       ctx_list,
-                                       cmd_name,
-                                       using_cwd,
-                                       cmd_args)
+            exit_code = run_engine_cmd(logger, pipeline_config_root, ctx_list, cmd_name, using_cwd, cmd_args)
 
     except TankError, e:
         logger.info("")

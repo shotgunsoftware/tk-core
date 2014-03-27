@@ -8,19 +8,14 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-"""
-Methods for handling of the tank command
-
-"""
-
 from ... import folder
 from ...errors import TankError
 from .action_base import Action
 
-
-
 class CreateFoldersAction(Action):
-    
+    """
+    Action for creating folders on disk
+    """    
     def __init__(self):
         Action.__init__(self, 
                         "folders", 
@@ -30,7 +25,7 @@ class CreateFoldersAction(Action):
                          "'tank Shot P01 folders' in order to create folders on disk for Shot P01."), 
                         "Production")
     
-    def run(self, log, args):
+    def run_interactive(self, log, args):
         if len(args) != 0:
             raise TankError("This command takes no arguments!")
 
@@ -62,7 +57,9 @@ class CreateFoldersAction(Action):
 
 
 class PreviewFoldersAction(Action):
-    
+    """
+    Action for doing a folder creation preview
+    """
     def __init__(self):
         Action.__init__(self, 
                         "preview_folders", 
@@ -73,7 +70,7 @@ class PreviewFoldersAction(Action):
                          "would be created if you ran the folders command for Shot P01."), 
                         "Production")
     
-    def run(self, log, args):
+    def run_interactive(self, log, args):
         if len(args) != 0:
             raise TankError("This command takes no arguments!")
 

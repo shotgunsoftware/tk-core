@@ -161,8 +161,8 @@ class StringKey(TemplateKey):
         :param name: Name by which the key will be refered.
         :param default: Default value for the key.
         :param choices: List of possible values for this key.
-        :parma filter_by: Name of filter type to limit values for string. Currently
-                          only accepted values are 'alphanumeric' and None.
+        :param filter_by: Name of filter type to limit values for string. Currently
+                          only accepted values are 'alphanumeric', 'alpha', None and a regex string.
         :param shotgun_entity_type: For keys directly linked to a shotgun field, the entity type.
         :param shotgun_field_name: For keys directly linked to a shotgun field, the field name.
         :param exclusions: List of forbidden values.
@@ -170,12 +170,26 @@ class StringKey(TemplateKey):
         :param length: int, should this key be fixed length
         """
         self.filter_by = filter_by
+
+        # Build regexes for alpha and alphanumeric filter_by clauses
+        #
+        # Note that we cannot use a traditional [^a-zA-Z0-9] regex since we want
+        # to support unicode and not just ascii. \W covers "Non-word characters",
+        # which is basically the international equivalent of 7-bit ascii 
+        #        
+        self._filter_regex_u = None
+        self._custom_regex_u = None
+
         if self.filter_by == "alphanumeric":
-            # build regex to search for all non-alphanumeric 
-            # characters or undeerscores
-            self._filter_regex_u = re.compile(u"[\W_]", re.UNICODE)#[^a-zA-Z0-9]")
-        else: 
-            self._filter_regex_u = None
+            self._filter_regex_u = re.compile(u"[\W_]", re.UNICODE)
+        
+        elif self.filter_by == "alpha":
+            self._filter_regex_u = re.compile(u"[\W_0-9]", re.UNICODE)
+        
+        elif self.filter_by is not None:
+            # filter_by is a regex
+            self._custom_regex_u = re.compile(self.filter_by, re.UNICODE)
+        
 
         super(StringKey, self).__init__(name,
                                         default=default,
@@ -187,17 +201,27 @@ class StringKey(TemplateKey):
                                         length=length)
 
     def validate(self, value):
-        if self._filter_regex_u:
-            u_value = value
-            if not isinstance(u_value, unicode):
-                # handle non-ascii characters correctly by
-                # decoding to unicode assuming utf-8 encoding
-                u_value = value.decode("utf-8")
-                
+
+        u_value = value
+        if not isinstance(u_value, unicode):
+            # handle non-ascii characters correctly by
+            # decoding to unicode assuming utf-8 encoding
+            u_value = value.decode("utf-8")
+
+        if self._filter_regex_u:                
+            # first check our std filters. These filters are negated
+            # so here we are checking that there are occurances of 
+            # that pattern in the string
             if self._filter_regex_u.search(u_value):
-                self._last_error = "%s Illegal value '%s' does not fit filter" % (self, value)
+                self._last_error = "%s Illegal value '%s' does not fit filter_by '%s'" % (self, value, self.filter_by)
                 return False
         
+        elif self._custom_regex_u:
+            # check for any user specified regexes
+            if self._custom_regex_u.match(u_value) is None:
+                self._last_error = "%s Illegal value '%s' does not fit filter_by '%s'" % (self, value, self.filter_by)
+                return False
+            
         return super(StringKey, self).validate(value)
 
     def _as_string(self, value):

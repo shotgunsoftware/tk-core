@@ -37,7 +37,7 @@ class Framework(TankBundle):
     Base class for an app in Tank.
     """
     
-    def __init__(self, engine, descriptor, settings):
+    def __init__(self, engine, descriptor, settings, env):
         """
         Called by the app loader framework. The constructor
         is not supposed to be overridden by deriving classes.
@@ -45,10 +45,11 @@ class Framework(TankBundle):
         :param engine: The engine instance to connect this fw to
         :param app_name: The short name of this framework (e.g. tk-framework-widget)
         :param settings: a settings dictionary for this fw
+        :param env: the environment that the framework belongs to
         """
 
         # init base class
-        TankBundle.__init__(self, engine.tank, engine.context, settings, descriptor)
+        TankBundle.__init__(self, engine.tank, engine.context, settings, descriptor, env)
         
         self.__engine = engine
 
@@ -207,7 +208,7 @@ def load_framework(engine_obj, env, fw_instance_name):
     # load the framework
     try:
         # initialize fw class
-        fw = _create_framework_instance(engine_obj, descriptor, fw_settings)
+        fw = _create_framework_instance(engine_obj, descriptor, fw_settings, env)
         
         # load any frameworks required by the framework :)
         setup_frameworks(engine_obj, fw, env, descriptor)
@@ -221,7 +222,7 @@ def load_framework(engine_obj, env, fw_instance_name):
     return fw
 
 
-def _create_framework_instance(engine, descriptor, settings):
+def _create_framework_instance(engine, descriptor, settings, env):
     """
     Internal helper method. 
     Returns an framework object given an engine and fw settings.
@@ -235,5 +236,5 @@ def _create_framework_instance(engine, descriptor, settings):
         
     # Instantiate the app
     class_obj = loader.load_plugin(plugin_file, Framework)
-    obj = class_obj(engine, descriptor, settings)
+    obj = class_obj(engine, descriptor, settings, env)
     return obj

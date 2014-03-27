@@ -8,12 +8,6 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-"""
-Methods for handling of the tank command
-
-"""
-
-
 from ...util import shotgun
 from ...platform import constants
 from ...errors import TankError
@@ -31,7 +25,7 @@ import shutil
 
 class MoveStudioInstallAction(Action):
     """
-    Moves the studio installation location. 
+    Action that moves the studio installation location. 
     """
     
     def __init__(self):
@@ -127,7 +121,7 @@ class MoveStudioInstallAction(Action):
         for x in ["windows_path", "linux_path", "mac_path"]:
             try:
                 fh = open(studio_linkback_files[x], "rt")
-                data = fh.read()
+                data = fh.read().strip() # remove any whitespace, keep text
                 if data in ["None", "undefined"]:
                     current_studio_refs[x] = None
                 else:
@@ -166,7 +160,7 @@ class MoveStudioInstallAction(Action):
             log.info("> Pipeline Config updated to point at new Studio location.")
     
     
-    def run(self, log, args):
+    def run_interactive(self, log, args):
         if len(args) != 4:
 
             log.info("Syntax: move_studio_install current_path linux_path windows_path mac_path")
@@ -284,8 +278,7 @@ class MoveStudioInstallAction(Action):
             fh.write("Linux: '%s'\n" % linux_path)                    
             fh.write("\n")
             fh.write("# End of file.\n")
-            fh.close()    
-            os.chmod(sg_code_location, 0444)        
+            fh.close()
 
             # get all PCs, update the ones that are using this studio code.
             sg = shotgun.create_sg_connection()

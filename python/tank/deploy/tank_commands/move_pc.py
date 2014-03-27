@@ -8,11 +8,6 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-"""
-Methods for handling of the tank command
-
-"""
-
 from ... import pipelineconfig
 
 from ...util import shotgun
@@ -27,11 +22,13 @@ import shutil
 
 
 class MovePCAction(Action):
-    
+    """
+    Action that moves a pipeline configuration from one location to another
+    """    
     def __init__(self):
         Action.__init__(self, 
                         "move_configuration", 
-                        Action.PC_LOCAL, 
+                        Action.TK_INSTANCE, 
                         ("Moves this configuration from its current disk location to a new location."), 
                         "Admin")
     
@@ -98,7 +95,7 @@ class MovePCAction(Action):
         
     
     
-    def run(self, log, args):
+    def run_interactive(self, log, args):
         
         sg = shotgun.create_sg_connection()
         pipeline_config_id = self.tk.pipeline_configuration.get_shotgun_id()
@@ -201,8 +198,7 @@ class MovePCAction(Action):
             fh.write("Linux: '%s'\n" % linux_path)                    
             fh.write("\n")
             fh.write("# End of file.\n")
-            fh.close()    
-            os.chmod(sg_code_location, 0444)        
+            fh.close()
 
             for r in self.tk.pipeline_configuration.get_data_roots().values():
                 log.info("Updating storage root reference in %s.." % r)

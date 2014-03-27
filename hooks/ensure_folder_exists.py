@@ -27,6 +27,7 @@ introspection inside the hook.
 
 from tank import Hook
 import os
+import errno
 
 class EnsureFolderExists(Hook):
     
@@ -39,7 +40,14 @@ class EnsureFolderExists(Hook):
         """
         if not os.path.exists(path):
             old_umask = os.umask(0)
-            os.makedirs(path, 0777)
-            os.umask(old_umask)
-            
+            try:
+                os.makedirs(path, 0777)
+            except OSError, e:
+                # Race conditions are perfectly possible on some network storage setups
+                # so make sure that we ignore any file already exists errors, as they 
+                # are not really errors!
+                if e.errno != errno.EEXIST: 
+                    raise e
+            finally:
+                os.umask(old_umask)
             

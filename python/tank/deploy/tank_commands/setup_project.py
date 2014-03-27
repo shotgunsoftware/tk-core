@@ -8,10 +8,6 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-"""
-Utils and logic for creating new tank projects
-"""
-
 SG_LOCAL_STORAGE_OS_MAP = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
 
 import re
@@ -20,32 +16,163 @@ import os
 import shutil
 import tempfile
 import uuid
-from ..errors import TankError
-from ..util import shotgun
-from .. import api
-from ..platform import constants
-from . import util as deploy_util
-from . import env_admin
-from .. import pipelineconfig
-from .. import hook
 
-from .zipfilehelper import unzip_file
+from .action_base import Action
+
+from ...util import shotgun
+from ...platform import constants
+from ...errors import TankError
+from ... import pipelineconfig
+from ... import hook
+from ...pipelineconfig import get_current_code_install_root
+
+from ..zipfilehelper import unzip_file
+from .. import util as deploy_util
 
 from tank_vendor import yaml
 
+class SetupProjectAction(Action):
+    """
+    Action that sets up a new Toolkit Project.
+    """    
+    def __init__(self):
+        Action.__init__(self, 
+                        "setup_project", 
+                        Action.GLOBAL, 
+                        "Sets up a new project with the Shotgun Pipeline Toolkit.", 
+                        "Configuration")
+        
+        # this method can be executed via the API
+        self.supports_api = True
+        
+        self.parameters = {}
+        
+        self.parameters["check_storage_path_exists"] = { "description": ("Check that the path to the storage exists. "
+                                                                         "this is enabled by default but can be turned "
+                                                                         "off in order to deal with certain expert "
+                                                                         "level use cases relating to UNC paths."),
+                                                         "default": True,
+                                                         "type": "bool" }
+        
+        self.parameters["force"] = { "description": ("Enabling this flag allows you to run the set up project on "
+                                                     "projects which have already been previously set up. "),
+                                               "default": False,
+                                               "type": "bool" }
+        
+        self.parameters["project_id"] = { "description": "Shotgun id for the project you want to set up.",
+                                                         "default": None,
+                                                         "type": "int" }
+        
+        self.parameters["project_folder_name"] = { "description": ("Name of the folder which you want to be the root "
+                                                                   "point of the created project. If a project already "
+                                                                   "exists, this parameter must reflect the name of the "
+                                                                   "top level folder of the project."),
+                                                   "default": None,
+                                                   "type": "str" }
+
+        self.parameters["project_folder_name"] = { "description": ("Name of the folder which you want to be the root "
+                                                                   "point of the created project. If a project already "
+                                                                   "exists, this parameter must reflect the name of the "
+                                                                   "top level folder of the project."),
+                                                   "default": None,
+                                                   "type": "str" }
+
+        self.parameters["config_uri"] = { "description": ("The configuration to use when setting up this project. "
+                                                          "This can be a path on disk to a directory containing a "
+                                                          "config, a path to a git bare repo (e.g. a git repo path "
+                                                          "which ends with .git) or 'tk-config-default' "
+                                                          "to fetch the default config from the toolkit app store."),
+                                                   "default": "tk-config-default",
+                                                   "type": "str" }
+
+        # note how the current platform's default value is None in order to make that required
+        self.parameters["config_path_mac"] = { "description": ("The path on disk where the configuration should be "
+                                                               "installed on Macosx."),
+                                               "default": ( None if sys.platform == "darwin" else "" ),
+                                               "type": "str" }
+
+        self.parameters["config_path_win"] = { "description": ("The path on disk where the configuration should be "
+                                                               "installed on Windows."),
+                                               "default": ( None if sys.platform == "win32" else "" ),
+                                               "type": "str" }
+
+        self.parameters["config_path_linux"] = { "description": ("The path on disk where the configuration should be "
+                                                               "installed on Linux."),
+                                               "default": ( None if sys.platform == "linux2" else "" ),
+                                               "type": "str" }
+        
+
+        
+    def run_noninteractive(self, log, parameters):
+        """
+        API accessor
+        """
+        
+        # validate params and seed default values
+        computed_params = self._validate_parameters(parameters)
+        
+        interaction_handler = APISetupInteraction(log,
+                                                  computed_params["config_uri"], 
+                                                  computed_params["project_id"], 
+                                                  computed_params["project_folder_name"], 
+                                                  computed_params["config_path_mac"], 
+                                                  computed_params["config_path_linux"], 
+                                                  computed_params["config_path_win"])
+        
+        return _setup_wrapper(log,
+                              interaction_handler, 
+                              computed_params["check_storage_path_exists"], 
+                              computed_params["force"])
+        
+                
+    def run_interactive(self, log, args):
+        
+        if len(args) not in [0, 1]:
+            raise TankError("Syntax: setup_project [--no-storage-check] [--force]")
+        
+        check_storage_path_exists = True
+        force = False
+        
+        if len(args) == 1 and args[0] == "--no-storage-check":
+            check_storage_path_exists = False
+            log.info("no-storage-check mode: Will not verify that the storage exists. This "
+                     "can be useful if the storage is pointing directly at a server via a "
+                     "Windows UNC mapping.")
+            
+        if len(args) == 1 and args[0] == "--force":
+            force = True
+            log.info("force mode: Projects already set up with Toolkit can be set up again.")
+
+        elif len(args) == 1 and args[0] not in ["--no-storage-check", "--force"]:
+            raise TankError("Syntax: setup_project [--no-storage-check] [--force]")
+            check_storage_path_exists = False
+        
+        
+        interaction_handler = CmdlineSetupInteraction(log)
+        
+        _setup_wrapper(log, interaction_handler, check_storage_path_exists, force)
+        
+        
+
 
 ########################################################################################
-# User Interaction
+# User Interaction is broken out in a separate class. When running in the API
+# mode, a headless, prepopulated APISetupInteraction class is used. When running in 
+# tank command mode, CmdlineSetupInteraction is used to prompt the user.
 
 class CmdlineSetupInteraction(object):
+    """
+    Handles interaction between the project setup logic and the user when 
+    running as a command line session. This code will propmpt the user to 
+    enter parameters etc.
+    """
     
-    def __init__(self, log, sg):
+    def __init__(self, log):
         self._log = log
-        self._sg = sg
             
     def confirm_continue(self):
         """
-        Yes no confirm to continue
+        Called when the logic needs an interactive session to issue a "ok to contine" prompt
         """
         val = raw_input("Continue with project setup (Yes/No)? [Yes]: ")
         if val == "" or val.lower().startswith("y"):
@@ -55,7 +182,7 @@ class CmdlineSetupInteraction(object):
         else:
             raise TankError("Please answer Yes, y, no, n or press ENTER!")
         
-    def select_template_configuration(self):
+    def select_template_configuration(self, sg):
         """
         Ask the user which config to use. Returns a config string.
         """
@@ -66,7 +193,7 @@ class CmdlineSetupInteraction(object):
         self._log.info("------------------------------------------------------------------")
         self._log.info("Which configuration would you like to associate with this project?")
         
-        primary_pcs = self._sg.find(constants.PIPELINE_CONFIGURATION_ENTITY, 
+        primary_pcs = sg.find(constants.PIPELINE_CONFIGURATION_ENTITY, 
                                     [["code", "is", constants.PRIMARY_PIPELINE_CONFIG_NAME]],
                                     ["code", "project", "mac_path", "windows_path", "linux_path"])        
 
@@ -98,9 +225,13 @@ class CmdlineSetupInteraction(object):
                        "hit enter below.")
         self._log.info("")
         self._log.info("If you have a configuration stored somewhere on disk, you can "
-                       "just enter the path to this config it will be used for the "
+                       "enter the path to this config and it will be used for the "
                        "new project.")
         self._log.info("")
+        self._log.info("You can also enter an url pointing to a git repository. Toolkit will then "
+                       "clone this repository and base the config on its content.")
+        self._log.info("")
+        
         
         config_name = raw_input("[%s]: " % constants.DEFAULT_CFG).strip()
         if config_name == "":
@@ -108,7 +239,7 @@ class CmdlineSetupInteraction(object):
         return config_name
         
     
-    def select_project(self, force):
+    def select_project(self, sg, force):
         """
         Returns the project id and name for a project for which setup should be done.
         Will request the user to input console input to select project.
@@ -123,7 +254,7 @@ class CmdlineSetupInteraction(object):
             # not force mode. Only show non-set up projects
             filters.append(["tank_name", "is", None])
          
-        projs = self._sg.find("Project", filters, ["id", "name", "sg_description", "tank_name"])
+        projs = sg.find("Project", filters, ["id", "name", "sg_description", "tank_name"])
     
         if len(projs) == 0:
             raise TankError("Sorry, no projects found! All projects seem to have already been "
@@ -182,7 +313,7 @@ class CmdlineSetupInteraction(object):
                             
         return (project_id, project_name)
         
-    def get_project_folder_name(self, project_name, project_id, resolved_storages):
+    def get_project_folder_name(self, sg, project_name, project_id, resolved_storages):
         """
         Given a project entity in Shotgun (name, id), decide where the project data
         root should be on disk. This will verify that the selected folder exists
@@ -200,7 +331,7 @@ class CmdlineSetupInteraction(object):
             # custom hook is available!
             suggested_folder_name = hook.execute_hook(project_name_hook, 
                                                       parent=None, 
-                                                      sg=self._sg, 
+                                                      sg=sg, 
                                                       project_id=project_id)
         else:
             # construct a valid name - replace white space with underscore and lower case it.
@@ -435,6 +566,90 @@ class CmdlineSetupInteraction(object):
 
         return location
 
+
+class APISetupInteraction(object):
+    """
+    Handles interaction between the project setup logic and the user when 
+    running via the API. This class implements the same methods as the 
+    CmdlineSetupInteraction class above but instead of prompting the user
+    interactively, it just dishes out a bunch of pre-defined values
+    in the various methods.
+    """
+    
+    def __init__(self, log, configuration_uri, project_id, project_folder_name, mac_pc_location, linux_pc_location, win_pc_location):
+        self._log = log
+        self._configuration_uri = configuration_uri
+        self._project_id = project_id
+        self._project_folder_name = project_folder_name
+        
+        self._mac_pc_location = mac_pc_location
+        self._linux_pc_location = linux_pc_location
+        self._win_pc_location = win_pc_location
+            
+    def confirm_continue(self):
+        """
+        Called when the logic needs an interactive session to issue a "ok to contine" prompt
+        """
+        # When in API mode, we just continue without prompting
+        return True
+        
+    def select_template_configuration(self, sg):
+        """
+        The setup logic requests which configuration to use. 
+        Returns a config string.
+        """
+        return self._configuration_uri        
+        
+    
+    def select_project(self, sg, force):
+        """
+        Returns the project id and name for a project for which setup should be done.
+        """
+
+        proj = sg.find_one("Project", [["id", "is", self._project_id]], ["name", "tank_name"])
+    
+        if proj is None:
+            raise TankError("Could not find a project with id %s!" % self._project_id)
+
+        # if force is false then tank_name must be empty
+        if force == False and proj["tank_name"] is not None:
+            raise TankError("You are trying to set up a project which has already been set up. If you want to do "
+                            "this, make sure to set the force parameter.")
+
+        return (self._project_id, proj["name"])
+        
+    def get_project_folder_name(self, sg, project_name, project_id, resolved_storages):
+        """
+        Given a project entity in Shotgun (name, id), decide where the project data
+        root should be on disk. This will verify that the selected folder exists
+        in each of the storages required by the configuration. 
+
+        Returns the project disk name which is selected, this name may 
+        include slashes if the selected location is multi-directory.
+        """
+        return self._project_folder_name    
+    
+    def get_disk_location(self, resolved_storages, project_disk_name, install_root):
+        """
+        The project setup process is requesting where on disk it should place the project config.
+        Returns a dictionary with keys according to sys.platform: win32, darwin, linux2
+        
+        :param resolved_storages: All the storage roots (Local storage entities in shotgun)
+                                  needed for this configuration. For example: 
+                                  [{'code': 'primary', 
+                                    'id': 1,
+                                    'mac_path': '/tank_demo/project_data', 
+                                    'windows_path': None, 
+                                    'type': 'LocalStorage',  
+                                    'linux_path': None}]
+
+        :param project_name: The Project.name field in Shotgun for the selected project.
+        :param project_id: The Project.id field in Shotgun for the selected project.
+        :param install_root: location of the core code
+        """        
+        return {"darwin": self._mac_pc_location, "linux2": self._linux_pc_location, "win32": self._win_pc_location}
+
+    
     
     
 ###############################################################################################
@@ -445,13 +660,14 @@ class TankConfigInstaller(object):
     Functionality for handling installation and validation of tank configs
     """
     
-    def __init__(self, config_name, sg, sg_app_store, script_user, log):
+    def __init__(self, config_uri, sg, sg_app_store, script_user, log):
         self._sg = sg
         self._sg_app_store = sg_app_store
         self._script_user = script_user
         self._log = log
         # now extract the cfg and validate        
-        self._cfg_folder = self._process_config(config_name)
+        (self._cfg_folder, self._config_mode) = self._process_config(config_uri)
+        self._config_uri = config_uri
         self._roots_data = self._read_roots_file()
 
         if constants.PRIMARY_STORAGE_NAME not in self._roots_data:
@@ -581,6 +797,25 @@ class TankConfigInstaller(object):
         self._log.debug("Configuration looks valid!")
         return dir_path
         
+        
+    def _process_config_git(self, git_repo_str):
+        """
+        Validate that a git repo is correct, download it to a temp location
+        """
+        
+        self._log.debug("Attempting to clone git uri '%s' into a temp location "
+                        "for introspection..." % git_repo_str)
+        
+        clone_tmp = os.path.join(tempfile.gettempdir(), uuid.uuid4().hex)
+        self._log.info("Attempting to clone git repository '%s'..." % git_repo_str)
+
+        if os.system("git clone \"%s\" %s" % (git_repo_str, clone_tmp)) != 0:
+            raise TankError("Could not clone git repository '%s'. Note that in order to use this "
+                            "feature, git must be installed on your system and accessible via the PATH." % git_repo_str)
+        
+        return clone_tmp
+        
+        
     def _process_config(self, cfg_string):
         """
         Looks at the starter config string and tries to convert it into a folder
@@ -590,20 +825,24 @@ class TankConfigInstaller(object):
         # tk-config-xyz
         # /path/to/file.zip
         # /path/to/folder
-        if os.path.sep in cfg_string:
+        if cfg_string.endswith(".git"):
+            # this is a git repository!
+            return (self._process_config_git(cfg_string), "git")
+            
+        elif os.path.sep in cfg_string:
             # probably a file path!
             if os.path.exists(cfg_string):
                 # either a folder or zip file!
                 if cfg_string.endswith(".zip"):
-                    return self._process_config_zip(cfg_string)
+                    return (self._process_config_zip(cfg_string), "local")
                 else:
-                    return self._process_config_dir(cfg_string)
+                    return (self._process_config_dir(cfg_string), "local")
             else:
                 raise TankError("File path %s does not exist on disk!" % cfg_string)    
         
         elif cfg_string.startswith("tk-"):
             # app store!
-            return self._process_config_app_store(cfg_string)
+            return (self._process_config_app_store(cfg_string), "app_store")
         
         else:
             raise TankError("Don't know how to handle config '%s'" % cfg_string)
@@ -672,12 +911,6 @@ class TankConfigInstaller(object):
         
         return storages
 
-    def get_path(self):
-        """
-        Returns a path to a location on disk where this config resides
-        """
-        return self._cfg_folder
-
     def check_manifest(self, sg_version_str):
         """
         Looks for an info.yml manifest in the config and validates it
@@ -730,7 +963,19 @@ class TankConfigInstaller(object):
                 self._log.debug("Config requires Toolkit Core %s. You are running %s which is fine." % (required_version, curr_core_version))
 
 
-
+    def create_configuration(self, target_path):
+        """
+        Creates the configuration folder in the target path
+        """
+        if self._config_mode == "git":
+            # clone the config into place
+            self._log.info("Cloning git configuration into '%s'..." % target_path)
+            if os.system("git clone \"%s\" %s" % (self._config_uri, target_path)) != 0:
+                raise TankError("Could not clone git repository '%s'!" % self._config_uri)
+            
+        else:
+            # copy the config from its source location into place
+            _copy_folder(self._log, self._cfg_folder, target_path )
 
 
 
@@ -743,7 +988,7 @@ def _get_current_core_file_location():
     the installation location on all platforms.    
     """
     
-    core_api_root = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "..", "..", ".."))
+    core_api_root = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "..", "..", "..", ".."))
     core_cfg = os.path.join(core_api_root, "config", "core")
     
     if not os.path.exists(core_cfg):
@@ -777,7 +1022,12 @@ def _make_folder(log, folder, permissions, create_placeholder_file = False):
     if create_placeholder_file:
         ph_path = os.path.join(folder, "placeholder")
         fh = open(ph_path, "wt")
-        fh.write("This placeholder file was automatically generated by Toolkit.\n")
+        fh.write("This placeholder file was automatically generated by Toolkit.\n\n")
+        
+        fh.write("The placeholder file is needed when managing toolkit configurations\n")
+        fh.write("in source control packages such as git and perforce. These systems\n")
+        fh.write("do not handle empty folders so a placeholder file is required for the \n")
+        fh.write("folder to be tracked and managed properly.\n")
         fh.close()
     
 
@@ -874,14 +1124,14 @@ def _get_published_file_entity_type(log, sg):
 ########################################################################################
 # main methods and entry points
 
-def interactive_setup(log, install_root, check_storage_path_exists, force):
+def _setup_wrapper(log, interaction_handler, check_storage_path_exists, force):
     old_umask = os.umask(0)
     try:
-        return _interactive_setup(log, install_root, check_storage_path_exists, force)
+        return _run_setup_project(log, interaction_handler, check_storage_path_exists, force)
     finally:
         os.umask(old_umask)
     
-def _interactive_setup(log, install_root, check_storage_path_exists, force):
+def _run_setup_project(log, interaction_handler, check_storage_path_exists, force):
     """
     interactive setup which will ask questions via the console.
     
@@ -894,7 +1144,9 @@ def _interactive_setup(log, install_root, check_storage_path_exists, force):
     log.info("")
     log.info("Welcome to the Shotgun Pipeline Toolkit Project Setup!")
     log.info("")
-        
+    
+    install_root = get_current_code_install_root()
+     
     # now connect to shotgun
     try:
         log.info("Connecting to Shotgun...")
@@ -921,10 +1173,8 @@ def _interactive_setup(log, install_root, check_storage_path_exists, force):
     ###############################################################################################
     # Stage 1 - information gathering
     
-    cmdline_ui = CmdlineSetupInteraction(log, sg)
-    
     # now ask which config to use. Download if necessary and examine
-    config_name = cmdline_ui.select_template_configuration()
+    config_name = interaction_handler.select_template_configuration(sg)
 
     # now try to load the config
     cfg_installer = TankConfigInstaller(config_name, sg, sg_app_store, script_user, log)
@@ -936,10 +1186,10 @@ def _interactive_setup(log, install_root, check_storage_path_exists, force):
     resolved_storages = cfg_installer.validate_roots(check_storage_path_exists)
 
     # ask which project to operate on
-    (project_id, project_name) = cmdline_ui.select_project(force)
+    (project_id, project_name) = interaction_handler.select_project(sg, force)
     
     # ask the user to confirm the folder name
-    project_disk_folder = cmdline_ui.get_project_folder_name(project_name, project_id, resolved_storages)
+    project_disk_folder = interaction_handler.get_project_folder_name(sg, project_name, project_id, resolved_storages)
     
     # make sure that the project disk folder does not end in a slash - this is causing lots of 
     # problems in the context resolve later on (#23222)
@@ -948,13 +1198,13 @@ def _interactive_setup(log, install_root, check_storage_path_exists, force):
     
     # validate that this is not crazy
     # note that the value can contain slashes and span across multiple folders
-    if re.match("^[/a-zA-Z0-9_-]+$", project_disk_folder) is None:
+    if re.match("^[\./a-zA-Z0-9_-]+$", project_disk_folder) is None:
         # bad name
         raise TankError("Invalid project folder '%s'! Please use alphanumerics, "
                         "underscores and dashes." % project_disk_folder)
     
     # now ask the user where the config should go    
-    locations_dict = cmdline_ui.get_disk_location(resolved_storages, project_disk_folder, install_root)
+    locations_dict = interaction_handler.get_disk_location(resolved_storages, project_disk_folder, install_root)
     current_os_pc_location = locations_dict[sys.platform]
     
     # determine the entity type to use for Published Files:
@@ -1093,7 +1343,7 @@ def _interactive_setup(log, install_root, check_storage_path_exists, force):
     log.info("")
     log.info("")
     
-    if not cmdline_ui.confirm_continue():
+    if not interaction_handler.confirm_continue():
         raise TankError("Installation Aborted.")    
     
     ###############################################################################################
@@ -1132,11 +1382,12 @@ def _interactive_setup(log, install_root, check_storage_path_exists, force):
     _make_folder(log, os.path.join(current_os_pc_location, "install", "frameworks"), 0777, True)
     
     # copy the configuration into place
-    _copy_folder(log, cfg_installer.get_path(), os.path.join(current_os_pc_location, "config"))
+    cfg_installer.create_configuration( os.path.join(current_os_pc_location, "config") )
+    
     
     # copy the tank binaries to the top of the config
     log.debug("Copying Toolkit binaries...")
-    core_api_root = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", ".."))
+    core_api_root = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "..", ".."))
     root_binaries_folder = os.path.join(core_api_root, "setup", "root_binaries")
     for file_name in os.listdir(root_binaries_folder):
         src_file = os.path.join(root_binaries_folder, file_name)
@@ -1178,8 +1429,7 @@ def _interactive_setup(log, install_root, check_storage_path_exists, force):
     fh.write("Linux: '%s'\n" % locations_dict["linux2"])                    
     fh.write("\n")
     fh.write("# End of file.\n")
-    fh.close()    
-    os.chmod(sg_code_location, 0444)
+    fh.close()
     
         
     # update the roots file in the config to match our settings

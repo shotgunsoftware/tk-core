@@ -142,6 +142,18 @@ class FolderIOReceiver(object):
                             "metadata": metadata, 
                             "action": "copy"})              
 
+    def create_symlink(self, path, target, metadata):
+        """
+        Called by the folder creation classes when a symlink is to be created.
+        
+        :param path: path to the symlink that should be created
+        :param target: symlink target
+        :param metadata: configuration metadata from folder creation system 
+        """
+        self._items.append({"path": path, 
+                            "target": target, 
+                            "metadata": metadata, 
+                            "action": "symlink"})              
 
 
 def folder_preflight_checks(tk, path_cache, path, entity_type, entity_id, entity_name):

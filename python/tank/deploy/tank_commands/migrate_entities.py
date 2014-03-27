@@ -10,18 +10,16 @@
 
 """
 Handle migration of TankPublishedFile entities to PublishedFile entities
-
 """
 
 import sys
 import os
 import shutil
-#from pprint import pprint
 from itertools import chain
 
 from tank_vendor import yaml
 from .action_base import Action
-from .apps import AppUpdatesAction
+from . import update 
 from ...errors import TankError
 from ...platform import constants
 from ...util import shotgun
@@ -1223,11 +1221,12 @@ class MigratePublishedFileEntitiesAction(Action):
         """
         Action.__init__(self, 
                         "migrate_published_file_entities", 
-                        Action.GLOBAL,#Action.PC_LOCAL, 
-                        ("Migrates TankPublishedFile entities to PublishedFile entities & switches this configuration to use PublishedFile entities"), 
+                        Action.GLOBAL, 
+                        ("Migrates your publishes from TankPublishedFile to PublishedFile and "
+                         "sets this configuration to use PublishedFile whenever publishing."), 
                         "Admin")
         
-    def run(self, log, args):
+    def run_interactive(self, log, args):
         """
         Run this action with the given args
         """
@@ -1495,7 +1494,7 @@ class MigratePublishedFileEntitiesAction(Action):
             else:
                 # run the app update:
                 try:
-                    self.__run_app_updates_action(log)
+                    update.check_for_updates(log, self.tk)
                     log.info("App update completed successfully.")
                 except TankError, e:
                     raise TankError("App update failed with the following error: %s" % e)
@@ -1705,22 +1704,7 @@ class MigratePublishedFileEntitiesAction(Action):
                  "toolkitsupport@shotgunsoftware.com")
         log.info("")
         
-    def __run_app_updates_action(self, log):
-        """
-        Run the app updates action in the same environment as this
-        Action
-        
-        Note, currently this only gets run in 'project' mode
-        """
-        action = AppUpdatesAction()
-        action.tk = self.tk
-        action.context = self.context
-        action.engine = self.engine
-        action.code_install_root = self.code_install_root
-        action.pipeline_config_root = self.pipeline_config_root
-        action.run(log, [])
-        
-        
+
     def __update_pipeline_configurations(self, log, sg_connection, sg_project, current_only, pf_entity_type="PublishedFile"):
         """
         Update all pipeline configurations for this project if we 
@@ -1790,8 +1774,7 @@ class MigratePublishedFileEntitiesAction(Action):
                     fh = open(pc_path, "wt")
                     yaml.dump(pc_data, fh)
                 finally:
-                    fh.close()                        
-                    os.chmod(pc_path, 0444)
+                    fh.close()
         
                 log.debug("Successfully updated pipeline configuration '%s'" % pc_name)
         

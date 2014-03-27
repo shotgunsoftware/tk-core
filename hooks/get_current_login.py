@@ -21,7 +21,7 @@ class GetCurrentLogin(Hook):
     def execute(self, **kwargs):
         """
         Return the login name for the user currently logged in. This is typically used
-        by tank to resolve against the 'login' field in the Shotgun users table in order
+        by Toolkit to resolve against the 'login' field in the Shotgun users table in order
         to extract further metadata.
         """
         if sys.platform == "win32": 

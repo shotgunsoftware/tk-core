@@ -58,9 +58,7 @@ class ConfigItem(QtGui.QWidget):
                 value_str = "<b>Value:</b> Using the default hook that comes bundled with the app."
             else:
                 # user hook
-                hook_folder = bundle.tank.pipeline_configuration.get_hooks_location()
-                hook_path = os.path.join(hook_folder, "%s.py" % value)
-                value_str = "<b>Value:</b> <code>%s</code>" % hook_path
+                value_str = "<b>Value:</b> <code>%s</code>" % value
         
         elif param_type == "template":
             # resolve the template

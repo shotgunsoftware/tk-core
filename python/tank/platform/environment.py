@@ -68,10 +68,9 @@ class Environment(object):
         try:
             env_file = open(self.__env_path, "r")
             data = yaml.load(env_file)
-        except Exception, exp:
-            raise TankError("Could not parse file %s. Error reported: %s" % (self.__env_path, exp))
-        finally:
             env_file.close()
+        except Exception, exp:
+            raise TankError("Could not parse file %s. Error reported: %s" % (self.__env_path, exp))            
      
         self.__env_data = environment_includes.process_includes(self.__env_path, data, self.__context)
         
@@ -347,10 +346,9 @@ class Environment(object):
         try:
             env_file = open(path, "r")
             data = yaml.load(env_file)
+            env_file.close()
         except Exception, exp:
             raise TankError("Could not parse file %s. Error reported: %s" % (path, exp))
-        finally:
-            env_file.close()
         
         return data
     
@@ -361,10 +359,9 @@ class Environment(object):
         try:
             env_file = open(path, "wt")
             yaml.dump(data, env_file)
+            env_file.close()
         except Exception, exp:
             raise TankError("Could not write environment file %s. Error reported: %s" % (path, exp))
-        finally:
-            env_file.close()
         
         
     def find_location_for_engine(self, engine_name):
@@ -384,6 +381,27 @@ class Environment(object):
             yml_file = environment_includes.find_reference(self.__env_path, self.__context, token)
         else:
             tokens = ["engines", engine_name]
+            yml_file = self.__env_path 
+        
+        return (tokens, yml_file)
+        
+    def find_location_for_framework(self, framework_name):
+        """
+        Returns the filename and a list of dictionary keys where a framework instance resides.
+        The dictionary key list (tokens) can be nested, for example
+        [frameworks, tk-frameork-widget_v0.2.x] or just flat [tk-frameork-widget_v0.2.x]
+        """
+        # get the raw data
+        root_yml_data = self.__load_data(self.__env_path)
+        fw_data = root_yml_data["frameworks"][framework_name]
+        
+        if isinstance(fw_data, basestring) and fw_data.startswith("@"):
+            # this is a reference - try to load it in!
+            token = fw_data[1:]
+            tokens = [token]
+            yml_file = environment_includes.find_reference(self.__env_path, self.__context, token)
+        else:
+            tokens = ["frameworks", framework_name]
             yml_file = self.__env_path 
         
         return (tokens, yml_file)
@@ -459,9 +477,10 @@ class Environment(object):
         
         if new_location:
             engine_data[constants.ENVIRONMENT_LOCATION_KEY] = new_location
-            
-        engine_data.update(new_data)
+
+        self._update_settings_recursive(engine_data, new_data)
         self.__write_data(yml_file, yml_data)
+        
         # sync internal data with disk
         self.__refresh()
             
@@ -488,13 +507,79 @@ class Environment(object):
         
         # finally update the file        
         app_data[constants.ENVIRONMENT_LOCATION_KEY] = new_location
-        app_data.update(new_data)
-
+        self._update_settings_recursive(app_data, new_data)
         self.__write_data(yml_file, yml_data)
+        
+        # sync internal data with disk
+        self.__refresh()
+        
+    def update_framework_settings(self, framework_name, new_data, new_location):
+        """
+        Updates the framework configuration
+        """
+        if framework_name not in self.__env_data["frameworks"]:
+            raise TankError("Framework %s does not exist in environment %s" % (framework_name, self.__env_path) )
+        
+        (tokens, yml_file) = self.find_location_for_framework(framework_name)
+        
+        # now update the yml file where the engine is defined
+        yml_data = self.__load_data(yml_file)
+        
+        # now the token may be either [my_fw_ref] or [frameworks, tk-framework-widget_v0.1.x]
+        # find the right chunk in the file
+        framework_data = yml_data 
+        for x in tokens:
+            framework_data = framework_data.get(x)
+        
+        if new_location:
+            framework_data[constants.ENVIRONMENT_LOCATION_KEY] = new_location
+
+        self._update_settings_recursive(framework_data, new_data)
+        self.__write_data(yml_file, yml_data)
+        
         # sync internal data with disk
         self.__refresh()
         
         
+    def _update_settings_recursive(self, settings, new_data):
+        """
+        Recurse through new data passed in and update settings structure accordingly.
+        
+        :param settings: settings dictionary to update with the new values
+        :parma new_data: new settings data to update into the settings dictionary
+        """
+        for name, data in new_data.iteritems():
+            # if data is a dictionary then we may need to recurse to update nested settings:
+            if isinstance(data, dict):
+                setting = settings.get(name)
+                if setting:
+                    if isinstance(setting, list):
+                        # need to handle a list of dictionaries so update
+                        # each item in the list with the new data:
+                        for item in setting:
+                            if isinstance(item, dict):
+                                # make sure we have a unique instance of the data 
+                                # for each item in the list
+                                item_data = copy.deepcopy(data)
+                                # recurse:
+                                self._update_settings_recursive(item, item_data)
+                            else:
+                                # setting type doesn't match data type so skip!
+                                pass
+                                
+                    elif isinstance(setting, dict):
+                        # recurse:
+                        self._update_settings_recursive(setting, data)
+                    else:
+                        # setting type doesn't match data type so skip!
+                        pass
+                else:
+                    # setting didn't exist before so just add it:
+                    settings[name] = data
+                    
+            else:
+                # add new or update existing setting:
+                settings[name] = data
             
     def create_framework_settings(self, yml_file, framework_name, params, location):
         """
@@ -511,7 +596,7 @@ class Environment(object):
         
         data["frameworks"][framework_name] = {}
         data["frameworks"][framework_name][constants.ENVIRONMENT_LOCATION_KEY] = location
-        data["frameworks"][framework_name].update(params)
+        self._update_settings_recursive(data["frameworks"][framework_name], params)
         
         self.__write_data(yml_file, data)
         # sync internal data with disk
