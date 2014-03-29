@@ -1,11 +1,11 @@
 # Copyright (c) 2013 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
@@ -29,8 +29,8 @@ class Template(object):
     Object which manages the translation between paths and file templates
     """
     _key_name_regex = "[a-zA-Z_ 0-9]+"
-    
-    
+
+
     @classmethod
     def _keys_from_definition(cls, definition, template_name, keys):
         """Extracts Template Keys from a definition.
@@ -64,13 +64,13 @@ class Template(object):
                 names_keys[key.name] = key
                 ordered_keys.append(key)
         return names_keys, ordered_keys
-        
+
     def __init__(self, definition, keys, name=None):
         """
         :param definition: Template definition.
         :type definition: String.
         :param keys: Mapping of key names to keys
-        :type keys: Dictionary 
+        :type keys: Dictionary
         :param name: (Optional) name for this template.
         :type name: String.
 
@@ -125,9 +125,9 @@ class Template(object):
     def keys(self):
         """
         Returns keys for this template.
-        
+
         :returns: a dictionary of TemplateKey objects, keyed by TemplateKey name.
-        :rtype: dictionary 
+        :rtype: dictionary
         """
         # First keys should be most inclusive
         return self._keys[0].copy()
@@ -135,12 +135,12 @@ class Template(object):
     def is_optional(self, key_name):
         """
         Returns true if the given key name is optional for this template.
-        
+
         Example: template: {Shot}[_{name}]
         is_optional("Shot") --> Returns False
         is_optional("name") --> Returns True
         """
-        # the key is required if it's in the 
+        # the key is required if it's in the
         # minimum set of keys for this template
         if key_name in min(self._keys):
             # this key is required
@@ -152,18 +152,18 @@ class Template(object):
         """
         Determines keys required for use of template which do not exist
         in a given fields.
-        
+
         Example:
-        
+
             >>> tk.templates["max_asset_work"].missing_keys({})
             ['Step', 'sg_asset_type', 'Asset', 'version', 'name']
-        
-        
+
+
         :param fields: fields to test
         :type fields: mapping (dictionary or other)
         :param skip_defaults: If true, do not treat keys with default values as missing.
         :type skip_defalts: Bool.
-        
+
         :returns: Fields needed by template which are not in inputs keys or which have
                   values of None.
         :rtype: list
@@ -177,11 +177,15 @@ class Template(object):
         Compares two dictionaries to determine keys in second missing in first.
         """
         if skip_defaults:
-            required_keys = [key.name for key in keys.values() if key.default is None]
+            # If a key.name is in fields the user may be trying to override it.  Include it even if it
+            # provides a default.  One use case for this is when a template has a sequence type key
+            # but the user wants that key to be optional.  By setting the value of the key to None
+            # a template that has that key as optional would be used instead, if one exists.
+            required_keys = [key.name for key in keys.values() if key.default is None or key.name in fields]
         else:
             required_keys = keys
 
-        return [x for x in required_keys if (x not in fields) or  (fields[x] is None)]
+        return [x for x in required_keys if (x not in fields) or (fields[x] is None)]
 
     def apply_fields(self, fields):
         """
@@ -190,7 +194,7 @@ class Template(object):
         format a image sequence specifier based on the type of data is being handled.
         For more information about special cases, see the main documentation.
 
-        :param fields: Mapping of keys to fields. Keys must match those in template 
+        :param fields: Mapping of keys to fields. Keys must match those in template
                        definition.
         :type fields: Dictionary
 
@@ -203,10 +207,10 @@ class Template(object):
         """
         Creates path using fields.
 
-        :param fields: Mapping of keys to fields. Keys must match those in template 
+        :param fields: Mapping of keys to fields. Keys must match those in template
                        definition.
         :type fields: Dictionary
-        :param ignore_type: Keys for whom the defined type is ignored. This 
+        :param ignore_type: Keys for whom the defined type is ignored. This
                             allows setting a Key whose type is int with a string value.
         :type  ignore_type: List of strings.
 
@@ -225,13 +229,13 @@ class Template(object):
                 keys = cur_keys
                 break
 
-        
+
         if keys is None:
             raise TankError("Tried to resolve a path from the template %s and a set "
                             "of input fields '%s' but the following required fields were missing "
                             "from the input: %s" % (self, fields, missing_keys))
 
-        # Process all field values through template keys 
+        # Process all field values through template keys
         processed_fields = {}
         for key_name, key in keys.items():
             value = fields.get(key_name)
@@ -243,12 +247,12 @@ class Template(object):
     def _definition_variations(self, definition):
         """
         Determines all possible definition based on combinations of optional sectionals.
-        
+
         "{manne}"               ==> ['{manne}']
         "{manne}_{ludde}"       ==> ['{manne}_{ludde}']
         "{manne}[_{ludde}]"     ==> ['{manne}', '{manne}_{ludde}']
         "{manne}_[{foo}_{bar}]" ==> ['{manne}_', '{manne}_{foo}_{bar}']
-        
+
         """
         # split definition by optional sections
         tokens = re.split("(\[[^]]*\])", definition)
@@ -262,7 +266,7 @@ class Template(object):
                 continue
             if token.startswith('['):
                 # check that optional contains a key
-                if not re.search("{*%s}" % self._key_name_regex, token): 
+                if not re.search("{*%s}" % self._key_name_regex, token):
                     raise TankError("Optional sections must include a key definition.")
 
                 # Add definitions skipping this optional value
@@ -271,7 +275,7 @@ class Template(object):
                 token = re.sub('[\[\]]', '', token)
 
             # check non-optional contains no dangleing brackets
-            if re.search("[\[\]]", token): 
+            if re.search("[\[\]]", token):
                 raise TankError("Square brackets are not allowed outside of optional section definitions.")
 
             # make defintions with token appended
@@ -327,7 +331,7 @@ class Template(object):
         :param path: Path to validate
         :type path: String
         :param fields: Optional: Mapping of key/values with which to add to the fields
-                       extracted from the path before validation happens. 
+                       extracted from the path before validation happens.
         :type fields: Dictionary
         :param skip_keys: Optional: Field names whose values should be ignored
         :type skip_keys: List
@@ -350,7 +354,7 @@ class Template(object):
     def get_fields(self, input_path, skip_keys=None):
         """
         Extracts key name, value pairs from a string.
-        
+
         :param input_path: Source path for values
         :type input_path: String
         :param skip_keys: Optional keys to skip
@@ -383,7 +387,7 @@ class TemplatePath(Template):
         :param definition: Template definition.
         :type definition: String.
         :param keys: Mapping of key names to keys
-        :type keys: Dictionary 
+        :type keys: Dictionary
         :param root_path: Path to project root for this template.
         :type root_path: String.
         :param name: (Optional) name for this template.
@@ -402,7 +406,7 @@ class TemplatePath(Template):
         for definition in self._definitions:
             self._cleaned_definitions.append(self._clean_definition(definition))
 
-        # split by format strings the definition string into tokens 
+        # split by format strings the definition string into tokens
         self._static_tokens = []
         for definition in self._definitions:
             self._static_tokens.append(self._calc_static_tokens(definition))
@@ -414,8 +418,8 @@ class TemplatePath(Template):
     @property
     def parent(self):
         """
-        Creates Template instance for parent directory of current Template. 
-        
+        Creates Template instance for parent directory of current Template.
+
         :returns: Parent's template
         :rtype: Template instance
         """
@@ -438,11 +442,11 @@ class TemplateString(Template):
         self.validate_with = validate_with
         self._prefix = "@"
 
-        # split by format strings the definition string into tokens 
+        # split by format strings the definition string into tokens
         self._static_tokens = []
         for definition in self._definitions:
             self._static_tokens.append(self._calc_static_tokens(definition))
-    
+
     @property
     def parent(self):
         """
@@ -454,7 +458,7 @@ class TemplateString(Template):
     def get_fields(self, input_path, skip_keys=None):
         """
         Given a path, return mapping of key values based on template.
-        
+
         :param input_path: Source path for values
         :type input_path: String
         :param skip_keys: Optional keys to skip
@@ -500,7 +504,7 @@ class TemplatePathParser(object):
         self.static_tokens = static_tokens
         self.fields = {}
         self.input_path = None
-        self.last_error = "Unable to parse path" 
+        self.last_error = "Unable to parse path"
 
     def parse_path(self, input_path, skip_keys):
         """
@@ -511,7 +515,7 @@ class TemplatePathParser(object):
         :param skip_keys: Keys for whom we do not need to find values.
         :type skip_keys: List of strings.
 
-        :returns: Mapping of key names to values or None. 
+        :returns: Mapping of key names to values or None.
         """
         skip_keys = skip_keys or []
         input_path = os.path.normpath(input_path)
@@ -525,10 +529,10 @@ class TemplatePathParser(object):
                 # (e.g. template: foo/bar - input path foo/bar)
                 return {}
             else:
-                # template with no keys - in this case not matching 
+                # template with no keys - in this case not matching
                 # the input path. Return for no match.
                 return None
-            
+
 
         self.fields = {}
         last_index = None # end index of last static token
@@ -550,11 +554,11 @@ class TemplatePathParser(object):
             # Check that there are static token left to process
             if token_index < len(self.static_tokens):
                 cur_token = self.static_tokens[token_index]
-                
+
                 start_index = self.find_index_of_token(cur_key, cur_token, input_path, last_index)
                 if start_index is None:
                     return None
-                
+
                 if cur_key.length is not None:
                     # there is a minimum length imposed on this key
                     if last_index and (start_index-last_index) < cur_key.length:
@@ -562,7 +566,7 @@ class TemplatePathParser(object):
                         start_index = self.find_index_of_token(cur_key, cur_token, input_path, start_index+1)
                         if start_index is None:
                             return None
-                        
+
 
                 end_index = start_index + len(cur_token)
             else:
@@ -578,7 +582,7 @@ class TemplatePathParser(object):
                             "but path does not fit the template.")
                     self.last_error = msg % input_path
                     return None
-                
+
                 if key_name not in skip_keys:
                     value_str = input_path[last_index:start_index]
                     processed_value = self._process_value(value_str, cur_key, self.fields)
@@ -614,13 +618,13 @@ class TemplatePathParser(object):
             # value is treated as string as it is compared to input path
             # have to format correctly though otherwise search may fail!
             value = key.str_from_value(self.fields[key.name])
-            
+
             # check that value exists in the remaining input path
             if value in input_path[last_index:]:
                 value_index = input_path.index(value, last_index) + len(value)
                 # check that token is in path after known value
                 if not token in input_path_lower[value_index:]:
-                    msg = ("Tried to extract fields from path '%s'," + 
+                    msg = ("Tried to extract fields from path '%s'," +
                            "but path does not fit the template.")
                     self.last_error = msg % input_path
                     return None
@@ -642,7 +646,7 @@ class TemplatePathParser(object):
                 self.last_error = msg % input_path
                 return None
 
-            start_index = input_path_lower.index(token, last_index) 
+            start_index = input_path_lower.index(token, last_index)
         return start_index
 
 
@@ -660,7 +664,7 @@ class TemplatePathParser(object):
             # (ticket 24810)
             self.last_error = "%s: Failed to get value for key '%s' - %r" % (self, key_name, e)
             return None
-        
+
         if fields.get(key_name, value) != value:
             msg = "%s: Conflicting values found for key %s: %s and %s"
             self.last_error = msg % (self, key_name, fields[key_name], value)
@@ -670,7 +674,7 @@ class TemplatePathParser(object):
             msg = "%s: Invalid value found for key %s: %s"
             self.last_error = msg % (self, key_name, value)
             return None
-        
+
         return value
 
 def read_templates(pipeline_configuration):
@@ -681,18 +685,18 @@ def read_templates(pipeline_configuration):
 
     :returns: Dictionary of form {template name: template object}
     """
-    
-    data = pipeline_configuration.get_templates_config()            
-    
+
+    data = pipeline_configuration.get_templates_config()
+
     # get dictionaries from the templates config file:
     def get_data_section(section_name):
-        # support both the case where the section 
+        # support both the case where the section
         # name exists and is set to None and the case where it doesn't exist
         d = data.get(section_name)
         if d is None:
             d = {}
-        return d            
-            
+        return d
+
     keys = templatekey.make_keys(get_data_section("keys"))
     template_paths = make_template_paths(get_data_section("paths"), keys, pipeline_configuration.get_data_roots() )
     template_strings = make_template_strings(get_data_section("strings"), keys, template_paths)
@@ -808,7 +812,7 @@ def _process_templates_data(data, template_type):
         if template_type == "path":
             if "root_name" not in cur_data:
                 cur_data["root_name"] = constants.PRIMARY_STORAGE_NAME
-            
+
             root_name = cur_data["root_name"]
         else:
             root_name = None
@@ -828,11 +832,11 @@ def _process_templates_data(data, template_type):
 
     if dups_msg:
         raise TankError("It looks like you have one or more "
-                        "duplicate entries in your templates.yml file. Each template path that you " 
+                        "duplicate entries in your templates.yml file. Each template path that you "
                         "define in the templates.yml file needs to be unique, otherwise toolkit "
                         "will not be able to resolve which template a particular path on disk "
                         "corresponds to. The following duplicate "
-                        "templates were detected:\n %s" % dups_msg) 
+                        "templates were detected:\n %s" % dups_msg)
 
     return templates_data
 
