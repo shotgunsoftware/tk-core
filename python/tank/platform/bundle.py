@@ -95,22 +95,6 @@ class TankBundle(object):
         template_name = self.get_setting_from(other_settings, key)        
         return self.get_template_by_name(template_name)
 
-    def execute_hook_from(self, other_settings, key, **kwargs):
-        """
-        Internal method - not part of Tank's public interface.
-        
-        Shortcut for grabbing the hook name used in the settings dictionary 
-        passed in and then calling execute_hook_by_name() on it.
-        
-        :param other_settings: dictionary to use to find setting
-        :param key: setting name
-        :param **kwargs: arguments to be passed to the hook
-        """
-        hook_name = self.get_setting_from(other_settings, key)
-        return self.__execute_hook_internal(key, hook_name, None, **kwargs)
-
-
-
     ##########################################################################################
     # properties
 
