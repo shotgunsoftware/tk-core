@@ -635,7 +635,33 @@ class Environment(object):
         if engine_name not in data["engines"]:
             raise TankError("Engine %s does not exist in environment %s" % (engine_name, self.__env_path) )
 
-        # it is possible that the apps dictionary is actually an @include - in this case, raise an error
+        # it is possible that the whole engine is referenced via an @include. In this case, 
+        # raise an error. Here's an example structure of what that looks like:
+        #
+        # engines:
+        #   tk-houdini: '@tk-houdini-shot'
+        #   tk-maya: '@tk-maya-shot-lighting'
+        #   tk-motionbuilder: '@tk-motionbuilder-shot'
+        engines_section = data["engines"][engine_name]
+        if isinstance( engines_section, str) and engines_section.startswith("@"):
+            raise TankError("The configuration for engine '%s' located in the environment file '%s' has a "
+                            "refererence to another file ('%s'). This type "
+                            "of configuration arrangement cannot currently be automatically " 
+                            "modified - please edit it by hand!" % (engine_name, self.__env_path, engines_section))
+
+        # it is possible that the 'apps' dictionary is actually an @include - in this case, raise an error
+        # Here's an example of what this looks like:
+        #
+        # tk-maya:
+        #   apps: '@maya_apps'
+        #   debug_logging: false
+        #   location: {name: tk-maya, type: app_store, version: v0.3.9}
+        #   menu_favourites:
+        #   - {app_instance: tk-multi-workfiles, name: Shotgun File Manager...}
+        #   - {app_instance: tk-multi-snapshot, name: Snapshot...}
+        #   - {app_instance: tk-multi-workfiles, name: Shotgun Save As...}
+        #   - {app_instance: tk-multi-publish, name: Publish...}
+        #   template_project: shot_work_area_maya
         apps_section = data["engines"][engine_name]["apps"]
         if isinstance( apps_section, str) and apps_section.startswith("@"):
             raise TankError("The configuration for engine '%s' located in the environment file '%s' has an "
