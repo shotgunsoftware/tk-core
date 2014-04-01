@@ -50,6 +50,7 @@ class Engine(TankBundle):
         self.__env = env
         self.__engine_instance_name = engine_instance_name
         self.__applications = {}
+        self.__shared_frameworks = {}
         self.__commands = {}
         self.__currently_initializing_app = None
         
@@ -283,9 +284,7 @@ class Engine(TankBundle):
         
         This method should not be subclassed.
         """
-        for fw in self.frameworks.values():
-            fw._destroy_framework()
-
+        self.__destroy_frameworks()
         self.__destroy_apps()
         
         self.log_debug("Destroying %s" % self)
@@ -717,6 +716,24 @@ class Engine(TankBundle):
         f.close()
         return css_data
 
+    def _register_shared_framework(self, instance_name, inst):
+        """
+        Registers a framework with the specified instance name.
+        This allows framework instances to be shared between bundles.
+
+        This method is exposed for use by the platform.framework module.
+        """
+        self.__shared_frameworks[instance_name] = inst
+
+    def _get_shared_framework(self, instance_name):
+        """
+        Get a framework instance by name. If no framework with the specified
+        name has been loaded yet, None is returned.
+
+        This method is exposed for use by the platform.framework module.
+        """
+        return self.__shared_frameworks.get(instance_name, None)
+
     def __create_main_thread_invoker(self):
         """
         Create the object used to invoke function calls on the main thread when
@@ -851,6 +868,18 @@ class Engine(TankBundle):
                     self.log_warning(msg)
                 
             
+    def __destroy_frameworks(self):
+        """
+        Destroy frameworks
+        """
+        # Destroy engine's frameworks
+        for fw in self.frameworks.values():
+            if not fw.is_shared:
+                fw._destroy_framework()
+        # Destroy shared frameworks
+        for fw in self.__shared_frameworks.values():
+            fw._destroy_framework()
+        self.__shared_frameworks = {}
 
     def __destroy_apps(self):
         """
