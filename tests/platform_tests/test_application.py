@@ -157,6 +157,9 @@ class TestExecuteHook(TestApplication):
         app = self.engine.apps["test_app"]        
         self.assertTrue(app.execute_hook("test_hook_new_style_config_old_style_hook", dummy_param=True))
 
+    def test_default_syntax_with_new_style_hook(self):
+        app = self.engine.apps["test_app"]        
+        self.assertTrue(app.execute_hook("test_default_syntax_with_new_style_hook", dummy_param=True))
 
 
 class TestRequestFolder(TestApplication):

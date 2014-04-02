@@ -24,9 +24,8 @@ engines:
                 test_hook_inheritance_1: "{self}/inheritance1.py"
                 test_hook_inheritance_2: "{config}/inherit.py"
                 
-                
                 test_hook_new_style_config_old_style_hook: "{config}/config_test_hook.py"
-                
+                test_default_syntax_with_new_style_hook: default                     
 
                 test_simple_dictionary:
                     test_str: a
