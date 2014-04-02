@@ -384,6 +384,8 @@ class TankBundle(object):
         if settings_value is None:
             raise TankError("%s config setting %s: Configuration value cannot be None!" % (self, settings_name))
         
+        path = None
+        
         # first the default case
         if settings_value == constants.TANK_BUNDLE_DEFAULT_HOOK_SETTING:
             # hook settings points to the default one.
@@ -405,6 +407,8 @@ class TankBundle(object):
             # note that this bundle base class level has no notion of what an engine or app is
             # so we basically do this duck-type style, basically see if there is an engine
             # attribute and if so, attempt the replacement:
+            engine_name = None
+            resolved_hook_name = default_hook_name
             if constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN in default_hook_name:
                 try:
                     engine_name = self.engine.name
@@ -412,21 +416,29 @@ class TankBundle(object):
                     raise TankError("%s: Failed to be able to find the associated engine "
                                     "when trying to access hook %s" % (self, settings_value))
                 
-                updated_hook_name = default_hook_name.replace(constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN, engine_name)
-                path = os.path.join(self.disk_location, "hooks", "%s.py" % updated_hook_name)
-
-                if not os.path.exists(path):
-                    # produce user friendly error message
-                    raise TankError("%s config setting %s: This hook is using an engine specific "
-                                    "hook setup (e.g '%s') but no hook '%s' has been provided with the app. "
-                                    "In order for this app to work with engine %s, you need to provide a "
-                                    "custom hook implementation. Please contact support for more "
-                                    "information" % (self, settings_name, default_hook_name, path, engine_name))
+                resolved_hook_name = default_hook_name.replace(constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN, engine_name)
                 
+            # get the full path for the resolved hook name:
+            if resolved_hook_name.startswith("{self}"):
+                # new format hook: 
+                #  default_value: '{self}/my_hook.py'
+                hooks_folder = os.path.join(self.disk_location, "hooks")
+                path = resolved_hook_name.replace("{self}", hooks_folder)
+                path = path.replace("/", os.path.sep)
             else:
-                # no dynamic default value. No need to produce a special error message in this case
-                # if the file does not exist - the loader will check too.
-                path = os.path.join(self.disk_location, "hooks", "%s.py" % default_hook_name)  
+                # old style hook: 
+                #  default_value: 'my_hook'
+                path = os.path.join(self.disk_location, "hooks", "%s.py" % resolved_hook_name)
+            
+            # if the hook uses the engine name then output a more useful error message if a hook for 
+            # the engine can't be found.
+            if engine_name and not os.path.exists(path):
+                # produce user friendly error message
+                raise TankError("%s config setting %s: This hook is using an engine specific "
+                                "hook setup (e.g '%s') but no hook '%s' has been provided with the app. "
+                                "In order for this app to work with engine %s, you need to provide a "
+                                "custom hook implementation. Please contact support for more "
+                                "information" % (self, settings_name, default_hook_name, path, engine_name))                
             
         elif settings_value.startswith("{self}"):
             # bundle local reference
@@ -541,10 +553,8 @@ class TankBundle(object):
                 # expand the default value to be referenced from {self} and with the .py suffix 
                 # for backwards compatibility with the old syntax where the default value could
                 # just be 'hook_name' with implicit '{self}' and no suffix!
-                if not default_value.startswith("{self}/"):
-                    default_value = "{self}/%s" % default_value
-                if not default_value.endswith(".py"):
-                    default_value = "%s.py" % default_value                  
+                if not default_value.startswith("{self}"):
+                    default_value = "{self}/%s.py" % default_value
                 
                 # add to inheritance path
                 unresolved_hook_paths.insert(0, default_value)
