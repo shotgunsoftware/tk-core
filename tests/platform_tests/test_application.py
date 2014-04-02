@@ -153,6 +153,9 @@ class TestExecuteHook(TestApplication):
         app = self.engine.apps["test_app"]
         self.assertEqual(app.execute_hook_method("test_hook_inheritance_2", "foo2", bar=True), "custom class base class")
         
+    def test_new_style_config_old_style_hook(self):
+        app = self.engine.apps["test_app"]        
+        self.assertTrue(app.execute_hook("test_hook_new_style_config_old_style_hook", dummy_param=True))
 
 
 
