@@ -537,6 +537,15 @@ class TankBundle(object):
             
             if default_value: # possible not to have a default value!
                 default_value = default_value.replace(constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN, self.engine.name)
+            
+                # expand the default value to be referenced from {self} and with the .py suffix 
+                # for backwards compatibility with the old syntax where the default value could
+                # just be 'hook_name' with implicit '{self}' and no suffix!
+                if not default_value.startswith("{self}/"):
+                    default_value = "{self}/%s" % default_value
+                if not default_value.endswith(".py"):
+                    default_value = "%s.py" % default_value                  
+                
                 # add to inheritance path
                 unresolved_hook_paths.insert(0, default_value)
         
