@@ -329,6 +329,11 @@ class Engine(TankBundle):
         if "description" not in properties and self.__currently_initializing_app:
             properties["description"] = self.__currently_initializing_app.description
         
+        if "icon" not in properties and self.__currently_initializing_app:
+            icon_file = os.path.join(self.__currently_initializing_app.disk_location, "icon_256.png")
+            if os.path.exists(icon_file):
+                properties["icon"] = icon_file
+
         # check for duplicates!
         if name in self.__commands:
             # already something in the dict with this name
