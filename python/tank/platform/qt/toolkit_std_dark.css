@@ -21,6 +21,12 @@ QWidget
     font-size: 11px;
 }
 
+QSplashScreen 
+{
+    background-color: none;
+    color: none;    
+}
+
 QFrame, QLineEdit, QComboBox, QSpinBox
 {
     background-color: rgb(52, 52, 52);

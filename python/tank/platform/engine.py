@@ -329,6 +329,9 @@ class Engine(TankBundle):
         if "description" not in properties and self.__currently_initializing_app:
             properties["description"] = self.__currently_initializing_app.description
         
+        if "icon" not in properties and self.__currently_initializing_app:
+            properties["icon"] = self.__currently_initializing_app.descriptor.get_icon_256()
+
         # check for duplicates!
         if name in self.__commands:
             # already something in the dict with this name
