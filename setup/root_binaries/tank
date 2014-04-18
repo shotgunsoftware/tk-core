@@ -95,7 +95,7 @@ else
    fi
 
    # now get path to parent
-   parent_location=`cat "$parent_config_file"`
+   parent_location=$( eval echo $( cat "$parent_config_file" ) )
    # and check that it exists...
    if [ ! -d "$parent_location" ];
    then
