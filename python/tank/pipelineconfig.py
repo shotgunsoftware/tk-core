@@ -397,6 +397,16 @@ class PipelineConfiguration(object):
             try:
                 fh = open(curr_linkback_file, "rt")
                 data = fh.read().strip() # remove any whitespace, keep text
+                # check if env vars are used in the files instead of explicit paths
+                if data.startswith('$'):
+                    log.debug("Trying to read config specified by env variable %s" % data)
+                    try:
+                        data = os.environ[data[1:]]
+                        log.debug("expanded env variable to => %s" % (data))
+                    except KeyError:
+                        # we still want to raise the default exception
+                        log.warning("Envrionment variable %s referred to in '%s' does not exist" % (data, curr_linkback_file))
+                        raise
                 if data not in ["None", "undefined"] and os.path.exists(data):
                     install_path = data
                 fh.close()                    

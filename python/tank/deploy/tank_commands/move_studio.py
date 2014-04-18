@@ -122,6 +122,16 @@ class MoveStudioInstallAction(Action):
             try:
                 fh = open(studio_linkback_files[x], "rt")
                 data = fh.read().strip() # remove any whitespace, keep text
+                # check if env vars are used in the files instead of explicit paths
+                if data.startswith('$'):
+                    log.debug("Trying to move config specified by env variable %s" % data)
+                    try:
+                        data = os.environ[data[1:]]
+                        log.debug("expanded env variable to => %s" % (data))
+                    except KeyError:
+                        # we still want to raise the default exception
+                        log.warning('Envrionment variable %s does not exist' % data)
+                        raise
                 if data in ["None", "undefined"]:
                     current_studio_refs[x] = None
                 else:

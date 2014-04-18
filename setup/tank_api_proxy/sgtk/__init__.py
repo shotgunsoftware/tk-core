@@ -28,7 +28,17 @@ if not os.path.exists(parent_cfg_path):
 # now read our parent file
 fh = open(parent_cfg_path, "rt")
 try:
-    parent_path = fh.readline().rstrip()
+    parent_path = fh.readline().strip()
+    # check if env vars are used in the files instead of explicit paths
+    if parent_path.startswith('$'):
+        log.debug("Trying to read config specified by env variable %s" % parent_path)
+        try:
+            parent_path = os.environ[parent_path[1:]]
+            log.debug("expanded env variable to => %s" % (parent_path))
+        except KeyError:
+            # we still want to raise the default exception
+            log.warning("Envrionment variable %s referred to in '%s' does not exist" % (parent_path, parent_cfg_path))
+            raise
 finally:
     fh.close()
 
