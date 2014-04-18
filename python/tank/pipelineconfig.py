@@ -34,7 +34,7 @@ class PipelineConfiguration(object):
     create directly via constructor.
     """
 
-    def __init__(self, pipeline_configuration_path):
+    def __init__(self, pipeline_configuration_path, nonproject=False):
         """
         Constructor. Do not call this directly, use the factory methods
         at the bottom of this file.
@@ -45,6 +45,7 @@ class PipelineConfiguration(object):
         that were registered in shotgun, regardless of how the symlink setup
         is handled on the OS level.
         """
+        self._nonproject = nonproject
         self._pc_root = pipeline_configuration_path
 
         # validate that the current code version matches or is compatible with
@@ -74,12 +75,18 @@ class PipelineConfiguration(object):
 
         self._roots = get_pc_roots_metadata(self._pc_root)
 
-        # get the project tank disk name (Project.tank_name), stored in the PC metadata file.
-        data = get_pc_disk_metadata(self._pc_root)
-        if data.get("project_name") is None:
-            raise TankError("Project name not defined in config metadata for config %s! "
+        try:
+            # get the project tank disk name (Project.tank_name), stored in the PC metadata file.
+            data = get_pc_disk_metadata(self._pc_root)
+            if data.get("project_name") is None:
+                raise TankError("Project name not defined in config metadata for config %s! "
                             "Please contact support." % self._pc_root)
-        self._project_name = data.get("project_name")
+            self._project_name = data.get("project_name")
+        except TankError:
+            if self.is_nonproject():
+                self._project_name = None
+            else:
+                raise
 
         # cache fields lazily populated on getter access
         self._project_id = None
@@ -125,6 +132,9 @@ class PipelineConfiguration(object):
         Returns the name of this PC.
         May connect to Shotgun to retrieve this.
         """
+        if self.is_nonproject():
+            return constants.NONPROJECT_PIPELINE_CONFIG_NAME
+
         if self._pc_name is None:
             # try to get it from the cache file
             data = get_pc_disk_metadata(self._pc_root)
@@ -301,10 +311,12 @@ class PipelineConfiguration(object):
         # get rid of any slashes at the end
         root_value = root_value.rstrip("/\\")
         # now root value is "/foo/bar", "c:" or "\\hello" 
-        
+
         # concat the full path.
-        full_path = root_value + separator + self._project_name
-        
+        full_path = root_value
+        if not self.is_nonproject():
+            full_path = full_path + separator + self._project_name
+
         # note that project name may be "foo/bar/baz" even on windows.
         # now get all the separators adjusted.
         full_path = full_path.replace("\\", separator).replace("/", separator)
@@ -412,6 +424,12 @@ class PipelineConfiguration(object):
                     
         return install_path
 
+
+    def is_nonproject(self):
+        """
+        Returns True is this pipeline configuration is non-project
+        """
+        return self._nonproject
 
     def get_apps_location(self):
         """
@@ -791,19 +809,63 @@ def from_path(path):
 
     cur_path = path
     config_path = None
+    found_back_map = False
     while True:
         config_path = os.path.join(cur_path, "tank", "config", constants.CONFIG_BACK_MAPPING_FILE)
         # need to test for something in project vs studio config
         if os.path.exists(config_path):
+            found_back_map = True
             break
         parent_path = os.path.dirname(cur_path)
         if parent_path == cur_path:
-            # Topped out without finding config
-            raise TankError("Cannot create a Configuration from path '%s' - this path does "
-                            "not belong to an Sgtk Project!" % path)
+            break
         cur_path = parent_path
 
-    # all right - now read the config and get all the registered pipeline configs.
+    # if it isn't a data path then see if there is a configuration for non-project environments
+    found_nonproject_config = False
+    if not found_back_map:
+        cur_path = path
+        nonproject_config_path = None
+
+        while True:
+            nonproject_config_path = os.path.join(cur_path, "tank", "config", constants.CONFIG_NONPROJECT_FILE)
+            if os.path.exists(nonproject_config_path):
+                found_nonproject_config = True
+                break
+            parent_path = os.path.dirname(cur_path)
+            if parent_path == cur_path:
+                break
+            cur_path = parent_path
+
+        if not found_nonproject_config:
+            # Topped out without finding config
+            raise TankError("Cannot create a Configuration from path '%s' - this path does "
+                            "not belong to a Sgtk Project or have a non-project config!" % path)
+
+    if found_nonproject_config:
+        # load up a config to use when not in a project
+        try:
+            fh = open(nonproject_config_path, "r")
+            try:
+                data = yaml.load(fh)
+            finally:
+                fh.close()
+        except Exception, e:
+            raise TankError("Looks like a config file is corrupt. Please contact "
+                            "support! File: '%s' Error: %s" % (nonproject_config_path, e))
+
+        # get all the registered pcs for the current platform
+        current_os_nonproject_config = data.get(sys.platform)
+
+        if current_os_nonproject_config is None:
+            raise TankError("The Shotgun non-project configuration at '%s' exists but "
+                    "it has not been configured to work with the current "
+                    "operating system." % current_os_nonproject_config)
+
+        return PipelineConfiguration(current_os_nonproject_config, nonproject=True)
+
+    # all right - found a back mapping config
+    # now read the config and get all the registered pipeline configs.
     try:
         fh = open(config_path, "r")
         try:
@@ -1047,8 +1109,8 @@ def _sanitize_path(path, separator):
     :param separator: the os.sep to adjust the path for. / on nix, \ on win.
     :returns: cleaned up path
     """
-    if path is None:
-        return None
+    if not path:
+        return path
     
     # first, get rid of any slashes at the end
     # after this step, path value will be "/foo/bar", "c:" or "\\hello"
