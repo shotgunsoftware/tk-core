@@ -35,6 +35,44 @@ class Hook(object):
     def parent(self):
         return self.__parent
     
+    def get_publish_path(self, sg_publish_data):
+        """
+        Resolves a local path on disk given a shotgun 
+        data dictionary representing a publish.
+        
+        :param sg_publish_data: Shotgun dictionary containing
+                                information about a publish. Needs to at least 
+                                contain a type, id and a path key. 
+        :returns: String representing a local path on disk.
+        """
+        return self.get_publish_paths([ sg_publish_data ])[0]
+        
+    def get_publish_paths(self, sg_publish_data_list):
+        """
+        Returns several local paths on disk given a
+        list of shotgun data dictionaries representing publishes.
+        
+        :param sg_publish_data_list: List of shotgun data dictionaries 
+                                     containing publish data. Each dictionary 
+                                     needs to at least contain a type, id and 
+                                     a path key.
+        :returns: List of strings representing local paths on disk.
+        """
+        paths = []
+        for sg_data in sg_publish_data_list:
+            path_field = sg_data.get("path")
+            if path_field is None:
+                raise TankError("Cannot resolve path from publish! The shotgun dictionary %s does "
+                                "not contain a valid path definition" % sg_data)
+            
+            local_path = path_field.get("local_path")
+            if local_path is None:
+                raise TankError("Cannot resolve path from publish! The shotgun dictionary %s does "
+                                "not contain a valid path definition" % sg_data)
+            paths.append(local_path)
+        
+        return paths
+    
     def load_framework(self, framework_instance_name):
         """
         Loads and returns a framework given an environment instance name.
