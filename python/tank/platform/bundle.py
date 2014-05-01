@@ -555,9 +555,17 @@ class TankBundle(object):
                 # just be 'hook_name' with implicit '{self}' and no suffix!
                 if not default_value.startswith("{self}"):
                     default_value = "{self}/%s.py" % default_value
-                
-                # add to inheritance path
-                unresolved_hook_paths.insert(0, default_value)
+                    
+                # so now we have a path to a potential default hook inside the app or engine
+                # There is however one possibility when there may not be a hook, and this is 
+                # when {engine_name} is defined as part of the default value, but no default hook
+                # exists for the engine that we are currently running. In this case, we don't want
+                # to wedge in this non-existing hook file into the inheritance chain because it does
+                # not exist!
+                full_path = self.__resolve_hook_path(settings_name, default_value)
+                if os.path.exists(full_path):
+                    # add to inheritance path
+                    unresolved_hook_paths.insert(0, default_value)
         
         # resolve paths into actual file paths
         resolved_hook_paths = [self.__resolve_hook_path(settings_name, x) for x in unresolved_hook_paths]

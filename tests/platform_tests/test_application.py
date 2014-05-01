@@ -161,6 +161,15 @@ class TestExecuteHook(TestApplication):
         app = self.engine.apps["test_app"]        
         self.assertTrue(app.execute_hook("test_default_syntax_with_new_style_hook", dummy_param=True))
 
+    def test_default_syntax_missing_implementation(self):
+        """
+        Test the case when the default hook defined in the manifest is missing.
+        This is common when using the {engine_name} token and a user is trying
+        to create a hook which supports an engine which the app does not yet support.  
+        """
+        app = self.engine.apps["test_app"]                
+        self.assertEqual(app.execute_hook_method("test_default_syntax_missing_implementation", "test_method"), "hello")
+        
 
 class TestRequestFolder(TestApplication):
     

@@ -69,6 +69,9 @@ configuration:
         type: hook
         default_value: "{self}/test_hook.py"
     
+    test_default_syntax_missing_implementation:
+        type: hook
+        default_value: "{self}/thisfiledoesnotexist.py"
     
     
     test_icon:
