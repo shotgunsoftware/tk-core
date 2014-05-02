@@ -96,14 +96,15 @@ class Engine(TankBundle):
                 self.log_debug("Appending to PYTHONPATH: %s" % python_path)
                 sys.path.append(python_path)
 
+
+        # initial init pass on engine
+        self.init_engine()
+
         # try to pull in QT classes and assign to tank.platform.qt.XYZ
         base_def = self._define_qt_base()
         qt.QtCore = base_def.get("qt_core")
         qt.QtGui = base_def.get("qt_gui")
         qt.TankDialogBase = base_def.get("dialog_base")
-
-        # initial init pass on engine
-        self.init_engine()
         
         # create invoker to allow execution of functions on the
         # main thread:
