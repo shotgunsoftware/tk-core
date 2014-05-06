@@ -1049,7 +1049,7 @@ def _context_data_from_cache(tk, entity_type, entity_id):
             raise TankError("The path '%s' associated with %s id %s does not " 
                             "resolve correctly. This may be an indication of an issue "
                             "with the local storage setup. Please contact " 
-                            "sgtksupport@shotgunsoftware.com" % (curr_path, entity_type, entity_id))
+                            "toolkitsupport@shotgunsoftware.com" % (curr_path, entity_type, entity_id))
 
         # grab the name for the context entity
         if curr_entity["type"] == entity_type and curr_entity["id"] == entity_id:
