@@ -808,10 +808,7 @@ class TankConfigInstaller(object):
         
         clone_tmp = os.path.join(tempfile.gettempdir(), uuid.uuid4().hex)
         self._log.info("Attempting to clone git repository '%s'..." % git_repo_str)
-
-        if os.system("git clone \"%s\" %s" % (git_repo_str, clone_tmp)) != 0:
-            raise TankError("Could not clone git repository '%s'. Note that in order to use this "
-                            "feature, git must be installed on your system and accessible via the PATH." % git_repo_str)
+        self.__clone_git_repo(git_repo_str, clone_tmp)
         
         return clone_tmp
         
@@ -970,12 +967,24 @@ class TankConfigInstaller(object):
         if self._config_mode == "git":
             # clone the config into place
             self._log.info("Cloning git configuration into '%s'..." % target_path)
-            if os.system("git clone \"%s\" %s" % (self._config_uri, target_path)) != 0:
-                raise TankError("Could not clone git repository '%s'!" % self._config_uri)
-            
+            self.__clone_git_repo(self._config_uri, target_path)
         else:
             # copy the config from its source location into place
             _copy_folder(self._log, self._cfg_folder, target_path )
+            
+    def __clone_git_repo(self, repo_path, target_path):
+        """
+        Clone the specified git repo into the target path
+        
+        :param repo_path:   The git repo path to clone
+        :param target_path: The target path to clone the repo to
+        :raises:            TankError if the clone command fails
+        """
+        # Note: git doesn't like paths in single quotes when running on 
+        # windows - it also prefers to use forward slashes!
+        sanitized_repo_path = repo_path.replace(os.path.sep, "/")
+        if os.system("git clone \"%s\" \"%s\"" % (sanitized_repo_path, target_path)) != 0:
+            raise TankError("Could not clone git repository '%s'!" % repo_path)     
 
 
 
