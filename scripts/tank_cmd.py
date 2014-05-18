@@ -692,6 +692,9 @@ def _resolve_shotgun_entity(log, entity_type, entity_search_token, constrain_by_
 
     # if entity_search_token is on the form ghosts:P01, limit by project
     (entity_only_search_token, projs) = _preprocess_projects(log, sg, entity_search_token, constrain_by_project_id)
+    
+    print entity_only_search_token
+    print projs
 
     try:
         shotgun_filters = []
