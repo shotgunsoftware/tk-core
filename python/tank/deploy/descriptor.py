@@ -433,7 +433,6 @@ def get_from_location(app_or_engine, pipeline_config, location_dict):
     """
     from .app_store_descriptor import TankAppStoreDescriptor
     from .dev_descriptor import TankDevDescriptor
-    from .github_descriptor import TankGitHubDescriptor
     from .git_descriptor import TankGitDescriptor
     from .manual_descriptor import TankManualDescriptor
 
@@ -453,11 +452,6 @@ def get_from_location(app_or_engine, pipeline_config, location_dict):
     # location: {"type": "git", "path": "/path/to/repo.git", "version": "v0.2.1"}
     elif location_dict.get("type") == "git":
         return TankGitDescriptor(pipeline_config, location_dict, app_or_engine)
-
-    # github public repo
-    # location: {"type": "github", "vendor": "shotgunsoftware", "repo": "tk-nuke", "version": "v0.2.1"}
-    elif location_dict.get("type") == "github":
-        return TankGitHubDescriptor(pipeline_config, location_dict, app_or_engine)
 
     # local dev format
     # location: {"type": "dev", "path": "/path/to/app"}
