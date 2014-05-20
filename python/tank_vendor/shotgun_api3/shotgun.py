@@ -37,6 +37,8 @@ import datetime
 import logging
 import mimetools    # used for attachment upload
 import mimetypes    # used for attachment upload
+mimetypes.add_type('video/webm','.webm') # webm and mp4 seem to be missing
+mimetypes.add_type('video/mp4', '.mp4')  # from some OS/distros
 import os
 import re
 import copy
@@ -70,7 +72,7 @@ except ImportError:
 
 # ----------------------------------------------------------------------------
 # Version
-__version__ = "3.0.14"
+__version__ = "3.0.15"
 
 # ----------------------------------------------------------------------------
 # Errors
@@ -178,6 +180,10 @@ class _Config(object):
 
     def __init__(self):
         self.max_rpc_attempts = 3
+        # From http://docs.python.org/2.6/library/httplib.html:
+        # If the optional timeout parameter is given, blocking operations 
+        # (like connection attempts) will timeout after that many seconds 
+        # (if it is not given, the global default timeout setting is used)
         self.timeout_secs = None
         self.api_ver = 'api3'
         self.convert_datetimes_to_utc = True
@@ -213,22 +219,26 @@ class Shotgun(object):
 
     def __init__(self,
                  base_url,
-                 script_name,
-                 api_key,
+                 script_name=None,
+                 api_key=None,
                  convert_datetimes_to_utc=True,
                  http_proxy=None,
                  ensure_ascii=True,
                  connect=True,
-				 ca_certs=None):
+				 ca_certs=None,
+                 login=None,
+                 password=None):
         """Initialises a new instance of the Shotgun client.
 
         :param base_url: http or https url to the shotgun server.
 
         :param script_name: name of the client script, used to authenticate
-        to the server.
+        to the server. If script_name is provided, then api_key must be as
+        well and neither login nor password can be provided.
 
         :param api_key: key assigned to the client script, used to
-        authenticate to the server.
+        authenticate to the server.  If api_key is provided, then script_name
+        must be as well and neither login nor password can be provided.
 
         :param convert_datetimes_to_utc: If True date time values are
         converted from local time to UTC time before been sent to the server.
@@ -243,11 +253,43 @@ class Shotgun(object):
 		
 		:param ca_certs: The path to the SSL certificate file. Useful for users
 		who would like to package their application into an executable.
+
+        :param login: The login to use to authenticate to the server. If login
+        is provided, then password must be as well and neither script_name nor
+        api_key can be provided.
+
+        :param password: The password for the login to use to authenticate to
+        the server. If password is provided, then login must be as well and
+        neither script_name nor api_key can be provided.
         """
+
+        # verify authentication arguments
+        if login is not None or password is not None:
+            if script_name is not None or api_key is not None:
+                raise ValueError("cannot provide both login/password "
+                                 "and script_name/api_key")
+            if login is None:
+                raise ValueError("password provided without login")
+            if password is None:
+                raise ValueError("login provided without password")
+
+        if script_name is not None or api_key is not None:
+            if script_name is None:
+                raise ValueError("api_key provided without script_name")
+            if api_key is None:
+                raise ValueError("script_name provided without api_key")
+
+        # Can't use 'all' with python 2.4
+        if len([x for x in [script_name, api_key, login, password] if x]) == 0:
+            if connect:
+                raise ValueError("must provide either login/password "
+                                 "or script_name/api_key")
 
         self.config = _Config()
         self.config.api_key = api_key
         self.config.script_name = script_name
+        self.config.user_login = login
+        self.config.user_password = password
         self.config.convert_datetimes_to_utc = convert_datetimes_to_utc
         self.config.no_ssl_validation = NO_SSL_VALIDATION
         self._connection = None
@@ -348,7 +390,7 @@ class Shotgun(object):
 
         :returns: dict of the server meta data.
         """
-        return self._call_rpc("info", None, include_script_name=False)
+        return self._call_rpc("info", None, include_auth_params=False)
 
     def find_one(self, entity_type, filters, fields=None, order=None,
         filter_operator=None, retired_only=False):
@@ -797,6 +839,64 @@ class Shotgun(object):
 
         return self._call_rpc('work_schedule_update', params)
 
+    def follow(self, user, entity):
+        """Adds the entity to the user's followed entities (or does nothing if the user is already following the entity)
+        
+        :param dict user: User entity to follow the entity
+        :param dict entity: Entity to be followed
+        
+        :returns: dict with 'followed'=true, and dicts for the 'user' and 'entity' that were passed in
+        """
+
+        if not self.server_caps.version or self.server_caps.version < (5, 1, 22):
+            raise ShotgunError("Follow support requires server version 5.2 or "\
+                "higher, server is %s" % (self.server_caps.version,))
+        
+        params = dict(
+            user=user,
+            entity=entity
+        )
+        
+        return self._call_rpc('follow', params)
+
+    def unfollow(self, user, entity):
+        """Removes entity from the user's followed entities (or does nothing if the user is not following the entity)
+        
+        :param dict user: User entity to unfollow the entity
+        :param dict entity: Entity to be unfollowed
+        
+        :returns: dict with 'unfollowed'=true, and dicts for the 'user' and 'entity' that were passed in
+        """
+
+        if not self.server_caps.version or self.server_caps.version < (5, 1, 22):
+            raise ShotgunError("Follow support requires server version 5.2 or "\
+                "higher, server is %s" % (self.server_caps.version,))
+        
+        params = dict(
+            user=user,
+            entity=entity
+        )
+        
+        return self._call_rpc('unfollow', params)
+
+    def followers(self, entity):
+        """Gets all followers of the entity.
+        
+        :param dict entity: Find all followers of this entity
+        
+        :returns list of dicts for all the users following the entity
+        """
+
+        if not self.server_caps.version or self.server_caps.version < (5, 1, 22):
+            raise ShotgunError("Follow support requires server version 5.2 or "\
+                "higher, server is %s" % (self.server_caps.version,))
+        
+        params = dict(
+            entity=entity
+        )
+        
+        return self._call_rpc('followers', params)
+
     def schema_entity_read(self):
         """Gets all active entities defined in the schema.
 
@@ -986,11 +1086,9 @@ class Shotgun(object):
             "entities" : ','.join(entities_str),
             "source_entity": "%s_%s" % (source_entity['type'], source_entity['id']),
             "filmstrip_thumbnail" : filmstrip_thumbnail,
-            "script_name" : self.config.script_name,
-            "script_key" : self.config.api_key,
         }
-        if self.config.session_uuid:
-            params["session_uuid"] = self.config.session_uuid
+
+        params.update(self._auth_params())
 
         # Create opener with extended form post support
         opener = self._build_opener(FormPostHandler)
@@ -1066,11 +1164,9 @@ class Shotgun(object):
         params = {
             "entity_type" : entity_type,
             "entity_id" : entity_id,
-            "script_name" : self.config.script_name,
-            "script_key" : self.config.api_key,
         }
-        if self.config.session_uuid:
-            params["session_uuid"] = self.config.session_uuid
+
+        params.update(self._auth_params())
 
         if is_thumbnail:
             url = urlparse.urlunparse((self.config.scheme, self.config.server,
@@ -1266,24 +1362,33 @@ class Shotgun(object):
         @param user_password: Password for Shotgun HumanUser
         @return: Dictionary of HumanUser including ID if authenticated, None is unauthorized.
         '''
+        if not user_login:
+            raise ValueError('Please supply a username to authenticate.')
+
+        if not user_password:
+            raise ValueError('Please supply a password for the user.')
+
         # Override permissions on Config obj
+        original_login = self.config.user_login
+        original_password = self.config.user_password
+
         self.config.user_login = user_login
         self.config.user_password = user_password
 
         try:
             data = self.find_one('HumanUser', [['sg_status_list', 'is', 'act'], ['login', 'is', user_login]], ['id', 'login'], '', 'all')
             # Set back to default - There finally and except cannot be used together in python2.4
-            self.config.user_login = None
-            self.config.user_password = None
+            self.config.user_login = original_login
+            self.config.user_password = original_password
             return data
         except Fault:
             # Set back to default - There finally and except cannot be used together in python2.4
-            self.config.user_login = None
-            self.config.user_password = None
+            self.config.user_login = original_login
+            self.config.user_password = original_password
         except:
             # Set back to default - There finally and except cannot be used together in python2.4
-            self.config.user_login = None
-            self.config.user_password = None
+            self.config.user_login = original_login
+            self.config.user_password = original_password
             raise
 
 
@@ -1330,7 +1435,7 @@ class Shotgun(object):
     # ========================================================================
     # RPC Functions
 
-    def _call_rpc(self, method, params, include_script_name=True, first=False):
+    def _call_rpc(self, method, params, include_auth_params=True, first=False):
         """Calls the specified method on the Shotgun Server sending the
         supplied payload.
 
@@ -1341,7 +1446,7 @@ class Shotgun(object):
 
         params = self._transform_outbound(params)
         payload = self._build_payload(method, params,
-            include_script_name=include_script_name)
+            include_auth_params=include_auth_params)
         encoded_payload = self._encode_payload(payload)
 
         req_headers = {
@@ -1372,7 +1477,31 @@ class Shotgun(object):
             return results[0]
         return results
 
-    def _build_payload(self, method, params, include_script_name=True):
+    def _auth_params(self):
+        """ return a dictionary of the authentication parameters being used. """
+        # Used to authenticate HumanUser credentials
+        if self.config.user_login and self.config.user_password:
+            auth_params = {
+                "user_login" : str(self.config.user_login),
+                "user_password" : str(self.config.user_password),
+            }
+
+        # Use script name instead
+        elif self.config.script_name and self.config.api_key:
+            auth_params = {
+                "script_name" : str(self.config.script_name),
+                "script_key" : str(self.config.api_key),
+            }
+
+        else:
+            raise ValueError("invalid auth params")
+
+        if self.config.session_uuid:
+            auth_params["session_uuid"] = self.config.session_uuid
+
+        return auth_params
+
+    def _build_payload(self, method, params, include_auth_params=True):
         """Builds the payload to be send to the rpc endpoint.
 
         """
@@ -1381,28 +1510,8 @@ class Shotgun(object):
 
         call_params = []
 
-        if include_script_name:
-            if not self.config.script_name:
-                raise ValueError("script_name is empty")
-            if not self.config.api_key:
-                raise ValueError("api_key is empty")
-
-            # Used to authenticate HumanUser credentials
-            if self.config.user_login and self.config.user_password:
-                auth_params = {
-                    "user_login" : str(self.config.user_login),
-                    "user_password" : str(self.config.user_password),
-                }
-
-            # Use script name instead
-            else:
-                auth_params = {
-                    "script_name" : str(self.config.script_name),
-                    "script_key" : str(self.config.api_key),
-                }
-
-            if self.config.session_uuid:
-                auth_params["session_uuid"] = self.config.session_uuid
+        if include_auth_params:
+            auth_params = self._auth_params()
             call_params.append(auth_params)
 
         if params:
