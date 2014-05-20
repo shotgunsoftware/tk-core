@@ -29,16 +29,11 @@ if not os.path.exists(parent_cfg_path):
 fh = open(parent_cfg_path, "rt")
 try:
     parent_path = fh.readline().strip()
-    # check if env vars are used in the files instead of explicit paths
-    if parent_path.startswith('$'):
-        log.debug("Trying to read config specified by env variable %s" % parent_path)
-        try:
-            parent_path = os.environ[parent_path[1:]]
-            log.debug("expanded env variable to => %s" % (parent_path))
-        except KeyError:
-            # we still want to raise the default exception
-            log.warning("Envrionment variable %s referred to in '%s' does not exist" % (parent_path, parent_cfg_path))
-            raise
+    # expand any env vars that are used in the files. For example, you could have 
+    # an env variable $STUDIO_TANK_PATH=/sgtk/software/shotgun/studio and your
+    # and your parent file may just contain "$STUDIO_TANK_PATH" instead of an 
+    # explicit path.
+    parent_path = os.path.expandvars(parent_path)
 finally:
     fh.close()
 
