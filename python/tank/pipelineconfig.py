@@ -535,6 +535,8 @@ class StorageConfigurationMapping(object):
             finally:
                 fh.close()
 
+        # get all the registered pcs for the current platform
+        # env variables are allowed in these paths so expand them if they exist
         current_os_paths = [ os.path.expandvars(x.get(sys.platform)) for x in data ]
 
         return current_os_paths
@@ -733,6 +735,7 @@ def from_path(path):
                         "support! File: '%s' Error: %s" % (config_path, e))
 
     # get all the registered pcs for the current platform
+    # env variables are allowed in these paths so expand them if they exist
     current_os_pcs = [ os.path.expandvars(x.get(sys.platform)) for x in data if x is not None]
 
     # Now if we are running a studio tank command, find the Primary PC and use that
@@ -906,6 +909,8 @@ def get_pc_registered_location(pipeline_config_root_path):
     finally:
         fh.close()
 
+    # return the pc location for the current platform
+    # env variables are allowed in these paths so expand them if they exist
     if sys.platform == "linux2":
         return os.path.expandvars(data.get("Linux"))
     elif sys.platform == "win32":
