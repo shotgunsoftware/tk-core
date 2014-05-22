@@ -30,7 +30,7 @@ from . import template_includes
 class PipelineConfiguration(object):
     """
     Represents a pipeline configuration in Tank.
-    Use the factory methods above to construct this object, do not
+    Use the factory methods below to construct this object, do not
     create directly via constructor.
     """
 
@@ -619,7 +619,10 @@ class StorageConfigurationMapping(object):
             finally:
                 fh.close()
 
-        current_os_paths = [ x.get(sys.platform) for x in data ]
+        # get all the registered pcs for the current platform
+        # env variables are allowed in these paths so expand them if they exist
+        current_os_paths = [ os.path.expandvars(x.get(sys.platform)) for x in data ]
+
         return current_os_paths
 
 
@@ -781,7 +784,6 @@ def from_path(path):
             raise TankError("Error starting from the configuration located in '%s' - "
                             "it looks like this pipeline configuration and tank command "
                             "has not been configured for the current operating system." % path)
-
         return PipelineConfiguration(pc_registered_path)
 
 
@@ -815,7 +817,8 @@ def from_path(path):
                         "support! File: '%s' Error: %s" % (config_path, e))
 
     # get all the registered pcs for the current platform
-    current_os_pcs = [ x.get(sys.platform) for x in data if x is not None]
+    # env variables are allowed in these paths so expand them if they exist
+    current_os_pcs = [ os.path.expandvars(x.get(sys.platform)) for x in data if x is not None]
 
     # Now if we are running a studio tank command, find the Primary PC and use that
     # if we are using a specific tank command, try to use that PC
@@ -988,12 +991,14 @@ def get_pc_registered_location(pipeline_config_root_path):
     finally:
         fh.close()
 
+    # return the pc location for the current platform
+    # env variables are allowed in these paths so expand them if they exist
     if sys.platform == "linux2":
-        return data.get("Linux")
+        return os.path.expandvars(data.get("Linux"))
     elif sys.platform == "win32":
-        return data.get("Windows")
+        return os.path.expandvars(data.get("Windows"))
     elif sys.platform == "darwin":
-        return data.get("Darwin")
+        return os.path.expandvars(data.get("Darwin"))
     else:
         raise TankError("Unsupported platform '%s'" % sys.platform)
 
