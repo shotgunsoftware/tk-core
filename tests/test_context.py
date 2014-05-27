@@ -69,6 +69,14 @@ class  TestContext(TankTestBase):
         self.alt_1_other_user_path = os.path.join(self.alt_1_step_path, "user_login")
         self.add_production_path(self.alt_1_other_user_path, self.other_user)
 
+        # adding a path with step as the root (step/sequence/shot)
+        alt_2_step_path = "step_short_name"
+        self.add_production_path(alt_2_step_path, self.step)
+        alt_2_seq_path = os.path.join(alt_2_step_path, "Seq")
+        self.add_production_path(alt_2_seq_path, self.seq)
+        alt_2_shot_path = os.path.join(alt_2_seq_path, "shot_code")
+        self.add_production_path(alt_2_shot_path, self.shot)
+
 
 class TestEq(TestContext):
     def setUp(self):
@@ -344,7 +352,9 @@ class TestFromEntity(TestContext):
         self.check_entity(self.current_user, result.user)
 
         self.assertEquals(None, result.task)
-        self.assertEquals(None, result.step)
+        
+        self.check_entity(self.step, result.step)
+        self.assertEquals(3, len(result.step))
 
     
     @patch("tank.util.login.get_current_user")
@@ -473,6 +483,18 @@ class TestAsTemplateFields(TestContext):
         template = TemplatePath(template_def, self.keys, self.project_root)
         result = self.ctx.as_template_fields(template)
         self.assertEquals("extravalue", result["shot_extra"])
+
+    def test_step_first_template(self):
+        """
+        Check that as_template_fields returns all fields for a template that 
+        starts with Step and has no static folders
+        """
+        template_def = "{Step}/{Sequence}/{Shot}"
+        template = TemplatePath(template_def, self.keys, self.project_root)
+        result = self.ctx.as_template_fields(template)
+        self.assertEquals("step_short_name", result["Step"])
+        self.assertEquals("Seq", result["Sequence"])
+        self.assertEquals("shot_code", result["Shot"])
 
     def test_entity_field_query(self):
         """
