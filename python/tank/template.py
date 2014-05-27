@@ -319,34 +319,51 @@ class Template(object):
         """
         raise NotImplementedError
 
+    def validate_and_get_fields(self, path, required_fields=None, skip_keys=None):
+        """
+        Validates that a path fits with a template and returns the resolved dictionary of fields if it does.
+        
+        :param path:            Path to validate
+        :param required_fields: An optional dictionary of key names to key values. If supplied these values must 
+                                be present in the input path and found by the template.
+        :param skip_keys:       List of field names whose values should be ignored
+
+        :returns:               Dictionary of fields found from the path or None if path fails to validate 
+        """
+        required_fields = required_fields or {}
+        skip_keys = skip_keys or []
+        
+        # Path should split into keys as per template
+        path_fields = {}
+        try:
+            path_fields = self.get_fields(path, skip_keys=skip_keys)
+        except TankError:
+            return None
+        
+        # Check that all required fields were found in the path:
+        for key, value in required_fields.items():
+            if (key not in skip_keys) and (path_fields.get(key) != value):
+                return None
+
+        return path_fields
 
     def validate(self, path, fields=None, skip_keys=None):
         """
         Validates that a path fits with a template.
+                            
+        :param path:        Path to validate
+        :type path:         String
+        :param fields:      An optional dictionary of key names to key values. If supplied these values must 
+                            be present in the input path and found by the template.
+        :type fields:       Dictionary
+        :param skip_keys:   Field names whose values should be ignored
+        :type skip_keys:    List
 
-        :param path: Path to validate
-        :type path: String
-        :param fields: Optional: Mapping of key/values with which to add to the fields
-                       extracted from the path before validation happens. 
-        :type fields: Dictionary
-        :param skip_keys: Optional: Field names whose values should be ignored
-        :type skip_keys: List
-
-        :rtype: Bool
+        :returns:           True if the path is valid for this template
+        :rtype:             Bool
         """
-        fields = fields or {}
-        skip_keys = skip_keys or []
-        # Path should split into keys as per template
-        try:
-            path_fields = self.get_fields(path, skip_keys=skip_keys)
-        except TankError:
-            return False
-        # Check input values match those in path
-        for key, value in fields.items():
-            if (key not in skip_keys) and (path_fields.get(key) != value):
-                return False
-        return True
-
+        return self.validate_and_get_fields(path, fields, skip_keys) != None
+        
     def get_fields(self, input_path, skip_keys=None):
         """
         Extracts key name, value pairs from a string.
