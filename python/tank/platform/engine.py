@@ -31,6 +31,7 @@ from . import qt
 from . import black_list
 from .bundle import TankBundle
 from .framework import setup_frameworks
+from .. import pipelineconfig_utils
 
 class Engine(TankBundle):
     """
@@ -899,8 +900,8 @@ class Engine(TankBundle):
         
         :returns: The style sheet data, as a string.
         """
-        this_folder = os.path.abspath(os.path.dirname(__file__))
-        css_file = os.path.join(this_folder, "qt", "toolkit_std_dark.css")
+        css_file = os.path.join(pipelineconfig_utils.get_path_to_current_core(), "install", "core", 
+                                        "resources", "toolkit_std_dark.css") 
         f = open(css_file)
         css_data = f.read()
         f.close()

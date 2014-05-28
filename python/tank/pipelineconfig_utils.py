@@ -58,12 +58,28 @@ def get_path_to_current_core():
     of a localized pipeline configuration, the PC root path will be returned, otherwise 
     a 'studio' root will be returned.
     
+    For example, if __file__ is:
+        /shotgun/studio/install/core/python/tank/pipelineconfig.py
+    or:
+        /shotgun/studio/install/core/python/tank.zip/tank/pipelineconfig.py
+    then the root directory returned will be:
+        /shotgun/studio    
+
     This method may not return valid results if there has been any symlinks set up as part of
     the install structure.
     
     :returns: string with path
     """
-    curr_os_core_root = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "..", ".."))
+    # first, find the location of the info.yml file that can be found in:
+    #   /shotgun/studio/install/core
+    # this handles the different structure when using a zipped core:
+    core_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+    while core_dir and not os.path.exists(os.path.join(core_dir, "info.yml")):
+        # move up the directory tree until we find the file:
+        core_dir = os.path.dirname(core_dir)    
+    
+    # root directory is then two levels above the core directory:
+    curr_os_core_root = os.path.abspath(os.path.join(core_dir, "..", ".."))
     if not os.path.exists(curr_os_core_root):
         full_path_to_file = os.path.abspath(os.path.dirname(__file__))
         raise TankError("Cannot resolve the core configuration from the location of the Toolkit Code! "
@@ -191,7 +207,7 @@ def get_currently_running_api_version():
     :returns: version string, e.g. 'v1.2.3'. 'unknown' if a version number cannot be determined.
     """
     # read this from info.yml
-    info_yml_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "info.yml"))
+    info_yml_path = os.path.join(get_path_to_current_core(), "install", "core", "info.yml")
     return _get_version_from_manifest(info_yml_path)
 
 

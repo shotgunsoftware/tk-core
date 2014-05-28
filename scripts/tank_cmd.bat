@@ -21,7 +21,7 @@ set PC_ROOT=%~1
 IF %PC_ROOT:~-1%==\ SET PC_ROOT=%PC_ROOT:~0,-1%
 
 rem -- now add tank to the pythonpath
-set PYTHONPATH=%PC_ROOT%\install\core\python;%PYTHONPATH%
+set PYTHONPATH=%PC_ROOT%\install\core\python\tank.zip;%PC_ROOT%\install\core\python;%PYTHONPATH%
 
 rem -- now figure out which interpreter to use for Tank
 rem -- this is stored in a config file

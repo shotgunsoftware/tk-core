@@ -151,7 +151,7 @@ class Tank(object):
         :returns: url string, None if no documentation was found
         """
         # read this from info.yml
-        info_yml_path = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "info.yml"))
+        info_yml_path = os.path.join(pipelineconfig_utils.get_path_to_current_core(), "install", "core", "info.yml")
         try:
             info_fh = open(info_yml_path, "r")
             try:

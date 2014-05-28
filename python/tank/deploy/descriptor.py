@@ -22,7 +22,6 @@ from ..util import shotgun
 from ..errors import TankError
 from ..platform import constants
 
-
 class AppDescriptor(object):
     """
     An app descriptor describes a particular version of an app, engine or core component.
@@ -176,9 +175,10 @@ class AppDescriptor(object):
             return app_icon
         else:
             # return default
-            default_icon = os.path.abspath(os.path.join( os.path.dirname(__file__), 
-                                                         "..", "platform", "qt",
-                                                         "default_app_icon_256.png"))
+            # Note: local import here to avoid cyclic dependency!
+            from ..pipelineconfig_utils import get_path_to_current_core
+            default_icon = os.path.join(get_path_to_current_core(), "install", "core", 
+                                        "resources", "default_app_icon_256.png")
             return default_icon
 
     def get_support_url(self):

@@ -14,7 +14,7 @@ Default implementation for the Tank Dialog
 """
 
 from . import QtCore, QtGui
-from . import ui_tank_dialog
+from .ui.tank_dialog import Ui_TankDialog
 from . import TankDialogBase
 from .config_item import ConfigItem
 from .. import engine
@@ -181,7 +181,7 @@ class TankQDialog(TankDialogBase):
         
         ########################################################################################
         # set up the main UI and header
-        self.ui = ui_tank_dialog.Ui_TankDialog() 
+        self.ui = Ui_TankDialog() 
         self.ui.setupUi(self)
         
         # when rendering the main UI title text, if the app is in dev mode, add 
