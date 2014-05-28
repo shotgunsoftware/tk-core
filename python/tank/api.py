@@ -41,13 +41,12 @@ class Tank(object):
         # this is a path and try to construct a pc from the path
 
         self.__sg = None
-
         if isinstance(project_path, pipelineconfig.PipelineConfiguration):
             # this is actually a pc object
             self.__pipeline_config = project_path
         else:
             self.__pipeline_config = pipelineconfig.from_path(project_path)
-            
+   
         try:
             self.templates = read_templates(self.__pipeline_config)
         except TankError, e:
@@ -140,7 +139,7 @@ class Tank(object):
         :returns: url string, None if no documentation was found
         """
         # read this from info.yml
-        info_yml_path = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "info.yml"))
+        info_yml_path = os.path.join(pipelineconfig.get_current_code_install_root(), "install", "core", "info.yml")
         try:
             info_fh = open(info_yml_path, "r")
             try:

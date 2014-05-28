@@ -16,7 +16,7 @@ rem -- this script is called by the main tank script
 rem -- the first parameter contains the path to the pipeline config root
 rem -- additional pameters are passed into the python script
 rem -- now add tank to the pythonpath
-set PYTHONPATH=%1install\core\python;%PYTHONPATH%
+set PYTHONPATH=%1install\core\python\tank.zip;%1install\core\python;%PYTHONPATH%
 
 rem -- now figure out which interpreter to use for Tank
 rem -- this is stored in a config file

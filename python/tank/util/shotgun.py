@@ -688,10 +688,11 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
 
     else:
         # no thumbnail found - instead use the default one
-        this_folder = os.path.abspath(os.path.dirname(__file__))
-        no_thumb = os.path.join(this_folder, "no_preview.jpg")
+        # local import to avoid cyclic references
+        from ..pipelineconfig import get_current_code_install_root
+        no_thumb = os.path.join(get_current_code_install_root(), "install", "core", 
+                                "resources", "no_preview.jpg")
         tk.shotgun.upload_thumbnail(published_file_entity_type, entity.get("id"), no_thumb)
-
 
     # register dependencies
     _create_dependencies(tk, entity, dependency_paths, dependency_ids)

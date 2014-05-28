@@ -539,7 +539,7 @@ class PipelineConfiguration(object):
             # no custom hook detected in the pipeline configuration
             # fall back on the hooks that come with the currently running version
             # of the core API.
-            hooks_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "hooks"))
+            hooks_path = os.path.join(get_current_code_install_root(), "install", "core", "hooks")            
             hook_path = os.path.join(hooks_path, file_name)
 
         return hook.execute_hook(hook_path, parent, **kwargs)
@@ -927,18 +927,34 @@ def get_current_code_install_root():
     located inside a standard toolkit install setup. If the code that is running is part
     of a localized pipeline configuration, its root path will be returned, otherwise 
     a 'studio' root will be returned.
+
+    For example, if __file__ is:
+        /shotgun/studio/install/core/python/tank/pipelineconfig.py
+    or:
+        /shotgun/studio/install/core/python/tank.zip/tank/pipelineconfig.py
+    then the root directory returned will be:
+        /shotgun/studio
     
     This method may not return valid results if there has been any symlinks set up as part of
     the install structure.
     """
-    p = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "..", ".."))
-    if not os.path.exists(p):
+    
+    # first, find the location of the info.yml file that can be found in:
+    #   /shotgun/studio/install/core
+    # this handles the different structure when using a zipped core:
+    core_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+    while core_dir and not os.path.exists(os.path.join(core_dir, "info.yml")):
+        # move up the directory tree until we find the file:
+        core_dir = os.path.dirname(core_dir)    
+    
+    # root directory is then two levels above the core directory:
+    root_dir = os.path.abspath(os.path.join(core_dir, "..", ".."))
+    
+    if not os.path.exists(root_dir):
         raise TankError("Cannot resolve the install location from the location of the Core Code! "
                         "This can happen if you try to move or symlink the Sgtk API. "
                         "Please contact support.")
-    return p
-    
-    
+    return root_dir
 
 
 def get_core_api_version_based_on_current_code():
@@ -947,7 +963,8 @@ def get_core_api_version_based_on_current_code():
     executing.
     """
     # read this from info.yml
-    info_yml_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "info.yml"))
+    info_yml_path = os.path.join(get_current_code_install_root(), "install", "core", "info.yml")
+    
     try:
         info_fh = open(info_yml_path, "r")
         try:

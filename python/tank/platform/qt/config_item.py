@@ -15,7 +15,7 @@ import shutil
 import sys
 
 from . import QtCore, QtGui
-from .ui_item import Ui_Item
+from .ui.item import Ui_Item
 from .. import constants
 
 class ConfigItem(QtGui.QWidget):
