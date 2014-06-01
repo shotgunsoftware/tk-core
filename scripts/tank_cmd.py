@@ -1,11 +1,11 @@
 # Copyright (c) 2013 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import sys
@@ -30,25 +30,25 @@ from tank.platform import engine
 ###############################################################################################
 # Constants
 
-SHOTGUN_ENTITY_TYPES = ['Playlist', 'AssetSceneConnection', 'Note', 'TaskDependency', 'PageHit', 
-                        'ActionMenuItem', 'Attachment', 'AssetMocapTakeConnection', 
-                        'Department', 'Group', 'PlaylistVersionConnection', 
-                        'Booking', 'CutVersionConnection', 'CameraMocapTakeConnection', 
-                        'AssetElementConnection', 'ReleaseTicketConnection', 
-                        'RevisionRevisionConnection', 'MocapTakeRangeShotConnection', 'TimeLog', 
-                        'Step', 'AssetBlendshapeConnection', 'PerformerMocapTakeConnection', 
-                        'Phase', 'Ticket', 'AssetShotConnection', 'TicketTicketConnection', 
-                        'Icon', 'PageSetting', 'Status', 'Reply', 'Task', 'ApiUser', 
-                        'ProjectUserConnection', 'LaunchShotConnection', 'ShotShotConnection', 
-                        'PerformerRoutineConnection', 'AppWelcomeUserConnection', 'HumanUser', 
-                        'Project', 'LocalStorage', 'TaskTemplate', 'RevisionTicketConnection', 
-                        'PerformerShootDayConnection', 'PipelineConfiguration', 'LaunchSceneConnection', 
-                        'GroupUserConnection', 'AssetSequenceConnection', 'Page', 
-                        'ShootDaySceneConnection', 'TankType', 'PhysicalAssetMocapTakeConnection', 
-                        'Shot', 'TankPublishedFile', 'Sequence', 'BannerUserConnection', 
-                        'AssetAssetConnection', 'Version', 'ElementShotConnection', 
+SHOTGUN_ENTITY_TYPES = ['Playlist', 'AssetSceneConnection', 'Note', 'TaskDependency', 'PageHit',
+                        'ActionMenuItem', 'Attachment', 'AssetMocapTakeConnection',
+                        'Department', 'Group', 'PlaylistVersionConnection',
+                        'Booking', 'CutVersionConnection', 'CameraMocapTakeConnection',
+                        'AssetElementConnection', 'ReleaseTicketConnection',
+                        'RevisionRevisionConnection', 'MocapTakeRangeShotConnection', 'TimeLog',
+                        'Step', 'AssetBlendshapeConnection', 'PerformerMocapTakeConnection',
+                        'Phase', 'Ticket', 'AssetShotConnection', 'TicketTicketConnection',
+                        'Icon', 'PageSetting', 'Status', 'Reply', 'Task', 'ApiUser',
+                        'ProjectUserConnection', 'LaunchShotConnection', 'ShotShotConnection',
+                        'PerformerRoutineConnection', 'AppWelcomeUserConnection', 'HumanUser',
+                        'Project', 'LocalStorage', 'TaskTemplate', 'RevisionTicketConnection',
+                        'PerformerShootDayConnection', 'PipelineConfiguration', 'LaunchSceneConnection',
+                        'GroupUserConnection', 'AssetSequenceConnection', 'Page',
+                        'ShootDaySceneConnection', 'TankType', 'PhysicalAssetMocapTakeConnection',
+                        'Shot', 'TankPublishedFile', 'Sequence', 'BannerUserConnection',
+                        'AssetAssetConnection', 'Version', 'ElementShotConnection',
                         'PermissionRuleSet', 'EventLogEntry', 'TankDependency',
-                        'PublishedFile', 'PublishedFileType', 'PublishedFileDependency', 
+                        'PublishedFile', 'PublishedFileType', 'PublishedFileDependency',
                         'AssetShootDayConnection', 'Asset']
 
 SHOTGUN_ENTITY_TYPES.extend(["CustomEntity%02d"%x for x in range(1, 31)])
@@ -105,8 +105,8 @@ class AltCustomFormatter(logging.Formatter):
 
             if record.levelno == logging.DEBUG:
                 # time stamps in debug logging!
-                record.msg = 'DEBUG [%s %s]: %s' % (datetime.datetime.now().strftime("%H:%M:%S"), 
-                                                    record.msecs, 
+                record.msg = 'DEBUG [%s %s]: %s' % (datetime.datetime.now().strftime("%H:%M:%S"),
+                                                    record.msecs,
                                                     record.msg)
 
             if "Code Traceback" not in record.msg:
@@ -300,7 +300,7 @@ def _write_shotgun_cache(tk, entity_type, cache_file_name):
         # Write to cache file
         # Note that we are using binary form here to ensure that the line
         # endings are written out consistently on all different OSes
-        # otherwise with wt mode, \n on windows will be turned into \n\r 
+        # otherwise with wt mode, \n on windows will be turned into \n\r
         # which is not interpreted correctly by the jacascript code.
         f = open(cache_path, "wb")
         f.write(data)
@@ -423,37 +423,37 @@ def shotgun_run_action(log, install_root, pipeline_config_root, is_localized, ar
                                           is_localized)
 
     elif action_name == "__core_info":
-        
+
         code_css_block = "display: block; padding: 0.5em 1em; border: 1px solid #bebab0; background: #faf8f0;"
-        
+
         # create an upgrader instance that we can query if the install is up to date
         installer = TankCoreUpgrader(install_root, log)
-        
+
         cv = installer.get_current_version_number()
         lv = installer.get_latest_version_number()
         log.info("You are currently running version %s of the Shotgun Pipeline Toolkit." % cv)
-        
+
         if not is_localized:
             log.info("")
             log.info("Your core API is located in <code>%s</code> and is shared with other "
                      "projects." % install_root)
-        
+
         log.info("")
-        
+
         status = installer.get_update_status()
         req_sg = installer.get_required_sg_version_for_upgrade()
-        
+
         if status == TankCoreUpgrader.UP_TO_DATE:
             log.info("<b>You are up to date! There is no need to update the Toolkit Core API at this time!</b>")
-    
+
         elif status == TankCoreUpgrader.UPGRADE_BLOCKED_BY_SG:
             log.warning("<b>A new version (%s) of the core API is available however "
                         "it requires a more recent version (%s) of Shotgun!</b>" % (lv, req_sg))
-            
+
         elif status == TankCoreUpgrader.UPGRADE_POSSIBLE:
-            
+
             (summary, url) = installer.get_release_notes()
-                    
+
             log.info("<b>A new version of the Toolkit API (%s) is available!</b>" % lv)
             log.info("")
             log.info("<b>Change Summary:</b> %s <a href='%s' target=_new>"
@@ -461,40 +461,40 @@ def shotgun_run_action(log, install_root, pipeline_config_root, is_localized, ar
             log.info("")
             log.info("In order to upgrade, execute the following command in a shell:")
             log.info("")
-            
+
             if sys.platform == "win32":
                 tank_cmd = os.path.join(install_root, "tank.bat")
             else:
                 tank_cmd = os.path.join(install_root, "tank")
-            
+
             log.info("<code style='%s'>%s core</code>" % (code_css_block, tank_cmd))
-            
+
             log.info("")
-                        
+
         else:
             raise TankError("Unknown Upgrade state!")
-        
+
 
     elif action_name == "__upgrade_check":
-        
+
         # special built in command that simply tells the user to run the tank command
-        
+
         code_css_block = "display: block; padding: 0.5em 1em; border: 1px solid #bebab0; background: #faf8f0;"
-        
+
         log.info("In order to check if your installed apps and engines are up to date, "
                  "you can run the following command in a console:")
-        
+
         log.info("")
-        
+
         if sys.platform == "win32":
             tank_cmd = os.path.join(pipeline_config_root, "tank.bat")
         else:
             tank_cmd = os.path.join(pipeline_config_root, "tank")
-        
+
         log.info("<code style='%s'>%s updates</code>" % (code_css_block, tank_cmd))
-        
+
         log.info("")
-        
+
     else:
         _run_shotgun_command(log, tk, action_name, entity_type, entity_ids)
 
@@ -505,6 +505,22 @@ def shotgun_run_action(log, install_root, pipeline_config_root, is_localized, ar
 
 ###############################################################################################
 # Shell Actions Management
+
+def _get_sg_name_field(entity_type):
+    """
+    Returns the standard Shotgun name field given
+    an entity type
+    """
+    name_field = "code"
+    if entity_type == "Project":
+        name_field = "name"
+    elif entity_type == "Task":
+        name_field = "content"
+    elif entity_type == "HumanUser":
+        name_field = "login"
+    return name_field
+
+
 
 def _list_commands(log, tk, ctx):
     """
@@ -681,14 +697,7 @@ def _resolve_shotgun_entity(log, entity_type, entity_search_token, constrain_by_
     """
 
     sg = shotgun.create_sg_connection()
-
-    name_field = "code"
-    if entity_type == "Project":
-        name_field = "name"
-    elif entity_type == "Task":
-        name_field = "content"
-    elif entity_type == "HumanUser":
-        name_field = "login"
+    name_field = _get_sg_name_field(entity_type)
 
     # if entity_search_token is on the form ghosts:P01, limit by project
     (entity_only_search_token, projs) = _preprocess_projects(log, sg, entity_search_token, constrain_by_project_id)
@@ -730,8 +739,8 @@ def _resolve_shotgun_entity(log, entity_type, entity_search_token, constrain_by_
     elif len(entities) == 1:
         # single match yay
         selected_entity = entities[0]
-    
-    
+
+
     else:
         # More than one item matching Shot 'P':
         #
@@ -807,9 +816,9 @@ def _resolve_shotgun_entity(log, entity_type, entity_search_token, constrain_by_
 
         log.info("")
         raise TankError("Please try again with a more specific search!")
-    
-    
-    
+
+
+
     # make sure there is a project associated with this entity!
     # selected_entity now has an entity populated in it.
     if entity_type != "Project":
@@ -828,7 +837,7 @@ def _resolve_shotgun_entity(log, entity_type, entity_search_token, constrain_by_
 
     return selected_entity["id"]
 
-    
+
 
 
 
@@ -862,13 +871,18 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
     log.info("For documentation, see https://toolkit.shotgunsoftware.com")
 
     # Now create a tk instance and a context if possible
+    ctx = None
+    tk = None
 
     if len(context_items) == 1:
+        # create a context given a path as the input
 
         ctx_path = context_items[0]
 
         if using_cwd:
             log.info("Starting Toolkit for your current directory '%s'" % ctx_path)
+        else:
+            log.info("Starting toolkit for path '%s'" % ctx_path)
 
         # context str is a path
         if pipeline_config_root is not None:
@@ -884,47 +898,70 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
                 # when we run our commands later. This may be if we for example have
                 # just run tank setup_project from any random folder
                 log.debug("Instantiating Sgtk raised: %s" % e)
-                tk = None
 
         # now try to extract a context
-        ctx = None
+
         if tk is not None:
             ctx = tk.context_from_path(ctx_path)
 
-    elif context_items[1].isdigit():
-
-        # shotgun entity type and entity id!
-        entity_type = context_items[0]
-        entity_id = int(context_items[1])
-
-        # note - tank from path method will validate that we are launching
-        # from the right tank command etc.
-        tk = tank.tank_from_entity(entity_type, entity_id)
-
-        ctx = tk.context_from_entity(entity_type, entity_id)
-
-    elif pipeline_config_root is not None:
-
-        # shotgun entity type and entity name and we are running a local tank command
-        tk =  tank.tank_from_path(pipeline_config_root)
-
-        # now parse and resolve the entity name string
-        entity_type = context_items[0]
-        entity_search_token = context_items[1]
-        project_id = tk.pipeline_configuration.get_project_id()
-        entity_id = _resolve_shotgun_entity(log, entity_type, entity_search_token, project_id)
-        ctx = tk.context_from_entity(entity_type, entity_id)
-
     else:
-
-        # shotgun entity type and entity name and we are running a global tank command
-
-        # now parse and resolve the entity name string
+        # create a context given an entity and entity_id/entity_name
         entity_type = context_items[0]
         entity_search_token = context_items[1]
-        entity_id = _resolve_shotgun_entity(log, entity_type, entity_search_token, None)
-        tk = tank.tank_from_entity(entity_type, entity_id)
-        ctx = tk.context_from_entity(entity_type, entity_id)
+
+        if pipeline_config_root is not None and entity_type == "Project":
+            # this is a per project tank command which is specifying the Project to run
+            # the project is already implied by the location of the tank command
+            raise TankError("You are executing a project specific tank command so there is "
+                            "no need to specify a Project parameter! Try running just the "
+                            "tank command with no parameters to see what options are available "
+                            "on the project level. Alternatively you can pass a Shotgun Entity "
+                            "(e.g. 'Shot abc123') or a path on disk to specify a particular "
+                            "environment to see the available commands for.")
+
+        elif entity_search_token.isdigit():
+            # the entity name is something like "123"
+            # first look if there is a match for it
+            # if not, assume it is an id.
+
+
+            sg = shotgun.create_sg_connection()
+            name_field = _get_sg_name_field(entity_type)
+
+            # first try by name
+            entity = sg.find_one(entity_type, [[name_field, "is", entity_search_token]], ["id"])
+            if entity:
+                entity_id = entity.get("id")
+                log.info("- Found %s named '%s'" % (entity_type, entity_search_token))
+            else:
+                # no match on name. Assume the string is an id
+                entity_id = int(entity_search_token)
+
+
+            # note - tank from path method will validate that we are launching
+            # from the right tank command etc.
+            tk = tank.tank_from_entity(entity_type, entity_id)
+            ctx = tk.context_from_entity(entity_type, entity_id)
+
+        elif pipeline_config_root is not None:
+            # standard entity expression, but running a per project command
+            tk =  tank.tank_from_path(pipeline_config_root)
+
+            # now parse and resolve the entity name string
+            # pass the project id to the resolver so that we scope it
+            # to only look within the current project
+            project_id = tk.pipeline_configuration.get_project_id()
+            entity_id = _resolve_shotgun_entity(log, entity_type, entity_search_token, project_id)
+            ctx = tk.context_from_entity(entity_type, entity_id)
+
+        else:
+            # standard entity expression, running from a studio level
+            entity_id = _resolve_shotgun_entity(log, entity_type, entity_search_token, None)
+            tk = tank.tank_from_entity(entity_type, entity_id)
+            ctx = tk.context_from_entity(entity_type, entity_id)
+
+
+
 
     log.debug("Sgtk API and Context resolve complete.")
     log.debug("Sgtk API: %s" % tk)
@@ -942,7 +979,7 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
     if command is None:
         return _list_commands(log, tk, ctx)
     else:
-        # pass over to the tank commands api - this will take over command execution, 
+        # pass over to the tank commands api - this will take over command execution,
         # setup the objects accordingly etc.
         return tank_command.run_action(log, tk, ctx, command, args)
 
@@ -1008,7 +1045,7 @@ if __name__ == "__main__":
 
     # determine if we are running a localized core API.
     is_localized = (install_root == pipeline_config_root)
-    
+
     # and strip out the --pc args
     cmd_line = [arg for arg in cmd_line if not arg.startswith("--pc=")]
 
@@ -1030,10 +1067,10 @@ if __name__ == "__main__":
 
         # special case when we are called from shotgun
         elif cmd_line[0] == "shotgun_run_action":
-            exit_code = shotgun_run_action(logger, 
-                                           install_root, 
-                                           pipeline_config_root, 
-                                           is_localized, 
+            exit_code = shotgun_run_action(logger,
+                                           install_root,
+                                           pipeline_config_root,
+                                           is_localized,
                                            cmd_line[1:])
 
         # special case when we are called from shotgun
