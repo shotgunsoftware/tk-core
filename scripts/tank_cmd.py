@@ -125,7 +125,7 @@ def show_help(log):
     info = """
 Welcome to the Shotgun pipeline toolkit!
 
-This command lets you run control Sgtk from a shell. You can run apps and
+This command lets you control Toolkit from a shell. You can start apps and
 engines via the Tank command. You can also run various admin commands.
 
 
@@ -135,7 +135,7 @@ General options and info
 - To display verbose debug, add a --debug flag.
 
 
-Running Apps
+Executing Commands
 ----------------------------------------------
 Syntax: tank [context] command [args]
 
@@ -173,6 +173,9 @@ Launch maya for a Task in Shotgun using an id:
 
 Launch maya for a folder:
 > tank /studio/proj_xyz/shots/ABC123 launch_maya
+
+Launch maya for the lighting task on project Flash, Shot ABC123
+> tank Task Flash:Shot:ABC123:light launch_maya
 
 """
     for x in info.split("\n"):
