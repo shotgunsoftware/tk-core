@@ -70,13 +70,6 @@ class SetupProjectAction(Action):
                                                    "default": None,
                                                    "type": "str" }
 
-        self.parameters["project_folder_name"] = { "description": ("Name of the folder which you want to be the root "
-                                                                   "point of the created project. If a project already "
-                                                                   "exists, this parameter must reflect the name of the "
-                                                                   "top level folder of the project."),
-                                                   "default": None,
-                                                   "type": "str" }
-
         self.parameters["config_uri"] = { "description": ("The configuration to use when setting up this project. "
                                                           "This can be a path on disk to a directory containing a "
                                                           "config, a path to a git bare repo (e.g. a git repo path "
