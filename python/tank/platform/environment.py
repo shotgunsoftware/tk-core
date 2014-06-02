@@ -363,99 +363,97 @@ class Environment(object):
         except Exception, exp:
             raise TankError("Could not write environment file %s. Error reported: %s" % (path, exp))
         
-        
     def find_location_for_engine(self, engine_name):
         """
         Returns the filename and a list of dictionary keys where an engine instance resides.
-        The dictionary key list (tokens) can be nested, for example
-        [engines, tk-maya] or just flat [tk-maya-ref]
+        The dictionary key list (tokens) can be nested, for example [engines, tk-maya] or just flat [tk-maya-ref]
+
+        :param engine_name: The name of the engine to find
+        :returns:           (list of tokens, file path)
         """
-        # get the raw data
+        # get the raw data:
         root_yml_data = self.__load_data(self.__env_path)
-        eng_data = root_yml_data["engines"][engine_name]
-        
-        if isinstance(eng_data, basestring) and eng_data.startswith("@"):
-            # this is a reference - try to load it in!
-            token = eng_data[1:]
-            tokens = [token]
-            yml_file = environment_includes.find_reference(self.__env_path, self.__context, token)
-        else:
-            tokens = ["engines", engine_name]
-            yml_file = self.__env_path 
-        
-        return (tokens, yml_file)
+        # find the location for the engine:
+        return self.__find_location_for_bundle(self.__env_path, root_yml_data, "engines", engine_name)
         
     def find_location_for_framework(self, framework_name):
         """
         Returns the filename and a list of dictionary keys where a framework instance resides.
-        The dictionary key list (tokens) can be nested, for example
-        [frameworks, tk-frameork-widget_v0.2.x] or just flat [tk-frameork-widget_v0.2.x]
+        The dictionary key list (tokens) can be nested, for example [frameworks, tk-framework-widget_v0.2.x]
+        or just flat [tk-framework-widget_v0.2.x]
+
+        :param framework_name:  The name of the framework to find the location of
+        :returns:               (list of tokens, file path) 
         """
         # get the raw data
         root_yml_data = self.__load_data(self.__env_path)
-        fw_data = root_yml_data["frameworks"][framework_name]
-        
-        if isinstance(fw_data, basestring) and fw_data.startswith("@"):
-            # this is a reference - try to load it in!
-            token = fw_data[1:]
-            tokens = [token]
-            yml_file = environment_includes.find_reference(self.__env_path, self.__context, token)
-        else:
-            tokens = ["frameworks", framework_name]
-            yml_file = self.__env_path 
-        
-        return (tokens, yml_file)
+        # find the location for the framework:
+        return self.__find_location_for_bundle(self.__env_path, root_yml_data, "frameworks", framework_name)
          
     def find_location_for_app(self, engine_name, app_name):
         """
         Returns the filename and the dictionary key where an app instance resides.
-        The dictionary key list (tokens) can be nested, for example
-        [engines, tk-maya, apps, tk-multi-about] or just flat [tk-mylti-about-def]
+        The dictionary key list (tokens) can be nested, for example [engines, tk-maya, apps, tk-multi-about] 
+        or just flat [tk-mylti-about-def]
+
+        :param engine_name: The name of the engine to look for the app in
+        :param app_name:    The name of the app to find
+        :returns:           (list of tokens, file path)
         """
-        
+        # first, find the location of the engine:
         (engine_tokens, engine_yml_file) = self.find_location_for_engine(engine_name)
 
-        # now update the yml file where the engine is defined
+        # load the engine data:
         engine_yml_data = self.__load_data(engine_yml_file)
         
-        # now the token may be either "my-maya-ref" or "engines/tk-maya"
-        # find the right chunk in the file
-        
-        # track the location of our app in the yml hierarchy
-        # (e..g ["engines", "tk-maya"] 
+        # traverse down the token hierarchy and find the data for our engine instance:
+        # (The token list looks something like this: ["engines", "tk-maya"]) 
         engine_data = engine_yml_data
         for x in engine_tokens:
             engine_data = engine_data.get(x)
         
-        app_tokens = engine_tokens
-        app_yml_file = engine_yml_file
-                        
-        # now that we have found the file in which the engine is defined, 
-        # find the file where the app is defined
-        app_section = engine_data["apps"]
-        if isinstance(app_section, basestring) and app_section.startswith("@"):
-            # whole app section is a reference!
-            app_section_token = app_section[1:]
-            app_yml_file = environment_includes.find_reference(app_yml_file, self.__context, app_section_token)
-            app_yml_data = self.__load_data(app_yml_file)
-            app_data = app_yml_data[app_section_token]
-            app_tokens = [app_section_token]
+        # find the location for the app within the engine data:
+        return self.__find_location_for_bundle(engine_yml_file, engine_data, "apps", app_name, engine_tokens)
+
+    def __find_location_for_bundle(self, yml_file, parent_yml_data, section_name, bundle_name, parent_tokens=None):
+        """
+        Return the location for the specified bundle within the specified section of the parent yml data block.
+
+        :param yml_file:            The starting environment yml file
+        :param parent_yml_data:     The parent yml data block to start the search from
+        :param section_name:        The name of the section that contains the bundle
+        :param bundle_name:         The name of the bundle to find
+        :param bundle_tokens:       A list of tokens representing the path to the parent data block
+        :returns:                   (list of tokens, file path)
+        """
+        bundle_tokens = list(parent_tokens or [])
+        bundle_yml_file = yml_file
+
+        # check to see if the whole bundle section is a reference or not:
+        bundle_section = parent_yml_data[section_name]
+        if isinstance(bundle_section, basestring) and bundle_section.startswith("@"):
+            # whole section is a reference!
+            bundle_section_token = bundle_section[1:]
+            bundle_yml_file = environment_includes.find_reference(bundle_yml_file, self.__context, bundle_section_token)
+            bundle_yml_data = self.__load_data(bundle_yml_file)
+            bundle_data = bundle_yml_data[bundle_section_token]
+            bundle_tokens = [bundle_section_token]
         else:
-            # found an apps section:
-            app_tokens.append("apps")
-            app_data = app_section[app_name]
+            # found the right section:
+            bundle_tokens.append(section_name)
+            bundle_data = bundle_section[bundle_name]
         
-        if isinstance(app_data, basestring) and app_data.startswith("@"):
+        if isinstance(bundle_data, basestring) and bundle_data.startswith("@"):
             # this is a reference!
             # now we are at the top of the token stack again because we switched files
-            app_token = app_data[1:]
-            app_tokens = [app_token]
-            app_yml_file = environment_includes.find_reference(app_yml_file, self.__context, app_token)
+            bundle_token = bundle_data[1:]
+            bundle_tokens = [bundle_token]
+            bundle_yml_file = environment_includes.find_reference(bundle_yml_file, self.__context, bundle_token)
         else:
-            # app is defined in current file
-            app_tokens.append(app_name)
+            # bundle is defined in the current file
+            bundle_tokens.append(bundle_name)
 
-        return (app_tokens, app_yml_file)
+        return (bundle_tokens, bundle_yml_file)
             
     def update_engine_settings(self, engine_name, new_data, new_location):
         """
