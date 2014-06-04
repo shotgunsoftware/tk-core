@@ -379,8 +379,8 @@ class Environment(object):
     def find_location_for_framework(self, framework_name):
         """
         Returns the filename and a list of dictionary keys where a framework instance resides.
-        The dictionary key list (tokens) can be nested, for example [frameworks, tk-frameork-widget_v0.2.x]
-        or just flat [tk-frameork-widget_v0.2.x]
+        The dictionary key list (tokens) can be nested, for example [frameworks, tk-framework-widget_v0.2.x]
+        or just flat [tk-framework-widget_v0.2.x]
 
         :param framework_name:  The name of the framework to find the location of
         :returns:               (list of tokens, file path)
