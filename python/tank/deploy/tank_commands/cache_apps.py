@@ -75,6 +75,16 @@ class CacheAppsAction(Action):
                     else:
                         log.info("App %s (Engine %s) - OK!" % (app, eng))
                     
+            for framework in env.get_frameworks():
+                desc = env.get_framework_descriptor(framework)
+                if not desc.exists_local():
+                    log.info("Framework %s - Downloading..." % framework)
+                    num_downloads += 1
+                    desc.download_local()
+                else:
+                    log.info("Framework %s - OK!" % framework)
+            
+            
             
         log.info("")
         log.info("Cache apps completed! %d items downloaded." % num_downloads)
