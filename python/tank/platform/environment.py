@@ -589,10 +589,6 @@ class Environment(object):
         if data.get("frameworks") is None:
             data["frameworks"] = {}
 
-        if framework_name in data["frameworks"]:
-            raise TankError("Framework %s already exists in environment %s" % (framework_name, yml_file) )
-
-
         # it is possible that the whole framework is referenced via an @include. In this case,
         # raise an error. Here's an example structure of what that looks like:
         #
@@ -603,12 +599,15 @@ class Environment(object):
                             "This type of configuration arrangement cannot currently be automatically "
                             "modified - please edit it by hand! Please add the following to your external "
                             "framework include: "
-                            "%s: { %s: %s } "
+                            "%s: { %s: %s }. "
                             "If the framework has any settings, these need to be added "
                             "by hand." % (self.__env_path,
                                           framework_name,
                                           constants.ENVIRONMENT_LOCATION_KEY,
                                           location))
+
+        if framework_name in data["frameworks"]:
+            raise TankError("Framework %s already exists in environment %s" % (framework_name, yml_file) )
 
         data["frameworks"][framework_name] = {}
         data["frameworks"][framework_name][constants.ENVIRONMENT_LOCATION_KEY] = location
