@@ -1028,6 +1028,7 @@ class Engine(TankBundle):
                 app_dir = descriptor.get_path()
 
                 # create the object, run the constructor
+                self.log_debug("Loading App '%s'" % app_instance_name)
                 app = application.get_application(self, 
                                                   app_dir, 
                                                   descriptor, 
@@ -1036,11 +1037,13 @@ class Engine(TankBundle):
                                                   self.__env)
                 
                 # load any frameworks required
+                self.log_debug("Loading Frameworks for '%s'" % app_instance_name)
                 setup_frameworks(self, app, self.__env, descriptor)
                 
                 # track the init of the app
                 self.__currently_initializing_app = app
                 try:
+                    self.log_debug("Initializing '%s'" % app_instance_name)
                     app.init_app()
                 finally:
                     self.__currently_initializing_app = None
@@ -1051,6 +1054,8 @@ class Engine(TankBundle):
             except Exception:
                 self.log_exception("App %s failed to initialize. It will not be loaded." % app_dir)
             else:
+                self.log_debug("App '%s' successfully loaded!" % app_instance_name)                
+                
                 # note! Apps are keyed by their instance name, meaning that we 
                 # could theoretically have multiple instances of the same app.
                 self.__applications[app_instance_name] = app

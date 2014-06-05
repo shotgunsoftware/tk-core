@@ -865,11 +865,13 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
         # context str is a path
         if pipeline_config_root is not None:
             # we are running a project specific tank command
+            log.debug("Creating Sgtk API instance from path: '%s'" % pipeline_config_root)
             tk =  tank.tank_from_path(pipeline_config_root)
 
         else:
             # we are running a studio wide command
             try:
+                log.debug("Creating Sgtk API instance from path: '%s'" % ctx_path)
                 tk = tank.tank_from_path(ctx_path)
             except TankError, e:
                 # this path was not valid. That's ok - we just wont have a tank instance
@@ -891,6 +893,7 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
             # In this case, initialize this to have the project context.   
             # We do this by attempting to construct a context and probing it
             
+            log.debug("Creating context from path: '%s'" % ctx_path)
             ctx = tk.context_from_path(ctx_path)
             if ctx.project is None:
                 # context could not be determined based on the path
@@ -919,6 +922,7 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
         # now see if we are running a studio or a per project tank command
         if pipeline_config_root is not None:
             # running a per project command
+            log.debug("Creating Sgtk API instance from path: '%s'" % pipeline_config_root)
             tk =  tank.tank_from_path(pipeline_config_root)
             project_id = tk.pipeline_configuration.get_project_id()
             studio_command_mode = False
@@ -1027,10 +1031,14 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
             # use normal string based parse methods
             # we are now left with the following cases to resolve
             # tank Entitytype name_expression
+            log.debug("Resolving entity of type '%s' for '%s'" % (entity_type, entity_search_token))
             entity_id = _resolve_shotgun_entity(log, entity_type, entity_search_token, project_id)
             
         # now initialize toolkit and set up the context.  
+        log.debug("Creating Sgtk API instance for %s '%s'" % (entity_type, entity_id))
         tk = tank.tank_from_entity(entity_type, entity_id)
+        
+        log.debug("Creating context for %s '%s'" % (entity_type, entity_id))
         ctx = tk.context_from_entity(entity_type, entity_id)
 
     log.debug("Sgtk API and Context resolve complete.")
