@@ -181,7 +181,14 @@ class TankQDialog(TankDialogBase):
         # set up the main UI and header
         self.ui = ui_tank_dialog.Ui_TankDialog() 
         self.ui.setupUi(self)
-        self.ui.label.setText(title)
+        
+        # when rendering the main UI title text, if the app is in dev mode, add 
+        # a little DEV text.
+        if self._bundle.descriptor.get_location().get("type") == "dev":        
+            self.ui.label.setText("%s<span style='font-size:9px; color: #9cbfff'>  DEV</span>" % title)
+        else:
+            self.ui.label.setText(title)
+            
         self.setWindowTitle("Shotgun: %s" % title)
         
         # set the visibility of the title bar:
