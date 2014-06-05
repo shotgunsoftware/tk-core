@@ -862,7 +862,7 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
     log.info("For documentation, see https://toolkit.shotgunsoftware.com")
 
     # Now create a tk instance and a context if possible
-
+    ctx = None
     if len(context_items) == 1:
 
         ctx_path = context_items[0]
@@ -873,11 +873,13 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
         # context str is a path
         if pipeline_config_root is not None:
             # we are running a project specific tank command
+            log.debug("Creating Sgtk API instance from path: '%s'" % pipeline_config_root)
             tk =  tank.tank_from_path(pipeline_config_root)
 
         else:
             # we are running a studio wide command
             try:
+                log.debug("Creating Sgtk API instance from path: '%s'" % ctx_path)
                 tk = tank.tank_from_path(ctx_path)
             except TankError, e:
                 # this path was not valid. That's ok - we just wont have a tank instance
@@ -886,9 +888,15 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
                 log.debug("Instantiating Sgtk raised: %s" % e)
                 tk = None
 
-        # now try to extract a context
-        ctx = None
         if tk is not None:
+            # explicitly grab connection to Shotgun so that we can time it.  This will connect once as the
+            # Shotgun API instance is created to grab the server capabilities so _should_ be a very minimal
+            # performance hit.
+            log.debug("Connecting to Shotgun for the first time")
+            sg = tk.shotgun
+
+            # now try to extract a context
+            log.debug("Creating context from path: '%s'" % ctx_path)
             ctx = tk.context_from_path(ctx_path)
 
     elif context_items[1].isdigit():
@@ -899,20 +907,41 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
 
         # note - tank from path method will validate that we are launching
         # from the right tank command etc.
+        log.debug("Creating Sgtk API instance from entity: '%s, %s'" % (entity_type, entity_id))
         tk = tank.tank_from_entity(entity_type, entity_id)
+        
+        # explicitly grab connection to Shotgun so that we can time it.  This will connect once as the
+        # Shotgun API instance is created to grab the server capabilities so _should_ be a very minimal
+        # performance hit.
+        log.debug("Connecting to Shotgun for the first time")
+        sg = tk.shotgun
 
+        # create a context from the entity information:
+        log.debug("Creating context from entity: '%s, %s'" % (entity_type, entity_id))
         ctx = tk.context_from_entity(entity_type, entity_id)
 
     elif pipeline_config_root is not None:
 
         # shotgun entity type and entity name and we are running a local tank command
+        log.debug("Creating Sgtk API instance from path: '%s'" % pipeline_config_root)
         tk =  tank.tank_from_path(pipeline_config_root)
+
+        # explicitly grab connection to Shotgun so that we can time it.  This will connect once as the
+        # Shotgun API instance is created to grab the server capabilities so _should_ be a very minimal
+        # performance hit.
+        log.debug("Connecting to Shotgun for the first time")
+        sg = tk.shotgun
 
         # now parse and resolve the entity name string
         entity_type = context_items[0]
         entity_search_token = context_items[1]
         project_id = tk.pipeline_configuration.get_project_id()
+        
+        log.debug("Resolving entity id for %s '%s'" % (entity_type, entity_search_token))
         entity_id = _resolve_shotgun_entity(log, entity_type, entity_search_token, project_id)
+        
+        # create the context from the entity info:
+        log.debug("Creating context from entity: '%s, %s'" % (entity_type, entity_id))
         ctx = tk.context_from_entity(entity_type, entity_id)
 
     else:
@@ -922,8 +951,20 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
         # now parse and resolve the entity name string
         entity_type = context_items[0]
         entity_search_token = context_items[1]
+        
+        log.debug("Resolving entity of type '%s' for '%s'" % (entity_type, entity_search_token))
         entity_id = _resolve_shotgun_entity(log, entity_type, entity_search_token, None)
+        
+        log.debug("Creating Sgtk API instance from entity '%s, %s'" % (entity_type, entity_id))
         tk = tank.tank_from_entity(entity_type, entity_id)
+        
+        # explicitly grab connection to Shotgun so that we can time it.  This will connect once as the
+        # Shotgun API instance is created to grab the server capabilities so _should_ be a very minimal
+        # performance hit.
+        log.debug("Connecting to Shotgun for the first time")
+        sg = tk.shotgun
+        
+        log.debug("Creating context from entity '%s, %s'" % (entity_type, entity_id))
         ctx = tk.context_from_entity(entity_type, entity_id)
 
     log.debug("Sgtk API and Context resolve complete.")

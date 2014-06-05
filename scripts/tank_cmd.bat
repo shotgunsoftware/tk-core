@@ -12,6 +12,9 @@ rem  not expressly granted therein are reserved by Shotgun Software Inc.
 
 setlocal EnableExtensions
 
+rem -- track when this file is launched:
+echo DEBUG [%TIME%]: Starting tank_cmd.bat
+
 rem -- this script is called by the main tank script
 rem -- the first parameter contains the path to the pipeline config root
 rem -- additional pameters are passed into the python script
@@ -28,7 +31,9 @@ for /f "tokens=*" %%G in (%INTERPRETER_CONFIG_FILE%) do (SET PYTHON_INTERPRETER=
 IF NOT EXIST %PYTHON_INTERPRETER% GOTO NO_INTERPRETER
 
 rem -- execute the python script which does the actual work.
+echo DEBUG [%TIME%]: Starting Python interpreter '%PYTHON_INTERPRETER%'
 %PYTHON_INTERPRETER% "%1install\core\scripts\tank_cmd.py" %*
+echo DEBUG [%TIME%]: Python has exited!
 
 rem -- pass along the return code
 exit /b %ERRORLEVEL%
