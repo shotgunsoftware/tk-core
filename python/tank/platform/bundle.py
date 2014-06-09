@@ -335,8 +335,44 @@ class TankBundle(object):
         hook_name = self.get_setting(key)
         return self.__execute_hook_internal(key, hook_name, method_name, **kwargs)
 
+    def execute_hook_expression(self, hook_expression, method_name, **kwargs):
+        """
+        Execute an arbitrary hook via an expression. While the methods execute_hook
+        and execute_hook_method allows you to execute a particular hook setting as
+        specified in the app configuration manifest, this methods allows you to 
+        execute a hook directly by passing a hook expression, for example 
+        {config}/path/to/my_hook.py
+        
+        This is useful if you are doing rapid app development and don't necessarily
+        want to expose a hook as a configuration setting just yet. It is also useful 
+        if you have app settings that are nested deep inside of lists or dictionaries.
+        In that case, you cannot use execute_hook, but instead will have to retrieve
+        the value specifically and then run it.
+        
+        Supported formats:
+        
+        - hook_expression: {$HOOK_PATH}/path/to/foo.py  -- expression based around an environment variable.
+        - hook_expression: {self}/path/to/foo.py -- looks in the hooks folder in the local app, engine of framework.
+        - hook_expression: {config}/path/to/foo.py -- Looks in the hooks folder in the project config.
+        - hook_expression: {tk-framework-perforce_v1.x.x}/path/to/foo.py -- looks in the hooks folder of a
+          framework instance that exists in the current environment. Basically, each entry inside the 
+          frameworks section in the current environment can be specified here - all these entries are 
+          on the form frameworkname_versionpattern, for example tk-framework-widget_v0.1.2 or 
+          tk-framework-shotgunutils_v1.3.x. 
+        
+        Supported legacy formats:
+        
+        - hook_expression: foo -- Will look for a foo.py file in the project configuration folder. 
+
+        :param hook_expression: Path to hook to execute. See above for syntax details.
+        :param method_name: Method inside the hook to execute.
+        """
+        return self.__execute_hook_internal(None, hook_expression, method_name, **kwargs)
+
     def execute_hook_by_name(self, hook_name, **kwargs):
         """
+        Note: Now deprecated - Please use execute_hook_expression instead.
+        
         Execute an arbitrary hook located in the hooks folder for this project.
         The hook_name is the name of the python file in which the hook resides,
         without the file extension.
