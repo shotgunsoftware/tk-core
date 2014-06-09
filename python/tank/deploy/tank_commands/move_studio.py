@@ -127,6 +127,8 @@ class MoveStudioInstallAction(Action):
                 # For example, you could have an env variable 
                 # $STUDIO_TANK_PATH=/sgtk/software/shotgun/studio and your linkback file may just 
                 # contain "$STUDIO_TANK_PATH" instead of an explicit path.
+                # NOTE: This is only supported on Linux and OSX so we don't check for any 
+                #       Windows-style %PATTERNS% here.
                 if "$" in data:
                     log.warning("Your pipeline configuration '%s:%s' at '%s' is pointing to the core API "
                                 "using an environment variable '%s' on '%s'. Please update the "
