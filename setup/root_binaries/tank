@@ -95,7 +95,10 @@ else
    fi
 
    # now get path to parent
-   parent_location=`cat "$parent_config_file"`
+   # by eval-ing the contents we are expanding any environment variables that may
+   # exist in the parent config file. For example, if the parent_config_file contains
+   # $STUDIO_TANK_PATH, it will be expanded correctly assuming the env var exists.
+   parent_location=$( eval echo $( cat "$parent_config_file" ) )
    # and check that it exists...
    if [ ! -d "$parent_location" ];
    then
