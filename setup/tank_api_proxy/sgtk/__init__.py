@@ -28,7 +28,12 @@ if not os.path.exists(parent_cfg_path):
 # now read our parent file
 fh = open(parent_cfg_path, "rt")
 try:
-    parent_path = fh.readline().rstrip()
+    parent_path = fh.readline().strip()
+    # expand any env vars that are used in the files. For example, you could have 
+    # an env variable $STUDIO_TANK_PATH=/sgtk/software/shotgun/studio and your
+    # and your parent file may just contain "$STUDIO_TANK_PATH" instead of an 
+    # explicit path.
+    parent_path = os.path.expandvars(parent_path)
 finally:
     fh.close()
 
