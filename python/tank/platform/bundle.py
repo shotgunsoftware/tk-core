@@ -384,7 +384,9 @@ class TankBundle(object):
         list of hooks, for example if you want to run a series of arbitrary
         user defined pre-publish validation hooks.  
         """
-        return self.__execute_hook_internal(None, hook_name, None, **kwargs)
+        hook_folder = self.tank.pipeline_configuration.get_hooks_location()
+        hook_path = os.path.join(hook_folder, "%s.py" % hook_name)
+        return hook.execute_hook(hook_path, self, **kwargs)        
 
     
     def ensure_folder_exists(self, path):
