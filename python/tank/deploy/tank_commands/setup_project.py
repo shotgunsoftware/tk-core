@@ -432,7 +432,6 @@ class CmdlineSetupInteraction(object):
         self._log.info("")
         self._log.info("")
         self._log.info("Now it is time to decide where the configuration for this project should go. ")
-        self._log.info("As of Toolkit v0.13, you can specify any location you want on disk. ")
         self._log.info("Typically, this is in a software install area where you keep ")
         self._log.info("all your Toolkit code and configuration. We will suggest defaults ")
         self._log.info("based on your current install.")
