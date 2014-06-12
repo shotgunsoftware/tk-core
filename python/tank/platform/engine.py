@@ -717,7 +717,7 @@ class Engine(TankBundle):
         Apps and UIs can then extend this further by using further css.
         
         Due to restrictions in QT, this needs to run after a QApplication object
-        has been inistantiated.
+        has been instantiated.
         """
         from .qt import QtGui, QtCore
         
@@ -742,34 +742,40 @@ class Engine(TankBundle):
         # When we load this up in our engine, we will get a look
         # and feel similar to that of maya.
 
-        # open palette file
-        palette_file = os.path.join(this_folder, "qt", "dark_palette.qpalette")
-        fh = QtCore.QFile(palette_file)
-        fh.open(QtCore.QIODevice.ReadOnly);
-        file_in = QtCore.QDataStream(fh)
-
-        # deserialize the palette
-        # (store it for GC purposes)
-        self._dark_palette = QtGui.QPalette()
-        file_in.__rshift__(self._dark_palette)
-        fh.close()
-        
-        # set the std selection bg color to be 'shotgun blue'
-        self._dark_palette.setBrush(QtGui.QPalette.Highlight, QtGui.QBrush(QtGui.QColor("#30A7E3")))
-        
-        # and associate it with the qapplication
-        QtGui.QApplication.setPalette(self._dark_palette)
+        try:
+            # open palette file
+            palette_file = os.path.join(this_folder, "qt", "dark_palette.qpalette")
+            fh = QtCore.QFile(palette_file)
+            fh.open(QtCore.QIODevice.ReadOnly);
+            file_in = QtCore.QDataStream(fh)
+    
+            # deserialize the palette
+            # (store it for GC purposes)
+            self._dark_palette = QtGui.QPalette()
+            file_in.__rshift__(self._dark_palette)
+            fh.close()
             
-        # read css
-        css_file = os.path.join(this_folder, "qt", "dark_palette.css")
-        f = open(css_file)
-        css_data = f.read()
-        f.close()
-        app = QtCore.QCoreApplication.instance()
-        app.setStyleSheet(css_data)
-        
+            # set the std selection bg color to be 'shotgun blue'
+            self._dark_palette.setBrush(QtGui.QPalette.Highlight, QtGui.QBrush(QtGui.QColor("#30A7E3")))
+            
+            # and associate it with the qapplication
+            QtGui.QApplication.setPalette(self._dark_palette)
 
-
+        except Exception, e:
+            self.log_error("The standard toolkit dark palette could not be set up! The look and feel of your "
+                           "toolkit apps may be sub standard. Please contact support. Details: %s" % e)
+            
+        try:
+            # read css
+            css_file = os.path.join(this_folder, "qt", "dark_palette.css")
+            f = open(css_file)
+            css_data = f.read()
+            f.close()
+            app = QtCore.QCoreApplication.instance()
+            app.setStyleSheet(css_data)
+        except Exception, e:
+            self.log_error("The standard toolkit dark stylesheet could not be set up! The look and feel of your "
+                           "toolkit apps may be sub standard. Please contact support. Details: %s" % e)
         
     
     def _get_standard_qt_stylesheet(self):
