@@ -316,6 +316,7 @@ def get_actions(log, tk, ctx):
         # we have all the necessary pieces needed to start an engine
         
         # check if there is an environment object for our context
+        log.debug("Finding environment for context '%s'" % ctx)
         env = get_environment_from_context(tk, ctx)
         log.debug("Probing for a shell engine. ctx '%s' --> environment '%s'" % (ctx, env))
         if env and constants.SHELL_ENGINE in env.get_engines():
