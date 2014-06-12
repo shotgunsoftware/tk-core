@@ -698,8 +698,87 @@ class Engine(TankBundle):
         
         return base
         
+    def _initialize_dark_look_and_feel(self):
+        """
+        Initializes a standard toolkit look and feel using a combination of
+        QPalette and stylesheets.
+        
+        If your engine is running inside an environment which already has
+        a dark style defined, do not call this method. The Toolkit apps are 
+        designed to work well with most dark themes.
+        
+        However, if you are for example creating your own QApplication instance
+        you can execute this method to but the session into Toolkit's 
+        standard dark mode.
+        
+        This will initialize the plastique style and set it up with a standard
+        dark palette and supporting stylesheet.
+        
+        Apps and UIs can then extend this further by using further css.
+        
+        Due to restrictions in QT, this needs to run after a QApplication object
+        has been inistantiated.
+        """
+        from .qt import QtGui, QtCore
+        
+        this_folder = os.path.abspath(os.path.dirname(__file__))
+        
+        # initialize our style
+        QtGui.QApplication.setStyle("plastique")
+        
+        # Read in a serialized version of a palette
+        # this file was generated in the following way:
+        #
+        # Inside of maya 2014, the following code was executed:
+        #
+        # from PySide import QtGui, QtCore
+        # app = QtCore.QCoreApplication.instance()
+        # fh = QtCore.QFile("/tmp/palette.dump")
+        # fh.open(QtCore.QIODevice.WriteOnly)
+        # out = QtCore.QDataStream(fh)
+        # out.__lshift__( app.palette() )
+        # fh.close()
+        #
+        # When we load this up in our engine, we will get a look
+        # and feel similar to that of maya.
+
+        # open palette file
+        palette_file = os.path.join(this_folder, "qt", "dark_palette.qpalette")
+        fh = QtCore.QFile(palette_file)
+        fh.open(QtCore.QIODevice.ReadOnly);
+        file_in = QtCore.QDataStream(fh)
+
+        # deserialize the palette
+        # (store it for GC purposes)
+        self._dark_palette = QtGui.QPalette()
+        file_in.__rshift__(self._dark_palette)
+        fh.close()
+        
+        # set the std selection bg color to be 'shotgun blue'
+        self._dark_palette.setBrush(QtGui.QPalette.Highlight, QtGui.QBrush(QtGui.QColor("#30A7E3")))
+        
+        # and associate it with the qapplication
+        QtGui.QApplication.setPalette(self._dark_palette)
+            
+        # read css
+        css_file = os.path.join(this_folder, "qt", "dark_palette.css")
+        f = open(css_file)
+        css_data = f.read()
+        f.close()
+        app = QtCore.QCoreApplication.instance()
+        app.setStyleSheet(css_data)
+        
+
+
+        
+    
     def _get_standard_qt_stylesheet(self):
         """
+        **********************************************************************
+        THIS METHOD HAS BEEN DEPRECATED AND SHOULD NOT BE USED!
+        Instead, call _initialize_standard_look_and_feel()
+        **********************************************************************
+        
         For environments which do not have a well defined QT style sheet,
         Toolkit maintains a "standard style" which is similar to the look and
         feel that Maya and Nuke has. 
