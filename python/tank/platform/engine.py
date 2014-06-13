@@ -764,6 +764,7 @@ class Engine(TankBundle):
             
             # set the std selection bg color to be 'shotgun blue'
             self._dark_palette.setBrush(QtGui.QPalette.Highlight, QtGui.QBrush(QtGui.QColor("#30A7E3")))
+            self._dark_palette.setBrush(QtGui.QPalette.HighlightedText, QtGui.QBrush(QtGui.QColor("#FFFFFF")))
             
             # and associate it with the qapplication
             QtGui.QApplication.setPalette(self._dark_palette)
