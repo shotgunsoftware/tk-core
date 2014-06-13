@@ -536,6 +536,8 @@ class Engine(TankBundle):
             
         Additional parameters specified will be passed through to the widget_class constructor.
         """
+        from .qt import QtGui, QtCore
+        
         # get the parent for the dialog:
         parent = self._get_dialog_parent()
         
@@ -544,6 +546,11 @@ class Engine(TankBundle):
         
         # create the dialog:
         dialog = self._create_dialog(title, bundle, widget, parent)
+        
+        # some linux window managers are supressing the close button on dialogs for usability
+        # purposes. Try hinting to them that we actually want a close button for our dialogs...
+        dialog.setWindowFlags( dialog.windowFlags() | QtCore.Qt.WindowCloseButtonHint ) 
+        
         return (dialog, widget)
     
     def _on_dialog_closed(self, dlg):
