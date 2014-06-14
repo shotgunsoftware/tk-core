@@ -13,6 +13,7 @@ Various helper methods relating to user interaction via the shell.
 """
 
 import textwrap
+import os
 
 from ... import pipelineconfig
 from ...platform import validation
@@ -175,6 +176,7 @@ def _get_configuration_recursive(log, tank_api_instance, new_ver_descriptor, par
             param_values[param_name] = child_params
 
         else:
+            
             # leaf param so need to get value:
             param_path = list(parent_path) + [param_name]
 
@@ -190,9 +192,11 @@ def _get_configuration_recursive(log, tank_api_instance, new_ver_descriptor, par
                 log.info(x)
             log.info("\%s" % ("-" * 70))
 
-            # don't ask user to input anything for values we already have:
+            
+            found_default_value = False
+            
+            # check if we can auto populate a default
             if "value" in param_data:
-
                 if param_data["type"] == "hook":
                     # hooks have special logic when their default values are resolved
 
@@ -212,31 +216,68 @@ def _get_configuration_recursive(log, tank_api_instance, new_ver_descriptor, par
                         # for new style hooks, copy the value across into the
                         # environment. Resolve the {engine_name} token if it
                         # exists.
-                        value = default_value
+                        
 
-                        if constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN in value:
+                        if constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN in default_value:
+                            # we have something on the form {self}/path/to/{engine_name}_foo.py
+                            # replace {engine_name} in the default value with the current engine name
+                            # also check that this file actually exist as part of the app.
+                            # if it doesn't, don't populate the value with a default because it 
+                            # will generate a hook-not-found runtime error
                             if parent_engine_name is None:
                                 # should not happen
                                 raise TankError("Cannot resolve dynamic engine token for "
                                                 "setting %s in %s!" % (param_name, new_ver_descriptor))
-                            value = value.replace(constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN, parent_engine_name)
+                            
+                            # Before we can check that the hook file exists, ensure that the code exists...
+                            if not new_ver_descriptor.exists_local():
+                                log.info("Hang on, downloading %s..." % new_ver_descriptor)
+                                new_ver_descriptor.download_local()
+                            
+                            hooks_folder = os.path.join(new_ver_descriptor.get_path(), "hooks")
+                            full_path = default_value.replace(constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN, 
+                                                              parent_engine_name)
+                            full_path = full_path.replace("{self}", hooks_folder)
+                            
+                            if not os.path.exists(full_path):
+                                log.warning("Sorry, no built-in support for the %s engine yet! " 
+                                            "The default hook value '%s' for this hook refers to an engine specific hook, "
+                                            "however there is currently "
+                                            "no hook implementation available for the current engine. "
+                                            "If you want to continue with the install, you have to supply your "
+                                            "own hooks." % (parent_engine_name, default_value))
+                            
+                            else:
+                                # hook exists on disk!
+                                resolved_default_value = default_value.replace(constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN, 
+                                                                               parent_engine_name)
+                                found_default_value = True
+                        
+                        else:
+                            # new style hook setting without {engine_name}
+                            resolved_default_value = default_value
+                            found_default_value = True
 
                     else:
                         # this is an old style hook, where we want to
                         # populate the environment config with a
                         # 'magic' default value.
-                        value = constants.TANK_BUNDLE_DEFAULT_HOOK_SETTING
+                        resolved_default_value = constants.TANK_BUNDLE_DEFAULT_HOOK_SETTING
+                        found_default_value = True
                 else:
+                    # non-hook value
                     # just copy the default value into the environment
-                    value = param_data["value"]
+                    resolved_default_value = param_data["value"]
+                    found_default_value = True
 
-                param_values[param_name] = value
-
+            # now check if we managed to get a default
+            if found_default_value: 
+                # default value available!
+                param_values[param_name] = resolved_default_value
                 # note that value can be a tuple so need to cast to str
-                log.info("Auto-populated with default value '%s'" % str(value))
-
+                log.info("Auto-populated with default value '%s'" % str(resolved_default_value))
+            
             elif suppress_prompts:
-
                 log.warning("Value set to None! Please update the environment by hand later!")
                 params[name] = None
 
