@@ -722,7 +722,8 @@ class Engine(TankBundle):
         """
         from .qt import QtGui, QtCore
         
-        this_folder = os.path.abspath(os.path.dirname(__file__))
+        resources_folder = os.path.join(pipelineconfig.get_current_code_install_root(), 
+                                        "install", "core", "resources")
         
         # initialize our style
         QtGui.QApplication.setStyle("plastique")
@@ -745,7 +746,7 @@ class Engine(TankBundle):
 
         try:
             # open palette file
-            palette_file = os.path.join(this_folder, "qt", "dark_palette.qpalette")
+            palette_file = os.path.join(resources_folder, "dark_palette.qpalette")
             fh = QtCore.QFile(palette_file)
             fh.open(QtCore.QIODevice.ReadOnly);
             file_in = QtCore.QDataStream(fh)
@@ -769,7 +770,7 @@ class Engine(TankBundle):
             
         try:
             # read css
-            css_file = os.path.join(this_folder, "qt", "dark_palette.css")
+            css_file = os.path.join(resources_folder, "dark_palette.css")
             f = open(css_file)
             css_data = f.read()
             f.close()
