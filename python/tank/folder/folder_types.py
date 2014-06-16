@@ -1681,9 +1681,6 @@ class Project(Entity):
         
         # now resolve the disk location for the storage specified in the project config
         storage_root_path = tk.pipeline_configuration.get_local_storage_roots().get(storage_name)
-        if storage_root_path is None:
-            raise TankError("The storage '%s' specified in the folder config %s.yml "
-                            "is not defined on this operating system!" % (storage_name, schema_config_project_folder))
         
         return Project(tk, schema_config_project_folder, metadata, storage_root_path)
     
