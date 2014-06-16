@@ -216,8 +216,6 @@ def _get_configuration_recursive(log, tank_api_instance, new_ver_descriptor, par
                         # for new style hooks, copy the value across into the
                         # environment. Resolve the {engine_name} token if it
                         # exists.
-                        
-
                         if constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN in default_value:
                             # we have something on the form {self}/path/to/{engine_name}_foo.py
                             # replace {engine_name} in the default value with the current engine name
@@ -234,10 +232,13 @@ def _get_configuration_recursive(log, tank_api_instance, new_ver_descriptor, par
                                 log.info("Hang on, downloading %s..." % new_ver_descriptor)
                                 new_ver_descriptor.download_local()
                             
+                            # bake out the current engine token
+                            resolved_default_value = default_value.replace(constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN, 
+                                                                           parent_engine_name)
+                            
+                            # ensure that it exists as part of the app
                             hooks_folder = os.path.join(new_ver_descriptor.get_path(), "hooks")
-                            full_path = default_value.replace(constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN, 
-                                                              parent_engine_name)
-                            full_path = full_path.replace("{self}", hooks_folder)
+                            full_path = resolved_default_value.replace("{self}", hooks_folder)
                             
                             if not os.path.exists(full_path):
                                 log.warning("Sorry, no built-in support for the %s engine yet! " 
@@ -249,8 +250,6 @@ def _get_configuration_recursive(log, tank_api_instance, new_ver_descriptor, par
                             
                             else:
                                 # hook exists on disk!
-                                resolved_default_value = default_value.replace(constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN, 
-                                                                               parent_engine_name)
                                 found_default_value = True
                         
                         else:
