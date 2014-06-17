@@ -659,6 +659,11 @@ def _preprocess_projects(log, sg, entity_search_token, constrain_by_project_id):
         log.debug("Shotgun: find_one(Project, id is %s)" % constrain_by_project_id)
         proj_constraint = sg.find_one("Project", [["id", "is", constrain_by_project_id]], ["name"])
         log.debug("Got data: %r" % proj_constraint)
+        
+        # check in case a project has been retired in shotgun but there is still an active toolkit project
+        if proj_constraint is None:
+            raise TankError("Cannot find a project with id '%s' in Shotgun!" % constrain_by_project_id)
+        
         log.info("- You are running a tank command associated with Shotgun Project '%s'. "
                  "Only items associated with this project will be considered." % proj_constraint.get("name") )
         projs_from_prefix = [proj_constraint]
@@ -720,9 +725,9 @@ def _resolve_shotgun_entity(log, entity_type, entity_search_token, constrain_by_
     task_link_type = None
     if entity_type == "Task" and len(entity_search_token.split(":")) > 2:
         # shave off the task link prefix
-        task_link_type = entity_search_token.split(":")[0]  # e.g. Shot
-        task_link_token = entity_search_token.split(":")[1] # e.g. foo
-        entity_search_token = ":".join(entity_search_token.split(":")[2:])
+        task_link_type = entity_search_token.split(":")[0]  # e.g. Shot in tank Task Shot:foo:light
+        task_link_token = entity_search_token.split(":")[1] # e.g. foo  in tank Task Shot:foo:light
+        entity_search_token = ":".join(entity_search_token.split(":")[2:]) # e.g. light 
         log.info("- Will only search tasks associated with %ss "
                  "matching the pattern '%s'" % (task_link_type, task_link_token))
 
