@@ -70,13 +70,6 @@ class SetupProjectAction(Action):
                                                    "default": None,
                                                    "type": "str" }
 
-        self.parameters["project_folder_name"] = { "description": ("Name of the folder which you want to be the root "
-                                                                   "point of the created project. If a project already "
-                                                                   "exists, this parameter must reflect the name of the "
-                                                                   "top level folder of the project."),
-                                                   "default": None,
-                                                   "type": "str" }
-
         self.parameters["config_uri"] = { "description": ("The configuration to use when setting up this project. "
                                                           "This can be a path on disk to a directory containing a "
                                                           "config, a path to a git bare repo (e.g. a git repo path "
@@ -439,7 +432,6 @@ class CmdlineSetupInteraction(object):
         self._log.info("")
         self._log.info("")
         self._log.info("Now it is time to decide where the configuration for this project should go. ")
-        self._log.info("As of Toolkit v0.13, you can specify any location you want on disk. ")
         self._log.info("Typically, this is in a software install area where you keep ")
         self._log.info("all your Toolkit code and configuration. We will suggest defaults ")
         self._log.info("based on your current install.")

@@ -656,15 +656,19 @@ def _preprocess_projects(log, sg, entity_search_token, constrain_by_project_id):
 
     if constrain_by_project_id:
         # generate implicit project constraints based on the tank command location
+        log.debug("Shotgun: find_one(Project, id is %s)" % constrain_by_project_id)
         proj_constraint = sg.find_one("Project", [["id", "is", constrain_by_project_id]], ["name"])
+        log.debug("Got data: %r" % proj_constraint)
         log.info("- You are running a tank command associated with Shotgun Project '%s'. "
                  "Only items associated with this project will be considered." % proj_constraint.get("name") )
         projs_from_prefix = [proj_constraint]
 
     elif proj_token:
         # running the studio command and specific project token specified.
-        # generate list of project ids based on the project token
+        # generate list of project ids based on the project token        
+        log.debug("Shotgun: find(Project, name contains %s)" % proj_token )
         projs_from_prefix = sg.find("Project", [["name", "contains", proj_token]], ["name"])
+        log.debug("Got data: %r" % projs_from_prefix)
         if len(projs_from_prefix) == 0:
             raise TankError("No Shotgun projects found containing the phrase '%s' in their name!" % proj_token)
 
@@ -738,11 +742,11 @@ def _resolve_shotgun_entity(log, entity_type, entity_search_token, constrain_by_
             proj_filter.extend(projs)
             shotgun_filters.append(proj_filter)
 
-        log.debug("Getting %s data from Shotgun with filters %s" % (entity_type, shotgun_filters))
+        log.debug("Shotgun: find(%s, %s)" % (entity_type, shotgun_filters))
         entities = sg.find(entity_type,
                            shotgun_filters,
                            [name_field, "description", "entity", "link", "project"])
-        log.debug("...Retrieved %s results" % len(entities))
+        log.debug("Got data: %r" % entities)
     except Exception, e:
         raise TankError("An error occurred when searching in Shotgun: %s" % e)
 

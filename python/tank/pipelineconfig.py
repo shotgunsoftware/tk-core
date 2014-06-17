@@ -397,6 +397,10 @@ class PipelineConfiguration(object):
             try:
                 fh = open(curr_linkback_file, "rt")
                 data = fh.read().strip() # remove any whitespace, keep text
+                # expand any env vars that are used in the files. For example, you could have 
+                # an env variable $STUDIO_TANK_PATH=/sgtk/software/shotgun/studio and your 
+                # linkback file may just contain "$STUDIO_TANK_PATH" instead of an explicit path.
+                data = os.path.expandvars(data)
                 if data not in ["None", "undefined"] and os.path.exists(data):
                     install_path = data
                 fh.close()                    

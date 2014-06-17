@@ -115,8 +115,36 @@ class TestGetSetting(TestApplication):
         self.assertEqual(True, test_item["test_bool"])
         self.assertEqual("extra", test_item["test_extra"])
 
+class TestExecuteHookByName(TestApplication):
+    
+
+    def test_legacy_format_old_method(self):
+        app = self.engine.apps["test_app"]
+        self.assertEqual(app.execute_hook_by_name("named_hook", dummy_param=True), "named_hook_1")
+
+    def test_legacy_format(self):
+        app = self.engine.apps["test_app"]
+        self.assertEqual(app.execute_hook_expression("named_hook", "execute", dummy_param=True), "named_hook_1")
+
+    def test_legacy_format_2(self):
+        app = self.engine.apps["test_app"]
+        self.assertEqual(app.execute_hook_expression("named_hook", "second_method", another_dummy_param=True), 
+                         "named_hook_2")
+
+    def test_config(self):
+        app = self.engine.apps["test_app"]
+        self.assertEqual(app.execute_hook_expression("{config}/named_hook.py", "execute", dummy_param=True), 
+                         "named_hook_1")
+
+    def test_self(self):
+        app = self.engine.apps["test_app"]
+        self.assertTrue(app.execute_hook_expression("{self}/test_hook.py", "execute", dummy_param=True), 
+                        "named_hook_1")
+
+
 class TestExecuteHook(TestApplication):
     
+
     def test_standard_format(self):
         app = self.engine.apps["test_app"]
         self.assertTrue(app.execute_hook("test_hook_std", dummy_param=True))

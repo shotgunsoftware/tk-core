@@ -56,8 +56,9 @@ def _get_includes(file_name, data):
 
     for include in includes:
         
-        if "/" in include and not include.startswith("/"):
-            # relative path!
+        if "/" in include and not include.startswith("/") and not include.startswith("$"):
+            # relative path: foo/bar.yml or ./foo.bar.yml
+            # note the $ check to avoid paths beginning with env vars to fall into this branch
             adjusted = include.replace("/", os.path.sep)
             full_path = os.path.join(os.path.dirname(file_name), adjusted)
     
@@ -66,14 +67,14 @@ def _get_includes(file_name, data):
             if sys.platform != "win32":
                 # ignore this on other platforms
                 continue
-            full_path = include
+            full_path = os.path.expandvars(include)
             
         else:
             # linux absolute path
             if sys.platform == "win32":
                 # ignore this on other platforms
                 continue
-            full_path = include
+            full_path = os.path.expandvars(include)
                     
         # make sure that the paths all exist
         if not os.path.exists(full_path):

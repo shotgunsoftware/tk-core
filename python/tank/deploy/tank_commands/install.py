@@ -72,29 +72,32 @@ class InstallAppAction(Action):
         if len(args) != 3:
             
             log.info("This command adds an app to an existing environment and engine. "
-                     "You can either add apps from the Toolkit App Store or from git "
-                     "source control.")
+                     "You can either add apps from the Toolkit App Store, git or directly from disk.")
             log.info("")
-            log.info("Adding an app from the Toolkit App Store")
-            log.info("----------------------------------------")
+            log.info("Adding an app from local disk (for developers)")
+            log.info("----------------------------------------------")
             log.info("")
-            log.info("The standard mechanism through which apps and engines are distributed "
-                     "is the Toolkit App Store. Items in the App Store are part of the official "
-                     "toolkit distribution and have gone through our quality control process. "
-                     "To see all apps and engines in the Toolkit App Store, navigate here:")
-            log.info("https://toolkit.shotgunsoftware.com/entries/23874562")
+            log.info("This is useful when you start development of a new app. We recommend that you "
+                     "base your new apps on our default starter app, located in github:")
             log.info("")
-            log.info("To install an app store app, use the following syntax:")
-            log.info("> tank install_app environment_name engine_name app_name")
+            log.info("https://github.com/shotgunsoftware/tk-multi-starterapp")
             log.info("")
-            log.info("For example, to install the loader app into the shell engine in the "
-                     "Asset environment:")
-            log.info("> tank install_app Asset tk-shell tk-multi-loader")
+            log.info("Download it to a local folder, either by forking it or simply by downloading "
+                     "the code. We now recommend that you decide which base frameworks to use, "
+                     "and update the info.yml manifest accordingly. " 
+                     "Next, add it to a toolkit environment using the install_app command. The "
+                     "command will ensure that all required frameworks and parameters are correctly "
+                     "downloaded and populated:")
+            log.info("")
+            log.info("> tank install_app environment_name engine_name /path/on/disk")
+            log.info("")
+            log.info("For more information about app development, see "
+                     "https://toolkit.shotgunsoftware.com/entries/22275546")
             log.info("")
             log.info("")
-            log.info("")
+            
             log.info("Adding an app from git or github")
-            log.info("----------------------------------------")
+            log.info("--------------------------------")
             log.info("")
             log.info("You can also install apps directly from git or github. Toolkit will "
                      "read a git repository's list of tags, try to interpret them as version numbers, and "
@@ -118,6 +121,26 @@ class InstallAppAction(Action):
             log.info(" - https://github.com/manneohrstrom/tk-hiero-publish.git")
             log.info("")
             log.info("")
+            
+            log.info("Adding an App from the Toolkit App Store")
+            log.info("----------------------------------------")
+            log.info("")
+            log.info("The standard mechanism through which apps and engines are distributed "
+                     "is the Toolkit App Store. Items in the App Store are part of the official "
+                     "toolkit distribution and have gone through our quality control process. "
+                     "To see all apps and engines in the Toolkit App Store, navigate here:")
+            log.info("")
+            log.info("https://toolkit.shotgunsoftware.com/entries/23874562")
+            log.info("")
+            log.info("To install an app store app, use the following syntax:")
+            log.info("> tank install_app environment_name engine_name app_name")
+            log.info("")
+            log.info("For example, to install the loader app into the shell engine in the "
+                     "Asset environment:")
+            log.info("> tank install_app Asset tk-shell tk-multi-loader")
+            log.info("")
+            log.info("")
+            
             log.info("Handy tip: For a list of existing environments, engines and apps, "
                      "run the 'tank app_info' command.")
             log.info("")
@@ -162,6 +185,14 @@ class InstallAppAction(Action):
             log.info("Latest version in repository '%s' is %s." % (app_name, 
                                                                    app_descriptor.get_version()))
             
+        elif "/" in app_name or "\\" in app_name:
+            # this is a local path on disk, meaning that we should set up a dev descriptor!
+            log.info("Looking for a locally installed app in '%s'..." % app_name) 
+            location = {"type": "dev", "path": app_name}
+            app_descriptor = get_from_location(AppDescriptor.APP, 
+                                               self.tk.pipeline_configuration, 
+                                               location)
+        
         else:
             # this is an app store app!
             log.info("Connecting to the Toolkit App Store...")
@@ -276,25 +307,21 @@ class InstallEngineAction(Action):
                      "You can either add engines from the Toolkit App Store or from git source control.")
             log.info("")
             log.info("")
-            log.info("Adding an engine from the Toolkit App Store")
-            log.info("----------------------------------------")
+            
+            
+            log.info("Adding an engine from local disk (for developers)")
+            log.info("-------------------------------------------------")
             log.info("")
-            log.info("The standard mechanism through which apps and engines are distributed "
-                     "is the Toolkit App Store. Items in the App Store are part of the official "
-                     "toolkit distribution and have gone through our quality control process. "
-                     "To see all apps and engines in the Toolkit App Store, navigate here:")
-            log.info("https://toolkit.shotgunsoftware.com/entries/23874562")
+            log.info("This is useful when you start development of a new engine. "
+                     "Set up some starter code on disk (for example by cloning "
+                     "an existing engine) and then run the install_engine command:") 
             log.info("")
-            log.info("To install an app store engine, use the following syntax:")
-            log.info("> tank install_engine environment_name engine_name")
-            log.info("")
-            log.info("For example, to install the houdini engine into the Asset environment:")
-            log.info("> tank install_engine Asset tk-houdini")
+            log.info("> tank install_engine environment_name /path/on/disk")
             log.info("")
             log.info("")
-            log.info("")
+            
             log.info("Adding an engine from git or github")
-            log.info("----------------------------------------")
+            log.info("-----------------------------------")
             log.info("")
             log.info("You can also install engines directly from git or github. Toolkit will "
                      "read a git repository's list of tags, try to interpret them as version numbers, and "
@@ -316,6 +343,24 @@ class InstallEngineAction(Action):
             log.info(" - user@remotehost:/path_to/repo.git")
             log.info(" - git://github.com/manneohrstrom/tk-hiero-publish.git")
             log.info(" - https://github.com/manneohrstrom/tk-hiero-publish.git")
+            log.info("")
+            log.info("")
+            
+            log.info("Adding an engine from the Toolkit App Store")
+            log.info("-------------------------------------------")
+            log.info("")
+            log.info("The standard mechanism through which apps and engines are distributed "
+                     "is the Toolkit App Store. Items in the App Store are part of the official "
+                     "toolkit distribution and have gone through our quality control process. "
+                     "To see all apps and engines in the Toolkit App Store, navigate here:")
+            log.info("")
+            log.info("https://toolkit.shotgunsoftware.com/entries/23874562")
+            log.info("")
+            log.info("To install an app store engine, use the following syntax:")
+            log.info("> tank install_engine environment_name engine_name")
+            log.info("")
+            log.info("For example, to install the houdini engine into the Asset environment:")
+            log.info("> tank install_engine Asset tk-houdini")
             log.info("")
             log.info("")
             log.info("Handy tip: For a list of existing environments, engines and apps, "
@@ -358,10 +403,20 @@ class InstallEngineAction(Action):
             engine_descriptor = tmp_descriptor.find_latest_version()
             log.info("Latest version in repository '%s' is %s." % (engine_name, engine_descriptor.get_version()))
             
+        elif "/" in engine_name or "\\" in engine_name:
+            # this is a local path on disk, meaning that we should set up a dev descriptor!
+            log.info("Looking for a locally installed engine in '%s'..." % engine_name) 
+            location = {"type": "dev", "path": engine_name}
+            engine_descriptor = get_from_location(AppDescriptor.ENGINE, 
+                                                  self.tk.pipeline_configuration, 
+                                                  location)
+            
         else:
             # this is an app store app!
             log.info("Connecting to the Toolkit App Store...")
-            engine_descriptor = TankAppStoreDescriptor.find_latest_item(self.tk.pipeline_configuration, AppDescriptor.ENGINE, engine_name)
+            engine_descriptor = TankAppStoreDescriptor.find_latest_item(self.tk.pipeline_configuration, 
+                                                                        AppDescriptor.ENGINE, 
+                                                                        engine_name)
             log.info("Latest approved App Store Version is %s." % engine_descriptor.get_version())
         
         log.info("")

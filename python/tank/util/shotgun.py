@@ -894,8 +894,9 @@ def _calc_path_cache(tk, path):
 
         if norm_path.lower().startswith(norm_root_path.lower()):
             norm_parent_dir = os.path.dirname(norm_root_path)
-            # remove parent dir plus "/"
-            path_cache = norm_path[ len(norm_parent_dir) + 1: ]
+            # Remove parent dir plus "/" - be careful to handle the case where
+            # the parent dir ends with a '/', e.g. 'T:/' for a Windows drive
+            path_cache = norm_path[len(norm_parent_dir):].lstrip("/")
             return root_name, path_cache
     # not found, return None values
     return None, None
