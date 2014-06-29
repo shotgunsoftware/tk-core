@@ -33,6 +33,7 @@ class TestTemplatePath(TankTestBase):
                      "Step": StringKey("Step"),
                      "branch": StringKey("branch", filter_by="alphanumeric"),
                      "name": StringKey("name"),
+                     "name_alpha": StringKey("name_alpha", filter_by="alphanumeric"),
                      "version": IntegerKey("version", format_spec="03"),
                      "snapshot": IntegerKey("snapshot", format_spec="03"),
                      "ext": StringKey("ext"),
@@ -867,11 +868,9 @@ class TestGetFields(TestTemplatePath):
 
 class TestGetKeysSepInValue(TestTemplatePath):
     """Tests for cases where seperator used between keys is used in value for keys."""
-    #TODO Commented tests cover cases not yet handled by our algorithm, uncomment as fixed
     def setUp(self):
         super(TestGetKeysSepInValue, self).setUp()
-        key = StringKey("Asset")
-        self.keys["Asset"] = key
+        self.keys["Asset"] = StringKey("Asset")
 
     def assert_path_matches(self, definition, input_path, expected):
         template = TemplatePath(definition, self.keys, "")
@@ -885,83 +884,114 @@ class TestGetKeysSepInValue(TestTemplatePath):
                     "name": "doogle"}
         self.assert_path_matches(definition, input_path, expected)
 
- #   def test_double_key_first_ambiguous(self):
- #       definition = "build/{Asset}_{name}/maya/{Asset}.ext"
- #       input_path = "build/cat_man_fever_doogle/maya/cat_man_fever.ext"
- #       expected = {"Asset": "cat_man_fever",
- #                   "name": "doogle"}
- #       self.assert_path_matches(definition, input_path, expected)
-
- #   def test_enum_ambigous(self):
- #       key = StringKey("Asset", choices=["cat_man", "dog_man"]
- #       self.keys["Asset"] = key
- #       definition = "build/maya/{Asset}_{name}.ext"
- #       input_path = "build/maya/cat_man_doogle.ext"
- #       expected = {"Asset": "cat_man",
- #                   "name": "doogle"}
- #       self.assert_path_matches(definition, input_path, expected)
-
- #   def test_enum_after_ambiguous(self):
- #       keys = {"Asset": StringKey("Asset"),
- #               "name": StringKey("name", choices=["dagle", "doogle"])}
- #       self.keys.update(keys)
- #       definition = "build/maya/{Asset}_{name}.ext"
- #       input_path = "build/maya/cat_man_doogle.ext"
- #       expected = {"Asset": "cat_man",
- #                   "name": "doogle"}
- #       self.assert_path_matches(definition, input_path, expected)
-
- #   def test_ambiguous(self):
- #       definition = "build/maya/{Asset}_{name}.ext"
- #       input_path = "/build/maya/cat_man_doogle.ext"
- #       expected = {"Asset": "cat_man",
- #                   "name": "doogle"}
- #       self.assert_path_matches(definition, input_path, expected)
-
- #   def test_ambiguous_end(self):
- #       definition = "build/maya/{Asset}_{name}"
- #       input_path = "/build/maya/cat_man_doogle"
- #       expected = {"Asset": "cat_man",
- #                   "name": "doogle"}
- #       self.assert_path_matches(definition, input_path, expected)
- #       
- #   def test_ambiguous_wrong_type(self):
- #       definition = "build/{Asset}_{some_num}_{other_num}.{ext}"
- #       input_path = "build/cat_man_14_2.jpeg"
- #       expected = {"Asset": "cat_man",
- #                   "some_num": 14,
- #                   "other_num": 2,
- #                   "ext": "jpeg"}
- #       self.assert_path_matches(definition, input_path, expected)
-
- #   def test_ambiguous_begining(self):
- #       definition = "{Asset}_{name}/maya/"
- #       input_path = "/cat_man_doogle/maya"
- #       expected = {"Asset": "cat_man",
- #                   "name": "doogle"}
- #       self.assert_path_matches(definition, input_path, expected)
-
- #   def test_multi_ambigous(self):
- #       definition = "/build/{Asset}_{name}_{favorites}/maya/"
- #       input_path = "/cat_man_doogle_do_dandy_dod/maya"
- #       expected = {"Asset": "cat_man",
- #                   "name": "doogle_do",
- #                   "favorites": "dandy_dod"}
- #       self.assert_path_matches(definition, input_path, expected)
-
-    def test_ambigous_alphanum_first(self):
-        definition = "build/maya/{name}_{Asset}.ext"
-        input_path = "build/maya/doogle_cat_man_fever.ext"
+    def test_double_key_first_ambiguous(self):
+        definition = "build/{Asset}_{name}/maya/{Asset}.ext"
+        input_path = "build/cat_man_fever_doogle/maya/cat_man_fever.ext"
         expected = {"Asset": "cat_man_fever",
                     "name": "doogle"}
         self.assert_path_matches(definition, input_path, expected)
 
- #   def test_ambigous_alphanum_after(self):
- #       definition = "build/maya/{Asset}_{name}.ext"
- #       input_path = "build/maya/cat_man_fever_doogle.ext"
- #       expected = {"Asset": "cat_man_fever",
- #                   "name": "doogle"}
- #       self.assert_path_matches(definition, input_path, expected)
+    def test_enum_ambigous(self):
+        key = StringKey("Asset", choices=["cat_man", "dog_man"])
+        self.keys["Asset"] = key
+        definition = "build/maya/{Asset}_{name}.ext"
+        input_path = "build/maya/cat_man_doogle.ext"
+        expected = {"Asset": "cat_man",
+                    "name": "doogle"}
+        self.assert_path_matches(definition, input_path, expected)
+
+    def test_enum_after_ambiguous(self):
+        keys = {"Asset": StringKey("Asset"),
+                "name": StringKey("name", choices=["dagle", "doogle"])}
+        self.keys.update(keys)
+        definition = "build/maya/{Asset}_{name}.ext"
+        input_path = "build/maya/cat_man_doogle.ext"
+        expected = {"Asset": "cat_man",
+                    "name": "doogle"}
+        self.assert_path_matches(definition, input_path, expected)
+
+    def test_ambiguous(self):
+        """
+        Can't resolve if values are too ambiguous
+        """
+        definition = "build/maya/{Asset}_{name}.ext"
+        input_path = "build/maya/cat_man_doogle.ext"
+        template = TemplatePath(definition, self.keys, "")          
+        expected_msg = ("Template %s: Ambiguous values found for key 'Asset' could be any of: 'cat', 'cat_man'" 
+                        % template)
+        self.check_error_message(TankError, expected_msg, template.get_fields, input_path)        
+        
+    def test_ambiguous_begining(self):
+        """
+        Can't resolve if values are too ambiguous
+        """
+        definition = "{Asset}_{name}/maya"
+        input_path = "cat_man_doogle/maya"
+        template = TemplatePath(definition, self.keys, "")          
+        expected_msg = ("Template %s: Ambiguous values found for key 'Asset' could be any of: 'cat', 'cat_man'" 
+                        % template)
+        self.check_error_message(TankError, expected_msg, template.get_fields, input_path)        
+
+    def test_ambiguous_end(self):
+        """
+        Can't resolve if values are too ambiguous
+        """
+        definition = "build/maya/{Asset}_{name}"
+        input_path = "build/maya/cat_man_doogle"
+        template = TemplatePath(definition, self.keys, "")          
+        expected_msg = ("Template %s: Ambiguous values found for key 'Asset' could be any of: 'cat', 'cat_man'"
+                        % template)
+        self.check_error_message(TankError, expected_msg, template.get_fields, input_path)
+
+    def test_multi_ambiguous(self):
+        """
+        Can't resolve if values are too ambiguous
+        """        
+        self.keys["favorites"] = StringKey("favorites")
+        definition = "build/{Asset}_{name}_{favorites}/maya"
+        input_path = "build/cat_man_doogle_do_dandy_dod/maya"
+        template = TemplatePath(definition, self.keys, "")          
+        expected_msg = ("Template %s: Ambiguous values found for key 'Asset' could be any of: "
+                        "'cat', 'cat_man', 'cat_man_doogle', 'cat_man_doogle_do'" % template)
+        self.check_error_message(TankError, expected_msg, template.get_fields, input_path)         
+
+    def test_ambiguous_wrong_type(self):
+        keys = {"some_num": IntegerKey("some_num"),
+                "other_num": IntegerKey("other_num")}
+        self.keys.update(keys)
+        definition = "build/{Asset}_{some_num}_{other_num}.{ext}"
+        input_path = "build/cat_1_man_14_2.jpeg"
+        expected = {"Asset": "cat_1_man",
+                    "some_num": 14,
+                    "other_num": 2,
+                    "ext": "jpeg"}
+        self.assert_path_matches(definition, input_path, expected)
+
+    def test_ambigous_alphanum_first(self):
+        definition = "build/maya/{name_alpha}_{Asset}.ext"
+        input_path = "build/maya/doogle_cat_man_fever.ext"
+        expected = {"Asset": "cat_man_fever",
+                    "name_alpha": "doogle"}
+        self.assert_path_matches(definition, input_path, expected)
+
+    def test_ambigous_alphanum_middle(self):
+        """
+        Can't resolve if values are too ambiguous
+        """        
+        self.keys["favorites"] = StringKey("favorites")
+        definition = "build/maya/{Asset}_{name_alpha}_{favorites}.ext"
+        input_path = "build/maya/cat_man_doogle_fever.ext"
+        template = TemplatePath(definition, self.keys, "")          
+        expected_msg = ("Template %s: Ambiguous values found for key 'Asset' could be any of: 'cat', 'cat_man'"
+                        % template)
+        self.check_error_message(TankError, expected_msg, template.get_fields, input_path)
+        
+    def test_ambigous_alphanum_after(self):
+        definition = "build/maya/{Asset}_{name_alpha}.ext"
+        input_path = "build/maya/cat_man_fever_doogle.ext"
+        expected = {"Asset": "cat_man_fever",
+                    "name_alpha": "doogle"}
+        self.assert_path_matches(definition, input_path, expected)        
 
 
 class TestParent(TestTemplatePath):

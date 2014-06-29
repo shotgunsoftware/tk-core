@@ -112,7 +112,7 @@ class AltCustomFormatter(logging.Formatter):
             if "Code Traceback" not in record.msg:
                 # do not wrap exceptions
                 lines = []
-                for x in textwrap.wrap(record.msg, width=78):
+                for x in textwrap.wrap(record.msg, width=78, break_long_words=False, break_on_hyphens=False):
                     lines.append(x)
                 record.msg = "\n".join(lines)
 
