@@ -305,6 +305,20 @@ class AppDescriptor(object):
         # always return that things are active.
         return (False, "")
 
+    def is_shared_framework(self):
+        """
+        Returns a boolean indicating whether the bundle is a shared framework.
+
+        Shared frameworks only have a single instance per instance name in the
+        current environment.
+        """
+        md  = self._get_metadata()
+        shared = md.get("shared")
+        # always return a bool
+        if shared is None:
+            shared = False
+        return shared
+
     ###############################################################################################
     # stuff typically implemented by deriving classes
     
