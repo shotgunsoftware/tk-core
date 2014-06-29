@@ -224,7 +224,7 @@ class PipelineConfiguration(object):
                 raise TankError("Undefined toolkit storage! The local file storage '%s' is not defined for this "
                                 "operating system! Please contact toolkit support." % r)
             
-            proj_roots[r] = self._roots[r][ platform_lookup[sys.platform] ]
+            proj_roots[r] = root
             
         return proj_roots
     
@@ -234,11 +234,11 @@ class PipelineConfiguration(object):
         keyed by their storage name. Only returns paths for current platform.
         Paths are guaranteed to be not None.
 
-        Returns for example:
-        {"primary": "/studio/my_project", "textures": "/textures/my_project"}        
+        :returns: A dictionary keyed by storage name, for example
+                  {"primary": "/studio/my_project", "textures": "/textures/my_project"}        
         """
         proj_roots = {}
-        for (storage_name, root_path) in self.get_local_storage_roots().iteritems():           
+        for storage_name, root_path in self.get_local_storage_roots().iteritems():           
             proj_roots[storage_name] = self.__append_project_name_to_root(root_path, sys.platform)
  
         return proj_roots
@@ -1063,12 +1063,19 @@ def get_pc_roots_metadata(pipeline_config_root_path):
     critical that the paths are on a correct normalized form once they have been 
     loaded into the system.
     
-    Returns a dictionary structure with an entry for each storage defined. Each
-    storage will have three keys mac_path, windows_path and linux_path, for example:
+    :param pipeline_config_root_path: Path to the root of a pipeline configuration,
+                                      (excluding the "config" folder).  
     
-    { "primary"  : { "mac_path": "/tmp/foo", "linux_path": None, "windows_path": "z:\tmp\foo" },
-      "textures" : { "mac_path": "/tmp/textures", "linux_path": None, "windows_path": "z:\tmp\textures" },
-    }
+    :returns: A dictionary structure with an entry for each storage defined. Each
+              storage will have three keys mac_path, windows_path and linux_path, 
+              for example
+              { "primary"  : { "mac_path": "/tmp/foo", 
+                               "linux_path": None, 
+                               "windows_path": "z:\tmp\foo" },
+                "textures" : { "mac_path": "/tmp/textures", 
+                               "linux_path": None, 
+                               "windows_path": "z:\tmp\textures" },
+              }
     """
     # now read in the roots.yml file
     # this will contain something like
