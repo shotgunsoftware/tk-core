@@ -293,7 +293,7 @@ def find_framework_location(file_name, framework_name, context):
     _, fw_lookup = _process_includes_r(file_name, data, context)
     root_fw_lookup.update(fw_lookup)
     
-    # return the 
+    # return the location of the framework if we can
     return root_fw_lookup.get(framework_name) or None
     
 def find_reference(file_name, context, token):
