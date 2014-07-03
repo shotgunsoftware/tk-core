@@ -390,26 +390,32 @@ class Environment(object):
         The dictionary key list (tokens) can be nested, for example [frameworks, tk-framework-widget_v0.2.x]
         or just flat [tk-framework-widget_v0.2.x]
 
+        Note, this tries a two stage search.  It first looks to see if there is a matching 
+        framework in a regular 'frameworks' block in this or any included file.  This matches
+        the behaviour at run-time to ensure the framework that is found is the same as one
+        that is used!
+        
+        The second stage is to check for a framework (or frameworks block) that has been
+        specified using the @include syntax.
+
         :param framework_name:  The name of the framework to find the location of
         :returns:               (list of tokens, file path)
         """
+        # first, try to find the location of the framework definition that will be used at 
+        # run-time.  This handles the special case where multiple 'frameworks' blocks from 
+        # different levels of included files have been concatenated together. 
+        fw_location = environment_includes.find_framework_location(self.__env_path, framework_name, self.__context)
+        if not fw_location:
+            # assume the framework is in the environment - this also handles the @include syntax 
+            # not handled by the previous search method!
+            fw_location = self.__env_path
+
         # get the raw data
-        root_yml_data = self.__load_data(self.__env_path)
-        
+        root_yml_data = self.__load_data(fw_location)
+    
         # find the location for the framework:
-        tokens, path = self.__find_location_for_bundle(self.__env_path, root_yml_data, "frameworks", framework_name)
-    
-        if not path:
-            # frameworks are a special case where all frameworks specified in any include 
-            # files are concatenated together.  Because of this, we should also look to
-            # see if the framework has been defined in a frameworks section in an included 
-            # file instead
-            fw_location = environment_includes.find_framework_location(self.__env_path, framework_name, self.__context)
-            if fw_location and fw_location != self.__env_path:
-                # try this location instead:
-                root_yml_data = self.__load_data(fw_location)
-                tokens, path = self.__find_location_for_bundle(fw_location, root_yml_data, "frameworks", framework_name)
-    
+        tokens, path = self.__find_location_for_bundle(fw_location, root_yml_data, "frameworks", framework_name)
+
         if not path:
             raise TankError("Failed to find the location of the '%s' framework in the '%s' environment!"
                             % (framework_name, self.__env_path))
