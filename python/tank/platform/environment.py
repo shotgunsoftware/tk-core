@@ -373,8 +373,16 @@ class Environment(object):
         """
         # get the raw data:
         root_yml_data = self.__load_data(self.__env_path)
+        
         # find the location for the engine:
-        return self.__find_location_for_bundle(self.__env_path, root_yml_data, "engines", engine_name)
+        tokens, path = self.__find_location_for_bundle(self.__env_path, root_yml_data, "engines", engine_name)
+    
+        if not path:
+            raise TankError("Failed to find the location of the '%s' engine in the '%s' environment!"
+                            % (engine_name, self.__env_path))
+            
+        return tokens, path
+    
 
     def find_location_for_framework(self, framework_name):
         """
@@ -387,8 +395,26 @@ class Environment(object):
         """
         # get the raw data
         root_yml_data = self.__load_data(self.__env_path)
+        
         # find the location for the framework:
-        return self.__find_location_for_bundle(self.__env_path, root_yml_data, "frameworks", framework_name)
+        tokens, path = self.__find_location_for_bundle(self.__env_path, root_yml_data, "frameworks", framework_name)
+    
+        if not path:
+            # frameworks are a special case where all frameworks specified in any include 
+            # files are concatenated together.  Because of this, we should also look to
+            # see if the framework has been defined in a frameworks section in an included 
+            # file instead
+            fw_location = environment_includes.find_framework_location(self.__env_path, framework_name, self.__context)
+            if fw_location and fw_location != self.__env_path:
+                # try this location instead:
+                root_yml_data = self.__load_data(fw_location)
+                tokens, path = self.__find_location_for_bundle(fw_location, root_yml_data, "frameworks", framework_name)
+    
+        if not path:
+            raise TankError("Failed to find the location of the '%s' framework in the '%s' environment!"
+                            % (framework_name, self.__env_path))
+            
+        return tokens, path
 
     def find_location_for_app(self, engine_name, app_name):
         """
@@ -413,7 +439,13 @@ class Environment(object):
             engine_data = engine_data.get(x)
 
         # find the location for the app within the engine data:
-        return self.__find_location_for_bundle(engine_yml_file, engine_data, "apps", app_name, engine_tokens)
+        tokens, path = self.__find_location_for_bundle(engine_yml_file, engine_data, "apps", app_name, engine_tokens)
+        
+        if not path:
+            raise TankError("Failed to find the location of the '%s' app under the '%s' engine in the '%s' environment!"
+                            % (engine_name, app_name, self.__env_path))
+        
+        return tokens, path
 
     def __find_location_for_bundle(self, yml_file, parent_yml_data, section_name, bundle_name, parent_tokens=None):
         """
@@ -431,6 +463,7 @@ class Environment(object):
 
         # check to see if the whole bundle section is a reference or not:
         bundle_section = parent_yml_data[section_name]
+        bundle_data = None
         if isinstance(bundle_section, basestring) and bundle_section.startswith("@"):
             # whole section is a reference!
             bundle_section_token = bundle_section[1:]
@@ -441,7 +474,11 @@ class Environment(object):
         else:
             # found the right section:
             bundle_tokens.append(section_name)
-            bundle_data = bundle_section[bundle_name]
+            bundle_data = bundle_section.get(bundle_name)
+
+        if not bundle_data:
+            # failed to find the data for the specified bundle!
+            return ([], None)
 
         if isinstance(bundle_data, basestring) and bundle_data.startswith("@"):
             # this is a reference!
