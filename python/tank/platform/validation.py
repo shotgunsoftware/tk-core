@@ -140,14 +140,43 @@ def validate_and_return_frameworks(descriptor, environment):
         version = fw.get("version")
         found = False
 
-        # find it by naming convention based on the instance name        
+        # find it by naming convention based on the instance name
+        # this is to support the new auto-updating syntax. The info.yml
+        # manifest for an app can have two different syntaxes declared:
+        #
+        # (old) - {"name": "tk-framework-shotgunutils", "version": "v2.1.1"}
+        # (new) - {"name": "tk-framework-qtwidgets", "version": "v1.x.x"}
+        # 
+        # The new syntax requires a floating version number, meaning that 
+        # the framework instance defined in the environment needs to be on the form  
+        # 
+        # frameworks:
+        #   tk-framework-qtwidgets_v1.x.x:
+        #     location: {name: tk-framework-qtwidgets, type: app_store, version: v1.3.34}
+        #
         desired_fw_instance = "%s_%s" % (name, version)
-        for x in fw_instances:
-            if x == desired_fw_instance:
+        for fw_instance_name in fw_instances:
+            if fw_instance_name == desired_fw_instance:
                 found = True
-                required_fw_instance_names.append(x)
+                required_fw_instance_names.append(fw_instance_name)
                 break
-
+        
+        # backwards compatibility pass - prior to the new syntax, we also technically accepted 
+        # (however never used as part of toolkit itself) a different convention where the instance
+        # name was independent from the actual framework name. 
+        #
+        # frameworks:
+        #   some_totally_random_name:
+        #     location: {name: tk-framework-qtwidgets, type: app_store, version: v1.3.34}
+        #
+        # note: this old form does not handle the 1.x.x syntax, only exact version numbers
+        for (fw_instance_name, fw_instance) in fw_descriptors.items():
+            if fw_instance.get_version() == version and fw_instance.get_system_name() == name:
+                found = True
+                required_fw_instance_names.append(fw_instance_name)
+                break
+        
+        # display nicely formatted error message
         if not found:
             msg =  "The framework instance %s required by %s " % (desired_fw_instance, descriptor)
             msg += "can not be found in environment %s. \n" % str(environment)
