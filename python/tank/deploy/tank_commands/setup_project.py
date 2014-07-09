@@ -1377,7 +1377,6 @@ def _run_setup_project(log, interaction_handler, check_storage_path_exists, forc
     _make_folder(log, os.path.join(current_os_pc_location, "install", "core", "python"), 0777)
     _make_folder(log, os.path.join(current_os_pc_location, "install", "core", "setup"), 0777)
     _make_folder(log, os.path.join(current_os_pc_location, "install", "core.backup"), 0777)
-    _make_folder(log, os.path.join(current_os_pc_location, "install", "core.backup", "activation_13"), 0777, True)
     _make_folder(log, os.path.join(current_os_pc_location, "install", "engines"), 0777, True)
     _make_folder(log, os.path.join(current_os_pc_location, "install", "apps"), 0777, True)
     _make_folder(log, os.path.join(current_os_pc_location, "install", "frameworks"), 0777, True)
