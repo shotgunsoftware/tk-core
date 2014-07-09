@@ -24,7 +24,7 @@ from .tank_commands import pc_overview
 from .tank_commands import migrate_entities
 from .tank_commands import update
 from .tank_commands import push_pc
-from .tank_commands import setup_project
+from .tank_commands import setup_project_cmds
 from .tank_commands import validate_config
 from .tank_commands import cache_apps
 from .tank_commands import switch
@@ -40,7 +40,7 @@ from ..errors import TankError
 ###############################################################################################
 # Built in actions (all in the tank_commands sub module)
 
-BUILT_IN_ACTIONS = [setup_project.SetupProjectAction, 
+BUILT_IN_ACTIONS = [setup_project_cmds.SetupProjectAction, 
                     core.CoreUpgradeAction, 
                     core.CoreLocalizeAction,
                     validate_config.ValidateConfigAction,
