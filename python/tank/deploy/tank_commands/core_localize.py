@@ -32,8 +32,6 @@ from . import console_utils
 
 
 
-
-
 class CoreLocalizeAction(Action):
     """
     Action to localize the Core API
@@ -95,23 +93,7 @@ class CoreLocalizeAction(Action):
             backup_folder_name = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
             backup_path = os.path.join(backup_location, backup_folder_name)
             log.debug("Backing up Core API: %s -> %s" % (target_core, backup_path))
-            src_files = util._copy_folder(log, target_core, backup_path)
-            
-            # now clear out the install location
-            log.debug("Clearing out target location...")
-            for f in src_files:
-                try:
-                    # on windows, ensure all files are writable
-                    if sys.platform == "win32":
-                        attr = os.stat(f)[0]
-                        if (not attr & stat.S_IWRITE):
-                            # file is readonly! - turn off this attribute
-                            os.chmod(f, stat.S_IWRITE)
-                    os.remove(f)
-                    log.debug("Deleted %s" % f)
-                except Exception, e:
-                    log.error("Could not delete file %s: %s" % (f, e))
-                
+            shutil.move(target_core, backup_path)                
             
             old_umask = os.umask(0)
             try:
@@ -192,26 +174,195 @@ class CoreUnLocalizeAction(Action):
         # this method can be executed via the API
         self.supports_api = True
         
+        self.parameters = {}
+        
+        
+        # note how the current platform's default value is None in order to make that required
+        self.parameters["core_path_mac"] = { "description": ("The path on disk where the core API should be "
+                                                             "installed on Macosx."),
+                                               "default": ( None if sys.platform == "darwin" else "" ),
+                                               "type": "str" }
+
+        self.parameters["core_path_win"] = { "description": ("The path on disk where the core API should be "
+                                                             "installed on Windows."),
+                                               "default": ( None if sys.platform == "win32" else "" ),
+                                               "type": "str" }
+
+        self.parameters["core_path_linux"] = { "description": ("The path on disk where the core API should be "
+                                                               "installed on Linux."),
+                                               "default": ( None if sys.platform == "linux2" else "" ),
+                                               "type": "str" }
+        
 
     def run_noninteractive(self, log, parameters):
         """
         API accessor
         """
-        return self._run(log, True)
+        
+        # validate params and seed default values
+        computed_params = self._validate_parameters(parameters)
+        
+        return self._run(log, 
+                         computed_params["core_path_mac"], 
+                         computed_params["core_path_win"], 
+                         computed_params["core_path_linux"],
+                         suppress_prompts=True)
     
     def run_interactive(self, log, args):
         """
         Tank command accessor
         """
-        if len(args) != 0:
-            raise TankError("This command takes no arguments!")
+        
+        if len(args) != 3:
+            log.info("Syntax: unlocalize linux_path windows_path mac_path")
+            log.info("")
+            log.info("You typically need to quote your paths, like this:")
+            log.info("")
+            log.info('> tank unlocalize "/mnt/shotgun/studio" "p:\\shotgun\\studio" "/mnt/shotgun/studio"')
+            log.info("")
+            log.info("If you want to leave a platform blank, just just empty quotes. For example, "
+                     "if you want a setup which only works on windows, do like this: ")
+            log.info("")
+            log.info('> tank unlocalize "" "p:\\shotgun\\studio" ""')
+            log.info("")
+            raise TankError("Please specify three target locations!")
+        
+        linux_path = args[0]
+        windows_path = args[1]
+        mac_path = args[2]
 
-        return self._run(log, False)
+        return self._run(log, mac_path, windows_path, linux_path, suppress_prompts=False)
     
-    def _run(self, log, suppress_prompts):
+    def _run(self, log, mac_path, windows_path, linux_path, suppress_prompts):
         """
         Actual execution payload
         """ 
 
         log.debug("Executing the unlocalize command for %r" % self.tk)
+        log.debug("Mac path: '%s'" % mac_path)
+        log.debug("Windows path: '%s'" % windows_path)
+        log.debug("Linux path: '%s'" % linux_path)
+        log.info("")
         
+        # some basic checks first
+        if not self.tk.pipeline_configuration.is_localized():
+            raise TankError("Looks like your current pipeline configuration is not localized!")
+        
+        # if need to have at least a path for the current os, otherwise we cannot introspect the API
+        lookup = {"win32": windows_path, "linux2": linux_path, "darwin": mac_path}
+        new_core_path_local = lookup[sys.platform] 
+        
+        if not new_core_path_local:
+            raise TankError("You must specify a path to the core API for your current operating system.")
+        
+        if not os.path.exists(new_core_path_local):
+            raise TankError("The core '%s' cannot be found!" % new_core_path_local)
+        
+        # check that there is a new_core_path_local/install/core
+        if not os.path.exists(os.path.join(new_core_path_local, "install", "core")):
+            raise TankError("The core '%s' does not seem to point to a core API location or localized"
+                            "pipeline configuration!" % new_core_path_local)
+        
+        
+        
+        pc_root = self.tk.pipeline_configuration.get_path()
+        
+        log.info("This will unlocalize '%s'." % pc_root )
+        log.info("After this command has completed, the core API will be picked up from "
+                 "the following locations:")
+        log.info("")
+        log.info(" - Linux: '%s'" % linux_path if linux_path else " - Linux: Not supported") 
+        log.info(" - Windows: '%s'" % windows_path if windows_path else " - Windows: Not supported")
+        log.info(" - Mac: '%s'" % mac_path if mac_path else " - Mac: Not supported")
+        log.info("")
+        
+        if suppress_prompts or console_utils.ask_yn_question("Do you want to proceed"):
+            log.info("")
+            
+            # back up current core API
+            target_core = os.path.join(pc_root, "install", "core")
+            backup_location = os.path.join(pc_root, "install", "core.backup")
+            
+            # move this into backup location
+            backup_folder_name = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            backup_path = os.path.join(backup_location, backup_folder_name)
+            log.info("Backing up Core API: %s -> %s" % (target_core, backup_path))
+            src_files = util._copy_folder(log, target_core, backup_path)
+            
+            # now clear out the install location
+            log.debug("Clearing out target location...")
+            for f in src_files:
+                try:
+                    # on windows, ensure all files are writable
+                    if sys.platform == "win32":
+                        attr = os.stat(f)[0]
+                        if (not attr & stat.S_IWRITE):
+                            # file is readonly! - turn off this attribute
+                            os.chmod(f, stat.S_IWRITE)
+                    os.remove(f)
+                    log.debug("Deleted %s" % f)
+                except Exception, e:
+                    log.error("Could not delete file %s: %s" % (f, e))
+
+                        
+            old_umask = os.umask(0)
+            try:
+                
+                # remove core config files
+                log.info("Removing Core Configuration Files...")
+                file_names = ["app_store.yml", 
+                              "shotgun.yml", 
+                              "interpreter_Darwin.cfg", 
+                              "interpreter_Linux.cfg", 
+                              "interpreter_Windows.cfg"]
+                for fn in file_names:
+                    path = os.path.join(pc_root, "config", "core", fn)
+                    if os.path.exists(path):
+                        os.chmod(path, 0666)
+                        log.debug("Removing system file %s" % path )
+                        os.remove(path)
+                
+                # copy the python stubs
+                log.info("Copying python stubs...")
+                os.mkdir(os.path.join(pc_root, "install", "core"), 0777)
+                tank_proxy = os.path.join(new_core_path_local, "install", "core", "setup", "tank_api_proxy")
+                util._copy_folder(log, tank_proxy, os.path.join(pc_root, "install", "core", "python"))
+                    
+                # specify the parent files in install/core/core_PLATFORM.cfg
+                log.info("Creating core redirection config files...")
+
+                core_path = os.path.join(pc_root, "install", "core", "core_Darwin.cfg")
+                fh = open(core_path, "wt")
+                if mac_path:
+                    fh.write(mac_path)
+                else:
+                    fh.write("undefined")
+                fh.close()
+                
+                core_path = os.path.join(pc_root, "install", "core", "core_Linux.cfg")
+                fh = open(core_path, "wt")
+                if linux_path:
+                    fh.write(linux_path)
+                else:
+                    fh.write("undefined")
+                fh.close()
+
+                core_path = os.path.join(pc_root, "install", "core", "core_Windows.cfg")
+                fh = open(core_path, "wt")
+                if windows_path:
+                    fh.write(windows_path)
+                else:
+                    fh.write("undefined")
+                fh.close()
+
+            except Exception, e:
+                raise TankError("Could not unlocalize: %s" % e)
+            finally:
+                os.umask(old_umask)
+                
+            log.info("The Core API was successfully unlocalized.")    
+            log.info("")
+            
+        else:
+            log.info("Operation cancelled.")
+            
