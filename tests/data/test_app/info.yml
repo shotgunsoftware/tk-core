@@ -61,6 +61,18 @@ configuration:
         type: hook
         default_value: "{self}/inheritance2.py"
     
+    test_hook_new_style_config_old_style_hook:
+        type: hook
+        default_value: "test_hook"
+    
+    test_default_syntax_with_new_style_hook:
+        type: hook
+        default_value: "{self}/test_hook.py"
+    
+    test_default_syntax_missing_implementation:
+        type: hook
+        default_value: "{self}/thisfiledoesnotexist.py"
+    
     
     test_icon:
         type: config_path

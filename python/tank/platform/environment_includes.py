@@ -97,8 +97,9 @@ def _resolve_includes(file_name, data, context):
                 # skip - these paths are optional always
                 continue       
         
-        elif "/" in include and not include.startswith("/"):
-            # relative path!
+        elif "/" in include and not include.startswith("/") and not include.startswith("$"):
+            # relative path: foo/bar.yml or ./foo.bar.yml
+            # note the $ check to avoid paths beginning with env vars to fall into this branch
             adjusted = include.replace("/", os.path.sep)
             full_path = os.path.join(os.path.dirname(file_name), adjusted)
             # make sure that the paths all exist
@@ -111,7 +112,7 @@ def _resolve_includes(file_name, data, context):
             if sys.platform != "win32":
                 # ignore this on other platforms
                 continue
-            full_path = include
+            full_path = os.path.expandvars(include)
             # make sure that the paths all exist
             if not os.path.exists(full_path):
                 raise TankError("Include Resolve error in %s: Included path %s "
@@ -122,7 +123,7 @@ def _resolve_includes(file_name, data, context):
             if sys.platform == "win32":
                 # ignore this on other platforms
                 continue
-            full_path = include                    
+            full_path = os.path.expandvars(include)                    
             # make sure that the paths all exist
             if not os.path.exists(full_path):
                 raise TankError("Include Resolve error in %s: Included path %s "
@@ -181,10 +182,24 @@ def _resolve_frameworks(lookup_dict, data):
     return data
     
 
-        
 def process_includes(file_name, data, context):
     """
-    Processes includes for an environment file.
+    Process includes for an environment file.
+    
+    :param file_name:   The root yml file to process
+    :param data:        The contents of the root yml file to process
+    :param context:     The current context
+    
+    :returns:           The flattened yml data after all includes have
+                        been recursively processed.
+    """
+    # call the recursive method:
+    data, _ = _process_includes_r(file_name, data, context)
+    return data
+        
+def _process_includes_r(file_name, data, context):
+    """
+    Recursively process includes for an environment file.
     
     Algorithm (recursive):
     
@@ -192,12 +207,20 @@ def process_includes(file_name, data, context):
     2. recursively go through the current file and replace any 
        @ref with a dictionary value from X
     
+    :param file_name:   The root yml file to process
+    :param data:        The contents of the root yml file to process
+    :param context:     The current context
+
+    :returns:           A tuple containing the flattened yml data 
+                        after all includes have been recursively processed
+                        together with a lookup for frameworks to the file 
+                        they were loaded from.
     """
-    
     # first build our big fat lookup dict
     include_files = _resolve_includes(file_name, data, context)
     
     lookup_dict = {}
+    fw_lookup = {}
     for include_file in include_files:
                 
         # path exists, so try to read it
@@ -208,9 +231,22 @@ def process_includes(file_name, data, context):
             fh.close()
                 
         # now resolve this data before proceeding
-        included_data = process_includes(include_file, included_data, context)
-        
-        # update our big lookup dict with this data
+        included_data, included_fw_lookup = _process_includes_r(include_file, included_data, context)
+
+        # update our big lookup dict with this included data:
+        if "frameworks" in included_data and isinstance(included_data["frameworks"], dict):
+            # special case handling of frameworks to merge them from the various
+            # different included files rather than have frameworks section from
+            # one file overwrite the frameworks from previous includes!
+            lookup_dict = _resolve_frameworks(included_data, lookup_dict)
+
+            # also, keey track of where the framework has been referenced from:
+            for fw_name in included_data["frameworks"].keys():
+                fw_lookup[fw_name] = include_file
+
+            del(included_data["frameworks"])
+
+        fw_lookup.update(included_fw_lookup)
         lookup_dict.update(included_data)
     
     # now go through our own data, recursively, and replace any refs.
@@ -221,8 +257,44 @@ def process_includes(file_name, data, context):
     except TankError, e:
         raise TankError("Include error. Could not resolve references for %s: %s" % (file_name, e))
     
-    return data
+    return data, fw_lookup
     
+
+def find_framework_location(file_name, framework_name, context):
+    """
+    Find the location of the instance of a framework that will
+    be used after all includes have been resolved.
+    
+    :param file_name:       The root yml file
+    :param framework_name:  The name of the framework to find
+    :param context:         The current context
+    
+    :returns:               The yml file that the framework is 
+                            defined in or None if not found.
+    """
+    # load the data in for the root file:
+    data = None
+    try:
+        fh = open(file_name, "r")
+        data = yaml.load(fh)
+    except Exception, e:
+        raise TankError("Could not parse file %s. Error reported: %s" % (file_name, e))
+    finally:
+        fh.close()
+
+    # track root frameworks:
+    root_fw_lookup = {}
+    fw_data = data.get("frameworks", {})
+    if fw_data and isinstance(fw_data, dict):
+        for fw in fw_data.keys():
+            root_fw_lookup[fw] = file_name 
+
+    # process includes and get the lookup table for the frameworks:        
+    _, fw_lookup = _process_includes_r(file_name, data, context)
+    root_fw_lookup.update(fw_lookup)
+    
+    # return the location of the framework if we can
+    return root_fw_lookup.get(framework_name) or None
     
 def find_reference(file_name, context, token):
     """

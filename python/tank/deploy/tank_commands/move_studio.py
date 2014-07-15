@@ -122,6 +122,24 @@ class MoveStudioInstallAction(Action):
             try:
                 fh = open(studio_linkback_files[x], "rt")
                 data = fh.read().strip() # remove any whitespace, keep text
+                # check if env vars are used in the files instead of explicit paths. Don't try
+                # to magically figure anything out -- safer to have the user manually fix these! 
+                # For example, you could have an env variable 
+                # $STUDIO_TANK_PATH=/sgtk/software/shotgun/studio and your linkback file may just 
+                # contain "$STUDIO_TANK_PATH" instead of an explicit path.
+                # NOTE: This is only supported on Linux and OSX so we don't check for any 
+                #       Windows-style %PATTERNS% here.
+                if "$" in data:
+                    log.warning("Your pipeline configuration '%s:%s' at '%s' is pointing to the core API "
+                                "using an environment variable '%s' on '%s'. Please update the "
+                                "environment variable (and the file if necessary) so it points to the new "
+                                "studio location: '%s'!" % (shotgun_pc_data["project"]["name"], 
+                                                            shotgun_pc_data["code"], 
+                                                            studio_linkback_files[x], 
+                                                            data, 
+                                                            x.split("_")[0], 
+                                                            new_studio_paths[x]))
+                    
                 if data in ["None", "undefined"]:
                     current_studio_refs[x] = None
                 else:

@@ -110,10 +110,8 @@ class TankGitDescriptor(AppDescriptor):
         # now clone and archive
         cwd = os.getcwd()
         try:
-            # Note: git doesn't like paths in single quotes when running on windows!
-            if os.system("git clone -q \"%s\" %s" % (self._path, clone_tmp)) != 0:
-                raise TankError("Could not clone git repository '%s'!" % self._path)
-            
+            # clone the repo
+            self.__clone_repo(clone_tmp)
             os.chdir(clone_tmp)
             
             if os.system("git archive --format zip --output %s %s" % (zip_tmp, self._version)) != 0:
@@ -165,10 +163,8 @@ class TankGitDescriptor(AppDescriptor):
         # get the most recent tag hash
         cwd = os.getcwd()
         try:
-            # Note: git doesn't like paths in single quotes when running on windows!
-            if os.system("git clone -q \"%s\" %s" % (self._path, clone_tmp)) != 0:
-                raise TankError("Could not clone git repository '%s'!" % self._path)
-            
+            # clone the repo
+            self.__clone_repo(clone_tmp)
             os.chdir(clone_tmp)
             
             try:
@@ -280,10 +276,8 @@ class TankGitDescriptor(AppDescriptor):
         # get the most recent tag hash
         cwd = os.getcwd()
         try:
-            # Note: git doesn't like paths in single quotes when running on windows!
-            if os.system("git clone -q \"%s\" %s" % (self._path, clone_tmp)) != 0:
-                raise TankError("Could not clone git repository '%s'!" % self._path)
-            
+            # clone the repo
+            self.__clone_repo(clone_tmp)
             os.chdir(clone_tmp)
             
             try:
@@ -304,5 +298,18 @@ class TankGitDescriptor(AppDescriptor):
         new_loc_dict["version"] = latest_version
 
         return TankGitDescriptor(self._pipeline_config, new_loc_dict, self._type)
+
+    def __clone_repo(self, target_path):
+        """
+        Clone the repo into the target path
+        
+        :param target_path: The target path to clone the repo to
+        :raises:            TankError if the clone command fails
+        """
+        # Note: git doesn't like paths in single quotes when running on 
+        # windows - it also prefers to use forward slashes!
+        sanitized_repo_path = self._path.replace(os.path.sep, "/")
+        if os.system("git clone -q \"%s\" \"%s\"" % (sanitized_repo_path, target_path)) != 0:
+            raise TankError("Could not clone git repository '%s'!" % self._path) 
 
 

@@ -305,6 +305,20 @@ class AppDescriptor(object):
         # always return that things are active.
         return (False, "")
 
+    def is_shared_framework(self):
+        """
+        Returns a boolean indicating whether the bundle is a shared framework.
+
+        Shared frameworks only have a single instance per instance name in the
+        current environment.
+        """
+        md  = self._get_metadata()
+        shared = md.get("shared")
+        # always return a bool
+        if shared is None:
+            shared = False
+        return shared
+
     ###############################################################################################
     # stuff typically implemented by deriving classes
     
@@ -433,7 +447,6 @@ def get_from_location(app_or_engine, pipeline_config, location_dict):
     """
     from .app_store_descriptor import TankAppStoreDescriptor
     from .dev_descriptor import TankDevDescriptor
-    from .github_descriptor import TankGitHubDescriptor
     from .git_descriptor import TankGitDescriptor
     from .manual_descriptor import TankManualDescriptor
 
@@ -453,11 +466,6 @@ def get_from_location(app_or_engine, pipeline_config, location_dict):
     # location: {"type": "git", "path": "/path/to/repo.git", "version": "v0.2.1"}
     elif location_dict.get("type") == "git":
         return TankGitDescriptor(pipeline_config, location_dict, app_or_engine)
-
-    # github public repo
-    # location: {"type": "github", "vendor": "shotgunsoftware", "repo": "tk-nuke", "version": "v0.2.1"}
-    elif location_dict.get("type") == "github":
-        return TankGitHubDescriptor(pipeline_config, location_dict, app_or_engine)
 
     # local dev format
     # location: {"type": "dev", "path": "/path/to/app"}

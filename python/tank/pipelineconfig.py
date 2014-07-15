@@ -30,7 +30,7 @@ from . import template_includes
 class PipelineConfiguration(object):
     """
     Represents a pipeline configuration in Tank.
-    Use the factory methods above to construct this object, do not
+    Use the factory methods below to construct this object, do not
     create directly via constructor.
     """
 
@@ -242,6 +242,9 @@ class PipelineConfiguration(object):
     def get_local_storage_roots(self):
         """
         Returns local OS paths to all shotgun local storages used by toolkit. 
+        Paths are validated and guaranteed not to be None.
+        
+        :returns: dictionary of storages, for example {"primary": "/studio", "textures": "/textures"}
         """
         
         platform_lookup = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
@@ -249,72 +252,31 @@ class PipelineConfiguration(object):
         # now pick current os and append project root
         proj_roots = {}
         for r in self._roots:
-            proj_roots[r] = self._roots[r][ platform_lookup[sys.platform] ]
+            root = self._roots[r][ platform_lookup[sys.platform] ]
+            
+            if root is None:
+                raise TankError("Undefined toolkit storage! The local file storage '%s' is not defined for this "
+                                "operating system! Please contact toolkit support." % r)
+            
+            proj_roots[r] = root
+            
         return proj_roots
-        
-
+    
     def get_data_roots(self):
         """
         Returns a dictionary of all the data roots available for this PC,
         keyed by their storage name. Only returns paths for current platform.
+        Paths are guaranteed to be not None.
 
-        Returns for example:
-
-        {"primary": "/studio/my_project", "textures": "/textures/my_project"}
-
+        :returns: A dictionary keyed by storage name, for example
+                  {"primary": "/studio/my_project", "textures": "/textures/my_project"}        
         """
-        platform_lookup = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
-
-        # now pick current os and append project root
         proj_roots = {}
-        for r in self._roots:
-            current_os_root = self._roots[r][ platform_lookup[sys.platform] ]
-            if current_os_root is None:
-                proj_roots[r] = None
-            else:
-                proj_roots[r] = self.__append_project_name_to_root(current_os_root, sys.platform)
-
+        for storage_name, root_path in self.get_local_storage_roots().iteritems():           
+            proj_roots[storage_name] = self.__append_project_name_to_root(root_path, sys.platform)
+ 
         return proj_roots
 
-    def get_all_data_roots(self):
-        """
-        Returns a dictionary containing dictionaries of all the data roots
-        available for this PC, keyed by their storage name and {os}_path
-
-        Returns for example:
-
-        {
-          "primary": {
-                        "linux_path":"/studio/my_project",
-                        "mac_path":"/studio/my_project",
-                        "windows_path":"P:/studio/my_project"
-          "textures": {
-                        "linux_path":"/textures/my_project",
-                        "mac_path":"/textures/my_project",
-                        "windows_path":"P:/textures/my_project"
-                      }
-        }
-
-        """
-        
-        # mapping from an entity dict 
-        platform_lookup = {"linux_path": "linux2", 
-                           "windows_path": "win32", 
-                           "mac_path": "darwin" }
-
-        # now pick current os and append project root
-        proj_roots = {}
-        for r in self._roots:
-            proj_roots[r] = {}
-            for p in self._roots[r]:
-                current_root = self._roots[r][p]
-                if current_root is None:
-                    proj_roots[r][p] = None
-                else:
-                    os_name = platform_lookup[p]
-                    proj_roots[r][p] = self.__append_project_name_to_root(current_root, os_name)
-
-        return proj_roots
 
     def __append_project_name_to_root(self, root_value, os_name):
         """
@@ -484,6 +446,10 @@ class PipelineConfiguration(object):
             try:
                 fh = open(curr_linkback_file, "rt")
                 data = fh.read().strip() # remove any whitespace, keep text
+                # expand any env vars that are used in the files. For example, you could have 
+                # an env variable $STUDIO_TANK_PATH=/sgtk/software/shotgun/studio and your 
+                # linkback file may just contain "$STUDIO_TANK_PATH" instead of an explicit path.
+                data = os.path.expandvars(data)
                 if data not in ["None", "undefined"] and os.path.exists(data):
                     install_path = data
                 fh.close()                    
@@ -752,7 +718,10 @@ class StorageConfigurationMapping(object):
             finally:
                 fh.close()
 
-        current_os_paths = [ x.get(sys.platform) for x in data ]
+        # get all the registered pcs for the current platform
+        # env variables are allowed in these paths so expand them if they exist
+        current_os_paths = [ os.path.expandvars(x.get(sys.platform)) for x in data ]
+
         return current_os_paths
 
 
@@ -914,7 +883,6 @@ def from_path(path):
             raise TankError("Error starting from the configuration located in '%s' - "
                             "it looks like this pipeline configuration and tank command "
                             "has not been configured for the current operating system." % path)
-
         return PipelineConfiguration(pc_registered_path)
 
 
@@ -960,7 +928,8 @@ def from_path(path):
                         "support! File: '%s' Error: %s" % (config_path, e))
 
     # get all the registered pcs for the current platform
-    current_os_pcs = [ x.get(sys.platform) for x in data if x is not None]
+    # env variables are allowed in these paths so expand them if they exist
+    current_os_pcs = [ os.path.expandvars(x.get(sys.platform)) for x in data if x is not None]
 
     # Now if we are running a studio tank command, find the Primary PC and use that
     # if we are using a specific tank command, try to use that PC
@@ -1133,12 +1102,14 @@ def get_pc_registered_location(pipeline_config_root_path):
     finally:
         fh.close()
 
+    # return the pc location for the current platform
+    # env variables are allowed in these paths so expand them if they exist
     if sys.platform == "linux2":
-        return data.get("Linux")
+        return os.path.expandvars(data.get("Linux"))
     elif sys.platform == "win32":
-        return data.get("Windows")
+        return os.path.expandvars(data.get("Windows"))
     elif sys.platform == "darwin":
-        return data.get("Darwin")
+        return os.path.expandvars(data.get("Darwin"))
     else:
         raise TankError("Unsupported platform '%s'" % sys.platform)
 
@@ -1235,7 +1206,21 @@ def get_pc_roots_metadata(pipeline_config_root_path):
     
     The roots data will be prepended to paths and used for comparison so it is 
     critical that the paths are on a correct normalized form once they have been 
-    loaded into the system.    
+    loaded into the system.
+    
+    :param pipeline_config_root_path: Path to the root of a pipeline configuration,
+                                      (excluding the "config" folder).  
+    
+    :returns: A dictionary structure with an entry for each storage defined. Each
+              storage will have three keys mac_path, windows_path and linux_path, 
+              for example
+              { "primary"  : { "mac_path": "/tmp/foo", 
+                               "linux_path": None, 
+                               "windows_path": "z:\tmp\foo" },
+                "textures" : { "mac_path": "/tmp/textures", 
+                               "linux_path": None, 
+                               "windows_path": "z:\tmp\textures" },
+              }
     """
     # now read in the roots.yml file
     # this will contain something like

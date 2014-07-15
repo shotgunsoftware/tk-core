@@ -116,8 +116,36 @@ class TestGetSetting(TestApplication):
         self.assertEqual(True, test_item["test_bool"])
         self.assertEqual("extra", test_item["test_extra"])
 
+class TestExecuteHookByName(TestApplication):
+    
+
+    def test_legacy_format_old_method(self):
+        app = self.engine.apps["test_app"]
+        self.assertEqual(app.execute_hook_by_name("named_hook", dummy_param=True), "named_hook_1")
+
+    def test_legacy_format(self):
+        app = self.engine.apps["test_app"]
+        self.assertEqual(app.execute_hook_expression("named_hook", "execute", dummy_param=True), "named_hook_1")
+
+    def test_legacy_format_2(self):
+        app = self.engine.apps["test_app"]
+        self.assertEqual(app.execute_hook_expression("named_hook", "second_method", another_dummy_param=True), 
+                         "named_hook_2")
+
+    def test_config(self):
+        app = self.engine.apps["test_app"]
+        self.assertEqual(app.execute_hook_expression("{config}/named_hook.py", "execute", dummy_param=True), 
+                         "named_hook_1")
+
+    def test_self(self):
+        app = self.engine.apps["test_app"]
+        self.assertTrue(app.execute_hook_expression("{self}/test_hook.py", "execute", dummy_param=True), 
+                        "named_hook_1")
+
+
 class TestExecuteHook(TestApplication):
     
+
     def test_standard_format(self):
         app = self.engine.apps["test_app"]
         self.assertTrue(app.execute_hook("test_hook_std", dummy_param=True))
@@ -154,8 +182,23 @@ class TestExecuteHook(TestApplication):
         app = self.engine.apps["test_app"]
         self.assertEqual(app.execute_hook_method("test_hook_inheritance_2", "foo2", bar=True), "custom class base class")
         
+    def test_new_style_config_old_style_hook(self):
+        app = self.engine.apps["test_app"]        
+        self.assertTrue(app.execute_hook("test_hook_new_style_config_old_style_hook", dummy_param=True))
 
+    def test_default_syntax_with_new_style_hook(self):
+        app = self.engine.apps["test_app"]        
+        self.assertTrue(app.execute_hook("test_default_syntax_with_new_style_hook", dummy_param=True))
 
+    def test_default_syntax_missing_implementation(self):
+        """
+        Test the case when the default hook defined in the manifest is missing.
+        This is common when using the {engine_name} token and a user is trying
+        to create a hook which supports an engine which the app does not yet support.  
+        """
+        app = self.engine.apps["test_app"]                
+        self.assertEqual(app.execute_hook_method("test_default_syntax_missing_implementation", "test_method"), "hello")
+        
 
 class TestRequestFolder(TestApplication):
     

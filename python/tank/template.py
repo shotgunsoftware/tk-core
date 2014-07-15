@@ -16,12 +16,10 @@ Management of file and directory templates.
 import os
 import re
 
-from tank_vendor import yaml
-
 from . import templatekey
 from .errors import TankError
 from .platform import constants
-
+from .template_path_parser import TemplatePathParser
 
 
 class Template(object):
@@ -319,34 +317,51 @@ class Template(object):
         """
         raise NotImplementedError
 
+    def validate_and_get_fields(self, path, required_fields=None, skip_keys=None):
+        """
+        Validates that a path fits with a template and returns the resolved dictionary of fields if it does.
+        
+        :param path:            Path to validate
+        :param required_fields: An optional dictionary of key names to key values. If supplied these values must 
+                                be present in the input path and found by the template.
+        :param skip_keys:       List of field names whose values should be ignored
+
+        :returns:               Dictionary of fields found from the path or None if path fails to validate 
+        """
+        required_fields = required_fields or {}
+        skip_keys = skip_keys or []
+        
+        # Path should split into keys as per template
+        path_fields = {}
+        try:
+            path_fields = self.get_fields(path, skip_keys=skip_keys)
+        except TankError:
+            return None
+        
+        # Check that all required fields were found in the path:
+        for key, value in required_fields.items():
+            if (key not in skip_keys) and (path_fields.get(key) != value):
+                return None
+
+        return path_fields
 
     def validate(self, path, fields=None, skip_keys=None):
         """
         Validates that a path fits with a template.
+                            
+        :param path:        Path to validate
+        :type path:         String
+        :param fields:      An optional dictionary of key names to key values. If supplied these values must 
+                            be present in the input path and found by the template.
+        :type fields:       Dictionary
+        :param skip_keys:   Field names whose values should be ignored
+        :type skip_keys:    List
 
-        :param path: Path to validate
-        :type path: String
-        :param fields: Optional: Mapping of key/values with which to add to the fields
-                       extracted from the path before validation happens. 
-        :type fields: Dictionary
-        :param skip_keys: Optional: Field names whose values should be ignored
-        :type skip_keys: List
-
-        :rtype: Bool
+        :returns:           True if the path is valid for this template
+        :rtype:             Bool
         """
-        fields = fields or {}
-        skip_keys = skip_keys or []
-        # Path should split into keys as per template
-        try:
-            path_fields = self.get_fields(path, skip_keys=skip_keys)
-        except TankError:
-            return False
-        # Check input values match those in path
-        for key, value in fields.items():
-            if (key not in skip_keys) and (path_fields.get(key) != value):
-                return False
-        return True
-
+        return self.validate_and_get_fields(path, fields, skip_keys) != None
+        
     def get_fields(self, input_path, skip_keys=None):
         """
         Extracts key name, value pairs from a string.
@@ -468,8 +483,6 @@ class TemplateString(Template):
         return super(TemplateString, self).get_fields(adj_path, skip_keys=skip_keys)
 
 
-
-
 def split_path(input_path):
     """
     Split a path into tokens.
@@ -483,195 +496,6 @@ def split_path(input_path):
     cur_path = os.path.normpath(input_path)
     cur_path = cur_path.replace("\\", "/")
     return cur_path.split("/")
-
-
-class TemplatePathParser(object):
-    """
-    Class for parsing a path for a known set of keys, and known set of static
-    tokens which should appear between the key values.
-    """
-    def __init__(self, ordered_keys, static_tokens):
-        """
-        :param ordered_keys: Template key objects in order that they appear in
-                             template definition.
-        :param static_tokens: Pieces of definition not representing Template Keys.
-        """
-        self.ordered_keys = ordered_keys
-        self.static_tokens = static_tokens
-        self.fields = {}
-        self.input_path = None
-        self.last_error = "Unable to parse path" 
-
-    def parse_path(self, input_path, skip_keys):
-        """
-        Moves through a path in a linear fashion determing values for keys.
-
-        :param input_path: Path to parse.
-        :type input_path: String.
-        :param skip_keys: Keys for whom we do not need to find values.
-        :type skip_keys: List of strings.
-
-        :returns: Mapping of key names to values or None. 
-        """
-        skip_keys = skip_keys or []
-        input_path = os.path.normpath(input_path)
-
-        # if no keys, nothing to discover
-        if not self.ordered_keys:
-            if input_path.lower() == self.static_tokens[0].lower():
-                # this is a template where there are no keys
-                # but where the static part of the template is matching
-                # the input path
-                # (e.g. template: foo/bar - input path foo/bar)
-                return {}
-            else:
-                # template with no keys - in this case not matching 
-                # the input path. Return for no match.
-                return None
-            
-
-        self.fields = {}
-        last_index = None # end index of last static token
-        start_index = None # index of begining of next static token
-        end_index = None # end index of next static token
-        key_index = 0 # index of key in ordered keys list
-        token_index = 0 # index of token in static tokens list
-        # crawl through input path
-        while last_index < len(input_path):
-            # Check if there are keys left to process
-            if key_index < len(self.ordered_keys):
-                # get next key
-                cur_key = self.ordered_keys[key_index]
-                key_name = cur_key.name
-            else:
-                # all keys have been processed
-                key_name = None
-
-            # Check that there are static token left to process
-            if token_index < len(self.static_tokens):
-                cur_token = self.static_tokens[token_index]
-                
-                start_index = self.find_index_of_token(cur_key, cur_token, input_path, last_index)
-                if start_index is None:
-                    return None
-                
-                if cur_key.length is not None:
-                    # there is a minimum length imposed on this key
-                    if last_index and (start_index-last_index) < cur_key.length:
-                        # we may have stopped early. One more click ahead
-                        start_index = self.find_index_of_token(cur_key, cur_token, input_path, start_index+1)
-                        if start_index is None:
-                            return None
-                        
-
-                end_index = start_index + len(cur_token)
-            else:
-                # All static tokens used, go to end of string
-                end_index = len(input_path)
-                start_index = end_index
-
-            # last index is None on first iteration only
-            if last_index is not None:
-                # Check we haven't previously processed all keys
-                if key_index >= len(self.ordered_keys):
-                    msg = ("Tried to extract fields from path '%s'," +
-                            "but path does not fit the template.")
-                    self.last_error = msg % input_path
-                    return None
-                
-                if key_name not in skip_keys:
-                    value_str = input_path[last_index:start_index]
-                    processed_value = self._process_value(value_str, cur_key, self.fields)
-                    if processed_value is None:
-                        return None
-                    else:
-                        self.fields[key_name] = processed_value
-
-                key_index += 1
-            token_index += 1
-            last_index = end_index
-        return self.fields
-
-
-    def find_index_of_token(self, key, token, input_path, last_index):
-        """
-        Determines starting index of a sub-string in the remaining portion of a path.
-
-        If possible, domain knowledge will be used to improve the accuracy.
-        :param key: The the key whose value should start after the token.
-        :param token: The sub-string whose index we search.
-        :param input_path: The path in which to search.
-        :param last_index: The index in the path beyond which we shall search.
-
-        :returns: The index of the start of the token.
-        """
-        # in python 2.5 index into a string cannot be None
-        last_index = last_index or 0
-
-        input_path_lower = input_path.lower()
-        # Handle keys which already have values (they exist more than once in definition)
-        if key.name and key.name in self.fields:
-            # value is treated as string as it is compared to input path
-            # have to format correctly though otherwise search may fail!
-            value = key.str_from_value(self.fields[key.name])
-            
-            # check that value exists in the remaining input path
-            if value in input_path[last_index:]:
-                value_index = input_path.index(value, last_index) + len(value)
-                # check that token is in path after known value
-                if not token in input_path_lower[value_index:]:
-                    msg = ("Tried to extract fields from path '%s'," + 
-                           "but path does not fit the template.")
-                    self.last_error = msg % input_path
-                    return None
-
-                start_index = input_path_lower.index(token, value_index)
-                if start_index != value_index:
-                    msg = "Template %s: Unable to find value for key %s in path %s"
-                    self.last_error = msg % (self, key.name, input_path)
-                    return None
-            else:
-                msg = "Template %s: Unable to find value for key %s in path %s"
-                self.last_error = msg % (self, key.name, input_path)
-                return None
-        else:
-            # key has not been previously processed
-            # Check that the static token exists in the remaining input string
-            if not token in input_path_lower[last_index:]:
-                msg = "Tried to extract fields from path '%s', but path does not fit the template."
-                self.last_error = msg % input_path
-                return None
-
-            start_index = input_path_lower.index(token, last_index) 
-        return start_index
-
-
-    def _process_value(self, value_str, cur_key, fields):
-        """
-        Checks value is valid both for it's key and in relation to existing values for that key.
-        """
-        key_name = cur_key.name
-        value = None
-        try:
-            value = cur_key.value_from_str(value_str)
-        except TankError, e:
-            # it appears some locales are not able to correctly encode
-            # the error message to str here, so use the %r form for the error
-            # (ticket 24810)
-            self.last_error = "%s: Failed to get value for key '%s' - %r" % (self, key_name, e)
-            return None
-        
-        if fields.get(key_name, value) != value:
-            msg = "%s: Conflicting values found for key %s: %s and %s"
-            self.last_error = msg % (self, key_name, fields[key_name], value)
-            return None
-
-        if os.path.sep in value_str:
-            msg = "%s: Invalid value found for key %s: %s"
-            self.last_error = msg % (self, key_name, value)
-            return None
-        
-        return value
 
 def read_templates(pipeline_configuration):
     """

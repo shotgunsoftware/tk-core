@@ -112,7 +112,7 @@ class AltCustomFormatter(logging.Formatter):
             if "Code Traceback" not in record.msg:
                 # do not wrap exceptions
                 lines = []
-                for x in textwrap.wrap(record.msg, width=78):
+                for x in textwrap.wrap(record.msg, width=78, break_long_words=False, break_on_hyphens=False):
                     lines.append(x)
                 record.msg = "\n".join(lines)
 
@@ -634,13 +634,17 @@ def _preprocess_projects(log, sg, entity_search_token, constrain_by_project_id):
 
     if constrain_by_project_id:
         # find project details
+        log.debug("Shotgun: find_one(Project, id is %s)" % constrain_by_project_id)
         proj_constraint = sg.find_one("Project", [["id", "is", constrain_by_project_id]], ["name"])
+        log.debug("Got data: %r" % proj_constraint)
     else:
         proj_constraint = None
 
     if proj_token:
         # find wild card projects
+        log.debug("Shotgun: find(Project, name contains %s)" % proj_token )
         projs_from_prefix = sg.find("Project", [["name", "contains", proj_token]], ["name"])
+        log.debug("Got data: %r" % projs_from_prefix)
         if len(projs_from_prefix) == 0:
             raise TankError("No Shotgun projects found containing the phrase '%s' in their name!" % proj_token)
     else:
@@ -705,9 +709,12 @@ def _resolve_shotgun_entity(log, entity_type, entity_search_token, constrain_by_
             proj_filter.extend(projs)
             shotgun_filters.append(proj_filter)
 
+        log.debug("Shotgun: find(%s, %s)" % (entity_type, shotgun_filters))
         entities = sg.find(entity_type,
                            shotgun_filters,
                            [name_field, "description", "entity", "link", "project"])
+        log.debug("Got data: %r" % entities)
+        
     except Exception, e:
         raise TankError("An error occurred when searching in Shotgun: %s" % e)
 

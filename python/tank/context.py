@@ -563,19 +563,34 @@ class Context(object):
 
         # get a path cache handle
         path_cache = PathCache(self.__tk)
+
+        # Step 3 - walk templates from the root down,
+        # for each template, get all paths we have stored in the database
+        # and find any fields we can for it
         try:
-            # Step 3 - walk templates from the root down,
-            # for each template, get all paths we have stored in the database
-            # and get the filename - this will be our field value
+            # build up a list of fields as we go so that each level matches
+            # at least the fields from the previous level
+            found_fields = {}
+
             for cur_template in templates:
                 for key in cur_template.keys.values():
                     # If we don't already have a value, look for it
-                    if fields.get(key.name) is None:
-                        entity = entities.get(key.name)
-                        if entity:
-                            # context contains an entity for this Shotgun entity type!
-                            temp_fields = _values_from_path_cache(entity, cur_template, path_cache, fields)
-                            fields.update(temp_fields)
+                    if fields.get(key.name) is not None:
+                        # already have value so skip:
+                        found_fields[key.name] = fields[key.name]
+                        continue
+                    
+                    # only care about entities as this is what we'll look for in the path cache:
+                    entity = entities.get(key.name)
+                    if entity:
+                        # context contains an entity for this Shotgun entity type!
+                        temp_fields = _values_from_path_cache(entity, cur_template, path_cache, 
+                                                              required_fields=found_fields)
+                        # make sure the next iteration finds the same fields: 
+                        found_fields.update(temp_fields)
+            
+            # update the list of fields with all the ones we found:
+            fields.update(found_fields)
 
         finally:    
             path_cache.close()
@@ -1048,7 +1063,7 @@ def _context_data_from_cache(tk, entity_type, entity_id):
             raise TankError("The path '%s' associated with %s id %s does not " 
                             "resolve correctly. This may be an indication of an issue "
                             "with the local storage setup. Please contact " 
-                            "sgtksupport@shotgunsoftware.com" % (curr_path, entity_type, entity_id))
+                            "toolkitsupport@shotgunsoftware.com" % (curr_path, entity_type, entity_id))
 
         # grab the name for the context entity
         if curr_entity["type"] == entity_type and curr_entity["id"] == entity_id:
@@ -1069,11 +1084,19 @@ def _context_data_from_cache(tk, entity_type, entity_id):
     return context
 
 
-def _values_from_path_cache(entity, cur_template, path_cache, fields):
+def _values_from_path_cache(entity, cur_template, path_cache, required_fields):
     """
-    Determine values for templates fields based on an entities cached paths.
+    Determine values for template fields based on an entities cached paths.
+                            
+    :param entity:          The entity to search for fields for
+    :param cur_template:    The template to use to search the path cache
+    :path_cache:            An instance of the path_cache to search in
+    :param required_fields: A list of fields that must exist in any matched path
+    :return:                Dictionary of fields found by matching the template against all paths
+                            found for the entity
     """
     
+<<<<<<< HEAD
     # use the databsae to go from shotgun type/id --> paths
     entity_paths = path_cache.get_paths(entity["type"], entity["id"], primary_only=True)
     
@@ -1081,20 +1104,28 @@ def _values_from_path_cache(entity, cur_template, path_cache, fields):
     # with the existing field values we have plugged into that template
     matches = [epath for epath in entity_paths if cur_template.validate(epath, fields=fields)]
     
+=======
+    # use the database to go from shotgun type/id --> list of paths
+    entity_paths = path_cache.get_paths(entity["type"], entity["id"])
+
+>>>>>>> master
     # Mapping for field values found in conjunction with this entities paths
-    temp_fields = {}
+    unique_fields = {}
     # keys whose values should be removed from return values
     remove_keys = set()
-
-    for matched_path in matches:
+    
+    for path in entity_paths:
         
-        # Get the filed values for each path
-        matched_fields = cur_template.get_fields(matched_path)
+        # validate path and get fields:
+        path_fields = cur_template.validate_and_get_fields(path, required_fields = required_fields)
+        if not path_fields:
+            continue
         
         # Check values against those found for other paths
-        for m_key, m_value in matched_fields.items():
-            if m_key in temp_fields and m_value != temp_fields[m_key]:
-                if m_key == entity["type"]:
+        for key, value in path_fields.items():
+            if key in unique_fields and value != unique_fields[key]:
+                # value for this key isn't unique!
+                if key == entity["type"]:
                     # Ambiguity for Entity key
                     # now it is possible that we have ambiguity here, but it is normally
                     # an edge case. For example imagine that an asset has paths
@@ -1106,17 +1137,17 @@ def _values_from_path_cache(entity, cur_template, path_cache, fields):
                     raise TankError(msg % (str(entity), str(cur_template)))
                 else:
                     # ambiguity for Static key
-                    temp_fields[m_key] = None
-                    remove_keys.add(m_key)
+                    unique_fields[key] = None
+                    remove_keys.add(key)
             
             else:
-                temp_fields[m_key] = m_value
-
-    # we want to remove the None values so they don't interfere with other entities
+                unique_fields[key] = value
+        
+    # we want to remove the None/ambiguous values so they don't interfere with other entities
     for remove_key in remove_keys:
-        del(temp_fields[remove_key])
-
-    return temp_fields
+        del(unique_fields[remove_key])
+    
+    return unique_fields
 
 
 def _get_template_ancestors(template):

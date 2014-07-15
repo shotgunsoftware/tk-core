@@ -71,7 +71,14 @@ black_list = [
      "message": "Version v0.2.6 of the tk-softimage engine may not start correctly when run with the current "
                 "version of the core API if PyQt is installed on your system. "
                 "We strongly recommend that you upgrade to the latest version of the Softimage engine "
-                "as soon as you can."}
+                "as soon as you can."},
+              
+    {"system_name":"tk-hiero",
+     "version":"v0.2.3",
+     "message": "Version v0.2.3 (and older) of the Hiero engine does not handle menu items with associated "
+                "icons correctly. We strongly recommend that you update your Hiero engine to v0.2.4 or later "
+                "as soon as possible. Toolkit core v0.14.48 introduces default icons for many menu items which "
+                "makes the bug in the Hiero engine more likely to occur." },
 
 ]
 

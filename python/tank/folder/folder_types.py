@@ -1325,19 +1325,10 @@ class UserWorkspace(Entity):
         constructor
         """
         
-        # this query confirms that there is a matching HumanUser in shotgun for the local login
-        # This means that a query for the user happens twice, here and later during _get_entities
-        # TODO possibly keep the result from this query instead and remove the later, duplicate, one
-        user = login.get_current_user(tk) 
-
-        if not user:
-            msg = "Could not find a HumanUser in shotgun with login matching the local login. "
-            msg += "Check that the local login corresponds to a user in shotgun."
-            raise TankError(msg)
-
-        user_filter = { "path": "id", "relation": "is", "values": [ user["id"] ] }
-        entity_filter["conditions"].append( user_filter )
-                
+        # lazy setup: we defer the lookup of the current user until the folder node
+        # is actually being utilized, see extract_shotgun_data_upwards() below
+        self._user_initialized = False
+        
         # user work spaces are always deferred so make sure to add a setting to the metadata
         # note: This should ideally be a parameter passed to the base class.
         metadata["defer_creation"] = True
@@ -1351,6 +1342,38 @@ class UserWorkspace(Entity):
                         field_name_expression, 
                         entity_filter, 
                         create_with_parent=True)
+        
+    def create_folders(self, io_receiver, path, sg_data, is_primary, explicit_child_list, engine):
+        """
+        Inherited and wrapps base class implementation
+        """
+        
+        # wraps around the Entity.create_folders() method and adds
+        # the current user to the filer query in case this has not already been done.
+        # having this set up before the first call to create_folders rather than in the
+        # constructor is partly for performance, but primarily so that a valid current user 
+        # isn't required unless you actually create a user sandbox folder. For example,
+        # if you have a dedicated machine that creates higher level folders, this machine
+        # shouldn't need to have a user id set up - only the artists that actually create 
+        # the user folders should need to.
+        
+        if not self._user_initialized:
+
+            # this query confirms that there is a matching HumanUser in shotgun for the local login
+            user = login.get_current_user(self._tk) 
+    
+            if not user:
+                msg = ("Folder Creation Error: Could not find a HumanUser in shotgun with login " 
+                       "matching the local login. Check that the local login corresponds to a "
+                       "user in shotgun.")
+                raise TankError(msg)
+    
+            user_filter = { "path": "id", "relation": "is", "values": [ user["id"] ] }
+            self._filters["conditions"].append( user_filter )            
+            self._user_initialized = True
+        
+        return Entity.create_folders(self, io_receiver, path, sg_data, is_primary, explicit_child_list, engine)
+        
 
 
 class ShotgunStep(Entity):
@@ -1431,7 +1454,7 @@ class ShotgunStep(Entity):
                 # grab the first entity we'll find except user workspaces             
                 break
             
-            elif associated_entity_type and \
+            elif associated_entity_type is not None and \
                  isinstance(sg_parent, Entity) and \
                  sg_parent.get_entity_type() == associated_entity_type:
                 # we have found the specific parent that the step is associated with
@@ -1586,7 +1609,7 @@ class ShotgunTask(Entity):
                 raise TankError("Error in configuration %s - node must be parented "
                                 "under a shotgun entity." % full_path)
             
-            elif associated_entity_type and \
+            elif associated_entity_type is not None and \
                  isinstance(curr_parent, Entity) and \
                  curr_parent.get_entity_type() == associated_entity_type:
                 # we have found the specific parent that the step is associated with
@@ -1659,12 +1682,16 @@ class Project(Entity):
         if storage_name is None:
             raise TankError("Missing or invalid value for 'root_name' in metadata: %s" % schema_config_project_folder)
         
-        # now resolve the disk location for the storage specified in the project config
-        storage_root_path = tk.pipeline_configuration.get_local_storage_roots().get(storage_name)
-        if storage_root_path is None:
-            raise TankError("The storage '%s' specified in the folder config %s.yml "
-                            "is not defined on this operating system!" % (storage_name, schema_config_project_folder))
         
+        # now resolve the disk location for the storage specified in the project config
+        local_roots = tk.pipeline_configuration.get_local_storage_roots()
+        
+        if storage_name not in local_roots:
+            raise TankError("The storage '%s' specified in the folder configuration %s.yml does not exist "
+                            "in the storage configuration!" % (storage_name, schema_config_project_folder))
+        
+        storage_root_path = local_roots[storage_name]
+
         return Project(tk, schema_config_project_folder, metadata, storage_root_path)
     
     

@@ -181,7 +181,14 @@ class TankQDialog(TankDialogBase):
         # set up the main UI and header
         self.ui = ui_tank_dialog.Ui_TankDialog() 
         self.ui.setupUi(self)
-        self.ui.label.setText(title)
+        
+        # when rendering the main UI title text, if the app is in dev mode, add 
+        # a little DEV text.
+        if self._bundle.descriptor.get_location().get("type") == "dev":        
+            self.ui.label.setText("%s<span style='font-size:9px; color: #30A7E3'>  DEV</span>" % title)
+        else:
+            self.ui.label.setText(title)
+            
         self.setWindowTitle("Shotgun: %s" % title)
         
         # set the visibility of the title bar:
@@ -208,7 +215,7 @@ class TankQDialog(TankDialogBase):
                 # top line can contain the Pipeline Config
                 if pc.get_name() and pc.get_name() != constants.PRIMARY_PIPELINE_CONFIG_NAME:
                     # we are using a non-default pipeline config
-                    first_line = "<b style='color: #9cbfff'>Config %s</b>" % pc.get_name()
+                    first_line = "<b style='color: #30A7E3'>Config %s</b>" % pc.get_name()
                 else:
                     first_line = "Toolkit %s" % self._bundle.context.tank.version
                 
@@ -231,7 +238,7 @@ class TankQDialog(TankDialogBase):
                 pc = self._bundle.context.tank.pipeline_configuration 
                 if pc.get_name() and pc.get_name() != constants.PRIMARY_PIPELINE_CONFIG_NAME:
                     # we are using a non-default pipeline config
-                    first_line = "<b style='color: #9cbfff'>Config %s</b>" % pc.get_name() 
+                    first_line = "<b style='color: #30A7E3'>Config %s</b>" % pc.get_name() 
                 
                 # second line contains the entity and task, step
                 second_line = str(self._bundle.context)

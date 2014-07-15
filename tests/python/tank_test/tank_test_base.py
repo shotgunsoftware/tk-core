@@ -258,7 +258,7 @@ class TankTestBase(unittest.TestCase):
             os.makedirs(full_path)
         if entity:
             # add to path cache
-            self.add_to_path_cache(path, entity)
+            self.add_to_path_cache(full_path, entity)
             # populate mock sg
             self.add_to_sg_mock_db(entity)
 

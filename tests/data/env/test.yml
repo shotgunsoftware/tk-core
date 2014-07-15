@@ -15,7 +15,7 @@ engines:
                 
                 # 
                 
-                test_hook_std: test_hook
+                test_hook_std: config_test_hook
                 test_hook_default: default
                 test_hook_env_var: "{$TEST_ENV_VAR}/test_env_var_hook.py"
                 test_hook_self: "{self}/test_hook.py"
@@ -24,6 +24,10 @@ engines:
                 test_hook_inheritance_1: "{self}/inheritance1.py"
                 test_hook_inheritance_2: "{config}/inherit.py"
                 
+                test_hook_new_style_config_old_style_hook: "{config}/config_test_hook.py"
+                test_default_syntax_with_new_style_hook: default
+                
+                test_default_syntax_missing_implementation: "{config}/no_app_implementation.py"
 
                 test_simple_dictionary:
                     test_str: a
@@ -46,7 +50,7 @@ engines:
                         test_float: 1.1
                         test_bool: true
                         test_template: maya_shot_work
-                        test_hook: test_hook
+                        test_hook: config_test_hook
                         test_extra: extra
                         
                     -   test_str: b
@@ -54,7 +58,7 @@ engines:
                         test_float: 2.2
                         test_bool: false
                         test_template: maya_shot_publish
-                        test_hook: test_hook
+                        test_hook: config_test_hook
                         test_extra: extra
                         
                 test_very_complex_list:

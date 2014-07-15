@@ -95,22 +95,6 @@ class TankBundle(object):
         template_name = self.get_setting_from(other_settings, key)        
         return self.get_template_by_name(template_name)
 
-    def execute_hook_from(self, other_settings, key, **kwargs):
-        """
-        Internal method - not part of Tank's public interface.
-        
-        Shortcut for grabbing the hook name used in the settings dictionary 
-        passed in and then calling execute_hook_by_name() on it.
-        
-        :param other_settings: dictionary to use to find setting
-        :param key: setting name
-        :param **kwargs: arguments to be passed to the hook
-        """
-        hook_name = self.get_setting_from(other_settings, key)
-        return self.__execute_hook_internal(key, hook_name, None, **kwargs)
-
-
-
     ##########################################################################################
     # properties
 
@@ -351,8 +335,44 @@ class TankBundle(object):
         hook_name = self.get_setting(key)
         return self.__execute_hook_internal(key, hook_name, method_name, **kwargs)
 
+    def execute_hook_expression(self, hook_expression, method_name, **kwargs):
+        """
+        Execute an arbitrary hook via an expression. While the methods execute_hook
+        and execute_hook_method allows you to execute a particular hook setting as
+        specified in the app configuration manifest, this methods allows you to 
+        execute a hook directly by passing a hook expression, for example 
+        {config}/path/to/my_hook.py
+        
+        This is useful if you are doing rapid app development and don't necessarily
+        want to expose a hook as a configuration setting just yet. It is also useful 
+        if you have app settings that are nested deep inside of lists or dictionaries.
+        In that case, you cannot use execute_hook, but instead will have to retrieve
+        the value specifically and then run it.
+        
+        Supported formats:
+        
+        - hook_expression: {$HOOK_PATH}/path/to/foo.py  -- expression based around an environment variable.
+        - hook_expression: {self}/path/to/foo.py -- looks in the hooks folder in the local app, engine of framework.
+        - hook_expression: {config}/path/to/foo.py -- Looks in the hooks folder in the project config.
+        - hook_expression: {tk-framework-perforce_v1.x.x}/path/to/foo.py -- looks in the hooks folder of a
+          framework instance that exists in the current environment. Basically, each entry inside the 
+          frameworks section in the current environment can be specified here - all these entries are 
+          on the form frameworkname_versionpattern, for example tk-framework-widget_v0.1.2 or 
+          tk-framework-shotgunutils_v1.3.x. 
+        
+        Supported legacy formats:
+        
+        - hook_expression: foo -- Will look for a foo.py file in the project configuration folder. 
+
+        :param hook_expression: Path to hook to execute. See above for syntax details.
+        :param method_name: Method inside the hook to execute.
+        """
+        return self.__execute_hook_internal(None, hook_expression, method_name, **kwargs)
+
     def execute_hook_by_name(self, hook_name, **kwargs):
         """
+        Note: Now deprecated - Please use execute_hook_expression instead.
+        
         Execute an arbitrary hook located in the hooks folder for this project.
         The hook_name is the name of the python file in which the hook resides,
         without the file extension.
@@ -366,7 +386,8 @@ class TankBundle(object):
         """
         hook_folder = self.tank.pipeline_configuration.get_hooks_location()
         hook_path = os.path.join(hook_folder, "%s.py" % hook_name)
-        return hook.execute_hook(hook_path, self, **kwargs)
+        return hook.execute_hook(hook_path, self, **kwargs)        
+
     
     def ensure_folder_exists(self, path):
         """
@@ -388,20 +409,28 @@ class TankBundle(object):
     ##########################################################################################
     # internal helpers
 
-    def __resolve_hook_path(self, settings_name, settings_value):
+    def __resolve_hook_path(self, settings_name, hook_expression):
         """
         Resolves a hook settings path into an absolute path.
         
-        :param settings_name: The name of the hook setting
-        :param settings_value: The current value that should be resolved
-        :returns: A path to a hook file
+        :param settings_name: The name of the hook setting in the configuration. If the 
+                              hook expression passed in to this method is not directly
+                              associated with a configuration setting, for example if it
+                              comes from a nested settings structure and is resolved via 
+                              execute_hook_by_name, this parameter will be None. 
+                               
+        :param hook_expression: The hook expression value that should be resolved.
+        
+        :returns: A full path to a hook file.
         """
 
-        if settings_value is None:
+        if hook_expression is None:
             raise TankError("%s config setting %s: Configuration value cannot be None!" % (self, settings_name))
         
+        path = None
+        
         # first the default case
-        if settings_value == constants.TANK_BUNDLE_DEFAULT_HOOK_SETTING:
+        if hook_expression == constants.TANK_BUNDLE_DEFAULT_HOOK_SETTING:
             # hook settings points to the default one.
             # find the name of the hook from the manifest
             manifest = self.__descriptor.get_configuration_schema()
@@ -421,56 +450,66 @@ class TankBundle(object):
             # note that this bundle base class level has no notion of what an engine or app is
             # so we basically do this duck-type style, basically see if there is an engine
             # attribute and if so, attempt the replacement:
+            engine_name = None
+            resolved_hook_name = default_hook_name
             if constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN in default_hook_name:
                 try:
                     engine_name = self.engine.name
                 except:
                     raise TankError("%s: Failed to be able to find the associated engine "
-                                    "when trying to access hook %s" % (self, settings_value))
+                                    "when trying to access hook %s" % (self, hook_expression))
                 
-                updated_hook_name = default_hook_name.replace(constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN, engine_name)
-                path = os.path.join(self.disk_location, "hooks", "%s.py" % updated_hook_name)
-
-                if not os.path.exists(path):
-                    # produce user friendly error message
-                    raise TankError("%s config setting %s: This hook is using an engine specific "
-                                    "hook setup (e.g '%s') but no hook '%s' has been provided with the app. "
-                                    "In order for this app to work with engine %s, you need to provide a "
-                                    "custom hook implementation. Please contact support for more "
-                                    "information" % (self, settings_name, default_hook_name, path, engine_name))
+                resolved_hook_name = default_hook_name.replace(constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN, engine_name)
                 
+            # get the full path for the resolved hook name:
+            if resolved_hook_name.startswith("{self}"):
+                # new format hook: 
+                #  default_value: '{self}/my_hook.py'
+                hooks_folder = os.path.join(self.disk_location, "hooks")
+                path = resolved_hook_name.replace("{self}", hooks_folder)
+                path = path.replace("/", os.path.sep)
             else:
-                # no dynamic default value. No need to produce a special error message in this case
-                # if the file does not exist - the loader will check too.
-                path = os.path.join(self.disk_location, "hooks", "%s.py" % default_hook_name)  
+                # old style hook: 
+                #  default_value: 'my_hook'
+                path = os.path.join(self.disk_location, "hooks", "%s.py" % resolved_hook_name)
             
-        elif settings_value.startswith("{self}"):
+            # if the hook uses the engine name then output a more useful error message if a hook for 
+            # the engine can't be found.
+            if engine_name and not os.path.exists(path):
+                # produce user friendly error message
+                raise TankError("%s config setting %s: This hook is using an engine specific "
+                                "hook setup (e.g '%s') but no hook '%s' has been provided with the app. "
+                                "In order for this app to work with engine %s, you need to provide a "
+                                "custom hook implementation. Please contact support for more "
+                                "information" % (self, settings_name, default_hook_name, path, engine_name))                
+            
+        elif hook_expression.startswith("{self}"):
             # bundle local reference
             hooks_folder = os.path.join(self.disk_location, "hooks")
-            path = settings_value.replace("{self}", hooks_folder)
+            path = hook_expression.replace("{self}", hooks_folder)
             path = path.replace("/", os.path.sep)
         
-        elif settings_value.startswith("{config}"):
+        elif hook_expression.startswith("{config}"):
             # config hook 
             hooks_folder = self.tank.pipeline_configuration.get_hooks_location()
-            path = settings_value.replace("{config}", hooks_folder)
+            path = hook_expression.replace("{config}", hooks_folder)
             path = path.replace("/", os.path.sep)
         
-        elif settings_value.startswith("{$") and "}" in settings_value:
+        elif hook_expression.startswith("{$") and "}" in hook_expression:
             # environment variable: {$HOOK_PATH}/path/to/foo.py
-            env_var = re.match("^\{\$([^\}]+)\}", settings_value).group(1)
+            env_var = re.match("^\{\$([^\}]+)\}", hook_expression).group(1)
             if env_var not in os.environ:
                 raise TankError("%s config setting %s: This hook is referring to the configuration value '%s', "
                                 "but no environment variable named '%s' can be "
-                                "found!" % (self, settings_name, settings_value, env_var))
+                                "found!" % (self, settings_name, hook_expression, env_var))
             env_var_value = os.environ[env_var]
-            path = settings_value.replace("{$%s}" % env_var, env_var_value)
+            path = hook_expression.replace("{$%s}" % env_var, env_var_value)
             path = path.replace("/", os.path.sep)        
         
-        elif settings_value.startswith("{") and "}" in settings_value:
+        elif hook_expression.startswith("{") and "}" in hook_expression:
             # bundle instance (e.g. '{tk-framework-perforce_v1.x.x}/foo/bar.py' )
             # first find the bundle instance
-            instance = re.match("^\{([^\}]+)\}", settings_value).group(1)
+            instance = re.match("^\{([^\}]+)\}", hook_expression).group(1)
             # for now, only look at framework instance names. Later on,
             # if the request ever comes up, we could consider extending
             # to supporting app instances etc. However we would need to
@@ -482,29 +521,29 @@ class TankBundle(object):
                 raise TankError("%s config setting %s: This hook is referring to the configuration value '%s', "
                                 "but no framework with instance name '%s' can be found in the currently "
                                 "running environment. The currently loaded frameworks "
-                                "are %s." % (self, settings_name, settings_value, instance, ", ".join(fw_instances)))
+                                "are %s." % (self, settings_name, hook_expression, instance, ", ".join(fw_instances)))
 
             fw_desc = self.__environment.get_framework_descriptor(instance)
             if not(fw_desc.exists_local()):
                 raise TankError("%s config setting %s: This hook is referring to the configuration value '%s', "
                                 "but the framework with instance name '%s' does not exist on disk. Please run "
-                                "the tank cache_apps command." % (self, settings_name, settings_value, instance))
+                                "the tank cache_apps command." % (self, settings_name, hook_expression, instance))
             
             # get path to framework on disk
             hooks_folder = os.path.join(fw_desc.get_path(), "hooks")
             # create the path to the file
-            path = settings_value.replace("{%s}" % instance, hooks_folder)
+            path = hook_expression.replace("{%s}" % instance, hooks_folder)
             path = path.replace("/", os.path.sep)
             
         else:
             # old school config hook name, e.g. just 'foo'
             hook_folder = self.tank.pipeline_configuration.get_hooks_location()
-            path = os.path.join(hook_folder, "%s.py" % settings_value)            
+            path = os.path.join(hook_folder, "%s.py" % hook_expression)            
 
         return path
 
 
-    def __execute_hook_internal(self, settings_name, settings_value, method_name, **kwargs):
+    def __execute_hook_internal(self, settings_name, hook_expression, method_name, **kwargs):
         """
         Internal method for executing the specified hook. This method handles
         resolving an environment configuration value into a path on disk.
@@ -527,14 +566,24 @@ class TankBundle(object):
           frameworks section in the current environment can be specified here - all these entries are 
           on the form frameworkname_versionpattern, for example tk-framework-widget_v0.1.2 or 
           tk-framework-shotgunutils_v1.3.x. 
-        
+          
+        :param settings_name: If this hook is associated with a setting in the bundle, this is the
+                              name of that setting. This is used to identify the inheritance relationships
+                              between the hook expression that is evaluated and if this hook derives from
+                              a hook inside an app. 
+        :param hook_expression: The path expression to a hook.
+        :param method_name: The method in the hook to execute, or None if the default hook method
+                            is supposed to be executed.
         """
         # split up the config value into distinct items
-        unresolved_hook_paths = settings_value.split(":")
+        unresolved_hook_paths = hook_expression.split(":")
         
-        # if the settings value is not {self} add this to the inheritance chain. 
-        # Basically, any overridden hook implicitly derives from the default hook
-        # specified in the manifest. Examples:
+        # first of all, see if we should add a base class hook to derive from:
+        # 
+        # Basically, any overridden hook implicitly derives from the default hook.
+        # specified in the manifest.
+        # if the settings value is not {self} add this to the inheritance chain.
+        # Examples:
         #
         # Manifest: {self}/foo_{engine_name}.py
         # In config: {config}/my_custom_hook.py
@@ -542,19 +591,36 @@ class TankBundle(object):
         # in the manifest, so prepend it:
         # hook_paths: ["{self}/foo_tk-maya.py", "{config}/my_custom_hook.py" ]
         #
-        #
-        
         # Check only new-style hooks. All new style hooks start with a { 
         if unresolved_hook_paths[0].startswith("{") and not unresolved_hook_paths[0].startswith("{self}"):
             # this is a new style hook that is not the default hook value.
             # now prepend the default hook first in the list 
             manifest = self.__descriptor.get_configuration_schema()
-            default_value = manifest.get(settings_name).get("default_value")
+            
+            default_value = None
+            
+            if settings_name:
+                default_value = manifest.get(settings_name).get("default_value")
             
             if default_value: # possible not to have a default value!
                 default_value = default_value.replace(constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN, self.engine.name)
-                # add to inheritance path
-                unresolved_hook_paths.insert(0, default_value)
+            
+                # expand the default value to be referenced from {self} and with the .py suffix 
+                # for backwards compatibility with the old syntax where the default value could
+                # just be 'hook_name' with implicit '{self}' and no suffix!
+                if not default_value.startswith("{self}"):
+                    default_value = "{self}/%s.py" % default_value
+                    
+                # so now we have a path to a potential default hook inside the app or engine
+                # There is however one possibility when there may not be a hook, and this is 
+                # when {engine_name} is defined as part of the default value, but no default hook
+                # exists for the engine that we are currently running. In this case, we don't want
+                # to wedge in this non-existing hook file into the inheritance chain because it does
+                # not exist!
+                full_path = self.__resolve_hook_path(settings_name, default_value)
+                if os.path.exists(full_path):
+                    # add to inheritance path
+                    unresolved_hook_paths.insert(0, default_value)
         
         # resolve paths into actual file paths
         resolved_hook_paths = [self.__resolve_hook_path(settings_name, x) for x in unresolved_hook_paths]

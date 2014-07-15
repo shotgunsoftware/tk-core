@@ -64,7 +64,10 @@ class Application(TankBundle):
         Called on destroy, prior to calling destroy_app
         """
         for fw in self.frameworks.values():
-            fw._destroy_framework()        
+            # don't destroy shared frameworks
+            # the engine is responsible for this
+            if not fw.is_shared:
+                fw._destroy_framework()
 
     ##########################################################################################
     # properties
