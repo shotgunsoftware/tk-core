@@ -1001,7 +1001,7 @@ class TankConfigInstaller(object):
         
         return storages
 
-    def check_manifest(self, sg_version_str):
+    def check_manifest(self):
         """
         Looks for an info.yml manifest in the config and validates it.
         Raises exceptions if there are compatibility problems.
