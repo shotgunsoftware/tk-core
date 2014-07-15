@@ -15,19 +15,17 @@ from ...errors import TankError
 from .setup_project_core import run_setup_project
 from .setup_project_wrappers import CmdlineSetupInteraction, APISetupInteraction
 
-
-
-
-
-
-
-
-
 class SetupProjectAction(Action):
     """
     Action that sets up a new Toolkit Project.
+    
+    This is the standard command that is exposed via the setup_project tank command
+    and API equivalent. 
     """    
     def __init__(self):
+        """
+        Constructor
+        """
         Action.__init__(self, 
                         "setup_project", 
                         Action.GLOBAL, 
@@ -48,12 +46,12 @@ class SetupProjectAction(Action):
         
         self.parameters["force"] = { "description": ("Enabling this flag allows you to run the set up project on "
                                                      "projects which have already been previously set up. "),
-                                               "default": False,
-                                               "type": "bool" }
+                                     "default": False,
+                                     "type": "bool" }
         
         self.parameters["project_id"] = { "description": "Shotgun id for the project you want to set up.",
-                                                         "default": None,
-                                                         "type": "int" }
+                                          "default": None,
+                                          "type": "int" }
         
         self.parameters["project_folder_name"] = { "description": ("Name of the folder which you want to be the root "
                                                                    "point of the created project. If a project already "
@@ -67,8 +65,8 @@ class SetupProjectAction(Action):
                                                           "config, a path to a git bare repo (e.g. a git repo path "
                                                           "which ends with .git) or 'tk-config-default' "
                                                           "to fetch the default config from the toolkit app store."),
-                                                   "default": "tk-config-default",
-                                                   "type": "str" }
+                                          "default": "tk-config-default",
+                                          "type": "str" }
 
         # note how the current platform's default value is None in order to make that required
         self.parameters["config_path_mac"] = { "description": ("The path on disk where the configuration should be "
@@ -96,6 +94,7 @@ class SetupProjectAction(Action):
         # validate params and seed default values
         computed_params = self._validate_parameters(parameters)
         
+        # set up an API interaction handler class and seed it with all our parameters
         interaction_handler = APISetupInteraction(log,
                                                   computed_params["config_uri"], 
                                                   computed_params["project_id"], 
@@ -104,6 +103,7 @@ class SetupProjectAction(Action):
                                                   computed_params["config_path_linux"], 
                                                   computed_params["config_path_win"])
         
+        # finally execute the actual project setup
         return run_setup_project(log,
                                  interaction_handler, 
                                  computed_params["check_storage_path_exists"], 
@@ -111,7 +111,9 @@ class SetupProjectAction(Action):
         
                 
     def run_interactive(self, log, args):
-        
+        """
+        Tank command accessor (tank setup_project)
+        """
         if len(args) not in [0, 1]:
             raise TankError("Syntax: setup_project [--no-storage-check] [--force]")
         
@@ -138,16 +140,16 @@ class SetupProjectAction(Action):
         
         
 
-
-
-
-
-
-
-
 class SetupProjectWizardAction(Action):
     """
-    API-only Action that returns an object which can be used to remotely drive a setup process 
+    Special handling of Project setup.
+    
+    This is a more complex alternative to the simple setup_project command.
+    
+    This class exposes a setup_project_wizard command to the API only (no tank command support)
+    which returns a wizard style object which wraps around the setup project process.
+    
+    This is used by the setup project wizard framework which is wired up to the shotgun desktop.
     """    
     def __init__(self):
         Action.__init__(self, 
@@ -176,18 +178,5 @@ class SetupProjectWizardAction(Action):
         """
         API accessor
         """
-                    
-        interaction_handler = APISetupInteraction(log,
-                                                  computed_params["config_uri"], 
-                                                  computed_params["project_id"], 
-                                                  computed_params["project_folder_name"], 
-                                                  computed_params["config_path_mac"], 
-                                                  computed_params["config_path_linux"], 
-                                                  computed_params["config_path_win"])
-        
-        return run_setup_project(log,
-                                 interaction_handler, 
-                                 computed_params["check_storage_path_exists"], 
-                                 computed_params["force"])
-        
+        return "ffo"
                 
