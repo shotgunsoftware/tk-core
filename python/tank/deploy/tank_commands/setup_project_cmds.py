@@ -16,6 +16,13 @@ from .setup_project_core import run_setup_project
 from .setup_project_wrappers import CmdlineSetupInteraction, APISetupInteraction
 
 
+
+
+
+
+
+
+
 class SetupProjectAction(Action):
     """
     Action that sets up a new Toolkit Project.
@@ -131,3 +138,56 @@ class SetupProjectAction(Action):
         
         
 
+
+
+
+
+
+
+
+class SetupProjectWizardAction(Action):
+    """
+    API-only Action that returns an object which can be used to remotely drive a setup process 
+    """    
+    def __init__(self):
+        Action.__init__(self, 
+                        "setup_project_wizard", 
+                        Action.GLOBAL, 
+                        ("Returns an object which wraps around setup project and can be used to integrate "
+                         "a setup project process into a complex interaction process such as a wizard"), 
+                        "Configuration")
+        
+        # no tank command support for this one because it returns an object
+        self.supports_tank_command = False
+        
+        # this method can be executed via the API
+        self.supports_api = True
+        
+        self.parameters = {}
+                
+    def run_interactive(self, log, args):
+        """
+        Tank command accessor
+        """
+        raise TankError("This Action does not support command line access")
+
+        
+    def run_noninteractive(self, log, parameters):
+        """
+        API accessor
+        """
+                    
+        interaction_handler = APISetupInteraction(log,
+                                                  computed_params["config_uri"], 
+                                                  computed_params["project_id"], 
+                                                  computed_params["project_folder_name"], 
+                                                  computed_params["config_path_mac"], 
+                                                  computed_params["config_path_linux"], 
+                                                  computed_params["config_path_win"])
+        
+        return run_setup_project(log,
+                                 interaction_handler, 
+                                 computed_params["check_storage_path_exists"], 
+                                 computed_params["force"])
+        
+                

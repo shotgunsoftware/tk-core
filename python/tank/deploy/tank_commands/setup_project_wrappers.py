@@ -517,4 +517,92 @@ class APISetupInteraction(object):
 
     
     
+#######################################################################################################################    
+
+    
+class APISetupInteraction(object):
+    """
+    Handles interaction between the project setup logic and the user when 
+    running via the API. This class implements the same methods as the 
+    CmdlineSetupInteraction class above but instead of prompting the user
+    interactively, it just dishes out a bunch of pre-defined values
+    in the various methods.
+    """
+    
+    def __init__(self, log, configuration_uri, project_id, project_folder_name, mac_pc_location, linux_pc_location, win_pc_location):
+        self._log = log
+        self._configuration_uri = configuration_uri
+        self._project_id = project_id
+        self._project_folder_name = project_folder_name
+        
+        self._mac_pc_location = mac_pc_location
+        self._linux_pc_location = linux_pc_location
+        self._win_pc_location = win_pc_location
+            
+    def confirm_continue(self):
+        """
+        Called when the logic needs an interactive session to issue a "ok to contine" prompt
+        """
+        # When in API mode, we just continue without prompting
+        return True
+        
+    def select_template_configuration(self, sg):
+        """
+        The setup logic requests which configuration to use. 
+        Returns a config string.
+        """
+        return self._configuration_uri        
+        
+    
+    def select_project(self, sg, force):
+        """
+        Returns the project id and name for a project for which setup should be done.
+        """
+
+        proj = sg.find_one("Project", [["id", "is", self._project_id]], ["name", "tank_name"])
+    
+        if proj is None:
+            raise TankError("Could not find a project with id %s!" % self._project_id)
+
+        # if force is false then tank_name must be empty
+        if force == False and proj["tank_name"] is not None:
+            raise TankError("You are trying to set up a project which has already been set up. If you want to do "
+                            "this, make sure to set the force parameter.")
+
+        return (self._project_id, proj["name"])
+        
+    def get_project_folder_name(self, sg, project_name, project_id, resolved_storages):
+        """
+        Given a project entity in Shotgun (name, id), decide where the project data
+        root should be on disk. This will verify that the selected folder exists
+        in each of the storages required by the configuration. 
+
+        Returns the project disk name which is selected, this name may 
+        include slashes if the selected location is multi-directory.
+        """
+        return self._project_folder_name    
+    
+    def get_disk_location(self, resolved_storages, project_disk_name, install_root):
+        """
+        The project setup process is requesting where on disk it should place the project config.
+        Returns a dictionary with keys according to sys.platform: win32, darwin, linux2
+        
+        :param resolved_storages: All the storage roots (Local storage entities in shotgun)
+                                  needed for this configuration. For example: 
+                                  [{'code': 'primary', 
+                                    'id': 1,
+                                    'mac_path': '/tank_demo/project_data', 
+                                    'windows_path': None, 
+                                    'type': 'LocalStorage',  
+                                    'linux_path': None}]
+
+        :param project_name: The Project.name field in Shotgun for the selected project.
+        :param project_id: The Project.id field in Shotgun for the selected project.
+        :param install_root: location of the core code
+        """        
+        return {"darwin": self._mac_pc_location, "linux2": self._linux_pc_location, "win32": self._win_pc_location}
+
+    
+    
+    
     
