@@ -109,9 +109,12 @@ class SetupProjectAction(Action):
         params.set_config_uri(computed_params["config_uri"])
         # validate config against current setup
         params.validate_config(computed_params["check_storage_path_exists"])
+        
         # set the project
         params.set_project_id(computed_params["project_id"], computed_params["force"])
         params.set_project_disk_name(computed_params["project_folder_name"])
+        
+        # set the config path
         params.set_config_path("linux2", computed_params["config_path_linux"])
         params.set_config_path("win32", computed_params["config_path_win"])
         params.set_config_path("darwin", computed_params["config_path_mac"])        
@@ -123,8 +126,7 @@ class SetupProjectAction(Action):
         # and finally carry out the setup
         return run_project_setup(log, sg, sg_app_store, sg_app_store_script_user, params)
         
-        
-                
+                        
     def run_interactive(self, log, args):
         """
         Tank command accessor (tank setup_project)
@@ -165,6 +167,9 @@ class SetupProjectAction(Action):
         
         # now look at the roots yml in the config
         params.validate_roots(check_storage_path_exists)
+    
+    
+    
     
         # ask which project to operate on
         project_id = self._select_project(log, sg, force)
@@ -257,8 +262,6 @@ class SetupProjectAction(Action):
         
         :returns: config uri string
         """
-        
-        
         log.info("")
         log.info("")
         log.info("------------------------------------------------------------------")

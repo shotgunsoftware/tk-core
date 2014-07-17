@@ -10,10 +10,11 @@
 
 import sys
 from .action_base import Action
+from ...util import shotgun
 from ...errors import TankError
 
-from .setup_project_core import run_setup_project, TankConfigInstaller
-from .setup_project_wrappers import CmdlineSetupInteraction, APISetupInteraction
+from .setup_project_core import run_project_setup
+from .setup_project_params import ProjectSetupParameters
 
 class SetupProjectFactoryAction(Action):
     """
@@ -65,7 +66,50 @@ class SetupProjectFactoryAction(Action):
         """
         API accessor
         """        
-        return SetupProjectWizard(log)
+        # connect to shotgun
+        (sg, sg_app_store, sg_app_store_script_user) = self._shotgun_connect(log)
+        # return a wizard object
+        return SetupProjectWizard(log, sg, sg_app_store, sg_app_store_script_user)
+                    
+    def _shotgun_connect(self, log):
+        """
+        Connects to the App store and to the associated shotgun site.
+        Logging in to the app store is optional and in the case this fails,
+        the app store parameters will return None. 
+        
+        The method returns a tuple with three parameters:
+        
+        - sg is an API handle associated with the associated site
+        - sg_app_store is an API handle associated with the app store
+        - sg_app_store_script_user is a sg dict (with name, id and type) 
+          representing the script user used to connect to the app store.
+        
+        :returns: (sg, sg_app_store, sg_app_store_script_user) - see above.
+        """
+        
+        # now connect to shotgun
+        try:
+            log.info("Connecting to Shotgun...")
+            sg = shotgun.create_sg_connection()
+            sg_version = ".".join([ str(x) for x in sg.server_info["version"]])
+            log.debug("Connected to target Shotgun server! (v%s)" % sg_version)
+        except Exception, e:
+            raise TankError("Could not connect to Shotgun server: %s" % e)
+    
+        try:
+            log.info("Connecting to the App Store...")
+            (sg_app_store, script_user) = shotgun.create_sg_app_store_connection()
+            sg_version = ".".join([ str(x) for x in sg_app_store.server_info["version"]])
+            log.debug("Connected to App Store! (v%s)" % sg_version)
+        except Exception, e:
+            log.warning("Could not establish a connection to the app store! You can "
+                        "still create new projects, but you have to base them on "
+                        "configurations that reside on your local disk.")
+            log.debug("The following error was raised: %s" % e)
+            sg_app_store = None
+            script_user = None
+        
+        return (sg, sg_app_store, script_user)
                 
 
 
@@ -74,15 +118,15 @@ class SetupProjectWizard(object):
     A class which wraps around the project setup functionality in toolkit
     """
     
-    def __init__(self, log):
+    def __init__(self, log, sg, sg_app_store, sg_app_store_script_user):
         """
-        Constructor
-        """
-        self._log = log
-        self._project_id = None
-        self._force_project_setup = None
-        self._config_uri = None
-        self._project_name = None
+        Constructor. 
+        """        
+        self._params = ProjectSetupParameters(log, sg, sg_app_store, sg_app_store_script_user)
+        self._sg = sg
+        self._sg_app_store = sg_app_store
+        self._sg_app_store_script_user = sg_app_store_script_user
+
         
     def set_project(self, project_id, force=False):
         """
@@ -91,8 +135,7 @@ class SetupProjectWizard(object):
         :param project_id: Shotgun id for the project that should be set up.
         :param force: Allow for the setting up of existing projects.
         """
-        self._project_id = project_id
-        self._force_project_setup = force
+        self._params.set_project_id(project_id, force)        
         
     def set_config_uri(self, config_uri):
         """
@@ -107,6 +150,8 @@ class SetupProjectWizard(object):
         Once downloaded, it will ensure that all the declared storages in the 
         configuration exist in the system.
         
+        Returns a dictionary with config metadata
+        
         {"display_name": "Default Config",
          "valid": False,
          "description": "some description of the config",
@@ -119,6 +164,11 @@ class SetupProjectWizard(object):
         :param config_uri: string describing a path on disk, a github uri or the name of an app store config.
         :returns: a dictionary representing the configuration, see above for details.
         """
+        self._params.set_config_uri(config_uri)
+        
+        self._params.validate_config()
+            
+        
 
     def get_default_project_disk_name(self):
         """
@@ -131,6 +181,7 @@ class SetupProjectWizard(object):
         
         :returns: string with a suggested project name
         """
+        return self._params.get_project_disk_name()
         
         
     def validate_project_disk_name(self, project_name):
@@ -158,12 +209,18 @@ class SetupProjectWizard(object):
         """
         
         
-    def set_project_name(self, project_name):
+        
+        
+        
+    def set_project_disk_name(self, set_project_disk_name):
         """
         Set the desired name of the project.
         
-        :param project_name: string with a project name.
+        :param set_project_disk_name: string with a project name.
         """
+        self._params.set_project_disk_name(set_project_disk_name)
+    
+    def get_default_configuration_location(self, platform):
     
     def set_configuration_location(self, mac_path, windows_path, linux_path):
         """
@@ -173,23 +230,24 @@ class SetupProjectWizard(object):
         :param windows_path: path on windows
         :param linux_path: path on linux
         """
+        
     
     def execute(self):
         """
         Execute the actual setup process.
         """
         
-        # set up an API interaction handler class and seed it with all our parameters
-        interaction_handler = APISetupInteraction(self._log,
-                                                  self._config_uri, 
-                                                  computed_params["project_id"], 
-                                                  computed_params["project_folder_name"], 
-                                                  computed_params["config_path_mac"], 
-                                                  computed_params["config_path_linux"], 
-                                                  computed_params["config_path_win"])
+        # run overall validation of the project setup
+        self._params.validate_project_io()
+        self._params.validate_config_io()
         
-        # finally execute the actual project setup
-        return run_setup_project(self._log, interaction_handler, True, self._force_project_setup)
+        # and finally carry out the setup
+        return run_project_setup(self._log, 
+                                 self._sg, 
+                                 self._sg_app_store, 
+                                 self._sg_app_store_script_user, 
+                                 self._params)
+        
     
 
 

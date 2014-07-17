@@ -29,6 +29,10 @@ from tank_vendor import yaml
 class ProjectSetupParameters(object):
     """
     Class that holds all the various parameters needed to run a project setup.
+    
+    This class allows for various forms of validation and inspection of all the data required 
+    to set up a project.
+    
     """
     
     def __init__(self, log, sg, sg_app_store, sg_app_store_script_user):
@@ -36,28 +40,41 @@ class ProjectSetupParameters(object):
         Constructor
         """
         
+        # set up handles
         self._sg = sg
-        self._config_template = TemplateConfiguration(config_uri, sg, sg_app_store, script_user, log)
+        self._log = log
+        self._sg_app_store = sg_app_store
+        self._sg_app_store_script_user = sg_app_store_script_user
         
+        # initialize data members
+        self._config_template = None
         self._project_id = None
         self._force_setup = None
+        self._project_name = None
     
     def set_config_uri(self, config_uri):
         """
         Sets the configuration uri to use for this project
         """
+        self._config_template = TemplateConfiguration(config_uri, 
+                                                      self._sg, 
+                                                      self._sg_app_store, 
+                                                      self._sg_app_store_script_user, 
+                                                      self._log)
         
         
-        
-    def validate_config(self, check_storage_path):
+    def validate_config(self, check_storage_path=True):
         """
         Validates that the specified configuration is valid.
         Raises exceptions.
         """
 
         # validate the config against the shotgun where we are installing it
-        cfg_installer.check_manifest()
+        self._config_template.check_manifest()
         
+        # validate_roots(self, check_storage_path_exists)
+        
+    
         
     def set_project_id(self, project_id, force):
         """
@@ -504,7 +521,17 @@ class TemplateConfiguration(object):
 
     def _read_roots_file(self):
         """
-        Read, validate and return the roots data from the config
+        Read, validate and return the roots data from the config.
+        
+        Example return data structure:
+        
+        {"primary": {"description":  "desc",
+                     "mac_path":     "/asd",
+                     "linux_path":   "/asd",
+                     "windows_path": "/asd" }
+        }
+        
+        :returns: A dictionary for keyed by storage
         """
         # get the roots definition
         root_file_path = os.path.join(self._cfg_folder, "core", "roots.yml")
@@ -539,7 +566,10 @@ class TemplateConfiguration(object):
     
     def _process_config_zip(self, zip_path):
         """
-        unpacks a zip config into a temp location
+        unpacks a zip config into a temp location.
+        
+        :param zip_path: path to zip file to unpack
+        :returns: tmp location on disk where config now resides
         """
         # unzip into temp location
         self._log.debug("Unzipping configuration and inspecting it...")
@@ -555,7 +585,10 @@ class TemplateConfiguration(object):
     
     def _process_config_app_store(self, config_name):
         """
-        Downloads a config zip from the app store and unzips it
+        Downloads a config zip from the app store and unzips it.
+        
+        :param config_name: App store config bundle name
+        :returns: tmp location on disk where config now resides 
         """
         
         if self._sg_app_store is None:
@@ -628,6 +661,9 @@ class TemplateConfiguration(object):
     def _process_config_git(self, git_repo_str):
         """
         Validate that a git repo is correct, download it to a temp location
+        
+        :param git_repo_str: Git repository string
+        :returns: tmp location on disk where config now resides
         """
         
         self._log.debug("Attempting to clone git uri '%s' into a temp location "
@@ -640,36 +676,39 @@ class TemplateConfiguration(object):
         return clone_tmp
         
         
-    def _process_config(self, cfg_string):
+    def _process_config(self, config_uri):
         """
         Looks at the starter config string and tries to convert it into a folder
         Returns a path to a config.
+        
+        :param config_uri: config path of some kind (git/appstore/local)
+        :returns: tuple with (tmp_path_to_config, config_type) where config_type is local/git/app_store
         """
         # three cases:
         # tk-config-xyz
         # /path/to/file.zip
         # /path/to/folder
-        if cfg_string.endswith(".git"):
+        if config_uri.endswith(".git"):
             # this is a git repository!
-            return (self._process_config_git(cfg_string), "git")
+            return (self._process_config_git(config_uri), "git")
             
-        elif os.path.sep in cfg_string:
+        elif os.path.sep in config_uri:
             # probably a file path!
-            if os.path.exists(cfg_string):
+            if os.path.exists(config_uri):
                 # either a folder or zip file!
-                if cfg_string.endswith(".zip"):
-                    return (self._process_config_zip(cfg_string), "local")
+                if config_uri.endswith(".zip"):
+                    return (self._process_config_zip(config_uri), "local")
                 else:
-                    return (self._process_config_dir(cfg_string), "local")
+                    return (self._process_config_dir(config_uri), "local")
             else:
-                raise TankError("File path %s does not exist on disk!" % cfg_string)    
+                raise TankError("File path %s does not exist on disk!" % config_uri)    
         
-        elif cfg_string.startswith("tk-"):
+        elif config_uri.startswith("tk-"):
             # app store!
-            return (self._process_config_app_store(cfg_string), "app_store")
+            return (self._process_config_app_store(config_uri), "app_store")
         
         else:
-            raise TankError("Don't know how to handle config '%s'" % cfg_string)
+            raise TankError("Don't know how to handle config '%s'" % config_uri)
         
     def _clone_git_repo(self, repo_path, target_path):
         """
