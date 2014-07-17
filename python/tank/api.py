@@ -470,7 +470,13 @@ class Tank(object):
         :type  entity_id: Integer or list of integers.
         :param engine: Optional engine name to indicate that a second, engine specific
                        folder creation pass should be executed for a particular engine.
-                       Folders marked as deferred will be processed.
+                       Folders marked as deferred will be processed. Note that this is 
+                       just a string following a convention - typically, we recommend that
+                       the engine name (e.g. 'tk-nuke') is passed in, however all this metod
+                       is doing is to relay this string on to the folder creation (schema)
+                       setup so that it is compared with any deferred entries there. In case
+                       of a match, the folder creation will recurse down into the subtree 
+                       marked as deferred.
         :type engine: String.
 
         :returns: The number of folders processed
@@ -492,7 +498,13 @@ class Tank(object):
         :type  entity_id: Integer or list of integers.
         :param engine: Optional engine name to indicate that a second, engine specific
                        folder creation pass should be executed for a particular engine.
-                       Folders marked as deferred will be processed.
+                       Folders marked as deferred will be processed. Note that this is 
+                       just a string following a convention - typically, we recommend that
+                       the engine name (e.g. 'tk-nuke') is passed in, however all this metod
+                       is doing is to relay this string on to the folder creation (schema)
+                       setup so that it is compared with any deferred entries there. In case
+                       of a match, the folder creation will recurse down into the subtree 
+                       marked as deferred.
         :type engine: String.
 
         :returns: List of items processed.

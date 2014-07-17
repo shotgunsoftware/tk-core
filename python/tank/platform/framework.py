@@ -62,9 +62,10 @@ class Framework(TankBundle):
         """
         Called by the parent classes when it is time to destroy this framework
         """
-        # destroy all our frameworks
+        # destroy all our (non-shared) frameworks
         for fw in self.frameworks.values():
-            fw._destroy_framework() 
+            if not fw.is_shared:
+                fw._destroy_framework()
         # and destroy self
         self.log_debug("Destroying %s" % self)
         self.destroy_framework()
@@ -102,6 +103,13 @@ class Framework(TankBundle):
         The engine that this framework is connected to
         """
         return self.__engine                
+
+    @property
+    def is_shared(self):
+        """
+        Boolean indicating whether this is a shared framework.
+        """
+        return self.descriptor.is_shared_framework()
         
     ##########################################################################################
     # init and destroy
@@ -158,7 +166,17 @@ def setup_frameworks(engine_obj, parent_obj, env, parent_descriptor):
         
         engine_obj.log_debug("%s - loading framework %s" % (parent_obj, fw_inst_name))
         
-        fw_obj = load_framework(engine_obj, env, fw_inst_name)
+        # try to get a shared instance for this framework
+        fw_obj = engine_obj._get_shared_framework(fw_inst_name)
+
+        if fw_obj is None:
+            # load framework
+            # this only occurs once per instance name for shared frameworks
+            fw_obj = load_framework(engine_obj, env, fw_inst_name)
+
+            if fw_obj.is_shared:
+                # register this framework for reuse by other bundles
+                engine_obj._register_shared_framework(fw_inst_name, fw_obj)
         
         # note! frameworks are keyed by their code name, not their instance name
         parent_obj.frameworks[fw_obj.name] = fw_obj
