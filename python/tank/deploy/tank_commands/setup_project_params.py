@@ -31,7 +31,7 @@ class ProjectSetupParameters(object):
     Class that holds all the various parameters needed to run a project setup.
     """
     
-    def __init__(self, sg):
+    def __init__(self, log, sg, sg_app_store, sg_app_store_script_user):
         """
         Constructor
         """

@@ -104,7 +104,7 @@ class SetupProjectAction(Action):
         (sg, sg_app_store, sg_app_store_script_user) = self._shotgun_connect(log)
                         
         # create a parameters class
-        params = ProjectSetupParameters(sg)
+        params = ProjectSetupParameters(log, sg, sg_app_store, sg_app_store_script_user)
         # specify which config to use
         params.set_config_uri(computed_params["config_uri"])
         # validate config against current setup
@@ -155,7 +155,7 @@ class SetupProjectAction(Action):
         (sg, sg_app_store, sg_app_store_script_user) = self._shotgun_connect(log)
         
         # create a parameters class
-        params = ProjectSetupParameters(sg)
+        params = ProjectSetupParameters(log, sg, sg_app_store, sg_app_store_script_user)
         
         # now ask which config to use. Download if necessary and examine
         config_uri = self._select_template_configuration(log, sg)
@@ -164,7 +164,7 @@ class SetupProjectAction(Action):
         params.set_config_uri(config_uri)
         
         # now look at the roots yml in the config
-        resolved_storages = params.validate_roots(check_storage_path_exists)
+        params.validate_roots(check_storage_path_exists)
     
         # ask which project to operate on
         project_id = self._select_project(log, sg, force)
