@@ -105,10 +105,9 @@ class SetupProjectAction(Action):
                         
         # create a parameters class
         params = ProjectSetupParameters(log, sg, sg_app_store, sg_app_store_script_user)
+        
         # specify which config to use
-        params.set_config_uri(computed_params["config_uri"])
-        # validate config against current setup
-        params.validate_config(computed_params["check_storage_path_exists"])
+        params.set_config_uri(computed_params["config_uri"], computed_params["check_storage_path_exists"])
         
         # set the project
         params.set_project_id(computed_params["project_id"], computed_params["force"])
@@ -163,14 +162,8 @@ class SetupProjectAction(Action):
         config_uri = self._select_template_configuration(log, sg)
     
         # now try to load the config
-        params.set_config_uri(config_uri)
+        params.set_config_uri(config_uri, check_storage_path_exists)
         
-        # now look at the roots yml in the config
-        params.validate_roots(check_storage_path_exists)
-    
-    
-    
-    
         # ask which project to operate on
         project_id = self._select_project(log, sg, force)
         params.set_project_id(project_id, force)
@@ -204,9 +197,11 @@ class SetupProjectAction(Action):
         The method returns a tuple with three parameters:
         
         - sg is an API handle associated with the associated site
-        - sg_app_store is an API handle associated with the app store
+        - sg_app_store is an API handle associated with the app store.
+          Can be None if connection fails.
         - sg_app_store_script_user is a sg dict (with name, id and type) 
           representing the script user used to connect to the app store.
+          Can be None if connection fails.
         
         :returns: (sg, sg_app_store, sg_app_store_script_user) - see above.
         """
@@ -393,8 +388,11 @@ class SetupProjectAction(Action):
         in each of the storages required by the configuration. It will prompt the user
         and can create these root folders if required (with open permissions).
 
-        Returns the project disk name which is selected, this name may 
-        include slashes if the selected location is multi-directory.
+        :param log: python logger
+        :param sg: Shotgun API instance
+        :param params: ProjectSetupParameters instance which holds the project setup parameters.
+        :returns: The project disk name which is selected, this name may 
+                  include slashes if the selected location is multi-directory. 
         """
         
         suggested_folder_name = params.get_default_project_disk_name()
@@ -478,7 +476,10 @@ class SetupProjectAction(Action):
 
     def _get_disk_location(self, log, params):
         """
-        Ask the user where the pipeline configuration should be located on disk.        
+        Ask the user where the pipeline configuration should be located on disk.       
+        
+        :param log: python logger
+        :param params: ProjectSetupParameters instance which holds the project setup parameters.
         """
                             
         log.info("")
@@ -501,11 +502,14 @@ class SetupProjectAction(Action):
 
         params.set_configuration_location(linux_path, windows_path, macosx_path)
 
-
-
     def _ask_location(self, log, default, os_nice_name):
         """
-        Ask the user where to put a pipeline coinfig
+        Helper method - asks the user where to put a pipeline config.
+        
+        :param log: python logger
+        :param default: default value
+        :param os_nice_name: A display name for an operating system
+        :returns: A path determined by the user
         """
         curr_val = default
 
@@ -521,7 +525,6 @@ class SetupProjectAction(Action):
             if val != "":
                 curr_val = val.strip()
         return curr_val
-        
 
     def _emit_project_setup_summary(self, log, params):
         """
