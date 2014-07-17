@@ -234,8 +234,8 @@ class ProjectSetupParameters(object):
     
     def validate_project_io(self):
         """
-        Pre-flight sanity check to be executed before actually carrying out the project setup.
-        This will check to ensure permissions are correct, disk locations are correct etc.        
+        Performs basic I/O checks to ensure that the tank folder can be written to each project location.
+        (note: this will change as part of the 0.15 changes we are making)
         """    
         
         # get the location of the configuration
@@ -275,8 +275,7 @@ class ProjectSetupParameters(object):
     
     def validate_config_io(self):
         """
-        Pre-flight sanity check to be executed before actually carrying out the project setup.
-        This will check to ensure permissions are correct, disk locations are correct etc.        
+        Performs basic I/O checks to ensure that the config can be created in the specified location
         """    
         
         # get the location of the configuration
@@ -298,28 +297,20 @@ class ProjectSetupParameters(object):
             # path does not exist! 
             # make sure parent path exists and is writable
             # find an existing parent path
-            parent_os_pc_location = None
-            curr_path = config_path_current_os
-            while curr_path != os.path.dirname(curr_path):
-                
-                # get parent folder
-                curr_path = os.path.dirname(curr_path)
-                if os.path.exists(curr_path):
-                    parent_os_pc_location = curr_path 
-                    break
+            parent_config_path_current_os = os.path.dirname(config_path_current_os)
         
-            if parent_os_pc_location is None:
+            if not os.path.exists(parent_config_path_current_os):
                 raise TankError("The folder '%s' does not exist! Please create "
-                                "it before proceeding!" % config_path_current_os)
+                                "it before proceeding!" % parent_config_path_current_os)
                     
             # and make sure we can create a folder in it
-            if not os.access(parent_os_pc_location, os.W_OK|os.R_OK|os.X_OK):
+            if not os.access(parent_config_path_current_os, os.W_OK|os.R_OK|os.X_OK):
                 raise TankError("Cannot create a project configuration in location '%s'! "
-                                "The permissions setting for the closest parent folder that "
-                                "can be detected, '%s', is too strict. The current user "
+                                "The permissions setting for the parent folder '%s' "
+                                "is too strict. The current user "
                                 "cannot create folders in this location. Please create the "
                                 "project configuration folder by hand and then re-run the project "
-                                "setup." % (config_path_current_os, parent_os_pc_location))
+                                "setup." % (config_path_current_os, parent_config_path_current_os))
         
     
     
