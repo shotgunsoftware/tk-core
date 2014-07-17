@@ -21,9 +21,9 @@ from tank_vendor import yaml
         
 def run_project_setup(log, sg, sg_app_store, sg_app_store_script_user, setup_params):
     """
-    Execute the actual project setup.
-    No validation is happening at this point - ensure that you have executed _validate_project_setup()
-    before calling this method! 
+    Execute the project setup.
+    No validation is happening at this point - ensure that you have run the necessary validation
+    methods in the parameters object.
 
     :param log: python logger object
     :param sg: shotgun api connection to the associated site
@@ -40,9 +40,7 @@ def run_project_setup(log, sg, sg_app_store, sg_app_store_script_user, setup_par
     
 def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, setup_params):
     """
-    Execute the actual project setup.
-    No validation is happening at this point - ensure that you have executed _validate_project_setup()
-    before calling this method! 
+    Project setup, internal method.
 
     :param log: python logger object
     :param sg: shotgun api connection to the associated site
@@ -92,8 +90,8 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, set
     _make_folder(log, os.path.join(config_location_curr_os, "install", "frameworks"), 0777, True)
     
     # copy the configuration into place
-    tc = setup_params.get_template_configuration()
-    tc.create_configuration(os.path.join(config_location_curr_os, "config"))
+    setup_params.create_configuration(os.path.join(config_location_curr_os, "config"))
+
     
     # copy the tank binaries to the top of the config
     log.debug("Copying Toolkit binaries...")
