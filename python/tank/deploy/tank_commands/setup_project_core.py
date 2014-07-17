@@ -16,7 +16,6 @@ from ...platform import constants
 from ...errors import TankError
 from ... import pipelineconfig
 
-
 from tank_vendor import yaml
     
 def emit_project_setup_summary(log, setup_params):
@@ -34,7 +33,7 @@ def emit_project_setup_summary(log, setup_params):
     log.info("")
     log.info("You are about to set up the Shotgun Pipeline Toolkit "
              "for Project %s - %s " % (setup_params.get_project_id(), 
-                                       setup_params.get_project_name()))
+                                       setup_params.get_project_disk_name()))
     log.info("The following items will be created:")
     log.info("")
     log.info("* A Shotgun Pipeline configuration will be created:" )
@@ -146,10 +145,7 @@ def validate_project_setup(log, setup_params):
                             "project configuration folder by hand and then re-run the project "
                             "setup." % (config_path_current_os, parent_os_pc_location))
     
-    
-    
-    
-def run_project_setup(log, sg, sg_app_store, sg_app_store_script_user, force, template_config_obj, setup_params):
+def run_project_setup(log, sg, sg_app_store, sg_app_store_script_user, setup_params):
     """
     Execute the actual project setup.
     No validation is happening at this point - ensure that you have executed _validate_project_setup()
@@ -159,24 +155,16 @@ def run_project_setup(log, sg, sg_app_store, sg_app_store_script_user, force, te
     :param sg: shotgun api connection to the associated site
     :param sg_app_store: toolkit app store sg connection
     :param sg_app_store_script_user: The script user used to connect to the app store, as a shotgun link-dict
-    :param force: boolean indicating that the setup should be forced, e.g. makes it possible to set up
-                  a project which has already got a toolkit setup registered.
-    :param template_config_obj: object representing the configuration to use as part of the setup.
     :param setup_params: Parameters object which holds gathered project settings
     """
     old_umask = os.umask(0)
     try:
-        return _project_setup_internal(log, 
-                                       sg, 
-                                       sg_app_store, 
-                                       sg_app_store_script_user, 
-                                       force, 
-                                       setup_params)
+        return _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, setup_params)
     finally:
         os.umask(old_umask)
    
     
-def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, force, setup_params):
+def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, setup_params):
     """
     Execute the actual project setup.
     No validation is happening at this point - ensure that you have executed _validate_project_setup()
@@ -186,8 +174,6 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, for
     :param sg: shotgun api connection to the associated site
     :param sg_app_store: toolkit app store sg connection
     :param sg_app_store_script_user: The script user used to connect to the app store, as a shotgun link-dict
-    :param force: boolean indicating that the setup should be forced, e.g. makes it possible to set up
-                  a project which has already got a toolkit setup registered.
     :param setup_params: Parameters object which holds gathered project settings
     """
     
@@ -204,7 +190,7 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, for
     project_id = setup_params.get_project_id()
     
     # if we have the force flag enabled, remove any pipeline configurations
-    if force:
+    if setup_params.get_force_setup():
         pcs = sg.find("PipelineConfiguration", 
                       [["project", "is", {"id": project_id, "type": "Project"} ]],
                       ["code"])
@@ -364,7 +350,7 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, for
     
     # creating project.tank_name record
     log.info("Registering project in Shotgun...")
-    project_name = setup_params.get_project_name()
+    project_name = setup_params.get_project_disk_name()
     log.debug("Shotgun: Setting Project.tank_name to %s" % project_name)
     sg.update("Project", project_id, {"tank_name": project_name})
     

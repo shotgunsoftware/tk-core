@@ -28,15 +28,220 @@ from tank_vendor import yaml
 
 class ProjectSetupParameters(object):
     """
-    Class that holds all the various parameters needed to run a project setup
+    Class that holds all the various parameters needed to run a project setup.
     """
     
-    def __init__(self, config_template):
+    def __init__(self, sg):
         """
         Constructor
         """
         
-        self._config_template = config_template
+        self._sg = sg
+        self._config_template = TemplateConfiguration(config_uri, sg, sg_app_store, script_user, log)
+        
+        self._project_id = None
+        self._force_setup = None
+    
+    def set_config_uri(self, config_uri):
+        """
+        Sets the configuration uri to use for this project
+        """
+        
+        
+        
+    def validate_config(self, check_storage_path):
+        """
+        Validates that the specified configuration is valid.
+        Raises exceptions.
+        """
+
+        # validate the config against the shotgun where we are installing it
+        cfg_installer.check_manifest()
+        
+        
+    def set_project_id(self, project_id, force):
+        """
+        Sets the project id and validates
+        """
+        proj = self._sg.find_one("Project", [["id", "is", project_id]], ["name", "tank_name"])
+    
+        if proj is None:
+            raise TankError("Could not find a project with id %s!" % self._project_id)
+
+        # if force is false then tank_name must be empty
+        if force == False and proj["tank_name"] is not None:
+            raise TankError("You are trying to set up a project which has already been set up. If you want to do "
+                            "this, make sure to set the force parameter.")
+
+        self._project_id = project_id
+         
+    
+    def get_default_project_disk_name(self):
+        
+        
+        proj = self._sg.find_one("Project", [["id", "is", project_id]], ["name", "tank_name"])
+        
+        # see if there is a hook to procedurally evaluate this
+        # 
+        project_name_hook = shotgun.get_project_name_studio_hook_location()
+        if os.path.exists(project_name_hook):
+            # custom hook is available!
+            suggested_folder_name = hook.execute_hook(project_name_hook, 
+                                                      parent=None, 
+                                                      sg=sg, 
+                                                      project_id=project_id)
+        else:
+            # construct a valid name - replace white space with underscore and lower case it.
+            suggested_folder_name = re.sub("\W", "_", project_name).lower()
+        
+    
+    def validate_project_disk_name(self, project_name):
+        """
+        Validates that the project disk name is not crazy
+        
+        Returns an adjusted project disk name
+        
+        Raises exceptions if not valid
+        
+        """
+
+        # make sure that the project disk folder does not end in a slash - this is causing lots of
+        # problems in the context resolve later on (#23222)
+        if project_disk_folder.endswith("/"):
+            project_disk_folder = project_disk_folder[:-1]
+        
+        
+    def preview_project_path(self, storage_name, project_name, platform):
+        """
+        Returns a full project path for a storage
+        Returns None if the project name is not valid
+        """
+        
+        try:
+            adjusted_project_name = self.validate_project_disk_name(project_name)
+        except TankError:
+            # validation failed!
+            return None
+        
+        
+        # note how we replace slashes in the name with backslashes on windows...
+        proj_path = os.path.join(current_os_path, adjusted_project_name.replace("/", os.path.sep))
+
+    
+    def set_project_disk_name(self, disk_name):
+        
+    
+        # validate that this is not crazy
+        # note that the value can contain slashes and span across multiple folders
+        if re.match("^[\./a-zA-Z0-9_-]+$", project_disk_folder) is None:
+            # bad name
+            raise TankError("Invalid project folder '%s'! Please use alphanumerics, "
+                            "underscores and dashes." % project_disk_folder)
+        
+    
+    def get_default_configuration_location(self, platform):
+        """
+        Returns default location for configs. May return None if not known
+        """
+    
+        # figure out the config install location. There are three cases to deal with
+        # - 0.13 style layout, where they all sit together in an install location
+        # - 0.12 style layout, where there is a tank folder which is the studio location
+        #   and each project has its own folder.
+        # - something else!
+                
+        # handle old setup - in the old setup, we would have the following structure: 
+        # /studio              <--- primary storage
+        # /studio/tank         <--- studio install
+        # /studio/project      <--- project location
+        # /studio/project/tank <--- install location
+        #
+        # typical new style setup (not showing data locations)
+        # /software/studio <-- studio install
+        # /software/projX  <-- project install
+        
+        location = {"darwin": None, "linux2": None, "win32": None}
+        os_nice_name = {"darwin": "Macosx", "linux2": "Linux", "win32": "Windows"}
+        
+        primary_local_path = params.get_primary_storage_path(sys.platform)
+        install_root  = params.get_associated_core_path(sys.platform)
+        
+        if os.path.abspath(os.path.join(install_root, "..")).lower() == primary_local_path.lower():
+            # ok the parent of the install root matches the primary storage - means OLD STYLE!
+            
+            if params.get_primary_storage_path("darwin"):
+                location["darwin"] = "%s/%s/tank" % (params.get_primary_storage_path("darwin"), 
+                                                     params.get_project_disk_name())
+
+            if params.get_primary_storage_path("linux2"):
+                location["linux2"] = "%s/%s/tank" % (params.get_primary_storage_path("linux2"), 
+                                                     params.get_project_disk_name())
+
+            if params.get_primary_storage_path("win32"):
+                location["win32"] = "%s\\%s\\tank" % (params.get_primary_storage_path("win32"), 
+                                                    params.get_project_disk_name())
+
+            
+        else:
+            # assume new style setup - in this case we need to go figure out the different
+            # OS paths to the install location. These are kept in a config file.
+            
+            # note! we must read this value from a file like this - cannot just determine it
+            # based on the currently running code - because we need to know the path on all
+            # three platforms.
+            
+            # now read in the install_location.yml file
+            cfg_yml = os.path.join(install_root, "config", "core", "install_location.yml")
+            fh = open(cfg_yml, "rt")
+            try:
+                data = yaml.load(fh)
+            finally:
+                fh.close()
+            
+            linux_install_root = data.get("Linux")
+            windows_install_root = data.get("Windows")
+            mac_install_root = data.get("Darwin")
+            
+            # typical new style setup (not showing data locations)
+            # /software/studio <-- studio install
+            # /software/projX  <-- project install
+            
+            if linux_install_root is not None and linux_install_root.startswith("/"):
+                chunks = linux_install_root.split("/")
+                # pop the studio bit
+                chunks.pop()
+                # append project name
+                chunks.extend( project_disk_name.split("/") ) 
+                location["linux2"] = "/".join(chunks)
+            
+            if mac_install_root is not None and mac_install_root.startswith("/"):
+                chunks = mac_install_root.split("/")
+                # pop the studio bit
+                chunks.pop()
+                # append project name
+                chunks.extend( project_disk_name.split("/") )
+                location["darwin"] = "/".join(chunks)
+            
+            if windows_install_root is not None and (windows_install_root.startswith("\\") or windows_install_root[1] == ":"):
+                chunks = windows_install_root.split("\\")
+                # pop the studio bit
+                chunks.pop()
+                # append project name
+                chunks.extend( project_disk_name.split("/") )
+                location["win32"] = "\\".join(chunks)
+    
+    
+    
+    
+    
+    def set_configuration_location(self, linux_path, windows_path, macosx_path):
+        """
+        Sets the config path
+        """
+        
+    
+    
+    
     
     
     def get_project_id(self):
@@ -44,7 +249,15 @@ class ProjectSetupParameters(object):
         Returns the project id for the project to be set up
         """
         
-    def get_project_name(self):
+        return self._project_id
+        
+    def get_force_setup(self):
+        """
+        Returns a boolean flag indicating whether the setup should be forced or not
+        """
+        return self._force_setup
+        
+    def get_project_disk_name(self):
         """
         Returns the disk name to be given to the project.
         This may be a simple name "test_project" or 
@@ -63,6 +276,22 @@ class ProjectSetupParameters(object):
         """
         self._config_template.
         
+    def get_storage_path(self, storage_name, platform):
+        """    
+        Returns the storage root path given a platform and a storage
+        Can be None
+        """
+        # not using path.join because it only works with current platform
+        # ensure correct kind of slashes everytwhere
+        # strip any slashes at the end
+        sg_storage_path_value.rstrip("/\\")
+
+    def get_primary_storage_path(self, platform):
+        """
+        Returns the primary storage path
+        """
+        return self.get_storage_path(constants.PRIMARY_STORAGE_NAME, platform)
+        
         
     def get_project_path(self, storage_name, platform):
         """    
@@ -79,8 +308,61 @@ class ProjectSetupParameters(object):
     def get_associated_core_path(self, platform):
         """
         Returns the location of the core API for a given platform.
+        Returns a path without any slashes at the end
         Can be None
         """
+        
+        # now read in the install_location.yml file
+        cfg_yml = os.path.join(install_root, "config", "core", "install_location.yml")
+        fh = open(cfg_yml, "rt")
+        try:
+            data = yaml.load(fh)
+        finally:
+            fh.close()
+        
+        linux_install_root = data.get("Linux")
+        windows_install_root = data.get("Windows")
+        mac_install_root = data.get("Darwin")
+        
+
+
+
+
+    def _get_current_core_file_location(self):
+        """
+        Given the location of the code, find the configuration which holds
+        the installation location on all platforms.
+        """
+    
+        core_api_root = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "..", "..", "..", ".."))
+        core_cfg = os.path.join(core_api_root, "config", "core")
+    
+        if not os.path.exists(core_cfg):
+            full_path_to_file = os.path.abspath(os.path.dirname(__file__))
+            raise TankError("Cannot resolve the core configuration from the location of the Toolkit Code! "
+                            "This can happen if you try to move or symlink the Toolkit API. The "
+                            "Toolkit API is currently picked up from %s which is an "
+                            "invalid location." % full_path_to_file)
+    
+    
+        location_file = os.path.join(core_cfg, "install_location.yml")
+        if not os.path.exists(location_file):
+            raise TankError("Cannot find '%s' - please contact support!" % location_file)
+    
+        # load the config file
+        try:
+            open_file = open(location_file)
+            try:
+                location_data = yaml.load(open_file)
+            finally:
+                open_file.close()
+        except Exception, error:
+            raise TankError("Cannot load config file '%s'. Error: %s" % (location_file, error))
+    
+        return location_data
+
+
+
 
 
 
