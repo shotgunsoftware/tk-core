@@ -20,18 +20,39 @@ import traceback
 
 from .errors import TankError
 
+import datetime
+def print_debug(msg):
+    now = datetime.datetime.now()
+    print "DEBUG [%s %s]: %s" % (now.strftime("%H:%M:%S"), float(now.microsecond)/1000.0, msg)
+
+def print_warning(msg):
+    now = datetime.datetime.now()
+    print "WARNING [%s %s]: %s" % (now.strftime("%H:%M:%S"), float(now.microsecond)/1000.0, msg)
+
 def load_plugin(plugin_file, valid_base_class):
     """
     Load a plugin into memory and extract its single interface class. 
     """
+    print_debug("Loading '%s'" % plugin_file)
+    
     # construct a uuid and use this as the module name to ensure
     # that each import is unique
     import uuid
+    print_debug("Generating unique uuid")
     module_uid = uuid.uuid4().hex 
     module = None
     try:
+        print_debug("Acquiring import lock...")
         imp.acquire_lock()
+        print_debug("Loading source from '%s'..." % plugin_file)
+        st_time = datetime.datetime.now()
         module = imp.load_source(module_uid, plugin_file)
+        print_debug("Successfully loaded source")
+        # catch here if loading the source tool longer than 5 seconds... this would
+        # definitely indicate a problem!
+        seconds_to_load = (datetime.datetime.now() - st_time).total_seconds()
+        if seconds_to_load > 5:
+            print_warning("loading '%s' took %s seconds!" % (plugin_file, seconds_to_load))
     except Exception:
         # dump out the callstack for this one -- to help people get good messages when there is a plugin error        
         (exc_type, exc_value, exc_traceback) = sys.exc_info()
@@ -42,8 +63,11 @@ def load_plugin(plugin_file, valid_base_class):
         message += "\n".join( traceback.format_tb(exc_traceback))
         raise TankError(message)
     finally:
+        print_debug("Releaseing import lock...")
         imp.release_lock()
+        print_debug("Import lock released")
     
+    print_debug("Enumerating classes in module...")
     # cool, now validate the module
     found_classes = list()
     introspection_error_reported = None
@@ -54,6 +78,8 @@ def load_plugin(plugin_file, valid_base_class):
                 found_classes.append(value)
     except Exception, e:
         introspection_error_reported = str(e)
+
+    print_debug("Finished enumerating classes")
 
     if introspection_error_reported:
             raise TankError("Introspection error while trying to load and introspect file %s. "
