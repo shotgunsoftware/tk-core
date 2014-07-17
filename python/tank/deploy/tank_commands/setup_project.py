@@ -471,9 +471,6 @@ class SetupProjectAction(Action):
         params.set_project_disk_name(proj_name)
 
 
-        
-    
-    
     def _get_disk_location(self, log, params):
         """
         Ask the user where the pipeline configuration should be located on disk.        
