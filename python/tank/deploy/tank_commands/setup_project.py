@@ -16,7 +16,7 @@ from ...errors import TankError
 from ...util import shotgun
 from ...platform import constants
 
-from .setup_project_core import validate_project_setup, emit_project_setup_summary, run_project_setup
+from .setup_project_core import run_project_setup
 from .setup_project_params import ProjectSetupParameters
 
 SG_LOCAL_STORAGE_OS_MAP = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
@@ -117,7 +117,8 @@ class SetupProjectAction(Action):
         params.set_config_path("darwin", computed_params["config_path_mac"])        
         
         # run overall validation of the project setup
-        validate_project_setup(log, params)
+        params.validate_project_io()
+        params.validate_config_io()
         
         # and finally carry out the setup
         return run_project_setup(log, sg, sg_app_store, sg_app_store_script_user, params)
@@ -176,10 +177,11 @@ class SetupProjectAction(Action):
         self._get_disk_location(log, params)
         
         # run overall validation of the project setup
-        validate_project_setup(log, params)
+        params.validate_project_io()
+        params.validate_config_io()
         
         # print overview
-        emit_project_setup_summary(log, params)
+        self._emit_project_setup_summary(log, params)
         
         # check if user wants to continue
         if not self._confirm_continue(log):
@@ -518,5 +520,50 @@ class SetupProjectAction(Action):
         return curr_val
         
 
+    def _emit_project_setup_summary(self, log, params):
+        """
+        Emit project summary to the given logger
+        
+        :param log: python logger object
+        :param params: Parameters object which holds gathered project settings
+        """
+    
+        log.info("")
+        log.info("")
+        log.info("Project Creation Summary:")
+        log.info("-------------------------")
+        log.info("")
+        log.info("You are about to set up the Shotgun Pipeline Toolkit "
+                 "for Project %s - %s " % (params.get_project_id(), 
+                                           params.get_project_disk_name()))
+        log.info("The following items will be created:")
+        log.info("")
+        log.info("* A Shotgun Pipeline configuration will be created:" )
+        log.info("  - on Macosx:  %s" % params.get_config_disk_location("darwin"))
+        log.info("  - on Linux:   %s" % params.get_config_disk_location("linux2"))
+        log.info("  - on Windows: %s" % params.get_config_disk_location("win32"))
+        log.info("")
+        log.info("* The Pipeline configuration will use the following Core API:")
+        log.info("  - on Macosx:  %s" % params.get_associated_core_path("darwin"))
+        log.info("  - on Linux:   %s" % params.get_associated_core_path("linux2"))
+        log.info("  - on Windows: %s" % params.get_associated_core_path("win32"))
+        log.info("")
+    
+        for storage_name in params.get_required_storages():
+    
+            log.info("* Toolkit will connect to the project folder in Storage '%s':" % storage_name )
+            
+            mac_path = params.get_project_path(storage_name, "darwin")
+            win_path = params.get_project_path(storage_name, "darwin")
+            linux_path = params.get_project_path(storage_name, "darwin")        
+            
+            log.info("  - on Linux:   '%s'" % linux_path if linux_path else "  - on Linux:   No path defined")
+            log.info("  - on Windows: '%s'" % win_path if win_path else "  - on Windows: No path defined")
+            log.info("  - on Mac:     '%s'" % mac_path if mac_path else "  - on Mac:     No path defined")
+            
+        log.info("")
+        log.info("")
 
     
+
+

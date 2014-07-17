@@ -232,6 +232,97 @@ class ProjectSetupParameters(object):
     
     
     
+    def validate_project_io(self):
+        """
+        Pre-flight sanity check to be executed before actually carrying out the project setup.
+        This will check to ensure permissions are correct, disk locations are correct etc.        
+        """    
+        
+        # get the location of the configuration
+        config_path_current_os = self.get_config_disk_location(sys.platform) 
+        
+        # validate the local storages
+        for storage_name in self.get_required_storages():
+            
+            # get the project path for this storage
+            # note! at this point, the storage root has been checked and exists on disk.
+            project_path_local_os = self.get_project_path(storage_name, sys.platform)
+                            
+            # make sure that the storage location is not the same folder
+            # as the pipeline config location. That will confuse tank.
+            if config_path_current_os == project_path_local_os:
+                raise TankError("Your configuration location '%s' has been set to the same "
+                                "as one of the storage locations. This is not supported!" % config_path_current_os)
+            
+            if not os.path.exists(project_path_local_os):
+                raise TankError("The Project path %s for storage %s does not exist on disk! "
+                                "Please create it and try again!" % (project_path_local_os, storage_name))
+        
+            tank_folder = os.path.join(project_path_local_os, "tank")
+            if os.path.exists(tank_folder):
+                # tank folder exists - make sure it is writable
+                if not os.access(tank_folder, os.W_OK|os.R_OK|os.X_OK):
+                    raise TankError("The permissions setting for '%s' is too strict. The current user "
+                                    "cannot create files or folders in this location." % tank_folder)
+            else:
+                # no tank folder has been created in this storage
+                # make sure we can create it
+                if not os.access(project_path_local_os, os.W_OK|os.R_OK|os.X_OK):
+                    raise TankError("The permissions setting for '%s' is too strict. The current user "
+                                    "cannot create a tank folder in this location." % project_path_local_os)
+                
+        
+    
+    def validate_config_io(self):
+        """
+        Pre-flight sanity check to be executed before actually carrying out the project setup.
+        This will check to ensure permissions are correct, disk locations are correct etc.        
+        """    
+        
+        # get the location of the configuration
+        config_path_current_os = self.get_config_disk_location(sys.platform) 
+        
+        # validate that the config location is not taken
+        if os.path.exists(config_path_current_os):
+            # pc location already exists - make sure it doesn't already contain an install
+            if os.path.exists(os.path.join(config_path_current_os, "install")) or \
+               os.path.exists(os.path.join(config_path_current_os, "config")):
+                raise TankError("Looks like the location '%s' already contains a "
+                                "configuration!" % config_path_current_os)
+            # also make sure it has right permissions
+            if not os.access(config_path_current_os, os.W_OK|os.R_OK|os.X_OK):
+                raise TankError("The permissions setting for '%s' is too strict. The current user "
+                                "cannot create files or folders in this location." % config_path_current_os)
+            
+        else:
+            # path does not exist! 
+            # make sure parent path exists and is writable
+            # find an existing parent path
+            parent_os_pc_location = None
+            curr_path = config_path_current_os
+            while curr_path != os.path.dirname(curr_path):
+                
+                # get parent folder
+                curr_path = os.path.dirname(curr_path)
+                if os.path.exists(curr_path):
+                    parent_os_pc_location = curr_path 
+                    break
+        
+            if parent_os_pc_location is None:
+                raise TankError("The folder '%s' does not exist! Please create "
+                                "it before proceeding!" % config_path_current_os)
+                    
+            # and make sure we can create a folder in it
+            if not os.access(parent_os_pc_location, os.W_OK|os.R_OK|os.X_OK):
+                raise TankError("Cannot create a project configuration in location '%s'! "
+                                "The permissions setting for the closest parent folder that "
+                                "can be detected, '%s', is too strict. The current user "
+                                "cannot create folders in this location. Please create the "
+                                "project configuration folder by hand and then re-run the project "
+                                "setup." % (config_path_current_os, parent_os_pc_location))
+        
+    
+    
     
     
     def set_configuration_location(self, linux_path, windows_path, macosx_path):
