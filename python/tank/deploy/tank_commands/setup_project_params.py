@@ -235,7 +235,6 @@ class ProjectSetupParameters(object):
         
         return self._storage_data.get(storage_name).get("description")
         
-        
     def get_storage_path(self, storage_name, platform):
         """    
         Returns the storage root path given a platform and a storage, as defined in Shotgun
@@ -276,8 +275,6 @@ class ProjectSetupParameters(object):
         
         return self._config_template.create_configuration(target_path)
         
-        
-        
     ################################################################################################################
     # Project related logic     
         
@@ -301,7 +298,6 @@ class ProjectSetupParameters(object):
         self._project_id = project_id
         self._force_setup = force
          
-    
     def get_default_project_disk_name(self):
         """
         Returns the default folder name for a project
@@ -328,7 +324,6 @@ class ProjectSetupParameters(object):
         
         return suggested_folder_name
         
-    
     def validate_project_disk_name(self, project_name):
         """
         Validates that the given project disk name is valid.
@@ -347,7 +342,6 @@ class ProjectSetupParameters(object):
         if re.match("^[\./a-zA-Z0-9_-]+$", project_name) is None:
             raise TankError("Invalid project folder '%s'! Please use alphanumerics, "
                             "underscores and dashes." % project_name)
-        
         
     def preview_project_path(self, storage_name, project_name, platform):
         """
@@ -391,7 +385,6 @@ class ProjectSetupParameters(object):
         
         return storage_path
 
-    
     def set_project_disk_name(self, project_name):
         """
         Sets a project disk name to use for this configuration.
@@ -456,7 +449,6 @@ class ProjectSetupParameters(object):
 
         return self.preview_project_path(storage_name, self._project_name, platform)
         
-    
     def get_primary_project_path(self, platform):
         """
         Convenience method.
@@ -518,7 +510,6 @@ class ProjectSetupParameters(object):
             if self.get_primary_project_path("win32"):
                 location["win32"] = "%s\\tank" % self.get_primary_project_path("win32") 
 
-            
         else:
             # Core v0.12+ style setup - this is what is our default recommended setup
             # here, the project data is treated as a completely separate thing.
@@ -653,8 +644,6 @@ class ProjectSetupParameters(object):
 
         # return data using sys.platform jargon
         return {"win32": win_path, "darwin": macosx_path, "linux2": linux_path } 
-
-
 
 
     ################################################################################################################
@@ -893,7 +882,6 @@ class TemplateConfiguration(object):
             
         return roots_data
         
-    
     def _process_config_zip(self, zip_path):
         """
         unpacks a zip config into a temp location.
@@ -1018,6 +1006,7 @@ class TemplateConfiguration(object):
         # /path/to/folder
         if config_uri.endswith(".git"):
             # this is a git repository!
+            self._log.info("Hang on, loading configuration from git...")
             return (self._process_config_git(config_uri), "git")
             
         elif os.path.sep in config_uri:
@@ -1025,14 +1014,17 @@ class TemplateConfiguration(object):
             if os.path.exists(config_uri):
                 # either a folder or zip file!
                 if config_uri.endswith(".zip"):
+                    self._log.info("Hang on, unzipping configuration...")
                     return (self._process_config_zip(config_uri), "local")
                 else:
+                    self._log.info("Hang on, loading configuration...")
                     return (self._process_config_dir(config_uri), "local")
             else:
                 raise TankError("File path %s does not exist on disk!" % config_uri)    
         
         elif config_uri.startswith("tk-"):
             # app store!
+            self._log.info("Hang on, loading configuration from the app store...")
             return (self._process_config_app_store(config_uri), "app_store")
         
         else:
@@ -1132,7 +1124,6 @@ class TemplateConfiguration(object):
                                     
         return return_data
 
-
     def get_name(self):
         """
         Returns the display name of this config, as defined in the manifest
@@ -1148,7 +1139,6 @@ class TemplateConfiguration(object):
         :returns string
         """
         return self._manifest.get("description")
-        
 
     def create_configuration(self, target_path):
         """
@@ -1169,8 +1159,3 @@ class TemplateConfiguration(object):
             os.umask(old_umask)
 
     
-    
-
-
-
-

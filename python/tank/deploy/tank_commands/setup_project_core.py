@@ -18,7 +18,6 @@ from ... import pipelineconfig
 
 from tank_vendor import yaml
     
-        
 def run_project_setup(log, sg, sg_app_store, sg_app_store_script_user, setup_params):
     """
     Execute the project setup.
@@ -36,8 +35,7 @@ def run_project_setup(log, sg, sg_app_store, sg_app_store_script_user, setup_par
         return _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, setup_params)
     finally:
         os.umask(old_umask)
-   
-    
+
 def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, setup_params):
     """
     Project setup, internal method.

@@ -288,7 +288,3 @@ class SetupProjectWizard(object):
                                  self._sg_app_store_script_user, 
                                  self._params)
         
-    
-
-
-    
