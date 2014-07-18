@@ -153,7 +153,6 @@ class SetupProjectWizard(object):
         Returns a dictionary with config metadata
         
         {"display_name": "Default Config",
-         "valid": False,
          "description": "some description of the config",
          "message": "Storages not found on disk!",  
          "storages": { "primary": { "description": "Where project files are saved", 
@@ -166,7 +165,6 @@ class SetupProjectWizard(object):
         """
         self._params.set_config_uri(config_uri)
         
-        self._params.validate_config()
             
         
 
@@ -190,6 +188,8 @@ class SetupProjectWizard(object):
         
         Before you call this method, a config and a project must have been set.
         
+        
+        
         Checks that the project name is valid and returns path previews for all storages.
         Returns a dictionary on the form:
         
@@ -207,7 +207,10 @@ class SetupProjectWizard(object):
         :param project_name: string with a project name.
         :returns: Dictionary, see above.
         """
-        
+        try:
+            proj_name = self._params.validate_project_disk_name(project_name)
+        except TankError, e:
+            
         
         
         
@@ -221,6 +224,15 @@ class SetupProjectWizard(object):
         self._params.set_project_disk_name(set_project_disk_name)
     
     def get_default_configuration_location(self, platform):
+        """
+        Returns default suggested location for configurations.
+        Returns a dictionary with sys.platform style keys linux2/win32/darwin, e.g.
+        
+        :param platform: Os platform as a string, sys.platform style (e.g. linux2/win32/darwin)
+        
+        :returns: full path
+        """
+        return self._params.get_default_configuration_location()
     
     def set_configuration_location(self, mac_path, windows_path, linux_path):
         """

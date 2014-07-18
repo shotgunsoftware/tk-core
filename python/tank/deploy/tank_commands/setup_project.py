@@ -489,16 +489,12 @@ class SetupProjectAction(Action):
         log.info("all your Toolkit code and configuration. We will suggest defaults ")
         log.info("based on your current install.")
 
-        linux_path = params.get_default_configuration_location("linux2")
-        windows_path = params.get_default_configuration_location("win32")
-        macosx_path = params.get_default_configuration_location("darwin")
-        
         log.info("")
         log.info("You can press ENTER to accept the default value or to skip.")
         
-        linux_path = self._ask_location(log, linux_path, "Linux")
-        windows_path = self._ask_location(log, windows_path, "Windows")
-        macosx_path = self._ask_location(log, macosx_path, "Macosx")
+        linux_path = self._ask_location(log, params.get_default_configuration_location("linux2"), "Linux")
+        windows_path = self._ask_location(log, params.get_default_configuration_location("win32"), "Windows")
+        macosx_path = self._ask_location(log, params.get_default_configuration_location("darwin"), "Macosx")
 
         params.set_configuration_location(linux_path, windows_path, macosx_path)
 
