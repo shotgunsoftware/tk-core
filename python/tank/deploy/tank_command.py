@@ -33,6 +33,7 @@ from .tank_commands import app_info
 from .tank_commands import core
 from .tank_commands import install
 from .tank_commands import clone_configuration
+from .tank_commands import copy_apps
 
 from ..platform import constants
 from ..platform.engine import start_engine, get_environment_from_context
@@ -61,7 +62,8 @@ BUILT_IN_ACTIONS = [setup_project.SetupProjectAction,
                     pc_overview.PCBreakdownAction,
                     move_studio.MoveStudioInstallAction,
                     migrate_entities.MigratePublishedFileEntitiesAction,
-                    clone_configuration.CloneConfigAction
+                    clone_configuration.CloneConfigAction,
+                    copy_apps.CopyAppsAction,
                     ]
 
 
