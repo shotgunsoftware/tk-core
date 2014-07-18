@@ -246,7 +246,8 @@ class SetupProjectAction(Action):
                 evaluated_value = False
             else:
                 log.error("Please answer Yes, y, no, n or press ENTER for yes!")
-
+        
+        return evaluated_value
 
     def _select_template_configuration(self, log, sg):
         """

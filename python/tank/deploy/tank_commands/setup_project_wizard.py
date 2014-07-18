@@ -123,6 +123,7 @@ class SetupProjectWizard(object):
         Constructor. 
         """        
         self._params = ProjectSetupParameters(log, sg, sg_app_store, sg_app_store_script_user)
+        self._log = log
         self._sg = sg
         self._sg_app_store = sg_app_store
         self._sg_app_store_script_user = sg_app_store_script_user
@@ -166,7 +167,7 @@ class SetupProjectWizard(object):
         :param config_uri: Configuration uri representing the location of a config
         :returns: dictionary with storage data, see above.
         """
-        self._params.validate_config_uri(config_uri)
+        return self._params.validate_config_uri(config_uri)
         
     def set_config_uri(self, config_uri):
         """
@@ -182,6 +183,18 @@ class SetupProjectWizard(object):
         """
         self._params.set_config_uri(config_uri)
 
+    def get_config_metadata(self):
+        """
+        Returns a metadata dictionary for the config that has been associated with the wizard.
+        Returns a dictionary with information.
+        
+        :returns: dictionary with display_name and description keys
+        """
+        d = {}
+        d["display_name"] = self._params.get_configuration_display_name()
+        d["description"] = self._params.get_configuration_description()
+        return d
+
     def get_default_project_disk_name(self):
         """
         Returns a default project name from toolkit.
@@ -193,7 +206,7 @@ class SetupProjectWizard(object):
         
         :returns: string with a suggested project name
         """
-        return self._params.get_project_disk_name()
+        return self._params.get_default_project_disk_name()
         
     def validate_project_disk_name(self, project_name):
         """
