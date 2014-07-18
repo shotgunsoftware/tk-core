@@ -53,10 +53,10 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, set
     log.info("Starting project setup.")
     
     # get the location of the configuration
-    config_location_curr_os = setup_params.get_config_disk_location(sys.platform)
-    config_location_mac = setup_params.get_config_disk_location("darwin")
-    config_location_linux = setup_params.get_config_disk_location("linux2")
-    config_location_win = setup_params.get_config_disk_location("win32")
+    config_location_curr_os = setup_params.get_configuration_location(sys.platform)
+    config_location_mac = setup_params.get_configuration_location("darwin")
+    config_location_linux = setup_params.get_configuration_location("linux2")
+    config_location_win = setup_params.get_configuration_location("win32")
     
     # project id
     project_id = setup_params.get_project_id()
@@ -436,9 +436,10 @@ def _install_environment(env_obj, log):
 def _get_published_file_entity_type(log, sg):
     """
     Find the published file entity type to use for this project.
+    Communicates with Shotgun, introspects the sg schema.
     
-    Returns 'PublishedFile' if the PublishedFile entity type has
-    been enabled, otherwise returns 'TankPublishedFile'
+    :returns: 'PublishedFile' if the PublishedFile entity type has
+              been enabled, otherwise returns 'TankPublishedFile'
     """
     log.debug("Retrieving schema from Shotgun to determine entity type " 
               "to use for published files")

@@ -8,8 +8,6 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-SG_LOCAL_STORAGE_OS_MAP = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
-
 import sys
 import os
 import re
@@ -23,12 +21,11 @@ from ...errors import TankError
 from ... import pipelineconfig
 
 from ..zipfilehelper import unzip_file
-
-from .setup_project_core import _copy_folder
 from .. import util as deploy_util
 
-from tank_vendor import yaml
+from .setup_project_core import _copy_folder
 
+from tank_vendor import yaml
 
 
 class ProjectSetupParameters(object):
@@ -37,6 +34,21 @@ class ProjectSetupParameters(object):
     
     This class allows for various forms of validation and inspection of all the data required 
     to set up a project.
+    
+    Parameters are typically set in this order:
+    
+    - set the template configuration you want to use - set_config_uri()
+    
+    - set the project id - set_project_id()
+    - get a suggested project name - get_default_project_disk_name()
+    - set project disk name - set_project_disk_name() (can validate on beforehand using validate_project_disk_name())
+    
+    - get a suggested configuration location - get_default_configuration_location()
+    - set the configuration location - set_configuration_location()
+    
+    - validate using validate_project_io and validate_config_io
+    
+    - run project setup!
     
     """
     
@@ -152,7 +164,7 @@ class ProjectSetupParameters(object):
         
     def create_configuration(self, target_path):
         """
-        Sets up the associated template configuration.
+        Sets up the associated template configuration. Copies files.
         
         :param target_path: Location where the config should be set up. 
         """
@@ -459,7 +471,7 @@ class ProjectSetupParameters(object):
         self._config_path["win32"] = windows_path
         self._config_path["darwin"] = macosx_path
         
-    def get_config_disk_location(self, platform):
+    def get_configuration_location(self, platform):
         """    
         Returns the path to the configuration for a given platform.
         The path returned has not been validated and may not be correct nor exist.
@@ -475,7 +487,6 @@ class ProjectSetupParameters(object):
 
     ################################################################################################################
     # Accessing which core API to use
-
 
     def get_associated_core_path(self, platform):
         """
@@ -551,7 +562,7 @@ class ProjectSetupParameters(object):
         """    
         
         # get the location of the configuration
-        config_path_current_os = self.get_config_disk_location(sys.platform) 
+        config_path_current_os = self.get_configuration_location(sys.platform) 
         
         # validate the local storages
         for storage_name in self.get_required_storages():
@@ -589,7 +600,7 @@ class ProjectSetupParameters(object):
         """    
         
         # get the location of the configuration
-        config_path_current_os = self.get_config_disk_location(sys.platform) 
+        config_path_current_os = self.get_configuration_location(sys.platform) 
         
         # validate that the config location is not taken
         if os.path.exists(config_path_current_os):
@@ -950,7 +961,8 @@ class TemplateConfiguration(object):
                         return_data[s]["win32"] = x.get("windows_path")
                         
                         # get the local path
-                        local_storage_path = x.get( SG_LOCAL_STORAGE_OS_MAP[sys.platform] )
+                        lookup_dict = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }                        
+                        local_storage_path = x.get( lookup_dict[sys.platform] )
 
                         # make sure that it is defined and exists
                         if local_storage_path is None:
