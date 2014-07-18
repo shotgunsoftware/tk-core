@@ -667,8 +667,13 @@ class TemplateConfiguration(object):
         self._script_user = script_user
         self._log = log
         
-        # now extract the cfg and validate        
-        (self._cfg_folder, self._config_mode) = self._process_config(config_uri)
+        # now extract the cfg and validate
+        
+        old_umask = os.umask(0)
+        try:
+            (self._cfg_folder, self._config_mode) = self._process_config(config_uri)
+        finally:
+            os.umask(old_umask)
         self._config_uri = config_uri
         self._roots_data = self._read_roots_file()
 
@@ -1027,13 +1032,19 @@ class TemplateConfiguration(object):
         """
         Creates the configuration folder in the target path
         """
-        if self._config_mode == "git":
-            # clone the config into place
-            self._log.info("Cloning git configuration into '%s'..." % target_path)
-            self._clone_git_repo(self._config_uri, target_path)
-        else:
-            # copy the config from its source location into place
-            _copy_folder(self._log, self._cfg_folder, target_path )
+        old_umask = os.umask(0)
+        try:
+
+            if self._config_mode == "git":
+                # clone the config into place
+                self._log.info("Cloning git configuration into '%s'..." % target_path)
+                self._clone_git_repo(self._config_uri, target_path)
+            else:
+                # copy the config from its source location into place
+                _copy_folder(self._log, self._cfg_folder, target_path )
+
+        finally:
+            os.umask(old_umask)
 
     
     
