@@ -410,14 +410,16 @@ class ProjectSetupParameters(object):
     ################################################################################################################
     # Configuration template related logic     
     
-    def get_default_configuration_location(self, platform):
+    def get_default_configuration_location(self):
         """
         Returns default suggested location for configurations.
         Returns a dictionary with sys.platform style keys linux2/win32/darwin, e.g.
         
-        :param platform: Os platform as a string, sys.platform style (e.g. linux2/win32/darwin)
-        
-        :returns: full path
+        { "darwin": "/foo/bar/project_name", 
+          "linux2": "/foo/bar/project_name",
+          "win32" : "c:\foo\bar\project_name"}        
+
+        :returns: dictionary with paths
         """
 
         if self._project_name is None:
@@ -495,7 +497,7 @@ class ProjectSetupParameters(object):
                 chunks.extend(project_name_chunks) # append project name
                 location["win32"] = "\\".join(chunks)
 
-        return location[platform]
+        return location
 
     def set_configuration_location(self, linux_path, windows_path, macosx_path):
         """

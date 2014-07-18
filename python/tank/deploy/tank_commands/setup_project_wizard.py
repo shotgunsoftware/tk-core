@@ -150,12 +150,14 @@ class SetupProjectWizard(object):
         Once downloaded, it will ensure that all the declared storages in the 
         configuration exist in the system.
         
-        Returns a dictionary with config metadata
+        This method will validate the configuration and ensure that all required
+        storages needed by the configuration exists and are correctly set up.
+        
+        Returns a dictionary with config metadata:
         
         {"display_name": "Default Config",
-         "description": "some description of the config",
-         "message": "Storages not found on disk!",  
-         "storages": { "primary": { "description": "Where project files are saved", 
+         "description": "Short description in the configuration",  
+         "storage": { "primary": { "description": "Where project files are saved", 
                                     "exists": True,
                                     "valid" : False,
                                     "message": "cannot find the local path /foo/bar"}}
@@ -165,7 +167,16 @@ class SetupProjectWizard(object):
         """
         self._params.set_config_uri(config_uri)
         
-            
+        config_info = {}
+        
+        config_info["display_name"] = self._params.get_configuration_name()
+        config_info["description"] = self._params.get_configuration_decsription()
+        config_info["storages"] = {}
+        
+        
+        for s in self._params.get_required_storages():
+            storage_data = {}
+            storage_data["description"]
         
 
     def get_default_project_disk_name(self):
@@ -181,68 +192,69 @@ class SetupProjectWizard(object):
         """
         return self._params.get_project_disk_name()
         
-        
     def validate_project_disk_name(self, project_name):
         """
         Validate the project disk name.
+        Raises Exceptions if the project disk name is not valid.
+        """
+        self._params.validate_project_disk_name(project_name)
         
-        Before you call this method, a config and a project must have been set.
+    def preview_project_paths(self, project_name):
+        """
+        Return preview project paths given a project name.
         
-        
-        
-        Checks that the project name is valid and returns path previews for all storages.
-        Returns a dictionary on the form:
-        
-        {"valid": False,
-         "message": "Invalid characters in project name!",  
-         "storages": { "primary": { "darwin": "/foo/bar/project_name", 
-                                    "linux2": "/foo/bar/project_name",
-                                    "win32" : "c:\foo\bar\project_name"},
-                       "textures": { "darwin": "/textures/project_name", 
-                                    "linux2": "/textures/project_name",
-                                    "win32" : "c:\textures\project_name"}}
+        { "primary": { "darwin": "/foo/bar/project_name", 
+                       "linux2": "/foo/bar/project_name",
+                       "win32" : "c:\foo\bar\project_name"},
+          "textures": { "darwin": "/textures/project_name", 
+                        "linux2": "/textures/project_name",
+                        "win32" : "c:\textures\project_name"}}
         
         The operating systems are enumerated using sys.platform jargon.
         
         :param project_name: string with a project name.
         :returns: Dictionary, see above.
         """
-        try:
-            proj_name = self._params.validate_project_disk_name(project_name)
-        except TankError, e:
-            
+        return_data = {}
+        for s in self._params.get_required_storages():
+            return_data[s] = {}
+            return_data[s]["darwin"] = self._params.preview_project_path(s, project_name, "darwin")
+            return_data[s]["win32"] = self._params.preview_project_path(s, project_name, "win32")
+            return_data[s]["linux2"] = self._params.preview_project_path(s, project_name, "linux2") 
         
-        
-        
+        return return_data
         
     def set_project_disk_name(self, set_project_disk_name):
         """
         Set the desired name of the project.
+        May raise exception if the name is not valid.
         
         :param set_project_disk_name: string with a project name.
         """
         self._params.set_project_disk_name(set_project_disk_name)
     
-    def get_default_configuration_location(self, platform):
+    def get_default_configuration_location(self):
         """
         Returns default suggested location for configurations.
         Returns a dictionary with sys.platform style keys linux2/win32/darwin, e.g.
         
-        :param platform: Os platform as a string, sys.platform style (e.g. linux2/win32/darwin)
-        
-        :returns: full path
+        { "darwin": "/foo/bar/project_name", 
+          "linux2": "/foo/bar/project_name",
+          "win32" : "c:\foo\bar\project_name"}        
+
+        :returns: dictionary with paths
         """
         return self._params.get_default_configuration_location()
     
-    def set_configuration_location(self, mac_path, windows_path, linux_path):
+    def set_configuration_location(self, linux_path, windows_path, macosx_path):
         """
         Specifies where the pipeline configuration should be located.
         
-        :param mac_path: path on mac
-        :param windows_path: path on windows
-        :param linux_path: path on linux
+        :param linux_path: Path on linux 
+        :param windows_path: Path on windows
+        :param macosx_path: Path on mac
         """
-        
+        self._params.set_configuration_location(linux_path, windows_path, macosx_path)
     
     def execute(self):
         """

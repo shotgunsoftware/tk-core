@@ -492,9 +492,11 @@ class SetupProjectAction(Action):
         log.info("")
         log.info("You can press ENTER to accept the default value or to skip.")
         
-        linux_path = self._ask_location(log, params.get_default_configuration_location("linux2"), "Linux")
-        windows_path = self._ask_location(log, params.get_default_configuration_location("win32"), "Windows")
-        macosx_path = self._ask_location(log, params.get_default_configuration_location("darwin"), "Macosx")
+        default_config_locations = params.get_default_configuration_location()
+        
+        linux_path = self._ask_location(log, default_config_locations["linux2"], "Linux")
+        windows_path = self._ask_location(log, default_config_locations["win32"], "Windows")
+        macosx_path = self._ask_location(log, default_config_locations["darwin"], "Macosx")
 
         params.set_configuration_location(linux_path, windows_path, macosx_path)
 
