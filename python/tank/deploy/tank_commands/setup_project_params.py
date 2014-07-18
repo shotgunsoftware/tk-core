@@ -37,6 +37,7 @@ class ProjectSetupParameters(object):
     
     Parameters are typically set in this order:
     
+    - get some information about the configuration 
     - set the template configuration you want to use - set_config_uri()
     
     - set the project id - set_project_id()
@@ -70,6 +71,7 @@ class ProjectSetupParameters(object):
         self._sg_app_store_script_user = sg_app_store_script_user
         
         # initialize data members - config
+        self._cached_config_templates = {}
         self._config_template = None
         self._config_name = None
         self._config_description = None
@@ -84,6 +86,53 @@ class ProjectSetupParameters(object):
     ################################################################################################################
     # Configuration template related logic     
         
+    
+    def validate_config_uri(self, config_uri):
+        """
+        Validates a configuration template to check if it is compatible with the current Shotgun setup.
+        This will download the config, validate it to ensure that it is compatible with the 
+        constraints (versions of core and shotgun) of this system. 
+        
+        If locating, downloading, or validating the config fails, exceptions will be raised.
+        
+        Once the config exists and is compatible, the storage situation is reviewed against shotgun.
+        A dictionary with a breakdown of all storages required by the configuration is returned:
+        
+        {
+          "primary" : { "description": "Description",
+                        "exists_on_disk": False,
+                        "defined_in_shotgun": True,
+                        "darwin": "/mnt/foo",
+                        "win32": "z:\mnt\foo",
+                        "linux2": "/mnt/foo"},
+                                     
+          "textures" : { "description": None,
+                         "exists_on_disk": False,
+                         "defined_in_shotgun": True,
+                         "darwin": None,
+                         "win32": "z:\mnt\foo",
+                         "linux2": "/mnt/foo"}                                    
+         }
+        
+        :param config_uri: Configuration uri representing the location of a config
+        :returns: dictionary with storage data, see above.
+        """
+        
+        # see if we got it cached
+        if config_uri not in self._cached_config_templates:
+            # first download, read and parse the configuration template
+            # this call may mean downloading stuff from the internet.
+            config_template = TemplateConfiguration(config_uri, 
+                                                    self._sg, 
+                                                    self._sg_app_store, 
+                                                    self._sg_app_store_script_user, 
+                                                    self._log)
+            self._cached_config_templates[config_uri] = config_template
+
+        return self._cached_config_templates[config_uri].resolve_storages()
+
+        
+        
     def set_config_uri(self, config_uri, check_storage_path=True):
         """
         Sets the configuration uri to use for this project.
@@ -95,45 +144,60 @@ class ProjectSetupParameters(object):
         :param check_storage_path: Validate that storage paths exists on disk
         """
         
-        # first download, read and parse the configuration template
-        # this call may mean downloding stuff from the internet.
-        self._config_template = TemplateConfiguration(config_uri, 
-                                                      self._sg, 
-                                                      self._sg_app_store, 
-                                                      self._sg_app_store_script_user, 
-                                                      self._log)
-                
-        # validate the config against the shotgun where we are installing it
-        (self._config_name, self._config_description) = self._config_template.validate_manifest()
+        # cache, get storage breakdown and run basic validation
+        storage_data = self.validate_config_uri(config_uri) 
         
-        # get info about storage locations
-        self._storage_data = self._config_template.resolve_storages(check_storage_path)
-        
-        # self._storage_data is on the form
-        #
+        # now validate storages
+        #        
         # {
         #   "primary" : { "description": "Description",
+        #                 "exists_on_disk": False,
+        #                 "defined_in_shotgun": True,
         #                 "darwin": "/mnt/foo",
         #                 "win32": "z:\mnt\foo",
         #                 "linux2": "/mnt/foo"},
-        #                             
+        #                              
         #   "textures" : { "description": None,
+        #                  "exists_on_disk": False,
+        #                  "defined_in_shotgun": True,
         #                  "darwin": None,
         #                  "win32": "z:\mnt\foo",
         #                  "linux2": "/mnt/foo"}                                    
-        #  }    
+        #  }
         
-    def get_configuration_name(self):
+        for storage_name in storage_data:
+            
+            if not storage_data[storage_name]["defined_in_shotgun"]:
+                raise TankError("The storage '%s' required by the configuration has not been defined in Shotgun. "
+                                "In order to fix this, please navigate to the Site Preferences in Shotgun "
+                                "and set up a new local file storage." % storage_name)
+
+            elif storage_data[storage_name][sys.platform] is None:
+                raise TankError("The Shotgun Local File Storage '%s' does not have a path defined "
+                                "for the current operating system!" % storage_name)
+            
+            elif check_storage_path and storage_data[storage_name]["exists_on_disk"]:
+                local_path = storage_data[storage_name][sys.platform]
+                raise TankError("The path on disk '%s' defined in the Shotgun Local File Storage '%s' does "
+                                "not exist!" % (local_path, storage_name))                            
+        
+        # all checks passed! Populate official variables
+        # note that the validate_config_uri method cached the config for us
+        # so can just assign the object from the cache.
+        self._config_template = self._cached_config_templates[config_uri]
+        self._storage_data = storage_data
+        
+    def get_configuration_display_name(self):
         """
-        Returns the name of the configuration template
+        Returns the display name of the configuration template
         
         :returns: Configuration display name string, none if not defined
         """
         if self._config_template is None:
             raise TankError("Please specify a configuration template!")
         
-        return self._config_name
-
+        return self._config_template.get_name() 
+        
     def get_configuration_description(self):
         """
         Returns the description of the associated configuration template
@@ -143,8 +207,7 @@ class ProjectSetupParameters(object):
         if self._config_template is None:
             raise TankError("Please specify a configuration template!")
         
-        return self._config_description
-    
+        return self._config_template.get_description()
     
     def get_required_storages(self):
         """
@@ -721,7 +784,6 @@ class TemplateConfiguration(object):
         self._log = log
         
         # now extract the cfg and validate
-        
         old_umask = os.umask(0)
         try:
             (self._cfg_folder, self._config_mode) = self._process_config(config_uri)
@@ -735,7 +797,56 @@ class TemplateConfiguration(object):
             raise TankError("Looks like your configuration does not have a primary storage. "
                             "This is required. Please contact support for more info.")
 
+        # validate that we are running recent enough versions of core and shotgun
+        info_yml = os.path.join(self._cfg_folder, constants.BUNDLE_METADATA_FILE)
+        if not os.path.exists(info_yml):
+            self._manifest = {}
+            self._log.warning("Could not find manifest file %s. "
+                              "Project setup will proceed without validation." % info_yml)
+        else:
+            # check manifest
+            try:
+                file_data = open(info_yml)
+                try:
+                    self._manifest = yaml.load(file_data)
+                finally:
+                    file_data.close()
+            except Exception, e:
+                raise TankError("Cannot load configuration manifest '%s'. Error: %s" % (info_yml, e))
     
+            # perform checks
+            if "requires_shotgun_version" in self._manifest:
+                # there is a sg min version required - make sure we have that!
+                
+                required_version = self._manifest["requires_shotgun_version"]
+        
+                # get the version for the current sg site as a string (1.2.3)
+                sg_version_str = ".".join([ str(x) for x in self._sg.server_info["version"]])
+        
+                if deploy_util.is_version_newer(required_version, sg_version_str):
+                    raise TankError("This configuration requires Shotgun version %s "
+                                    "but you are running version %s" % (required_version, sg_version_str))
+                else:
+                    self._log.debug("Config requires shotgun %s. "
+                                    "You are running %s which is fine." % (required_version, sg_version_str))
+                        
+            if "requires_core_version" in self._manifest:
+                # there is a core min version required - make sure we have that!
+                
+                required_version = self._manifest["requires_core_version"]
+                
+                # now figure out the current version of the currently running core API
+                # and compare against that
+                curr_core_version = pipelineconfig.get_core_api_version_based_on_current_code()
+        
+                if deploy_util.is_version_newer(required_version, curr_core_version):        
+                    raise TankError("This configuration requires Toolkit Core version %s "
+                                    "but you are running version %s" % (required_version, curr_core_version))
+                else:
+                    self._log.debug("Config requires Toolkit Core %s. "
+                                    "You are running %s which is fine." % (required_version, curr_core_version))
+    
+
     ################################################################################################
     # Helper methods
 
@@ -945,25 +1056,29 @@ class TemplateConfiguration(object):
     ################################################################################################
     # Public interface
     
-    def resolve_storages(self, check_storage_path_exists):
+    def resolve_storages(self):
         """
-        Validate that the roots exist in shotgun. 
+        Validate that the roots exist in shotgun.
+        Communicates with Shotgun.
+        
         Returns the root paths from shotgun for each storage.
         
         {
           "primary" : { "description": "Description",
+                        "exists_on_disk": False,
+                        "defined_in_shotgun": True,
                         "darwin": "/mnt/foo",
                         "win32": "z:\mnt\foo",
                         "linux2": "/mnt/foo"},
                                     
           "textures" : { "description": None,
+                         "exists_on_disk": False,
+                         "defined_in_shotgun": True,
                          "darwin": None,
                          "win32": "z:\mnt\foo",
                          "linux2": "/mnt/foo"}                                    
          }
                 
-        :param check_storage_path_exists: bool to indicate that a file system check should 
-                                          be carried out to verify that the disk location exists.
         :returns: dictionary with storage breakdown, see example above.                                  
         """
         
@@ -975,9 +1090,7 @@ class TemplateConfiguration(object):
         # make sure that there is a storage in shotgun matching all storages for this config
         sg_storage_codes = [x.get("code") for x in sg_storage]
         cfg_storages = self._roots_data.keys()
-        
-        errors = []
-        
+                
         for s in cfg_storages:
             
             return_data[s] = { "description": self._roots_data[s].get("description"),
@@ -986,15 +1099,14 @@ class TemplateConfiguration(object):
                                "linux2": None}
             
             if s not in sg_storage_codes:
-                # storage required by config is missing
-                errors.append("The storage '%s' required by the config has not been defined in Shotgun. In order "
-                              "to fix this, navigate to the Site Preferences in Shotgun, and set up a new local "
-                              "file storage." % s)
-                
-            
+                return_data[s]["defined_in_shotgun"] = False
+                return_data[s]["exists_on_disk"] = False
             else:
+                return_data[s]["defined_in_shotgun"] = True
+                            
                 # find the sg storage paths and add to return data
                 for x in sg_storage:
+                    
                     if x.get("code") == s:
                         
                         # copy the storage paths across
@@ -1006,82 +1118,37 @@ class TemplateConfiguration(object):
                         lookup_dict = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }                        
                         local_storage_path = x.get( lookup_dict[sys.platform] )
 
-                        # make sure that it is defined and exists
                         if local_storage_path is None:
-                            errors.append("The Shotgun Local File Storage '%s' does not have a path defined "
-                                          "for the current operating system." % s)                            
+                            # shotgun has no path for our local storage
+                            return_data[s]["exists_on_disk"] = False
                             
-                        elif check_storage_path_exists and not os.path.exists(local_storage_path):
-                            errors.append("The path on disk '%s' to the Shotgun Local File Storage '%s' does "
-                                          "not exist!" % (local_storage_path, s))                            
-        
-        if len(errors) > 0:
-            raise TankError("\n".join(errors))
-        
+                        elif os.path.exists(local_storage_path):
+                            # path is defined but cannot be found
+                            return_data[s]["exists_on_disk"] = False
+                            
+                        else:
+                            # path exists! yay!
+                            return_data[s]["exists_on_disk"] = True
+                                    
         return return_data
 
-    def validate_manifest(self):
-        """
-        Looks for an info.yml manifest in the config and validates it.
-        This will compare the required Shotgun version in the config with the associated shotgun site.
-        It will compare the required core API version with the currently running core API. 
-        Raises exceptions if there are compatibility problems.
-        Returns the display name and description defined in the config manifest,
-        none if not defined.
-        
-        :returns: Tuple with name and description strings
-        """
-        
-        info_yml = os.path.join(self._cfg_folder, constants.BUNDLE_METADATA_FILE)
-        if not os.path.exists(info_yml):
-            self._log.warning("Could not find manifest file %s. Project setup will proceed without validation." % info_yml)
-            return (None, None)
-    
-        try:
-            file_data = open(info_yml)
-            try:
-                metadata = yaml.load(file_data)
-            finally:
-                file_data.close()
-        except Exception, exp:
-            raise TankError("Cannot load configuration manifest '%s'. Error: %s" % (info_yml, exp))
-    
-        # display name and description
-        config_name = metadata.get("display_name")    
-        description = metadata.get("description")
-    
-        # perform checks
-        if "requires_shotgun_version" in metadata:
-            # there is a sg min version required - make sure we have that!
-            
-            required_version = metadata["requires_shotgun_version"]
-    
-            # get the version for the current sg site as a string (1.2.3)
-            sg_version_str = ".".join([ str(x) for x in self._sg.server_info["version"]])
-    
-            if deploy_util.is_version_newer(required_version, sg_version_str):
-                raise TankError("This configuration requires Shotgun version %s "
-                                "but you are running version %s" % (required_version, sg_version_str))
-            else:
-                self._log.debug("Config requires shotgun %s. You are running %s which is fine." % (required_version, sg_version_str))
-                    
-        if "requires_core_version" in metadata:
-            # there is a core min version required - make sure we have that!
-            
-            required_version = metadata["requires_core_version"]
-            
-            # now figure out the current version of the currently running core API
-            # and compare against that
-            curr_core_version = pipelineconfig.get_core_api_version_based_on_current_code()
-    
-            if deploy_util.is_version_newer(required_version, curr_core_version):        
-                raise TankError("This configuration requires Toolkit Core version %s "
-                                "but you are running version %s" % (required_version, curr_core_version))
-            else:
-                self._log.debug("Config requires Toolkit Core %s. You are running %s which is fine." % (required_version, curr_core_version))
 
-
-        return (config_name, description)
+    def get_name(self):
+        """
+        Returns the display name of this config, as defined in the manifest
+        
+        :returns: string
+        """
+        return self._manifest.get("display_name")
+        
+    def get_description(self):
+        """
+        Returns the description of the config, as defined in the manifest
+        
+        :returns string
+        """
+        return self._manifest.get("description")
+        
 
     def create_configuration(self, target_path):
         """

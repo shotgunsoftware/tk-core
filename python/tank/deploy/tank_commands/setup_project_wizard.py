@@ -135,7 +135,39 @@ class SetupProjectWizard(object):
         :param project_id: Shotgun id for the project that should be set up.
         :param force: Allow for the setting up of existing projects.
         """
-        self._params.set_project_id(project_id, force)        
+        self._params.set_project_id(project_id, force)     
+        
+    def validate_config_uri(self, config_uri):
+        """
+        Validates a configuration template to check if it is compatible with the current Shotgun setup.
+        This will download the config, validate it to ensure that it is compatible with the 
+        constraints (versions of core and shotgun) of this system. 
+        
+        If locating, downloading, or validating the config fails, exceptions will be raised.
+        
+        Once the config exists and is compatible, the storage situation is reviewed against shotgun.
+        A dictionary with a breakdown of all storages required by the configuration is returned:
+        
+        {
+          "primary" : { "description": "Description",
+                        "exists_on_disk": False,
+                        "defined_in_shotgun": True,
+                        "darwin": "/mnt/foo",
+                        "win32": "z:\mnt\foo",
+                        "linux2": "/mnt/foo"},
+                                     
+          "textures" : { "description": None,
+                         "exists_on_disk": False,
+                         "defined_in_shotgun": True,
+                         "darwin": None,
+                         "win32": "z:\mnt\foo",
+                         "linux2": "/mnt/foo"}                                    
+         }
+        
+        :param config_uri: Configuration uri representing the location of a config
+        :returns: dictionary with storage data, see above.
+        """
+        self._params.validate_config_uri(config_uri)
         
     def set_config_uri(self, config_uri):
         """
