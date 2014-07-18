@@ -740,3 +740,38 @@ class Environment(object):
         # sync internal data with disk
         self.__refresh()
 
+    def _copy_raw_apps(self, src_engine_name, dst_engine_name):
+        """
+        Copies the raw app settings from the source engine to the destination engine.
+        The copied settings are the raw yaml strings that have not gone through any processing.
+        """
+        data = self.__load_data(self.__env_path)
+
+        # check that the engine names exists in the config
+        if src_engine_name not in data["engines"]:
+            raise TankError("Engine %s does not exist in environment %s" % (src_engine_name, self.__env_path) )
+        if dst_engine_name not in data["engines"]:
+            raise TankError("Engine %s does not exist in environment %s" % (dst_engine_name, self.__env_path) )
+
+        # it is possible that the whole engine is referenced via an @include. In this case,
+        # raise an error. Here's an example structure of what that looks like:
+        #
+        # engines:
+        #   tk-houdini: '@tk-houdini-shot'
+        #   tk-maya: '@tk-maya-shot-lighting'
+        #   tk-motionbuilder: '@tk-motionbuilder-shot'
+        for engine_name in [src_engine_name, dst_engine_name]:
+            engines_section = data["engines"][engine_name]
+            if isinstance( engines_section, str) and engines_section.startswith("@"):
+                raise TankError("The configuration for engine '%s' located in the environment file '%s' has a "
+                                "reference to another file ('%s'). This type "
+                                "of configuration arrangement cannot currently be automatically "
+                                "modified - please edit it by hand!" % (engine_name, self.__env_path, engines_section))
+
+        # copy the settings over
+        src_apps_section = data["engines"][src_engine_name]["apps"]
+        data["engines"][dst_engine_name]["apps"] = copy.deepcopy(src_apps_section)
+
+        self.__write_data(self.__env_path, data)
+        # sync internal data with disk
+        self.__refresh()
