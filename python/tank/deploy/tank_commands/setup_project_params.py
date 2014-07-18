@@ -72,6 +72,7 @@ class ProjectSetupParameters(object):
         # initialize data members - config
         self._config_template = None
         self._config_name = None
+        self._config_description = None
         self._config_path = None
         
         # initialize data members - project
@@ -103,7 +104,7 @@ class ProjectSetupParameters(object):
                                                       self._log)
                 
         # validate the config against the shotgun where we are installing it
-        self._config_name = self._config_template.validate_manifest()
+        (self._config_name, self._config_description) = self._config_template.validate_manifest()
         
         # get info about storage locations
         self._storage_data = self._config_template.resolve_storages(check_storage_path)
@@ -122,6 +123,29 @@ class ProjectSetupParameters(object):
         #                  "linux2": "/mnt/foo"}                                    
         #  }    
         
+    def get_configuration_name(self):
+        """
+        Returns the name of the configuration template
+        
+        :returns: Configuration display name string, none if not defined
+        """
+        if self._config_template is None:
+            raise TankError("Please specify a configuration template!")
+        
+        return self._config_name
+
+    def get_configuration_description(self):
+        """
+        Returns the description of the associated configuration template
+        
+        :returns: Configuration description string, None if not defined
+        """
+        if self._config_template is None:
+            raise TankError("Please specify a configuration template!")
+        
+        return self._config_description
+    
+    
     def get_required_storages(self):
         """
         Returns a list of storage names which are required for this project.
@@ -132,6 +156,22 @@ class ProjectSetupParameters(object):
             raise TankError("Please specify a configuration template!")
         
         return self._storage_data.keys()
+
+    def get_storage_description(self, storage_name):
+        """
+        Returns the description of a storage required by a configuration
+        
+        :param storage_name: Storage name
+        :returns: Storage description string, None if not defined
+        """
+        if self._config_template is None:
+            raise TankError("Please specify a configuration template!")
+        
+        if storage_name not in self._storage_data:
+            raise TankError("Configuration template does not contain a storage with name '%s'!" % storage_name) 
+        
+        return self._storage_data.get(storage_name).get("description")
+        
         
     def get_storage_path(self, storage_name, platform):
         """    
@@ -984,15 +1024,16 @@ class TemplateConfiguration(object):
         This will compare the required Shotgun version in the config with the associated shotgun site.
         It will compare the required core API version with the currently running core API. 
         Raises exceptions if there are compatibility problems.
+        Returns the display name and description defined in the config manifest,
+        none if not defined.
         
-        :returns: The name of the configuration, as stated in the manifest
+        :returns: Tuple with name and description strings
         """
-        config_name = "Unnamed Configuration"
         
         info_yml = os.path.join(self._cfg_folder, constants.BUNDLE_METADATA_FILE)
         if not os.path.exists(info_yml):
             self._log.warning("Could not find manifest file %s. Project setup will proceed without validation." % info_yml)
-            return config_name
+            return (None, None)
     
         try:
             file_data = open(info_yml)
@@ -1003,9 +1044,9 @@ class TemplateConfiguration(object):
         except Exception, exp:
             raise TankError("Cannot load configuration manifest '%s'. Error: %s" % (info_yml, exp))
     
-        # display name
-        if "display_name" in metadata:
-            config_name = metadata["display_name"]
+        # display name and description
+        config_name = metadata.get("display_name")    
+        description = metadata.get("description")
     
         # perform checks
         if "requires_shotgun_version" in metadata:
@@ -1038,7 +1079,7 @@ class TemplateConfiguration(object):
                 self._log.debug("Config requires Toolkit Core %s. You are running %s which is fine." % (required_version, curr_core_version))
 
 
-        return config_name
+        return (config_name, description)
 
     def create_configuration(self, target_path):
         """
