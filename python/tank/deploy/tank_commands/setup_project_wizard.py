@@ -126,7 +126,6 @@ class SetupProjectWizard(object):
         self._sg = sg
         self._sg_app_store = sg_app_store
         self._sg_app_store_script_user = sg_app_store_script_user
-
         
     def set_project(self, project_id, force=False):
         """
@@ -140,21 +139,21 @@ class SetupProjectWizard(object):
     def validate_config_uri(self, config_uri):
         """
         Validates a configuration template to check if it is compatible with the current Shotgun setup.
-        This will download the config, validate it to ensure that it is compatible with the 
+        This will download the configuration, validate it to ensure that it is compatible with the 
         constraints (versions of core and shotgun) of this system. 
         
-        If locating, downloading, or validating the config fails, exceptions will be raised.
+        If locating, downloading, or validating the configuration fails, exceptions will be raised.
         
-        Once the config exists and is compatible, the storage situation is reviewed against shotgun.
+        Once the configuration exists and is compatible, the storage situation is reviewed against shotgun.
         A dictionary with a breakdown of all storages required by the configuration is returned:
         
         {
-          "primary" : { "description": "Description",
-                        "exists_on_disk": False,
-                        "defined_in_shotgun": True,
-                        "darwin": "/mnt/foo",
-                        "win32": "z:\mnt\foo",
-                        "linux2": "/mnt/foo"},
+          "primary"  : { "description": "Description",
+                         "exists_on_disk": False,
+                         "defined_in_shotgun": True,
+                         "darwin": "/mnt/foo",
+                         "win32": "z:\mnt\foo",
+                         "linux2": "/mnt/foo"},
                                      
           "textures" : { "description": None,
                          "exists_on_disk": False,
@@ -176,40 +175,12 @@ class SetupProjectWizard(object):
         In order to proceed with further functions, such as setting a project name,
         the config uri needs to be set.
 
-        A configuration uri describes an item in the app store, in git or a file system path. 
-        This will attempt to access the configuration specified in the uri
-        and may involve downloading it to disk from github or the app store.
-        Once downloaded, it will ensure that all the declared storages in the 
-        configuration exist in the system.
-        
-        This method will validate the configuration and ensure that all required
-        storages needed by the configuration exists and are correctly set up.
-        
-        Returns a dictionary with config metadata:
-        
-        {"display_name": "Default Config",
-         "description": "Short description in the configuration",  
-         "storage": { "primary": { "description": "Where project files are saved", 
-                                    "exists": True,
-                                    "valid" : False,
-                                    "message": "cannot find the local path /foo/bar"}}
-        
+        Exceptions will be raise if the configuration is not valid.
+        Use the validate_config_uri() to check.
+
         :param config_uri: string describing a path on disk, a github uri or the name of an app store config.
-        :returns: a dictionary representing the configuration, see above for details.
         """
         self._params.set_config_uri(config_uri)
-        
-        config_info = {}
-        
-        config_info["display_name"] = self._params.get_configuration_name()
-        config_info["description"] = self._params.get_configuration_decsription()
-        config_info["storages"] = {}
-        
-        
-        for s in self._params.get_required_storages():
-            storage_data = {}
-            storage_data["description"]
-        
 
     def get_default_project_disk_name(self):
         """
