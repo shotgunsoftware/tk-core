@@ -53,7 +53,6 @@ class CopyAppsAction(Action):
 
         return self._run(
             log,
-            True,
             computed_params["environment"],
             computed_params["src_engine_instance"],
             computed_params["dst_engine_instance"],
@@ -75,9 +74,9 @@ class CopyAppsAction(Action):
         src_engine_instance_name = args[1]
         dst_engine_instance_name = args[2]
 
-        self._run(log, False, env_name, src_engine_instance_name, dst_engine_instance_name)
+        self._run(log, env_name, src_engine_instance_name, dst_engine_instance_name)
 
-    def _run(self, log, suppress_prompts, env_name, src_engine_instance_name, dst_engine_instance_name):
+    def _run(self, log, env_name, src_engine_instance_name, dst_engine_instance_name):
         try:
             env = self.tk.pipeline_configuration.get_environment(env_name)
         except Exception, e:
@@ -88,4 +87,4 @@ class CopyAppsAction(Action):
         if dst_engine_instance_name not in env.get_engines():
             raise TankError("Environment %s has no engine named %s!" % (env_name, dst_engine_instance_name))
 
-        env._copy_raw_apps(src_engine_instance_name, dst_engine_instance_name)
+        env.copy_apps(src_engine_instance_name, dst_engine_instance_name)

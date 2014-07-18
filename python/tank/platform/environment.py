@@ -681,6 +681,42 @@ class Environment(object):
         # sync internal data with disk
         self.__refresh()
 
+    def __verify_engine_local(self, data, engine_name):
+        """
+        It is possible that the whole engine is referenced via an @include. In this case,
+        raise an error. Here's an example structure of what that looks like:
+
+        engines:
+          tk-houdini: '@tk-houdini-shot'
+          tk-maya: '@tk-maya-shot-lighting'
+          tk-motionbuilder: '@tk-motionbuilder-shot'
+
+        :param data: The raw environment data without processing
+        :param engine_name: The name of an engine instance
+        """
+        engines_section = data["engines"][engine_name]
+        if isinstance(engines_section, str) and engines_section.startswith("@"):
+            raise TankError("The configuration for engine '%s' located in the environment file '%s' has a "
+                            "reference to another file ('%s'). This type "
+                            "of configuration arrangement cannot currently be automatically "
+                            "modified - please edit it by hand!" % (engine_name, self.__env_path, engines_section))
+
+    def __verify_apps_local(self, data, engine_name):
+        """
+        It is possible that the 'apps' dictionary is actually an @include. In this case,
+        raise an error. Here's an example of what this looks like:
+
+        tk-maya:
+          apps: '@maya_apps'
+          debug_logging: false
+          location: {name: tk-maya, type: app_store, version: v0.3.9}
+        """
+        apps_section = data["engines"][engine_name]["apps"]
+        if isinstance(apps_section, str) and apps_section.startswith("@"):
+            raise TankError("The configuration for engine '%s' located in the environment file '%s' has an "
+                            "apps section which is referenced from another file ('%s'). This type "
+                            "of configuration arrangement cannot currently be automatically "
+                            "modified - please edit it by hand!" % (engine_name, self.__env_path, apps_section))
 
     def create_app_settings(self, engine_name, app_name):
         """
@@ -693,44 +729,14 @@ class Environment(object):
         if engine_name not in data["engines"]:
             raise TankError("Engine %s does not exist in environment %s" % (engine_name, self.__env_path) )
 
-        # it is possible that the whole engine is referenced via an @include. In this case,
-        # raise an error. Here's an example structure of what that looks like:
-        #
-        # engines:
-        #   tk-houdini: '@tk-houdini-shot'
-        #   tk-maya: '@tk-maya-shot-lighting'
-        #   tk-motionbuilder: '@tk-motionbuilder-shot'
-        engines_section = data["engines"][engine_name]
-        if isinstance( engines_section, str) and engines_section.startswith("@"):
-            raise TankError("The configuration for engine '%s' located in the environment file '%s' has a "
-                            "reference to another file ('%s'). This type "
-                            "of configuration arrangement cannot currently be automatically "
-                            "modified - please edit it by hand!" % (engine_name, self.__env_path, engines_section))
-
-        # it is possible that the 'apps' dictionary is actually an @include - in this case, raise an error
-        # Here's an example of what this looks like:
-        #
-        # tk-maya:
-        #   apps: '@maya_apps'
-        #   debug_logging: false
-        #   location: {name: tk-maya, type: app_store, version: v0.3.9}
-        #   menu_favourites:
-        #   - {app_instance: tk-multi-workfiles, name: Shotgun File Manager...}
-        #   - {app_instance: tk-multi-snapshot, name: Snapshot...}
-        #   - {app_instance: tk-multi-workfiles, name: Shotgun Save As...}
-        #   - {app_instance: tk-multi-publish, name: Publish...}
-        #   template_project: shot_work_area_maya
-        apps_section = data["engines"][engine_name]["apps"]
-        if isinstance( apps_section, str) and apps_section.startswith("@"):
-            raise TankError("The configuration for engine '%s' located in the environment file '%s' has an "
-                            "apps section which is referenced from another file ('%s'). This type "
-                            "of configuration arrangement cannot currently be automatically "
-                            "modified - please edit it by hand!" % (engine_name, self.__env_path, apps_section))
+        # make sure the engine's apps setting is local to this file
+        self.__verify_engine_local(data, engine_name)
+        self.__verify_apps_local(data, engine_name)
 
         # check that it doesn't already exist
+        apps_section = data["engines"][engine_name]["apps"]
         if app_name in apps_section:
             raise TankError("App %s.%s already exists in environment %s" % (engine_name, app_name, self.__env_path) )
-
 
         data["engines"][engine_name]["apps"][app_name] = {}
         # and make sure we also create the location key
@@ -740,33 +746,25 @@ class Environment(object):
         # sync internal data with disk
         self.__refresh()
 
-    def _copy_raw_apps(self, src_engine_name, dst_engine_name):
+    def copy_apps(self, src_engine_name, dst_engine_name):
         """
         Copies the raw app settings from the source engine to the destination engine.
         The copied settings are the raw yaml strings that have not gone through any processing.
+
+        :param src_engine_name: The name of the engine instance to copy from (str)
+        :param dst_engine_name: The name of the engine instance to copy to (str)
         """
         data = self.__load_data(self.__env_path)
 
         # check that the engine names exists in the config
         if src_engine_name not in data["engines"]:
-            raise TankError("Engine %s does not exist in environment %s" % (src_engine_name, self.__env_path) )
+            raise TankError("Engine %s does not exist in environment %s" % (src_engine_name, self.__env_path))
         if dst_engine_name not in data["engines"]:
-            raise TankError("Engine %s does not exist in environment %s" % (dst_engine_name, self.__env_path) )
+            raise TankError("Engine %s does not exist in environment %s" % (dst_engine_name, self.__env_path))
 
-        # it is possible that the whole engine is referenced via an @include. In this case,
-        # raise an error. Here's an example structure of what that looks like:
-        #
-        # engines:
-        #   tk-houdini: '@tk-houdini-shot'
-        #   tk-maya: '@tk-maya-shot-lighting'
-        #   tk-motionbuilder: '@tk-motionbuilder-shot'
-        for engine_name in [src_engine_name, dst_engine_name]:
-            engines_section = data["engines"][engine_name]
-            if isinstance( engines_section, str) and engines_section.startswith("@"):
-                raise TankError("The configuration for engine '%s' located in the environment file '%s' has a "
-                                "reference to another file ('%s'). This type "
-                                "of configuration arrangement cannot currently be automatically "
-                                "modified - please edit it by hand!" % (engine_name, self.__env_path, engines_section))
+        # make sure the actual engine settings are both local
+        self.__verify_engine_local(data, src_engine_name)
+        self.__verify_engine_local(data, dst_engine_name)
 
         # copy the settings over
         src_apps_section = data["engines"][src_engine_name]["apps"]
