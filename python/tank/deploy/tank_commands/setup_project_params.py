@@ -439,19 +439,7 @@ class ProjectSetupParameters(object):
             raise TankError("Please specify a configuration template!")
 
         return self.preview_project_path(storage_name, self._project_name, platform)
-        
-    def get_primary_project_path(self, platform):
-        """
-        Convenience method.
-        Returns the project path given a platform and a storage. Can be None for undefined storages.
-        The path returned may not exist on disk but never ends with a path separator.
-        
-        :param platform: Os platform as a string, sys.platform style (e.g. linux2/win32/darwin)
-        
-        :returns: full path
-        """        
-        return self.get_project_path(constants.PRIMARY_STORAGE_NAME, platform)
-    
+            
     
     ################################################################################################################
     # Configuration template related logic     
@@ -512,14 +500,14 @@ class ProjectSetupParameters(object):
             # /studio/project      <--- project data location
             # /studio/project/tank <--- toolkit configuation location
 
-            if self.get_primary_project_path("darwin"):
-                location["darwin"] = "%s/tank" % self.get_primary_project_path("darwin") 
+            if self.get_project_path(constants.PRIMARY_STORAGE_NAME, "darwin"):
+                location["darwin"] = "%s/tank" % self.get_project_path(constants.PRIMARY_STORAGE_NAME, "darwin") 
                                                      
-            if self.get_primary_project_path("linux2"):
-                location["linux2"] = "%s/tank" % self.get_primary_project_path("linux2") 
+            if self.get_project_path(constants.PRIMARY_STORAGE_NAME, "linux2"):
+                location["linux2"] = "%s/tank" % self.get_project_path(constants.PRIMARY_STORAGE_NAME, "linux2") 
 
-            if self.get_primary_project_path("win32"):
-                location["win32"] = "%s\\tank" % self.get_primary_project_path("win32") 
+            if self.get_project_path(constants.PRIMARY_STORAGE_NAME, "win32"):
+                location["win32"] = "%s\\tank" % self.get_project_path(constants.PRIMARY_STORAGE_NAME, "win32") 
 
         else:
             # Core v0.12+ style setup - this is what is our default recommended setup
