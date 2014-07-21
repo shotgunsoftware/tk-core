@@ -91,6 +91,7 @@ class Tank(object):
     def project_path(self):
         """
         Path to the primary root directory for a project.
+        If no primary root directory exists, an exception is raised.
         """
         return self.__pipeline_config.get_primary_data_root()
 

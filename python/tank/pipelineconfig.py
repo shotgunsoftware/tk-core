@@ -272,6 +272,16 @@ class PipelineConfiguration(object):
         
         return full_path
         
+    def has_associated_data_roots(self):
+        """
+        Some configurations do not have a notion of a project storage and therefore
+        do not have any storages defined. This flag indicates whether a configuration 
+        has any associated data storages. 
+        
+        :returns: true if the configuration has a primary data root defined, false if not
+        """
+        return len(self.get_data_roots()) > 0
+        
     def get_primary_data_root(self):
         """
         Returns the path to the primary data root for the current platform.

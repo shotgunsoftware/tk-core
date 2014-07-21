@@ -34,16 +34,16 @@ class PathCache(object):
         """
         self._connection = None
         
-        try:
+        if pipeline_configuration.has_associated_data_roots():
             db_path = pipeline_configuration.get_path_cache_location()
-        except TankError:
-            # no primary location found. Path cache therefore does not exist!
-            # go into a no-path-cache-mode
-            self._path_cache_disabled = True
-        else:
             self._path_cache_disabled = False
             self._init_db(db_path)
             self._roots = pipeline_configuration.get_data_roots()
+
+        else:
+            # no primary location found. Path cache therefore does not exist!
+            # go into a no-path-cache-mode
+            self._path_cache_disabled = True
         
     
     def _init_db(self, db_path):
