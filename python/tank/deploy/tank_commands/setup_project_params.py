@@ -455,7 +455,7 @@ class ProjectSetupParameters(object):
         """
         self._auto_path = status
         
-    def get_auto_path(self, status):
+    def is_auto_path(self):
         """
         Returns the auto-path status. See set_auto_path for details.
         

@@ -90,7 +90,6 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, set
     # copy the configuration into place
     setup_params.create_configuration(os.path.join(config_location_curr_os, "config"))
 
-    
     # copy the tank binaries to the top of the config
     log.debug("Copying Toolkit binaries...")
     core_api_root = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "..", ".."))
@@ -226,11 +225,19 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, set
     
     # create pipeline configuration record
     log.info("Creating Pipeline Configuration in Shotgun...")
-    data = {"project": {"type": "Project", "id": project_id },
-            "linux_path": config_location_linux,
-            "windows_path": config_location_win,
-            "mac_path": config_location_mac,
-            "code": constants.PRIMARY_PIPELINE_CONFIG_NAME}
+    if setup_params.is_auto_path():
+        # this is an auto-path project, meaning that shotgun doesn't store the location
+        # to the pipeline configuration
+        data = {"project": {"type": "Project", "id": project_id },
+                "code": constants.PRIMARY_PIPELINE_CONFIG_NAME}
+        
+    else:
+        data = {"project": {"type": "Project", "id": project_id },
+                "linux_path": config_location_linux,
+                "windows_path": config_location_win,
+                "mac_path": config_location_mac,
+                "code": constants.PRIMARY_PIPELINE_CONFIG_NAME}
+
     pc_entity = sg.create(constants.PIPELINE_CONFIGURATION_ENTITY, data)
     log.debug("Created data: %s" % pc_entity)
     
