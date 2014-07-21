@@ -50,7 +50,8 @@ def load_plugin(plugin_file, valid_base_class):
         print_debug("Successfully loaded source")
         # catch here if loading the source tool longer than 5 seconds... this would
         # definitely indicate a problem!
-        seconds_to_load = (datetime.datetime.now() - st_time).total_seconds()
+        td = (datetime.datetime.now() - st_time)
+        seconds_to_load = float(td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
         if seconds_to_load > 5:
             print_warning("loading '%s' took %s seconds!" % (plugin_file, seconds_to_load))
     except Exception:
