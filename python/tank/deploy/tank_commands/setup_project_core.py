@@ -61,12 +61,12 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, set
     
     # if we have the force flag enabled, remove any pipeline configurations
     if setup_params.get_force_setup():
-        pcs = sg.find("PipelineConfiguration", 
+        pcs = sg.find(constants.PIPELINE_CONFIGURATION_ENTITY, 
                       [["project", "is", {"id": project_id, "type": "Project"} ]],
                       ["code"])
         for x in pcs:
             log.warning("Force mode: Deleting old pipeline configuration %s..." % x["code"])
-            sg.delete("PipelineConfiguration", x["id"])
+            sg.delete(constants.PIPELINE_CONFIGURATION_ENTITY, x["id"])
             
     # first do disk structure setup, this is most likely to fail.
     log.info("Installing configuration into '%s'..." % config_location_curr_os )

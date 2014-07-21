@@ -11,6 +11,7 @@
 from .. import util
 from ... import pipelineconfig
 from ...errors import TankError
+from ...platform import constants
 
 from tank_vendor import yaml
 
@@ -146,7 +147,7 @@ def _do_clone(log, tk, source_pc_id, user_id, new_name, target_linux, target_mac
     """
 
     curr_os = {"linux2":"linux_path", "win32":"windows_path", "darwin":"mac_path" }[sys.platform]    
-    source_pc = tk.shotgun.find_one("PipelineConfiguration", 
+    source_pc = tk.shotgun.find_one(constants.PIPELINE_CONFIGURATION_ENTITY, 
                                     [["id", "is", source_pc_id]], 
                                     ["code", "project", "linux_path", "windows_path", "mac_path"])
     source_folder = source_pc.get(curr_os)
@@ -209,7 +210,7 @@ def _do_clone(log, tk, source_pc_id, user_id, new_name, target_linux, target_mac
             "users": [ {"type": "HumanUser", "id": user_id} ] 
             }
     log.debug("Create sg: %s" % str(data))
-    pc_entity = tk.shotgun.create("PipelineConfiguration", data)
+    pc_entity = tk.shotgun.create(constants.PIPELINE_CONFIGURATION_ENTITY, data)
     log.debug("Created in SG: %s" % str(pc_entity))
 
     # lastly, update the pipeline_configuration.yml file
