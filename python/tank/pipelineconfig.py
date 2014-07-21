@@ -119,7 +119,6 @@ class PipelineConfiguration(object):
         self._pc_id = data.get("id")
         self._pc_name = data.get("code")
 
-
     def get_name(self):
         """
         Returns the name of this PC.
@@ -275,17 +274,25 @@ class PipelineConfiguration(object):
         
     def get_primary_data_root(self):
         """
-        Returns the path to the primary data root for the current platform
+        Returns the path to the primary data root for the current platform.
+        For configurations where there is no roots defined at all, 
+        an exception will be raised.
+        
+        :returns: str to local path on disk
         """
+        if len(self.get_data_roots()) == 0:
+            raise TankError("Your current pipeline configuration does not have any project data "
+                            "storages defined and therefore does not have a primary project data root!")
+            
         return self.get_data_roots().get(constants.PRIMARY_STORAGE_NAME)
-
 
     def get_path_cache_location(self):
         """
         Returns the path to the path cache file.
+        
+        :returns: str to local path on disk
         """
         return os.path.join(self.get_primary_data_root(), "tank", "cache", constants.CACHE_DB_FILENAME)
-
 
     ########################################################################################
     # paths, core info, apps and engines

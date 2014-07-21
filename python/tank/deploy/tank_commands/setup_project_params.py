@@ -255,18 +255,6 @@ class ProjectSetupParameters(object):
         
         return self._storage_data.get(storage_name).get(platform)
 
-    def get_primary_storage_path(self, platform):
-        """
-        Convenience method.
-        Returns the storage root path given a platform and a storage, as defined in Shotgun
-        Note that this path has not been cleaned up, and may for example contain slashes at the end.
-        
-        :param storage_name: Storage name
-        :param platform: operating system, sys.platform syntax 
-        :returns: path
-        """        
-        return self.get_storage_path(constants.PRIMARY_STORAGE_NAME, platform)
-        
     def create_configuration(self, target_path):
         """
         Sets up the associated template configuration. Copies files.
@@ -510,7 +498,8 @@ class ProjectSetupParameters(object):
                 
         location = {"darwin": None, "linux2": None, "win32": None}
         
-        primary_local_path = self.get_primary_storage_path(sys.platform)
+        # get the path to the primary storage  
+        primary_local_path = self.get_storage_path(constants.PRIMARY_STORAGE_NAME, sys.platform)        
         
         core_locations = self._get_current_core_install_location_data()
         
