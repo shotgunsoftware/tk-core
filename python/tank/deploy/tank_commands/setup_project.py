@@ -126,7 +126,7 @@ class SetupProjectAction(Action):
         params.set_config_uri(computed_params["config_uri"], computed_params["check_storage_path_exists"])
         
         # set expert auto path setting
-        params.set_auto_path(computed_params["auto_path"])
+        params.set_auto_path_mode(computed_params["auto_path"])
         
         # set the project
         params.set_project_id(computed_params["project_id"], computed_params["force"])

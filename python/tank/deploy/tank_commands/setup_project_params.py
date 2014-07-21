@@ -441,7 +441,7 @@ class ProjectSetupParameters(object):
     ################################################################################################################
     # Configuration template related logic     
     
-    def set_auto_path(self, status):
+    def set_auto_path_mode(self, status):
         """
         Defines if auto-path should be on or off.
         Auto-path means that the pipeline configuration entry in
@@ -452,7 +452,7 @@ class ProjectSetupParameters(object):
         """
         self._auto_path = status
         
-    def is_auto_path(self):
+    def get_auto_path_mode(self):
         """
         Returns the auto-path status. See set_auto_path for details.
         

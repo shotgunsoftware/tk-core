@@ -59,14 +59,32 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, set
     # project id
     project_id = setup_params.get_project_id()
     
-    # if we have the force flag enabled, remove any pipeline configurations
-    if setup_params.get_force_setup():
-        pcs = sg.find(constants.PIPELINE_CONFIGURATION_ENTITY, 
-                      [["project", "is", {"id": project_id, "type": "Project"} ]],
-                      ["code"])
-        for x in pcs:
-            log.warning("Force mode: Deleting old pipeline configuration %s..." % x["code"])
-            sg.delete(constants.PIPELINE_CONFIGURATION_ENTITY, x["id"])
+    # get all existing pipeline configurations
+    pcs = sg.find(constants.PIPELINE_CONFIGURATION_ENTITY, 
+                  [["project", "is", {"id": project_id, "type": "Project"} ]],
+                  ["code", "linux_path", "windows_path", "mac_path"])
+    
+    
+    if len(pcs) > 0:
+        if setup_params.get_force_setup():
+            # if we have the force flag enabled, remove any pipeline configurations
+            for x in pcs:
+                log.warning("Force mode: Deleting old pipeline configuration %s..." % x["code"])
+                sg.delete(constants.PIPELINE_CONFIGURATION_ENTITY, x["id"])
+
+        elif not setup_params.get_auto_path_mode():
+            # this is a normal setup, e.g. not with the force flag on 
+            # nor an auto-path where each machine effectively manages its own config
+            # for this case, we don't allow the process to proceed if a config exists
+            raise TankError("Cannot set up this project! Pipeline configuration entries already exist in Shotgun.")
+        
+        else:
+            # auto path mode
+            # make sure that all PCs have empty paths set, either None values or ""
+            for x in pcs:
+                if x["linux_path"] or x["windows_path"] or x["mac_path"]:
+                    raise TankError("Cannot set up this project! Non-auto-path style pipeline "
+                                    "configuration entries already exist in Shotgun.")
             
     # first do disk structure setup, this is most likely to fail.
     log.info("Installing configuration into '%s'..." % config_location_curr_os )
@@ -217,29 +235,66 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, set
         # and add our configuration
         scm.add_pipeline_configuration(config_location_mac, config_location_win, config_location_linux)    
     
-    # creating project.tank_name record
-    log.info("Registering project in Shotgun...")
-    project_name = setup_params.get_project_disk_name()
-    log.debug("Shotgun: Setting Project.tank_name to %s" % project_name)
-    sg.update("Project", project_id, {"tank_name": project_name})
+    # Create Project.tank_name and PipelineConfiguration records in Shotgun
+    #
+    # This logic has some special complexity when the auto_path mode is in use.
     
-    # create pipeline configuration record
-    log.info("Creating Pipeline Configuration in Shotgun...")
-    if setup_params.is_auto_path():
+    if setup_params.get_auto_path_mode():
+        # first, check the project name. If there is no project name in Shotgun, populate it
+        # with the project name which is specified via the project name parameter.
+        # if there isn't yet an entry, create it.
+        # This is consistent with the anticipated future behaviour we expect when we 
+        # switch from auto_path to a zip file based approach. 
+
+        project_name = setup_params.get_project_disk_name()
+        data = sg.find_one("Project", [["id", "is", project_id]], ["tank_name"])
+        if data["tank_name"] is None:
+            log.info("Registering project in Shotgun...")
+            log.debug("Shotgun: Setting Project.tank_name to %s" % project_name)
+            sg.update("Project", project_id, {"tank_name": project_name})
+        
+        else:
+            # there is already a name. Check that it matches the name in the project params
+            # if not, then use the existing name and issue a warning!
+            if data["tank_name"] != project_name:
+                log.warning("You have supplied the project disk name '%s' as part of the project setup "
+                            "parameters, however the name '%s' has already been registered in Shotgun for "
+                            "this project. This name will be used instead of the suggested disk "
+                            "name." % (data["tank_name"], project_name) )
+                project_name = data["tank_name"] 
+             
+        log.info("Creating Pipeline Configuration in Shotgun...")
         # this is an auto-path project, meaning that shotgun doesn't store the location
-        # to the pipeline configuration
-        data = {"project": {"type": "Project", "id": project_id },
-                "code": constants.PRIMARY_PIPELINE_CONFIG_NAME}
+        # to the pipeline configuration. Because an auto-path location is often set up 
+        # on multiple machines, check first if the entry exists and in that case skip creation
+        data = sg.find_one(constants.PIPELINE_CONFIGURATION_ENTITY, 
+                           [["code", "is", constants.PRIMARY_PIPELINE_CONFIG_NAME],
+                            ["project", "is", {"type": "Project", "id": project_id }]],
+                           ["id"])
+        
+        if data is None:
+            log.info("Creating Pipeline Configuration in Shotgun...")
+            data = {"project": {"type": "Project", "id": project_id }, "code": constants.PRIMARY_PIPELINE_CONFIG_NAME}
+            pc_entity = sg.create(constants.PIPELINE_CONFIGURATION_ENTITY, data)
+            log.debug("Created data: %s" % pc_entity)
         
     else:
+        # normal mode.
+        log.info("Registering project in Shotgun...")
+        project_name = setup_params.get_project_disk_name()
+        log.debug("Shotgun: Setting Project.tank_name to %s" % project_name)
+        sg.update("Project", project_id, {"tank_name": project_name})
+        
+        log.info("Creating Pipeline Configuration in Shotgun...")
         data = {"project": {"type": "Project", "id": project_id },
                 "linux_path": config_location_linux,
                 "windows_path": config_location_win,
                 "mac_path": config_location_mac,
                 "code": constants.PRIMARY_PIPELINE_CONFIG_NAME}
-
-    pc_entity = sg.create(constants.PIPELINE_CONFIGURATION_ENTITY, data)
-    log.debug("Created data: %s" % pc_entity)
+    
+        # create pipeline configuration record
+        pc_entity = sg.create(constants.PIPELINE_CONFIGURATION_ENTITY, data)
+        log.debug("Created data: %s" % pc_entity)
     
     # write the record to disk
     pipe_config_sg_id_path = os.path.join(config_location_curr_os, "config", "core", "pipeline_configuration.yml")
