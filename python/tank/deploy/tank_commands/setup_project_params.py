@@ -77,6 +77,9 @@ class ProjectSetupParameters(object):
         self._config_description = None
         self._config_path = None
         
+        # expert setting auto path mode
+        self._auto_path = False
+        
         # initialize data members - project
         self._project_id = None
         self._force_setup = None
@@ -164,7 +167,7 @@ class ProjectSetupParameters(object):
         #                  "win32": "z:\mnt\foo",
         #                  "linux2": "/mnt/foo"}                                    
         #  }
-        
+                
         for storage_name in storage_data:
             
             if not storage_data[storage_name]["defined_in_shotgun"]:
@@ -464,6 +467,25 @@ class ProjectSetupParameters(object):
     
     ################################################################################################################
     # Configuration template related logic     
+    
+    def set_auto_path(self, status):
+        """
+        Defines if auto-path should be on or off.
+        Auto-path means that the pipeline configuration entry in
+        Shotgun does not actually encode the path to where the configuration
+        is located on disk - this is instead purely kept on the disk side
+        
+        :param status: boolean indicating if auto path should be used
+        """
+        self._auto_path = status
+        
+    def get_auto_path(self, status):
+        """
+        Returns the auto-path status. See set_auto_path for details.
+        
+        :returns: boolean indicating if auto path should be used
+        """
+        return self._auto_path
     
     def get_default_configuration_location(self):
         """
@@ -781,8 +803,8 @@ class TemplateConfiguration(object):
         self._config_uri = config_uri
         self._roots_data = self._read_roots_file()
 
-        if constants.PRIMARY_STORAGE_NAME not in self._roots_data:
-            # need a primary storage in every config
+        # if there are more than zero storages defined, ensure one of them is the primary storage
+        if len(self._roots_data) > 0 and constants.PRIMARY_STORAGE_NAME not in self._roots_data:
             raise TankError("Looks like your configuration does not have a primary storage. "
                             "This is required. Please contact support for more info.")
 
@@ -857,7 +879,8 @@ class TemplateConfiguration(object):
         if os.path.exists(root_file_path):
             root_file = open(root_file_path, "r")
             try:
-                roots_data = yaml.load(root_file)
+                # if file is empty, initializae with empty dict...
+                roots_data = yaml.load(root_file) or {}
             finally:
                 root_file.close()
             

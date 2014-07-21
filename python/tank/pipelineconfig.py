@@ -1087,15 +1087,16 @@ def get_pc_roots_metadata(pipeline_config_root_path):
 
     fh = open(roots_yml, "rt")
     try:
-        data = yaml.load(fh)
+        # if file is empty, initializae with empty dict...
+        data = yaml.load(fh) or {}
     except Exception, e:
         raise TankError("Looks like the roots file is corrupt. Please contact "
                         "support! File: '%s' Error: %s" % (roots_yml, e))
     finally:
         fh.close()
 
-    # sanity check that there is a primary root
-    if constants.PRIMARY_STORAGE_NAME not in data:
+    # if there are more than zero storages defined, ensure one of them is the primary storage
+    if len(data) > 0 and constants.PRIMARY_STORAGE_NAME not in data:
         raise TankError("Could not find a primary storage in roots file "
                         "for configuration %s!" % pipeline_config_root_path)
 

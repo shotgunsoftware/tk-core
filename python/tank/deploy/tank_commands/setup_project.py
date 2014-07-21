@@ -90,6 +90,22 @@ class SetupProjectAction(Action):
                                                "default": ( None if sys.platform == "linux2" else "" ),
                                                "type": "str" }
         
+        # Special setting used by the shotgun desktop app to handle the current form of distributed
+        # configs
+        self.parameters["auto_path"] = { "description": ("Expert setting. Setting this to true means that a blank "
+                                                         "path entry is written to the shotgun site pipeline "
+                                                         "configuration. This can be used in conjunction with "
+                                                         "a localized core to create a site configuration which "
+                                                         "can have different locations on different machines. It "
+                                                         "is then up to the bootstrap logic of the code that "
+                                                         "starts up toolkit to determine where to go look for the "
+                                                         "configuration. When setting this to true, you typically "
+                                                         "only need to specify the path to the current operating "
+                                                         "system configuration."),
+                                     "default": False,
+                                     "type": "bool" }
+        
+        
 
         
     def run_noninteractive(self, log, parameters):
@@ -109,14 +125,17 @@ class SetupProjectAction(Action):
         # specify which config to use
         params.set_config_uri(computed_params["config_uri"], computed_params["check_storage_path_exists"])
         
+        # set expert auto path setting
+        params.set_auto_path(computed_params["auto_path"])
+        
         # set the project
         params.set_project_id(computed_params["project_id"], computed_params["force"])
         params.set_project_disk_name(computed_params["project_folder_name"])
         
         # set the config path
-        params.set_config_path("linux2", computed_params["config_path_linux"])
-        params.set_config_path("win32", computed_params["config_path_win"])
-        params.set_config_path("darwin", computed_params["config_path_mac"])        
+        params.set_configuration_location(computed_params["config_path_linux"], 
+                                          computed_params["config_path_win"], 
+                                          computed_params["config_path_mac"])        
         
         # run overall validation of the project setup
         params.validate_project_io()
