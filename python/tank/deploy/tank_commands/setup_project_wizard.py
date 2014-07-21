@@ -8,7 +8,9 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+import os
 import sys
+
 from .action_base import Action
 from ...util import shotgun
 from ...errors import TankError
@@ -208,14 +210,16 @@ class SetupProjectWizard(object):
         """
         return self._params.get_default_project_disk_name()
         
-    def validate_project_disk_name(self, project_name):
+    def validate_project_disk_name(self, project_disk_name):
         """
         Validate the project disk name.
         Raises Exceptions if the project disk name is not valid.
-        """
-        self._params.validate_project_disk_name(project_name)
         
-    def preview_project_paths(self, project_name):
+        :param project_disk_name: string with a project name.
+        """
+        self._params.validate_project_disk_name(project_disk_name)
+        
+    def preview_project_paths(self, project_disk_name):
         """
         Return preview project paths given a project name.
         
@@ -228,26 +232,57 @@ class SetupProjectWizard(object):
         
         The operating systems are enumerated using sys.platform jargon.
         
-        :param project_name: string with a project name.
+        :param project_disk_name: string with a project name.
         :returns: Dictionary, see above.
         """
         return_data = {}
         for s in self._params.get_required_storages():
             return_data[s] = {}
-            return_data[s]["darwin"] = self._params.preview_project_path(s, project_name, "darwin")
-            return_data[s]["win32"] = self._params.preview_project_path(s, project_name, "win32")
-            return_data[s]["linux2"] = self._params.preview_project_path(s, project_name, "linux2") 
+            return_data[s]["darwin"] = self._params.preview_project_path(s, project_disk_name, "darwin")
+            return_data[s]["win32"] = self._params.preview_project_path(s, project_disk_name, "win32")
+            return_data[s]["linux2"] = self._params.preview_project_path(s, project_disk_name, "linux2") 
         
         return return_data
         
-    def set_project_disk_name(self, set_project_disk_name):
+    def set_project_disk_name(self, project_disk_name, create_folders=True):
         """
         Set the desired name of the project.
         May raise exception if the name is not valid.
         
-        :param set_project_disk_name: string with a project name.
+        :param project_disk_name: string with a project name
+        :param create_folders: if set to true, the wizard will attempt to create project root folders
+                               if these don't already exist. 
         """
-        self._params.set_project_disk_name(set_project_disk_name)
+
+        # by default, the wizard will also try to help out with the creation of
+        # the project root folder if it doesn't already exist! 
+        if create_folders:
+            
+            # make sure name is valid before starting to create directories...
+            self._params.validate_project_disk_name(project_disk_name)
+            self._log.debug("Will try to create project folders on disk...")
+            for s in self._params.get_required_storages():
+                
+                # get the full path
+                proj_path = self._params.preview_project_path(s, project_disk_name, sys.platform)
+                
+                if not os.path.exists(proj_path):
+                    self._log.info("Creating project folder '%s'..." % proj_path)
+                    old_umask = os.umask(0)
+                    try:
+                        os.makedirs(proj_path, 0777)
+                    finally:
+                        os.umask(old_umask)
+                    self._log.debug("...done!")
+                
+                else:
+                    self._log.debug("Storage '%s' - project folder '%s' - already exists!" % (s, proj_path))
+        
+        # lastly, register the name in shotgun
+        self._params.set_project_disk_name(project_disk_name)
+        
+        
+
     
     def get_default_configuration_location(self):
         """
