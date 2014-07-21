@@ -81,8 +81,8 @@ class ProjectSetupParameters(object):
         self._auto_path = False
         
         # initialize data members - project
+        self._force_setup = False
         self._project_id = None
-        self._force_setup = None
         self._project_name = None
     
     
@@ -403,9 +403,6 @@ class ProjectSetupParameters(object):
         
         :returns: a boolean flag indicating whether the setup should be forced or not.
         """
-        if self._project_id is None:
-            raise TankError("No project id specified!")
-        
         return self._force_setup
         
     def get_project_disk_name(self):
