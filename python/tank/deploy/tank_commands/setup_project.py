@@ -578,12 +578,12 @@ class SetupProjectAction(Action):
             log.info("* Toolkit will connect to the project folder in Storage '%s':" % storage_name )
             
             mac_path = params.get_project_path(storage_name, "darwin")
-            win_path = params.get_project_path(storage_name, "darwin")
-            linux_path = params.get_project_path(storage_name, "darwin")        
+            win_path = params.get_project_path(storage_name, "win32")
+            linux_path = params.get_project_path(storage_name, "linux2")        
             
             log.info("  - on Linux:   '%s'" % linux_path if linux_path else "  - on Linux:   No path defined")
-            log.info("  - on Windows: '%s'" % win_path if win_path else "  - on Windows: No path defined")
-            log.info("  - on Mac:     '%s'" % mac_path if mac_path else "  - on Mac:     No path defined")
+            log.info("  - on Windows: '%s'" % win_path   if win_path else   "  - on Windows: No path defined")
+            log.info("  - on Mac:     '%s'" % mac_path   if mac_path else   "  - on Mac:     No path defined")
             
         log.info("")
         log.info("")
