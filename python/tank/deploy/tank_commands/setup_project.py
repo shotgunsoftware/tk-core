@@ -471,7 +471,13 @@ class SetupProjectAction(Action):
                     
                     # try to create the folders
                     try:
-                        os.makedirs(proj_path, 0777)
+                        
+                        old_umask = os.umask(0)
+                        try:
+                            os.makedirs(proj_path, 0777)
+                        finally:
+                            os.umask(old_umask)                        
+                        
                         log.info(" - %s: %s [Created]" % (storage_name, proj_path))
                         storages_valid = True
                     except Exception, e:
