@@ -32,7 +32,7 @@ class SetupProjectFactoryAction(Action):
     # create our factory object
     >>> factory = tank.get_command("setup_project_factory")
     # the factory can spit out set up wizards
-    >>> setup_wizard = c.execute()
+    >>> setup_wizard = factory.execute()
     # now set up various parameters etc on the project wizard
     # this can be an interactive process which includes validation etc. 
     >>> wizard.set_parameters(....)
