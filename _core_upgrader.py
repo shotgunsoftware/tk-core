@@ -222,7 +222,7 @@ def upgrade_tank(tank_install_root, log):
                 log.error("The specified tank install root '%s' doesn't look valid - "
                           "an expected sub-directory '/%s' couldn't be found!\n"
                           "Typically the install root path ends with /install." 
-                          % (dir, tank_install_root))
+                          % (tank_install_root, dir))
                 return                
         
         # get target locations
