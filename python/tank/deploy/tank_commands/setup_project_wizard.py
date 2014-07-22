@@ -117,18 +117,28 @@ class SetupProjectFactoryAction(Action):
 
 class SetupProjectWizard(object):
     """
-    A class which wraps around the project setup functionality in toolkit
+    A class which wraps around the project setup functionality in toolkit.
     """
     
     def __init__(self, log, sg, sg_app_store, sg_app_store_script_user):
         """
         Constructor. 
         """        
-        self._params = ProjectSetupParameters(log, sg, sg_app_store, sg_app_store_script_user)
         self._log = log
         self._sg = sg
         self._sg_app_store = sg_app_store
         self._sg_app_store_script_user = sg_app_store_script_user
+        # and set up our parameters object which holds all the internal state
+        self.reset()
+        
+    def reset(self):
+        """
+        Reset the wizard completely. Clears all internal state.
+        """
+        self._params = ProjectSetupParameters(self._log, 
+                                              self._sg, 
+                                              self._sg_app_store, 
+                                              self._sg_app_store_script_user)
         
     def set_project(self, project_id, force=False):
         """
@@ -280,10 +290,7 @@ class SetupProjectWizard(object):
         
         # lastly, register the name in shotgun
         self._params.set_project_disk_name(project_disk_name)
-        
-        
-
-    
+            
     def get_default_configuration_location(self):
         """
         Returns default suggested location for configurations.
