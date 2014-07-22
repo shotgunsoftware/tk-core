@@ -99,7 +99,9 @@ class Engine(TankBundle):
                 sys.path.append(python_path)
 
 
-        # initial init pass on engine
+        # Note, 'init_engine()' is now deprecated and all derived initialisation should be
+        # done in either 'pre_app_init()' or 'post_app_init()'.  'init_engine()' is left
+        # in here to provide backwards compatibility with any legacy code. 
         self.init_engine()
 
         # try to pull in QT classes and assign to tank.platform.qt.XYZ
@@ -111,6 +113,9 @@ class Engine(TankBundle):
         # create invoker to allow execution of functions on the
         # main thread:
         self._invoker = self.__create_main_thread_invoker()
+        
+        # run any init that needs to be done before the apps are loaded:
+        self.pre_app_init()
         
         # now load all apps and their settings
         self.__load_apps()
@@ -265,7 +270,13 @@ class Engine(TankBundle):
     
     def init_engine(self):
         """
-        Sets up the engine into an operational state.
+        Note: Now deprecated - Please use pre_app_init instead.
+        """
+        pass
+    
+    def pre_app_init(self):
+        """
+        Runs after the engine is set up but before any apps have been initialized.
         
         Implemented by deriving classes.
         """
