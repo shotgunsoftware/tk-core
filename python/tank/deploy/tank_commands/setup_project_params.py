@@ -473,7 +473,7 @@ class ProjectSetupParameters(object):
         """
 
         if self._project_name is None:
-            raise TankError("Must specify a project name before accessing config locaton defaults!")    
+            raise TankError("Must specify a project name before accessing config location defaults!")    
     
         # figure out the config install location. There are three cases to deal with
         # - 0.13 style layout, where they all sit together in an install location
