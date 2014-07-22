@@ -304,6 +304,17 @@ class SetupProjectWizard(object):
         """
         return self._params.get_default_configuration_location()
     
+    def validate_configuration_location(self, linux_path, windows_path, macosx_path):
+        """
+        Validates a potential location for the pipeline configuration. 
+        Raises exceptions in case the validation fails.
+        
+        :param linux_path: Path on linux 
+        :param windows_path: Path on windows
+        :param macosx_path: Path on mac        
+        """
+        self._params.validate_configuration_location(linux_path, windows_path, macosx_path)
+            
     def set_configuration_location(self, linux_path, windows_path, macosx_path):
         """
         Specifies where the pipeline configuration should be located.
@@ -321,7 +332,6 @@ class SetupProjectWizard(object):
         
         # run overall validation of the project setup
         self._params.validate_project_io()
-        self._params.validate_config_io()
         
         # and finally carry out the setup
         return run_project_setup(self._log, 

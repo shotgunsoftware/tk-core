@@ -47,7 +47,7 @@ class ProjectSetupParameters(object):
     - get a suggested configuration location - get_default_configuration_location()
     - set the configuration location - set_configuration_location()
     
-    - validate using validate_project_io and validate_config_io
+    - validate using validate_project_io
     
     - run project setup!
     
@@ -549,6 +549,58 @@ class ProjectSetupParameters(object):
 
         return location
 
+
+    def validate_configuration_location(self, linux_path, windows_path, macosx_path):
+        """
+        Performs basic I/O checks to ensure that the given configuration location is valid.
+        Raises exceptions in case of validation problems.
+
+        :param linux_path: Path on linux 
+        :param windows_path: Path on windows
+        :param macosx_path: Path on mac
+        """
+        
+        config_path = {}
+        config_path["linux2"] = linux_path
+        config_path["win32"] = windows_path
+        config_path["darwin"] = macosx_path
+        
+        # get the location of the configuration
+        config_path_current_os = config_path[sys.platform] 
+        
+        # validate that the config location is not taken
+        if os.path.exists(config_path_current_os):
+            # pc location already exists - make sure it doesn't already contain an install
+            if os.path.exists(os.path.join(config_path_current_os, "install")) or \
+               os.path.exists(os.path.join(config_path_current_os, "config")):
+                raise TankError("Looks like the location '%s' already contains a "
+                                "configuration!" % config_path_current_os)
+            # also make sure it has right permissions
+            if not os.access(config_path_current_os, os.W_OK|os.R_OK|os.X_OK):
+                raise TankError("The permissions setting for '%s' is too strict. The current user "
+                                "cannot create files or folders in this location." % config_path_current_os)
+            
+        else:
+            # path does not exist! 
+            # make sure parent path exists and is writable
+            # (the setup process will create the path automatically)
+            #
+            # however, ensure that the parent path exists
+            parent_config_path_current_os = os.path.dirname(config_path_current_os)
+        
+            if not os.path.exists(parent_config_path_current_os):
+                raise TankError("The folder '%s' does not exist! Please create "
+                                "it before proceeding!" % parent_config_path_current_os)
+                    
+            # and make sure we can create a folder in it
+            if not os.access(parent_config_path_current_os, os.W_OK|os.R_OK|os.X_OK):
+                raise TankError("Cannot create a project configuration in location '%s'! "
+                                "The permissions setting for the parent folder '%s' "
+                                "is too strict. The current user "
+                                "cannot create folders in this location. Please create the "
+                                "project configuration folder by hand and then re-run the project "
+                                "setup." % (config_path_current_os, parent_config_path_current_os))
+
     def set_configuration_location(self, linux_path, windows_path, macosx_path):
         """
         Sets the desired path to a pipeline configuration.
@@ -558,6 +610,11 @@ class ProjectSetupParameters(object):
         :param windows_path: Path on windows
         :param macosx_path: Path on mac
         """
+        
+        # validate
+        self.validate_configuration_location(linux_path, windows_path, macosx_path)
+
+        # and set member variables
         self._config_path = {}
         self._config_path["linux2"] = linux_path
         self._config_path["win32"] = windows_path
@@ -643,13 +700,17 @@ class ProjectSetupParameters(object):
 
 
     ################################################################################################################
-    # General validation     
+    # Validation     
     
     def validate_project_io(self):
         """
         Performs basic I/O checks to ensure that the tank folder can be written to each project location.
+        
+        This validation should happen as a last step just before project setup as it checks 
+        the combination of configuration path, project name and configuraton template. 
+        
         (note: this will change as part of the 0.15 changes we are making)
-        """    
+        """
         
         # get the location of the configuration
         config_path_current_os = self.get_configuration_location(sys.platform) 
@@ -684,44 +745,6 @@ class ProjectSetupParameters(object):
                     raise TankError("The permissions setting for '%s' is too strict. The current user "
                                     "cannot create a tank folder in this location." % project_path_local_os)
                 
-    def validate_config_io(self):
-        """
-        Performs basic I/O checks to ensure that the config can be created in the specified location
-        """    
-        
-        # get the location of the configuration
-        config_path_current_os = self.get_configuration_location(sys.platform) 
-        
-        # validate that the config location is not taken
-        if os.path.exists(config_path_current_os):
-            # pc location already exists - make sure it doesn't already contain an install
-            if os.path.exists(os.path.join(config_path_current_os, "install")) or \
-               os.path.exists(os.path.join(config_path_current_os, "config")):
-                raise TankError("Looks like the location '%s' already contains a "
-                                "configuration!" % config_path_current_os)
-            # also make sure it has right permissions
-            if not os.access(config_path_current_os, os.W_OK|os.R_OK|os.X_OK):
-                raise TankError("The permissions setting for '%s' is too strict. The current user "
-                                "cannot create files or folders in this location." % config_path_current_os)
-            
-        else:
-            # path does not exist! 
-            # make sure parent path exists and is writable
-            # find an existing parent path
-            parent_config_path_current_os = os.path.dirname(config_path_current_os)
-        
-            if not os.path.exists(parent_config_path_current_os):
-                raise TankError("The folder '%s' does not exist! Please create "
-                                "it before proceeding!" % parent_config_path_current_os)
-                    
-            # and make sure we can create a folder in it
-            if not os.access(parent_config_path_current_os, os.W_OK|os.R_OK|os.X_OK):
-                raise TankError("Cannot create a project configuration in location '%s'! "
-                                "The permissions setting for the parent folder '%s' "
-                                "is too strict. The current user "
-                                "cannot create folders in this location. Please create the "
-                                "project configuration folder by hand and then re-run the project "
-                                "setup." % (config_path_current_os, parent_config_path_current_os))
         
     
 
