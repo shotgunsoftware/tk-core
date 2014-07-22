@@ -626,16 +626,16 @@ class ProjectSetupParameters(object):
             raise TankError("Cannot load config file '%s'. Error: %s" % (location_file, error))
 
         # do some cleanup on this file - sometimes there are entries that say "undefined"
-        # turn those into null values
+        # or is just an empty string - turn those into null values
         linux_path = location_data.get("Linux")
         macosx_path = location_data.get("Darwin")
         win_path = location_data.get("Windows")
         
-        if linux_path is not None and not linux_path.startswith("/"):
+        if not linux_path or not linux_path.startswith("/"):
             linux_path = None
-        if macosx_path is not None and not macosx_path.startswith("/"):
+        if not macosx_path or not macosx_path.startswith("/"):
             macosx_path = None
-        if win_path is not None and not (win_path.startswith("\\") or win_path[1] == ":"):
+        if not win_path or not (win_path.startswith("\\") or win_path[1] == ":"):
             win_path = None
 
         # return data using sys.platform jargon
