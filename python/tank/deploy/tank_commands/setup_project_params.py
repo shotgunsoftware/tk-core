@@ -282,7 +282,7 @@ class ProjectSetupParameters(object):
             raise TankError("Could not find a project with id %s!" % self._project_id)
 
         # if force is false then tank_name must be empty
-        if force == False and proj["tank_name"] is not None:
+        if self.get_auto_path_mode() == False and force == False and proj["tank_name"] is not None:
             raise TankError("You are trying to set up a project which has already been set up. If you want to do "
                             "this, make sure to set the force parameter.")
 

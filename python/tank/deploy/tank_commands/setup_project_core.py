@@ -276,7 +276,10 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, set
             log.info("Creating Pipeline Configuration in Shotgun...")
             data = {"project": {"type": "Project", "id": project_id }, "code": constants.PRIMARY_PIPELINE_CONFIG_NAME}
             pc_entity = sg.create(constants.PIPELINE_CONFIGURATION_ENTITY, data)
+            pipeline_config_id = pc_entity["id"]
             log.debug("Created data: %s" % pc_entity)
+        else:
+            pipeline_config_id = data["id"]
         
     else:
         # normal mode.
@@ -294,6 +297,7 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, set
     
         # create pipeline configuration record
         pc_entity = sg.create(constants.PIPELINE_CONFIGURATION_ENTITY, data)
+        pipeline_config_id = pc_entity["id"] 
         log.debug("Created data: %s" % pc_entity)
     
     # write the record to disk
@@ -305,7 +309,7 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, set
     
     data = {}
     data["project_name"] = project_name
-    data["pc_id"] = pc_entity["id"]
+    data["pc_id"] = pipeline_config_id
     data["project_id"] = project_id
     data["pc_name"] = constants.PRIMARY_PIPELINE_CONFIG_NAME 
     data["published_file_entity_type"] = pf_entity_type
