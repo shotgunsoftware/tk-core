@@ -260,7 +260,7 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, set
                 log.warning("You have supplied the project disk name '%s' as part of the project setup "
                             "parameters, however the name '%s' has already been registered in Shotgun for "
                             "this project. This name will be used instead of the suggested disk "
-                            "name." % (data["tank_name"], project_name) )
+                            "name." % (project_name, data["tank_name"]) )
                 project_name = data["tank_name"] 
              
         log.info("Creating Pipeline Configuration in Shotgun...")
