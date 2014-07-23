@@ -46,7 +46,11 @@ class SetupProjectAction(Action):
         self.parameters["check_storage_path_exists"] = { "description": ("Check that the path to the storage exists. "
                                                                          "this is enabled by default but can be turned "
                                                                          "off in order to deal with certain expert "
-                                                                         "level use cases relating to UNC paths."),
+                                                                         "level use cases relating to UNC paths. for "
+                                                                         "example, if your storage is set to be "
+                                                                         "'\\\\PROJECTS', this location cannot be "
+                                                                         "validated to exist and this option needs to "
+                                                                         "be used."),
                                                          "default": True,
                                                          "type": "bool" }
         
