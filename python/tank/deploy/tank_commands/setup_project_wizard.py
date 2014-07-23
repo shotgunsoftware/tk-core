@@ -130,16 +130,7 @@ class SetupProjectWizard(object):
         self._sg_app_store_script_user = sg_app_store_script_user
         # and set up our parameters object which holds all the internal state
         self.reset()
-        
-    def reset(self):
-        """
-        Reset the wizard completely. Clears all internal state.
-        """
-        self._params = ProjectSetupParameters(self._log, 
-                                              self._sg, 
-                                              self._sg_app_store, 
-                                              self._sg_app_store_script_user)
-        
+                
     def set_project(self, project_id, force=False):
         """
         Specify which project that should be set up.
@@ -309,9 +300,9 @@ class SetupProjectWizard(object):
         Validates a potential location for the pipeline configuration. 
         Raises exceptions in case the validation fails.
         
-        :param linux_path: Path on linux 
+        :param linux_path: Path on linux
         :param windows_path: Path on windows
-        :param macosx_path: Path on mac        
+        :param macosx_path: Path on mac
         """
         self._params.validate_configuration_location(linux_path, windows_path, macosx_path)
             
