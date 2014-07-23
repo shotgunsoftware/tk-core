@@ -47,7 +47,7 @@ class ProjectSetupParameters(object):
     - get a suggested configuration location - get_default_configuration_location()
     - set the configuration location - set_configuration_location()
     
-    - validate using validate_project_io
+    - validate using pre_setup_validation
     
     - run project setup!
     
@@ -83,7 +83,7 @@ class ProjectSetupParameters(object):
         # initialize data members - project
         self._force_setup = False
         self._project_id = None
-        self._project_name = None
+        self._project_disk_name = None
     
     
     ################################################################################################################
@@ -384,7 +384,7 @@ class ProjectSetupParameters(object):
         :param project_name: name of project
         """
         self.validate_project_disk_name(project_name)
-        self._project_name = project_name
+        self._project_disk_name = project_name
     
     def get_project_id(self):
         """
@@ -414,10 +414,10 @@ class ProjectSetupParameters(object):
         
         :returns: project name as a string
         """
-        if self._project_name is None:
+        if self._project_disk_name is None:
             raise TankError("No project name specified!")
 
-        return self._project_name
+        return self._project_disk_name
     
     def get_project_path(self, storage_name, platform):
         """    
@@ -429,13 +429,13 @@ class ProjectSetupParameters(object):
         
         :returns: full path
         """
-        if self._project_name is None:
+        if self._project_disk_name is None:
             raise TankError("No project name specified!")
         
         if self._config_template is None:
             raise TankError("Please specify a configuration template!")
 
-        return self.preview_project_path(storage_name, self._project_name, platform)
+        return self.preview_project_path(storage_name, self._project_disk_name, platform)
             
     
     ################################################################################################################
@@ -472,7 +472,7 @@ class ProjectSetupParameters(object):
         :returns: dictionary with paths
         """
 
-        if self._project_name is None:
+        if self._project_disk_name is None:
             raise TankError("Must specify a project name before accessing config location defaults!")    
     
         # figure out the config install location. There are three cases to deal with
@@ -702,16 +702,26 @@ class ProjectSetupParameters(object):
     ################################################################################################################
     # Validation     
     
-    def validate_project_io(self):
+    def pre_setup_validation(self):
         """
-        Performs basic I/O checks to ensure that the tank folder can be written to each project location.
-        
-        This validation should happen as a last step just before project setup as it checks 
-        the combination of configuration path, project name and configuraton template. 
-        
-        (note: this will change as part of the 0.15 changes we are making)
+        Performs basic validation checks on all the specified data together.
+        This method should be executed prior to running the setup projet logic to ensure
+        that the process will succeed.         
         """
         
+        # make sure all parameters have been specified
+        if self._config_template is None:
+            raise TankError("Configuration template has not been specified!")
+        
+        if self._config_path is None:
+            raise TankError("Path to the target configuration install has not been specified!")
+        
+        if self.self._project_id is None:
+            raise TankError("A project id has not been specified!")
+        
+        if self._project_disk_name is None:
+            raise TankError("Project disk name has not been specified!")
+            
         # get the location of the configuration
         config_path_current_os = self.get_configuration_location(sys.platform) 
         
@@ -746,7 +756,22 @@ class ProjectSetupParameters(object):
                                     "cannot create a tank folder in this location." % project_path_local_os)
                 
         
+        # check if the config template has required minimum core version and make sure that 
+        # the core we are trying to marry up with the config is recent enough
+        required_core_version = self._config_template.get_required_core_version()
+        if required_core_version:
+            
+            # now figure out the version of the desired API
+            api_location = self.get_associated_core_path(sys.platform)
+            curr_core_version = pipelineconfig.get_core_api_version(api_location)
     
+            if deploy_util.is_version_newer(required_core_version, curr_core_version):        
+                raise TankError("This configuration requires Toolkit Core version %s "
+                                "but you are running version %s" % (required_core_version, curr_core_version))
+            else:
+                self._log.debug("Config requires Toolkit Core %s. "
+                                "You are running %s which is fine." % (required_core_version, curr_core_version))
+        
 
 
 

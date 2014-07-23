@@ -138,7 +138,7 @@ class SetupProjectAction(Action):
                                           computed_params["config_path_mac"])        
         
         # run overall validation of the project setup
-        params.validate_project_io()
+        params.pre_setup_validation()
         
         # and finally carry out the setup
         return run_project_setup(log, sg, sg_app_store, sg_app_store_script_user, params)
@@ -193,7 +193,7 @@ class SetupProjectAction(Action):
         self._get_disk_location(log, params)
         
         # run overall validation of the project setup
-        params.validate_project_io()
+        params.pre_setup_validation()
         
         # print overview
         self._emit_project_setup_summary(log, params)

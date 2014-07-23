@@ -313,26 +313,11 @@ class PipelineConfiguration(object):
         This method is 'forgiving' and in the case no associated core API can be 
         found for this pipeline configuration, None will be returned rather than 
         an exception raised. 
+
+        :returns: version str e.g. 'v1.2.3', None if no version could be determined. 
         """
         associated_api_root = self.get_install_location()
-        
-        info_yml_path = os.path.join(associated_api_root, "install", "core", "info.yml")
-
-        if os.path.exists(info_yml_path):
-            try:
-                info_fh = open(info_yml_path, "r")
-                try:
-                    data = yaml.load(info_fh)
-                finally:
-                    info_fh.close()
-                data = data.get("version")
-            except:
-                data = None
-        else:
-            data = None
-
-        return data
-        
+        return get_core_api_version(associated_api_root)
 
     def get_install_location(self):
         """
@@ -355,46 +340,7 @@ class PipelineConfiguration(object):
         running API. Usually these two are the same (or so they should be), but this is not
         guaranteed.
         """
-
-        if is_localized(self._pc_root):
-            # first, try to locate an install local to this pipeline configuration.
-            # this would find any localized APIs.
-            install_path = self._pc_root
-
-        else:
-            # this PC is associated with a shared API (studio install)
-            # follow the links defined in the configuration to establish which 
-            # setup it has been associated with.
-            studio_linkback_files = {"win32": os.path.join(self._pc_root, "install", "core", "core_Windows.cfg"), 
-                                     "linux2": os.path.join(self._pc_root, "install", "core", "core_Linux.cfg"), 
-                                     "darwin": os.path.join(self._pc_root, "install", "core", "core_Darwin.cfg")}
-            
-            curr_linkback_file = studio_linkback_files[sys.platform]
-            
-            # this file will contain the path to the API which is meant to be used with this PC.
-            install_path = None
-            try:
-                fh = open(curr_linkback_file, "rt")
-                data = fh.read().strip() # remove any whitespace, keep text
-                # expand any env vars that are used in the files. For example, you could have 
-                # an env variable $STUDIO_TANK_PATH=/sgtk/software/shotgun/studio and your 
-                # linkback file may just contain "$STUDIO_TANK_PATH" instead of an explicit path.
-                data = os.path.expandvars(data)
-                if data not in ["None", "undefined"] and os.path.exists(data):
-                    install_path = data
-                fh.close()                    
-            except:
-                pass
-                
-            if install_path is None:
-                # no luck determining the location of the core API through our two 
-                # established modus operandi. Fall back on the crude legacy
-                # approach, which is to grab and return the currently running code.
-                install_path = get_current_code_install_root()
-
-                    
-        return install_path
-
+        return get_core_api_install_location(self._pc_root)
 
     def get_apps_location(self):
         """
@@ -926,8 +872,10 @@ def get_current_code_install_root():
 
 def get_core_api_version_based_on_current_code():
     """
-    Returns the version number string for the core API, based on the code that is currently
-    executing.
+    Returns the version number string for the core API, 
+    based on the code that is currently executing.
+    
+    :returns: version string, e.g. 'v1.2.3'. 'unknown' if a version number cannot be determined.
     """
     # read this from info.yml
     info_yml_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "info.yml"))
@@ -942,7 +890,6 @@ def get_core_api_version_based_on_current_code():
         data = "unknown"
 
     return data
-
 
 def get_pc_registered_location(pipeline_config_root_path):
     """
@@ -1133,3 +1080,95 @@ def is_localized(pipeline_config_path):
     api_file = os.path.join(pipeline_config_path, "install", "core", "_core_upgrader.py")
     return os.path.exists(api_file)
 
+def get_core_api_install_location(pipeline_config_path):
+    """
+    Returns the core api install location associated with this pipeline configuration.
+    
+    This method will return the root point, so a pipeline config root if running 
+    a localized API or a studio location root if running a bare API.
+    
+    The install location is where toolkit caches engines, apps, frameworks and is
+    where it keeps the Core API.       
+    
+    Use this method whenever a pipeline configuration is available, since it is more
+    sophisticated. In cases when no pipeline configuration is available, revert to  
+    get_current_code_install_root() which will base the install location
+    on the current code.
+    
+    When a pipeline configuration exists, a specific relationship between the core
+    core and that configuration has also been established. This method will follow
+    this connection to return the actual associated core API rather than the 
+    running API. Usually these two are the same (or so they should be), but this is not
+    guaranteed.
+    
+    :param pipeline_config_path: path to a pipeline configuration
+    :returns: Path to the studio location root or pipeline configuration root
+    """
+
+    if is_localized(pipeline_config_path):
+        # first, try to locate an install local to this pipeline configuration.
+        # this would find any localized APIs.
+        install_path = pipeline_config_path
+
+    else:
+        # this PC is associated with a shared API (studio install)
+        # follow the links defined in the configuration to establish which 
+        # setup it has been associated with.
+        studio_linkback_files = {"win32": os.path.join(pipeline_config_path, "install", "core", "core_Windows.cfg"), 
+                                 "linux2": os.path.join(pipeline_config_path, "install", "core", "core_Linux.cfg"), 
+                                 "darwin": os.path.join(pipeline_config_path, "install", "core", "core_Darwin.cfg")}
+        
+        curr_linkback_file = studio_linkback_files[sys.platform]
+        
+        # this file will contain the path to the API which is meant to be used with this PC.
+        install_path = None
+        try:
+            fh = open(curr_linkback_file, "rt")
+            data = fh.read().strip() # remove any whitespace, keep text
+            # expand any env vars that are used in the files. For example, you could have 
+            # an env variable $STUDIO_TANK_PATH=/sgtk/software/shotgun/studio and your 
+            # linkback file may just contain "$STUDIO_TANK_PATH" instead of an explicit path.
+            data = os.path.expandvars(data)
+            if data not in ["None", "undefined"] and os.path.exists(data):
+                install_path = data
+            fh.close()  
+        except:
+            pass
+            
+        if install_path is None:
+            # no luck determining the location of the core API through our two 
+            # established modus operandi. Fall back on the crude legacy
+            # approach, which is to grab and return the currently running code.
+            install_path = get_current_code_install_root()
+                
+    return install_path
+
+def get_core_api_version(core_install_root):
+    """
+    Returns the version string for the core api associated with this config.
+    This method is 'forgiving' and in the case no associated core API can be 
+    found for this location, None will be returned rather than 
+    an exception raised. 
+
+    :param core_install_root: Path to a core installation root, either the root of a pipeline
+                              configuration, or the root of a "bare" studio code location.
+    :returns: version str e.g. 'v1.2.3', None if no version could be determined. 
+    """
+    # now try to get to the info.yml file to get the version number
+    info_yml_path = os.path.join(core_install_root, "install", "core", "info.yml")
+    
+    if os.path.exists(info_yml_path):
+        try:
+            info_fh = open(info_yml_path, "r")
+            try:
+                data = yaml.load(info_fh)
+            finally:
+                info_fh.close()
+            data = data.get("version")
+        except:
+            data = None
+    else:
+        data = None
+
+    return data
+    

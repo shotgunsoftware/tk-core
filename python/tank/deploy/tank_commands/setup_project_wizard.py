@@ -322,7 +322,7 @@ class SetupProjectWizard(object):
         """
         
         # run overall validation of the project setup
-        self._params.validate_project_io()
+        self._params.pre_setup_validation()
         
         # and finally carry out the setup
         return run_project_setup(self._log, 
