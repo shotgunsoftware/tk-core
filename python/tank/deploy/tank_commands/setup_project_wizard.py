@@ -293,7 +293,65 @@ class SetupProjectWizard(object):
 
         :returns: dictionary with paths
         """
-        return {"darwin": None, "linux2": None, "win32": None}
+
+        # the logic here is as follows:
+        # 1. if the config comes from an existing project, base the config location on this
+        # 2. if not, find the most recent primary pipeline config and base location on this
+        # 3. failing that (meaning no projects have been set up ever) return None
+
+        # helper method for path munging:        
+        def _join(path, separator, project_name):
+            """
+            Helper method: path: /foo/bar/baz, separator: /, project_name: xxx => /foo/bar/xxx
+            """
+            if path is None or path == "":
+                return None
+            chunks = path.split(separator) # first split
+            chunks.pop() # remove the project folder
+            proj_name_chunks = project_name.split("/") # in case of a multi folder project name, split it up
+            chunks.extend(proj_name_chunks) # append project name
+            return separator.join(chunks) # and join up
+        
+        # now check the shotgun data
+        proj_name = self._params.get_project_disk_name()
+        data = self._params.get_configuration_shotgun_info()
+        
+        if data:
+            self._Log.debug("Configuration is an existing shotgun config. Basing config values "
+                            "on these config paths: %s" % data)
+            
+            # we have a configuration in shotgun which we are basing our path on!
+            return {"darwin": _join(data["mac_path"], "/", proj_name), 
+                    "linux2": _join(data["linux_path"], "/", proj_name), 
+                    "win32":  _join(data["windows_path"], "\\", proj_name)}
+            
+        else:
+            # find the most recent primary pipeline configuration and use that
+            data = self._sg.find_one("PipelineConfiguration", 
+                                     [["code", "is", "primary"]],
+                                     ["id", "mac_path", "windows_path", "linux_path", "project"],
+                                     [{"field_name": "created_at", "direction": "desc"}])
+            
+            if len(data) == 0:
+                # there are no primary configurations registered. This means that we are setting up
+                # our very first project and cannot really suggest any config locations
+                self._log.debug("No configs available to generate preview config values. Returning None.")
+                
+                return {"darwin": None, "linux2": None, "win32": None}
+        
+            else:
+                # use the existing project to generate a preview
+                self._Log.debug("Configuration comes from app store or git. Basing config values "
+                                "on the last config in shotgun: %s" % data)
+
+                return {"darwin": _join(data["mac_path"], "/", proj_name), 
+                        "linux2": _join(data["linux_path"], "/", proj_name), 
+                        "win32":  _join(data["windows_path"], "\\", proj_name)}
+    
+    
+            
+    
+    
     
     def validate_configuration_location(self, linux_path, windows_path, macosx_path):
         """

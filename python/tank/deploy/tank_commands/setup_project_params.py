@@ -211,6 +211,25 @@ class ProjectSetupParameters(object):
         
         return self._config_template.get_description()
     
+    def get_configuration_shotgun_info(self):
+        """
+        Returns information about how the config relates to shotgun.
+        
+        :returns: dict or None if no sg association could be found
+        """
+        if self._config_template is None:
+            raise TankError("Please specify a configuration template!")
+
+        field_name = {"win32": "windows_path", "linux2": "linux_path", "darwin": "mac_path"}[sys.platform]
+        
+        data = self._sg.find_one("PipelineConfiguration", 
+                                 [[field_name, "is", self._config_template.get_uri()]],
+                                 ["id", "code", "mac_path", "windows_path", "linux_path", "project"])
+        
+        return data
+        
+    
+    
     def get_required_storages(self):
         """
         Returns a list of storage names which are required for this project.
@@ -1028,6 +1047,15 @@ class TemplateConfiguration(object):
         :returns: string
         """
         return self._manifest.get("display_name")
+        
+    def get_uri(self):
+        """
+        Returns the config URI associated with this config
+        
+        :returns: string
+        """
+        return self._config_uri
+        
         
     def get_description(self):
         """
