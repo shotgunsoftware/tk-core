@@ -837,23 +837,7 @@ class TemplateConfiguration(object):
                 else:
                     self._log.debug("Config requires shotgun %s. "
                                     "You are running %s which is fine." % (required_version, sg_version_str))
-                        
-            if "requires_core_version" in self._manifest:
-                # there is a core min version required - make sure we have that!
-                
-                required_version = self._manifest["requires_core_version"]
-                
-                # now figure out the current version of the currently running core API
-                # and compare against that
-                curr_core_version = pipelineconfig.get_core_api_version_based_on_current_code()
-        
-                if deploy_util.is_version_newer(required_version, curr_core_version):        
-                    raise TankError("This configuration requires Toolkit Core version %s "
-                                    "but you are running version %s" % (required_version, curr_core_version))
-                else:
-                    self._log.debug("Config requires Toolkit Core %s. "
-                                    "You are running %s which is fine." % (required_version, curr_core_version))
-    
+                    
 
     ################################################################################################
     # Helper methods
@@ -1143,6 +1127,14 @@ class TemplateConfiguration(object):
                             return_data[s]["exists_on_disk"] = True
                                     
         return return_data
+
+    def get_required_core_version(self):
+        """
+        Returns the required core version, as a string
+        
+        :returns: str, e.g. 'v0.2.3' or None if not defined
+        """
+        return self._manifest.get("requires_core_version")
 
     def get_name(self):
         """
