@@ -293,7 +293,7 @@ class SetupProjectWizard(object):
 
         :returns: dictionary with paths
         """
-        return self._params.get_default_configuration_location()
+        return {"darwin": None, "linux2": None, "win32": None}
     
     def validate_configuration_location(self, linux_path, windows_path, macosx_path):
         """

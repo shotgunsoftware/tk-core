@@ -867,9 +867,6 @@ def get_current_code_install_root():
                         "Please contact support.")
     return p
     
-    
-
-
 def get_core_api_version_based_on_current_code():
     """
     Returns the version number string for the core API, 
@@ -1172,3 +1169,55 @@ def get_core_api_version(core_install_root):
 
     return data
     
+
+def get_current_core_install_location_data():
+    """
+    Given the location of the running code, find the configuration which holds
+    the installation location on all platforms. Return the content of this file.
+    Note that some entries may be None in case a core wasn't defined for that platform.
+    
+    This is similar to get_current_code_install_root() except it returns locations for all three platforms. 
+    
+    :returns: dict with keys linux2, darwin and win32
+    """
+
+    core_api_root = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "..", "..", "..", ".."))
+    core_cfg = os.path.join(core_api_root, "config", "core")
+
+    if not os.path.exists(core_cfg):
+        full_path_to_file = os.path.abspath(os.path.dirname(__file__))
+        raise TankError("Cannot resolve the core configuration from the location of the Toolkit Code! "
+                        "This can happen if you try to move or symlink the Toolkit API. The "
+                        "Toolkit API is currently picked up from %s which is an "
+                        "invalid location." % full_path_to_file)
+    
+    location_file = os.path.join(core_cfg, "install_location.yml")
+    if not os.path.exists(location_file):
+        raise TankError("Cannot find '%s' - please contact support!" % location_file)
+
+    # load the config file
+    try:
+        open_file = open(location_file)
+        try:
+            location_data = yaml.load(open_file)
+        finally:
+            open_file.close()
+    except Exception, error:
+        raise TankError("Cannot load config file '%s'. Error: %s" % (location_file, error))
+
+    # do some cleanup on this file - sometimes there are entries that say "undefined"
+    # or is just an empty string - turn those into null values
+    linux_path = location_data.get("Linux")
+    macosx_path = location_data.get("Darwin")
+    win_path = location_data.get("Windows")
+    
+    if not linux_path or not linux_path.startswith("/"):
+        linux_path = None
+    if not macosx_path or not macosx_path.startswith("/"):
+        macosx_path = None
+    if not win_path or not (win_path.startswith("\\") or win_path[1] == ":"):
+        win_path = None
+
+    # return data using sys.platform jargon
+        return {"win32": win_path, "darwin": macosx_path, "linux2": linux_path } 
+

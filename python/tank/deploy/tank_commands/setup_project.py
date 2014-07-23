@@ -15,6 +15,9 @@ from .action_base import Action
 from ...errors import TankError
 from ...util import shotgun
 from ...platform import constants
+from ... import pipelineconfig
+
+from tank_vendor import yaml
 
 from .setup_project_core import run_project_setup
 from .setup_project_params import ProjectSetupParameters
@@ -520,13 +523,103 @@ class SetupProjectAction(Action):
         log.info("")
         log.info("You can press ENTER to accept the default value or to skip.")
         
-        default_config_locations = params.get_default_configuration_location()
+        default_config_locations = self._get_default_configuration_location(log, params)
         
         linux_path = self._ask_location(log, default_config_locations["linux2"], "Linux")
         windows_path = self._ask_location(log, default_config_locations["win32"], "Windows")
         macosx_path = self._ask_location(log, default_config_locations["darwin"], "Macosx")
 
         params.set_configuration_location(linux_path, windows_path, macosx_path)
+
+    def _get_default_configuration_location(self, log, params):
+        """
+        Returns default suggested location for configurations.
+        Returns a dictionary with sys.platform style keys linux2/win32/darwin, e.g.
+        
+        { "darwin": "/foo/bar/project_name", 
+          "linux2": "/foo/bar/project_name",
+          "win32" : "c:\foo\bar\project_name"}        
+
+        :param log: python logger
+        :param params: project setup params object
+        :returns: dictionary with paths
+        """
+        
+        # figure out the config install location. There are three cases to deal with
+        # - 0.13 style layout, where they all sit together in an install location
+        # - 0.12 style layout, where there is a tank folder which is the studio location
+        #   and each project has its own folder.
+        # - something else!
+                
+        location = {"darwin": None, "linux2": None, "win32": None}
+        
+        # get the path to the primary storage  
+        primary_local_path = params.get_storage_path(constants.PRIMARY_STORAGE_NAME, sys.platform)        
+        
+        core_locations = pipelineconfig.get_current_core_install_location_data()
+        
+        if os.path.abspath(os.path.join(core_locations[sys.platform], "..")).lower() == primary_local_path.lower():
+            # ok the parent of the install root matches the primary storage - means OLD STYLE (pre core 0.12)
+            #
+            # in this setup, we would have the following structure: 
+            # /studio              <--- primary storage
+            # /studio/tank         <--- core API install
+            # /studio/project      <--- project data location
+            # /studio/project/tank <--- toolkit configuation location
+
+            if params.get_project_path(constants.PRIMARY_STORAGE_NAME, "darwin"):
+                location["darwin"] = "%s/tank" % params.get_project_path(constants.PRIMARY_STORAGE_NAME, "darwin") 
+                                                     
+            if params.get_project_path(constants.PRIMARY_STORAGE_NAME, "linux2"):
+                location["linux2"] = "%s/tank" % params.get_project_path(constants.PRIMARY_STORAGE_NAME, "linux2") 
+
+            if params.get_project_path(constants.PRIMARY_STORAGE_NAME, "win32"):
+                location["win32"] = "%s\\tank" % params.get_project_path(constants.PRIMARY_STORAGE_NAME, "win32") 
+
+        else:
+            # Core v0.12+ style setup - this is what is our default recommended setup
+            # here, the project data is treated as a completely separate thing.
+            #
+            # typical new style setup (not showing project data locations)
+            # /software/studio <-- core API install
+            #
+            # /software/proj_a  <-- project configuration
+            # /software/proj_b  <-- project configuration
+            # /software/proj_c  <-- project configuration
+            #
+            # In this case, we can determine the location of /software/studio by looking 
+            # at the location of the running code.
+            # we then suggest a configuration relative to this
+            
+            # get the project name on disk - note that this may contain slashes
+            project_name_chunks = params.get_project_disk_name().split("/") # ['multi', 'tier', 'name']
+            
+            # note: linux_install_root.startswith("/") handles the case where the config file says "undefined"
+            
+            if core_locations["linux2"]:
+                chunks = core_locations["linux2"].split("/") # e.g. /software/studio -> ['', 'software', 'studio']
+                chunks.pop() # pop the studio bit (e.g ['', 'software'])
+                chunks.extend(project_name_chunks) # append project name 
+                location["linux2"] = "/".join(chunks)
+            
+            if core_locations["darwin"]:
+                chunks = core_locations["darwin"].split("/") # e.g. /software/studio -> ['', 'software', 'studio']
+                chunks.pop() # pop the studio bit (e.g ['', 'software'])
+                chunks.extend(project_name_chunks) # append project name
+                location["darwin"] = "/".join(chunks)
+            
+            if core_locations["win32"]:
+                # split path into chunks
+                # e.g. c:\software\studio -> ['c:', 'software', 'studio']
+                # e.g. \\myserver\mymount\software\studio -> ['', '', 'myserver', 'mymount', 'software', 'studio']
+                chunks = core_locations["win32"].split("\\") 
+                chunks.pop() # pop the studio bit
+                chunks.extend(project_name_chunks) # append project name
+                location["win32"] = "\\".join(chunks)
+
+        return location
+
+
 
     def _ask_location(self, log, default, os_nice_name):
         """

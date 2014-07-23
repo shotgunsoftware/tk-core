@@ -44,7 +44,6 @@ class ProjectSetupParameters(object):
     - get a suggested project name - get_default_project_disk_name()
     - set project disk name - set_project_disk_name() (can validate on beforehand using validate_project_disk_name())
     
-    - get a suggested configuration location - get_default_configuration_location()
     - set the configuration location - set_configuration_location()
     
     - validate using pre_setup_validation
@@ -459,96 +458,6 @@ class ProjectSetupParameters(object):
         :returns: boolean indicating if auto path should be used
         """
         return self._auto_path
-    
-    def get_default_configuration_location(self):
-        """
-        Returns default suggested location for configurations.
-        Returns a dictionary with sys.platform style keys linux2/win32/darwin, e.g.
-        
-        { "darwin": "/foo/bar/project_name", 
-          "linux2": "/foo/bar/project_name",
-          "win32" : "c:\foo\bar\project_name"}        
-
-        :returns: dictionary with paths
-        """
-
-        if self._project_disk_name is None:
-            raise TankError("Must specify a project name before accessing config location defaults!")    
-    
-        # figure out the config install location. There are three cases to deal with
-        # - 0.13 style layout, where they all sit together in an install location
-        # - 0.12 style layout, where there is a tank folder which is the studio location
-        #   and each project has its own folder.
-        # - something else!
-                
-        location = {"darwin": None, "linux2": None, "win32": None}
-        
-        # get the path to the primary storage  
-        primary_local_path = self.get_storage_path(constants.PRIMARY_STORAGE_NAME, sys.platform)        
-        
-        core_locations = self._get_current_core_install_location_data()
-        
-        if os.path.abspath(os.path.join(core_locations[sys.platform], "..")).lower() == primary_local_path.lower():
-            # ok the parent of the install root matches the primary storage - means OLD STYLE (pre core 0.12)
-            #
-            # in this setup, we would have the following structure: 
-            # /studio              <--- primary storage
-            # /studio/tank         <--- core API install
-            # /studio/project      <--- project data location
-            # /studio/project/tank <--- toolkit configuation location
-
-            if self.get_project_path(constants.PRIMARY_STORAGE_NAME, "darwin"):
-                location["darwin"] = "%s/tank" % self.get_project_path(constants.PRIMARY_STORAGE_NAME, "darwin") 
-                                                     
-            if self.get_project_path(constants.PRIMARY_STORAGE_NAME, "linux2"):
-                location["linux2"] = "%s/tank" % self.get_project_path(constants.PRIMARY_STORAGE_NAME, "linux2") 
-
-            if self.get_project_path(constants.PRIMARY_STORAGE_NAME, "win32"):
-                location["win32"] = "%s\\tank" % self.get_project_path(constants.PRIMARY_STORAGE_NAME, "win32") 
-
-        else:
-            # Core v0.12+ style setup - this is what is our default recommended setup
-            # here, the project data is treated as a completely separate thing.
-            #
-            # typical new style setup (not showing project data locations)
-            # /software/studio <-- core API install
-            #
-            # /software/proj_a  <-- project configuration
-            # /software/proj_b  <-- project configuration
-            # /software/proj_c  <-- project configuration
-            #
-            # In this case, we can determine the location of /software/studio by looking 
-            # at the location of the running code.
-            # we then suggest a configuration relative to this
-            
-            # get the project name on disk - note that this may contain slashes
-            project_name_chunks = self.get_project_disk_name().split("/") # ['multi', 'tier', 'name']
-            
-            # note: linux_install_root.startswith("/") handles the case where the config file says "undefined"
-            
-            if core_locations["linux2"]:
-                chunks = core_locations["linux2"].split("/") # e.g. /software/studio -> ['', 'software', 'studio']
-                chunks.pop() # pop the studio bit (e.g ['', 'software'])
-                chunks.extend(project_name_chunks) # append project name 
-                location["linux2"] = "/".join(chunks)
-            
-            if core_locations["darwin"]:
-                chunks = core_locations["darwin"].split("/") # e.g. /software/studio -> ['', 'software', 'studio']
-                chunks.pop() # pop the studio bit (e.g ['', 'software'])
-                chunks.extend(project_name_chunks) # append project name
-                location["darwin"] = "/".join(chunks)
-            
-            if core_locations["win32"]:
-                # split path into chunks
-                # e.g. c:\software\studio -> ['c:', 'software', 'studio']
-                # e.g. \\myserver\mymount\software\studio -> ['', '', 'myserver', 'mymount', 'software', 'studio']
-                chunks = core_locations["win32"].split("\\") 
-                chunks.pop() # pop the studio bit
-                chunks.extend(project_name_chunks) # append project name
-                location["win32"] = "\\".join(chunks)
-
-        return location
-
 
     def validate_configuration_location(self, linux_path, windows_path, macosx_path):
         """
@@ -646,57 +555,8 @@ class ProjectSetupParameters(object):
         :param platform: Os platform as a string, sys.platform style (e.g. linux2/win32/darwin)
         :returns: path to pipeline configuration.
         """
-        core_paths = self._get_current_core_install_location_data()        
+        core_paths =  pipelineconfig.get_current_core_install_location_data()        
         return core_paths[platform]
-
-    def _get_current_core_install_location_data(self):
-        """
-        Given the location of the running code, find the configuration which holds
-        the installation location on all platforms. Return the content of this file.
-        Note that some entries may be None in case a core wasn't defined for that platform.
-        
-        :returns: dict with keys linux2, darwin and win32
-        """
-    
-        core_api_root = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "..", "..", "..", ".."))
-        core_cfg = os.path.join(core_api_root, "config", "core")
-    
-        if not os.path.exists(core_cfg):
-            full_path_to_file = os.path.abspath(os.path.dirname(__file__))
-            raise TankError("Cannot resolve the core configuration from the location of the Toolkit Code! "
-                            "This can happen if you try to move or symlink the Toolkit API. The "
-                            "Toolkit API is currently picked up from %s which is an "
-                            "invalid location." % full_path_to_file)
-        
-        location_file = os.path.join(core_cfg, "install_location.yml")
-        if not os.path.exists(location_file):
-            raise TankError("Cannot find '%s' - please contact support!" % location_file)
-    
-        # load the config file
-        try:
-            open_file = open(location_file)
-            try:
-                location_data = yaml.load(open_file)
-            finally:
-                open_file.close()
-        except Exception, error:
-            raise TankError("Cannot load config file '%s'. Error: %s" % (location_file, error))
-
-        # do some cleanup on this file - sometimes there are entries that say "undefined"
-        # or is just an empty string - turn those into null values
-        linux_path = location_data.get("Linux")
-        macosx_path = location_data.get("Darwin")
-        win_path = location_data.get("Windows")
-        
-        if not linux_path or not linux_path.startswith("/"):
-            linux_path = None
-        if not macosx_path or not macosx_path.startswith("/"):
-            macosx_path = None
-        if not win_path or not (win_path.startswith("\\") or win_path[1] == ":"):
-            win_path = None
-
-        # return data using sys.platform jargon
-        return {"win32": win_path, "darwin": macosx_path, "linux2": linux_path } 
 
 
     ################################################################################################################
