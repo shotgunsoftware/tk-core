@@ -84,6 +84,8 @@ class ProjectSetupParameters(object):
         self._project_id = None
         self._project_disk_name = None
     
+        # where to pick up the core from
+        self._core_path = None
     
     ################################################################################################################
     # Configuration template related logic     
@@ -579,6 +581,22 @@ class ProjectSetupParameters(object):
     ################################################################################################################
     # Accessing which core API to use
 
+    def set_associated_core_path(self, linux_path, windows_path, macosx_path):
+        """
+        Sets the desired core API to use.
+        Paths can be None, indicating that the path is not defined on a platform.
+        
+        :param linux_path: Path on linux 
+        :param windows_path: Path on windows
+        :param macosx_path: Path on mac
+        """
+        
+        # and set member variables
+        self._core_path = {}
+        self._core_path["linux2"] = linux_path
+        self._core_path["win32"] = windows_path
+        self._core_path["darwin"] = macosx_path
+    
     def get_associated_core_path(self, platform):
         """
         Return the location of the currently running API, given an os platform.
@@ -588,7 +606,7 @@ class ProjectSetupParameters(object):
         :param platform: Os platform as a string, sys.platform style (e.g. linux2/win32/darwin)
         :returns: path to pipeline configuration.
         """
-        return pipelineconfig_utils.get_current_code_install_root(platform)
+        return self._core_path[platform]
 
 
     ################################################################################################################
@@ -600,6 +618,12 @@ class ProjectSetupParameters(object):
         This method should be executed prior to running the setup projet logic to ensure
         that the process will succeed.         
         """
+        
+        if self._core_path is None:
+            raise TankError("Need to define a core location!") 
+        
+        if self._core_path[sys.platform] is None:
+            raise TankError("Need to define a core for the current os!")
         
         # make sure all parameters have been specified
         if self._config_template is None:

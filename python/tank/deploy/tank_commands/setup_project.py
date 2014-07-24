@@ -129,6 +129,12 @@ class SetupProjectAction(Action):
         # create a parameters class
         params = ProjectSetupParameters(log, sg, sg_app_store, sg_app_store_script_user)
         
+        # tell it which core to pick up. For the tank command, we just base it off the 
+        # currently running API        
+        params.set_associated_core_path(pipelineconfig_utils.get_current_code_install_root("linux2"),
+                                        pipelineconfig_utils.get_current_code_install_root("win32"),
+                                        pipelineconfig_utils.get_current_code_install_root("darwin"))
+        
         # specify which config to use
         params.set_config_uri(computed_params["config_uri"], computed_params["check_storage_path_exists"])
         
@@ -182,6 +188,12 @@ class SetupProjectAction(Action):
         
         # create a parameters class
         params = ProjectSetupParameters(log, sg, sg_app_store, sg_app_store_script_user)
+        
+        # tell it which core to pick up. For the tank command, we just base it off the 
+        # currently running API        
+        params.set_associated_core_path(pipelineconfig_utils.get_current_code_install_root("linux2"),
+                                        pipelineconfig_utils.get_current_code_install_root("win32"),
+                                        pipelineconfig_utils.get_current_code_install_root("darwin"))
         
         # now ask which config to use. Download if necessary and examine
         config_uri = self._select_template_configuration(log, sg)
