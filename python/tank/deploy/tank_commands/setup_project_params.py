@@ -223,6 +223,7 @@ class ProjectSetupParameters(object):
         - windows_path 
         - linux_path 
         - project
+        - project.Project.tank_name (the disk name for the project)
         
         :returns: dict or None if no sg association could be found
         """
@@ -233,7 +234,13 @@ class ProjectSetupParameters(object):
         
         data = self._sg.find_one("PipelineConfiguration", 
                                  [[field_name, "is", self._config_template.get_uri()]],
-                                 ["id", "code", "mac_path", "windows_path", "linux_path", "project"])
+                                 ["id", 
+                                  "code", 
+                                  "mac_path", 
+                                  "windows_path", 
+                                  "linux_path", 
+                                  "project", 
+                                  "project.Project.tank_name"])
         
         return data
     
