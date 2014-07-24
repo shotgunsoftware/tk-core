@@ -80,11 +80,12 @@ class PipelineConfiguration(object):
             raise TankError("Project name not defined in config metadata for config %s! "
                             "Please contact support." % self._pc_root)
         self._project_name = data.get("project_name")
+        self._auto_path = data.get("auto_path", False)
 
         # cache fields lazily populated on getter access
         self._project_id = None
         self._pc_id = None
-        self._pc_name = None
+        self._pc_name = None        
         self._published_file_entity_type = None
         self.execute_hook(constants.PIPELINE_CONFIGURATION_INIT_HOOK_NAME, parent=self)
 
@@ -136,9 +137,20 @@ class PipelineConfiguration(object):
 
         return self._pc_name
 
+    def is_auto_path(self):
+        """
+        Returns true if this config was set up with auto path mode
+        
+        :returns: boolean indicating auto path state
+        """
+        return self._auto_path
+        
+
     def is_localized(self):
         """
-        Returns true if this pipeline configuation has its own Core
+        Returns true if this pipeline configuration has its own Core
+        
+        :returns: boolean indicating if config is localized
         """
         return is_localized(self._pc_root)
 
