@@ -227,8 +227,6 @@ class ProjectSetupParameters(object):
                                  ["id", "code", "mac_path", "windows_path", "linux_path", "project"])
         
         return data
-        
-    
     
     def get_required_storages(self):
         """

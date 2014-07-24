@@ -348,11 +348,6 @@ class SetupProjectWizard(object):
                         "linux2": _join(data["linux_path"], "/", proj_name), 
                         "win32":  _join(data["windows_path"], "\\", proj_name)}
     
-    
-            
-    
-    
-    
     def validate_configuration_location(self, linux_path, windows_path, macosx_path):
         """
         Validates a potential location for the pipeline configuration. 
