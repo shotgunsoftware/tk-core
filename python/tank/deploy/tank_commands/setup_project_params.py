@@ -180,7 +180,7 @@ class ProjectSetupParameters(object):
                 raise TankError("The Shotgun Local File Storage '%s' does not have a path defined "
                                 "for the current operating system!" % storage_name)
             
-            elif check_storage_path and storage_data[storage_name]["exists_on_disk"]:
+            elif check_storage_path and not storage_data[storage_name]["exists_on_disk"]:
                 local_path = storage_data[storage_name][sys.platform]
                 raise TankError("The path on disk '%s' defined in the Shotgun Local File Storage '%s' does "
                                 "not exist!" % (local_path, storage_name))                            
