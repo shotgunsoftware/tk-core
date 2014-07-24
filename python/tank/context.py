@@ -1,11 +1,11 @@
 # Copyright (c) 2013 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
@@ -68,28 +68,28 @@ class Context(object):
         msg.append("  User: %s" % str(self.__user))
         msg.append("  Shotgun URL: %s" % self.shotgun_url)
         msg.append("  Additional Entities: %s" % str(self.__additional_entities))
-        
+
         return "<Sgtk Context: %s>" % ("\n".join(msg))
 
     def __str__(self):
         # smart looking string representation
-        
+
         if self.project is None:
             # empty context!
             ctx_name = "Empty Context"
-        
+
         elif self.entity is None:
             # project-only!
             ctx_name = "%s" % self.project.get("name")
-        
+
         elif self.step is None and self.task is None:
             # entity only
             # e.g. Shot ABC_123
-            
+
             # resolve custom entities to their real display
-            entity_display_name = shotgun.get_entity_type_display_name(self.__tk, 
+            entity_display_name = shotgun.get_entity_type_display_name(self.__tk,
                                                                        self.entity.get("type"))
-            
+
             ctx_name = "%s %s" % (entity_display_name, self.entity.get("name"))
 
         else:
@@ -99,17 +99,17 @@ class Context(object):
                 task_step = self.step.get("name")
             if self.task:
                 task_step = self.task.get("name")
-            
+
             # e.g. Lighting, Shot ABC_123
-            
+
             # resolve custom entities to their real display
-            entity_display_name = shotgun.get_entity_type_display_name(self.__tk, 
+            entity_display_name = shotgun.get_entity_type_display_name(self.__tk,
                                                                        self.entity.get("type"))
-            
-            ctx_name = "%s, %s %s" % (task_step, 
-                                      entity_display_name, 
+
+            ctx_name = "%s, %s %s" % (task_step,
+                                      entity_display_name,
                                       self.entity.get("name"))
-        
+
         return ctx_name
 
     def __eq__(self, other):
@@ -138,18 +138,18 @@ class Context(object):
         """
         # construct copy with current api instance:
         ctx_copy = Context(self.__tk)
-        
+
         # deepcopy all other members:
         ctx_copy.__project = copy.deepcopy(self.__project, memo)
         ctx_copy.__entity = copy.deepcopy(self.__entity, memo)
         ctx_copy.__step = copy.deepcopy(self.__step, memo)
         ctx_copy.__task = copy.deepcopy(self.__task, memo)
-        ctx_copy.__user = copy.deepcopy(self.__user, memo)        
+        ctx_copy.__user = copy.deepcopy(self.__user, memo)
         ctx_copy.__additional_entities = copy.deepcopy(self.__additional_entities, memo)
-        
+
         # except:
         # ctx_copy._entity_fields_cache
-        
+
         return ctx_copy
 
     ################################################################################################
@@ -208,7 +208,7 @@ class Context(object):
     def user(self):
         """
         The shotgun human user, associated with this context.
-        
+
         ``{'type': 'HumanUser', 'id': 212, 'name': 'William Winter'}``
 
         :returns: A std shotgun link dictionary.
@@ -220,8 +220,8 @@ class Context(object):
         if self.__user is None:
             user = login.get_current_user(self.__tk)
             if user is not None:
-                self.__user = {"type": user.get("type"), 
-                               "id": user.get("id"), 
+                self.__user = {"type": user.get("type"),
+                               "id": user.get("id"),
                                "name": user.get("name")}
         return self.__user
 
@@ -252,44 +252,44 @@ class Context(object):
     @property
     def shotgun_url(self):
         """
-        Returns the shotgun detail page url that best represents this context. Depending on 
-        the context, this may be a task, a shot, an asset or a project. If the context is 
+        Returns the shotgun detail page url that best represents this context. Depending on
+        the context, this may be a task, a shot, an asset or a project. If the context is
         completely empty, the root url of the associated shotgun installation is returned.
         """
-        
+
         # walk up task -> entity -> project -> site
-        
+
         if self.task is not None:
-            return "%s/detail/%s/%d" % (self.__tk.shotgun.base_url, "Task", self.task["id"])            
-        
+            return "%s/detail/%s/%d" % (self.__tk.shotgun.base_url, "Task", self.task["id"])
+
         if self.entity is not None:
-            return "%s/detail/%s/%d" % (self.__tk.shotgun.base_url, self.entity["type"], self.entity["id"])            
+            return "%s/detail/%s/%d" % (self.__tk.shotgun.base_url, self.entity["type"], self.entity["id"])
 
         if self.project is not None:
-            return "%s/detail/%s/%d" % (self.__tk.shotgun.base_url, "Project", self.project["id"])            
-        
+            return "%s/detail/%s/%d" % (self.__tk.shotgun.base_url, "Project", self.project["id"])
+
         # fall back on just the site main url
         return self.__tk.shotgun.base_url
-        
+
     @property
     def filesystem_locations(self):
         """
         A list of filesystem locations associated with this context.
         """
-        
+
         # first handle special cases: empty context
         if self.project is None:
             return []
-        
+
         # first handle special cases: project context
         if self.entity is None:
             return self.__tk.paths_from_entity("Project", self.project["id"])
-            
+
         # at this stage we know that the context contains an entity
-        # start off with all the paths matching this entity and then cull it down 
+        # start off with all the paths matching this entity and then cull it down
         # based on constraints.
         entity_paths = self.__tk.paths_from_entity(self.entity["type"], self.entity["id"])
-                
+
         # for each of these paths, get the context and compare it against our context
         # todo: optimize this!
         matching_paths = []
@@ -305,24 +305,24 @@ class Context(object):
                 # both contexts have user data - is it matching?
                 if ctx.user["id"] == self.user["id"]:
                     matching = True
-            
+
             if matching:
                 # ok so user looks good, now check task.
                 # it is possible that with a context that comes from shotgun
                 # there is a task populated which is not being used in the file system
-                # so when we compare tasks, only if there are differing task ids, 
+                # so when we compare tasks, only if there are differing task ids,
                 # we should treat it as a mismatch.
                 task_matching = True
                 if ctx.task is not None and self.task is not None:
                     if ctx.task["id"] != self.task["id"]:
                         task_matching = False
-                
+
                 if task_matching:
                     # both user and task is matching
                     matching_paths.append(p)
-                    
+
         return matching_paths
-                    
+
     @property
     def tank(self):
         """
@@ -376,19 +376,19 @@ class Context(object):
                 entities[add_entity["type"]] = add_entity
 
         fields = {}
-        
+
         # Try to populate fields using paths caches for entity
         if isinstance(template, TemplatePath):
-            
+
             # first, sanity check that we actually have a path cache entry
-            # this relates to ticket 22541 where it is possible to create 
+            # this relates to ticket 22541 where it is possible to create
             # a context object purely from Shotgun without having it in the path cache
             # (using tk.context_from_entity(Task, 1234) for example)
             #
             # Such a context can result in erronous lookups in the later commands
             # since these make the assumption that the path cache contains the information
             # that is being saught after.
-            # 
+            #
             # therefore, if the context object contains an entity object and this entity is
             # not represented in the path cache, raise an exception.
             if self.entity and len(self.entity_locations) == 0:
@@ -397,11 +397,11 @@ class Context(object):
                                 "does not have any associated folders created on disk yet and "
                                 "therefore no template data can be extracted. Please run the folder "
                                 "creation for %s and try again!" % (self, self.shotgun_url))
-            
+
             # first look at which ENTITY paths are associated with this context object
             # and use these to extract the right fields for this template
             fields = self._fields_from_entity_paths(template)
-            
+
             # Determine field values by walking down the template tree
             fields.update(self._fields_from_template_tree(template, fields, entities))
 
@@ -411,16 +411,16 @@ class Context(object):
 
     def create_copy_for_user(self, user):
         """
-        Duplicate the context for the specified 
+        Duplicate the context for the specified
         user
-        
+
         :param user:    overrides the user
-        
+
         :returns: Context object
         """
         ctx_copy = copy.deepcopy(self)
         ctx_copy.__user = user
-        return ctx_copy       
+        return ctx_copy
 
     ################################################################################################
     # private methods
@@ -433,25 +433,25 @@ class Context(object):
         fields = {}
         # for any sg query field
         for key in template.keys.values():
-            
+
             # check each key to see if it has shotgun query information that we should resolve
             if key.shotgun_field_name:
-                # this key is a shotgun value that needs fetching! 
-                
+                # this key is a shotgun value that needs fetching!
+
                 # ensure that the context actually provides the desired entities
                 if not key.shotgun_entity_type in entities:
                     raise TankError("Key '%s' in template '%s' could not be populated by "
                                     "context '%s' because the context does not contain a "
                                     "shotgun entity of type '%s'!" % (key, template, self, key.shotgun_entity_type))
-                    
+
                 entity = entities[key.shotgun_entity_type]
-                
-                # check the context cache 
+
+                # check the context cache
                 cache_key = (entity["type"], entity["id"], key.shotgun_field_name)
                 if cache_key in self._entity_fields_cache:
                     # already have the value cached - no need to fetch from shotgun
                     fields[key.name] = self._entity_fields_cache[cache_key]
-                
+
                 else:
                     # get the value from shotgun
                     filters = [["id", "is", entity["id"]]]
@@ -462,37 +462,37 @@ class Context(object):
                         raise TankError("Could not retrieve Shotgun data for key '%s' in "
                                         "template '%s'. No records in Shotgun are matching "
                                         "entity '%s' (Which is part of the current "
-                                        "context '%s')" % (key, template, entity, self))                        
+                                        "context '%s')" % (key, template, entity, self))
 
                     value = result.get(key.shotgun_field_name)
 
-                    # note! It is perfectly possible (and may be valid) to return None values from 
-                    # shotgun at this point. In these cases, a None field will be returned in the 
+                    # note! It is perfectly possible (and may be valid) to return None values from
+                    # shotgun at this point. In these cases, a None field will be returned in the
                     # fields dictionary from as_template_fields, and this may be injected into
                     # a template with optional fields.
-    
+
                     if value is None:
                         processed_val = None
-                    
+
                     else:
 
                         # now convert the shotgun value to a string.
                         # note! This means that there is no way currently to create an int key
                         # in a tank template which matches an int field in shotgun, since we are
                         # force converting everything into strings...
-                                 
+
                         processed_val = shotgun_entity.sg_entity_to_string(self.__tk,
                                                                            key.shotgun_entity_type,
                                                                            entity.get("id"),
-                                                                           key.shotgun_field_name, 
+                                                                           key.shotgun_field_name,
                                                                            value)
-                    
-                        if not key.validate(processed_val):                    
+
+                        if not key.validate(processed_val):
                             raise TankError("Template validation failed for value '%s'. This "
                                             "value was retrieved from entity %s in Shotgun to "
                                             "represent key '%s' in "
                                             "template '%s'." % (processed_val, entity, key, template))
-                            
+
                     # all good!
                     # populate dictionary and cache
                     fields[key.name] = processed_val
@@ -511,13 +511,13 @@ class Context(object):
         project_roots = self.__tk.pipeline_configuration.get_data_roots().values()
 
         # get all locations on disk for our context object from the path cache
-        path_cache_locations = self.entity_locations 
-        
-        # now loop over all those locations and check if one of the locations 
+        path_cache_locations = self.entity_locations
+
+        # now loop over all those locations and check if one of the locations
         # are matching the template that is passed in. In that case, try to
         # extract the fields values.
         for cur_path in path_cache_locations:
-            
+
             # walk up path until we reach the project root and get values
             while cur_path not in project_roots:
                 if template.validate(cur_path):
@@ -531,7 +531,7 @@ class Context(object):
                     break
                 else:
                     cur_path = os.path.dirname(cur_path)
-                    
+
         return fields
 
     def _fields_from_template_tree(self, template, fields, entities):
@@ -539,12 +539,12 @@ class Context(object):
         Determines values for a template's keys based on the context by walking down the template tree
         matching template keys with entity types.
         """
-        
+
         # Step 1 - Cull out ambigious templates
         fields = fields.copy()
         for key, value in fields.items():
             if value is None:
-                # Note: A none value here indicates an ambiguity 
+                # Note: A none value here indicates an ambiguity
                 # and was set in the _fields_from_entity_paths method.
                 del(fields[key])
 
@@ -553,11 +553,11 @@ class Context(object):
         #
         # Use cached paths to find field values
         # these will be returned in top-down order:
-        # [<Sgtk TemplatePath sequences/{Sequence}>, 
-        #  <Sgtk TemplatePath sequences/{Sequence}/{Shot}>, 
-        #  <Sgtk TemplatePath sequences/{Sequence}/{Shot}/{Step}>, 
-        #  <Sgtk TemplatePath sequences/{Sequence}/{Shot}/{Step}/publish>, 
-        #  <Sgtk TemplatePath sequences/{Sequence}/{Shot}/{Step}/publish/maya>, 
+        # [<Sgtk TemplatePath sequences/{Sequence}>,
+        #  <Sgtk TemplatePath sequences/{Sequence}/{Shot}>,
+        #  <Sgtk TemplatePath sequences/{Sequence}/{Shot}/{Step}>,
+        #  <Sgtk TemplatePath sequences/{Sequence}/{Shot}/{Step}/publish>,
+        #  <Sgtk TemplatePath sequences/{Sequence}/{Shot}/{Step}/publish/maya>,
         #  <Sgtk TemplatePath maya_shot_publish: sequences/{Sequence}/{Shot}/{Step}/publish/maya/{name}.v{version}.ma>]
         templates = _get_template_ancestors(template)
 
@@ -566,7 +566,7 @@ class Context(object):
 
         # Step 3 - walk templates from the root down,
         # for each template, get all paths we have stored in the database
-        # and find any fields we can for it        
+        # and find any fields we can for it
         try:
             # build up a list of fields as we go so that each level matches
             # at least the fields from the previous level
@@ -579,22 +579,22 @@ class Context(object):
                         # already have value so skip:
                         found_fields[key.name] = fields[key.name]
                         continue
-                    
+
                     # only care about entities as this is what we'll look for in the path cache:
                     entity = entities.get(key.name)
                     if entity:
                         # context contains an entity for this Shotgun entity type!
-                        temp_fields = _values_from_path_cache(entity, cur_template, path_cache, 
+                        temp_fields = _values_from_path_cache(entity, cur_template, path_cache,
                                                               required_fields=found_fields)
-                        # make sure the next iteration finds the same fields: 
+                        # make sure the next iteration finds the same fields:
                         found_fields.update(temp_fields)
-            
+
             # update the list of fields with all the ones we found:
             fields.update(found_fields)
 
-        finally:    
+        finally:
             path_cache.close()
-        
+
         return fields
 
 
@@ -623,13 +623,13 @@ def from_entity(tk, entity_type, entity_id):
 
     :returns: a context object
     """
-    
+
     if entity_type is None:
         raise TankError("Cannot create a context from an entity type 'None'!")
-    
+
     if entity_id is None:
         raise TankError("Cannot create a context from an entity id set to 'None'!")
-    
+
     # prep our return data structure
     context = {
         "tk": tk,
@@ -647,35 +647,35 @@ def from_entity(tk, entity_type, entity_id):
         context.update(task_context)
 
     elif entity_type in ["PublishedFile", "TankPublishedFile"]:
-        
-        sg_entity = tk.shotgun.find_one(entity_type, 
-                                        [["id", "is", entity_id]], 
+
+        sg_entity = tk.shotgun.find_one(entity_type,
+                                        [["id", "is", entity_id]],
                                         ["project", "entity", "task"])
-        
+
         if sg_entity is None:
             raise TankError("Entity %s with id %s not found in Shotgun!" % (entity_type, entity_id))
-        
+
         if sg_entity.get("task"):
             # base the context on the task for the published file
             return from_entity(tk, "Task", sg_entity["task"]["id"])
-        
+
         elif sg_entity.get("entity"):
             # base the context on the entity that the published is linked with
             return from_entity(tk, sg_entity["entity"]["type"], sg_entity["entity"]["id"])
-        
+
         elif sg_entity.get("project"):
             # base the context on the project that the published is linked with
             return from_entity(tk, "Project", sg_entity["project"]["id"])
-    
+
     else:
         # Get data from path cache
         entity_context = _context_data_from_cache(tk, entity_type, entity_id)
-                    
+
         # make sure this was actually found in the cache
         # fall back on a shotgun lookup if not found
         if entity_context["project"] is None:
             entity_context = _entity_from_sg(tk, entity_type, entity_id)
-        
+
         context.update(entity_context)
 
     if entity_type == "Project":
@@ -685,7 +685,7 @@ def from_entity(tk, entity_type, entity_id):
 
     return Context(**context)
 
-def from_path(tk, path, previous_context=None):
+def from_path(tk, path, previous_context=None, **kwargs):
     """
     Constructs a context from a path to a folder or a file.
     The algorithm will navigate upwards in the file system and collect
@@ -733,7 +733,7 @@ def from_path(tk, path, previous_context=None):
             # Don't worry about entity types we've already got in the context. In the future
             # we should look for entity ids that conflict in order to flag a degenerate schema.
             entities.append(curr_entity)
-        
+
         # add secondary entities
         secondary_entities.extend( path_cache.get_secondary_entities(curr_path) )
 
@@ -779,24 +779,24 @@ def from_path(tk, path, previous_context=None):
         if curr_entity["type"] == "Project":
             if context["project"] is None:
                 context["project"] = curr_entity
-        
+
         elif curr_entity["type"] == "Step":
             if context["step"] is None:
                 context["step"] = curr_entity
-        
+
         elif curr_entity["type"] == "Task":
             if context["task"] is None:
                 context["task"] = curr_entity
-        
+
         elif curr_entity["type"] == "HumanUser":
             if context["user"] is None:
                 context["user"] = curr_entity
-        
+
         elif curr_entity["type"] in additional_types:
             # is this entity in the list already
-            if curr_entity not in context["additional_entities"]:            
+            if curr_entity not in context["additional_entities"]:
                 context["additional_entities"].append(curr_entity)
-        
+
         else:
             if context["entity"] is None:
                 context["entity"] = curr_entity
@@ -816,11 +816,14 @@ def from_path(tk, path, previous_context=None):
         if context.get("task") is None and context.get("step") == previous_context.step:
             context["task"] = previous_context.task
 
-    # ensure that we don't have a Project as the entity. Projects should only 
+    # ensure that we don't have a Project as the entity. Projects should only
     # appear on the projects level, despite being entities.
     if context["project"] and context["entity"] and context["entity"]["type"] == "Project":
         # remove double entry!
         context["entity"] = None
+
+    tk.execute_hook("context_from_path", path=path, context=context,
+                    previous_context=previous_context, **kwargs)
 
     return Context(**context)
 
@@ -841,21 +844,21 @@ def serialize(context):
         "_pc_path": context.tank.pipeline_configuration.get_path()
     }
     return pickle.dumps(data)
-    
-    
+
+
 def deserialize(context_str):
     """
     Deserializaes a string created with serialize() into a context object
     """
     # lazy load this to avoid cyclic dependencies
     from .api import Tank
-    
+
     data = pickle.loads(context_str)
 
     # first get the pc path out of the dict
-    pipeline_config_path = data["_pc_path"] 
+    pipeline_config_path = data["_pc_path"]
     del data["_pc_path"]
-    
+
     # create a Sgtk API instance.
     tk = Tank(pipeline_config_path)
 
@@ -864,7 +867,7 @@ def deserialize(context_str):
 
     # and lastly make the obejct
     return Context(**data)
-    
+
 
 
 
@@ -876,8 +879,8 @@ def context_yaml_representer(dumper, context):
     Custom serializer.
     Creates yaml code for a context object
     """
-    
-    # first get the stuff which represents all the Context() 
+
+    # first get the stuff which represents all the Context()
     # constructor parameters
     context_dict = {
         "project": context.project,
@@ -887,9 +890,9 @@ def context_yaml_representer(dumper, context):
         "task": context.task,
         "additional_entities": context.additional_entities
     }
-    
-    # now we also need to pass a TK instance to the constructor when we 
-    # are deserializing the object. For this purpose, pass a 
+
+    # now we also need to pass a TK instance to the constructor when we
+    # are deserializing the object. For this purpose, pass a
     # PC path as part of the dict
     context_dict["_pc_path"] = context.tank.pipeline_configuration.get_path()
 
@@ -902,14 +905,14 @@ def context_yaml_constructor(loader, node):
     """
     # lazy load this to avoid cyclic dependencies
     from .api import Tank
-    
+
     # get the dict from yaml
     context_constructor_dict = loader.construct_mapping(node)
-    
+
     # first get the pc path out of the dict
-    pipeline_config_path = context_constructor_dict["_pc_path"] 
+    pipeline_config_path = context_constructor_dict["_pc_path"]
     del context_constructor_dict["_pc_path"]
-    
+
     # create a Sgtk API instance.
     tk = Tank(pipeline_config_path)
 
@@ -932,7 +935,7 @@ def _task_from_sg(tk, task_id):
     which has both a project, an entity a step and a task associated with it.
 
     Manne 9 April 2013: could we use the path cache primarily and fall back onto
-                        a shotgun lookup? 
+                        a shotgun lookup?
 
     :param tk:           a Sgtk API instance
     :param task_id:      The shotgun task id to produce a context for.
@@ -991,13 +994,13 @@ def _entity_from_sg(tk, entity_type, entity_id):
     :param task_id:      The shotgun task id to produce a context for.
     """
 
-    # deal with funny naming for certain entities 
+    # deal with funny naming for certain entities
     if entity_type == "HumanUser":
         name_field = "login"
-        
+
     elif entity_type == "Project":
         name_field = "name"
-    
+
     else:
         name_field = "code"
 
@@ -1008,13 +1011,13 @@ def _entity_from_sg(tk, entity_type, entity_id):
 
     # create context
     context = {}
-    
+
     if entity_type == "Project":
         context["project"] = {"type":"Project", "id": entity_id, "name": data.get(name_field) }
-    
+
     else:
         context["entity"] = {"type": entity_type, "id": entity_id, "name": data.get(name_field) }
-        context["project"] = data.get("project")     
+        context["project"] = data.get("project")
 
     return context
 
@@ -1043,7 +1046,7 @@ def _context_data_from_cache(tk, entity_type, entity_id):
     # Grab all project roots
     project_roots = tk.pipeline_configuration.get_data_roots().values()
 
-    # Special case for project as we have the primary data path, which 
+    # Special case for project as we have the primary data path, which
     # always points at a project.
     context["project"] = path_cache.get_entity(tk.pipeline_configuration.get_primary_data_root())
 
@@ -1053,7 +1056,7 @@ def _context_data_from_cache(tk, entity_type, entity_id):
         # now recurse upwards and look for entity types we haven't found yet
         curr_path = path
         curr_entity = path_cache.get_entity(curr_path)
-        
+
         if curr_entity is None:
             # this is some sort of anomaly! the path returned by get_paths
             # does not resolve in get_entity. This can happen if the storage
@@ -1061,9 +1064,9 @@ def _context_data_from_cache(tk, entity_type, entity_id):
             #
             # This can also happen if there are extra slashes at the end of the path
             # in the local storage defs and in the pipeline_configuration.yml file.
-            raise TankError("The path '%s' associated with %s id %s does not " 
+            raise TankError("The path '%s' associated with %s id %s does not "
                             "resolve correctly. This may be an indication of an issue "
-                            "with the local storage setup. Please contact " 
+                            "with the local storage setup. Please contact "
                             "toolkitsupport@shotgunsoftware.com" % (curr_path, entity_type, entity_id))
 
         # grab the name for the context entity
@@ -1088,7 +1091,7 @@ def _context_data_from_cache(tk, entity_type, entity_id):
 def _values_from_path_cache(entity, cur_template, path_cache, required_fields):
     """
     Determine values for template fields based on an entities cached paths.
-                            
+
     :param entity:          The entity to search for fields for
     :param cur_template:    The template to use to search the path cache
     :path_cache:            An instance of the path_cache to search in
@@ -1096,7 +1099,7 @@ def _values_from_path_cache(entity, cur_template, path_cache, required_fields):
     :return:                Dictionary of fields found by matching the template against all paths
                             found for the entity
     """
-    
+
     # use the database to go from shotgun type/id --> list of paths
     entity_paths = path_cache.get_paths(entity["type"], entity["id"])
 
@@ -1104,14 +1107,14 @@ def _values_from_path_cache(entity, cur_template, path_cache, required_fields):
     unique_fields = {}
     # keys whose values should be removed from return values
     remove_keys = set()
-    
+
     for path in entity_paths:
-        
+
         # validate path and get fields:
         path_fields = cur_template.validate_and_get_fields(path, required_fields = required_fields)
         if not path_fields:
             continue
-        
+
         # Check values against those found for other paths
         for key, value in path_fields.items():
             if key in unique_fields and value != unique_fields[key]:
@@ -1130,14 +1133,14 @@ def _values_from_path_cache(entity, cur_template, path_cache, required_fields):
                     # ambiguity for Static key
                     unique_fields[key] = None
                     remove_keys.add(key)
-            
+
             else:
                 unique_fields[key] = value
-        
+
     # we want to remove the None/ambiguous values so they don't interfere with other entities
     for remove_key in remove_keys:
         del(unique_fields[remove_key])
-    
+
     return unique_fields
 
 

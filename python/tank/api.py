@@ -1,11 +1,11 @@
 # Copyright (c) 2013 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
@@ -47,7 +47,7 @@ class Tank(object):
             self.__pipeline_config = project_path
         else:
             self.__pipeline_config = pipelineconfig.from_path(project_path)
-            
+
         try:
             self.templates = read_templates(self.__pipeline_config)
         except TankError, e:
@@ -76,7 +76,7 @@ class Tank(object):
 
     def reload_templates(self):
         """
-        Reloads the template definitions. If reload fails, the previous 
+        Reloads the template definitions. If reload fails, the previous
         template definitions will be preserved.
         """
         try:
@@ -97,8 +97,8 @@ class Tank(object):
     @property
     def roots(self):
         """
-        Returns a dictionary of root names to root paths. 
-        In the case of a single project root, there will only be one entry. 
+        Returns a dictionary of root names to root paths.
+        In the case of a single project root, there will only be one entry.
         """
         return self.__pipeline_config.get_data_roots()
 
@@ -161,39 +161,39 @@ class Tank(object):
     def list_commands(self):
         """
         Lists the system commands registered with the system.
-        
-        This method will return all system commands which 
+
+        This method will return all system commands which
         are available in the context of a project configuration will be returned.
-        This includes for example commands for configuration management, 
+        This includes for example commands for configuration management,
         anything app or engine related and validation and overview functionality.
         In addition to these commands, the global commands such as project setup
         and core API check commands will also be returned.
-    
+
         :returns: list of command names
         """
         # avoid cyclic dependencies
         from .deploy import tank_command
-        return tank_command.list_commands(self) 
+        return tank_command.list_commands(self)
 
     def get_command(self, command_name):
         """
         Returns an instance of a command object that can be used to execute a command.
-        
-        Once you have retrieved the command instance, you can perform introspection to 
+
+        Once you have retrieved the command instance, you can perform introspection to
         check for example the required parameters for the command, name, description etc.
         Lastly, you can execute the command by running the execute() method.
-        
+
         In order to get a list of the available commands, use the list_commands() method.
-                
+
         :param command_name: Name of command to execute. Get a list of all available commands
                              using the tk.list_commands() method.
-        
+
         :returns: SgtkSystemCommand object instance
         """
         # avoid cyclic dependencies
         from .deploy import tank_command
-        return tank_command.get_command(command_name, self) 
-        
+        return tank_command.get_command(command_name, self)
+
     def template_from_path(self, path):
         """Finds a template that matches the input path.
 
@@ -227,11 +227,11 @@ class Tank(object):
         So if a template requires Shot, Sequence, Name and Version, and you
         omit the version fields from the fields dictionary, the method
         will return paths to all the different versions you can find.
-        
+
         If an optional key is specified in skip_keys then all paths that
         contain a match for that key as well as paths that don't contain
         a value for the key will be returned.
-        
+
         If skip_missing_optional_keys is True then all optional keys not
         included in the fields dictionary will be considered as skip keys.
 
@@ -243,32 +243,32 @@ class Tank(object):
         :type  fields: Dictionary.
         :param skip_keys: Keys whose values should be ignored from the fields parameter.
         :type  skip_keys: List of key names.
-        :param skip_missing_optional_keys: Specify if optional keys should be skipped if they 
+        :param skip_missing_optional_keys: Specify if optional keys should be skipped if they
                                         aren't found in the fields collection
         :type skip_missing_optional_keys: Boolean
-        
+
         :returns: Matching file paths
         :rtype: List of strings.
         """
         skip_keys = skip_keys or []
         if isinstance(skip_keys, basestring):
             skip_keys = [skip_keys]
-        
+
         # construct local fields dictionary that doesn't include any skip keys:
         local_fields = dict((field, value) for field, value in fields.iteritems() if field not in skip_keys)
-        
+
         # we always want to automatically skip 'required' keys that weren't
         # specified so add wildcards for them to the local fields
         for key in template.missing_keys(local_fields):
             if key not in skip_keys:
                 skip_keys.append(key)
             local_fields[key] = "*"
-            
+
         # iterate for each set of keys in the template:
         found_files = set()
         globs_searched = set()
         for keys in template._keys:
-            # create fields and skip keys with those that 
+            # create fields and skip keys with those that
             # are relevant for this key set:
             current_local_fields = local_fields.copy()
             current_skip_keys = []
@@ -276,7 +276,7 @@ class Tank(object):
                 if key in keys:
                     current_skip_keys.append(key)
                     current_local_fields[key] = "*"
-            
+
             # find remaining missing keys - these will all be optional keys:
             missing_optional_keys = template._missing_keys(current_local_fields, keys, False)
             if missing_optional_keys:
@@ -289,7 +289,7 @@ class Tank(object):
                     # if there are missing fields then we won't be able to
                     # form a valid path from them so skip this key set
                     continue
-            
+
             # Apply the fields to build the glob string to search with:
             glob_str = template._apply_fields(current_local_fields, ignore_types=current_skip_keys)
             if glob_str in globs_searched:
@@ -297,11 +297,11 @@ class Tank(object):
                 # string depending on the fields and skip-keys passed in
                 continue
             globs_searched.add(glob_str)
-            
+
             # Find all files which are valid for this key set
             found_files.update([found_file for found_file in glob.iglob(glob_str) if template.validate(found_file)])
-                    
-        return list(found_files) 
+
+        return list(found_files)
 
 
     def abstract_paths_from_template(self, template, fields):
@@ -432,8 +432,8 @@ class Tank(object):
         :returns: Context object.
         """
         return context.create_empty(self)
-        
-    def context_from_path(self, path, previous_context=None):
+
+    def context_from_path(self, path, previous_context=None, **kwargs):
         """
         Derive a context from a path.
 
@@ -445,7 +445,7 @@ class Tank(object):
                                  path passed in via the path argument.
         :returns: Context object.
         """
-        return context.from_path(self, path, previous_context)
+        return context.from_path(self, path, previous_context, **kwargs)
 
     def context_from_entity(self, entity_type, entity_id):
         """
@@ -471,12 +471,12 @@ class Tank(object):
         :type  entity_id: Integer or list of integers.
         :param engine: Optional engine name to indicate that a second, engine specific
                        folder creation pass should be executed for a particular engine.
-                       Folders marked as deferred will be processed. Note that this is 
+                       Folders marked as deferred will be processed. Note that this is
                        just a string following a convention - typically, we recommend that
                        the engine name (e.g. 'tk-nuke') is passed in, however all this metod
                        is doing is to relay this string on to the folder creation (schema)
                        setup so that it is compared with any deferred entries there. In case
-                       of a match, the folder creation will recurse down into the subtree 
+                       of a match, the folder creation will recurse down into the subtree
                        marked as deferred.
         :type engine: String.
 
@@ -499,12 +499,12 @@ class Tank(object):
         :type  entity_id: Integer or list of integers.
         :param engine: Optional engine name to indicate that a second, engine specific
                        folder creation pass should be executed for a particular engine.
-                       Folders marked as deferred will be processed. Note that this is 
+                       Folders marked as deferred will be processed. Note that this is
                        just a string following a convention - typically, we recommend that
                        the engine name (e.g. 'tk-nuke') is passed in, however all this metod
                        is doing is to relay this string on to the folder creation (schema)
                        setup so that it is compared with any deferred entries there. In case
-                       of a match, the folder creation will recurse down into the subtree 
+                       of a match, the folder creation will recurse down into the subtree
                        marked as deferred.
         :type engine: String.
 
