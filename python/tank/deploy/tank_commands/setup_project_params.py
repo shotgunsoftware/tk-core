@@ -214,6 +214,15 @@ class ProjectSetupParameters(object):
     def get_configuration_shotgun_info(self):
         """
         Returns information about how the config relates to shotgun.
+        Returns a dictionary with shotgun pipelineconfig information,
+        including the fields 
+        
+        - id
+        - code
+        - mac_path
+        - windows_path 
+        - linux_path 
+        - project
         
         :returns: dict or None if no sg association could be found
         """
