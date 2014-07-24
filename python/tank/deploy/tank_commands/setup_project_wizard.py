@@ -130,8 +130,10 @@ class SetupProjectWizard(object):
         self._sg = sg
         self._sg_app_store = sg_app_store
         self._sg_app_store_script_user = sg_app_store_script_user
-        # and set up our parameters object which holds all the internal state
-        self.reset()
+        self._params = ProjectSetupParameters(self._log, 
+                                              self._sg, 
+                                              self._sg_app_store, 
+                                              self._sg_app_store_script_user)
                 
     def set_project(self, project_id, force=False):
         """
