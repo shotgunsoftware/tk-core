@@ -174,9 +174,9 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, set
     roots_data = {}
     for storage_name in setup_params.get_required_storages():
     
-        roots_data[storage_name] = {"windows_path": setup_params.get_project_path(storage_name, "win32"),
-                                    "linux_path": setup_params.get_project_path(storage_name, "linux2"),
-                                    "mac_path": setup_params.get_project_path(storage_name, "darwin")}
+        roots_data[storage_name] = {"windows_path": setup_params.get_storage_path(storage_name, "win32"),
+                                    "linux_path": setup_params.get_storage_path(storage_name, "linux2"),
+                                    "mac_path": setup_params.get_storage_path(storage_name, "darwin")}
     
     try:
         fh = open(roots_path, "wt")

@@ -249,9 +249,8 @@ class PipelineConfiguration(object):
                   {"primary": "/studio/my_project", "textures": "/textures/my_project"}        
         """
         proj_roots = {}
-        for storage_name, root_path in self.get_local_storage_roots().iteritems():           
+        for storage_name, root_path in self.get_local_storage_roots().iteritems():
             proj_roots[storage_name] = self.__append_project_name_to_root(root_path, sys.platform)
- 
         return proj_roots
 
 
@@ -305,7 +304,7 @@ class PipelineConfiguration(object):
         if len(self.get_data_roots()) == 0:
             raise TankError("Your current pipeline configuration does not have any project data "
                             "storages defined and therefore does not have a primary project data root!")
-            
+         
         return self.get_data_roots().get(constants.PRIMARY_STORAGE_NAME)
 
     def get_path_cache_location(self):
