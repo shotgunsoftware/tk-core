@@ -149,7 +149,7 @@ class ProjectSetupParameters(object):
         """
         
         # cache, get storage breakdown and run basic validation
-        storage_data = self.validate_config_uri(config_uri) 
+        storage_data = self.validate_config_uri(config_uri)
         
         # now validate storages
         #        
@@ -632,7 +632,7 @@ class ProjectSetupParameters(object):
         if self._config_path is None:
             raise TankError("Path to the target configuration install has not been specified!")
         
-        if self.self._project_id is None:
+        if self._project_id is None:
             raise TankError("A project id has not been specified!")
         
         if self._project_disk_name is None:
