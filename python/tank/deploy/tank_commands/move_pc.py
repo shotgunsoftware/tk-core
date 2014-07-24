@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from ... import pipelineconfig
+from ... import pipelineconfig_utils
 
 from ...util import shotgun
 from ...platform import constants
@@ -166,7 +167,7 @@ class MovePCAction(Action):
         # also - we currently don't support moving PCs which have a localized API
         # (because these may be referred to by other PCs that are using their API
         # TODO: later on, support moving these. For now, just error out.
-        if pipelineconfig.is_localized(local_source_path):        
+        if pipelineconfig_utils.is_localized(local_source_path):        
             raise TankError("Looks like the Configuration you are trying to move has a localized "
                             "API. This is not currently supported.")
         

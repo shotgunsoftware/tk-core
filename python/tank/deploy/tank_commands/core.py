@@ -23,6 +23,7 @@ import datetime
 from ...util import shotgun
 from ...platform import constants
 from ... import pipelineconfig
+from ... import pipelineconfig_utils
 from ..zipfilehelper import unzip_file
 from .. import util
 
@@ -77,7 +78,7 @@ class CoreUpgradeAction(Action):
         return_status = {"status": "unknown"}
 
         # get the core api root of this installation by looking at the relative location of the running code.
-        code_install_root = pipelineconfig.get_current_code_install_root() 
+        code_install_root = pipelineconfig_utils.get_current_code_install_root() 
         
         log.info("")
         log.info("Welcome to the Shotgun Pipeline Toolkit update checker!")
@@ -338,7 +339,7 @@ class TankCoreUpgrader(object):
         
         self._install_root = os.path.join(installation_root, "install")
         
-        self._current_ver = pipelineconfig.get_core_api_version_based_on_current_code()
+        self._current_ver = pipelineconfig_utils.get_core_api_version_based_on_current_code()
          
         # now also extract the version of shotgun currently running
         try:

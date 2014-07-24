@@ -18,7 +18,7 @@ from ...platform import constants
 from ...util import shotgun
 from ... import hook
 from ...errors import TankError
-from ... import pipelineconfig
+from ... import pipelineconfig_utils
 
 from ..zipfilehelper import unzip_file
 from .. import util as deploy_util
@@ -581,7 +581,7 @@ class ProjectSetupParameters(object):
         :param platform: Os platform as a string, sys.platform style (e.g. linux2/win32/darwin)
         :returns: path to pipeline configuration.
         """
-        core_paths =  pipelineconfig.get_current_core_install_location_data()        
+        core_paths =  pipelineconfig_utils.get_current_core_install_location_data()        
         return core_paths[platform]
 
 
@@ -649,7 +649,7 @@ class ProjectSetupParameters(object):
             
             # now figure out the version of the desired API
             api_location = self.get_associated_core_path(sys.platform)
-            curr_core_version = pipelineconfig.get_core_api_version(api_location)
+            curr_core_version = pipelineconfig_utils.get_core_api_version(api_location)
     
             if deploy_util.is_version_newer(required_core_version, curr_core_version):        
                 raise TankError("This configuration requires Toolkit Core version %s "

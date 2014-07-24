@@ -25,6 +25,7 @@ from .path_cache import PathCache
 from .template import read_templates
 from .platform import constants as platform_constants
 from . import pipelineconfig
+from . import pipelineconfig_utils
 
 class Tank(object):
     """
@@ -131,7 +132,7 @@ class Tank(object):
 
         :returns: string representing the version
         """
-        return pipelineconfig.get_core_api_version_based_on_current_code()
+        return pipelineconfig_utils.get_core_api_version_based_on_current_code()
 
     @property
     def documentation_url(self):

@@ -15,7 +15,7 @@ from .action_base import Action
 from ...errors import TankError
 from ...util import shotgun
 from ...platform import constants
-from ... import pipelineconfig
+from ... import pipelineconfig_utils
 
 from tank_vendor import yaml
 
@@ -556,7 +556,7 @@ class SetupProjectAction(Action):
         # get the path to the primary storage  
         primary_local_path = params.get_storage_path(constants.PRIMARY_STORAGE_NAME, sys.platform)        
         
-        core_locations = pipelineconfig.get_current_core_install_location_data()
+        core_locations = pipelineconfig_utils.get_current_core_install_location_data()
         
         if os.path.abspath(os.path.join(core_locations[sys.platform], "..")).lower() == primary_local_path.lower():
             # ok the parent of the install root matches the primary storage - means OLD STYLE (pre core 0.12)

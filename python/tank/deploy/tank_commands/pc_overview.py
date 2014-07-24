@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from ... import pipelineconfig
+from ... import pipelineconfig_utils
 from ...util import shotgun
 from ...platform import constants
 from ...errors import TankError
@@ -112,7 +113,7 @@ class PCBreakdownAction(Action):
                 # yay, exists on disk
                 local_tank_command = os.path.join(local_path, "tank")
                 
-                if pipelineconfig.is_localized(local_path):
+                if pipelineconfig_utils.is_localized(local_path):
                     log.info("This configuration is running its own version of the Toolkit API.")
                     log.info("If you want to check for core API updates you can run:")
                     log.info("> %s core" % local_tank_command)
