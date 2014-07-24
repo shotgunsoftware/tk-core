@@ -339,7 +339,7 @@ class TankCoreUpgrader(object):
         
         self._install_root = os.path.join(installation_root, "install")
         
-        self._current_ver = pipelineconfig_utils.get_core_api_version_based_on_current_code()
+        self._current_ver = pipelineconfig_utils.get_currently_running_api_version()
          
         # now also extract the version of shotgun currently running
         try:

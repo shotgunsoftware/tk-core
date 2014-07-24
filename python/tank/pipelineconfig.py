@@ -52,7 +52,7 @@ class PipelineConfiguration(object):
         our_associated_api_version = self.get_associated_core_version()
         
         # and get the version of the API currently in memory
-        current_api_version = pipelineconfig_utils.get_core_api_version_based_on_current_code()
+        current_api_version = pipelineconfig_utils.get_currently_running_api_version()
         
         if our_associated_api_version is not None and \
            util.is_version_older(current_api_version, our_associated_api_version):
