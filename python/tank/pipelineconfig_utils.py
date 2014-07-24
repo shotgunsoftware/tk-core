@@ -32,29 +32,17 @@ def is_localized(pipeline_config_path):
     return os.path.exists(api_file)
 
 ####################################################################################################################
-# Figuring out location of the currently running core 
+# Core API resolve utils 
 
-def get_current_code_install_root(platform):
+def get_path_to_current_core():
     """
-    Returns the root location of the currently executing code, assuming that this code is 
+    Returns the local path of the currently executing code, assuming that this code is 
     located inside a standard toolkit install setup. If the code that is running is part
-    of a localized pipeline configuration, its root path will be returned, otherwise 
+    of a localized pipeline configuration, the PC root path will be returned, otherwise 
     a 'studio' root will be returned.
     
-    If the platform is the current operating system, a runtime introspection will be 
-    carried out to determine the path. For other platforms, the install_location lookup 
-    file will be used to determine the core location.
-    
-    This method may not return valid results if there has been any symlinks set up as part of
-    the install structure.
-    
-    Note that for the current platform, this method will always return a path, but for 
-    other operating systems it may return None.
-    
-    :param platform: operating system, sys.platform style (e.g. linux2/win32/darwin)
-    :returns: path to a code install root, e.g. '/mnt/software/shotgun/studio' or None
+    :returns: string with path
     """
-
     curr_os_core_root = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "..", ".."))
     if not os.path.exists(curr_os_core_root):
         full_path_to_file = os.path.abspath(os.path.dirname(__file__))
@@ -62,61 +50,17 @@ def get_current_code_install_root(platform):
                         "This can happen if you try to move or symlink the Toolkit API. The "
                         "Toolkit API is currently picked up from %s which is an "
                         "invalid location." % full_path_to_file)
+    return curr_os_core_root    
     
-    if platform == sys.platform:
-        # current os - just introspect
-        return curr_os_core_root
-
-    # for other platforms, read in install_location
-    location_file = os.path.join(curr_os_core_root, "config", "core", "install_location.yml")
-    if not os.path.exists(location_file):
-        raise TankError("Cannot find '%s' - please contact support!" % location_file)
-
-    # load the config file
-    try:
-        open_file = open(location_file)
-        try:
-            location_data = yaml.load(open_file)
-        finally:
-            open_file.close()
-    except Exception, error:
-        raise TankError("Cannot load config file '%s'. Error: %s" % (location_file, error))
-
-    # do some cleanup on this file - sometimes there are entries that say "undefined"
-    # or is just an empty string - turn those into null values
-    linux_path = location_data.get("Linux")
-    macosx_path = location_data.get("Darwin")
-    win_path = location_data.get("Windows")
     
-    if not linux_path or not linux_path.startswith("/"):
-        linux_path = None
-    if not macosx_path or not macosx_path.startswith("/"):
-        macosx_path = None
-    if not win_path or not (win_path.startswith("\\") or win_path[1] == ":"):
-        win_path = None
-
-    # return data
-    return {"win32": win_path, "darwin": macosx_path, "linux2": linux_path }[platform] 
-        
-
-####################################################################################################################
-# going from pipeline config -> Core API
-
-def get_core_api_install_location(pipeline_config_path):
+def get_core_path_for_config(pipeline_config_path):
     """
     Returns the core api install location associated with the given pipeline configuration.
-    
-    This method will return the root point, so a pipeline config root if running 
-    a localized API or a studio location root if running a bare API.
-        
-    When a pipeline configuration exists, a specific relationship between the core
-    core and that configuration has also been established. This method will follow
-    this connection to return the actual associated core API rather than the 
-    running API. Usually these two are the same (or so they should be), but this is not
-    guaranteed.
+    In the case of a localized PC, it just returns the given path.
+    Otherwise, it resolves the location via the core_xxxx.cfg files.
     
     :param pipeline_config_path: path to a pipeline configuration
-    :returns: Path to the studio location root or pipeline configuration root
+    :returns: Path to the studio location root or pipeline configuration root or None if not resolved
     """
 
     if is_localized(pipeline_config_path):
@@ -148,14 +92,63 @@ def get_core_api_install_location(pipeline_config_path):
             fh.close()  
         except:
             pass
-            
-        if install_path is None:
-            # no luck determining the location of the core API through our two 
-            # established modus operandi. Fall back on the crude legacy
-            # approach, which is to grab and return the currently running code.
-            install_path = get_current_code_install_root(sys.platform)
                 
     return install_path
+    
+    
+def resolve_all_os_paths_to_core(core_path):
+    """
+    Given a core path on the current os platform, return paths on all platforms.
+
+    Returns the root location of the currently executing code, assuming that this code is 
+    located inside a standard toolkit install setup. If the code that is running is part
+    of a localized pipeline configuration, its root path will be returned, otherwise 
+    a 'studio' root will be returned.
+    
+    If the platform is the current operating system, a runtime introspection will be 
+    carried out to determine the path. For other platforms, the install_location lookup 
+    file will be used to determine the core location.
+    
+    This method may not return valid results if there has been any symlinks set up as part of
+    the install structure.
+    
+    Note that for the current platform, this method will always return a path, but for 
+    other operating systems it may return None.
+    
+    :returns: dictionary with keys linux2, darwin and win32
+    """
+    # for other platforms, read in install_location
+    location_file = os.path.join(core_path, "config", "core", "install_location.yml")
+    if not os.path.exists(location_file):
+        raise TankError("Cannot find '%s' - please contact support!" % location_file)
+
+    # load the config file
+    try:
+        open_file = open(location_file)
+        try:
+            location_data = yaml.load(open_file)
+        finally:
+            open_file.close()
+    except Exception, error:
+        raise TankError("Cannot load config file '%s'. Error: %s" % (location_file, error))
+
+    # do some cleanup on this file - sometimes there are entries that say "undefined"
+    # or is just an empty string - turn those into null values
+    linux_path = location_data.get("Linux")
+    macosx_path = location_data.get("Darwin")
+    win_path = location_data.get("Windows")
+    
+    if not linux_path or not linux_path.startswith("/"):
+        linux_path = None
+    if not macosx_path or not macosx_path.startswith("/"):
+        macosx_path = None
+    if not win_path or not (win_path.startswith("\\") or win_path[1] == ":"):
+        win_path = None
+
+    # return data
+    return {"win32": win_path, "darwin": macosx_path, "linux2": linux_path }
+        
+
 
 
 ####################################################################################################################

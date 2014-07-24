@@ -1,4 +1,4 @@
-# Copyright (c) 2013 Shotgun Software Inc.
+    # Copyright (c) 2013 Shotgun Software Inc.
 # 
 # CONFIDENTIAL AND PROPRIETARY
 # 
@@ -12,8 +12,10 @@ import os
 import sys
 
 from .action_base import Action
+from . import core
 from ...util import shotgun
 from ...errors import TankError
+from ... import pipelineconfig_utils
 
 from .setup_project_core import run_project_setup
 from .setup_project_params import ProjectSetupParameters
@@ -385,13 +387,88 @@ class SetupProjectWizard(object):
         Execute the actual setup process.
         """
         
+        self._log.debug("Start preparing for project setup!")
+        
+        # first, work out which version of the core we should be associate the new project with.
+        # this logic follows a similar pattern to the default config generation.
+        #
+        # A. If the config template is a project in shotgun, use its core.
+        #    If this core is localized, then localize this project too
+        
+        # B. Otherwise, try to find the most recent primary pipeline config in shotgun and use its core
+        #    If this core is localized, then localize this project too
+        #
+        # C. If there are no recent pipeline configs or if the config isn't valid, fall back on the 
+        #    currently executing core API. Always localize in this case.
+        
+        
+        # the defaults is to localize and pick up current
+        localize_api = True
+        curr_core_path = pipelineconfig_utils.get_path_to_current_core()
+        core_path_dict = pipelineconfig_utils.resolve_all_os_paths_to_core(curr_core_path)
+        
+        # first try to get shotgun pipeline config data from the config template
+        data = self._params.get_configuration_shotgun_info()
+        
+        if data:
+            self._log.debug("Will try to inherit core from the config template: %s" % data)
+        
+        else:
+            # the config template isn't a shotgun pipeline config. So fall back
+            # on using the most recent primary one
+            data = self._sg.find_one("PipelineConfiguration", 
+                                     [["code", "is", "primary"]],
+                                     ["id", 
+                                      "mac_path", 
+                                      "windows_path", 
+                                      "linux_path", 
+                                      "project", 
+                                      "project.Project.tank_name"],
+                                     [{"field_name": "created_at", "direction": "desc"}])
+
+            if not data:
+                self._log.debug("No existing projects in shotgun. Will try to inherit the core from the running code.")
+            else:
+                self._log.debug("Will try to inherit the core from the most recent project: %s" % data)
+        
+        # proceed to try to find the core API  
+        if data:
+            lookup = {"darwin": "mac_path", "linux2": "linux_path", "win32": "windows_path"}
+            pipeline_config_root_path = data[ lookup[sys.platform] ]
+            
+            if pipeline_config_root_path and os.path.exists(pipeline_config_root_path):
+                # looks like this exists - try to resolve its core API location
+                core_api_root = pipelineconfig_utils.get_core_path_for_config(pipeline_config_root_path)
+                
+                if core_api_root:
+                    # core api resolved correctly!
+                    # now get all three platforms
+                    core_path_dict = pipelineconfig_utils.resolve_all_os_paths_to_core(core_api_root)
+                    self._log.debug("Will use pipeline configuration here: %s" % pipeline_config_root_path)
+                    self._log.debug("This has an associated core here: %s" % core_api_root)
+
+                    # now check the logic for localization:
+                    # if this core that we have found and resolved is localized,
+                    # we localize the new project as well.
+                    if pipelineconfig_utils.is_localized(pipeline_config_root_path):
+                        localize_api = True
+                    else:
+                        localize_api = False
+        
+        # ok - we are good to go! Set the core to use
+        self._params.set_associated_core_path(core_path_dict["linux2"], 
+                                              core_path_dict["win32"], 
+                                              core_path_dict["darwin"])
+        
         # run overall validation of the project setup
         self._params.pre_setup_validation()
         
         # and finally carry out the setup
-        return run_project_setup(self._log, 
-                                 self._sg, 
-                                 self._sg_app_store, 
-                                 self._sg_app_store_script_user, 
-                                 self._params)
+        run_project_setup(self._log, self._sg, self._sg_app_store, self._sg_app_store_script_user, self._params)
+        
+        # check if we should run the localization afterwards
+        if localize_api:
+            core.do_localize(self._log, 
+                             self._params.get_configuration_location(sys.platform), 
+                             suppress_prompts=True)
         

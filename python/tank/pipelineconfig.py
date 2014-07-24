@@ -334,25 +334,20 @@ class PipelineConfiguration(object):
     def get_install_location(self):
         """
         Returns the core api install location associated with this pipeline configuration.
-        
-        This method will return the root point, so a pipeline config root if running 
-        a localized API or a studio location root if running a bare API.
-        
-        The install location is where toolkit caches engines, apps, frameworks and is
-        where it keeps the Core API.       
-        
-        Use this method whenever a pipeline configuration is available, since it is more
-        sophisticated. In cases when no pipeline configuration is available, revert to  
-        baseing the install location on the currently running code.
-        
-        When a pipeline configuration exists, a specific relationship between the core
-        core and that configuration has also been established. This method will follow
-        this connection to return the actual associated core API rather than the 
-        running API. Usually these two are the same (or so they should be), but this is not
-        guaranteed.
-        """
-        return pipelineconfig_utils.get_core_api_install_location(self._pc_root)
 
+        Tries to resolve it via the explicit link which exists between the pc and the its core.
+        If this fails, it uses runtime introspection to resolve it.
+        
+        :returns: path string tot he current core API install root location
+        """
+        core_api_root = pipelineconfig_utils.get_core_path_for_config(self._pc_root)
+        
+        if core_api_root is None:
+            # lookup failed. fall back onto runtime introspection
+            core_api_root = pipelineconfig_utils.get_path_to_current_core()
+        
+        return core_api_root
+            
     def get_apps_location(self):
         """
         Returns the location where apps are stored

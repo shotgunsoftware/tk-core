@@ -78,7 +78,7 @@ class CoreUpgradeAction(Action):
         return_status = {"status": "unknown"}
 
         # get the core api root of this installation by looking at the relative location of the running code.
-        code_install_root = pipelineconfig_utils.get_current_code_install_root(sys.platform) 
+        code_install_root = pipelineconfig_utils.get_path_to_current_core() 
         
         log.info("")
         log.info("Welcome to the Shotgun Pipeline Toolkit update checker!")
@@ -190,7 +190,9 @@ class CoreLocalizeAction(Action):
         """
         API accessor
         """
-        return self._run(log, True)
+        pc_root = self.tk.pipeline_configuration.get_path()
+        log.debug("Executing the localize command for %r" % self.tk)
+        return do_localize(log, pc_root, suppress_prompts=True)
     
     def run_interactive(self, log, args):
         """
@@ -199,107 +201,116 @@ class CoreLocalizeAction(Action):
         if len(args) != 0:
             raise TankError("This command takes no arguments!")
 
-        return self._run(log, False)
-    
-    def _run(self, log, suppress_prompts):
-        """
-        Actual execution payload
-        """ 
-
-        log.debug("Executing the localize command for %r" % self.tk)
-        
-        log.info("")
-        if self.tk.pipeline_configuration.is_localized():
-            raise TankError("Looks like your current pipeline configuration already has a local install of the core!")
-        
-        core_api_root = self.tk.pipeline_configuration.get_install_location()
         pc_root = self.tk.pipeline_configuration.get_path()
-        
-        log.info("This will copy the Core API in %s into the Pipeline configuration %s." % (core_api_root, 
-                                                                                            pc_root) )
+        log.debug("Executing the localize command for %r" % self.tk)
+        return do_localize(log, pc_root, suppress_prompts=False)
+    
+
+    
+    
+    
+    
+def do_localize(log, pc_root_path, suppress_prompts):
+    """
+    Perform the actual localize command
+    
+    :param log: logging object
+    :pc_root
+    """ 
+
+    
+    
+    log.info("")
+    if pipelineconfig_utils.is_localized(pc_root_path):
+        raise TankError("Looks like your current pipeline configuration already has a local install of the core!")
+    
+    core_api_root = pipelineconfig_utils.get_core_path_for_config(pc_root_path)
+    
+    log.info("This will copy the Core API in %s into the Pipeline configuration %s." % (core_api_root, 
+                                                                                        pc_root_path) )
+    log.info("")
+    if suppress_prompts or console_utils.ask_yn_question("Do you want to proceed"):
         log.info("")
-        if suppress_prompts or console_utils.ask_yn_question("Do you want to proceed"):
-            log.info("")
-            
-            source_core = os.path.join(core_api_root, "install", "core")
-            target_core = os.path.join(pc_root, "install", "core")
-            backup_location = os.path.join(pc_root, "install", "core.backup")
-            
-            # move this into backup location
-            backup_folder_name = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-            backup_path = os.path.join(backup_location, backup_folder_name)
-            log.debug("Backing up Core API: %s -> %s" % (target_core, backup_path))
-            src_files = util._copy_folder(log, target_core, backup_path)
-            
-            # now clear out the install location
-            log.debug("Clearing out target location...")
-            for f in src_files:
-                try:
-                    # on windows, ensure all files are writable
-                    if sys.platform == "win32":
-                        attr = os.stat(f)[0]
-                        if (not attr & stat.S_IWRITE):
-                            # file is readonly! - turn off this attribute
-                            os.chmod(f, stat.S_IWRITE)
-                    os.remove(f)
-                    log.debug("Deleted %s" % f)
-                except Exception, e:
-                    log.error("Could not delete file %s: %s" % (f, e))
-                
-            
-            old_umask = os.umask(0)
+        
+        source_core = os.path.join(core_api_root, "install", "core")
+        target_core = os.path.join(pc_root_path, "install", "core")
+        backup_location = os.path.join(pc_root_path, "install", "core.backup")
+        
+        # move this into backup location
+        backup_folder_name = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        backup_path = os.path.join(backup_location, backup_folder_name)
+        log.debug("Backing up Core API: %s -> %s" % (target_core, backup_path))
+        src_files = util._copy_folder(log, target_core, backup_path)
+        
+        # now clear out the install location
+        log.debug("Clearing out target location...")
+        for f in src_files:
             try:
-                
-                # copy core distro
-                log.info("Localizing Core: %s -> %s" % (source_core, target_core))
-                util._copy_folder(log, source_core, target_core)
-                
-                # copy some core config files across
-                log.info("Copying Core Configuration Files...")
-                file_names = ["app_store.yml", 
-                              "shotgun.yml", 
-                              "interpreter_Darwin.cfg", 
-                              "interpreter_Linux.cfg", 
-                              "interpreter_Windows.cfg"]
-                for fn in file_names:
-                    src = os.path.join(core_api_root, "config", "core", fn)
-                    tgt = os.path.join(pc_root, "config", "core", fn)
-                    log.debug("Copy %s -> %s" % (src, tgt))
-                    shutil.copy(src, tgt)
-                    
-                # copy apps, engines, frameworks
-                source_apps = os.path.join(core_api_root, "install", "apps")
-                target_apps = os.path.join(pc_root, "install", "apps")
-                log.info("Localizing Apps: %s -> %s" % (source_apps, target_apps))
-                util._copy_folder(log, source_apps, target_apps)
-                
-                source_engines = os.path.join(core_api_root, "install", "engines")
-                target_engines = os.path.join(pc_root, "install", "engines")
-                log.info("Localizing Engines: %s -> %s" % (source_engines, target_engines))
-                util._copy_folder(log, source_engines, target_engines)
-    
-                source_frameworks = os.path.join(core_api_root, "install", "frameworks")
-                target_frameworks = os.path.join(pc_root, "install", "frameworks")
-                log.info("Localizing Frameworks: %s -> %s" % (source_frameworks, target_frameworks))
-                util._copy_folder(log, source_frameworks, target_frameworks)
-                    
+                # on windows, ensure all files are writable
+                if sys.platform == "win32":
+                    attr = os.stat(f)[0]
+                    if (not attr & stat.S_IWRITE):
+                        # file is readonly! - turn off this attribute
+                        os.chmod(f, stat.S_IWRITE)
+                os.remove(f)
+                log.debug("Deleted %s" % f)
             except Exception, e:
-                raise TankError("Could not localize: %s" % e)
-            finally:
-                os.umask(old_umask)
+                log.error("Could not delete file %s: %s" % (f, e))
+            
+        
+        old_umask = os.umask(0)
+        try:
+            
+            # copy core distro
+            log.info("Localizing Core: %s -> %s" % (source_core, target_core))
+            util._copy_folder(log, source_core, target_core)
+            
+            # copy some core config files across
+            log.info("Copying Core Configuration Files...")
+            file_names = ["app_store.yml", 
+                          "shotgun.yml", 
+                          "interpreter_Darwin.cfg", 
+                          "interpreter_Linux.cfg", 
+                          "interpreter_Windows.cfg"]
+            for fn in file_names:
+                src = os.path.join(core_api_root, "config", "core", fn)
+                tgt = os.path.join(pc_root_path, "config", "core", fn)
+                log.debug("Copy %s -> %s" % (src, tgt))
+                shutil.copy(src, tgt)
                 
-            log.info("The Core API was successfully localized.")
-    
-            log.info("")
-            log.info("Localize complete! This pipeline configuration now has an independent API. "
-                     "If you upgrade the API for this configuration (using the 'tank core' command), "
-                     "no other configurations or projects will be affected.")
-            log.info("")
-            log.info("")
+            # copy apps, engines, frameworks
+            source_apps = os.path.join(core_api_root, "install", "apps")
+            target_apps = os.path.join(pc_root_path, "install", "apps")
+            log.info("Localizing Apps: %s -> %s" % (source_apps, target_apps))
+            util._copy_folder(log, source_apps, target_apps)
             
-        else:
-            log.info("Operation cancelled.")
+            source_engines = os.path.join(core_api_root, "install", "engines")
+            target_engines = os.path.join(pc_root_path, "install", "engines")
+            log.info("Localizing Engines: %s -> %s" % (source_engines, target_engines))
+            util._copy_folder(log, source_engines, target_engines)
+
+            source_frameworks = os.path.join(core_api_root, "install", "frameworks")
+            target_frameworks = os.path.join(pc_root_path, "install", "frameworks")
+            log.info("Localizing Frameworks: %s -> %s" % (source_frameworks, target_frameworks))
+            util._copy_folder(log, source_frameworks, target_frameworks)
+                
+        except Exception, e:
+            raise TankError("Could not localize: %s" % e)
+        finally:
+            os.umask(old_umask)
             
+        log.info("The Core API was successfully localized.")
+
+        log.info("")
+        log.info("Localize complete! This pipeline configuration now has an independent API. "
+                 "If you upgrade the API for this configuration (using the 'tank core' command), "
+                 "no other configurations or projects will be affected.")
+        log.info("")
+        log.info("")
+        
+    else:
+        log.info("Operation cancelled.")
+        
 
 
 #################################################################################################

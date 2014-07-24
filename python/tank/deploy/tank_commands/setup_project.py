@@ -131,9 +131,9 @@ class SetupProjectAction(Action):
         
         # tell it which core to pick up. For the tank command, we just base it off the 
         # currently running API        
-        params.set_associated_core_path(pipelineconfig_utils.get_current_code_install_root("linux2"),
-                                        pipelineconfig_utils.get_current_code_install_root("win32"),
-                                        pipelineconfig_utils.get_current_code_install_root("darwin"))
+        curr_core_path = pipelineconfig_utils.get_path_to_current_core()
+        core_roots = pipelineconfig_utils.resolve_all_os_paths_to_core(curr_core_path)
+        params.set_associated_core_path(core_roots["linux2"], core_roots["win32"], core_roots["darwin"])
         
         # specify which config to use
         params.set_config_uri(computed_params["config_uri"], computed_params["check_storage_path_exists"])
@@ -154,7 +154,7 @@ class SetupProjectAction(Action):
         params.pre_setup_validation()
         
         # and finally carry out the setup
-        return run_project_setup(log, sg, sg_app_store, sg_app_store_script_user, params)
+        run_project_setup(log, sg, sg_app_store, sg_app_store_script_user, params)
         
                         
     def run_interactive(self, log, args):
@@ -190,10 +190,10 @@ class SetupProjectAction(Action):
         params = ProjectSetupParameters(log, sg, sg_app_store, sg_app_store_script_user)
         
         # tell it which core to pick up. For the tank command, we just base it off the 
-        # currently running API        
-        params.set_associated_core_path(pipelineconfig_utils.get_current_code_install_root("linux2"),
-                                        pipelineconfig_utils.get_current_code_install_root("win32"),
-                                        pipelineconfig_utils.get_current_code_install_root("darwin"))
+        # currently running API
+        curr_core_path = pipelineconfig_utils.get_path_to_current_core()
+        core_roots = pipelineconfig_utils.resolve_all_os_paths_to_core(curr_core_path)        
+        params.set_associated_core_path(core_roots["linux2"], core_roots["win32"], core_roots["darwin"])
         
         # now ask which config to use. Download if necessary and examine
         config_uri = self._select_template_configuration(log, sg)
@@ -222,7 +222,7 @@ class SetupProjectAction(Action):
             raise TankError("Installation Aborted.")
         
         # and finally carry out the setup
-        return run_project_setup(log, sg, sg_app_store, sg_app_store_script_user, params)
+        run_project_setup(log, sg, sg_app_store, sg_app_store_script_user, params)
         
     def _shotgun_connect(self, log):
         """
@@ -568,10 +568,9 @@ class SetupProjectAction(Action):
         # get the path to the primary storage  
         primary_local_path = params.get_storage_path(constants.PRIMARY_STORAGE_NAME, sys.platform)        
         
-        core_locations = {}
-        core_locations["win32"] = pipelineconfig_utils.get_current_code_install_root("win32")
-        core_locations["linux2"] = pipelineconfig_utils.get_current_code_install_root("linux2")
-        core_locations["darwin"] = pipelineconfig_utils.get_current_code_install_root("darwin")
+        curr_core_path = pipelineconfig_utils.get_path_to_current_core()
+        core_locations = pipelineconfig_utils.resolve_all_os_paths_to_core(curr_core_path)
+        
         
         if os.path.abspath(os.path.join(core_locations[sys.platform], "..")).lower() == primary_local_path.lower():
             # ok the parent of the install root matches the primary storage - means OLD STYLE (pre core 0.12)

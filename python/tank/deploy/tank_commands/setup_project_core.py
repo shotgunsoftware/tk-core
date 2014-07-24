@@ -32,7 +32,7 @@ def run_project_setup(log, sg, sg_app_store, sg_app_store_script_user, setup_par
     """
     old_umask = os.umask(0)
     try:
-        return _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, setup_params)
+        _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, setup_params)
     finally:
         os.umask(old_umask)
 
