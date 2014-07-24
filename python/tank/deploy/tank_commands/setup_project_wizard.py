@@ -299,54 +299,65 @@ class SetupProjectWizard(object):
         # 2. if not, find the most recent primary pipeline config and base location on this
         # 3. failing that (meaning no projects have been set up ever) return None
 
-        # helper method for path munging:        
-        def _join(path, separator, project_name):
-            """
-            Helper method: path: /foo/bar/baz, separator: /, project_name: xxx => /foo/bar/xxx
-            """
-            if path is None or path == "":
-                return None
-            chunks = path.split(separator) # first split
-            chunks.pop() # remove the project folder
-            proj_name_chunks = project_name.split("/") # in case of a multi folder project name, split it up
-            chunks.extend(proj_name_chunks) # append project name
-            return separator.join(chunks) # and join up
-        
         # now check the shotgun data
-        proj_name = self._params.get_project_disk_name()
+        new_proj_disk_name = self._params.get_project_disk_name() # e.g. 'foo/bar_baz'
+        new_proj_disk_name_win = new_proj_disk_name.replace("/", "\\")  # e.g. 'foo\bar_baz'
+         
         data = self._params.get_configuration_shotgun_info()
         
-        if data:
-            self._Log.debug("Configuration is an existing shotgun config. Basing config values "
-                            "on these config paths: %s" % data)
-            
-            # we have a configuration in shotgun which we are basing our path on!
-            return {"darwin": _join(data["mac_path"], "/", proj_name), 
-                    "linux2": _join(data["linux_path"], "/", proj_name), 
-                    "win32":  _join(data["windows_path"], "\\", proj_name)}
-            
-        else:
-            # find the most recent primary pipeline configuration and use that
+        if not data:
+            # we are not based on an existing project. Instead pick the last primary config
             data = self._sg.find_one("PipelineConfiguration", 
                                      [["code", "is", "primary"]],
-                                     ["id", "mac_path", "windows_path", "linux_path", "project"],
+                                     ["id", 
+                                      "mac_path", 
+                                      "windows_path", 
+                                      "linux_path", 
+                                      "project", 
+                                      "project.Project.tank_name"],
                                      [{"field_name": "created_at", "direction": "desc"}])
-            
-            if len(data) == 0:
-                # there are no primary configurations registered. This means that we are setting up
-                # our very first project and cannot really suggest any config locations
-                self._log.debug("No configs available to generate preview config values. Returning None.")
-                
-                return {"darwin": None, "linux2": None, "win32": None}
-        
-            else:
-                # use the existing project to generate a preview
-                self._Log.debug("Configuration comes from app store or git. Basing config values "
-                                "on the last config in shotgun: %s" % data)
 
-                return {"darwin": _join(data["mac_path"], "/", proj_name), 
-                        "linux2": _join(data["linux_path"], "/", proj_name), 
-                        "win32":  _join(data["windows_path"], "\\", proj_name)}
+        if not data:
+            # there are no primary configurations registered. This means that we are setting up
+            # our very first project and cannot really suggest any config locations
+            self._log.debug("No configs available to generate preview config values. Returning None.")            
+            suggested_defaults = {"darwin": None, "linux2": None, "win32": None}
+            
+        else:
+            # now take the pipeline config paths, and try to replace the current project name
+            # in these paths by the new project name
+            self._log.debug("Basing config values on the following shotgun pipeline config: %s" % data)
+            
+            # get the project path for this project
+            old_project_disk_name = data["project.Project.tank_name"]  # e.g. 'foo/bar_baz'
+            old_project_disk_name_win = old_project_disk_name.replace("/", "\\")  # e.g. 'foo\bar_baz'
+            
+            # now replace the project path in the pipeline configuration 
+            suggested_defaults = {"darwin": None, "linux2": None, "win32": None}
+            
+            # go through each pipeline config path, try to find the project disk name as part of this
+            # path. if that exists, replace with the new project disk name
+            # here's the logic:
+            #
+            # project name:     'my_proj'
+            # new project name: 'new_proj'
+            #
+            # pipeline config: /mnt/configs/my_proj/configz -> /mnt/configs/new_proj/configz
+            #
+            # if the project name isn't found as part of the config path, none is returned
+            #
+            # pipeline config: /mnt/configs/myproj/configz -> None
+            #
+            if data["mac_path"] and old_project_disk_name in data["mac_path"]:
+                suggested_defaults["darwin"] = data["mac_path"].replace(old_project_disk_name, new_proj_disk_name)
+
+            if data["linux_path"] and old_project_disk_name in data["linux_path"]:
+                suggested_defaults["linux2"] = data["linux_path"].replace(old_project_disk_name, new_proj_disk_name)
+
+            if data["windows_path"] and old_project_disk_name_win in data["windows_path"]:
+                suggested_defaults["win32"] = data["windows_path"].replace(old_project_disk_name_win, new_proj_disk_name_win)
+                
+        return suggested_defaults
     
     def validate_configuration_location(self, linux_path, windows_path, macosx_path):
         """
