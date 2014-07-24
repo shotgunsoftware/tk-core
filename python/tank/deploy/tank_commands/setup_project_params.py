@@ -1059,7 +1059,7 @@ class TemplateConfiguration(object):
                             # shotgun has no path for our local storage
                             return_data[s]["exists_on_disk"] = False
                             
-                        elif os.path.exists(local_storage_path):
+                        elif not os.path.exists(local_storage_path):
                             # path is defined but cannot be found
                             return_data[s]["exists_on_disk"] = False
                             
