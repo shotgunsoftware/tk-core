@@ -78,7 +78,7 @@ class CoreUpgradeAction(Action):
         return_status = {"status": "unknown"}
 
         # get the core api root of this installation by looking at the relative location of the running code.
-        code_install_root = pipelineconfig_utils.get_current_code_install_root() 
+        code_install_root = pipelineconfig_utils.get_current_code_install_root(sys.platform) 
         
         log.info("")
         log.info("Welcome to the Shotgun Pipeline Toolkit update checker!")

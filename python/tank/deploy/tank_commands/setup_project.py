@@ -556,7 +556,10 @@ class SetupProjectAction(Action):
         # get the path to the primary storage  
         primary_local_path = params.get_storage_path(constants.PRIMARY_STORAGE_NAME, sys.platform)        
         
-        core_locations = pipelineconfig_utils.get_current_core_install_location_data()
+        core_locations = {}
+        core_locations["win32"] = pipelineconfig_utils.get_current_code_install_root("win32")
+        core_locations["linux2"] = pipelineconfig_utils.get_current_code_install_root("linux2")
+        core_locations["darwin"] = pipelineconfig_utils.get_current_code_install_root("darwin")
         
         if os.path.abspath(os.path.join(core_locations[sys.platform], "..")).lower() == primary_local_path.lower():
             # ok the parent of the install root matches the primary storage - means OLD STYLE (pre core 0.12)

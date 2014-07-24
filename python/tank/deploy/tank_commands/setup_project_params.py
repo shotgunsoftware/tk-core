@@ -581,8 +581,7 @@ class ProjectSetupParameters(object):
         :param platform: Os platform as a string, sys.platform style (e.g. linux2/win32/darwin)
         :returns: path to pipeline configuration.
         """
-        core_paths =  pipelineconfig_utils.get_current_core_install_location_data()        
-        return core_paths[platform]
+        return pipelineconfig_utils.get_current_code_install_root(platform)
 
 
     ################################################################################################################

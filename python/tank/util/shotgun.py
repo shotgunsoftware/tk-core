@@ -14,6 +14,7 @@ Shotgun utilities
 """
 
 import os
+import sys
 import urllib
 import urllib2
 import urlparse
@@ -47,7 +48,7 @@ def __get_api_core_config_location():
     """
     # local import to avoid cyclic references
     from ..pipelineconfig_utils import get_current_code_install_root
-    core_api_root = get_current_code_install_root()
+    core_api_root = get_current_code_install_root(sys.platform)
     core_cfg = os.path.join(core_api_root, "config", "core")
 
     if not os.path.exists(core_cfg):
