@@ -132,7 +132,7 @@ class Tank(object):
 
         :returns: string representing the version
         """
-        return self.__pipeline_config.get_associated_core_version()
+        return pipelineconfig_utils.get_currently_running_api_version()
 
     @property
     def documentation_url(self):

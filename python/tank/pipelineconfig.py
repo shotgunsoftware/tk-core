@@ -341,7 +341,7 @@ class PipelineConfiguration(object):
         :returns: path string tot he current core API install root location
         """
         core_api_root = pipelineconfig_utils.get_core_path_for_config(self._pc_root)
-        
+
         if core_api_root is None:
             # lookup failed. fall back onto runtime introspection
             core_api_root = pipelineconfig_utils.get_path_to_current_core()
