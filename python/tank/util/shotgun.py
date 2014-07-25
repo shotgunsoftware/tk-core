@@ -555,7 +555,7 @@ def get_published_file_entity_type(tk):
     """
     return tk.pipeline_configuration.get_published_file_entity_type()
 
-def register_publish(tk, context, path, name, version_number, **kwargs):
+def register_publish(tk, context, path, name, version_number=None, **kwargs):
     """
     Creates a Tank Published File in Shotgun.
 
@@ -578,9 +578,12 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
                name. For something like a render, it could be the scene
                name, the name of the AOV and the name of the render layer.
 
-        version_number - the version numnber of the item we are publishing.
 
     Optional arguments:
+
+        version_number - the version numnber of the item we are publishing. If not specified,
+                         we will try and figure out the next sequential unused version number
+                         based on the existing files in the same path with the same name.
 
         task - a shotgun entity dictionary with id and type (which should always be Task).
                if no value is specified, the task will be grabbed from the context object.
@@ -656,6 +659,17 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
             if not sg_published_file_type:
                 # create a tank type on the fly
                 sg_published_file_type = tk.shotgun.create("TankType", {"code": published_file_type, "project": context.project})
+
+    # if no version number is specified, try and figure out the next one
+    if version_number is None or version_number == -1:
+        templ = tk.template_from_path(path)
+        fields = templ.get_fields(path)
+        existing_versions = tk.paths_from_template(templ, fields, ['version'])
+        if len(existing_versions) > 0:
+            existing_version_numbers = [ templ.get_fields(v).get("version") for v in existing_versions]
+            version_number = max(existing_version_numbers) + 1
+        else:
+            version_number = 1
 
     # create the publish
     entity = _create_published_file(tk, 
