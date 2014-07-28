@@ -156,21 +156,28 @@ class SetupProjectWizard(object):
         A dictionary with a breakdown of all storages required by the configuration is returned:
                 
         {
-          "primary" : { "description": "Description",
+          "primary" : { "description": "This is where work files and scene publishes are located.",
                         "exists_on_disk": False,
                         "defined_in_shotgun": True,
                         "shotgun_id": 12,
-                        "darwin": "/mnt/foo",
-                        "win32": "z:\mnt\foo",
-                        "linux2": "/mnt/foo"},
+                        "darwin": "/mnt/data",
+                        "win32": "z:\mnt\data",
+                        "linux2": "/mnt/data"},
                                     
-          "textures" : { "description": None,
+          "textures" : { "description": "All texture are located on this storage",
                          "exists_on_disk": False,
-                         "defined_in_shotgun": True,
-                         "shotgun_id": 14,
+                         "defined_in_shotgun": False,
+                         "shotgun_id": None,
                          "darwin": None,
-                         "win32": "z:\mnt\foo",
-                         "linux2": "/mnt/foo"}                                    
+                         "win32": None,
+                         "linux2": None}    
+
+          "renders" : { "description": None,
+                        "exists_on_disk": False,
+                        "defined_in_shotgun": True,
+                        "darwin": None,
+                        "win32": "z:\mnt\renders",
+                        "linux2": "/mnt/renders"}
         }
         
         The main dictionary is keyed by storage name. It will contain one entry
