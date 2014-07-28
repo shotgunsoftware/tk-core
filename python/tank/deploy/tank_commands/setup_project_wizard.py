@@ -253,6 +253,13 @@ class SetupProjectWizard(object):
                         "win32" : "c:\textures\project_name"}}
         
         The operating systems are enumerated using sys.platform jargon.
+        If a path doesn't have a valid storage path defined in Shotgun,
+        it will be returned as None. If the project name is not valid,
+        None values will be returned for all paths.
+        
+        It is recommended that you execute validate_project_disk_name()
+        to check the validity of the project name prior to executing this 
+        method. 
         
         :param project_disk_name: string with a project name.
         :returns: Dictionary, see above.
@@ -268,8 +275,13 @@ class SetupProjectWizard(object):
         
     def set_project_disk_name(self, project_disk_name, create_folders=True):
         """
-        Set the desired name of the project.
-        May raise exception if the name is not valid.
+        Set the desired name of the project. May raise exception if the name is not valid.
+        By default, this method also attempts to ensure that folders exists for all
+        storages associated with this configuration and project name.
+        
+        It is recommended that you execute validate_project_disk_name()
+        to check the validity of the project name prior to executing this 
+        method. 
         
         :param project_disk_name: string with a project name
         :param create_folders: if set to true, the wizard will attempt to create project root folders
@@ -401,12 +413,48 @@ class SetupProjectWizard(object):
         """
         self._params.set_configuration_location(linux_path, windows_path, macosx_path)
     
-    def execute(self):
+    def get_core_settings(self):
         """
-        Execute the actual setup process.
-        """
+        Calculates core API associations for the new project.
+
+        Returns a data structure on the following form:
         
-        self._log.debug("Start preparing for project setup!")
+        { "localize": True,
+          "using_runtime": False, 
+          "core_path: { "linux2": "/path/to/core",
+                        "darwin": "/path/to/core",
+                        "win32": None }
+          "pipeline_config": { "type": "PipelineConfiguration", 
+                               "id": 12,
+                               "code": "primary",
+                               "project": {"id": 123, "type": "Project", "name": "big buck bunny"},
+                               "project.Project.tank_name": "big_buck_bunny"
+                               }
+        }
+        
+        Below is a summary of the various return parameters:
+        
+        localize - If set to True, the localize boolean indicates that the core API will be 'baked in' to the
+                   project configuration to form an autonomous (localized) setup which doesn't depend on 
+                   any other locations on disk. In this case, the core_path data represents the location from
+                   where the core API will be obtained. In this case, the only path in the core_path which 
+                   is relevant  will be the one that corresponds to the current operating system.
+        
+        using_runtime - If set to true, this indicates that the core used for the setup will be picked up
+                        from the currently executing core API.
+        
+        pipeline_config - If the core is picked up from an existing pipeline configuration in Shotgun, this 
+                          parameter will hold a dictionary with various shotgun values representing the 
+                          pipeline configuration and its associated project. If the core used to create the project
+                          is not associated with an existing pipeline configuration, None is returned.
+        
+        core_path - If localize is set to False, the configuration will share an API and it will be picked up 
+                    from the location indicated in the core_path parameter. In this case, a None value for a path
+                    indicates that this platform will not be supposed and the project will not be able to execute
+                    on that platform unless further configuration adjustments are carried out.   
+        
+        :returns: dictionary, see above for details.
+        """
         
         # first, work out which version of the core we should be associate the new project with.
         # this logic follows a similar pattern to the default config generation.
@@ -419,12 +467,15 @@ class SetupProjectWizard(object):
         #
         # C. If there are no recent pipeline configs or if the config isn't valid, fall back on the 
         #    currently executing core API. Always localize in this case.
-        
-        
-        # the defaults is to localize and pick up current
-        localize_api = True
+
+        # the defaults is to localize and pick up current core API
         curr_core_path = pipelineconfig_utils.get_path_to_current_core()
-        core_path_dict = pipelineconfig_utils.resolve_all_os_paths_to_core(curr_core_path)
+        
+        return_data = { "localize": True,
+                        "using_runtime": True,
+                        "core_path" : pipelineconfig_utils.resolve_all_os_paths_to_core(curr_core_path), 
+                        "pipeline_config": None
+                      }
         
         # first try to get shotgun pipeline config data from the config template
         data = self._params.get_configuration_shotgun_info()
@@ -460,24 +511,39 @@ class SetupProjectWizard(object):
                 core_api_root = pipelineconfig_utils.get_core_path_for_config(pipeline_config_root_path)
                 
                 if core_api_root:
-                    # core api resolved correctly!
-                    # now get all three platforms
-                    core_path_dict = pipelineconfig_utils.resolve_all_os_paths_to_core(core_api_root)
+                    # core api resolved correctly. Let's try to base our core on this config.
                     self._log.debug("Will use pipeline configuration here: %s" % pipeline_config_root_path)
                     self._log.debug("This has an associated core here: %s" % core_api_root)
-
-                    # now check the logic for localization:
+                    return_data["using_runtime"] = False
+                    return_data["pipeline_config"] = data
+                    return_data["core_path"] = pipelineconfig_utils.resolve_all_os_paths_to_core(core_api_root)
+                    
+                    # finally, check the logic for localization:
                     # if this core that we have found and resolved is localized,
                     # we localize the new project as well.
                     if pipelineconfig_utils.is_localized(pipeline_config_root_path):
-                        localize_api = True
+                        return_data["localize"] = True
                     else:
-                        localize_api = False
+                        return_data["localize"] = False
         
+        return return_data
+        
+    
+    
+    def execute(self):
+        """
+        Execute the actual setup process.
+        """
+        
+        self._log.debug("Start preparing for project setup!")
+        
+        # get core logic
+        core_settings = self.get_core_settings()
+                
         # ok - we are good to go! Set the core to use
-        self._params.set_associated_core_path(core_path_dict["linux2"], 
-                                              core_path_dict["win32"], 
-                                              core_path_dict["darwin"])
+        self._params.set_associated_core_path(core_settings["core_path"]["linux2"], 
+                                              core_settings["core_path"]["win32"], 
+                                              core_settings["core_path"]["darwin"])
         
         # run overall validation of the project setup
         self._params.pre_setup_validation()
@@ -486,7 +552,7 @@ class SetupProjectWizard(object):
         run_project_setup(self._log, self._sg, self._sg_app_store, self._sg_app_store_script_user, self._params)
         
         # check if we should run the localization afterwards
-        if localize_api:
+        if core_settings["localize"]:
             core.do_localize(self._log, 
                              self._params.get_configuration_location(sys.platform), 
                              suppress_prompts=True)
