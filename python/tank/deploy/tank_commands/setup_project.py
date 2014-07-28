@@ -686,10 +686,10 @@ class SetupProjectAction(Action):
         log.info("  - on Macosx:  '%s'" % params.get_associated_core_path("darwin"))
         log.info("  - on Linux:   '%s'" % params.get_associated_core_path("linux2"))
         log.info("  - on Windows: '%s'" % params.get_associated_core_path("win32"))
-        log.info("")
     
         for storage_name in params.get_required_storages():
     
+            log.info("")
             log.info("* Toolkit will connect to the project folder in Storage '%s':" % storage_name )
             
             mac_path = params.get_project_path(storage_name, "darwin")
