@@ -311,7 +311,6 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, set
     data["project_name"] = project_name
     data["pc_id"] = pipeline_config_id
     data["project_id"] = project_id
-    data["auto_path"] = setup_params.get_auto_path_mode()
     data["pc_name"] = constants.PRIMARY_PIPELINE_CONFIG_NAME 
     data["published_file_entity_type"] = pf_entity_type
     

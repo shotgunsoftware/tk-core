@@ -80,7 +80,6 @@ class PipelineConfiguration(object):
             raise TankError("Project name not defined in config metadata for config %s! "
                             "Please contact support." % self._pc_root)
         self._project_name = data.get("project_name")
-        self._auto_path = data.get("auto_path", False)
 
         # cache fields lazily populated on getter access
         self._project_id = None
@@ -139,11 +138,33 @@ class PipelineConfiguration(object):
 
     def is_auto_path(self):
         """
-        Returns true if this config was set up with auto path mode
+        Returns true if this config was set up with auto path mode.
+        This method will connect to shotgun in order to determine the auto path status.
         
         :returns: boolean indicating auto path state
         """
-        return self._auto_path
+        sg = shotgun.create_sg_connection()
+        data = sg.find_one(constants.PIPELINE_CONFIGURATION_ENTITY,
+                           [["id", "is", self.get_shotgun_id()]],
+                           ["linux_path", "windows_path", "mac_path"])
+
+        def _is_empty(d):
+            """
+            Returns true if value is "" or None, False otherwise
+            """
+            if d is None or d == "":
+                return True
+            else:
+                return False
+        
+        if _is_empty(data.get("linux_path")) and \
+           _is_empty(data.get("windows_path")) and \
+           _is_empty(data.get("mac_path")):
+            # all three PC fields are empty. This means that we are running an auto path config
+            return True
+        
+        else:
+            return False
         
 
     def is_localized(self):
