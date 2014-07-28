@@ -27,6 +27,9 @@ class CopyAppsAction(Action):
         # this method can be executed via the API
         self.supports_api = True
 
+        # no tank command support for this one
+        self.supports_tank_command = False
+
         self.parameters = {}
 
         self.parameters["environment"] = {
