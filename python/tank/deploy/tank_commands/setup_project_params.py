@@ -995,8 +995,7 @@ class TemplateConfiguration(object):
     
     def resolve_storages(self):
         """
-        Validate that the roots exist in shotgun.
-        Communicates with Shotgun.
+        Validate that the roots exist in shotgun. Communicates with Shotgun.
         
         Returns the root paths from shotgun for each storage.
         
@@ -1004,6 +1003,7 @@ class TemplateConfiguration(object):
           "primary" : { "description": "Description",
                         "exists_on_disk": False,
                         "defined_in_shotgun": True,
+                        "shotgun_id": 12,
                         "darwin": "/mnt/foo",
                         "win32": "z:\mnt\foo",
                         "linux2": "/mnt/foo"},
@@ -1011,18 +1011,36 @@ class TemplateConfiguration(object):
           "textures" : { "description": None,
                          "exists_on_disk": False,
                          "defined_in_shotgun": True,
+                         "shotgun_id": 14,
                          "darwin": None,
                          "win32": "z:\mnt\foo",
                          "linux2": "/mnt/foo"}                                    
-         }
-                
+        }
+        
+        The main dictionary is keyed by storage name. It will contain one entry
+        for each local storage which is required by the configuration template.
+        Each sub-dictionary contains the following items:
+        
+        - description: Description what the storage is used for. This comes from the 
+          configuration template and can be used to help a user to explain the purpose
+          of a particular storage required by a configuration.
+        - defined_in_shotgun: If false, no local storage with this name exists in Shotgun.
+        - shotgun_id: If defined_in_shotgun is True, this will contain the entity id for
+          the storage. If defined_in_shotgun is False, this will be set to none.
+        - darwin/win32/linux: Paths to storages, as defined in Shotgun. These values can be
+          None if a storage has not been defined.
+        - exists_on_disk: Flag if the path defined for the current operating system exists on
+          disk or not. 
+        
         :returns: dictionary with storage breakdown, see example above.                                  
         """
         
         return_data = {}
         
         self._log.debug("Checking so that all the local storages are registered...")
-        sg_storage = self._sg.find("LocalStorage", [], fields=["code", "linux_path", "mac_path", "windows_path"])
+        sg_storage = self._sg.find("LocalStorage", 
+                                   [], 
+                                   fields=["id", "code", "linux_path", "mac_path", "windows_path"])
 
         # make sure that there is a storage in shotgun matching all storages for this config
         sg_storage_codes = [x.get("code") for x in sg_storage]
@@ -1031,6 +1049,7 @@ class TemplateConfiguration(object):
         for s in cfg_storages:
             
             return_data[s] = { "description": self._roots_data[s].get("description"),
+                               "shotgun_id": None,
                                "darwin": None,
                                "win32": None,
                                "linux2": None}
@@ -1050,6 +1069,7 @@ class TemplateConfiguration(object):
                         return_data[s]["darwin"] = x.get("mac_path")
                         return_data[s]["linux2"] = x.get("linux_path")
                         return_data[s]["win32"] = x.get("windows_path")
+                        return_data[s]["shotgun_id"] = x.get("id")
                         
                         # get the local path
                         lookup_dict = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }                        

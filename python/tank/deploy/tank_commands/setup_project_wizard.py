@@ -154,22 +154,39 @@ class SetupProjectWizard(object):
         
         Once the configuration exists and is compatible, the storage situation is reviewed against shotgun.
         A dictionary with a breakdown of all storages required by the configuration is returned:
-        
+                
         {
-          "primary"  : { "description": "Description",
-                         "exists_on_disk": False,
-                         "defined_in_shotgun": True,
-                         "darwin": "/mnt/foo",
-                         "win32": "z:\mnt\foo",
-                         "linux2": "/mnt/foo"},
-                                     
+          "primary" : { "description": "Description",
+                        "exists_on_disk": False,
+                        "defined_in_shotgun": True,
+                        "shotgun_id": 12,
+                        "darwin": "/mnt/foo",
+                        "win32": "z:\mnt\foo",
+                        "linux2": "/mnt/foo"},
+                                    
           "textures" : { "description": None,
                          "exists_on_disk": False,
                          "defined_in_shotgun": True,
+                         "shotgun_id": 14,
                          "darwin": None,
                          "win32": "z:\mnt\foo",
                          "linux2": "/mnt/foo"}                                    
-         }
+        }
+        
+        The main dictionary is keyed by storage name. It will contain one entry
+        for each local storage which is required by the configuration template.
+        Each sub-dictionary in turn contains the following items:
+        
+        - description: Description what the storage is used for. This comes from the 
+          configuration template and can be used to help a user to explain the purpose
+          of a particular storage required by a configuration.
+        - defined_in_shotgun: If false, no local storage with this name exists in Shotgun.
+        - shotgun_id: If defined_in_shotgun is True, this will contain the entity id for
+          the storage. If defined_in_shotgun is False, this will be set to none.
+        - darwin/win32/linux: Paths to storages, as defined in Shotgun. These values can be
+          None if a storage has not been defined.
+        - exists_on_disk: Flag if the path defined for the current operating system exists on
+          disk or not. 
         
         :param config_uri: Configuration uri representing the location of a config
         :returns: dictionary with storage data, see above.
