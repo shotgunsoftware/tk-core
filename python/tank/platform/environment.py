@@ -733,8 +733,13 @@ class Environment(object):
         self.__verify_engine_local(data, engine_name)
         self.__verify_apps_local(data, engine_name)
 
+        # because of yaml, for engines with no apps at all, the apps section may have initialized to a null value
+        if data["engines"][engine_name]["apps"] is None:
+            data["engines"][engine_name]["apps"] = {}
+
         # check that it doesn't already exist
-        apps_section = data["engines"][engine_name]["apps"]
+        apps_section = data["engines"][engine_name]["apps"]        
+            
         if app_name in apps_section:
             raise TankError("App %s.%s already exists in environment %s" % (engine_name, app_name, self.__env_path) )
 
