@@ -217,13 +217,19 @@ class SetupProjectWizard(object):
     def get_config_metadata(self):
         """
         Returns a metadata dictionary for the config that has been associated with the wizard.
-        Returns a dictionary with information.
+        Returns a dictionary with information. Currently returns the following keys:
         
-        :returns: dictionary with display_name and description keys
+        - display_name: The display name for the configuration, e.g. 'Default Config'
+        - description: A short description of the configuraiton.
+        - readme: readme content associated with the config, in the form of list of strings.
+                  if no readme exists, an empty list is returned.
+        
+        :returns: dictionary with display_name, readme and description keys
         """
         d = {}
         d["display_name"] = self._params.get_configuration_display_name()
         d["description"] = self._params.get_configuration_description()
+        d["readme"] = self._params.get_configuration_readme()
         return d
 
     def get_default_project_disk_name(self):

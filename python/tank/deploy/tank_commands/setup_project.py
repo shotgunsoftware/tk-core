@@ -224,6 +224,23 @@ class SetupProjectAction(Action):
         # and finally carry out the setup
         run_project_setup(log, sg, sg_app_store, sg_app_store_script_user, params)
         
+        # display readme etc.
+        readme_content = params.get_configuration_readme()
+        if len(readme_content) > 0:
+            log.info("")
+            log.info("README file for template:")
+            for line in readme_content:
+                print line
+        
+        log.info("")
+        log.info("We recommend that you now run 'tank updates' to get the latest")
+        log.info("versions of all apps and engines for this project.")
+        log.info("")
+        log.info("For more Apps, Support, Documentation and the Toolkit Community, go to")
+        log.info("https://toolkit.shotgunsoftware.com")
+        log.info("")        
+        
+        
     def _shotgun_connect(self, log):
         """
         Connects to the App store and to the associated shotgun site.

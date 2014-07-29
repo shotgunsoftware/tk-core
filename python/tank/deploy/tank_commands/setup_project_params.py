@@ -246,6 +246,19 @@ class ProjectSetupParameters(object):
         
         return data
     
+    def get_configuration_readme(self):
+        """
+        Returns the contents of a configuration README file, if such a file
+        exists. 
+        
+        :returns: list of strings or empty list if readme doesn't exist
+        """
+        if self._config_template is None:
+            raise TankError("Please specify a configuration template!")
+        
+        return self._config_template.get_readme_content()
+        
+    
     def get_required_storages(self):
         """
         Returns a list of storage names which are required for this project.
@@ -746,6 +759,15 @@ class TemplateConfiguration(object):
             raise TankError("Looks like your configuration does not have a primary storage. "
                             "This is required. Please contact support for more info.")
 
+        # see if there is a readme file
+        self._readme_content = []
+        readme_file = os.path.join(self._cfg_folder, "README")
+        if os.path.exists(readme_file):
+            fh = open(readme_file)
+            for line in fh:
+                self._readme_content.append(line.strip())
+            fh.close()
+        
         # validate that we are running recent enough versions of core and shotgun
         info_yml = os.path.join(self._cfg_folder, constants.BUNDLE_METADATA_FILE)
         if not os.path.exists(info_yml):
@@ -1113,6 +1135,14 @@ class TemplateConfiguration(object):
         """
         return self._config_uri
         
+    def get_readme_content(self):
+        """
+        Get associated readme content as a list.
+        If not readme exists, an empty list is returned
+        
+        :returns: list of strings
+        """
+        return self._readme_content
         
     def get_description(self):
         """

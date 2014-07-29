@@ -383,23 +383,6 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, set
     log.info("Your Toolkit Project has been fully set up.")
     log.info("")
 
-    # show the readme file if it exists
-    readme_file = os.path.join(config_location_curr_os, "config", "README")
-    if os.path.exists(readme_file):
-        log.info("")
-        log.info("README file for template:")
-        fh = open(readme_file)
-        for line in fh:
-            print line.strip()
-        fh.close()
-    
-    log.info("")
-    log.info("We recommend that you now run 'tank updates' to get the latest")
-    log.info("versions of all apps and engines for this project.")
-    log.info("")
-    log.info("For more Apps, Support, Documentation and the Toolkit Community, go to")
-    log.info("https://toolkit.shotgunsoftware.com")
-    log.info("")        
 
     
     
