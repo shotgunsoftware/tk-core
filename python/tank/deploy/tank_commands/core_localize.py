@@ -157,20 +157,20 @@ class CoreLocalizeAction(Action):
 
     
 
-class CoreRelocateAction(Action):
+class ShareCoreAction(Action):
     """
     Action to take a localized core and move it out into an external location on disk.
     """
     def __init__(self):
         Action.__init__(self, 
-                        "relocate_core", 
+                        "share_core", 
                         Action.TK_INSTANCE, 
                         ("When new projects are created, these are often created in a state where each project "
                          "maintains its own independent copy of the core API. This command allows you to take "
                          "the core for such a project and move it out into a separate location on disk. This "
                          "makes it possible to create a shared core, where several projects share a single copy "
                          "of the Core API. Note: if you already have a shared Core API that you would like this " 
-                         "configuration to use, instead use the attach_core command."), 
+                         "configuration to use, instead use the attach_to_core command."), 
                         "Admin")
         
         # this method can be executed via the API
@@ -182,13 +182,13 @@ class CoreRelocateAction(Action):
         # note how the current platform's default value is None in order to make that required
         self.parameters["core_path_mac"] = { "description": ("The path on disk where the core API should be "
                                                              "installed on Macosx."),
-                                               "default": ( None if sys.platform == "darwin" else "" ),
-                                               "type": "str" }
+                                             "default": ( None if sys.platform == "darwin" else "" ),
+                                             "type": "str" }
 
         self.parameters["core_path_win"] = { "description": ("The path on disk where the core API should be "
                                                              "installed on Windows."),
-                                               "default": ( None if sys.platform == "win32" else "" ),
-                                               "type": "str" }
+                                             "default": ( None if sys.platform == "win32" else "" ),
+                                             "type": "str" }
 
         self.parameters["core_path_linux"] = { "description": ("The path on disk where the core API should be "
                                                                "installed on Linux."),
@@ -204,11 +204,14 @@ class CoreRelocateAction(Action):
         # validate params and seed default values
         computed_params = self._validate_parameters(parameters)
         
-        return self._run(log, 
-                         computed_params["core_path_mac"], 
-                         computed_params["core_path_win"], 
-                         computed_params["core_path_linux"],
-                         suppress_prompts=True)
+        return _run_unlocalize(self.tk,
+                               log, 
+                               computed_params["core_path_mac"], 
+                               computed_params["core_path_win"], 
+                               computed_params["core_path_linux"],
+                               copy_core=True, 
+                               suppress_prompts=True)        
+        
     
     def run_interactive(self, log, args):
         """
@@ -216,7 +219,7 @@ class CoreRelocateAction(Action):
         """
         
         if len(args) != 3:
-            log.info("Syntax: relocate_core linux_path windows_path mac_path")
+            log.info("Syntax: share_core linux_path windows_path mac_path")
             log.info("")
             log.info("This command is only relevant for configurations which maintain their "
                      "own copy of the Core API (so called localized configurations). For such configurations, "
@@ -224,12 +227,12 @@ class CoreRelocateAction(Action):
             log.info("")
             log.info("You typically need to quote your paths, like this:")
             log.info("")
-            log.info('> tank relocate_core "/mnt/shotgun/studio" "p:\\shotgun\\studio" "/mnt/shotgun/studio"')
+            log.info('> tank share_core "/mnt/shotgun/studio" "p:\\shotgun\\studio" "/mnt/shotgun/studio"')
             log.info("")
             log.info("If you want to leave a platform blank, just use empty quotes. For example, "
                      "if you want a setup which only works on windows, do like this: ")
             log.info("")
-            log.info('> tank relocate_core "" "p:\\shotgun\\studio" ""')
+            log.info('> tank share_core "" "p:\\shotgun\\studio" ""')
             log.info("")
             raise TankError("Please specify three target locations!")
         
@@ -237,160 +240,30 @@ class CoreRelocateAction(Action):
         windows_path = args[1]
         mac_path = args[2]
 
-        return self._run(log, mac_path, windows_path, linux_path, suppress_prompts=False)
-    
-    def _run(self, log, mac_path, windows_path, linux_path, suppress_prompts):
-        """
-        Actual execution payload
-        """ 
-
-        log.debug("Executing the relocate_core command for %r" % self.tk)
-        log.debug("Mac path: '%s'" % mac_path)
-        log.debug("Windows path: '%s'" % windows_path)
-        log.debug("Linux path: '%s'" % linux_path)
-        log.info("")
-        
-        # some basic checks first
-        if not self.tk.pipeline_configuration.is_localized():
-            raise TankError("Looks like your current pipeline configuration is not localized and therefore "
-                            "does not contain its own copy of the Core API!")
-        
-        # we need to have at least a path for the current os, otherwise we cannot introspect the API
-        lookup = {"win32": windows_path, "linux2": linux_path, "darwin": mac_path}
-        new_core_path_local = lookup[sys.platform] 
-        
-        if not new_core_path_local:
-            raise TankError("You must specify a path to the core API for your current operating system.")
-        
-        pc_root = self.tk.pipeline_configuration.get_path()
-        
-        log.info("This will move the embedded core API in the configuration '%s'." % pc_root )
-        log.info("After this command has completed, the configuration will not contain an "
-                 "embedded copy of the core but instead it will be picked up from "
-                 "the following locations:")
-        log.info("")
-        log.info(" - Linux: '%s'" % linux_path if linux_path else " - Linux: Not supported") 
-        log.info(" - Windows: '%s'" % windows_path if windows_path else " - Windows: Not supported")
-        log.info(" - Mac: '%s'" % mac_path if mac_path else " - Mac: Not supported")
-        log.info("")
-        
-        if suppress_prompts or console_utils.ask_yn_question("Do you want to proceed"):
-            log.info("")
-            
-            old_umask = os.umask(0)
-            try:
-            
-                # first make the basic structure
-                log.info("Setting up base structure...")
-                os.mkdir(new_core_path_local, 0775)
-                
-                # copy across the tank commands
-                shutil.copy(os.path.join(pc_root, "tank"), os.path.join(new_core_path_local, "tank"))
-                shutil.copy(os.path.join(pc_root, "tank.bat"), os.path.join(new_core_path_local, "tank.bat"))
-                
-                # make the config folder
-                log.info("Copying configuration files...")
-                os.mkdir(os.path.join(new_core_path_local, "config"), 0775)
-                os.mkdir(os.path.join(new_core_path_local, "config", "core"), 0775)
-
-                # copy key config files
-                core_config_file_names = ["app_store.yml", 
-                                          "shotgun.yml", 
-                                          "interpreter_Darwin.cfg", 
-                                          "interpreter_Linux.cfg", 
-                                          "interpreter_Windows.cfg"]
-
-                for fn in core_config_file_names:
-                    log.debug("Copy %s..." % fn)
-                    shutil.copy(os.path.join(pc_root, "config", "core", fn), 
-                                os.path.join(new_core_path_local, "config", "core", fn))
-                    
-                # copy the install
-                log.info("Copying core installation...")
-                src_files = util._copy_folder(log, 
-                                              os.path.join(pc_root, "install"), 
-                                              os.path.join(new_core_path_local, "install"))
-                                
-                # now clear out the install location of the config
-                log.info("Removing core from configuration...")
-                for f in src_files:
-                    try:
-                        # on windows, ensure all files are writable
-                        if sys.platform == "win32":
-                            attr = os.stat(f)[0]
-                            if (not attr & stat.S_IWRITE):
-                                # file is readonly! - turn off this attribute
-                                os.chmod(f, stat.S_IWRITE)
-                        os.remove(f)
-                        log.debug("Deleted %s" % f)
-                    except Exception, e:
-                        log.error("Could not delete file %s: %s" % (f, e))
-
-                # remove core config files
-                for fn in core_config_file_names:
-                    path = os.path.join(pc_root, "config", "core", fn)
-                    if os.path.exists(path):
-                        os.chmod(path, 0666)
-                        log.debug("Removing system file %s" % path )
-                        os.remove(path)
-                
-                # create the install_location.yml file
-                log.info("Creating install location file...")
-                core_path = os.path.join(new_core_path_local, "config", "core", "install_location.yml")
-                fh = open(core_path, "wt")
-                fh.write("# Tank configuration file")
-                fh.write("# This file was automatically created")
-                fh.write("")
-                fh.write("# This file stores the location on disk where this")
-                fh.write("# configuration is located. It is needed to ensure")
-                fh.write("# that deployment works correctly on all os platforms.")
-                fh.write("Windows: '%s'" % windows_path if windows_path else "undefined_location")
-                fh.write("Darwin: '%s'" % mac_path if mac_path else "undefined_location")
-                fh.write("Linux: '%s'" % linux_path if linux_path else "undefined_location")
-                fh.write("# End of file.")
-                
-                
-                               
-
-            except Exception, e:
-                raise TankError("Could not unlocalize: %s" % e)
-            finally:
-                os.umask(old_umask)
-                
-            log.info("The Core API was successfully unlocalized.")    
-            log.info("")
-            
-        else:
-            log.info("Operation cancelled.")
-            
-            
-            
-            
-            
-            
-            
-            
+        return _run_unlocalize(self.tk, 
+                               log, 
+                               mac_path, 
+                               windows_path, 
+                               linux_path, 
+                               copy_core=True, 
+                               suppress_prompts=False)
 
 
 
 
-
-
-
-class CoreAttachAction(Action):
+class AttachToCoreAction(Action):
     """
-    Action to take a localized core and move it out into an external location on disk.
+    Action to take a localized config, discard the built in core and associate it with an existing core.
     """
     def __init__(self):
         Action.__init__(self, 
                         "attach_to_core", 
                         Action.TK_INSTANCE, 
                         ("When new projects are created, these are often created in a state where each project "
-                         "maintains its own independent copy of the core API. This command allows you to take "
-                         "the core for such a project and move it out into a separate location on disk. This "
-                         "makes it possible to create a shared core, where several projects share a single copy "
-                         "of the Core API. Note: if you already have a shared Core API that you would like this " 
-                         "configuration to use, instead use the attach_core command."), 
+                         "maintains its own independent copy of the core API. This command allows you to attach "
+                         "the configuration to an existing core API installation rather than having it maintain "
+                         "its own embedded version of the Core API. Note: If you don't have a shared core API "
+                         "yet, instead use the share_core command."), 
                         "Admin")
         
         # this method can be executed via the API
@@ -400,18 +273,15 @@ class CoreAttachAction(Action):
         
         
         # note how the current platform's default value is None in order to make that required
-        self.parameters["core_path_mac"] = { "description": ("The path on disk where the core API should be "
-                                                             "installed on Macosx."),
-                                               "default": ( None if sys.platform == "darwin" else "" ),
-                                               "type": "str" }
+        self.parameters["core_path_mac"] = { "description": "The path on disk to the core API on macosx",
+                                             "default": ( None if sys.platform == "darwin" else "" ),
+                                             "type": "str" }
 
-        self.parameters["core_path_win"] = { "description": ("The path on disk where the core API should be "
-                                                             "installed on Windows."),
-                                               "default": ( None if sys.platform == "win32" else "" ),
-                                               "type": "str" }
+        self.parameters["core_path_win"] = { "description": "The path on disk to the core API on Windows",
+                                             "default": ( None if sys.platform == "win32" else "" ),
+                                             "type": "str" }
 
-        self.parameters["core_path_linux"] = { "description": ("The path on disk where the core API should be "
-                                                               "installed on Linux."),
+        self.parameters["core_path_linux"] = { "description": "The path on disk to the core API on Linux",
                                                "default": ( None if sys.platform == "linux2" else "" ),
                                                "type": "str" }
         
@@ -424,11 +294,13 @@ class CoreAttachAction(Action):
         # validate params and seed default values
         computed_params = self._validate_parameters(parameters)
         
-        return self._run(log, 
-                         computed_params["core_path_mac"], 
-                         computed_params["core_path_win"], 
-                         computed_params["core_path_linux"],
-                         suppress_prompts=True)
+        return _run_unlocalize(self.tk,
+                               log, 
+                               computed_params["core_path_mac"], 
+                               computed_params["core_path_win"], 
+                               computed_params["core_path_linux"],
+                               copy_core=False, 
+                               suppress_prompts=True)        
     
     def run_interactive(self, log, args):
         """
@@ -457,145 +329,206 @@ class CoreAttachAction(Action):
         windows_path = args[1]
         mac_path = args[2]
 
-        return self._run(log, mac_path, windows_path, linux_path, suppress_prompts=False)
+        return _run_unlocalize(self.tk,
+                               log, 
+                               mac_path, 
+                               windows_path, 
+                               linux_path, 
+                               copy_core=False, 
+                               suppress_prompts=False)
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def _run_unlocalize(tk, log, mac_path, windows_path, linux_path, copy_core, suppress_prompts):
+    """
+    Actual execution payload. This method can be used both to 
     
-    def _run(self, log, mac_path, windows_path, linux_path, suppress_prompts):
-        """
-        Actual execution payload
-        """ 
+    - "share a core" - e.g. copying it into a new location and then point the config
+                       to that location
+    - "attach to a core" - e.g. discarding the current core and then point the config
+                           to another existing core.
+                           
+    :param tk: Tk API instance to operate on
+    :param log: Logger
+    :param mac_path: New core path on mac
+    :param windows_path: New core path on windows
+    :param linux_path: New core path on linux
+    :param copy_core: Boolean. If true, the method will operate in "copy mode" where it tries
+                      to copy the core out to an external location. If fase, it will instead
+                      try to attach to an existing core.
+    :param suppress_prompts: if true, no questions are asked.
+    """ 
 
-        log.debug("Executing the relocate_core command for %r" % self.tk)
-        log.debug("Mac path: '%s'" % mac_path)
-        log.debug("Windows path: '%s'" % windows_path)
-        log.debug("Linux path: '%s'" % linux_path)
-        log.info("")
-        
-        # some basic checks first
-        if not self.tk.pipeline_configuration.is_localized():
-            raise TankError("Looks like your current pipeline configuration is not localized and therefore "
-                            "does not contain its own copy of the Core API!")
-        
-        # we need to have at least a path for the current os, otherwise we cannot introspect the API
-        lookup = {"win32": windows_path, "linux2": linux_path, "darwin": mac_path}
-        new_core_path_local = lookup[sys.platform] 
-        
-        if not new_core_path_local:
-            raise TankError("You must specify a path to the core API for your current operating system.")
-        
+    log.debug("Executing the share_core command for %r" % tk)
+    log.debug("Mac path: '%s'" % mac_path)
+    log.debug("Windows path: '%s'" % windows_path)
+    log.debug("Linux path: '%s'" % linux_path)
+    log.debug("Current core version: %s" % tk.version)
+    log.info("")
+    
+    # some basic checks first
+    if not tk.pipeline_configuration.is_localized():
+        raise TankError("Looks like your current pipeline configuration is not localized and therefore "
+                        "does not contain its own copy of the Core API! This configuration is picking "
+                        "up its core from the following "
+                        "location: '%s'" % tk.pipeline_configuration.get_install_location())
+    
+    # we need to have at least a path for the current os, otherwise we cannot introspect the API
+    lookup = {"win32": windows_path, "linux2": linux_path, "darwin": mac_path}
+    new_core_path_local = lookup[sys.platform] 
+    
+    if not new_core_path_local:
+        raise TankError("You must specify a path to the core API for your current operating system.")
+    
+    if copy_core:
+        # make sure location is empty
+        if os.path.exists(new_core_path_local):
+            raise TankError("The path '%s' already exists on disk!" % new_core_path_local)
+    
+    else:
+        # make sure location exists and that there is a recent enough API in there
+        # todo - add after merge
         if not os.path.exists(new_core_path_local):
-            raise TankError("The core '%s' cannot be found!" % new_core_path_local)
+            raise TankError("The path '%s' does not exist on disk!" % new_core_path_local)
         
-        # check that there is a new_core_path_local/install/core
-        if not os.path.exists(os.path.join(new_core_path_local, "install", "core")):
-            raise TankError("The core '%s' does not seem to point to a core API location or localized"
-                            "pipeline configuration!" % new_core_path_local)
-        
-        
-        
-        pc_root = self.tk.pipeline_configuration.get_path()
-        
-        log.info("This will unlocalize '%s'." % pc_root )
-        log.info("After this command has completed, the core API will be picked up from "
-                 "the following locations:")
-        log.info("")
-        log.info(" - Linux: '%s'" % linux_path if linux_path else " - Linux: Not supported") 
-        log.info(" - Windows: '%s'" % windows_path if windows_path else " - Windows: Not supported")
-        log.info(" - Mac: '%s'" % mac_path if mac_path else " - Mac: Not supported")
-        log.info("")
-        
-        if suppress_prompts or console_utils.ask_yn_question("Do you want to proceed"):
-            log.info("")
-            
-            # back up current core API
-            target_core = os.path.join(pc_root, "install", "core")
-            backup_location = os.path.join(pc_root, "install", "core.backup")
-            
-            # move this into backup location
-            backup_folder_name = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-            backup_path = os.path.join(backup_location, backup_folder_name)
-            log.info("Backing up Core API: %s -> %s" % (target_core, backup_path))
-            src_files = util._copy_folder(log, target_core, backup_path)
-            
-            # now clear out the install location
-            log.debug("Clearing out target location...")
-            for f in src_files:
-                try:
-                    # on windows, ensure all files are writable
-                    if sys.platform == "win32":
-                        attr = os.stat(f)[0]
-                        if (not attr & stat.S_IWRITE):
-                            # file is readonly! - turn off this attribute
-                            os.chmod(f, stat.S_IWRITE)
-                    os.remove(f)
-                    log.debug("Deleted %s" % f)
-                except Exception, e:
-                    log.error("Could not delete file %s: %s" % (f, e))
 
-                        
-            old_umask = os.umask(0)
-            try:
+    pc_root = tk.pipeline_configuration.get_path()
+    
+    log.info("This will move the embedded core API in the configuration '%s'." % pc_root )
+    log.info("After this command has completed, the configuration will not contain an "
+             "embedded copy of the core but instead it will be picked up from "
+             "the following locations:")
+    log.info("")
+    log.info(" - Linux: '%s'" % linux_path if linux_path else " - Linux: Not supported") 
+    log.info(" - Windows: '%s'" % windows_path if windows_path else " - Windows: Not supported")
+    log.info(" - Mac: '%s'" % mac_path if mac_path else " - Mac: Not supported")
+    log.info("")
+    
+    if suppress_prompts or console_utils.ask_yn_question("Do you want to proceed"):
+        log.info("")
+        
+        old_umask = os.umask(0)
+        try:
+            
+            if copy_core:
+                # first make the basic structure
+                log.info("Setting up base structure...")
+                os.mkdir(new_core_path_local, 0775)
+            
+                # copy across the tank commands
+                shutil.copy(os.path.join(pc_root, "tank"), os.path.join(new_core_path_local, "tank"))
+                shutil.copy(os.path.join(pc_root, "tank.bat"), os.path.join(new_core_path_local, "tank.bat"))
                 
-                # remove core config files
-                log.info("Removing Core Configuration Files...")
-                file_names = ["app_store.yml", 
-                              "shotgun.yml", 
-                              "interpreter_Darwin.cfg", 
-                              "interpreter_Linux.cfg", 
-                              "interpreter_Windows.cfg"]
-                for fn in file_names:
-                    path = os.path.join(pc_root, "config", "core", fn)
-                    if os.path.exists(path):
-                        os.chmod(path, 0666)
-                        log.debug("Removing system file %s" % path )
-                        os.remove(path)
-                
-                # copy the python stubs
-                log.info("Copying python stubs...")
-                os.mkdir(os.path.join(pc_root, "install", "core"), 0777)
-                tank_proxy = os.path.join(new_core_path_local, "install", "core", "setup", "tank_api_proxy")
-                util._copy_folder(log, tank_proxy, os.path.join(pc_root, "install", "core", "python"))
+                # make the config folder
+                log.info("Copying configuration files...")
+                os.mkdir(os.path.join(new_core_path_local, "config"), 0775)
+                os.mkdir(os.path.join(new_core_path_local, "config", "core"), 0775)
+    
+                # copy key config files
+                core_config_file_names = ["app_store.yml", 
+                                          "shotgun.yml", 
+                                          "interpreter_Darwin.cfg", 
+                                          "interpreter_Linux.cfg", 
+                                          "interpreter_Windows.cfg"]
+    
+                for fn in core_config_file_names:
+                    log.debug("Copy %s..." % fn)
+                    shutil.copy(os.path.join(pc_root, "config", "core", fn), 
+                                os.path.join(new_core_path_local, "config", "core", fn))
                     
-                # specify the parent files in install/core/core_PLATFORM.cfg
-                log.info("Creating core redirection config files...")
-
-                core_path = os.path.join(pc_root, "install", "core", "core_Darwin.cfg")
+                # create new install_location.yml file in the target location
+                core_path = os.path.join(new_core_path_local, "config", "core", "install_location.yml")
                 fh = open(core_path, "wt")
-                if mac_path:
-                    fh.write(mac_path)
-                else:
-                    fh.write("undefined")
-                fh.close()
-                
-                core_path = os.path.join(pc_root, "install", "core", "core_Linux.cfg")
-                fh = open(core_path, "wt")
-                if linux_path:
-                    fh.write(linux_path)
-                else:
-                    fh.write("undefined")
-                fh.close()
-
-                core_path = os.path.join(pc_root, "install", "core", "core_Windows.cfg")
-                fh = open(core_path, "wt")
-                if windows_path:
-                    fh.write(windows_path)
-                else:
-                    fh.write("undefined")
-                fh.close()
-
-            except Exception, e:
-                raise TankError("Could not unlocalize: %s" % e)
-            finally:
-                os.umask(old_umask)
-                
-            log.info("The Core API was successfully unlocalized.")    
-            log.info("")
+                fh.write("# Tank configuration file")
+                fh.write("# This file was automatically created")
+                fh.write("")
+                fh.write("# This file stores the location on disk where this")
+                fh.write("# configuration is located. It is needed to ensure")
+                fh.write("# that deployment works correctly on all os platforms.")
+                fh.write("Windows: '%s'" % windows_path if windows_path else "undefined_location")
+                fh.write("Darwin: '%s'" % mac_path if mac_path else "undefined_location")
+                fh.write("Linux: '%s'" % linux_path if linux_path else "undefined_location")
+                fh.write("# End of file.")
             
-        else:
-            log.info("Operation cancelled.")
+                # copy the install
+                log.info("Copying core installation...")
+                util._copy_folder(log, 
+                                  os.path.join(pc_root, "install"), 
+                                  os.path.join(new_core_path_local, "install"))
             
+            # back up current core API into the core.backup folder
+            log.info("Backing up local core install...")
+            current_core = os.path.join(pc_root, "install", "core")
+            backup_folder_name = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            backup_location = os.path.join(pc_root, "install", "core.backup", backup_folder_name)
+            shutil.move(current_core, backup_location)
 
+            # create blank core install
+            log.info("Creating core proxy...")
+            os.mkdir(current_core, 0775)
+            
+            # copy python API proxy
+            tank_proxy = os.path.join(new_core_path_local, "install", "core", "setup", "tank_api_proxy")
+            util._copy_folder(log, tank_proxy, os.path.join(pc_root, "install", "core", "python"))
+            
+            # create core_XXX redirection files
+            core_path = os.path.join(pc_root, "install", "core", "core_Darwin.cfg")
+            fh = open(core_path, "wt")
+            if mac_path:
+                fh.write(mac_path)
+            else:
+                fh.write("undefined")
+            fh.close()
+            
+            core_path = os.path.join(pc_root, "install", "core", "core_Linux.cfg")
+            fh = open(core_path, "wt")
+            if linux_path:
+                fh.write(linux_path)
+            else:
+                fh.write("undefined")
+            fh.close()
 
+            core_path = os.path.join(pc_root, "install", "core", "core_Windows.cfg")
+            fh = open(core_path, "wt")
+            if windows_path:
+                fh.write(windows_path)
+            else:
+                fh.write("undefined")
+            fh.close()
 
-
+        except Exception, e:
+            raise TankError("Could not share the core! Error reported: %s" % e)
+        finally:
+            os.umask(old_umask)
+            
+        log.info("The Core API was successfully shared.")    
+        log.info("")
+        
+    else:
+        log.info("Operation cancelled.")
+        
+        
+        
+        
 
 
