@@ -618,8 +618,8 @@ def from_entity(tk, entity_type, entity_id):
     If the entity is a Task a call to the Shotgun Server will be made.
 
     :param tk:           Sgtk API handle
-    :param entity_type:  The shotgun entity type to produce a context for.
-    :param entity_id:    The shotgun entity id to produce a context for.
+    :param entity_type:  The shotgun entity type to produce a context for
+    :param entity_id:    The shotgun entity id to produce a context for
 
     :returns: a context object
     """
@@ -1044,8 +1044,12 @@ def _context_data_from_cache(tk, entity_type, entity_id):
     project_roots = tk.pipeline_configuration.get_data_roots().values()
 
     # Special case for project as we have the primary data path, which 
-    # always points at a project.
-    context["project"] = path_cache.get_entity(tk.pipeline_configuration.get_primary_data_root())
+    # always points at a project. We only check if the associated configuration
+    # has any associated data roots, otherwise a primary config won't exist.
+    if tk.pipeline_configuration.has_associated_data_roots():
+        context["project"] = path_cache.get_entity(tk.pipeline_configuration.get_primary_data_root())
+    else:
+        context["project"] = None
 
     paths = path_cache.get_paths(entity_type, entity_id)
 

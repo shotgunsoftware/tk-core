@@ -12,6 +12,7 @@ from ...util import shotgun
 from ...platform import constants
 from ...errors import TankError
 from ... import pipelineconfig
+from ... import pipelineconfig_utils
 
 from .action_base import Action
 
@@ -215,7 +216,7 @@ class MoveStudioInstallAction(Action):
             raise TankError("The path %s already exists on disk!" % local_target_path)
         
         # probe for some key file
-        if not pipelineconfig.is_localized(current_path):
+        if not pipelineconfig_utils.is_localized(current_path):
             raise TankError("Path '%s' does not look like an Toolkit install!" % current_path)
             
         # make sure this is NOT a PC

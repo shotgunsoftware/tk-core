@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from ... import pipelineconfig
+from ... import pipelineconfig_utils
 
 from ...util import shotgun
 from ...platform import constants
@@ -99,10 +100,7 @@ class MovePCAction(Action):
         
         sg = shotgun.create_sg_connection()
         pipeline_config_id = self.tk.pipeline_configuration.get_shotgun_id()
-        data = sg.find_one(constants.PIPELINE_CONFIGURATION_ENTITY, 
-                           [["id", "is", pipeline_config_id]],
-                           ["code", "mac_path", "windows_path", "linux_path"])
-
+        
         if len(args) != 3:
             log.info("Syntax: move_configuration linux_path windows_path mac_path")
             log.info("")
@@ -116,12 +114,6 @@ class MovePCAction(Action):
             log.info('> tank move_configuration "" "p:\\configs\\my_config" ""')
             log.info("")
             log.info("")
-            log.info("Your config '%s' is currently located in:" % data.get("code"))
-            log.info("--------------------------------------------------------------")
-            log.info("Current Linux Path:   %s" % data.get("linux_path"))
-            log.info("Current Windows Path: %s" % data.get("windows_path"))
-            log.info("Current Mac Path:     %s" % data.get("mac_path"))
-            log.info("")
             raise TankError("Please specify three target locations!")
         
         linux_path = args[0]
@@ -131,19 +123,12 @@ class MovePCAction(Action):
                      "windows_path": windows_path, 
                      "linux_path": linux_path}
                 
-        if data is None:
-            raise TankError("Could not find this Pipeline Configuration in Shotgun!")
-        
-        log.info("Overview of Configuration '%s'" % data.get("code"))
+        log.info("Overview of the new config paths in Shotgun:")
         log.info("--------------------------------------------------------------")
         log.info("")
-        log.info("Current Linux Path:   %s" % data.get("linux_path"))
-        log.info("Current Windows Path: %s" % data.get("windows_path"))
-        log.info("Current Mac Path:     %s" % data.get("mac_path"))
-        log.info("")
-        log.info("New Linux Path:   %s" % linux_path)
-        log.info("New Windows Path: %s" % windows_path)
-        log.info("New Mac Path:     %s" % mac_path)
+        log.info("New Linux Path:   '%s'" % linux_path)
+        log.info("New Windows Path: '%s'" % windows_path)
+        log.info("New Mac Path:     '%s'" % mac_path)
         log.info("")
         
         val = raw_input("Are you sure you want to move your configuration? [Yes/No] ")
@@ -152,7 +137,8 @@ class MovePCAction(Action):
 
         # ok let's do it!
         storage_map = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
-        local_source_path = data.get(storage_map[sys.platform])
+
+        local_source_path = self.tk.pipeline_configuration.get_path()
         local_target_path = new_paths.get(storage_map[sys.platform])
         source_sg_code_location = os.path.join(local_source_path, "config", "core", "install_location.yml")
         
@@ -166,7 +152,7 @@ class MovePCAction(Action):
         # also - we currently don't support moving PCs which have a localized API
         # (because these may be referred to by other PCs that are using their API
         # TODO: later on, support moving these. For now, just error out.
-        if pipelineconfig.is_localized(local_source_path):        
+        if pipelineconfig_utils.is_localized(local_source_path):        
             raise TankError("Looks like the Configuration you are trying to move has a localized "
                             "API. This is not currently supported.")
         

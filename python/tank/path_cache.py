@@ -32,10 +32,18 @@ class PathCache(object):
         Constructor
         :param pipeline_configuration: pipeline config object
         """
-        db_path = pipeline_configuration.get_path_cache_location()
         self._connection = None
-        self._init_db(db_path)
-        self._roots = pipeline_configuration.get_data_roots()
+        
+        if pipeline_configuration.has_associated_data_roots():
+            db_path = pipeline_configuration.get_path_cache_location()
+            self._path_cache_disabled = False
+            self._init_db(db_path)
+            self._roots = pipeline_configuration.get_data_roots()
+
+        else:
+            # no primary location found. Path cache therefore does not exist!
+            # go into a no-path-cache-mode
+            self._path_cache_disabled = True
         
     
     def _init_db(self, db_path):
@@ -171,8 +179,14 @@ class PathCache(object):
         
     def delete_path_tree(self, path):
         """
-        Deletes all records that are associated with the given path
+        Deletes all records that are associated with the given path.
         """
+        if self._path_cache_disabled:
+            # no path cache file, so just return. This is consistent with 
+            # the behaviour of running delete_path_tree("foo") on a db
+            # with no "foo" entries.
+            return
+            
         # there was no entity in the db. So let's create it!
         c = self._connection.cursor()
         root_name, relative_path = self._separate_root(path)
@@ -197,6 +211,11 @@ class PathCache(object):
         :param entity_name: a shotgun entity name
         :param path: a path on disk representing the entity.
         """
+        
+        if self._path_cache_disabled:
+            raise TankError("You are currently running a configuration which does not have any "
+                            "capabilities of storing path entry lookups. There is no path cache "
+                            "file defined for this project.")
         
         if primary:
             # the primary entity must be unique: path/id/type 
@@ -262,6 +281,11 @@ class PathCache(object):
         :params entity_id: a Shotgun entity id
         :returns: a path on disk
         """
+        
+        if self._path_cache_disabled:
+            # no entries because we don't have a path cache
+            return []
+        
         paths = []
         c = self._connection.cursor()
         if primary_only:
@@ -299,6 +323,11 @@ class PathCache(object):
         :returns: Shotgun entity dict, e.g. {"type": "Shot", "name": "xxx", "id": 123} 
                   or None if not found
         """
+        
+        if self._path_cache_disabled:
+            # no entries because we don't have a path cache
+            return None
+        
         c = self._connection.cursor()
         try:
             root_path, relative_path = self._separate_root(path)
@@ -331,6 +360,11 @@ class PathCache(object):
         :returns: list of shotgun entity dicts, e.g. [{"type": "Shot", "name": "xxx", "id": 123}] 
                   or [] if no entities associated.
         """
+        
+        if self._path_cache_disabled:
+            # no entries because we don't have a path cache
+            return []
+        
         c = self._connection.cursor()
         try:
             root_path, relative_path = self._separate_root(path)

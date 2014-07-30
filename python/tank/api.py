@@ -25,6 +25,7 @@ from .path_cache import PathCache
 from .template import read_templates
 from .platform import constants as platform_constants
 from . import pipelineconfig
+from . import pipelineconfig_utils
 
 class Tank(object):
     """
@@ -91,6 +92,7 @@ class Tank(object):
     def project_path(self):
         """
         Path to the primary root directory for a project.
+        If no primary root directory exists, an exception is raised.
         """
         return self.__pipeline_config.get_primary_data_root()
 
@@ -130,7 +132,7 @@ class Tank(object):
 
         :returns: string representing the version
         """
-        return pipelineconfig.get_core_api_version_based_on_current_code()
+        return pipelineconfig_utils.get_currently_running_api_version()
 
     @property
     def documentation_url(self):
