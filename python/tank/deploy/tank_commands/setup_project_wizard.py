@@ -135,6 +135,39 @@ class SetupProjectWizard(object):
                                               self._sg_app_store, 
                                               self._sg_app_store_script_user)
                 
+    def set_progress_callback(self, cb):
+        """
+        Specify a function which should be called during project setup 
+        whenever there is an update to the progress.
+        
+        The callback function should have the following 
+        signature:
+        
+        def callback(chapter_str, percent_progress_int)
+        
+        The installer will run through several "chapters" throughout the install
+        and each of these will have a separate progress calculation. Some chapters
+        are fast and/or difficult to quantify into steps - in this case, the 
+        percent_progress_int parameter will be passed None. For such chapters,
+        the callback will be called only once.
+        
+        For chapters which report progress, the callback will be called multiple times,
+        each time with an incremented progress. This is an int value in percent.
+        
+        For example
+        
+        callback("Setting up base storages", None)
+        callback("Making folders", None)
+        callback("Downloading apps", 1)
+        callback("Downloading apps", 21)
+        callback("Downloading apps", 56)
+        callback("Downloading apps", 93)
+        callback("Finalizing", None)
+    
+        :param fp: Function object representing a progress callback
+        """
+        self._params.set_progress_callback(cb)
+        
     def set_project(self, project_id, force=False):
         """
         Specify which project that should be set up.

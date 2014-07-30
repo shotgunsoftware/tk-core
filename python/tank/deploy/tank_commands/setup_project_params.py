@@ -86,10 +86,58 @@ class ProjectSetupParameters(object):
     
         # where to pick up the core from
         self._core_path = None
+        
+        # progress callback
+        self._progress_callback = None
     
+    def set_progress_callback(self, fp):
+        """
+        Specify a function which should be called during project setup 
+        whenever there is an update to the progress.
+        
+        The callback function should have the following 
+        signature:
+        
+        def callback(chapter_str, percent_progress_int)
+        
+        The installer will run through several "chapters" throughout the install
+        and each of these will have a separate progress calculation. Some chapters
+        are fast and/or difficult to quantify into steps - in this case, the 
+        percent_progress_int parameter will be passed None. For such chapters,
+        the callback will be called only once.
+        
+        For chapters which report progress, the callback will be called multiple times,
+        each time with an incremented progress. This is an int value in percent.
+        
+        For example
+        
+        callback("Setting up base storages", None)
+        callback("Making folders", None)
+        callback("Downloading apps", 1)
+        callback("Downloading apps", 21)
+        callback("Downloading apps", 56)
+        callback("Downloading apps", 93)
+        callback("Finalizing", None)
+    
+        :param fp: Function object representing a progress callback    
+        """
+        self._progress_callback = fp
+        
+        
+    def report_progress_from_installer(self, chapter, progress=None):
+        """
+        This method is executed from the setup core as it is executing the setup.
+        If a progress callback has been defined, this is being called.
+        For details, see set_progress_callback()
+        
+        :param chapter: String defining the current chapter
+        :param progress: Int or None indicating progress, in percent 
+        """
+        if self._progress_callback:
+            self._progress_callback(chapter, progress)
+        
     ################################################################################################################
     # Configuration template related logic     
-        
     
     def validate_config_uri(self, config_uri):
         """

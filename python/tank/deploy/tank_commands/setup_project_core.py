@@ -60,6 +60,8 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, set
     project_id = setup_params.get_project_id()
     
     # get all existing pipeline configurations
+    setup_params.report_progress_from_installer("Checking Pipeline Configurations...")
+    
     pcs = sg.find(constants.PIPELINE_CONFIGURATION_ENTITY, 
                   [["project", "is", {"id": project_id, "type": "Project"} ]],
                   ["code", "linux_path", "windows_path", "mac_path"])
@@ -87,6 +89,7 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, set
                                     "configuration entries already exist in Shotgun.")
             
     # first do disk structure setup, this is most likely to fail.
+    setup_params.report_progress_from_installer("Creating main folder structure...")
     log.info("Installing configuration into '%s'..." % config_location_curr_os )
     if not os.path.exists(config_location_curr_os):
         # note that we have already validated that creation is possible
@@ -104,9 +107,11 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, set
     _make_folder(log, os.path.join(config_location_curr_os, "install", "frameworks"), 0777, True)
     
     # copy the configuration into place
+    setup_params.report_progress_from_installer("Setting up template configuration...")
     setup_params.create_configuration(os.path.join(config_location_curr_os, "config"))
 
     # copy the tank binaries to the top of the config
+    setup_params.report_progress_from_installer("Copying binaries and API proxies...")
     log.debug("Copying Toolkit binaries...")
     core_api_root = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "..", ".."))
     root_binaries_folder = os.path.join(core_api_root, "setup", "root_binaries")
@@ -123,6 +128,7 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, set
         
     # specify the parent files in install/core/core_PLATFORM.cfg
     log.debug("Creating core redirection config files...")
+    setup_params.report_progress_from_installer("Writing configuration files...")
     
     core_path = os.path.join(config_location_curr_os, "install", "core", "core_Darwin.cfg")
     core_location = setup_params.get_associated_core_path("darwin")
@@ -185,6 +191,7 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, set
                         "Error reported: %s" % (roots_path, exp))
     
     # now ensure there is a tank folder in every storage
+    setup_params.report_progress_from_installer("Setting up project storage folders...")
     for storage_name in setup_params.get_required_storages():
         
         log.info("Setting up %s storage..." % storage_name )
@@ -236,6 +243,8 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, set
     # Create Project.tank_name and PipelineConfiguration records in Shotgun
     #
     # This logic has some special complexity when the auto_path mode is in use.
+    
+    setup_params.report_progress_from_installer("Registering in Shotgun...")
     
     if setup_params.get_auto_path_mode():
         # first, check the project name. If there is no project name in Shotgun, populate it
@@ -344,12 +353,13 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, set
     for env_name in pc.get_environments():
         env_obj = pc.get_environment(env_name)
         log.info("Installing apps for environment %s..." % env_obj)
-        _install_environment(env_obj, log)
+        _install_environment(setup_params, env_obj, log)
 
     ##########################################################################################
     # post processing of the install
     
     # run after project create script if it exists
+    setup_params.report_progress_from_installer("Running post-setup scripts...")
     after_script_path = os.path.join(config_location_curr_os, "config", "after_project_create.py")
     if os.path.exists(after_script_path):
         log.info("Found a post-install script %s" % after_script_path)
@@ -446,7 +456,7 @@ def _copy_folder(log, src, dst):
         except (IOError, os.error), why: 
             raise TankError("Can't copy %s to %s: %s" % (srcname, dstname, str(why))) 
     
-def _install_environment(env_obj, log):
+def _install_environment(setup_params, env_obj, log):
     """
     Make sure that all apps and engines exist in the local repo.
     """
@@ -464,7 +474,12 @@ def _install_environment(env_obj, log):
         descriptors.append( env_obj.get_framework_descriptor(framework) )
             
     # ensure all apps are local - if not then download them
-    for descriptor in descriptors:
+    num_descriptors = len(descriptors)
+    for idx, descriptor in enumerate(descriptors):
+        
+        progress = (int)((float)(idx)/(float)(num_descriptors)*100)
+        setup_params.report_progress_from_installer("Setting up apps for %s environment..." % env_obj.name, progress)
+        
         if not descriptor.exists_local():
             log.info("Downloading %s to the local Toolkit install location..." % descriptor)            
             descriptor.download_local()
@@ -473,6 +488,7 @@ def _install_environment(env_obj, log):
             log.info("Item %s is already locally installed." % descriptor)
 
     # create required shotgun fields
+    setup_params.report_progress_from_installer("Post-installing the %s environment..." % env_obj.name)
     for descriptor in descriptors:
         descriptor.ensure_shotgun_fields_exist()
         # run post install hook
