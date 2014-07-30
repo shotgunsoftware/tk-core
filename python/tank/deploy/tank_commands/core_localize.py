@@ -8,24 +8,17 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from ...errors import TankError
-from .action_base import Action
+
+
 
 import os
 import sys
-import textwrap
-import uuid
 import shutil
-import stat
-import tempfile
 import datetime
 
-from ...util import shotgun
-from ...platform import constants
-from ... import pipelineconfig
-from ..zipfilehelper import unzip_file
+from ...errors import TankError
 from .. import util
-
+from .action_base import Action
 from . import console_utils
 
 
@@ -150,13 +143,6 @@ class CoreLocalizeAction(Action):
             
 
 
-
-
-
-
-
-    
-
 class ShareCoreAction(Action):
     """
     Action to take a localized core and move it out into an external location on disk.
@@ -249,8 +235,6 @@ class ShareCoreAction(Action):
                                suppress_prompts=False)
 
 
-
-
 class AttachToCoreAction(Action):
     """
     Action to take a localized config, discard the built in core and associate it with an existing core.
@@ -316,12 +300,12 @@ class AttachToCoreAction(Action):
             log.info("")
             log.info("You typically need to quote your paths, like this:")
             log.info("")
-            log.info('> tank unlocalize "/mnt/shotgun/studio" "p:\\shotgun\\studio" "/mnt/shotgun/studio"')
+            log.info('> tank relocate_core "/mnt/shotgun/studio" "p:\\shotgun\\studio" "/mnt/shotgun/studio"')
             log.info("")
             log.info("If you want to leave a platform blank, just use empty quotes. For example, "
                      "if you want a setup which only works on windows, do like this: ")
             log.info("")
-            log.info('> tank unlocalize "" "p:\\shotgun\\studio" ""')
+            log.info('> tank relocate_core "" "p:\\shotgun\\studio" ""')
             log.info("")
             raise TankError("Please specify three target locations!")
         
@@ -338,37 +322,16 @@ class AttachToCoreAction(Action):
                                suppress_prompts=False)
  
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 def _run_unlocalize(tk, log, mac_path, windows_path, linux_path, copy_core, suppress_prompts):
     """
-    Actual execution payload. This method can be used both to 
+    Actual execution payload for share_core and relocate_core. This method can be used to 
     
-    - "share a core" - e.g. copying it into a new location and then point the config
-                       to that location
-    - "attach to a core" - e.g. discarding the current core and then point the config
-                           to another existing core.
+    1. Share a core - e.g. copying it into a new location and then point the config
+       to that location
+    2. Attach to a core - e.g. discarding the current core and then point the config
+       to another existing core.
                            
-    :param tk: Tk API instance to operate on
+    :param tk: API instance to operate on
     :param log: Logger
     :param mac_path: New core path on mac
     :param windows_path: New core path on windows
@@ -411,7 +374,6 @@ def _run_unlocalize(tk, log, mac_path, windows_path, linux_path, copy_core, supp
         if not os.path.exists(new_core_path_local):
             raise TankError("The path '%s' does not exist on disk!" % new_core_path_local)
         
-
     pc_root = tk.pipeline_configuration.get_path()
     
     if copy_core:
@@ -527,14 +489,9 @@ def _run_unlocalize(tk, log, mac_path, windows_path, linux_path, copy_core, supp
         finally:
             os.umask(old_umask)
             
-        log.info("The Core API was successfully shared.")    
+        log.info("The Core API was successfully processed.")    
         log.info("")
         
     else:
         log.info("Operation cancelled.")
         
-        
-        
-        
-
-
