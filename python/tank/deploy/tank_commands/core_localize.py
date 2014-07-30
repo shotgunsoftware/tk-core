@@ -414,7 +414,10 @@ def _run_unlocalize(tk, log, mac_path, windows_path, linux_path, copy_core, supp
 
     pc_root = tk.pipeline_configuration.get_path()
     
-    log.info("This will move the embedded core API in the configuration '%s'." % pc_root )
+    if copy_core:
+        log.info("This will move the embedded core API in the configuration '%s'." % pc_root )
+        log.info("")
+        
     log.info("After this command has completed, the configuration will not contain an "
              "embedded copy of the core but instead it will be picked up from "
              "the following locations:")
@@ -422,6 +425,9 @@ def _run_unlocalize(tk, log, mac_path, windows_path, linux_path, copy_core, supp
     log.info(" - Linux: '%s'" % linux_path if linux_path else " - Linux: Not supported") 
     log.info(" - Windows: '%s'" % windows_path if windows_path else " - Windows: Not supported")
     log.info(" - Mac: '%s'" % mac_path if mac_path else " - Mac: Not supported")
+    log.info("")
+    log.info("Note for expert users: Prior to executing this command, please ensure that you have "
+             "no configurations that are using the core embedded in this configuration.")
     log.info("")
     
     if suppress_prompts or console_utils.ask_yn_question("Do you want to proceed"):
