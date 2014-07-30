@@ -29,7 +29,8 @@ from .tank_commands import validate_config
 from .tank_commands import cache_apps
 from .tank_commands import switch
 from .tank_commands import app_info
-from .tank_commands import core
+from .tank_commands import core_upgrade
+from .tank_commands import core_localize
 from .tank_commands import install
 from .tank_commands import clone_configuration
 from .tank_commands import copy_apps
@@ -42,8 +43,10 @@ from ..errors import TankError
 # Built in actions (all in the tank_commands sub module)
 
 BUILT_IN_ACTIONS = [setup_project.SetupProjectAction, 
-                    core.CoreUpgradeAction, 
-                    core.CoreLocalizeAction,
+                    core_upgrade.CoreUpgradeAction, 
+                    core_localize.CoreLocalizeAction,
+                    core_localize.ShareCoreAction,
+                    core_localize.AttachToCoreAction,
                     validate_config.ValidateConfigAction,
                     cache_apps.CacheAppsAction,
                     misc.ClearCacheAction,
