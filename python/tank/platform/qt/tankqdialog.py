@@ -26,13 +26,15 @@ import sys
 import os
 import inspect
 
-TANK_TOOLBAR_HEIGHT = 45
-
 class TankQDialog(TankDialogBase):
     """
     Wraps around app widgets. Contains Tank specific toolbars and configuration info
     in addition to the user object that it is hosting.
     """
+    
+    TOOLBAR_HEIGHT = 45
+    GRADIENT_WIDTH = 11
+    INFO_WIDTH = 400
 
     @staticmethod
     def _stop_buggy_background_worker_qthreads(widget):
@@ -324,7 +326,7 @@ class TankQDialog(TankDialogBase):
         # adjust size of the outer window to match the hosted widget size
         dlg_height = self._widget.height()
         if show_tk_title_bar:
-            dlg_height += TANK_TOOLBAR_HEIGHT
+            dlg_height += TankQDialog.TOOLBAR_HEIGHT
         self.resize(self._widget.width(), dlg_height)
         
         ########################################################################################
@@ -466,10 +468,38 @@ class TankQDialog(TankDialogBase):
         """
         callback when someone clicks the 'details' > arrow icon
         """
-        GRADIENT_WIDTH = 11
-        INFO_WIDTH = 400
+        if not hasattr(QtCore, "QAbstractAnimation"):
+            # This version of Qt doesn't expose the Q*Animation classes (probably 
+            # and old version of PyQt) so just move the pages manually:
+            self.setUpdatesEnabled(False)
+            try:
+                if self._info_mode:
+                    # hide the info panel:
+                    # activate page 1 again - note that this will reset all positions!
+                    self.ui.stackedWidget.setCurrentIndex(0)
+                else:
+                    # show the info panel:
+                    # activate page 2 - note that this will reset all positions!
+                    self.ui.stackedWidget.setCurrentIndex(1)
+                    # this hides page page 1, so let's show it again
+                    self.ui.page_1.show()
+                    # make sure page1 stays on top
+                    self.ui.page_1.raise_()
+                    # and move the page 1 window to allow room for page 2, the info panel:
+                    self.ui.page_1.move(self.ui.page_1.x()-(TankQDialog.GRADIENT_WIDTH+TankQDialog.INFO_WIDTH), 
+                                        self.ui.page_1.y())
+            finally:
+                self.setUpdatesEnabled(True)
+                
+            self._info_mode = not(self._info_mode)
+        else:
+            # lets animate the transition:
+            self.__animate_toggle_info_panel()
         
-            
+    def __animate_toggle_info_panel(self):
+        """
+        Toggle the visibility of the info panel, animating the transition.
+        """
         if self._info_mode:
             
             self.setUpdatesEnabled(False)
@@ -481,7 +511,8 @@ class TankQDialog(TankDialogBase):
                 # put this window top most to avoid flickering
                 self.ui.page_2.raise_()       
                 # and move the page 1 window back to its current position
-                self.ui.page_1.move( self.ui.page_1.x()-(GRADIENT_WIDTH+INFO_WIDTH), self.ui.page_1.y())
+                self.ui.page_1.move(self.ui.page_1.x()-(TankQDialog.GRADIENT_WIDTH+TankQDialog.INFO_WIDTH), 
+                                    self.ui.page_1.y())
                 # now that the first window is positioned correctly, make it top most again.
                 self.ui.page_1.raise_()       
             finally:
@@ -490,14 +521,16 @@ class TankQDialog(TankDialogBase):
             self.anim = QtCore.QPropertyAnimation(self.ui.page_1, "pos")
             self.anim.setDuration(600)
             self.anim.setStartValue(QtCore.QPoint(self.ui.page_1.x(), self.ui.page_1.y() ))
-            self.anim.setEndValue(QtCore.QPoint(self.ui.page_1.x()+(GRADIENT_WIDTH+INFO_WIDTH), self.ui.page_1.y() ))
+            self.anim.setEndValue(QtCore.QPoint(self.ui.page_1.x()+(TankQDialog.GRADIENT_WIDTH+TankQDialog.INFO_WIDTH), 
+                                                self.ui.page_1.y() ))
             self.anim.setEasingCurve(QtCore.QEasingCurve.OutCubic)
             self.anim.finished.connect( self._finished_show_anim )
 
             self.anim2 = QtCore.QPropertyAnimation(self.ui.page_2, "pos")
             self.anim2.setDuration(600)
             self.anim2.setStartValue(QtCore.QPoint(self.ui.page_2.x(), self.ui.page_2.y() ))
-            self.anim2.setEndValue(QtCore.QPoint(self.ui.page_2.x()+GRADIENT_WIDTH+INFO_WIDTH, self.ui.page_2.y() ))
+            self.anim2.setEndValue(QtCore.QPoint(self.ui.page_2.x()+TankQDialog.GRADIENT_WIDTH+TankQDialog.INFO_WIDTH, 
+                                                 self.ui.page_2.y() ))
             self.anim2.setEasingCurve(QtCore.QEasingCurve.OutCubic)
 
             self.grp = QtCore.QParallelAnimationGroup()
@@ -517,14 +550,16 @@ class TankQDialog(TankDialogBase):
 
             self.anim = QtCore.QPropertyAnimation(self.ui.page_2, "pos")
             self.anim.setDuration(600)
-            self.anim.setStartValue(QtCore.QPoint(self.ui.page_2.x()+(GRADIENT_WIDTH+INFO_WIDTH), self.ui.page_2.y() ))
+            self.anim.setStartValue(QtCore.QPoint(self.ui.page_2.x()+(TankQDialog.GRADIENT_WIDTH+TankQDialog.INFO_WIDTH), 
+                                                  self.ui.page_2.y() ))
             self.anim.setEndValue(QtCore.QPoint(self.ui.page_2.x(), self.ui.page_2.y() ))
             self.anim.setEasingCurve(QtCore.QEasingCurve.OutCubic)
     
             self.anim2 = QtCore.QPropertyAnimation(self.ui.page_1, "pos")
             self.anim2.setDuration(600)
             self.anim2.setStartValue(QtCore.QPoint(self.ui.page_1.x(), self.ui.page_1.y() ))
-            self.anim2.setEndValue(QtCore.QPoint(self.ui.page_1.x()-(GRADIENT_WIDTH+INFO_WIDTH), self.ui.page_1.y() ))
+            self.anim2.setEndValue(QtCore.QPoint(self.ui.page_1.x()-(TankQDialog.GRADIENT_WIDTH+TankQDialog.INFO_WIDTH), 
+                                                 self.ui.page_1.y() ))
             self.anim2.setEasingCurve(QtCore.QEasingCurve.OutCubic)
             self.anim2.finished.connect( self._finished_show_anim )
             
