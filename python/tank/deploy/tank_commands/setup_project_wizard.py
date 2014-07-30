@@ -12,7 +12,7 @@ import os
 import sys
 
 from .action_base import Action
-from . import core
+from . import core_localize
 from ...util import shotgun
 from ...errors import TankError
 from ... import pipelineconfig_utils
@@ -566,7 +566,7 @@ class SetupProjectWizard(object):
         
         # check if we should run the localization afterwards
         if core_settings["localize"]:
-            core.do_localize(self._log, 
-                             self._params.get_configuration_location(sys.platform), 
-                             suppress_prompts=True)
+            core_localize.do_localize(self._log, 
+                                      self._params.get_configuration_location(sys.platform), 
+                                      suppress_prompts=True)
         
