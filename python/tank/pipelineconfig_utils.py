@@ -170,7 +170,7 @@ def get_core_api_version(core_install_root):
     """
     Returns the version string for the core api associated with this config.
     This method is 'forgiving' and in the case no associated core API can be 
-    found for this location, None will be returned rather than 
+    found for this location, 'unknown' will be returned rather than 
     an exception raised. 
 
     :param core_install_root: Path to a core installation root, either the root of a pipeline

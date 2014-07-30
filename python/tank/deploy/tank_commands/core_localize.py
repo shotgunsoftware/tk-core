@@ -400,9 +400,17 @@ def _run_unlocalize(tk, log, mac_path, windows_path, linux_path, copy_core, supp
     
     else:
         # make sure location exists and that there is a recent enough API in there
-        # todo - add after merge
         if not os.path.exists(new_core_path_local):
             raise TankError("The path '%s' does not exist on disk!" % new_core_path_local)
+        
+        # ensure that the API we are switching to is as recent as the current
+        new_core_version = pipelineconfig_utils.get_core_api_version(new_core_path_local)
+        if util.is_version_older(new_core_version, tk.version):
+            raise TankError("You are currently running version %s of the core. It looks like the core "
+                            "in '%s' is version %s. You cannot switch to a version of the core that is "
+                            "older than the current core. Before switching, update the shared core and then "
+                            "try again!" % (tk.version, new_core_path_local, new_core_version))
+        
         
     pc_root = tk.pipeline_configuration.get_path()
     
