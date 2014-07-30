@@ -720,6 +720,4 @@ class SetupProjectAction(Action):
         log.info("")
         log.info("")
 
-    
-
 
