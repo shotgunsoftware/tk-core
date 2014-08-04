@@ -505,14 +505,10 @@ class SetupProjectWizard(object):
         # first, work out which version of the core we should be associate the new project with.
         # this logic follows a similar pattern to the default config generation.
         #
-        # A. If the config template is a project in shotgun, use its core.
-        #    If this core is localized, then localize this project too
-        
-        # B. Otherwise, try to find the most recent primary pipeline config in shotgun and use its core
-        #    If this core is localized, then localize this project too
+        # If the config template is a project in shotgun, use its core.
+        # If this core is localized, then localize this project too
         #
-        # C. If there are no recent pipeline configs or if the config isn't valid, fall back on the 
-        #    currently executing core API. Always localize in this case.
+        # Otherwise, fall back on the currently executing core API. Always localize in this case.
 
         # the defaults is to localize and pick up current core API
         curr_core_path = pipelineconfig_utils.get_path_to_current_core()
@@ -528,27 +524,8 @@ class SetupProjectWizard(object):
         
         if data:
             self._log.debug("Will try to inherit core from the config template: %s" % data)
-        
-        else:
-            # the config template isn't a shotgun pipeline config. So fall back
-            # on using the most recent primary one
-            data = self._sg.find_one("PipelineConfiguration", 
-                                     [["code", "is", "primary"]],
-                                     ["id", 
-                                      "mac_path", 
-                                      "windows_path", 
-                                      "linux_path", 
-                                      "project", 
-                                      "project.Project.tank_name"],
-                                     [{"field_name": "created_at", "direction": "desc"}])
-
-            if not data:
-                self._log.debug("No existing projects in shotgun. Will try to inherit the core from the running code.")
-            else:
-                self._log.debug("Will try to inherit the core from the most recent project: %s" % data)
-        
-        # proceed to try to find the core API  
-        if data:
+            
+            # get the right path field from the config        
             lookup = {"darwin": "mac_path", "linux2": "linux_path", "win32": "windows_path"}
             pipeline_config_root_path = data[ lookup[sys.platform] ]
             
@@ -571,6 +548,16 @@ class SetupProjectWizard(object):
                         return_data["localize"] = True
                     else:
                         return_data["localize"] = False
+                
+                else:
+                    self._log.warning("Cannot locate the Core API associated with the configuration in '%s'. "
+                                      "As a fallback, the currently executing Toolkit Core API will "
+                                      "be used." % pipeline_config_root_path )
+            
+            else:
+                self._log.warning("You are basing your new project on an existing configuration ('%s'), however "
+                                  "the configuration does not exist on disk. As a fallback, the currently executing "
+                                  "Toolkit Core API will be used." % pipeline_config_root_path )
         
         return return_data
         
