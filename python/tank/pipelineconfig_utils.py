@@ -117,10 +117,15 @@ def resolve_all_os_paths_to_core(core_path):
     
     :returns: dictionary with keys linux2, darwin and win32
     """
+    
+    # basic sanity check
+    if not os.path.exists(core_path):
+        raise TankError("The core path '%s' does not exist on disk!" % core_path)
+    
     # for other platforms, read in install_location
     location_file = os.path.join(core_path, "config", "core", "install_location.yml")
     if not os.path.exists(location_file):
-        raise TankError("Cannot find '%s' - please contact support!" % location_file)
+        raise TankError("Cannot find core config file '%s' - please contact support!" % location_file)
 
     # load the config file
     try:
@@ -130,7 +135,7 @@ def resolve_all_os_paths_to_core(core_path):
         finally:
             open_file.close()
     except Exception, error:
-        raise TankError("Cannot load config file '%s'. Error: %s" % (location_file, error))
+        raise TankError("Cannot load core config file '%s'. Error: %s" % (location_file, error))
 
     # do some cleanup on this file - sometimes there are entries that say "undefined"
     # or is just an empty string - turn those into null values

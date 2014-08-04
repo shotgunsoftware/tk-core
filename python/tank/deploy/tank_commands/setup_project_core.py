@@ -101,7 +101,7 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, set
     _make_folder(log, os.path.join(config_location_curr_os, "install"), 0775)
     _make_folder(log, os.path.join(config_location_curr_os, "install", "core"), 0777)
     _make_folder(log, os.path.join(config_location_curr_os, "install", "core", "python"), 0777)
-    _make_folder(log, os.path.join(config_location_curr_os, "install", "core.backup"), 0777)
+    _make_folder(log, os.path.join(config_location_curr_os, "install", "core.backup"), 0777, True)
     _make_folder(log, os.path.join(config_location_curr_os, "install", "engines"), 0777, True)
     _make_folder(log, os.path.join(config_location_curr_os, "install", "apps"), 0777, True)
     _make_folder(log, os.path.join(config_location_curr_os, "install", "frameworks"), 0777, True)
@@ -348,12 +348,49 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, set
     pc = pipelineconfig.from_path(config_location_curr_os)
     
     # each entry in the config template contains instructions about which version of the app
-    # to use.
+    # to use. First loop over all environments and gather all descriptors we should download,
+    # then go ahead and download and post-install them 
     
+    log.info("Downloading and installing apps...")
+    
+    # pass 1 - populate list of all descriptors    
+    descriptors = []
     for env_name in pc.get_environments():
+        
         env_obj = pc.get_environment(env_name)
-        log.info("Installing apps for environment %s..." % env_obj)
-        _install_environment(setup_params, env_obj, log)
+        
+        for engine in env_obj.get_engines():
+            descriptors.append( env_obj.get_engine_descriptor(engine) )
+            
+            for app in env_obj.get_apps(engine):
+                descriptors.append( env_obj.get_app_descriptor(engine, app) )
+                
+        for framework in env_obj.get_frameworks():
+            descriptors.append( env_obj.get_framework_descriptor(framework) )
+                
+    # pass 2 - download all apps
+    num_descriptors = len(descriptors)
+    for idx, descriptor in enumerate(descriptors):
+        
+        # note that we push percentages here to the progress bar callback
+        # going from 0 to 100
+        progress = (int)((float)(idx)/(float)(num_descriptors)*100)
+        setup_params.report_progress_from_installer("Downloading apps...", progress)
+        
+        if not descriptor.exists_local():
+            log.info("Downloading %s to the local Toolkit install location..." % descriptor)            
+            descriptor.download_local()
+            
+        else:
+            log.info("Item %s is already locally installed." % descriptor)
+
+    # create required shotgun fields
+    setup_params.report_progress_from_installer("Running post install...")
+    for descriptor in descriptors:
+        descriptor.ensure_shotgun_fields_exist()
+        # run post install hook
+        descriptor.run_post_install()
+        
 
     ##########################################################################################
     # post processing of the install
@@ -455,44 +492,7 @@ def _copy_folder(log, src, dst):
         
         except (IOError, os.error), why: 
             raise TankError("Can't copy %s to %s: %s" % (srcname, dstname, str(why))) 
-    
-def _install_environment(setup_params, env_obj, log):
-    """
-    Make sure that all apps and engines exist in the local repo.
-    """
-    
-    # populate a list of descriptors
-    descriptors = []
-    
-    for engine in env_obj.get_engines():
-        descriptors.append( env_obj.get_engine_descriptor(engine) )
         
-        for app in env_obj.get_apps(engine):
-            descriptors.append( env_obj.get_app_descriptor(engine, app) )
-            
-    for framework in env_obj.get_frameworks():
-        descriptors.append( env_obj.get_framework_descriptor(framework) )
-            
-    # ensure all apps are local - if not then download them
-    num_descriptors = len(descriptors)
-    for idx, descriptor in enumerate(descriptors):
-        
-        progress = (int)((float)(idx)/(float)(num_descriptors)*100)
-        setup_params.report_progress_from_installer("Setting up apps for %s environment..." % env_obj.name, progress)
-        
-        if not descriptor.exists_local():
-            log.info("Downloading %s to the local Toolkit install location..." % descriptor)            
-            descriptor.download_local()
-            
-        else:
-            log.info("Item %s is already locally installed." % descriptor)
-
-    # create required shotgun fields
-    setup_params.report_progress_from_installer("Post-installing the %s environment..." % env_obj.name)
-    for descriptor in descriptors:
-        descriptor.ensure_shotgun_fields_exist()
-        # run post install hook
-        descriptor.run_post_install()
     
 def _get_published_file_entity_type(log, sg):
     """
