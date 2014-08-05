@@ -101,6 +101,15 @@ class PipelineConfiguration(object):
         """
         return self._pc_root
 
+    def get_all_os_paths(self):
+        """
+        Returns the path to this config for all operating systems,
+        as defined in the install_locations file. None, if not defined.
+        
+        :returns: dictionary with keys linux2, darwin and win32
+        """
+        return pipelineconfig_utils._get_install_locations(self._pc_root)
+
     def _load_metadata_from_sg(self):
         """
         Caches PC metadata from shotgun.

@@ -100,9 +100,21 @@ class MovePCAction(Action):
         
         sg = shotgun.create_sg_connection()
         pipeline_config_id = self.tk.pipeline_configuration.get_shotgun_id()
+        current_paths = self.tk.pipeline_configuration.get_all_os_paths()
         
         if len(args) != 3:
             log.info("Syntax: move_configuration linux_path windows_path mac_path")
+            log.info("")
+            log.info("This will move the location of the given pipeline configuation.")
+            log.info("You can also use this command to add a new platform to the pipeline configuration.")
+            log.info("")
+            log.info("Current Paths")
+            log.info("--------------------------------------------------------------")
+            log.info("")
+            log.info("Current Linux Path:   '%s'" % current_paths["linux2"])
+            log.info("Current Windows Path: '%s'" % current_paths["win32"])
+            log.info("Current Mac Path:     '%s'" % current_paths["darwin"])
+            log.info("")
             log.info("")
             log.info("You typically need to quote your paths, like this:")
             log.info("")
@@ -119,59 +131,94 @@ class MovePCAction(Action):
         linux_path = args[0]
         windows_path = args[1]
         mac_path = args[2]
-        new_paths = {"mac_path": mac_path, 
-                     "windows_path": windows_path, 
-                     "linux_path": linux_path}
-                
-        log.info("Overview of the new config paths in Shotgun:")
-        log.info("--------------------------------------------------------------")
+        new_paths = {"darwin": mac_path, 
+                     "win32": windows_path, 
+                     "linux2": linux_path}
+              
+        # check which paths are different
+        modifications = {"darwin": (current_paths["darwin"] != mac_path),
+                         "win32": (current_paths["win32"] != windows_path),
+                         "linux2": (current_paths["linux2"] != linux_path), }
+
         log.info("")
-        log.info("New Linux Path:   '%s'" % linux_path)
-        log.info("New Windows Path: '%s'" % windows_path)
-        log.info("New Mac Path:     '%s'" % mac_path)
+        log.info("Current Paths")
+        log.info("--------------------------------------------------------------")
+        log.info("Current Linux Path:   '%s'" % current_paths["linux2"])
+        log.info("Current Windows Path: '%s'" % current_paths["win32"])
+        log.info("Current Mac Path:     '%s'" % current_paths["darwin"])
+        log.info("")
+        log.info("New Paths")
+        log.info("--------------------------------------------------------------")
+        if modifications["linux2"]:
+            log.info("New Linux Path:   '%s'" % linux_path)
+        else:
+            log.info("New Linux Path:   No change")
+        
+        if modifications["win32"]:
+            log.info("New Windows Path: '%s'" % windows_path)
+        else:
+            log.info("New Windows Path: No change")
+        
+        if modifications["darwin"]:
+            log.info("New Mac Path:     '%s'" % mac_path)
+        else:
+            log.info("New Mac Path:     No change")
+        
+        log.info("")
         log.info("")
         
+        if modifications[sys.platform]:
+            copy_files = True
+            log.info("The configuration will be moved to reflect the specified path changes.")
+        else:
+            copy_files = False
+            # we are not modifying current OS
+            log.info("Looks like you are not modifying the location for this operating system. Therefore, " 
+                     "no files will be moved around, only configuration files will be updated.")
+
+        log.info("")
+        log.info("Note for advanced users: If your configuration is localized and you have other projects which "
+                 "are linked to the core API embedded in this configuration, these links must be manually "
+                 "updated after the move operation.")
+        
+        log.info("")
         val = raw_input("Are you sure you want to move your configuration? [Yes/No] ")
         if not val.lower().startswith("y"):
             raise TankError("Aborted by User.")
-
+        
         # ok let's do it!
-        storage_map = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
-
         local_source_path = self.tk.pipeline_configuration.get_path()
-        local_target_path = new_paths.get(storage_map[sys.platform])
-        source_sg_code_location = os.path.join(local_source_path, "config", "core", "install_location.yml")
+        local_target_path = new_paths[sys.platform]
         
-        if not os.path.exists(local_source_path):
-            raise TankError("The path %s does not exist on disk!" % local_source_path)
-        if os.path.exists(local_target_path):
-            raise TankError("The path %s already exists on disk!" % local_target_path)
-        if not os.path.exists(source_sg_code_location):
-            raise TankError("The required config file %s does not exist on disk!" % source_sg_code_location)
-
-        # also - we currently don't support moving PCs which have a localized API
-        # (because these may be referred to by other PCs that are using their API
-        # TODO: later on, support moving these. For now, just error out.
-        if pipelineconfig_utils.is_localized(local_source_path):        
-            raise TankError("Looks like the Configuration you are trying to move has a localized "
-                            "API. This is not currently supported.")
+        if copy_files:
+            
+            # check that files exists and that we can carry out the copy etc.
+            if not os.path.exists(local_source_path):
+                raise TankError("The path %s does not exist on disk!" % local_source_path)
+            if os.path.exists(local_target_path):
+                raise TankError("The path %s already exists on disk!" % local_target_path)
         
-        # sanity check target folder
-        parent_target = os.path.dirname(local_target_path)
-        if not os.path.exists(parent_target):
-            raise TankError("The path '%s' does not exist!" % parent_target)
-        if not os.access(parent_target, os.W_OK|os.R_OK|os.X_OK):
-            raise TankError("The permissions setting for '%s' is too strict. The current user "
-                            "cannot create folders in this location." % parent_target)
+            # sanity check target folder
+            parent_target = os.path.dirname(local_target_path)
+            if not os.path.exists(parent_target):
+                raise TankError("The path '%s' does not exist!" % parent_target)
+            if not os.access(parent_target, os.W_OK|os.R_OK|os.X_OK):
+                raise TankError("The permissions setting for '%s' is too strict. The current user "
+                                "cannot create folders in this location." % parent_target)
 
         # first copy the data across
         old_umask = os.umask(0)
         try:
 
-            log.info("Copying '%s' -> '%s'" % (local_source_path, local_target_path))            
-            self._copy_folder(log, 0, local_source_path, local_target_path)
+            # first copy the files - this is where things can go wrong so start with this
+            if copy_files:
+                log.info("Copying '%s' -> '%s'" % (local_source_path, local_target_path))            
+                self._copy_folder(log, 0, local_source_path, local_target_path)
+                sg_code_location = os.path.join(local_target_path, "config", "core", "install_location.yml")
+            else:
+                sg_code_location = os.path.join(local_source_path, "config", "core", "install_location.yml")
             
-            sg_code_location = os.path.join(local_target_path, "config", "core", "install_location.yml")
+            # now updated config files
             log.info("Updating cached locations in %s..." % sg_code_location)
             os.chmod(sg_code_location, 0666)
             fh = open(sg_code_location, "wt")
@@ -201,11 +248,16 @@ class MovePCAction(Action):
             os.umask(old_umask)
         
         log.info("Updating Shotgun Configuration Record...")
-        sg.update(constants.PIPELINE_CONFIGURATION_ENTITY, pipeline_config_id, new_paths)
+        sg.update(constants.PIPELINE_CONFIGURATION_ENTITY, 
+                  pipeline_config_id, 
+                  { "mac_path": new_paths["darwin"],
+                    "windows_path": new_paths["win32"],
+                    "linux_path": new_paths["linux2"] } )
         
         # finally clean up the previous location
-        log.info("Deleting original configuration files...")
-        self._cleanup_old_location(log, local_source_path)
+        if copy_files:
+            log.info("Deleting original configuration files...")
+            self._cleanup_old_location(log, local_source_path)
         log.info("")
         log.info("All done! Your configuration has been successfully moved.")
         

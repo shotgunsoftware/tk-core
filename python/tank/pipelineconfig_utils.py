@@ -41,6 +41,9 @@ def get_path_to_current_core():
     of a localized pipeline configuration, the PC root path will be returned, otherwise 
     a 'studio' root will be returned.
     
+    This method may not return valid results if there has been any symlinks set up as part of
+    the install structure.
+    
     :returns: string with path
     """
     curr_os_core_root = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "..", ".."))
@@ -98,32 +101,26 @@ def get_core_path_for_config(pipeline_config_path):
     
 def resolve_all_os_paths_to_core(core_path):
     """
-    Given a core path on the current os platform, return paths on all platforms.
+    Given a core path on the current os platform, return paths on all platforms,
+    as cached in the install_locations system file
+    
+    :returns: dictionary with keys linux2, darwin and win32
+    """
+    return _get_install_locations(core_path)
 
-    Returns the root location of the currently executing code, assuming that this code is 
-    located inside a standard toolkit install setup. If the code that is running is part
-    of a localized pipeline configuration, its root path will be returned, otherwise 
-    a 'studio' root will be returned.
-    
-    If the platform is the current operating system, a runtime introspection will be 
-    carried out to determine the path. For other platforms, the install_location lookup 
-    file will be used to determine the core location.
-    
-    This method may not return valid results if there has been any symlinks set up as part of
-    the install structure.
-    
-    Note that for the current platform, this method will always return a path, but for 
-    other operating systems it may return None.
+def _get_install_locations(path):
+    """
+    Given a pipeline configuration OR core location, return paths on all platforms.
     
     :returns: dictionary with keys linux2, darwin and win32
     """
     
     # basic sanity check
-    if not os.path.exists(core_path):
-        raise TankError("The core path '%s' does not exist on disk!" % core_path)
+    if not os.path.exists(path):
+        raise TankError("The core path '%s' does not exist on disk!" % path)
     
     # for other platforms, read in install_location
-    location_file = os.path.join(core_path, "config", "core", "install_location.yml")
+    location_file = os.path.join(path, "config", "core", "install_location.yml")
     if not os.path.exists(location_file):
         raise TankError("Cannot find core config file '%s' - please contact support!" % location_file)
 
