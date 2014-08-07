@@ -157,6 +157,10 @@ class PipelineConfiguration(object):
                            [["id", "is", self.get_shotgun_id()]],
                            ["linux_path", "windows_path", "mac_path"])
 
+        if data is None:
+            raise TankError("Cannot find a Pipeline configuration in Shotgun "
+                            "that has id %s." % self.get_shotgun_id())
+
         def _is_empty(d):
             """
             Returns true if value is "" or None, False otherwise
