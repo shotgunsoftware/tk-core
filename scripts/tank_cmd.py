@@ -19,7 +19,7 @@ import datetime
 from tank import TankError
 from tank.deploy.tank_commands.clone_configuration import clone_pipeline_configuration_html
 from tank.deploy import tank_command
-from tank.deploy.tank_commands.core import TankCoreUpgrader
+from tank.deploy.tank_commands.core_upgrade import TankCoreUpgrader
 from tank.deploy.tank_commands.action_base import Action
 from tank.util import shotgun
 from tank.platform import engine
