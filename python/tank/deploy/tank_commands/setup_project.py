@@ -161,6 +161,7 @@ class SetupProjectAction(Action):
         # if we are running a localized pc, the root path of the core
         # api is the same as the root path for the associated pc
         if pipelineconfig_utils.is_localized(curr_core_path):
+            log.info("Localizing Core...")
             core_localize.do_localize(log, params.get_configuration_location(sys.platform), suppress_prompts=True)
                         
                         
@@ -231,6 +232,13 @@ class SetupProjectAction(Action):
         
         # and finally carry out the setup
         run_project_setup(log, sg, sg_app_store, sg_app_store_script_user, params)
+        
+        # check if we should run the localization afterwards
+        # if we are running a localized pc, the root path of the core
+        # api is the same as the root path for the associated pc
+        if pipelineconfig_utils.is_localized(curr_core_path):
+            log.info("Localizing Core...")
+            core_localize.do_localize(log, params.get_configuration_location(sys.platform), suppress_prompts=True)        
         
         # display readme etc.
         readme_content = params.get_configuration_readme()
