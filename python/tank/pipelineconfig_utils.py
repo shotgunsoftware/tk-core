@@ -27,6 +27,12 @@ def is_localized(pipeline_config_path):
     :param pipeline_config_path: path to a pipeline configuration root folder
     :returns: true if localized, false if not
     """
+    # first, make sure that this path is actually a pipeline configuration
+    # path. otherwise, it cannot be localized :)
+    pc_file = os.path.join(pipeline_config_path, "config", "core", "templates.yml")
+    if not os.path.exists(pc_file):
+        return False
+
     # look for a localized API by searching for a _core_upgrader.py file
     api_file = os.path.join(pipeline_config_path, "install", "core", "_core_upgrader.py")
     return os.path.exists(api_file)
