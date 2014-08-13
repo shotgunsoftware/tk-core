@@ -92,6 +92,28 @@ def do_localize(log, pc_root_path, suppress_prompts):
     # proceed with setup
     log.info("")
     
+    # first get a list of all bundle descriptors
+    # key by descriptor repr, which ensures uniqueness   
+    # at this point we also store the path to each descriptor
+    # before we make any changes to any config files 
+    descriptors = {}
+    for env_name in pc.get_environments():
+        
+        env_obj = pc.get_environment(env_name)
+        
+        for engine in env_obj.get_engines():
+            d = env_obj.get_engine_descriptor(engine)
+            descriptors[ repr(d) ] = { "name": str(d), "path": d.get_path() }
+            
+            for app in env_obj.get_apps(engine):
+                d = env_obj.get_app_descriptor(engine, app)
+                descriptors[ repr(d) ] = { "name": str(d), "path": d.get_path() }
+                
+        for framework in env_obj.get_frameworks():
+            d = env_obj.get_framework_descriptor(framework)
+            descriptors[ repr(d) ] = { "name": str(d), "path": d.get_path() }
+    
+    
     source_core = os.path.join(core_api_root, "install", "core")
     target_core = os.path.join(pc_root_path, "install", "core")
     backup_location = os.path.join(pc_root_path, "install", "core.backup")
@@ -138,27 +160,14 @@ def do_localize(log, pc_root_path, suppress_prompts):
             log.debug("Copy %s -> %s" % (src, tgt))
             shutil.copy(src, tgt)
             
-            
-        # pass 1 - populate list of all descriptors    
-        descriptors = []
-        for env_name in pc.get_environments():
-            
-            env_obj = pc.get_environment(env_name)
-            
-            for engine in env_obj.get_engines():
-                descriptors.append( env_obj.get_engine_descriptor(engine) )
-                
-                for app in env_obj.get_apps(engine):
-                    descriptors.append( env_obj.get_app_descriptor(engine, app) )
-                    
-            for framework in env_obj.get_frameworks():
-                descriptors.append( env_obj.get_framework_descriptor(framework) )
-            
+        # now copy all the bundles that are used by the environment   
         log.info("Copying %s apps, engines and frameworks..." % len(descriptors))
-        for idx, descriptor in enumerate(descriptors):
+        for idx, descriptor in enumerate(descriptors.values()):
             
-            log.info("%s/%s: Copying %s..." % (idx, len(descriptors), descriptor))
-            path = descriptor.get_path()
+            path = descriptor["path"]
+            name = descriptor["name"]
+            
+            log.info("%s/%s: Copying %s..." % (idx, len(descriptors), name))
             
             source_base_path = os.path.join(core_api_root, "install")
             target_base_path = os.path.join(pc_root_path, "install")
