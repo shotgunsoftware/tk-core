@@ -156,7 +156,8 @@ Show what commands are available for Shot ABC123
 > tank Shot ABC123
 
 Show what commands are available for Shot ABC123 in project Flash
-(In case you have several projects with a Shot ABC123)
+(In case you have several projects with a Shot ABC123. Note that this
+ only works when running from a tank studio command)
 > tank Shot Flash:ABC123
 
 Show a list of all shots in Shotgun containing the phrase ABC
@@ -169,13 +170,10 @@ Launch maya for a Shot in Shotgun:
 > tank Shot ABC123 launch_maya
 
 Launch maya for a Task in Shotgun using an id:
-> tank Task 234 launch_maya
+> tank Task @234 launch_maya
 
 Launch maya for a folder:
 > tank /studio/proj_xyz/shots/ABC123 launch_maya
-
-Launch maya for the lighting task on project Flash, Shot ABC123
-> tank Task Flash:Shot:ABC123:light launch_maya
 
 """
     for x in info.split("\n"):
@@ -511,8 +509,10 @@ def shotgun_run_action(log, install_root, pipeline_config_root, is_localized, ar
 
 def _get_sg_name_field(entity_type):
     """
-    Returns the standard Shotgun name field given
-    an entity type
+    Returns the standard Shotgun name field given an entity type.
+    
+    :param entity_type: shotgun entity type
+    :returns: name field as string
     """
     name_field = "code"
     if entity_type == "Project":
@@ -522,6 +522,34 @@ def _get_sg_name_field(entity_type):
     elif entity_type == "HumanUser":
         name_field = "login"
     return name_field
+
+def _resolve_shotgun_pattern(log, entity_type, name_pattern):
+    """
+    Resolve a pattern given an entity. Search the 'name' field
+    for an entity. For most types, this is the code field.
+    Raise exceptions unless there is a single matching item.
+    
+    :param entity_type: Entity type to search
+    :param name_pattern: Name pattern to search for
+    :returns: (entity id, name)
+    """
+
+    name_field = _get_sg_name_field(entity_type)
+
+    log.debug("Shotgun: find(%s, %s contains %s)" % (entity_type, name_field, name_pattern) )
+    data = sg.find(entity_type, [[name_field, "contains", name_pattern]], [name_field])
+    log.debug("Got data: %r" % data)
+    
+    if len(data) == 0:
+        raise TankError("No Shotgun %s matching the pattern '%s'!" % (entity_type, name_pattern))
+    
+    elif len(data) > 1:
+        names = ["'%s'" % x[name_field] for x in data]
+        raise TankError("More than one %s matching pattern '%s'. Matching items are %s. " 
+                        "Please be more specific." % (entity_type, name_pattern, ", ".join(names)))
+    
+    # got a single item 
+    return (data[0]["id"], data[0][name_field])
 
 
 
@@ -633,66 +661,10 @@ def _list_commands(log, tk, ctx):
     log.info("")
 
 
-def _preprocess_projects(log, sg, entity_search_token, constrain_by_project_id):
-    """
-    Returns project constraint data given a search token and a filter.
 
-    If the token is on the form "abc", there is no project prefix.
-    However, if the project is on the form abc:XYZ, search for projects matching
-    abc.
 
-    if we are constraining by project, project prefix is not valid.
-    """
 
-    if ":" in entity_search_token and constrain_by_project_id is None:
-        # we are running a studio tank command and there are one or more
-        # tokens (e.g. > tank Shot proj_x:foo or > tank Task proj_x:Shot:foo:light)
-        # shave off the first token
-        proj_token = entity_search_token.split(":")[0]
-        entity_token = ":".join(entity_search_token.split(":")[1:])
-    else:
-        proj_token = None
-        entity_token = entity_search_token
 
-    if constrain_by_project_id:
-        # generate implicit project constraints based on the tank command location
-        log.debug("Shotgun: find_one(Project, id is %s)" % constrain_by_project_id)
-        proj_constraint = sg.find_one("Project", [["id", "is", constrain_by_project_id]], ["name"])
-        log.debug("Got data: %r" % proj_constraint)
-        
-        # check in case a project has been retired in shotgun but there is still an active toolkit project
-        if proj_constraint is None:
-            raise TankError("Cannot find a project with id '%s' in Shotgun!" % constrain_by_project_id)
-        
-        log.info("- You are running a tank command associated with Shotgun Project '%s'. "
-                 "Only items associated with this project will be considered." % proj_constraint.get("name") )
-        projs_from_prefix = [proj_constraint]
-
-    elif proj_token:
-        # running the studio command and specific project token specified.
-        # generate list of project ids based on the project token        
-        log.debug("Shotgun: find(Project, name contains %s)" % proj_token )
-        projs_from_prefix = sg.find("Project", [["name", "contains", proj_token]], ["name"])
-        log.debug("Got data: %r" % projs_from_prefix)
-        if len(projs_from_prefix) == 0:
-            raise TankError("No Shotgun projects found containing the phrase '%s' in their name!" % proj_token)
-
-        log.info("")
-
-        if len(projs_from_prefix) == 1:
-            log.info("- Searching in project '%s' only (matching "
-                     "search phrase '%s')" % (projs_from_prefix[0].get("name"), proj_token))
-
-        elif len(projs_from_prefix) > 1:
-            proj_names = [x.get("name") for x in projs_from_prefix]
-            log.info("- Will search across projects matching phrase '%s': %s" % (proj_token, ", ".join(proj_names)))
-
-    else:
-        # no project based constraints in play!
-        projs_from_prefix = []
-        log.info("- Will search across all Shotgun Projects.")
-
-    return (entity_token, projs_from_prefix)
 
 def _resolve_shotgun_entity(log, entity_type, entity_search_token, constrain_by_project_id):
     """
@@ -700,51 +672,25 @@ def _resolve_shotgun_entity(log, entity_type, entity_search_token, constrain_by_
     Will display multiple matches to the logger if there isn't a unique match.
 
     :param entity_type: Entity type to resolve
-    :param entity_search_token: String to try to match. For studio-level commands, you can
-                                scope it per project (e.g. tank Shot proj_a:foo to look for a shot in
-                                Project proj_a matching 'foo'). For project specific tank commands, no
-                                project prefix is consumed since the project is implicitly set by the
-                                location of the tank command. Furthermore, for tasks, the form
-                                EntityType:linkname:taskname can be applied in order to help narrow down
-                                tasks. For example > tank Task Shot:foo:light.
-    :param constrain_by_project_id: Project id to constrain the search to. When this is not None, only
-                                    items from this project will be considered.
+    :param entity_search_token: Partial name to search for
+    :param constrain_by_project_id: Project id to constrain the search to. 
+                                    When this is None, all projects will be considered.
     :returns: a matching entity_id
     """
 
     sg = shotgun.create_sg_connection()
     name_field = _get_sg_name_field(entity_type)
 
-    # if entity_search_token is on the form ghosts:P01, limit by project
-    (entity_search_token, projs) = _preprocess_projects(log, sg, entity_search_token, constrain_by_project_id)
-
-    # if entity type is Task, we also accept a syntax which is entity_type:entity_pattern:task_pattern
-    # for example
-    # > tank Task Shot:foo:light
-    task_link_token = None
-    task_link_type = None
-    if entity_type == "Task" and len(entity_search_token.split(":")) > 2:
-        # shave off the task link prefix
-        task_link_type = entity_search_token.split(":")[0]  # e.g. Shot in tank Task Shot:foo:light
-        task_link_token = entity_search_token.split(":")[1] # e.g. foo  in tank Task Shot:foo:light
-        entity_search_token = ":".join(entity_search_token.split(":")[2:]) # e.g. light 
-        log.info("- Will only search tasks associated with %s '%s'" % (task_link_type, task_link_token))
-
     try:
+        # build up filters
         shotgun_filters = []
 
         if entity_search_token != "ALL":
             shotgun_filters.append([name_field, "contains", entity_search_token])
 
-        if task_link_token:
-            # this is a task and we constrain the find query by link
-            shotgun_filters.append( ["entity.%s.code" % task_link_type, "is", task_link_token ] )
-
-        if len(projs) > 0:
-            # append project constraint! Note the funny filter syntax
-            proj_filter = ["project", "in"]
-            proj_filter.extend(projs)
-            shotgun_filters.append(proj_filter)
+        if constrain_by_project_id:
+            # append project constraint
+            shotgun_filters.append(["project", "is" , {"type": "Project", "id": constrain_by_project_id}])
 
         log.debug("Shotgun: find(%s, %s)" % (entity_type, shotgun_filters))
         entities = sg.find(entity_type,
@@ -770,11 +716,9 @@ def _resolve_shotgun_entity(log, entity_type, entity_search_token, constrain_by_
             if x[name_field] == entity_search_token:
                 selected_entity = x
 
-
     elif len(entities) == 1:
         # single match yay
         selected_entity = entities[0]
-
 
     else:
         # More than one item matching Shot 'P':
@@ -874,12 +818,6 @@ def _resolve_shotgun_entity(log, entity_type, entity_search_token, constrain_by_
 
 
 
-
-
-
-
-
-
 def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd, args):
     """
     Launches an engine and potentially executes a command.
@@ -910,6 +848,7 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
     tk = None
 
     if len(context_items) == 1:
+        # path mode: e.g. tank /foo/bar/baz
         # create a context given a path as the input
 
         ctx_path = context_items[0]
@@ -940,6 +879,7 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
             ctx = tk.context_from_path(ctx_path)
 
     else:
+        # this is a shotgun syntax. e.g. 'tank Shot foo'
         # create a context given an entity and entity_id/entity_name
         entity_type = context_items[0]
         entity_search_token = context_items[1]
@@ -959,41 +899,95 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
             # running a per project command
             tk =  tank.tank_from_path(pipeline_config_root)
             project_id = tk.pipeline_configuration.get_project_id()
+            studio_command_mode = True
                     
         else:
             # studio level command
-            project_id = None    
+            project_id = None
+            studio_command_mode = False    
             
-        # now parse the name token intelligently
+        # now resolve the given expression. For clarity, this is done as two separate branches
+        # depending on if you are calling from a studio tank command or from a project tank command
+        
+        # the valid syntax here is
+        # tank Entitytype name_expression
+        # tank EntityType id   (fallback if there is no item with the given name)
+        # tank EntityType @123 (explicit addressing by id)
+        
+        # special studio level only syntax
+        # raises an error for project level command
+        # tank Shot Project:xxx
+        
+        # first pass - remove a potential project prefix.
+        # if someone passes a project prefix, ensure that the studio command is running
+        # otherwise error out.
+        
+        # first output some info if we are running the project command
+        if not studio_command_mode:
+            log.info("- You are running a project specific tank command. Only items that are part "
+                     "of this project will be considered.")
+
+        # work out the project prefix logic    
+        if ":" in entity_search_token:
+            
+            # we have an expression on the form tank EntityType project_name:name_expression
+            # this is not valid for non-studio commands because these are already project scoped
+            if not studio_command_mode:
+                raise TankError("Invalid syntax! When you are running the tank command from "
+                                "a project, you are already implicitly scoping your search by "
+                                "that project. Please omit the project prefix from your syntax. "
+                                "For more information, run tank --help")
+            
+            elif entity_type == "Project":
+                # ok so we have a studio level command
+                # but you cannot scope a project by another project
+                raise TankError("Cannot scope a project with another project! For more information, "
+                                "run tank --help")
+        
+            else:
+                # studio level command and non-project entity.
+                # pop off the project token from the entity search token
+                proj_token = entity_search_token.split(":")[0]
+                entity_search_token = ":".join(entity_search_token.split(":")[1:])
+                
+                # now try to resolve this project
+                (project_id, project_name) = _resolve_shotgun_pattern(log, entity_type, proj_token)
+                log.info("- Searching in project '%s' only" % project_name)
+
+            
+        # now project prefix token has been removed from the path
+        # we now have the following cases to consider
+        # tank Entitytype name_expression
+        # tank EntityType id   (fallback if there is no item with the given name)
+        # tank EntityType @123 (explicit addressing by id)        
+        
         if entity_search_token.isdigit():
             # the entity name is something like "123"
-            # first look if there is a match for it. If not, assume it is an id.
+            # first look if there is an exact match for it. 
+            # If not, assume it is an id.
             sg = shotgun.create_sg_connection()
             name_field = _get_sg_name_field(entity_type)
 
             # first try by name - e.g. a shot named "123"
-            filters = [[name_field, "contains", entity_search_token]]
+            filters = [[name_field, "is", entity_search_token]]
             if project_id:
                 # when running a per project tank command, make sure we 
                 # filter out all other items in other projects.
                 filters.append( ["project", "is", {"type": "Project", "id": project_id} ])
             
             log.debug("Shotgun: find(%s, %s)" % (entity_type, filters))
-            entities = sg.find(entity_type, filters, ["id", name_field])
+            data = sg.find_one(entity_type, filters, ["id", name_field])
             log.debug("Got data: %r" % entities)
             
-            if [ x[name_field] for x in entities ].count(entity_search_token) == 1:
-                # one or more matches and one matches the search term exactly!!
-                # eg. search for "123", found "123a", "123b", "123"
-                # find which one:
-                for x in entities:
-                    if x[name_field] == entity_search_token:
-                        entity_id = x["id"]
-                        log.info("- Found a %s named '%s'." % (entity_type, entity_search_token))
+            if data:
+                # there is an exact match
+                entity_id = data["id"]
+                log.info("- Found a %s named '%s'." % (entity_type, entity_search_token))
+            
             else:
                 # no exact match. Assume the string is an id
-                log.info("- Did not find a %s named '%s', "
-                         "will look for id %s instead." % (entity_type, entity_search_token, entity_search_token))
+                log.info("- Did not find a %s named '%s', will look for a %s with id %s "
+                         "instead." % (entity_type, entity_search_token, entity_type, entity_search_token))
                 entity_id = int(entity_search_token)
                 
         elif entity_search_token.startswith("@") and entity_search_token[1:].isdigit():
@@ -1006,6 +1000,8 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
         
         else:
             # use normal string based parse methods
+            # we are now left with the following cases to resolve
+            # tank Entitytype name_expression
             entity_id = _resolve_shotgun_entity(log, entity_type, entity_search_token, project_id)
             
         # now initialize toolkit and set up the context.  
