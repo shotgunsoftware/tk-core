@@ -22,6 +22,7 @@ from .. import util
 from .action_base import Action
 from . import console_utils
 from ... import pipelineconfig_utils
+from ... import pipelineconfig
 
 
 class CoreLocalizeAction(Action):
@@ -71,14 +72,15 @@ def do_localize(log, pc_root_path, suppress_prompts):
     :param suppress_prompts: Boolean to indicate if no questions should be asked.
     """ 
 
+    pc = pipelineconfig.from_path(pc_root_path)
+
     log.info("")
-    if pipelineconfig_utils.is_localized(pc_root_path):
+    if pc.is_localized():
         raise TankError("Looks like your current pipeline configuration already has a local install of the core!")
     
-    core_api_root = pipelineconfig_utils.get_core_path_for_config(pc_root_path)
+    core_api_root = pc.get_install_location()
     
-    log.info("This will copy the Core API in %s into the Pipeline configuration %s." % (core_api_root, 
-                                                                                        pc_root_path) )
+    log.info("This will copy the Core API in %s into the Pipeline configuration %s." % (core_api_root, pc_root_path))
     log.info("")
     if not suppress_prompts:
         # check with user if they wanna continue
@@ -86,10 +88,31 @@ def do_localize(log, pc_root_path, suppress_prompts):
             # user says no!
             log.info("Operation cancelled.")
             return
-                        
-
+    
     # proceed with setup
     log.info("")
+    
+    # first get a list of all bundle descriptors
+    # key by descriptor repr, which ensures uniqueness   
+    # at this point we also store the path to each descriptor
+    # before we make any changes to any config files 
+    descriptors = {}
+    for env_name in pc.get_environments():
+        
+        env_obj = pc.get_environment(env_name)
+        
+        for engine in env_obj.get_engines():
+            descriptor = env_obj.get_engine_descriptor(engine)
+            descriptors[ repr(descriptor) ] = { "name": str(descriptor), "path": descriptor.get_path() }
+            
+            for app in env_obj.get_apps(engine):
+                descriptor = env_obj.get_app_descriptor(engine, app)
+                descriptors[ repr(descriptor) ] = { "name": str(descriptor), "path": descriptor.get_path() }
+                
+        for framework in env_obj.get_frameworks():
+            descriptor = env_obj.get_framework_descriptor(framework)
+            descriptors[ repr(descriptor) ] = { "name": str(descriptor), "path": descriptor.get_path() }
+    
     
     source_core = os.path.join(core_api_root, "install", "core")
     target_core = os.path.join(pc_root_path, "install", "core")
@@ -137,21 +160,26 @@ def do_localize(log, pc_root_path, suppress_prompts):
             log.debug("Copy %s -> %s" % (src, tgt))
             shutil.copy(src, tgt)
             
-        # copy apps, engines, frameworks
-        source_apps = os.path.join(core_api_root, "install", "apps")
-        target_apps = os.path.join(pc_root_path, "install", "apps")
-        log.info("Localizing Apps: %s -> %s" % (source_apps, target_apps))
-        util._copy_folder(log, source_apps, target_apps)
+        # now copy all the bundles that are used by the environment   
+        log.info("Copying %s apps, engines and frameworks..." % len(descriptors))
         
-        source_engines = os.path.join(core_api_root, "install", "engines")
-        target_engines = os.path.join(pc_root_path, "install", "engines")
-        log.info("Localizing Engines: %s -> %s" % (source_engines, target_engines))
-        util._copy_folder(log, source_engines, target_engines)
+        source_base_path = os.path.join(core_api_root, "install")
+        target_base_path = os.path.join(pc_root_path, "install")
 
-        source_frameworks = os.path.join(core_api_root, "install", "frameworks")
-        target_frameworks = os.path.join(pc_root_path, "install", "frameworks")
-        log.info("Localizing Frameworks: %s -> %s" % (source_frameworks, target_frameworks))
-        util._copy_folder(log, source_frameworks, target_frameworks)
+        for idx, descriptor in enumerate(descriptors.values()):
+            
+            descriptor_path = descriptor["path"]
+            
+            # print one based indices for more human friendly output
+            log.info("%s/%s: Copying %s..." % (idx+1, len(descriptors), descriptor["name"]))
+            
+            if descriptor_path.startswith(source_base_path):
+                target_path = descriptor_path.replace(source_base_path, target_base_path)
+                if not os.path.exists(target_path):
+                    # create all folders
+                    os.makedirs(target_path, 0777)
+                    # and copy content
+                    util._copy_folder(log, descriptor_path, target_path)
             
     except Exception, e:
         raise TankError("Could not localize: %s" % e)
