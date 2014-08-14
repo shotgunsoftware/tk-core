@@ -535,7 +535,9 @@ def _resolve_shotgun_pattern(log, entity_type, name_pattern):
     """
 
     name_field = _get_sg_name_field(entity_type)
-
+    
+    sg = shotgun.create_sg_connection()
+    
     log.debug("Shotgun: find(%s, %s contains %s)" % (entity_type, name_field, name_pattern) )
     data = sg.find(entity_type, [[name_field, "contains", name_pattern]], [name_field])
     log.debug("Got data: %r" % data)
@@ -779,19 +781,21 @@ def _resolve_shotgun_entity(log, entity_type, entity_search_token, constrain_by_
             log.info("")
 
 
-        log.info("More than one item matched your search phrase '%s'! "
-                 "Please enter a more specific search phrase in order to narrow it down "
-                 "to a single match. "
-                 "If there are items with the same name, you can use the [id] field displayed "
-                 "in order to refer to a particular object." % entity_search_token)
+        if entity_search_token != "ALL":
+            # don't display this helpful hint if they have used the special ALL keyword
+            log.info("More than one item matched your search phrase '%s'! "
+                     "Please enter a more specific search phrase in order to narrow it down "
+                     "to a single match. "
+                     "If there are items with the same name, you can use the [id] field displayed "
+                     "in order to refer to a particular object." % entity_search_token)
 
-        if len(projs) == 0:
+        if constrain_by_project_id is None:
             # not using any project filters
             log.info("")
             log.info("If you want to search on items from a particular project, you can either "
                      "run the tank command from that particular project or prefix your search "
                      "string with a project name. For example, if you want to only see matches "
-                     "from projects containing the phrase VFX, search for '%s VFX:%s'" % (entity_type, entity_search_token))
+                     "from a project named VFX, search for '%s VFX:%s'" % (entity_type, entity_search_token))
 
         log.info("")
         raise TankError("Please try again with a more specific search!")
@@ -899,12 +903,12 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
             # running a per project command
             tk =  tank.tank_from_path(pipeline_config_root)
             project_id = tk.pipeline_configuration.get_project_id()
-            studio_command_mode = True
+            studio_command_mode = False
                     
         else:
             # studio level command
             project_id = None
-            studio_command_mode = False    
+            studio_command_mode = True    
             
         # now resolve the given expression. For clarity, this is done as two separate branches
         # depending on if you are calling from a studio tank command or from a project tank command
@@ -951,7 +955,7 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
                 entity_search_token = ":".join(entity_search_token.split(":")[1:])
                 
                 # now try to resolve this project
-                (project_id, project_name) = _resolve_shotgun_pattern(log, entity_type, proj_token)
+                (project_id, project_name) = _resolve_shotgun_pattern(log, "Project", proj_token)
                 log.info("- Searching in project '%s' only" % project_name)
 
             
@@ -977,7 +981,7 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
             
             log.debug("Shotgun: find(%s, %s)" % (entity_type, filters))
             data = sg.find_one(entity_type, filters, ["id", name_field])
-            log.debug("Got data: %r" % entities)
+            log.debug("Got data: %r" % data)
             
             if data:
                 # there is an exact match
