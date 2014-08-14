@@ -168,19 +168,18 @@ def do_localize(log, pc_root_path, suppress_prompts):
 
         for idx, descriptor in enumerate(descriptors.values()):
             
-            path = descriptor["path"]
-            name = descriptor["name"]
+            descriptor_path = descriptor["path"]
             
             # print one based indices for more human friendly output
-            log.info("%s/%s: Copying %s..." % (idx+1, len(descriptors), name))
+            log.info("%s/%s: Copying %s..." % (idx+1, len(descriptors), descriptor["name"]))
             
-            if path.startswith(source_base_path):
-                target_path = path.replace(source_base_path, target_base_path)
+            if descriptor_path.startswith(source_base_path):
+                target_path = descriptor_path.replace(source_base_path, target_base_path)
                 if not os.path.exists(target_path):
                     # create all folders
                     os.makedirs(target_path, 0777)
                     # and copy content
-                    util._copy_folder(log, path, target_path)
+                    util._copy_folder(log, descriptor_path, target_path)
             
     except Exception, e:
         raise TankError("Could not localize: %s" % e)
