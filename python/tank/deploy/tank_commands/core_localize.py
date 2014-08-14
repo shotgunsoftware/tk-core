@@ -102,16 +102,16 @@ def do_localize(log, pc_root_path, suppress_prompts):
         env_obj = pc.get_environment(env_name)
         
         for engine in env_obj.get_engines():
-            d = env_obj.get_engine_descriptor(engine)
-            descriptors[ repr(d) ] = { "name": str(d), "path": d.get_path() }
+            descriptor = env_obj.get_engine_descriptor(engine)
+            descriptors[ repr(descriptor) ] = { "name": str(descriptor), "path": descriptor.get_path() }
             
             for app in env_obj.get_apps(engine):
-                d = env_obj.get_app_descriptor(engine, app)
-                descriptors[ repr(d) ] = { "name": str(d), "path": d.get_path() }
+                descriptor = env_obj.get_app_descriptor(engine, app)
+                descriptors[ repr(descriptor) ] = { "name": str(descriptor), "path": descriptor.get_path() }
                 
         for framework in env_obj.get_frameworks():
-            d = env_obj.get_framework_descriptor(framework)
-            descriptors[ repr(d) ] = { "name": str(d), "path": d.get_path() }
+            descriptor = env_obj.get_framework_descriptor(framework)
+            descriptors[ repr(descriptor) ] = { "name": str(descriptor), "path": descriptor.get_path() }
     
     
     source_core = os.path.join(core_api_root, "install", "core")
