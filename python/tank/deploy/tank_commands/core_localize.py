@@ -162,6 +162,10 @@ def do_localize(log, pc_root_path, suppress_prompts):
             
         # now copy all the bundles that are used by the environment   
         log.info("Copying %s apps, engines and frameworks..." % len(descriptors))
+        
+        source_base_path = os.path.join(core_api_root, "install")
+        target_base_path = os.path.join(pc_root_path, "install")
+
         for idx, descriptor in enumerate(descriptors.values()):
             
             path = descriptor["path"]
@@ -169,9 +173,6 @@ def do_localize(log, pc_root_path, suppress_prompts):
             
             # print one based indices for more human friendly output
             log.info("%s/%s: Copying %s..." % (idx+1, len(descriptors), name))
-            
-            source_base_path = os.path.join(core_api_root, "install")
-            target_base_path = os.path.join(pc_root_path, "install")
             
             if path.startswith(source_base_path):
                 target_path = path.replace(source_base_path, target_base_path)
