@@ -167,7 +167,8 @@ def do_localize(log, pc_root_path, suppress_prompts):
             path = descriptor["path"]
             name = descriptor["name"]
             
-            log.info("%s/%s: Copying %s..." % (idx, len(descriptors), name))
+            # print one based indices for more human friendly output
+            log.info("%s/%s: Copying %s..." % (idx+1, len(descriptors), name))
             
             source_base_path = os.path.join(core_api_root, "install")
             target_base_path = os.path.join(pc_root_path, "install")
