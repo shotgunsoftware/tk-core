@@ -878,9 +878,18 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
                 log.debug("Instantiating Sgtk raised: %s" % e)
 
         # now try to extract a context
-
         if tk is not None:
-            ctx = tk.context_from_path(ctx_path)
+            
+            # if we are running a local tank command, simply by running "tank",
+            # this represents the project in some sense, so try to load up the 
+            # project context in this case
+            if pipeline_config_root and ctx_path == pipeline_config_root:
+                project_id = tk.pipeline_configuration.get_project_id()
+                ctx = tk.context_from_entity("Project", project_id)
+            else:
+                # for all other paths, try to extract a context
+                # based on the path
+                ctx = tk.context_from_path(ctx_path)
 
     else:
         # this is a shotgun syntax. e.g. 'tank Shot foo'
