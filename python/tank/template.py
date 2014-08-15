@@ -444,7 +444,7 @@ class TemplatePath(Template):
 
     def _apply_fields(self, fields, ignore_types=None):
         relative_path = super(TemplatePath, self)._apply_fields(fields, ignore_types)
-        return os.path.join(self.root_path, relative_path)
+        return os.path.join(self.root_path, relative_path) if relative_path else self.root_path
 
 
 class TemplateString(Template):
