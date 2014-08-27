@@ -975,6 +975,8 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
         # tank EntityType id   (fallback if there is no item with the given name)
         # tank EntityType @123 (explicit addressing by id)        
         
+        run_expression_search = True
+        
         if entity_search_token.isdigit():
             # the entity name is something like "123"
             # first look if there is an exact match for it. 
@@ -990,19 +992,17 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
                 filters.append( ["project", "is", {"type": "Project", "id": project_id} ])
             
             log.debug("Shotgun: find(%s, %s)" % (entity_type, filters))
-            data = sg.find_one(entity_type, filters, ["id", name_field])
+            data = sg.find(entity_type, filters, ["id", name_field])
             log.debug("Got data: %r" % data)
             
-            if data:
-                # there is an exact match
-                entity_id = data["id"]
-                log.info("- Found a %s named '%s'." % (entity_type, entity_search_token))
-            
-            else:
+            if len(data) == 0:
                 # no exact match. Assume the string is an id
                 log.info("- Did not find a %s named '%s', will look for a %s with id %s "
                          "instead." % (entity_type, entity_search_token, entity_type, entity_search_token))
                 entity_id = int(entity_search_token)
+                
+                # now we have our entity id, make sure we don't search for this as an expression 
+                run_expression_search = False
                 
         elif entity_search_token.startswith("@") and entity_search_token[1:].isdigit():
             # special syntax to ensure that you can unambiguously refer to ids
@@ -1011,8 +1011,11 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
             entity_id = int(entity_search_token[1:])
             log.info("- Looking for a %s with id %d." % (entity_type, entity_id))
             log.debug("Direct @id syntax - will resolve entity id %d" % entity_id)
+            # now we have our entity id, make sure we don't search for this as an expression 
+            run_expression_search = False
+            
         
-        else:
+        if run_expression_search:
             # use normal string based parse methods
             # we are now left with the following cases to resolve
             # tank Entitytype name_expression
