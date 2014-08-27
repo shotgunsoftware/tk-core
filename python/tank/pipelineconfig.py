@@ -108,7 +108,7 @@ class PipelineConfiguration(object):
         
         :returns: dictionary with keys linux2, darwin and win32
         """
-        return pipelineconfig_utils._get_install_locations(self._pc_root)
+        return pipelineconfig_utils.resolve_all_os_paths_to_pc(self._pc_root)
 
     def _load_metadata_from_sg(self):
         """

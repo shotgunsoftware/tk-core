@@ -118,12 +118,22 @@ def get_core_path_for_config(pipeline_config_path):
     
 def resolve_all_os_paths_to_core(core_path):
     """
-    Given a core path on the current os platform, return paths on all platforms,
+    Given a core path on the current os platform, 
+    return paths for all platforms, 
     as cached in the install_locations system file
     
     :returns: dictionary with keys linux2, darwin and win32
     """
     return _get_install_locations(core_path)
+
+def resolve_all_os_paths_to_pc(pc_path):
+    """
+    Given a pipeline configuration path on the current os platform, 
+    return paths for all platforms, as cached in the install_locations system file
+    
+    :returns: dictionary with keys linux2, darwin and win32
+    """
+    return _get_install_locations(pc_path)
 
 def _get_install_locations(path):
     """
