@@ -606,15 +606,14 @@ def from_entity(entity_type, entity_id):
     e = sg.find_one(entity_type, [["id", "is", entity_id]], ["project", "name"])
 
     if e is None:
-        raise TankError("Cannot resolve a pipeline configuration object from %s %s - this object "
-                        "does not exist in Shotgun!" % (entity_type, entity_id))
+        raise TankError("Cannot find a %s with id %s in Shotgun!" % (entity_type, entity_id))
 
     if entity_type == "Project":
         proj = {"type": "Project", "id": entity_id, "name": e.get("name")}
 
     else:
         if e.get("project") is None:
-            raise TankError("Cannot resolve a pipeline configuration object from %s %s - this object "
+            raise TankError("Cannot resolve %s %s - this object "
                             "is not linked to a project!" % (entity_type, entity_id))
         proj = e.get("project")
 
