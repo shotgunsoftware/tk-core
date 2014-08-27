@@ -18,6 +18,7 @@ import sys
 from tank_vendor import yaml
 
 from .errors import TankError
+from .platform import constants
 
 
 def is_localized(pipeline_config_path):
@@ -27,9 +28,25 @@ def is_localized(pipeline_config_path):
     :param pipeline_config_path: path to a pipeline configuration root folder
     :returns: true if localized, false if not
     """
+    # first, make sure that this path is actually a pipeline configuration
+    # path. otherwise, it cannot be localized :)
+    if not is_pipeline_config(pipeline_config_path):
+        return False
+
     # look for a localized API by searching for a _core_upgrader.py file
     api_file = os.path.join(pipeline_config_path, "install", "core", "_core_upgrader.py")
     return os.path.exists(api_file)
+
+def is_pipeline_config(pipeline_config_path):
+    """
+    Returns true if the path points to the root of a pipeline configuration
+    
+    :returns: true if pipeline config, false if not
+    """
+    # probe by looking for the existence of a key config file.
+    pc_file = os.path.join(pipeline_config_path, "config", "core", constants.CONTENT_TEMPLATES_FILE)
+    return os.path.exists(pc_file)
+    
 
 ####################################################################################################################
 # Core API resolve utils 
@@ -101,12 +118,22 @@ def get_core_path_for_config(pipeline_config_path):
     
 def resolve_all_os_paths_to_core(core_path):
     """
-    Given a core path on the current os platform, return paths on all platforms,
+    Given a core path on the current os platform, 
+    return paths for all platforms, 
     as cached in the install_locations system file
     
     :returns: dictionary with keys linux2, darwin and win32
     """
     return _get_install_locations(core_path)
+
+def resolve_all_os_paths_to_config(pc_path):
+    """
+    Given a pipeline configuration path on the current os platform, 
+    return paths for all platforms, as cached in the install_locations system file
+    
+    :returns: dictionary with keys linux2, darwin and win32
+    """
+    return _get_install_locations(pc_path)
 
 def _get_install_locations(path):
     """

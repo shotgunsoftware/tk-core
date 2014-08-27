@@ -12,6 +12,7 @@ import sys
 import os
 import re
 from .action_base import Action
+from . import core_localize
 from ...errors import TankError
 from ...util import shotgun
 from ...platform import constants
@@ -130,7 +131,7 @@ class SetupProjectAction(Action):
         params = ProjectSetupParameters(log, sg, sg_app_store, sg_app_store_script_user)
         
         # tell it which core to pick up. For the tank command, we just base it off the 
-        # currently running API        
+        # currently running API
         curr_core_path = pipelineconfig_utils.get_path_to_current_core()
         core_roots = pipelineconfig_utils.resolve_all_os_paths_to_core(curr_core_path)
         params.set_associated_core_path(core_roots["linux2"], core_roots["win32"], core_roots["darwin"])
@@ -156,6 +157,14 @@ class SetupProjectAction(Action):
         # and finally carry out the setup
         run_project_setup(log, sg, sg_app_store, sg_app_store_script_user, params)
         
+        # check if we should run the localization afterwards
+        # if we are running a localized pc, the root path of the core
+        # api is the same as the root path for the associated pc
+        if pipelineconfig_utils.is_localized(curr_core_path):
+            log.info("Localizing Core...")
+            core_localize.do_localize(log, params.get_configuration_location(sys.platform), suppress_prompts=True)
+                        
+                        
                         
     def run_interactive(self, log, args):
         """
@@ -223,6 +232,13 @@ class SetupProjectAction(Action):
         
         # and finally carry out the setup
         run_project_setup(log, sg, sg_app_store, sg_app_store_script_user, params)
+        
+        # check if we should run the localization afterwards
+        # if we are running a localized pc, the root path of the core
+        # api is the same as the root path for the associated pc
+        if pipelineconfig_utils.is_localized(curr_core_path):
+            log.info("Localizing Core...")
+            core_localize.do_localize(log, params.get_configuration_location(sys.platform), suppress_prompts=True)        
         
         # display readme etc.
         readme_content = params.get_configuration_readme()
