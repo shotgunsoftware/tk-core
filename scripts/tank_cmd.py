@@ -743,7 +743,7 @@ def _resolve_shotgun_entity(log, entity_type, entity_search_token, constrain_by_
 
             chunks = []
 
-            chunks.append(" [%d]" % x["id"])
+            chunks.append(" [@%d]" % x["id"])
             id_chunk_len = len(chunks[0]) # used for description formatter
 
             chunks.append(" %s %s" % (entity_type, x[name_field]))
@@ -786,9 +786,9 @@ def _resolve_shotgun_entity(log, entity_type, entity_search_token, constrain_by_
             # don't display this helpful hint if they have used the special ALL keyword
             log.info("More than one item matched your search phrase '%s'! "
                      "Please enter a more specific search phrase in order to narrow it down "
-                     "to a single match. "
-                     "If there are items with the same name, you can use the [id] field displayed "
-                     "in order to refer to a particular object." % entity_search_token)
+                     "to a single match. If there are several items with the same name, "
+                     "you can use the @id field displayed to specify a particular "
+                     "object (e.g. '%s @123')." % (entity_search_token, entity_type))
 
         if constrain_by_project_id is None:
             # not using any project filters
@@ -904,9 +904,9 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
             raise TankError("You are executing a project specific tank command so there is "
                             "no need to specify a Project parameter! Try running just the "
                             "tank command with no parameters to see what options are available "
-                            "on the project level. Alternatively you can pass a Shotgun Entity "
+                            "on the project level. Alternatively, you can pass a Shotgun entity "
                             "(e.g. 'Shot abc123') or a path on disk to specify a particular "
-                            "environment to see the available commands for.")
+                            "environment to see the available commands.")
 
         # now see if we are running a studio or a per project tank command
         if pipeline_config_root is not None:
