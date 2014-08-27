@@ -126,7 +126,7 @@ def resolve_all_os_paths_to_core(core_path):
     """
     return _get_install_locations(core_path)
 
-def resolve_all_os_paths_to_pc(pc_path):
+def resolve_all_os_paths_to_config(pc_path):
     """
     Given a pipeline configuration path on the current os platform, 
     return paths for all platforms, as cached in the install_locations system file
