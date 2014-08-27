@@ -23,6 +23,7 @@ from tank.deploy.tank_commands.core_upgrade import TankCoreUpgrader
 from tank.deploy.tank_commands.action_base import Action
 from tank.util import shotgun
 from tank.platform import engine
+from tank import pipelineconfig_utils
 
 
 
@@ -1003,19 +1004,17 @@ if __name__ == "__main__":
     else:
         # no PC parameter passed. But it could be that we are using a localized core
         # meaning that the core is contained inside the project itself. In that case,
-        # the install root is the same as the pipeline config root. We can check this my
-        # looking for a file which exists in every project.
-        templates_file = os.path.join(install_root, "config", "core", "templates.yml")
-        if os.path.exists(templates_file):
-            # looks like our code resides inside a project!
-            logger.debug("Found file %s - means we have a localized core!" % templates_file)
+        # the install root is the same as the pipeline config root.
+        
+        # determine if we are running a localized core API.
+        is_localized = pipelineconfig_utils.is_localized(install_root)
+         
+        if is_localized:
+            logger.debug("Core API resides inside a (localized) pipeline configuration.")
             pipeline_config_root = install_root
         else:
             pipeline_config_root = None
 
-    # determine if we are running a localized core API.
-    is_localized = (install_root == pipeline_config_root)
-    
     # and strip out the --pc args
     cmd_line = [arg for arg in cmd_line if not arg.startswith("--pc=")]
 

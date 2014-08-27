@@ -18,6 +18,7 @@ import sys
 from tank_vendor import yaml
 
 from .errors import TankError
+from .platform import constants
 
 
 def is_localized(pipeline_config_path):
@@ -29,13 +30,23 @@ def is_localized(pipeline_config_path):
     """
     # first, make sure that this path is actually a pipeline configuration
     # path. otherwise, it cannot be localized :)
-    pc_file = os.path.join(pipeline_config_path, "config", "core", "templates.yml")
-    if not os.path.exists(pc_file):
+    if not is_pipeline_config(pipeline_config_path):
         return False
 
     # look for a localized API by searching for a _core_upgrader.py file
     api_file = os.path.join(pipeline_config_path, "install", "core", "_core_upgrader.py")
     return os.path.exists(api_file)
+
+def is_pipeline_config(pipeline_config_path):
+    """
+    Returns true if the path points to the root of a pipeline configuration
+    
+    :returns: true if pipeline config, false if not
+    """
+    # probe by looking for the existence of a key config file.
+    pc_file = os.path.join(pipeline_config_path, "config", "core", constants.CONTENT_TEMPLATES_FILE)
+    return os.path.exists(pc_file)
+    
 
 ####################################################################################################################
 # Core API resolve utils 
