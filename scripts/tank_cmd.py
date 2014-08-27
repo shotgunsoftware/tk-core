@@ -914,7 +914,7 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
             tk =  tank.tank_from_path(pipeline_config_root)
             project_id = tk.pipeline_configuration.get_project_id()
             studio_command_mode = False
-                    
+                   
         else:
             # studio level command
             project_id = None
