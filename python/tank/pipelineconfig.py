@@ -82,20 +82,14 @@ class PipelineConfiguration(object):
         self._project_name = data.get("project_name")
 
         # cache fields lazily populated on getter access
-        self._project_id = None
-        self._pc_id = None
-        self._pc_name = None        
-        self._published_file_entity_type = None
-        self._cache_folder = None
-        self._path_cache_path = None
-        self._use_shotgun_path_cache = None
+        self._force_reread_settings()
         self.execute_hook(constants.PIPELINE_CONFIGURATION_INIT_HOOK_NAME, parent=self)
 
 
     def __repr__(self):
         return "<Sgtk Configuration %s>" % self._pc_root
 
-    def force_reread_settings(self):
+    def _force_reread_settings(self):
         """
         Force the pc object to reread its settings from disk.
         Call this if you have made changes to config files and 
@@ -105,6 +99,7 @@ class PipelineConfiguration(object):
         self._pc_id = None
         self._pc_name = None
         self._published_file_entity_type = None
+        self._cache_folder = None
         self._path_cache_path = None
         self._use_shotgun_path_cache = None
 
@@ -275,7 +270,7 @@ class PipelineConfiguration(object):
         """
         if self._use_shotgun_path_cache is None:
             # try to get it from the cache file
-            data = get_pc_disk_metadata(self._pc_root)
+            data = _get_pc_disk_metadata(self._pc_root)
             self._use_shotgun_path_cache = data.get("use_shotgun_path_cache")
 
             if self._use_shotgun_path_cache is None:
@@ -283,6 +278,43 @@ class PipelineConfiguration(object):
                 self._use_shotgun_path_cache = False
 
         return self._use_shotgun_path_cache
+
+    def turn_on_shotgun_path_cache(self):
+        """
+        Updates the pipeline configuration settings to have the shotgun based (v0.15+)
+        path cache functionality enabled.
+        
+        Note that you need to force a full path sync once this command has been executed. 
+        """
+        
+        if self.tk.pipeline_configuration.get_shotgun_path_cache_enabled():
+            raise TankError("Shotgun based path cache already turned on!")
+                
+        # get current settings
+        curr_settings = self._get_pc_disk_metadata(self._pc_root)
+        
+        # add path cache setting
+        curr_settings["use_shotgun_path_cache"] = True
+        
+        # write the record to disk
+        pipe_config_sg_id_path = os.path.join(self._pc_root, "config", "core", "pipeline_configuration.yml")        
+        
+        old_umask = os.umask(0)
+        try:
+            os.chmod(pipe_config_sg_id_path, 0666)
+            # and write the new file
+            fh = open(pipe_config_sg_id_path, "wt")
+            yaml.dump(curr_settings, fh)
+        except Exception, exp:
+            raise TankError("Could not write to pipeline configuration settings file %s. "
+                            "Error reported: %s" % (pipe_config_sg_id_path, exp))
+        finally:
+            fh.close()
+            os.umask(old_umask)             
+            
+        # update settings in memory
+        self._force_reread_settings()      
+        
 
     def get_local_storage_roots(self):
         """
@@ -382,7 +414,7 @@ class PipelineConfiguration(object):
         
         if self._cache_folder is None:
             # try to get it from the cache file
-            data = get_pc_disk_metadata(self._pc_root)
+            data = _get_pc_disk_metadata(self._pc_root)
             pc_location = data.get("cache_location")
             
             if pc_location is None:
@@ -416,7 +448,7 @@ class PipelineConfiguration(object):
                 
         if self._path_cache_path is None:
             # try to get it from the cache file
-            data = get_pc_disk_metadata(self._pc_root)
+            data = _get_pc_disk_metadata(self._pc_root)
             pc_location = data.get("cache_location")
             
             if pc_location is None:

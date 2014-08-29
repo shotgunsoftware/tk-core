@@ -127,33 +127,7 @@ class PathCacheMigrationAction(Action):
         log.info("")
         log.info("Configuring settings...")
         
-        curr_pc_path = self.tk.pipeline_configuration.get_path()
-        
-        # get current settings
-        curr_settings = pipelineconfig.get_pc_disk_metadata( curr_pc_path )
-        log.debug("Current settings: %s" % pprint.pformat(curr_settings))
-        
-        # add path cache setting
-        curr_settings["use_shotgun_path_cache"] = True
-        
-        # write the record to disk
-        pipe_config_sg_id_path = os.path.join(curr_pc_path, "config", "core", "pipeline_configuration.yml")
-        log.debug("New settings: %s" % pprint.pformat(curr_settings))
-        log.debug("Writing to pc cache file %s" % pipe_config_sg_id_path)        
-        
-        os.chmod(pipe_config_sg_id_path, 0666)
-        try:
-            # and write the new file
-            fh = open(pipe_config_sg_id_path, "wt")
-            yaml.dump(curr_settings, fh)
-        except Exception, exp:
-            raise TankError("Could not write to pipeline configuration settings file %s. "
-                            "Error reported: %s" % (pipe_config_sg_id_path, exp))
-        finally:
-            fh.close()                        
-        
-        # tell pipeline config object to reread settings...
-        self.tk.pipeline_configuration.force_reread_settings()
+        self.tk.pipeline_configuration.turn_on_shotgun_path_cache()
         
         # and synchronize path cache
         log.info("Running folder synchronization...")
