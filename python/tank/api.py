@@ -14,6 +14,7 @@ Classes for the main Sgtk API.
 """
 import os
 import glob
+import threading
 
 from tank_vendor import yaml
 
@@ -41,7 +42,7 @@ class Tank(object):
         # just use this straight away. If the param contains a string, assume
         # this is a path and try to construct a pc from the path
 
-        self.__sg = None
+        self.__threadlocal_storage = threading.local()
 
         if isinstance(project_path, pipelineconfig.PipelineConfiguration):
             # this is actually a pc object
@@ -107,23 +108,31 @@ class Tank(object):
     @property
     def shotgun(self):
         """
-        Lazily create a Shotgun API handle
+        Lazily create a Shotgun API handle.
+        This Shotgun API is threadlocal, meaning that each thread will get
+        a separate instance of the Shotgun API. This is in order to prevent
+        concurrency issues and add a layer of basic protection around the 
+        Shotgun API, which isn't threadsafe.
         """
-        if self.__sg is None:
-            self.__sg = shotgun.create_sg_connection()
+        
+        sg = getattr(self.__threadlocal_storage, "sg", None)
+        
+        if sg is None:
+            sg = shotgun.create_sg_connection()
+            self.__threadlocal_storage.sg = sg
 
         # pass on information to the user agent manager which core version is returning
         # this sg handle. This information will be passed to the web server logs
         # in the shotgun data centre and makes it easy to track which core versions
         # are being used by clients
         try:
-            self.__sg.tk_user_agent_handler.set_current_core(self.version)
+            sg.tk_user_agent_handler.set_current_core(self.version)
         except AttributeError:
             # looks like this sg instance for some reason does not have a
             # tk user agent handler associated.
             pass
 
-        return self.__sg
+        return sg
 
     @property
     def version(self):
