@@ -26,13 +26,16 @@ from .tank_commands import path_cache
 from .tank_commands import update
 from .tank_commands import push_pc
 from .tank_commands import setup_project
+from .tank_commands import setup_project_wizard
 from .tank_commands import validate_config
 from .tank_commands import cache_apps
 from .tank_commands import switch
 from .tank_commands import app_info
-from .tank_commands import core
+from .tank_commands import core_upgrade
+from .tank_commands import core_localize
 from .tank_commands import install
 from .tank_commands import clone_configuration
+from .tank_commands import copy_apps
 
 from ..platform import constants
 from ..platform.engine import start_engine, get_environment_from_context
@@ -42,8 +45,11 @@ from ..errors import TankError
 # Built in actions (all in the tank_commands sub module)
 
 BUILT_IN_ACTIONS = [setup_project.SetupProjectAction, 
-                    core.CoreUpgradeAction, 
-                    core.CoreLocalizeAction,
+                    setup_project_wizard.SetupProjectFactoryAction,
+                    core_upgrade.CoreUpgradeAction, 
+                    core_localize.CoreLocalizeAction,
+                    core_localize.ShareCoreAction,
+                    core_localize.AttachToCoreAction,
                     validate_config.ValidateConfigAction,
                     cache_apps.CacheAppsAction,
                     misc.ClearCacheAction,
@@ -63,7 +69,8 @@ BUILT_IN_ACTIONS = [setup_project.SetupProjectAction,
                     path_cache.SynchronizePathCache,
                     path_cache.PathCacheMigrationAction,
                     path_cache.UnregisterFoldersAction,
-                    clone_configuration.CloneConfigAction
+                    clone_configuration.CloneConfigAction,
+                    copy_apps.CopyAppsAction,
                     ]
 
 

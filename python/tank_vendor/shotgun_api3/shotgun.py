@@ -36,7 +36,6 @@ import cStringIO    # used for attachment upload
 import datetime
 import logging
 import mimetools    # used for attachment upload
-import mimetypes    # used for attachment upload
 import os
 import re
 import copy
@@ -50,10 +49,16 @@ import urlparse
 import shutil       # used for attachment download
 
 # use relative import for versions >=2.5 and package import for python versions <2.5
-if (sys.version_info[0] > 2) or (sys.version_info[0] == 2 and sys.version_info[1] >= 5):
+if (sys.version_info[0] > 2) or (sys.version_info[0] == 2 and sys.version_info[1] >= 6):
+    from sg_26 import *
+elif (sys.version_info[0] > 2) or (sys.version_info[0] == 2 and sys.version_info[1] >= 5):
     from sg_25 import *
 else:
     from sg_24 import *
+
+# mimetypes imported in version specific imports
+mimetypes.add_type('video/webm','.webm') # webm and mp4 seem to be missing
+mimetypes.add_type('video/mp4', '.mp4')  # from some OS/distros
 
 LOG = logging.getLogger("shotgun_api3")
 LOG.setLevel(logging.WARN)
@@ -70,7 +75,7 @@ except ImportError:
 
 # ----------------------------------------------------------------------------
 # Version
-__version__ = "3.0.14"
+__version__ = "3.0.17"
 
 # ----------------------------------------------------------------------------
 # Errors
@@ -137,6 +142,14 @@ class ServerCapabilities(object):
             raise ShotgunError("JSON API requires server version 2.4 or "\
                 "higher, server is %s" % (self.version,))
 
+    def ensure_include_archived_projects(self):
+        """Checks the server version support include_archived_projects parameter
+        to find.
+        """
+        if not self.version or self.version < (5, 3, 14):
+            raise ShotgunError("The include_archived_projects flag requires server version 5.3.14 or "\
+                "higher, server is %s" % (self.version,))
+
 
     def __str__(self):
         return "ServerCapabilities: host %s, version %s, is_dev %s"\
@@ -178,6 +191,10 @@ class _Config(object):
 
     def __init__(self):
         self.max_rpc_attempts = 3
+        # From http://docs.python.org/2.6/library/httplib.html:
+        # If the optional timeout parameter is given, blocking operations 
+        # (like connection attempts) will timeout after that many seconds 
+        # (if it is not given, the global default timeout setting is used)
         self.timeout_secs = None
         self.api_ver = 'api3'
         self.convert_datetimes_to_utc = True
@@ -186,6 +203,7 @@ class _Config(object):
         self.script_name = None
         self.user_login = None
         self.user_password = None
+        self.sudo_as_login = None
         # uuid as a string
         self.session_uuid = None
         self.scheme = None
@@ -213,22 +231,27 @@ class Shotgun(object):
 
     def __init__(self,
                  base_url,
-                 script_name,
-                 api_key,
+                 script_name=None,
+                 api_key=None,
                  convert_datetimes_to_utc=True,
                  http_proxy=None,
                  ensure_ascii=True,
                  connect=True,
-				 ca_certs=None):
+				 ca_certs=None,
+                 login=None,
+                 password=None,
+                 sudo_as_login=None):
         """Initialises a new instance of the Shotgun client.
 
         :param base_url: http or https url to the shotgun server.
 
         :param script_name: name of the client script, used to authenticate
-        to the server.
+        to the server. If script_name is provided, then api_key must be as
+        well and neither login nor password can be provided.
 
         :param api_key: key assigned to the client script, used to
-        authenticate to the server.
+        authenticate to the server.  If api_key is provided, then script_name
+        must be as well and neither login nor password can be provided.
 
         :param convert_datetimes_to_utc: If True date time values are
         converted from local time to UTC time before been sent to the server.
@@ -243,11 +266,49 @@ class Shotgun(object):
 		
 		:param ca_certs: The path to the SSL certificate file. Useful for users
 		who would like to package their application into an executable.
+
+        :param login: The login to use to authenticate to the server. If login
+        is provided, then password must be as well and neither script_name nor
+        api_key can be provided.
+
+        :param password: The password for the login to use to authenticate to
+        the server. If password is provided, then login must be as well and
+        neither script_name nor api_key can be provided.
+        
+        :param sudo_as_login: A user login string for the user whose permissions will
+        be applied to all actions and who will be logged as the user performing
+        all actions. Note that logged events will have an additional extra meta-data parameter 
+        'sudo_actual_user' indicating the script or user that actually authenticated.
         """
+
+        # verify authentication arguments
+        if login is not None or password is not None:
+            if script_name is not None or api_key is not None:
+                raise ValueError("cannot provide both login/password "
+                                 "and script_name/api_key")
+            if login is None:
+                raise ValueError("password provided without login")
+            if password is None:
+                raise ValueError("login provided without password")
+
+        if script_name is not None or api_key is not None:
+            if script_name is None:
+                raise ValueError("api_key provided without script_name")
+            if api_key is None:
+                raise ValueError("script_name provided without api_key")
+
+        # Can't use 'all' with python 2.4
+        if len([x for x in [script_name, api_key, login, password] if x]) == 0:
+            if connect:
+                raise ValueError("must provide either login/password "
+                                 "or script_name/api_key")
 
         self.config = _Config()
         self.config.api_key = api_key
         self.config.script_name = script_name
+        self.config.user_login = login
+        self.config.user_password = password
+        self.config.sudo_as_login = sudo_as_login
         self.config.convert_datetimes_to_utc = convert_datetimes_to_utc
         self.config.no_ssl_validation = NO_SSL_VALIDATION
         self._connection = None
@@ -262,7 +323,6 @@ class Shotgun(object):
         self.config.api_path = urlparse.urljoin(urlparse.urljoin(
             api_base or "/", self.config.api_ver + "/"), "json")
 
-        self.reset_user_agent()
 
         # if the service contains user information strip it out
         # copied from the xmlrpclib which turned the user:password into
@@ -298,9 +358,12 @@ class Shotgun(object):
             self._json_loads = self._json_loads_ascii
 
         self.client_caps = ClientCapabilities()
+        # this relies on self.client_caps being set first 
+        self.reset_user_agent()
+
         self._server_caps = None
-        #test to ensure the the server supports the json API
-        #call to server will only be made once and will raise error
+        # test to ensure the the server supports the json API
+        # call to server will only be made once and will raise error
         if connect:
             self.server_caps
 
@@ -348,10 +411,10 @@ class Shotgun(object):
 
         :returns: dict of the server meta data.
         """
-        return self._call_rpc("info", None, include_script_name=False)
+        return self._call_rpc("info", None, include_auth_params=False)
 
     def find_one(self, entity_type, filters, fields=None, order=None,
-        filter_operator=None, retired_only=False):
+        filter_operator=None, retired_only=False, include_archived_projects=True):
         """Calls the find() method and returns the first result, or None.
 
         :param entity_type: Required, entity type (string) to find.
@@ -379,14 +442,15 @@ class Shotgun(object):
         """
 
         results = self.find(entity_type, filters, fields, order,
-            filter_operator, 1, retired_only)
+            filter_operator, 1, retired_only, include_archived_projects=include_archived_projects)
 
         if results:
             return results[0]
         return None
 
     def find(self, entity_type, filters, fields=None, order=None,
-        filter_operator=None, limit=0, retired_only=False, page=0):
+            filter_operator=None, limit=0, retired_only=False, page=0,
+            include_archived_projects=True):
         """Find entities matching the given filters.
 
         :param entity_type: Required, entity type (string) to find.
@@ -412,6 +476,9 @@ class Shotgun(object):
         been retried. Defaults to False which returns only entities which
         have not been retired.
 
+        :param include_archived_projects: Optional, flag to include entities
+        whose projects have been archived
+
         :returns: list of the dicts for each entity with the requested fields,
         and their id and type.
         """
@@ -429,11 +496,18 @@ class Shotgun(object):
             raise ShotgunError("Deprecated: Use of filter_operator for find()"
                 " is not valid any more. See the documentation on find()")
 
+        if not include_archived_projects:
+            # This defaults to True on the server (no argument is sent)
+            # So we only need to check the server version if it is False
+            self.server_caps.ensure_include_archived_projects()
+
+
         params = self._construct_read_parameters(entity_type,
                                                  fields,
                                                  filters,
                                                  retired_only,
-                                                 order)
+                                                 order,
+                                                 include_archived_projects)
 
         if limit and limit <= self.config.records_per_page:
             params["paging"]["entities_per_page"] = limit
@@ -476,7 +550,8 @@ class Shotgun(object):
                                    fields,
                                    filters,
                                    retired_only,
-                                   order):
+                                   order,
+                                   include_archived_projects):
         params = {}
         params["type"] = entity_type
         params["return_fields"] = fields or ["id"]
@@ -485,6 +560,10 @@ class Shotgun(object):
         params["return_paging_info"] = True
         params["paging"] = { "entities_per_page": self.config.records_per_page,
                              "current_page": 1 }
+
+        if include_archived_projects is False:
+            # Defaults to True on the server, so only pass it if it's False
+            params["include_archived_projects"] = False
 
         if order:
             sort_list = []
@@ -505,7 +584,8 @@ class Shotgun(object):
                   filters,
                   summary_fields,
                   filter_operator=None,
-                  grouping=None):
+                  grouping=None,
+                  include_archived_projects=True):
         """
         Return group and summary information for entity_type for summary_fields
         based on the given filters.
@@ -518,9 +598,19 @@ class Shotgun(object):
         if isinstance(filters, (list, tuple)):
             filters = _translate_filters(filters, filter_operator)
 
+        if not include_archived_projects:
+            # This defaults to True on the server (no argument is sent)
+            # So we only need to check the server version if it is False
+            self.server_caps.ensure_include_archived_projects()
+
         params = {"type": entity_type,
                   "summaries": summary_fields,
                   "filters": filters}
+
+        if include_archived_projects is False:
+            # Defaults to True on the server, so only pass it if it's False
+            params["include_archived_projects"] = False
+
         if grouping != None:
             params['grouping'] = grouping
 
@@ -797,6 +887,64 @@ class Shotgun(object):
 
         return self._call_rpc('work_schedule_update', params)
 
+    def follow(self, user, entity):
+        """Adds the entity to the user's followed entities (or does nothing if the user is already following the entity)
+        
+        :param dict user: User entity to follow the entity
+        :param dict entity: Entity to be followed
+        
+        :returns: dict with 'followed'=true, and dicts for the 'user' and 'entity' that were passed in
+        """
+
+        if not self.server_caps.version or self.server_caps.version < (5, 1, 22):
+            raise ShotgunError("Follow support requires server version 5.2 or "\
+                "higher, server is %s" % (self.server_caps.version,))
+        
+        params = dict(
+            user=user,
+            entity=entity
+        )
+        
+        return self._call_rpc('follow', params)
+
+    def unfollow(self, user, entity):
+        """Removes entity from the user's followed entities (or does nothing if the user is not following the entity)
+        
+        :param dict user: User entity to unfollow the entity
+        :param dict entity: Entity to be unfollowed
+        
+        :returns: dict with 'unfollowed'=true, and dicts for the 'user' and 'entity' that were passed in
+        """
+
+        if not self.server_caps.version or self.server_caps.version < (5, 1, 22):
+            raise ShotgunError("Follow support requires server version 5.2 or "\
+                "higher, server is %s" % (self.server_caps.version,))
+        
+        params = dict(
+            user=user,
+            entity=entity
+        )
+        
+        return self._call_rpc('unfollow', params)
+
+    def followers(self, entity):
+        """Gets all followers of the entity.
+        
+        :param dict entity: Find all followers of this entity
+        
+        :returns list of dicts for all the users following the entity
+        """
+
+        if not self.server_caps.version or self.server_caps.version < (5, 1, 22):
+            raise ShotgunError("Follow support requires server version 5.2 or "\
+                "higher, server is %s" % (self.server_caps.version,))
+        
+        params = dict(
+            entity=entity
+        )
+        
+        return self._call_rpc('followers', params)
+
     def schema_entity_read(self):
         """Gets all active entities defined in the schema.
 
@@ -919,8 +1067,14 @@ class Shotgun(object):
 
     def reset_user_agent(self):
         """Reset user agent to the default
+
+        Eg. shotgun-json (3.0.17); Python 2.6 (Mac)
         """
-        self._user_agents = ["shotgun-json (%s)" % __version__]
+        ua_platform = "Unknown"
+        if self.client_caps.platform is not None:
+            ua_platform = self.client_caps.platform.capitalize()
+        self._user_agents = ["shotgun-json (%s)" % __version__,
+                             "Python %s (%s)" % (self.client_caps.py_version, ua_platform)]
 
     def set_session_uuid(self, session_uuid):
         """Sets the browser session_uuid for this API session.
@@ -986,11 +1140,9 @@ class Shotgun(object):
             "entities" : ','.join(entities_str),
             "source_entity": "%s_%s" % (source_entity['type'], source_entity['id']),
             "filmstrip_thumbnail" : filmstrip_thumbnail,
-            "script_name" : self.config.script_name,
-            "script_key" : self.config.api_key,
         }
-        if self.config.session_uuid:
-            params["session_uuid"] = self.config.session_uuid
+
+        params.update(self._auth_params())
 
         # Create opener with extended form post support
         opener = self._build_opener(FormPostHandler)
@@ -1066,11 +1218,9 @@ class Shotgun(object):
         params = {
             "entity_type" : entity_type,
             "entity_id" : entity_id,
-            "script_name" : self.config.script_name,
-            "script_key" : self.config.api_key,
         }
-        if self.config.session_uuid:
-            params["session_uuid"] = self.config.session_uuid
+
+        params.update(self._auth_params())
 
         if is_thumbnail:
             url = urlparse.urlunparse((self.config.scheme, self.config.server,
@@ -1266,27 +1416,62 @@ class Shotgun(object):
         @param user_password: Password for Shotgun HumanUser
         @return: Dictionary of HumanUser including ID if authenticated, None is unauthorized.
         '''
+        if not user_login:
+            raise ValueError('Please supply a username to authenticate.')
+
+        if not user_password:
+            raise ValueError('Please supply a password for the user.')
+
         # Override permissions on Config obj
+        original_login = self.config.user_login
+        original_password = self.config.user_password
+
         self.config.user_login = user_login
         self.config.user_password = user_password
 
         try:
             data = self.find_one('HumanUser', [['sg_status_list', 'is', 'act'], ['login', 'is', user_login]], ['id', 'login'], '', 'all')
             # Set back to default - There finally and except cannot be used together in python2.4
-            self.config.user_login = None
-            self.config.user_password = None
+            self.config.user_login = original_login
+            self.config.user_password = original_password
             return data
         except Fault:
             # Set back to default - There finally and except cannot be used together in python2.4
-            self.config.user_login = None
-            self.config.user_password = None
+            self.config.user_login = original_login
+            self.config.user_password = original_password
         except:
             # Set back to default - There finally and except cannot be used together in python2.4
-            self.config.user_login = None
-            self.config.user_password = None
+            self.config.user_login = original_login
+            self.config.user_password = original_password
             raise
 
 
+    def update_project_last_accessed(self, project, user=None):
+        """
+        Update projects last_accessed_by_current_user field.
+        
+        :param project - a project entity hash
+        :param user - A human user entity hash. Optional if either login or sudo_as are used.
+
+        """
+        if self.server_caps.version and self.server_caps.version < (5, 3, 20):
+                raise ShotgunError("update_project_last_accessed requires server version 5.3.20 or "\
+                    "higher, server is %s" % (self.server_caps.version,))
+
+        if not user:
+            # Try to use sudo as user if present
+            if self.config.sudo_as_login:
+                user = self.find_one('HumanUser', [['login', 'is', self.config.sudo_as_login]])
+            # Try to use login if present
+            if self.config.user_login:
+                user = self.find_one('HumanUser', [['login', 'is', self.config.user_login]])
+
+        params = { "project_id": project['id'], }
+        if user:
+            params['user_id'] = user['id']
+
+        record = self._call_rpc("update_project_last_accessed_by_current_user", params)
+        result = self._parse_records(record)[0]
 
 
     def _get_session_token(self):
@@ -1330,7 +1515,7 @@ class Shotgun(object):
     # ========================================================================
     # RPC Functions
 
-    def _call_rpc(self, method, params, include_script_name=True, first=False):
+    def _call_rpc(self, method, params, include_auth_params=True, first=False):
         """Calls the specified method on the Shotgun Server sending the
         supplied payload.
 
@@ -1341,7 +1526,7 @@ class Shotgun(object):
 
         params = self._transform_outbound(params)
         payload = self._build_payload(method, params,
-            include_script_name=include_script_name)
+            include_auth_params=include_auth_params)
         encoded_payload = self._encode_payload(payload)
 
         req_headers = {
@@ -1372,7 +1557,38 @@ class Shotgun(object):
             return results[0]
         return results
 
-    def _build_payload(self, method, params, include_script_name=True):
+    def _auth_params(self):
+        """ return a dictionary of the authentication parameters being used. """
+        # Used to authenticate HumanUser credentials
+        if self.config.user_login and self.config.user_password:
+            auth_params = {
+                "user_login" : str(self.config.user_login),
+                "user_password" : str(self.config.user_password),
+            }
+
+        # Use script name instead
+        elif self.config.script_name and self.config.api_key:
+            auth_params = {
+                "script_name" : str(self.config.script_name),
+                "script_key" : str(self.config.api_key),
+            }
+
+        else:
+            raise ValueError("invalid auth params")
+
+        if self.config.session_uuid:
+            auth_params["session_uuid"] = self.config.session_uuid
+
+        # Make sure sudo_as_login is supported by server version
+        if self.config.sudo_as_login:
+            if self.server_caps.version and self.server_caps.version < (5, 3, 12):
+                raise ShotgunError("Option 'sudo_as_login' requires server version 5.3.12 or "\
+                    "higher, server is %s" % (self.server_caps.version,))
+            auth_params["sudo_as_login"] = self.config.sudo_as_login
+
+        return auth_params
+
+    def _build_payload(self, method, params, include_auth_params=True):
         """Builds the payload to be send to the rpc endpoint.
 
         """
@@ -1381,28 +1597,8 @@ class Shotgun(object):
 
         call_params = []
 
-        if include_script_name:
-            if not self.config.script_name:
-                raise ValueError("script_name is empty")
-            if not self.config.api_key:
-                raise ValueError("api_key is empty")
-
-            # Used to authenticate HumanUser credentials
-            if self.config.user_login and self.config.user_password:
-                auth_params = {
-                    "user_login" : str(self.config.user_login),
-                    "user_password" : str(self.config.user_password),
-                }
-
-            # Use script name instead
-            else:
-                auth_params = {
-                    "script_name" : str(self.config.script_name),
-                    "script_key" : str(self.config.api_key),
-                }
-
-            if self.config.session_uuid:
-                auth_params["session_uuid"] = self.config.session_uuid
+        if include_auth_params:
+            auth_params = self._auth_params()
             call_params.append(auth_params)
 
         if params:

@@ -56,12 +56,20 @@ class PathCache(object):
         
         :param tk: Toolkit API instance
         """
-        db_path = tk.pipeline_configuration.get_path_cache_location()
         self._connection = None
-        self._init_db(db_path)
-        self._roots = tk.pipeline_configuration.get_data_roots()
         self._tk = tk
         self._sync_with_sg = tk.pipeline_configuration.get_shotgun_path_cache_enabled()
+        
+        if tk.pipeline_configuration.has_associated_data_roots():
+            db_path = tk.pipeline_configuration.get_path_cache_location()
+            self._path_cache_disabled = False
+            self._init_db(db_path)
+            self._roots = tk.pipeline_configuration.get_data_roots()
+
+        else:
+            # no primary location found. Path cache therefore does not exist!
+            # go into a no-path-cache-mode
+            self._path_cache_disabled = True
     
     def _init_db(self, db_path):
         """
@@ -248,20 +256,25 @@ class PathCache(object):
         :param force: boolean to indicate that a full sync should be carried out.
         :param log: std python logger object.
         
-        Returns a list of remote items which were detected, created remotely
-        and not existing in this path cache. These are returned as a list of 
-        dictionaries, each containing keys:
-            - entity
-            - metadata 
-            - path
+        :returns: A list of remote items which were detected, created remotely
+                  and not existing in this path cache. These are returned as a list of 
+                  dictionaries, each containing keys:
+                    - entity
+                    - metadata 
+                    - path
         """
+        
+        if self._path_cache_disabled:
+            if log:
+                log.info("This project does not have any associated folders.")
+            return []
+        
         
         if not self._sync_with_sg:
             if log:
                 log.info("Path cache synchronization is turned off for this project.")
             return []
-        
-        
+                
         c = self._connection.cursor()
         
         try:
@@ -718,7 +731,7 @@ class PathCache(object):
 
     def validate_mappings(self, data):
         """
-        Checkcs a series of path mappings to ensure that they don't conflict with
+        Checks a series of path mappings to ensure that they don't conflict with
         existing path cache data.
         
         :param data: list of dictionaries. Each dictionary should contain 
@@ -823,6 +836,10 @@ class PathCache(object):
                            
         """        
         
+        if self._path_cache_disabled:
+            raise TankError("You are currently running a configuration which does not have any "
+                            "capabilities of storing path entry lookups. There is no path cache "
+                            "file defined for this project.")
         
         c = self._connection.cursor()
         try:
@@ -887,6 +904,7 @@ class PathCache(object):
         
         :returns: 0 if nothing was added to the db, otherwise the ROWID for the new row   
         """
+        
         if primary:
             # the primary entity must be unique: path/id/type 
             # see if there are any records for this path
@@ -1000,6 +1018,11 @@ class PathCache(object):
         :params entity_id: a Shotgun entity id
         :returns: a path on disk
         """
+        
+        if self._path_cache_disabled:
+            # no entries because we don't have a path cache
+            return []
+        
         paths = []
         
         if cursor is None:
@@ -1045,7 +1068,10 @@ class PathCache(object):
         :returns: Shotgun entity dict, e.g. {"type": "Shot", "name": "xxx", "id": 123} 
                   or None if not found
         """
-            
+        if self._path_cache_disabled:
+            # no entries because we don't have a path cache
+            return None
+        
         try:
             root_path, relative_path = self._separate_root(path)
         except TankError:
@@ -1085,6 +1111,11 @@ class PathCache(object):
         :returns: list of shotgun entity dicts, e.g. [{"type": "Shot", "name": "xxx", "id": 123}] 
                   or [] if no entities associated.
         """
+        
+        if self._path_cache_disabled:
+            # no entries because we don't have a path cache
+            return []
+        
         try:
             root_path, relative_path = self._separate_root(path)
         except TankError:

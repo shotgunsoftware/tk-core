@@ -245,17 +245,20 @@ def upgrade_tank(tank_install_root, log):
         log.debug("Migrations have completed. Now doing the actual upgrade...")
 
         # check that the tank_install_root looks sane
-        # expect folders: core, engines, apps
-        valid = True
-        valid &= os.path.exists(os.path.join(tank_install_root)) 
-        valid &= os.path.exists(os.path.join(tank_install_root, "engines"))
-        valid &= os.path.exists(os.path.join(tank_install_root, "core"))
-        valid &= os.path.exists(os.path.join(tank_install_root, "core.backup"))
-        valid &= os.path.exists(os.path.join(tank_install_root, "apps"))
-        if not valid:
+        # - check the root exists:
+        if not os.path.exists(os.path.join(tank_install_root)):
             log.error("The specified tank install root '%s' doesn't look valid!\n"
                       "Typically the install root path ends with /install." % tank_install_root)
             return
+        # - check for expected folders: core, engines, apps, etc.
+        dirs_to_check = ["engines", "core", "core.backup", "apps"]
+        for dir in dirs_to_check:
+            if not os.path.exists(os.path.join(tank_install_root, dir)):
+                log.error("The specified tank install root '%s' doesn't look valid - "
+                          "an expected sub-directory '/%s' couldn't be found!\n"
+                          "Typically the install root path ends with /install." 
+                          % (tank_install_root, dir))
+                return                
         
         # get target locations
         core_install_location = os.path.join(tank_install_root, "core")

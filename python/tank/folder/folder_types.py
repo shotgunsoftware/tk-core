@@ -832,6 +832,13 @@ class FilterExpressionToken(object):
             # append a token to the filter of the form Asset.sg_asset_type
             sg_data_key = "%s.%s" % (folder_obj.get_entity_type(), folder_obj.get_field_name())
             
+        elif isinstance(folder_obj, Static):
+            # Static folders cannot be used with folder $expressions. This error
+            # is typically caused by a missing .yml file
+            raise TankError("Static folder objects (%s) cannot be used in dynamic folder "
+                            "expressions using the \"$\" syntax. Perhaps you are missing "
+                            "the %s.yml file in your schema?" % (folder_obj, os.path.basename(folder_obj._full_path)))
+            
         else:
             raise TankError("The folder object %s cannot be used in folder $expressions" % folder_obj)
         
@@ -1789,7 +1796,7 @@ def _translate_filter_tokens(filter_list, parent, yml_path):
                 except TankError, e:
                     # specialized message
                     raise TankError("Error resolving filter expression "
-                                    "%s for %s: %s" % (filter_list, yml_path, e))
+                                    "%s in %s.yml: %s" % (filter_list, yml_path, e))
                 new_values.append(expr_token)
             else:
                 new_values.append(filter_value)

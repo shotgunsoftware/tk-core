@@ -313,25 +313,26 @@ class TestSequenceKey(TankTestBase):
 
     def test_framespec_no_format(self):
         seq_field = SequenceKey("field_name")
-        expected_frame_specs = set(["%d", "#", "@", "$F"])
+        expected_frame_specs = set(["%d", "#", "@", "$F", "<UDIM>", "$UDIM"])
         self.assertEquals(expected_frame_specs, set(seq_field._frame_specs))
 
     def test_framspec_short_format(self):
         format_spec = "02"
-        expected_frame_specs = set(["%02d", "##", "@@", "$F2"])
+        expected_frame_specs = set(["%02d", "##", "@@", "$F2", "<UDIM>", "$UDIM"])
         seq_field = SequenceKey("field_name", format_spec=format_spec)
         self.assertEquals(expected_frame_specs, set(seq_field._frame_specs))
 
     def test_framespec_long_format(self):
         format_spec = "010"
         seq_field = SequenceKey("field_name", format_spec=format_spec)
-        expected_frame_specs = set(["%010d", "@@@@@@@@@@", "##########", "$F10"])
+        expected_frame_specs = set(["%010d", "@@@@@@@@@@", "##########", "$F10", "<UDIM>", "$UDIM"])
         self.assertEquals(expected_frame_specs, set(seq_field._frame_specs))
 
     def test_validate_good(self):
         good_values = copy.copy(self.seq_field._frame_specs)
-        good_values.extend(["FORMAT:%d", "FORMAT:#", "FORMAT:@", "FORMAT:$F"])
-        good_values.extend(["FORMAT:  %d", "FORMAT:  #", "FORMAT:  @", "FORMAT:  $F"])
+        good_values.extend(["FORMAT:%d", "FORMAT:#", "FORMAT:@", "FORMAT:$F", "FORMAT:<UDIM>", "FORMAT:$UDIM"])
+        good_values.extend(["FORMAT:  %d", "FORMAT:  #", "FORMAT:  @", "FORMAT:  $F", 
+                            "FORMAT:  <UDIM>", "FORMAT:  $UDIM"])
         good_values.extend(["243", "0123"])
         for good_value in good_values:
             self.assertTrue(self.seq_field.validate(good_value))
@@ -349,7 +350,9 @@ class TestSequenceKey(TankTestBase):
                             "%d":"%d",
                             "#":"#",
                             "@":"@",
-                            "$F":"$F"}
+                            "$F":"$F",
+                            "<UDIM>":"<UDIM>",
+                            "$UDIM":"$UDIM"}
         for str_value, expected_value in valid_str_values.items():
             self.assertEquals(expected_value, self.seq_field.value_from_str(str_value))
 
@@ -361,7 +364,9 @@ class TestSequenceKey(TankTestBase):
                             "%d":"%d",
                             "#":"#",
                             "@":"@",
-                            "$F":"$F"}
+                            "$F":"$F",
+                            "<UDIM>":"<UDIM>",
+                            "$UDIM":"$UDIM"}
         for value, str_value in valid_value_strs.items():
             self.assertEquals(str_value, self.seq_field.str_from_value(value))
         
@@ -369,8 +374,9 @@ class TestSequenceKey(TankTestBase):
     def test_str_from_value_bad(self):
         value = "a"
         expected = "%s Illegal value '%s', expected an Integer, a frame spec or format spec." % (str(self.seq_field), value)
-        expected += "\nValid frame specs: ['%d', '#', '@', '$F']"
-        expected += "\nValid format strings: ['FORMAT: %d', 'FORMAT: #', 'FORMAT: @', 'FORMAT: $F']\n"
+        expected += "\nValid frame specs: ['%d', '#', '@', '$F', '<UDIM>', '$UDIM']"
+        expected += ("\nValid format strings: ['FORMAT: %d', 'FORMAT: #', 'FORMAT: @', 'FORMAT: $F', "
+                     "'FORMAT: <UDIM>', 'FORMAT: $UDIM']\n")
 
         self.check_error_message(TankError, expected, self.seq_field.str_from_value, value)
 
@@ -409,6 +415,14 @@ class TestSequenceKey(TankTestBase):
         expected = "$F"
         result = seq_field.str_from_value(value="FORMAT:$F")
         self.assertEquals(expected, result)
+        
+        expected = "<UDIM>"
+        result = seq_field.str_from_value(value="FORMAT:<UDIM>")
+        self.assertEquals(expected, result)
+        
+        expected = "$UDIM"
+        result = seq_field.str_from_value(value="FORMAT:$UDIM")
+        self.assertEquals(expected, result)
 
         # no pattern specified
         expected = "%d"
@@ -437,6 +451,14 @@ class TestSequenceKey(TankTestBase):
         expected = "$F3"
         result = seq_field.str_from_value("FORMAT:$F")
         self.assertEquals(expected, result)
+        
+        expected = "<UDIM>"
+        result = seq_field.str_from_value(value="FORMAT:<UDIM>")
+        self.assertEquals(expected, result)
+        
+        expected = "$UDIM"
+        result = seq_field.str_from_value(value="FORMAT:$UDIM")
+        self.assertEquals(expected, result)
 
         # no pattern specified
         expected = "%03d"
@@ -464,19 +486,27 @@ class TestSequenceKey(TankTestBase):
         result = seq_field.str_from_value("FORMAT: $F")
         self.assertEquals(expected, result)
 
+        expected = "<UDIM>"
+        result = seq_field.str_from_value(value="FORMAT: <UDIM>")
+        self.assertEquals(expected, result)
+        
+        expected = "$UDIM"
+        result = seq_field.str_from_value(value="FORMAT: $UDIM")
+        self.assertEquals(expected, result)
+
     def test_default_int(self):
         default = 13
         seq_frame = SequenceKey("field_name", default=default)
         self.assertEquals(default, seq_frame.default)
 
     def test_default_frame_spec(self):
-        frame_specs = set(["%d", "#", "@", "$F"])
+        frame_specs = set(["%d", "#", "@", "$F", "<UDIM>", "$UDIM"])
         for frame_spec in frame_specs:
             seq_frame = SequenceKey("field_name", default=frame_spec)
             self.assertEquals(frame_spec, seq_frame.default)
 
     def test_default_frame_spec_choices(self):
-        frame_specs = set(["%d", "#", "@", "$F"])
+        frame_specs = set(["%d", "#", "@", "$F", "<UDIM>", "$UDIM"])
         for frame_spec in frame_specs:
             seq_frame = SequenceKey("field_name", default=frame_spec, choices=[1,2])
             self.assertEquals(frame_spec, seq_frame.default)
@@ -491,7 +521,7 @@ class TestSequenceKey(TankTestBase):
         self.assertEquals(choices, seq_frame.choices)
 
     def test_choices_frame_spec(self):
-        frame_specs = set(["%d", "#", "@", "$F"])
+        frame_specs = set(["%d", "#", "@", "$F", "<UDIM>", "$UDIM"])
         seq_frame = SequenceKey("field_name", choices=frame_specs)
         self.assertEquals(frame_specs, seq_frame.choices)
 

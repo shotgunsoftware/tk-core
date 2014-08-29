@@ -70,6 +70,10 @@ def _resolve_includes(file_name, data, context):
             key_names = re.findall(regex, include)
     
             # get all the data roots for this project
+            # note - it is possible that this call may raise an exception for configs
+            # which don't have a primary storage defined - this is logical since such
+            # configurations cannot make use of references into the file system hierarchy
+            # (because no such hierarchy exists)
             primary_data_root = context.tank.pipeline_configuration.get_primary_data_root()
     
             # try to construct a path object for each template

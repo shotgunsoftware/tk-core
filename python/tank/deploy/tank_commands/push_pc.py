@@ -61,7 +61,7 @@ class PushPCAction(Action):
         project_id = self.tk.pipeline_configuration.get_project_id()
         current_pc_name = self.tk.pipeline_configuration.get_name()
         current_pc_id = self.tk.pipeline_configuration.get_shotgun_id()
-        pipeline_configs = self.tk.shotgun.find("PipelineConfiguration",
+        pipeline_configs = self.tk.shotgun.find(constants.PIPELINE_CONFIGURATION_ENTITY,
                                                 [["project", "is", {"type": "Project", "id": project_id}]],
                                                 ["code", "linux_path", "windows_path", "mac_path"])
 

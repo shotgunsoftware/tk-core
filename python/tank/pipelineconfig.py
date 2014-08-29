@@ -23,8 +23,8 @@ from .deploy import util
 from .platform import constants
 from .platform.environment import Environment
 from .util import shotgun
-from .util import login
 from . import hook
+from . import pipelineconfig_utils
 from . import template_includes
 
 class PipelineConfiguration(object):
@@ -52,7 +52,7 @@ class PipelineConfiguration(object):
         our_associated_api_version = self.get_associated_core_version()
         
         # and get the version of the API currently in memory
-        current_api_version = get_core_api_version_based_on_current_code()
+        current_api_version = pipelineconfig_utils.get_currently_running_api_version()
         
         if our_associated_api_version is not None and \
            util.is_version_older(current_api_version, our_associated_api_version):
@@ -72,10 +72,10 @@ class PipelineConfiguration(object):
                                                                         self.get_core_python_location()))
 
 
-        self._roots = get_pc_roots_metadata(self._pc_root)
+        self._roots = _get_pc_roots_metadata(self._pc_root)
 
         # get the project tank disk name (Project.tank_name), stored in the PC metadata file.
-        data = get_pc_disk_metadata(self._pc_root)
+        data = _get_pc_disk_metadata(self._pc_root)
         if data.get("project_name") is None:
             raise TankError("Project name not defined in config metadata for config %s! "
                             "Please contact support." % self._pc_root)
@@ -84,7 +84,7 @@ class PipelineConfiguration(object):
         # cache fields lazily populated on getter access
         self._project_id = None
         self._pc_id = None
-        self._pc_name = None
+        self._pc_name = None        
         self._published_file_entity_type = None
         self._cache_folder = None
         self._path_cache_path = None
@@ -117,6 +117,15 @@ class PipelineConfiguration(object):
         """
         return self._pc_root
 
+    def get_all_os_paths(self):
+        """
+        Returns the path to this config for all operating systems,
+        as defined in the install_locations file. None, if not defined.
+        
+        :returns: dictionary with keys linux2, darwin and win32
+        """
+        return pipelineconfig_utils.resolve_all_os_paths_to_config(self._pc_root)
+
     def _load_metadata_from_sg(self):
         """
         Caches PC metadata from shotgun.
@@ -135,7 +144,6 @@ class PipelineConfiguration(object):
         self._pc_id = data.get("id")
         self._pc_name = data.get("code")
 
-
     def get_name(self):
         """
         Returns the name of this PC.
@@ -143,7 +151,7 @@ class PipelineConfiguration(object):
         """
         if self._pc_name is None:
             # try to get it from the cache file
-            data = get_pc_disk_metadata(self._pc_root)
+            data = _get_pc_disk_metadata(self._pc_root)
             self._pc_name = data.get("pc_name")
 
 
@@ -153,11 +161,48 @@ class PipelineConfiguration(object):
 
         return self._pc_name
 
+    def is_auto_path(self):
+        """
+        Returns true if this config was set up with auto path mode.
+        This method will connect to shotgun in order to determine the auto path status.
+        
+        :returns: boolean indicating auto path state
+        """
+        sg = shotgun.create_sg_connection()
+        data = sg.find_one(constants.PIPELINE_CONFIGURATION_ENTITY,
+                           [["id", "is", self.get_shotgun_id()]],
+                           ["linux_path", "windows_path", "mac_path"])
+
+        if data is None:
+            raise TankError("Cannot find a Pipeline configuration in Shotgun "
+                            "that has id %s." % self.get_shotgun_id())
+
+        def _is_empty(d):
+            """
+            Returns true if value is "" or None, False otherwise
+            """
+            if d is None or d == "":
+                return True
+            else:
+                return False
+        
+        if _is_empty(data.get("linux_path")) and \
+           _is_empty(data.get("windows_path")) and \
+           _is_empty(data.get("mac_path")):
+            # all three PC fields are empty. This means that we are running an auto path config
+            return True
+        
+        else:
+            return False
+        
+
     def is_localized(self):
         """
-        Returns true if this pipeline configuation has its own Core
+        Returns true if this pipeline configuration has its own Core
+        
+        :returns: boolean indicating if config is localized
         """
-        return is_localized(self._pc_root)
+        return pipelineconfig_utils.is_localized(self._pc_root)
 
     def get_shotgun_id(self):
         """
@@ -166,7 +211,7 @@ class PipelineConfiguration(object):
         """
         if self._pc_id is None:
             # try to get it from the cache file
-            data = get_pc_disk_metadata(self._pc_root)
+            data = _get_pc_disk_metadata(self._pc_root)
             self._pc_id = data.get("pc_id")
 
             if self._pc_id is None:
@@ -182,7 +227,7 @@ class PipelineConfiguration(object):
         """
         if self._project_id is None:
             # try to get it from the cache file
-            data = get_pc_disk_metadata(self._pc_root)
+            data = _get_pc_disk_metadata(self._pc_root)
             self._project_id = data.get("project_id")
 
             if self._project_id is None:
@@ -212,7 +257,7 @@ class PipelineConfiguration(object):
         """
         if self._published_file_entity_type is None:
             # try to get it from the cache file
-            data = get_pc_disk_metadata(self._pc_root)
+            data = _get_pc_disk_metadata(self._pc_root)
             self._published_file_entity_type = data.get("published_file_entity_type")
 
             if self._published_file_entity_type is None:
@@ -272,9 +317,8 @@ class PipelineConfiguration(object):
                   {"primary": "/studio/my_project", "textures": "/textures/my_project"}        
         """
         proj_roots = {}
-        for storage_name, root_path in self.get_local_storage_roots().iteritems():           
+        for storage_name, root_path in self.get_local_storage_roots().iteritems():
             proj_roots[storage_name] = self.__append_project_name_to_root(root_path, sys.platform)
- 
         return proj_roots
 
 
@@ -307,10 +351,28 @@ class PipelineConfiguration(object):
         
         return full_path
         
+    def has_associated_data_roots(self):
+        """
+        Some configurations do not have a notion of a project storage and therefore
+        do not have any storages defined. This flag indicates whether a configuration 
+        has any associated data storages. 
+        
+        :returns: true if the configuration has a primary data root defined, false if not
+        """
+        return len(self.get_data_roots()) > 0
+        
     def get_primary_data_root(self):
         """
-        Returns the path to the primary data root for the current platform
+        Returns the path to the primary data root for the current platform.
+        For configurations where there is no roots defined at all, 
+        an exception will be raised.
+        
+        :returns: str to local path on disk
         """
+        if len(self.get_data_roots()) == 0:
+            raise TankError("Your current pipeline configuration does not have any project data "
+                            "storages defined and therefore does not have a primary project data root!")
+         
         return self.get_data_roots().get(constants.PRIMARY_STORAGE_NAME)
 
     def get_cache_folder(self):
@@ -373,7 +435,6 @@ class PipelineConfiguration(object):
         return self._path_cache_path
         
 
-
     ########################################################################################
     # paths, core info, apps and engines
 
@@ -383,89 +444,29 @@ class PipelineConfiguration(object):
         This method is 'forgiving' and in the case no associated core API can be 
         found for this pipeline configuration, None will be returned rather than 
         an exception raised. 
+
+        :returns: version str e.g. 'v1.2.3', None if no version could be determined. 
         """
         associated_api_root = self.get_install_location()
-        
-        info_yml_path = os.path.join(associated_api_root, "install", "core", "info.yml")
-
-        if os.path.exists(info_yml_path):
-            try:
-                info_fh = open(info_yml_path, "r")
-                try:
-                    data = yaml.load(info_fh)
-                finally:
-                    info_fh.close()
-                data = data.get("version")
-            except:
-                data = None
-        else:
-            data = None
-
-        return data
-        
+        return pipelineconfig_utils.get_core_api_version(associated_api_root)
 
     def get_install_location(self):
         """
         Returns the core api install location associated with this pipeline configuration.
+
+        Tries to resolve it via the explicit link which exists between the pc and the its core.
+        If this fails, it uses runtime introspection to resolve it.
         
-        This method will return the root point, so a pipeline config root if running 
-        a localized API or a studio location root if running a bare API.
-        
-        The install location is where toolkit caches engines, apps, frameworks and is
-        where it keeps the Core API.       
-        
-        Use this method whenever a pipeline configuration is available, since it is more
-        sophisticated. In cases when no pipeline configuration is available, revert to  
-        get_current_code_install_root() which will base the install location
-        on the current code.
-        
-        When a pipeline configuration exists, a specific relationship between the core
-        core and that configuration has also been established. This method will follow
-        this connection to return the actual associated core API rather than the 
-        running API. Usually these two are the same (or so they should be), but this is not
-        guaranteed.
+        :returns: path string tot he current core API install root location
         """
+        core_api_root = pipelineconfig_utils.get_core_path_for_config(self._pc_root)
 
-        if is_localized(self._pc_root):
-            # first, try to locate an install local to this pipeline configuration.
-            # this would find any localized APIs.
-            install_path = self._pc_root
-
-        else:
-            # this PC is associated with a shared API (studio install)
-            # follow the links defined in the configuration to establish which 
-            # setup it has been associated with.
-            studio_linkback_files = {"win32": os.path.join(self._pc_root, "install", "core", "core_Windows.cfg"), 
-                                     "linux2": os.path.join(self._pc_root, "install", "core", "core_Linux.cfg"), 
-                                     "darwin": os.path.join(self._pc_root, "install", "core", "core_Darwin.cfg")}
+        if core_api_root is None:
+            # lookup failed. fall back onto runtime introspection
+            core_api_root = pipelineconfig_utils.get_path_to_current_core()
+        
+        return core_api_root
             
-            curr_linkback_file = studio_linkback_files[sys.platform]
-            
-            # this file will contain the path to the API which is meant to be used with this PC.
-            install_path = None
-            try:
-                fh = open(curr_linkback_file, "rt")
-                data = fh.read().strip() # remove any whitespace, keep text
-                # expand any env vars that are used in the files. For example, you could have 
-                # an env variable $STUDIO_TANK_PATH=/sgtk/software/shotgun/studio and your 
-                # linkback file may just contain "$STUDIO_TANK_PATH" instead of an explicit path.
-                data = os.path.expandvars(data)
-                if data not in ["None", "undefined"] and os.path.exists(data):
-                    install_path = data
-                fh.close()                    
-            except:
-                pass
-                
-            if install_path is None:
-                # no luck determining the location of the core API through our two 
-                # established modus operandi. Fall back on the crude legacy
-                # approach, which is to grab and return the currently running code.
-                install_path = get_current_code_install_root()
-
-                    
-        return install_path
-
-
     def get_apps_location(self):
         """
         Returns the location where apps are stored
@@ -737,15 +738,14 @@ def from_entity(entity_type, entity_id):
     e = sg.find_one(entity_type, [["id", "is", entity_id]], ["project", "name"])
 
     if e is None:
-        raise TankError("Cannot resolve a pipeline configuration object from %s %s - this object "
-                        "does not exist in Shotgun!" % (entity_type, entity_id))
+        raise TankError("Cannot find a %s with id %s in Shotgun!" % (entity_type, entity_id))
 
     if entity_type == "Project":
         proj = {"type": "Project", "id": entity_id, "name": e.get("name")}
 
     else:
         if e.get("project") is None:
-            raise TankError("Cannot resolve a pipeline configuration object from %s %s - this object "
+            raise TankError("Cannot resolve %s %s - this object "
                             "is not linked to a project!" % (entity_type, entity_id))
         proj = e.get("project")
 
@@ -815,7 +815,7 @@ def from_entity(entity_type, entity_id):
         # now we need to find which PC entity this corresponds to in Shotgun.
         # Once found, we can double check that the current Entity is actually
         # associated with the project that the PC is associated with.
-        pc_registered_path = get_pc_registered_location(curr_pc_path)
+        pc_registered_path = _get_pc_registered_location(curr_pc_path)
 
         if pc_registered_path is None:
             raise TankError("Error starting from the configuration located in '%s' - "
@@ -877,7 +877,7 @@ def from_path(path):
 
         # resolve the "real" location that is stored in Shotgun and 
         # cached in the file system
-        pc_registered_path = get_pc_registered_location(path)
+        pc_registered_path = _get_pc_registered_location(path)
 
         if pc_registered_path is None:
             raise TankError("Error starting from the configuration located in '%s' - "
@@ -944,7 +944,7 @@ def from_path(path):
         for pc_path in current_os_pcs:
             data = None
             try:
-                data = get_pc_disk_metadata(pc_path)
+                data = _get_pc_disk_metadata(pc_path)
             except TankError:
                 # didn't find so just skip this pc
                 continue
@@ -1000,7 +1000,7 @@ def from_path(path):
 
         # the path stored in the TANK_CURRENT_PC env var may be a symlink etc.
         # now we need to find which PC entity this corresponds to in Shotgun.        
-        pc_registered_path = get_pc_registered_location(curr_pc_path)
+        pc_registered_path = _get_pc_registered_location(curr_pc_path)
 
         if pc_registered_path is None:
             raise TankError("Error starting from the configuration located in '%s' - "
@@ -1030,49 +1030,10 @@ def from_path(path):
 
 
 ################################################################################################
-# generic methods 
-
-def get_current_code_install_root():
-    """
-    Returns the root location of the currently executing code, assuming that this code is 
-    located inside a standard toolkit install setup. If the code that is running is part
-    of a localized pipeline configuration, its root path will be returned, otherwise 
-    a 'studio' root will be returned.
-    
-    This method may not return valid results if there has been any symlinks set up as part of
-    the install structure.
-    """
-    p = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "..", ".."))
-    if not os.path.exists(p):
-        raise TankError("Cannot resolve the install location from the location of the Core Code! "
-                        "This can happen if you try to move or symlink the Sgtk API. "
-                        "Please contact support.")
-    return p
-    
-    
+# helper methods used by the pipeline config class
 
 
-def get_core_api_version_based_on_current_code():
-    """
-    Returns the version number string for the core API, based on the code that is currently
-    executing.
-    """
-    # read this from info.yml
-    info_yml_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "info.yml"))
-    try:
-        info_fh = open(info_yml_path, "r")
-        try:
-            data = yaml.load(info_fh)
-        finally:
-            info_fh.close()
-        data = str(data.get("version", "unknown"))
-    except:
-        data = "unknown"
-
-    return data
-
-
-def get_pc_registered_location(pipeline_config_root_path):
+def _get_pc_registered_location(pipeline_config_root_path):
     """
     Loads the location metadata file from install_location.yml
     This contains a reflection of the paths given in the pc entity.
@@ -1114,9 +1075,12 @@ def get_pc_registered_location(pipeline_config_root_path):
         raise TankError("Unsupported platform '%s'" % sys.platform)
 
 
-def get_pc_disk_metadata(pipeline_config_root_path):
+def _get_pc_disk_metadata(pipeline_config_root_path):
     """
-    Loads the config metadata file from disk.    
+    Helper method.
+    Loads the pipeline config metadata (the pipeline_configuration.yml) file from disk.
+    
+    :returns: deserialized content of the file in the form of a dict.
     """
 
     # now read in the pipeline_configuration.yml file
@@ -1135,6 +1099,63 @@ def get_pc_disk_metadata(pipeline_config_root_path):
                         "support! File: '%s' Error: %s" % (cfg_yml, e))
     finally:
         fh.close()
+
+    return data
+
+
+def _get_pc_roots_metadata(pipeline_config_root_path):
+    """
+    Loads and validates the roots metadata file.
+    
+    The roots.yml file is a reflection of the local storages setup in Shotgun
+    at project setup time and may contain anomalies in the path layout structure.
+    
+    The roots data will be prepended to paths and used for comparison so it is 
+    critical that the paths are on a correct normalized form once they have been 
+    loaded into the system.
+    
+    :param pipeline_config_root_path: Path to the root of a pipeline configuration,
+                                      (excluding the "config" folder).  
+    
+    :returns: A dictionary structure with an entry for each storage defined. Each
+              storage will have three keys mac_path, windows_path and linux_path, 
+              for example
+              { "primary"  : { "mac_path": "/tmp/foo", 
+                               "linux_path": None, 
+                               "windows_path": "z:\tmp\foo" },
+                "textures" : { "mac_path": "/tmp/textures", 
+                               "linux_path": None, 
+                               "windows_path": "z:\tmp\textures" },
+              }
+    """
+    # now read in the roots.yml file
+    # this will contain something like
+    # {'primary': {'mac_path': '/studio', 'windows_path': None, 'linux_path': '/studio'}}
+    roots_yml = os.path.join(pipeline_config_root_path, "config", "core", "roots.yml")
+
+    if not os.path.exists(roots_yml):
+        raise TankError("Roots metadata file '%s' missing! Please contact support." % roots_yml)
+
+    fh = open(roots_yml, "rt")
+    try:
+        # if file is empty, initializae with empty dict...
+        data = yaml.load(fh) or {}
+    except Exception, e:
+        raise TankError("Looks like the roots file is corrupt. Please contact "
+                        "support! File: '%s' Error: %s" % (roots_yml, e))
+    finally:
+        fh.close()
+
+    # if there are more than zero storages defined, ensure one of them is the primary storage
+    if len(data) > 0 and constants.PRIMARY_STORAGE_NAME not in data:
+        raise TankError("Could not find a primary storage in roots file "
+                        "for configuration %s!" % pipeline_config_root_path)
+
+    # now use our helper function to process the paths    
+    for s in data:
+        data[s]["mac_path"] = _sanitize_path(data[s]["mac_path"], "/")
+        data[s]["linux_path"] = _sanitize_path(data[s]["linux_path"], "/")
+        data[s]["windows_path"] = _sanitize_path(data[s]["windows_path"], "\\")
 
     return data
 
@@ -1197,65 +1218,3 @@ def _sanitize_path(path, separator):
 
     return local_path
 
-def get_pc_roots_metadata(pipeline_config_root_path):
-    """
-    Loads and validates the roots metadata file.
-    
-    The roots.yml file is a reflection of the local storages setup in Shotgun
-    at project setup time and may contain anomalies in the path layout structure.
-    
-    The roots data will be prepended to paths and used for comparison so it is 
-    critical that the paths are on a correct normalized form once they have been 
-    loaded into the system.
-    
-    :param pipeline_config_root_path: Path to the root of a pipeline configuration,
-                                      (excluding the "config" folder).  
-    
-    :returns: A dictionary structure with an entry for each storage defined. Each
-              storage will have three keys mac_path, windows_path and linux_path, 
-              for example
-              { "primary"  : { "mac_path": "/tmp/foo", 
-                               "linux_path": None, 
-                               "windows_path": "z:\tmp\foo" },
-                "textures" : { "mac_path": "/tmp/textures", 
-                               "linux_path": None, 
-                               "windows_path": "z:\tmp\textures" },
-              }
-    """
-    # now read in the roots.yml file
-    # this will contain something like
-    # {'primary': {'mac_path': '/studio', 'windows_path': None, 'linux_path': '/studio'}}
-    roots_yml = os.path.join(pipeline_config_root_path, "config", "core", "roots.yml")
-
-    if not os.path.exists(roots_yml):
-        raise TankError("Roots metadata file '%s' missing! Please contact support." % roots_yml)
-
-    fh = open(roots_yml, "rt")
-    try:
-        data = yaml.load(fh)
-    except Exception, e:
-        raise TankError("Looks like the roots file is corrupt. Please contact "
-                        "support! File: '%s' Error: %s" % (roots_yml, e))
-    finally:
-        fh.close()
-
-    # sanity check that there is a primary root
-    if constants.PRIMARY_STORAGE_NAME not in data:
-        raise TankError("Could not find a primary storage in roots file "
-                        "for configuration %s!" % pipeline_config_root_path)
-
-    # now use our helper function to process the paths    
-    for s in data:
-        data[s]["mac_path"] = _sanitize_path(data[s]["mac_path"], "/")
-        data[s]["linux_path"] = _sanitize_path(data[s]["linux_path"], "/")
-        data[s]["windows_path"] = _sanitize_path(data[s]["windows_path"], "\\")
-
-    return data
-
-def is_localized(pipeline_config_path):
-    """
-    Returns true if the pipeline configuration contains a localized API
-    """
-    # look for a localized API by searching for a _core_upgrader.py file
-    api_file = os.path.join(pipeline_config_path, "install", "core", "_core_upgrader.py")
-    return os.path.exists(api_file)

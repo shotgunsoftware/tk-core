@@ -304,7 +304,10 @@ class Template(object):
         """
         Finds the tokens from a definition which are not involved in defining keys.
         """
-        expanded_definition = os.path.join(self._prefix, definition)
+        # expand the definition to include the prefix unless the definition is empty in which
+        # case we just want to parse the prefix.  For example, in the case of a path template, 
+        # having an empty definition would result in expanding to the project/storage root
+        expanded_definition = os.path.join(self._prefix, definition) if definition else self._prefix
         regex = r"{%s}" % self._key_name_regex
         tokens = re.split(regex, expanded_definition.lower())
         # Remove empty strings
@@ -380,7 +383,7 @@ class Template(object):
         for ordered_keys, static_tokens in zip(self._ordered_keys, self._static_tokens):
             path_parser = TemplatePathParser(ordered_keys, static_tokens)
             fields = path_parser.parse_path(input_path, skip_keys)
-            if fields:
+            if fields != None:
                 break
 
         if fields is None:
@@ -441,7 +444,7 @@ class TemplatePath(Template):
 
     def _apply_fields(self, fields, ignore_types=None):
         relative_path = super(TemplatePath, self)._apply_fields(fields, ignore_types)
-        return os.path.join(self.root_path, relative_path)
+        return os.path.join(self.root_path, relative_path) if relative_path else self.root_path
 
 
 class TemplateString(Template):
