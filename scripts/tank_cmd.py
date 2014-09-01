@@ -1088,6 +1088,9 @@ if __name__ == "__main__":
             exit_code = show_help(logger)
             sys.exit(exit_code)
 
+    # determine if we are running a localized core API.
+    is_localized = pipelineconfig_utils.is_localized(install_root)
+
     # also we are passing the pipeline config
     # at the back of the args as --pc=foo
     if len(cmd_line) > 0 and cmd_line[-1].startswith("--pc="):
@@ -1096,10 +1099,6 @@ if __name__ == "__main__":
         # no PC parameter passed. But it could be that we are using a localized core
         # meaning that the core is contained inside the project itself. In that case,
         # the install root is the same as the pipeline config root.
-        
-        # determine if we are running a localized core API.
-        is_localized = pipelineconfig_utils.is_localized(install_root)
-         
         if is_localized:
             logger.debug("Core API resides inside a (localized) pipeline configuration.")
             pipeline_config_root = install_root
