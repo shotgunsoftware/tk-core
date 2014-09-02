@@ -183,7 +183,7 @@ class Engine(TankBundle):
     ##########################################################################################
     # properties used by internal classes, not part of the public interface
     
-    def display_global_progress(self, title, details):
+    def show_busy(self, title, details):
         """
         Displays or updates a global progress indicator window tied to this engine.
         
@@ -199,11 +199,11 @@ class Engine(TankBundle):
         Only one global progress window can exist per engine at a time, so if you want to 
         push several updates one after the other, just keep calling this method.
         
-        When you want to turn off the progress window, call clear_global_progress().
+        When you want to turn off the progress window, call clear_busy().
 
         Note! If you are calling this from the Core API you typically don't have 
         access to the current engine object. In this case you can use the 
-        convenience method tank.platform.engine.display_global_progress() which will
+        convenience method tank.platform.engine.show_global_busy() which will
         attempt to broadcast the request to the currently active engine.
         
         :params title: Short descriptive title of what is happening
@@ -243,11 +243,11 @@ class Engine(TankBundle):
             # no UI support! Instead, just emit a log message
             self.log_info("[%s] %s" % (title, details))
     
-    def clear_global_progress(self):
+    def clear_busy(self):
         """
         Closes any active global progress window.
         
-        For more details, see display_global_progress
+        For more details, see show_busy
         """
         if self.__global_progress_widget:
             self.__global_progress_widget.close()
@@ -1257,7 +1257,7 @@ def get_environment_from_context(tk, context):
     
     return tk.pipeline_configuration.get_environment(env_name, context)
 
-def display_global_progress(title, message):
+def show_global_busy(title, details):
     """
     Convenience method.
     
@@ -1269,9 +1269,9 @@ def display_global_progress(title, message):
     """
     engine = current_engine()
     if engine:
-        engine.display_global_progress(title, message)        
+        engine.show_busy(title, details)        
     
-def clear_global_progress():
+def clear_global_busy():
     """
     Convenience method.
     
@@ -1280,7 +1280,7 @@ def clear_global_progress():
     """
     engine = current_engine()
     if engine:
-        engine.clear_global_progress()
+        engine.clear_busy()
 
 ##########################################################################################
 # utilities

@@ -25,7 +25,7 @@ from .errors import TankError
 from .path_cache import PathCache
 from .template import read_templates
 from .platform import constants as platform_constants
-from .platform.engine import display_global_progress, clear_global_progress
+from .platform.engine import show_global_busy, clear_global_busy
 from . import pipelineconfig
 from . import pipelineconfig_utils
 
@@ -495,13 +495,13 @@ class Tank(object):
         :returns: The number of folders processed
         """
         # EXAMPLE! Will be deleted before MERGE!
-        display_global_progress("Toolkit is creating folders", 
+        show_global_busy("Toolkit is creating folders", 
                                 "Stand by, Toolkit is creating folders for Shot AFX134. This usually takes a few seconds.")
         import time
         time.sleep(2)
         
         # We can keep pushing updates to the UI
-        display_global_progress("Creating folders", "and this is an updated progress!")
+        show_global_busy("Creating folders", "and this is an updated progress!")
         time.sleep(2)
         
         folders = folder.process_filesystem_structure(self,
@@ -510,7 +510,7 @@ class Tank(object):
                                                       False,
                                                       engine)
         # and eventually close it
-        clear_global_progress()
+        show_global_busy()
         
         return len(folders)
 
