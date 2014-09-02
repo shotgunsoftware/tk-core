@@ -60,6 +60,8 @@ class Engine(TankBundle):
         
         self.__commands_that_need_prefixing = []
         
+        self.__global_progress_widget = None
+        
         # get the engine settings
         settings = self.__env.get_engine_settings(self.__engine_instance_name)
         
@@ -181,20 +183,67 @@ class Engine(TankBundle):
     ##########################################################################################
     # properties used by internal classes, not part of the public interface
     
-    def display_global_progress(self, title, message):
+    def display_global_progress(self, title, details):
         """
         Displays or updates a global progress indicator window tied to this engine.
         
+        This is currently an internal method and not meant to be be used by anything
+        outside the core API. Later on, as things settle, we may consider exposing this.
+        
+        This method pops up a modal splash screen with a message and the idea is that 
+        long running core processes can use this as a way to communicate their intent
+        to the user and keep the user informed as slow processes are executed. If the engine
+        has a UI present, this will be used to display the progress message. If the engine
+        does not have UI support, a message will be logged.
+
+        Only one global progress window can exist per engine at a time, so if you want to 
+        push several updates one after the other, just keep calling this method.
+        
+        When you want to turn off the progress window, call clear_global_progress().
+
+        Note! If you are calling this from the Core API you typically don't have 
+        access to the current engine object. In this case you can use the 
+        convenience method tank.platform.engine.display_global_progress() which will
+        attempt to broadcast the request to the currently active engine.
+        
+        :params title: Short descriptive title of what is happening
+        :params details: Detailed message describing what is going on.
         """
-        self.log_info("Progress!")
+        if self.has_ui:
+            # we cannot import QT until here as non-ui engines don't have QT defined.
+            from .qt.progress_dialog import ProgressDialog 
+            from .qt import QtGui, QtCore
+            
+            if not self.__global_progress_widget:
+                
+                # no window exists - create one!
+                (window, self.__global_progress_widget) = self._create_dialog_with_widget(title="Progress", 
+                                                                                          bundle=self, 
+                                                                                          widget_class=ProgressDialog)
+                # make it a splashscreen that sits on top
+                window.setWindowFlags(QtCore.Qt.SplashScreen | QtCore.Qt.WindowStaysOnTopHint)
+                
+                # kick it off        
+                window.show()
+                            
+            # update the message 
+            self.__global_progress_widget.set_contents(title, details)
+
+            # make sure events are properly processed
+            QtCore.QCoreApplication.processEvents()
         
-        
+        else:
+            # no UI support! Instead, just emit a log message
+            self.log_info("[%s] %s" % (title, details))
     
     def clear_global_progress(self):
         """
+        Closes any active global progress window.
         
+        For more details, see display_global_progress
         """
-        self.log_info("Progress!")
+        if self.__global_progress_widget:
+            self.__global_progress_widget.close()
 
     ##########################################################################################
     # properties
@@ -1203,16 +1252,24 @@ def get_environment_from_context(tk, context):
 
 def display_global_progress(title, message):
     """
-    Display global progress
+    Convenience method.
+    
+    Displays or updates a global progress indicator window tied to the currently running engine.
+    For more details and documentation see engine class documentation of this method.
+
+    :params title: Short descriptive title of what is happening
+    :params details: Detailed message describing what is going on.
     """
     engine = current_engine()
     if engine:
-        engine.display_global_progress(title, message)
-        
+        engine.display_global_progress(title, message)        
     
 def clear_global_progress():
     """
-    Clear global progress
+    Convenience method.
+    
+    Closes any open global progress indicator window tied to the currently running engine.
+    For more details and documentation see engine class documentation of this method.
     """
     engine = current_engine()
     if engine:
