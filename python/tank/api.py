@@ -496,7 +496,7 @@ class Tank(object):
         """
         # EXAMPLE! Will be deleted before MERGE!
         show_global_busy("Toolkit is creating folders", 
-                                "Stand by, Toolkit is creating folders for Shot AFX134. This usually takes a few seconds.")
+                         "Stand by, Toolkit is creating folders for Shot AFX134. This usually takes a few seconds.")
         import time
         time.sleep(2)
         
@@ -510,7 +510,7 @@ class Tank(object):
                                                       False,
                                                       engine)
         # and eventually close it
-        show_global_busy()
+        clear_global_busy()
         
         return len(folders)
 
