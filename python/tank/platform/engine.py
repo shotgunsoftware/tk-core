@@ -190,7 +190,7 @@ class Engine(TankBundle):
         This is currently an internal method and not meant to be be used by anything
         outside the core API. Later on, as things settle, we may consider exposing this.
         
-        This method pops up a modal splash screen with a message and the idea is that 
+        This method pops up a splash screen with a message and the idea is that 
         long running core processes can use this as a way to communicate their intent
         to the user and keep the user informed as slow processes are executed. If the engine
         has a UI present, this will be used to display the progress message. If the engine
