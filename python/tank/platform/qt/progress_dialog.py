@@ -14,7 +14,10 @@ from .ui_progress_dialog import Ui_ProgressDialog
 
 class ProgressDialog(QtGui.QWidget):
     """
-    Not found UI dialog.
+    Global progress dialog. Displays a dialog that contains a small progress message. 
+    This is handled by the engine.display_global_progress() and engine.clear_global_progress() 
+    methods and is typically used when for example the Core API wants to display some progress
+    information back to the user during long running tasks or processing. 
     """
     
     def __init__(self):
@@ -28,12 +31,15 @@ class ProgressDialog(QtGui.QWidget):
         self.ui = Ui_ProgressDialog() 
         self.ui.setupUi(self)
         
-        
     def set_contents(self, title, details):
+        """
+        Set the message to be displayed in the progress dialog
+        
+        :param title: Title text to display
+        :param details: detailed message to display 
+        """
         self.ui.title.setText(title)
         self.ui.details.setText(details)
-                
-                
                 
     @property
     def hide_tk_title_bar(self):
