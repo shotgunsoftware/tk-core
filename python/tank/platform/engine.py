@@ -220,16 +220,23 @@ class Engine(TankBundle):
                 (window, self.__global_progress_widget) = self._create_dialog_with_widget(title="Progress", 
                                                                                           bundle=self, 
                                                                                           widget_class=ProgressDialog)
+                
                 # make it a splashscreen that sits on top
                 window.setWindowFlags(QtCore.Qt.SplashScreen | QtCore.Qt.WindowStaysOnTopHint)
+
+                # set the message before the window is raised to avoid briefly
+                # showing default values  
+                self.__global_progress_widget.set_contents(title, details)
                 
                 # kick it off        
                 window.show()
-                            
-            # update the message 
-            self.__global_progress_widget.set_contents(title, details)
+    
+            else:
+                                        
+                # just update the message for the existing window 
+                self.__global_progress_widget.set_contents(title, details)
 
-            # make sure events are properly processed
+            # make sure events are properly processed and the window is updated
             QtCore.QCoreApplication.processEvents()
         
         else:
