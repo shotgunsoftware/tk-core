@@ -177,7 +177,25 @@ class Engine(TankBundle):
         and the object returned may also change. Do not use outside of the core api.
         """
         return self.__env
+
+    ##########################################################################################
+    # properties used by internal classes, not part of the public interface
     
+    def display_global_progress(self, title, message):
+        """
+        Displays or updates a global progress indicator window tied to this engine.
+        
+        """
+        self.log_info("Progress!")
+        
+        
+    
+    def clear_global_progress(self):
+        """
+        
+        """
+        self.log_info("Progress!")
+
     ##########################################################################################
     # properties
 
@@ -1183,6 +1201,22 @@ def get_environment_from_context(tk, context):
     
     return tk.pipeline_configuration.get_environment(env_name, context)
 
+def display_global_progress(title, message):
+    """
+    Display global progress
+    """
+    engine = current_engine()
+    if engine:
+        engine.display_global_progress(title, message)
+        
+    
+def clear_global_progress():
+    """
+    Clear global progress
+    """
+    engine = current_engine()
+    if engine:
+        engine.clear_global_progress()
 
 ##########################################################################################
 # utilities

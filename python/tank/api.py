@@ -24,6 +24,7 @@ from .errors import TankError
 from .path_cache import PathCache
 from .template import read_templates
 from .platform import constants as platform_constants
+from .platform import engine
 from . import pipelineconfig
 from . import pipelineconfig_utils
 
@@ -484,11 +485,13 @@ class Tank(object):
 
         :returns: The number of folders processed
         """
+        engine.display_global_progress("the title", "the message")
         folders = folder.process_filesystem_structure(self,
                                                       entity_type,
                                                       entity_id,
                                                       False,
                                                       engine)
+        engine.clear_global_progress()
         return len(folders)
 
     def preview_filesystem_structure(self, entity_type, entity_id, engine=None):
