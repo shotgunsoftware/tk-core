@@ -13,6 +13,7 @@
 echo "building user interfaces..."
 pyside-uic --from-imports tank_dialog.ui > ./ui_tank_dialog.py
 pyside-uic --from-imports item.ui > ./ui_item.py
+pyside-uic --from-imports progress_dialog.ui > ./ui_progress_dialog.py
 
 echo "building resources..."
 pyside-rcc resources.qrc > ./resources_rc.py
