@@ -229,7 +229,9 @@ class Engine(TankBundle):
     
     def show_busy(self, title, details):
         """
-        Displays or updates a global progress indicator window tied to this engine.
+        Displays or updates a global "busy window" tied to this engine. The window
+        is a splash screen type window, floats on top and contains details of what
+        is currently being processed.
         
         This is currently an internal method and not meant to be be used by anything
         outside the core API. Later on, as things settle, we may consider exposing this.
@@ -238,12 +240,13 @@ class Engine(TankBundle):
         long running core processes can use this as a way to communicate their intent
         to the user and keep the user informed as slow processes are executed. If the engine
         has a UI present, this will be used to display the progress message. If the engine
-        does not have UI support, a message will be logged.
+        does not have UI support, a message will be logged. The UI always appears in the 
+        main thread for safety.
 
         Only one global progress window can exist per engine at a time, so if you want to 
         push several updates one after the other, just keep calling this method.
         
-        When you want to turn off the progress window, call clear_busy().
+        When you want to remove the window, call clear_busy().
 
         Note! If you are calling this from the Core API you typically don't have 
         access to the current engine object. In this case you can use the 
@@ -258,9 +261,9 @@ class Engine(TankBundle):
     
     def clear_busy(self):
         """
-        Closes any active global progress window.
+        Closes any active busy window.
         
-        For more details, see show_busy
+        For more details, see the show_busy() documentation.
         """
         if self.__global_progress_widget:
             self.execute_in_main_thread(self.__global_progress_widget.close)
@@ -1275,7 +1278,7 @@ def show_global_busy(title, details):
     Convenience method.
     
     Displays or updates a global busy/progress indicator window tied to the currently running engine.
-    For more details and documentation see engine class documentation of this method.
+    For more details and documentation, see the engine class documentation of this method.
 
     :params title: Short descriptive title of what is happening
     :params details: Detailed message describing what is going on.
@@ -1289,7 +1292,7 @@ def clear_global_busy():
     Convenience method.
     
     Closes any open global progress indicator window tied to the currently running engine.
-    For more details and documentation see engine class documentation of this method.
+    For more details and documentation, see engine class documentation of this method.
     """
     engine = current_engine()
     if engine:
