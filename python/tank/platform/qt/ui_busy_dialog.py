@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'progress_dialog.ui'
+# Form implementation generated from reading ui file 'busy_dialog.ui'
 #
-# Created: Tue Sep  2 14:45:47 2014
+# Created: Wed Sep  3 15:27:12 2014
 #      by: pyside-uic 0.2.13 running on PySide 1.1.1
 #
 # WARNING! All changes made in this file will be lost!
 
-from . import QtCore, QtGui
+from PySide import QtCore, QtGui
 
-class Ui_ProgressDialog(object):
-    def setupUi(self, ProgressDialog):
-        ProgressDialog.setObjectName("ProgressDialog")
-        ProgressDialog.resize(418, 98)
-        ProgressDialog.setStyleSheet("/* Style for the window itself */\n"
+class Ui_BusyDialog(object):
+    def setupUi(self, BusyDialog):
+        BusyDialog.setObjectName("BusyDialog")
+        BusyDialog.resize(418, 98)
+        BusyDialog.setStyleSheet("/* Style for the window itself */\n"
 "#frame {\n"
 "border-color: #30A7E3;\n"
 "border-style: solid;\n"
@@ -38,11 +38,11 @@ class Ui_ProgressDialog(object):
 "font-size: 11px;\n"
 "}\n"
 "")
-        self.horizontalLayout_2 = QtGui.QHBoxLayout(ProgressDialog)
+        self.horizontalLayout_2 = QtGui.QHBoxLayout(BusyDialog)
         self.horizontalLayout_2.setSpacing(2)
         self.horizontalLayout_2.setContentsMargins(2, 2, 2, 2)
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
-        self.frame = QtGui.QFrame(ProgressDialog)
+        self.frame = QtGui.QFrame(BusyDialog)
         self.frame.setFrameShape(QtGui.QFrame.StyledPanel)
         self.frame.setFrameShadow(QtGui.QFrame.Raised)
         self.frame.setObjectName("frame")
@@ -79,12 +79,12 @@ class Ui_ProgressDialog(object):
         self.horizontalLayout.addLayout(self.verticalLayout)
         self.horizontalLayout_2.addWidget(self.frame)
 
-        self.retranslateUi(ProgressDialog)
-        QtCore.QMetaObject.connectSlotsByName(ProgressDialog)
+        self.retranslateUi(BusyDialog)
+        QtCore.QMetaObject.connectSlotsByName(BusyDialog)
 
-    def retranslateUi(self, ProgressDialog):
-        ProgressDialog.setWindowTitle(QtGui.QApplication.translate("ProgressDialog", "Dialog", None, QtGui.QApplication.UnicodeUTF8))
-        self.title.setText(QtGui.QApplication.translate("ProgressDialog", "Doing something, hang on!", None, QtGui.QApplication.UnicodeUTF8))
-        self.details.setText(QtGui.QApplication.translate("ProgressDialog", "Lots of interesting details about what is going on", None, QtGui.QApplication.UnicodeUTF8))
+    def retranslateUi(self, BusyDialog):
+        BusyDialog.setWindowTitle(QtGui.QApplication.translate("BusyDialog", "Dialog", None, QtGui.QApplication.UnicodeUTF8))
+        self.title.setText(QtGui.QApplication.translate("BusyDialog", "Doing something, hang on!", None, QtGui.QApplication.UnicodeUTF8))
+        self.details.setText(QtGui.QApplication.translate("BusyDialog", "Lots of interesting details about what is going on", None, QtGui.QApplication.UnicodeUTF8))
 
 from . import resources_rc

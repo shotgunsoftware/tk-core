@@ -194,7 +194,7 @@ class Engine(TankBundle):
         """
         if self.has_ui:
             # we cannot import QT until here as non-ui engines don't have QT defined.
-            from .qt.progress_dialog import ProgressDialog 
+            from .qt.busy_dialog import BusyDialog 
             from .qt import QtGui, QtCore
             
             if not self.__global_progress_widget:
@@ -202,7 +202,7 @@ class Engine(TankBundle):
                 # no window exists - create one!
                 (window, self.__global_progress_widget) = self._create_dialog_with_widget(title="Toolkit is busy", 
                                                                                           bundle=self, 
-                                                                                          widget_class=ProgressDialog)
+                                                                                          widget_class=BusyDialog)
                 
                 # make it a splashscreen that sits on top
                 window.setWindowFlags(QtCore.Qt.SplashScreen | QtCore.Qt.WindowStaysOnTopHint)

@@ -9,10 +9,10 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from . import QtCore, QtGui
-from .ui_progress_dialog import Ui_ProgressDialog
+from .ui_progress_dialog import Ui_BusyDialog
 
 
-class ProgressDialog(QtGui.QWidget):
+class BusyDialog(QtGui.QWidget):
     """
     Global progress dialog. Displays a dialog that contains a small progress message. 
     This is handled by the engine.display_global_progress() and engine.clear_global_progress() 
@@ -28,7 +28,7 @@ class ProgressDialog(QtGui.QWidget):
         QtGui.QWidget.__init__(self)
         
         # now load in the UI that was created in the UI designer
-        self.ui = Ui_ProgressDialog() 
+        self.ui = Ui_BusyDialog() 
         self.ui.setupUi(self)
         
     def set_contents(self, title, details):
