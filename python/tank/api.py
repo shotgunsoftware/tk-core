@@ -56,7 +56,7 @@ class Tank(object):
             raise TankError("Could not read templates configuration: %s" % e)
 
         # execute a tank_init hook for developers to use.
-        self.execute_hook(platform_constants.TANK_INIT_HOOK_NAME)
+        self.execute_core_hook(platform_constants.TANK_INIT_HOOK_NAME)
 
     def __repr__(self):
         return "<Sgtk Core %s@0x%08x Config %s>" % (self.version, id(self), self.__pipeline_config.get_path())
@@ -80,11 +80,28 @@ class Tank(object):
         """
         Reloads the template definitions. If reload fails, the previous 
         template definitions will be preserved.
+        
+        Internal Use Only - We provide no guarantees that this method
+        will be backwards compatible.        
         """
         try:
             self.templates = read_templates(self.__pipeline_config)
         except TankError, e:
             raise TankError("Templates could not be reloaded: %s" % e)
+
+    def execute_core_hook(self, hook_name, **kwargs):
+        """
+        Executes a core level hook, passing it any keyword arguments supplied.
+
+        Internal Use Only - We provide no guarantees that this method
+        will be backwards compatible.
+        
+        :param hook_name: Name of hook to execute.
+        :param **kwargs:  Additional named parameters will be passed to the hook.
+        :returns:         Return value of the hook.
+        """
+        return self.pipeline_configuration.execute_core_hook_internal(hook_name, parent=self, **kwargs)
+
 
     ################################################################################################
     # properties
@@ -527,20 +544,6 @@ class Tank(object):
                                                       True,
                                                       engine)
         return folders
-
-    def execute_hook(self, hook_name, **kwargs):
-        """
-        Executes a core level hook, passing it any keyword arguments supplied.
-
-        Note! This is part of the private Sgtk API and should not be called from ouside
-        the core API.
-
-        :param hook_name: Name of hook to execute.
-
-        :returns: Return value of the hook.
-        """
-        return self.pipeline_configuration.execute_hook(hook_name, parent=self, **kwargs)
-
 
 
 ##########################################################################################

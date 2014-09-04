@@ -41,7 +41,7 @@ class TankBundle(object):
         self.__environment = env
 
         # emit an engine started event
-        tk.execute_hook(constants.TANK_BUNDLE_INIT_HOOK_NAME, bundle=self)
+        tk.execute_core_hook(constants.TANK_BUNDLE_INIT_HOOK_NAME, bundle=self)
         
     ##########################################################################################
     # properties used by internal classes, not part of the public interface
@@ -400,7 +400,7 @@ class TankBundle(object):
         :param path: path to create
         """        
         try:
-            self.__tk.execute_hook("ensure_folder_exists", path=path, bundle_obj=self)
+            self.__tk.execute_core_hook("ensure_folder_exists", path=path, bundle_obj=self)
         except Exception, e:
             raise TankError("Error creating folder %s: %s" % (path, e))
         
@@ -676,10 +676,10 @@ class TankBundle(object):
             chunks = value.split(":")
             hook_name = chunks[1]
             params = chunks[2:] 
-            processed_val = self.__tk.execute_hook(hook_name, 
-                                                   setting=key, 
-                                                   bundle_obj=self, 
-                                                   extra_params=params)
+            processed_val = self.__tk.execute_core_hook(hook_name, 
+                                                        setting=key, 
+                                                        bundle_obj=self, 
+                                                        extra_params=params)
 
         else:
             # pass-through

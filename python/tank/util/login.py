@@ -86,7 +86,7 @@ def get_current_user(tk):
     if g_shotgun_current_user_cache == "unknown":
     
         # call hook to get current login
-        current_login = tk.execute_hook(constants.CURRENT_LOGIN_HOOK_NAME)
+        current_login = tk.execute_core_hook(constants.CURRENT_LOGIN_HOOK_NAME)
         if current_login is None:
             g_shotgun_current_user_cache = None
         

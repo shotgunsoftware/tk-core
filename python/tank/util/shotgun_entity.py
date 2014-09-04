@@ -38,11 +38,11 @@ def sg_entity_to_string(tk, sg_entity_type, sg_id, sg_field_name, data):
     :param data: The shotgun entity data chunk that should be converted to a string.
     """
     # call out to core hook
-    return tk.execute_hook(constants.PROCESS_FOLDER_NAME_HOOK_NAME, 
-                           entity_type=sg_entity_type, 
-                           entity_id=sg_id,
-                           field_name=sg_field_name,
-                           value=data)
+    return tk.execute_core_hook(constants.PROCESS_FOLDER_NAME_HOOK_NAME, 
+                                entity_type=sg_entity_type, 
+                                entity_id=sg_id,
+                                field_name=sg_field_name,
+                                value=data)
 
 
 class EntityExpression(object):

@@ -153,7 +153,7 @@ class Engine(TankBundle):
         self.post_app_init()
         
         # emit an engine started event
-        tk.execute_hook(constants.TANK_ENGINE_INIT_HOOK_NAME, engine=self)
+        tk.execute_core_hook(constants.TANK_ENGINE_INIT_HOOK_NAME, engine=self)
         
         self.log_debug("Init complete: %s" % self)
         
@@ -1264,7 +1264,7 @@ def get_environment_from_context(tk, context):
     Returns None if no environment was found. 
     """
     try:
-        env_name = tk.execute_hook(constants.PICK_ENVIRONMENT_CORE_HOOK_NAME, context=context)
+        env_name = tk.execute_core_hook(constants.PICK_ENVIRONMENT_CORE_HOOK_NAME, context=context)
     except Exception, e:
         raise TankError("Could not resolve an environment for context '%s'. The pick "
                         "environment hook reported the following error: %s" % (context, e))
@@ -1331,7 +1331,7 @@ def __pick_environment(engine_name, tk, context):
     """
 
     try:
-        env_name = tk.execute_hook(constants.PICK_ENVIRONMENT_CORE_HOOK_NAME, context=context)
+        env_name = tk.execute_core_hook(constants.PICK_ENVIRONMENT_CORE_HOOK_NAME, context=context)
     except Exception, e:
         raise TankEngineInitError("Engine %s cannot initialize - the pick environment hook "
                                  "reported the following error: %s" % (engine_name, e))

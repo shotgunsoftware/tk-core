@@ -869,7 +869,7 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
         data["version"] = version_entity
 
     # now call out to hook just before publishing
-    data = tk.execute_hook(constants.TANK_PUBLISH_HOOK_NAME, shotgun_data=data, context=context)
+    data = tk.execute_core_hook(constants.TANK_PUBLISH_HOOK_NAME, shotgun_data=data, context=context)
 
     return tk.shotgun.create(published_file_entity_type, data)
 
