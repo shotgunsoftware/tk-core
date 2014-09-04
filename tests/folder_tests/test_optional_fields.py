@@ -46,7 +46,7 @@ class TestSchemaCreateFoldersSecondaryEntity(TankTestBase):
                      'valid_types': {'editable': True, 'value': []}},
                      'unique': {'editable': False, 'value': False}}
         
-        self.tk._Tank__sg._schema["Shot"]["sg_other_field"] = field_def
+        self.tk.shotgun._schema["Shot"]["sg_other_field"] = field_def
         
         
         

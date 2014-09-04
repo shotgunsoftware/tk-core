@@ -629,7 +629,7 @@ class TestSchemaCreateFoldersWorkspaces(TankTestBase):
                      'valid_types': {'editable': True, 'value': ['Shot', 'Asset']}},
                      'unique': {'editable': False, 'value': False}}
         
-        self.tk._Tank__sg._schema["CustomEntity02"]["sg_entity"] = field_def
+        self.tk.shotgun._schema["CustomEntity02"]["sg_entity"] = field_def
 
 
         entities = [self.shot, 

@@ -149,7 +149,8 @@ class TankTestBase(unittest.TestCase):
         
         self.pipeline_configuration = sgtk.pipelineconfig.from_path(project_tank)
         self.tk = tank.Tank(self.pipeline_configuration)
-        self.tk._Tank__sg = MockGun_Shotgun("http://unit_test_mock_sg", "mock_user", "mock_key")
+        
+        self.tk._Tank__threadlocal_storage.sg = MockGun_Shotgun("http://unit_test_mock_sg", "mock_user", "mock_key")
 
         # add project to mock sg and path cache db
         self.add_production_path(self.project_root, self.project)
