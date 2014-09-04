@@ -83,8 +83,7 @@ class PipelineConfiguration(object):
 
         # cache fields lazily populated on getter access
         self._force_reread_settings()
-        self.execute_hook(constants.PIPELINE_CONFIGURATION_INIT_HOOK_NAME, parent=self)
-
+        self.execute_core_hook_internal(constants.PIPELINE_CONFIGURATION_INIT_HOOK_NAME, parent=self)
 
     def __repr__(self):
         return "<Sgtk Configuration %s>" % self._pc_root
@@ -606,14 +605,17 @@ class PipelineConfiguration(object):
 
         return data
 
-    def execute_hook(self, hook_name, parent, **kwargs):
+    def execute_core_hook_internal(self, hook_name, parent, **kwargs):
         """
-        Executes a core level hook, passing it any keyword arguments supplied.
-
-        Note! This is part of the private Sgtk API and should not be called from ouside
-        the core API.
+        Executes a core hook, passing it any keyword arguments supplied.
+        
+        Typically you don't want to execute this method but instead
+        the tk.execute_core_hook method. Only use this one if you for 
+        some reason do not have a tk object available.
 
         :param hook_name: Name of hook to execute.
+        :param parent: Parent object to pass down to the hook
+        :param **kwargs: Named arguments to pass to the hook
         :returns: Return value of the hook.
         """
         # first look for the hook in the pipeline configuration

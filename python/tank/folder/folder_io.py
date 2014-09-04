@@ -121,9 +121,9 @@ class FolderIOReceiver(object):
         
         folder_creation_items = remote_items + self._items
         
-        self._tk.execute_hook(constants.PROCESS_FOLDER_CREATION_HOOK_NAME, 
-                              items=folder_creation_items, 
-                              preview_mode=self._preview_mode)
+        self._tk.execute_core_hook(constants.PROCESS_FOLDER_CREATION_HOOK_NAME, 
+                                   items=folder_creation_items, 
+                                   preview_mode=self._preview_mode)
         
         # database data was validated, folders on disk created
         # finally store all our new data in the path cache and in shotgun
