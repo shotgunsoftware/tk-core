@@ -60,6 +60,8 @@ class Engine(TankBundle):
         
         self.__commands_that_need_prefixing = []
         
+        self.__global_progress_widget = None
+        
         # get the engine settings
         settings = self.__env.get_engine_settings(self.__engine_instance_name)
         
@@ -177,7 +179,95 @@ class Engine(TankBundle):
         and the object returned may also change. Do not use outside of the core api.
         """
         return self.__env
+
+    ##########################################################################################
+    # properties used by internal classes, not part of the public interface
     
+    def __show_busy(self, title, details):
+        """
+        Payload for the show_busy method.
+
+        For details, see the main show_busy documentation.
+        
+        :params title: Short descriptive title of what is happening
+        :params details: Detailed message describing what is going on.
+        """
+        if self.has_ui:
+            # we cannot import QT until here as non-ui engines don't have QT defined.
+            from .qt.busy_dialog import BusyDialog 
+            from .qt import QtGui, QtCore
+            
+            if not self.__global_progress_widget:
+                
+                # no window exists - create one!
+                (window, self.__global_progress_widget) = self._create_dialog_with_widget(title="Toolkit is busy", 
+                                                                                          bundle=self, 
+                                                                                          widget_class=BusyDialog)
+                
+                # make it a splashscreen that sits on top
+                window.setWindowFlags(QtCore.Qt.SplashScreen | QtCore.Qt.WindowStaysOnTopHint)
+
+                # set the message before the window is raised to avoid briefly
+                # showing default values
+                self.__global_progress_widget.set_contents(title, details)
+                
+                # kick it off        
+                window.show()
+    
+            else:
+                                        
+                # just update the message for the existing window 
+                self.__global_progress_widget.set_contents(title, details)
+
+            # make sure events are properly processed and the window is updated
+            QtCore.QCoreApplication.processEvents()
+        
+        else:
+            # no UI support! Instead, just emit a log message
+            self.log_info("[%s] %s" % (title, details))
+        
+    
+    def show_busy(self, title, details):
+        """
+        Displays or updates a global "busy window" tied to this engine. The window
+        is a splash screen type window, floats on top and contains details of what
+        is currently being processed.
+        
+        This is currently an internal method and not meant to be be used by anything
+        outside the core API. Later on, as things settle, we may consider exposing this.
+        
+        This method pops up a splash screen with a message and the idea is that 
+        long running core processes can use this as a way to communicate their intent
+        to the user and keep the user informed as slow processes are executed. If the engine
+        has a UI present, this will be used to display the progress message. If the engine
+        does not have UI support, a message will be logged. The UI always appears in the 
+        main thread for safety.
+
+        Only one global progress window can exist per engine at a time, so if you want to 
+        push several updates one after the other, just keep calling this method.
+        
+        When you want to remove the window, call clear_busy().
+
+        Note! If you are calling this from the Core API you typically don't have 
+        access to the current engine object. In this case you can use the 
+        convenience method tank.platform.engine.show_global_busy() which will
+        attempt to broadcast the request to the currently active engine.
+        
+        :params title: Short descriptive title of what is happening
+        :params details: Detailed message describing what is going on.
+        """
+        # make sure that the UI is always shown in the main thread
+        self.execute_in_main_thread(self.__show_busy, title, details)
+    
+    def clear_busy(self):
+        """
+        Closes any active busy window.
+        
+        For more details, see the show_busy() documentation.
+        """
+        if self.__global_progress_widget:
+            self.execute_in_main_thread(self.__global_progress_widget.close)
+
     ##########################################################################################
     # properties
 
@@ -1184,6 +1274,30 @@ def get_environment_from_context(tk, context):
     
     return tk.pipeline_configuration.get_environment(env_name, context)
 
+def show_global_busy(title, details):
+    """
+    Convenience method.
+    
+    Displays or updates a global busy/progress indicator window tied to the currently running engine.
+    For more details and documentation, see the engine class documentation of this method.
+
+    :params title: Short descriptive title of what is happening
+    :params details: Detailed message describing what is going on.
+    """
+    engine = current_engine()
+    if engine:
+        engine.show_busy(title, details)        
+    
+def clear_global_busy():
+    """
+    Convenience method.
+    
+    Closes any open global progress indicator window tied to the currently running engine.
+    For more details and documentation, see engine class documentation of this method.
+    """
+    engine = current_engine()
+    if engine:
+        engine.clear_busy()
 
 ##########################################################################################
 # utilities

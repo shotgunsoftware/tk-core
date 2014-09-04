@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="Tank.Platform.Qt">
+    <file>sg_logo_80px.png</file>
     <file>pencil.png</file>
     <file>gradient.png</file>
     <file>bg2.png</file>
