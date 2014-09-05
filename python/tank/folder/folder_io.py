@@ -65,7 +65,7 @@ class FolderIOReceiver(object):
             # request that the path cache is synced against shotgun
             # new items that were not locally available are returned
             # as a list of dicts with keys id, type, name, configuration and path
-            rd = self._path_cache.synchronize()  
+            rd = self._path_cache.synchronize(show_busy_ui=True)
             
             # for each item we get back from the path cache synchronization,
             # issue a remote entity folder request and pass that down to 

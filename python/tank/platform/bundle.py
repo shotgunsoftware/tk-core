@@ -173,10 +173,13 @@ class TankBundle(object):
         An item-specific location on disk where the app or engine can store
         random cache data. This location is guaranteed to exist on disk.
         """
-        # organize caches by app name
-        folder = os.path.join(self.__tk.get_cache_location(), self.name)        
-        self.ensure_folder_exists(folder)        
-        return folder
+        path = self.__tk.execute_core_hook(constants.CACHE_LOCATION_HOOK_NAME,
+                                           project_id=self.__pipeline_config.get_project_id(),
+                                           pipeline_configuration_id=self.__pipeline_config.get_shotgun_id(),
+                                           mode="bundle_cache",
+                                           parameters={"bundle": self})
+        
+        return path
 
     @property
     def context(self):

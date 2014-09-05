@@ -163,7 +163,7 @@ class UnregisterFoldersAction(Action):
 
         pc = path_cache.PathCache(self.tk)
         try:
-            pc.synchronize(log, force=False)
+            pc.synchronize(log)
         finally:
             pc.close()
         
@@ -257,7 +257,7 @@ class UnregisterFoldersAction(Action):
         # lastly, another sync
         pc = path_cache.PathCache(self.tk)
         try:
-            pc.synchronize(log, force=False)
+            pc.synchronize(log)
         finally:
             pc.close()
 

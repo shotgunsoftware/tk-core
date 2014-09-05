@@ -23,7 +23,7 @@ class ClearCacheAction(Action):
     """    
     def __init__(self):
         Action.__init__(self, 
-                        "clear_cache", 
+                        "clear_shotgun_menu_cache", 
                         Action.TK_INSTANCE, 
                         ("Clears the Shotgun Menu Cache associated with this Configuration. "
                          "This is sometimes useful after complex configuration changes if new "
@@ -51,7 +51,7 @@ class ClearCacheAction(Action):
         """
         Actual execution payload
         """             
-        cache_folder = self.tk.get_cache_location()
+        cache_folder = self.tk.pipeline_configuration.get_shotgun_menu_cache_location()
         # cache files are on the form shotgun_mac_project.txt
         for f in os.listdir(cache_folder):
             if f.startswith("shotgun") and f.endswith(".txt"):

@@ -9,7 +9,8 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-This hook is called to determine the cache location for an item 
+This hook is called to determine the cache location for a particular configuration.
+The cache location is  
 
 """
 
@@ -21,12 +22,12 @@ import sys
 
 class CacheLocation(Hook):
     
-    def execute(self, project_id, pipeline_configuration_id, **kwargs):
+    def execute(self, project_id, pipeline_configuration_id, mode, parameters, **kwargs):
         """
         Handle folder creation issued from an app, framework or engine.
         
         :param path: path to create
-        :param bundle_object: object requesting the creation
+        
         """
         
         tk = self.parent
@@ -47,6 +48,13 @@ class CacheLocation(Hook):
                                   base_url, 
                                   "project_%d" % project_id,
                                   "config_%d" % pipeline_configuration_id)
+        
+        # now establish the sub structure, this is done differently for different cache items
+        if mode == "path_cache":
+            pass
+        elif mode == "bundle_cache":
+            bundle = parameters["bundle"]
+        
         
         return cache_path
         

@@ -244,7 +244,7 @@ def _write_shotgun_cache(tk, entity_type, cache_file_name):
     The cache is per type and per operating system
     """
 
-    cache_path = os.path.join(tk.get_cache_location(), cache_file_name)
+    cache_path = os.path.join(tk.pipeline_configuration.get_shotgun_menu_cache_location(), cache_file_name)
 
     # start the shotgun engine, load the apps
     e = engine.start_shotgun_engine(tk, entity_type)

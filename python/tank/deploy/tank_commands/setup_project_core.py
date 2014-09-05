@@ -105,16 +105,7 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, set
     _make_folder(log, os.path.join(config_location_curr_os, "install", "engines"), 0777, True)
     _make_folder(log, os.path.join(config_location_curr_os, "install", "apps"), 0777, True)
     _make_folder(log, os.path.join(config_location_curr_os, "install", "frameworks"), 0777, True)
-    
-    # make sure there is a path cache file
-    # this is to secure the ownership of this file
-    cache_file = os.path.join(config_location_curr_os, "cache", constants.CACHE_DB_FILENAME)
-    if not os.path.exists(cache_file):
-        log.debug("Touching path cache %s" % cache_file)
-        fh = open(cache_file, "wb")
-        fh.close()
-        os.chmod(cache_file, 0666)    
-    
+        
     # copy the configuration into place
     setup_params.report_progress_from_installer("Setting up template configuration...")
     setup_params.create_configuration(os.path.join(config_location_curr_os, "config"))

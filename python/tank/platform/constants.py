@@ -175,9 +175,6 @@ DEFAULT_CFG = "tk-config-default"
 # the name of the shell engine
 SHELL_ENGINE = "tk-shell"
 
-# the name of the file that holds the path cache
-CACHE_DB_FILENAME = "path_cache.db"
-
 # the name of the file that holds the templates.yml config
 CONTENT_TEMPLATES_FILE = "templates.yml"
 

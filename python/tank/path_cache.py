@@ -18,6 +18,9 @@ import sqlite3
 import sys
 import os
 
+from .platform.engine import show_global_busy, clear_global_busy 
+from .platform import constants
+
 from .util import shotgun
 
 # use api json to cover py 2.5
@@ -61,9 +64,8 @@ class PathCache(object):
         self._sync_with_sg = tk.pipeline_configuration.get_shotgun_path_cache_enabled()
         
         if tk.pipeline_configuration.has_associated_data_roots():
-            db_path = tk.get_path_cache_location()
             self._path_cache_disabled = False
-            self._init_db(db_path)
+            self._init_db()
             self._roots = tk.pipeline_configuration.get_data_roots()
 
         else:
@@ -71,18 +73,40 @@ class PathCache(object):
             # go into a no-path-cache-mode
             self._path_cache_disabled = True
     
+    def _get_path_cache_location(self):
+        """
+        Returns the path to the path cache file. 
+        """
+        if self._tk.pipeline_configuration.get_shotgun_path_cache_enabled():
+            # 0.15+ path cache setup - place the path cache
+            # in the default cache location
+            path = self._tk.execute_core_hook(constants.CACHE_LOCATION_HOOK_NAME,
+                                          project_id=self._tk.pipeline_configuration.get_project_id(),
+                                          pipeline_configuration_id=self._tk.pipeline_configuration.get_shotgun_id(),
+                                          mode="path_cache",
+                                          parameters={})            
+            
+        else:
+            # old (v0.14) style path cache
+            # fall back on the 0.14 setting, where the path cache
+            # is located in a tank folder in the project root 
+            path = os.path.join(self._tk.pipeline_configuration.get_primary_data_root(), 
+                                "tank", 
+                                "cache", 
+                                "path_cache.db")
+        
+        self.execute_core_hook("ensure_folder_exists", path=os.path.dirname(path), bundle_obj=None)
+        
+        return path
+    
+    
     def _init_db(self, db_path):
         """
         Sets up the database
         """
+        path_cache_file = self._get_path_cache_location()
         
-        # make sure to set open permissions on the db file if we are the first ones 
-        # to create it
-        db_file_created = False
-        if not os.path.exists(db_path):
-            db_file_created = True
-        
-        self._connection = sqlite3.connect(db_path)
+        self._connection = sqlite3.connect(path_cache_file)
         
         # this is to handle unicode properly - make sure that sqlite returns 
         # str objects for TEXT fields rather than unicode. Note that any unicode
@@ -157,13 +181,6 @@ class PathCache(object):
         finally:
             c.close()
         
-        # and open up permissions if the file was just created
-        if db_file_created:
-            old_umask = os.umask(0)
-            try:
-                os.chmod(db_path, 0666)
-            finally:
-                os.umask(old_umask)                
     
     def _path_to_dbpath(self, relative_path):
         """
@@ -238,12 +255,16 @@ class PathCache(object):
     ############################################################################################
     # shotgun synchronization (SG data pushed into path cache database)
 
-    def synchronize(self, log=None, force=False):
+    def synchronize(self, log=None, force=False, show_busy_ui=False):
         """
         Ensure the local path cache is in sync with Shotgun. 
         
-        :param force: boolean to indicate that a full sync should be carried out.
-        :param log: std python logger object.
+        If the method decides to do a full sync, it will attempt to 
+        launch the busy overlay window.
+        
+        :param log:          Std python logger object.
+        :param force:        Boolean to indicate that a full sync should be carried out.
+        :param show_busy_ui: Boolean to indicate that a busy UI should be activated if the sync runs long. 
         
         :returns: A list of remote items which were detected, created remotely
                   and not existing in this path cache. These are returned as a list of 
@@ -273,7 +294,7 @@ class PathCache(object):
             
             # check if we should do a forced sync
             if force:
-                return self._do_full_sync(c, log)
+                return self._do_full_sync(c, log, show_busy_ui)
             
             # first get the last synchronized event log event.        
             res = c.execute("SELECT max(last_id) FROM event_log_sync")
@@ -283,7 +304,7 @@ class PathCache(object):
             # expect back something like [(249660,)] for a running cache and [(None,)] for a clear
             if len(data) != 1 or data[0] is None:
                 # we should do a full sync
-                return self._do_full_sync(c, log)
+                return self._do_full_sync(c, log, show_busy_ui)
     
             # we have an event log id - so check if there are any more recent events
             event_log_id = data[0]
@@ -320,7 +341,7 @@ class PathCache(object):
                 if log:
                     log.info("Cannot locate path cache tracking marker in Shotgun Event Log. "
                              "Falling back onto a full synchronization.")
-                return self._do_full_sync(c, log)        
+                return self._do_full_sync(c, log, show_busy_ui)        
             
             elif len(response) == 1 and response[0]["id"] == event_log_id:
                 # nothing has changed since the last sync
@@ -330,7 +351,7 @@ class PathCache(object):
             
             elif num_deletions > 0:
                 # some stuff was deleted. fall back on full sync
-                return self._do_full_sync(c, log)
+                return self._do_full_sync(c, log, show_busy_ui)
             
             elif num_creations > 0:
                 # we have a complete trail of increments. 
@@ -532,7 +553,7 @@ class PathCache(object):
 
 
 
-    def _do_full_sync(self, cursor, log):
+    def _do_full_sync(self, cursor, log, show_busy_ui):
         """
         Ensure the local path cache is in sync with Shotgun.
         
@@ -543,22 +564,37 @@ class PathCache(object):
             - metadata 
             - path
         """
-        if log:
-            log.info("Performing a full sync from Shotgun to the local path cache...")
         
-        # find the max event log id. Will we store this in the sync db later.
-        sg_data = self._tk.shotgun.find_one("EventLogEntry", 
-                                            [["event_type", "in", ["Toolkit_Folders_Create", "Toolkit_Folders_Delete"]]], 
-                                            ["id"], 
-                                            [{"field_name": "id", "direction": "desc"}])
+        if show_busy_ui:
+            show_global_busy("Hang on, Toolkit is preparing folders...", 
+                             ("Toolkit is retrieving folder data from Shotgun and ensuring that your "
+                             "setup is up to date. Hang tight, this usually takes less than 30 seconds..."))
+        
+        try:
+        
+            if log:
+                log.info("Performing a full sync from Shotgun to the local path cache...")
+            
+            # find the max event log id. Will we store this in the sync db later.
+            sg_data = self._tk.shotgun.find_one("EventLogEntry", 
+                                                [["event_type", "in", ["Toolkit_Folders_Create", "Toolkit_Folders_Delete"]]], 
+                                                ["id"], 
+                                                [{"field_name": "id", "direction": "desc"}])
+    
+            if sg_data is None:
+                # event log was wiped or we haven't done any folder operations
+                max_event_log_id = 0
+            else:
+                max_event_log_id = sg_data["id"]
+            
+            data = self._replay_folder_entities(cursor, log, max_event_log_id)
 
-        if sg_data is None:
-            # event log was wiped or we haven't done any folder operations
-            max_event_log_id = 0
-        else:
-            max_event_log_id = sg_data["id"]
+        finally:
+            if show_busy_ui:
+                clear_global_busy()
+                
         
-        return self._replay_folder_entities(cursor, log, max_event_log_id)
+        return data
 
     def _do_incremental_sync(self, cursor, log, sg_data):
         """

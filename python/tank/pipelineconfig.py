@@ -493,6 +493,15 @@ class PipelineConfiguration(object):
         """
         return os.path.join(self._pc_root, "config", "hooks")
 
+    def get_shotgun_menu_cache_location(self):
+        """
+        returns the folder where shotgun menu cache files 
+        (used by the browser plugin and java applet) are stored.
+        
+        NOTE! Because of hard coded values inside the Shotgun java applet,
+        this location cannot be customized.
+        """
+        return os.path.join(self._pc_root, "cache")
 
     ########################################################################################
     # configuration data access
