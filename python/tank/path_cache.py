@@ -16,6 +16,7 @@ all Tank items in the file system are kept.
 
 import sqlite3
 import sys
+import errno
 import os
 
 from .platform.engine import show_global_busy, clear_global_busy 
@@ -30,9 +31,7 @@ json = shotgun_api3.shotgun.json
 
 
 from .errors import TankError 
-
-from .util.login import get_current_user 
-
+from .util.login import get_current_user
 
 SHOTGUN_ENTITY = "FilesystemLocation"
 
@@ -73,34 +72,7 @@ class PathCache(object):
             # go into a no-path-cache-mode
             self._path_cache_disabled = True
     
-    def _get_path_cache_location(self):
-        """
-        Returns the path to the path cache file. 
-        """
-        if self._tk.pipeline_configuration.get_shotgun_path_cache_enabled():
-            # 0.15+ path cache setup - place the path cache
-            # in the default cache location
-            path = self._tk.execute_core_hook(constants.CACHE_LOCATION_HOOK_NAME,
-                                          project_id=self._tk.pipeline_configuration.get_project_id(),
-                                          pipeline_configuration_id=self._tk.pipeline_configuration.get_shotgun_id(),
-                                          mode="path_cache",
-                                          parameters={})            
-            
-        else:
-            # old (v0.14) style path cache
-            # fall back on the 0.14 setting, where the path cache
-            # is located in a tank folder in the project root 
-            path = os.path.join(self._tk.pipeline_configuration.get_primary_data_root(), 
-                                "tank", 
-                                "cache", 
-                                "path_cache.db")
-        
-        self.execute_core_hook("ensure_folder_exists", path=os.path.dirname(path), bundle_obj=None)
-        
-        return path
-    
-    
-    def _init_db(self, db_path):
+    def _init_db(self):
         """
         Sets up the database
         """
@@ -176,11 +148,56 @@ class PathCache(object):
                         """)
         
                     self._connection.commit()
-    
         
         finally:
             c.close()
         
+    
+    def _get_path_cache_location(self):
+        """
+        Returns the path to the path cache file and ensures it exists.
+        """
+        if self._tk.pipeline_configuration.get_shotgun_path_cache_enabled():
+            # 0.15+ path cache setup - place the path cache
+            # in the default cache location
+            path = self._tk.execute_core_hook(constants.CACHE_LOCATION_HOOK_NAME,
+                                          project_id=self._tk.pipeline_configuration.get_project_id(),
+                                          pipeline_configuration_id=self._tk.pipeline_configuration.get_shotgun_id(),
+                                          mode="path_cache",
+                                          parameters={})            
+            
+        else:
+            # old (v0.14) style path cache
+            # fall back on the 0.14 setting, where the path cache
+            # is located in a tank folder in the project root 
+            path = os.path.join(self._tk.pipeline_configuration.get_primary_data_root(), 
+                                "tank", 
+                                "cache", 
+                                "path_cache.db")
+
+            # first check that the cache folder exists
+            # note that the cache folder is inside of the tank folder
+            # so no need to attempt a recursive creation here.
+            cache_folder = os.path.dirname(path)
+            if not os.path.exists(cache_folder):
+                old_umask = os.umask(0)
+                try:
+                    os.mkdir(cache_folder, 0777)
+                finally:
+                    os.umask(old_umask)            
+
+            # now try to write a placeholder file with open permissions        
+            if not os.path.exists(path):
+                old_umask = os.umask(0)
+                try:
+                    fh = open(path, "wb")
+                    fh.close()
+                    os.chmod(path, 0666)
+                finally:
+                    os.umask(old_umask)            
+        
+        return path
+    
     
     def _path_to_dbpath(self, relative_path):
         """

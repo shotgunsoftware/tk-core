@@ -108,7 +108,7 @@ class CacheLocation(Hook):
         if not os.path.exists(path):
             old_umask = os.umask(0)
             try:
-                fh = write(path, "wb")
+                fh = open(path, "wb")
                 fh.close()
                 os.chmod(path, 0666)
             except OSError, e:

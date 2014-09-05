@@ -25,6 +25,7 @@ import unittest2 as unittest
 
 import sgtk
 import tank
+from tank import path_cache
 from tank_vendor import yaml
 
 TANK_TEMP = None
@@ -161,7 +162,8 @@ class TankTestBase(unittest.TestCase):
     def tearDown(self):
         """Cleans up after tests."""
         # get rid of path cache from local ~/.shotgun storage
-        path_cache_file = self.tk.get_path_cache_location()
+        pc = path_cache.PathCache(self.tk)
+        path_cache_file = pc._get_path_cache_location()
         if os.path.exists(path_cache_file):
             os.remove(path_cache_file)
         # move project scaffold out of the way
@@ -456,8 +458,9 @@ def _move_data(path):
             os.rename(path, backup_path)
         except WindowsError:
             # On windows intermittent problems with sqlite db file occur
-            pc = sgtk.pipelineconfig.from_path(path)
-            db_path = pc.get_path_cache_location()
+            tk = sgtk.from_path(path)
+            pc = path_cache.PathCache(tk)
+            db_path = pc._get_path_cache_location()
             if os.path.exists(db_path):
                 print 'Removing db %s' % db_path
                 # Importing pdb allows the deletion of the sqlite db sometimes...
