@@ -105,7 +105,7 @@ class ProcessFolderCreation(Hook):
                 
                 action = i.get("action")
                 
-                if action in ["entity_folder", "folder", "remote_entity_folder"]:
+                if action in ["entity_folder", "folder"]:
                     # folder creation
                     path = i.get("path")    
                     if not os.path.exists(path):
@@ -113,6 +113,32 @@ class ProcessFolderCreation(Hook):
                             # create the folder using open permissions
                             os.makedirs(path, 0777)
                         folders.append(path)
+                        
+                elif action == "remote_entity_folder":
+                    # Remote folder creation
+                    #
+                    # NOTE! This action happens when another user has created
+                    # a folder on their machine and we are syncing our local path 
+                    # cache to be aware of this folder's existance.
+                    # 
+                    # For a traditional setup, where the project storage is shared,
+                    # there is no need to do I/O for remote folders - these folders
+                    # have already been created on the remote storage so you have access
+                    # to them already. 
+                    # 
+                    # On a setup where each user or group of users is attached to
+                    # different, independendent file storages, which are synced, 
+                    # it may be meaningful to "replay" the remote folder creation
+                    # on the local system. This would result in the same folder
+                    # scaffold on each disk which is storing project data.
+                    # 
+                    # path = i.get("path")    
+                    # if not os.path.exists(path):
+                    #     if not preview_mode:
+                    #         # create the folder using open permissions
+                    #         os.makedirs(path, 0777)
+                    #     folders.append(path)
+                    pass
                 
                 elif action == "symlink":
                     # symbolic link
