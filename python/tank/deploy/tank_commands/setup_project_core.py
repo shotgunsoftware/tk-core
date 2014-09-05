@@ -172,8 +172,8 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, set
     # resuffle list of associated local storages to be a dict keyed by storage name
     # and with keys mac_path/windows_path/linux_path
 
-    log.debug("Writing roots.yml...")
-    roots_path = os.path.join(config_location_curr_os, "config", "core", "roots.yml")
+    log.debug("Writing %s..." % constants.STORAGE_ROOTS_FILE)
+    roots_path = os.path.join(config_location_curr_os, "config", "core", constants.STORAGE_ROOTS_FILE)
     
     roots_data = {}
     for storage_name in setup_params.get_required_storages():

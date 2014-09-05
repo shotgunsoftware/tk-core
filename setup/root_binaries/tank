@@ -13,18 +13,18 @@
 SELF_PATH=$(cd -P -- "$(dirname -- "$0")" && pwd -P) && SELF_PATH=$SELF_PATH/$(basename -- "$0")
 
 # resolve symlinks
-while [ -h $SELF_PATH ]; do
+while [ -h "$SELF_PATH" ]; do
     # 1) cd to directory of the symlink
     # 2) cd to the directory of where the symlink points
     # 3) get the pwd
     # 4) append the basename
     DIR=$(dirname -- "$SELF_PATH")
-    SYM=$(readlink $SELF_PATH)
-    SELF_PATH=$(cd $DIR && cd $(dirname -- "$SYM") && pwd)/$(basename -- "$SYM")
+    SYM=$(readlink "$SELF_PATH")
+    SELF_PATH=$(cd "$DIR" && cd $(dirname -- "$SYM") && pwd)/$(basename -- "$SYM")
 done
 
 # chop off the file name
-SELF_PATH=$(dirname $SELF_PATH)
+SELF_PATH=$(dirname "$SELF_PATH")
 
 
 # first of all, for performance, check if the command is shotgun_get_actions
@@ -66,9 +66,9 @@ fi
 # when using multiple work dev areas.
 # since we are recursing upwards, only set it if it is not already set.
 # we only set this when it is a pipeline location. Check this by looking for
-# the templates file
-TEMPLATES_FILE="$SELF_PATH/config/core/templates.yml"
-if [ -z "$TANK_CURRENT_PC" ] && [ -f "$TEMPLATES_FILE" ]; then
+# the roots.yml file
+ROOTS_FILE="$SELF_PATH/config/core/roots.yml"
+if [ -z "$TANK_CURRENT_PC" ] && [ -f "$ROOTS_FILE" ]; then
     export TANK_CURRENT_PC=$SELF_PATH
 fi
 
@@ -76,7 +76,7 @@ fi
 if [ -f "$LOCAL_SCRIPT" ];
 then
    # run local script
-   $LOCAL_SCRIPT "$SELF_PATH" "$@"
+   "$LOCAL_SCRIPT" "$SELF_PATH" "$@"
 else
    # there is no local install
    # so try and get the parent and call its tank script
@@ -107,7 +107,7 @@ else
    fi
 
    # all good, execute tank script in parent location
-   $parent_location/tank "$@" --pc="$SELF_PATH"
+   "$parent_location/tank" "$@" --pc="$SELF_PATH"
 
 fi
 

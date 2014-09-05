@@ -987,7 +987,7 @@ def _get_pc_roots_metadata(pipeline_config_root_path):
     # now read in the roots.yml file
     # this will contain something like
     # {'primary': {'mac_path': '/studio', 'windows_path': None, 'linux_path': '/studio'}}
-    roots_yml = os.path.join(pipeline_config_root_path, "config", "core", "roots.yml")
+    roots_yml = os.path.join(pipeline_config_root_path, "config", "core", constants.STORAGE_ROOTS_FILE)
 
     if not os.path.exists(roots_yml):
         raise TankError("Roots metadata file '%s' missing! Please contact support." % roots_yml)
