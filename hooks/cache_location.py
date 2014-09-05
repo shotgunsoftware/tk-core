@@ -23,6 +23,16 @@ class CacheLocation(Hook):
     """
     Hook to control cache folder creation. 
     See execute method for details.
+    
+    Future Note!
+    ------------
+    
+    If new cache modes are introduced in the Toolkit Core, any hook implementations which 
+    have been specifically overridden will raise an Exception. The rationale here is that 
+    if you have overridden the path cache, you most likely take an interest in where cache
+    files will go (which implies you are an advanced user) and you most likely want to 
+    customize the new mode that is being introduced aswell. 
+
     """
     
     def execute(self, project_id, pipeline_configuration_id, mode, parameters, **kwargs):
