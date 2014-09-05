@@ -50,7 +50,7 @@ class TestPathCache(TankTestBase):
 class TestInit(TestPathCache):
     def test_db_exists(self):
         pc = tank.pipelineconfig.from_path(self.project_root)
-        db_path = pc.get_path_cache_location()
+        db_path = self.tk.get_path_cache_location()
         if os.path.exists(db_path):
             self.path_cache.close()
             os.remove(db_path)
@@ -379,7 +379,7 @@ class TestShotgunSync(TankTestBase):
         self.assertEqual( len(self._get_path_cache()), 2)
 
         # make a copy of the path cache at this point
-        pcl = self.tk.pipeline_configuration.get_path_cache_location()
+        pcl = self.tk.get_path_cache_location()
         shutil.copy(pcl, "%s.snap1" % pcl) 
 
         # now insert a new path in Shotgun

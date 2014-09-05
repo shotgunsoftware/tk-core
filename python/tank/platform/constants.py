@@ -81,6 +81,9 @@ TANK_BUNDLE_INIT_HOOK_NAME = "bundle_init"
 # hook that is executed whenever a PipelineConfiguration instance initializes.
 PIPELINE_CONFIGURATION_INIT_HOOK_NAME = "pipeline_configuration_init"
 
+# hook that is executed whenever a cache location should be determined
+CACHE_LOCATION_HOOK_NAME = "cache_location"
+
 # hook to get current login
 CURRENT_LOGIN_HOOK_NAME = "get_current_login"
 

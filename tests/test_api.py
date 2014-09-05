@@ -33,7 +33,6 @@ class TestTemplateFromPath(TankTestBase):
     def setUp(self):
         super(TestTemplateFromPath, self).setUp()
         self.setup_fixtures()
-        self.tk = Tank(self.project_root)
 
     def test_defined_path(self):
         """Resolve a path which maps to a template in the standard config"""
@@ -65,7 +64,7 @@ class TestTemplatesLoaded(TankTestBase):
         self.setup_multi_root_fixtures()
         # some template names we know exist in the standard template
         self.expected_names = ["maya_shot_work", "nuke_shot_work"]
-        self.tk = Tank(self.project_root)
+        
 
     def test_templates_loaded(self):
         actual_names = self.tk.templates.keys()
@@ -108,8 +107,6 @@ class TestPathsFromTemplate(TankTestBase):
         step_path = os.path.join(shot_path, "step_name")
         self.add_production_path(step_path,
                             {"type":"Step", "id":1, "name": "step_name"})
-
-        self.tk = Tank(self.project_root)
 
         # using template from standard setup
         self.template = self.tk.templates.get("maya_shot_work")
@@ -307,7 +304,6 @@ class TestPathsFromTemplateGlob(TankTestBase):
     """Tests for Tank.paths_from_template method which check the string sent to glob.glob."""
     def setUp(self):
         super(TestPathsFromTemplateGlob, self).setUp()
-        self.tk = Tank(self.project_root)
         keys = {"Shot": StringKey("Shot"),
                 "version": IntegerKey("version", format_spec="03"),
                 "seq_num": SequenceKey("seq_num", format_spec="05")}
@@ -378,7 +374,6 @@ class TestVersionProperty(TankTestBase):
     """
     def setUp(self):
         super(TestVersionProperty, self).setUp()
-        self.tk = Tank(self.project_root)
 
     def test_version_property(self):
         self.assertEquals(self.tk.version, "HEAD")
@@ -389,7 +384,6 @@ class TestDocumentationProperty(TankTestBase):
     """
     def setUp(self):
         super(TestDocumentationProperty, self).setUp()
-        self.tk = Tank(self.project_root)
 
     def test_doc_property(self):
         self.assertEquals(self.tk.documentation_url, None)

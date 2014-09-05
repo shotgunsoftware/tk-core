@@ -83,6 +83,7 @@ class PipelineConfiguration(object):
 
         # cache fields lazily populated on getter access
         self._force_reread_settings()
+        
         self.execute_core_hook_internal(constants.PIPELINE_CONFIGURATION_INIT_HOOK_NAME, parent=self)
 
     def __repr__(self):
@@ -102,24 +103,6 @@ class PipelineConfiguration(object):
         self._path_cache_path = None
         self._use_shotgun_path_cache = None
 
-    ########################################################################################
-    # data roots access
-
-    def get_path(self):
-        """
-        Returns the master root for this pipeline configuration
-        """
-        return self._pc_root
-
-    def get_all_os_paths(self):
-        """
-        Returns the path to this config for all operating systems,
-        as defined in the install_locations file. None, if not defined.
-        
-        :returns: dictionary with keys linux2, darwin and win32
-        """
-        return pipelineconfig_utils.resolve_all_os_paths_to_config(self._pc_root)
-
     def _load_metadata_from_sg(self):
         """
         Caches PC metadata from shotgun.
@@ -137,6 +120,25 @@ class PipelineConfiguration(object):
         self._project_id = data.get("project").get("id")
         self._pc_id = data.get("id")
         self._pc_name = data.get("code")
+    
+    
+    ########################################################################################
+    # general access and properties
+
+    def get_path(self):
+        """
+        Returns the master root for this pipeline configuration
+        """
+        return self._pc_root
+
+    def get_all_os_paths(self):
+        """
+        Returns the path to this config for all operating systems,
+        as defined in the install_locations file. None, if not defined.
+        
+        :returns: dictionary with keys linux2, darwin and win32
+        """
+        return pipelineconfig_utils.resolve_all_os_paths_to_config(self._pc_root)
 
     def get_name(self):
         """
@@ -189,7 +191,6 @@ class PipelineConfiguration(object):
         else:
             return False
         
-
     def is_localized(self):
         """
         Returns true if this pipeline configuration has its own Core
@@ -260,6 +261,8 @@ class PipelineConfiguration(object):
 
         return self._published_file_entity_type
 
+    ########################################################################################
+    # path cache
 
     def get_shotgun_path_cache_enabled(self):
         """
@@ -314,7 +317,9 @@ class PipelineConfiguration(object):
         # update settings in memory
         self._force_reread_settings()      
         
-
+    ########################################################################################
+    # storage roots related
+        
     def get_local_storage_roots(self):
         """
         Returns local OS paths to all shotgun local storages used by toolkit. 
@@ -351,7 +356,6 @@ class PipelineConfiguration(object):
         for storage_name, root_path in self.get_local_storage_roots().iteritems():
             proj_roots[storage_name] = self.__append_project_name_to_root(root_path, sys.platform)
         return proj_roots
-
 
     def __append_project_name_to_root(self, root_value, os_name):
         """
@@ -406,68 +410,8 @@ class PipelineConfiguration(object):
          
         return self.get_data_roots().get(constants.PRIMARY_STORAGE_NAME)
 
-    def get_cache_folder(self):
-        """
-        Returns the folder where cache data should be stored.
-        """
-        
-        if self._cache_folder is None:
-            # try to get it from the cache file
-            data = _get_pc_disk_metadata(self._pc_root)
-            pc_location = data.get("cache_location")
-            
-            if pc_location is None:
-                # default to cache data stored locally in the PC, in a cache folder
-                pc_location = {"mac_path": "cache", 
-                               "windows_path": "cache", 
-                               "linux_path": "cache"}                
-
-            path_field = {"linux2": "linux_path", 
-                          "win32": "windows_path", 
-                          "darwin": "mac_path" }[sys.platform]
-            curr_path = pc_location[path_field]
-
-            if curr_path.startswith("/") or curr_path.startswith("\\") or \
-               ( len(curr_path) > 1 and curr_path[1] == ":" ):
-                # absolute path
-                self._cache_folder = curr_path
-            else:
-                # relative path to PC
-                self._cache_folder = os.path.join( self.get_path(), curr_path )
-        
-        return self._cache_folder
-
-
-    def get_path_cache_location(self):
-        """
-        Returns the path to the path cache file. This logic is based around the cache_location
-        setting that is stored in the pipeline config and accessed via get_cache_folder(),
-        but with slightly different logic.
-        """
-                
-        if self._path_cache_path is None:
-            # try to get it from the cache file
-            data = _get_pc_disk_metadata(self._pc_root)
-            pc_location = data.get("cache_location")
-            
-            if pc_location is None:
-                # undefined - this means that the project was created before 0.15.
-                # fall back on the 0.13 setting, where the path cache
-                # is located in a tank folder in the project root 
-                self._path_cache_path = os.path.join(self.get_primary_data_root(), 
-                                                     "tank", 
-                                                     "cache", 
-                                                     constants.CACHE_DB_FILENAME)
-
-            else:
-                # there is a cache location setting defined! Use it.
-                self._path_cache_path = os.path.join(self.get_cache_location(), constants.CACHE_DB_FILENAME)                
-        
-        return self._path_cache_path
-        
-
     ########################################################################################
-    # paths, core info, apps and engines
+    # installation payload (core/apps/engines) disk locations
 
     def get_associated_core_version(self):
         """
@@ -522,19 +466,8 @@ class PipelineConfiguration(object):
         """
         return os.path.join(self.get_install_location(), "install", "core", "python")
 
-
     ########################################################################################
-    # cache
-
-    def get_cache_location(self):
-        """
-        Returns the pipeline config -centric cache location
-        """
-        return os.path.join(self._pc_root, "cache")
-
-
-    ########################################################################################
-    # configuration
+    # configuration disk locations
 
     def get_core_hooks_location(self):
         """
@@ -559,6 +492,10 @@ class PipelineConfiguration(object):
         returns the hooks folder for the project
         """
         return os.path.join(self._pc_root, "config", "hooks")
+
+
+    ########################################################################################
+    # configuration data access
 
     def get_environments(self):
         """
@@ -604,6 +541,10 @@ class PipelineConfiguration(object):
         data = template_includes.process_includes(templates_file, data)
 
         return data
+
+
+    ########################################################################################
+    # helpers and internal
 
     def execute_core_hook_internal(self, hook_name, parent, **kwargs):
         """

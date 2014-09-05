@@ -56,7 +56,7 @@ class TestStartEngine(TankTestBase):
     def test_get_engine_cache_path(self):
         engine_name = "test_engine"
         engine = tank.platform.start_engine(engine_name, self.tk, self.context)
-        cache_location = os.path.join(self.tk.pipeline_configuration.get_path(), "cache", engine_name)
+        cache_location = os.path.join(self.tk.get_cache_location(), engine_name)
         self.assertEquals(engine.cache_location, cache_location)
 
     def test_valid_engine(self):

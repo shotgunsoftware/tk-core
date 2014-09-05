@@ -160,6 +160,11 @@ class TankTestBase(unittest.TestCase):
         
     def tearDown(self):
         """Cleans up after tests."""
+        # get rid of path cache from local ~/.shotgun storage
+        path_cache_file = self.tk.get_path_cache_location()
+        if os.path.exists(path_cache_file):
+            os.remove(path_cache_file)
+        # move project scaffold out of the way
         self._move_project_data()
         # important to delete this to free memory
         self.tk = None
@@ -397,7 +402,7 @@ class TankTestBase(unittest.TestCase):
     def _move_project_data(self):
         """
         Calls _move_data for all project roots.
-        """
+        """        
         _move_data(self.project_root)
         _move_data(self.alt_root_1)
         _move_data(self.alt_root_2)

@@ -102,6 +102,40 @@ class Tank(object):
         """
         return self.pipeline_configuration.execute_core_hook_internal(hook_name, parent=self, **kwargs)
 
+    def get_cache_location(self):
+        """
+        Returns the folder where cache data should be stored.
+        Folders are created.
+        """
+        path = self.execute_core_hook(platform_constants.CACHE_LOCATION_HOOK_NAME,
+                                      project_id=self.__pipeline_config.get_project_id(),
+                                      pipeline_configuration_id=self.__pipeline_config.get_shotgun_id())
+        
+        self.execute_core_hook("ensure_folder_exists", path=path, bundle_obj=None)
+        
+        return path 
+
+    def get_path_cache_location(self):
+        """
+        Returns the path to the path cache file. 
+        """
+        if self.__pipeline_config.get_shotgun_path_cache_enabled():
+            # 0.15+ path cache setup - place the path cache
+            # in the default cache location
+            path = os.path.join(self.get_cache_location(), platform_constants.CACHE_DB_FILENAME)
+            
+        else:
+            # old (v0.14) style path cache
+            # fall back on the 0.14 setting, where the path cache
+            # is located in a tank folder in the project root 
+            path = os.path.join(self.__pipeline_config.get_primary_data_root(), 
+                                "tank", 
+                                "cache", 
+                                platform_constants.CACHE_DB_FILENAME)
+        
+        self.execute_core_hook("ensure_folder_exists", path=os.path.dirname(path), bundle_obj=None)
+        
+        return path
 
     ################################################################################################
     # properties

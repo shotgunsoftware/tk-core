@@ -310,10 +310,6 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, set
     
     # all 0.15+ projects are pushing folders to Shotgun by default
     data["use_shotgun_path_cache"] = True 
-    # and tell toolkit where to store cache data
-    data["cache_location"] = {"mac_path": "cache", 
-                              "windows_path": "cache", 
-                              "linux_path": "cache"}
     
     try:
         fh = open(pipe_config_sg_id_path, "wt")

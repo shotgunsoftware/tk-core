@@ -174,14 +174,8 @@ class TankBundle(object):
         random cache data. This location is guaranteed to exist on disk.
         """
         # organize caches by app name
-        folder = os.path.join(self.__tk.pipeline_configuration.get_cache_folder(), self.name)
-        if not os.path.exists(folder):
-            # create it using open permissions (not via hook since we want to be in control
-            # of permissions inside the tank folders)
-            old_umask = os.umask(0)
-            os.makedirs(folder, 0777)
-            os.umask(old_umask)                
-        
+        folder = os.path.join(self.__tk.get_cache_location(), self.name)        
+        self.ensure_folder_exists(folder)        
         return folder
 
     @property

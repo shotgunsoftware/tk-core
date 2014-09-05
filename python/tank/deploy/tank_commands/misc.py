@@ -51,7 +51,7 @@ class ClearCacheAction(Action):
         """
         Actual execution payload
         """             
-        cache_folder = self.tk.pipeline_configuration.get_cache_location()
+        cache_folder = self.tk.get_cache_location()
         # cache files are on the form shotgun_mac_project.txt
         for f in os.listdir(cache_folder):
             if f.startswith("shotgun") and f.endswith(".txt"):
