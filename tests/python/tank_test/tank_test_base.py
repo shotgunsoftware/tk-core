@@ -164,6 +164,7 @@ class TankTestBase(unittest.TestCase):
         # get rid of path cache from local ~/.shotgun storage
         pc = path_cache.PathCache(self.tk)
         path_cache_file = pc._get_path_cache_location()
+        pc.close()
         if os.path.exists(path_cache_file):
             os.remove(path_cache_file)
         # move project scaffold out of the way

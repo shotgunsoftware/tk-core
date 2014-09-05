@@ -42,22 +42,23 @@ class TestPathCache(TankTestBase):
         super(TestPathCache, self).setUp()
         self.setup_multi_root_fixtures()
         self.path_cache = path_cache.PathCache(self.tk)
+        self.path_cache_location = self.path_cache._get_path_cache_location()
 
     def tearDown(self):
         self.path_cache.close()
         super(TestPathCache, self).tearDown()
 
 class TestInit(TestPathCache):
+    
     def test_db_exists(self):
-        pc = tank.pipelineconfig.from_path(self.project_root)
-        db_path = self.tk.get_path_cache_location()
-        if os.path.exists(db_path):
+        
+        if os.path.exists(self.path_cache_location):
             self.path_cache.close()
-            os.remove(db_path)
-        self.assertFalse(os.path.exists(db_path))
+            os.remove(self.path_cache_location)
+        self.assertFalse(os.path.exists(self.path_cache_location))
         pc = path_cache.PathCache(self.tk)
         pc.close()
-        self.assertTrue(os.path.exists(db_path))
+        self.assertTrue(os.path.exists(self.path_cache_location))
 
     def test_root_map(self):
         """Test that mapping of project root locations is created"""
@@ -359,6 +360,10 @@ class TestShotgunSync(TankTestBase):
     def test_shot(self):
         """Test full and incremental path cache sync."""
         
+        path_cache = tank.path_cache.PathCache(self.tk)
+        pcl = path_cache._get_path_cache_location()
+        path_cache.close()
+        
         self.assertEqual(len(self.tk.shotgun.find(tank.path_cache.SHOTGUN_ENTITY, [])), 1)        
         self.assertEqual( len(self._get_path_cache()), 1)
         
@@ -379,7 +384,6 @@ class TestShotgunSync(TankTestBase):
         self.assertEqual( len(self._get_path_cache()), 2)
 
         # make a copy of the path cache at this point
-        pcl = self.tk.get_path_cache_location()
         shutil.copy(pcl, "%s.snap1" % pcl) 
 
         # now insert a new path in Shotgun
