@@ -174,8 +174,8 @@ class TankBundle(object):
         random cache data. This location is guaranteed to exist on disk.
         """
         path = self.__tk.execute_core_hook(constants.CACHE_LOCATION_HOOK_NAME,
-                                           project_id=self.__pipeline_config.get_project_id(),
-                                           pipeline_configuration_id=self.__pipeline_config.get_shotgun_id(),
+                                           project_id=self.__tk.pipeline_configuration.get_project_id(),
+                                           pipeline_configuration_id=self.__tk.pipeline_configuration.get_shotgun_id(),
                                            mode="bundle_cache",
                                            parameters={"bundle": self})
         
