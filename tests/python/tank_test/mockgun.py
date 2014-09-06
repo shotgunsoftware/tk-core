@@ -7,12 +7,24 @@
 # By accessing, using, copying or modifying this work you indicate your 
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
+"""
+
+Mockgun is a unit test mocker which emulates a Shotgun instance.
+
+You can access this shotgun instance using most common Shotgun API methods.
+
+The "database" of this mocked API is stored in memory and you always start
+with a blank database - typically, fixures then prepares Shotgun prior to 
+tests running.
+
+The schema of the Shotgun instance is determined by a pickled schema file
+which is read from disk. 
+"""
+
 
 import os, copy, datetime
 import cPickle as pickle
 import pprint
-
-
 
 from tank_vendor.shotgun_api3 import sg_timezone, ShotgunError, Shotgun
 
@@ -21,7 +33,16 @@ _schema_entity_filename = "schema_entity.pickle"
 
 def generate_schema(sg_url, sg_script, sg_key, schema_file_path, schema_entity_file_path):
     """
-    Generates the schema files needed by the mocker.
+    Helper method for mockgun.
+    Generates the schema files needed by the mocker by connecting to a real shotgun
+    and downloading the schema information for that site. Once the generated schema 
+    files are being passed to mockgun, it will mimic the site's schema structure.
+    
+    :param sg_url: Shotgun site url
+    :param sg_script: Script name to connect with
+    :param sg_key: Script key to connect with
+    :param schema_file_path: Path where to write the main schema file to
+    :param schema_entity_file_path: Path where to write the entity schema file to
     """
     sg = Shotgun(sg_url, sg_script, sg_key)
     
@@ -33,12 +54,25 @@ def generate_schema(sg_url, sg_script, sg_key, schema_file_path, schema_entity_f
     with open(schema_entity_file_path, "w") as f:
         pickle.dump(schema_entity, f)
     
-    
+
 
 class Shotgun(object):
+    """
+    mockgun.Shotgun is a mocked Shotgun API, designed for test purposes.
+    It generates an object which looks and feels like a normal Shotgun API instance.
+    Instead of connecting to a real server, it keeps all its data in memory in a way
+    which makes it easy to introspect and test.
+    
+    The methods presented in this class reflect the Shotgun API and are therefore
+    sparsely documented.
+    
+    Please note that this class is built for test purposes only and only creates an
+    object which *roughly* resembles the Shotgun API - however, for most common 
+    use cases, this is enough to be able to perform relevant and straight forward 
+    testing of code.
+    """
     
     def __init__(self, base_url, script_name, api_key, convert_datetimes_to_utc=True, http_proxy=None):
-        # set up the schema (must be generated with generate_schema)
         module_dir = os.path.split(__file__)[0]
         schema_path = os.path.join(module_dir, _schema_filename)
         schema_entity_path = os.path.join(module_dir, _schema_entity_filename)
@@ -323,24 +357,7 @@ class Shotgun(object):
     def find(self, entity_type, filters, fields=None, order=None, filter_operator=None, limit=0, retired_only=False, page=0):
         
         self.finds += 1
-        
-#        print "" 
-#        print ""
-#        print "----------------------------------------------------------------------"
-#        print "> find %s %s" % (entity_type, filters)
-#        print "Current data in mock db:"
-#        print pprint.pformat(self._db[entity_type])
-#        
-#        print ""
-#        print "Code Location:"
-#        import traceback
-#        stack_frame = traceback.extract_stack()
-#        traceback_str = "".join(traceback.format_list(stack_frame))
-#        print traceback_str
-#        
-#        print "----------------------------------------------------------------------"
-#        print ""
-        
+                
         self._validate_entity_type(entity_type)
         # do not validate custom fields - this makes it hard to mock up a field quickly
         #self._validate_entity_fields(entity_type, fields)
@@ -396,8 +413,6 @@ class Shotgun(object):
         
         val = [dict((field, self._get_field_from_row(entity_type, row, field)) for field in fields) for row in results]
     
-#        print "> Data: %s" % val
-#        print ""
         return val
     
     
@@ -511,3 +526,7 @@ class Shotgun(object):
     
     def upload_thumbnail(self, entity_type, entity_id, path, **kwargs):
         pass
+
+
+
+
