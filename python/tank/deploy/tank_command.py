@@ -19,7 +19,6 @@ from .tank_commands.action_base import Action
 from .tank_commands import folders
 from .tank_commands import misc
 from .tank_commands import move_pc
-from .tank_commands import move_studio
 from .tank_commands import pc_overview
 from .tank_commands import migrate_entities
 from .tank_commands import path_cache
