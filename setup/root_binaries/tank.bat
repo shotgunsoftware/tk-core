@@ -26,11 +26,11 @@ rem -- this is to help the tank core API figure out for example tank.tank_from_p
 rem -- when using multiple work dev areas.
 rem -- since we are recursing upwards, only set it if it is not already set. 
 rem -- we only set this when it is a pipeline location. Check this by looking for 
-rem -- the templates file
-set TEMPLATES_FILE=%SELF_PATH%\config\core\templates.yml
+rem -- the roots.yml file
+set ROOTS_FILE=%SELF_PATH%\config\core\roots.yml
 
 rem -- if this var is not set AND the templates file exists, set the var.
-IF "%TANK_CURRENT_PC%" == "" IF EXIST "%TEMPLATES_FILE%" set TANK_CURRENT_PC=%SELF_PATH%
+IF "%TANK_CURRENT_PC%" == "" IF EXIST "%ROOTS_FILE%" set TANK_CURRENT_PC=%SELF_PATH%
 
 rem -- check if there is a local core
 set LOCAL_SCRIPT=%SELF_PATH%\install\core\scripts\tank_cmd.bat

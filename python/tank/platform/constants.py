@@ -178,6 +178,9 @@ SHELL_ENGINE = "tk-shell"
 # the name of the file that holds the templates.yml config
 CONTENT_TEMPLATES_FILE = "templates.yml"
 
+# the name of the file that contains the storage root definitions
+STORAGE_ROOTS_FILE = "roots.yml"
+
 # the name of the include section in env and template files
 SINGLE_INCLUDE_SECTION = "include"
 

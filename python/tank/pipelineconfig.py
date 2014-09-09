@@ -583,8 +583,3 @@ class PipelineConfiguration(object):
         return hook.execute_hook(hook_path, parent, **kwargs)
 
 
-
-
-
-
-

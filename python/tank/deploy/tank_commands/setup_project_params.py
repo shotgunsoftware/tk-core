@@ -854,7 +854,7 @@ class TemplateConfiguration(object):
         :returns: A dictionary for keyed by storage
         """
         # get the roots definition
-        root_file_path = os.path.join(self._cfg_folder, "core", "roots.yml")
+        root_file_path = os.path.join(self._cfg_folder, "core", constants.STORAGE_ROOTS_FILE)
         if os.path.exists(root_file_path):
             root_file = open(root_file_path, "r")
             try:
