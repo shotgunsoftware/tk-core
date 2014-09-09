@@ -260,7 +260,6 @@ def get_core_path_for_config(pipeline_config_path):
                 
     return install_path
     
-    
 def resolve_all_os_paths_to_core(core_path):
     """
     Given a core path on the current os platform, 
@@ -299,7 +298,6 @@ def get_config_install_location(path):
     :param path: Path to a pipeline configuration on disk.
     :returns: registered path, may be None.
     """
-    
     # do a bit of cleanup of the input data
     # ensure there is no white space around the path
     path = path.strip()
@@ -316,7 +314,6 @@ def _get_install_locations(path):
     :param path: Path to a pipeline configuration on disk.
     :returns: dictionary with keys linux2, darwin and win32
     """
-    
     # basic sanity check
     if not os.path.exists(path):
         raise TankError("The core path '%s' does not exist on disk!" % path)

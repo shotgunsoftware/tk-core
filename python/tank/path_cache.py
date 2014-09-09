@@ -16,25 +16,20 @@ all Tank items in the file system are kept.
 
 import sqlite3
 import sys
-import errno
 import os
-
-from .platform.engine import show_global_busy, clear_global_busy 
-from .platform import constants
-
-from .util import shotgun
 
 # use api json to cover py 2.5
 # todo - replace with proper external library  
 from tank_vendor import shotgun_api3  
 json = shotgun_api3.shotgun.json
 
-
+from .platform.engine import show_global_busy, clear_global_busy 
+from .platform import constants
 from .errors import TankError 
 from .util.login import get_current_user
 
+# Shotgun field definitions to store the path cache data
 SHOTGUN_ENTITY = "FilesystemLocation"
-
 SG_ENTITY_FIELD = "entity"
 SG_PATH_FIELD = "path"
 SG_METADATA_FIELD = "configuration_metadata"
@@ -119,12 +114,12 @@ class PathCache(object):
                 
                 # we have an existing database! Ensure it is up to date
                 if "event_log_sync" not in table_names:
-                    # this is a pre-0.14 setup where the path cache does not have event log sync
+                    # this is a pre-0.15 setup where the path cache does not have event log sync
                     c.executescript("CREATE TABLE event_log_sync (last_id integer);")
                     self._connection.commit()
                 
                 if "shotgun_status" not in table_names:
-                    # this is a pre-0.14 setup where the path cache does not have the shotgun_status table
+                    # this is a pre-0.15 setup where the path cache does not have the shotgun_status table
                     c.executescript("""CREATE TABLE shotgun_status (path_cache_id integer, shotgun_id integer);
                                        CREATE UNIQUE INDEX shotgun_status_id ON shotgun_status(path_cache_id);""")
                     self._connection.commit()
@@ -155,7 +150,9 @@ class PathCache(object):
     
     def _get_path_cache_location(self):
         """
-        Returns the path to the path cache file and ensures it exists.
+        Creates the path cache file and returns its location on disk.
+        
+        :returns: The path to the path cache file
         """
         if self._tk.pipeline_configuration.get_shotgun_path_cache_enabled():
             # 0.15+ path cache setup - place the path cache
@@ -395,11 +392,13 @@ class PathCache(object):
         - path - local os path
         - path_cache_row_id - the path cache db row id for the entry
         
-        returns: (event_log_id, sg_id_lookup)
-        - event_log_id is the id for the event log entry which summarizes the 
-          creation event.
-        - sg_id_lookup is a dictionary where the keys are path cache row ids 
-          and the values are the newly created corresponding shotgun ids 
+        :param data: List of dicts. See details above.
+        :param event_log_desc: Description to add to the event log entry created.
+        :returns: A tuple with (event_log_id, sg_id_lookup)
+                  - event_log_id is the id for the event log entry which summarizes the 
+                    creation event.
+                  - sg_id_lookup is a dictionary where the keys are path cache row ids 
+                    and the values are the newly created corresponding shotgun ids. 
         """
         
         pc_link = {"type": "PipelineConfiguration",
@@ -493,6 +492,9 @@ class PathCache(object):
         This method is primarily to ensure that any data written by pre-014 clients is
         pushed to shotgun automatically. Once a system is fully running 0.14, this method is no
         longer necessary.
+        
+        :param cursor: Sqlite database cursor
+        :param log: Std python logger or None if logging is not required. 
         """
 
         # first determine which records are not yet in Shotgun.
@@ -580,6 +582,10 @@ class PathCache(object):
             - entity
             - metadata 
             - path
+            
+        :param cursor: Sqlite database cursor
+        :param log: Std python logger or None if logging is not required. 
+        :param show_busy_ui: Flag to indicate that a busy UI should be shown during operation
         """
         
         if show_busy_ui:
@@ -636,12 +642,15 @@ class PathCache(object):
          'type': 'EventLogEntry', 
          'id': 249240}
         
-        Returns a list of remote items which were detected, created remotely
-        and not existing in this path cache. These are returned as a list of 
-        dictionaries, each containing keys:
-            - entity
-            - metadata
-            - path
+        :param cursor: Sqlite database cursor
+        :param log: Std python logger or None if logging is not required. 
+        :param sg_data: see details above
+        :returns: A list of remote items which were detected, created remotely
+                  and not existing in this path cache. These are returned as a list of 
+                  dictionaries, each containing keys:
+                    - entity
+                    - metadata
+                    - path 
         """
 
         if len(sg_data) == 0:
@@ -671,13 +680,16 @@ class PathCache(object):
         to the path cache. If ids is None, this indicates a full sync, and 
         the path cache db table is cleared first. If not, the table
         is appended to.
-        
-        Returns a list of remote items which were detected, created remotely
-        and not existing in this path cache. These are returned as a list of 
-        dictionaries, each containing keys:
-            - entity
-            - metadata 
-            - path
+
+        :param cursor: Sqlite database cursor
+        :param log: Std python logger or None if logging is not required. 
+        :param max_event_log_id:  
+        :returns: A list of remote items which were detected, created remotely
+                  and not existing in this path cache. These are returned as a list of 
+                  dictionaries, each containing keys:
+                    - entity
+                    - metadata 
+                    - path
         
         """
 
@@ -1013,6 +1025,9 @@ class PathCache(object):
         """
         Returns a list of items making up the subtree below a certain shotgun id
         Each item in the list is a dictionary with keys path and sg_id.
+        
+        :param shotgun_id: The shotgun filesystem location id which should be unregistered.
+        :returns: A list of items making up the subtree below the given id
         """
         
         c = self._connection.cursor()
@@ -1056,9 +1071,11 @@ class PathCache(object):
         """
         Returns a path given a shotgun entity (type/id pair)
 
-        :param entity_type: a Shotgun entity type
-        :params entity_id: a Shotgun entity id
-        :returns: a path on disk
+        :param entity_type: A Shotgun entity type
+        :param entity_id: A Shotgun entity id
+        :param primary_only: Only return items marked as primary
+        :param cursor: Database cursor to use. If none, a new cursor will be created.
+        :returns: A path on disk
         """
         
         if self._path_cache_disabled:
@@ -1107,6 +1124,7 @@ class PathCache(object):
         Note that if the lookup fails, none is returned.
 
         :param path: a path on disk
+        :param cursor: Database cursor to use. If none, a new cursor will be created.
         :returns: Shotgun entity dict, e.g. {"type": "Shot", "name": "xxx", "id": 123} 
                   or None if not found
         """

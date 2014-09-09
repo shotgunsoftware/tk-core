@@ -62,14 +62,18 @@ def __get_api_core_config_location():
 
 def __get_sg_config():
     """
-    Returns the sg config yml file for this install
+    Returns the site sg config yml file for this install
+    
+    :returns: full path to to shotgun.yml config file
     """
     core_cfg = __get_api_core_config_location()
     return os.path.join(core_cfg, "shotgun.yml")
 
 def __get_app_store_config():
     """
-    Returns the sg config yml file for this install
+    Returns the app store sg config yml file for this install
+    
+    :returns: full path to to app_store.yml config file
     """
     core_cfg = __get_api_core_config_location()
     return os.path.join(core_cfg, "app_store.yml")     
@@ -77,7 +81,9 @@ def __get_app_store_config():
 
 def get_project_name_studio_hook_location():
     """
-    Returns the path to the studio level project naming hook.
+    Returns the studio level hook that is used to compute the default project name
+    
+    :returns: The path to the studio level project naming hook.
     """
     
     # NOTE! This code is located here because it needs to be able to run without a project.

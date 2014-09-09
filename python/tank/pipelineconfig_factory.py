@@ -116,8 +116,6 @@ def _from_entity(entity_type, entity_id, force):
         return PipelineConfiguration(primary_pc_path)
 
 
-
-
 def from_path(path):
     """
     Factory method that constructs a pipeline configuration given a path on disk.
