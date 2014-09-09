@@ -53,15 +53,14 @@ def _from_entity(entity_type, entity_id, force):
     Factory method that constructs a pipeline configuration given a Shotgun Entity.
     This method contains the implementation payload.
     
-    :param entity_type: Shotgun Entit type
+    :param entity_type: Shotgun Entity type
     :param entity_id: Shotgun id
     :param force: Should the cache be force re-populated?
     :returns: Pipeline Configuration object
     """
-    sg = shotgun.get_sg_connection()
 
     # first see if we can resolve a project id from this entity
-    project_id = __get_project_id(sg, entity_type, entity_id, force)
+    project_id = __get_project_id(entity_type, entity_id, force)
     
     # now given the project id, find the pipeline configurations
     if project_id is None:
@@ -71,7 +70,7 @@ def _from_entity(entity_type, entity_id, force):
                         "enabled project." % (entity_type, entity_id))
 
     # now find the pipeline configurations that are matching this project
-    data = __get_pipeline_configs(sg, force)
+    data = __get_pipeline_configs(force)
     associated_sg_pipeline_configs = __get_pipeline_configs_for_project(project_id, data)
     
     if len(associated_sg_pipeline_configs) == 0:
@@ -165,8 +164,7 @@ def from_path(path):
     # now get storage data, use cache if possible 
     # try to match up the cached data against the path
     # usually this is a fast operation, using cached data only
-    sg = shotgun.get_sg_connection()
-    sg_data = __get_pipeline_configs(sg) 
+    sg_data = __get_pipeline_configs() 
     associated_sg_pipeline_configs = __get_pipeline_configs_for_path(path, sg_data)
     
     if len(associated_sg_pipeline_configs) == 0:
@@ -178,7 +176,7 @@ def from_path(path):
         # Note that this approach means that invalid lookups will be slightly
         # slower because they effectively force a cache-refresh, while
         # real lookups will be fast because they will find a match automatically.
-        sg_data = __get_pipeline_configs(sg, force=True)
+        sg_data = __get_pipeline_configs(force=True)
         associated_sg_pipeline_configs = __get_pipeline_configs_for_path(path, sg_data)
     
     if len(associated_sg_pipeline_configs) == 0:
@@ -380,19 +378,17 @@ def __get_pipeline_configs_for_project(project_id, data):
 #################################################################################################################
 # methods relating to maintaining a small cache to speed up initialization
 
-def __get_project_id(sg, entity_type, entity_id, force=False):
+def __get_project_id(entity_type, entity_id, force=False):
     """
     Connects to Shotgun and retrieves the project id for an entity.
     
     Uses a cache if possible.
     
-    :param sg: Shotgun API Instance
     :param entity_type: Shotgun Entity type
     :param entity_id: Shotgun entity id
     :param force: Force read values from Shotgun
     :returns: project id (int) or None if not found
     """
-    
     if entity_type == "Project":
         # don't need the cache for this one :)
         return entity_id
@@ -402,12 +398,13 @@ def __get_project_id(sg, entity_type, entity_id, force=False):
     if force == False:
         # try to load cache first
         # if that doesn't work, fall back on shotgun
-        cache = __load_lookup_cache(sg)
+        cache = __load_lookup_cache()
         if cache and cache.get(CACHE_KEY):
             # cache hit!
             return cache.get(CACHE_KEY)
          
     # ok, so either we are force recomputing the cache or the cache wasn't there
+    sg = shotgun.get_sg_connection()
     
     # get all local storages for this site
     entity_data = sg.find_one(entity_type, [["id", "is", entity_id]], ["project"]) 
@@ -416,12 +413,12 @@ def __get_project_id(sg, entity_type, entity_id, force=False):
     if entity_data and entity_data["project"]:
         # we have a project id! - cache this data
         project_id = entity_data["project"]["id"] 
-        __add_to_lookup_cache(sg, CACHE_KEY, project_id)
+        __add_to_lookup_cache(CACHE_KEY, project_id)
     
     return project_id
     
 
-def __get_pipeline_configs(sg, force=False):
+def __get_pipeline_configs(force=False):
     """
     Connects to Shotgun and retrieves information about all projects 
     and all pipeline configurations in Shotgun. Adds this to the disk cache.
@@ -447,7 +444,6 @@ def __get_pipeline_configs(sg, force=False):
         - project 
         - project.Project.tank_name    
     
-    :param sg: Shotgun API instance.
     :param force: set this to true to force a cache refresh
     :returns: dictionary with keys local_storages and pipeline_configurations.
     """
@@ -457,12 +453,13 @@ def __get_pipeline_configs(sg, force=False):
     if force == False:
         # try to load cache first
         # if that doesn't work, fall back on shotgun
-        cache = __load_lookup_cache(sg)
+        cache = __load_lookup_cache()
         if cache and cache.get(CACHE_KEY):
             # cache hit!
             return cache.get(CACHE_KEY)
          
     # ok, so either we are force recomputing the cache or the cache wasn't there
+    sg = shotgun.get_sg_connection()
     
     # get all local storages for this site
     local_storages = sg.find("LocalStorage", 
@@ -482,18 +479,17 @@ def __get_pipeline_configs(sg, force=False):
 
     # cache this data
     data = {"local_storages": local_storages, "pipeline_configurations": pipeline_configs}
-    __add_to_lookup_cache(sg, CACHE_KEY, data)
+    __add_to_lookup_cache(CACHE_KEY, data)
     
     return data
 
-def __load_lookup_cache(sg):
+def __load_lookup_cache():
     """
     Load lookup cache file from disk.
     
-    :param sg: Shotgun API instance
     :returns: cache cache, as constructed by the __add_to_lookup_cache method
     """
-    cache_file = __get_cache_location(sg)
+    cache_file = __get_cache_location()
     cache_data = {}
     
     if os.path.exists(cache_file):
@@ -510,21 +506,21 @@ def __load_lookup_cache(sg):
         
     return cache_data
         
-def __add_to_lookup_cache(sg, key, data):
+def __add_to_lookup_cache(key, data):
     """
     Add a key to the lookup cache. This method will silently
     fail if the cache cannot be operated on.
     
-    :param sg: Shotgun API instance
     :param key: Dictionary key for the cache
     :param data: Data to associate with the dictionary key
     """
+    
     # first load the content
-    cache_data = __load_lookup_cache(sg)
+    cache_data = __load_lookup_cache()
     # update
     cache_data[key] = data
     # and write out the cache
-    cache_file = __get_cache_location(sg)
+    cache_file = __get_cache_location()
     
     old_umask = os.umask(0)
     try:
@@ -551,14 +547,17 @@ def __add_to_lookup_cache(sg, key, data):
     finally:
         os.umask(old_umask)
     
-def __get_cache_location(sg):    
+def __get_cache_location():    
     """
     Get the location of the initializtion lookup cache.
     Just computes the path, no I/O.
     
-    :param sg: Shotgun connection
     :returns: A path on disk to the cache file
     """
+
+    # optimized version of creating an sg instance and then calling sg.base_url
+    # this is to avoid connecting to shotgun if possible.
+    sg_base_url = shotgun.get_associated_sg_base_url()
 
     # the default implementation will place things in the following locations:
     # macosx: ~/Library/Application Support/Shotgun/SITE_NAME/toolkit_init.cache
@@ -574,7 +573,7 @@ def __get_cache_location(sg):
         root = os.path.expanduser("~/.shotgun")
 
     # get site only; https://www.foo.com:8080 -> www.foo.com
-    base_url = urlparse.urlparse(sg.base_url)[1].split(":")[0]
+    base_url = urlparse.urlparse(sg_base_url)[1].split(":")[0]
     
     # now structure things by site, project id, and pipeline config id
     return os.path.join(root, base_url, constants.SITE_INIT_CACHE_FILE_NAME)    

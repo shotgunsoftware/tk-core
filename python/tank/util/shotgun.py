@@ -246,6 +246,24 @@ def download_url(sg, url, location):
         raise TankError("Could not download contents of url '%s'. Error reported: %s" % (url, e))
     
     
+def get_associated_sg_base_url():
+    """
+    Returns the shotgun url which is associated with this Toolkit setup.
+    This is an optimization, allowing code to get the Shotgun site URL
+    without having to create a shotgun connection and then inspecting
+    the base_url property.
+    
+    This method is equivalent to calling:
+    
+    create_sg_connection().base_url
+    
+    :returns: The base url for the associated Shotgun site
+    """
+    cfg = __get_sg_config()
+    config_data = __get_sg_config_data(cfg)
+    return config_data["host"]
+
+    
 g_sg_cached_connection = None
 def get_sg_connection():
     """
