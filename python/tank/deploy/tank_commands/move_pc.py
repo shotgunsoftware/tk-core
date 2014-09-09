@@ -233,11 +233,6 @@ class MovePCAction(Action):
             fh.write("# End of file.\n")
             fh.close()
 
-            for r in self.tk.pipeline_configuration.get_data_roots().values():
-                log.info("Updating storage root reference in %s.." % r)
-                scm = pipelineconfig.StorageConfigurationMapping(r)
-                scm.add_pipeline_configuration(mac_path, windows_path, linux_path)
-
         except Exception, e:
             raise TankError("Could not copy configuration! This may be because of system "
                             "permissions or system setup. This configuration will "

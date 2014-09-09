@@ -14,7 +14,7 @@ import shutil
 
 from ...platform import constants
 from ...errors import TankError
-from ... import pipelineconfig
+from ... import pipelineconfig_factory
 
 from tank_vendor import yaml
     
@@ -200,23 +200,6 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, set
         current_os_path = setup_params.get_project_path(storage_name, sys.platform)
         log.debug("Project path: %s" % current_os_path )
                         
-        # create file for configuration backlinks
-        log.debug("Setting up storage -> PC mapping...")
-        scm = pipelineconfig.StorageConfigurationMapping(current_os_path)
-        
-        # make sure there is no existing backlinks associated with the config
-        #
-        # this can be the case if the config setup is using a pre-0.13 setup
-        # where the project tank folder and the install folder is the same,
-        # and the project was based on another project and thefore when the 
-        # files were copied across, the back mappings file also got accidentally
-        # copied.
-        #
-        # it can also happen when doing a force re-install of a project.
-        scm.create_new_file()
-        
-        # and add our configuration
-        scm.add_pipeline_configuration(config_location_mac, config_location_win, config_location_linux)    
     
     # Create Project.tank_name and PipelineConfiguration records in Shotgun
     #
@@ -326,7 +309,7 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, set
     # install apps
     
     # We now have a fully functional tank setup! Time to start it up...
-    pc = pipelineconfig.from_path(config_location_curr_os)
+    pc = pipelineconfig_factory.from_path(config_location_curr_os)
     
     # each entry in the config template contains instructions about which version of the app
     # to use. First loop over all environments and gather all descriptors we should download,

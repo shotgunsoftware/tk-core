@@ -71,11 +71,10 @@ def setUpModule():
     os.makedirs(os.path.join(install_dir, "engines"))
 
 
-
-
-
 class TankTestBase(unittest.TestCase):
-    """Test base class which manages fixtures for tank related tests."""
+    """
+    Test base class which manages fixtures for tank related tests.
+    """
     
     def __init__(self, *args, **kws):
         super(TankTestBase, self).__init__(*args, **kws)
@@ -96,7 +95,9 @@ class TankTestBase(unittest.TestCase):
         self.project_config = None
 
     def setUp(self, project_tank_name = "project_code"):
-        """Creates and registers test project."""
+        """
+        Creates and registers test project.
+        """
         self.tank_temp = TANK_TEMP
         self.tank_source_path = TANK_SOURCE_PATH
 
@@ -123,14 +124,7 @@ class TankTestBase(unittest.TestCase):
         project_cache_dir = os.path.join(project_tank, "cache")
         os.mkdir(project_cache_dir)
 
-        # create back-link file from project storage
-        data = "- {darwin: '%s', linux2: '%s', win32: '%s'}" % (project_tank, project_tank, project_tank) 
-        # old 0.13 file location
-        #self.create_file(os.path.join(project_tank, "config", "tank_configs.yml"), data)
-        self.create_file(os.path.join(self.project_root, "toolkit_mappings.yml"), data)
-
-        # add files needed by the pipeline config
-        
+        # add files needed by the pipeline config        
         pc_yml = os.path.join(project_tank, "config", "core", "pipeline_configuration.yml")
         pc_yml_data = "{ project_name: %s, use_shotgun_path_cache: true, pc_id: 123, project_id: 1, pc_name: Primary}\n\n" % self.project["tank_name"]        
         self.create_file(pc_yml, pc_yml_data)
@@ -148,7 +142,7 @@ class TankTestBase(unittest.TestCase):
         roots_file.write(yaml.dump(roots))
         roots_file.close()        
         
-        self.pipeline_configuration = sgtk.pipelineconfig.from_path(project_tank)
+        self.pipeline_configuration = sgtk.pipelineconfig_factory.from_path(project_tank)
         self.tk = tank.Tank(self.pipeline_configuration)
         
         self.tk._Tank__threadlocal_storage.sg = MockGun_Shotgun("http://unit_test_mock_sg", "mock_user", "mock_key")
@@ -160,7 +154,9 @@ class TankTestBase(unittest.TestCase):
         
         
     def tearDown(self):
-        """Cleans up after tests."""
+        """
+        Cleans up after tests.
+        """
         # get rid of path cache from local ~/.shotgun storage
         pc = path_cache.PathCache(self.tk)
         path_cache_file = pc._get_path_cache_location()
@@ -174,8 +170,12 @@ class TankTestBase(unittest.TestCase):
         
         
     def setup_fixtures(self, core_config="default_core"):
+        """
+        Helper method which sets up a standard toolkit configuration
+        given a configuration template.
         
-        
+        :param core_config: configuration template to use
+        """
         
         test_data_path = os.path.join(self.tank_source_path, "tests", "data")
         core_source = os.path.join(test_data_path, core_config)
@@ -208,7 +208,9 @@ class TankTestBase(unittest.TestCase):
                 
     
     def setup_multi_root_fixtures(self):
-
+        """
+        Helper method which sets up a standard multi-root set of fixtures
+        """
         self.setup_fixtures(core_config="multi_root_core")
         
         # Add multiple project roots
@@ -216,13 +218,6 @@ class TankTestBase(unittest.TestCase):
         self.alt_root_1 = os.path.join(self.tank_temp, "alternate_1", project_name)
         self.alt_root_2 = os.path.join(self.tank_temp, "alternate_2", project_name)
         
-        # add backlink files to storage
-        tank_code = os.path.join(self.project_root, "tank")
-        data = "- {darwin: '%s', linux2: '%s', win32: '%s'}" % (tank_code, tank_code, tank_code) 
-        self.create_file(os.path.join(self.alt_root_1, "tank", "config", "tank_configs.yml"), data)
-        self.create_file(os.path.join(self.alt_root_2, "tank", "config", "tank_configs.yml"), data)
-
-
         # Write roots file
         roots = {"primary": {}, "alternate_1": {}, "alternate_2": {}}
         for os_name in ["windows_path", "linux_path", "mac_path"]:
@@ -236,7 +231,7 @@ class TankTestBase(unittest.TestCase):
         roots_file.close()
         
         # need a new PC object that is using the new roots def file we just created
-        self.pipeline_configuration = sgtk.pipelineconfig.from_path(os.path.join(self.project_root, "tank"))
+        self.pipeline_configuration = sgtk.pipelineconfig_factory.from_path(os.path.join(self.project_root, "tank"))
         # push this new PC into the tk api
         self.tk._Tank__pipeline_config = self.pipeline_configuration 
         
@@ -249,7 +244,6 @@ class TankTestBase(unittest.TestCase):
         self.add_production_path(self.alt_root_2, self.project)
         
         self.tk.create_filesystem_structure("Project", self.project["id"])
-
         
     def add_production_path(self, path, entity=None):
         """
@@ -298,7 +292,9 @@ class TankTestBase(unittest.TestCase):
         del(path_cache)
                        
     def debug_dump(self):
-        
+        """
+        Prints out the contents of the mockgun shotgun database and the path cache
+        """
         print ""
         print "-----------------------------------------------------------------------------"
         print " Shotgun contents:"
@@ -365,7 +361,8 @@ class TankTestBase(unittest.TestCase):
             self.tk.shotgun._db[et][eid] = entity            
 
     def create_file(self, file_path, data=""):
-        """Creates a file on disk with specified data. First the file's directory path will be 
+        """
+        Creates a file on disk with specified data. First the file's directory path will be 
         created, and then a file with contents matching input data.
 
         :param file_path: Absolute path to the file.
@@ -439,10 +436,6 @@ class TankTestBase(unittest.TestCase):
         
         return files
     
-
-
-
-
 
 def _move_data(path):
     """

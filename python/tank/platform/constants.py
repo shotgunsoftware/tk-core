@@ -204,3 +204,7 @@ STUDIO_HOOK_PROJECT_NAME = "project_name.py"
 
 # studio level core hook for specifying shotgun connection settings
 STUDIO_HOOK_SG_CONNECTION_SETTINGS = "sg_connection.py"
+
+# init cache for fast initialization
+SITE_INIT_CACHE_FILE_NAME = "toolkit_init.cache"
+

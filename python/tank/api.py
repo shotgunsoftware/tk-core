@@ -27,6 +27,7 @@ from .template import read_templates
 from .platform import constants as platform_constants
 from . import pipelineconfig
 from . import pipelineconfig_utils
+from . import pipelineconfig_factory
 
 class Tank(object):
     """
@@ -48,7 +49,7 @@ class Tank(object):
             # this is actually a pc object
             self.__pipeline_config = project_path
         else:
-            self.__pipeline_config = pipelineconfig.from_path(project_path)
+            self.__pipeline_config = pipelineconfig_factory.from_path(project_path)
             
         try:
             self.templates = read_templates(self.__pipeline_config)
@@ -558,7 +559,7 @@ def tank_from_entity(entity_type, entity_id):
     """
     Create a Sgtk API instance based on a path inside a project.
     """
-    pc = pipelineconfig.from_entity(entity_type, entity_id)
+    pc = pipelineconfig_factory.from_entity(entity_type, entity_id)
     return Tank(pc)
 
 ##########################################################################################
