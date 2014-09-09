@@ -98,7 +98,6 @@ class MovePCAction(Action):
     
     def run_interactive(self, log, args):
         
-        sg = shotgun.create_sg_connection()
         pipeline_config_id = self.tk.pipeline_configuration.get_shotgun_id()
         current_paths = self.tk.pipeline_configuration.get_all_os_paths()
         
@@ -243,11 +242,11 @@ class MovePCAction(Action):
             os.umask(old_umask)
         
         log.info("Updating Shotgun Configuration Record...")
-        sg.update(constants.PIPELINE_CONFIGURATION_ENTITY, 
-                  pipeline_config_id, 
-                  { "mac_path": new_paths["darwin"],
-                    "windows_path": new_paths["win32"],
-                    "linux_path": new_paths["linux2"] } )
+        self.tk.shotgun.update(constants.PIPELINE_CONFIGURATION_ENTITY, 
+                               pipeline_config_id, 
+                               { "mac_path": new_paths["darwin"],
+                                "windows_path": new_paths["win32"],
+                                "linux_path": new_paths["linux2"] } )
         
         # finally clean up the previous location
         if copy_files:
