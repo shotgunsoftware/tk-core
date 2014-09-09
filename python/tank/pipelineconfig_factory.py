@@ -15,7 +15,7 @@ import collections
 import cPickle as pickle
 
 from .errors import TankError
-from .platform import constants
+from .platform import constants 
 from .util import shotgun
 from . import pipelineconfig_utils
 from .pipelineconfig import PipelineConfiguration
@@ -70,8 +70,8 @@ def _from_entity(entity_type, entity_id, force):
                         "enabled project." % (entity_type, entity_id))
 
     # now find the pipeline configurations that are matching this project
-    data = __get_pipeline_configs(force)
-    associated_sg_pipeline_configs = __get_pipeline_configs_for_project(project_id, data)
+    data = _get_pipeline_configs(force)
+    associated_sg_pipeline_configs = _get_pipeline_configs_for_project(project_id, data)
     
     if len(associated_sg_pipeline_configs) == 0:
         raise TankError("Cannot resolve a pipeline configuration object from %s %s - looks "
@@ -79,10 +79,10 @@ def _from_entity(entity_type, entity_id, force):
                         "the Shotgun Pipeline Toolkit!" % (entity_type, entity_id))
 
     # extract path data from the pipeline configuration shotgun data
-    (local_pc_paths, primary_pc_path) = __get_pipeline_configuration_paths(associated_sg_pipeline_configs)
+    (local_pc_paths, primary_pc_path) = _get_pipeline_configuration_paths(associated_sg_pipeline_configs)
         
     # figure out if we are running a tank command / api from a local pc or from a studio level install
-    config_context_path  = __get_configuration_context()
+    config_context_path  = _get_configuration_context()
 
     if config_context_path:
         # we are running the tank command or API proxy from a configuration
@@ -164,8 +164,8 @@ def from_path(path):
     # now get storage data, use cache if possible 
     # try to match up the cached data against the path
     # usually this is a fast operation, using cached data only
-    sg_data = __get_pipeline_configs() 
-    associated_sg_pipeline_configs = __get_pipeline_configs_for_path(path, sg_data)
+    sg_data = _get_pipeline_configs() 
+    associated_sg_pipeline_configs = _get_pipeline_configs_for_path(path, sg_data)
     
     if len(associated_sg_pipeline_configs) == 0:
         # no matches! This may be because the path is unknown or invalid.
@@ -176,8 +176,8 @@ def from_path(path):
         # Note that this approach means that invalid lookups will be slightly
         # slower because they effectively force a cache-refresh, while
         # real lookups will be fast because they will find a match automatically.
-        sg_data = __get_pipeline_configs(force=True)
-        associated_sg_pipeline_configs = __get_pipeline_configs_for_path(path, sg_data)
+        sg_data = _get_pipeline_configs(force=True)
+        associated_sg_pipeline_configs = _get_pipeline_configs_for_path(path, sg_data)
     
     if len(associated_sg_pipeline_configs) == 0:
         # no matches even after a forced refresh. Fail.
@@ -187,10 +187,10 @@ def from_path(path):
     # Figure out which one is the right one to use.
 
     # extract path data from the pipeline configuration shotgun data
-    (local_pc_paths, primary_pc_path) = __get_pipeline_configuration_paths(associated_sg_pipeline_configs)
+    (local_pc_paths, primary_pc_path) = _get_pipeline_configuration_paths(associated_sg_pipeline_configs)
      
     # figure out if we are running a tank command / api from a local pc or from a studio level install
-    config_context_path  = __get_configuration_context()
+    config_context_path  = _get_configuration_context()
      
     if config_context_path:
         # we are running the tank command or API proxy from a configuration
@@ -229,7 +229,7 @@ def from_path(path):
 #################################################################################################################
 # utilities
 
-def __get_configuration_context():
+def _get_configuration_context():
     """
     Returns a path if the API was invoked via a configuration context, otherwise None.
     
@@ -259,7 +259,7 @@ def __get_configuration_context():
     return val
 
 
-def __get_pipeline_configuration_paths(sg_pipeline_configs):
+def _get_pipeline_configuration_paths(sg_pipeline_configs):
     """
     Given a list of Shotgun Pipeline configuration entity data, return a list
     of pipeline configuration paths for the current platform. Also returns
@@ -280,7 +280,7 @@ def __get_pipeline_configuration_paths(sg_pipeline_configs):
     return (local_pc_paths, primary_pc_path)
 
 
-def __get_pipeline_configs_for_path(path, data):
+def _get_pipeline_configs_for_path(path, data):
     """
     Given a path on disk and a cache data structure, return a list of
     associated pipeline configurations.
@@ -302,7 +302,7 @@ def __get_pipeline_configs_for_path(path, data):
         - project.Project.tank_name    
         
     :param path: Path to look for
-    :param data: Cache data chunk, obtained using __get_pipeline_configs()
+    :param data: Cache data chunk, obtained using _get_pipeline_configs()
     :returns: list of pipeline configurations matching the path, [] if no match.
     """
     platform_lookup = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
@@ -338,7 +338,7 @@ def __get_pipeline_configs_for_path(path, data):
     
     
 
-def __get_pipeline_configs_for_project(project_id, data):
+def _get_pipeline_configs_for_project(project_id, data):
     """
     Given a project id, return a list of associated pipeline configurations.
     
@@ -359,7 +359,7 @@ def __get_pipeline_configs_for_project(project_id, data):
         - project.Project.tank_name    
         
     :param project_id: Project id to look for
-    :param data: Cache data chunk, obtained using __get_pipeline_configs()
+    :param data: Cache data chunk, obtained using _get_pipeline_configs()
     :returns: list of pipeline configurations matching the path, [] if no match.
     """
     matching_pipeline_configs = []
@@ -398,7 +398,7 @@ def __get_project_id(entity_type, entity_id, force=False):
     if force == False:
         # try to load cache first
         # if that doesn't work, fall back on shotgun
-        cache = __load_lookup_cache()
+        cache = _load_lookup_cache()
         if cache and cache.get(CACHE_KEY):
             # cache hit!
             return cache.get(CACHE_KEY)
@@ -413,12 +413,12 @@ def __get_project_id(entity_type, entity_id, force=False):
     if entity_data and entity_data["project"]:
         # we have a project id! - cache this data
         project_id = entity_data["project"]["id"] 
-        __add_to_lookup_cache(CACHE_KEY, project_id)
+        _add_to_lookup_cache(CACHE_KEY, project_id)
     
     return project_id
     
 
-def __get_pipeline_configs(force=False):
+def _get_pipeline_configs(force=False):
     """
     Connects to Shotgun and retrieves information about all projects 
     and all pipeline configurations in Shotgun. Adds this to the disk cache.
@@ -453,7 +453,7 @@ def __get_pipeline_configs(force=False):
     if force == False:
         # try to load cache first
         # if that doesn't work, fall back on shotgun
-        cache = __load_lookup_cache()
+        cache = _load_lookup_cache()
         if cache and cache.get(CACHE_KEY):
             # cache hit!
             return cache.get(CACHE_KEY)
@@ -479,17 +479,17 @@ def __get_pipeline_configs(force=False):
 
     # cache this data
     data = {"local_storages": local_storages, "pipeline_configurations": pipeline_configs}
-    __add_to_lookup_cache(CACHE_KEY, data)
+    _add_to_lookup_cache(CACHE_KEY, data)
     
     return data
 
-def __load_lookup_cache():
+def _load_lookup_cache():
     """
     Load lookup cache file from disk.
     
-    :returns: cache cache, as constructed by the __add_to_lookup_cache method
+    :returns: cache cache, as constructed by the _add_to_lookup_cache method
     """
-    cache_file = __get_cache_location()
+    cache_file = _get_cache_location()
     cache_data = {}
     
     if os.path.exists(cache_file):
@@ -506,7 +506,7 @@ def __load_lookup_cache():
         
     return cache_data
         
-def __add_to_lookup_cache(key, data):
+def _add_to_lookup_cache(key, data):
     """
     Add a key to the lookup cache. This method will silently
     fail if the cache cannot be operated on.
@@ -516,11 +516,11 @@ def __add_to_lookup_cache(key, data):
     """
     
     # first load the content
-    cache_data = __load_lookup_cache()
+    cache_data = _load_lookup_cache()
     # update
     cache_data[key] = data
     # and write out the cache
-    cache_file = __get_cache_location()
+    cache_file = _get_cache_location()
     
     old_umask = os.umask(0)
     try:
@@ -547,7 +547,7 @@ def __add_to_lookup_cache(key, data):
     finally:
         os.umask(old_umask)
     
-def __get_cache_location():    
+def _get_cache_location():    
     """
     Get the location of the initializtion lookup cache.
     Just computes the path, no I/O.

@@ -101,6 +101,12 @@ class TankTestBase(unittest.TestCase):
         self.tank_temp = TANK_TEMP
         self.tank_source_path = TANK_SOURCE_PATH
 
+        def my_cache_location():
+            return os.path.join(self.tank_temp, "init_cache.cache") 
+
+        tank.pipelineconfig_factory._get_cache_location = my_cache_location
+
+
         # define entity for test project
         self.project = {"type": "Project",
                         "id": 1,
@@ -123,10 +129,25 @@ class TankTestBase(unittest.TestCase):
         # create project cache directory
         project_cache_dir = os.path.join(project_tank, "cache")
         os.mkdir(project_cache_dir)
+        
+        # define entity for pipeline configuration
+        self.sg_pc_entity = {"type": "PipelineConfiguration",
+                             "code": "Primary", 
+                             "id": 123, 
+                             "project": self.project, 
+                             "windows_path": project_tank,
+                             "mac_path": project_tank,
+                             "linux_path": project_tank}
+        
+
 
         # add files needed by the pipeline config        
         pc_yml = os.path.join(project_tank, "config", "core", "pipeline_configuration.yml")
-        pc_yml_data = "{ project_name: %s, use_shotgun_path_cache: true, pc_id: 123, project_id: 1, pc_name: Primary}\n\n" % self.project["tank_name"]        
+        pc_yml_data = ("{ project_name: %s, use_shotgun_path_cache: true, pc_id: %d, "
+                       "project_id: %d, pc_name: %s}\n\n" % (self.project["tank_name"], 
+                                                             self.sg_pc_entity["id"], 
+                                                             self.project["id"], 
+                                                             self.sg_pc_entity["code"]))
         self.create_file(pc_yml, pc_yml_data)
         
         loc_yml = os.path.join(project_tank, "config", "core", "install_location.yml")
@@ -141,16 +162,38 @@ class TankTestBase(unittest.TestCase):
         roots_file = open(roots_path, "w") 
         roots_file.write(yaml.dump(roots))
         roots_file.close()        
-        
+                
         self.pipeline_configuration = sgtk.pipelineconfig_factory.from_path(project_tank)
         self.tk = tank.Tank(self.pipeline_configuration)
         
-        self.tk._Tank__threadlocal_storage.sg = MockGun_Shotgun("http://unit_test_mock_sg", "mock_user", "mock_key")
-
+        # set up mockgun and make sure shotgun connection calls route via mockgun
+        
+        self.mockgun = MockGun_Shotgun("http://unit_test_mock_sg", "mock_user", "mock_key")
+        
+        def get_associated_sg_base_url_mocker():
+            return "http://unit_test_mock_sg"
+        
+        def create_sg_connection_mocker():
+            return self.mockgun
+            
+        tank.util.shotgun.get_associated_sg_base_url = get_associated_sg_base_url_mocker
+        tank.util.shotgun.create_sg_connection = create_sg_connection_mocker
+        
         # add project to mock sg and path cache db
         self.add_production_path(self.project_root, self.project)
         
+        # add pipeline configuration
+        self.add_to_sg_mock_db(self.sg_pc_entity)
         
+        # add local storage
+        self.primary_storage = {"type": "LocalStorage",
+                                "id": 7777,
+                                "code": "primary",
+                                "windows_path": self.tank_temp,
+                                "linux_path": self.tank_temp,
+                                "mac_path": self.tank_temp }
+        
+        self.add_to_sg_mock_db(self.primary_storage)
         
         
     def tearDown(self):
@@ -163,6 +206,7 @@ class TankTestBase(unittest.TestCase):
         pc.close()
         if os.path.exists(path_cache_file):
             os.remove(path_cache_file)
+            
         # move project scaffold out of the way
         self._move_project_data()
         # important to delete this to free memory
@@ -217,6 +261,23 @@ class TankTestBase(unittest.TestCase):
         project_name = os.path.basename(self.project_root)
         self.alt_root_1 = os.path.join(self.tank_temp, "alternate_1", project_name)
         self.alt_root_2 = os.path.join(self.tank_temp, "alternate_2", project_name)
+        
+        # add local storages to represent the alternate root points
+        self.alt_storage_1 = {"type": "LocalStorage",
+                              "id": 7778,
+                              "code": "alternate_1",
+                              "windows_path": os.path.join(self.tank_temp, "alternate_1"),
+                              "linux_path": os.path.join(self.tank_temp, "alternate_1"),
+                              "mac_path": os.path.join(self.tank_temp, "alternate_1") }
+        self.add_to_sg_mock_db(self.alt_storage_1)
+        
+        self.alt_storage_2 = {"type": "LocalStorage",
+                              "id": 7779,
+                              "code": "alternate_2",
+                              "windows_path": os.path.join(self.tank_temp, "alternate_2"),
+                              "linux_path": os.path.join(self.tank_temp, "alternate_2"),
+                              "mac_path": os.path.join(self.tank_temp, "alternate_2") }
+        self.add_to_sg_mock_db(self.alt_storage_2)
         
         # Write roots file
         roots = {"primary": {}, "alternate_1": {}, "alternate_2": {}}

@@ -327,12 +327,16 @@ class Shotgun(object):
             return self._schema[entity_type][field]["data_type"]["value"]
 
     def _row_matches_filter(self, entity_type, row, filter):
+        
+        
         try:
             field, operator, rval = filter
         except ValueError:
             raise ShotgunError("Filters must be in the form [lval, operator, rval]")
         lval = self._get_field_from_row(entity_type, row, field)
+        
         field_type = self._get_field_type(entity_type, field)
+        
         # if we're operating on an entity, we'll need to grab the name from the lval's row
         if field_type == "entity":
             lval_row = self._db[lval["type"]][lval["id"]]
@@ -343,6 +347,7 @@ class Shotgun(object):
         return self._compare(field_type, lval, operator, rval)
 
     def _row_matches_filters(self, entity_type, row, filters, filter_operator, retired_only):
+                
         if retired_only and not row["__retired"] or not retired_only and row["__retired"]:
             # ignore retired rows unless the retired_only flag is set
             # ignore live rows if the retired_only flag is set
@@ -355,6 +360,7 @@ class Shotgun(object):
             raise ShotgunError("%s is not a valid filter operator" % filter_operator)
 
     def find(self, entity_type, filters, fields=None, order=None, filter_operator=None, limit=0, retired_only=False, page=0):
+        
         
         self.finds += 1
                 
@@ -389,7 +395,6 @@ class Shotgun(object):
         resolved_filters_2 = []
         for f in resolved_filters:
             
-            
             if len(f) > 3:
                 # ["field", "in", 2,3,4] --> ["field", "in", [2, 3, 4]]
                 new_filter = [ f[0], f[1], f[2:] ]
@@ -409,7 +414,6 @@ class Shotgun(object):
             fields = set(["type", "id"])
         else:
             fields = set(fields) | set(["type", "id"])
-        
         
         val = [dict((field, self._get_field_from_row(entity_type, row, field)) for field in fields) for row in results]
     
