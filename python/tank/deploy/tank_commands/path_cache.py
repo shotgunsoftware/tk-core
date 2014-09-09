@@ -28,8 +28,15 @@ import os
 
 
 class SynchronizePathCache(Action):
+    """
+    Tank command to synchronize the local disk path cache 
+    with the FilesystemLocation entity on disk.
+    """    
     
     def __init__(self):
+        """
+        Constructor
+        """
         Action.__init__(self, 
                         "sync_folder_cache", 
                         Action.TK_INSTANCE, 
@@ -94,8 +101,16 @@ class SynchronizePathCache(Action):
 
 
 class PathCacheMigrationAction(Action):
+    """
+    Tank command for migrating an existing project to use the new FilesystemLocation
+    based syncing. After the migration command has been executed, the project will get
+    its shotgun path cache flag enabled and an initial sync is carried out.
+    """
     
     def __init__(self):
+        """
+        Constructor
+        """        
         Action.__init__(self, 
                         "upgrade_folders", 
                         Action.TK_INSTANCE, 
@@ -104,7 +119,10 @@ class PathCacheMigrationAction(Action):
                         "Admin")
     
     def run_interactive(self, log, args):
-        
+        """
+        Tank command accessor
+        """
+                
         log.info("Welcome to the folder sync upgrade command!")
         log.info("")
         log.info("Projects created with Toolkit v0.14 and earlier do not automatically synchronize "
@@ -141,13 +159,18 @@ class PathCacheMigrationAction(Action):
                  "with Shotgun.")
 
 
-
-
-
-
 class UnregisterFoldersAction(Action):
+    """
+    Tank command for unregistering a folder on disk from Shotgun. This is part of the process of
+    the deletion of a folder on disk. As part of removing or moving, the folder needs to be 
+    unregistered with Shotgun to ensure that the connection between that path and the related 
+    entity is undone.
+    """
     
     def __init__(self):
+        """
+        Constructor
+        """        
         Action.__init__(self, 
                         "unregister_folders", 
                         Action.CTX, 
@@ -155,6 +178,9 @@ class UnregisterFoldersAction(Action):
                         "Admin")
     
     def run_interactive(self, log, args):
+        """
+        Tank command accessor
+        """
         
         if self.context.entity is None:
             raise TankError("You need to specify a Shotgun entity - such as a Shot or Asset!")

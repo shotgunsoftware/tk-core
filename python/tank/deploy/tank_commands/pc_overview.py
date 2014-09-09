@@ -23,6 +23,7 @@ class PCBreakdownAction(Action):
     """
     Action that shows an overview of all the pipeline configurations for a project
     """    
+    
     def __init__(self):
         Action.__init__(self, 
                         "configurations", 
@@ -55,9 +56,7 @@ class PCBreakdownAction(Action):
         log.info("Fetching data from Shotgun...")
         project_id = self.tk.pipeline_configuration.get_project_id()
         
-        sg = self.tk.shotgun
-        
-        proj_data = sg.find_one("Project", [["id", "is", project_id]], ["name"])
+        proj_data = self.tk.shotgun.find_one("Project", [["id", "is", project_id]], ["name"])
         log.info("")
         log.info("")
         log.info("=" * 70)
@@ -65,7 +64,7 @@ class PCBreakdownAction(Action):
         log.info("=" * 70)
         log.info("")
         
-        data = sg.find(constants.PIPELINE_CONFIGURATION_ENTITY, 
+        data = self.tk.shotgun.find(constants.PIPELINE_CONFIGURATION_ENTITY, 
                        [["project", "is", {"type": "Project", "id": project_id}]],
                        ["code", "users", "mac_path", "windows_path", "linux_path"])
         for d in data:

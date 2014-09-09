@@ -54,8 +54,9 @@ class FolderIOReceiver(object):
         
     def execute_folder_creation(self):
         """
-        Runs the actual execution. Returns a list of paths
-        which were calculated to be created.
+        Runs the actual folder execution. 
+        
+        :returns: A list of paths which were calculated to be created
         """
         
         # because the sync can make changes to the path cache, do not run in preview mode
@@ -153,6 +154,10 @@ class FolderIOReceiver(object):
         For example, a Shot folder configured to use the name
         {code}_{sg_sequence.Sequence.code} is implicity also linked
         to the associated sequence entity. This is the secondary entity.
+        
+        :param path: The path on disk to register
+        :param entity: The associated shotgun entitiy as a dictionary with type and id
+        :param config_metadata: The configuration file contents used to drive the creation
         """
         self._secondary_cache_entries.append({"path": path, 
                                               "entity": entity,
@@ -162,6 +167,9 @@ class FolderIOReceiver(object):
         """
         Called by the folder creation classes when a normal simple folder
         is to be created.
+
+        :param path: The path on disk to register
+        :param config_metadata: The configuration file contents used to drive the creation
         """
         self._items.append({"path": path, "metadata": config_metadata, "action": "folder"})
     
@@ -169,6 +177,10 @@ class FolderIOReceiver(object):
         """
         Creates an entity folder, including any cache entries
         the entity parameter must be a dict with id, type and name.
+
+        :param path: The path on disk to register
+        :param entity: The associated shotgun entitiy as a dictionary with type and id
+        :param config_metadata: The configuration file contents used to drive the creation
         """
         self._items.append({"path": path, 
                             "metadata": config_metadata, 
@@ -177,14 +189,18 @@ class FolderIOReceiver(object):
     
     def copy_file(self, src_path, target_path, config_metadata):
         """
-        Called by the folder creation classes when a file is to be copied.
+        Called by the folder creation classes when a file is to be copied
+
+        :param src_path: The source path to copy
+        :param target_path: The target path to copy
+        :param config_metadata: The configuration file contents used to drive the creation
         """
         self._items.append({"source_path": src_path, 
                             "target_path": target_path, 
                             "metadata": config_metadata, 
                             "action": "copy"})              
 
-    def create_symlink(self, path, target, metadata):
+    def create_symlink(self, path, target, config_metadata):
         """
         Called by the folder creation classes when a symlink is to be created.
         
@@ -194,7 +210,7 @@ class FolderIOReceiver(object):
         """
         self._items.append({"path": path, 
                             "target": target, 
-                            "metadata": metadata, 
+                            "metadata": config_metadata, 
                             "action": "symlink"})              
 
 
