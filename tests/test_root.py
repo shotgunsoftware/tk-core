@@ -116,8 +116,8 @@ class TestGetPrimaryRoot(TankTestBase):
         """
         Test path which is not in the project tree.
         """
-        non_project_path = os.path.join(os.path.dirname(self.project_root), "bogus")
-        self.assertRaises(TankError, tank.pipelineconfig.from_path, non_project_path)
+        non_project_path = os.path.join(os.path.dirname(self.project_root), "xxxyyyzzzz")
+        self.assertRaises(TankError, tank.pipelineconfig_factory.from_path, non_project_path)
         
     def test_path_sanitation_logic(self):
         """
