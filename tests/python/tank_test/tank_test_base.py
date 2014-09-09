@@ -49,7 +49,7 @@ def setUpModule():
 
     TANK_TEMP = os.path.join(temp_dir, temp_dir_name)
     # print out the temp data location
-    msg = "Tank test data location: %s" % TANK_TEMP
+    msg = "Toolkit test data location: %s" % TANK_TEMP
     print "\n" + "="*len(msg)
     print msg
     print "="*len(msg) + "\n"
@@ -213,7 +213,6 @@ class TankTestBase(unittest.TestCase):
             
         # get rid of init cache
         if os.path.exists(self.init_cache_location):
-            print ".>>>>>>>>>>> delete %s" % self.init_cache_location
             os.remove(self.init_cache_location)
             
         # move project scaffold out of the way
