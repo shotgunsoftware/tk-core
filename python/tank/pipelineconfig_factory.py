@@ -58,7 +58,7 @@ def _from_entity(entity_type, entity_id, force):
     :param force: Should the cache be force re-populated?
     :returns: Pipeline Configuration object
     """
-    sg = shotgun.create_sg_connection()
+    sg = shotgun.get_sg_connection()
 
     # first see if we can resolve a project id from this entity
     project_id = __get_project_id(sg, entity_type, entity_id, force)
@@ -165,7 +165,7 @@ def from_path(path):
     # now get storage data, use cache if possible 
     # try to match up the cached data against the path
     # usually this is a fast operation, using cached data only
-    sg = shotgun.create_sg_connection()
+    sg = shotgun.get_sg_connection()
     sg_data = __get_pipeline_configs(sg) 
     associated_sg_pipeline_configs = __get_pipeline_configs_for_path(path, sg_data)
     
@@ -397,7 +397,7 @@ def __get_project_id(sg, entity_type, entity_id, force=False):
         # don't need the cache for this one :)
         return entity_id
     
-    CACHE_KEY = "%s_%s_project" % (entity_type, entity_id)
+    CACHE_KEY = "%s_%s" % (entity_type, entity_id)
     
     if force == False:
         # try to load cache first

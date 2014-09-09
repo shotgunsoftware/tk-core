@@ -537,7 +537,7 @@ def _resolve_shotgun_pattern(log, entity_type, name_pattern):
 
     name_field = _get_sg_name_field(entity_type)
     
-    sg = shotgun.create_sg_connection()
+    sg = shotgun.get_sg_connection()
     
     log.debug("Shotgun: find(%s, %s contains %s)" % (entity_type, name_field, name_pattern) )
     data = sg.find(entity_type, [[name_field, "contains", name_pattern]], [name_field])
@@ -681,7 +681,7 @@ def _resolve_shotgun_entity(log, entity_type, entity_search_token, constrain_by_
     :returns: a matching entity_id
     """
 
-    sg = shotgun.create_sg_connection()
+    sg = shotgun.get_sg_connection()
     name_field = _get_sg_name_field(entity_type)
 
     try:
@@ -981,7 +981,7 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
             # the entity name is something like "123"
             # first look if there is an exact match for it. 
             # If not, assume it is an id.
-            sg = shotgun.create_sg_connection()
+            sg = shotgun.get_sg_connection()
             name_field = _get_sg_name_field(entity_type)
 
             # first try by name - e.g. a shot named "123"

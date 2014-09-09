@@ -55,7 +55,7 @@ class PCBreakdownAction(Action):
         log.info("Fetching data from Shotgun...")
         project_id = self.tk.pipeline_configuration.get_project_id()
         
-        sg = shotgun.create_sg_connection()
+        sg = self.tk.shotgun
         
         proj_data = sg.find_one("Project", [["id", "is", project_id]], ["name"])
         log.info("")

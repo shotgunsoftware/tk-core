@@ -107,7 +107,7 @@ class PipelineConfiguration(object):
         """
         Caches PC metadata from shotgun.
         """
-        sg = shotgun.create_sg_connection()
+        sg = shotgun.get_sg_connection()
         platform_lookup = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
         sg_path_field = platform_lookup[sys.platform]
         data = sg.find_one(constants.PIPELINE_CONFIGURATION_ENTITY,
@@ -164,7 +164,7 @@ class PipelineConfiguration(object):
         
         :returns: boolean indicating auto path state
         """
-        sg = shotgun.create_sg_connection()
+        sg = shotgun.get_sg_connection()
         data = sg.find_one(constants.PIPELINE_CONFIGURATION_ENTITY,
                            [["id", "is", self.get_shotgun_id()]],
                            ["linux_path", "windows_path", "mac_path"])

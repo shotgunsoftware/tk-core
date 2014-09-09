@@ -245,13 +245,48 @@ def download_url(sg, url, location):
     except Exception, e:
         raise TankError("Could not download contents of url '%s'. Error reported: %s" % (url, e))
     
+    
+g_sg_cached_connection = None
+def get_sg_connection():
+    """
+    Returns a shotgun connection and maintains a global, cached connection so that only one
+    object is ever returned, no matter how many times this call is made.
+    
+    If you have access to a tk API handle, DO NOT USE THIS METHOD! Instead, use the 
+    tk.shotgun handle, which is also optimal and doesn't keep creating new instances.
+    
+    For all methods where no tk API handle is available (pre-init stuff and global 
+    tk commands for example), this method is useful for performance reasons.
+    
+    Whenever a Shotgun API instance is created, it pings the server to check that 
+    it is running the right versions etc. This is slow and inefficient and means that
+    there will be a delay every time create_sg_connection is called.
+
+    This method caches a global (non-threadsafe!) sg instance and thereby avoids
+    the penalty of connecting to sg every single time the method is called.
+    
+    :return: SG API handle    
+    """
+    
+    global g_sg_cached_connection
+    if g_sg_cached_connection is None:
+        g_sg_cached_connection = create_sg_connection()
+    return g_sg_cached_connection
+
 def create_sg_connection(user="default"):
     """
     Creates a standard tank shotgun connection.
-    User refers to the shotgun user specified in the config shotgun.yml file.
-
-    :param user: Optional shotgun config user to use when
-                 connecting to shotgun.
+    
+    Note! This method returns *a brand new sg API instance*. It is slow.
+    Always consider using tk.shotgun and if you don't have a tk instance,
+    consider using get_sg_connection(). 
+    
+    Whenever a Shotgun API instance is created, it pings the server to check that 
+    it is running the right versions etc. This is slow and inefficient and means that
+    there will be a delay every time create_sg_connection is called.
+    
+    :param user: Optional shotgun config user to use when connecting to shotgun, as defined in shotgun.yml
+    :returns: SG API instance
     """
     api_handle, _ = __create_sg_connection(__get_sg_config(), evaluate_script_user=False, user=user)
     return api_handle
