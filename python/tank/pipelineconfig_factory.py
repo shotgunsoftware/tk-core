@@ -327,8 +327,8 @@ def _get_pipeline_configs_for_path(path, data):
     # step 3 - look at the path we passed in - see if any of the computed
     # project folders are determined to be a parent path
     for project_path in project_paths:
+        
         # (like the SG API, this logic is case preserving, not case insensitive)
-
         if path.lower().startswith(project_path.lower()):
             # found a match! Return the associated list of pipeline configurations
             return project_paths[project_path]

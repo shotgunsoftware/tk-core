@@ -101,11 +101,12 @@ class TankTestBase(unittest.TestCase):
         self.tank_temp = TANK_TEMP
         self.tank_source_path = TANK_SOURCE_PATH
 
-        def my_cache_location():
-            return os.path.join(self.tank_temp, "init_cache.cache") 
+        self.init_cache_location = os.path.join(self.tank_temp, "init_cache.cache") 
 
-        tank.pipelineconfig_factory._get_cache_location = my_cache_location
+        def _get_cache_location_mock():
+            return self.init_cache_location
 
+        tank.pipelineconfig_factory._get_cache_location = _get_cache_location_mock
 
         # define entity for test project
         self.project = {"type": "Project",
@@ -206,6 +207,14 @@ class TankTestBase(unittest.TestCase):
         pc.close()
         if os.path.exists(path_cache_file):
             os.remove(path_cache_file)
+            
+        # clear global shotgun accessor
+        tank.util.shotgun.g_sg_cached_connection = None
+            
+        # get rid of init cache
+        if os.path.exists(self.init_cache_location):
+            print ".>>>>>>>>>>> delete %s" % self.init_cache_location
+            os.remove(self.init_cache_location)
             
         # move project scaffold out of the way
         self._move_project_data()

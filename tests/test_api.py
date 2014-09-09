@@ -23,6 +23,10 @@ from tank_test.tank_test_base import *
 
 class TestInit(TankTestBase):
         
+    def setUp(self):
+        super(TestInit, self).setUp()
+        self.setup_fixtures()
+        
     def test_project_from_param(self):
         tank = Tank(self.project_root)
         self.assertEquals(self.project_root, tank.project_path)
@@ -64,7 +68,6 @@ class TestTemplatesLoaded(TankTestBase):
         self.setup_multi_root_fixtures()
         # some template names we know exist in the standard template
         self.expected_names = ["maya_shot_work", "nuke_shot_work"]
-        
 
     def test_templates_loaded(self):
         actual_names = self.tk.templates.keys()
@@ -389,6 +392,7 @@ class TestDocumentationProperty(TankTestBase):
         self.assertEquals(self.tk.documentation_url, None)
 
 class TestTankFromPath(TankTestBase):
+    
     def setUp(self):
         super(TestTankFromPath, self).setUp()
         self.setup_multi_root_fixtures()
