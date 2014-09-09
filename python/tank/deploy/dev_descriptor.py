@@ -25,7 +25,7 @@ class TankDevDescriptor(AppDescriptor):
     Represents a local item. This item is never downloaded
     into the local storage, you interact with it directly.
     """
-
+    
     def __init__(self, pipeline_config, location_dict):
         super(TankDevDescriptor, self).__init__(pipeline_config, location_dict)
 
@@ -57,16 +57,21 @@ class TankDevDescriptor(AppDescriptor):
         self._version = "Undefined"
         if "version" in location_dict:
             self._version = location_dict.get("version")
+            
+        # if there is a name defined in the location dict then lets use 
+        # this, otherwise we'll fall back to the folder name:
+        self._name = location_dict.get("name")
+        if not self._name:
+            # fall back to the folder name
+            bn = os.path.basename(self._path)
+            self._name, _ = os.path.splitext(bn)
 
     def get_system_name(self):
         """
         Returns a short name, suitable for use in configuration files
         and for folders on disk
         """
-        # use folder name
-        bn = os.path.basename(self._path)
-        (name, ext) = os.path.splitext(bn)
-        return name
+        return self._name
 
     def get_version(self):
         """
