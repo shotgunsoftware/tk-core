@@ -158,7 +158,6 @@ def from_path(path):
             raise TankError("Error starting from the configuration located in '%s' - "
                             "it looks like this pipeline configuration and tank command "
                             "has not been configured for the current operating system." % path)
-        
         return PipelineConfiguration(pc_registered_path)
 
     # now get storage data, use cache if possible 
@@ -321,14 +320,15 @@ def _get_pipeline_configs_for_path(path, data):
         for s in storages:
             # all pipeline configurations are associated
             # with a project which has a tank_name set
-            path = os.path.join(s, pc["project.Project.tank_name"])
+            project_path = os.path.join(s, pc["project.Project.tank_name"])
             # associate this path with the pipeline configuration
-            project_paths[path].append(pc)
+            project_paths[project_path].append(pc)
     
     # step 3 - look at the path we passed in - see if any of the computed
     # project folders are determined to be a parent path
     for project_path in project_paths:
         # (like the SG API, this logic is case preserving, not case insensitive)
+
         if path.lower().startswith(project_path.lower()):
             # found a match! Return the associated list of pipeline configurations
             return project_paths[project_path]
@@ -539,9 +539,8 @@ def _add_to_lookup_cache(key, data):
         # and ensure the cache file has got open permissions
         os.chmod(cache_file, 0666)
     
-    except Exception, e:
+    except:
         # silently continue in case exceptions are raised
-        print e
         pass
     
     finally:
