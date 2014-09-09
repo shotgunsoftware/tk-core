@@ -47,12 +47,14 @@ def generate_schema(sg_url, sg_script, sg_key, schema_file_path, schema_entity_f
     sg = Shotgun(sg_url, sg_script, sg_key)
     
     schema = sg.schema_read()
-    with open(schema_file_path, "w") as f:
-        pickle.dump(schema, f)
+    fh = open(schema_file_path, "w")
+    pickle.dump(schema, fh)
+    fh.close()
         
     schema_entity = sg.schema_entity_read()
-    with open(schema_entity_file_path, "w") as f:
-        pickle.dump(schema_entity, f)
+    fh = open(schema_entity_file_path, "w")
+    pickle.dump(schema_entity, fh)
+    fh.close()
     
 
 
@@ -77,11 +79,13 @@ class Shotgun(object):
         schema_path = os.path.join(module_dir, _schema_filename)
         schema_entity_path = os.path.join(module_dir, _schema_entity_filename)
         
-        with open(schema_path, "r") as f:
-            self._schema = pickle.load(f)
+        fh = open(schema_path, "r")
+        self._schema = pickle.load(fh)
+        fh.close()
             
-        with open(schema_entity_path, "r") as f:
-            self._schema_entity = pickle.load(f) 
+        fh = open(schema_entity_path, "r")
+        self._schema_entity = pickle.load(fh)
+        fh.close() 
 
         # initialize the "database"
         self._db = dict((entity, {}) for entity in self._schema)

@@ -794,17 +794,21 @@ class TestFolderCreationEdgeCases(TankTestBase):
         
         self.assertEquals( self.path_cache.get_paths("Shot", self.shot["id"], False), [])
         
-        with self.assertRaises(TankError) as cm:
-            folder.process_filesystem_structure(self.tk, self.task["type"], self.task["id"], preview=False, engine=None)
-        exception_msg = str(cm.exception)
+        self.assertRaisesRegexp(TankError, 
+                                "Folder creation aborted.*unregister_folders",
+                                folder.process_filesystem_structure,
+                                self.tk,
+                                self.task["type"],
+                                self.task["id"], 
+                                preview=False, 
+                                engine=None)
         
-        # Folder creation aborted: The path '/var/folders/3n/7r4bsy015cb63sssgyj02t1h0000gn/T/tankTemporaryTestData_1381488758.615949/project_code/sequences/seq_code/XYZ' 
-        # cannot be created because another path '/var/folders/3n/7r4bsy015cb63sssgyj02t1h0000gn/T/tankTemporaryTestData_1381488758.615949/project_code/sequences/seq_code/shot_code' is 
-        # already associated with Shot XYZ. This typically happens if an item in Shotgun is renamed or if the path naming in the folder creation configuration is changed. Please run the 
-        # command 'tank folder_info Shot 1' to get a more detailed overview of why you are getting this message and what you can do to resolve this situation.        
+        # Folder creation aborted: The path '.../project_code/sequences/seq_code/shot_code' cannot be processed 
+        # because it is already associated with Shot 'shot_code' (id 1) in Shotgun. You are now trying to 
+        # associate it with Shot 'shot_code' (id 12345). If you want to unregister your previously created 
+        # folders, you can run the following command: 'tank Shot shot_code unregister_folders'         
         
-        self.assertTrue( "tank folder_info Shot %d" % self.shot["id"], exception_msg )
-        self.assertTrue( "Folder creation aborted: The path", exception_msg )
+        
         
         
         
@@ -827,17 +831,20 @@ class TestFolderCreationEdgeCases(TankTestBase):
         # rename the shot
         self.shot["code"] = "XYZ"
 
-        with self.assertRaises(TankError) as cm:
-            folder.process_filesystem_structure(self.tk, self.task["type"], self.task["id"], preview=False, engine=None)
-        exception_msg = str(cm.exception)
-        
-        # Folder creation aborted: The path '/var/folders/3n/7r4bsy015cb63sssgyj02t1h0000gn/T/tankTemporaryTestData_1381488758.615949/project_code/sequences/seq_code/XYZ' 
-        # cannot be created because another path '/var/folders/3n/7r4bsy015cb63sssgyj02t1h0000gn/T/tankTemporaryTestData_1381488758.615949/project_code/sequences/seq_code/shot_code' is 
-        # already associated with Shot XYZ. This typically happens if an item in Shotgun is renamed or if the path naming in the folder creation configuration is changed. Please run the 
-        # command 'tank folder_info Shot 1' to get a more detailed overview of why you are getting this message and what you can do to resolve this situation.        
-        
-        self.assertTrue( "tank folder_info Shot %d" % self.shot["id"], exception_msg )
-        self.assertTrue( "Folder creation aborted: The path", exception_msg )
+
+        self.assertRaisesRegexp(TankError, 
+                                "Folder creation aborted.*unregister_folders",
+                                folder.process_filesystem_structure,
+                                self.tk,
+                                self.task["type"],
+                                self.task["id"], 
+                                preview=False, 
+                                engine=None)
+
+        # Folder creation aborted: The path '.../project_code/sequences/seq_code/shot_code' cannot be processed 
+        # because it is already associated with Shot 'shot_code' (id 1) in Shotgun. You are now trying to 
+        # associate it with Shot 'shot_code' (id 12345). If you want to unregister your previously created 
+        # folders, you can run the following command: 'tank Shot shot_code unregister_folders'         
 
 
         # Previously, if I deleted the old folder on disk, the folder creation should have proceeded
@@ -846,17 +853,15 @@ class TestFolderCreationEdgeCases(TankTestBase):
         renamed_shot_path = os.path.join(self.project_root, "sequences", "seq_code", "shot_code_renamed")
         shutil.move(shot_path, renamed_shot_path)
         
-        with self.assertRaises(TankError) as cm:
-            folder.process_filesystem_structure(self.tk, self.task["type"], self.task["id"], preview=False, engine=None)
-        exception_msg = str(cm.exception)
-        
-        # Folder creation aborted: The path '/var/folders/3n/7r4bsy015cb63sssgyj02t1h0000gn/T/tankTemporaryTestData_1381488758.615949/project_code/sequences/seq_code/XYZ' 
-        # cannot be created because another path '/var/folders/3n/7r4bsy015cb63sssgyj02t1h0000gn/T/tankTemporaryTestData_1381488758.615949/project_code/sequences/seq_code/shot_code' is 
-        # already associated with Shot XYZ. This typically happens if an item in Shotgun is renamed or if the path naming in the folder creation configuration is changed. Please run the 
-        # command 'tank folder_info Shot 1' to get a more detailed overview of why you are getting this message and what you can do to resolve this situation.        
-        
-        self.assertTrue( "tank folder_info Shot %d" % self.shot["id"], exception_msg )
-        self.assertTrue( "Folder creation aborted: The path", exception_msg )
+
+        self.assertRaisesRegexp(TankError, 
+                                "Folder creation aborted.*unregister_folders",
+                                folder.process_filesystem_structure,
+                                self.tk,
+                                self.task["type"],
+                                self.task["id"], 
+                                preview=False, 
+                                engine=None)
 
         
               
