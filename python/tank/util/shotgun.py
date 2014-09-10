@@ -996,13 +996,14 @@ class ToolkitUserAgentHandler(object):
         # First, remove any old toolkit settings
         new_agents = []
         for x in self._sg._user_agents:
-            if x.startswith("tk-core") or \
-               x.startswith("tk-app") or \
-               x.startswith("tk-engine") or \
-               x.startswith("tk-fw"):
+            if (x.startswith("tk-core")
+                or x.startswith("tk-app")
+                or x.startswith("tk-engine")
+                or x.startswith("tk-fw")
+                or x.startswith("tk-trackingid")):
                 continue
             new_agents.append(x)
-         
+        
         # Add new toolkit settings
         if self._core_version:
             new_agents.append("tk-core (%s)" % self._core_version)
@@ -1016,6 +1017,12 @@ class ToolkitUserAgentHandler(object):
         if self._framework:
             new_agents.append("tk-fw (%s %s)" % self._framework)
 
+        # add in a user defined tracking id that can be set
+        # through the SGTK_TRACKING_ID environment variable
+        tracking_id = os.environ.get("SGTK_TRACKING_ID")
+        if tracking_id:
+            new_agents.append("tk-trackingid (%s)" % tracking_id)
+            
         # and update shotgun
         self._sg._user_agents = new_agents
         
