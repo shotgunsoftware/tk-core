@@ -41,7 +41,7 @@ class SynchronizePathCache(Action):
                         "sync_folder_cache", 
                         Action.TK_INSTANCE, 
                         ("Ensures that the local path cache is up to date with Shotgun."), 
-                        "Production")
+                        "Admin")
 
         # this method can be executed via the API
         self.supports_api = True
@@ -137,6 +137,10 @@ class PathCacheMigrationAction(Action):
         log.info("Turning on folder sync will first do a full synchronization of the "
                  "existing folders. After that, syncing will happen incrementally in the "
                  "background.")
+        log.info("")
+        log.info("Note! If you have any cloned pipeline configurations for this project, these must "
+                 "all have the folder synchronization turned on.")
+        log.info("")
         val = raw_input("Turn on syncing for this pipeline configuration (Yes/No) ? [Yes]: ")
         if val != "" and not val.lower().startswith("y"):
             log.info("Exiting! Syncing will not be turned on.")

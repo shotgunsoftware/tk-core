@@ -289,11 +289,11 @@ class PipelineConfiguration(object):
         Note that you need to force a full path sync once this command has been executed. 
         """
         
-        if self.tk.pipeline_configuration.get_shotgun_path_cache_enabled():
+        if self.get_shotgun_path_cache_enabled():
             raise TankError("Shotgun based path cache already turned on!")
                 
         # get current settings
-        curr_settings = self.pipelineconfig_utils.get_metadata(self._pc_root)
+        curr_settings = pipelineconfig_utils.get_metadata(self._pc_root)
         
         # add path cache setting
         curr_settings["use_shotgun_path_cache"] = True
