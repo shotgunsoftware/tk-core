@@ -207,7 +207,7 @@ def from_path(path):
                             "that belongs to a project B." % (config_context_path, path, local_pc_paths))
 
         # okay so this PC is valid!
-        return PipelineConfiguration(pc_registered_path)
+        return PipelineConfiguration(config_context_path)
         
     else:
         # we are running a studio level tank command.
