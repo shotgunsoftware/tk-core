@@ -188,7 +188,10 @@ def _upgrade_path_cache(tank_install_root, log):
     """
     Migration to upgrade to 0.15. Info blurb only.
     """
-
+    log.info("")
+    log.info("")
+    log.info("")
+    log.info("")    
     log.info("---------------------------------------------------------------------")
     log.info("Welcome to Toolkit v0.15!")
     log.info("---------------------------------------------------------------------")
@@ -205,16 +208,16 @@ def _upgrade_path_cache(tank_install_root, log):
     log.info("")
     log.info("---------------------------------------------------------------------")    
     log.info("")
-    val = raw_input("Continue with Toolkit v0.15 upgrade (Yes/No)? [Yes]: ")
-    if val != "" and not val.lower().startswith("y"):
-        raise Exception("You have aborted the upgrade.")    
+    log.info("")
+    log.info("")
+    log.info("")
 
 
 ###################################################################################################
 # Upgrade entry point
 
 
-def upgrade_tank(tank_install_root, log):
+def upgrade_tank(tank_install_root, log, ):
     """
     Upgrades the tank core API located in tank_install_root
     based on files located locally to this script
