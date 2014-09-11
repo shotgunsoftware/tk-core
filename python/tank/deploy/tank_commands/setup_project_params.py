@@ -573,6 +573,15 @@ class ProjectSetupParameters(object):
         # get the location of the configuration
         config_path_current_os = config_path[sys.platform] 
         
+        if config_path_current_os is None or config_path_current_os == "":
+            raise TankError("Please specify a configuration path for your current operating system!")
+        
+        # validate that the config name contains the same characters as the project disk name
+        config_name_current_os = os.path.basename(config_path_current_os)
+        if re.match("^[a-zA-Z0-9_-]+$", config_name_current_os) is None:
+            raise TankError("Invalid configuration folder name '%s'! Please use alphanumerics, "
+                            "underscores and dashes." % config_name_current_os)
+        
         # validate that the config location is not taken
         if os.path.exists(config_path_current_os):
             # pc location already exists - make sure it doesn't already contain an install
