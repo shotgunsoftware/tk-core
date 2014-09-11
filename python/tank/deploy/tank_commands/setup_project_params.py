@@ -552,7 +552,7 @@ class ProjectSetupParameters(object):
         Returns the auto-path status. See set_auto_path for details.
         
         :returns: boolean indicating if auto path should be used
-        """
+        """ 
         return self._auto_path
 
     def validate_configuration_location(self, linux_path, windows_path, macosx_path):
@@ -570,18 +570,34 @@ class ProjectSetupParameters(object):
         config_path["win32"] = windows_path
         config_path["darwin"] = macosx_path
         
+        # validate that the config name contains the same characters as the project disk name
+        if linux_path and linux_path != "":
+            # validate name
+            base_name = linux_path.split("/")[-1]            
+            if re.match("^[a-zA-Z0-9_-]+$", base_name) is None:
+                raise TankError("Invalid Linux configuration folder name '%s'! Please use alphanumerics, "
+                                "underscores and dashes." % base_name)
+
+        if windows_path and windows_path != "":
+            # validate name
+            base_name = windows_path.split("\\")[-1]            
+            if re.match("^[a-zA-Z0-9_-]+$", base_name) is None:
+                raise TankError("Invalid Windows configuration folder name '%s'! Please use alphanumerics, "
+                                "underscores and dashes." % base_name)
+
+        if macosx_path and macosx_path != "":
+            # validate name
+            base_name = macosx_path.split("/")[-1]            
+            if re.match("^[a-zA-Z0-9_-]+$", base_name) is None:
+                raise TankError("Invalid Macosx configuration folder name '%s'! Please use alphanumerics, "
+                                "underscores and dashes." % base_name)
+        
         # get the location of the configuration
         config_path_current_os = config_path[sys.platform] 
         
         if config_path_current_os is None or config_path_current_os == "":
             raise TankError("Please specify a configuration path for your current operating system!")
-        
-        # validate that the config name contains the same characters as the project disk name
-        config_name_current_os = os.path.basename(config_path_current_os)
-        if re.match("^[a-zA-Z0-9_-]+$", config_name_current_os) is None:
-            raise TankError("Invalid configuration folder name '%s'! Please use alphanumerics, "
-                            "underscores and dashes." % config_name_current_os)
-        
+                
         # validate that the config location is not taken
         if os.path.exists(config_path_current_os):
             # pc location already exists - make sure it doesn't already contain an install
