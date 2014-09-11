@@ -552,7 +552,7 @@ class ProjectSetupParameters(object):
         Returns the auto-path status. See set_auto_path for details.
         
         :returns: boolean indicating if auto path should be used
-        """ 
+        """
         return self._auto_path
 
     def validate_configuration_location(self, linux_path, windows_path, macosx_path):
