@@ -570,26 +570,30 @@ class ProjectSetupParameters(object):
         config_path["win32"] = windows_path
         config_path["darwin"] = macosx_path
         
-        # validate that the config name contains the same characters as the project disk name
+        # validate that the config name contains valid characters. The range of valid characters
+        # is similar to the one used to validate the project name.
+        
+        CONFIG_NAME_VALIDATION_REGEX = "^[a-zA-Z0-9_-]+$"
+        
         if linux_path and linux_path != "":
             # validate name
             base_name = linux_path.split("/")[-1]            
-            if re.match("^[a-zA-Z0-9_-]+$", base_name) is None:
+            if re.match(CONFIG_NAME_VALIDATION_REGEX, base_name) is None:
                 raise TankError("Invalid Linux configuration folder name '%s'! Please use alphanumerics, "
                                 "underscores and dashes." % base_name)
 
         if windows_path and windows_path != "":
             # validate name
             base_name = windows_path.split("\\")[-1]            
-            if re.match("^[a-zA-Z0-9_-]+$", base_name) is None:
+            if re.match(CONFIG_NAME_VALIDATION_REGEX, base_name) is None:
                 raise TankError("Invalid Windows configuration folder name '%s'! Please use alphanumerics, "
                                 "underscores and dashes." % base_name)
 
         if macosx_path and macosx_path != "":
             # validate name
             base_name = macosx_path.split("/")[-1]            
-            if re.match("^[a-zA-Z0-9_-]+$", base_name) is None:
-                raise TankError("Invalid Macosx configuration folder name '%s'! Please use alphanumerics, "
+            if re.match(CONFIG_NAME_VALIDATION_REGEX, base_name) is None:
+                raise TankError("Invalid Mac configuration folder name '%s'! Please use alphanumerics, "
                                 "underscores and dashes." % base_name)
         
         # get the location of the configuration
