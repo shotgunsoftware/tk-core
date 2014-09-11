@@ -572,25 +572,24 @@ class ProjectSetupParameters(object):
         
         # validate that the config name contains valid characters. The range of valid characters
         # is similar to the one used to validate the project name.
-        
         CONFIG_NAME_VALIDATION_REGEX = "^[a-zA-Z0-9_-]+$"
         
+        # for paths which are not None and not empty, validate their name.
+        # (note how we don't use os.path.sep because we have to check 
+        #  windows paths on a linux system and vice versa).
         if linux_path and linux_path != "":
-            # validate name
             base_name = linux_path.split("/")[-1]            
             if re.match(CONFIG_NAME_VALIDATION_REGEX, base_name) is None:
                 raise TankError("Invalid Linux configuration folder name '%s'! Please use alphanumerics, "
                                 "underscores and dashes." % base_name)
 
         if windows_path and windows_path != "":
-            # validate name
             base_name = windows_path.split("\\")[-1]            
             if re.match(CONFIG_NAME_VALIDATION_REGEX, base_name) is None:
                 raise TankError("Invalid Windows configuration folder name '%s'! Please use alphanumerics, "
                                 "underscores and dashes." % base_name)
 
         if macosx_path and macosx_path != "":
-            # validate name
             base_name = macosx_path.split("/")[-1]            
             if re.match(CONFIG_NAME_VALIDATION_REGEX, base_name) is None:
                 raise TankError("Invalid Mac configuration folder name '%s'! Please use alphanumerics, "
