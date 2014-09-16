@@ -290,13 +290,13 @@ class PathCache(object):
         
         if self._path_cache_disabled:
             if log:
-                log.info("This project does not have any associated folders.")
+                log.debug("This project does not have any associated folders.")
             return []
         
         
         if not self._sync_with_sg:
             if log:
-                log.info("Path cache synchronization is turned off for this project.")
+                log.debug("Folder synchronization is turned off for this project.")
             return []
                 
         c = self._connection.cursor()
@@ -315,6 +315,9 @@ class PathCache(object):
             # get first item in the data set
             data = list(res)[0]
             
+            if log:
+                log.debug("Path cache sync tracking marker in local sqlite db: %r" % data)
+            
             # expect back something like [(249660,)] for a running cache and [(None,)] for a clear
             if len(data) != 1 or data[0] is None:
                 # we should do a full sync
@@ -332,12 +335,18 @@ class PathCache(object):
             # it could break for example if someone has culled the event log table and in 
             # that case we should fall back on a full sync.
             
+            if log:
+                log.debug("Fetching folder event log entries...")
+            
             response = self._tk.shotgun.find("EventLogEntry", 
                                              [ ["event_type", "in", ["Toolkit_Folders_Create", 
                                                                      "Toolkit_Folders_Delete"]], 
                                                ["id", "greater_than", (event_log_id - 1)],
                                                ["project", "is", project_link] ],
                                              ["id", "meta", "event_type"] )   
+
+            if log:
+                log.debug("Got %s event log entries" % len(response))
         
             # count creation and deletion entries
             num_deletions = 0
@@ -353,18 +362,21 @@ class PathCache(object):
                 # in the event log. Assume that some culling has occured and
                 # fall back on a full sync
                 if log:
-                    log.info("Cannot locate path cache tracking marker in Shotgun Event Log. "
-                             "Falling back onto a full synchronization.")
+                    log.debug("Cannot line up path cache tracking marker in Shotgun Event Log. "
+                              "Falling back onto a full synchronization.")
                 return self._do_full_sync(c, log, show_busy_ui)        
             
             elif len(response) == 1 and response[0]["id"] == event_log_id:
                 # nothing has changed since the last sync
                 if log:
-                    log.info("Path cache syncing not necessary - local folders already up to date!")
+                    log.debug("Path cache syncing not necessary - local folders already up to date!")
                 return []
             
             elif num_deletions > 0:
                 # some stuff was deleted. fall back on full sync
+                if log:
+                    log.debug("Deletions detected, doing full sync")
+
                 return self._do_full_sync(c, log, show_busy_ui)
             
             elif num_creations > 0:
@@ -596,7 +608,7 @@ class PathCache(object):
         try:
         
             if log:
-                log.info("Performing a full sync from Shotgun to the local path cache...")
+                log.info("Performing a complete Shotgun folder sync...")
             
             # find the max event log id. Will we store this in the sync db later.
             sg_data = self._tk.shotgun.find_one("EventLogEntry", 
@@ -668,8 +680,13 @@ class PathCache(object):
                 # should never come here
                 raise Exception("Unsupported event type '%s'" % d)
                 
+        if len(created_folder_ids) == 0:
+            # one or more folder ceration events were detected but none of them had actually
+            # resulted in any actual folders being created!
+            return []
+                
         if log:
-            log.info("Updating path cache - Applying %s updates..." % len(created_folder_ids))
+            log.info("Updating folders - Applying %s updates..." % len(created_folder_ids))
 
         return self._replay_folder_entities(cursor, log, max_event_log_id, created_folder_ids)
 
