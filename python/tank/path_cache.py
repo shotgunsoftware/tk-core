@@ -694,7 +694,7 @@ class PathCache(object):
         """
 
         if log:
-            log.info("Retrieving data from Shotgun...")
+            log.info("Fetching already registered folders from Shotgun...")
         
         if ids is None:
             # get all folder data from shotgun
@@ -727,7 +727,7 @@ class PathCache(object):
                                   [{"field_name": "id", "direction": "asc"},])
         
         if log:
-            log.info("...Retrieved %s records." % len(sg_data))
+            log.debug("...Retrieved %s records." % len(sg_data))
         
             
         # now start a single transaction in which we do all our work
