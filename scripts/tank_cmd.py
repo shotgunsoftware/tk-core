@@ -560,7 +560,6 @@ def _list_commands(log, tk, ctx):
     """
     Output a list of commands given the current context etc
     """
-
     # get all the action objets (commands) suitable for the current context
     (aa, engine) = tank_command.get_actions(log, tk, ctx)
 
@@ -859,7 +858,7 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
         ctx_path = context_items[0]
 
         if using_cwd:
-            log.info("Starting Toolkit for your current directory '%s'" % ctx_path)
+            log.info("Starting Toolkit for your current path '%s'" % ctx_path)
         else:
             log.info("Starting toolkit for path '%s'" % ctx_path)
 
@@ -878,19 +877,28 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
                 # just run tank setup_project from any random folder
                 log.debug("Instantiating Sgtk raised: %s" % e)
 
-        # now try to extract a context
         if tk is not None:
+            #
+            # Right, there is a valid tk api handle, this means one of the following:
+            #
+            # - a project specific tank command guarantees a tk instance 
+            #
+            # - a studio level tank command which is targetting a path 
+            #   which belongs to a toolkit project 
+            # 
+            # It is possible that someone has launched a project specific
+            # tank command with a path which is outside the project.
+            # In this case, initialize this to have the project context.   
+            # We do this by attempting to construct a context and probing it
             
-            # if we are running a local tank command, simply by running "tank",
-            # this represents the project in some sense, so try to load up the 
-            # project context in this case
-            if pipeline_config_root and ctx_path == pipeline_config_root:
+            ctx = tk.context_from_path(ctx_path)
+            if ctx.project is None:
+                # context could not be determined based on the path
+                # revert back to the project context
+                log.info("- The path is not associated with any Shotgun object.")
+                log.info("- Falling back on default project settings.")
                 project_id = tk.pipeline_configuration.get_project_id()
-                ctx = tk.context_from_entity("Project", project_id)
-            else:
-                # for all other paths, try to extract a context
-                # based on the path
-                ctx = tk.context_from_path(ctx_path)
+                ctx = tk.context_from_entity("Project", project_id)                
 
     else:
         # this is a shotgun syntax. e.g. 'tank Shot foo'
