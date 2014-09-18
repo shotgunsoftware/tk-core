@@ -362,35 +362,70 @@ class TankQDialog(TankDialogBase):
         """
         if event.type() == QtCore.QEvent.KeyPress and event.key() != QtCore.Qt.Key_Escape:
             # Don't let the event go any further!
-            #self._bundle.log_debug("Ate key press event '%s'!" % event.key()) 
+            #self._bundle.log_debug("Suppressing key press '%s' in Toolkit dialog!" % event.key())
             return True
         else:
             # standard event processing
             return TankDialogBase.event(self, event)
 
+    def closeEvent(self, event):
+        """
+        Override the dialog closeEvent handler so that it first tries 
+        to close the enclosed widget.
+        
+        If the enclosed widget doesn't close then we should ignore the
+        event so the dialog doesn't close.
+
+        :param event:   The close event to handle
+        """
+        if self._widget:
+            if not self._widget.close():
+                # failed to close the widget which means we
+                # shouldn't close the dialog!
+                event.ignore()
 
     def done(self, exit_code):
         """
         Override 'done' method to emit the dialog_closed
         event.  This method is called regardless of how 
         the dialog is closed.
+        
+        :param exit_code:   The exit code to use if this is
+                            being shown as a modal dialog.
         """
         if self._widget:
             # explicitly call close on the widget - this ensures 
             # any custom closeEvent code is executed properly
-            self._widget.close()
-        
-        self._do_done(exit_code)
+            if self._widget.close():
+                # Note that this will indirectly call _do_done()
+                # so there is no need to call it explicitly from
+                # here!
+                pass
+            else:
+                # widget supressed the close!
+                return
+        else:
+            # process 'done' so that the exit code
+            # gets correctly propogated and the close
+            # event is emitted.
+            self._do_done(exit_code)
         
     def _do_done(self, exit_code):
         """
         Internal method used to execute the base class done() method
         and emit the dialog_closed signal.
+        
+        This may get called directly from 'done' but may also get called
+        when the embedded widget is closed and the dialog is modal.
+
+        :param exit_code:   The exit code to use if this is
+                            being shown as a modal dialog.        
         """
-        # call base done() implementation:
+        # call base done() implementation - this sets
+        # the exit code returned from exec()/show_modal():
         TankDialogBase.done(self, exit_code)
 
-        # and emit signal:
+        # and emit dialog closed signal:
         self.dialog_closed.emit(self)
           
     def detach_widget(self):
@@ -450,9 +485,8 @@ class TankQDialog(TankDialogBase):
         
     def _on_widget_closed(self):
         """
-        This is called when the contained widget
-        is closed - it handles the event and then
-        closes the dialog
+        This is called when the contained widget is closed - it 
+        handles the event and then closes the dialog
         """
         exit_code = QtGui.QDialog.Accepted
         
@@ -460,8 +494,11 @@ class TankQDialog(TankDialogBase):
         if self._widget and hasattr(self._widget, "exit_code"):
             exit_code = self._widget.exit_code        
         
-        # and call done to close the dialog with
-        # the correct exit code
+        # and call done to close the dialog with the correct exit 
+        # code and emit the dialog closed signal.
+        #
+        # Note that we don't call done() directly as it would 
+        # recursively call close on our widget again!
         self._do_done(exit_code)
 
     def _on_arrow(self):
