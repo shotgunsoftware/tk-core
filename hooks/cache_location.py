@@ -57,14 +57,14 @@ class CacheLocation(Hook):
         """
         
         # the default implementation will place things in the following locations:
-        # macosx: ~/Library/Application Support/Shotgun/SITE_NAME/project_xxx/config_yyy
+        # macosx: ~/Library/Caches/Shotgun/SITE_NAME/project_xxx/config_yyy
         # windows: $APPDATA/Shotgun/SITE_NAME/project_xxx/config_yyy
         # linux: ~/.shotgun/SITE_NAME/project_xxx/config_yyy
         
         # first establish the root location
         tk = self.parent
         if sys.platform == "darwin":
-            root = os.path.expanduser("~/Library/Application Support/Shotgun")
+            root = os.path.expanduser("~/Library/Caches/Shotgun")
         elif sys.platform == "win32":
             root = os.path.join(os.environ["APPDATA"], "Shotgun")
         elif sys.platform.startswith("linux"):
