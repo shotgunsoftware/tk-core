@@ -27,11 +27,9 @@ foo/bar.yml - local path, relative to current file
 c:\foo\bar\hello.yml - absolute path, windows
 
 """
-
-
-
 import os
 import sys
+import socket
 
 from tank_vendor import yaml
 
@@ -86,7 +84,7 @@ def _get_includes(file_name, data):
     return resolved_includes
 
 
-def _process_template_includes_r(file_name, data):
+def process_template_includes_r(file_name, data):
     """
     Recursively add template include files.
     
@@ -113,7 +111,7 @@ def _process_template_includes_r(file_name, data):
             fh.close()
         
         # before doing any type of processing, allow the included data to be resolved.
-        included_data = _process_template_includes_r(included_path, included_data)
+        included_data = process_template_includes_r(included_path, included_data)
         
         # add the included data's different sections
         for ts in constants.TEMPLATE_SECTIONS:
@@ -127,7 +125,66 @@ def _process_template_includes_r(file_name, data):
             output_data[ts].update( data[ts] )
     
     return output_data
-        
+
+def _manage_os_and_site(data, file_name):
+    """ Check keys with a _linux/windows_mac prefix and create the appropriate key
+    to be able to resolve othe date.
+    Do the same with site with site suffixes
+    Data is edited on the fly
+
+    :param data: Data from yaml file
+    :type data: dict
+    :param file_name: Path to the template yaml
+    :type file_name: str
+    """
+    os_prefixes = ['windows', 'linux', 'mac']
+    site_suffixes = [] 
+
+    if os.name == 'posix':
+        os_name = 'linux'
+    elif os.name == 'nt':
+        os_name = 'windows'
+    else:
+        os_name = 'mac'
+
+    configPath = file_name.split('config')[0]
+    site_mapping = os.path.join(configPath, 'config', 'env', 'includes', 'my_studio', 'site_mapping.yml')
+
+    if os.path.isfile(site_mapping):
+        # path exists, so try to read it
+        fh = open(site_mapping, "r")
+        try:
+            mapping_data = yaml.load(fh) or {}
+        finally:
+            fh.close()
+
+        mapping = mapping_data['site_mapping']
+        site_suffixes = mapping.keys()
+        domain = socket.getfqdn()
+        for code, ending in mapping.iteritems():
+            if domain.endswith(ending):
+                country = code
+                break
+
+    for section in data:
+        for key in [k for os_prefix in os_prefixes for k in data[section] if k.startswith(os_prefix)]:
+            main_key = '_'.join(key.split('_')[1:])
+            if not main_key in data[section]:
+                new_key = '_'.join([os_name, main_key])
+                try:
+                    data[section][main_key] = data[section][new_key]
+                except KeyError:
+                    raise TankError('No %s found in config' % new_key)
+
+        for key in [k for site_suffix in site_suffixes for k in data[section] if k.endswith(site_suffix)]:
+            main_key = '_'.join(key.split('_')[:-1])
+            if not main_key in data[section]:
+                new_key = '_'.join([main_key, country])
+                try:
+                    data[section][main_key] = data[section][new_key]
+                except KeyError:
+                    raise TankError('No %s found in config' % new_key)
+
 def process_includes(file_name, data):
     """
     Processes includes for the main templates file. Will look for 
@@ -138,12 +195,27 @@ def process_includes(file_name, data):
     1. first load in include data into keys, strings, path sections.
        if there are multiple files, they are loaded in order.
     2. now, on top of this, load in this file's keys, strings and path defs
-    3. lastly, process all @refs in the paths section
-        
+    3. process os and site cariables
+    4. lastly, process all @refs in the paths section
+
     """
     # first recursively load all template data from includes
-    resolved_includes_data = _process_template_includes_r(file_name, data)
-    
+    resolved_includes_data = process_template_includes_r(file_name, data)
+
+    # then resolve data
+    return resolve_data(resolved_includes_data, file_name)
+
+
+def resolve_data(resolved_includes_data, file_name):
+    """ Resolved all values
+
+    1. process os and site cariables
+    2. lastly, process all @refs in the paths section
+
+    """
+    # Manage keys depending on os and site
+    _manage_os_and_site(resolved_includes_data, file_name)
+
     # Now recursively process any @resolves.
     # these are of the following form:
     #   foo: bar
@@ -156,9 +228,10 @@ def process_includes(file_name, data):
     #   ttt: @foo/something/@@/_@foo_
     # Would result in:
     #   bar/something/@/_bar_
-    template_paths = resolved_includes_data[constants.TEMPLATE_PATH_SECTION]
+    template_paths = resolved_includes_data.get(constants.TEMPLATE_PATH_SECTION, {})
     template_strings = resolved_includes_data[constants.TEMPLATE_STRING_SECTION] 
     
+
     # process the template paths section:
     for template_name, template_definition in template_paths.iteritems():
         _resolve_template_r(template_paths, 
@@ -250,7 +323,8 @@ def _resolve_template_r(template_paths, template_strings, template_name, templat
         template_str = template_definition.get("definition")
         complex_syntax = True
     elif isinstance(template_definition, basestring):
-        template_str = template_definition
+        template_str = template_definition.replace('%s ' % constants.TEMPLATE_PATHS_SEPARATOR,
+                                                   constants.TEMPLATE_PATHS_SEPARATOR).strip().rstrip(constants.TEMPLATE_PATHS_SEPARATOR)
     if not template_str:
         raise TankError("Invalid template configuration for '%s' - it looks like the "
                         "definition is missing!" % (template_name))
@@ -269,7 +343,13 @@ def _resolve_template_r(template_paths, template_strings, template_name, templat
             if not ref_part:
                 # this would have been an @ so ignore!
                 continue
-                
+
+            # Manage variables in paths
+            path_parts = ref_part.split(constants.TEMPLATE_FOLDERS_SEPARATOR)
+            to_replace = path_parts[0].rstrip(constants.TEMPLATE_PATHS_SEPARATOR)
+            if not to_replace:
+                continue
+            
             # find a template that matches the start of the template string:                
             ref_template = _find_matching_ref_template(template_paths, template_strings, ref_part)
             if not ref_template:
