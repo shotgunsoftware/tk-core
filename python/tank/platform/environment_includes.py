@@ -177,7 +177,7 @@ def _resolve_refs_r(lookup_dict, data):
                         continue
 
                     # Manage variables in paths
-                    path_parts = ref_part.split('/')
+                    path_parts = ref_part.split(constants.TEMPLATE_FOLDERS_SEPARATOR)
                     to_replace = path_parts[0].rstrip(':')
                     if not to_replace:
                         continue
