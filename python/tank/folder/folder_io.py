@@ -87,7 +87,9 @@ class FolderIOReceiver(object):
         
             if len(remote_items) > 0:
                 # execute the actual I/O
-                tk.execute_hook(constants.PROCESS_FOLDER_CREATION_HOOK_NAME, items=remote_items, preview_mode=False)
+                tk.execute_core_hook(constants.PROCESS_FOLDER_CREATION_HOOK_NAME, 
+                                     items=remote_items, 
+                                     preview_mode=False)
             
             # return all folders that were computed
             folders = []
@@ -162,9 +164,9 @@ class FolderIOReceiver(object):
                 # take care of any folders that were possibly created during
                 # the syncing:
                 if len(remote_items) > 0:
-                    self._tk.execute_hook(constants.PROCESS_FOLDER_CREATION_HOOK_NAME, 
-                                          items=remote_items, 
-                                          preview_mode=self._preview_mode)
+                    self._tk.execute_core_hook(constants.PROCESS_FOLDER_CREATION_HOOK_NAME, 
+                                               items=remote_items, 
+                                               preview_mode=self._preview_mode)
                 
                 # ok folders created for synced stuff. Now re-raise validation error
                 raise TankError("Folder creation aborted: %s" % e) 
