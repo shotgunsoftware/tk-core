@@ -15,16 +15,11 @@ Methods for handling of the tank command
 
 from ...errors import TankError
 from ... import path_cache
-from ... import pipelineconfig
+from ... import folder 
 
 from .action_base import Action
-
 from ...util.login import get_current_user 
 
-from tank_vendor import yaml
-
-import pprint
-import os
 
 
 class SynchronizePathCache(Action):
@@ -38,9 +33,9 @@ class SynchronizePathCache(Action):
         Constructor
         """
         Action.__init__(self, 
-                        "sync_folder_cache", 
+                        "synchronize_folders", 
                         Action.TK_INSTANCE, 
-                        ("Ensures that the local path cache is up to date with Shotgun."), 
+                        ("Ensures that the local folders and folder metadata is up to date with Shotgun."), 
                         "Admin")
 
         # this method can be executed via the API
@@ -61,43 +56,45 @@ class SynchronizePathCache(Action):
         Tank command accessor
         """
         if len(args) == 1 and args[0] == "--full":
-            force = True
+            full_sync = True
         
         elif len(args) == 0:
-            force = False
+            full_sync = False
             
         else:
-            raise TankError("Syntax: sync_path_cache [--full]")
+            raise TankError("Syntax: synchronize_folders [--full]")
 
-        return self._run(log, force)
+        return self._run(log, full_sync)
     
     
-    def _run(self, log, force):
+    def _run(self, log, full_sync):
         """
         Actual business logic for command
         
         :param log: logger
-        :param force: boolean flag to indicate that a full sync should be carried out
+        :param full_sync: boolean flag to indicate that a full sync should be carried out
         """
 
         if self.tk.pipeline_configuration.get_shotgun_path_cache_enabled():
-            log.info("Ensuring the path cache file is up to date...")
-            log.info("Will try to do an incremental sync. If you want to force a complete re-sync "
-                     "to happen, run this command with a --full flag.")
-            if force:
-                log.info("Doing a full sync.")
-                
-            pc = path_cache.PathCache(self.tk)
-            pc.synchronize(log, force)
-            pc.close()
             
-            log.info("The path cache has been synchronized.")
+            log.info("Ensuring that the local folder representation is up to date...")
+            
+            if full_sync:
+                log.info("Doing a full sync.")
+            else:
+                log.info("Will try to do an incremental sync. If you want to force a complete re-sync, "
+                         "run this command with a --full flag.")
+                
+                
+            folder.synchronize_folders(self.tk, full_sync, log)
+                
+            log.info("Local folder information has been synchronized.")
         
         else:
             # remote cache not turned on for this project
-            log.info("Looks like this project doesn't synchronize its folders with Shotgun! "
-                     "If you want to turn on synchronization for this project, run "
-                     "the 'upgrade_folders' tank command.")
+            log.error("Looks like this project doesn't synchronize its folders with Shotgun! "
+                      "If you want to turn on synchronization for this project, run "
+                      "the 'upgrade_folders' tank command.")
 
 
 class PathCacheMigrationAction(Action):

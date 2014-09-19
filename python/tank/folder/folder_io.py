@@ -43,8 +43,7 @@ class FolderIOReceiver(object):
         self._tk = tk
         self._preview_mode = preview
         self._items = list()
-        self._secondary_cache_entries = list()
-        self._path_cache = PathCache(tk)
+        self._secondary_cache_entries = list() 
         self._entity_type = entity_type
         self._entity_ids = entity_ids
         
@@ -52,22 +51,30 @@ class FolderIOReceiver(object):
     ####################################################################################
     # methods to call to actually execute the folder creation logic
         
-    def execute_folder_creation(self):
+    @classmethod
+    def sync_path_cache(cls, tk, full_sync, log):
         """
-        Runs the actual folder execution. 
-        
+        Synchronizes the path cache folders.
+        This happens as part of execute_folder_creation(), but sometimes it is 
+        useful to be able to execute this as a separate process.
+
+        :param tk: A tk API instance
+        :param full_sync: Do a full sync
+        :param log: Standard python logger
         :returns: A list of paths which were calculated to be created
-        """
+        """        
+        path_cache = PathCache(tk)
         
-        # because the sync can make changes to the path cache, do not run in preview mode
-        remote_items = []
-        if not self._preview_mode: 
-            
-            # request that the path cache is synced against shotgun
+        try:
+        
+            # now run the path cache synchronization and see if there are any folders which 
+            # should be created locally.
+            remote_items = []
+    
             # new items that were not locally available are returned
             # as a list of dicts with keys id, type, name, configuration and path
-            rd = self._path_cache.synchronize(show_busy_ui=True)
-            
+            rd = path_cache.synchronize(log, full_sync)
+                
             # for each item we get back from the path cache synchronization,
             # issue a remote entity folder request and pass that down to 
             # the folder creation hook. This way, folders can be auto created
@@ -77,69 +84,119 @@ class FolderIOReceiver(object):
                                       "path": i["path"],
                                       "metadata": i["metadata"],
                                       "entity": i["entity"] })
-    
-        # put together a list of entries we should pass to the database
-        db_entries = []
         
-        for i in self._items:
-            if i.get("action") == "entity_folder":
+            if len(remote_items) > 0:
+                # execute the actual I/O
+                tk.execute_hook(constants.PROCESS_FOLDER_CREATION_HOOK_NAME, items=remote_items, preview_mode=False)
+            
+            # return all folders that were computed
+            folders = []
+            for i in remote_items:
+                action = i.get("action")
+                if action in ["entity_folder", "create_file", "folder", "remote_entity_folder"]:
+                    folders.append( i["path"] )
+                elif action == "copy":
+                    folders.append( i["target_path"] )        
+
+        finally:
+            path_cache.close()
+
+        return folders
+        
+        
+    def execute_folder_creation(self):
+        """
+        Runs the actual folder execution. 
+        
+        :returns: A list of paths which were calculated to be created
+        """
+        
+        path_cache = PathCache(self._tk)
+        
+        try:
+            # because the sync can make changes to the path cache, do not run in preview mode
+            remote_items = []
+            if not self._preview_mode: 
+                
+                # request that the path cache is synced against shotgun
+                # new items that were not locally available are returned
+                # as a list of dicts with keys id, type, name, configuration and path
+                rd = path_cache.synchronize()
+                
+                # for each item we get back from the path cache synchronization,
+                # issue a remote entity folder request and pass that down to 
+                # the folder creation hook. This way, folders can be auto created
+                # across multiple locations if desirable.            
+                for i in rd:
+                    remote_items.append( {"action": "remote_entity_folder",
+                                          "path": i["path"],
+                                          "metadata": i["metadata"],
+                                          "entity": i["entity"] })
+        
+            # put together a list of entries we should pass to the database
+            db_entries = []
+            
+            for i in self._items:
+                if i.get("action") == "entity_folder":
+                    db_entries.append( {"entity": i["entity"], 
+                                        "path": i["path"], 
+                                        "primary": True, 
+                                        "metadata": i["metadata"]} )
+                    
+            for i in self._secondary_cache_entries:
                 db_entries.append( {"entity": i["entity"], 
                                     "path": i["path"], 
-                                    "primary": True, 
+                                    "primary": False, 
                                     "metadata": i["metadata"]} )
-                
-        for i in self._secondary_cache_entries:
-            db_entries.append( {"entity": i["entity"], 
-                                "path": i["path"], 
-                                "primary": False, 
-                                "metadata": i["metadata"]} )
-        
-        
-        
-        # now that we are synced up with all remote sites,
-        # validate the data before we push it into the databse. 
-        # to properly cover some edge cases        
-        try:
-            self._path_cache.validate_mappings(db_entries)
-        except TankError, e:
-            # validation problems!
-            # before we bubble up these errors to the caller, we need to 
-            # take care of any folders that were possibly created during
-            # the syncing:
-            if len(remote_items) > 0:
-                self._tk.execute_hook(constants.PROCESS_FOLDER_CREATION_HOOK_NAME, 
-                                      items=remote_items, 
-                                      preview_mode=self._preview_mode)
             
-            # ok folders created for synced stuff. Now re-raise validation error
-            raise TankError("Folder creation aborted: %s" % e) 
-        
-        
-        # validation passed!
-        # now request the IO operations to take place
-        # note that we pass both the items that were created from syncing with remote
-        # and the new folders that have been computed
-        
-        folder_creation_items = remote_items + self._items
-        
-        self._tk.execute_core_hook(constants.PROCESS_FOLDER_CREATION_HOOK_NAME, 
-                                   items=folder_creation_items, 
-                                   preview_mode=self._preview_mode)
-        
-        # database data was validated, folders on disk created
-        # finally store all our new data in the path cache and in shotgun
-        if not self._preview_mode:
-            self._path_cache.add_mappings(db_entries, self._entity_type, self._entity_ids)
+            
+            
+            # now that we are synced up with all remote sites,
+            # validate the data before we push it into the databse. 
+            # to properly cover some edge cases        
+            try:
+                path_cache.validate_mappings(db_entries)
+            except TankError, e:
+                # validation problems!
+                # before we bubble up these errors to the caller, we need to 
+                # take care of any folders that were possibly created during
+                # the syncing:
+                if len(remote_items) > 0:
+                    self._tk.execute_hook(constants.PROCESS_FOLDER_CREATION_HOOK_NAME, 
+                                          items=remote_items, 
+                                          preview_mode=self._preview_mode)
+                
+                # ok folders created for synced stuff. Now re-raise validation error
+                raise TankError("Folder creation aborted: %s" % e) 
+            
+            
+            # validation passed!
+            # now request the IO operations to take place
+            # note that we pass both the items that were created from syncing with remote
+            # and the new folders that have been computed
+            
+            folder_creation_items = remote_items + self._items
+            
+            self._tk.execute_core_hook(constants.PROCESS_FOLDER_CREATION_HOOK_NAME, 
+                                       items=folder_creation_items, 
+                                       preview_mode=self._preview_mode)
+            
+            # database data was validated, folders on disk created
+            # finally store all our new data in the path cache and in shotgun
+            if not self._preview_mode:
+                path_cache.add_mappings(db_entries, self._entity_type, self._entity_ids)
+    
+            # return all folders that were computed 
+            folders = []
+            for i in folder_creation_items:
+                action = i.get("action")
+                if action in ["entity_folder", "create_file", "folder", "remote_entity_folder"]:
+                    folders.append( i["path"] )
+                elif action == "copy":
+                    folders.append( i["target_path"] )        
 
-        # note that for backwards compatibility, we are returning all folders, not 
-        # just the ones that were created
-        folders = list()
-        for i in folder_creation_items:
-            action = i.get("action")
-            if action in ["entity_folder", "create_file", "folder", "remote_entity_folder"]:
-                folders.append( i["path"] )
-            elif action == "copy":
-                folders.append( i["target_path"] )        
+        finally:
+            path_cache.close()
 
         return folders
             

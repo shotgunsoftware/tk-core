@@ -269,16 +269,15 @@ class PathCache(object):
     ############################################################################################
     # shotgun synchronization (SG data pushed into path cache database)
 
-    def synchronize(self, log=None, force=False, show_busy_ui=False):
+    def synchronize(self, log=None, full_sync=False):
         """
         Ensure the local path cache is in sync with Shotgun. 
         
         If the method decides to do a full sync, it will attempt to 
         launch the busy overlay window.
         
-        :param log:          Std python logger object.
-        :param force:        Boolean to indicate that a full sync should be carried out.
-        :param show_busy_ui: Boolean to indicate that a busy UI should be activated if the sync runs long. 
+        :param log: Std python logger object.
+        :param full_sync: Boolean to indicate that a full sync should be carried out. 
         
         :returns: A list of remote items which were detected, created remotely
                   and not existing in this path cache. These are returned as a list of 
@@ -306,9 +305,9 @@ class PathCache(object):
             # which isn't already in Shotgun.
             self._ensure_all_in_shotgun(c, log)
             
-            # check if we should do a forced sync
-            if force:
-                return self._do_full_sync(c, log, show_busy_ui)
+            # check if we should do a full sync
+            if full_sync:
+                return self._do_full_sync(c, log)
             
             # first get the last synchronized event log event.        
             res = c.execute("SELECT max(last_id) FROM event_log_sync")
@@ -321,7 +320,7 @@ class PathCache(object):
             # expect back something like [(249660,)] for a running cache and [(None,)] for a clear
             if len(data) != 1 or data[0] is None:
                 # we should do a full sync
-                return self._do_full_sync(c, log, show_busy_ui)
+                return self._do_full_sync(c, log)
     
             # we have an event log id - so check if there are any more recent events
             event_log_id = data[0]
@@ -364,7 +363,7 @@ class PathCache(object):
                 if log:
                     log.debug("Cannot line up path cache tracking marker in Shotgun Event Log. "
                               "Falling back onto a full synchronization.")
-                return self._do_full_sync(c, log, show_busy_ui)        
+                return self._do_full_sync(c, log)        
             
             elif len(response) == 1 and response[0]["id"] == event_log_id:
                 # nothing has changed since the last sync
@@ -377,7 +376,7 @@ class PathCache(object):
                 if log:
                     log.debug("Deletions detected, doing full sync")
 
-                return self._do_full_sync(c, log, show_busy_ui)
+                return self._do_full_sync(c, log)
             
             elif num_creations > 0:
                 # we have a complete trail of increments. 
@@ -584,7 +583,7 @@ class PathCache(object):
 
 
 
-    def _do_full_sync(self, cursor, log, show_busy_ui):
+    def _do_full_sync(self, cursor, log):
         """
         Ensure the local path cache is in sync with Shotgun.
         
@@ -597,16 +596,13 @@ class PathCache(object):
             
         :param cursor: Sqlite database cursor
         :param log: Std python logger or None if logging is not required. 
-        :param show_busy_ui: Flag to indicate that a busy UI should be shown during operation
         """
         
-        if show_busy_ui:
-            show_global_busy("Hang on, Toolkit is preparing folders...", 
-                             ("Toolkit is retrieving folder data from Shotgun and ensuring that your "
-                             "setup is up to date. Hang tight, this usually takes less than 30 seconds..."))
+        show_global_busy("Hang on, Toolkit is preparing folders...", 
+                         ("Toolkit is retrieving folder data from Shotgun and ensuring that your "
+                         "setup is up to date. Hang tight, this usually takes less than 30 seconds..."))
         
         try:
-        
             if log:
                 log.info("Performing a complete Shotgun folder sync...")
             
@@ -625,9 +621,7 @@ class PathCache(object):
             data = self._replay_folder_entities(cursor, log, max_event_log_id)
 
         finally:
-            if show_busy_ui:
-                clear_global_busy()
-                
+            clear_global_busy()
         
         return data
 
