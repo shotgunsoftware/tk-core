@@ -490,12 +490,12 @@ class Tank(object):
 
     def synchronize_filesystem_structure(self, full_sync=False):
         """
-        Ensure that the filesystem structure on this machine is in sync
+        Ensures that the filesystem structure on this machine is in sync
         with Shotgun. This synchronization is implicitly carried out as part of the 
         normal folder creation process, however sometimes it is useful to
         be able to call it on its own.
         
-        Note that this method is similar to the synchronize_folders tank command.
+        Note that this method is equivalent to the synchronize_folders tank command.
         
         :param full_sync: If set to true, a complete sync will be carried out.
                           By default, the sync is incremental.
