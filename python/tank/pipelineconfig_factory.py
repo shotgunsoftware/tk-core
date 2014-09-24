@@ -327,7 +327,12 @@ def _get_pipeline_configs_for_path(path, data):
     for project_path in project_paths:
         
         # (like the SG API, this logic is case preserving, not case insensitive)
-        if path.lower().startswith(project_path.lower()):
+        path_lower = path.lower()
+        proj_path_lower = project_path.lower()
+        # check if the path matches. Either
+        # direct match: path: /mnt/proj_x == project path: /mnt/proj_x
+        # child path: path: /mnt/proj_x/foo/bar starts with /mnt/proj_x/
+        if path_lower == proj_path_lower or path_lower.startswith("%s%s" % (proj_path_lower, os.path.sep)):
             # found a match! Return the associated list of pipeline configurations
             return project_paths[project_path]
     
