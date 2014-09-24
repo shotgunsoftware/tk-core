@@ -229,6 +229,28 @@ def _copy_folder(log, src, dst):
 ###################################################################################################
 # Migrations
 
+def __copy_tank_cmd_binaries(src_dir, dst_dir, tank_scripts):
+    """
+    Copy the tank cmd binaries from the source (core install) to the destination
+    (pipeline config/studio root) locations.
+    
+    :param src_dir:         The source directory to copy them from
+    :param dst_dir:         The destination directory to copy them to
+    :param tank_scripts:    A list of the tank command binary scripts to copy
+    """
+    for tank_script in tank_scripts:
+        dst_tank_script = os.path.join(dst_dir, tank_script)
+        if not os.path.exists(dst_tank_script):
+            log.warning("   Could not find file: '%s' to replace, skipping!" % dst_tank_script)
+            continue
+    
+        log.info("   Updating %s..." % dst_tank_script)
+        src_tank_script = os.path.join(src_dir, tank_script)
+        log.debug("   Copying %s -> %s" % (src_tank_script, dst_tank_script))
+        os.chmod(dst_tank_script, 0777)
+        shutil.copy(src_tank_script, dst_tank_script)
+        os.chmod(dst_tank_script, 0775)
+
 def _upgrade_tank_cmd_binaries(sgtk_install_root, log):
     """
     Upgrade the tank command binaries to the latest versions.  This 
@@ -242,7 +264,11 @@ def _upgrade_tank_cmd_binaries(sgtk_install_root, log):
     :param log:                 The log instance to be used for all 
                                 logging
     """
-    log.info("Updating tank.bat & tank scripts for all projects...")
+    log.info("\n\nUpdating tank.bat & tank command scripts for all Pipeline Configurations "
+             "in all projects that use this version of core.  Please note that only Pipeline "
+             "Configurations in disk locations that are accessible will be updated."
+             "Others can be updated manually by copying the tank command executables from "
+             "'install/core/setup/root_binaries' if needed.")
     
     tank_scripts = ["tank.bat", "tank"]
     
@@ -256,18 +282,8 @@ def _upgrade_tank_cmd_binaries(sgtk_install_root, log):
     
     # first do the versions in the studio location:
     studio_tank_root = os.path.abspath(os.path.join(sgtk_install_root, ".."))
-    for tank_script in tank_scripts:
-        studio_tank_script = os.path.abspath(os.path.join(studio_tank_root, tank_script))
-        if os.path.exists(studio_tank_script):
-            log.info("Updating %s..." % studio_tank_script)
-            try:
-                new_tank_script = os.path.join(new_tank_root, tank_script)
-                log.debug("copying %s -> %s" % (new_tank_script, studio_tank_script))
-                shutil.copy(new_tank_script, studio_tank_script)
-                os.chmod(studio_tank_script, 0775)
-            except Exception, e:
-                log.error("\n\nCould not upgrade core! Please contact support! \nError: %s" % e)
-    
+    log.info(" - Processing studio location '%s'" % studio_tank_root) 
+    __copy_tank_cmd_binaries(new_tank_root, studio_tank_root, tank_scripts)
     
     # now do the project pc locations (if we can access them):
     pcs = sg.find("PipelineConfiguration", [], ["code", "project", "windows_path", "mac_path", "linux_path"])
@@ -287,23 +303,13 @@ def _upgrade_tank_cmd_binaries(sgtk_install_root, log):
                 continue
     
             # all good so lets process this config:
-            log.info("Processing Pipeline Config %s (Project %s)..." % (pc.get("code"), 
-                                                                        pc.get("project").get("name")))
-
-            for tank_script in tank_scripts:
-                pc_tank_script = os.path.join(pc_tank_root, tank_script)
-                if not os.path.exists(pc_tank_script):
-                    log.warning("Could not find file: %s" % pc_tank_script)
-                    continue
-
-                log.info("Updating %s..." % pc_tank_script)
-                new_tank_script = os.path.join(new_tank_root, tank_script)
-                log.debug("copying %s -> %s" % (new_tank_script, pc_tank_script))
-                shutil.copy(new_tank_script, pc_tank_script)
-                os.chmod(pc_tank_script, 0775)
+            log.info(" - Processing Pipeline Configuration %s (Project %s)..." % (pc.get("code"), 
+                                                                           pc.get("project").get("name")))
+            __copy_tank_cmd_binaries(new_tank_root, pc_tank_root, tank_scripts)
             
         except Exception, e:
-            log.error("\n\n\nCould not upgrade PC %s! Please contact support! \nError: %s\n\n\n" % (str(pc), e))
+            log.error("\n   Could not upgrade Pipeline Configuration '%s'! Please contact "
+                      "toolkitsupport@shotgunsoftware.com.\nError: %s\n\n\n" % (str(pc), e))
 
 
 def upgrade_tank(sgtk_install_root, log):
@@ -319,7 +325,6 @@ def upgrade_tank(sgtk_install_root, log):
     # ensure permissions are not overridden by umask
     old_umask = os.umask(0)
     try:
-
         log.debug("First running migrations...")
 
         # check that noone is still on 0.12/early 0.13 and in that case ask them to contact us
