@@ -454,9 +454,21 @@ class Engine(TankBundle):
                 name = "%s:%s" % (prefix, name)
                 # also add a prefix key in the properties dict
                 properties["prefix"] = prefix
-            
-        self.__commands[name] = { "callback": callback, "properties": properties }
         
+        # we're wrapping the callback here to ensure that any exceptions don't get 
+        # "stuck" because we're using evalDeferred
+        def wrap_cb(cb):
+            def wrapped_cb():
+                try:
+                    cb()
+                except Exception, e:
+                    # using string formatting is imperative to un-sticking the exception
+                    self.log_exception("%s" % e)
+            return wrapped_cb
+
+        wrapped_callback = wrap_cb(callback)    
+        self.__commands[name] = { "callback": wrapped_callback, "properties": properties }
+
     def execute_in_main_thread(self, func, *args, **kwargs):
         """
         Execute the specified function in the main thread when called from a non-main
