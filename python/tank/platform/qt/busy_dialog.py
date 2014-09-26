@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from . import QtCore, QtGui
-from .ui_busy_dialog import Ui_BusyDialog
+from .ui.busy_dialog import Ui_BusyDialog
 
 
 class BusyDialog(QtGui.QWidget):

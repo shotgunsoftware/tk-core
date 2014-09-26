@@ -38,6 +38,7 @@ function build_res {
 echo "building user interfaces..."
 build_ui item
 build_ui tank_dialog
+build_ui busy_dialog
 
 # build resources
 echo "building resources..."
