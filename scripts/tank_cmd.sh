@@ -53,7 +53,7 @@ interpreter=`cat "$interpreter_config_file"`
 # Convert windows interpreter paths to forward-slash
 if [[ "$uname_os_str" == CYGWIN_NT* ]];
 then
-	interpreter=$( cygpath -u $interpreter )
+    interpreter=$( cygpath -u $interpreter )
 fi
 
 # and check that it exists...
@@ -62,7 +62,6 @@ then
     echo "Cannot find interpreter $interpreter defined in config file $interpreter_config_file!"
     exit 1
 fi
-
 
 # execute the python script which does the actual work
 exec $interpreter "$core_install_root/scripts/tank_cmd.py" "$@"
