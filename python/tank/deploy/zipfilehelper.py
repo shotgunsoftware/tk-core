@@ -47,10 +47,19 @@ def _process_item(zip_obj, item_path, targetpath):
         target_obj = open(targetpath, "wb")
         target_obj.write(zip_obj.read(item_path))
         target_obj.close()
-        
+        # Restore permissions on the extracted file
+        # Took bits and bobs from here :
+        # http://bugs.python.org/file34893/issue15795_test_and_doc_fixes.patch
+        zip_info = zip_obj.getinfo(item_path)
+        # Only preserve execution bits: --x--x--x
+        # if one is set, give execution rights to everyone
+        mode = zip_info.external_attr >> 16 & 0x49
+        if mode:
+            os.chmod(targetpath, 0777)
+    
     return targetpath
     
-    
+
 
 def unzip_file(zip_file, target_folder):
     """
