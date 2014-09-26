@@ -114,7 +114,7 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, set
     # copy the tank binaries to the top of the config
     setup_params.report_progress_from_installer("Copying binaries and API proxies...")
     log.debug("Copying Toolkit binaries...")
-    core_api_root = os.path.join(pipelineconfig_utils.get_path_to_current_core(), "install", "core"))
+    core_api_root = os.path.join(pipelineconfig_utils.get_path_to_current_core(), "install", "core")
     root_binaries_folder = os.path.join(core_api_root, "setup", "root_binaries")
     for file_name in os.listdir(root_binaries_folder):
         src_file = os.path.join(root_binaries_folder, file_name)
