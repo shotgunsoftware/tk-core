@@ -10,7 +10,6 @@
 
 import os
 import zipfile
-import stats
 
 def _process_item(zip_obj, item_path, targetpath):
     """
