@@ -33,27 +33,23 @@ def load_plugin(plugin_file, valid_base_class):
     """
     Load a plugin into memory and extract its single interface class. 
     """
-    print_debug("Loading '%s'" % plugin_file)
+    print_debug("Loading '%s' through load_plugin" % plugin_file)
     
     # construct a uuid and use this as the module name to ensure
     # that each import is unique
     import uuid
-    print_debug("Generating unique uuid")
     module_uid = uuid.uuid4().hex 
     module = None
     try:
-        print_debug("Acquiring import lock...")
         imp.acquire_lock()
-        print_debug("Loading source from '%s'..." % plugin_file)
         st_time = datetime.datetime.now()
         module = imp.load_source(module_uid, plugin_file)
-        print_debug("Successfully loaded source")
         # catch here if loading the source tool longer than 5 seconds... this would
         # definitely indicate a problem!
         td = (datetime.datetime.now() - st_time)
         seconds_to_load = float(td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
         if seconds_to_load > 5:
-            print_warning("loading '%s' took %s seconds!" % (plugin_file, seconds_to_load))
+            print_warning(" - loading '%s' took %s seconds - this seems excessive!" % (plugin_file, seconds_to_load))
     except Exception:
         # dump out the callstack for this one -- to help people get good messages when there is a plugin error        
         (exc_type, exc_value, exc_traceback) = sys.exc_info()
@@ -64,11 +60,8 @@ def load_plugin(plugin_file, valid_base_class):
         message += "\n".join( traceback.format_tb(exc_traceback))
         raise TankError(message)
     finally:
-        print_debug("Releaseing import lock...")
         imp.release_lock()
-        print_debug("Import lock released")
-    
-    print_debug("Enumerating classes in module...")
+
     # cool, now validate the module
     found_classes = list()
     introspection_error_reported = None
@@ -79,8 +72,6 @@ def load_plugin(plugin_file, valid_base_class):
                 found_classes.append(value)
     except Exception, e:
         introspection_error_reported = str(e)
-
-    print_debug("Finished enumerating classes")
 
     if introspection_error_reported:
             raise TankError("Introspection error while trying to load and introspect file %s. "
@@ -95,6 +86,8 @@ def load_plugin(plugin_file, valid_base_class):
                "the pyc file and try again." % (plugin_file, valid_base_class.__name__))
         
         raise TankError(msg)
+    
+    print_debug(" - Finished loading file!")
         
     # when we do inheritance, the file effectively contains more than one class object
     # make sure we return the last class definition in the file, e.g. the actual
