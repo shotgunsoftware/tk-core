@@ -47,6 +47,7 @@ import urllib
 import urllib2      # used for image upload
 import urlparse
 import shutil       # used for attachment download
+import textwrap
 
 # use relative import for versions >=2.5 and package import for python versions <2.5
 if (sys.version_info[0] > 2) or (sys.version_info[0] == 2 and sys.version_info[1] >= 6):
@@ -60,9 +61,51 @@ else:
 mimetypes.add_type('video/webm','.webm') # webm and mp4 seem to be missing
 mimetypes.add_type('video/mp4', '.mp4')  # from some OS/distros
 
-LOG = logging.getLogger("shotgun_api3")
-LOG.setLevel(logging.WARN)
+class AltCustomFormatter(logging.Formatter):
+    """
+    Custom logging output
+    """
+    def __init__(self, *args, **kwargs):
+        # passthrough so we can init stuff
+        self._num_items = 0
+        logging.Formatter.__init__(self, *args, **kwargs)
 
+    def get_num_items(self):
+        return self._num_items
+
+    def format(self, record):
+
+        # shell based logging. Cut nicely at 80 chars width.
+        if record.levelno in (logging.WARNING, logging.ERROR, logging.CRITICAL):
+            record.msg = '%s: %s' % (record.levelname, record.msg)
+
+        if record.levelno == logging.DEBUG:
+            # time stamps in debug logging!
+            record.msg = 'DEBUG [%s %s]: %s' % (datetime.datetime.now().strftime("%H:%M:%S"),
+                                                record.msecs,
+                                                record.msg)
+
+        if "Code Traceback" not in record.msg:
+            # do not wrap exceptions
+            lines = []
+            for x in textwrap.wrap(record.msg, width=78, break_long_words=False, break_on_hyphens=False):
+                lines.append(x)
+            record.msg = "\n".join(lines)
+
+        self._num_items += 1
+        return logging.Formatter.format(self, record)
+
+def __create_logger():
+    logger = logging.getLogger("shotgun_api3")
+    logger.setLevel(logging.DEBUG)
+    ch = logging.StreamHandler(sys.stdout)
+    formatter = AltCustomFormatter()
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+    return logger
+    
+LOG = __create_logger()
+    
 SG_TIMEZONE = SgTimezone()
 
 
@@ -482,6 +525,7 @@ class Shotgun(object):
         :returns: list of the dicts for each entity with the requested fields,
         and their id and type.
         """
+        LOG.debug("Starting 'find' call...")
 
         if not isinstance(limit, int) or limit < 0:
             raise ValueError("limit parameter must be a positive integer")
@@ -540,6 +584,8 @@ class Shotgun(object):
 
             params['paging']['current_page'] += 1
             result = self._call_rpc("read", params)
+
+        LOG.debug("Completed 'find' call!")
 
         return self._parse_records(records)
 
@@ -1653,9 +1699,9 @@ class Shotgun(object):
         """
         url = urlparse.urlunparse((self.config.scheme, self.config.server,
             path, None, None, None))
-        LOG.debug("Request is %s:%s" % (verb, url))
-        LOG.debug("Request headers are %s" % headers)
-        LOG.debug("Request body is %s" % body)
+        #LOG.debug("Request is %s:%s" % (verb, url))
+        #LOG.debug("Request headers are %s" % headers)
+        #LOG.debug("Request body is %s" % body)
 
         conn = self._get_connection()
         resp, content = conn.request(url, method=verb, body=body,
@@ -1668,9 +1714,9 @@ class Shotgun(object):
         )
         resp_body = content
 
-        LOG.debug("Response status is %s %s" % http_status)
-        LOG.debug("Response headers are %s" % resp_headers)
-        LOG.debug("Response body is %s" % resp_body)
+        #LOG.debug("Response status is %s %s" % http_status)
+        #LOG.debug("Response headers are %s" % resp_headers)
+        #LOG.debug("Response body is %s" % resp_body)
 
         return (http_status, resp_headers, resp_body)
 
