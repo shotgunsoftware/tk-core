@@ -229,7 +229,7 @@ def _copy_folder(log, src, dst):
 ###################################################################################################
 # Migrations
 
-def __copy_tank_cmd_binaries(src_dir, dst_dir, tank_scripts):
+def __copy_tank_cmd_binaries(src_dir, dst_dir, tank_scripts, log):
     """
     Copy the tank cmd binaries from the source (core install) to the destination
     (pipeline config/studio root) locations.
@@ -244,9 +244,9 @@ def __copy_tank_cmd_binaries(src_dir, dst_dir, tank_scripts):
             log.warning("   Could not find file: '%s' to replace, skipping!" % dst_tank_script)
             continue
     
-        log.info("   Updating %s..." % dst_tank_script)
+        log.info("   Updating '%s'" % dst_tank_script)
         src_tank_script = os.path.join(src_dir, tank_script)
-        log.debug("   Copying %s -> %s" % (src_tank_script, dst_tank_script))
+        log.debug("  Copying '%s' -> '%s'" % (src_tank_script, dst_tank_script))
         os.chmod(dst_tank_script, 0777)
         shutil.copy(src_tank_script, dst_tank_script)
         os.chmod(dst_tank_script, 0775)
@@ -264,7 +264,7 @@ def _upgrade_tank_cmd_binaries(sgtk_install_root, log):
     :param log:                 The log instance to be used for all 
                                 logging
     """
-    log.info("\n\nUpdating tank.bat & tank command scripts for all Pipeline Configurations "
+    log.info("Updating tank.bat & tank command scripts for all Pipeline Configurations "
              "in all projects that use this version of core.  Please note that only Pipeline "
              "Configurations in disk locations that are accessible will be updated."
              "Others can be updated manually by copying the tank command executables from "
@@ -283,7 +283,7 @@ def _upgrade_tank_cmd_binaries(sgtk_install_root, log):
     # first do the versions in the studio location:
     studio_tank_root = os.path.abspath(os.path.join(sgtk_install_root, ".."))
     log.info(" - Processing studio location '%s'" % studio_tank_root) 
-    __copy_tank_cmd_binaries(new_tank_root, studio_tank_root, tank_scripts)
+    __copy_tank_cmd_binaries(new_tank_root, studio_tank_root, tank_scripts, log)
     
     # now do the project pc locations (if we can access them):
     pcs = sg.find("PipelineConfiguration", [], ["code", "project", "windows_path", "mac_path", "linux_path"])
@@ -297,15 +297,15 @@ def _upgrade_tank_cmd_binaries(sgtk_install_root, log):
                 continue
                     
             # need to determine if this pc is using core located at sgtk_install_root
-            pc_core_install_root = __get_pc_core_install_root_r(pc_tank_root)
+            pc_core_install_root = __get_pc_core_install_root(pc_tank_root)
             if not pc_core_install_root or pc_core_install_root != sgtk_install_root:
                 # this pc doesn't use the same core so skip it!
                 continue
     
             # all good so lets process this config:
-            log.info(" - Processing Pipeline Configuration %s (Project %s)..." % (pc.get("code"), 
+            log.info(" - Processing Pipeline Configuration %s (Project %s)" % (pc.get("code"), 
                                                                            pc.get("project").get("name")))
-            __copy_tank_cmd_binaries(new_tank_root, pc_tank_root, tank_scripts)
+            __copy_tank_cmd_binaries(new_tank_root, pc_tank_root, tank_scripts, log)
             
         except Exception, e:
             log.error("\n   Could not upgrade Pipeline Configuration '%s'! Please contact "
