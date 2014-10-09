@@ -294,6 +294,8 @@ class SequenceKey(IntegerKey):
     FRAMESPEC_FORMAT_INDICATOR = "FORMAT:"
     # valid format strings that can be used with this Key type
     VALID_FORMAT_STRINGS = ["%d", "#", "@", "$F", "<UDIM>", "$UDIM"]
+    # flame sequence pattern regex ('[1234-5434]')
+    FLAME_PATTERN_REGEX = "^\[[0-9]+-[0-9]+\]$"
     
     def __init__(self,
                  name,
@@ -319,7 +321,7 @@ class SequenceKey(IntegerKey):
 
         # determine the actual frame specs given the padding (format_spec)
         # and the allowed formats
-        self._frame_specs = [ self._resolve_frame_spec(x, format_spec) for x in SequenceKey.VALID_FORMAT_STRINGS ]
+        self._frame_specs = [ self._resolve_frame_spec(x, format_spec) for x in self.VALID_FORMAT_STRINGS ]
 
         # all sequences are abstract by default and have a default value of %0Xd
         abstract = True
@@ -340,22 +342,22 @@ class SequenceKey(IntegerKey):
     def validate(self, value):
 
         # use a std error message
-        full_format_strings = ["%s %s" % (SequenceKey.FRAMESPEC_FORMAT_INDICATOR, x) for x in SequenceKey.VALID_FORMAT_STRINGS]
+        full_format_strings = ["%s %s" % (self.FRAMESPEC_FORMAT_INDICATOR, x) for x in self.VALID_FORMAT_STRINGS]
         error_msg = "%s Illegal value '%s', expected an Integer, a frame spec or format spec.\n" % (self, value)
         error_msg += "Valid frame specs: %s\n" % str(self._frame_specs)
         error_msg += "Valid format strings: %s\n" % full_format_strings
         
 
-        if isinstance(value, basestring) and value.startswith(SequenceKey.FRAMESPEC_FORMAT_INDICATOR):
+        if isinstance(value, basestring) and value.startswith(self.FRAMESPEC_FORMAT_INDICATOR):
             # FORMAT: YXZ string - check that XYZ is in VALID_FORMAT_STRINGS
             pattern = self._extract_format_string(value)        
-            if pattern in SequenceKey.VALID_FORMAT_STRINGS:
+            if pattern in self.VALID_FORMAT_STRINGS:
                 return True
             else:
                 self._last_error = error_msg
                 return False
                 
-        elif isinstance(value, basestring) and re.match("^\[[0-9]+-[0-9]+\]$", value):
+        elif isinstance(value, basestring) and re.match(self.FLAME_PATTERN_REGEX, value):
             # value is matching the flame-style sequence pattern
             # [1234-5678]
             return True
@@ -374,12 +376,12 @@ class SequenceKey(IntegerKey):
 
     def _as_string(self, value):
         
-        if isinstance(value, basestring) and value.startswith(SequenceKey.FRAMESPEC_FORMAT_INDICATOR):
+        if isinstance(value, basestring) and value.startswith(self.FRAMESPEC_FORMAT_INDICATOR):
             # this is a FORMAT: XYZ - convert it to the proper resolved frame spec
             pattern = self._extract_format_string(value)
             return self._resolve_frame_spec(pattern, self.format_spec)
 
-        if isinstance(value, basestring) and re.match("^\[[0-9]+-[0-9]+\]$", value):
+        if isinstance(value, basestring) and re.match(self.FLAME_PATTERN_REGEX, value):
             # this is a flame style sequence token [1234-56773]
             return value
 
@@ -395,7 +397,7 @@ class SequenceKey(IntegerKey):
         if str_value in self._frame_specs:
             return str_value
         
-        if re.match("^\[[0-9]+-[0-9]+\]$", str_value):
+        if re.match(self.FLAME_PATTERN_REGEX, str_value):
             # this is a flame style sequence token [1234-56773]
             return str_value
     
@@ -406,8 +408,8 @@ class SequenceKey(IntegerKey):
         """
         Returns XYZ given the string "FORMAT:    XYZ"
         """
-        if isinstance(value, basestring) and value.startswith(SequenceKey.FRAMESPEC_FORMAT_INDICATOR):
-            pattern = value.replace(SequenceKey.FRAMESPEC_FORMAT_INDICATOR, "").strip()
+        if isinstance(value, basestring) and value.startswith(self.FRAMESPEC_FORMAT_INDICATOR):
+            pattern = value.replace(self.FRAMESPEC_FORMAT_INDICATOR, "").strip()
         else:
             # passthrough
             pattern = value
@@ -419,10 +421,10 @@ class SequenceKey(IntegerKey):
         """
         
         error_msg = "Illegal format pattern for framespec: '%s'. " % format_string
-        error_msg += "Legal patterns are: %s" % ", ".join(SequenceKey.VALID_FORMAT_STRINGS)
+        error_msg += "Legal patterns are: %s" % ", ".join(self.VALID_FORMAT_STRINGS)
     
         
-        if format_string not in SequenceKey.VALID_FORMAT_STRINGS:
+        if format_string not in self.VALID_FORMAT_STRINGS:
             raise TankError(error_msg)
         
         if format_spec.startswith("0") and format_spec != "01":
