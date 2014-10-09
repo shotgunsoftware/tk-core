@@ -355,6 +355,11 @@ class SequenceKey(IntegerKey):
                 self._last_error = error_msg
                 return False
                 
+        elif isinstance(value, basestring) and re.match("^\[[0-9]+-[0-9]+\]$", value):
+            # value is matching the flame-style sequence pattern
+            # [1234-5678]
+            return True
+                
         elif not(isinstance(value, int) or value.isdigit()):
             # not a digit - so it must be a frame spec! (like %05d)
             # make sure that it has the right length and formatting.
@@ -374,18 +379,28 @@ class SequenceKey(IntegerKey):
             pattern = self._extract_format_string(value)
             return self._resolve_frame_spec(pattern, self.format_spec)
 
+        if isinstance(value, basestring) and re.match("^\[[0-9]+-[0-9]+\]$", value):
+            # this is a flame style sequence token [1234-56773]
+            return value
+
         if value in self._frame_specs:
             # a frame spec like #### @@@@@ or %08d
             return value
         
-        else:
-            return super(SequenceKey, self)._as_string(value)
+        # resolve it via the integerKey base class
+        return super(SequenceKey, self)._as_string(value)
 
     def _as_value(self, str_value):
+        
         if str_value in self._frame_specs:
             return str_value
-        else:
-            return super(SequenceKey, self)._as_value(str_value)
+        
+        if re.match("^\[[0-9]+-[0-9]+\]$", str_value):
+            # this is a flame style sequence token [1234-56773]
+            return str_value
+    
+        # resolve it via the integerKey base class
+        return super(SequenceKey, self)._as_value(str_value)
 
     def _extract_format_string(self, value):
         """
