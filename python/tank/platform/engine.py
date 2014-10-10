@@ -226,6 +226,14 @@ class Engine(TankBundle):
             # no UI support! Instead, just emit a log message
             self.log_info("[%s] %s" % (title, details))
         
+    def __clear_busy(self):
+        """
+        Payload for clear_busy method. 
+        For details, see the main clear_busy documentation.
+        """
+        if self.__global_progress_widget:
+            self.__global_progress_widget.close()
+            self.__global_progress_widget = None
     
     def show_busy(self, title, details):
         """
@@ -266,7 +274,7 @@ class Engine(TankBundle):
         For more details, see the show_busy() documentation.
         """
         if self.__global_progress_widget:
-            self.execute_in_main_thread(self.__global_progress_widget.close)
+            self.execute_in_main_thread(self.__clear_busy)
 
     ##########################################################################################
     # properties
