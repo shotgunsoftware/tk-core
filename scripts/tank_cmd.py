@@ -844,6 +844,10 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
 
     log.info("")
 
+    tracking_id = os.environ.get("SGTK_TRACKING_ID")
+    if tracking_id:
+        log.debug("SGTK_TRACKING_ID: %s" % tracking_id)
+
     log.info("Welcome to the Shotgun Pipeline Toolkit!")
     log.info("For documentation, see https://toolkit.shotgunsoftware.com")
 
