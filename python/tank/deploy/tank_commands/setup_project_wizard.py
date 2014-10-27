@@ -562,10 +562,18 @@ class SetupProjectWizard(object):
         return return_data
         
     def pre_setup_validation(self):
-        # run overall validation of the project setup
+        """
+        Performs basic validation checks on all the specified data together.
+        This method should be executed prior to running the setup projet logic to ensure
+        that the process will succeed.         
+        """
         self._params.pre_setup_validation()
 
     def set_default_core(self):
+        """
+        Sets the desired core API to use. These values should be present for
+        pre_setup_validation.
+        """
         # get core logic
         core_settings = self.get_core_settings()
                 
