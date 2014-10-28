@@ -85,12 +85,12 @@ class AltCustomFormatter(logging.Formatter):
                                                 record.msecs,
                                                 record.msg)
 
-        if "Code Traceback" not in record.msg:
-            # do not wrap exceptions
-            lines = []
-            for x in textwrap.wrap(record.msg, width=78, break_long_words=False, break_on_hyphens=False):
-                lines.append(x)
-            record.msg = "\n".join(lines)
+        #if "Code Traceback" not in record.msg:
+        #    # do not wrap exceptions
+        #    lines = []
+        #    for x in textwrap.wrap(record.msg, width=78, break_long_words=False, break_on_hyphens=False):
+        #        lines.append(x)
+        #    record.msg = "\n".join(lines)
 
         self._num_items += 1
         return logging.Formatter.format(self, record)
@@ -1579,9 +1579,25 @@ class Shotgun(object):
             "content-type" : "application/json; charset=utf-8",
             "connection" : "keep-alive"
         }
+        
+        start_time = time.time()
+        
         http_status, resp_headers, body = self._make_call("POST",
             self.config.api_path, encoded_payload, req_headers)
-        LOG.debug("Completed rpc call to %s" % (method))
+        
+        end_time = time.time()
+        call_duration = end_time-start_time
+        
+        # extract tk tracking id from user agents string so it's consistent with the id used in the call!
+        # e.g. 'shotgun-json (3.0.17); Python 2.7 (Mac); tk-trackingid (Alans-Macbook-Pro.local_1414502115)'
+        tk_tracking_id = ""
+        for agent in (self._user_agents or []):
+            if agent.startswith("tk-trackingid"):
+                tk_tracking_id = agent[15:-1]
+                break
+        x_request_id = resp_headers.get("x-request-id", "")
+        LOG.debug("Completed rpc call to '%s' in %.3f seconds. (tk-trackingid: '%s', x-request-id: '%s')" 
+                  % (method, call_duration, tk_tracking_id, x_request_id))
         try:
             self._parse_http_status(http_status)
         except ProtocolError, e:

@@ -920,8 +920,9 @@ class ToolkitUserAgentHandler(object):
         self._app = None
         self._framework = None
         self._engine = None
-        
         self._core_version = None
+        
+        self.__update()
         
     def __clear_bundles(self):
         """
