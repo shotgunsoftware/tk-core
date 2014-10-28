@@ -1699,9 +1699,9 @@ class Shotgun(object):
         """
         url = urlparse.urlunparse((self.config.scheme, self.config.server,
             path, None, None, None))
-        #LOG.debug("Request is %s:%s" % (verb, url))
-        #LOG.debug("Request headers are %s" % headers)
-        #LOG.debug("Request body is %s" % body)
+        LOG.debug("Request is %s:%s" % (verb, url))
+        LOG.debug("Request headers are %s" % headers)
+        LOG.debug("Request body is %s" % body)
 
         conn = self._get_connection()
         resp, content = conn.request(url, method=verb, body=body,
@@ -1714,9 +1714,9 @@ class Shotgun(object):
         )
         resp_body = content
 
-        #LOG.debug("Response status is %s %s" % http_status)
-        #LOG.debug("Response headers are %s" % resp_headers)
-        #LOG.debug("Response body is %s" % resp_body)
+        LOG.debug("Response status is %s %s" % http_status)
+        LOG.debug("Response headers are %s" % resp_headers)
+        LOG.debug("Response body is %s" % resp_body)
 
         return (http_status, resp_headers, resp_body)
 
