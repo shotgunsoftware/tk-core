@@ -32,7 +32,7 @@ class Tank(object):
     """
     Object with presenting interface to tank.
     """
-    def __init__(self, project_path):
+    def __init__(self, project_path, sg=None):
         """
         :param project_path: Any path inside one of the data locations
         """
@@ -43,6 +43,8 @@ class Tank(object):
         # this is a path and try to construct a pc from the path
 
         self.__threadlocal_storage = threading.local()
+        if sg is not None:
+            self._set_shotgun(sg)
 
         if isinstance(project_path, pipelineconfig.PipelineConfiguration):
             # this is actually a pc object
@@ -116,7 +118,12 @@ class Tank(object):
         """
         
         sg = getattr(self.__threadlocal_storage, "sg", None)
+        if sg is None:
+            sg = shotgun.create_sg_connection()
+            self._set_shotgun(sg)
+        return sg
         
+        """
         if sg is None:
             sg = shotgun.create_sg_connection()
             self.__threadlocal_storage.sg = sg
@@ -133,6 +140,21 @@ class Tank(object):
             pass
 
         return sg
+        """
+
+    def _set_shotgun(self, sg):
+        self.__threadlocal_storage.sg = sg
+        
+        # pass on information to the user agent manager which core version is returning
+        # this sg handle. This information will be passed to the web server logs
+        # in the shotgun data centre and makes it easy to track which core versions
+        # are being used by clients
+        try:
+            sg.tk_user_agent_handler.set_current_core(self.version)
+        except AttributeError:
+            # looks like this sg instance for some reason does not have a
+            # tk user agent handler associated.
+            pass        
 
     @property
     def version(self):
@@ -546,18 +568,18 @@ class Tank(object):
 ##########################################################################################
 # module methods
 
-def tank_from_path(path):
+def tank_from_path(path, sg=None):
     """
     Create an Sgtk API instance based on a path inside a project.
     """
-    return Tank(path)
+    return Tank(path, sg)
 
-def tank_from_entity(entity_type, entity_id):
+def tank_from_entity(entity_type, entity_id, sg=None):
     """
     Create a Sgtk API instance based on a path inside a project.
     """
-    pc = pipelineconfig.from_entity(entity_type, entity_id)
-    return Tank(pc)
+    pc = pipelineconfig.from_entity(entity_type, entity_id, sg)
+    return Tank(pc, sg)
 
 ##########################################################################################
 # sgtk API aliases

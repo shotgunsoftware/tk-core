@@ -992,7 +992,7 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
         # tank EntityType @123 (explicit addressing by id)        
         
         run_expression_search = True
-        
+        sg = None
         if entity_search_token.isdigit():
             # the entity name is something like "123"
             # first look if there is an exact match for it. 
@@ -1040,7 +1040,7 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
             
         # now initialize toolkit and set up the context.  
         log.debug("Creating Sgtk API instance for %s '%s'" % (entity_type, entity_id))
-        tk = tank.tank_from_entity(entity_type, entity_id)
+        tk = tank.tank_from_entity(entity_type, entity_id, sg)
         
         log.debug("Creating context for %s '%s'" % (entity_type, entity_id))
         ctx = tk.context_from_entity(entity_type, entity_id)

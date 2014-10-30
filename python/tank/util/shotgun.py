@@ -187,8 +187,10 @@ def __create_sg_connection(shotgun_cfg_path, evaluate_script_user, user="default
     sg = Shotgun(config_data["host"],
                  config_data["api_script"],
                  config_data["api_key"],
-                 http_proxy=config_data.get("http_proxy", None))
-
+                 http_proxy=config_data.get("http_proxy", None),
+                 connect=False # the connection will be made the first time it's used
+                 )
+    
     # bolt on our custom user agent manager
     sg.tk_user_agent_handler = ToolkitUserAgentHandler(sg)
 

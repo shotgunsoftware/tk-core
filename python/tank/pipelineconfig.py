@@ -594,14 +594,14 @@ class StorageConfigurationMapping(object):
         return current_os_paths
 
 
-def from_entity(entity_type, entity_id):
+def from_entity(entity_type, entity_id, sg=None):
     """
     Factory method that constructs a PC given a shotgun object
     """
 
     platform_lookup = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
 
-    sg = shotgun.create_sg_connection()
+    sg = sg or shotgun.create_sg_connection()
 
     e = sg.find_one(entity_type, [["id", "is", entity_id]], ["project", "name"])
 
@@ -710,7 +710,7 @@ def from_entity(entity_type, entity_id):
 
 
 
-def from_path(path):
+def from_path(path, sg=None):
     """
     Factory method that constructs a PC object from a path:
     - data paths are being traversed and resolved
@@ -812,7 +812,7 @@ def from_path(path):
         # metadata cached. Now try by looking in Shotgun instead.
 
         # in the list of paths found in the inverse lookup table on disk, find the primary.
-        sg = shotgun.create_sg_connection()
+        sg = sg or shotgun.create_sg_connection()
         platform_lookup = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
         filters = [ platform_lookup[sys.platform], "in"]
         filters.extend(current_os_pcs)
