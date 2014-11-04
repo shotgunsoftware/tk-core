@@ -881,6 +881,13 @@ def from_path(path):
         return PipelineConfiguration(pc_registered_path)
 
 
+def get_pc_roots_metadata(pipeline_config_root_path):
+    """
+    NOTE: This public method is deprecated as of v0.14.64. It has been renamed
+          as a private method _get_pc_roots_metadata(). Please don't use it.
+          See _get_pc_roots_metadata() for docstring.
+    """
+    return _get_pc_roots_metadata(pipeline_config_root_path)
 
 
 
