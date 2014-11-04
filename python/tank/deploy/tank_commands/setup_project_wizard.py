@@ -561,15 +561,19 @@ class SetupProjectWizard(object):
         
         return return_data
         
-    
-    
-    def execute(self):
+    def pre_setup_validation(self):
         """
-        Execute the actual setup process.
+        Performs basic validation checks on all the specified data together.
+        This method should be executed prior to running the setup projet logic to ensure
+        that the process will succeed.         
         """
-        
-        self._log.debug("Start preparing for project setup!")
-        
+        self._params.pre_setup_validation()
+
+    def set_default_core(self):
+        """
+        Sets the desired core API to use. These values should be present for
+        pre_setup_validation.
+        """
         # get core logic
         core_settings = self.get_core_settings()
                 
@@ -577,10 +581,20 @@ class SetupProjectWizard(object):
         self._params.set_associated_core_path(core_settings["core_path"]["linux2"], 
                                               core_settings["core_path"]["win32"], 
                                               core_settings["core_path"]["darwin"])
+                    
+    def execute(self):
+        """
+        Execute the actual setup process.
+        """
+        self._log.debug("Start preparing for project setup!")
         
-        # run overall validation of the project setup
-        self._params.pre_setup_validation()
-        
+        # get core logic
+        core_settings = self.get_core_settings()
+        self.set_default_core()
+
+        # Do validation
+        self.pre_setup_validation()
+                        
         # and finally carry out the setup
         run_project_setup(self._log, self._sg, self._sg_app_store, self._sg_app_store_script_user, self._params)
         
