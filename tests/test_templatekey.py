@@ -334,6 +334,7 @@ class TestSequenceKey(TankTestBase):
         good_values.extend(["FORMAT:  %d", "FORMAT:  #", "FORMAT:  @", "FORMAT:  $F", 
                             "FORMAT:  <UDIM>", "FORMAT:  $UDIM"])
         good_values.extend(["243", "0123"])
+        good_values.extend(["[243-13123123123]", "[0001-0122]"])
         for good_value in good_values:
             self.assertTrue(self.seq_field.validate(good_value))
 
@@ -347,6 +348,7 @@ class TestSequenceKey(TankTestBase):
         # note - default case means frame spec is 01
         valid_str_values = {"12":12,
                             "0":0,
+                            "[0001-0122]": "[0001-0122]",
                             "%d":"%d",
                             "#":"#",
                             "@":"@",
@@ -362,6 +364,7 @@ class TestSequenceKey(TankTestBase):
         valid_value_strs = {12:"12",
                             0:"0",
                             "%d":"%d",
+                            "[0001-0122]":"[0001-0122]",
                             "#":"#",
                             "@":"@",
                             "$F":"$F",
