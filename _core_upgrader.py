@@ -44,6 +44,9 @@ def __is_upgrade(sgtk_install_root):
     """
     Returns true if this is not the first time the sgtk code is being 
     installed (activation).
+    
+    :param sgtk_install_root: Location where the core is installed
+    :returns: true if activation, false if not
     """
     return os.path.exists(os.path.join(sgtk_install_root, "core", "info.yml"))
     
@@ -51,6 +54,10 @@ def __current_version_less_than(log, sgtk_install_root, ver):
     """
     returns true if the current API version installed is less than the 
     specified version. ver is "v0.1.2"
+    
+    :param sgtk_install_root: Location where the core is installed
+    :param ver: Version string to check (e.g. 'v0.1.2')
+    :returns: true or false
     """
     log.debug("Checking if the currently installed version is less than %s..." % ver)
     
@@ -94,6 +101,10 @@ def __current_version_less_than(log, sgtk_install_root, ver):
 def __create_sg_connection(log, shotgun_cfg_path):
     """
     Creates a standard sgtk shotgun connection.
+    
+    :param log: std python logger
+    :param shotgun_cfg_path: path to shotgun.yml configuration file
+    :returns: Shotgun API instance 
     """
     
     log.debug("Reading shotgun config from %s..." % shotgun_cfg_path)
@@ -176,6 +187,13 @@ def __get_pc_core_install_root(pc_root, visited_paths = None):
 
 
 def _make_folder(log, folder, permissions):
+    """
+    Create a folder on disk. Wrapper.
+    
+    :param log: std python logger
+    :param folder: Path to folder to create
+    :param permissions: Permissions to apply as an int
+    """
     if not os.path.exists(folder):
         log.debug("Creating folder %s.." % folder)
         os.mkdir(folder, permissions)
@@ -232,6 +250,8 @@ def _copy_folder(log, src, dst):
 def _upgrade_path_cache(log):
     """
     Migration to upgrade to 0.15. Info blurb only.
+    
+    :param log: std python logger
     """
     log.info("")
     log.info("")
