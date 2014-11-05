@@ -82,18 +82,19 @@ class PipelineConfiguration(object):
         self._project_name = data.get("project_name")
 
         # cache fields lazily populated on getter access
-        self._force_reread_settings()
+        self._clear_cached_settings()
         
         self.execute_core_hook_internal(constants.PIPELINE_CONFIGURATION_INIT_HOOK_NAME, parent=self)
 
     def __repr__(self):
         return "<Sgtk Configuration %s>" % self._pc_root
 
-    def _force_reread_settings(self):
+    def _clear_cached_settings(self):
         """
         Force the pc object to reread its settings from disk.
         Call this if you have made changes to config files and 
-        want these to be picked up
+        want these to be picked up. The next time settings are needed,
+        these will be automatically re-read from disk.
         """
         self._project_id = None
         self._pc_id = None
@@ -267,7 +268,7 @@ class PipelineConfiguration(object):
     def get_shotgun_path_cache_enabled(self):
         """
         Returns true if the shotgun path cache should be used.
-        This should only ever return False for setups created before 0.14.
+        This should only ever return False for setups created before 0.15.
         All projects created with 0.14+ automatically sets this to true.
         """
         if self._use_shotgun_path_cache is None:
@@ -315,7 +316,7 @@ class PipelineConfiguration(object):
             os.umask(old_umask)             
             
         # update settings in memory
-        self._force_reread_settings()      
+        self._clear_cached_settings()      
         
     ########################################################################################
     # storage roots related

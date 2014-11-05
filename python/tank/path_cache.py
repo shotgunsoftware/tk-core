@@ -767,7 +767,7 @@ class PathCache(object):
             is_primary = x[SG_IS_PRIMARY_FIELD]
             
             new_rowid = self._add_db_mapping(cursor, local_os_path, entity, is_primary)
-            if new_rowid != 0:
+            if new_rowid:
                 # something was inserted into the db!
                 # because this record came from shotgun, insert a record in the
                 # shotgun_status table to indicate that this record exists in sg
@@ -916,7 +916,7 @@ class PathCache(object):
             
             for d in data:
                 new_rowid = self._add_db_mapping(c, d["path"], d["entity"], d["primary"]) 
-                if new_rowid != 0:
+                if new_rowid:
                     # this entry wasn't already in the db. So add it to the list to
                     # potentially upload to SG later on
                     data_for_sg.append(d)
@@ -971,7 +971,7 @@ class PathCache(object):
         :param entity: a shotgun entity dict with keys type, id and name
         :param primary: is this the primary entry for this particular path     
         
-        :returns: 0 if nothing was added to the db, otherwise the ROWID for the new row   
+        :returns: None if nothing was added to the db, otherwise the ROWID for the new row   
         """
         
         if primary:
@@ -1000,7 +1000,7 @@ class PathCache(object):
                     
                 else:   
                     # the entry that exists in the db matches what we are trying to insert so skip it
-                    return 0
+                    return None
                 
         else:
             # secondary entity
@@ -1010,7 +1010,7 @@ class PathCache(object):
 
             if path in paths:
                 # we already have the association present in the db.
-                return 0
+                return None
 
         # there was no entity in the db. So let's create it!
         root_name, relative_path = self._separate_root(path)
@@ -1099,10 +1099,9 @@ class PathCache(object):
         
         paths = []
         
-        if cursor is None:
-            c = self._connection.cursor()
-        else:
-            c = cursor
+        # use built in cursor unless specifically provided - means this
+        # is part of a larger transaction
+        c = cursor or self._connection.cursor()
         
         try:
             if primary_only:
@@ -1154,10 +1153,9 @@ class PathCache(object):
             # eg. doesn't belong to the project
             return None
 
-        if cursor is None:
-            c = self._connection.cursor()
-        else:
-            c = cursor
+        # use built in cursor unless specifically provided - means this
+        # is part of a larger transaction
+        c = cursor or self._connection.cursor()        
 
         try:
             db_path = self._path_to_dbpath(relative_path)
