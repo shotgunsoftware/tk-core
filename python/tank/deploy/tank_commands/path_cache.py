@@ -9,8 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-Methods for handling of the tank command
-
+Methods relating to the path cache
 """
 
 from ...errors import TankError
@@ -183,6 +182,14 @@ class UnregisterFoldersAction(Action):
         Tank command accessor
         """
         
+        if not self.tk.pipeline_configuration.get_shotgun_path_cache_enabled():            
+            # remote cache not turned on for this project
+            log.error("Looks like this project doesn't synchronize its folders with Shotgun! "
+                      "If you want to turn on synchronization for this project, run "
+                      "the 'upgrade_folders' tank command.")
+            return
+        
+        
         if self.context.entity is None:
             raise TankError("You need to specify a Shotgun entity - such as a Shot or Asset!")
 
@@ -278,8 +285,9 @@ class UnregisterFoldersAction(Action):
         try:
             self.tk.shotgun.create("EventLogEntry", sg_event_data)
         except Exception, e:
-            raise TankError("Shotgun Reported an error. Please contact support. "
-                            "Details: %s Data: %s" % (e, sg_event_data))
+            raise TankError("Shotgun Reported an error while trying to write a Toolkit_Folders_Delete event "
+                            "log entry after having successfully removed folders. Please contact support for "
+                            "assistance. Error details: %s Data: %s" % (e, sg_event_data))
         
         # lastly, another sync
         pc = path_cache.PathCache(self.tk)

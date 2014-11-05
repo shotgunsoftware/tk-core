@@ -12,8 +12,8 @@
 Hook to control the various cache locations in the system.
 """
 
-from tank import Hook
-from tank import TankError
+from sgtk import Hook
+from sgtk import TankError
 import os
 import errno
 import urlparse

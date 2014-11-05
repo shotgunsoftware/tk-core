@@ -67,10 +67,23 @@ class PathCache(object):
             # go into a no-path-cache-mode
             self._path_cache_disabled = True
     
+    def _log_debug(self, log, msg):
+        """
+        Helper method. Logs a debug message if the logger is valid.
+        
+        :param log: std python log object
+        :param msg: message to log
+        """
+        if log:
+            log.debug(msg)
+    
     def _init_db(self):
         """
         Sets up the database
         """
+        # first, make way for the path cache file. This call
+        # will ensure that there is a valid folder and file on
+        # disk, created with all the right permissions etc.
         path_cache_file = self._get_path_cache_location()
         
         self._connection = sqlite3.connect(path_cache_file)
@@ -135,10 +148,10 @@ class PathCache(object):
                         ALTER TABLE path_cache ADD COLUMN primary_entity integer;
                         UPDATE path_cache SET primary_entity=1;
         
-                        DROP INDEX path_cache_path;
+                        DROP INDEX IF EXISTS path_cache_path;
                         CREATE INDEX IF NOT EXISTS path_cache_path ON path_cache(root, path, primary_entity);
                         
-                        DROP INDEX path_cache_all;
+                        DROP INDEX IF EXISTS path_cache_all;
                         CREATE UNIQUE INDEX IF NOT EXISTS path_cache_all ON path_cache(entity_type, entity_id, root, path, primary_entity);
                         """)
         
@@ -155,8 +168,8 @@ class PathCache(object):
         :returns: The path to the path cache file
         """
         if self._tk.pipeline_configuration.get_shotgun_path_cache_enabled():
-            # 0.15+ path cache setup - place the path cache
-            # in the default cache location
+            # 0.15+ path cache setup - call out to a core hook to determine
+            # where the path cache should be located.
             path = self._tk.execute_core_hook(constants.CACHE_LOCATION_HOOK_NAME,
                                               project_id=self._tk.pipeline_configuration.get_project_id(),
                                               pipeline_configuration_id=self._tk.pipeline_configuration.get_shotgun_id(),
@@ -288,14 +301,11 @@ class PathCache(object):
         """
         
         if self._path_cache_disabled:
-            if log:
-                log.debug("This project does not have any associated folders.")
-            return []
-        
+            self._log_debug(log, "This project does not have any associated folders.")
+            return []        
         
         if not self._sync_with_sg:
-            if log:
-                log.debug("Folder synchronization is turned off for this project.")
+            self._log_debug(log, "Folder synchronization is turned off for this project.")
             return []
                 
         c = self._connection.cursor()
@@ -314,8 +324,7 @@ class PathCache(object):
             # get first item in the data set
             data = list(res)[0]
             
-            if log:
-                log.debug("Path cache sync tracking marker in local sqlite db: %r" % data)
+            self._log_debug(log, "Path cache sync tracking marker in local sqlite db: %r" % data) 
             
             # expect back something like [(249660,)] for a running cache and [(None,)] for a clear
             if len(data) != 1 or data[0] is None:
@@ -334,18 +343,17 @@ class PathCache(object):
             # it could break for example if someone has culled the event log table and in 
             # that case we should fall back on a full sync.
             
-            if log:
-                log.debug("Fetching folder event log entries...")
+            self._log_debug(log, "Fetching folder event log entries...")
             
             response = self._tk.shotgun.find("EventLogEntry", 
                                              [ ["event_type", "in", ["Toolkit_Folders_Create", 
                                                                      "Toolkit_Folders_Delete"]], 
                                                ["id", "greater_than", (event_log_id - 1)],
                                                ["project", "is", project_link] ],
-                                             ["id", "meta", "event_type"] )   
+                                             ["id", "meta", "event_type"],
+                                             [{"field_name": "id", "direction": "desc"}] )   
 
-            if log:
-                log.debug("Got %s event log entries" % len(response))
+            self._log_debug(log, "Got %s event log entries" % len(response)) 
         
             # count creation and deletion entries
             num_deletions = 0
@@ -360,21 +368,17 @@ class PathCache(object):
                 # there is either no event log data at all or a gap
                 # in the event log. Assume that some culling has occured and
                 # fall back on a full sync
-                if log:
-                    log.debug("Cannot line up path cache tracking marker in Shotgun Event Log. "
-                              "Falling back onto a full synchronization.")
+                self._log_debug(log, "Cannot align path cache track marker to SG Event Log. Doing Full Sync instead.")
                 return self._do_full_sync(c, log)        
             
             elif len(response) == 1 and response[0]["id"] == event_log_id:
                 # nothing has changed since the last sync
-                if log:
-                    log.debug("Path cache syncing not necessary - local folders already up to date!")
+                self._log_debug(log, "Path cache syncing not necessary - local folders already up to date!") 
                 return []
             
             elif num_deletions > 0:
                 # some stuff was deleted. fall back on full sync
-                if log:
-                    log.debug("Deletions detected, doing full sync")
+                self._log_debug(log, "Deletions detected, doing full sync") 
 
                 return self._do_full_sync(c, log)
             
@@ -444,8 +448,7 @@ class PathCache(object):
             sg_batch_data.append(req)
         
         # push to shotgun in a single xact
-        if log:
-            log.info("Uploading %s path entries to Shotgun..." % len(sg_batch_data))
+        self._log_debug(log, "Uploading %s path entries to Shotgun..." % len(sg_batch_data)) 
         
         try:    
             response = self._tk.shotgun.batch(sg_batch_data)
@@ -500,8 +503,8 @@ class PathCache(object):
         """
         Ensure that all the path cache data in this database is also registered in Shotgun.
         
-        This method is primarily to ensure that any data written by pre-014 clients is
-        pushed to shotgun automatically. Once a system is fully running 0.14, this method is no
+        This method is primarily to ensure that any data written by pre-015 clients is
+        pushed to shotgun automatically. Once a system is fully running 0.15, this method is no
         longer necessary.
         
         :param cursor: Sqlite database cursor
@@ -509,6 +512,11 @@ class PathCache(object):
         """
 
         # first determine which records are not yet in Shotgun.
+        #
+        # this sqlite query will get all rows which are in the path cache
+        # table but are not in the shotgun_status table - meaning that they
+        # haven't yet been uploaded to Shotgun.
+        #
         pc_data = list(cursor.execute("""select pc.rowid,
                                                 pc.entity_type, 
                                                 pc.entity_id, 
@@ -599,14 +607,13 @@ class PathCache(object):
         """
         
         show_global_busy("Hang on, Toolkit is preparing folders...", 
-                         ("Toolkit is retrieving folder data from Shotgun and ensuring that your "
-                         "setup is up to date. Hang tight, this usually takes less than 30 seconds..."))
+                         ("Toolkit is retrieving folder listings from Shotgun and ensuring that your "
+                         "setup is up to date. Hang tight while data is being downloaded..."))
         
         try:
-            if log:
-                log.info("Performing a complete Shotgun folder sync...")
+            self._log_debug(log, "Performing a complete Shotgun folder sync...") 
             
-            # find the max event log id. Will we store this in the sync db later.
+            # find the max event log id. we will store this in the sync db later.
             sg_data = self._tk.shotgun.find_one("EventLogEntry", 
                                                 [["event_type", "in", ["Toolkit_Folders_Create", "Toolkit_Folders_Delete"]]], 
                                                 ["id"], 
@@ -662,7 +669,7 @@ class PathCache(object):
         if len(sg_data) == 0:
             return []
         
-        # find the max event log id in sg_data. Will we store this in the sync db later.
+        # find the max event log id in sg_data. We will store this in the sync db later.
         max_event_log_id = max( [x["id"] for x in sg_data] )
         
         created_folder_ids = []
@@ -675,12 +682,11 @@ class PathCache(object):
                 raise Exception("Unsupported event type '%s'" % d)
                 
         if len(created_folder_ids) == 0:
-            # one or more folder ceration events were detected but none of them had actually
+            # one or more folder creation events were detected but none of them had actually
             # resulted in any actual folders being created!
             return []
                 
-        if log:
-            log.info("Updating folders - Applying %s updates..." % len(created_folder_ids))
+        self._log_debug(log, "Updating folders - Applying %s updates..." % len(created_folder_ids)) 
 
         return self._replay_folder_entities(cursor, log, max_event_log_id, created_folder_ids)
 
@@ -703,9 +709,7 @@ class PathCache(object):
                     - path
         
         """
-
-        if log:
-            log.info("Fetching already registered folders from Shotgun...")
+        self._log_debug(log, "Fetching already registered folders from Shotgun...") 
         
         if ids is None:
             # get all folder data from shotgun
@@ -737,9 +741,7 @@ class PathCache(object):
                                    SG_ENTITY_NAME_FIELD],
                                   [{"field_name": "id", "direction": "asc"},])
         
-        if log:
-            log.debug("...Retrieved %s records." % len(sg_data))
-        
+        self._log_debug(log, "...Retrieved %s records." % len(sg_data))        
             
         # now start a single transaction in which we do all our work
         if ids is None:
@@ -784,6 +786,8 @@ class PathCache(object):
                 pass  
             
         # lastly, id of this event log entry for purpose of future syncing
+        # note - we don't maintain a list of event log entries but just a single
+        # value in the db, so start by clearing the table.
         cursor.execute("DELETE FROM event_log_sync")
         cursor.execute("INSERT INTO event_log_sync(last_id) VALUES(?)", (max_event_log_id, ))
             

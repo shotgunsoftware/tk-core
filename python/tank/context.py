@@ -1104,10 +1104,6 @@ def _values_from_path_cache(entity, cur_template, path_cache, required_fields):
     # use the databsae to go from shotgun type/id --> paths
     entity_paths = path_cache.get_paths(entity["type"], entity["id"], primary_only=True)
     
-    # get a list of path cache paths that validate against our current template
-    # with the existing field values we have plugged into that template
-    matches = [epath for epath in entity_paths if cur_template.validate(epath, fields=required_fields)]
-    
     # Mapping for field values found in conjunction with this entities paths
     unique_fields = {}
     # keys whose values should be removed from return values
