@@ -32,7 +32,7 @@ def sync_path_cache(tk, force_full_sync=False):
     """
     # Use the path cache to look up all paths associated with this entity
     pc = path_cache.PathCache(tk)
-    pc.synchronize(log=None, force=force_full_sync)
+    pc.synchronize(log=None, full_sync=force_full_sync)
     pc.close()
 
 
