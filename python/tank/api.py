@@ -103,6 +103,24 @@ class Tank(object):
         """
         return self.pipeline_configuration.execute_core_hook_internal(hook_name, parent=self, **kwargs)
 
+    def execute_core_hook_method(self, hook_name, method_name, **kwargs):
+        """
+        Executes a specific method on a core level hook, 
+        passing it any keyword arguments supplied.
+
+        Internal Use Only - We provide no guarantees that this method
+        will be backwards compatible.
+        
+        :param hook_name:   Name of hook to execute.
+        :param method_name: Name of method to execute.
+        :param **kwargs:    Additional named parameters will be passed to the hook.
+        :returns:           Return value of the hook.
+        """
+        return self.pipeline_configuration.execute_core_hook_method_internal(hook_name, 
+                                                                             method_name, 
+                                                                             parent=self, 
+                                                                             **kwargs)
+
     ################################################################################################
     # properties
 

@@ -558,7 +558,7 @@ class PipelineConfiguration(object):
 
     def execute_core_hook_internal(self, hook_name, parent, **kwargs):
         """
-        Executes a core hook, passing it any keyword arguments supplied.
+        Executes an old-style core hook, passing it any keyword arguments supplied.
         
         Typically you don't want to execute this method but instead
         the tk.execute_core_hook method. Only use this one if you for 
@@ -583,4 +583,32 @@ class PipelineConfiguration(object):
 
         return hook.execute_hook(hook_path, parent, **kwargs)
 
+    def execute_core_hook_method_internal(self, hook_name, method_name, parent, **kwargs):
+        """
+        Executes a new style core hook, passing it any keyword arguments supplied.
+        
+        Typically you don't want to execute this method but instead
+        the tk.execute_core_hook method. Only use this one if you for 
+        some reason do not have a tk object available.
+
+        :param hook_name: Name of hook to execute.
+        :param method_name: Name of hook method to execute
+        :param parent: Parent object to pass down to the hook
+        :param **kwargs: Named arguments to pass to the hook
+        :returns: Return value of the hook.
+        """
+        # this is a new style hook which supports an inheritance chain
+        
+        # first add the built-in core hook to the chain
+        file_name = "%s.py" % hook_name
+        hooks_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "hooks"))
+        hook_paths = [os.path.join(hooks_path, file_name)]
+        
+        # now add a custom hook if that exists.
+        hook_folder = self.get_core_hooks_location()        
+        hook_path = os.path.join(hook_folder, file_name)
+        if os.path.exists(hook_path):
+            hook_paths.append(hook_path)
+            
+        return hook.execute_hook_method(hook_paths, parent, method_name, **kwargs)
 
