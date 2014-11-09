@@ -170,11 +170,10 @@ class PathCache(object):
         if self._tk.pipeline_configuration.get_shotgun_path_cache_enabled():
             # 0.15+ path cache setup - call out to a core hook to determine
             # where the path cache should be located.
-            path = self._tk.execute_core_hook(constants.CACHE_LOCATION_HOOK_NAME,
-                                              project_id=self._tk.pipeline_configuration.get_project_id(),
-                                              pipeline_configuration_id=self._tk.pipeline_configuration.get_shotgun_id(),
-                                              mode="path_cache",
-                                              parameters={})            
+            path = self._tk.execute_core_hook_method(constants.CACHE_LOCATION_HOOK_NAME,
+                                                     "path_cache",
+                                                     project_id=self._tk.pipeline_configuration.get_project_id(),
+                                                     pipeline_configuration_id=self._tk.pipeline_configuration.get_shotgun_id())
             
         else:
             # old (v0.14) style path cache

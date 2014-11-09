@@ -12,48 +12,74 @@
 Hook to control the various cache locations in the system.
 """
 
-from sgtk import Hook
+import sgtk
 from sgtk import TankError
 import os
 import errno
 import urlparse
 import sys
 
-class CacheLocation(Hook):
-    """
-    Hook to control cache folder creation. 
-    See execute method for details.
-    
-    Future Note!
-    ------------
-    
-    If new cache modes are introduced in the Toolkit Core, any hook implementations which 
-    have been specifically overridden will raise an Exception. The rationale here is that 
-    if you have overridden the path cache, you most likely take an interest in where cache
-    files will go (which implies you are an advanced user) and you most likely want to 
-    customize the new mode that is being introduced aswell. 
+HookBaseClass = sgtk.get_hook_baseclass()
 
+class CacheLocation(HookBaseClass):
+    """
+    Hook to control cache folder creation.
+    
+    For further details, see individual cache methods below.
     """
     
-    def execute(self, project_id, pipeline_configuration_id, mode, parameters, **kwargs):
+    def path_cache(self, project_id, pipeline_configuration_id):
         """
-        Establish a cache folder or file for a given purpose.
+        Establish a location for the path cache database file.
         
-        This hooks allows for customization of where various cache data should reside on disk.
-        For example, this includes the path cache database, app, engine and framework specific
-        cache locations. Such app locations are often used by apps to store run-time cache files
-        such as thumbnails, cached data sets etc.
+        Overriding this method in a hook allows a user to change the location on disk where
+        the path cache file is located. The path cache file holds a temporary cache representation
+        of the FilesystemLocation entities stored in Shotgun for a project. Typically, this cache
+        is stored on a local machine, separate for each user.  
+        
+        :param project_id: The shotgun id of the project to store caches for
+        :param pipeline_configuration_id: The shotgun pipeline config id to store caches for
+        :returns: The path to a path cache file. This file should exist when this method returns.
+        """
+        cache_root = self._get_cache_root(project_id, pipeline_configuration_id)
+        self._ensure_folder_exists(cache_root)
+        target_path = os.path.join(cache_root, "path_cache.db")
+        self._ensure_file_exists(target_path)
+        
+        return target_path
+    
+    def bundle_cache(self, project_id, pipeline_configuration_id, bundle):
+        """
+        Establish a cache folder for an app, engine or framework.
+        
+        Apps, Engines or Frameworks commonly caches data on disk. This can be 
+        small files, shotgun queries, thumbnails etc. This method implements the 
+        logic which defines this location on disk. The cache should be organized in 
+        a way so that all instances of the app can re-use the same data. (Apps 
+        which needs to cache things per-instance can implement this using a sub
+        folder inside the bundle cache location).
 
         :param project_id: The shotgun id of the project to store caches for
         :param pipeline_configuration_id: The shotgun pipeline config id to store caches for
-        :param mode: Mode string describing which cache location should be returned.
-                     Current valid values are "path_cache" and "bundle_cache"
-        :param parameters: Dictionary with mode specific parameters.
-                           The following parameters are passed for the different modes:
-                           - path_cache: {}
-                           - bundle_cache: { "bundle": bundle_object }
+        :param bundle: The app, engine or framework object which is requesting the cache folder.
+        :returns: The path to a folder which should exist on disk.
+        """
+        cache_root = self._get_cache_root(project_id, pipeline_configuration_id)
+        target_path = os.path.join(cache_root, bundle.name)
+        self._ensure_folder_exists(target_path)
         
-        :returns: The path to a file or a folder (depending on mode) which should exist on disk.
+        return target_path
+        
+    def _get_cache_root(self, project_id, pipeline_configuration_id):
+        """
+        Helper method that can be used both by subclassing hooks
+        and inside this base level hook. This method calculates the cache root
+        for the current project and configuration. In the default implementation,
+        all the different types of cache data resides below a common root point. 
+        
+        :param project_id: The shotgun id of the project to store caches for
+        :param pipeline_configuration_id: The shotgun pipeline config id to store caches for
+        :returns: The calculated location for the cache root
         """
         
         # the default implementation will place things in the following locations:
@@ -78,26 +104,7 @@ class CacheLocation(Hook):
                                   base_url, 
                                   "project_%d" % project_id,
                                   "config_%d" % pipeline_configuration_id)
-        
-        self._ensure_folder_exists(cache_root)
-        
-        # now establish the sub structure, this is done differently for different modes
-        if mode == "path_cache":
-            target_path = os.path.join(cache_root, "path_cache.db")
-            self._ensure_file_exists(target_path)                
-            
-        elif mode == "bundle_cache":
-            bundle = parameters["bundle"]
-            target_path = os.path.join(cache_root, bundle.name)
-            self._ensure_folder_exists(target_path)
-            
-        else:
-            # raise an error so that users who have overridden the hook will get an error message
-            # the next time we add a cache class to the hook
-            raise TankError("Toolkit requested an unsupported cache item '%s'. Please update your "
-                            "cache_location hook to include a behavior for this data type." % mode)
-        
-        return target_path
+        return cache_root
     
     def _ensure_file_exists(self, path):
         """
