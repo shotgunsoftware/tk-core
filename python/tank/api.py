@@ -103,6 +103,11 @@ class Tank(object):
         """
         return self.pipeline_configuration.execute_core_hook_internal(hook_name, parent=self, **kwargs)
 
+    # compatibility alias - previously the name of this *internal method* was named execute_hook.
+    # in order to try to avoid breaking client code that uses these *internal methods*, let's
+    # provide a backwards compatibility alias.
+    execute_hook = execute_core_hook
+
     def execute_core_hook_method(self, hook_name, method_name, **kwargs):
         """
         Executes a specific method on a core level hook, 
