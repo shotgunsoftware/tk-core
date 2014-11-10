@@ -521,7 +521,7 @@ def _move_data(path):
             os.rename(path, backup_path)
         except WindowsError:
             # On windows intermittent problems with sqlite db file occur
-            tk = sgtk.from_path(path)
+            tk = sgtk.sgtk_from_path(path)
             pc = path_cache.PathCache(tk)
             db_path = pc._get_path_cache_location()
             if os.path.exists(db_path):
