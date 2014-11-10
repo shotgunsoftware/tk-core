@@ -14,7 +14,7 @@ import shutil
 
 from ...platform import constants
 from ...errors import TankError
-from ... import pipelineconfig
+from ... import pipelineconfig_factory
 
 from tank_vendor import yaml
     
@@ -105,7 +105,7 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, set
     _make_folder(log, os.path.join(config_location_curr_os, "install", "engines"), 0777, True)
     _make_folder(log, os.path.join(config_location_curr_os, "install", "apps"), 0777, True)
     _make_folder(log, os.path.join(config_location_curr_os, "install", "frameworks"), 0777, True)
-    
+        
     # copy the configuration into place
     setup_params.report_progress_from_installer("Setting up template configuration...")
     setup_params.create_configuration(os.path.join(config_location_curr_os, "config"))
@@ -199,46 +199,7 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, set
         # get the project path for this storage
         current_os_path = setup_params.get_project_path(storage_name, sys.platform)
         log.debug("Project path: %s" % current_os_path )
-        
-        tank_path = os.path.join(current_os_path, "tank")
-        if not os.path.exists(tank_path):
-            _make_folder(log, tank_path, 0777)
-        
-        cache_path = os.path.join(tank_path, "cache")
-        if not os.path.exists(cache_path):
-            _make_folder(log, cache_path, 0777)
-
-        config_path = os.path.join(tank_path, "config")
-        if not os.path.exists(config_path):
-            _make_folder(log, config_path, 0777)
-        
-        if storage_name == constants.PRIMARY_STORAGE_NAME:
-            # primary storage - make sure there is a path cache file
-            # this is to secure the ownership of this file
-            cache_file = os.path.join(cache_path, "path_cache.db")
-            if not os.path.exists(cache_file):
-                log.debug("Touching path cache %s" % cache_file)
-                fh = open(cache_file, "wb")
-                fh.close()
-                os.chmod(cache_file, 0666)
-                
-        # create file for configuration backlinks
-        log.debug("Setting up storage -> PC mapping...")
-        scm = pipelineconfig.StorageConfigurationMapping(current_os_path)
-        
-        # make sure there is no existing backlinks associated with the config
-        #
-        # this can be the case if the config setup is using a pre-0.13 setup
-        # where the project tank folder and the install folder is the same,
-        # and the project was based on another project and thefore when the 
-        # files were copied across, the back mappings file also got accidentally
-        # copied.
-        #
-        # it can also happen when doing a force re-install of a project.
-        scm.clear_mappings()
-        
-        # and add our configuration
-        scm.add_pipeline_configuration(config_location_mac, config_location_win, config_location_linux)    
+                        
     
     # Create Project.tank_name and PipelineConfiguration records in Shotgun
     #
@@ -321,6 +282,9 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, set
     data["pc_name"] = constants.PRIMARY_PIPELINE_CONFIG_NAME 
     data["published_file_entity_type"] = pf_entity_type
     
+    # all 0.15+ projects are pushing folders to Shotgun by default
+    data["use_shotgun_path_cache"] = True 
+    
     try:
         fh = open(pipe_config_sg_id_path, "wt")
         yaml.dump(data, fh)
@@ -345,7 +309,7 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, set
     # install apps
     
     # We now have a fully functional tank setup! Time to start it up...
-    pc = pipelineconfig.from_path(config_location_curr_os)
+    pc = pipelineconfig_factory.from_path(config_location_curr_os)
     
     # each entry in the config template contains instructions about which version of the app
     # to use. First loop over all environments and gather all descriptors we should download,

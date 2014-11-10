@@ -514,7 +514,7 @@ class TankAppStoreDescriptor(AppDescriptor):
 
         # connect to the app store
         (sg, script_user) = shotgun.create_sg_app_store_connection()
-        local_sg = shotgun.create_sg_connection()
+        local_sg = shotgun.get_sg_connection()
 
         # get metadata from sg...
         metadata = self.__download_app_store_metadata()

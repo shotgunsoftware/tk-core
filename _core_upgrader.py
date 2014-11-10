@@ -44,6 +44,9 @@ def __is_upgrade(sgtk_install_root):
     """
     Returns true if this is not the first time the sgtk code is being 
     installed (activation).
+    
+    :param sgtk_install_root: Location where the core is installed
+    :returns: true if activation, false if not
     """
     return os.path.exists(os.path.join(sgtk_install_root, "core", "info.yml"))
     
@@ -51,6 +54,10 @@ def __current_version_less_than(log, sgtk_install_root, ver):
     """
     returns true if the current API version installed is less than the 
     specified version. ver is "v0.1.2"
+    
+    :param sgtk_install_root: Location where the core is installed
+    :param ver: Version string to check (e.g. 'v0.1.2')
+    :returns: true or false
     """
     log.debug("Checking if the currently installed version is less than %s..." % ver)
     
@@ -94,6 +101,10 @@ def __current_version_less_than(log, sgtk_install_root, ver):
 def __create_sg_connection(log, shotgun_cfg_path):
     """
     Creates a standard sgtk shotgun connection.
+    
+    :param log: std python logger
+    :param shotgun_cfg_path: path to shotgun.yml configuration file
+    :returns: Shotgun API instance 
     """
     
     log.debug("Reading shotgun config from %s..." % shotgun_cfg_path)
@@ -176,6 +187,13 @@ def __get_pc_core_install_root(pc_root, visited_paths = None):
 
 
 def _make_folder(log, folder, permissions):
+    """
+    Create a folder on disk. Wrapper.
+    
+    :param log: std python logger
+    :param folder: Path to folder to create
+    :param permissions: Permissions to apply as an int
+    """
     if not os.path.exists(folder):
         log.debug("Creating folder %s.." % folder)
         os.mkdir(folder, permissions)
@@ -228,6 +246,40 @@ def _copy_folder(log, src, dst):
 
 ###################################################################################################
 # Migrations
+
+def _upgrade_path_cache(log):
+    """
+    Migration to upgrade to 0.15. Info blurb only.
+    
+    :param log: std python logger
+    """
+    log.info("")
+    log.info("")
+    log.info("")
+    log.info("")    
+    log.info("---------------------------------------------------------------------")
+    log.info("Welcome to Toolkit v0.15!")
+    log.info("---------------------------------------------------------------------")
+    log.info("")
+    log.info("Toolkit v0.15 features centralized tracking of the folders that are ")
+    log.info("created on disk. This makes it easier to work distributed and have local")
+    log.info("data setups. (For more details, see the release notes.)")
+    log.info("")
+    log.info("Once Toolkit 0.15 has been installed, all new projects will automatically ")
+    log.info("have this feature enabled. Existing projects can optionally use this feature ")
+    log.info("if you like - you turn it on using the following command:")
+    log.info("")
+    log.info("> tank Project project_name upgrade_folders")
+    log.info("")
+    log.info("---------------------------------------------------------------------")    
+    log.info("")
+    log.info("")
+    log.info("")
+    log.info("")
+
+
+###################################################################################################
+# Upgrade entry point
 
 def __copy_tank_cmd_binaries(src_dir, dst_dir, tank_scripts, log):
     """
@@ -333,11 +385,15 @@ def upgrade_tank(sgtk_install_root, log):
             log.error("You are running a very old version of the Toolkit Core API. Automatic upgrades "
                       "are no longer supported. Please contact toolkitsupport@shotgunsoftware.com.")
             return
-            
+
         # Make sure the tank.bat and tank scripts are up to date:
         if __is_upgrade(sgtk_install_root) and __current_version_less_than(log, sgtk_install_root, "v0.14.72"):
             log.debug("Running tank command replacement migration...")
             _upgrade_tank_cmd_binaries(sgtk_install_root, log)
+
+        if __is_upgrade(tank_install_root) and __current_version_less_than(log, tank_install_root, "v0.15.0"):
+            log.debug("Upgrading to v0.15.0. Prompting for path cache changes.")
+            _upgrade_path_cache(log)
             
         log.debug("Migrations have completed. Now doing the actual upgrade...")
 
@@ -396,6 +452,9 @@ def upgrade_tank(sgtk_install_root, log):
 #######################################################################
 if __name__ == "__main__":
     
+    # for debugging purposes, can run this command with the following syntax
+    # > python _core_upgrader.py migrate /mnt/software/shotgun/studio/install
+    
     if len(sys.argv) == 3 and sys.argv[1] == "migrate":
         path = sys.argv[2]
         migrate_log = logging.getLogger("tank.update")
@@ -412,9 +471,8 @@ if __name__ == "__main__":
         desc = """
     This is a system script used by the upgrade process.
     
-    If you want to upgrade the Shotgun Pipeline Toolkit, 
-    please run one of the upgrade utilities located in 
-    the scripts folder.
+    If you want to upgrade the toolkit Core API, run the
+    'tank core' command.
     
     """
         print desc

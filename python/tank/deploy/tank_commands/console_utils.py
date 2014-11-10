@@ -562,7 +562,7 @@ def __get_sg_version():
     global g_sg_studio_version
     if g_sg_studio_version is None:
         try:
-            studio_sg = shotgun.create_sg_connection()
+            studio_sg = shotgun.get_sg_connection()
             g_sg_studio_version = ".".join([ str(x) for x in studio_sg.server_info["version"]])
         except Exception, e:
             raise TankError("Could not extract version number for studio shotgun: %s" % e)

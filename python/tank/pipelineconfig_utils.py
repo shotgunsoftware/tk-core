@@ -41,12 +41,157 @@ def is_pipeline_config(pipeline_config_path):
     """
     Returns true if the path points to the root of a pipeline configuration
     
+    :param pipeline_config_path: path to a pipeline configuration root folder
     :returns: true if pipeline config, false if not
     """
     # probe by looking for the existence of a key config file.
     pc_file = os.path.join(pipeline_config_path, "config", "core", constants.STORAGE_ROOTS_FILE)
     return os.path.exists(pc_file)
     
+def get_metadata(pipeline_config_path):
+    """
+    Loads the pipeline config metadata (the pipeline_configuration.yml) file from disk.
+    
+    :param pipeline_config_path: path to a pipeline configuration root folder
+    :returns: deserialized content of the file in the form of a dict.
+    """
+
+    # now read in the pipeline_configuration.yml file
+    cfg_yml = os.path.join(pipeline_config_path, "config", "core", "pipeline_configuration.yml")
+
+    if not os.path.exists(cfg_yml):
+        raise TankError("Configuration metadata file '%s' missing! Please contact support." % cfg_yml)
+
+    fh = open(cfg_yml, "rt")
+    try:
+        data = yaml.load(fh)
+        if data is None:
+            raise Exception("File contains no data!")
+    except Exception, e:
+        raise TankError("Looks like a config file is corrupt. Please contact "
+                        "support! File: '%s' Error: %s" % (cfg_yml, e))
+    finally:
+        fh.close()
+
+    return data
+
+
+def get_roots_metadata(pipeline_config_path):
+    """
+    Loads and validates the roots metadata file.
+    
+    The roots.yml file is a reflection of the local storages setup in Shotgun
+    at project setup time and may contain anomalies in the path layout structure.
+    
+    The roots data will be prepended to paths and used for comparison so it is 
+    critical that the paths are on a correct normalized form once they have been 
+    loaded into the system.
+    
+    :param pipeline_config_path: Path to the root of a pipeline configuration,
+                                 (excluding the "config" folder).  
+    
+    :returns: A dictionary structure with an entry for each storage defined. Each
+              storage will have three keys mac_path, windows_path and linux_path, 
+              for example
+              { "primary"  : { "mac_path": "/tmp/foo", 
+                               "linux_path": None, 
+                               "windows_path": "z:\tmp\foo" },
+                "textures" : { "mac_path": "/tmp/textures", 
+                               "linux_path": None, 
+                               "windows_path": "z:\tmp\textures" },
+              }
+    """
+    # now read in the roots.yml file
+    # this will contain something like
+    # {'primary': {'mac_path': '/studio', 'windows_path': None, 'linux_path': '/studio'}}
+    roots_yml = os.path.join(pipeline_config_path, "config", "core", constants.STORAGE_ROOTS_FILE)
+
+    if not os.path.exists(roots_yml):
+        raise TankError("Roots metadata file '%s' missing! Please contact support." % roots_yml)
+
+    fh = open(roots_yml, "rt")
+    try:
+        # if file is empty, initializae with empty dict...
+        data = yaml.load(fh) or {}
+    except Exception, e:
+        raise TankError("Looks like the roots file is corrupt. Please contact "
+                        "support! File: '%s' Error: %s" % (roots_yml, e))
+    finally:
+        fh.close()
+
+    # if there are more than zero storages defined, ensure one of them is the primary storage
+    if len(data) > 0 and constants.PRIMARY_STORAGE_NAME not in data:
+        raise TankError("Could not find a primary storage in roots file "
+                        "for configuration %s!" % pipeline_config_path)
+
+    # now use our helper function to process the paths    
+    for s in data:
+        data[s]["mac_path"] = _sanitize_path(data[s]["mac_path"], "/")
+        data[s]["linux_path"] = _sanitize_path(data[s]["linux_path"], "/")
+        data[s]["windows_path"] = _sanitize_path(data[s]["windows_path"], "\\")
+
+    return data
+
+
+def _sanitize_path(path, separator):
+    """
+    Sanitize and clean up paths that may be incorrect.
+    
+    The following modifications will be carried out:
+    
+    None returns None
+    
+    Trailing slashes are removed:
+    1. /foo/bar      - unchanged
+    2. /foo/bar/     - /foo/bar
+    3. z:/foo/       - z:\foo
+    4. z:/           - z:\
+    5. z:\           - z:\
+    6. \\foo\bar\    - \\foo\bar
+
+    Double slashes are removed:
+    1. //foo//bar    - /foo/bar
+    2. \\foo\\bar    - \\foo\bar
+    
+    :param path: the path to clean up
+    :param separator: the os.sep to adjust the path for. / on nix, \ on win.
+    :returns: cleaned up path
+    """
+    if path is None:
+        return None
+    
+    # first, get rid of any slashes at the end
+    # after this step, path value will be "/foo/bar", "c:" or "\\hello"
+    path = path.rstrip("/\\")
+    
+    # add slash for drive letters: c: --> c:/
+    if len(path) == 2 and path.endswith(":"):
+        path += "/"
+    
+    # and convert to the right separators
+    # after this we have a path with the correct slashes and no end slash
+    local_path = path.replace("\\", separator).replace("/", separator)
+
+    # now weed out any duplicated slashes. iterate until done
+    while True:
+        new_path = local_path.replace("//", "/")
+        if new_path == local_path:
+            break
+        else:
+            local_path = new_path
+    
+    # for windows, remove duplicated backslashes, except if they are 
+    # at the beginning of the path
+    while True:
+        new_path = local_path[0] + local_path[1:].replace("\\\\", "\\")
+        if new_path == local_path:
+            break
+        else:
+            local_path = new_path
+
+    return local_path
+
+
 
 ####################################################################################################################
 # Core API resolve utils 
@@ -115,7 +260,6 @@ def get_core_path_for_config(pipeline_config_path):
                 
     return install_path
     
-    
 def resolve_all_os_paths_to_core(core_path):
     """
     Given a core path on the current os platform, 
@@ -135,13 +279,41 @@ def resolve_all_os_paths_to_config(pc_path):
     """
     return _get_install_locations(pc_path)
 
+def get_config_install_location(path):
+    """
+    Given a pipeline configuration, return the location
+    on the current platform.
+    
+    Loads the location metadata file from install_location.yml
+    This contains a reflection of the paths given in the pc entity.
+
+    Returns the path that has been registered for this pipeline configuration 
+    for the current OS. This is the path that has been defined in shotgun.
+    
+    This is useful when drive letter mappings or symlinks are being used to ensure
+    a correct path resolution.
+    
+    This may return None if no path has been registered for the current os.
+    
+    :param path: Path to a pipeline configuration on disk.
+    :returns: registered path, may be None.
+    """
+    # do a bit of cleanup of the input data
+    # ensure there is no white space around the path
+    path = path.strip()
+    # strip trailing slashes 
+    path = path.rstrip("\\/")
+    # resolve
+    locations = _get_install_locations(path)
+    return locations[sys.platform]
+
 def _get_install_locations(path):
     """
     Given a pipeline configuration OR core location, return paths on all platforms.
     
+    :param path: Path to a pipeline configuration on disk.
     :returns: dictionary with keys linux2, darwin and win32
     """
-    
     # basic sanity check
     if not os.path.exists(path):
         raise TankError("The core path '%s' does not exist on disk!" % path)
@@ -167,6 +339,16 @@ def _get_install_locations(path):
     macosx_path = location_data.get("Darwin")
     win_path = location_data.get("Windows")
     
+    # this file may contain environment variables. Try to expand these.
+    if linux_path:
+        linux_path = os.path.expandvars(linux_path)     
+    if macosx_path:
+        macosx_path = os.path.expandvars(macosx_path) 
+    if win_path:
+        win_path = os.path.expandvars(win_path) 
+
+    # lastly, sanity check the paths - sometimes these files contain non-path
+    # values such as "None" or "unknown"
     if not linux_path or not linux_path.startswith("/"):
         linux_path = None
     if not macosx_path or not macosx_path.startswith("/"):

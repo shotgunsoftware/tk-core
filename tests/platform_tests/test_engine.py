@@ -46,19 +46,12 @@ class TestStartEngine(TankTestBase):
         fh.close()
         
         
-        self.tk = tank.Tank(self.project_root)
         self.context = self.tk.context_from_path(self.shot_step_path)
 
     def test_get_engine_path(self):
         engine_path = tank.platform.get_engine_path("test_engine", self.tk, self.context)
         expected_engine_path = os.path.join(self.project_root, "tank", "config", "test_engine")
         self.assertEquals(engine_path, expected_engine_path)
-
-    def test_get_engine_cache_path(self):
-        engine_name = "test_engine"
-        engine = tank.platform.start_engine(engine_name, self.tk, self.context)
-        cache_location = os.path.join(self.tk.pipeline_configuration.get_path(), "cache", engine_name)
-        self.assertEquals(engine.cache_location, cache_location)
 
     def test_valid_engine(self):
         engine = tank.platform.start_engine("test_engine", self.tk, self.context)
@@ -71,10 +64,16 @@ class TestStartEngine(TankTestBase):
         self.assertRaises(TankError, tank.platform.start_engine, engine_name, self.tk, self.context)
     
     def tearDown(self):
+        
+        
         cur_engine = tank.platform.current_engine()
         if cur_engine:
             cur_engine.destroy()
         os.remove(self.test_resource)
+
+        # important to call base class so it can clean up memory
+        super(TestStartEngine, self).tearDown()
+
 
     def test_properties(self):
         """

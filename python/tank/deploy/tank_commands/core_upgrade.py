@@ -190,7 +190,7 @@ class TankCoreUpgrader(object):
         self._sg = sg_app_store
         self._sg_script_user = script_user
         
-        self._local_sg = shotgun.create_sg_connection()      
+        self._local_sg = shotgun.get_sg_connection()      
         self._latest_ver = self.__get_latest_version()
         
         self._install_root = os.path.join(installation_root, "install")

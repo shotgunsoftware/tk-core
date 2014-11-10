@@ -23,6 +23,10 @@ from tank_test.tank_test_base import *
 
 class TestInit(TankTestBase):
         
+    def setUp(self):
+        super(TestInit, self).setUp()
+        self.setup_fixtures()
+        
     def test_project_from_param(self):
         tank = Tank(self.project_root)
         self.assertEquals(self.project_root, tank.project_path)
@@ -33,7 +37,6 @@ class TestTemplateFromPath(TankTestBase):
     def setUp(self):
         super(TestTemplateFromPath, self).setUp()
         self.setup_fixtures()
-        self.tk = Tank(self.project_root)
 
     def test_defined_path(self):
         """Resolve a path which maps to a template in the standard config"""
@@ -65,7 +68,6 @@ class TestTemplatesLoaded(TankTestBase):
         self.setup_multi_root_fixtures()
         # some template names we know exist in the standard template
         self.expected_names = ["maya_shot_work", "nuke_shot_work"]
-        self.tk = Tank(self.project_root)
 
     def test_templates_loaded(self):
         actual_names = self.tk.templates.keys()
@@ -108,8 +110,6 @@ class TestPathsFromTemplate(TankTestBase):
         step_path = os.path.join(shot_path, "step_name")
         self.add_production_path(step_path,
                             {"type":"Step", "id":1, "name": "step_name"})
-
-        self.tk = Tank(self.project_root)
 
         # using template from standard setup
         self.template = self.tk.templates.get("maya_shot_work")
@@ -172,14 +172,13 @@ class TestPathsFromTemplate(TankTestBase):
         
         definition = "sequences/{Sequence}/{Shot}/{Step}/work/{name}.v{version}.nk"
         template = TemplatePath(definition, keys, self.project_root, "my_template")
-        tk = tank.Tank(self.project_root)
-        tk._templates = {template.name: template}
+        self.tk._templates = {template.name: template}
         bad_file_path = os.path.join(self.project_root, "sequences", "Sequence1", "Shot1", "Foot", "work", "name1.va.nk")
         good_file_path = os.path.join(self.project_root, "sequences", "Sequence1", "Shot1", "Foot", "work", "name.v001.nk")
         self.create_file(bad_file_path)
         self.create_file(good_file_path)
         ctx_fields = {"Sequence": "Sequence1", "Shot": "Shot1", "Step": "Foot"}
-        result = tk.paths_from_template(template, ctx_fields)
+        result = self.tk.paths_from_template(template, ctx_fields)
         self.assertIn(good_file_path, result)
         self.assertNotIn(bad_file_path, result)
 
@@ -190,7 +189,6 @@ class TestAbstractPathsFromTemplate(TankTestBase):
         super(TestAbstractPathsFromTemplate, self).setUp()
         self.setup_fixtures()
 
-        self.tk = tank.Tank(self.project_root)
 
         keys = {"Sequence": StringKey("Sequence"),
                 "Shot": StringKey("Shot"),
@@ -309,7 +307,6 @@ class TestPathsFromTemplateGlob(TankTestBase):
     """Tests for Tank.paths_from_template method which check the string sent to glob.glob."""
     def setUp(self):
         super(TestPathsFromTemplateGlob, self).setUp()
-        self.tk = Tank(self.project_root)
         keys = {"Shot": StringKey("Shot"),
                 "version": IntegerKey("version", format_spec="03"),
                 "seq_num": SequenceKey("seq_num", format_spec="05")}
@@ -380,7 +377,6 @@ class TestVersionProperty(TankTestBase):
     """
     def setUp(self):
         super(TestVersionProperty, self).setUp()
-        self.tk = Tank(self.project_root)
 
     def test_version_property(self):
         self.assertEquals(self.tk.version, "HEAD")
@@ -391,12 +387,12 @@ class TestDocumentationProperty(TankTestBase):
     """
     def setUp(self):
         super(TestDocumentationProperty, self).setUp()
-        self.tk = Tank(self.project_root)
 
     def test_doc_property(self):
         self.assertEquals(self.tk.documentation_url, None)
 
 class TestTankFromPath(TankTestBase):
+    
     def setUp(self):
         super(TestTankFromPath, self).setUp()
         self.setup_multi_root_fixtures()
