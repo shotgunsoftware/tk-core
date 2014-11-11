@@ -451,6 +451,10 @@ class TankBundle(object):
             resolved_hook_name = default_hook_name
             if constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN in default_hook_name:
                 try:
+                    # note - this technically violates the generic nature of the bundle
+                    # base class implementation (because the engine member is not defined in bundle
+                    # but in App and Framework but NOT in the Engine class) - an engine trying to define
+                    # a hook using the {engine_name} construct will therefore see get an error.
                     engine_name = self.engine.name
                 except:
                     raise TankError("%s: Failed to be able to find the associated engine "
@@ -600,7 +604,19 @@ class TankBundle(object):
                 default_value = manifest.get(settings_name).get("default_value")
             
             if default_value: # possible not to have a default value!
-                default_value = default_value.replace(constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN, self.engine.name)
+                
+                if constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN in default_value:
+                    try:
+                        # note - this technically violates the generic nature of the bundle
+                        # base class implementation (because the engine member is not defined in bundle
+                        # but in App and Framework but NOT in the Engine class) - an engine trying to define
+                        # a hook using the {engine_name} construct will therefore see get an error.
+                        engine_name = self.engine.name
+                    except:
+                        raise TankError("%s: Failed to be able to find the associated engine "
+                                        "when trying to access hook %s" % (self, hook_expression))
+                    
+                    default_value = default_value.replace(constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN, engine_name)
             
                 # expand the default value to be referenced from {self} and with the .py suffix 
                 # for backwards compatibility with the old syntax where the default value could
