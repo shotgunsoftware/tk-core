@@ -269,7 +269,7 @@ def _upgrade_path_cache(log):
     log.info("have this feature enabled. Existing projects can optionally use this feature ")
     log.info("if you like - you turn it on using the following command:")
     log.info("")
-    log.info("> tank Project project_name upgrade_folders")
+    log.info("> tank upgrade_folders")
     log.info("")
     log.info("---------------------------------------------------------------------")    
     log.info("")
@@ -369,10 +369,9 @@ def upgrade_tank(sgtk_install_root, log):
     Upgrades the sgtk core API located in sgtk_install_root
     based on files located locally to this script
     """
-       
+    
     # get our location
     this_folder = os.path.abspath(os.path.join( os.path.dirname(__file__)))
-
     
     # ensure permissions are not overridden by umask
     old_umask = os.umask(0)
@@ -391,7 +390,7 @@ def upgrade_tank(sgtk_install_root, log):
             log.debug("Running tank command replacement migration...")
             _upgrade_tank_cmd_binaries(sgtk_install_root, log)
 
-        if __is_upgrade(tank_install_root) and __current_version_less_than(log, tank_install_root, "v0.15.0"):
+        if __is_upgrade(sgtk_install_root) and __current_version_less_than(log, sgtk_install_root, "v0.15.0"):
             log.debug("Upgrading to v0.15.0. Prompting for path cache changes.")
             _upgrade_path_cache(log)
             
