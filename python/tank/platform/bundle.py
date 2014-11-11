@@ -454,10 +454,10 @@ class TankBundle(object):
                     # note - this technically violates the generic nature of the bundle
                     # base class implementation (because the engine member is not defined in bundle
                     # but in App and Framework but NOT in the Engine class) - an engine trying to define
-                    # a hook using the {engine_name} construct will therefore see get an error.
+                    # a hook using the {engine_name} construct will therefore get an error.
                     engine_name = self.engine.name
                 except:
-                    raise TankError("%s: Failed to be able to find the associated engine "
+                    raise TankError("%s: Failed to find the associated engine "
                                     "when trying to access hook %s" % (self, hook_expression))
                 
                 resolved_hook_name = default_hook_name.replace(constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN, engine_name)
@@ -610,10 +610,10 @@ class TankBundle(object):
                         # note - this technically violates the generic nature of the bundle
                         # base class implementation (because the engine member is not defined in bundle
                         # but in App and Framework but NOT in the Engine class) - an engine trying to define
-                        # a hook using the {engine_name} construct will therefore see get an error.
+                        # a hook using the {engine_name} construct will therefore get an error.
                         engine_name = self.engine.name
                     except:
-                        raise TankError("%s: Failed to be able to find the associated engine "
+                        raise TankError("%s: Failed to find the associated engine "
                                         "when trying to access hook %s" % (self, hook_expression))
                     
                     default_value = default_value.replace(constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN, engine_name)
