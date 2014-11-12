@@ -822,7 +822,7 @@ class Engine(TankBundle):
         """
         from .qt import QtGui, QtCore
         
-        resources_folder = os.path.join(pipelineconfig.get_current_code_install_root(), 
+        resources_folder = os.path.join(pipelineconfig_utils.get_path_to_current_core(), 
                                         "install", "core", "resources")
         
         # initialize our style
