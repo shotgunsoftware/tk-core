@@ -230,8 +230,8 @@ class Engine(TankBundle):
                     # just update the message for the existing window 
                     self.__global_progress_widget.set_contents(title, details)
 
-            # make sure events are properly processed and the window is updated
-            QtCore.QCoreApplication.processEvents()
+                # make sure events are properly processed and the window is updated
+                QtCore.QCoreApplication.processEvents()
         
         else:
             # no UI support! Instead, just emit a log message
