@@ -194,33 +194,44 @@ class Engine(TankBundle):
         """
         if self.has_ui:
             # we cannot import QT until here as non-ui engines don't have QT defined.
-            from .qt.busy_dialog import BusyDialog 
-            from .qt import QtGui, QtCore
-            
-            if not self.__global_progress_widget:
+            try:
+                from .qt.busy_dialog import BusyDialog 
+                from .qt import QtGui, QtCore
                 
-                # no window exists - create one!
-                (window, self.__global_progress_widget) = self._create_dialog_with_widget(title="Toolkit is busy", 
-                                                                                          bundle=self, 
-                                                                                          widget_class=BusyDialog)
+            except:
+                # QT import failed. This may be because someone has upgraded the core
+                # to the latest but are still running a earlier version of the 
+                # Shotgun or Shell engine where the self.has_ui method is not
+                # correctly implemented. In that case, absorb the error and  
+                # emit a log message
+                self.log_info("[%s] %s" % (title, details))
                 
-                # make it a splashscreen that sits on top
-                window.setWindowFlags(QtCore.Qt.SplashScreen | QtCore.Qt.WindowStaysOnTopHint)
-
-                # set the message before the window is raised to avoid briefly
-                # showing default values
-                self.__global_progress_widget.set_contents(title, details)
-                
-                # kick it off        
-                window.show()
-    
             else:
-                                        
-                # just update the message for the existing window 
-                self.__global_progress_widget.set_contents(title, details)
+                # our qt import worked!
+                if not self.__global_progress_widget:
+                    
+                    # no window exists - create one!
+                    (window, self.__global_progress_widget) = self._create_dialog_with_widget(title="Toolkit is busy", 
+                                                                                              bundle=self, 
+                                                                                              widget_class=BusyDialog)
+                    
+                    # make it a splashscreen that sits on top
+                    window.setWindowFlags(QtCore.Qt.SplashScreen | QtCore.Qt.WindowStaysOnTopHint)
+    
+                    # set the message before the window is raised to avoid briefly
+                    # showing default values
+                    self.__global_progress_widget.set_contents(title, details)
+                    
+                    # kick it off        
+                    window.show()
+        
+                else:
+                                            
+                    # just update the message for the existing window 
+                    self.__global_progress_widget.set_contents(title, details)
 
-            # make sure events are properly processed and the window is updated
-            QtCore.QCoreApplication.processEvents()
+                # make sure events are properly processed and the window is updated
+                QtCore.QCoreApplication.processEvents()
         
         else:
             # no UI support! Instead, just emit a log message
