@@ -36,31 +36,31 @@ def from_entity(entity_type, entity_id):
     :returns: Pipeline Configuration object
     """
     try:
-        pc = _from_entity(entity_type, entity_id, force=False)
+        pc = _from_entity(entity_type, entity_id, force_reread_shotgun_cache=False)
     except TankError:
         # lookup failed! This may be because there are missing items
         # in the cache. For failures, try again, but this time
         # force re-read the cache (e.g connect to shotgun)
         # if the previous failure was due to a missing item
         # in the cache, 
-        pc = _from_entity(entity_type, entity_id, force=True)
+        pc = _from_entity(entity_type, entity_id, force_reread_shotgun_cache=True)
     
     return pc
 
 
-def _from_entity(entity_type, entity_id, force):
+def _from_entity(entity_type, entity_id, force_reread_shotgun_cache):
     """
     Factory method that constructs a pipeline configuration given a Shotgun Entity.
     This method contains the implementation payload.
     
     :param entity_type: Shotgun Entity type
     :param entity_id: Shotgun id
-    :param force: Should the cache be force re-populated?
+    :param force_reread_shotgun_cache: Should the cache be force re-populated?
     :returns: Pipeline Configuration object
     """
 
     # first see if we can resolve a project id from this entity
-    project_id = __get_project_id(entity_type, entity_id, force)
+    project_id = __get_project_id(entity_type, entity_id, force_reread_shotgun_cache)
     
     # now given the project id, find the pipeline configurations
     if project_id is None:
@@ -70,7 +70,7 @@ def _from_entity(entity_type, entity_id, force):
                         "enabled project." % (entity_type, entity_id))
 
     # now find the pipeline configurations that are matching this project
-    data = _get_pipeline_configs(force)
+    data = _get_pipeline_configs(force_reread_shotgun_cache)
     associated_sg_pipeline_configs = _get_pipeline_configs_for_project(project_id, data)
     
     if len(associated_sg_pipeline_configs) == 0:
@@ -131,24 +131,24 @@ def from_path(path):
     """
 
     try:
-        pc = _from_path(path, force=False)
+        pc = _from_path(path, force_reread_shotgun_cache=False)
     except TankError:
         # lookup failed! This may be because there are missing items
         # in the cache. For failures, try again, but this time
         # force re-read the cache (e.g connect to shotgun)
         # if the previous failure was due to a missing item
         # in the cache, 
-        pc = _from_path(path, force=True)
+        pc = _from_path(path, force_reread_shotgun_cache=True)
     
     return pc
 
 
-def _from_path(path, force):
+def _from_path(path, force_reread_shotgun_cache):
     """
     Internal method that constructs a pipeline configuration given a path on disk.
     
     :param path: Path to a pipeline configuration or associated project folder
-    :param force: Should the cache be force re-populated?
+    :param force_reread_shotgun_cache: Should the cache be force re-populated?
     :returns: Pipeline Configuration object
     """
 
@@ -182,7 +182,7 @@ def _from_path(path, force):
         return PipelineConfiguration(pc_registered_path)
 
     # now get storage data, use cache unless force flag is set 
-    sg_data = _get_pipeline_configs(force)
+    sg_data = _get_pipeline_configs(force_reread_shotgun_cache)
         
     # now given ALL pipeline configs for ALL projects and their associated projects
     # and project root paths (in sg_data), figure out which pipeline configurations
