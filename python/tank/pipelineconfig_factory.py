@@ -85,7 +85,7 @@ def _from_entity(entity_type, entity_id, force):
     config_context_path  = _get_configuration_context()
 
     if config_context_path:
-        # we are running the tank command or API proxy from a configuration
+        # we are running the tank command or API from a configuration
         
         if config_context_path not in local_pc_paths:
             # the tank command / api proxy which this session was launched for is *not*
@@ -116,6 +116,7 @@ def _from_entity(entity_type, entity_id, force):
         return PipelineConfiguration(primary_pc_path)
 
 
+
 def from_path(path):
     """
     Factory method that constructs a pipeline configuration given a path on disk.
@@ -126,6 +127,28 @@ def from_path(path):
     conventional configuration data and hooks cannot be accessed. 
     
     :param path: Path to a pipeline configuration or associated project folder
+    :returns: Pipeline Configuration object
+    """
+
+    try:
+        pc = _from_path(path, force=False)
+    except TankError:
+        # lookup failed! This may be because there are missing items
+        # in the cache. For failures, try again, but this time
+        # force re-read the cache (e.g connect to shotgun)
+        # if the previous failure was due to a missing item
+        # in the cache, 
+        pc = _from_path(path, force=True)
+    
+    return pc
+
+
+def _from_path(path, force):
+    """
+    Internal method that constructs a pipeline configuration given a path on disk.
+    
+    :param path: Path to a pipeline configuration or associated project folder
+    :param force: Should the cache be force re-populated?
     :returns: Pipeline Configuration object
     """
 
@@ -158,37 +181,24 @@ def from_path(path):
                             "has not been configured for the current operating system." % path)
         return PipelineConfiguration(pc_registered_path)
 
-    # now get storage data, use cache if possible 
-    # try to match up the cached data against the path
-    # usually this is a fast operation, using cached data only
-    sg_data = _get_pipeline_configs() 
-    associated_sg_pipeline_configs = _get_pipeline_configs_for_path(path, sg_data)
-    
-    if len(associated_sg_pipeline_configs) == 0:
-        # no matches! This may be because the path is unknown or invalid.
-        # it may also be a case where shotgun has been updated and the cache
-        # is old. So request a force refresh of the Shotgun cache at this point
-        # and then try again!
-        #
-        # Note that this approach means that invalid lookups will be slightly
-        # slower because they effectively force a cache-refresh, while
-        # real lookups will be fast because they will find a match automatically.
-        sg_data = _get_pipeline_configs(force=True)
-        associated_sg_pipeline_configs = _get_pipeline_configs_for_path(path, sg_data)
-    
-    if len(associated_sg_pipeline_configs) == 0:
-        # no matches even after a forced refresh. Fail.
-        raise TankError("The path '%s' does not seem to belong to any known Toolkit project!" % path)
+    # now get storage data, use cache unless force flag is set 
+    sg_data = _get_pipeline_configs(force)
         
-    # Now we got a number of pipeline configurations which all match the given path.
-    # Figure out which one is the right one to use.
+    # now given ALL pipeline configs for ALL projects and their associated projects
+    # and project root paths (in sg_data), figure out which pipeline configurations
+    # are matching the given path.
+    associated_sg_pipeline_configs = _get_pipeline_configs_for_path(path, sg_data)
 
-    # extract path data from the pipeline configuration shotgun data
+    if len(associated_sg_pipeline_configs) == 0:
+        # no matches! The path is unknown or invalid.
+        raise TankError("The path '%s' does not seem to belong to any known Toolkit project!" % path)
+
+    # extract current os path data from the pipeline configuration shotgun data
     (local_pc_paths, primary_pc_path) = _get_pipeline_configuration_paths(associated_sg_pipeline_configs)
-     
+
     # figure out if we are running a tank command / api from a local pc or from a studio level install
     config_context_path  = _get_configuration_context()
-     
+
     if config_context_path:
         # we are running the tank command or API proxy from a configuration
         
@@ -221,6 +231,7 @@ def from_path(path):
         # looks good, we got a primary pipeline config that exists
         return PipelineConfiguration(primary_pc_path)
 
+    
 
 
 #################################################################################################################
