@@ -1071,8 +1071,8 @@ class TemplateConfiguration(object):
         # Note: git doesn't like paths in single quotes when running on 
         # windows - it also prefers to use forward slashes!
         sanitized_repo_path = repo_path.replace(os.path.sep, "/")
-        if os.system("git clone \"%s\" \"%s\"" % (sanitized_repo_path, target_path)) != 0:
-            raise TankError("Could not clone git repository '%s'!" % repo_path)     
+        cmd = "clone \"%s\" \"%s\"" % (sanitized_repo_path, target_path)
+        deploy_util.execute_git_command(cmd)
         
     
     ################################################################################################
