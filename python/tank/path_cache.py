@@ -759,11 +759,17 @@ class PathCache(object):
                                        "darwin": "local_path_mac" }
             local_os_path_field = sg_local_storage_os_map[sys.platform]
             local_os_path = x[SG_PATH_FIELD][local_os_path_field]
-            
+                        
             entity = {"id": x[SG_ENTITY_ID_FIELD], 
                       "name": x[SG_ENTITY_NAME_FIELD], 
                       "type": x[SG_ENTITY_TYPE_FIELD]}
             is_primary = x[SG_IS_PRIMARY_FIELD]
+
+            # if the storage is not correctly configured for an OS, it is possible
+            # that the path comes back as null. Skip such paths and report them in the log
+            if local_os_path is None:
+                self._log_debug(log, "No path associated with entry for %s. Skipping." % entity)
+                continue
             
             new_rowid = self._add_db_mapping(cursor, local_os_path, entity, is_primary)
             if new_rowid:
@@ -782,6 +788,7 @@ class PathCache(object):
                 # Note: edge case - for some reason there was already an entry in the path cache
                 # representing this. This could be because of duplicate entries and is
                 # not necessarily an anomaly.
+                self._log_debug(log, "Found existing record for '%s', %s. Skipping." % (local_os_path, entity))
                 pass  
             
         # lastly, id of this event log entry for purpose of future syncing
@@ -1143,6 +1150,10 @@ class PathCache(object):
         """
         if self._path_cache_disabled:
             # no entries because we don't have a path cache
+            return None
+        
+        if path is None:
+            # basic sanity checking
             return None
         
         try:
