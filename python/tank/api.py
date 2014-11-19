@@ -27,15 +27,18 @@ from .template import read_templates
 from .platform import constants as platform_constants
 from . import pipelineconfig
 from . import pipelineconfig_utils
+from . import pipelineconfig_factory
 
 class Tank(object):
     """
     Object with presenting interface to tank.
     """
-    def __init__(self, project_path, sg=None):
+    def __init__(self, project_path):
         """
         :param project_path: Any path inside one of the data locations
         """
+        
+        self.__threadlocal_storage = threading.local()
 
         # special stuff to make sure we maintain backwards compatibility in the constructor
         # if the 'project_path' parameter contains a pipeline config object,
@@ -43,14 +46,12 @@ class Tank(object):
         # this is a path and try to construct a pc from the path
 
         self.__threadlocal_storage = threading.local()
-        if sg is not None:
-            self._set_shotgun(sg)
 
         if isinstance(project_path, pipelineconfig.PipelineConfiguration):
             # this is actually a pc object
             self.__pipeline_config = project_path
         else:
-            self.__pipeline_config = pipelineconfig.from_path(project_path)
+            self.__pipeline_config = pipelineconfig_factory.from_path(project_path)
             
         try:
             self.templates = read_templates(self.__pipeline_config)
@@ -58,7 +59,7 @@ class Tank(object):
             raise TankError("Could not read templates configuration: %s" % e)
 
         # execute a tank_init hook for developers to use.
-        self.execute_hook(platform_constants.TANK_INIT_HOOK_NAME)
+        self.execute_core_hook(platform_constants.TANK_INIT_HOOK_NAME)
 
     def __repr__(self):
         return "<Sgtk Core %s@0x%08x Config %s>" % (self.version, id(self), self.__pipeline_config.get_path())
@@ -82,11 +83,50 @@ class Tank(object):
         """
         Reloads the template definitions. If reload fails, the previous 
         template definitions will be preserved.
+        
+        Internal Use Only - We provide no guarantees that this method
+        will be backwards compatible.        
         """
         try:
             self.templates = read_templates(self.__pipeline_config)
         except TankError, e:
             raise TankError("Templates could not be reloaded: %s" % e)
+
+    def execute_core_hook(self, hook_name, **kwargs):
+        """
+        Executes a core level hook, passing it any keyword arguments supplied.
+
+        Internal Use Only - We provide no guarantees that this method
+        will be backwards compatible.
+        
+        :param hook_name: Name of hook to execute.
+        :param **kwargs:  Additional named parameters will be passed to the hook.
+        :returns:         Return value of the hook.
+        """
+        return self.pipeline_configuration.execute_core_hook_internal(hook_name, parent=self, **kwargs)
+
+    # compatibility alias - previously the name of this *internal method* was named execute_hook.
+    # in order to try to avoid breaking client code that uses these *internal methods*, let's
+    # provide a backwards compatibility alias.
+    execute_hook = execute_core_hook
+
+    def execute_core_hook_method(self, hook_name, method_name, **kwargs):
+        """
+        Executes a specific method on a core level hook, 
+        passing it any keyword arguments supplied.
+
+        Internal Use Only - We provide no guarantees that this method
+        will be backwards compatible.
+        
+        :param hook_name:   Name of hook to execute.
+        :param method_name: Name of method to execute.
+        :param **kwargs:    Additional named parameters will be passed to the hook.
+        :returns:           Return value of the hook.
+        """
+        return self.pipeline_configuration.execute_core_hook_method_internal(hook_name, 
+                                                                             method_name, 
+                                                                             parent=self, 
+                                                                             **kwargs)
 
     ################################################################################################
     # properties
@@ -436,8 +476,8 @@ class Tank(object):
         """
 
         # Use the path cache to look up all paths associated with this entity
-        path_cache = PathCache(self.pipeline_configuration)
-        paths = path_cache.get_paths(entity_type, entity_id)
+        path_cache = PathCache(self)
+        paths = path_cache.get_paths(entity_type, entity_id, primary_only=True)
         path_cache.close()
 
         return paths
@@ -452,7 +492,7 @@ class Tank(object):
                   if no path was associated.
         """
         # Use the path cache to look up all paths associated with this entity
-        path_cache = PathCache(self.pipeline_configuration)
+        path_cache = PathCache(self)
         entity = path_cache.get_entity(path)
         path_cache.close()
 
@@ -492,6 +532,21 @@ class Tank(object):
         :returns: Context object.
         """
         return context.from_entity(self, entity_type, entity_id)
+
+    def synchronize_filesystem_structure(self, full_sync=False):
+        """
+        Ensures that the filesystem structure on this machine is in sync
+        with Shotgun. This synchronization is implicitly carried out as part of the 
+        normal folder creation process, however sometimes it is useful to
+        be able to call it on its own.
+        
+        Note that this method is equivalent to the synchronize_folders tank command.
+        
+        :param full_sync: If set to true, a complete sync will be carried out.
+                          By default, the sync is incremental.
+        :returns: List of folders that were synchronized.
+        """
+        return folder.synchronize_folders(self, full_sync)
 
     def create_filesystem_structure(self, entity_type, entity_id, engine=None):
         """
@@ -550,36 +605,22 @@ class Tank(object):
                                                       engine)
         return folders
 
-    def execute_hook(self, hook_name, **kwargs):
-        """
-        Executes a core level hook, passing it any keyword arguments supplied.
-
-        Note! This is part of the private Sgtk API and should not be called from ouside
-        the core API.
-
-        :param hook_name: Name of hook to execute.
-
-        :returns: Return value of the hook.
-        """
-        return self.pipeline_configuration.execute_hook(hook_name, parent=self, **kwargs)
-
-
 
 ##########################################################################################
 # module methods
 
-def tank_from_path(path, sg=None):
+def tank_from_path(path):
     """
     Create an Sgtk API instance based on a path inside a project.
     """
-    return Tank(path, sg)
+    return Tank(path)
 
-def tank_from_entity(entity_type, entity_id, sg=None):
+def tank_from_entity(entity_type, entity_id):
     """
     Create a Sgtk API instance based on a path inside a project.
     """
-    pc = pipelineconfig.from_entity(entity_type, entity_id, sg)
-    return Tank(pc, sg)
+    pc = pipelineconfig_factory.from_entity(entity_type, entity_id)
+    return Tank(pc)
 
 ##########################################################################################
 # sgtk API aliases

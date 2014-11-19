@@ -244,7 +244,7 @@ def _write_shotgun_cache(tk, entity_type, cache_file_name):
     The cache is per type and per operating system
     """
 
-    cache_path = os.path.join(tk.pipeline_configuration.get_cache_location(), cache_file_name)
+    cache_path = os.path.join(tk.pipeline_configuration.get_shotgun_menu_cache_location(), cache_file_name)
 
     # start the shotgun engine, load the apps
     e = engine.start_shotgun_engine(tk, entity_type)
@@ -537,7 +537,7 @@ def _resolve_shotgun_pattern(log, entity_type, name_pattern):
 
     name_field = _get_sg_name_field(entity_type)
     
-    sg = shotgun.create_sg_connection()
+    sg = shotgun.get_sg_connection()
     
     log.debug("Shotgun: find(%s, %s contains %s)" % (entity_type, name_field, name_pattern) )
     data = sg.find(entity_type, [[name_field, "contains", name_pattern]], [name_field])
@@ -680,7 +680,7 @@ def _resolve_shotgun_entity(log, entity_type, entity_search_token, constrain_by_
     :returns: a matching entity_id
     """
 
-    sg = shotgun.create_sg_connection()
+    sg = shotgun.get_sg_connection()
     name_field = _get_sg_name_field(entity_type)
 
     try:
@@ -997,7 +997,7 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
             # the entity name is something like "123"
             # first look if there is an exact match for it. 
             # If not, assume it is an id.
-            sg = shotgun.create_sg_connection()
+            sg = shotgun.get_sg_connection()
             name_field = _get_sg_name_field(entity_type)
 
             # first try by name - e.g. a shot named "123"
@@ -1040,7 +1040,7 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
             
         # now initialize toolkit and set up the context.  
         log.debug("Creating Sgtk API instance for %s '%s'" % (entity_type, entity_id))
-        tk = tank.tank_from_entity(entity_type, entity_id, sg)
+        tk = tank.tank_from_entity(entity_type, entity_id)
         
         log.debug("Creating context for %s '%s'" % (entity_type, entity_id))
         ctx = tk.context_from_entity(entity_type, entity_id)

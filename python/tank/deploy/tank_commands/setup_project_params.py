@@ -19,6 +19,7 @@ from ...util import shotgun
 from ... import hook
 from ...errors import TankError
 from ... import pipelineconfig_utils
+from ... import pipelineconfig
 
 from ..zipfilehelper import unzip_file
 from .. import util as deploy_util
@@ -747,20 +748,6 @@ class ProjectSetupParameters(object):
                 raise TankError("The Project path %s for storage %s does not exist on disk! "
                                 "Please create it and try again!" % (project_path_local_os, storage_name))
         
-            tank_folder = os.path.join(project_path_local_os, "tank")
-            if os.path.exists(tank_folder):
-                # tank folder exists - make sure it is writable
-                if not os.access(tank_folder, os.W_OK|os.R_OK|os.X_OK):
-                    raise TankError("The permissions setting for '%s' is too strict. The current user "
-                                    "cannot create files or folders in this location." % tank_folder)
-            else:
-                # no tank folder has been created in this storage
-                # make sure we can create it
-                if not os.access(project_path_local_os, os.W_OK|os.R_OK|os.X_OK):
-                    raise TankError("The permissions setting for '%s' is too strict. The current user "
-                                    "cannot create a tank folder in this location." % project_path_local_os)
-                
-        
         # check if the config template has required minimum core version and make sure that 
         # the core we are trying to marry up with the config is recent enough
         required_core_version = self._config_template.get_required_core_version()
@@ -1084,8 +1071,8 @@ class TemplateConfiguration(object):
         # Note: git doesn't like paths in single quotes when running on 
         # windows - it also prefers to use forward slashes!
         sanitized_repo_path = repo_path.replace(os.path.sep, "/")
-        if os.system("git clone \"%s\" \"%s\"" % (sanitized_repo_path, target_path)) != 0:
-            raise TankError("Could not clone git repository '%s'!" % repo_path)     
+        cmd = "clone \"%s\" \"%s\"" % (sanitized_repo_path, target_path)
+        deploy_util.execute_git_command(cmd)
         
     
     ################################################################################################

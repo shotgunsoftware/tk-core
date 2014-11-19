@@ -19,59 +19,7 @@ from tank import hook
 from tank import folder
 from tank_test.tank_test_base import *
 
-
-def assert_paths_to_create(expected_paths):
-    """
-    No file system operations are performed.
-    """
-    # Check paths sent to make_folder
-    for expected_path in expected_paths:
-        if expected_path not in g_paths_created:
-            assert False, "\n%s\nnot found in: [\n%s]" % (expected_path, "\n".join(g_paths_created))
-    for actual_path in g_paths_created:
-        if actual_path not in expected_paths:
-            assert False, "Unexpected path slated for creation: %s \nPaths: %s" % (actual_path, "\n".join(g_paths_created))
-
-
-g_paths_created = []
-
-def execute_folder_creation_proxy(self):
-    """
-    Proxy stub for folder creation tests
-    """
-    
-    # now handle the path cache
-    if not self._preview_mode: 
-        for i in self._items:
-            if i.get("action") == "entity_folder":
-                path = i.get("path")
-                entity_type = i.get("entity").get("type")
-                entity_id = i.get("entity").get("id")
-                entity_name = i.get("entity").get("name")
-                self._path_cache.add_mapping(entity_type, entity_id, entity_name, path)
-        for i in self._secondary_cache_entries:
-            path = i.get("path")
-            entity_type = i.get("entity").get("type")
-            entity_id = i.get("entity").get("id")
-            entity_name = i.get("entity").get("name")
-            self._path_cache.add_mapping(entity_type, entity_id, entity_name, path, False)
-
-
-    # finally, build a list of all paths calculated
-    folders = list()
-    for i in self._items:
-        action = i.get("action")
-        if action in ["entity_folder", "create_file", "folder"]:
-            folders.append( i["path"] )
-        elif action == "copy":
-            folders.append( i["target_path"] )
-    
-    global g_paths_created
-    g_paths_created = folders
-    
-    return folders
-
-
+from . import assert_paths_to_create, execute_folder_creation_proxy
 
 
 # test secondary entities.
@@ -83,7 +31,25 @@ class TestSchemaCreateFoldersSecondaryEntity(TankTestBase):
         then queried to see what paths the code attempted to create.
         """
         super(TestSchemaCreateFoldersSecondaryEntity, self).setUp()
+        
         self.setup_fixtures("optional_folder_fields")
+        
+        # set up our schema for sg_other_field (string)        
+        field_def = {'data_type': {'editable': False, 'value': 'entity'},
+                     'description': {'editable': True, 'value': ''},
+                     'editable': {'editable': False, 'value': True},
+                     'entity_type': {'editable': False, 'value': 'Shot'},
+                     'mandatory': {'editable': False, 'value': False},
+                     'name': {'editable': True, 'value': 'Other Field'},
+                     'properties': {'default_value': {'editable': False, 'value': None},
+                     'summary_default': {'editable': True, 'value': 'none'},
+                     'valid_types': {'editable': True, 'value': []}},
+                     'unique': {'editable': False, 'value': False}}
+        
+        self.tk.shotgun._schema["Shot"]["sg_other_field"] = field_def
+        
+        
+        
         self.shot = {"type": "Shot",
                      "id": 1,
                      "code": "shot_code",
@@ -96,15 +62,16 @@ class TestSchemaCreateFoldersSecondaryEntity(TankTestBase):
         # Add these to mocked shotgun
         self.add_to_sg_mock_db(entities)
 
-        self.tk = tank.Tank(self.project_root)
-
         self.schema_location = os.path.join(self.project_root, "tank", "config", "core", "schema")
 
         self.FolderIOReceiverBackup = folder.folder_io.FolderIOReceiver.execute_folder_creation
         folder.folder_io.FolderIOReceiver.execute_folder_creation = execute_folder_creation_proxy
 
     def tearDown(self):
+        # important to call base class so it can clean up memory
+        super(TestSchemaCreateFoldersSecondaryEntity, self).tearDown()
         
+        # and do local teardown                                
         folder.folder_io.FolderIOReceiver.execute_folder_creation = self.FolderIOReceiverBackup
 
 

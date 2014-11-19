@@ -698,8 +698,7 @@ class SetupProjectAction(Action):
         
         :param log: python logger object
         :param params: Parameters object which holds gathered project settings
-        """
-    
+        """    
         log.info("")
         log.info("")
         log.info("Project Creation Summary:")
@@ -718,21 +717,7 @@ class SetupProjectAction(Action):
         log.info("* The Pipeline configuration will use the following Core API:")
         log.info("  - on Macosx:  '%s'" % params.get_associated_core_path("darwin"))
         log.info("  - on Linux:   '%s'" % params.get_associated_core_path("linux2"))
-        log.info("  - on Windows: '%s'" % params.get_associated_core_path("win32"))
-    
-        for storage_name in params.get_required_storages():
-    
-            log.info("")
-            log.info("* Toolkit will connect to the project folder in Storage '%s':" % storage_name )
-            
-            mac_path = params.get_project_path(storage_name, "darwin")
-            win_path = params.get_project_path(storage_name, "win32")
-            linux_path = params.get_project_path(storage_name, "linux2")        
-            
-            log.info("  - on Macosx:  '%s'" % mac_path   if mac_path else   "  - on Macosx:  No path defined")
-            log.info("  - on Linux:   '%s'" % linux_path if linux_path else "  - on Linux:   No path defined")
-            log.info("  - on Windows: '%s'" % win_path   if win_path else   "  - on Windows: No path defined")
-            
+        log.info("  - on Windows: '%s'" % params.get_associated_core_path("win32"))            
         log.info("")
         log.info("")
 

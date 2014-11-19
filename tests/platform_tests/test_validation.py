@@ -158,7 +158,6 @@ class TestValidateSettings(TankTestBase):
         self.add_production_path(shot_path_2, shot)
 
         # setup context with values for project and shot
-        self.tk = tank.Tank(self.project_root)
         self.context = self.tk.context_from_path(shot_path)
 
         # The validation code needs a name for error reporting
@@ -206,7 +205,6 @@ class TestValidateSettings(TankTestBase):
     def test_template_missing_in_mastertemplates(self):
         """Test that template refered to in config exists in Tank instances templates attrubute."""
         # Tank instance with no templates
-        self.tk = tank.Tank(self.project_root)
         self.tk.templates = {}
         # name of template in config
         config_name = "this_template"
@@ -225,7 +223,6 @@ class TestValidateSettings(TankTestBase):
         """Test that fields designated as required in the config exist as keys of the template."""
         template = tank.template.TemplatePath("{Shot}/work", self.keys, self.project_root)
         cfg_val = "template name"
-        self.tk = tank.Tank(self.project_root)
         self.tk.templates = {cfg_val: template}
         
         # set up environment config
@@ -263,7 +260,6 @@ class TestValidateSettings(TankTestBase):
         # non-path template
         template = tank.template.TemplatePath("name-{Shot}-somthing", self.keys, self.project_root)
         cfg_val = "template name"
-        self.tk = tank.Tank(self.project_root)
         self.tk.templates={cfg_val: template}
         # set up environment config
         config_name = "this_template"
@@ -369,7 +365,6 @@ class TestValidateContext(TankTestBase):
         self.add_production_path(shot_path_2, shot)
 
         # setup context with values for project and shot
-        self.tk = tank.Tank(self.project_root)
         self.context = self.tk.context_from_path(shot_path)
         
         # Template to metadata
@@ -389,14 +384,13 @@ class TestValidateContext(TankTestBase):
         template = tank.template.TemplatePath("{%s}" % field_name, self.keys, self.project_root)
         
         # tank instance with this template
-        tk = tank.Tank(self.project_root)
-        tk.templates={self.template_name:template}
+        self.tk.templates={self.template_name:template}
         
         # add field to required list in meta data
         self.metadata[self.config_name]["required_fields"] = [field_name]
 
         # If no error, then success
-        validate_settings(self.app_name, tk, self.context, self.metadata, self.config)
+        validate_settings(self.app_name, self.tk, self.context, self.metadata, self.config)
 
     def test_fields_from_context(self):
         """
@@ -408,11 +402,10 @@ class TestValidateContext(TankTestBase):
 
         template = tank.template.TemplatePath("{%s}" % field_name, self.keys, self.project_root)
         # tank instance with this template
-        tk = tank.Tank(self.project_root)
-        tk.templates={self.template_name:template}
+        self.tk.templates={self.template_name:template}
         
         # If no error, then success
-        validate_settings(self.app_name, tk, self.context, self.metadata, self.config)
+        validate_settings(self.app_name, self.tk, self.context, self.metadata, self.config)
 
     def test_context_missing_fields(self):
         """
@@ -425,12 +418,18 @@ class TestValidateContext(TankTestBase):
         self.keys["sppk"] = StringKey("sppk")
         template = tank.template.TemplatePath("{%s}{sppk}" % field_name, self.keys, self.project_root)
         # tank instance with this template
-        tk = tank.Tank(self.project_root)
-        tk.templates={self.template_name:template}
+        self.tk.templates={self.template_name:template}
         
         expected_msg = "Context %s can not determine value for fields %s needed by template %s" % (self.context, ["sppk"], template)
 
-        self.check_error_message(TankError, expected_msg, validate_settings, self.app_name, tk, self.context, self.metadata, self.config)
+        self.check_error_message(TankError, 
+                                 expected_msg, 
+                                 validate_settings, 
+                                 self.app_name, 
+                                 self.tk, 
+                                 self.context, 
+                                 self.metadata, 
+                                 self.config)
         
     def test_context_determines_fields(self):
         """
@@ -441,11 +440,14 @@ class TestValidateContext(TankTestBase):
         field_name = "Sequence"
         template = tank.template.TemplatePath("sequence/{%s}" % field_name, self.keys, self.project_root)
         # tank instance with this template
-        tk = tank.Tank(self.project_root)
-        tk.templates={self.template_name:template}
+        self.tk.templates={self.template_name:template}
         
         # If no error, then success
-        validate_settings(self.app_name, tk, self.context, self.metadata, self.config)
+        validate_settings(self.app_name, 
+                          self.tk, 
+                          self.context, 
+                          self.metadata, 
+                          self.config)
 
     def test_default_values_detected(self):
         """
@@ -457,11 +459,10 @@ class TestValidateContext(TankTestBase):
 
         template = tank.template.TemplatePath("{%s}" % field_name, self.keys, self.project_root)
         # tank instance with this template
-        tk = tank.Tank(self.project_root)
-        tk.templates={self.template_name:template}
+        self.tk.templates={self.template_name:template}
         
         # If no error, then success
-        validate_settings(self.app_name, tk, self.context, self.metadata, self.config)
+        validate_settings(self.app_name, self.tk, self.context, self.metadata, self.config)
 
     def test_optional_fields_in_template(self):
         """
@@ -473,11 +474,10 @@ class TestValidateContext(TankTestBase):
         # Template with the optional field
         template = tank.template.TemplatePath("{%s}" % field_name, self.keys, self.project_root)
         # tank instance with this template
-        tk = tank.Tank(self.project_root)
-        tk.templates={self.template_name:template}
+        self.tk.templates={self.template_name:template}
         
         # If no error, then success
-        validate_settings(self.app_name, tk, self.context, schema, self.config)
+        validate_settings(self.app_name, self.tk, self.context, schema, self.config)
         
     def test_optional_fields_not_in_template(self):
         """
@@ -489,11 +489,10 @@ class TestValidateContext(TankTestBase):
         # Template without the optional field
         template = tank.template.TemplatePath("{Shot}", self.keys, self.project_root)
         # tank instance with this template
-        tk = tank.Tank(self.project_root)
-        tk.templates={self.template_name:template}
+        self.tk.templates={self.template_name:template}
         
         # If no error, then success
-        validate_settings(self.app_name, tk, self.context, schema, self.config)
+        validate_settings(self.app_name, self.tk, self.context, schema, self.config)
 
 
 class TestValidateFixtures(TankTestBase):
@@ -520,10 +519,9 @@ class TestValidateFixtures(TankTestBase):
         self.test_engine = "test_engine"
 
     def test_environment(self):
-        tk = tank.Tank(self.project_root)
-        context = tk.context_from_path(self.shot_step_path)
+        context = self.tk.context_from_path(self.shot_step_path)
         
-        env = tk.pipeline_configuration.get_environment(self.test_env, context)
+        env = self.tk.pipeline_configuration.get_environment(self.test_env, context)
 
         # make sure our tmp file exists on disk for the disk_path property
         self.test_resource = os.path.join(self.project_root, "tank", "config", "foo", "bar.png")
@@ -535,4 +533,4 @@ class TestValidateFixtures(TankTestBase):
         for app_name in env.get_apps(self.test_engine):
             schema = env.get_app_descriptor(self.test_engine, app_name).get_configuration_schema()
             settings = env.get_app_settings(self.test_engine, app_name)
-            validate_settings(app_name, tk, context, schema, settings)
+            validate_settings(app_name, self.tk, context, schema, settings)

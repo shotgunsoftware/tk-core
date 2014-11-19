@@ -22,7 +22,7 @@ from .. import util
 from .action_base import Action
 from . import console_utils
 from ... import pipelineconfig_utils
-from ... import pipelineconfig
+from ... import pipelineconfig_factory
 
 
 class CoreLocalizeAction(Action):
@@ -72,7 +72,7 @@ def do_localize(log, pc_root_path, suppress_prompts):
     :param suppress_prompts: Boolean to indicate if no questions should be asked.
     """ 
 
-    pc = pipelineconfig.from_path(pc_root_path)
+    pc = pipelineconfig_factory.from_path(pc_root_path)
 
     log.info("")
     if pc.is_localized():

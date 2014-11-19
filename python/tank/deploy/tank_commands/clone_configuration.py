@@ -196,11 +196,6 @@ def _do_clone(log, tk, source_pc_id, user_id, new_name, target_linux, target_mac
     finally:
         os.umask(old_umask)
 
-    # now register this with the cache file for each storage
-    for dr in tk.pipeline_configuration.get_data_roots().values():
-        scm = pipelineconfig.StorageConfigurationMapping(dr)
-        scm.add_pipeline_configuration(target_mac, target_win, target_linux)
-    
     # finally register with shotgun
     data = {"linux_path": target_linux,
             "windows_path":target_win,

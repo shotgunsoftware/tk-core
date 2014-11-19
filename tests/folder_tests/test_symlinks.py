@@ -28,8 +28,6 @@ class TestSymlinks(TankTestBase):
         super(TestSymlinks, self).setUp()
         self.setup_fixtures("symlinks_core")
         
-        self.tk = tank.Tank(self.project_root)
-
         self.shot_aaa = {"type": "Shot", 
                          "id": 1,
                          "code": "aaa",

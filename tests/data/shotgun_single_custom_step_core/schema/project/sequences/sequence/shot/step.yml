@@ -17,5 +17,5 @@ name: "{short_name}"
 # don't auto create the step
 create_with_parent: false
 
-entity_type: "FooStep"
+entity_type: "CustomEntity03"
 task_link_field: "alt_step_link"

@@ -1265,7 +1265,7 @@ class MigratePublishedFileEntitiesAction(Action):
                 sg_project = sg_res
         else:
             # running 'globally' on all projects so need to create a new connection:
-            sg_connection = shotgun.create_sg_connection() 
+            sg_connection = shotgun.get_sg_connection() 
             
         if operation == MIGRATE:
             self._run_migration(log, sg_connection, sg_project)

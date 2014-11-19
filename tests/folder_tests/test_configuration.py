@@ -37,7 +37,6 @@ class TestFolderConfiguration(TankTestBase):
         """
         # remove root name from the roots file
         self.setup_multi_root_fixtures()
-        self.tk = tank.Tank(self.project_root)
         
         # should be fine
         folder.configuration.FolderConfiguration(self.tk, self.schema_location)
@@ -52,8 +51,6 @@ class TestFolderConfiguration(TankTestBase):
         fh.write(yaml.dump(data))
         fh.close()
 
-        self.tk = tank.Tank(self.project_root)
-
         self.assertRaises(TankError,
                           folder.configuration.FolderConfiguration,
                           self.tk,
@@ -64,8 +61,7 @@ class TestFolderConfiguration(TankTestBase):
         Case that there are mutiple projects, one non-primary without yaml a file
         """
         self.setup_multi_root_fixtures()
-        self.tk = tank.Tank(self.project_root)
-        
+                
         # should be fine
         folder.configuration.FolderConfiguration(self.tk, self.schema_location)
         

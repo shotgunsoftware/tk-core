@@ -1083,7 +1083,7 @@ class Entity(Folder):
         for lf in self._entity_expression.get_shotgun_link_fields():
             
             entity_link = entity[lf]
-            io_receiver.register_secondary_entity(path, entity_link)
+            io_receiver.register_secondary_entity(path, entity_link, self._config_metadata)
 
     def __get_entities(self, sg_data):
         """
@@ -1224,9 +1224,12 @@ class Entity(Folder):
             
             # append additional filter cruft
             filter_dict = { "logical_operator": "and", "conditions": additional_filters }
+            
+            # carry out find
             rec = sg.find_one(self._entity_type, filter_dict, fields_to_retrieve)
+            
             # there are now two reasons why find_one did not return:
-            # - the specified entity id does not exist
+            # - the specified entity id does not exist or has been deleted
             # - there are filters which has filtered it out. For example imagine that you 
             #   have one folder structure for all assets starting with A and a second structure
             #   for the rest. This would be a filter condition (code does not start with A, and
@@ -1237,8 +1240,8 @@ class Entity(Folder):
                 
                 # check if it is a missing id or just a filtered out thing
                 if sg.find_one(self._entity_type, [["id", "is", my_id]]) is None:                
-                    raise TankError("Could not find entity %s:%s in Shotgun as required by "
-                                    "the folder creation setup" % (self._entity_type, my_id))
+                    raise TankError("Could not find Shotgun %s with id %s as required by "
+                                    "the folder creation setup." % (self._entity_type, my_id))
                 else:
                     raise EntityLinkTypeMismatch()
             

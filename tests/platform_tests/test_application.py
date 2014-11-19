@@ -28,16 +28,15 @@ class TestApplication(TankTestBase):
         self.setup_fixtures()
         
         # setup shot
-        seq = {"type":"Sequence", "name":"seq_name", "id":3}
-        seq_path = os.path.join(self.project_root, "sequences/Seq")
+        seq = {"type":"Sequence", "code": "seq_name", "id":3 }
+        seq_path = os.path.join(self.project_root, "sequences/Seq/seq_name")
         self.add_production_path(seq_path, seq)
-        shot = {"type":"Shot",
-                "name": "shot_name",
-                "id":2,
-                "project": self.project}
-        shot_path = os.path.join(seq_path, "shot_code")
+        
+        shot = {"type":"Shot", "code": "shot_name", "id":2, "sg_sequence": seq, "project": self.project}
+        shot_path = os.path.join(seq_path, "shot_name")
         self.add_production_path(shot_path, shot)
-        step = {"type":"Step", "name":"step_name", "id":4}
+        
+        step = {"type":"Step", "code": "step_name", "id":4 }
         self.shot_step_path = os.path.join(shot_path, "step_name")
         self.add_production_path(self.shot_step_path, step)
 
@@ -47,17 +46,20 @@ class TestApplication(TankTestBase):
         fh.write("test")
         fh.close()
         
-        tk = tank.Tank(self.project_root)
-        context = tk.context_from_path(self.shot_step_path)
-        self.engine = tank.platform.start_engine("test_engine", tk, context)
-        
+        context = self.tk.context_from_path(self.shot_step_path)
+        self.engine = tank.platform.start_engine("test_engine", self.tk, context)
+
         
     def tearDown(self):
+                
         # engine is held as global, so must be destroyed.
         cur_engine = tank.platform.current_engine()
         if cur_engine:
             cur_engine.destroy()
         os.remove(self.test_resource)
+
+        # important to call base class so it can clean up memory
+        super(TestApplication, self).tearDown()
 
 
 class TestGetApplication(TestApplication):
@@ -76,10 +78,9 @@ class TestGetApplication(TestApplication):
         
     def test_good_path(self):
         app_path = os.path.join(self.project_config, "test_app")
-        tk = tank.Tank(self.project_root)
         # make a dev location and create descriptor
         app_desc = descriptor.get_from_location(descriptor.AppDescriptor.APP, 
-                                                tk.pipeline_configuration, 
+                                                self.tk.pipeline_configuration, 
                                                 {"type": "dev", "path": app_path})
         result = application.get_application(self.engine, app_path, app_desc, {}, "instance_name", None)
         self.assertIsInstance(result, application.Application)

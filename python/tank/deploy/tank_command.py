@@ -19,9 +19,9 @@ from .tank_commands.action_base import Action
 from .tank_commands import folders
 from .tank_commands import misc
 from .tank_commands import move_pc
-from .tank_commands import move_studio
 from .tank_commands import pc_overview
 from .tank_commands import migrate_entities
+from .tank_commands import path_cache
 from .tank_commands import update
 from .tank_commands import push_pc
 from .tank_commands import setup_project
@@ -63,8 +63,10 @@ BUILT_IN_ACTIONS = [setup_project.SetupProjectAction,
                     folders.PreviewFoldersAction,
                     move_pc.MovePCAction,
                     pc_overview.PCBreakdownAction,
-                    move_studio.MoveStudioInstallAction,
                     migrate_entities.MigratePublishedFileEntitiesAction,
+                    path_cache.SynchronizePathCache,
+                    path_cache.PathCacheMigrationAction,
+                    path_cache.UnregisterFoldersAction,
                     clone_configuration.CloneConfigAction,
                     copy_apps.CopyAppsAction,
                     ]

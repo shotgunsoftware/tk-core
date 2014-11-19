@@ -399,7 +399,7 @@ class AppDescriptor(object):
         sg_fields_def = meta.get("requires_shotgun_fields")
         if sg_fields_def:  # can be defined as None from yml file
             # get a sg handle
-            sg = shotgun.create_sg_connection()
+            sg = shotgun.get_sg_connection()
             
             for sg_entity_type in sg_fields_def:
                 for field in sg_fields_def.get(sg_entity_type, []):

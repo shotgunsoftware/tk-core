@@ -32,19 +32,16 @@ class TestShotgunFindPublish(TankTestBase):
         
         #self.setup_fixtures()
         self.setup_multi_root_fixtures()
-
-        
-        self.storage_1 = {"type": "LocalStorage", "id": 1, "code": "primary"}
-        self.storage_2 = {"type": "LocalStorage", "id": 43, "code": "alternate_1"}
         
         project_name = os.path.basename(self.project_root)
+
         # older publish to test we get the latest
         self.pub_1 = {"type": "TankPublishedFile",
                     "id": 1,
                     "code": "hello",
                     "path_cache": "%s/foo/bar" % project_name,
                     "created_at": datetime.datetime(2012, 10, 12, 12, 1),
-                    "path_cache_storage": {"type": "LocalStorage", "id": 1, "code": "Tank"}}
+                    "path_cache_storage": self.primary_storage}
 
         # publish matching older publish
         self.pub_2 = {"type": "TankPublishedFile",
@@ -52,14 +49,14 @@ class TestShotgunFindPublish(TankTestBase):
                     "code": "more recent",
                     "path_cache": "%s/foo/bar" % project_name,
                     "created_at": datetime.datetime(2012, 10, 13, 12, 1),
-                    "path_cache_storage": {"type": "LocalStorage", "id": 1, "code": "Tank"}}
+                    "path_cache_storage": self.primary_storage}
         
         self.pub_3 = {"type": "TankPublishedFile",
                     "id": 3,
                     "code": "world",
                     "path_cache": "%s/foo/baz" % project_name,
                     "created_at": datetime.datetime(2012, 10, 13, 12, 2),
-                    "path_cache_storage": {"type": "LocalStorage", "id": 1, "code": "Tank"}}
+                    "path_cache_storage": self.primary_storage}
 
         # sequence publish
         self.pub_4 = {"type": "TankPublishedFile",
@@ -67,7 +64,7 @@ class TestShotgunFindPublish(TankTestBase):
                     "code": "sequence_file",
                     "path_cache": "%s/foo/seq_%%03d.ext" % project_name,
                     "created_at": datetime.datetime(2012, 10, 13, 12, 2),
-                    "path_cache_storage": {"type": "LocalStorage", "id": 1, "code": "Tank"}}
+                    "path_cache_storage": self.primary_storage}
 
 
         self.pub_5 = {"type": "TankPublishedFile",
@@ -75,13 +72,12 @@ class TestShotgunFindPublish(TankTestBase):
                     "code": "other storage",
                     "path_cache": "%s/foo/bar" % project_name,
                     "created_at": datetime.datetime(2012, 10, 12, 12, 1),
-                    "path_cache_storage": {"type": "LocalStorage", "id": 43, "code": "alternate_1"}}
+                    "path_cache_storage": self.alt_storage_1}
 
         # Add these to mocked shotgun
-        self.add_to_sg_mock_db([self.storage_1, self.storage_2,
-                                self.pub_1, self.pub_2, self.pub_3, self.pub_4, self.pub_5])
-        self.tk = tank.Tank(self.project_root)
-        self.tk._tank__sg = self.sg_mock
+        self.add_to_sg_mock_db([self.pub_1, self.pub_2, self.pub_3, self.pub_4, self.pub_5])
+        
+        
 
     def test_find(self):        
         paths = [os.path.join(self.project_root, "foo", "bar")]
@@ -139,14 +135,23 @@ class TestShotgunFindPublish(TankTestBase):
         d = tank.util.find_publish(self.tk, paths)
         self.assertEqual(len(d), 1)
         self.assertEqual(d.keys(), paths)
-        # make sure we got the latest matching publish
-        sg_data = d.get(paths[0])
         
-        # SG MOCKER DOES NOT SUPPORT THIS
-        #self.assertEqual(sg_data["id"], self.pub_5["id"])
+        # make sure we got the latest matching publish
+        sg_data = d.get(paths[0])        
+        self.assertEqual(sg_data["id"], self.pub_5["id"])
         
         # make sure we are only getting the ID back.
         self.assertEqual(sg_data.keys(), ["type", "id"])
+        
+    def test_ignore_missing(self):  
+        """
+        If a storage is not registered in shotgun, the path is ignored
+        (previously it used to raise an error)
+        """      
+        paths = [os.path.join(self.project_root, "foo", "doesnotexist")]
+        d = tank.util.find_publish(self.tk, paths)
+        self.assertEqual(len(d), 0)
+        
 
 
 
@@ -162,8 +167,6 @@ class TestShotgunFindPublishTankStorage(TankTestBase):
         #self.setup_fixtures()
         self.setup_multi_root_fixtures()
 
-        
-        self.storage_1 = {"type": "LocalStorage", "id": 1, "code": "Tank"}
         self.storage_2 = {"type": "LocalStorage", "id": 43, "code": "alternate_1"}
         
         project_name = os.path.basename(self.project_root)
@@ -173,7 +176,7 @@ class TestShotgunFindPublishTankStorage(TankTestBase):
                     "code": "hello",
                     "path_cache": "%s/foo/bar" % project_name,
                     "created_at": datetime.datetime(2012, 10, 12, 12, 1),
-                    "path_cache_storage": {"type": "LocalStorage", "id": 1, "code": "Tank"}}
+                    "path_cache_storage": self.primary_storage}
 
         # publish matching older publish
         self.pub_2 = {"type": "TankPublishedFile",
@@ -181,14 +184,14 @@ class TestShotgunFindPublishTankStorage(TankTestBase):
                     "code": "more recent",
                     "path_cache": "%s/foo/bar" % project_name,
                     "created_at": datetime.datetime(2012, 10, 13, 12, 1),
-                    "path_cache_storage": {"type": "LocalStorage", "id": 1, "code": "Tank"}}
+                    "path_cache_storage": self.primary_storage}
         
         self.pub_3 = {"type": "TankPublishedFile",
                     "id": 3,
                     "code": "world",
                     "path_cache": "%s/foo/baz" % project_name,
                     "created_at": datetime.datetime(2012, 10, 13, 12, 2),
-                    "path_cache_storage": {"type": "LocalStorage", "id": 1, "code": "Tank"}}
+                    "path_cache_storage": self.primary_storage}
 
         # sequence publish
         self.pub_4 = {"type": "TankPublishedFile",
@@ -196,7 +199,7 @@ class TestShotgunFindPublishTankStorage(TankTestBase):
                     "code": "sequence_file",
                     "path_cache": "%s/foo/seq_%%03d.ext" % project_name,
                     "created_at": datetime.datetime(2012, 10, 13, 12, 2),
-                    "path_cache_storage": {"type": "LocalStorage", "id": 1, "code": "Tank"}}
+                    "path_cache_storage": self.primary_storage}
 
 
         self.pub_5 = {"type": "TankPublishedFile",
@@ -204,13 +207,11 @@ class TestShotgunFindPublishTankStorage(TankTestBase):
                     "code": "other storage",
                     "path_cache": "%s/foo/bar" % project_name,
                     "created_at": datetime.datetime(2012, 10, 12, 12, 1),
-                    "path_cache_storage": {"type": "LocalStorage", "id": 43, "code": "alternate_1"}}
+                    "path_cache_storage": self.alt_storage_1}
 
         # Add these to mocked shotgun
-        self.add_to_sg_mock_db([self.storage_1, self.storage_2,
-                                self.pub_1, self.pub_2, self.pub_3, self.pub_4, self.pub_5])
-        self.tk = tank.Tank(self.project_root)
-        self.tk._tank__sg = self.sg_mock
+        self.add_to_sg_mock_db([self.pub_1, self.pub_2, self.pub_3, self.pub_4, self.pub_5])
+        
 
     def test_find(self):        
         paths = [os.path.join(self.project_root, "foo", "bar")]
@@ -271,80 +272,13 @@ class TestShotgunFindPublishTankStorage(TankTestBase):
         # make sure we got the latest matching publish
         sg_data = d.get(paths[0])
         
-        # SG MOCKER DOES NOT SUPPORT THIS
-        #self.assertEqual(sg_data["id"], self.pub_5["id"])
+        self.assertEqual(sg_data["id"], self.pub_5["id"])
         
         # make sure we are only getting the ID back.
         self.assertEqual(sg_data.keys(), ["type", "id"])
 
 
 
-
-
-class TestShotgunFindPublishMissingStorage(TankTestBase):
-    
-    def setUp(self):
-        super(TestShotgunFindPublishMissingStorage, self).setUp()
-        
-        #self.setup_fixtures()
-        self.setup_multi_root_fixtures()
-        
-        self.storage_2 = {"type": "LocalStorage", "id": 43, "code": "alternate_1"}
-        
-        project_name = os.path.basename(self.project_root)
-        # older publish to test we get the latest
-        self.pub_1 = {"type": "TankPublishedFile",
-                    "id": 1,
-                    "code": "hello",
-                    "path_cache": "%s/foo/bar" % project_name,
-                    "created_at": datetime.datetime(2012, 10, 12, 12, 1),
-                    "path_cache_storage": {"type": "LocalStorage", "id": 1, "code": "Tank"}}
-
-        # publish matching older publish
-        self.pub_2 = {"type": "TankPublishedFile",
-                    "id": 2,
-                    "code": "more recent",
-                    "path_cache": "%s/foo/bar" % project_name,
-                    "created_at": datetime.datetime(2012, 10, 13, 12, 1),
-                    "path_cache_storage": {"type": "LocalStorage", "id": 1, "code": "Tank"}}
-        
-        self.pub_3 = {"type": "TankPublishedFile",
-                    "id": 3,
-                    "code": "world",
-                    "path_cache": "%s/foo/baz" % project_name,
-                    "created_at": datetime.datetime(2012, 10, 13, 12, 2),
-                    "path_cache_storage": {"type": "LocalStorage", "id": 1, "code": "Tank"}}
-
-        # sequence publish
-        self.pub_4 = {"type": "TankPublishedFile",
-                    "id": 4,
-                    "code": "sequence_file",
-                    "path_cache": "%s/foo/seq_%%03d.ext" % project_name,
-                    "created_at": datetime.datetime(2012, 10, 13, 12, 2),
-                    "path_cache_storage": {"type": "LocalStorage", "id": 1, "code": "Tank"}}
-
-
-        self.pub_5 = {"type": "TankPublishedFile",
-                    "id": 5,
-                    "code": "other storage",
-                    "path_cache": "%s/foo/bar" % project_name,
-                    "created_at": datetime.datetime(2012, 10, 12, 12, 1),
-                    "path_cache_storage": {"type": "LocalStorage", "id": 43, "code": "alternate_1"}}
-
-        # Add these to mocked shotgun
-        self.add_to_sg_mock_db([self.storage_2,
-                                self.pub_1, self.pub_2, self.pub_3, self.pub_4, self.pub_5])
-        self.tk = tank.Tank(self.project_root)
-        self.tk._tank__sg = self.sg_mock
-
-    def test_find(self):  
-        """
-        If a storage is not registered in shotgun, the path is ignored
-        (previously it used to raise an error)
-        """      
-        paths = [os.path.join(self.project_root, "foo", "bar")]
-        d = tank.util.find_publish(self.tk, paths)
-        self.assertEqual(len(d), 0)
 
 
 
@@ -367,8 +301,7 @@ class TestShotgunRegisterPublish(TankTestBase):
 
         # Add these to mocked shotgun
         self.add_to_sg_mock_db([self.storage, self.tank_type_1])
-        self.tk = tank.Tank(self.project_root)
-        self.tk.__tank_sg = self.sg_mock
+        
 
         self.shot = {"type": "Shot",
                     "name": "shot_name",
@@ -391,29 +324,39 @@ class TestShotgunRegisterPublish(TankTestBase):
     def test_sequence_abstracted_path(self):
         """Test that if path supplied represents a sequence, the abstract version of that
         sequence is used."""
-        tk = tank.Tank(self.project_root)
-        # mock shotgun
-        tk._tank__sg = self.sg_mock
 
         # make sequence key
         keys = { "seq": tank.templatekey.SequenceKey("seq", format_spec="03")}
         # make sequence template
         seq_template = tank.template.TemplatePath("/folder/name_{seq}.ext", keys, self.project_root)
-        tk.templates["sequence_template"] = seq_template
+        self.tk.templates["sequence_template"] = seq_template
 
         seq_path = os.path.join(self.project_root, "folder", "name_001.ext")
 
+        create_data = []
+        # wrap create so we can keep tabs of things 
+        def create_mock(entity_type, data, return_fields=None):
+            create_data.append(data)
+            return real_create(entity_type, data, return_fields)
+        
+        real_create = self.tk.shotgun.create 
+        self.tk.shotgun.create = create_mock
+
         # mock sg.create, check it for path value
-        tank.util.register_publish(tk, self.context, seq_path, self.name, self.version)
+        try:
+            tank.util.register_publish(self.tk, self.context, seq_path, self.name, self.version)
+        finally:
+            self.tk.shotgun.create = real_create
+
 
         # check that path is modified before sent to shotgun
         expected_path = os.path.join(self.project_root, "folder", "name_%03d.ext")
         project_name = os.path.basename(self.project_root)
         expected_path_cache = "%s/%s/%s" % (project_name, "folder", "name_%03d.ext")
 
-        # look at values sent to the Mocked shotgun.create
-        actual_path = tk.shotgun.create.call_args[0][1]["path"]["local_path"]
-        actual_path_cache = tk.shotgun.create.call_args[0][1]["path_cache"]
+        
+        actual_path = create_data[0]["path"]["local_path"]
+        actual_path_cache = create_data[0]["path_cache"]
 
         self.assertEqual(expected_path, actual_path)
         self.assertEqual(expected_path_cache, actual_path_cache)
@@ -429,14 +372,13 @@ class TestCalcPathCache(TankTestBase):
         Bug Ticket #18116
         """
         get_data_roots.return_value = {"primary" : self.project_root}
-        tk = tank.Tank(self.project_root)
         
         relative_path = os.path.join("Some","Path")
         wrong_case_root = self.project_root.swapcase()
         expected = os.path.join(os.path.basename(wrong_case_root), relative_path).replace(os.sep, "/")
 
         input_path = os.path.join(wrong_case_root, relative_path)
-        root_name, path_cache = tank.util.shotgun._calc_path_cache(tk, input_path)
+        root_name, path_cache = tank.util.shotgun._calc_path_cache(self.tk, input_path)
         self.assertEqual("primary", root_name)
         self.assertEqual(expected, path_cache)
 

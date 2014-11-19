@@ -72,28 +72,59 @@ class PipelineConfiguration(object):
                                                                         self.get_core_python_location()))
 
 
-        self._roots = _get_pc_roots_metadata(self._pc_root)
+        self._roots = pipelineconfig_utils.get_roots_metadata(self._pc_root)
 
         # get the project tank disk name (Project.tank_name), stored in the PC metadata file.
-        data = _get_pc_disk_metadata(self._pc_root)
+        data = pipelineconfig_utils.get_metadata(self._pc_root)
         if data.get("project_name") is None:
             raise TankError("Project name not defined in config metadata for config %s! "
                             "Please contact support." % self._pc_root)
         self._project_name = data.get("project_name")
 
         # cache fields lazily populated on getter access
-        self._project_id = None
-        self._pc_id = None
-        self._pc_name = None        
-        self._published_file_entity_type = None
-        self.execute_hook(constants.PIPELINE_CONFIGURATION_INIT_HOOK_NAME, parent=self)
-
+        self._clear_cached_settings()
+        
+        self.execute_core_hook_internal(constants.PIPELINE_CONFIGURATION_INIT_HOOK_NAME, parent=self)
 
     def __repr__(self):
         return "<Sgtk Configuration %s>" % self._pc_root
 
+    def _clear_cached_settings(self):
+        """
+        Force the pc object to reread its settings from disk.
+        Call this if you have made changes to config files and 
+        want these to be picked up. The next time settings are needed,
+        these will be automatically re-read from disk.
+        """
+        self._project_id = None
+        self._pc_id = None
+        self._pc_name = None
+        self._published_file_entity_type = None
+        self._cache_folder = None
+        self._path_cache_path = None
+        self._use_shotgun_path_cache = None
+
+    def _load_metadata_from_sg(self):
+        """
+        Caches PC metadata from shotgun.
+        """
+        sg = shotgun.get_sg_connection()
+        platform_lookup = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
+        sg_path_field = platform_lookup[sys.platform]
+        data = sg.find_one(constants.PIPELINE_CONFIGURATION_ENTITY,
+                           [[sg_path_field, "is", self._pc_root]],
+                           ["id", "project", "code"])
+        if data is None:
+            raise TankError("Cannot find a Pipeline configuration in Shotgun that has its %s "
+                            "set to '%s'!" % (sg_path_field, self._pc_root))
+
+        self._project_id = data.get("project").get("id")
+        self._pc_id = data.get("id")
+        self._pc_name = data.get("code")
+    
+    
     ########################################################################################
-    # data roots access
+    # general access and properties
 
     def get_path(self):
         """
@@ -110,24 +141,6 @@ class PipelineConfiguration(object):
         """
         return pipelineconfig_utils.resolve_all_os_paths_to_config(self._pc_root)
 
-    def _load_metadata_from_sg(self):
-        """
-        Caches PC metadata from shotgun.
-        """
-        sg = shotgun.create_sg_connection()
-        platform_lookup = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
-        sg_path_field = platform_lookup[sys.platform]
-        data = sg.find_one(constants.PIPELINE_CONFIGURATION_ENTITY,
-                           [[sg_path_field, "is", self._pc_root]],
-                           ["id", "project", "code"])
-        if data is None:
-            raise TankError("Cannot find a Pipeline configuration in Shotgun that has its %s "
-                            "set to '%s'!" % (sg_path_field, self._pc_root))
-
-        self._project_id = data.get("project").get("id")
-        self._pc_id = data.get("id")
-        self._pc_name = data.get("code")
-
     def get_name(self):
         """
         Returns the name of this PC.
@@ -135,7 +148,7 @@ class PipelineConfiguration(object):
         """
         if self._pc_name is None:
             # try to get it from the cache file
-            data = _get_pc_disk_metadata(self._pc_root)
+            data = pipelineconfig_utils.get_metadata(self._pc_root)
             self._pc_name = data.get("pc_name")
 
 
@@ -152,7 +165,7 @@ class PipelineConfiguration(object):
         
         :returns: boolean indicating auto path state
         """
-        sg = shotgun.create_sg_connection()
+        sg = shotgun.get_sg_connection()
         data = sg.find_one(constants.PIPELINE_CONFIGURATION_ENTITY,
                            [["id", "is", self.get_shotgun_id()]],
                            ["linux_path", "windows_path", "mac_path"])
@@ -179,7 +192,6 @@ class PipelineConfiguration(object):
         else:
             return False
         
-
     def is_localized(self):
         """
         Returns true if this pipeline configuration has its own Core
@@ -195,7 +207,7 @@ class PipelineConfiguration(object):
         """
         if self._pc_id is None:
             # try to get it from the cache file
-            data = _get_pc_disk_metadata(self._pc_root)
+            data = pipelineconfig_utils.get_metadata(self._pc_root)
             self._pc_id = data.get("pc_id")
 
             if self._pc_id is None:
@@ -211,7 +223,7 @@ class PipelineConfiguration(object):
         """
         if self._project_id is None:
             # try to get it from the cache file
-            data = _get_pc_disk_metadata(self._pc_root)
+            data = pipelineconfig_utils.get_metadata(self._pc_root)
             self._project_id = data.get("project_id")
 
             if self._project_id is None:
@@ -241,7 +253,7 @@ class PipelineConfiguration(object):
         """
         if self._published_file_entity_type is None:
             # try to get it from the cache file
-            data = _get_pc_disk_metadata(self._pc_root)
+            data = pipelineconfig_utils.get_metadata(self._pc_root)
             self._published_file_entity_type = data.get("published_file_entity_type")
 
             if self._published_file_entity_type is None:
@@ -250,6 +262,65 @@ class PipelineConfiguration(object):
 
         return self._published_file_entity_type
 
+    ########################################################################################
+    # path cache
+
+    def get_shotgun_path_cache_enabled(self):
+        """
+        Returns true if the shotgun path cache should be used.
+        This should only ever return False for setups created before 0.15.
+        All projects created with 0.14+ automatically sets this to true.
+        """
+        if self._use_shotgun_path_cache is None:
+            # try to get it from the cache file
+            data = pipelineconfig_utils.get_metadata(self._pc_root)
+            self._use_shotgun_path_cache = data.get("use_shotgun_path_cache")
+
+            if self._use_shotgun_path_cache is None:
+                # if not defined assume it is off
+                self._use_shotgun_path_cache = False
+
+        return self._use_shotgun_path_cache
+
+    def turn_on_shotgun_path_cache(self):
+        """
+        Updates the pipeline configuration settings to have the shotgun based (v0.15+)
+        path cache functionality enabled.
+        
+        Note that you need to force a full path sync once this command has been executed. 
+        """
+        
+        if self.get_shotgun_path_cache_enabled():
+            raise TankError("Shotgun based path cache already turned on!")
+                
+        # get current settings
+        curr_settings = pipelineconfig_utils.get_metadata(self._pc_root)
+        
+        # add path cache setting
+        curr_settings["use_shotgun_path_cache"] = True
+        
+        # write the record to disk
+        pipe_config_sg_id_path = os.path.join(self._pc_root, "config", "core", "pipeline_configuration.yml")        
+        
+        old_umask = os.umask(0)
+        try:
+            os.chmod(pipe_config_sg_id_path, 0666)
+            # and write the new file
+            fh = open(pipe_config_sg_id_path, "wt")
+            yaml.dump(curr_settings, fh)
+        except Exception, exp:
+            raise TankError("Could not write to pipeline configuration settings file %s. "
+                            "Error reported: %s" % (pipe_config_sg_id_path, exp))
+        finally:
+            fh.close()
+            os.umask(old_umask)             
+            
+        # update settings in memory
+        self._clear_cached_settings()      
+        
+    ########################################################################################
+    # storage roots related
+        
     def get_local_storage_roots(self):
         """
         Returns local OS paths to all shotgun local storages used by toolkit. 
@@ -286,7 +357,6 @@ class PipelineConfiguration(object):
         for storage_name, root_path in self.get_local_storage_roots().iteritems():
             proj_roots[storage_name] = self.__append_project_name_to_root(root_path, sys.platform)
         return proj_roots
-
 
     def __append_project_name_to_root(self, root_value, os_name):
         """
@@ -341,16 +411,8 @@ class PipelineConfiguration(object):
          
         return self.get_data_roots().get(constants.PRIMARY_STORAGE_NAME)
 
-    def get_path_cache_location(self):
-        """
-        Returns the path to the path cache file.
-        
-        :returns: str to local path on disk
-        """
-        return os.path.join(self.get_primary_data_root(), "tank", "cache", constants.CACHE_DB_FILENAME)
-
     ########################################################################################
-    # paths, core info, apps and engines
+    # installation payload (core/apps/engines) disk locations
 
     def get_associated_core_version(self):
         """
@@ -371,7 +433,7 @@ class PipelineConfiguration(object):
         Tries to resolve it via the explicit link which exists between the pc and the its core.
         If this fails, it uses runtime introspection to resolve it.
         
-        :returns: path string tot he current core API install root location
+        :returns: path string to the current core API install root location
         """
         core_api_root = pipelineconfig_utils.get_core_path_for_config(self._pc_root)
 
@@ -405,19 +467,8 @@ class PipelineConfiguration(object):
         """
         return os.path.join(self.get_install_location(), "install", "core", "python")
 
-
     ########################################################################################
-    # cache
-
-    def get_cache_location(self):
-        """
-        Returns the pipeline config -centric cache location
-        """
-        return os.path.join(self._pc_root, "cache")
-
-
-    ########################################################################################
-    # configuration
+    # configuration disk locations
 
     def get_core_hooks_location(self):
         """
@@ -442,6 +493,19 @@ class PipelineConfiguration(object):
         returns the hooks folder for the project
         """
         return os.path.join(self._pc_root, "config", "hooks")
+
+    def get_shotgun_menu_cache_location(self):
+        """
+        returns the folder where shotgun menu cache files 
+        (used by the browser plugin and java applet) are stored.
+        
+        NOTE! Because of hard coded values inside the Shotgun java applet,
+        this location cannot be customized.
+        """
+        return os.path.join(self._pc_root, "cache")
+
+    ########################################################################################
+    # configuration data access
 
     def get_environments(self):
         """
@@ -488,14 +552,21 @@ class PipelineConfiguration(object):
 
         return data
 
-    def execute_hook(self, hook_name, parent, **kwargs):
-        """
-        Executes a core level hook, passing it any keyword arguments supplied.
 
-        Note! This is part of the private Sgtk API and should not be called from ouside
-        the core API.
+    ########################################################################################
+    # helpers and internal
+
+    def execute_core_hook_internal(self, hook_name, parent, **kwargs):
+        """
+        Executes an old-style core hook, passing it any keyword arguments supplied.
+        
+        Typically you don't want to execute this method but instead
+        the tk.execute_core_hook method. Only use this one if you for 
+        some reason do not have a tk object available.
 
         :param hook_name: Name of hook to execute.
+        :param parent: Parent object to pass down to the hook
+        :param **kwargs: Named arguments to pass to the hook
         :returns: Return value of the hook.
         """
         # first look for the hook in the pipeline configuration
@@ -512,570 +583,32 @@ class PipelineConfiguration(object):
 
         return hook.execute_hook(hook_path, parent, **kwargs)
 
-
-class StorageConfigurationMapping(object):
-    """
-    Handles operation on the mapping from a data root to a pipeline config
-    """
-
-    def __init__(self, data_root):
-        self._config_file = os.path.join(data_root, "tank", "config", constants.CONFIG_BACK_MAPPING_FILE)
-
-    def clear_mappings(self):
+    def execute_core_hook_method_internal(self, hook_name, method_name, parent, **kwargs):
         """
-        Removes any content from the storage mappings file
-        """
-        # open the file without append to overwrite any previous content
-        try:
-            fh = open(self._config_file, "wt")
-            fh.write("# this file is automatically created by the shotgun pipeline toolkit\n")
-            fh.write("# please do not edit by hand\n\n")
-            fh.close()
-        except Exception, exp:
-            raise TankError("Could not write to roots file %s. "
-                            "Error reported: %s" % (self._config_file, exp))
+        Executes a new style core hook, passing it any keyword arguments supplied.
         
-    def add_pipeline_configuration(self, mac_path, win_path, linux_path):
+        Typically you don't want to execute this method but instead
+        the tk.execute_core_hook method. Only use this one if you for 
+        some reason do not have a tk object available.
+
+        :param hook_name: Name of hook to execute.
+        :param method_name: Name of hook method to execute
+        :param parent: Parent object to pass down to the hook
+        :param **kwargs: Named arguments to pass to the hook
+        :returns: Return value of the hook.
         """
-        Add pipeline configuration mapping to a storage
-        """
-        data = []
-
-        if os.path.exists(self._config_file):
-            # we have a config already - so read it in
-            fh = open(self._config_file, "rt")
-            try:
-                data = yaml.load(fh)
-                # if clear_mappings was run, data is None
-                if data is None:
-                    data = []
-            except Exception, e:
-                raise TankError("Looks like the config lookup file is corrupt. Please contact "
-                                "support! File: '%s' Error: %s" % (self._config_file, e))
-            finally:
-                fh.close()
-
-        # now add our new mapping to this data structure
-        new_item = {"darwin": mac_path, "win32": win_path, "linux2": linux_path}
-        if new_item not in data:
-            data.append(new_item)
-
-        # and write the file
-        try:
-            fh = open(self._config_file, "wt")
-            yaml.dump(data, fh)
-            fh.close()
-        except Exception, exp:
-            raise TankError("Could not write to roots file %s. "
-                            "Error reported: %s" % (self._config_file, exp))
-
-
-    def get_pipeline_configs(self):
-        """
-        Returns a list of current os paths to pipeline configs
-        """
-        data = []
-
-        if os.path.exists(self._config_file):
-            # we have a config already - so read it in
-            fh = open(self._config_file, "rt")
-            try:
-                data = yaml.load(fh)
-            except Exception, e:
-                raise TankError("Looks like the config lookup file %s is corrupt. Please contact "
-                                "support! File: '%s' Error: %s" % (self._config_file, e))
-            finally:
-                fh.close()
-
-        # get all the registered pcs for the current platform
-        # env variables are allowed in these paths so expand them if they exist
-        current_os_paths = [ os.path.expandvars(x.get(sys.platform)) for x in data ]
-
-        return current_os_paths
-
-
-def from_entity(entity_type, entity_id, sg=None):
-    """
-    Factory method that constructs a PC given a shotgun object
-    """
-
-    platform_lookup = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
-
-    sg = sg or shotgun.create_sg_connection()
-
-    e = sg.find_one(entity_type, [["id", "is", entity_id]], ["project", "name"])
-
-    if e is None:
-        raise TankError("Cannot find a %s with id %s in Shotgun!" % (entity_type, entity_id))
-
-    if entity_type == "Project":
-        proj = {"type": "Project", "id": entity_id, "name": e.get("name")}
-
-    else:
-        if e.get("project") is None:
-            raise TankError("Cannot resolve %s %s - this object "
-                            "is not linked to a project!" % (entity_type, entity_id))
-        proj = e.get("project")
-
-    pipe_configs = sg.find(constants.PIPELINE_CONFIGURATION_ENTITY,
-                           [["project", "is", proj]],
-                           ["windows_path", "mac_path", "linux_path", "code"])
-
-    if len(pipe_configs) == 0:
-        raise TankError("Cannot resolve a pipeline configuration object from %s with id %s - looks "
-                        "like its associated Shotgun Project '%s' has not yet been set up with "
-                        "the Shotgun Pipeline Toolkit!" % (entity_type, entity_id, proj.get("name")))
-
-    #############################################################################################
-    # ok now we have all the PCs in Shotgun for this project.
-    # apply the following logic:
-    #
-    # if this method was called from a generic tank command, just find the primary PC 
-    # and use that.
-    #
-    # if this was called from a specific tank command, use that. 
-
-    if "TANK_CURRENT_PC" not in os.environ:
-        # we are running the generic tank command, the code that we are running
-        # is not connected to any particular PC.
-        # in this case, find the primary pipeline config and use that
-        primary_pc = None
-        for pc in pipe_configs:
-            if pc.get("code") == constants.PRIMARY_PIPELINE_CONFIG_NAME:
-                primary_pc = pc
-                break
-        if primary_pc is None:
-            raise TankError("The Shotgun Project '%s' does not have a default Pipeline "
-                            "Configuration! This is required by the Sgtk. It needs to be named '%s'. "
-                            "Please double check by opening to the Pipeline configuration Page in "
-                            "Shotgun for the given project." % (proj.get("name"), constants.PRIMARY_PIPELINE_CONFIG_NAME))
-
-        # check that there is a path for our platform
-        current_os_path = primary_pc.get(platform_lookup[sys.platform])
-        if current_os_path is None:
-            raise TankError("The Shotgun Project '%s' has a Primary pipeline configuration but "
-                            "it has not been configured to work with the current "
-                            "operating system." % proj.get("name"))
-
-        # ok there is a path - now check that the path exists!
-        if not os.path.exists(current_os_path):
-            raise TankError("The Shotgun Project '%s' has a Primary pipeline configuration registered "
-                            "to be located in '%s', however this path does cannot be "
-                            "found!" % (proj.get("name"), current_os_path))
-
-        # looks good, we got a primary pipeline config that exists
-        return PipelineConfiguration(current_os_path)
-
-
-    else:
-        # we are running the tank command from a specific PC.
-        # in this case we need to check that the entity actually belongs to the project
-        curr_pc_path = os.environ["TANK_CURRENT_PC"]
-
-        # do a bit of cleanup - windows paths can end with a space
-        if curr_pc_path.endswith(" "):
-            curr_pc_path = curr_pc_path[:-1]
-        # windows tends to end with a backslash
-        if curr_pc_path.endswith("\\"):
-            curr_pc_path = curr_pc_path[:-1]
-
-        # the path stored in the TANK_CURRENT_PC env var may be a symlink etc.
-        # now we need to find which PC entity this corresponds to in Shotgun.
-        # Once found, we can double check that the current Entity is actually
-        # associated with the project that the PC is associated with.
-        pc_registered_path = _get_pc_registered_location(curr_pc_path)
-
-        if pc_registered_path is None:
-            raise TankError("Error starting from the configuration located in '%s' - "
-                            "it looks like this pipeline configuration and tank command "
-                            "has not been configured for the current operating system." % curr_pc_path)
-
-        # now that we have the proper pc path, we can find which PC entity this is
-        found_matching_path = False
-        for sg_pc in pipe_configs:
-            if sg_pc.get(platform_lookup[sys.platform]) == pc_registered_path:
-                found_matching_path = True
-                break
-
-        if not found_matching_path:
-            raise TankError("Error launching for %s with id %s (Belonging to the project '%s') "
-                            "from the configuration located in '%s'. This config is not "
-                            "associated with that project. For a list of which tank commands can be "
-                            "used with this project, go to the Pipeline Configurations page in "
-                            "Shotgun for the project." % (entity_type, entity_id, proj.get("name"), pc_registered_path))
-        # ok we got a pipeline config matching the tank command from which we launched.
-        # because we found the PC in the list of PCs for this project, we know that it must be valid!
-        return PipelineConfiguration(pc_registered_path)
-
-
-
-
-def from_path(path, sg=None):
-    """
-    Factory method that constructs a PC object from a path:
-    - data paths are being traversed and resolved
-    - if the path is a direct path to a PC root that's fine too
-    """
-
-    if not isinstance(path, basestring):
-        raise TankError("Cannot create a Configuration from path '%s' - "
-                        "path must be a string!" % path)
-
-    path = os.path.abspath(path)
-
-    # make sure folder exists on disk
-    if not os.path.exists(path):
-        # there are cases when a PC is being created from a _file_ which does not yet
-        # exist on disk. To try to be reasonable with this case, try this check on the
-        # parent folder of the path as a last resort.
-        parent_path = os.path.dirname(path)
-        if os.path.exists(parent_path):
-            path = parent_path
-        else:
-            raise TankError("Cannot create a Configuration from path '%s' - the path does "
-                            "not exist on disk!" % path)
-
-
-    ########################################################################################
-    # first see if this path is a pipeline configuration
-
-    pc_config = os.path.join(path, "config", "core", "pipeline_configuration.yml")
-    if os.path.exists(pc_config):
-        # done deal!
-
-        # resolve the "real" location that is stored in Shotgun and 
-        # cached in the file system
-        pc_registered_path = _get_pc_registered_location(path)
-
-        if pc_registered_path is None:
-            raise TankError("Error starting from the configuration located in '%s' - "
-                            "it looks like this pipeline configuration and tank command "
-                            "has not been configured for the current operating system." % path)
-        return PipelineConfiguration(pc_registered_path)
-
-
-    ########################################################################################
-    # assume it is a data path.
-    # walk up the file system until a tank folder is found, then find tank config directory
-
-    cur_path = path
-    config_path = None
-    while True:
-        config_path = os.path.join(cur_path, "tank", "config", constants.CONFIG_BACK_MAPPING_FILE)
-        # need to test for something in project vs studio config
-        if os.path.exists(config_path):
-            break
-        parent_path = os.path.dirname(cur_path)
-        if parent_path == cur_path:
-            # Topped out without finding config
-            raise TankError("Cannot create a Configuration from path '%s' - this path does "
-                            "not belong to an Sgtk Project!" % path)
-        cur_path = parent_path
-
-    # all right - now read the config and get all the registered pipeline configs.
-    try:
-        fh = open(config_path, "r")
-        try:
-            data = yaml.load(fh)
-        finally:
-            fh.close()
-    except Exception, e:
-        raise TankError("Looks like a config file is corrupt. Please contact "
-                        "support! File: '%s' Error: %s" % (config_path, e))
-
-    # get all the registered pcs for the current platform
-    # env variables are allowed in these paths so expand them if they exist
-    current_os_pcs = [ os.path.expandvars(x.get(sys.platform)) for x in data if x is not None]
-
-    # Now if we are running a studio tank command, find the Primary PC and use that
-    # if we are using a specific tank command, try to use that PC
-
-    if "TANK_CURRENT_PC" not in os.environ:
-        # we are running a studio level tank command - not associated with 
-        # a particular PC. Out of the list of PCs associated with this location, 
-        # find the Primary PC and use that.
-
-        # try to figure out what the primary storage is by looking for a metadata 
-        # file in each PC. 
-        for pc_path in current_os_pcs:
-            data = None
-            try:
-                data = _get_pc_disk_metadata(pc_path)
-            except TankError:
-                # didn't find so just skip this pc
-                continue
-            pc_name = data.get("pc_name")
-            if pc_name == constants.PRIMARY_PIPELINE_CONFIG_NAME:
-                return PipelineConfiguration(pc_path)
-
-        # no luck - this may be because some projects don't have this 
-        # metadata cached. Now try by looking in Shotgun instead.
-
-        # in the list of paths found in the inverse lookup table on disk, find the primary.
-        sg = sg or shotgun.create_sg_connection()
-        platform_lookup = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
-        filters = [ platform_lookup[sys.platform], "in"]
-        filters.extend(current_os_pcs)
-        primary_pc = sg.find_one(constants.PIPELINE_CONFIGURATION_ENTITY,
-                                 [filters, ["code", "is", constants.PRIMARY_PIPELINE_CONFIG_NAME]],
-                                 ["windows_path", "mac_path", "linux_path", "project"])
-
-        if primary_pc is None:
-            raise TankError("Cannot find a Primary Pipeline Configuration for path '%s'. "
-                            "The following Pipeline configuration are associated with the "
-                            "path, but none of them is marked as Primary: %s" % (path, current_os_pcs))
-
-        # check that there is a path for our platform
-        current_os_path = primary_pc.get(platform_lookup[sys.platform])
-        if current_os_path is None:
-            raise TankError("The Shotgun Project '%s' has a Primary pipeline configuration but "
-                            "it has not been configured to work with the current "
-                            "operating system." % primary_pc.get("project").get("name"))
-
-        # ok there is a path - now check that the path exists!
-        if not os.path.exists(current_os_path):
-            raise TankError("The Shotgun Project '%s' has a Primary pipeline configuration registered "
-                            "to be located in '%s', however this path does cannot be "
-                            "found!" % (primary_pc.get("project"), current_os_path))
-
-        # looks good, we got a primary pipeline config that exists
-        return PipelineConfiguration(current_os_path)
-
-    else:
-        # we are running a tank command coming from a particular PC!
-        # make sure that this PC is actually associated with this project
-        # and then use it.
-        curr_pc_path = os.environ["TANK_CURRENT_PC"]
-
-        # do a bit of cleanup - windows paths can end with a space
-        if curr_pc_path.endswith(" "):
-            curr_pc_path = curr_pc_path[:-1]
-        # windows tends to end with a backslash
-        if curr_pc_path.endswith("\\"):
-            curr_pc_path = curr_pc_path[:-1]
-
-        # the path stored in the TANK_CURRENT_PC env var may be a symlink etc.
-        # now we need to find which PC entity this corresponds to in Shotgun.        
-        pc_registered_path = _get_pc_registered_location(curr_pc_path)
-
-        if pc_registered_path is None:
-            raise TankError("Error starting from the configuration located in '%s' - "
-                            "it looks like this pipeline configuration and tank command "
-                            "has not been configured for the current operating system." % curr_pc_path)
-
-        # now if this tank command is associated with the path, the registered path should be in 
-        # in the list of paths found in the tank data backlink file
-        if pc_registered_path not in current_os_pcs:
-            raise TankError("You are trying to start using the configuration and tank command "
-                            "located in '%s'. The path '%s' you are trying to load is not "
-                            "associated with that configuration. The path you are trying to load "
-                            "is associated with the following configurations: %s. "
-                            "Please use the tank command or Sgtk API in any of those "
-                            "locations in order to continue. This error can occur if you "
-                            "have moved a Configuration on disk without correctly updating "
-                            "it. It can also occur if you are trying to use a tank command "
-                            "associated with Project A to try to operate on a Shot or Asset that "
-                            "that belongs to a project B." % (curr_pc_path, path, current_os_pcs))
-
-        # okay so this PC is valid!
-        return PipelineConfiguration(pc_registered_path)
-
-
-
-
-
-
-################################################################################################
-# helper methods used by the pipeline config class
-
-
-def _get_pc_registered_location(pipeline_config_root_path):
-    """
-    Loads the location metadata file from install_location.yml
-    This contains a reflection of the paths given in the pc entity.
-
-    Returns the path that has been registered for this pipeline configuration 
-    for the current OS.
-    This is the path that has been defined in shotgun. It is also the path that is being
-    used in the inverse pointer files that exist in each storage.
-    
-    This is useful when drive letter mappings or symlinks are being used - in these
-    cases get_path() may not return the same value as get_registered_location_path().
-    
-    This may return None if no path has been registered for the current os.
-    """
-    # now read in the pipeline_configuration.yml file
-    cfg_yml = os.path.join(pipeline_config_root_path, "config", "core", "install_location.yml")
-
-    if not os.path.exists(cfg_yml):
-        raise TankError("Location metadata file '%s' missing! Please contact support." % cfg_yml)
-
-    fh = open(cfg_yml, "rt")
-    try:
-        data = yaml.load(fh)
-    except Exception, e:
-        raise TankError("Looks like a config file is corrupt. Please contact "
-                        "support! File: '%s' Error: %s" % (cfg_yml, e))
-    finally:
-        fh.close()
-
-    # return the pc location for the current platform
-    # env variables are allowed in these paths so expand them if they exist
-    if sys.platform == "linux2":
-        return os.path.expandvars(data.get("Linux"))
-    elif sys.platform == "win32":
-        return os.path.expandvars(data.get("Windows"))
-    elif sys.platform == "darwin":
-        return os.path.expandvars(data.get("Darwin"))
-    else:
-        raise TankError("Unsupported platform '%s'" % sys.platform)
-
-
-def _get_pc_disk_metadata(pipeline_config_root_path):
-    """
-    Helper method.
-    Loads the pipeline config metadata (the pipeline_configuration.yml) file from disk.
-    
-    :returns: deserialized content of the file in the form of a dict.
-    """
-
-    # now read in the pipeline_configuration.yml file
-    cfg_yml = os.path.join(pipeline_config_root_path, "config", "core", "pipeline_configuration.yml")
-
-    if not os.path.exists(cfg_yml):
-        raise TankError("Configuration metadata file '%s' missing! Please contact support." % cfg_yml)
-
-    fh = open(cfg_yml, "rt")
-    try:
-        data = yaml.load(fh)
-        if data is None:
-            raise Exception("File contains no data!")
-    except Exception, e:
-        raise TankError("Looks like a config file is corrupt. Please contact "
-                        "support! File: '%s' Error: %s" % (cfg_yml, e))
-    finally:
-        fh.close()
-
-    return data
-
-
-def _get_pc_roots_metadata(pipeline_config_root_path):
-    """
-    Loads and validates the roots metadata file.
-    
-    The roots.yml file is a reflection of the local storages setup in Shotgun
-    at project setup time and may contain anomalies in the path layout structure.
-    
-    The roots data will be prepended to paths and used for comparison so it is 
-    critical that the paths are on a correct normalized form once they have been 
-    loaded into the system.
-    
-    :param pipeline_config_root_path: Path to the root of a pipeline configuration,
-                                      (excluding the "config" folder).  
-    
-    :returns: A dictionary structure with an entry for each storage defined. Each
-              storage will have three keys mac_path, windows_path and linux_path, 
-              for example
-              { "primary"  : { "mac_path": "/tmp/foo", 
-                               "linux_path": None, 
-                               "windows_path": "z:\tmp\foo" },
-                "textures" : { "mac_path": "/tmp/textures", 
-                               "linux_path": None, 
-                               "windows_path": "z:\tmp\textures" },
-              }
-    """
-    # now read in the roots.yml file
-    # this will contain something like
-    # {'primary': {'mac_path': '/studio', 'windows_path': None, 'linux_path': '/studio'}}
-    roots_yml = os.path.join(pipeline_config_root_path, "config", "core", constants.STORAGE_ROOTS_FILE)
-
-    if not os.path.exists(roots_yml):
-        raise TankError("Roots metadata file '%s' missing! Please contact support." % roots_yml)
-
-    fh = open(roots_yml, "rt")
-    try:
-        # if file is empty, initializae with empty dict...
-        data = yaml.load(fh) or {}
-    except Exception, e:
-        raise TankError("Looks like the roots file is corrupt. Please contact "
-                        "support! File: '%s' Error: %s" % (roots_yml, e))
-    finally:
-        fh.close()
-
-    # if there are more than zero storages defined, ensure one of them is the primary storage
-    if len(data) > 0 and constants.PRIMARY_STORAGE_NAME not in data:
-        raise TankError("Could not find a primary storage in roots file "
-                        "for configuration %s!" % pipeline_config_root_path)
-
-    # now use our helper function to process the paths    
-    for s in data:
-        data[s]["mac_path"] = _sanitize_path(data[s]["mac_path"], "/")
-        data[s]["linux_path"] = _sanitize_path(data[s]["linux_path"], "/")
-        data[s]["windows_path"] = _sanitize_path(data[s]["windows_path"], "\\")
-
-    return data
-
-
-def _sanitize_path(path, separator):
-    """
-    Sanitize and clean up paths that may be incorrect.
-    
-    The following modifications will be carried out:
-    
-    None returns None
-    
-    Trailing slashes are removed:
-    1. /foo/bar      - unchanged
-    2. /foo/bar/     - /foo/bar
-    3. z:/foo/       - z:\foo
-    4. z:/           - z:\
-    5. z:\           - z:\
-    6. \\foo\bar\    - \\foo\bar
-
-    Double slashes are removed:
-    1. //foo//bar    - /foo/bar
-    2. \\foo\\bar    - \\foo\bar
-    
-    :param path: the path to clean up
-    :param separator: the os.sep to adjust the path for. / on nix, \ on win.
-    :returns: cleaned up path
-    """
-    if path is None:
-        return None
-    
-    # first, get rid of any slashes at the end
-    # after this step, path value will be "/foo/bar", "c:" or "\\hello"
-    path = path.rstrip("/\\")
-    
-    # add slash for drive letters: c: --> c:/
-    if len(path) == 2 and path.endswith(":"):
-        path += "/"
-    
-    # and convert to the right separators
-    # after this we have a path with the correct slashes and no end slash
-    local_path = path.replace("\\", separator).replace("/", separator)
-
-    # now weed out any duplicated slashes. iterate until done
-    while True:
-        new_path = local_path.replace("//", "/")
-        if new_path == local_path:
-            break
-        else:
-            local_path = new_path
-    
-    # for windows, remove duplicated backslashes, except if they are 
-    # at the beginning of the path
-    while True:
-        new_path = local_path[0] + local_path[1:].replace("\\\\", "\\")
-        if new_path == local_path:
-            break
-        else:
-            local_path = new_path
-
-    return local_path
-
-
-
-
-
+        # this is a new style hook which supports an inheritance chain
+        
+        # first add the built-in core hook to the chain
+        file_name = "%s.py" % hook_name
+        hooks_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "hooks"))
+        hook_paths = [os.path.join(hooks_path, file_name)]
+        
+        # now add a custom hook if that exists.
+        hook_folder = self.get_core_hooks_location()        
+        hook_path = os.path.join(hook_folder, file_name)
+        if os.path.exists(hook_path):
+            hook_paths.append(hook_path)
+            
+        return hook.execute_hook_method(hook_paths, parent, method_name, **kwargs)
 

@@ -95,6 +95,17 @@ def create_single_folder_item(tk, config_obj, io_receiver, entity_type, entity_i
         
 
 
+def synchronize_folders(tk, full_sync, log=None):
+    """
+    Synchronizes any remote folders to ensure they are present both 
+    in the file system and in any local folder caches
+    
+    :param tk: A tk API instance
+    :param full_sync: Do a full sync
+    :param log: A python logger
+    :returns: list of items processed
+    """ 
+    return FolderIOReceiver.sync_path_cache(tk, full_sync, log)
 
     
 def process_filesystem_structure(tk, entity_type, entity_ids, preview, engine):    
@@ -102,7 +113,7 @@ def process_filesystem_structure(tk, entity_type, entity_ids, preview, engine):
     Creates filesystem structure in Tank based on Shotgun and a schema config.
     Internal implementation.
     
-    :param tk: A tank instance
+    :param tk: A tk instance
     :param entity_type: A shotgun entity type to create folders for
     :param entity_ids: list of entity ids to process or a single entity id
     :param preview: enable dry run mode?
@@ -111,7 +122,7 @@ def process_filesystem_structure(tk, entity_type, entity_ids, preview, engine):
                    which are marked as deferred are processed. Pass None for non-deferred mode.
                    The convention is to pass the name of the current engine, e.g 'tk-maya'.
     
-    :returns: tuple: list of items processed
+    :returns: list of items processed
     
     """
 
@@ -188,7 +199,7 @@ def process_filesystem_structure(tk, entity_type, entity_ids, preview, engine):
         
     
     # create an object to receive all IO requests
-    io_receiver = FolderIOReceiver(tk, preview)
+    io_receiver = FolderIOReceiver(tk, preview, entity_type, entity_ids)
 
     # now loop over all individual objects and create folders
     for i in items:        

@@ -81,6 +81,9 @@ TANK_BUNDLE_INIT_HOOK_NAME = "bundle_init"
 # hook that is executed whenever a PipelineConfiguration instance initializes.
 PIPELINE_CONFIGURATION_INIT_HOOK_NAME = "pipeline_configuration_init"
 
+# hook that is executed whenever a cache location should be determined
+CACHE_LOCATION_HOOK_NAME = "cache_location"
+
 # hook to get current login
 CURRENT_LOGIN_HOOK_NAME = "get_current_login"
 
@@ -172,14 +175,8 @@ DEFAULT_CFG = "tk-config-default"
 # the name of the shell engine
 SHELL_ENGINE = "tk-shell"
 
-# the name of the file that holds the path cache
-CACHE_DB_FILENAME = "path_cache.db"
-
 # the name of the file that holds the templates.yml config
 CONTENT_TEMPLATES_FILE = "templates.yml"
-
-# the name of the file that holds the inverse root defs
-CONFIG_BACK_MAPPING_FILE = "tank_configs.yml"
 
 # the name of the file that contains the storage root definitions
 STORAGE_ROOTS_FILE = "roots.yml"
@@ -210,3 +207,7 @@ STUDIO_HOOK_PROJECT_NAME = "project_name.py"
 
 # studio level core hook for specifying shotgun connection settings
 STUDIO_HOOK_SG_CONNECTION_SETTINGS = "sg_connection.py"
+
+# init cache for fast initialization
+SITE_INIT_CACHE_FILE_NAME = "toolkit_init.cache"
+

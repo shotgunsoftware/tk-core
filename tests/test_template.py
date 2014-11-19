@@ -355,7 +355,6 @@ class TestReadTemplates(TankTestBase):
     def setUp(self):
         super(TestReadTemplates, self).setUp()
         self.setup_fixtures()
-        self.tk = tank.Tank(self.project_root)
 
     def test_choices(self):
         """Check a template key which uses choices."""

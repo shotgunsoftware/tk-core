@@ -41,7 +41,7 @@ class TankBundle(object):
         self.__environment = env
 
         # emit an engine started event
-        tk.execute_hook(constants.TANK_BUNDLE_INIT_HOOK_NAME, bundle=self)
+        tk.execute_core_hook(constants.TANK_BUNDLE_INIT_HOOK_NAME, bundle=self)
         
     ##########################################################################################
     # properties used by internal classes, not part of the public interface
@@ -173,16 +173,13 @@ class TankBundle(object):
         An item-specific location on disk where the app or engine can store
         random cache data. This location is guaranteed to exist on disk.
         """
-        # organize caches by app name
-        folder = os.path.join(self.__tk.pipeline_configuration.get_path(), "cache", self.name)
-        if not os.path.exists(folder):
-            # create it using open permissions (not via hook since we want to be in control
-            # of permissions inside the tank folders)
-            old_umask = os.umask(0)
-            os.makedirs(folder, 0777)
-            os.umask(old_umask)                
+        path = self.__tk.execute_core_hook_method(constants.CACHE_LOCATION_HOOK_NAME,
+                                                  "bundle_cache",
+                                                  project_id=self.__tk.pipeline_configuration.get_project_id(),
+                                                  pipeline_configuration_id=self.__tk.pipeline_configuration.get_shotgun_id(),
+                                                  bundle=self)
         
-        return folder
+        return path
 
     @property
     def context(self):
@@ -400,7 +397,7 @@ class TankBundle(object):
         :param path: path to create
         """        
         try:
-            self.__tk.execute_hook("ensure_folder_exists", path=path, bundle_obj=self)
+            self.__tk.execute_core_hook("ensure_folder_exists", path=path, bundle_obj=self)
         except Exception, e:
             raise TankError("Error creating folder %s: %s" % (path, e))
         
@@ -454,9 +451,13 @@ class TankBundle(object):
             resolved_hook_name = default_hook_name
             if constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN in default_hook_name:
                 try:
+                    # note - this technically violates the generic nature of the bundle
+                    # base class implementation (because the engine member is not defined in bundle
+                    # but in App and Framework but NOT in the Engine class) - an engine trying to define
+                    # a hook using the {engine_name} construct will therefore get an error.
                     engine_name = self.engine.name
                 except:
-                    raise TankError("%s: Failed to be able to find the associated engine "
+                    raise TankError("%s: Failed to find the associated engine "
                                     "when trying to access hook %s" % (self, hook_expression))
                 
                 resolved_hook_name = default_hook_name.replace(constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN, engine_name)
@@ -603,7 +604,19 @@ class TankBundle(object):
                 default_value = manifest.get(settings_name).get("default_value")
             
             if default_value: # possible not to have a default value!
-                default_value = default_value.replace(constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN, self.engine.name)
+                
+                if constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN in default_value:
+                    try:
+                        # note - this technically violates the generic nature of the bundle
+                        # base class implementation (because the engine member is not defined in bundle
+                        # but in App and Framework but NOT in the Engine class) - an engine trying to define
+                        # a hook using the {engine_name} construct will therefore get an error.
+                        engine_name = self.engine.name
+                    except:
+                        raise TankError("%s: Failed to find the associated engine "
+                                        "when trying to access hook %s" % (self, hook_expression))
+                    
+                    default_value = default_value.replace(constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN, engine_name)
             
                 # expand the default value to be referenced from {self} and with the .py suffix 
                 # for backwards compatibility with the old syntax where the default value could
@@ -676,10 +689,10 @@ class TankBundle(object):
             chunks = value.split(":")
             hook_name = chunks[1]
             params = chunks[2:] 
-            processed_val = self.__tk.execute_hook(hook_name, 
-                                                   setting=key, 
-                                                   bundle_obj=self, 
-                                                   extra_params=params)
+            processed_val = self.__tk.execute_core_hook(hook_name, 
+                                                        setting=key, 
+                                                        bundle_obj=self, 
+                                                        extra_params=params)
 
         else:
             # pass-through

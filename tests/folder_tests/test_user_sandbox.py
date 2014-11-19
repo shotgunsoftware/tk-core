@@ -23,20 +23,22 @@ from tank_test.tank_test_base import *
 class TestHumanUser(TankTestBase):
     def setUp(self):
         super(TestHumanUser, self).setUp()
+        
         self.setup_fixtures("humanuser_core")
-        self.tk = tank.Tank(self.project_root)
-
+        
         self.shot = {"type": "Shot",
                      "id": 1,
                      "code": "shot_code",
                      "project": self.project}
 
         self.humanuser = {"type": "HumanUser",
+                          "name": "Mr Foo",
                           "id": 2,
                           "login": "foo"}
 
         self.humanuser2 = {"type": "HumanUser",
                           "id": 4,
+                          "name": "Mr Bar",
                           "login": "bar"}
 
         self.add_to_sg_mock_db([self.shot, self.humanuser, self.humanuser2])

@@ -342,8 +342,8 @@ class Context(object):
         Returns the context object as a dictionary of template fields.
         This is useful if you want to use a Context object as part of a call to the Sgtk API.
 
-            >>> import tank
-            >>> tk = tank.Tank("/studio.08/demo_project/sequences/AAA/ABC/Lighting/work")
+            >>> import sgtk
+            >>> tk = sgtk.sgtk_from_path("/studio.08/demo_project/sequences/AAA/ABC/Lighting/work")
             >>> template = tk.templates['lighting_work']
             >>> ctx = tk.context_from_path("/studio.08/demo_project/sequences/AAA/ABC/Lighting/work")
             >>> ctx.as_template_fields(template)
@@ -562,11 +562,11 @@ class Context(object):
         templates = _get_template_ancestors(template)
 
         # get a path cache handle
-        path_cache = PathCache(self.__tk.pipeline_configuration)
+        path_cache = PathCache(self.__tk)
 
         # Step 3 - walk templates from the root down,
         # for each template, get all paths we have stored in the database
-        # and find any fields we can for it        
+        # and find any fields we can for it
         try:
             # build up a list of fields as we go so that each level matches
             # at least the fields from the previous level
@@ -715,10 +715,10 @@ def from_path(tk, path, previous_context=None):
     }
 
     # ask hook for extra entity types we should recognize and insert into the additional_entities list.
-    additional_types = tk.execute_hook("context_additional_entities").get("entity_types_in_path", [])
+    additional_types = tk.execute_core_hook("context_additional_entities").get("entity_types_in_path", [])
 
     # get a cache handle
-    path_cache = PathCache(tk.pipeline_configuration)
+    path_cache = PathCache(tk)
 
     # gather all roots as lower case
     project_roots = [x.lower() for x in tk.pipeline_configuration.get_data_roots().values()]
@@ -947,7 +947,7 @@ def _task_from_sg(tk, task_id):
     context_keys = ["project", "entity", "step", "task"]
 
     # ask hook for extra Task entity fields we should query and insert into the additional_entities list.
-    additional_fields = tk.execute_hook("context_additional_entities").get("entity_fields_on_task", [])
+    additional_fields = tk.execute_core_hook("context_additional_entities").get("entity_fields_on_task", [])
 
     task = tk.shotgun.find_one("Task", [["id","is",task_id]], standard_fields + additional_fields)
     if not task:
@@ -1038,7 +1038,7 @@ def _context_data_from_cache(tk, entity_type, entity_id):
 
     # Use the path cache to look up all paths linked to the entity and use that to extract
     # extra entities we should include in the context
-    path_cache = PathCache(tk.pipeline_configuration)
+    path_cache = PathCache(tk)
 
     # Grab all project roots
     project_roots = tk.pipeline_configuration.get_data_roots().values()
@@ -1051,7 +1051,7 @@ def _context_data_from_cache(tk, entity_type, entity_id):
     else:
         context["project"] = None
 
-    paths = path_cache.get_paths(entity_type, entity_id)
+    paths = path_cache.get_paths(entity_type, entity_id, primary_only=True)
 
     for path in paths:
         # now recurse upwards and look for entity types we haven't found yet
@@ -1101,9 +1101,9 @@ def _values_from_path_cache(entity, cur_template, path_cache, required_fields):
                             found for the entity
     """
     
-    # use the database to go from shotgun type/id --> list of paths
-    entity_paths = path_cache.get_paths(entity["type"], entity["id"])
-
+    # use the databsae to go from shotgun type/id --> paths
+    entity_paths = path_cache.get_paths(entity["type"], entity["id"], primary_only=True)
+    
     # Mapping for field values found in conjunction with this entities paths
     unique_fields = {}
     # keys whose values should be removed from return values

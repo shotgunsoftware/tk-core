@@ -35,7 +35,7 @@ class TestGetProjectRoots(TankTestBase):
         """Case roots file is not present"""
         expected = {"primary": self.project_root}
         # Don't make a root file
-        pc = tank.pipelineconfig.from_path(self.project_root)
+        pc = tank.pipelineconfig_factory.from_path(self.project_root)
         result = pc.get_data_roots()
         self.assertEqual(expected, result)
 
@@ -45,7 +45,7 @@ class TestGetProjectRoots(TankTestBase):
         root_file.write(yaml.dump(self.roots))
         root_file.close()
 
-        pc = tank.pipelineconfig.from_path(self.project_root)
+        pc = tank.pipelineconfig_factory.from_path(self.project_root)
         result = pc.get_data_roots()
         
         # Determine platform
@@ -66,8 +66,9 @@ class TestGetProjectRoots(TankTestBase):
 class TestGetPrimaryRoot(TankTestBase):
     def setUp(self):
         super(TestGetPrimaryRoot, self).setUp()
+        
         self.setup_multi_root_fixtures()
-        self.tk = tank.Tank(self.project_root)
+        
         # create shot and asset data
         self.seq = {"type": "Sequence",
                     "id": 2,
@@ -98,7 +99,7 @@ class TestGetPrimaryRoot(TankTestBase):
         Test input path in alternate project root's tree.
         """
         asset_path = os.path.join(self.alt_root_1, 'assets', 'assettype_assetname')
-        pc = tank.pipelineconfig.from_path(asset_path)
+        pc = tank.pipelineconfig_factory.from_path(asset_path)
         self.assertEqual(self.project_root, pc.get_primary_data_root())
         
 
@@ -107,7 +108,7 @@ class TestGetPrimaryRoot(TankTestBase):
         Test input path is in primary root's tree for multi-root project.
         """
         shot_path = os.path.join(self.project_root, "sequences", "seq_code", "shot_code")
-        pc = tank.pipelineconfig.from_path(shot_path)
+        pc = tank.pipelineconfig_factory.from_path(shot_path)
         self.assertEqual(self.project_root, pc.get_primary_data_root())
 
 
@@ -115,15 +116,15 @@ class TestGetPrimaryRoot(TankTestBase):
         """
         Test path which is not in the project tree.
         """
-        non_project_path = os.path.join(os.path.dirname(self.project_root), "bogus")
-        self.assertRaises(TankError, tank.pipelineconfig.from_path, non_project_path)
+        non_project_path = os.path.join(os.path.dirname(self.project_root), "xxxyyyzzzz")
+        self.assertRaises(TankError, tank.pipelineconfig_factory.from_path, non_project_path)
         
     def test_path_sanitation_logic(self):
         """
         Tests that the pre-load cleanup logic for roots.yml is sound
         """
         
-        sp = tank.pipelineconfig._sanitize_path
+        sp = tank.pipelineconfig_utils._sanitize_path
         
         self.assertEqual( sp("/foo/bar/baz", "/"), "/foo/bar/baz")
         self.assertEqual( sp("/foo/bar/baz/", "/"), "/foo/bar/baz")
