@@ -19,7 +19,7 @@ import copy
 import uuid
 import tempfile
 
-from .util import subprocess_check_output
+from .util import subprocess_check_output, execute_git_command
 from ..api import Tank
 from ..errors import TankError
 from ..platform import constants
@@ -112,10 +112,8 @@ class TankGitDescriptor(AppDescriptor):
         try:
             # clone the repo
             self.__clone_repo(clone_tmp)
-            os.chdir(clone_tmp)
-            
-            if os.system("git archive --format zip --output %s %s" % (zip_tmp, self._version)) != 0:
-                raise TankError("Could not find tag %s in git repository %s!" % (self._version, self._path))
+            os.chdir(clone_tmp)            
+            execute_git_command("archive --format zip --output %s %s" % (zip_tmp, self._version))
         finally:
             os.chdir(cwd)
         
@@ -308,8 +306,7 @@ class TankGitDescriptor(AppDescriptor):
         """
         # Note: git doesn't like paths in single quotes when running on 
         # windows - it also prefers to use forward slashes!
-        sanitized_repo_path = self._path.replace(os.path.sep, "/")
-        if os.system("git clone -q \"%s\" \"%s\"" % (sanitized_repo_path, target_path)) != 0:
-            raise TankError("Could not clone git repository '%s'!" % self._path) 
+        sanitized_repo_path = self._path.replace(os.path.sep, "/")        
+        execute_git_command("clone -q \"%s\" \"%s\"" % (sanitized_repo_path, target_path))
 
 
