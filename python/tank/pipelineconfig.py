@@ -578,7 +578,7 @@ class PipelineConfiguration(object):
             # no custom hook detected in the pipeline configuration
             # fall back on the hooks that come with the currently running version
             # of the core API.
-            hooks_path = os.path.join(pipelineconfig_utils.get_path_to_current_core(), "install", "core", "hooks")            
+            hooks_path = os.path.join(pipelineconfig_utils.get_path_to_current_core(), "install", "core", "hooks")
             hook_path = os.path.join(hooks_path, file_name)
 
         return hook.execute_hook(hook_path, parent, **kwargs)
@@ -601,7 +601,7 @@ class PipelineConfiguration(object):
         
         # first add the built-in core hook to the chain
         file_name = "%s.py" % hook_name
-        hooks_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "hooks"))
+        hooks_path = os.path.join(pipelineconfig_utils.get_path_to_current_core(), "install", "core", "hooks")
         hook_paths = [os.path.join(hooks_path, file_name)]
         
         # now add a custom hook if that exists.
