@@ -48,6 +48,9 @@ def load_plugin(plugin_file, valid_base_class):
     found_classes = list()
     introspection_error_reported = None
     try:
+        # look for classes in the module that are derived from the specified base 
+        # class.  Note that 'dir' returns the contents of the module in alphabetical
+        # order so no assumptions should be made based on the order!
         for var in dir(module):
             value = getattr(module, var)
             if isinstance(value, type) and issubclass(value, valid_base_class) and value != valid_base_class:
@@ -68,10 +71,8 @@ def load_plugin(plugin_file, valid_base_class):
                "the pyc file and try again." % (plugin_file, valid_base_class.__name__))
         
         raise TankError(msg)
-        
-    # when we do inheritance, the file effectively contains more than one class object
-    # make sure we return the last class definition in the file, e.g. the actual
-    # class and not the base class.
-    return found_classes[-1]
+
+    # return the first valid class that was found.        
+    return found_classes[0]
 
 

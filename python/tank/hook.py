@@ -149,25 +149,28 @@ def execute_hook_method(hook_paths, parent, method_name, **kwargs):
     :param method_name: method to execute. If None, the default method will be executed.
     :returns: Whatever the hook returns.
     """    
-    global g_current_hook_baseclass
-    
-    if method_name is None:
-        method_name = constants.DEFAULT_HOOK_METHOD
-    
+    method_name = method_name or constants.DEFAULT_HOOK_METHOD
+
+    global g_current_hook_baseclass    
     g_current_hook_baseclass = Hook
     
     for hook_path in hook_paths:
 
         if not os.path.exists(hook_path):
             raise TankError("Cannot execute hook '%s' - this file does not exist on disk!" % hook_path)
-    
-        if hook_path not in _HOOKS_CACHE:
-            # cache it
-            _HOOKS_CACHE[hook_path] = loader.load_plugin(hook_path, Hook)
 
-        # set current state
-        g_current_hook_baseclass = _HOOKS_CACHE[hook_path] 
-            
+        # look to see if we've already loaded this hook into the cache.  The unique cache key is
+        # a tuple of the path and the base class to allow loading of classes with different base
+        # classes from the same file
+        hook_cache_key = (hook_path, g_current_hook_baseclass)    
+        if hook_cache_key not in _HOOKS_CACHE:
+            # load the hook class from the hook file and cache it - this explicitly looks for a
+            # single class from the hook file that is derived from the base.  If more than one
+            # matching class is found then the first will be returned in alphabetical order!
+            _HOOKS_CACHE[hook_cache_key] = loader.load_plugin(hook_path, g_current_hook_baseclass)
+
+        # keep track of the current base class:
+        g_current_hook_baseclass = _HOOKS_CACHE[hook_cache_key]
     
     # all class construction done. g_current_hook_baseclass contains
     # the last class we iterated over. This is the one we want to 
