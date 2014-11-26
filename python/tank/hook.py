@@ -154,6 +154,9 @@ def execute_hook_method(hook_paths, parent, method_name, **kwargs):
     global g_current_hook_baseclass    
     g_current_hook_baseclass = Hook
     
+    # keep a list of the class hierarchy to use when searching for a hook.
+    possible_base_classes = [Hook]
+    
     for hook_path in hook_paths:
 
         if not os.path.exists(hook_path):
@@ -167,10 +170,11 @@ def execute_hook_method(hook_paths, parent, method_name, **kwargs):
             # load the hook class from the hook file and cache it - this explicitly looks for a
             # single class from the hook file that is derived from the base.  If more than one
             # matching class is found then the first will be returned in alphabetical order!
-            _HOOKS_CACHE[hook_cache_key] = loader.load_plugin(hook_path, g_current_hook_baseclass)
+            _HOOKS_CACHE[hook_cache_key] = loader.load_plugin(hook_path, possible_base_classes)
 
         # keep track of the current base class:
         g_current_hook_baseclass = _HOOKS_CACHE[hook_cache_key]
+        possible_base_classes = [g_current_hook_baseclass] + possible_base_classes
     
     # all class construction done. g_current_hook_baseclass contains
     # the last class we iterated over. This is the one we want to 
