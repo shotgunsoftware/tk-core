@@ -13,12 +13,10 @@ Defines the base class for all Tank Hooks.
 
 """
 import os
+import threading
 from . import loader
 from .platform import constants
 from .errors import TankError
-
-_HOOKS_CACHE = {}
-g_current_hook_baseclass = None
 
 class Hook(object):
     """
@@ -91,13 +89,78 @@ class Hook(object):
     def execute(self):
         return None
 
+class _HooksCache(object):
+    """
+    A thread-safe cache of loaded hooks.  This uses the hook file path
+    and base class as the key to cache all hooks loaded by Toolkit in
+    the current session.
+    """
+    def __init__(self):
+        """
+        Construction
+        """
+        self._cache = {}
+        self._cache_lock = threading.Lock()
+    
+    def clear(self):
+        """
+        Clear the hook cache
+        """
+        self._cache_lock.acquire()
+        try:
+            self._cache = {}
+        finally:
+            self._cache_lock.release()
+    
+    def find(self, hook_path, hook_base_class):
+        """
+        Find a hook in the cache using the hook path and base class
+
+        :param hook_path:       The path to the hook to find
+        :param hook_base_class: The base class for the hook to find
+        :returns:               The Hook class if found, None if not
+        """
+        key = (hook_path, hook_base_class)
+        self._cache_lock.acquire()
+        try:
+            return self._cache.get(key, None)
+        finally:
+            self._cache_lock.release()
+    
+    def add(self, hook_path, hook_base_class, hook_class):
+        """
+        Add the specified hook to the cache if it isn't already present
+        
+        :param hook_path:       The path to the hook to add
+        :param hook_base_class: The base class for the hook to add
+        :param hook_class:      The Hook class to add
+        """
+        key = (hook_path, hook_base_class)
+        self._cache_lock.acquire()
+        try:
+            if key not in self._cache: 
+                self._cache[key] = hook_class
+        finally:
+            self._cache_lock.release()
+        
+    def __len__(self):
+        """
+        Return the number of items currently in the hook cache
+        """
+        self._cache_lock.acquire()
+        try:
+            return len(self._cache)
+        finally:
+            self._cache_lock.release()
+
+_hooks_cache = _HooksCache()
+_current_hook_baseclass = threading.local()
+
 def clear_hooks_cache():
     """
     Clears the cache where tank keeps hook classes
     """
-    global _HOOKS_CACHE
-    _HOOKS_CACHE = {}
-
+    _hooks_cache.clear()
 
 def execute_hook(hook_path, parent, **kwargs):
     """
@@ -151,8 +214,9 @@ def execute_hook_method(hook_paths, parent, method_name, **kwargs):
     """    
     method_name = method_name or constants.DEFAULT_HOOK_METHOD
 
-    global g_current_hook_baseclass    
-    g_current_hook_baseclass = Hook
+    # keep track of the current base class - this is used when loading hooks to dynamically
+    # inherit from the correct base.
+    _current_hook_baseclass.value = Hook
     
     # keep a list of the class hierarchy to use when searching for a hook.
     possible_base_classes = [Hook]
@@ -165,23 +229,25 @@ def execute_hook_method(hook_paths, parent, method_name, **kwargs):
         # look to see if we've already loaded this hook into the cache.  The unique cache key is
         # a tuple of the path and the base class to allow loading of classes with different base
         # classes from the same file
-        hook_cache_key = (hook_path, g_current_hook_baseclass)    
-        if hook_cache_key not in _HOOKS_CACHE:
+        found_hook_class = _hooks_cache.find(hook_path, _current_hook_baseclass.value)         
+        if not found_hook_class:
             # load the hook class from the hook file and cache it - this explicitly looks for a
-            # single class from the hook file that is derived from the base.  If more than one
-            # matching class is found then the first will be returned in alphabetical order!
-            _HOOKS_CACHE[hook_cache_key] = loader.load_plugin(hook_path, possible_base_classes)
+            # single class from the hook file that is derived from the base.
+            _hooks_cache.add(hook_path, _current_hook_baseclass.value, 
+                             loader.load_plugin(hook_path, possible_base_classes))
+            found_hook_class = _hooks_cache.find(hook_path, _current_hook_baseclass.value)
 
         # keep track of the current base class:
-        g_current_hook_baseclass = _HOOKS_CACHE[hook_cache_key]
-        possible_base_classes = [g_current_hook_baseclass] + possible_base_classes
+        _current_hook_baseclass.value = found_hook_class
+        # update the class hierarchy to ensure the next class is derived from a valid type:
+        possible_base_classes = [found_hook_class] + possible_base_classes
     
-    # all class construction done. g_current_hook_baseclass contains
+    # all class construction done. _current_hook_baseclass contains
     # the last class we iterated over. This is the one we want to 
     # instantiate.
     
     # instantiate the class
-    hook = g_current_hook_baseclass(parent)
+    hook = _current_hook_baseclass.value(parent)
     
     # get the method
     try:
@@ -199,4 +265,4 @@ def get_hook_baseclass():
     """
     Returns the base class for a hook
     """
-    return g_current_hook_baseclass
+    return _current_hook_baseclass.value
