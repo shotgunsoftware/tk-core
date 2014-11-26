@@ -13,17 +13,29 @@ Methods for loading and managing plugins, e.g. Apps, Engines, Hooks etc.
 
 """
 
-import os
 import sys
 import imp
 import traceback
+import inspect
 
 from .errors import TankError
 
-def load_plugin(plugin_file, valid_base_class):
+def load_plugin(plugin_file, valid_base_class, alternate_base_classes = None):
     """
-    Load a plugin into memory and extract its single interface class. 
+    Load a plugin into memory and extract its single interface class.
+
+    :param plugin_file:             The file to use when looking for the plug-in class to load
+    :param valid_base_class:        A type to use when searching for a derived class.  
+    :param alternate_base_classes:  A list of alternate base classes to be searched for if a class deriving
+                                    from valid_base_class can't be found 
+    :returns:                       A class derived from the base class if found
+    :raises:                        Raises a TankError if it fails to load the file or doesn't find exactly
+                                    one matching class.
     """
+    # build a single list of valid base classes including any alternate base classes
+    alternate_base_classes = alternate_base_classes or []
+    valid_base_classes = [valid_base_class] + alternate_base_classes
+    
     # construct a uuid and use this as the module name to ensure
     # that each import is unique
     import uuid
@@ -46,33 +58,41 @@ def load_plugin(plugin_file, valid_base_class):
     
     # cool, now validate the module
     found_classes = list()
-    introspection_error_reported = None
     try:
-        # look for classes in the module that are derived from the specified base 
-        # class.  Note that 'dir' returns the contents of the module in alphabetical
-        # order so no assumptions should be made based on the order!
-        for var in dir(module):
-            value = getattr(module, var)
-            if isinstance(value, type) and issubclass(value, valid_base_class) and value != valid_base_class:
-                found_classes.append(value)
+        # first, find all classes in the module, being careful to only find classes that 
+        # are actually from this module and not from any other imports! 
+        search_predicate = lambda member: inspect.isclass(member) and member.__module__ == module.__name__
+        all_classes = [cls for _, cls in inspect.getmembers(module, search_predicate)]
+
+        # Now look for classes in the module that are directly derived from the specified 
+        # base class.  Note that 'inspect.getmembers' returns the contents of the module 
+        # in alphabetical order so no assumptions should be made based on the order!
+        #
+        # Enumerate the valid_base_classes in order so that we find the highest derived
+        # class we can.
+        for base_cls in valid_base_classes:
+            for cls in all_classes:
+                # check if cls directly inherits from base_cls.  We deliberately don't
+                # use issubclass here as we want to find directly derived classes.
+                if base_cls in cls.__bases__:
+                    found_classes.append(cls)
+            if found_classes:
+                # we found at least one class so assume this is a match!
+                break
     except Exception, e:
-        introspection_error_reported = str(e)
+        # re-raise as a TankError
+        raise TankError("Introspection error while trying to load and introspect file %s. "
+                        "Error Reported: %s" % (plugin_file, e))
 
-    if introspection_error_reported:
-            raise TankError("Introspection error while trying to load and introspect file %s. "
-                            "Error Reported: %s" % (plugin_file, e))
-
-    elif len(found_classes) < 1:
-        # missing class!
-        msg = ("Error loading the file '%s'. Couldn't find a class deriving from the base class '%s'. "
+    if len(found_classes) != 1:
+        # didn't find exactly one matching class!
+        msg = ("Error loading the file '%s'. Couldn't find a single class deriving from '%s'. "
                "You need to have exactly one class defined in the file deriving from that base class. "
                "If your file looks fine, it is possible that the cached .pyc file that python "
                "generates is invalid and this is causing the error. In that case, please delete "
-               "the pyc file and try again." % (plugin_file, valid_base_class.__name__))
+               "the .pyc file and try again." % (plugin_file, valid_base_class.__name__))
         
         raise TankError(msg)
 
-    # return the first valid class that was found.        
+    # return the class that was found.        
     return found_classes[0]
-
-

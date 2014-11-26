@@ -219,12 +219,12 @@ class TestHookCache(TestApplication):
     def test_call_hook(self):
         
         tank.hook.clear_hooks_cache()
-        self.assertTrue(len(tank.hook._HOOKS_CACHE) == 0)
+        self.assertTrue(len(tank.hook._hooks_cache) == 0)
         app = self.engine.apps["test_app"]
         self.assertTrue(app.execute_hook("test_hook_std", dummy_param=True))
-        self.assertTrue(len(tank.hook._HOOKS_CACHE) == 1)
+        self.assertTrue(len(tank.hook._hooks_cache) == 1)
         self.engine.destroy()
-        self.assertTrue(len(tank.hook._HOOKS_CACHE) == 0)
+        self.assertTrue(len(tank.hook._hooks_cache) == 0)
 
 
 
