@@ -32,7 +32,7 @@ def load_plugin(plugin_file, valid_base_class):
     :raises:                    Raises a TankError if it fails to load the file or doesn't find exactly
                                 one matching class.
     """
-    # it's possible to have a chain of base classes to look for so rationalize this here.
+    # it's possible to have multiple base classes to look for so rationalize this here.
     # for example: [MyCustomHook, Hook]
     valid_base_classes = valid_base_class if isinstance(valid_base_class, list) else [valid_base_class]
     valid_base_class = valid_base_classes[0]
@@ -65,15 +65,17 @@ def load_plugin(plugin_file, valid_base_class):
         search_predicate = lambda member: inspect.isclass(member) and member.__module__ == module.__name__
         all_classes = [cls for _, cls in inspect.getmembers(module, search_predicate)]
 
-        # Now look for classes in the module that are derived from the specified base 
-        # class.  Note that 'inspect.getmembers' returns the contents of the module in 
-        # alphabetical order so no assumptions should be made based on the order!
+        # Now look for classes in the module that are directly derived from the specified 
+        # base class.  Note that 'inspect.getmembers' returns the contents of the module 
+        # in alphabetical order so no assumptions should be made based on the order!
         #
         # Enumerate the valid_base_classes in order so that we find the highest derived
         # class we can.
         for base_cls in valid_base_classes:
             for cls in all_classes:
-                if issubclass(cls, base_cls) and cls != base_cls:
+                # check if cls directly inherits from base_cls.  We deliberately don't
+                # use issubclass here as we want to find directly derived classes.
+                if base_cls in cls.__bases__:
                     found_classes.append(cls)
             if found_classes:
                 # we found at least one class so assume this is a match!
@@ -85,15 +87,13 @@ def load_plugin(plugin_file, valid_base_class):
 
     if len(found_classes) != 1:
         # didn't find exactly one matching class!
-        msg = ("Error loading the file '%s'. Couldn't find a class deriving from the base class '%s'. "
+        msg = ("Error loading the file '%s'. Couldn't find a single class deriving from the base class '%s'. "
                "You need to have exactly one class defined in the file deriving from that base class. "
                "If your file looks fine, it is possible that the cached .pyc file that python "
                "generates is invalid and this is causing the error. In that case, please delete "
-               "the pyc file and try again." % (plugin_file, valid_base_class.__name__))
+               "the .pyc file and try again." % (plugin_file, valid_base_class.__name__))
         
         raise TankError(msg)
 
     # return the class that was found.        
     return found_classes[0]
-
-
