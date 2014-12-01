@@ -102,7 +102,7 @@ class _HooksCache(object):
         self._cache = {}
         self._cache_lock = threading.Lock()
 
-    def synchronize(func):
+    def thread_exclusive(func):
         """
         function decorator to ensure multiple threads can't access the cache 
         at the same time.
@@ -110,27 +110,27 @@ class _HooksCache(object):
         :param func:    The function to wrap
         :returns:       The return value from func
         """
-        def inner(*args, **kwargs):
+        def inner(self, *args, **kwargs):
             """
             Decorator inner function - executes the function within a lock.
             :returns:    The return value from func
             """
-            lock = args[0]._cache_lock
+            lock = self._cache_lock
             lock.acquire()
             try:
-                return func(*args, **kwargs)
+                return func(self, *args, **kwargs)
             finally:
                 lock.release()
         return inner
 
-    @synchronize
+    @thread_exclusive
     def clear(self):
         """
         Clear the hook cache
         """
         self._cache = {}
     
-    @synchronize
+    @thread_exclusive
     def find(self, hook_path, hook_base_class):
         """
         Find a hook in the cache using the hook path and base class
@@ -144,7 +144,7 @@ class _HooksCache(object):
         key = (hook_path, hook_base_class)
         return self._cache.get(key, None)
     
-    @synchronize
+    @thread_exclusive
     def add(self, hook_path, hook_base_class, hook_class):
         """
         Add the specified hook to the cache if it isn't already present
@@ -159,7 +159,7 @@ class _HooksCache(object):
         if key not in self._cache: 
             self._cache[key] = hook_class
 
-    @synchronize        
+    @thread_exclusive        
     def __len__(self):
         """
         Return the number of items currently in the hook cache
@@ -243,14 +243,17 @@ def execute_hook_method(hook_paths, parent, method_name, **kwargs):
             # single class from the hook file that is derived from the current base (or 'Hook' for
             # backwards compatibility).
 
-            # define the possible base classes that the hook class can derive from:
-            possible_base_classes = [_current_hook_baseclass.value]
+            # determine any alternate base classes to look for in addition to the current base:
+            alternate_base_classes = []
             if _current_hook_baseclass.value != Hook:
-                # always allow deriving from the base class:
-                possible_base_classes.append(Hook)
+                # allow deriving from the Hook base class - this is to support the legacy method of 
+                # overriding hooks but without sub-classing them.
+                alternate_base_classes.append(Hook)
                 
             # try to load the hook class:
-            loaded_hook_class = loader.load_plugin(hook_path, possible_base_classes)
+            loaded_hook_class = loader.load_plugin(hook_path, 
+                                                   valid_base_class = _current_hook_baseclass.value, 
+                                                   alternate_base_classes = alternate_base_classes)
                 
             # add it to the cache...
             _hooks_cache.add(hook_path, _current_hook_baseclass.value, loaded_hook_class)

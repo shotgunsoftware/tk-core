@@ -20,22 +20,21 @@ import inspect
 
 from .errors import TankError
 
-def load_plugin(plugin_file, valid_base_class):
+def load_plugin(plugin_file, valid_base_class, alternate_base_classes = None):
     """
     Load a plugin into memory and extract its single interface class.
 
-    :param plugin_file:         The file to use when looking for the plug-in class to load
-    :param valid_base_class:    A type or list of types to use when searching for a derived class.  If
-                                a list is provided then the first match found by iterating through the
-                                list in order will be returned.
-    :returns:                   A class derived from the base class if found
-    :raises:                    Raises a TankError if it fails to load the file or doesn't find exactly
-                                one matching class.
+    :param plugin_file:             The file to use when looking for the plug-in class to load
+    :param valid_base_class:        A type to use when searching for a derived class.  
+    :param alternate_base_classes:  A list of alternate base classes to be searched for if a class deriving
+                                    from valid_base_class can't be found 
+    :returns:                       A class derived from the base class if found
+    :raises:                        Raises a TankError if it fails to load the file or doesn't find exactly
+                                    one matching class.
     """
-    # it's possible to have multiple base classes to look for so rationalize this here.
-    # for example: [MyCustomHook, Hook]
-    valid_base_classes = valid_base_class if isinstance(valid_base_class, list) else [valid_base_class]
-    valid_base_class = valid_base_classes[0]
+    # build a single list of valid base classes including any alternate base classes
+    alternate_base_classes = alternate_base_classes or []
+    valid_base_classes = [valid_base_class] + alternate_base_classes
     
     # construct a uuid and use this as the module name to ensure
     # that each import is unique
@@ -87,7 +86,7 @@ def load_plugin(plugin_file, valid_base_class):
 
     if len(found_classes) != 1:
         # didn't find exactly one matching class!
-        msg = ("Error loading the file '%s'. Couldn't find a single class deriving from the base class '%s'. "
+        msg = ("Error loading the file '%s'. Couldn't find a single class deriving from '%s'. "
                "You need to have exactly one class defined in the file deriving from that base class. "
                "If your file looks fine, it is possible that the cached .pyc file that python "
                "generates is invalid and this is causing the error. In that case, please delete "
