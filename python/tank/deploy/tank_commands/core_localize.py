@@ -25,6 +25,14 @@ from ... import pipelineconfig_utils
 from ... import pipelineconfig_factory
 
 
+# these are the items that need to be copied across
+# when a configuration is upgraded to contain a core API
+CORE_FILES_FOR_LOCALIZE = ["app_store.yml", 
+                           "shotgun.yml", 
+                           "interpreter_Darwin.cfg", 
+                           "interpreter_Linux.cfg", 
+                           "interpreter_Windows.cfg"]
+
 class CoreLocalizeAction(Action):
     """
     Action to localize the Core API
@@ -117,50 +125,17 @@ def do_localize(log, pc_root_path, suppress_prompts):
     source_core = os.path.join(core_api_root, "install", "core")
     target_core = os.path.join(pc_root_path, "install", "core")
     backup_location = os.path.join(pc_root_path, "install", "core.backup")
-    
-    # move this into backup location
-    backup_folder_name = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    backup_path = os.path.join(backup_location, backup_folder_name)
-    log.debug("Backing up Core API: %s -> %s" % (target_core, backup_path))
-    src_files = util._copy_folder(log, target_core, backup_path)
-    
-    # now clear out the install location
-    log.debug("Clearing out target location...")
-    for f in src_files:
-        try:
-            # on windows, ensure all files are writable
-            if sys.platform == "win32":
-                attr = os.stat(f)[0]
-                if (not attr & stat.S_IWRITE):
-                    # file is readonly! - turn off this attribute
-                    os.chmod(f, stat.S_IWRITE)
-            os.remove(f)
-            log.debug("Deleted %s" % f)
-        except Exception, e:
-            log.error("Could not delete file %s: %s" % (f, e))
         
-    
     old_umask = os.umask(0)
-    try:
+    try:        
+
+        # step 1. copy this into backup location
+        backup_folder_name = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        backup_path = os.path.join(backup_location, backup_folder_name)
+        log.debug("Backing up Core API: %s -> %s" % (target_core, backup_path))
+        src_files = util._copy_folder(log, target_core, backup_path)
         
-        # copy core distro
-        log.info("Localizing Core: %s -> %s" % (source_core, target_core))
-        util._copy_folder(log, source_core, target_core)
-        
-        # copy some core config files across
-        log.info("Copying Core Configuration Files...")
-        file_names = ["app_store.yml", 
-                      "shotgun.yml", 
-                      "interpreter_Darwin.cfg", 
-                      "interpreter_Linux.cfg", 
-                      "interpreter_Windows.cfg"]
-        for fn in file_names:
-            src = os.path.join(core_api_root, "config", "core", fn)
-            tgt = os.path.join(pc_root_path, "config", "core", fn)
-            log.debug("Copy %s -> %s" % (src, tgt))
-            shutil.copy(src, tgt)
-            
-        # now copy all the bundles that are used by the environment   
+        # step 2. copy all the bundles that are used by the environment   
         log.info("Copying %s apps, engines and frameworks..." % len(descriptors))
         
         source_base_path = os.path.join(core_api_root, "install")
@@ -180,12 +155,39 @@ def do_localize(log, pc_root_path, suppress_prompts):
                     os.makedirs(target_path, 0777)
                     # and copy content
                     util._copy_folder(log, descriptor_path, target_path)
+                    
+        # step 3. clear out the install location
+        log.debug("Clearing out core target location...")
+        for f in src_files:
+            try:
+                # on windows, ensure all files are writable
+                if sys.platform == "win32":
+                    attr = os.stat(f)[0]
+                    if (not attr & stat.S_IWRITE):
+                        # file is readonly! - turn off this attribute
+                        os.chmod(f, stat.S_IWRITE)
+                os.remove(f)
+                log.debug("Deleted %s" % f)
+            except Exception, e:
+                log.error("Could not delete file %s: %s" % (f, e))
+        
+        # step 4. copy core distro
+        log.info("Localizing Core: %s -> %s" % (source_core, target_core))
+        util._copy_folder(log, source_core, target_core)
+        
+        # copy some core config files across
+        log.info("Copying Core Configuration Files...")
+        for fn in CORE_FILES_FOR_LOCALIZE:
+            src = os.path.join(core_api_root, "config", "core", fn)
+            tgt = os.path.join(pc_root_path, "config", "core", fn)
+            log.debug("Copy %s -> %s" % (src, tgt))
+            shutil.copy(src, tgt)
             
     except Exception, e:
         raise TankError("Could not localize: %s" % e)
     finally:
         os.umask(old_umask)
-        
+            
     log.info("The Core API was successfully localized.")
 
     log.info("")
