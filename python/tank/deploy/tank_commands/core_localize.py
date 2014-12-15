@@ -25,6 +25,14 @@ from ... import pipelineconfig_utils
 from ... import pipelineconfig_factory
 
 
+# these are the items that need to be copied across
+# when a configuration is upgraded to contain a core API
+CORE_FILES_FOR_LOCALIZE = ["app_store.yml", 
+                           "shotgun.yml", 
+                           "interpreter_Darwin.cfg", 
+                           "interpreter_Linux.cfg", 
+                           "interpreter_Windows.cfg"]
+
 class CoreLocalizeAction(Action):
     """
     Action to localize the Core API
@@ -169,12 +177,7 @@ def do_localize(log, pc_root_path, suppress_prompts):
         
         # copy some core config files across
         log.info("Copying Core Configuration Files...")
-        file_names = ["app_store.yml", 
-                      "shotgun.yml", 
-                      "interpreter_Darwin.cfg", 
-                      "interpreter_Linux.cfg", 
-                      "interpreter_Windows.cfg"]
-        for fn in file_names:
+        for fn in CORE_FILES_FOR_LOCALIZE:
             src = os.path.join(core_api_root, "config", "core", fn)
             tgt = os.path.join(pc_root_path, "config", "core", fn)
             log.debug("Copy %s -> %s" % (src, tgt))
