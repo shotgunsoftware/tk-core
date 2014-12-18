@@ -753,22 +753,64 @@ class PathCache(object):
             
         for x in sg_data:
             
+            # get entity data from our entry            
+            entity = {"id":   x[SG_ENTITY_ID_FIELD],
+                      "name": x[SG_ENTITY_NAME_FIELD],
+                      "type": x[SG_ENTITY_TYPE_FIELD]}
+            is_primary = x[SG_IS_PRIMARY_FIELD]
+            
+            # note! If a local storage which is associated with a path is retired,
+            # parts of the entity data returned by shotgun will be omitted.
+            # 
+            # A valid, active path entry will be on the form:
+            #  {'id': 653,
+            #   'path': {'content_type': None,
+            #            'id': 2186,
+            #            'link_type': 'local',
+            #            'local_path': '/Volumes/xyz/proj1/sequences/aaa',
+            #            'local_path_linux': '/Volumes/xyz/proj1/sequences/aaa',
+            #            'local_path_mac': '/Volumes/xyz/proj1/sequences/aaa',
+            #            'local_path_windows': None,
+            #            'local_storage': {'id': 2,
+            #                              'name': 'primary',
+            #                              'type': 'LocalStorage'},
+            #            'name': '[primary] /sequences/aaa',
+            #            'type': 'Attachment',
+            #            'url': 'file:///Volumes/xyz/proj1/sequences/aaa'},
+            #   'type': 'FilesystemLocation'},
+            #
+            # With a retired storage, the returned data from the SG API is
+            #  {'id': 646,
+            #   'path': {'content_type': None,
+            #            'id': 2141,
+            #            'link_type': 'local',
+            #            'local_storage': None,
+            #            'name': '[primary] /sequences/aaa/missing',
+            #            'type': 'Attachment'},
+            #   'type': 'FilesystemLocation'},
+            #
+            
+            # no path at all - this is an anomaly but handle it gracefully regardless
+            if x[SG_PATH_FIELD] is None:
+                self._log_debug(log, "No path associated with entry for %s. Skipping." % entity)
+                continue
+            
+            # retired storage case - see above for details
+            if x[SG_PATH_FIELD].get("local_storage") is None:
+                self._log_debug(log, "The storage for the path for %s has been deleted. Skipping." % entity)                
+                continue
+                
             # get the local path from our attachment entity dict
             sg_local_storage_os_map = {"linux2": "local_path_linux", 
                                        "win32": "local_path_windows", 
                                        "darwin": "local_path_mac" }
             local_os_path_field = sg_local_storage_os_map[sys.platform]
-            local_os_path = x[SG_PATH_FIELD][local_os_path_field]
-                        
-            entity = {"id": x[SG_ENTITY_ID_FIELD], 
-                      "name": x[SG_ENTITY_NAME_FIELD], 
-                      "type": x[SG_ENTITY_TYPE_FIELD]}
-            is_primary = x[SG_IS_PRIMARY_FIELD]
+            local_os_path = x[SG_PATH_FIELD].get(local_os_path_field)
 
             # if the storage is not correctly configured for an OS, it is possible
-            # that the path comes back as null. Skip such paths and report them in the log
+            # that the path comes back as null. Skip such paths and report them in the log.
             if local_os_path is None:
-                self._log_debug(log, "No path associated with entry for %s. Skipping." % entity)
+                self._log_debug(log, "No local os path associated with entry for %s. Skipping." % entity)
                 continue
             
             new_rowid = self._add_db_mapping(cursor, local_os_path, entity, is_primary)

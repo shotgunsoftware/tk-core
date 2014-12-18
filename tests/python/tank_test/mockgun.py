@@ -460,6 +460,10 @@ class Shotgun(object):
         # as a reflection of this
         for d in data:
             if isinstance(data[d], dict) and "local_path" in data[d]:
+                # partly imitate some of the business logic happening on the 
+                # server side of shotgun when a file/link entity value is created
+                if "local_storage" not in data[d]:
+                    data[d]["local_storage"] = {"id": 0, "name": "auto_generated_by_mockgun", "type": "LocalStorage"}
                 if "local_path_linux" not in data[d]:
                     data[d]["local_path_linux"] = data[d]["local_path"]
                 if "local_path_windows" not in data[d]:
