@@ -182,6 +182,24 @@ class TestExecuteHook(TestApplication):
         app = self.engine.apps["test_app"]
         self.assertEqual(app.execute_hook_method("test_hook_inheritance_2", "foo2", bar=True), "custom class base class")
         
+    def test_inheritance_old_style(self):
+        """
+        Test that a hook that contains multiple levels of derivation works as long as there is only one leaf
+        level class 
+        """
+        app = self.engine.apps["test_app"]
+        self.assertEqual(app.execute_hook("test_hook_inheritance_old_style", dummy_param=True), "doubly derived class")
+
+    def test_inheritance_old_style_fails(self):
+        """
+        Test that a hook file that contains multiple levels of derivation raises a TankError when there 
+        are multiple leaf level classes derived from 'Hook'
+        """
+        app = self.engine.apps["test_app"]
+        self.assertRaises(TankError, 
+                         app.execute_hook,
+                         "test_hook_inheritance_old_style_fails", dummy_param=True)
+        
     def test_new_style_config_old_style_hook(self):
         app = self.engine.apps["test_app"]        
         self.assertTrue(app.execute_hook("test_hook_new_style_config_old_style_hook", dummy_param=True))
