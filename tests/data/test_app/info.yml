@@ -60,6 +60,16 @@ configuration:
     test_hook_inheritance_2:
         type: hook
         default_value: "{self}/inheritance2.py"
+        
+        
+    test_hook_inheritance_old_style:
+        type: hook
+        default_value: "{self}/inheritance_old_style.py"
+        
+    test_hook_inheritance_old_style_fails:
+        type: hook
+        default_value: "{self}/inheritance_old_style_fails.py"
+        
     
     test_hook_new_style_config_old_style_hook:
         type: hook

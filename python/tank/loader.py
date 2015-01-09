@@ -64,18 +64,25 @@ def load_plugin(plugin_file, valid_base_class, alternate_base_classes = None):
         search_predicate = lambda member: inspect.isclass(member) and member.__module__ == module.__name__
         all_classes = [cls for _, cls in inspect.getmembers(module, search_predicate)]
 
-        # Now look for classes in the module that are directly derived from the specified 
-        # base class.  Note that 'inspect.getmembers' returns the contents of the module 
+        # Now look for classes in the module that are derived from the specified base 
+        # class.  Note that 'inspect.getmembers' returns the contents of the module 
         # in alphabetical order so no assumptions should be made based on the order!
         #
         # Enumerate the valid_base_classes in order so that we find the highest derived
         # class we can.
         for base_cls in valid_base_classes:
-            for cls in all_classes:
-                # check if cls directly inherits from base_cls.  We deliberately don't
-                # use issubclass here as we want to find directly derived classes.
-                if base_cls in cls.__bases__:
-                    found_classes.append(cls)
+            found_classes = [cls for cls in all_classes if issubclass(cls, base_cls)]
+            if len(found_classes) > 1:
+                # it's possible that this file contains multiple levels of derivation - if this 
+                # is the case then we should try to remove any intermediate classes from the list 
+                # of found classes so that we are left with only leaf classes:
+                filtered_classes = list(found_classes)
+                for cls in found_classes:
+                    for base in cls.__bases__:
+                        if base in filtered_classes:
+                            # this is an intermediate class so remove it from the list:
+                            filtered_classes.remove(base)
+                found_classes = filtered_classes
             if found_classes:
                 # we found at least one class so assume this is a match!
                 break
