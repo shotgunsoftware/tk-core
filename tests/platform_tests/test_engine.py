@@ -39,7 +39,7 @@ class TestStartEngine(TankTestBase):
         self.add_production_path(self.shot_step_path, step)
         
         
-        self.test_resource = os.path.join(self.project_root, "tank", "config", "foo", "bar.png")
+        self.test_resource = os.path.join(self.pipeline_config_root, "config", "foo", "bar.png")
         os.makedirs(os.path.dirname(self.test_resource))
         fh = open(self.test_resource, "wt")
         fh.write("test")
@@ -50,7 +50,7 @@ class TestStartEngine(TankTestBase):
 
     def test_get_engine_path(self):
         engine_path = tank.platform.get_engine_path("test_engine", self.tk, self.context)
-        expected_engine_path = os.path.join(self.project_root, "tank", "config", "test_engine")
+        expected_engine_path = os.path.join(self.pipeline_config_root, "config", "test_engine")
         self.assertEquals(engine_path, expected_engine_path)
 
     def test_valid_engine(self):
