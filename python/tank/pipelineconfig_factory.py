@@ -330,11 +330,22 @@ def _get_pipeline_configs_for_path(path, data):
             # all pipeline configurations are associated
             # with a project which has a tank_name set
             project_name = pc["project.Project.tank_name"]
+            
             # for multi level projects, there may be slashes, e.g
             # project_name is "parent/child"
             # ensure this is translated to "parent\child" on windows
             project_name = project_name.replace("/", os.path.sep)
-            # and concatenate it with the storage 
+            
+            # now, another windows edge case we need to ensure is covered
+            # if a windows storage is defined as 'x:', then 
+            # os.path.join('x:', 'folder') will return 'x:folder'
+            # and not 'x:\folder as we would expect
+            # so ensure that any path on this form is extended:
+            # 'x:' --> 'x:\'
+            if len(s) == 2 and s.endswith(":"):
+                s = "%s%s" % (s, os.path.sep)
+            
+            # and concatenate it with the storage
             project_path = os.path.join(s, project_name)
             # associate this path with the pipeline configuration
             project_paths[project_path].append(pc)
