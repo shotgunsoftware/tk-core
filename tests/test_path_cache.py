@@ -346,7 +346,7 @@ class TestShotgunSync(TankTestBase):
         # Add these to mocked shotgun
         self.add_to_sg_mock_db(entities)
 
-        self.schema_location = os.path.join(self.project_root, "tank", "config", "core", "schema")
+        self.schema_location = os.path.join(self.pipeline_config_root, "config", "core", "schema")
 
     def _get_path_cache(self):
         path_cache = tank.path_cache.PathCache(self.tk)
@@ -462,7 +462,7 @@ class TestShotgunSync013AutoPush(TankTestBase):
         # Add these to mocked shotgun
         self.add_to_sg_mock_db(entities)
 
-        self.schema_location = os.path.join(self.project_root, "tank", "config", "core", "schema")
+        self.schema_location = os.path.join(self.pipeline_config_root, "config", "core", "schema")
 
     def _get_path_cache(self):
         path_cache = tank.path_cache.PathCache(self.tk)

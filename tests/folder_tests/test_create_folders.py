@@ -62,7 +62,7 @@ class TestSchemaCreateFolders(TankTestBase):
         # Add these to mocked shotgun
         self.add_to_sg_mock_db(entities)
 
-        self.schema_location = os.path.join(self.project_root, "tank", "config", "core", "schema")
+        self.schema_location = os.path.join(self.pipeline_config_root, "config", "core", "schema")
 
         self.FolderIOReceiverBackup = folder.folder_io.FolderIOReceiver.execute_folder_creation
         folder.folder_io.FolderIOReceiver.execute_folder_creation = execute_folder_creation_proxy
@@ -642,7 +642,7 @@ class TestSchemaCreateFoldersWorkspaces(TankTestBase):
         # Add these to mocked shotgun
         self.add_to_sg_mock_db(entities)
 
-        self.schema_location = os.path.join(self.project_root, "tank", "config", "core", "schema")
+        self.schema_location = os.path.join(self.pipeline_config_root, "config", "core", "schema")
 
         self.FolderIOReceiverBackup = folder.folder_io.FolderIOReceiver.execute_folder_creation
         folder.folder_io.FolderIOReceiver.execute_folder_creation = execute_folder_creation_proxy

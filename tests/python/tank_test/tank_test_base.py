@@ -115,8 +115,7 @@ class TankTestBase(unittest.TestCase):
 
         self.project_root = os.path.join(self.tank_temp, self.project["tank_name"].replace("/", os.path.sep) )
         
-        #self.pipeline_config_root = os.path.join(self.tank_temp, "pipeline_configuration")
-        self.pipeline_config_root = os.path.join(self.project_root, "tank")
+        self.pipeline_config_root = os.path.join(self.tank_temp, "pipeline_configuration")
           
         # move away previous data
         self._move_project_data()
@@ -473,6 +472,7 @@ class TankTestBase(unittest.TestCase):
         """
         Calls _move_data for all project roots.
         """        
+        _move_data(self.pipeline_config_root)
         _move_data(self.project_root)
         _move_data(self.alt_root_1)
         _move_data(self.alt_root_2)

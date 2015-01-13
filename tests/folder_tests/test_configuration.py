@@ -29,7 +29,7 @@ class TestFolderConfiguration(TankTestBase):
     """
     def setUp(self):
         super(TestFolderConfiguration, self).setUp()
-        self.schema_location = os.path.join(self.project_root, "tank", "config", "core", "schema")
+        self.schema_location = os.path.join(self.pipeline_config_root, "config", "core", "schema")
 
     def test_project_root_mismatch(self):
         """

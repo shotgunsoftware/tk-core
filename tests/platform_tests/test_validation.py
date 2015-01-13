@@ -197,7 +197,7 @@ class TestValidateSettings(TankTestBase):
         tk = None
         settings = {hook_name:hook_value}
         schema = {hook_name:{"type":"hook"}}
-        hooks_location = os.path.join(self.project_root, "tank", "config", "hooks")
+        hooks_location = os.path.join(self.pipeline_config_root, "config", "hooks")
 
         self.assertRaises(TankError, validate_settings, self.app_name, self.tk, self.context, schema, settings)
 
@@ -524,7 +524,7 @@ class TestValidateFixtures(TankTestBase):
         env = self.tk.pipeline_configuration.get_environment(self.test_env, context)
 
         # make sure our tmp file exists on disk for the disk_path property
-        self.test_resource = os.path.join(self.project_root, "tank", "config", "foo", "bar.png")
+        self.test_resource = os.path.join(self.pipeline_config_root, "config", "foo", "bar.png")
         os.makedirs(os.path.dirname(self.test_resource))
         fh = open(self.test_resource, "wt")
         fh.write("test")
