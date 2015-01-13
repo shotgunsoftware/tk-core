@@ -9,9 +9,13 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
+import sys
 import unittest2 as unittest
 
 from mock import Mock, patch
+from tank_vendor import yaml
+
+import sgtk
 
 import tank
 from tank.api import Tank
@@ -391,6 +395,8 @@ class TestDocumentationProperty(TankTestBase):
     def test_doc_property(self):
         self.assertEquals(self.tk.documentation_url, None)
 
+
+
 class TestTankFromPath(TankTestBase):
     
     def setUp(self):
@@ -431,5 +437,62 @@ class TestTankFromPath(TankTestBase):
         self.assertRaises(TankError, tank.tank_from_path, self.tank_temp)
 
 
+class TestTankFromPathWindowsNoSlash(TankTestBase):
+    """
+    Tests the edge case where a windows local storage is set to be 'C:'
+    """
+    
+    PROJECT_NAME = "temp"
+    STORAGE_ROOT = "C:"
+    
+    def setUp(self):
+        
+        # set up a project named temp, so that it will end up in c:\temp
+        
+        super(TestTankFromPathWindowsNoSlash, self).setUp(project_tank_name=self.PROJECT_NAME)
+        
+        # set up std fixtures
+        self.setup_fixtures()
+
+        # patch primary local storage def
+        self.primary_storage["windows_path"] = self.STORAGE_ROOT
+        # re-add it
+        self.add_to_sg_mock_db(self.primary_storage)
+
+        # now re-write roots.yml
+        roots = {"primary": {}}
+        for os_name in ["windows_path", "linux_path", "mac_path"]:
+            #TODO make os specific roots
+            roots["primary"][os_name] = self.sg_pc_entity[os_name]        
+        roots_path = os.path.join(self.pipeline_config_root, 
+                                  "config", 
+                                  "core", 
+                                  "roots.yml")
+        roots_file = open(roots_path, "w") 
+        roots_file.write(yaml.dump(roots))
+        roots_file.close()        
+                
+        # need a new PC object that is using the new roots def file we just created
+        self.pipeline_configuration = sgtk.pipelineconfig_factory.from_path(self.pipeline_config_root)
+        # push this new PC into the tk api
+        self.tk._Tank__pipeline_config = self.pipeline_configuration         
+        # force reload templates
+        self.tk.reload_templates()
+
+
+    def test_project_path_lookup(self):
+        """
+        Check that a sgtk init works for this path
+        """
+        # only run this test on windows
+        if sys.platform == "win32":
+            
+            # probe a path inside of project
+            test_path = "%s\\%s\\toolkit_test_path" % (self.STORAGE_ROOT, self.PROJECT_NAME)
+            if not os.path.exists(test_path):
+                os.makedirs(test_path)
+            self.assertIsInstance(sgtk.sgtk_from_path(test_path), Tank)
+        
+    
 
 

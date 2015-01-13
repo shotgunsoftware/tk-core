@@ -63,7 +63,6 @@ def setUpModule():
 
     # make studio level subdirectories
     os.makedirs(os.path.join(studio_tank, "config", "core"))
-    os.mkdir(os.path.join(studio_tank, "doc"))
     install_dir = os.path.join(studio_tank, "install")
 
     # copy tank engine code into place
@@ -115,20 +114,22 @@ class TankTestBase(unittest.TestCase):
                         "name": "project_name"}
 
         self.project_root = os.path.join(self.tank_temp, self.project["tank_name"].replace("/", os.path.sep) )
+        
+        #self.pipeline_config_root = os.path.join(self.tank_temp, "pipeline_configuration")
+        self.pipeline_config_root = os.path.join(self.project_root, "tank")
           
-        # create project directory
+        # move away previous data
         self._move_project_data()
         
+        # create new structure
         os.makedirs(self.project_root)
-        
-        project_tank = os.path.join(self.project_root, "tank")
-        os.mkdir(project_tank)
+        os.makedirs(self.pipeline_config_root)
 
         # project level config directories
-        self.project_config = os.path.join(project_tank, "config")
+        self.project_config = os.path.join(self.pipeline_config_root, "config")
 
         # create project cache directory
-        project_cache_dir = os.path.join(project_tank, "cache")
+        project_cache_dir = os.path.join(self.pipeline_config_root, "cache")
         os.mkdir(project_cache_dir)
         
         # define entity for pipeline configuration
@@ -136,14 +137,14 @@ class TankTestBase(unittest.TestCase):
                              "code": "Primary", 
                              "id": 123, 
                              "project": self.project, 
-                             "windows_path": project_tank,
-                             "mac_path": project_tank,
-                             "linux_path": project_tank}
+                             "windows_path": self.pipeline_config_root,
+                             "mac_path": self.pipeline_config_root,
+                             "linux_path": self.pipeline_config_root}
         
 
 
         # add files needed by the pipeline config        
-        pc_yml = os.path.join(project_tank, "config", "core", "pipeline_configuration.yml")
+        pc_yml = os.path.join(self.pipeline_config_root, "config", "core", "pipeline_configuration.yml")
         pc_yml_data = ("{ project_name: %s, use_shotgun_path_cache: true, pc_id: %d, "
                        "project_id: %d, pc_name: %s}\n\n" % (self.project["tank_name"], 
                                                              self.sg_pc_entity["id"], 
@@ -151,20 +152,20 @@ class TankTestBase(unittest.TestCase):
                                                              self.sg_pc_entity["code"]))
         self.create_file(pc_yml, pc_yml_data)
         
-        loc_yml = os.path.join(project_tank, "config", "core", "install_location.yml")
-        loc_yml_data = "Windows: '%s'\nDarwin: '%s'\nLinux: '%s'" % (project_tank, project_tank, project_tank)
+        loc_yml = os.path.join(self.pipeline_config_root, "config", "core", "install_location.yml")
+        loc_yml_data = "Windows: '%s'\nDarwin: '%s'\nLinux: '%s'" % (self.pipeline_config_root, self.pipeline_config_root, self.pipeline_config_root)
         self.create_file(loc_yml, loc_yml_data)
         
         roots = {"primary": {}}
         for os_name in ["windows_path", "linux_path", "mac_path"]:
             #TODO make os specific roots
             roots["primary"][os_name] = self.tank_temp        
-        roots_path = os.path.join(project_tank, "config", "core", "roots.yml")
+        roots_path = os.path.join(self.pipeline_config_root, "config", "core", "roots.yml")
         roots_file = open(roots_path, "w") 
         roots_file.write(yaml.dump(roots))
         roots_file.close()        
                 
-        self.pipeline_configuration = sgtk.pipelineconfig_factory.from_path(project_tank)
+        self.pipeline_configuration = sgtk.pipelineconfig_factory.from_path(self.pipeline_config_root)
         self.tk = tank.Tank(self.pipeline_configuration)
         
         # set up mockgun and make sure shotgun connection calls route via mockgun
@@ -294,13 +295,13 @@ class TankTestBase(unittest.TestCase):
             roots["primary"][os_name]     = os.path.dirname(self.project_root)
             roots["alternate_1"][os_name] = os.path.dirname(self.alt_root_1)
             roots["alternate_2"][os_name] = os.path.dirname(self.alt_root_2)
-        roots_path = os.path.join(self.project_root, "tank", "config", "core", "roots.yml")     
+        roots_path = os.path.join(self.pipeline_config_root, "config", "core", "roots.yml")     
         roots_file = open(roots_path, "w") 
         roots_file.write(yaml.dump(roots))
         roots_file.close()
         
         # need a new PC object that is using the new roots def file we just created
-        self.pipeline_configuration = sgtk.pipelineconfig_factory.from_path(os.path.join(self.project_root, "tank"))
+        self.pipeline_configuration = sgtk.pipelineconfig_factory.from_path(self.pipeline_config_root)
         # push this new PC into the tk api
         self.tk._Tank__pipeline_config = self.pipeline_configuration 
         
