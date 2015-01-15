@@ -62,6 +62,8 @@ class Engine(TankBundle):
         
         self.__global_progress_widget = None
         
+        self._invoker = None
+        
         # get the engine settings
         settings = self.__env.get_engine_settings(self.__engine_instance_name)
         
