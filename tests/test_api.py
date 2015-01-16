@@ -375,25 +375,45 @@ class TestPathsFromTemplateGlob(TankTestBase):
         self.assert_glob(fields, expected_glob, skip_keys)
 
     
-class TestVersionProperty(TankTestBase):
-    """
-    test api.version property
-    """
+class TestApiProperties(TankTestBase):
     def setUp(self):
-        super(TestVersionProperty, self).setUp()
+        super(TestApiProperties, self).setUp()
 
     def test_version_property(self):
+        """
+        test api.version property
+        """
         self.assertEquals(self.tk.version, "HEAD")
 
-class TestDocumentationProperty(TankTestBase):
-    """
-    test api.documentation_url property
-    """
-    def setUp(self):
-        super(TestDocumentationProperty, self).setUp()
-
     def test_doc_property(self):
+        """
+        test api.documentation_url property
+        """
         self.assertEquals(self.tk.documentation_url, None)
+
+    def test_configuration_name_property(self):
+        """
+        test api.configuration_name property
+        """
+        self.assertEquals(self.tk.configuration_name, "Primary")
+
+    def test_roots_property(self):
+        """
+        test api.roots property
+        """
+        self.assertEquals(self.tk.roots, {"primary": self.project_root} )
+
+
+    def test_project_path_property(self):
+        """
+        test api.project_path property
+        """
+        self.assertEquals(self.tk.project_path, self.project_root)
+
+
+
+
+
 
 
 
