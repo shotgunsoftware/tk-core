@@ -594,7 +594,8 @@ class SetupProjectAction(Action):
         # - 0.13 style layout, where they all sit together in an install location
         # - 0.12 style layout, where there is a tank folder which is the studio location
         #   and each project has its own folder.
-        # - something else!
+        # - installing off a localized core api, meaning that there is no obvious
+        #   relationship between the config location and the core location
                 
         location = {"darwin": None, "linux2": None, "win32": None}
         
@@ -604,8 +605,16 @@ class SetupProjectAction(Action):
         curr_core_path = pipelineconfig_utils.get_path_to_current_core()
         core_locations = pipelineconfig_utils.resolve_all_os_paths_to_core(curr_core_path)
         
+        if pipelineconfig_utils.is_localized(curr_core_path):
+            # the API we are using to run the setup from was localized. This means
+            # that the API will not be shared between projects and with something
+            # like the shotgun desktop workflow, the core API is installed in a 
+            # system location like %APPDATA% or ~/Library.
+            # So we cannot use that as a default. In this case, simply don't provide 
+            # a default parameter.
+            pass
         
-        if os.path.abspath(os.path.join(core_locations[sys.platform], "..")).lower() == primary_local_path.lower():
+        elif os.path.abspath(os.path.join(core_locations[sys.platform], "..")).lower() == primary_local_path.lower():
             # ok the parent of the install root matches the primary storage - means OLD STYLE (pre core 0.12)
             #
             # in this setup, we would have the following structure: 
