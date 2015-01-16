@@ -206,6 +206,15 @@ class Tank(object):
 
         return data
 
+    @property
+    def configuration_name(self):
+        """
+        Returns the name of the currently running pipeline configuration
+        
+        :return: pipeline configuration name as string, e.g. 'primary'
+        """
+        return self.__pipeline_config.get_name()
+
     ##########################################################################################
     # public methods
 
