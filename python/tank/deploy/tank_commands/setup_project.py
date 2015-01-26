@@ -613,6 +613,12 @@ class SetupProjectAction(Action):
             # So we cannot use that as a default. In this case, simply don't provide 
             # a default parameter.
             pass
+
+        elif core_locations[sys.platform] is None:
+            # edge case: the shared core location that we are trying to install from
+            # is not set up to work with this operating system. In that case, skip
+            # default generation 
+            pass
         
         elif os.path.abspath(os.path.join(core_locations[sys.platform], "..")).lower() == primary_local_path.lower():
             # ok the parent of the install root matches the primary storage - means OLD STYLE (pre core 0.12)
