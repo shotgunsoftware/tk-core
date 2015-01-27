@@ -114,6 +114,8 @@ class PathCacheMigrationAction(Action):
                         "generation that was introduced in Toolkit 0.15"), 
                         "Admin")
     
+    
+    
     def run_interactive(self, log, args):
         """
         Tank command accessor
@@ -134,30 +136,47 @@ class PathCacheMigrationAction(Action):
                  "existing folders. After that, syncing will happen incrementally in the "
                  "background.")
         log.info("")
-        log.info("Note! If you have any cloned pipeline configurations for this project, these must "
-                 "all have the folder synchronization turned on.")
+        log.info("Note! If you have any cloned pipeline configurations for this project, you must run "
+                 "'tank upgrade_folders' for each one of them in order for them to pick up folders "
+                 "from Shotgun.")
         log.info("")
         val = raw_input("Turn on syncing for this pipeline configuration (Yes/No) ? [Yes]: ")
         if val != "" and not val.lower().startswith("y"):
             log.info("Exiting! Syncing will not be turned on.")
             return
-        
+
+        # first load up the current path cache file and make sure 
+        # shotgun has got all those entries present as FilesystemLocations.
         log.info("")
-        log.info("Configuring settings...")
-        
+        log.info("Phase 1/3: Pushing data from the current path cache to Shotgun...")
+        curr_pc = path_cache.PathCache(self.tk)
+        try:
+            curr_pc.ensure_all_entries_are_in_shotgun(log)
+        finally:
+            curr_pc.close()        
+
+        # now turn on the cloud based path cache. This means that from now on, a new path 
+        # cache, stored on the local disk, will be used instead of the previous (shared) one.
+        log.info("")
+        log.info("Phase 2/3: Switching on the Shotgun Path Cache...")
         self.tk.pipeline_configuration.turn_on_shotgun_path_cache()
-        
+         
         # and synchronize path cache
-        log.info("Running folder synchronization...")
+        log.info("")
+        log.info("Phase 3/3: Synchronizing your local machine with Shotgun...")
         pc = path_cache.PathCache(self.tk)
         try:
-            pc.synchronize(log)
+            pc.synchronize(log, full_sync=True)
         finally:
             pc.close()
         
-        log.info("All done! This project and pipeline configuration is now syncing its folders "
-                 "with Shotgun.")
-
+        log.info("")
+        log.info("All done! This project and pipeline configuration is now synchronizing its folders with Shotgun.")
+        log.info("")
+        log.info("Once all pipeline configurations for this project have been upgraded, the previous path cache "
+                 "file, located in PROJECT_ROOT/tank/cache, is no longer needed and can be removed.")
+        log.info("")
+        log.info("")
 
 class UnregisterFoldersAction(Action):
     """

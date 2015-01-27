@@ -14,6 +14,7 @@ all Tank items in the file system are kept.
 
 """
 
+import collections
 import sqlite3
 import sys
 import os
@@ -310,10 +311,7 @@ class PathCache(object):
         c = self._connection.cursor()
         
         try:
-            # first of all, make sure we don't have any data in this path cache file
-            # which isn't already in Shotgun.
-            self._ensure_all_in_shotgun(c, log)
-            
+
             # check if we should do a full sync
             if full_sync:
                 return self._do_full_sync(c, log)
@@ -447,7 +445,7 @@ class PathCache(object):
             sg_batch_data.append(req)
         
         # push to shotgun in a single xact
-        self._log_debug(log, "Uploading %s path entries to Shotgun..." % len(sg_batch_data)) 
+        self._log_debug(log, "Uploading %s path entries to Shotgun..." % len(sg_batch_data))
         
         try:    
             response = self._tk.shotgun.batch(sg_batch_data)
@@ -496,98 +494,6 @@ class PathCache(object):
         
         # return the event log id which represents this uploaded slab
         return (response["id"], rowid_sgid_lookup)
-
-
-    def _ensure_all_in_shotgun(self, cursor, log):
-        """
-        Ensure that all the path cache data in this database is also registered in Shotgun.
-        
-        This method is primarily to ensure that any data written by pre-015 clients is
-        pushed to shotgun automatically. Once a system is fully running 0.15, this method is no
-        longer necessary.
-        
-        :param cursor: Sqlite database cursor
-        :param log: Std python logger or None if logging is not required. 
-        """
-
-        # first determine which records are not yet in Shotgun.
-        #
-        # this sqlite query will get all rows which are in the path cache
-        # table but are not in the shotgun_status table - meaning that they
-        # haven't yet been uploaded to Shotgun.
-        #
-        pc_data = list(cursor.execute("""select pc.rowid,
-                                                pc.entity_type, 
-                                                pc.entity_id, 
-                                                pc.entity_name, 
-                                                pc.root, 
-                                                pc.path, 
-                                                pc.primary_entity 
-                                         from path_cache pc
-                                         left join shotgun_status ss on pc.rowid = ss.path_cache_id
-                                         where ss.path_cache_id is null
-                                         """))
-                                    
-
-        if len(pc_data) > 0 and log:
-            log.info("Detected %s path entries that have not yet been uploaded to Shotgun." % len(pc_data))
-        
-        # inner loop - push to shotgun in chunks
-        # and push each one separately
-        BATCH_SIZE = 400
-        pc_data_batches = [ pc_data[x:x+BATCH_SIZE] for x in xrange(0, len(pc_data), BATCH_SIZE)]
-        
-        for curr_batch in pc_data_batches:
-            
-            try:
-                
-                # construct data chunk to upload to shotgun
-                sg_data = []
-                
-                for sql_record in curr_batch:
-                    
-                    # resolve a local path from a root and a generic path
-                    root_name = sql_record[4]
-                    db_path = sql_record[5]
-                    root_path = self._roots.get(root_name)
-                    if not root_path:
-                        # The root name doesn't match a recognized name, so skip this entry
-                        continue                    
-                    local_os_path = self._dbpath_to_path(root_path, db_path)
-                    
-                    # now create sg data chunk
-                    sg_record = {}
-                    sg_record["entity"] = {}
-                    sg_record["entity"]["type"] = sql_record[1]
-                    sg_record["entity"]["id"] = sql_record[2]
-                    sg_record["entity"]["name"] = sql_record[3]
-                    sg_record["path"] = local_os_path
-                    sg_record["primary"] = bool(sql_record[6])
-                    sg_record["metadata"] = {}
-                    sg_record["path_cache_row_id"] = sql_record[0]
-                
-                    sg_data.append(sg_record)
-                
-                # event log description
-                desc = "Uploaded existing local path cache data to Shotgun."
-                
-                # and upload
-                (event_log_id, sg_id_lookup) = self._upload_cache_data_to_shotgun(sg_data, desc, log)
-                
-                # all good - now update the database to indicate that these fields have been pushed.
-                for (pc_row_id, sg_id) in sg_id_lookup.items():
-                    cursor.execute("INSERT INTO shotgun_status(path_cache_id, shotgun_id) "
-                                   "VALUES(?, ?)", (pc_row_id, sg_id) )                
-            
-            except:
-                # error processing shotgun. Make sure we roll back the sqlite transaction.
-                self._connection.rollback()
-                raise
-             
-            else:
-                # ok all good - data has been pushed to shotgun - we can safely commit!
-                self._connection.commit()
-
 
 
     def _do_full_sync(self, cursor, log):
@@ -1265,3 +1171,154 @@ class PathCache(object):
 
         return matches
     
+
+    def ensure_all_entries_are_in_shotgun(self, log):
+        """
+        Ensures that all the path cache data in this database is also registered in Shotgun.
+        
+        This will go through each entity in the path cache database and check if it exists in 
+        Shotgun. If not, it will be created.
+        
+        No updates will be made to the path cache database.
+        
+        :param log: Std python logger 
+        """
+
+        SG_BATCH_SIZE = 50
+
+        log.info("")
+        log.info("Step 1 - Downloading current path data from Shotgun...")
+        
+        project_link = {"type": "Project", 
+                        "id": self._tk.pipeline_configuration.get_project_id() }        
+        
+        sg_data = self._tk.shotgun.find(SHOTGUN_ENTITY, 
+                                        [["project", "is", project_link]],
+                                        [SG_PATH_FIELD, SG_ENTITY_TYPE_FIELD, SG_ENTITY_ID_FIELD])
+        log.info(" - Got %s records." % len(sg_data))
+
+        # reshuffle these into a dictionary based on path and entity type
+        # this is so we can do fast lookups later
+        sg_existing_data = {}
+        for p in sg_data:
+            local_path = p[SG_PATH_FIELD].get("local_path") # using get() in case key is missing
+            # key dictionary by local path, entity type and entity id. This is so that we can 
+            # handle secondary entities correctly.
+            dict_key = (local_path, p[SG_ENTITY_TYPE_FIELD], p[SG_ENTITY_ID_FIELD])
+            sg_existing_data[dict_key] = p["id"]
+        
+        # free up memory
+        sg_data = None
+                
+        
+        cursor = self._connection.cursor()
+
+        try:
+            # get all records and check each one against shotgun.
+            pc_data = list(cursor.execute("""select pc.rowid,
+                                                    pc.entity_type, 
+                                                    pc.entity_id, 
+                                                    pc.entity_name, 
+                                                    pc.root, 
+                                                    pc.path, 
+                                                    pc.primary_entity 
+                                             from path_cache pc"""))
+        finally:
+            cursor.close()
+        
+        log.info("")
+        log.info("Step 2 - Loading path cache data...")
+        log.info(" - %s paths loaded." % len(pc_data))
+        
+        log.info("")
+        log.info("Step 3 - Culling paths already in Shotgun.")
+        
+        sg_records = []
+
+        # cull stuff that already exists in shotgun
+        for sql_record in pc_data:
+            log.debug("Processing db record %s..." % str(sql_record))
+            
+            # resolve a local path from a root and a generic path
+            root_name = sql_record[4]
+            db_path = sql_record[5]
+            root_path = self._roots.get(root_name)
+            if not root_path:
+                # The root name doesn't match a recognized name, so skip this entry
+                log.debug("Skipping path '%s %s' which doesn't have a valid root." % (root_name, db_path))
+                continue
+            
+            local_os_path = self._dbpath_to_path(root_path, db_path)
+            
+            entity_type = sql_record[1]
+            entity_id = sql_record[2]
+            
+            # see if we have this in shotgun already
+            sg_dict_key = (local_os_path, entity_type, entity_id)
+            
+            # now check if we have any entry in the path cache already which has that path
+            if sg_dict_key in sg_existing_data:
+                log.info(" - Skipping '%s'" % local_os_path)
+                log.debug("Path '%s' (%s %s) is already in shotgun (id %s)" % (local_os_path, 
+                                                                               entity_type, 
+                                                                               entity_id, 
+                                                                               sg_existing_data[sg_dict_key]))
+            else:
+            
+                # ok this record needs uploading and seems valid.
+                sg_record = {}
+                sg_record["entity"] = {}
+                sg_record["entity"]["type"] = sql_record[1]
+                sg_record["entity"]["id"] = sql_record[2]
+                sg_record["entity"]["name"] = sql_record[3]
+                sg_record["path"] = local_os_path
+                sg_record["primary"] = bool(sql_record[6])
+                sg_record["metadata"] = {}
+                sg_record["path_cache_row_id"] = sql_record[0]
+                sg_records.append(sg_record)
+
+        # cull out stuff where the linked entity has been retired in shogun 
+        log.info("")
+        log.info("Step 4 - Ensuring all shotgun entity links are valid.")
+        
+        ids_to_look_for = collections.defaultdict(list)
+        for sg_record in sg_records:
+            # look up all items in shotgun. 
+            # group stuff by entity type
+            ids_to_look_for[ sg_record["entity"]["type"] ].append(sg_record)
+                            
+        # now query shotgun for each of the types
+        ids_in_shotgun = {}
+        sg_valid_records = []
+        for (et, sg_records_for_et) in ids_to_look_for.iteritems():
+            
+            log.info(" - Checking %s %ss in Shotgun..." % (len(sg_records_for_et), et)) 
+            
+            # get the ids from shotgun for the current et.
+            sg_ids = [x["entity"]["id"] for x in sg_records_for_et]
+            ids = self._tk.shotgun.find(et, [["id", "in", sg_ids]])
+            # note the use of set here to make lookups O(1) later
+            raw_ids = set([x["id"] for x in ids])
+            
+            # check all our records for et and see if they have a match
+            for sg_record in sg_records_for_et:
+                if sg_record["entity"]["id"] in raw_ids:
+                    sg_valid_records.append(sg_record)
+                else:
+                    log.info(" - %s %s has been deleted in Shotgun. " % (et, sg_record["entity"]["id"]))
+                        
+                        
+        # batch it and push it. All records should now be valid
+        if len(sg_valid_records) > 0:
+            log.info("")
+            log.info("Step 5 - Uploading path entries to shotgun.")
+            sg_batches = [ sg_valid_records[x:x+SG_BATCH_SIZE] for x in xrange(0, len(pc_data), SG_BATCH_SIZE)]
+            event_log_description = "Path cache migration."
+            for batch_idx, curr_batch in enumerate(sg_batches):
+                log.info("Uploading batch %d/%d to Shotgun..." % (batch_idx+1, len(sg_batches)))
+                self._upload_cache_data_to_shotgun(curr_batch, event_log_description, log)
+            
+        
+        log.info("")
+        log.info("Migration complete. %s records created in Shotgun" % len(sg_valid_records))
+     
