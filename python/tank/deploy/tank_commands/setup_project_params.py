@@ -713,7 +713,9 @@ class ProjectSetupParameters(object):
             raise TankError("Need to define a core location!") 
         
         if self._core_path[sys.platform] is None:
-            raise TankError("Need to define a core for the current os!")
+            raise TankError("The core API you are trying to use in conjunction with this project "
+                            "has not been set up to operate on the current operating system. Please update "
+                            "the install_location.yml file and try again.")
         
         # make sure all parameters have been specified
         if self._config_template is None:
