@@ -1184,7 +1184,7 @@ class PathCache(object):
         :param log: Std python logger 
         """
 
-        SG_BATCH_SIZE = 3
+        SG_BATCH_SIZE = 50
 
         log.info("")
         log.info("Step 1 - Downloading current path data from Shotgun...")
