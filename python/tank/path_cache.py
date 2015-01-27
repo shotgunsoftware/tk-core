@@ -14,6 +14,7 @@ all Tank items in the file system are kept.
 
 """
 
+import collections
 import sqlite3
 import sys
 import os
@@ -1183,7 +1184,7 @@ class PathCache(object):
         :param log: Std python logger 
         """
 
-        SG_BATCH_SIZE = 16
+        SG_BATCH_SIZE = 50
 
         total_records_added = 0
 
@@ -1266,15 +1267,6 @@ class PathCache(object):
                                                                                sg_existing_data[sg_dict_key]))
                 continue
             
-            # ok so this path cache record needs to be pushed to shotgun. Check that 
-            # the linked entity actually exists in shotgun
-            log.debug("Looking up %s %s in Shotgun to verify it exists..." % (entity_type, entity_id))
-            sg_data = self._tk.shotgun.find_one(entity_type, [["id", "is", entity_id]])
-            
-            if sg_data is None:
-                log.info(" - Skipping since the %s with id %s has been deleted in Shotgun.\n" % (entity_type, entity_id))
-                continue
-            
             # ok this record needs uploading and seems valid.
             sg_record = {}
             sg_record["entity"] = {}
@@ -1288,8 +1280,34 @@ class PathCache(object):
             sg_records.append(sg_record)
             
             if len(sg_records) >= SG_BATCH_SIZE:
+            
+                # check that the linked entity actually exists in shotgun
+                # entities that have been retired will be skipped
+                # first get all the ids, grouped by type
+                ids_to_look_for = collections.defaultdict(list)
+                for sg_record in sg_records:
+                    ids_to_look_for[ sg_record["entity"]["type"] ].append(sg_record["entity"]["id"])
+                
+                # now query shotgun for each of the types
+                ids_in_shotgun = {}
+                for (et, ids) in ids_to_look_for: 
+                    ids = self._tk.shotgun.find(et, [["id", "in", ids]])
+                    ids_in_shotgun[et] = [x["id"] for x in ids]
+                
+                # now go through the sg_records and skip any which don't have valid
+                # shotgun 
+                
+                
+                log.debug("Looking up %s %s in Shotgun to verify it exists..." % (entity_type, entity_id))
+                sg_data = self._tk.shotgun.find_one(entity_type, [["id", "is", entity_id]])
+                
+                if sg_data is None:
+                    log.info(" - Skipping since the %s with id %s has been deleted in Shotgun.\n" % (entity_type, entity_id))
+                    continue
+                
+                
                 # upload to shotgun
-                desc = "Path cache migration"                 
+                desc = "Path cache migration"           
                 log.info("")
                 log.info("Uploading %s FilesystemLocation records to Shotgun..." % len(sg_records))
                 self._upload_cache_data_to_shotgun(sg_records, desc, log)
