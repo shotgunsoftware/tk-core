@@ -1183,7 +1183,7 @@ class PathCache(object):
         :param log: Std python logger 
         """
 
-        SG_BATCH_SIZE = 20
+        SG_BATCH_SIZE = 16
 
         total_records_added = 0
 
@@ -1214,16 +1214,18 @@ class PathCache(object):
         
         cursor = self._connection.cursor()
 
-        # get all records and check each one against shotgun.
-        pc_data = list(cursor.execute("""select pc.rowid,
-                                                pc.entity_type, 
-                                                pc.entity_id, 
-                                                pc.entity_name, 
-                                                pc.root, 
-                                                pc.path, 
-                                                pc.primary_entity 
-                                         from path_cache pc"""))
-                                    
+        try:
+            # get all records and check each one against shotgun.
+            pc_data = list(cursor.execute("""select pc.rowid,
+                                                    pc.entity_type, 
+                                                    pc.entity_id, 
+                                                    pc.entity_name, 
+                                                    pc.root, 
+                                                    pc.path, 
+                                                    pc.primary_entity 
+                                             from path_cache pc"""))
+        finally:
+            cursor.close()
         
         log.info("")
         log.info("There are %s paths in the local path cache." % len(pc_data))
@@ -1266,8 +1268,7 @@ class PathCache(object):
             
             # ok so this path cache record needs to be pushed to shotgun. Check that 
             # the linked entity actually exists in shotgun
-            log.debug("Cache entry not in Shotgun. Before uploading, "
-                      "check that the associated entity %s %s exists..." % (entity_type, entity_id))
+            log.debug("Looking up %s %s in Shotgun to verify it exists..." % (entity_type, entity_id))
             sg_data = self._tk.shotgun.find_one(entity_type, [["id", "is", entity_id]])
             
             if sg_data is None:
@@ -1286,12 +1287,11 @@ class PathCache(object):
             sg_record["path_cache_row_id"] = sql_record[0]
             sg_records.append(sg_record)
             
-            if len(sg_records) > SG_BATCH_SIZE:
+            if len(sg_records) >= SG_BATCH_SIZE:
                 # upload to shotgun
-                log.debug("Shotgun upload buffer has reached %s items. Uploading in batch." % SG_BATCH_SIZE)
                 desc = "Path cache migration"                 
                 log.info("")
-                log.info("Uploading path data to Shotgun...")
+                log.info("Uploading %s FilesystemLocation records to Shotgun..." % len(sg_records))
                 self._upload_cache_data_to_shotgun(sg_records, desc, log)
                 total_records_added += len(sg_records)
                 sg_records = []
@@ -1300,9 +1300,8 @@ class PathCache(object):
         # now that all records have been finished, 
         if len(sg_records) > 0:
             # upload to shotgun
-            log.debug("Shotgun upload buffer has reached %s items. Uploading in batch." % SG_BATCH_SIZE)
             desc = "Path cache migration"
-            log.info("Uploading path data to Shotgun...")                 
+            log.info("Uploading %s FilesystemLocation records to Shotgun..." % len(sg_records))                 
             self._upload_cache_data_to_shotgun(sg_records, desc, log)
             total_records_added += len(sg_records)
             log.info("")
