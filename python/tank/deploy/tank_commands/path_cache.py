@@ -114,6 +114,8 @@ class PathCacheMigrationAction(Action):
                         "generation that was introduced in Toolkit 0.15"), 
                         "Admin")
     
+    
+    
     def run_interactive(self, log, args):
         """
         Tank command accessor
@@ -141,22 +143,34 @@ class PathCacheMigrationAction(Action):
         if val != "" and not val.lower().startswith("y"):
             log.info("Exiting! Syncing will not be turned on.")
             return
-        
+
+        # first take the old path cache location and make sure 
+        # shotgun has got all those entries present as FilesystemLocations.
         log.info("")
-        log.info("Configuring settings...")
-        
+        log.info("Phase 1/3: Pushing data from the path cache to Shotgun...")
+        old_pc = path_cache.PathCache(self.tk)
+        try:
+            old_pc.ensure_all_entries_are_in_shotgun(log)
+        finally:
+            old_pc.close()        
+
+        # now turn on the cloud based path cache. This means that from now on, the 
+        # local path cache file will be used rather than the 
+        log.info("")
+        log.info("Phase 2/3: Turning on the cloud based path cache in the pipeline configuration settings...")
         self.tk.pipeline_configuration.turn_on_shotgun_path_cache()
-        
+         
         # and synchronize path cache
-        log.info("Running folder synchronization...")
+        log.info("")
+        log.info("Phase 3/3: Synchronizing your new cloud based path cache with Shotgun...")
         pc = path_cache.PathCache(self.tk)
         try:
-            pc.synchronize(log)
+            pc.synchronize(log, full_sync=True)
         finally:
             pc.close()
         
-        log.info("All done! This project and pipeline configuration is now syncing its folders "
-                 "with Shotgun.")
+        log.info("")
+        log.info("All done! This project and pipeline configuration is now syncing its folders with Shotgun.")
 
 
 class UnregisterFoldersAction(Action):
