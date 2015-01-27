@@ -528,6 +528,9 @@ class PipelineConfiguration(object):
         all the environment names.
         """
         
+        # because of all the yaml parsing going on, this operation is 
+        # surprisingly cpu intensive. It turns out it's very beneficial to 
+        # cache the result - the tank command in particular runs noticably faster.
         cache_key = (env_name, context)
         
         if cache_key in self._cached_environments:
