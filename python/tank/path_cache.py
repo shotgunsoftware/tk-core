@@ -310,10 +310,7 @@ class PathCache(object):
         c = self._connection.cursor()
         
         try:
-            # first of all, make sure we don't have any data in this path cache file
-            # which isn't already in Shotgun.
-            self._ensure_all_in_shotgun(c, log)
-            
+
             # check if we should do a full sync
             if full_sync:
                 return self._do_full_sync(c, log)
@@ -496,98 +493,6 @@ class PathCache(object):
         
         # return the event log id which represents this uploaded slab
         return (response["id"], rowid_sgid_lookup)
-
-
-    def _ensure_all_in_shotgun(self, cursor, log):
-        """
-        Ensure that all the path cache data in this database is also registered in Shotgun.
-        
-        This method is primarily to ensure that any data written by pre-015 clients is
-        pushed to shotgun automatically. Once a system is fully running 0.15, this method is no
-        longer necessary.
-        
-        :param cursor: Sqlite database cursor
-        :param log: Std python logger or None if logging is not required. 
-        """
-
-        # first determine which records are not yet in Shotgun.
-        #
-        # this sqlite query will get all rows which are in the path cache
-        # table but are not in the shotgun_status table - meaning that they
-        # haven't yet been uploaded to Shotgun.
-        #
-        pc_data = list(cursor.execute("""select pc.rowid,
-                                                pc.entity_type, 
-                                                pc.entity_id, 
-                                                pc.entity_name, 
-                                                pc.root, 
-                                                pc.path, 
-                                                pc.primary_entity 
-                                         from path_cache pc
-                                         left join shotgun_status ss on pc.rowid = ss.path_cache_id
-                                         where ss.path_cache_id is null
-                                         """))
-                                    
-
-        if len(pc_data) > 0 and log:
-            log.info("Detected %s path entries that have not yet been uploaded to Shotgun." % len(pc_data))
-        
-        # inner loop - push to shotgun in chunks
-        # and push each one separately
-        BATCH_SIZE = 400
-        pc_data_batches = [ pc_data[x:x+BATCH_SIZE] for x in xrange(0, len(pc_data), BATCH_SIZE)]
-        
-        for curr_batch in pc_data_batches:
-            
-            try:
-                
-                # construct data chunk to upload to shotgun
-                sg_data = []
-                
-                for sql_record in curr_batch:
-                    
-                    # resolve a local path from a root and a generic path
-                    root_name = sql_record[4]
-                    db_path = sql_record[5]
-                    root_path = self._roots.get(root_name)
-                    if not root_path:
-                        # The root name doesn't match a recognized name, so skip this entry
-                        continue                    
-                    local_os_path = self._dbpath_to_path(root_path, db_path)
-                    
-                    # now create sg data chunk
-                    sg_record = {}
-                    sg_record["entity"] = {}
-                    sg_record["entity"]["type"] = sql_record[1]
-                    sg_record["entity"]["id"] = sql_record[2]
-                    sg_record["entity"]["name"] = sql_record[3]
-                    sg_record["path"] = local_os_path
-                    sg_record["primary"] = bool(sql_record[6])
-                    sg_record["metadata"] = {}
-                    sg_record["path_cache_row_id"] = sql_record[0]
-                
-                    sg_data.append(sg_record)
-                
-                # event log description
-                desc = "Uploaded existing local path cache data to Shotgun."
-                
-                # and upload
-                (event_log_id, sg_id_lookup) = self._upload_cache_data_to_shotgun(sg_data, desc, log)
-                
-                # all good - now update the database to indicate that these fields have been pushed.
-                for (pc_row_id, sg_id) in sg_id_lookup.items():
-                    cursor.execute("INSERT INTO shotgun_status(path_cache_id, shotgun_id) "
-                                   "VALUES(?, ?)", (pc_row_id, sg_id) )                
-            
-            except:
-                # error processing shotgun. Make sure we roll back the sqlite transaction.
-                self._connection.rollback()
-                raise
-             
-            else:
-                # ok all good - data has been pushed to shotgun - we can safely commit!
-                self._connection.commit()
-
 
 
     def _do_full_sync(self, cursor, log):
