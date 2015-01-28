@@ -47,6 +47,8 @@ class PipelineConfiguration(object):
         """
         self._pc_root = pipeline_configuration_path
 
+        self._cached_environments = {}
+
         # validate that the current code version matches or is compatible with
         # the code that is locally stored in this config!!!!
         our_associated_api_version = self.get_associated_core_version()
@@ -524,13 +526,27 @@ class PipelineConfiguration(object):
         Returns an environment object given an environment name.
         You can use the get_environments() method to get a list of
         all the environment names.
+        
+        :returns: An environment object
         """
-        env_file = os.path.join(self._pc_root, "config", "env", "%s.yml" % env_name)
-        if not os.path.exists(env_file):
-            raise TankError("Cannot load environment '%s': Environment configuration "
-                            "file '%s' does not exist!" % (env_name, env_file))
-
-        return Environment(env_file, self, context)
+        
+        # because of all the yaml parsing going on, this operation is 
+        # surprisingly cpu intensive. It turns out it's very beneficial to 
+        # cache the result - the tank command in particular runs noticably faster.
+        cache_key = (env_name, context)
+        
+        if cache_key in self._cached_environments:
+            env_obj = self._cached_environments[cache_key]
+        
+        else:
+            env_file = os.path.join(self._pc_root, "config", "env", "%s.yml" % env_name)
+            if not os.path.exists(env_file):
+                raise TankError("Cannot load environment '%s': Environment configuration "
+                                "file '%s' does not exist!" % (env_name, env_file))
+            env_obj = Environment(env_file, self, context)
+            self._cached_environments[cache_key] = env_obj
+        
+        return env_obj
 
     def get_templates_config(self):
         """
