@@ -121,7 +121,7 @@ class Context(object):
         equal &= (self.__entity == other.__entity)
         equal &= (self.__step == other.__step)
         equal &= (self.__task == other.__task)
-        equal &= (self.__user == self.__user)
+        equal &= (self.__user == other.__user)
         equal &= (self.__additional_entities == other.__additional_entities)
         return equal
 
