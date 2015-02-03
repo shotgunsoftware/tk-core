@@ -329,24 +329,35 @@ def _get_pipeline_configs_for_path(path, data):
         - project.Project.tank_name    
 
     
-    Note:
+    Edge case notes:
+    
     Normally, this command returns all the pipeline configurations that
-    are associated with a single project, however there are edge cases where
-    it may return pipeline configurations for *multiple* projects - this is 
-    in the case there are overlapping storage roots, leading to ambiguity
-    going from a path on disk to a project in shotgun.
+    are associated with a single project only. 
+    
+    However, there are edge cases where it may return pipeline configurations 
+    for *multiple* projects.
+      
+    in the case there are overlapping storage roots, or where a project is named 
+    the same name as a storage root, this may lead to a scenario where a path on 
+    disk could potentially belong to *two* projects. In this case, this method will
+    return the pipeline configurations for both projects.
     
     For example, imagine the following setup:
+    
     Storages: f:\ and f:\foo
     Project names: foo and bar
+    
+    (Note that the project name 'foo' is named the same as the storage F:\foo)
+    
     This means we have the following project roots:
     (1) f:\foo      (storage f:\, project foo)
     (2) f:\bar      (storage f:\, project bar)
     (3) f:\foo\foo  (storage f:\foo, project foo)
     (4) f:\foo\bar  (storage f:\foo, project bar)
     
-    The path f:\foo\bar\hello_world.ma could either belong to 
-    project bar (matching 4) or project foo (matching 1).
+    If we have a path f:\foo\bar\hello_world.ma, this could either belong to 
+    project 'bar' (matching 4) or project 'foo' (matching 1).
+    
     In this case, the pipeline configurations for both foo and bar
     are returned.
         
