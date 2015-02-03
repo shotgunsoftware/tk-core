@@ -532,8 +532,10 @@ class TestTankFromPathOverlapStorage(TankTestBase):
     
     The path f:\foo\bar\hello_world.ma could either belong to 
     project bar (matching 4) or project foo (matching 1).
-    In this case, the pipeline configurations for both foo and bar
-    are returned.    
+
+    In this case, sgtk_from_path() should succeed in case you are using a local
+    tank command or API and fail if you are using a studio level command.
+
     """
     
     def setUp(self):
