@@ -352,6 +352,8 @@ def _get_pipeline_configs_for_path(path, data):
     
     # step 3 - look at the path we passed in - see if any of the computed
     # project folders are determined to be a parent path
+    matching_project_paths = []
+    
     for project_path in project_paths:
         
         # (like the SG API, this logic is case preserving, not case insensitive)
@@ -360,12 +362,35 @@ def _get_pipeline_configs_for_path(path, data):
         # check if the path matches. Either
         # direct match: path: /mnt/proj_x == project path: /mnt/proj_x
         # child path: path: /mnt/proj_x/foo/bar starts with /mnt/proj_x/
+        
+        # edge case handling:
+        # if there are multiple storages matching, choose the longest match.
+        # for example:
+        #
+        # storages: f:\ and f:\foo
+        # project names: foo and bar
+        # this will produce the paths
+        # f:\foo
+        # f:\bar
+        # f:\foo\foo
+        # f:\foo\bar
+        #
+        # ensure that the path f:\foo\bar\hello_world.ma is being matched up with 
+        # f:\foo\bar which is a *longer* match than f:\foo 
+        
         if path_lower == proj_path_lower or path_lower.startswith("%s%s" % (proj_path_lower, os.path.sep)):
             # found a match! Return the associated list of pipeline configurations
-            return project_paths[project_path]
+            matching_project_paths.append(project_path)
+            
+    if len(matching_project_paths) == 0:
+        # no matches!
+        return []
     
-    # no match!
-    return []
+    else:
+        # pick longest match
+        longest_project_path = max(matching_project_paths, key=len)
+        # and return the pipeline configurations associated with this project
+        return project_paths[longest_project_path]
     
     
 
