@@ -79,7 +79,7 @@ def _from_entity(entity_type, entity_id, force_reread_shotgun_cache):
                         "the Shotgun Pipeline Toolkit!" % (entity_type, entity_id))
 
     # extract path data from the pipeline configuration shotgun data
-    (local_pc_paths, primary_pc_path) = _get_pipeline_configuration_paths(associated_sg_pipeline_configs)
+    (local_pc_paths, primary_pc_paths) = _get_pipeline_configuration_paths(associated_sg_pipeline_configs)
         
     # figure out if we are running a tank command / api from a local pc or from a studio level install
     config_context_path  = _get_configuration_context()
@@ -105,15 +105,25 @@ def _from_entity(entity_type, entity_id, force_reread_shotgun_cache):
         # a core which is located outside a pipeline configuration.
         
         # in this case, find the primary pipeline config and use that
-        if primary_pc_path is None:
-            raise TankError("The Project associated with %s %s does not have a default Pipeline "
+        if len(primary_pc_paths) == 0:
+            raise TankError("The Project associated with %s %s does not have a primary Pipeline "
                             "Configuration! This is required by Toolkit. It needs to be named '%s'. "
                             "Please double check by opening to the Pipeline configuration Page in "
                             "Shotgun for the project." % (entity_type, entity_id, 
-                                                                constants.PRIMARY_PIPELINE_CONFIG_NAME))
+                                                          constants.PRIMARY_PIPELINE_CONFIG_NAME))
+
+        if len(primary_pc_paths) > 1:
+            # for an entity lookup, there should be no ambiguity - an entity belongs to a project
+            # and a project has got a distinct set of pipeline configs, exactly one of which
+            # is the primary.
+            raise TankError("More than one primary pipeline configuration detected! Please contact "
+                            "toolkit support for help. It looks like you have several primary "
+                            "pipeline configurations associated with the entity %s %s: %s" % (entity_type, 
+                                                                                              entity_id, 
+                                                                                              primary_pc_paths))
 
         # looks good, we got a primary pipeline config that exists
-        return PipelineConfiguration(primary_pc_path)
+        return PipelineConfiguration(primary_pc_paths[0])
 
 
 
@@ -194,7 +204,7 @@ def _from_path(path, force_reread_shotgun_cache):
         raise TankError("The path '%s' does not seem to belong to any known Toolkit project!" % path)
 
     # extract current os path data from the pipeline configuration shotgun data
-    (local_pc_paths, primary_pc_path) = _get_pipeline_configuration_paths(associated_sg_pipeline_configs)
+    (local_pc_paths, primary_pc_paths) = _get_pipeline_configuration_paths(associated_sg_pipeline_configs)
 
     # figure out if we are running a tank command / api from a local pc or from a studio level install
     config_context_path  = _get_configuration_context()
@@ -222,14 +232,22 @@ def _from_path(path, force_reread_shotgun_cache):
     else:
         # we are running a studio level tank command.
         # find the primary pipeline configuration in the list of matching configurations.        
-        if primary_pc_path is None:
+        if len(primary_pc_paths) == 0:
             raise TankError("Cannot find a Primary Pipeline Configuration for path '%s'. "
                             "The following Pipeline configuration are associated with the "
                             "path, but none of them is marked as Primary: %s" % (path, local_pc_paths))
 
-
+        if len(primary_pc_paths) > 1:
+            raise TankError("The path '%s' is potentially associated with more than one primary pipeline "
+                            "configuration. This can happen if there is ambiguity in your project setup, where "
+                            "projects store their data in an overlapping fashion. In this case, try creating "
+                            "your API instance (or tank command) directly from the pipeline configuration rather "
+                            "than via the studio level API. This will explicitly call out which project you are "
+                            "intending to use in conjunction with he path. The pipeline configuration paths "
+                            "associated with this path are: %s" % (path, primary_pc_paths))
+        
         # looks good, we got a primary pipeline config that exists
-        return PipelineConfiguration(primary_pc_path)
+        return PipelineConfiguration(primary_pc_paths[0])
 
     
 
@@ -271,28 +289,29 @@ def _get_pipeline_configuration_paths(sg_pipeline_configs):
     """
     Given a list of Shotgun Pipeline configuration entity data, return a list
     of pipeline configuration paths for the current platform. Also returns
-    the local os path to the primary pipeline configuration if this is found.
+    the local os path to any primary pipeline configurations if such are found.
     
     :param sg_pipeline_configs: SG pipeline configuration data. List of dicts.
-    :returns: (all_paths, primary_path) - tuple of path strings, primary path is None if not found. 
+    :returns: (all_paths, primary_paths) - tuple with two lists of path strings 
     """
     # get list of local path to pipeline configurations that we have
     platform_lookup = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
     local_pc_paths = []
-    primary_pc_path = None
+    primary_pc_paths = []
     for pc in sg_pipeline_configs:
-        local_pc_paths.append( pc.get(platform_lookup[sys.platform]) )
+        curr_os_path = pc.get(platform_lookup[sys.platform])
+        local_pc_paths.append(curr_os_path)
         if pc.get("code") == constants.PRIMARY_PIPELINE_CONFIG_NAME:
-            primary_pc_path = pc[platform_lookup[sys.platform]]
+            primary_pc_paths.append(curr_os_path)
     
-    return (local_pc_paths, primary_pc_path)
+    return (local_pc_paths, primary_pc_paths)
 
 
 def _get_pipeline_configs_for_path(path, data):
     """
     Given a path on disk and a cache data structure, return a list of
     associated pipeline configurations.
-    
+
     Based on the Shotgun cache data, generates a list of project root locations.
     These are then compared (case insensitively) against the given path and 
     if it is determined that the input path belongs to any of these project
@@ -308,6 +327,28 @@ def _get_pipeline_configs_for_path(path, data):
         - mac_path 
         - project 
         - project.Project.tank_name    
+
+    
+    Note:
+    Normally, this command returns all the pipeline configurations that
+    are associated with a single project, however there are edge cases where
+    it may return pipeline configurations for *multiple* projects - this is 
+    in the case there are overlapping storage roots, leading to ambiguity
+    going from a path on disk to a project in shotgun.
+    
+    For example, imagine the following setup:
+    Storages: f:\ and f:\foo
+    Project names: foo and bar
+    This means we have the following project roots:
+    (1) f:\foo      (storage f:\, project foo)
+    (2) f:\bar      (storage f:\, project bar)
+    (3) f:\foo\foo  (storage f:\foo, project foo)
+    (4) f:\foo\bar  (storage f:\foo, project bar)
+    
+    The path f:\foo\bar\hello_world.ma could either belong to 
+    project bar (matching 4) or project foo (matching 1).
+    In this case, the pipeline configurations for both foo and bar
+    are returned.
         
     :param path: Path to look for
     :param data: Cache data chunk, obtained using _get_pipeline_configs()
@@ -352,7 +393,7 @@ def _get_pipeline_configs_for_path(path, data):
     
     # step 3 - look at the path we passed in - see if any of the computed
     # project folders are determined to be a parent path
-    matching_project_paths = []
+    all_matching_pcs = []
     
     for project_path in project_paths:
         
@@ -363,35 +404,12 @@ def _get_pipeline_configs_for_path(path, data):
         # direct match: path: /mnt/proj_x == project path: /mnt/proj_x
         # child path: path: /mnt/proj_x/foo/bar starts with /mnt/proj_x/
         
-        # edge case handling:
-        # if there are multiple storages matching, choose the longest match.
-        # for example:
-        #
-        # storages: f:\ and f:\foo
-        # project names: foo and bar
-        # this will produce the paths
-        # f:\foo
-        # f:\bar
-        # f:\foo\foo
-        # f:\foo\bar
-        #
-        # ensure that the path f:\foo\bar\hello_world.ma is being matched up with 
-        # f:\foo\bar which is a *longer* match than f:\foo 
-        
         if path_lower == proj_path_lower or path_lower.startswith("%s%s" % (proj_path_lower, os.path.sep)):
-            # found a match! Return the associated list of pipeline configurations
-            matching_project_paths.append(project_path)
-            
-    if len(matching_project_paths) == 0:
-        # no matches!
-        return []
-    
-    else:
-        # pick longest match
-        longest_project_path = max(matching_project_paths, key=len)
-        # and return the pipeline configurations associated with this project
-        return project_paths[longest_project_path]
-    
+            # found a match!
+            associated_pcs = project_paths[project_path] 
+            all_matching_pcs.extend(associated_pcs)
+
+    return all_matching_pcs
     
 
 def _get_pipeline_configs_for_project(project_id, data):
