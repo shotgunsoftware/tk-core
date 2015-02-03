@@ -614,7 +614,7 @@ class TestTankFromPathOverlapStorage(TankTestBase):
         """
         
         probe_path = {}
-        probe_path["win32"] = "F:\\temp\\foo\\bar\\test.ma"
+        probe_path["win32"] = "C:\\temp\\foo\\bar\\test.ma"
         probe_path["darwin"] = "/tmp/foo/bar/test.ma"
         probe_path["linux2"] = "/tmp/foo/bar/test.ma"
         
@@ -644,7 +644,7 @@ class TestTankFromPathOverlapStorage(TankTestBase):
         os.environ["TANK_CURRENT_PC"] = self.pipeline_config_root
         
         probe_path = {}
-        probe_path["win32"] = "F:\\temp\\foo\\bar\\test.ma"
+        probe_path["win32"] = "C:\\temp\\foo\\bar\\test.ma"
         probe_path["darwin"] = "/tmp/foo/bar/test.ma"
         probe_path["linux2"] = "/tmp/foo/bar/test.ma"
         
