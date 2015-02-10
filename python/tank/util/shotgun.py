@@ -32,8 +32,6 @@ from .. import hook
 from ..platform import constants
 from . import login
 
-g_app_store_connection = None
-
 def __get_api_core_config_location():
     """
     Given the location of the code, find the core config location.
@@ -293,6 +291,7 @@ def create_sg_connection(user="default"):
     api_handle = __create_sg_connection(config_data)
     return api_handle
 
+g_app_store_connection = None
 def create_sg_app_store_connection():
     """
     Creates a shotgun connection that can be used to access the toolkit app store.
