@@ -27,8 +27,7 @@ from ... import pipelineconfig_factory
 
 # these are the items that need to be copied across
 # when a configuration is upgraded to contain a core API
-CORE_FILES_FOR_LOCALIZE = ["app_store.yml", 
-                           "shotgun.yml", 
+CORE_FILES_FOR_LOCALIZE = [ "shotgun.yml", 
                            "interpreter_Darwin.cfg", 
                            "interpreter_Linux.cfg", 
                            "interpreter_Windows.cfg"]
@@ -477,8 +476,7 @@ def _run_unlocalize(tk, log, mac_path, windows_path, linux_path, copy_core, supp
         
         # these core config files are directly related to the core
         # and not needed by a configuration
-        core_config_file_names = ["app_store.yml", 
-                                  "shotgun.yml", 
+        core_config_file_names = ["shotgun.yml", 
                                   "interpreter_Darwin.cfg", 
                                   "interpreter_Linux.cfg", 
                                   "interpreter_Windows.cfg"]
