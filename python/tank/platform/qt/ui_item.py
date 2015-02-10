@@ -2,8 +2,7 @@
 
 # Form implementation generated from reading ui file 'item.ui'
 #
-# Created: Fri Jul 11 11:44:26 2014
-#      by: pyside-uic 0.2.13 running on PySide 1.1.0
+#      by: pyside-uic 0.2.13 running on PySide 1.1.1
 #
 # WARNING! All changes made in this file will be lost!
 

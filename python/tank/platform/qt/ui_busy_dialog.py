@@ -2,12 +2,11 @@
 
 # Form implementation generated from reading ui file 'busy_dialog.ui'
 #
-# Created: Wed Sep  3 15:27:12 2014
 #      by: pyside-uic 0.2.13 running on PySide 1.1.1
 #
 # WARNING! All changes made in this file will be lost!
 
-from PySide import QtCore, QtGui
+from . import QtCore, QtGui
 
 class Ui_BusyDialog(object):
     def setupUi(self, BusyDialog):

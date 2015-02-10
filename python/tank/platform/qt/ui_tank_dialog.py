@@ -2,8 +2,7 @@
 
 # Form implementation generated from reading ui file 'tank_dialog.ui'
 #
-# Created: Fri Jul 11 15:23:58 2014
-#      by: pyside-uic 0.2.13 running on PySide 1.1.0
+#      by: pyside-uic 0.2.13 running on PySide 1.1.1
 #
 # WARNING! All changes made in this file will be lost!
 
