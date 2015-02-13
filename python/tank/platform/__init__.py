@@ -19,6 +19,8 @@ from .framework import Framework
 
 from ..errors import TankError
 
+from .interactive_login import console_login, ui_login, logout
+
 ################################################################################################
 # internal methods
 

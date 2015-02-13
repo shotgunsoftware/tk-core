@@ -13,8 +13,10 @@ Classes for the main Sgtk API.
 
 """
 import os
+import sys
 import glob
 import threading
+import urlparse
 
 from tank_vendor import yaml
 
@@ -592,9 +594,37 @@ class Tank(object):
                                                       engine)
         return folders
 
+    def get_site_cache_root(self):
+        """
+        Returns the location of the site cache root for this Tank instance.
+        """
+        # Invoke the global method which is generic and can compute any site
+        # cache root.
+        global get_site_cache_root
+        return get_site_cache_root(self.shotgun.base_url)
 
 ##########################################################################################
 # module methods
+
+
+def get_site_cache_root(base_url):
+    """
+    Returns the location of the site cache root based on a site.
+    :param base_url: Site we need to compute the root path for.
+    :returns: An absolute path to the site cache root.
+    """
+    if sys.platform == "darwin":
+        root = os.path.expanduser("~/Library/Caches/Shotgun")
+    elif sys.platform == "win32":
+        root = os.path.join(os.environ["APPDATA"], "Shotgun")
+    elif sys.platform.startswith("linux"):
+        root = os.path.expanduser("~/.shotgun")
+
+    # get site only; https://www.foo.com:8080 -> www.foo.com
+    base_url = urlparse.urlparse(base_url)[1].split(":")[0]
+
+    return os.path.join(root, base_url)
+
 
 def tank_from_path(path):
     """

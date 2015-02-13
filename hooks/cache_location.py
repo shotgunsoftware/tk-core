@@ -76,36 +76,28 @@ class CacheLocation(HookBaseClass):
         and inside this base level hook. This method calculates the cache root
         for the current project and configuration. In the default implementation,
         all the different types of cache data resides below a common root point. 
-        
+
         :param project_id: The shotgun id of the project to store caches for
         :param pipeline_configuration_id: The shotgun pipeline config id to store caches for
         :returns: The calculated location for the cache root
         """
-        
         # the default implementation will place things in the following locations:
         # macosx: ~/Library/Caches/Shotgun/SITE_NAME/project_xxx/config_yyy
         # windows: $APPDATA/Shotgun/SITE_NAME/project_xxx/config_yyy
         # linux: ~/.shotgun/SITE_NAME/project_xxx/config_yyy
-        
-        # first establish the root location
-        tk = self.parent
-        if sys.platform == "darwin":
-            root = os.path.expanduser("~/Library/Caches/Shotgun")
-        elif sys.platform == "win32":
-            root = os.path.join(os.environ["APPDATA"], "Shotgun")
-        elif sys.platform.startswith("linux"):
-            root = os.path.expanduser("~/.shotgun")
 
-        # get site only; https://www.foo.com:8080 -> www.foo.com
-        base_url = urlparse.urlparse(tk.shotgun.base_url)[1].split(":")[0]
-        
+        # first establish the root location
+
+        tk = self.parent
+
+        root = tk.get_site_cache_root()
+
         # now structure things by site, project id, and pipeline config id
-        cache_root = os.path.join(root, 
-                                  base_url, 
+        cache_root = os.path.join(root,
                                   "project_%d" % project_id,
                                   "config_%d" % pipeline_configuration_id)
         return cache_root
-    
+
     def _ensure_file_exists(self, path):
         """
         Helper method - creates a file if it doesn't already exists

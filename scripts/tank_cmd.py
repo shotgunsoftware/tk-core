@@ -22,7 +22,7 @@ from tank.deploy import tank_command
 from tank.deploy.tank_commands.core_upgrade import TankCoreUpgrader
 from tank.deploy.tank_commands.action_base import Action
 from tank.util import shotgun
-from tank.platform import engine
+from tank.platform import engine, console_login, logout
 from tank import pipelineconfig_utils
 
 
@@ -175,6 +175,9 @@ Launch maya for a Task in Shotgun using an id:
 
 Launch maya for a folder:
 > tank /studio/proj_xyz/shots/ABC123 launch_maya
+
+Log out of the current user (no need for a contex):
+> tank logout
 
 """
     for x in info.split("\n"):
@@ -1095,6 +1098,14 @@ if __name__ == "__main__":
         if x == "--help" or x == "-h":
             exit_code = show_help(logger)
             sys.exit(exit_code)
+
+    # If we are not authenticated.
+    if not shotgun.is_script_user_authenticated():
+        if len(cmd_line) >= 1 and cmd_line[0] == "logout":
+            logout()
+            sys.exit()
+        else:
+            console_login()
 
     # determine if we are running a localized core API.
     is_localized = pipelineconfig_utils.is_localized(install_root)
