@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>335</width>
-    <height>102</height>
+    <height>110</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -18,6 +18,13 @@
   </property>
   <property name="windowTitle">
    <string>Form</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QLabel{
+   font-size: 11px;
+   margin-bottom: 3px
+}
+</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0,1">
    <property name="margin">
@@ -37,7 +44,7 @@
         </sizepolicy>
        </property>
        <property name="styleSheet">
-        <string notr="true">font-size: 14px;</string>
+        <string notr="true">font-size: 13px;</string>
        </property>
        <property name="text">
         <string>Settings Name</string>
@@ -73,9 +80,6 @@ border-bottom-style: solid;</string>
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
-     <property name="styleSheet">
-      <string notr="true">font-size: 12px;</string>
-     </property>
      <property name="text">
       <string>Value: foo bar</string>
      </property>
@@ -95,9 +99,6 @@ border-bottom-style: solid;</string>
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
-     <property name="styleSheet">
-      <string notr="true">font-size: 12px;</string>
-     </property>
      <property name="text">
       <string>Type: bool</string>
      </property>
@@ -111,9 +112,6 @@ border-bottom-style: solid;</string>
    </item>
    <item>
     <widget class="QLabel" name="description">
-     <property name="styleSheet">
-      <string notr="true">font-size: 11px;</string>
-     </property>
      <property name="text">
       <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
