@@ -11,12 +11,17 @@ from . import QtCore, QtGui
 class Ui_Item(object):
     def setupUi(self, Item):
         Item.setObjectName("Item")
-        Item.resize(335, 102)
+        Item.resize(335, 110)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Minimum)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(Item.sizePolicy().hasHeightForWidth())
         Item.setSizePolicy(sizePolicy)
+        Item.setStyleSheet("QLabel{\n"
+"   font-size: 11px;\n"
+"   margin-bottom: 3px\n"
+"}\n"
+"")
         self.verticalLayout = QtGui.QVBoxLayout(Item)
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout.setObjectName("verticalLayout")
@@ -29,7 +34,7 @@ class Ui_Item(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.name.sizePolicy().hasHeightForWidth())
         self.name.setSizePolicy(sizePolicy)
-        self.name.setStyleSheet("font-size: 14px;")
+        self.name.setStyleSheet("font-size: 13px;")
         self.name.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
         self.name.setWordWrap(True)
         self.name.setObjectName("name")
@@ -50,7 +55,6 @@ class Ui_Item(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.value.sizePolicy().hasHeightForWidth())
         self.value.setSizePolicy(sizePolicy)
-        self.value.setStyleSheet("font-size: 12px;")
         self.value.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
         self.value.setWordWrap(True)
         self.value.setObjectName("value")
@@ -61,13 +65,11 @@ class Ui_Item(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.type.sizePolicy().hasHeightForWidth())
         self.type.setSizePolicy(sizePolicy)
-        self.type.setStyleSheet("font-size: 12px;")
         self.type.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
         self.type.setWordWrap(True)
         self.type.setObjectName("type")
         self.verticalLayout.addWidget(self.type)
         self.description = QtGui.QLabel(Item)
-        self.description.setStyleSheet("font-size: 11px;")
         self.description.setTextFormat(QtCore.Qt.RichText)
         self.description.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
         self.description.setWordWrap(True)

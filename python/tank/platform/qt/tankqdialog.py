@@ -287,7 +287,7 @@ class TankQDialog(TankDialogBase):
             self.ui.app_description.setText(self._bundle.description)
             # get the descriptor type (eg. git/app store/dev etc)
             descriptor_type = self._bundle.descriptor.get_location().get("type", "Undefined")
-            self.ui.app_tech_details.setText("%s %s (Source: %s)" % (self._bundle.name, 
+            self.ui.app_tech_details.setText("Location: %s %s (Source: %s)" % (self._bundle.name, 
                                                                      self._bundle.version,
                                                                      descriptor_type))
     
@@ -308,15 +308,18 @@ class TankQDialog(TankDialogBase):
             self.ui.btn_file_system.clicked.connect( self._on_filesystem )
             self.ui.btn_shotgun.clicked.connect( self._on_shotgun )
             self.ui.btn_reload.clicked.connect( self._on_reload )
-            self.ui.btn_edit_config.clicked.connect( self._on_edit_config )
-            self.ui.btn_add_parameter.clicked.connect( self._on_add_param )
             
-            self.ui.btn_edit_config.setVisible(False)
-            self.ui.btn_add_parameter.setVisible(False)
-            
-            for setting, params in self._bundle.descriptor.get_configuration_schema().items():        
-                value = self._bundle.settings.get(setting)
-                self._add_settings_item(setting, params, value)
+            if len(self._bundle.descriptor.get_configuration_schema()) == 0:
+                # no configuration for this app!
+                self.ui.config_header.setVisible(False)
+                self.ui.config_line.setVisible(False)
+                self.ui.config_label.setVisible(False)
+                
+            else:
+                # enumerate configuration items            
+                for setting, params in self._bundle.descriptor.get_configuration_schema().items():        
+                    value = self._bundle.settings.get(setting)
+                    self._add_settings_item(setting, params, value)
 
         ########################################################################################
         # parent the widget we are hosting into the dialog area
