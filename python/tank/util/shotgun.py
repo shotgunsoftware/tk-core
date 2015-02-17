@@ -22,7 +22,7 @@ import urlparse
 from tank_vendor.shotgun_api3 import Shotgun
 from tank_vendor import yaml
 
-from ..errors import TankError
+from ..errors import TankError, TankAuthenticationError
 from .. import hook
 from ..platform import constants
 from . import login
@@ -196,7 +196,7 @@ def is_authenticated():
     from . import session
     config_data = get_associated_sg_config_data()
     return _is_script_user_authenticated(config_data) or\
-        session.create_sg_connection_from_session(config_data)
+        (session.create_sg_connection_from_session(config_data) is not None)
 
 
 def __create_session_based_sg_connection(config_data):
@@ -208,7 +208,7 @@ def __create_session_based_sg_connection(config_data):
     :raises TankAuthenticationError: If we couldn't get a valid session, a TankError is thrown.
     """
     # FIXME: Break circular dependency this way, not really clean...
-    from ..platform import current_engine
+    from ..platform import engine
     from . import session
 
     # If the Shotgun login was not automated, then try to create a Shotgun
@@ -217,14 +217,14 @@ def __create_session_based_sg_connection(config_data):
     # If that didn't work
     if not sg:
         # If there is a current engine, we can ask the engine to prompt the user to login
-        if current_engine():
-            current_engine().renew_session()
+        if engine.current_engine():
+            engine.current_engine().renew_session()
             sg = session.create_sg_connection_from_session(config_data)
+            if not sg:
+                raise TankAuthenticationError("Authentication failed.")
         else:
             # Otherwise we failed and can't login.
-            raise TankAuthenticationError("No authentification credentials were found.")
-    if not sg:
-        raise TankAuthenticationError("Authentification failed.")
+            raise TankAuthenticationError("No authentication credentials were found.")
     return sg
 
 
@@ -240,7 +240,6 @@ def __create_sg_connection(shotgun_cfg_path, evaluate_script_user, user="default
     :returns: tuple with (sg_api_instance, script_user_dict) where script_user_dict is None if
               evaluate_script_user is False else a dictionary with type and id keys. 
     """
-
     # get connection parameters
     config_data = __get_sg_config_data(shotgun_cfg_path, user)
 

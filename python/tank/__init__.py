@@ -16,7 +16,7 @@ from . import util
 # core functionality
 from .api import Tank, tank_from_path, tank_from_entity, get_site_cache_root
 from .api import Sgtk, sgtk_from_path, sgtk_from_entity
-from .errors import TankError, TankEngineInitError
+from .errors import TankError, TankEngineInitError, TankAuthenticationError
 from .template import TemplatePath, TemplateString
 from .hook import Hook, get_hook_baseclass
 

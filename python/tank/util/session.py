@@ -17,7 +17,7 @@ import os
 from tank_vendor.shotgun_api3 import Shotgun
 from tank_vendor.shotgun_api3 import AuthenticationFault
 from ConfigParser import SafeConfigParser
-from .shotgun import get_associated_sg_config_data
+from tank.util import shotgun
 
 # Configure logging
 import logging
@@ -25,12 +25,14 @@ logger = logging.getLogger("sgtk-session")
 # logger.setLevel(logging.DEBUG)
 logger.addHandler(logging.StreamHandler())
 
+_shotgun_instance_factory = Shotgun
+
 
 def _get_cached_login_info_location(base_url):
     """
     Returns the location of the session file on disk for a specific site.
     :param base_url: The site we want the login information for.
-    :returns: A dictionary with keys "login" and "session_token".
+    :returns: Path to the login information.
     """
     from tank.api import get_site_cache_root
     return os.path.join(
@@ -44,7 +46,7 @@ def is_session_token_cached():
     Returns if there is a cached session token for the current user.
     :returns: True is there is, False otherwise.
     """
-    if get_cached_login_info(get_associated_sg_config_data()["host"]):
+    if get_cached_login_info(shotgun.get_associated_sg_config_data()["host"]):
         return True
     else:
 
@@ -54,33 +56,33 @@ def is_session_token_cached():
 def get_cached_login_info(base_url):
     """
     Returns the cached login info if found.
-    :returns: Returns a dictionnary with keys hostname, login and session_token or None
+    :returns: Returns a dictionnary with keys login and session_token or None
     """
     # Retrieve the location of the cached info
     info_path = _get_cached_login_info_location(base_url)
     # Nothing was cached, return an empty dictionary.
     if not os.path.exists(info_path):
         logger.debug("No cache found at %s", info_path)
-        return {}
+        return None
     try:
         # Read the login information
         config = SafeConfigParser({"login": None, "session_token": None})
         config.read(info_path)
         if not config.has_section("LoginInfo"):
             logger.debug("No Login info was found")
-            return {}
+            return None
 
         login = config.get("LoginInfo", "login", raw=True)
         session_token = config.get("LoginInfo", "session_token", raw=True)
 
         if not login or not session_token:
             logger.debug("Incomplete settings (login:%s, session_token:%s)", login, session_token)
-            return {}
+            return None
 
         return {"login": login, "session_token": session_token}
     except Exception:
         logger.exception("Exception thrown while loading cached session info.")
-        return {}
+        return None
 
 
 def _validate_session_token(host, session_token, http_proxy):
@@ -92,10 +94,10 @@ def _validate_session_token(host, session_token, http_proxy):
     """
     # Connect to the site
     logger.debug("Creating shotgun instance")
-    sg = Shotgun(
-        host.encode("utf-8"),
-        session_token=session_token.encode("utf-8"),
-        http_proxy=http_proxy.encode("utf-8") if http_proxy else None
+    sg = _shotgun_instance_factory(
+        host,
+        session_token=session_token,
+        http_proxy=http_proxy
     )
     try:
         sg.find_one("HumanUser", [])
@@ -158,7 +160,7 @@ def create_sg_connection_from_session(config_data=None):
     # received it from the caller.
     if not config_data:
         logger.debug("No configuration data provided, retrieving default configuration.")
-        config_data = get_associated_sg_config_data()
+        config_data = shotgun.get_associated_sg_config_data()
 
     login_info = get_cached_login_info(config_data["host"])
     if not login_info:

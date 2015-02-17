@@ -16,9 +16,9 @@ from getpass import getpass
 import logging
 
 from tank_vendor.shotgun_api3 import Shotgun, AuthenticationFault
-from tank.util.session import cache_session_data, get_cached_login_info, delete_session_data, is_session_token_cached
+from tank.util import session
 from tank.util.login import get_login_name
-from tank.util.shotgun import get_associated_sg_config_data, get_associated_sg_base_url
+from tank.util import shotgun
 
 # Configure logging
 logger = logging.getLogger("sgtk-interactive_login")
@@ -38,10 +38,10 @@ def _get_session_token(hostname, login, password, http_proxy):
     try:
         # Create the instance...
         sg = Shotgun(
-            hostname.encode("utf-8"),
-            login=login.encode("utf-8"),
-            password=password.encode("utf-8"),
-            http_proxy=http_proxy.encode("utf-8") if http_proxy else None
+            hostname,
+            login=login,
+            password=password,
+            http_proxy=http_proxy
         )
         # .. and generate the session token. If it throws, we have invalid credentials.
         return sg.get_session_token()
@@ -149,11 +149,12 @@ def _do_logging(login_functor):
     the credentials will be cached.
     :param login_functor: Functor that gets invoked to retrieve the credentials of the user.
     """
+    if session.create_sg_connection_from_session():
+        return
 
-    # FIXME: We probably need to take a lock here to make this whole section thread-safe.
-
-    config_data = get_associated_sg_config_data()
-    login_info = get_cached_login_info(config_data["host"])
+    config_data = shotgun.get_associated_sg_config_data()
+    # We might not have login information, in that case use an empty dictionary.
+    login_info = session.get_cached_login_info(config_data["host"]) or {}
 
     # Ask for the credentials
     session_token, login = login_functor(
@@ -165,7 +166,7 @@ def _do_logging(login_functor):
     logger.debug("Login successful!")
 
     # Cache the credentials so subsequent session based logins can reuse the session id.
-    cache_session_data(config_data["host"], login, session_token)
+    session.cache_session_data(config_data["host"], login, session_token)
 
 
 def console_renew_session():
@@ -200,9 +201,9 @@ def logout():
     """
     Logs out of the currently cached session
     """
-    base_url = get_associated_sg_base_url()
-    if is_session_token_cached():
-        delete_session_data(base_url)
+    base_url = shotgun.get_associated_sg_base_url()
+    if session.is_session_token_cached():
+        session.delete_session_data(base_url)
         print "Succesfully logged out of", base_url
     else:
         print "Not logged in."
