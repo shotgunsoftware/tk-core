@@ -13,15 +13,17 @@ Session management for Toolkit.
 """
 
 import os
+import logging
 
 from tank_vendor.shotgun_api3 import Shotgun
 from tank_vendor.shotgun_api3 import AuthenticationFault
+from tank.errors import TankAuthenticationError
 from ConfigParser import SafeConfigParser
 from tank.util import shotgun
+from tank.util import path
 
 # Configure logging
-import logging
-logger = logging.getLogger("sgtk-session")
+logger = logging.getLogger("sgtk.session")
 # logger.setLevel(logging.DEBUG)
 logger.addHandler(logging.StreamHandler())
 
@@ -34,9 +36,10 @@ def _get_cached_login_info_location(base_url):
     :param base_url: The site we want the login information for.
     :returns: Path to the login information.
     """
-    from tank.api import get_site_cache_root
+    from tank.util import path
     return os.path.join(
-        get_site_cache_root(base_url),
+        path.get_local_site_cache_location(base_url),
+        "authentication",
         "login.ini"
     )
 
@@ -117,6 +120,11 @@ def cache_session_data(host, login, session_token):
     """
     # Retrieve the cached info file location from the host
     info_path = _get_cached_login_info_location(host)
+
+    # make sure the info_dir exists!
+    info_dir, info_file = os.path.split(info_path)
+    path.ensure_path_exists(info_dir)
+
     logger.debug("Caching login info at %s...", info_path)
     # Create a document with the following format:
     # [LoginInfo]
@@ -148,6 +156,33 @@ def delete_session_data(host):
             logger.debug("Session file not found: %s", info_path)
     except:
         logger.exception("Couldn't delete the site cache file")
+
+
+def generate_session_token(hostname, login, password, http_proxy):
+    """
+    Generates a session token for a given username/password on a given site.
+    :param hostname: The host to connect to.
+    :param login: The user to get a session for.
+    :param password: Password for the user.
+    :param http_proxy: Proxy to use. Can be None.
+    :returns: The generated session token for that user/password/site combo.
+    :raises: TankAuthenticationError if the credentials were invalid.
+    """
+    try:
+        # Create the instance...
+        sg = _shotgun_instance_factory(
+            hostname,
+            login=login,
+            password=password,
+            http_proxy=http_proxy
+        )
+        # .. and generate the session token. If it throws, we have invalid credentials.
+        return sg.get_session_token()
+    except AuthenticationFault:
+        raise TankAuthenticationError("Authentication failed.")
+    except:
+        # We couldn't login, so try again.
+        logging.exception("There was a problem logging in.")
 
 
 def create_sg_connection_from_session(config_data=None):

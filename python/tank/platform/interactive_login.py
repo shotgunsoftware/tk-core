@@ -15,13 +15,13 @@ UI and console based login for Toolkit.
 from getpass import getpass
 import logging
 
-from tank_vendor.shotgun_api3 import Shotgun, AuthenticationFault
+from tank.errors import TankAuthenticationError
 from tank.util import session
 from tank.util.login import get_login_name
 from tank.util import shotgun
 
 # Configure logging
-logger = logging.getLogger("sgtk-interactive_login")
+logger = logging.getLogger("sgtk.interactive_login")
 # logger.setLevel(logging.DEBUG)
 logger.addHandler(logging.StreamHandler())
 
@@ -36,21 +36,9 @@ def _get_session_token(hostname, login, password, http_proxy):
     :returns: If the credentials were valid, returns a session token, otherwise returns None.
     """
     try:
-        # Create the instance...
-        sg = Shotgun(
-            hostname,
-            login=login,
-            password=password,
-            http_proxy=http_proxy
-        )
-        # .. and generate the session token. If it throws, we have invalid credentials.
-        return sg.get_session_token()
-    except AuthenticationFault:
+        return session.generate_session_token(hostname, login, password, http_proxy)
+    except TankAuthenticationError:
         print "Authentication failed."
-        return None
-    except:
-        # We couldn't login, so try again.
-        logging.exception("There was a problem logging in.")
         return None
 
 
@@ -132,7 +120,7 @@ def _do_console_based_session_renewal(hostname, login, http_proxy):
     :param hostname: Host to renew a token for.
     :param login: User to renew a token for.
     :param http_proxy: Proxy to use for the request. Can be None.
-    :returns:
+    :returns: The (session token, login user) tuple.
     """
     while True:
         # Get the credentials from the user
@@ -144,7 +132,7 @@ def _do_console_based_session_renewal(hostname, login, http_proxy):
 
 def _do_logging(login_functor):
     """
-    Common login logic, regardless of how we are actually logging in. It will first try to reused
+    Common login logic, regardless of how we are actually logging in. It will first try to reuse
     any existing session and if that fails then it will ask for credentials and upon success
     the credentials will be cached.
     :param login_functor: Functor that gets invoked to retrieve the credentials of the user.

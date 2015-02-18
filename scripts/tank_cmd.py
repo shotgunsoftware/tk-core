@@ -1099,7 +1099,7 @@ if __name__ == "__main__":
             exit_code = show_help(logger)
             sys.exit(exit_code)
 
-    # If we are not authenticated.
+    # If we are not authenticated as a script user, we have to login or logout.
     if not shotgun.is_script_user_authenticated():
         if len(cmd_line) >= 1 and cmd_line[0] == "logout":
             logout()

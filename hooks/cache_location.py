@@ -86,14 +86,10 @@ class CacheLocation(HookBaseClass):
         # windows: $APPDATA/Shotgun/SITE_NAME/project_xxx/config_yyy
         # linux: ~/.shotgun/SITE_NAME/project_xxx/config_yyy
 
-        # first establish the root location
-
         tk = self.parent
 
-        root = tk.get_site_cache_root()
-
-        # now structure things by site, project id, and pipeline config id
-        cache_root = os.path.join(root,
+        # structure things by site, project id, and pipeline config id
+        cache_root = os.path.join(tk.local_site_cache_location,
                                   "project_%d" % project_id,
                                   "config_%d" % pipeline_configuration_id)
         return cache_root
@@ -118,23 +114,6 @@ class CacheLocation(HookBaseClass):
                     raise TankError("Could not create cache file '%s': %s" % (path, e))
             finally:
                 os.umask(old_umask)
-    
+
     def _ensure_folder_exists(self, path):
-        """
-        Helper method - creates a folder if it doesn't already exists
-        
-        :param path: path to create
-        """
-        if not os.path.exists(path):
-            old_umask = os.umask(0)
-            try:
-                os.makedirs(path, 0777)
-            except OSError, e:
-                # Race conditions are perfectly possible on some network storage setups
-                # so make sure that we ignore any file already exists errors, as they 
-                # are not really errors!
-                if e.errno != errno.EEXIST: 
-                    raise TankError("Could not create cache folder '%s': %s" % (path, e))
-            finally:
-                os.umask(old_umask)
-            
+        sgtk.util.path.ensure_path_exists(path)
