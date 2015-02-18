@@ -352,12 +352,12 @@ def __get_app_store_key_from_shotgun(sg_connection):
     
     # now connect to our site and use a special url to retrieve the app store script key
     session_token = sg_connection.generate_session_token()
-    post_data = {"session_token": session_token }
-    response = urllib2.urlopen("%s/api3/sgtk_install_script" % sg_connection.base_url, urllib.urlencode(post_data) ) 
+    post_data = {"session_token": session_token}
+    response = urllib2.urlopen("%s/api3/sgtk_install_script" % sg_connection.base_url, urllib.urlencode(post_data)) 
     html = response.read()
     data = json.loads(html)
     
-    return( data["script_name"], data["script_key"])
+    return(data["script_name"], data["script_key"])
 
 
 
