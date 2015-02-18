@@ -85,7 +85,7 @@ def get_project_name_studio_hook_location():
     #
     # @todo longterm we should probably establish a place in the code where we define 
     # an API or set of functions which can be executed outside the remit of a 
-    # pipeline configuration/toolkit project.
+    # pipeline configuration/Toolkit project.
     
     core_cfg = __get_api_core_config_location()
     return os.path.join(core_cfg, constants.STUDIO_HOOK_PROJECT_NAME)
@@ -168,7 +168,7 @@ def __get_sg_config_data(shotgun_cfg_path, user="default"):
 
 def __create_sg_connection(config_data):
     """
-    Creates a standard toolkit shotgun connection.
+    Creates a standard Toolkit shotgun connection.
 
     :param config_data: dictionary with keys host, api_script, api_key and http_proxy
     :returns: shotgun api instance 
@@ -294,7 +294,7 @@ def create_sg_connection(user="default"):
 g_app_store_connection = None
 def create_sg_app_store_connection():
     """
-    Creates a shotgun connection that can be used to access the toolkit app store.
+    Creates a shotgun connection that can be used to access the Toolkit app store.
 
     :returns: (sg, dict) where the first item is the shotgun api instance and the second 
               is an sg entity dictionary (keys type/id) corresponding to to the user used
@@ -1079,7 +1079,7 @@ class ToolkitUserAgentHandler(object):
         # sg._user_agents is a list of strings. By default,
         # its value is [ "shotgun-json (1.2.3)" ] 
         
-        # First, remove any old toolkit settings
+        # First, remove any old Toolkit settings
         new_agents = []
         for x in self._sg._user_agents:
             if x.startswith("tk-core") or \
@@ -1089,7 +1089,7 @@ class ToolkitUserAgentHandler(object):
                 continue
             new_agents.append(x)
          
-        # Add new toolkit settings
+        # Add new Toolkit settings
         if self._core_version:
             new_agents.append("tk-core (%s)" % self._core_version)
 
