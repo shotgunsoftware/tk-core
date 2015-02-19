@@ -21,8 +21,8 @@ from tank.deploy.tank_commands.clone_configuration import clone_pipeline_configu
 from tank.deploy import tank_command
 from tank.deploy.tank_commands.core_upgrade import TankCoreUpgrader
 from tank.deploy.tank_commands.action_base import Action
-from tank.util import shotgun
-from tank.platform import engine, console_login, logout
+from tank.util import authentication
+from tank.platform import engine, console_authenticate, console_logout
 from tank import pipelineconfig_utils
 
 
@@ -1099,13 +1099,12 @@ if __name__ == "__main__":
             exit_code = show_help(logger)
             sys.exit(exit_code)
 
-    # If we are not authenticated as a script user, we have to login or logout.
-    if not shotgun.is_script_user_authenticated():
-        if len(cmd_line) >= 1 and cmd_line[0] == "logout":
-            logout()
-            sys.exit()
-        else:
-            console_login()
+    # If the user is trying to logout, try to do so
+    if "logout" in cmd_line:
+        console_logout()
+        sys.exit()
+    else:
+        console_authenticate()
 
     # determine if we are running a localized core API.
     is_localized = pipelineconfig_utils.is_localized(install_root)

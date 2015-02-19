@@ -24,7 +24,7 @@ from ..errors import TankError, TankEngineInitError
 from ..deploy import descriptor
 from ..deploy.dev_descriptor import TankDevDescriptor
 
-from . import interactive_login
+from . import interactive_authentication
 from . import application
 from . import constants
 from . import validation
@@ -512,9 +512,9 @@ class Engine(TankBundle):
         """
         if self.has_ui:
             # FIXME: Invoke from main thread.
-            interactive_login.ui_renew_session()
+            interactive_authentication.ui_renew_session()
         else:
-            interactive_login.console_renew_session()
+            interactive_authentication.console_renew_session()
 
     ##########################################################################################
     # logging interfaces

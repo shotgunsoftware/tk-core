@@ -19,7 +19,7 @@ from .framework import Framework
 
 from ..errors import TankError
 
-from .interactive_login import console_login, ui_login, logout
+from .interactive_authentication import console_authenticate, ui_authenticate, console_logout
 
 ################################################################################################
 # internal methods

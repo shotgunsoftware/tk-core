@@ -19,10 +19,9 @@ import urllib
 import urllib2
 import urlparse
 
-from tank_vendor.shotgun_api3 import Shotgun
 from tank_vendor import yaml
 
-from ..errors import TankError, TankAuthenticationError
+from ..errors import TankError
 from .. import hook
 from ..platform import constants
 from . import login
@@ -162,70 +161,13 @@ def __get_sg_config_data(shotgun_cfg_path, user="default"):
                                         config_data=config_data, 
                                         user=user, 
                                         cfg_path=shotgun_cfg_path)
-        
+
     # validate the config data to ensure all fields are present
     if "host" not in config_data:
         raise TankError("Missing required field 'host' in config '%s'" % shotgun_cfg_path)
 
     return config_data
 
-
-def _is_script_user_authenticated(config_data):
-    """
-    Indicates if we are authenticating with a script user for a given configuration.
-    :param config_data: The configuration data
-    :returns: True is we are using a script user, False otherwise.
-    """
-    return config_data.get("api_script") and config_data.get("api_key")
-
-
-def is_script_user_authenticated():
-    """
-    Indicates if we are authenticating with a script user this core's configuration.
-    :returns: True is we are using a script user, False otherwise.
-    """
-    return _is_script_user_authenticated(get_associated_sg_config_data())
-
-
-def is_authenticated():
-    """
-    Indicates if we need to authenticate.
-    :returns: True is we are using a script user or have a valid session token, False
-    """
-    # FIXME: Break circular dependency this way, not really clean...
-    from . import session
-    config_data = get_associated_sg_config_data()
-    return _is_script_user_authenticated(config_data) or\
-        (session.create_sg_connection_from_session(config_data) is not None)
-
-
-def __create_session_based_sg_connection(config_data):
-    """
-    Creates a shotgun connection using the current session token or a new one if the old one
-    expired.
-    :param config_data: A dictionary holding the "host" and "http_proxy"
-    :returns: A valid Shotgun instance.
-    :raises TankAuthenticationError: If we couldn't get a valid session, a TankError is thrown.
-    """
-    # FIXME: Break circular dependency this way, not really clean...
-    from ..platform import engine
-    from . import session
-
-    # If the Shotgun login was not automated, then try to create a Shotgun
-    # instance from the cached session id.
-    sg = session.create_sg_connection_from_session(config_data)
-    # If that didn't work
-    if not sg:
-        # If there is a current engine, we can ask the engine to prompt the user to login
-        if engine.current_engine():
-            engine.current_engine().renew_session()
-            sg = session.create_sg_connection_from_session(config_data)
-            if not sg:
-                raise TankAuthenticationError("Authentication failed.")
-        else:
-            # Otherwise we failed and can't login.
-            raise TankAuthenticationError("No authentication credentials were found.")
-    return sg
 
 
 def __create_sg_connection(shotgun_cfg_path, evaluate_script_user, user="default"):
@@ -243,15 +185,9 @@ def __create_sg_connection(shotgun_cfg_path, evaluate_script_user, user="default
     # get connection parameters
     config_data = __get_sg_config_data(shotgun_cfg_path, user)
 
-    # If no configuration information
-    if config_data.get("api_script") and config_data.get("api_key"):
-        # create API
-        sg = Shotgun(config_data["host"],
-                     config_data["api_script"],
-                     config_data["api_key"],
-                     http_proxy=config_data.get("http_proxy", None))
-    else:
-        sg = __create_session_based_sg_connection(config_data)
+    from . import authentication
+
+    sg = authentication.create_authenticated_sg_connection(config_data)
 
     # bolt on our custom user agent manager
     sg.tk_user_agent_handler = ToolkitUserAgentHandler(sg)

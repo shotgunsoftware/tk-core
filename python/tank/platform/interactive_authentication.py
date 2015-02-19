@@ -16,12 +16,12 @@ from getpass import getpass
 import logging
 
 from tank.errors import TankAuthenticationError
-from tank.util import session
+from tank.util import authentication
 from tank.util.login import get_login_name
 from tank.util import shotgun
 
 # Configure logging
-logger = logging.getLogger("sgtk.interactive_login")
+logger = logging.getLogger("sgtk.interactive_authentication")
 # logger.setLevel(logging.DEBUG)
 logger.addHandler(logging.StreamHandler())
 
@@ -36,7 +36,7 @@ def _get_session_token(hostname, login, password, http_proxy):
     :returns: If the credentials were valid, returns a session token, otherwise returns None.
     """
     try:
-        return session.generate_session_token(hostname, login, password, http_proxy)
+        return authentication.generate_session_token(hostname, login, password, http_proxy)
     except TankAuthenticationError:
         print "Authentication failed."
         return None
@@ -137,12 +137,12 @@ def _do_logging(login_functor):
     the credentials will be cached.
     :param login_functor: Functor that gets invoked to retrieve the credentials of the user.
     """
-    if session.create_sg_connection_from_session():
+    if authentication.is_authenticated():
         return
 
     config_data = shotgun.get_associated_sg_config_data()
     # We might not have login information, in that case use an empty dictionary.
-    login_info = session.get_cached_login_info(config_data["host"]) or {}
+    login_info = authentication.get_cached_login_info(config_data["host"]) or {}
 
     # Ask for the credentials
     session_token, login = login_functor(
@@ -154,7 +154,7 @@ def _do_logging(login_functor):
     logger.debug("Login successful!")
 
     # Cache the credentials so subsequent session based logins can reuse the session id.
-    session.cache_session_data(config_data["host"], login, session_token)
+    authentication.cache_session_data(config_data["host"], login, session_token)
 
 
 def console_renew_session():
@@ -171,27 +171,25 @@ def ui_renew_session():
     _do_logging(_do_console_based_session_renewal)
 
 
-def ui_login():
+def ui_authenticate():
     """
     Prompts the user to login via a dialog and caches the session token for future reuse.
     """
     _do_logging(_do_ui_based_login)
 
 
-def console_login():
+def console_authenticate():
     """
     Prompts the user to login on the command line and caches the session token for future reuse.
     """
     _do_logging(_do_console_based_login)
 
 
-def logout():
+def console_logout():
     """
-    Logs out of the currently cached session
+    Logs out of the currently cached session and prints whether it worked or not.
     """
-    base_url = shotgun.get_associated_sg_base_url()
-    if session.is_session_token_cached():
-        session.delete_session_data(base_url)
-        print "Succesfully logged out of", base_url
+    if authentication.logout():
+        print "Succesfully logged out of", shotgun.get_associated_sg_base_url()
     else:
         print "Not logged in."

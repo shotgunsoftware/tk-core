@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-Session management for Toolkit.
+Shotgun authentication for Toolkit
 """
 
 import os
@@ -23,7 +23,7 @@ from tank.util import shotgun
 from tank.util import path
 
 # Configure logging
-logger = logging.getLogger("sgtk.session")
+logger = logging.getLogger("sgtk.authentication")
 # logger.setLevel(logging.DEBUG)
 logger.addHandler(logging.StreamHandler())
 
@@ -44,7 +44,7 @@ def _get_cached_login_info_location(base_url):
     )
 
 
-def is_session_token_cached():
+def _is_session_token_cached():
     """
     Returns if there is a cached session token for the current user.
     :returns: True is there is, False otherwise.
@@ -140,11 +140,11 @@ def cache_session_data(host, login, session_token):
     logger.debug("Cached!")
 
 
-def delete_session_data(host):
+def _delete_session_data():
     """
     Clears the session cache for a given site.
-    :param host: Site to clear the session for.
     """
+    host = shotgun.get_associated_sg_base_url()
     logger.debug("Clearing session cached on disk.")
     try:
         info_path = _get_cached_login_info_location(host)
@@ -185,7 +185,64 @@ def generate_session_token(hostname, login, password, http_proxy):
         logging.exception("There was a problem logging in.")
 
 
-def create_sg_connection_from_session(config_data=None):
+def _is_script_user_authenticated(config_data):
+    """
+    Indicates if we are authenticating with a script user for a given configuration.
+    :param config_data: The configuration data.
+    :returns: True is we are using a script user, False otherwise.
+    """
+    return "api_script" in config_data and "api_key" in config_data
+
+
+def _is_session_authenticated(config_data):
+    """
+    Indicates if we are authenticating with a session.
+    :param config_data: The configuration data.
+    :returns: True is we are using a session, False otherwise.
+    """
+    # Try to create a connection. If something is create, we are authenticated.
+    return _create_sg_connection_from_session(config_data) is not None
+
+
+def is_authenticated():
+    """
+    Indicates if we need to authenticate.
+    :returns: True is we are using a script user or have a valid session token, False otherwise.
+    """
+    config_data = shotgun.get_associated_sg_config_data()
+    return _is_script_user_authenticated(config_data) or _is_session_authenticated(config_data)
+
+
+# FIXME: When Manne's work on app store credential refactoring is merged, we can go ahead and
+# remove the config data parameter and retrieve it directly inside this method.
+def _create_or_renew_sg_connection_from_session(config_data):
+    """
+    Creates a shotgun connection using the current session token or a new one if the old one
+    expired.
+    :param config_data: A dictionary holding the "host" and "http_proxy"
+    :returns: A valid Shotgun instance.
+    :raises TankAuthenticationError: If we couldn't get a valid session, a TankError is thrown.
+    """
+    from ..platform import engine
+
+    # If the Shotgun login was not automated, then try to create a Shotgun
+    # instance from the cached session id.
+    sg = _create_sg_connection_from_session(config_data)
+    # If that didn't work
+    if not sg:
+        # If there is a current engine, we can ask the engine to prompt the user to login
+        if engine.current_engine():
+            engine.current_engine().renew_session()
+            sg = _create_sg_connection_from_session(config_data)
+            if not sg:
+                raise TankAuthenticationError("Authentication failed.")
+        else:
+            # Otherwise we failed and can't login.
+            raise TankAuthenticationError("No authentication credentials were found.")
+    return sg
+
+
+def _create_sg_connection_from_session(config_data=None):
     """
     Tries to auto login to the site using the existing session_token that was saved.
     :returns: Returns a Shotgun instance.
@@ -213,6 +270,45 @@ def create_sg_connection_from_session(config_data=None):
         logger.debug("Token is still valid!")
         return sg
     else:
-        delete_session_data(config_data["host"])
+        _delete_session_data(config_data["host"])
         logger.debug("Failed refreshing the token.")
         return None
+
+
+def _create_sg_connection_from_script_user(config_data=None):
+    """
+    Create a Shotgun connection based on a script user.
+    :param config_data: A dictionary with keys host, api_script, api_key and an optional http_proxy
+    :returns: A Shotgun instance.
+    """
+    return _shotgun_instance_factory(
+        config_data["host"],
+        config_data["api_script"],
+        config_data["api_key"],
+        http_proxy=config_data.get("http_proxy", None)
+    )
+
+
+def create_authenticated_sg_connection(config_data):
+    """
+    Creates an authenticated Shotgun connection.
+    :param config_data: A dictionary holding the site configuration.
+    """
+    # If no configuration information
+    if _is_script_user_authenticated(config_data):
+        # create API
+        return _create_sg_connection_from_script_user(config_data)
+    else:
+        return _create_or_renew_sg_connection_from_session(config_data)
+
+
+def logout():
+    """
+    Logs out of the currently cached session.
+    :returns: True is logging out was successful, False is no session was cached.
+    """
+    if _is_session_token_cached():
+        _delete_session_data()
+        return True
+    else:
+        return False

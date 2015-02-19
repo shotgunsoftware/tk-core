@@ -13,7 +13,7 @@ from mock import patch
 from tank_test.tank_test_base import *
 from tank_test import mockgun
 
-from tank.util import session
+from tank.util import authentication
 
 from tank_vendor.shotgun_api3 import shotgun
 
@@ -25,8 +25,8 @@ class SessionTests(TankTestBase):
     delete_session_data for now, since they have complicated to test and would simply slow us down.
     """
 
-    @patch("tank.util.session._shotgun_instance_factory")
-    @patch("tank.util.session.get_cached_login_info")
+    @patch("tank.util.authentication._shotgun_instance_factory")
+    @patch("tank.util.authentication.get_cached_login_info")
     def run(self, *args):
         """
         Patches some api methods at a higher scope so we don't have to patch all tests individually.
@@ -48,17 +48,17 @@ class SessionTests(TankTestBase):
         """
         Make sure we are mocking get_cached_login_info correctly"
         """
-        self.assertEqual(session.get_cached_login_info("abc")["login"], "tk-user")
-        self.assertEqual(session.get_cached_login_info("abc")["session_token"], "D3ADB33F")
+        self.assertEqual(authentication.get_cached_login_info("abc")["login"], "tk-user")
+        self.assertEqual(authentication.get_cached_login_info("abc")["session_token"], "D3ADB33F")
 
-    @patch("tank.util.session._validate_session_token")
+    @patch("tank.util.authentication._validate_session_token")
     def test_create_from_valid_session(self, validate_session_token_mock):
         """
         When cache info is valid and _validate_session_token succeeds, it's return value
-        is returned by create_sg_connection_from_session.
+        is returned by create_sg_connection_from_authentication.
         """
         validate_session_token_mock.return_value = "Success"
-        self.assertEqual(session.create_sg_connection_from_session({"host": "abc"}), "Success")
+        self.assertEqual(authentication._create_sg_connection_from_session({"host": "abc"}), "Success")
 
     @patch("tank_test.mockgun.Shotgun.find_one")
     def test_authentication_failure_in_validate_session_token(self, find_one_mock):
@@ -69,7 +69,7 @@ class SessionTests(TankTestBase):
         # find_one should throw the AuthenticationFault, which should gracefully abort connecting
         # to Shotgun
         find_one_mock.side_effect = shotgun.AuthenticationFault
-        self.assertEquals(session._validate_session_token("https://a.com", "b", None), None)
+        self.assertEquals(authentication._validate_session_token("https://a.com", "b", None), None)
 
     @patch("tank_test.mockgun.Shotgun.find_one")
     def test_unexpected_failure_in_validate_session_token(self, find_one_mock):
@@ -80,16 +80,16 @@ class SessionTests(TankTestBase):
         # Any other error type than AuthenticationFailed is unexpected and should be rethrown
         find_one_mock.side_effect = ValueError
         with self.assertRaises(ValueError):
-            session._validate_session_token("https://a.com", "b", None)
+            authentication._validate_session_token("https://a.com", "b", None)
 
-    @patch("tank.util.session._validate_session_token")
-    @patch("tank.util.session.delete_session_data")
+    @patch("tank.util.authentication._validate_session_token")
+    @patch("tank.util.authentication._delete_session_data")
     def test_bad_credentials_should_wipe_session_data(self, validate_session_token_mock, delete_session_data_mock):
         """
         When cache info is valid and _validate_session_token succeeds, it's return value
-        is returned by create_sg_connection_from_session.
+        is returned by create_sg_connection_from_authentication.
         """
         validate_session_token_mock.return_value = None
         delete_session_data_mock.return_value = None
-        self.assertEqual(session.create_sg_connection_from_session({"host": "abc"}), None)
+        self.assertEqual(authentication._create_sg_connection_from_session({"host": "abc"}), None)
         self.assertEqual(delete_session_data_mock.call_count, 1)
