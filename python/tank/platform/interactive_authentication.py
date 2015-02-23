@@ -100,10 +100,7 @@ def _do_console_based_login(hostname, default_login, http_proxy):
     """
     while True:
         # Get the credentials from the user
-        login, password = _get_user_credentials_from_keyboard(
-            hostname,
-            default_login
-        )
+        login, password = _get_user_credentials_from_keyboard(hostname, default_login)
         session_token = _get_session_token(hostname, login, password, http_proxy)
         if session_token:
             return session_token, login
@@ -130,7 +127,7 @@ def _do_console_based_session_renewal(hostname, login, http_proxy):
             return session_token, login
 
 
-def _do_logging(login_functor):
+def _do_authentication(login_functor):
     """
     Common login logic, regardless of how we are actually logging in. It will first try to reuse
     any existing session and if that fails then it will ask for credentials and upon success
@@ -142,7 +139,7 @@ def _do_logging(login_functor):
 
     config_data = shotgun.get_associated_sg_config_data()
     # We might not have login information, in that case use an empty dictionary.
-    login_info = authentication.get_cached_login_info(config_data["host"]) or {}
+    login_info = authentication.get_login_info(config_data["host"]) or {}
 
     # Ask for the credentials
     session_token, login = login_functor(
@@ -161,28 +158,28 @@ def console_renew_session():
     """
     Prompts the user to enter his password on the command line to retrieve a new session token.
     """
-    _do_logging(_do_ui_based_session_renewal)
+    _do_authentication(_do_ui_based_session_renewal)
 
 
 def ui_renew_session():
     """
     Prompts the user to enter his password in a dialog to retrieve a new session token.
     """
-    _do_logging(_do_console_based_session_renewal)
+    _do_authentication(_do_console_based_session_renewal)
 
 
 def ui_authenticate():
     """
     Prompts the user to login via a dialog and caches the session token for future reuse.
     """
-    _do_logging(_do_ui_based_login)
+    _do_authentication(_do_ui_based_login)
 
 
 def console_authenticate():
     """
     Prompts the user to login on the command line and caches the session token for future reuse.
     """
-    _do_logging(_do_console_based_login)
+    _do_authentication(_do_console_based_login)
 
 
 def console_logout():

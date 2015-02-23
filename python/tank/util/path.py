@@ -65,25 +65,6 @@ def add_path_to_env_var(env_var_name, path, prepend=False):
     os.environ[env_var_name] = env_var_sep.join(paths)
 
 
-def ensure_path_exists(path):
-    """
-    Helper method - creates a folder if it doesn't already exists
-    :param path: path to create
-    """
-    if not os.path.exists(path):
-        old_umask = os.umask(0)
-        try:
-            os.makedirs(path, 0777)
-        except OSError, e:
-            # Race conditions are perfectly possible on some network storage setups
-            # so make sure that we ignore any file already exists errors, as they
-            # are not really errors!
-            if e.errno != errno.EEXIST:
-                raise TankError("Could not create cache folder '%s': %s" % (path, e))
-        finally:
-            os.umask(old_umask)
-
-
 def get_local_site_cache_location(base_url):
     """
     Returns the location of the site cache root based on a site.

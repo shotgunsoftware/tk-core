@@ -27,10 +27,13 @@ logger = logging.getLogger("sgtk.authentication")
 # logger.setLevel(logging.DEBUG)
 logger.addHandler(logging.StreamHandler())
 
+
+# Having the factory as an indirection to create a shotgun instance allows us to tweak unit tests
+# more easily
 _shotgun_instance_factory = Shotgun
 
 
-def _get_cached_login_info_location(base_url):
+def _get_login_info_location(base_url):
     """
     Returns the location of the session file on disk for a specific site.
     :param base_url: The site we want the login information for.
@@ -49,23 +52,24 @@ def _is_session_token_cached():
     Returns if there is a cached session token for the current user.
     :returns: True is there is, False otherwise.
     """
-    if get_cached_login_info(shotgun.get_associated_sg_config_data()["host"]):
+    if get_login_info(shotgun.get_associated_sg_config_data()["host"]):
         return True
     else:
 
         return False
 
 
-def get_cached_login_info(base_url):
+def get_login_info(base_url):
     """
     Returns the cached login info if found.
-    :returns: Returns a dictionnary with keys login and session_token or None
+    :param base_url: The site we want the login information for.
+    :returns: Returns a dictionary with keys login and session_token or None
     """
     # Retrieve the location of the cached info
-    info_path = _get_cached_login_info_location(base_url)
+    info_path = _get_login_info_location(base_url)
     # Nothing was cached, return an empty dictionary.
     if not os.path.exists(info_path):
-        logger.debug("No cache found at %s", info_path)
+        logger.debug("No cache found at %s" % info_path)
         return None
     try:
         # Read the login information
@@ -79,7 +83,7 @@ def get_cached_login_info(base_url):
         session_token = config.get("LoginInfo", "session_token", raw=True)
 
         if not login or not session_token:
-            logger.debug("Incomplete settings (login:%s, session_token:%s)", login, session_token)
+            logger.debug("Incomplete settings (login:%s, session_token:%s)" % (login, session_token))
             return None
 
         return {"login": login, "session_token": session_token}
@@ -94,6 +98,7 @@ def _validate_session_token(host, session_token, http_proxy):
     :param session_token: Session token to use to connect to the host.
     :param host: Host for that session
     :param http_proxy: http_proxy to use to connect. If no proxy is required, provide None or an empty string.
+    :returns: A Shotgun instance if the session token was valid, None otherwise.
     """
     # Connect to the site
     logger.debug("Creating shotgun instance")
@@ -119,11 +124,11 @@ def cache_session_data(host, login, session_token):
     :param session_token: Session token we want to cache.
     """
     # Retrieve the cached info file location from the host
-    info_path = _get_cached_login_info_location(host)
+    info_path = _get_login_info_location(host)
 
     # make sure the info_dir exists!
     info_dir, info_file = os.path.split(info_path)
-    path.ensure_path_exists(info_dir)
+    os.makedirs(info_dir, 0700)
 
     logger.debug("Caching login info at %s...", info_path)
     # Create a document with the following format:
@@ -147,7 +152,7 @@ def _delete_session_data():
     host = shotgun.get_associated_sg_base_url()
     logger.debug("Clearing session cached on disk.")
     try:
-        info_path = _get_cached_login_info_location(host)
+        info_path = _get_login_info_location(host)
         if os.path.exists(info_path):
             logger.debug("Session file found.")
             os.remove(info_path)
@@ -254,7 +259,7 @@ def _create_sg_connection_from_session(config_data=None):
         logger.debug("No configuration data provided, retrieving default configuration.")
         config_data = shotgun.get_associated_sg_config_data()
 
-    login_info = get_cached_login_info(config_data["host"])
+    login_info = get_login_info(config_data["host"])
     if not login_info:
         return None
 
@@ -293,6 +298,7 @@ def create_authenticated_sg_connection(config_data):
     """
     Creates an authenticated Shotgun connection.
     :param config_data: A dictionary holding the site configuration.
+    :returns: A Shotgun instance.
     """
     # If no configuration information
     if _is_script_user_authenticated(config_data):

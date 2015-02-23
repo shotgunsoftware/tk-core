@@ -21,23 +21,23 @@ from tank_vendor.shotgun_api3 import shotgun
 class SessionTests(TankTestBase):
     """
     Tests the session module. Note that because how caching the session information is still
-    very much in flux, we will not be unit testing cache_session_info, get_cached_login_info and
+    very much in flux, we will not be unit testing cache_session_info, get_login_info and
     delete_session_data for now, since they have complicated to test and would simply slow us down.
     """
 
     @patch("tank.util.authentication._shotgun_instance_factory")
-    @patch("tank.util.authentication.get_cached_login_info")
+    @patch("tank.util.authentication.get_login_info")
     def run(self, *args):
         """
         Patches some api methods at a higher scope so we don't have to patch all tests individually.
         """
-        get_cached_login_info_mock = args[1]
+        get_login_info_mock = args[1]
         shotgun_instance_factory_mock = args[2]
         # Make sure we are mocking what we think we are mocking.
-        self.assertIn("get_cached_login_info", repr(get_cached_login_info_mock))
+        self.assertIn("get_login_info", repr(get_login_info_mock))
         self.assertIn("_shotgun_instance_factory", repr(shotgun_instance_factory_mock))
         # Mock the return value
-        get_cached_login_info_mock.return_value = {"login": "tk-user", "session_token": "D3ADB33F"}
+        get_login_info_mock.return_value = {"login": "tk-user", "session_token": "D3ADB33F"}
         # Mock the factory method so we never create a Shotgun instance that tries to connect to the
         # site.
         shotgun_instance_factory_mock.side_effect = mockgun.Shotgun
@@ -46,10 +46,10 @@ class SessionTests(TankTestBase):
 
     def test_mock(self):
         """
-        Make sure we are mocking get_cached_login_info correctly"
+        Make sure we are mocking get_login_info correctly"
         """
-        self.assertEqual(authentication.get_cached_login_info("abc")["login"], "tk-user")
-        self.assertEqual(authentication.get_cached_login_info("abc")["session_token"], "D3ADB33F")
+        self.assertEqual(authentication.get_login_info("abc")["login"], "tk-user")
+        self.assertEqual(authentication.get_login_info("abc")["session_token"], "D3ADB33F")
 
     @patch("tank.util.authentication._validate_session_token")
     def test_create_from_valid_session(self, validate_session_token_mock):
