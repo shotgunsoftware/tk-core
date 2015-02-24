@@ -13,9 +13,11 @@ Helper methods that extracts information about the current user.
 
 """
 
-import os, sys
+import os
+import sys
 
 from ..platform import constants
+
 
 def get_login_name():
     """

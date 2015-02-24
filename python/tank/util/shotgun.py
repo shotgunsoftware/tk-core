@@ -19,7 +19,6 @@ import urllib
 import urllib2
 import urlparse
 
-from tank_vendor.shotgun_api3 import Shotgun
 from tank_vendor import yaml
 
 from ..errors import TankError
@@ -162,16 +161,14 @@ def __get_sg_config_data(shotgun_cfg_path, user="default"):
                                         config_data=config_data, 
                                         user=user, 
                                         cfg_path=shotgun_cfg_path)
-        
+
     # validate the config data to ensure all fields are present
     if "host" not in config_data:
         raise TankError("Missing required field 'host' in config '%s'" % shotgun_cfg_path)
-    if "api_script" not in config_data:
-        raise TankError("Missing required field 'api_script' in config '%s'" % shotgun_cfg_path)
-    if "api_key" not in config_data:
-        raise TankError("Missing required field 'api_key' in config '%s'" % shotgun_cfg_path)
-    
+
     return config_data
+
+
 
 def __create_sg_connection(shotgun_cfg_path, evaluate_script_user, user="default"):
     """
@@ -185,15 +182,12 @@ def __create_sg_connection(shotgun_cfg_path, evaluate_script_user, user="default
     :returns: tuple with (sg_api_instance, script_user_dict) where script_user_dict is None if
               evaluate_script_user is False else a dictionary with type and id keys. 
     """
-
     # get connection parameters
     config_data = __get_sg_config_data(shotgun_cfg_path, user)
 
-    # create API
-    sg = Shotgun(config_data["host"],
-                 config_data["api_script"],
-                 config_data["api_key"],
-                 http_proxy=config_data.get("http_proxy", None))
+    from . import authentication
+
+    sg = authentication.create_authenticated_sg_connection(config_data)
 
     # bolt on our custom user agent manager
     sg.tk_user_agent_handler = ToolkitUserAgentHandler(sg)
@@ -268,6 +262,15 @@ def get_associated_sg_base_url():
     cfg = __get_sg_config()
     config_data = __get_sg_config_data(cfg)
     return config_data["host"]
+
+
+def get_associated_sg_config_data():
+    """
+    Returns the shotgun configuration which is associated with this Toolkit setup.
+    :returns: The configuration data dictionary
+    """
+    cfg = __get_sg_config()
+    return __get_sg_config_data(cfg)
 
     
 g_sg_cached_connection = None
