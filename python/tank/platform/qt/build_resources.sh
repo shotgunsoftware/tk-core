@@ -39,6 +39,7 @@ echo "building user interfaces..."
 build_ui tank_dialog
 build_ui item
 build_ui busy_dialog
+build_ui login
 
 # build resources
 echo "building resources..."

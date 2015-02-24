@@ -16,7 +16,8 @@ import os
 import logging
 
 from tank_vendor.shotgun_api3 import Shotgun
-from tank_vendor.shotgun_api3 import AuthenticationFault
+from tank_vendor.shotgun_api3.lib import httplib2
+from tank_vendor.shotgun_api3 import AuthenticationFault, ProtocolError
 from tank.errors import TankAuthenticationError
 from ConfigParser import SafeConfigParser
 from tank.util import shotgun
@@ -24,7 +25,7 @@ from tank.util import path
 
 # Configure logging
 logger = logging.getLogger("sgtk.authentication")
-# logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.DEBUG)
 logger.addHandler(logging.StreamHandler())
 
 
@@ -186,6 +187,8 @@ def generate_session_token(hostname, login, password, http_proxy):
         return sg.get_session_token()
     except AuthenticationFault:
         raise TankAuthenticationError("Authentication failed.")
+    except (ProtocolError, httplib2.ServerNotFoundError):
+        raise TankAuthenticationError("Server %s was not found." % hostname)
     except:
         # We couldn't login, so try again.
         logging.exception("There was a problem logging in.")
@@ -276,7 +279,7 @@ def _create_sg_connection_from_session(config_data=None):
         logger.debug("Token is still valid!")
         return sg
     else:
-        _delete_session_data(config_data["host"])
+        _delete_session_data()
         logger.debug("Failed refreshing the token.")
         return None
 

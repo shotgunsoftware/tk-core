@@ -14,15 +14,16 @@ UI and console based login for Toolkit.
 
 from getpass import getpass
 import logging
+import threading
 
-from tank.errors import TankAuthenticationError
+from tank.errors import TankAuthenticationError, TankAuthenticationDisabled
 from tank.util import authentication
 from tank.util.login import get_login_name
 from tank.util import shotgun
 
 # Configure logging
 logger = logging.getLogger("sgtk.interactive_authentication")
-# logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.DEBUG)
 logger.addHandler(logging.StreamHandler())
 
 
@@ -42,10 +43,6 @@ def _get_session_token(hostname, login, password, http_proxy):
         return None
 
 
-def _do_ui_based_login(hostname, login, http_proxy):
-    pass
-
-
 def _get_keyboard_input(label, default_value=""):
     """
     Queries for keyboard input.
@@ -55,7 +52,7 @@ def _get_keyboard_input(label, default_value=""):
     """
     text = label
     if default_value:
-        text += ' [Default: %s]' % default_value
+        text += ' [%s]' % default_value
     text += ": "
     user_input = None
     while not user_input:
@@ -96,18 +93,72 @@ def _do_console_based_login(hostname, default_login, http_proxy):
     :param default_hostname: Default value for the hostname.
     :param default_login: Default value for the login.
     :param http_proxy: Proxy to use when connecting.
-    :returns: A valid Shotgun instance.
+    :returns: A tuple of (hostname, login, session_token)
     """
+    logger.debug("Requesting username and password on the console.")
     while True:
         # Get the credentials from the user
         login, password = _get_user_credentials_from_keyboard(hostname, default_login)
         session_token = _get_session_token(hostname, login, password, http_proxy)
         if session_token:
-            return session_token, login
+            return hostname, login, session_token
+
+
+def _do_ui_based_authentication(hostname, login, http_proxy, dialog_title, session_renewal):
+    """
+    Pops a dialog that asks for the hostname, login and password of the user. If there is a current
+    engine, it will run the code in the main thread.
+    :param hostname: Host to display in the dialog.
+    :param login: login to display in the dialog.
+    :param http_proxy: Proxy server to use when validating credentials. Can be None.
+    :returns: A tuple of (hostname, login, session_token)
+    """
+    from .qt import login_dialog
+
+    from tank.platform import engine
+
+    def _do_ui():
+        dlg = login_dialog.LoginDialog(
+            dialog_title,
+            hostname=hostname,
+            login=login,
+            session_renewal=session_renewal
+        )
+        return dlg.result()
+
+    # If there is a current engine, execute from the main thread.
+    if engine.current_engine():
+        result = engine.current_engine().execute_in_main_thread(_do_ui)
+    else:
+        # Otherwise just run in the current one.
+        result = _do_ui()
+    if not result:
+        raise TankAuthenticationError("No credentials provided.")
+    return result
+
+
+def _do_ui_based_login(hostname, login, http_proxy):
+    """
+    Pops a dialog that asks for the hostname, login and password of the user.
+    :param hostname: Default value for the hostname.
+    :param login: Default value for the login
+    :param http_proxy: Proxy server to use when validating credentials. Can be None.
+    :returns: A tuple of (hostname, login, session_token)
+    """
+    logger.debug("Requesting username and password in a dialog.")
+    return _do_ui_based_authentication(hostname, login, http_proxy, "Shotgun login", False)
 
 
 def _do_ui_based_session_renewal(hostname, login, http_proxy):
-    pass
+    """
+    Pops a user interface that asks to provide the password for the current user.
+    :param hostname: Host to renew a token for.
+    :param login: User to renew a token for.
+    :param http_proxy: Proxy to use for the request. Can be None.
+    :returns: The (session token, login user) tuple.
+    """
+    logger.debug("Requesting password in a dialog.")
+    return _do_ui_based_authentication(hostname, login, http_proxy, "Shotgun login", True)
 
 
 def _do_console_based_session_renewal(hostname, login, http_proxy):
@@ -119,39 +170,58 @@ def _do_console_based_session_renewal(hostname, login, http_proxy):
     :param http_proxy: Proxy to use for the request. Can be None.
     :returns: The (session token, login user) tuple.
     """
+    logger.debug("Requesting password on command line.")
     while True:
         # Get the credentials from the user
         password = _get_user_pass_from_keyboard(hostname, login)
         session_token = _get_session_token(hostname, login, password, http_proxy)
         if session_token:
-            return session_token, login
+            return hostname, login, session_token
+
+_authentication_lock = threading.Lock()
+_disable_authentication = False
 
 
-def _do_authentication(login_functor):
+def _do_authentication(credentials_request_functor):
     """
     Common login logic, regardless of how we are actually logging in. It will first try to reuse
     any existing session and if that fails then it will ask for credentials and upon success
     the credentials will be cached.
-    :param login_functor: Functor that gets invoked to retrieve the credentials of the user.
+    :param credentials_request_functor: Functor that gets invoked to retrieve the credentials of
+                                        the user.
     """
-    if authentication.is_authenticated():
-        return
 
-    config_data = shotgun.get_associated_sg_config_data()
-    # We might not have login information, in that case use an empty dictionary.
-    login_info = authentication.get_login_info(config_data["host"]) or {}
+    global _authentication_lock
+    global _disable_authentication
+    with _authentication_lock:
+        # If we are authenticated, we're done here.
+        if authentication.is_authenticated():
+            return
+        elif _disable_authentication:
+            raise TankAuthenticationDisabled()
 
-    # Ask for the credentials
-    session_token, login = login_functor(
-        config_data["host"],
-        login_info.get("login", get_login_name()),
-        config_data.get("http_proxy")
-    )
+        config_data = shotgun.get_associated_sg_config_data()
 
-    logger.debug("Login successful!")
+        # We might not have login information, in that case use an empty dictionary.
+        login_info = authentication.get_login_info(config_data["host"]) or {}
 
-    # Cache the credentials so subsequent session based logins can reuse the session id.
-    authentication.cache_session_data(config_data["host"], login, session_token)
+        # Ask for the credentials
+        try:
+            logger.debug("Not authenticated, requesting user input.")
+            hostname, login, session_token = credentials_request_functor(
+                config_data["host"],
+                login_info.get("login", get_login_name()),
+                config_data.get("http_proxy")
+            )
+        except TankAuthenticationError:
+            _disable_authentication = True
+            logger.debug("Authentication cancelled, disabling authentication.")
+            raise
+
+        logger.debug("Login successful!")
+
+        # Cache the credentials so subsequent session based logins can reuse the session id.
+        authentication.cache_session_data(hostname, login, session_token)
 
 
 def console_renew_session():
