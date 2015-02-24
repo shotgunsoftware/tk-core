@@ -33,3 +33,11 @@ class TankEngineInitError(TankError):
     Exception that indicates that an engine could not start up
     """
     pass
+
+
+class TankAuthenticationDisabled(TankError):
+    """
+    Exception that indicates that interactive authentication has been disabled.
+    """
+    def __init__(self):
+        TankError.__init__(self, "Authentication has been disabled.")
