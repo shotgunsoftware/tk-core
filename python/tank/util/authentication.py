@@ -128,7 +128,8 @@ def cache_session_data(host, login, session_token):
 
     # make sure the info_dir exists!
     info_dir, info_file = os.path.split(info_path)
-    os.makedirs(info_dir, 0700)
+    if not os.path.exists(info_dir):
+        os.makedirs(info_dir, 0700)
 
     logger.debug("Caching login info at %s...", info_path)
     # Create a document with the following format:

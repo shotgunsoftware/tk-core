@@ -158,7 +158,7 @@ def console_renew_session():
     """
     Prompts the user to enter his password on the command line to retrieve a new session token.
     """
-    _do_authentication(_do_ui_based_session_renewal)
+    _do_authentication(_do_console_based_session_renewal)
 
 
 def ui_renew_session():
