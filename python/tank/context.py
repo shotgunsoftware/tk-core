@@ -113,23 +113,78 @@ class Context(object):
         return ctx_name
 
     def __eq__(self, other):
+        """
+        Test if this Context instance is equal to the other Context instance
+                        
+        :param other:   The other Context instance to compare with
+        :returns:       True if self == other, False otherwise
+        """
         if not isinstance(other, Context):
             return NotImplemented
 
-        equal = True
-        equal &= (self.project == other.project)
-        equal &= (self.entity == other.entity)
-        equal &= (self.step == other.step)
-        equal &= (self.task == other.task)
-        equal &= (self.user == other.user)
-        equal &= (self.additional_entities == other.additional_entities)
-        return equal
+        if not self._entity_dicts_eq(self.project, other.project):
+            return False
+        
+        if not self._entity_dicts_eq(self.entity, other.entity):
+            return False
+        
+        if not self._entity_dicts_eq(self.step, other.step):
+            return False
+        
+        if not self._entity_dicts_eq(self.task, other.task):
+            return False
+        
+        if not self._entity_dicts_eq(self.user, other.user):
+            return False
+
+        # compare additional entities - note that currently this assumes the additional entity 
+        # lists are in exactly the same order for both self and other.        
+        if isinstance(self.additional_entities, list) and isinstance(other.additional_entities, list):
+            if len(self.additional_entities) != len(other.additional_entities):
+                return False
+            for entity, other_entity in zip(self.additional_entities, other.additional_entities):
+                if not self._entity_dicts_eq(entity, other_entity):
+                    return False
+        elif self.additional_entities != other.additional_entities:
+            return False
+        
+        return True 
+    
+    def _entity_dicts_eq(self, d1, d2):
+        """
+        Test to see if two entity dictionaries are equal.  They are considered
+        equal if both are dictionaries containing 'type' and 'id' with the same
+        values for both keys, e.g.:
+        
+        {"type":"Shot", "id":123, "foo":"foo"} == {"type":"Shot", "id":123, "bar":"bar"} 
+
+        :param d1:  First entity dictionary
+        :param d2:  Second entity dictionary
+        :returns:   True of d1 == d2, False otherwise
+        """
+        if isinstance(d1, dict) and isinstance(d2, dict):
+            if ("type" in d1 and "id" in d1 
+                and "type" in d2 and "id" in d2):
+                # entity dictionaries are considered equal if they share
+                # the same type and id
+                return (d1["type"] == d2["type"] 
+                        and d1["id"] == d2["id"])
+        
+        # use the default compare for any instances that aren't 
+        # dictionaries containing both 'type' and 'id':
+        return d1 == d2
 
     def __ne__(self, other):
-        result = self.__eq__(other)
-        if result is NotImplemented:
-            return result
-        return not result
+        """
+        Test if this Context instance is not equal to the other Context instance
+                        
+        :param other:   The other Context instance to compare with
+        :returns:       True if self != other, False otherwise
+        """        
+        is_equal = self.__eq__(other)
+        if is_equal is NotImplemented:
+            return NotImplemented
+        return not is_equal
 
     def __deepcopy__(self, memo):
         """
