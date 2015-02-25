@@ -12,6 +12,7 @@
 UI and console based login for Toolkit.
 """
 
+from __future__ import with_statement
 from getpass import getpass
 import logging
 import threading
@@ -21,10 +22,32 @@ from tank.util import authentication
 from tank.util.login import get_login_name
 from tank.util import shotgun
 
-# Configure logging
-logger = logging.getLogger("sgtk.interactive_authentication")
-logger.setLevel(logging.DEBUG)
-logger.addHandler(logging.StreamHandler())
+# FIXME: Quick hack to easily disable logging in this module while keeping the
+# code compatible. We have to disable it by default because Maya will print all out
+# debug strings.
+if False:
+    # Configure logging
+    logger = logging.getLogger("sgtk.interactive_authentication")
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(logging.StreamHandler())
+else:
+    class logger:
+        @staticmethod
+        def debug(*args, **kwargs):
+            pass
+        @staticmethod
+        def info(*args, **kwargs):
+            pass
+        @staticmethod
+        def warning(*args, **kwargs):
+            pass
+        @staticmethod
+        def error(*args, **kwargs):
+            pass
+        @staticmethod
+        def exception(*args, **kwargs):
+            pass
+
 
 
 class AuthenticationHandlerBase(object):
@@ -212,7 +235,7 @@ class UiAuthenticationHandler(AuthenticationHandlerBase):
     def __init__(self, is_session_renewal):
         """
         Creates the UiAuthenticationHandler object.
-        :param is_session_renewal: Indicate if we are renewing a session.
+        :param is_session_renewal: Boolean indicating if we are renewing a session. True if we are, False otherwise.
         """
         self._is_session_renewal = is_session_renewal
 
@@ -237,9 +260,10 @@ class UiAuthenticationHandler(AuthenticationHandlerBase):
         def _process_ui():
             dlg = login_dialog.LoginDialog(
                 "Shotgun Login",
+                session_renewal=self._is_session_renewal,
                 hostname=hostname,
                 login=login,
-                session_renewal=self._is_session_renewal
+                http_proxy=http_proxy
             )
             return dlg.result()
 
