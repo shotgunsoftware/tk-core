@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'login.ui'
+# Form implementation generated from reading ui file 'login_dialog.ui'
 #
 #      by: pyside-uic 0.2.15 running on PySide 1.2.2
 #
@@ -11,7 +11,7 @@ from . import QtCore, QtGui
 class Ui_LoginDialog(object):
     def setupUi(self, LoginDialog):
         LoginDialog.setObjectName("LoginDialog")
-        LoginDialog.setWindowModality(QtCore.Qt.ApplicationModal)
+        LoginDialog.setWindowModality(QtCore.Qt.NonModal)
         LoginDialog.resize(374, 324)
         LoginDialog.setStyleSheet("QWidget\n"
 "{\n"

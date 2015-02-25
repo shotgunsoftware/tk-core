@@ -8,18 +8,19 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+# It is possible not to have an engine running yet so try to import different flavors of Qt.
 try:
     from . import QtCore, QtGui
 except ImportError:
     try:
         from PySide import QtCore, QtGui
     except ImportError:
-            from PyQt import QtCore, QtGui
+            from PyQt4 import QtCore, QtGui
 
 from tank.errors import TankAuthenticationError
 
 from . import resources_rc
-from . import ui_login
+from . import ui_login_dialog
 from tank.util import authentication
 
 
@@ -27,38 +28,36 @@ class LoginDialog(QtGui.QDialog):
     """
     Dialog for getting user crendentials.
     """
-    def __init__(self, title, session_renewal, parent=None, **kwargs):
+    def __init__(self, title, session_renewal, hostname="", login="", http_proxy=None, pixmap=None, stay_on_top=True, parent=None):
         """
         Constructs a dialog.
 
         :param title: Title of this dialog.
         :param session_renewal: Configures the dialog for session renewal or user login.
+        :param hostname: The string to populate the site field with. Defaults to "".
+        :param login: The string to populate the login field with. Defaults to "".
+        :param http_proxy: The proxy server to use when testing authentication. Defaults to None.
+        :param pixmap: QPixmap to show in the dialog (defaults to the Shotgun logo)
+        :param stay_on_top: Whether the dialog should stay on top (defaults to True)
         :param parent: The Qt parent for the dialog (defaults to None)
-        :param kwargs: The following keyword arguments are recognized:
-            stay_on_top - Whether the dialog should stay on top (defaults to True)
-            hostname - The string to populate the site field with. Defaults to "".
-            http_proxy - The proxy server to use when testing authentication. Defaults to None.
-            login - The string to populate the login field with. Defaults to "".
-            pixmap - QPixmap to show in the dialog (defaults to the Shotgun logo)
         """
         QtGui.QDialog.__init__(self, parent)
 
         # set the dialog to always stay on top
-        if kwargs.get("stay_on_top", True):
+        if stay_on_top:
             self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
 
         # setup the gui
-        self.ui = ui_login.Ui_LoginDialog()
+        self.ui = ui_login_dialog.Ui_LoginDialog()
         self.ui.setupUi(self)
 
         # Set the title
         self.setWindowTitle(title)
 
-        # process kwarg overrides
-        self._http_proxy = kwargs.get("http_proxy", None)
-
-        self.ui.site.setText(kwargs.get("hostname", ""))
-        self.ui.login.setText(kwargs.get("login", ""))
+        # Assign credentials
+        self._http_proxy = http_proxy
+        self.ui.site.setText(hostname)
+        self.ui.login.setText(login)
 
         # default focus
         if self.ui.site.text():
@@ -70,11 +69,11 @@ class LoginDialog(QtGui.QDialog):
             self.ui.site.setFocus()
 
         # set the logo
-        pixmap = kwargs.get("pixmap")
         if not pixmap:
             pixmap = QtGui.QPixmap(":/Tank.Platform.Qt/shotgun_logo_light_medium.png")
         self.ui.logo.setPixmap(pixmap)
 
+        # Disable keyboard input in the site and login boxes if we are simply renewing the session.
         self.ui.site.setReadOnly(session_renewal)
         self.ui.login.setReadOnly(session_renewal)
 
@@ -84,8 +83,8 @@ class LoginDialog(QtGui.QDialog):
             self._set_message("Please enter your Shotgun credentials.")
 
         # hook up signals
-        self.connect(self.ui.sign_in, QtCore.SIGNAL("clicked()"), self.ok_pressed)
-        self.connect(self.ui.cancel, QtCore.SIGNAL("clicked()"), self.cancel_pressed)
+        self.connect(self.ui.sign_in, QtCore.SIGNAL("clicked()"), self._ok_pressed)
+        self.connect(self.ui.cancel, QtCore.SIGNAL("clicked()"), self._cancel_pressed)
 
     def _set_message(self, message):
         """
@@ -98,7 +97,7 @@ class LoginDialog(QtGui.QDialog):
             self.ui.message.setText(message)
             self.ui.message.show()
 
-    def cancel_pressed(self):
+    def _cancel_pressed(self):
         """
         Invoked when the user clicks cancel in the ui.
         """
@@ -125,7 +124,7 @@ class LoginDialog(QtGui.QDialog):
         """
         self.ui.message.setText("<font style='color: rgb(252, 98, 70);'>%s</font>" % message)
 
-    def ok_pressed(self):
+    def _ok_pressed(self):
         """
         validate the values, accepting if login is successful and display an error message if not.
         """
