@@ -260,7 +260,7 @@ class UiAuthenticationHandler(AuthenticationHandlerBase):
         def _process_ui():
             dlg = login_dialog.LoginDialog(
                 "Shotgun Login",
-                session_renewal=self._is_session_renewal,
+                is_session_renewal=self._is_session_renewal,
                 hostname=hostname,
                 login=login,
                 http_proxy=http_proxy

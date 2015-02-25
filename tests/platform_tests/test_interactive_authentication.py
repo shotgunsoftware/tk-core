@@ -43,7 +43,7 @@ class LoginUiTests(TankTestBase):
         Make sure that the site and user fields are disabled when doing session renewal
         """
         from tank.platform.qt.login_dialog import LoginDialog
-        ld = LoginDialog("Dummy", session_renewal=True)
+        ld = LoginDialog("Dummy", is_session_renewal=True)
         self.assertTrue(ld.ui.site.isReadOnly())
         self.assertTrue(ld.ui.login.isReadOnly())
 
@@ -63,10 +63,10 @@ class LoginUiTests(TankTestBase):
         """
         is_authenticated_mock.return_value = False
         get_associated_sg_config_data_mock.return_value = {
-            "host": "https://something.shotgunstudio.com"
+            "host": "https://enter_your_site_here.shotgunstudio.com"
         }
         get_login_info_mock.return_value = {
-            "login": "someone"
+            "login": "enter_your_username_here"
         }
         cache_session_data_mock.return_value = None
 
