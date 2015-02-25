@@ -16,7 +16,7 @@ import logging
 import tank
 import textwrap
 import datetime
-from tank import TankError
+from tank import TankError, TankAuthenticationError
 from tank.deploy.tank_commands.clone_configuration import clone_pipeline_configuration_html
 from tank.deploy import tank_command
 from tank.deploy.tank_commands.core_upgrade import TankCoreUpgrader
@@ -1104,7 +1104,10 @@ if __name__ == "__main__":
         console_logout()
         sys.exit()
     else:
-        console_authenticate()
+        try:
+            console_authenticate()
+        except TankAuthenticationError, e:
+            sys.exit()
 
     # determine if we are running a localized core API.
     is_localized = pipelineconfig_utils.is_localized(install_root)
