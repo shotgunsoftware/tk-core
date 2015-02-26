@@ -13,7 +13,7 @@ Shotgun authentication for Toolkit
 """
 
 import os
-
+import logging
 
 from tank_vendor.shotgun_api3 import Shotgun
 from tank_vendor.shotgun_api3.lib import httplib2
@@ -21,7 +21,6 @@ from tank_vendor.shotgun_api3 import AuthenticationFault, ProtocolError
 from tank.errors import TankAuthenticationError
 from ConfigParser import SafeConfigParser
 from tank.util import shotgun
-from tank.util import path
 
 # FIXME: Quick hack to easily disable logging in this module while keeping the
 # code compatible. We have to disable it by default because Maya will print all out
@@ -36,15 +35,19 @@ else:
         @staticmethod
         def debug(*args, **kwargs):
             pass
+
         @staticmethod
         def info(*args, **kwargs):
             pass
+
         @staticmethod
         def warning(*args, **kwargs):
             pass
+
         @staticmethod
         def error(*args, **kwargs):
             pass
+
         @staticmethod
         def exception(*args, **kwargs):
             pass

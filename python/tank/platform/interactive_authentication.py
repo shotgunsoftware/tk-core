@@ -35,19 +35,22 @@ else:
         @staticmethod
         def debug(*args, **kwargs):
             pass
+
         @staticmethod
         def info(*args, **kwargs):
             pass
+
         @staticmethod
         def warning(*args, **kwargs):
             pass
+
         @staticmethod
         def error(*args, **kwargs):
             pass
+
         @staticmethod
         def exception(*args, **kwargs):
             pass
-
 
 
 class AuthenticationHandlerBase(object):
@@ -130,6 +133,9 @@ class AuthenticationHandlerBase(object):
             print "Authentication failed."
             return None
 
+    def raise_no_credentials_provided_error(self):
+        raise TankAuthenticationError("No credentials provided.")
+
 
 class ConsoleAuthenticationHandlerBase(AuthenticationHandlerBase):
     """
@@ -150,7 +156,13 @@ class ConsoleAuthenticationHandlerBase(AuthenticationHandlerBase):
         logger.debug("Requesting password on command line.")
         while True:
             # Get the credentials from the user
-            login, password = self._get_user_credentials(hostname, login)
+            try:
+                login, password = self._get_user_credentials(hostname, login)
+            except EOFError:
+                # Insert a \n on the current line so the print is displayed on a new time.
+                print
+                self.raise_no_credentials_provided_error()
+
             session_token = self._get_session_token(hostname, login, password, http_proxy)
             if session_token:
                 return hostname, login, session_token
@@ -174,7 +186,7 @@ class ConsoleAuthenticationHandlerBase(AuthenticationHandlerBase):
         """
         password = getpass("Password (empty to abort): ")
         if not password:
-            raise TankAuthenticationError("No credentials provided.")
+            self.raise_no_credentials_provided_error()
         return password
 
     def _get_keyboard_input(self, label, default_value=""):
@@ -274,7 +286,7 @@ class UiAuthenticationHandler(AuthenticationHandlerBase):
             # Otherwise just run in the current one.
             result = _process_ui()
         if not result:
-            raise TankAuthenticationError("No credentials provided.")
+            self.raise_no_credentials_provided_error()
         return result
 
 
