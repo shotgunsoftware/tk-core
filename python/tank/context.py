@@ -120,19 +120,43 @@ class Context(object):
         :returns:       True if self represents the same context as other, 
                         otherwise False
         """
+        def _entity_dicts_eq(d1, d2):
+            """
+            Test to see if two entity dictionaries are equal.  They are considered
+            equal if both are dictionaries containing 'type' and 'id' with the same
+            values for both keys, For example:
+            
+            Comparing these two dictionaries would return True:
+            - {"type":"Shot", "id":123, "foo":"foo"}
+            - {"type":"Shot", "id":123, "foo":"bar", "bar":"foo"}
+            
+            But comparing these two dictionaries would return False:
+            - {"type":"Shot", "id":123, "foo":"foo"}
+            - {"type":"Shot", "id":567, "foo":"foo"} 
+    
+            :param d1:  First entity dictionary
+            :param d2:  Second entity dictionary
+            :returns:   True if d1 and d2 are considered equal, otherwise False.
+            """
+            if d1 == d2 == None:
+                return True
+            if d1 == None or d2 == None:
+                return False
+            return d1["type"] == d2["type"] and d1["id"] == d2["id"]        
+        
         if not isinstance(other, Context):
             return NotImplemented
 
-        if not self._entity_dicts_eq(self.project, other.project):
+        if not _entity_dicts_eq(self.project, other.project):
             return False
         
-        if not self._entity_dicts_eq(self.entity, other.entity):
+        if not _entity_dicts_eq(self.entity, other.entity):
             return False
         
-        if not self._entity_dicts_eq(self.step, other.step):
+        if not _entity_dicts_eq(self.step, other.step):
             return False
         
-        if not self._entity_dicts_eq(self.task, other.task):
+        if not _entity_dicts_eq(self.task, other.task):
             return False
         
         # compare additional entities
@@ -149,34 +173,10 @@ class Context(object):
 
         # finally compare the user - this may result in a Shotgun look-up 
         # so do this last!
-        if not self._entity_dicts_eq(self.user, other.user):
+        if not _entity_dicts_eq(self.user, other.user):
             return False
         
         return True 
-    
-    def _entity_dicts_eq(self, d1, d2):
-        """
-        Test to see if two entity dictionaries are equal.  They are considered
-        equal if both are dictionaries containing 'type' and 'id' with the same
-        values for both keys, For example:
-        
-        Comparing these two dictionaries would return True:
-        - {"type":"Shot", "id":123, "foo":"foo"}
-        - {"type":"Shot", "id":123, "foo":"bar", "bar":"foo"}
-        
-        But comparing these two dictionaries would return False:
-        - {"type":"Shot", "id":123, "foo":"foo"}
-        - {"type":"Shot", "id":567, "foo":"foo"} 
-
-        :param d1:  First entity dictionary
-        :param d2:  Second entity dictionary
-        :returns:   True if d1 and d2 are considered equal, otherwise False.
-        """
-        if d1 == d2 == None:
-            return True
-        if d1 == None or d2 == None:
-            return False
-        return d1["type"] == d2["type"] and d1["id"] == d2["id"]
 
     def __ne__(self, other):
         """
