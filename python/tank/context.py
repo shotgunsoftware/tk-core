@@ -44,7 +44,7 @@ class Context(object):
 
     """
 
-    def __init__(self, tk, project=None, entity=None, step=None, task=None, user=None, additional_entities=[]):
+    def __init__(self, tk, project=None, entity=None, step=None, task=None, user=None, additional_entities=None):
         """
         Do not create instances of this class directly.
         Instead, use the factory methods.
@@ -55,7 +55,7 @@ class Context(object):
         self.__step = step
         self.__task = task
         self.__user = user
-        self.__additional_entities = additional_entities
+        self.__additional_entities = additional_entities or []
         self._entity_fields_cache = {}
 
     def __repr__(self):
@@ -117,7 +117,8 @@ class Context(object):
         Test if this Context instance is equal to the other Context instance
                         
         :param other:   The other Context instance to compare with
-        :returns:       True if self == other, False otherwise
+        :returns:       True if self represents the same context as other, 
+                        otherwise False
         """
         if not isinstance(other, Context):
             return NotImplemented
@@ -134,18 +135,21 @@ class Context(object):
         if not self._entity_dicts_eq(self.task, other.task):
             return False
         
-        if not self._entity_dicts_eq(self.user, other.user):
+        # compare additional entities
+        if self.additional_entities and other.additional_entities:
+            # compare type, id tuples of all additional entities to ensure they are exactly the same.
+            # this compare ignores duplicates in either list and just ensures that the intersection
+            # of both lists contains all unique elements from both lists. 
+            types_and_ids = set([(e["type"], e["id"]) for e in self.additional_entities if e])
+            other_types_and_ids = set([(e["type"], e["id"]) for e in other.additional_entities if e])
+            if types_and_ids != other_types_and_ids:
+                return False
+        elif self.additional_entities or other.additional_entities:
             return False
 
-        # compare additional entities - note that currently this assumes the additional entity 
-        # lists are in exactly the same order for both self and other.        
-        if isinstance(self.additional_entities, list) and isinstance(other.additional_entities, list):
-            if len(self.additional_entities) != len(other.additional_entities):
-                return False
-            for entity, other_entity in zip(self.additional_entities, other.additional_entities):
-                if not self._entity_dicts_eq(entity, other_entity):
-                    return False
-        elif self.additional_entities != other.additional_entities:
+        # finally compare the user - this may result in a Shotgun look-up 
+        # so do this last!
+        if not self._entity_dicts_eq(self.user, other.user):
             return False
         
         return True 
@@ -154,25 +158,25 @@ class Context(object):
         """
         Test to see if two entity dictionaries are equal.  They are considered
         equal if both are dictionaries containing 'type' and 'id' with the same
-        values for both keys, e.g.:
+        values for both keys, For example:
         
-        {"type":"Shot", "id":123, "foo":"foo"} == {"type":"Shot", "id":123, "bar":"bar"} 
+        Comparing these two dictionaries would return True:
+        - {"type":"Shot", "id":123, "foo":"foo"}
+        - {"type":"Shot", "id":123, "foo":"bar", "bar":"foo"}
+        
+        But comparing these two dictionaries would return False:
+        - {"type":"Shot", "id":123, "foo":"foo"}
+        - {"type":"Shot", "id":567, "foo":"foo"} 
 
         :param d1:  First entity dictionary
         :param d2:  Second entity dictionary
-        :returns:   True of d1 == d2, False otherwise
+        :returns:   True if d1 and d2 are considered equal, otherwise False.
         """
-        if isinstance(d1, dict) and isinstance(d2, dict):
-            if ("type" in d1 and "id" in d1 
-                and "type" in d2 and "id" in d2):
-                # entity dictionaries are considered equal if they share
-                # the same type and id
-                return (d1["type"] == d2["type"] 
-                        and d1["id"] == d2["id"])
-        
-        # use the default compare for any instances that aren't 
-        # dictionaries containing both 'type' and 'id':
-        return d1 == d2
+        if d1 == d2 == None:
+            return True
+        if d1 == None or d2 == None:
+            return False
+        return d1["type"] == d2["type"] and d1["id"] == d2["id"]
 
     def __ne__(self, other):
         """
