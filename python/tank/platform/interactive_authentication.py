@@ -12,6 +12,7 @@
 UI and console based login for Toolkit.
 """
 
+# Using "with" with the lock to make sure it is always released.
 from __future__ import with_statement
 from getpass import getpass
 import logging
