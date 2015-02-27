@@ -16,12 +16,12 @@ import logging
 import tank
 import textwrap
 import datetime
-from tank import TankError
+from tank import TankError, TankAuthenticationError
 from tank.deploy.tank_commands.clone_configuration import clone_pipeline_configuration_html
 from tank.deploy import tank_command
 from tank.deploy.tank_commands.core_upgrade import TankCoreUpgrader
 from tank.deploy.tank_commands.action_base import Action
-from tank.util import authentication
+from tank.util import shotgun, authentication
 from tank.platform import engine, console_authenticate, console_logout
 from tank import pipelineconfig_utils
 
@@ -1099,13 +1099,6 @@ if __name__ == "__main__":
             exit_code = show_help(logger)
             sys.exit(exit_code)
 
-    # If the user is trying to logout, try to do so
-    if "logout" in cmd_line:
-        console_logout()
-        sys.exit()
-    else:
-        console_authenticate()
-
     # determine if we are running a localized core API.
     is_localized = pipelineconfig_utils.is_localized(install_root)
 
@@ -1136,6 +1129,13 @@ if __name__ == "__main__":
 
     exit_code = 1
     try:
+
+        # If the user is trying to logout, try to do so
+        if "logout" in cmd_line:
+            console_logout()
+            sys.exit()
+        else:
+            console_authenticate()
 
         if len(cmd_line) == 0:
             # > tank, no arguments
@@ -1226,6 +1226,11 @@ if __name__ == "__main__":
 
             exit_code = run_engine_cmd(logger, pipeline_config_root, ctx_list, cmd_name, using_cwd, cmd_args)
 
+    except TankAuthenticationError, e:
+        logger.info("Authentication was cancelled.")
+        # Error messages and such have already been handled by the method that threw this exception.
+        sys.exit(8)
+
     except TankError, e:
         logger.info("")
         if debug_mode:
@@ -1248,6 +1253,8 @@ if __name__ == "__main__":
         logger.exception("A general error was reported: %s" % e)
         logger.info("")
         exit_code = 7
+
+    # Do not use 8, it is alread being used when authentication was cancelled.
 
     logger.debug("Exiting with exit code %s" % exit_code)
     sys.exit(exit_code)

@@ -608,7 +608,7 @@ class Tank(object):
             local_path = path.get_local_site_cache_location(self.shotgun.base_url)
             # Make sure it exists.
             if not os.path.exists(local_path):
-                os.path.makedirs(local_path, 0700)
+                os.makedirs(local_path, 0700)
             # Cache the result.
             self.__local_site_cache_location = local_path
 

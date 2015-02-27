@@ -511,7 +511,6 @@ class Engine(TankBundle):
         Reauthenticate with the currently logged in user.
         """
         if self.has_ui:
-            # FIXME: Invoke from main thread.
             interactive_authentication.ui_renew_session()
         else:
             interactive_authentication.console_renew_session()

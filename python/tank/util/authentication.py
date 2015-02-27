@@ -16,16 +16,41 @@ import os
 import logging
 
 from tank_vendor.shotgun_api3 import Shotgun
-from tank_vendor.shotgun_api3 import AuthenticationFault
+from tank_vendor.shotgun_api3.lib import httplib2
+from tank_vendor.shotgun_api3 import AuthenticationFault, ProtocolError
 from tank.errors import TankAuthenticationError
 from ConfigParser import SafeConfigParser
 from tank.util import shotgun
-from tank.util import path
 
-# Configure logging
-logger = logging.getLogger("sgtk.authentication")
-# logger.setLevel(logging.DEBUG)
-logger.addHandler(logging.StreamHandler())
+# FIXME: Quick hack to easily disable logging in this module while keeping the
+# code compatible. We have to disable it by default because Maya will print all out
+# debug strings.
+if False:
+    # Configure logging
+    logger = logging.getLogger("sgtk.authentication")
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(logging.StreamHandler())
+else:
+    class logger:
+        @staticmethod
+        def debug(*args, **kwargs):
+            pass
+
+        @staticmethod
+        def info(*args, **kwargs):
+            pass
+
+        @staticmethod
+        def warning(*args, **kwargs):
+            pass
+
+        @staticmethod
+        def error(*args, **kwargs):
+            pass
+
+        @staticmethod
+        def exception(*args, **kwargs):
+            pass
 
 
 # Having the factory as an indirection to create a shotgun instance allows us to tweak unit tests
@@ -186,6 +211,8 @@ def generate_session_token(hostname, login, password, http_proxy):
         return sg.get_session_token()
     except AuthenticationFault:
         raise TankAuthenticationError("Authentication failed.")
+    except (ProtocolError, httplib2.ServerNotFoundError):
+        raise TankAuthenticationError("Server %s was not found." % hostname)
     except:
         # We couldn't login, so try again.
         logging.exception("There was a problem logging in.")
@@ -276,7 +303,8 @@ def _create_sg_connection_from_session(config_data=None):
         logger.debug("Token is still valid!")
         return sg
     else:
-        _delete_session_data(config_data["host"])
+        # Session token was invalid, so uncache it to make sure nobody else tries using it.
+        _delete_session_data()
         logger.debug("Failed refreshing the token.")
         return None
 
