@@ -143,6 +143,21 @@ def __get_sg_config_data(shotgun_cfg_path, user="default"):
     except Exception, error:
         raise TankError("Cannot load config file '%s'. Error: %s" % (shotgun_cfg_path, error))
 
+    return _parse_config_data(file_data, user, shotgun_cfg_path)
+
+
+def _parse_config_data(file_data, user, shotgun_cfg_path):
+    """
+    Parses configuration data and overrides it with the studio level hook's result if available.
+    :param file_data: Dictionnary with all the values from the configuration data.
+    :param user: Picks the configuration for a specific user in the configuration data.
+    :param shotgun_cfg_path: Path the configuration was loaded from.
+    :raises: TankError if there are missing fields in the configuration. The accepted configurations are:
+            - host
+            - host, api_script, api_key
+            In both cases, http_proxy is optional.
+    :returns: A dictionary holding the configuration data.
+    """
     if user in file_data:
         # new config format!
         # we have explicit users defined!
@@ -150,24 +165,34 @@ def __get_sg_config_data(shotgun_cfg_path, user="default"):
     else:
         # old format - not grouped by user
         config_data = file_data
-    
-    # now check if there is a studio level override hook which want to refine these settings 
+
+    # now check if there is a studio level override hook which want to refine these settings
     sg_hook_path = os.path.join(__get_api_core_config_location(), constants.STUDIO_HOOK_SG_CONNECTION_SETTINGS)
-    
+
     if os.path.exists(sg_hook_path):
         # custom hook is available!
-        config_data = hook.execute_hook(sg_hook_path, 
-                                        parent=None, 
-                                        config_data=config_data, 
-                                        user=user, 
+        config_data = hook.execute_hook(sg_hook_path,
+                                        parent=None,
+                                        config_data=config_data,
+                                        user=user,
                                         cfg_path=shotgun_cfg_path)
 
     # validate the config data to ensure all fields are present
     if "host" not in config_data:
         raise TankError("Missing required field 'host' in config '%s'" % shotgun_cfg_path)
 
-    return config_data
+    # The script authentication credentials need to be complete in order to work. They can be completely
+    # omitted or fully specified, but not halfway configured.
+    if "api_script" in config_data and "api_key" not in config_data:
+        raise TankError(
+            "Missing required field 'api_key' in config '%s' for script user authentication." % shotgun_cfg_path
+        )
+    if "api_script" not in config_data and "api_key" in config_data:
+        raise TankError(
+            "Missing required field 'api_script' in config '%s' for script user authentication." % shotgun_cfg_path
+        )
 
+    return config_data
 
 
 def __create_sg_connection(shotgun_cfg_path, evaluate_script_user, user="default"):
