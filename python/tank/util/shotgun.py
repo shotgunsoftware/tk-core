@@ -195,13 +195,11 @@ def _parse_config_data(file_data, user, shotgun_cfg_path):
     return config_data
 
 
-def __create_sg_connection(config_data, evaluate_script_user, user="default"):
+def __create_sg_connection(config_data, user="default"):
     """
     Creates a standard toolkit shotgun connection.
 
     :param shotgun_cfg_path: Configuration data
-    :param evaluate_script_user: if True, the id of the script user will be 
-                                 looked up and returned.
     :param user: If a multi-user config is used, this is the user to create the connection for.
     
     :returns: tuple with (sg_api_instance, script_user_dict) where script_user_dict is None if
@@ -214,18 +212,7 @@ def __create_sg_connection(config_data, evaluate_script_user, user="default"):
     # bolt on our custom user agent manager
     sg.tk_user_agent_handler = ToolkitUserAgentHandler(sg)
 
-    script_user = None
-
-    if evaluate_script_user:
-        # determine the script user running currently
-        # get the API script user ID from shotgun
-        script_user = sg.find_one("ApiUser",
-                                          [["firstname", "is", config_data["api_script"]]],
-                                          fields=["type", "id"])
-        if script_user is None:
-            raise TankError("Could not evaluate the current App Store User! Please contact support.")
-
-    return (sg, script_user)
+    return sg
 
     
 def download_url(sg, url, location):
@@ -338,7 +325,7 @@ def create_sg_connection(user="default"):
     :returns: SG API instance
     """
     config_data = __get_sg_config_data(__get_sg_config())
-    api_handle, _ = __create_sg_connection(config_data, evaluate_script_user=False, user=user)
+    api_handle = __create_sg_connection(config_data, user=user)
     return api_handle
 
 def create_sg_app_store_connection():
@@ -352,12 +339,26 @@ def create_sg_app_store_connection():
     as a standard sg entity dictionary.
     """
     global g_app_store_connection
-    
+
     if g_app_store_connection is None:
         # get connection parameters
         config_data = __get_sg_config_data(__get_app_store_config())
-        g_app_store_connection = __create_sg_connection(config_data, evaluate_script_user=True)
-    
+        sg = __create_sg_connection(config_data)
+
+        script_user = None
+
+        # determine the script user running currently
+        # get the API script user ID from shotgun
+        script_user = sg.find_one(
+            "ApiUser",
+            [["firstname", "is", config_data["api_script"]]],
+            fields=["type", "id"]
+        )
+        if script_user is None:
+            raise TankError("Could not evaluate the current App Store User! Please contact support.")
+
+        g_app_store_connection = sg, script_user
+
     return g_app_store_connection
 
 
