@@ -26,7 +26,7 @@ from tank.util import shotgun
 # FIXME: Quick hack to easily disable logging in this module while keeping the
 # code compatible. We have to disable it by default because Maya will print all out
 # debug strings.
-if False:
+if True:
     # Configure logging
     logger = logging.getLogger("sgtk.interactive_authentication")
     logger.setLevel(logging.DEBUG)
@@ -91,18 +91,18 @@ class AuthenticationHandlerBase(object):
             elif AuthenticationHandlerBase._authentication_disabled:
                 raise TankAuthenticationDisabled()
 
-            config_data = shotgun.get_associated_sg_config_data()
-
-            # We might not have login information, in that case use an empty dictionary.
-            login_info = authentication.get_login_info(config_data["host"]) or {}
+            # Get the current authentication values.
+            authentication_credentials = authentication.get_authentication_credentials(
+                force_human_user_authentication=True
+            )
 
             try:
                 logger.debug("Not authenticated, requesting user input.")
                 # Do the actually credentials prompting and authenticating.
                 hostname, login, session_token = self._do_authentication(
-                    config_data["host"],
-                    login_info.get("login", get_login_name()),
-                    config_data.get("http_proxy")
+                    authentication_credentials["host"],
+                    authentication_credentials.get("login", get_login_name()),
+                    authentication_credentials.get("http_proxy")
                 )
             except TankAuthenticationError:
                 AuthenticationHandlerBase._authentication_disabled = True
@@ -112,7 +112,7 @@ class AuthenticationHandlerBase(object):
             logger.debug("Login successful!")
 
             # Cache the credentials so subsequent session based logins can reuse the session id.
-            authentication.cache_session_data(hostname, login, session_token)
+            authentication.cache_authentication_credentials(hostname, login, session_token)
 
     def _do_authentication(self, host, login, http_proxy):
         """

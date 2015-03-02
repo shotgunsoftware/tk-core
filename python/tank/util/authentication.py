@@ -25,7 +25,7 @@ from tank.util import shotgun
 # FIXME: Quick hack to easily disable logging in this module while keeping the
 # code compatible. We have to disable it by default because Maya will print all out
 # debug strings.
-if False:
+if True:
     # Configure logging
     logger = logging.getLogger("sgtk.authentication")
     logger.setLevel(logging.DEBUG)
@@ -77,7 +77,7 @@ def _is_session_token_cached():
     Returns if there is a cached session token for the current user.
     :returns: True is there is, False otherwise.
     """
-    if get_login_info(shotgun.get_associated_sg_config_data()["host"]):
+    if get_login_info(get_authentication_credentials()["host"]):
         return True
     else:
 
@@ -141,7 +141,7 @@ def _validate_session_token(host, session_token, http_proxy):
         return None
 
 
-def cache_session_data(host, login, session_token):
+def _cache_session_data(host, login, session_token):
     """
     Caches the session data for a site and a user.
     :param host: Site we want to cache a session for.
@@ -173,9 +173,9 @@ def cache_session_data(host, login, session_token):
 
 def _delete_session_data():
     """
-    Clears the session cache for a given site.
+    Clears the session cache for the current site.
     """
-    host = shotgun.get_associated_sg_base_url()
+    host = get_authentication_credentials()["host"]
     logger.debug("Clearing session cached on disk.")
     try:
         info_path = _get_login_info_location(host)
@@ -218,23 +218,23 @@ def generate_session_token(hostname, login, password, http_proxy):
         logging.exception("There was a problem logging in.")
 
 
-def _is_script_user_authenticated(config_data):
+def _is_script_user_authenticated(authentication_data):
     """
     Indicates if we are authenticating with a script user for a given configuration.
-    :param config_data: The configuration data.
-    :returns: True is we are using a script user, False otherwise.
+    :param authentication_data: Information used to authenticate.
+    :returns: True is "api script" and "api_key" are present, False otherwise.
     """
-    return "api_script" in config_data and "api_key" in config_data
+    return "api_script" in authentication_data and "api_key" in authentication_data
 
 
-def _is_human_user_authenticated(config_data):
+def _is_human_user_authenticated(authentication_data):
     """
     Indicates if we are authenticating with a user.
-    :param config_data: The configuration data.
+    :param authentication_data: Information used to authenticate.
     :returns: True is we are using a session, False otherwise.
     """
-    # Try to create a connection. If something is create, we are authenticated.
-    return _create_sg_connection_from_session(config_data) is not None
+    # Try to create a connection. If something is created, we are authenticated.
+    return _create_sg_connection_from_session(authentication_data) is not None
 
 
 def is_human_user_authenticated():
@@ -242,7 +242,7 @@ def is_human_user_authenticated():
     Indicates if we authenticated with a user.
     :returns: True is we are using a user, False otherwise.
     """
-    return _is_human_user_authenticated(shotgun.get_associated_sg_config_data())
+    return _is_human_user_authenticated(get_authentication_credentials())
 
 
 def is_authenticated():
@@ -250,12 +250,10 @@ def is_authenticated():
     Indicates if we need to authenticate.
     :returns: True is we are using a script user or have a valid session token, False otherwise.
     """
-    config_data = shotgun.get_associated_sg_config_data()
-    return _is_script_user_authenticated(config_data) or _is_human_user_authenticated(config_data)
+    authentication_data = get_authentication_credentials()
+    return _is_script_user_authenticated(authentication_data) or _is_human_user_authenticated(authentication_data)
 
 
-# FIXME: When Manne's work on app store credential refactoring is merged, we can go ahead and
-# remove the config data parameter and retrieve it directly inside this method.
 def _create_or_renew_sg_connection_from_session(config_data):
     """
     Creates a shotgun connection using the current session token or a new one if the old one
@@ -283,29 +281,25 @@ def _create_or_renew_sg_connection_from_session(config_data):
     return sg
 
 
-def _create_sg_connection_from_session(config_data=None):
+def _create_sg_connection_from_session(authentication_credentials):
     """
     Tries to auto login to the site using the existing session_token that was saved.
+    :param authentication_credentials: Authentication credentials.
     :returns: Returns a Shotgun instance.
     """
     logger.debug("Trying to auto-login")
-    # Retrieve the config data from shotgun.yml and the associated login info if we didn't
-    # received it from the caller.
-    if not config_data:
-        logger.debug("No configuration data provided, retrieving default configuration.")
-        config_data = shotgun.get_associated_sg_config_data()
 
-    login_info = get_login_info(config_data["host"])
-    if not login_info:
+    if "login" not in authentication_credentials or "session_token" not in authentication_credentials:
+        logger.debug("Nothing was cached.")
         return None
 
     # Try to refresh the data
     logger.debug("Validating token.")
 
     sg = _validate_session_token(
-        config_data["host"],
-        login_info["session_token"],
-        config_data.get("http_proxy")
+        authentication_credentials["host"],
+        authentication_credentials["session_token"],
+        authentication_credentials.get("http_proxy")
     )
     if sg:
         logger.debug("Token is still valid!")
@@ -317,17 +311,17 @@ def _create_sg_connection_from_session(config_data=None):
         return None
 
 
-def create_sg_connection_from_script_user(config_data=None):
+def create_sg_connection_from_script_user(authentication_credentials):
     """
     Create a Shotgun connection based on a script user.
-    :param config_data: A dictionary with keys host, api_script, api_key and an optional http_proxy
+    :param authentication_credentials: A dictionary with keys host, api_script, api_key and an optional http_proxy.
     :returns: A Shotgun instance.
     """
     return _shotgun_instance_factory(
-        config_data["host"],
-        config_data["api_script"],
-        config_data["api_key"],
-        http_proxy=config_data.get("http_proxy", None)
+        authentication_credentials["host"],
+        authentication_credentials["api_script"],
+        authentication_credentials["api_key"],
+        http_proxy=authentication_credentials.get("http_proxy", None)
     )
 
 
@@ -337,13 +331,13 @@ def create_authenticated_sg_connection():
     :param config_data: A dictionary holding the site configuration.
     :returns: A Shotgun instance.
     """
-    config_data = shotgun.get_associated_sg_config_data()
+    authentication_credentials = get_authentication_credentials()
     # If no configuration information
-    if _is_script_user_authenticated(config_data):
+    if _is_script_user_authenticated(authentication_credentials):
         # create API
-        return create_sg_connection_from_script_user(config_data)
+        return create_sg_connection_from_script_user(authentication_credentials)
     else:
-        return _create_or_renew_sg_connection_from_session(config_data)
+        return _create_or_renew_sg_connection_from_session(authentication_credentials)
 
 
 def logout():
@@ -352,7 +346,63 @@ def logout():
     :returns: True is logging out was successful, False is no session was cached.
     """
     if _is_session_token_cached():
-        _delete_session_data()
+        # Forget the current hostname.
+        clear_cached_credentials()
         return True
     else:
         return False
+
+
+# FIXME: This is a hack for the desktop app so that once we have human user authenticated,
+# we always use human user authentication. Once we implement a CredentialsManager that can
+# be overloaded by an app, we will be able to get rid of the force_human_user_authentication
+# flag nonsense.
+_force_human_user_authentication = False
+
+
+def _is_force_human_user_authentication_enabled(force_human_user_authentication):
+    global _force_human_user_authentication
+    return _force_human_user_authentication or force_human_user_authentication
+
+
+def get_authentication_credentials(force_human_user_authentication=False):
+    """
+    Retrieves the authentication credentials.
+    :returns: A dictionary with credentials to connect to a site. If the authentication is made using
+              a script user, a dictionary with the following keys will be returned: host, api_script, api_key.
+              If the authentication is made using a human user, a dictionary with the following keys will
+              be returned: host, login, session_token. In both cases, an optional http_proxy entry can be present.
+    """
+    force = _is_force_human_user_authentication_enabled(force_human_user_authentication)
+    # Read the core's configuration data.
+    config_data = shotgun.get_associated_sg_config_data()
+
+    # If we are forcing human user authentication or we are not authenticated as a script user in the
+    # shotgun.yml file.
+    if force or not _is_script_user_authenticated(config_data):
+        # Retrieved the cached credentials from disk.
+        login_info = get_login_info(config_data["host"])
+        if login_info:
+            config_data["login"] = login_info["login"]
+            config_data["session_token"] = login_info["session_token"]
+    return config_data
+
+
+def clear_cached_credentials():
+    """
+    Clears cached credentials.
+    """
+    _delete_session_data()
+
+
+def cache_authentication_credentials(host, login, session_token):
+    """
+    Caches authentication credentials.
+    :param host: Host to cache.
+    :param login: Login to cache.
+    :param session_token: Session token to cache.
+    """
+    global _force_human_user_authentication
+    _force_human_user_authentication = True
+    # For now, only cache session data to disk.
+    _cache_session_data(host, login, session_token)

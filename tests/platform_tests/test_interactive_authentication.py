@@ -41,29 +41,24 @@ class LoginUiTests(TankTestBase):
     def _prepare_mocks(
         self,
         is_authenticated_mock,
-        get_associated_sg_config_data_mock,
-        get_login_info_mock,
-        cache_session_data_mock
+        get_authentication_credentials_mock,
+        cache_authentication_credentials_mock
     ):
         """
         Configures all the mocks for the two interactive unit tests.
         :param is_authenticated_mock: Mock for the tank.util.authentication.is_authenticated method.
-        :param get_associated_sg_config_data_mock: Mock for the tank.util.shotgun.get_associated_sg_config_data
-        :param get_login_info_mock: Mock for the tank.util.authentication.get_login_info
-        :param cache_session_data_mock: Mock for the tank.util.authentication.cache_session_data
+        :param get_authentication_credentials_mock: Mock for the tank.util.authentication.get_authentication_credentials_mock
+        :param cache_authentication_credentials_mock: Mock for the tank.util.authentication.cache_authentication_credentials_mock
         """
         is_authenticated_mock.return_value = False
-        get_associated_sg_config_data_mock.return_value = {
-            "host": "https://enter_your_site_here.shotgunstudio.com"
-        }
-        get_login_info_mock.return_value = {
+        get_authentication_credentials_mock.return_value = {
+            "host": "https://enter_your_host_name_here.shotgunstudio.com",
             "login": "enter_your_username_here"
         }
-        cache_session_data_mock.return_value = None
+        cache_authentication_credentials_mock.return_value = None
 
-    @patch("tank.util.authentication.cache_session_data")
-    @patch("tank.util.authentication.get_login_info")
-    @patch("tank.util.shotgun.get_associated_sg_config_data")
+    @patch("tank.util.authentication.cache_authentication_credentials")
+    @patch("tank.util.authentication.get_authentication_credentials")
     @patch("tank.util.authentication.is_authenticated")
     @interactive
     def test_interactive_login(self, *args):

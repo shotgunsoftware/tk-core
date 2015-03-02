@@ -444,29 +444,31 @@ class TestCreateSessionBasedConnection(TankTestBase):
     Tests the creation of a session based Shotgun connection.
     """
 
-    @patch("tank.util.shotgun.__get_sg_config")
-    @patch("tank.util.shotgun.__get_sg_config_data")
+    @patch("tank.util.authentication.get_authentication_credentials")
     @patch("tank.util.authentication._create_or_renew_sg_connection_from_session")
-    def test_no_script_user_uses_session(
+    def test_no_script_user_uses_human_user(
         self,
         create_or_renew_sg_connection_from_session_mock,
-        get_sg_config_data_mock,
-        get_sg_config_mock
+        get_authentication_credentials_mock
     ):
         """
         Makes sure having no user configured in shotgun.yml will invoke the
         _create_or_renew_sg_connection_from_session function.
         """
         config_data = {
-            "host": "https://something.shotgunsoftware.com"
+            "host": "https://something.shotgunstudio.com"
         }
-        get_sg_config_mock.return_value = ""
-        get_sg_config_data_mock.return_value = {}
+        get_authentication_credentials_mock.return_value = config_data
         create_or_renew_sg_connection_from_session_mock.return_value = mockgun.Shotgun(
             config_data["host"]
         )
 
-        tank.util.authentication.create_authenticated_sg_connection()
+        # Make sure the engine is None otherwise failing to authenticate (something.shotgunstudio.com doesn't exist)
+        # would trigger ui prompts.
+        self.assertIsNone(tank.platform.engine.current_engine())
+        # Because the credentials are invalid and there is no engine, no connection can be created.
+        self.assertIsNotNone(tank.util.authentication.create_authenticated_sg_connection())
+        # Make sure there was an attempt to authentication using cache session info.
         self.assertEqual(create_or_renew_sg_connection_from_session_mock.call_count, 1)
 
     class MockEngine:
@@ -481,7 +483,7 @@ class TestCreateSessionBasedConnection(TankTestBase):
         session renewal
         """
 
-        new_connection = mockgun.Shotgun("https://something.shotgunsoftware.com")
+        new_connection = mockgun.Shotgun("https://something.shotgunstudio.com")
         # First call will fail creating something from the cache, and the second call will be the 
         # after we renwed the session.
         create_sg_connection_from_session_mock.side_effect = [None, new_connection]

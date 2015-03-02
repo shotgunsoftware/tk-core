@@ -57,8 +57,12 @@ class SessionTests(TankTestBase):
         When cache info is valid and _validate_session_token succeeds, it's return value
         is returned by create_sg_connection_from_authentication.
         """
+        # The return value of the _validate_session_token is also the return value of
+        # _create_sg_connection_from_session. Make sure we are getting it.
         validate_session_token_mock.return_value = "Success"
-        self.assertEqual(authentication._create_sg_connection_from_session({"host": "abc"}), "Success")
+        self.assertEqual(authentication._create_sg_connection_from_session(
+            {"host": "abc", "login": "login", "session_token": "session_token"}
+        ), "Success")
 
     @patch("tank_test.mockgun.Shotgun.find_one")
     def test_authentication_failure_in_validate_session_token(self, find_one_mock):
@@ -91,5 +95,7 @@ class SessionTests(TankTestBase):
         """
         validate_session_token_mock.return_value = None
         delete_session_data_mock.return_value = None
-        self.assertEqual(authentication._create_sg_connection_from_session({"host": "abc"}), None)
+        self.assertEqual(authentication._create_sg_connection_from_session(
+            {"host": "abc", "login": "login", "session_token": "session_token"}
+        ), None)
         self.assertEqual(delete_session_data_mock.call_count, 1)
