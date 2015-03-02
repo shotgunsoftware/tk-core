@@ -195,11 +195,11 @@ def _parse_config_data(file_data, user, shotgun_cfg_path):
     return config_data
 
 
-def __create_sg_connection(shotgun_cfg_path, evaluate_script_user, user="default"):
+def __create_sg_connection(config_data, evaluate_script_user, user="default"):
     """
     Creates a standard toolkit shotgun connection.
 
-    :param shotgun_cfg_path: path to a configuration file to read settings from
+    :param shotgun_cfg_path: Configuration data
     :param evaluate_script_user: if True, the id of the script user will be 
                                  looked up and returned.
     :param user: If a multi-user config is used, this is the user to create the connection for.
@@ -207,9 +207,6 @@ def __create_sg_connection(shotgun_cfg_path, evaluate_script_user, user="default
     :returns: tuple with (sg_api_instance, script_user_dict) where script_user_dict is None if
               evaluate_script_user is False else a dictionary with type and id keys. 
     """
-    # get connection parameters
-    config_data = __get_sg_config_data(shotgun_cfg_path, user)
-
     from . import authentication
 
     sg = authentication.create_authenticated_sg_connection(config_data)
@@ -340,7 +337,8 @@ def create_sg_connection(user="default"):
     :param user: Optional shotgun config user to use when connecting to shotgun, as defined in shotgun.yml
     :returns: SG API instance
     """
-    api_handle, _ = __create_sg_connection(__get_sg_config(), evaluate_script_user=False, user=user)
+    config_data = __get_sg_config_data(__get_sg_config())
+    api_handle, _ = __create_sg_connection(config_data, evaluate_script_user=False, user=user)
     return api_handle
 
 def create_sg_app_store_connection():
@@ -356,7 +354,9 @@ def create_sg_app_store_connection():
     global g_app_store_connection
     
     if g_app_store_connection is None:
-        g_app_store_connection = __create_sg_connection(__get_app_store_config(), evaluate_script_user=True)
+        # get connection parameters
+        config_data = __get_sg_config_data(__get_app_store_config())
+        g_app_store_connection = __create_sg_connection(config_data, evaluate_script_user=True)
     
     return g_app_store_connection
 
