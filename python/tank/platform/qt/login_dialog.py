@@ -8,20 +8,13 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-# It is possible not to have an engine running yet so try to import different flavors of Qt.
-try:
-    from . import QtCore, QtGui
-except ImportError:
-    try:
-        from PySide import QtCore, QtGui
-    except ImportError:
-            from PyQt4 import QtCore, QtGui
 
 from tank.errors import TankAuthenticationError
 
 from . import resources_rc
 from . import ui_login_dialog
 from tank.util import authentication
+from .qt_abstraction import QtGui, QtCore
 
 
 class LoginDialog(QtGui.QDialog):

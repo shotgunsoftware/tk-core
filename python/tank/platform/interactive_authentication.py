@@ -71,15 +71,19 @@ class AuthenticationHandlerBase(object):
     be impossible to authenticate again.
     """
 
-    def authenticate(self):
+    def authenticate(self, force_human_user_authentication):
         """
         Common login logic, regardless of how we are actually logging in. It will first try to reuse
         any existing session and if that fails then it will ask for credentials and upon success
         the credentials will be cached.
+        :param force_human_user_authentication: Indicates if we should force authentication to be user based.
+                                                Setting to True disables automatic authentication as a script_user.
         """
         with AuthenticationHandlerBase._authentication_lock:
             # If we are authenticated, we're done here.
-            if authentication.is_authenticated():
+            if force_human_user_authentication and authentication.is_human_user_authenticated():
+                return
+            elif not force_human_user_authentication and authentication.is_authenticated():
                 return
             # If somebody disabled authentication, we're done here as well.
             elif AuthenticationHandlerBase._authentication_disabled:
@@ -295,28 +299,38 @@ def ui_renew_session():
     """
     Prompts the user to enter his password in a dialog to retrieve a new session token.
     """
-    UiAuthenticationHandler(is_session_renewal=True).authenticate()
+    # Force human user authentication, since ression renewal is always in the context of a user login.
+    UiAuthenticationHandler(is_session_renewal=True).authenticate(force_human_user_authentication=True)
 
 
-def ui_authenticate():
+def ui_authenticate(force_human_user_authentication=False):
     """
-    Prompts the user to login via a dialog and caches the session token for future reuse.
+    Authenticates the current process. Authentication can be done through script user authentication
+    or human user authentication. If doing human user authentication and there is no session cached, a
+    dialgo asking for user credentials will appear.
+    :param force_human_user_authentication: If force_human_user_authentication is set to True, any configured
+                                            script user will be ignored.
     """
-    UiAuthenticationHandler(is_session_renewal=False).authenticate()
+    UiAuthenticationHandler(is_session_renewal=False).authenticate(force_human_user_authentication)
 
 
 def console_renew_session():
     """
     Prompts the user to enter his password on the command line to retrieve a new session token.
     """
-    ConsoleRenewSessionHandler().authenticate()
+    # Force human user authentication, since ression renewal is always in the context of a user login.
+    ConsoleRenewSessionHandler().authenticate(force_human_user_authentication=True)
 
 
-def console_authenticate():
+def console_authenticate(force_human_user_authentication=False):
     """
-    Prompts the user to login on the command line and caches the session token for future reuse.
+    Authenticates the current process. Authentication can be done through script user authentication
+    or human user authentication. If doing human user authentication and there is no session cached, the
+    user credentials will be retrieved from the console.
+    :param force_human_user_authentication: If force_human_user_authentication is set to True, any configured
+                                            script user will be ignored.
     """
-    ConsoleLoginHandler().authenticate()
+    ConsoleLoginHandler().authenticate(force_human_user_authentication)
 
 
 def console_logout():

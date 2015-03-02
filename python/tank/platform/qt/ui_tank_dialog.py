@@ -6,7 +6,7 @@
 #
 # WARNING! All changes made in this file will be lost!
 
-from . import QtCore, QtGui
+from .qt_abstraction import QtCore, QtGui
 
 class Ui_TankDialog(object):
     def setupUi(self, TankDialog):

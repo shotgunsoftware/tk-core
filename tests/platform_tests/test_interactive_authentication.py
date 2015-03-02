@@ -23,20 +23,11 @@ class LoginUiTests(TankTestBase):
         """
         Adds Qt modules to tank.platform.qt and initializes QApplication
         """
-        from PySide import QtGui, QtCore
+        from tank.platform.qt.qt_abstraction import QtGui
         # Only configure qApp once, it's a singleton.
         if QtGui.qApp is None:
             self._app = QtGui.QApplication(sys.argv)
-
-        tank.platform.qt.QtCore = QtCore
-        tank.platform.qt.QtGui = QtGui
-
-    def tearDown(self):
-        """
-        Removes Qt modules from tank.platform.qt
-        """
-        del tank.platform.qt.QtCore
-        del tank.platform.qt.QtGui
+        super(LoginUiTests, self).setUp()
 
     def test_site_and_user_disabled_on_session_renewal(self):
         """
