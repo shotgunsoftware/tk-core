@@ -195,19 +195,22 @@ def _parse_config_data(file_data, user, shotgun_cfg_path):
     return config_data
 
 
-def __create_sg_connection(config_data, user="default"):
+def __create_sg_connection(config_data=None):
     """
     Creates a standard toolkit shotgun connection.
 
-    :param shotgun_cfg_path: Configuration data
-    :param user: If a multi-user config is used, this is the user to create the connection for.
-    
-    :returns: tuple with (sg_api_instance, script_user_dict) where script_user_dict is None if
-              evaluate_script_user is False else a dictionary with type and id keys. 
+    :param shotgun_cfg_path: Configuration data. If None, the authentication module will be responsible
+                             for determining which credentials to use.
+    :returns: A Shotgun connection.
     """
     from . import authentication
 
-    sg = authentication.create_authenticated_sg_connection(config_data)
+    if config_data:
+        # Credentials were passed in, so let's run the legacy authentication mechanism for script user.
+        sg = authentication.create_sg_connection_from_script_user(config_data)
+    else:
+        # We're not running any special code for Psyop, so run the new Toolkit authentication code.
+        sg = authentication.create_authenticated_sg_connection()
 
     # bolt on our custom user agent manager
     sg.tk_user_agent_handler = ToolkitUserAgentHandler(sg)
@@ -324,8 +327,13 @@ def create_sg_connection(user="default"):
     :param user: Optional shotgun config user to use when connecting to shotgun, as defined in shotgun.yml
     :returns: SG API instance
     """
-    config_data = __get_sg_config_data(__get_sg_config())
-    api_handle = __create_sg_connection(config_data, user=user)
+    # The "user" parameter was introduced by Psyop for Psyop. We will be supporting it in legacy
+    # code paths, but not in new ones.
+    if user != "default":
+        config_data = __get_sg_config_data(__get_sg_config(), user)
+        api_handle = __create_sg_connection(config_data)
+    else:
+        api_handle = __create_sg_connection()
     return api_handle
 
 def create_sg_app_store_connection():

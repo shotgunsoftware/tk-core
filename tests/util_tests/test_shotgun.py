@@ -466,7 +466,7 @@ class TestCreateSessionBasedConnection(TankTestBase):
             config_data["host"]
         )
 
-        tank.util.authentication.create_authenticated_sg_connection(config_data)
+        tank.util.authentication.create_authenticated_sg_connection()
         self.assertEqual(create_or_renew_sg_connection_from_session_mock.call_count, 1)
 
     class MockEngine:

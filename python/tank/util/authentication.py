@@ -317,7 +317,7 @@ def _create_sg_connection_from_session(config_data=None):
         return None
 
 
-def _create_sg_connection_from_script_user(config_data=None):
+def create_sg_connection_from_script_user(config_data=None):
     """
     Create a Shotgun connection based on a script user.
     :param config_data: A dictionary with keys host, api_script, api_key and an optional http_proxy
@@ -331,16 +331,17 @@ def _create_sg_connection_from_script_user(config_data=None):
     )
 
 
-def create_authenticated_sg_connection(config_data):
+def create_authenticated_sg_connection():
     """
     Creates an authenticated Shotgun connection.
     :param config_data: A dictionary holding the site configuration.
     :returns: A Shotgun instance.
     """
+    config_data = shotgun.get_associated_sg_config_data()
     # If no configuration information
     if _is_script_user_authenticated(config_data):
         # create API
-        return _create_sg_connection_from_script_user(config_data)
+        return create_sg_connection_from_script_user(config_data)
     else:
         return _create_or_renew_sg_connection_from_session(config_data)
 
