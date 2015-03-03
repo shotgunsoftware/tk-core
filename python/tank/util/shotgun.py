@@ -342,16 +342,8 @@ def __get_app_store_key_from_shotgun(sg_connection):
     :returns: tuple of strings with contents (script_name, script_key)
     """
     # handle proxy setup by pulling the proxy details from the main shotgun connection
-    if sg_connection.config.proxy_server:
-        if sg_connection.config.proxy_user and sg_connection.config.proxy_pass:
-            auth_string = "%s:%s@" % (sg_connection.config.proxy_user, sg_connection.config.proxy_pass)
-        else:
-            auth_string = ""
-        proxy_addr = "http://%s%s:%d" % (auth_string, 
-                                         sg_connection.config.proxy_server, 
-                                         sg_connection.config.proxy_port)
-        proxy_support = urllib2.ProxyHandler({sg_connection.config.scheme : proxy_addr})
-        opener = urllib2.build_opener(proxy_support)
+    if sg_connection.config.proxy_handler:
+        opener = urllib2.build_opener(sg_connection.config.proxy_handler)
         urllib2.install_opener(opener)
     
     # now connect to our site and use a special url to retrieve the app store script key
