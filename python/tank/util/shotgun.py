@@ -312,18 +312,23 @@ def create_sg_app_store_connection():
     
     # connect to the app store
     config_data = {}
-    config_data["host"] = client_site_sg.base_url
+    config_data["host"] = constants.SGTK_APP_STORE
     config_data["api_script"] = script_name
     config_data["api_key"] = script_key
     config_data["http_proxy"] = client_site_sg.config.raw_http_proxy
     app_store_sg = __create_sg_connection(config_data)
+    
     
     # now figure out the entity id for the script user    
     script_user = app_store_sg.find_one("ApiUser", [["firstname", "is", script_name]], fields=["type", "id"])
     if script_user is None:
         raise TankError("Could not evaluate the current App Store User! Please contact support.")
     
-    return (app_store_sg, script_user)
+    # cache it for later use
+    g_app_store_connection = (app_store_sg, script_user)
+    
+    return g_app_store_connection
+
 
 
 def __get_app_store_key_from_shotgun(sg_connection):
@@ -338,7 +343,6 @@ def __get_app_store_key_from_shotgun(sg_connection):
     """
     # handle proxy setup by pulling the proxy details from the main shotgun connection
     if sg_connection.config.proxy_server:
-        
         if sg_connection.config.proxy_user and sg_connection.config.proxy_pass:
             auth_string = "%s:%s@" % (sg_connection.config.proxy_user, sg_connection.config.proxy_pass)
         else:
@@ -351,7 +355,7 @@ def __get_app_store_key_from_shotgun(sg_connection):
         urllib2.install_opener(opener)
     
     # now connect to our site and use a special url to retrieve the app store script key
-    session_token = sg_connection.generate_session_token()
+    session_token = sg_connection.get_session_token()
     post_data = {"session_token": session_token}
     response = urllib2.urlopen("%s/api3/sgtk_install_script" % sg_connection.base_url, urllib.urlencode(post_data)) 
     html = response.read()
