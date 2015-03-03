@@ -62,7 +62,7 @@ def _is_session_token_cached():
     Returns if there is a cached session token for the current user.
     :returns: True is there is, False otherwise.
     """
-    if _is_human_user_authenticated(get_authentication_credentials()):
+    if _is_human_user_authenticated(get_connection_information()):
         return True
     else:
         return False
@@ -145,7 +145,7 @@ def is_human_user_authenticated():
     Indicates if we authenticated with a user.
     :returns: True is we are using a user, False otherwise.
     """
-    return _is_human_user_authenticated(get_authentication_credentials())
+    return _is_human_user_authenticated(get_connection_information())
 
 
 def is_authenticated():
@@ -153,7 +153,7 @@ def is_authenticated():
     Indicates if we need to authenticate.
     :returns: True is we are using a script user or have a valid session token, False otherwise.
     """
-    authentication_data = get_authentication_credentials()
+    authentication_data = get_connection_information()
     return _is_script_user_authenticated(authentication_data) or _is_human_user_authenticated(authentication_data)
 
 
@@ -184,15 +184,15 @@ def _create_or_renew_sg_connection_from_session(config_data):
     return sg
 
 
-def _create_sg_connection_from_session(authentication_credentials):
+def _create_sg_connection_from_session(connection_information):
     """
     Tries to auto login to the site using the existing session_token that was saved.
-    :param authentication_credentials: Authentication credentials.
+    :param connection_information: Authentication credentials.
     :returns: Returns a Shotgun instance.
     """
     logger.debug("Trying to auto-login")
 
-    if "login" not in authentication_credentials or "session_token" not in authentication_credentials:
+    if "login" not in connection_information or "session_token" not in connection_information:
         logger.debug("Nothing was cached.")
         return None
 
@@ -200,9 +200,9 @@ def _create_sg_connection_from_session(authentication_credentials):
     logger.debug("Validating token.")
 
     sg = _validate_session_token(
-        authentication_credentials["host"],
-        authentication_credentials["session_token"],
-        authentication_credentials.get("http_proxy")
+        connection_information["host"],
+        connection_information["session_token"],
+        connection_information.get("http_proxy")
     )
     if sg:
         logger.debug("Token is still valid!")
@@ -214,17 +214,17 @@ def _create_sg_connection_from_session(authentication_credentials):
         return None
 
 
-def create_sg_connection_from_script_user(authentication_credentials):
+def create_sg_connection_from_script_user(connection_information):
     """
     Create a Shotgun connection based on a script user.
-    :param authentication_credentials: A dictionary with keys host, api_script, api_key and an optional http_proxy.
+    :param connection_information: A dictionary with keys host, api_script, api_key and an optional http_proxy.
     :returns: A Shotgun instance.
     """
     return _shotgun_instance_factory(
-        authentication_credentials["host"],
-        authentication_credentials["api_script"],
-        authentication_credentials["api_key"],
-        http_proxy=authentication_credentials.get("http_proxy", None)
+        connection_information["host"],
+        connection_information["api_script"],
+        connection_information["api_key"],
+        http_proxy=connection_information.get("http_proxy", None)
     )
 
 
@@ -234,13 +234,13 @@ def create_authenticated_sg_connection():
     :param config_data: A dictionary holding the site configuration.
     :returns: A Shotgun instance.
     """
-    authentication_credentials = get_authentication_credentials()
+    connection_information = get_connection_information()
     # If no configuration information
-    if _is_script_user_authenticated(authentication_credentials):
+    if _is_script_user_authenticated(connection_information):
         # create API
-        return create_sg_connection_from_script_user(authentication_credentials)
+        return create_sg_connection_from_script_user(connection_information)
     else:
-        return _create_or_renew_sg_connection_from_session(authentication_credentials)
+        return _create_or_renew_sg_connection_from_session(connection_information)
 
 
 def logout():
@@ -258,7 +258,7 @@ def logout():
 
 # Shothands for AuthenticationManager.get_instance().xxx
 
-def get_authentication_credentials(force_human_user_authentication=False):
+def get_connection_information(force_human_user_authentication=False):
     """
     Retrieves the authentication credentials.
     :returns: A dictionary with credentials to connect to a site. If the authentication is made using
@@ -266,7 +266,7 @@ def get_authentication_credentials(force_human_user_authentication=False):
               If the authentication is made using a human user, a dictionary with the following keys will
               be returned: host, login, session_token. In both cases, an optional http_proxy entry can be present.
     """
-    return AuthenticationManager.get_instance().get_authentication_credentials(force_human_user_authentication)
+    return AuthenticationManager.get_instance().get_connection_information(force_human_user_authentication)
 
 
 def clear_cached_credentials():
@@ -276,13 +276,13 @@ def clear_cached_credentials():
     AuthenticationManager.get_instance().clear_cached_credentials()
 
 
-def cache_authentication_credentials(host, login, session_token):
+def cache_connection_information(host, login, session_token):
     """
     Caches authentication credentials.
     :param host: Host to cache.
     :param login: Login to cache.
     :param session_token: Session token to cache.
     """
-    AuthenticationManager.get_instance().cache_authentication_credentials(host, login, session_token)
+    AuthenticationManager.get_instance().cache_connection_information(host, login, session_token)
 
 

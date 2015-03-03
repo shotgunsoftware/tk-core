@@ -28,20 +28,20 @@ class SessionTests(TankTestBase):
     """
 
     @patch("tank.util.authentication._shotgun_instance_factory")
-    @patch("tank.util.authentication.AuthenticationManager.get_authentication_credentials")
+    @patch("tank.util.authentication.AuthenticationManager.get_connection_information")
     @patch("tank.util.shotgun.get_associated_sg_config_data")
     def run(
         self,
         arg0,
         get_associated_sg_config_data_mock,
-        get_authentication_credentials_mock,
+        get_connection_information_mock,
         shotgun_instance_factory_mock
     ):
         """
         Patches some api methods at a higher scope so we don't have to patch all tests individually.
         """
         # Mock the return value
-        get_authentication_credentials_mock.return_value = {
+        get_connection_information_mock.return_value = {
             "login": "tk-user",
             "session_token": "D3ADB33F",
             "host": "https://somewhere.shotguntudio.com"

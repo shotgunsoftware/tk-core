@@ -444,12 +444,12 @@ class TestCreateSessionBasedConnection(TankTestBase):
     Tests the creation of a session based Shotgun connection.
     """
 
-    @patch("tank.util.authentication.get_authentication_credentials")
+    @patch("tank.util.authentication.get_connection_information")
     @patch("tank.util.authentication._create_or_renew_sg_connection_from_session")
     def test_no_script_user_uses_human_user(
         self,
         create_or_renew_sg_connection_from_session_mock,
-        get_authentication_credentials_mock
+        get_connection_information_mock
     ):
         """
         Makes sure having no user configured in shotgun.yml will invoke the
@@ -458,7 +458,7 @@ class TestCreateSessionBasedConnection(TankTestBase):
         config_data = {
             "host": "https://something.shotgunstudio.com"
         }
-        get_authentication_credentials_mock.return_value = config_data
+        get_connection_information_mock.return_value = config_data
         create_or_renew_sg_connection_from_session_mock.return_value = mockgun.Shotgun(
             config_data["host"]
         )

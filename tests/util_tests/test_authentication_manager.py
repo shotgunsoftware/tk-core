@@ -46,7 +46,7 @@ class SessionTests(TankTestBase):
         self._prepare_common_mocks_with_script_user(get_associated_sg_config_data_mock)
         get_login_info_mock.side_effect = Exception("Should not try to get login information.")
 
-        cred = AuthenticationManager.get_instance().get_authentication_credentials(force_human_user_authentication=False)
+        cred = AuthenticationManager.get_instance().get_connection_information(force_human_user_authentication=False)
         self.assertTrue(authentication._is_script_user_authenticated(cred))
         self.assertFalse(authentication._is_human_user_authenticated(cred))
 
@@ -60,15 +60,14 @@ class SessionTests(TankTestBase):
         with self.assertRaises(TankError):
             authentication.AuthenticationManager.activate()
 
-    @patch("tank.util.shotgun.get_associated_sg_config_data")
-    def test_activating_derived_class_instantiates_derived_class(self, get_associated_sg_config_data_mock):
+    def test_activating_derived_class_instantiates_derived_class(self):
         """
         Makes sure that ClassDerivedFromAuthenticationManager.activate() instantiates the right
         class.
         """
         class Derived(AuthenticationManager):
             def __init__(self, payload):
-                super(Derived, self).__init__()
+                # Do not call the base class so we don't need to mock get_associated_sg_config_data.
                 self.payload = payload
 
         # Activate our derived class.
@@ -77,6 +76,3 @@ class SessionTests(TankTestBase):
         self.assertIsInstance(AuthenticationManager.get_instance(), Derived)
         # Make sure that the payload was
         self.assertTrue(AuthenticationManager.get_instance().payload == "payload")
-
-
-

@@ -92,7 +92,7 @@ class AuthenticationHandlerBase(object):
                 raise TankAuthenticationDisabled()
 
             # Get the current authentication values.
-            authentication_credentials = authentication.get_authentication_credentials(
+            connection_information = authentication.get_connection_information(
                 force_human_user_authentication=True
             )
 
@@ -100,9 +100,9 @@ class AuthenticationHandlerBase(object):
                 logger.debug("Not authenticated, requesting user input.")
                 # Do the actually credentials prompting and authenticating.
                 hostname, login, session_token = self._do_authentication(
-                    authentication_credentials["host"],
-                    authentication_credentials.get("login", get_login_name()),
-                    authentication_credentials.get("http_proxy")
+                    connection_information["host"],
+                    connection_information.get("login", get_login_name()),
+                    connection_information.get("http_proxy")
                 )
             except TankAuthenticationError:
                 AuthenticationHandlerBase._authentication_disabled = True
@@ -112,7 +112,7 @@ class AuthenticationHandlerBase(object):
             logger.debug("Login successful!")
 
             # Cache the credentials so subsequent session based logins can reuse the session id.
-            authentication.cache_authentication_credentials(hostname, login, session_token)
+            authentication.cache_connection_information(hostname, login, session_token)
 
     def _do_authentication(self, host, login, http_proxy):
         """

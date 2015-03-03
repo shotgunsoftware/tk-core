@@ -41,24 +41,24 @@ class LoginUiTests(TankTestBase):
     def _prepare_mocks(
         self,
         is_authenticated_mock,
-        get_authentication_credentials_mock,
-        cache_authentication_credentials_mock
+        get_connection_information_mock,
+        cache_connection_information_mock
     ):
         """
         Configures all the mocks for the two interactive unit tests.
         :param is_authenticated_mock: Mock for the tank.util.authentication.is_authenticated method.
-        :param get_authentication_credentials_mock: Mock for the tank.util.authentication.get_authentication_credentials_mock
-        :param cache_authentication_credentials_mock: Mock for the tank.util.authentication.cache_authentication_credentials_mock
+        :param get_connection_information_mock: Mock for the tank.util.authentication.get_connection_information_mock
+        :param cache_connection_information_mock: Mock for the tank.util.authentication.cache_connection_information_mock
         """
         is_authenticated_mock.return_value = False
-        get_authentication_credentials_mock.return_value = {
+        get_connection_information_mock.return_value = {
             "host": "https://enter_your_host_name_here.shotgunstudio.com",
             "login": "enter_your_username_here"
         }
-        cache_authentication_credentials_mock.return_value = None
+        cache_connection_information_mock.return_value = None
 
-    @patch("tank.util.authentication.cache_authentication_credentials")
-    @patch("tank.util.authentication.get_authentication_credentials")
+    @patch("tank.util.authentication.cache_connection_information")
+    @patch("tank.util.authentication.get_connection_information")
     @patch("tank.util.authentication.is_authenticated")
     @interactive
     def test_interactive_login(self, *args):

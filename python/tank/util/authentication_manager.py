@@ -136,7 +136,7 @@ class AuthenticationManager(object):
         else:
             return {}
 
-    def get_authentication_credentials(self, force_human_user_authentication):
+    def get_connection_information(self, force_human_user_authentication):
         """
         Returns a dictionary with connection parameters and user credentials.
         :param force_human_user_authentication: Skips script user credentials if True.
@@ -154,7 +154,7 @@ class AuthenticationManager(object):
         """
         self._delete_session_data()
 
-    def cache_authentication_credentials(self, host, login, session_token):
+    def cache_connection_information(self, host, login, session_token):
         """
         Caches authentication credentials.
         :param host: Host to cache.
