@@ -244,7 +244,7 @@ class AuthenticationManager(object):
         if _is_script_user_authenticated(self._core_config_data):
             return {
                 "api_key": self._core_config_data.get("api_key"),
-                "api_script": self._core_config_data("api_script")
+                "api_script": self._core_config_data.get("api_script")
             }
         else:
             return {}
