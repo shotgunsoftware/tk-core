@@ -227,14 +227,22 @@ def _is_script_user_authenticated(config_data):
     return "api_script" in config_data and "api_key" in config_data
 
 
-def _is_session_authenticated(config_data):
+def _is_human_user_authenticated(config_data):
     """
-    Indicates if we are authenticating with a session.
+    Indicates if we are authenticating with a user.
     :param config_data: The configuration data.
     :returns: True is we are using a session, False otherwise.
     """
     # Try to create a connection. If something is create, we are authenticated.
     return _create_sg_connection_from_session(config_data) is not None
+
+
+def is_human_user_authenticated():
+    """
+    Indicates if we authenticated with a user.
+    :returns: True is we are using a user, False otherwise.
+    """
+    return _is_human_user_authenticated(shotgun.get_associated_sg_config_data())
 
 
 def is_authenticated():
@@ -243,7 +251,7 @@ def is_authenticated():
     :returns: True is we are using a script user or have a valid session token, False otherwise.
     """
     config_data = shotgun.get_associated_sg_config_data()
-    return _is_script_user_authenticated(config_data) or _is_session_authenticated(config_data)
+    return _is_script_user_authenticated(config_data) or _is_human_user_authenticated(config_data)
 
 
 # FIXME: When Manne's work on app store credential refactoring is merged, we can go ahead and

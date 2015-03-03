@@ -22,7 +22,7 @@ function build_qt {
     $1 $2 > $UI_PYTHON_PATH/$3.py
     
     # replace PySide imports with local imports and remove line containing Created by date
-    sed -i "" -e "s/from PySide import/from . import/g" -e "/# Created:/d" $UI_PYTHON_PATH/$3.py
+    sed -i "" -e "s/from PySide import/from .qt_abstraction import/g" -e "/# Created:/d" $UI_PYTHON_PATH/$3.py
 }
 
 function build_ui {
