@@ -8,12 +8,14 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from __future__ import with_statement
 from mock import patch
 
 from tank_test.tank_test_base import *
 from tank_test import mockgun
 
 from tank.util import authentication
+from tank.errors import TankError
 
 from tank_vendor.shotgun_api3 import shotgun
 
@@ -56,6 +58,11 @@ class SessionTests(TankTestBase):
         """
         self.assertEqual(authentication.AuthenticationManager.get_instance()._get_login_info("abc")["login"], "tk-user")
         self.assertEqual(authentication.AuthenticationManager.get_instance()._get_login_info("abc")["session_token"], "D3ADB33F")
+
+    def test_too_many_activations(self):
+        authentication.AuthenticationManager.activate()
+        with self.assertRaises(TankError):
+            authentication.AuthenticationManager.activate()
 
     @patch("tank.util.authentication._validate_session_token")
     def test_create_from_valid_session(self, validate_session_token_mock):

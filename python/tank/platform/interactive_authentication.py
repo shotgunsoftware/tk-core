@@ -26,7 +26,7 @@ from tank.util import shotgun
 # FIXME: Quick hack to easily disable logging in this module while keeping the
 # code compatible. We have to disable it by default because Maya will print all out
 # debug strings.
-if True:
+if False:
     # Configure logging
     logger = logging.getLogger("sgtk.interactive_authentication")
     logger.setLevel(logging.DEBUG)
