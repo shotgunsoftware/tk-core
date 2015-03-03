@@ -78,6 +78,8 @@ class AuthenticationHandlerBase(object):
         the credentials will be cached.
         :param force_human_user_authentication: Indicates if we should force authentication to be user based.
                                                 Setting to True disables automatic authentication as a script_user.
+        :raises: TankAuthenticationError Thrown if the authentication is cancelled.
+        :raises: TankAuthenticationDisabled Thrown if authentication was cancelled before.
         """
         with AuthenticationHandlerBase._authentication_lock:
             # If we are authenticated, we're done here.
