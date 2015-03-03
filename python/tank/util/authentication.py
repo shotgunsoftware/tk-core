@@ -222,8 +222,8 @@ def create_sg_connection_from_script_user(connection_information):
     """
     return _shotgun_instance_factory(
         connection_information["host"],
-        connection_information["api_script"],
-        connection_information["api_key"],
+        script_name=connection_information["api_script"],
+        api_key=connection_information["api_key"],
         http_proxy=connection_information.get("http_proxy", None)
     )
 
@@ -249,7 +249,6 @@ def logout():
     :returns: True is logging out was successful, False is no session was cached.
     """
     if _is_session_token_cached():
-        # Forget the current hostname.
         clear_cached_credentials()
         return True
     else:
@@ -258,7 +257,7 @@ def logout():
 
 # Shothands for AuthenticationManager.get_instance().xxx
 
-def get_connection_information(force_human_user_authentication=False):
+def get_connection_information():
     """
     Retrieves the authentication credentials.
     :returns: A dictionary with credentials to connect to a site. If the authentication is made using
@@ -266,7 +265,7 @@ def get_connection_information(force_human_user_authentication=False):
               If the authentication is made using a human user, a dictionary with the following keys will
               be returned: host, login, session_token. In both cases, an optional http_proxy entry can be present.
     """
-    return AuthenticationManager.get_instance().get_connection_information(force_human_user_authentication)
+    return AuthenticationManager.get_instance().get_connection_information()
 
 
 def clear_cached_credentials():

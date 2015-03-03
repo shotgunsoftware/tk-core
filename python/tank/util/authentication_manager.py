@@ -92,13 +92,6 @@ class AuthenticationManager(object):
         """
         self._core_config_data = shotgun.get_associated_sg_config_data()
 
-        # FIXME: This is a workarond for the desktop app. Now that we have an authentication
-        # manager, we can go in the Desktop app and derive from the default authentication
-        # manager to provide extra functionality, notably disabling script user authentication
-        # which is as simple as overloading _get_script_user_credentials to return an
-        # empty dictionary in a new manager class and activating that manager.
-        self._force_human_user_authentication = False
-
     def get_host(self):
         """
         Returns the current host.
@@ -113,22 +106,19 @@ class AuthenticationManager(object):
         """
         return self._core_config_data.get("http_proxy")
 
-    def get_credentials(self, force_human_user_authentication):
+    def get_credentials(self):
         """
         Retrieves the credentials for the current user.
-        :param force_human_user_authentication: Skips script user credentials if True.
         :returns: A dictionary holding the credentials that were found. Can either contains keys:
                   - api_script and api_key
                   - login, session_token
                   - an empty dictionary.
                   The dictionary will be empty if no credentials were found.
         """
-        force = self._force_human_user_authentication or force_human_user_authentication
         # Break circular dependency by importing locally.
-        if not force:
-            script_user_credentials = self._get_script_user_credentials()
-            if script_user_credentials:
-                return script_user_credentials
+        script_user_credentials = self._get_script_user_credentials()
+        if script_user_credentials:
+            return script_user_credentials
 
         login_info = self._get_login_info(self.get_host())
         if login_info:
@@ -136,16 +126,15 @@ class AuthenticationManager(object):
         else:
             return {}
 
-    def get_connection_information(self, force_human_user_authentication):
+    def get_connection_information(self):
         """
         Returns a dictionary with connection parameters and user credentials.
-        :param force_human_user_authentication: Skips script user credentials if True.
         :returns: A dictionary with keys host, http_proxy and all the keys returned from get_credentials.
         """
         connection_info = {}
         connection_info["host"] = self.get_host()
         connection_info["http_proxy"] = self.get_http_proxy()
-        connection_info.update(self.get_credentials(force_human_user_authentication))
+        connection_info.update(self.get_credentials())
         return connection_info
 
     def clear_cached_credentials(self):
@@ -161,7 +150,6 @@ class AuthenticationManager(object):
         :param login: Login to cache.
         :param session_token: Session token to cache.
         """
-        self._force_human_user_authentication = True
         # For now, only cache session data to disk.
         self._cache_session_data(host, login, session_token)
 
