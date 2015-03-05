@@ -21,7 +21,6 @@ import threading
 from tank.errors import TankAuthenticationError, TankAuthenticationDisabled
 from tank.util import authentication
 from tank.util.login import get_login_name
-from tank.util import shotgun
 
 # FIXME: Quick hack to easily disable logging in this module while keeping the
 # code compatible. We have to disable it by default because Maya will print all out
@@ -71,38 +70,32 @@ class AuthenticationHandlerBase(object):
     be impossible to authenticate again.
     """
 
-    def authenticate(self, force_human_user_authentication):
+    def authenticate(self):
         """
         Common login logic, regardless of how we are actually logging in. It will first try to reuse
         any existing session and if that fails then it will ask for credentials and upon success
         the credentials will be cached.
-        :param force_human_user_authentication: Indicates if we should force authentication to be user based.
-                                                Setting to True disables automatic authentication as a script_user.
         :raises: TankAuthenticationError Thrown if the authentication is cancelled.
         :raises: TankAuthenticationDisabled Thrown if authentication was cancelled before.
         """
         with AuthenticationHandlerBase._authentication_lock:
             # If we are authenticated, we're done here.
-            if force_human_user_authentication and authentication.is_human_user_authenticated():
-                return
-            elif not force_human_user_authentication and authentication.is_authenticated():
+            if authentication.is_authenticated():
                 return
             # If somebody disabled authentication, we're done here as well.
             elif AuthenticationHandlerBase._authentication_disabled:
                 raise TankAuthenticationDisabled()
 
-            config_data = shotgun.get_associated_sg_config_data()
-
-            # We might not have login information, in that case use an empty dictionary.
-            login_info = authentication.get_login_info(config_data["host"]) or {}
+            # Get the current authentication values.
+            connection_information = authentication.get_connection_information()
 
             try:
                 logger.debug("Not authenticated, requesting user input.")
                 # Do the actually credentials prompting and authenticating.
                 hostname, login, session_token = self._do_authentication(
-                    config_data["host"],
-                    login_info.get("login", get_login_name()),
-                    config_data.get("http_proxy")
+                    connection_information["host"],
+                    connection_information.get("login", get_login_name()),
+                    connection_information.get("http_proxy")
                 )
             except TankAuthenticationError:
                 AuthenticationHandlerBase._authentication_disabled = True
@@ -112,7 +105,7 @@ class AuthenticationHandlerBase(object):
             logger.debug("Login successful!")
 
             # Cache the credentials so subsequent session based logins can reuse the session id.
-            authentication.cache_session_data(hostname, login, session_token)
+            authentication.cache_connection_information(hostname, login, session_token)
 
     def _do_authentication(self, host, login, http_proxy):
         """
@@ -301,38 +294,32 @@ def ui_renew_session():
     """
     Prompts the user to enter his password in a dialog to retrieve a new session token.
     """
-    # Force human user authentication, since ression renewal is always in the context of a user login.
-    UiAuthenticationHandler(is_session_renewal=True).authenticate(force_human_user_authentication=True)
+    UiAuthenticationHandler(is_session_renewal=True).authenticate()
 
 
-def ui_authenticate(force_human_user_authentication=False):
+def ui_authenticate():
     """
     Authenticates the current process. Authentication can be done through script user authentication
     or human user authentication. If doing human user authentication and there is no session cached, a
     dialgo asking for user credentials will appear.
-    :param force_human_user_authentication: If force_human_user_authentication is set to True, any configured
-                                            script user will be ignored.
     """
-    UiAuthenticationHandler(is_session_renewal=False).authenticate(force_human_user_authentication)
+    UiAuthenticationHandler(is_session_renewal=False).authenticate()
 
 
 def console_renew_session():
     """
     Prompts the user to enter his password on the command line to retrieve a new session token.
     """
-    # Force human user authentication, since ression renewal is always in the context of a user login.
-    ConsoleRenewSessionHandler().authenticate(force_human_user_authentication=True)
+    ConsoleRenewSessionHandler().authenticate()
 
 
-def console_authenticate(force_human_user_authentication=False):
+def console_authenticate():
     """
     Authenticates the current process. Authentication can be done through script user authentication
     or human user authentication. If doing human user authentication and there is no session cached, the
     user credentials will be retrieved from the console.
-    :param force_human_user_authentication: If force_human_user_authentication is set to True, any configured
-                                            script user will be ignored.
     """
-    ConsoleLoginHandler().authenticate(force_human_user_authentication)
+    ConsoleLoginHandler().authenticate()
 
 
 def console_logout():
@@ -340,6 +327,7 @@ def console_logout():
     Logs out of the currently cached session and prints whether it worked or not.
     """
     if authentication.logout():
-        print "Succesfully logged out of", shotgun.get_associated_sg_base_url()
+        connection_info = authentication.get_connection_information()
+        print "Succesfully logged out of", connection_info["host"]
     else:
         print "Not logged in."

@@ -8,12 +8,14 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from __future__ import with_statement
 from mock import patch
 
 from tank_test.tank_test_base import *
 from tank_test import mockgun
 
 from tank.util import authentication
+from tank.errors import TankError
 
 from tank_vendor.shotgun_api3 import shotgun
 
@@ -26,30 +28,45 @@ class SessionTests(TankTestBase):
     """
 
     @patch("tank.util.authentication._shotgun_instance_factory")
-    @patch("tank.util.authentication.get_login_info")
-    def run(self, *args):
+    @patch("tank.util.authentication.AuthenticationManager.get_connection_information")
+    @patch("tank.util.shotgun.get_associated_sg_config_data")
+    def run(
+        self,
+        arg0,
+        get_associated_sg_config_data_mock,
+        get_connection_information_mock,
+        shotgun_instance_factory_mock
+    ):
         """
         Patches some api methods at a higher scope so we don't have to patch all tests individually.
         """
-        get_login_info_mock = args[1]
-        shotgun_instance_factory_mock = args[2]
-        # Make sure we are mocking what we think we are mocking.
-        self.assertIn("get_login_info", repr(get_login_info_mock))
-        self.assertIn("_shotgun_instance_factory", repr(shotgun_instance_factory_mock))
         # Mock the return value
-        get_login_info_mock.return_value = {"login": "tk-user", "session_token": "D3ADB33F"}
+        get_connection_information_mock.return_value = {
+            "login": "tk-user",
+            "session_token": "D3ADB33F",
+            "host": "https://somewhere.shotguntudio.com"
+        }
         # Mock the factory method so we never create a Shotgun instance that tries to connect to the
         # site.
         shotgun_instance_factory_mock.side_effect = mockgun.Shotgun
+        # Mock the return value
+        get_associated_sg_config_data_mock.return_value = {"host": "https://somewhere.shotguntudio.com"}
 
-        super(SessionTests, self).run(args[0])
+        super(SessionTests, self).run(arg0)
 
-    def test_mock(self):
+    def tearDown(self):
+        # Make sure an AuthenticationManager has been activated.
+        authentication.AuthenticationManager.get_instance()
+        # Deactivate it.
+        authentication.AuthenticationManager.deactivate()
+
+    def test_too_many_activations(self):
         """
-        Make sure we are mocking get_login_info correctly"
+        Makes sure activating an AuthenticationManager twice will throw.
         """
-        self.assertEqual(authentication.get_login_info("abc")["login"], "tk-user")
-        self.assertEqual(authentication.get_login_info("abc")["session_token"], "D3ADB33F")
+        authentication.AuthenticationManager.activate()
+        with self.assertRaises(TankError):
+            authentication.AuthenticationManager.activate()
 
     @patch("tank.util.authentication._validate_session_token")
     def test_create_from_valid_session(self, validate_session_token_mock):
@@ -57,8 +74,12 @@ class SessionTests(TankTestBase):
         When cache info is valid and _validate_session_token succeeds, it's return value
         is returned by create_sg_connection_from_authentication.
         """
+        # The return value of the _validate_session_token is also the return value of
+        # _create_sg_connection_from_session. Make sure we are getting it.
         validate_session_token_mock.return_value = "Success"
-        self.assertEqual(authentication._create_sg_connection_from_session({"host": "abc"}), "Success")
+        self.assertEqual(authentication._create_sg_connection_from_session(
+            {"host": "abc", "login": "login", "session_token": "session_token"}
+        ), "Success")
 
     @patch("tank_test.mockgun.Shotgun.find_one")
     def test_authentication_failure_in_validate_session_token(self, find_one_mock):
@@ -83,13 +104,15 @@ class SessionTests(TankTestBase):
             authentication._validate_session_token("https://a.com", "b", None)
 
     @patch("tank.util.authentication._validate_session_token")
-    @patch("tank.util.authentication._delete_session_data")
-    def test_bad_credentials_should_wipe_session_data(self, validate_session_token_mock, delete_session_data_mock):
+    @patch("tank.util.authentication.clear_cached_credentials")
+    def test_bad_credentials_should_wipe_session_data(self, validate_session_token_mock, clear_cached_credentials_mock):
         """
         When cache info is valid and _validate_session_token succeeds, it's return value
         is returned by create_sg_connection_from_authentication.
         """
         validate_session_token_mock.return_value = None
-        delete_session_data_mock.return_value = None
-        self.assertEqual(authentication._create_sg_connection_from_session({"host": "abc"}), None)
-        self.assertEqual(delete_session_data_mock.call_count, 1)
+        clear_cached_credentials_mock.return_value = None
+        self.assertEqual(authentication._create_sg_connection_from_session(
+            {"host": "abc", "login": "login", "session_token": "session_token"}
+        ), None)
+        self.assertEqual(clear_cached_credentials_mock.call_count, 1)

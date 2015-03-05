@@ -12,15 +12,14 @@
 Shotgun authentication for Toolkit
 """
 
-import os
 import logging
 
 from tank_vendor.shotgun_api3 import Shotgun
 from tank_vendor.shotgun_api3.lib import httplib2
 from tank_vendor.shotgun_api3 import AuthenticationFault, ProtocolError
 from tank.errors import TankAuthenticationError
-from ConfigParser import SafeConfigParser
-from tank.util import shotgun
+
+from .authentication_manager import AuthenticationManager
 
 # FIXME: Quick hack to easily disable logging in this module while keeping the
 # code compatible. We have to disable it by default because Maya will print all out
@@ -58,63 +57,15 @@ else:
 _shotgun_instance_factory = Shotgun
 
 
-def _get_login_info_location(base_url):
-    """
-    Returns the location of the session file on disk for a specific site.
-    :param base_url: The site we want the login information for.
-    :returns: Path to the login information.
-    """
-    from tank.util import path
-    return os.path.join(
-        path.get_local_site_cache_location(base_url),
-        "authentication",
-        "login.ini"
-    )
-
-
 def _is_session_token_cached():
     """
     Returns if there is a cached session token for the current user.
     :returns: True is there is, False otherwise.
     """
-    if get_login_info(shotgun.get_associated_sg_config_data()["host"]):
+    if _is_human_user_authenticated(get_connection_information()):
         return True
     else:
-
         return False
-
-
-def get_login_info(base_url):
-    """
-    Returns the cached login info if found.
-    :param base_url: The site we want the login information for.
-    :returns: Returns a dictionary with keys login and session_token or None
-    """
-    # Retrieve the location of the cached info
-    info_path = _get_login_info_location(base_url)
-    # Nothing was cached, return an empty dictionary.
-    if not os.path.exists(info_path):
-        logger.debug("No cache found at %s" % info_path)
-        return None
-    try:
-        # Read the login information
-        config = SafeConfigParser({"login": None, "session_token": None})
-        config.read(info_path)
-        if not config.has_section("LoginInfo"):
-            logger.debug("No Login info was found")
-            return None
-
-        login = config.get("LoginInfo", "login", raw=True)
-        session_token = config.get("LoginInfo", "session_token", raw=True)
-
-        if not login or not session_token:
-            logger.debug("Incomplete settings (login:%s, session_token:%s)" % (login, session_token))
-            return None
-
-        return {"login": login, "session_token": session_token}
-    except Exception:
-        logger.exception("Exception thrown while loading cached session info.")
-        return None
 
 
 def _validate_session_token(host, session_token, http_proxy):
@@ -139,54 +90,6 @@ def _validate_session_token(host, session_token, http_proxy):
         # Session was expired.
         logger.exception(e)
         return None
-
-
-def cache_session_data(host, login, session_token):
-    """
-    Caches the session data for a site and a user.
-    :param host: Site we want to cache a session for.
-    :param login: User we want to cache a session for.
-    :param session_token: Session token we want to cache.
-    """
-    # Retrieve the cached info file location from the host
-    info_path = _get_login_info_location(host)
-
-    # make sure the info_dir exists!
-    info_dir, info_file = os.path.split(info_path)
-    if not os.path.exists(info_dir):
-        os.makedirs(info_dir, 0700)
-
-    logger.debug("Caching login info at %s...", info_path)
-    # Create a document with the following format:
-    # [LoginInfo]
-    # login=username
-    # session_token=some_unique_id
-    config = SafeConfigParser()
-    config.add_section("LoginInfo")
-    config.set("LoginInfo", "login", login)
-    config.set("LoginInfo", "session_token", session_token)
-    # Write it to disk.
-    with open(info_path, "w") as configfile:
-        config.write(configfile)
-    logger.debug("Cached!")
-
-
-def _delete_session_data():
-    """
-    Clears the session cache for a given site.
-    """
-    host = shotgun.get_associated_sg_base_url()
-    logger.debug("Clearing session cached on disk.")
-    try:
-        info_path = _get_login_info_location(host)
-        if os.path.exists(info_path):
-            logger.debug("Session file found.")
-            os.remove(info_path)
-            logger.debug("Session cleared.")
-        else:
-            logger.debug("Session file not found: %s", info_path)
-    except:
-        logger.exception("Couldn't delete the site cache file")
 
 
 def generate_session_token(hostname, login, password, http_proxy):
@@ -218,23 +121,23 @@ def generate_session_token(hostname, login, password, http_proxy):
         logging.exception("There was a problem logging in.")
 
 
-def _is_script_user_authenticated(config_data):
+def _is_script_user_authenticated(authentication_data):
     """
     Indicates if we are authenticating with a script user for a given configuration.
-    :param config_data: The configuration data.
-    :returns: True is we are using a script user, False otherwise.
+    :param authentication_data: Information used to authenticate.
+    :returns: True is "api script" and "api_key" are present, False otherwise.
     """
-    return "api_script" in config_data and "api_key" in config_data
+    return "api_script" in authentication_data and "api_key" in authentication_data
 
 
-def _is_human_user_authenticated(config_data):
+def _is_human_user_authenticated(authentication_data):
     """
     Indicates if we are authenticating with a user.
-    :param config_data: The configuration data.
+    :param authentication_data: Information used to authenticate.
     :returns: True is we are using a session, False otherwise.
     """
-    # Try to create a connection. If something is create, we are authenticated.
-    return _create_sg_connection_from_session(config_data) is not None
+    # Try to create a connection. If something is created, we are authenticated.
+    return _create_sg_connection_from_session(authentication_data) is not None
 
 
 def is_human_user_authenticated():
@@ -242,7 +145,7 @@ def is_human_user_authenticated():
     Indicates if we authenticated with a user.
     :returns: True is we are using a user, False otherwise.
     """
-    return _is_human_user_authenticated(shotgun.get_associated_sg_config_data())
+    return _is_human_user_authenticated(get_connection_information())
 
 
 def is_authenticated():
@@ -250,19 +153,17 @@ def is_authenticated():
     Indicates if we need to authenticate.
     :returns: True is we are using a script user or have a valid session token, False otherwise.
     """
-    config_data = shotgun.get_associated_sg_config_data()
-    return _is_script_user_authenticated(config_data) or _is_human_user_authenticated(config_data)
+    authentication_data = get_connection_information()
+    return _is_script_user_authenticated(authentication_data) or _is_human_user_authenticated(authentication_data)
 
 
-# FIXME: When Manne's work on app store credential refactoring is merged, we can go ahead and
-# remove the config data parameter and retrieve it directly inside this method.
 def _create_or_renew_sg_connection_from_session(config_data):
     """
     Creates a shotgun connection using the current session token or a new one if the old one
     expired.
     :param config_data: A dictionary holding the "host" and "http_proxy"
     :returns: A valid Shotgun instance.
-    :raises TankAuthenticationError: If we couldn't get a valid session, a TankError is thrown.
+    :raises TankAuthenticationError: If we couldn't get a valid session, a TankAuthenticationError is thrown.
     """
     from ..platform import engine
 
@@ -283,66 +184,63 @@ def _create_or_renew_sg_connection_from_session(config_data):
     return sg
 
 
-def _create_sg_connection_from_session(config_data=None):
+def _create_sg_connection_from_session(connection_information):
     """
     Tries to auto login to the site using the existing session_token that was saved.
+    :param connection_information: Authentication credentials.
     :returns: Returns a Shotgun instance.
     """
     logger.debug("Trying to auto-login")
-    # Retrieve the config data from shotgun.yml and the associated login info if we didn't
-    # received it from the caller.
-    if not config_data:
-        logger.debug("No configuration data provided, retrieving default configuration.")
-        config_data = shotgun.get_associated_sg_config_data()
 
-    login_info = get_login_info(config_data["host"])
-    if not login_info:
+    if "login" not in connection_information or "session_token" not in connection_information:
+        logger.debug("Nothing was cached.")
         return None
 
     # Try to refresh the data
     logger.debug("Validating token.")
 
     sg = _validate_session_token(
-        config_data["host"],
-        login_info["session_token"],
-        config_data.get("http_proxy")
+        connection_information["host"],
+        connection_information["session_token"],
+        connection_information.get("http_proxy")
     )
     if sg:
         logger.debug("Token is still valid!")
         return sg
     else:
         # Session token was invalid, so uncache it to make sure nobody else tries using it.
-        _delete_session_data()
+        clear_cached_credentials()
         logger.debug("Failed refreshing the token.")
         return None
 
 
-def _create_sg_connection_from_script_user(config_data=None):
+def create_sg_connection_from_script_user(connection_information):
     """
     Create a Shotgun connection based on a script user.
-    :param config_data: A dictionary with keys host, api_script, api_key and an optional http_proxy
+    :param connection_information: A dictionary with keys host, api_script, api_key and an optional http_proxy.
     :returns: A Shotgun instance.
     """
     return _shotgun_instance_factory(
-        config_data["host"],
-        config_data["api_script"],
-        config_data["api_key"],
-        http_proxy=config_data.get("http_proxy", None)
+        connection_information["host"],
+        script_name=connection_information["api_script"],
+        api_key=connection_information["api_key"],
+        http_proxy=connection_information.get("http_proxy", None)
     )
 
 
-def create_authenticated_sg_connection(config_data):
+def create_authenticated_sg_connection():
     """
     Creates an authenticated Shotgun connection.
     :param config_data: A dictionary holding the site configuration.
     :returns: A Shotgun instance.
     """
+    connection_information = get_connection_information()
     # If no configuration information
-    if _is_script_user_authenticated(config_data):
+    if _is_script_user_authenticated(connection_information):
         # create API
-        return _create_sg_connection_from_script_user(config_data)
+        return create_sg_connection_from_script_user(connection_information)
     else:
-        return _create_or_renew_sg_connection_from_session(config_data)
+        return _create_or_renew_sg_connection_from_session(connection_information)
 
 
 def logout():
@@ -351,7 +249,39 @@ def logout():
     :returns: True is logging out was successful, False is no session was cached.
     """
     if _is_session_token_cached():
-        _delete_session_data()
+        clear_cached_credentials()
         return True
     else:
         return False
+
+
+# Shothands for AuthenticationManager.get_instance().xxx
+
+def get_connection_information():
+    """
+    Retrieves the authentication credentials.
+    :returns: A dictionary with credentials to connect to a site. If the authentication is made using
+              a script user, a dictionary with the following keys will be returned: host, api_script, api_key.
+              If the authentication is made using a human user, a dictionary with the following keys will
+              be returned: host, login, session_token. In both cases, an optional http_proxy entry can be present.
+    """
+    return AuthenticationManager.get_instance().get_connection_information()
+
+
+def clear_cached_credentials():
+    """
+    Clears cached credentials.
+    """
+    AuthenticationManager.get_instance().clear_cached_credentials()
+
+
+def cache_connection_information(host, login, session_token):
+    """
+    Caches authentication credentials.
+    :param host: Host to cache.
+    :param login: Login to cache.
+    :param session_token: Session token to cache.
+    """
+    AuthenticationManager.get_instance().cache_connection_information(host, login, session_token)
+
+
