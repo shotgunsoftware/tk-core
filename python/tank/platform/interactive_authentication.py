@@ -21,7 +21,6 @@ import threading
 from tank.errors import TankAuthenticationError, TankAuthenticationDisabled
 from tank.util import authentication
 from tank.util.login import get_login_name
-from tank.util import shotgun
 
 # FIXME: Quick hack to easily disable logging in this module while keeping the
 # code compatible. We have to disable it by default because Maya will print all out
@@ -328,6 +327,7 @@ def console_logout():
     Logs out of the currently cached session and prints whether it worked or not.
     """
     if authentication.logout():
-        print "Succesfully logged out of", shotgun.get_associated_sg_base_url()
+        connection_info = authentication.get_connection_information()
+        print "Succesfully logged out of", connection_info["host"]
     else:
         print "Not logged in."
