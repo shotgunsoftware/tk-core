@@ -2,22 +2,26 @@
 
 # Form implementation generated from reading ui file 'item.ui'
 #
-# Created: Fri Jul 11 11:44:26 2014
-#      by: pyside-uic 0.2.13 running on PySide 1.1.0
+#      by: pyside-uic 0.2.15 running on PySide 1.2.2
 #
 # WARNING! All changes made in this file will be lost!
 
-from . import QtCore, QtGui
+from .qt_abstraction import QtCore, QtGui
 
 class Ui_Item(object):
     def setupUi(self, Item):
         Item.setObjectName("Item")
-        Item.resize(335, 102)
+        Item.resize(335, 110)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Minimum)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(Item.sizePolicy().hasHeightForWidth())
         Item.setSizePolicy(sizePolicy)
+        Item.setStyleSheet("QLabel{\n"
+"   font-size: 11px;\n"
+"   margin-bottom: 3px\n"
+"}\n"
+"")
         self.verticalLayout = QtGui.QVBoxLayout(Item)
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout.setObjectName("verticalLayout")
@@ -30,7 +34,7 @@ class Ui_Item(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.name.sizePolicy().hasHeightForWidth())
         self.name.setSizePolicy(sizePolicy)
-        self.name.setStyleSheet("font-size: 14px;")
+        self.name.setStyleSheet("font-size: 13px;")
         self.name.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
         self.name.setWordWrap(True)
         self.name.setObjectName("name")
@@ -51,9 +55,9 @@ class Ui_Item(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.value.sizePolicy().hasHeightForWidth())
         self.value.setSizePolicy(sizePolicy)
-        self.value.setStyleSheet("font-size: 12px;")
         self.value.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
         self.value.setWordWrap(True)
+        self.value.setTextInteractionFlags(QtCore.Qt.LinksAccessibleByMouse|QtCore.Qt.TextSelectableByMouse)
         self.value.setObjectName("value")
         self.verticalLayout.addWidget(self.value)
         self.type = QtGui.QLabel(Item)
@@ -62,16 +66,17 @@ class Ui_Item(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.type.sizePolicy().hasHeightForWidth())
         self.type.setSizePolicy(sizePolicy)
-        self.type.setStyleSheet("font-size: 12px;")
         self.type.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
         self.type.setWordWrap(True)
+        self.type.setTextInteractionFlags(QtCore.Qt.LinksAccessibleByMouse|QtCore.Qt.TextSelectableByMouse)
         self.type.setObjectName("type")
         self.verticalLayout.addWidget(self.type)
         self.description = QtGui.QLabel(Item)
-        self.description.setStyleSheet("font-size: 11px;")
+        self.description.setMaximumSize(QtCore.QSize(350, 16777215))
         self.description.setTextFormat(QtCore.Qt.RichText)
         self.description.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
         self.description.setWordWrap(True)
+        self.description.setTextInteractionFlags(QtCore.Qt.LinksAccessibleByMouse|QtCore.Qt.TextSelectableByMouse)
         self.description.setObjectName("description")
         self.verticalLayout.addWidget(self.description)
         spacerItem = QtGui.QSpacerItem(20, 0, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)

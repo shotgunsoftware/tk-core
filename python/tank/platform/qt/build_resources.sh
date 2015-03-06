@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # 
-# Copyright (c) 2013 Shotgun Software Inc.
+# Copyright (c) 2015 Shotgun Software Inc.
 # 
 # CONFIDENTIAL AND PROPRIETARY
 # 
@@ -10,10 +10,37 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-echo "building user interfaces..."
-pyside-uic --from-imports tank_dialog.ui > ./ui_tank_dialog.py
-pyside-uic --from-imports item.ui > ./ui_item.py
-pyside-uic --from-imports busy_dialog.ui > ./ui_busy_dialog.py
+# The path to output all built .py files to: 
+UI_PYTHON_PATH=.
 
+
+# Helper functions to build UI files
+function build_qt {
+    echo " > Building " $2
+    
+    # compile ui to python
+    $1 $2 > $UI_PYTHON_PATH/$3.py
+    
+    # replace PySide imports with local imports and remove line containing Created by date
+    sed -i "" -e "s/from PySide import/from .qt_abstraction import/g" -e "/# Created:/d" $UI_PYTHON_PATH/$3.py
+}
+
+function build_ui {
+    build_qt "pyside-uic --from-imports" "$1.ui" "ui_$1"
+}  
+
+function build_res {
+    build_qt "pyside-rcc" "$1.qrc" "$1_rc"
+}
+
+
+# build UI's:
+echo "building user interfaces..."
+build_ui tank_dialog
+build_ui item
+build_ui busy_dialog
+build_ui login_dialog
+
+# build resources
 echo "building resources..."
-pyside-rcc resources.qrc > ./resources_rc.py
+build_res resources

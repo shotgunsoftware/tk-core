@@ -28,7 +28,7 @@ class Environment(object):
     """
     This class encapsulates an environment file and provides a set of methods
     for quick and easy extraction of data from the environment and metadata
-    about the different parts of the confguration (by pulling the info.yml
+    about the different parts of the configuration (by pulling the info.yml
     files from the various apps and engines referenced in the environment file)
 
     Don't construct this class by hand! Instead, use the

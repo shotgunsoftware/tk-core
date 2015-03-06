@@ -2,17 +2,16 @@
 
 # Form implementation generated from reading ui file 'tank_dialog.ui'
 #
-# Created: Fri Jul 11 15:23:58 2014
-#      by: pyside-uic 0.2.13 running on PySide 1.1.0
+#      by: pyside-uic 0.2.15 running on PySide 1.2.2
 #
 # WARNING! All changes made in this file will be lost!
 
-from . import QtCore, QtGui
+from .qt_abstraction import QtCore, QtGui
 
 class Ui_TankDialog(object):
     def setupUi(self, TankDialog):
         TankDialog.setObjectName("TankDialog")
-        TankDialog.resize(785, 492)
+        TankDialog.resize(879, 551)
         self.verticalLayout_3 = QtGui.QVBoxLayout(TankDialog)
         self.verticalLayout_3.setSpacing(0)
         self.verticalLayout_3.setContentsMargins(0, 0, 0, 0)
@@ -137,36 +136,26 @@ class Ui_TankDialog(object):
         self.gradient.setTitle("")
         self.gradient.setObjectName("gradient")
         self.horizontalLayout_2.addWidget(self.gradient)
-        self.tabWidget = QtGui.QTabWidget(self.page_2_group)
-        self.tabWidget.setMinimumSize(QtCore.QSize(400, 0))
-        self.tabWidget.setMaximumSize(QtCore.QSize(400, 16777215))
-        self.tabWidget.setTabPosition(QtGui.QTabWidget.East)
-        self.tabWidget.setObjectName("tabWidget")
-        self.tab = QtGui.QWidget()
-        self.tab.setObjectName("tab")
-        self.verticalLayout_7 = QtGui.QVBoxLayout(self.tab)
-        self.verticalLayout_7.setContentsMargins(5, 5, 5, 5)
-        self.verticalLayout_7.setObjectName("verticalLayout_7")
-        self.scrollArea = QtGui.QScrollArea(self.tab)
-        self.scrollArea.setFrameShape(QtGui.QFrame.StyledPanel)
-        self.scrollArea.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.scrollArea = QtGui.QScrollArea(self.page_2_group)
+        self.scrollArea.setMinimumSize(QtCore.QSize(400, 0))
+        self.scrollArea.setMaximumSize(QtCore.QSize(400, 16777215))
+        self.scrollArea.setStyleSheet("/*\n"
+"All labels inside this scroll area should be 12px font.\n"
+"This is to avoid the UI looking different in different app like\n"
+"maya and nuke which all use slightly different style sheets.\n"
+" */\n"
+"QLabel{\n"
+"   font-size: 11px;\n"
+"   margin-bottom: 8px\n"
+"}\n"
+"")
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName("scrollArea")
         self.scrollAreaWidgetContents = QtGui.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 359, 465))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 383, 566))
         self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
         self.verticalLayout_4 = QtGui.QVBoxLayout(self.scrollAreaWidgetContents)
         self.verticalLayout_4.setObjectName("verticalLayout_4")
-        self.label_6 = QtGui.QLabel(self.scrollAreaWidgetContents)
-        self.label_6.setStyleSheet("font-size: 16px;\n"
-"margin-top: 5px;")
-        self.label_6.setObjectName("label_6")
-        self.verticalLayout_4.addWidget(self.label_6)
-        self.line_3 = QtGui.QFrame(self.scrollAreaWidgetContents)
-        self.line_3.setFrameShape(QtGui.QFrame.HLine)
-        self.line_3.setFrameShadow(QtGui.QFrame.Sunken)
-        self.line_3.setObjectName("line_3")
-        self.verticalLayout_4.addWidget(self.line_3)
         self.horizontalLayout_4 = QtGui.QHBoxLayout()
         self.horizontalLayout_4.setObjectName("horizontalLayout_4")
         self.app_icon = QtGui.QLabel(self.scrollAreaWidgetContents)
@@ -190,7 +179,7 @@ class Ui_TankDialog(object):
         self.horizontalLayout_4.addLayout(self.verticalLayout_8)
         self.verticalLayout_4.addLayout(self.horizontalLayout_4)
         self.app_description = QtGui.QLabel(self.scrollAreaWidgetContents)
-        self.app_description.setStyleSheet("font-size: 12px")
+        self.app_description.setMaximumSize(QtCore.QSize(350, 16777215))
         self.app_description.setWordWrap(True)
         self.app_description.setObjectName("app_description")
         self.verticalLayout_4.addWidget(self.app_description)
@@ -202,9 +191,8 @@ class Ui_TankDialog(object):
         self.app_tech_details.setSizePolicy(sizePolicy)
         self.app_tech_details.setMinimumSize(QtCore.QSize(0, 22))
         self.app_tech_details.setMaximumSize(QtCore.QSize(16777215, 22))
-        self.app_tech_details.setStyleSheet("font-size: 10px;\n"
-"")
         self.app_tech_details.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
+        self.app_tech_details.setWordWrap(True)
         self.app_tech_details.setObjectName("app_tech_details")
         self.verticalLayout_4.addWidget(self.app_tech_details)
         self.horizontalLayout_9 = QtGui.QHBoxLayout()
@@ -230,7 +218,7 @@ class Ui_TankDialog(object):
         self.line.setObjectName("line")
         self.verticalLayout_4.addWidget(self.line)
         self.app_work_area_info = QtGui.QLabel(self.scrollAreaWidgetContents)
-        self.app_work_area_info.setStyleSheet("font-size: 12px; margin-bottom: 8px")
+        self.app_work_area_info.setMaximumSize(QtCore.QSize(350, 16777215))
         self.app_work_area_info.setWordWrap(True)
         self.app_work_area_info.setObjectName("app_work_area_info")
         self.verticalLayout_4.addWidget(self.app_work_area_info)
@@ -246,71 +234,43 @@ class Ui_TankDialog(object):
         spacerItem2 = QtGui.QSpacerItem(0, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.horizontalLayout_10.addItem(spacerItem2)
         self.verticalLayout_4.addLayout(self.horizontalLayout_10)
-        spacerItem3 = QtGui.QSpacerItem(328, 0, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.verticalLayout_4.addItem(spacerItem3)
-        self.scrollArea.setWidget(self.scrollAreaWidgetContents)
-        self.verticalLayout_7.addWidget(self.scrollArea)
-        self.tabWidget.addTab(self.tab, "")
-        self.tab_2 = QtGui.QWidget()
-        self.tab_2.setObjectName("tab_2")
-        self.verticalLayout_6 = QtGui.QVBoxLayout(self.tab_2)
-        self.verticalLayout_6.setContentsMargins(5, 5, 5, 5)
-        self.verticalLayout_6.setObjectName("verticalLayout_6")
-        self.verticalLayout_5 = QtGui.QVBoxLayout()
-        self.verticalLayout_5.setObjectName("verticalLayout_5")
-        self.page2_scroll = QtGui.QScrollArea(self.tab_2)
-        self.page2_scroll.setStyleSheet("/* \n"
-"All labels inside this scroll area should be 12px font.\n"
-"This is to avoid the UI looking different in different apps like\n"
-"maya and nuke which all use slightly different style sheets.\n"
-" */\n"
-"QLabel{\n"
-"   font-size: 12px;\n"
-"}")
-        self.page2_scroll.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
-        self.page2_scroll.setWidgetResizable(True)
-        self.page2_scroll.setObjectName("page2_scroll")
-        self.page2_scrollcontents = QtGui.QWidget()
-        self.page2_scrollcontents.setGeometry(QtCore.QRect(0, 0, 357, 428))
-        self.page2_scrollcontents.setObjectName("page2_scrollcontents")
-        self.verticalLayout_9 = QtGui.QVBoxLayout(self.page2_scrollcontents)
-        self.verticalLayout_9.setSpacing(-1)
-        self.verticalLayout_9.setContentsMargins(12, 12, 12, 12)
-        self.verticalLayout_9.setObjectName("verticalLayout_9")
+        self.app_work_area_info_2 = QtGui.QLabel(self.scrollAreaWidgetContents)
+        self.app_work_area_info_2.setMaximumSize(QtCore.QSize(350, 16777215))
+        self.app_work_area_info_2.setWordWrap(True)
+        self.app_work_area_info_2.setObjectName("app_work_area_info_2")
+        self.verticalLayout_4.addWidget(self.app_work_area_info_2)
+        self.btn_reload = QtGui.QToolButton(self.scrollAreaWidgetContents)
+        self.btn_reload.setObjectName("btn_reload")
+        self.verticalLayout_4.addWidget(self.btn_reload)
+        self.config_header = QtGui.QLabel(self.scrollAreaWidgetContents)
+        self.config_header.setStyleSheet("font-size: 16px;\n"
+"margin-top: 30px;")
+        self.config_header.setObjectName("config_header")
+        self.verticalLayout_4.addWidget(self.config_header)
+        self.config_line = QtGui.QFrame(self.scrollAreaWidgetContents)
+        self.config_line.setFrameShape(QtGui.QFrame.HLine)
+        self.config_line.setFrameShadow(QtGui.QFrame.Sunken)
+        self.config_line.setObjectName("config_line")
+        self.verticalLayout_4.addWidget(self.config_line)
+        self.config_label = QtGui.QLabel(self.scrollAreaWidgetContents)
+        self.config_label.setMaximumSize(QtCore.QSize(350, 16777215))
+        self.config_label.setWordWrap(True)
+        self.config_label.setObjectName("config_label")
+        self.verticalLayout_4.addWidget(self.config_label)
         self.config_layout = QtGui.QVBoxLayout()
         self.config_layout.setSpacing(20)
         self.config_layout.setObjectName("config_layout")
-        self.verticalLayout_9.addLayout(self.config_layout)
-        spacerItem4 = QtGui.QSpacerItem(20, 0, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.verticalLayout_9.addItem(spacerItem4)
-        self.verticalLayout_9.setStretch(1, 1)
-        self.page2_scroll.setWidget(self.page2_scrollcontents)
-        self.verticalLayout_5.addWidget(self.page2_scroll)
-        self.horizontalLayout_11 = QtGui.QHBoxLayout()
-        self.horizontalLayout_11.setObjectName("horizontalLayout_11")
-        spacerItem5 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout_11.addItem(spacerItem5)
-        self.btn_reload = QtGui.QToolButton(self.tab_2)
-        self.btn_reload.setObjectName("btn_reload")
-        self.horizontalLayout_11.addWidget(self.btn_reload)
-        self.btn_edit_config = QtGui.QToolButton(self.tab_2)
-        self.btn_edit_config.setObjectName("btn_edit_config")
-        self.horizontalLayout_11.addWidget(self.btn_edit_config)
-        self.btn_add_parameter = QtGui.QToolButton(self.tab_2)
-        self.btn_add_parameter.setObjectName("btn_add_parameter")
-        self.horizontalLayout_11.addWidget(self.btn_add_parameter)
-        self.horizontalLayout_11.setStretch(0, 1)
-        self.verticalLayout_5.addLayout(self.horizontalLayout_11)
-        self.verticalLayout_6.addLayout(self.verticalLayout_5)
-        self.tabWidget.addTab(self.tab_2, "")
-        self.horizontalLayout_2.addWidget(self.tabWidget)
+        self.verticalLayout_4.addLayout(self.config_layout)
+        spacerItem3 = QtGui.QSpacerItem(328, 0, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        self.verticalLayout_4.addItem(spacerItem3)
+        self.scrollArea.setWidget(self.scrollAreaWidgetContents)
+        self.horizontalLayout_2.addWidget(self.scrollArea)
         self.verticalLayout_2.addWidget(self.page_2_group)
         self.stackedWidget.addWidget(self.page_2)
         self.verticalLayout_3.addWidget(self.stackedWidget)
 
         self.retranslateUi(TankDialog)
         self.stackedWidget.setCurrentIndex(0)
-        self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(TankDialog)
 
     def retranslateUi(self, TankDialog):
@@ -320,7 +280,6 @@ class Ui_TankDialog(object):
         self.lbl_context.setText(QtGui.QApplication.translate("TankDialog", "Current Work Area:\n"
 "TextLabel", None, QtGui.QApplication.UnicodeUTF8))
         self.details.setToolTip(QtGui.QApplication.translate("TankDialog", "Click for App Details", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_6.setText(QtGui.QApplication.translate("TankDialog", "General Information", None, QtGui.QApplication.UnicodeUTF8))
         self.app_name.setText(QtGui.QApplication.translate("TankDialog", "Publish And Snapshot", None, QtGui.QApplication.UnicodeUTF8))
         self.app_description.setText(QtGui.QApplication.translate("TankDialog", "Tools to see what is out of date in your scene etc etc.", None, QtGui.QApplication.UnicodeUTF8))
         self.app_tech_details.setText(QtGui.QApplication.translate("TankDialog", "tk-multi-snapshot, v1.2.3", None, QtGui.QApplication.UnicodeUTF8))
@@ -330,10 +289,9 @@ class Ui_TankDialog(object):
         self.app_work_area_info.setText(QtGui.QApplication.translate("TankDialog", "TextLabel", None, QtGui.QApplication.UnicodeUTF8))
         self.btn_file_system.setText(QtGui.QApplication.translate("TankDialog", "Jump to File System", None, QtGui.QApplication.UnicodeUTF8))
         self.btn_shotgun.setText(QtGui.QApplication.translate("TankDialog", "Jump to Shotgun", None, QtGui.QApplication.UnicodeUTF8))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), QtGui.QApplication.translate("TankDialog", "General Information", None, QtGui.QApplication.UnicodeUTF8))
+        self.app_work_area_info_2.setText(QtGui.QApplication.translate("TankDialog", "If you are making changes to configuration or code, use the reload button to quickly load your changes in without having to restart:", None, QtGui.QApplication.UnicodeUTF8))
         self.btn_reload.setText(QtGui.QApplication.translate("TankDialog", "Reload Engine and Apps", None, QtGui.QApplication.UnicodeUTF8))
-        self.btn_edit_config.setText(QtGui.QApplication.translate("TankDialog", "Edit Configuration", None, QtGui.QApplication.UnicodeUTF8))
-        self.btn_add_parameter.setText(QtGui.QApplication.translate("TankDialog", "+", None, QtGui.QApplication.UnicodeUTF8))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), QtGui.QApplication.translate("TankDialog", "Configuration", None, QtGui.QApplication.UnicodeUTF8))
+        self.config_header.setText(QtGui.QApplication.translate("TankDialog", "Configuration", None, QtGui.QApplication.UnicodeUTF8))
+        self.config_label.setText(QtGui.QApplication.translate("TankDialog", "Below is a list of all the configuration settings for this app, as defined in your environment file:", None, QtGui.QApplication.UnicodeUTF8))
 
 from . import resources_rc
