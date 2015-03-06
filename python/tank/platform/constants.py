@@ -175,6 +175,12 @@ DEFAULT_CFG = "tk-config-default"
 # the name of the shell engine
 SHELL_ENGINE = "tk-shell"
 
+# valid characters for a template key name
+TEMPLATE_KEY_NAME_REGEX = "[a-zA-Z_ 0-9\.]+"
+
+# a human readable explanation of the above. For error messages.
+VALID_TEMPLATE_KEY_NAME_DESC = "letters, numbers, underscore, space and period"
+
 # the name of the file that holds the templates.yml config
 CONTENT_TEMPLATES_FILE = "templates.yml"
 
