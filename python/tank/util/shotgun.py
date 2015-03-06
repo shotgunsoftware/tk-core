@@ -343,7 +343,7 @@ def create_sg_app_store_connection():
     if g_app_store_connection is not None:
         return g_app_store_connection
 
-    config_data = __get_app_store_credentials()
+    config_data = __get_app_store_connection_information()
 
     # get connection parameters
     sg = __create_sg_connection(config_data)
@@ -365,29 +365,30 @@ def create_sg_app_store_connection():
     return g_app_store_connection
 
 
-def __get_app_store_credentials():
+def __get_app_store_connection_information():
     """
-    Get app store credentials from Shotgun
-    :returns: A dictionnary with host, api_key, api_script and http_proxy
+    Get app store connection information
+    :returns: A dictionary with host, api_key, api_script and http_proxy
     """
     client_site_sg = get_sg_connection()
     (script_name, script_key) = __get_app_store_key_from_shotgun(client_site_sg)
-    
+
     # connect to the app store
     config_data = {}
     config_data["host"] = constants.SGTK_APP_STORE
     config_data["api_script"] = script_name
     config_data["api_key"] = script_key
     config_data["http_proxy"] = client_site_sg.config.raw_http_proxy
-    
+
     return config_data
+
 
 def __get_app_store_key_from_shotgun(sg_connection):
     """
     Given a Shotgun url and script credentials, fetch the app store key
     for this shotgun instance using a special controller method.
     Returns a tuple with (app_store_script_name, app_store_auth_key)
-    
+
     :param sg_connection: SG connection to the client site for which
                           app store credentials should be retrieved.
     :returns: tuple of strings with contents (script_name, script_key)
@@ -396,16 +397,15 @@ def __get_app_store_key_from_shotgun(sg_connection):
     if sg_connection.config.proxy_handler:
         opener = urllib2.build_opener(sg_connection.config.proxy_handler)
         urllib2.install_opener(opener)
-    
+
     # now connect to our site and use a special url to retrieve the app store script key
     session_token = sg_connection.get_session_token()
     post_data = {"session_token": session_token}
     response = urllib2.urlopen("%s/api3/sgtk_install_script" % sg_connection.base_url, urllib.urlencode(post_data)) 
     html = response.read()
     data = json.loads(html)
-    
-    return(data["script_name"], data["script_key"])
 
+    return(data["script_name"], data["script_key"])
 
 
 g_entity_display_name_lookup = None
