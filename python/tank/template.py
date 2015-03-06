@@ -26,7 +26,7 @@ class Template(object):
     """
     Object which manages the translation between paths and file templates
     """
-    _key_name_regex = "[a-zA-Z_ 0-9]+"
+    
     
     
     @classmethod
@@ -46,7 +46,7 @@ class Template(object):
         names_keys = {}
         ordered_keys = []
         # regular expression to find key names
-        regex = r"(?<={)%s(?=})" % cls._key_name_regex
+        regex = r"(?<={)%s(?=})" % constants.TEMPLATE_KEY_NAME_REGEX
         key_names = re.findall(regex, definition)
         for key_name in key_names:
             key = keys.get(key_name)
@@ -260,7 +260,7 @@ class Template(object):
                 continue
             if token.startswith('['):
                 # check that optional contains a key
-                if not re.search("{*%s}" % self._key_name_regex, token): 
+                if not re.search("{*%s}" % constants.TEMPLATE_KEY_NAME_REGEX, token): 
                     raise TankError("Optional sections must include a key definition.")
 
                 # Add definitions skipping this optional value
@@ -296,7 +296,7 @@ class Template(object):
 
     def _clean_definition(self, definition):
         # Create definition with key names as strings with no format, enum or default values
-        regex = r"{(%s)}" % self._key_name_regex
+        regex = r"{(%s)}" % constants.TEMPLATE_KEY_NAME_REGEX
         cleaned_definition = re.sub(regex, "%(\g<1>)s", definition)
         return cleaned_definition
 
@@ -308,7 +308,7 @@ class Template(object):
         # case we just want to parse the prefix.  For example, in the case of a path template, 
         # having an empty definition would result in expanding to the project/storage root
         expanded_definition = os.path.join(self._prefix, definition) if definition else self._prefix
-        regex = r"{%s}" % self._key_name_regex
+        regex = r"{%s}" % constants.TEMPLATE_KEY_NAME_REGEX
         tokens = re.split(regex, expanded_definition.lower())
         # Remove empty strings
         return [x for x in tokens if x]

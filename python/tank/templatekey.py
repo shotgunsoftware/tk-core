@@ -13,7 +13,7 @@ Classes for fields on TemplatePaths and TemplateStrings
 """
 
 import re
-
+from .platform import constants
 from .errors import TankError
 
 class TemplateKey(object):
@@ -46,6 +46,12 @@ class TemplateKey(object):
         self.is_abstract = abstract
         self.length = length
         self._last_error = ""
+
+        # check that the key name doesn't contain invalid characters
+        
+        if not re.match(r"^%s$" % constants.TEMPLATE_KEY_NAME_REGEX, name):
+            raise TankError("%s: Name contains invalid characters. "
+                            "Valid characters are %s." % (self, constants.VALID_TEMPLATE_KEY_NAME_DESC))
 
         # Validation
         if self.shotgun_field_name and not self.shotgun_entity_type:

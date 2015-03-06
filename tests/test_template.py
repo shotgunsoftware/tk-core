@@ -46,10 +46,15 @@ class TestInit(TestTemplate):
         template = Template("some/definition", self.keys)
         self.assertRaises(AttributeError, setattr, template, "definition", "other")
 
-    def test_defalt_enum_whitespace(self):
+    def test_default_enum_whitespace(self):
         self.keys["S hot"] = StringKey("S hot")
         template = Template("/something/{S hot}/something", self.keys)
         self.assertEquals(self.keys["S hot"], template.keys["S hot"])
+
+    def test_default_period(self):
+        self.keys["S.hot"] = StringKey("S.hot")
+        template = Template("/something/{S.hot}/something", self.keys)
+        self.assertEquals(self.keys["S.hot"], template.keys["S.hot"])
 
     def test_confilicting_key_names(self):
         """

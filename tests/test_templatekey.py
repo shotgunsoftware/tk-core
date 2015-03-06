@@ -29,6 +29,9 @@ class TestStringKey(TankTestBase):
         self.choice_field = StringKey("field_name", choices=["a", "b"])
         self.default_field = StringKey("field_name", default="b")
 
+    def test_invalid(self):
+        self.assertRaises(TankError, StringKey, "S!hot")
+
     def test_default(self):
         default_value = "default_value"
         template_field = StringKey("field_name", default=default_value)
