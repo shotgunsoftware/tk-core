@@ -12,6 +12,7 @@
 Base class for engine and app testing
 """
 
+import sys
 import os
 import time
 import shutil
@@ -20,7 +21,6 @@ import tempfile
 
 from mockgun import Shotgun as MockGun_Shotgun 
 
-from mock import Mock
 import unittest2 as unittest
 
 import sgtk
@@ -31,7 +31,43 @@ from tank_vendor import yaml
 TANK_TEMP = None
 TANK_SOURCE_PATH = None
 
-__all__ = ['setUpModule', 'TankTestBase', 'tank']
+__all__ = ['setUpModule', 'TankTestBase', 'tank', 'interactive', 'skip_if_pyside_missing']
+
+
+def interactive(func):
+    """
+    Decorator that allows to skip a test if the interactive flag is not set
+    on the command line.
+    :param func: Function to be decorated.
+    :returns: The decorated function.
+    """
+    interactive_in_argv = "--interactive" not in sys.argv
+    return unittest.skipIf(
+        interactive_in_argv,
+        "add --interactive on the command line to run this test."
+    )(func)
+
+
+def _is_pyside_missing():
+    """
+    Tests is PySide is available.
+    :returns: True is PySide is available, False otherwise.
+    """
+    try:
+        import PySide
+        return False
+    except ImportError:
+        return True
+
+
+def skip_if_pyside_missing(func):
+    """
+    Decorated that allows to skips a test if PySide is missing.
+    :param func: Function to be decorated.
+    :returns: The decorated function.
+    """
+    return unittest.skipIf(_is_pyside_missing(), "PySide is missing")(func)
+
 
 def setUpModule():
     """
