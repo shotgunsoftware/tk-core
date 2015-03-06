@@ -21,12 +21,15 @@ import urlparse
 
 from tank_vendor import yaml
 
+# use api json to cover py 2.5
+from tank_vendor import shotgun_api3  
+json = shotgun_api3.shotgun.json
+
+
 from ..errors import TankError
 from .. import hook
 from ..platform import constants
 from . import login
-
-g_app_store_connection = None
 
 def __get_api_core_config_location():
     """
@@ -68,16 +71,6 @@ def __get_sg_config():
     core_cfg = __get_api_core_config_location()
     return os.path.join(core_cfg, "shotgun.yml")
 
-def __get_app_store_config():
-    """
-    Returns the app store sg config yml file for this install
-    
-    :returns: full path to to app_store.yml config file
-    """
-    core_cfg = __get_api_core_config_location()
-    return os.path.join(core_cfg, "app_store.yml")     
-
-
 def get_project_name_studio_hook_location():
     """
     Returns the studio level hook that is used to compute the default project name
@@ -91,7 +84,7 @@ def get_project_name_studio_hook_location():
     #
     # @todo longterm we should probably establish a place in the code where we define 
     # an API or set of functions which can be executed outside the remit of a 
-    # pipeline configuration/toolkit project.
+    # pipeline configuration/Toolkit project.
     
     core_cfg = __get_api_core_config_location()
     return os.path.join(core_cfg, constants.STUDIO_HOOK_PROJECT_NAME)
@@ -197,14 +190,13 @@ def _parse_config_data(file_data, user, shotgun_cfg_path):
 
 def __create_sg_connection(config_data=None):
     """
-    Creates a standard toolkit shotgun connection.
+    Creates a standard Toolkit shotgun connection.
 
     :param shotgun_cfg_path: Configuration data. If None, the authentication module will be responsible
                              for determining which credentials to use.
     :returns: A Shotgun connection.
     """
     from . import authentication
-
     if config_data:
         # Credentials were passed in, so let's run the legacy authentication mechanism for script user.
         sg = authentication.create_sg_connection_from_script_user(config_data)
@@ -336,38 +328,84 @@ def create_sg_connection(user="default"):
         api_handle = __create_sg_connection()
     return api_handle
 
+g_app_store_connection = None
 def create_sg_app_store_connection():
     """
-    Creates a shotgun connection to the tank app store.
+    Creates a shotgun connection that can be used to access the Toolkit app store.
 
-    returns a tuple: (api_handle, script_user_entity)
-
-    The second part of the tuple represents the
-    user that was used to connect to the app store,
-    as a standard sg entity dictionary.
+    :returns: (sg, dict) where the first item is the shotgun api instance and the second 
+              is an sg entity dictionary (keys type/id) corresponding to to the user used
+              to connect to the app store.
     """
     global g_app_store_connection
 
-    if g_app_store_connection is None:
-        # get connection parameters
-        config_data = __get_sg_config_data(__get_app_store_config())
-        sg = __create_sg_connection(config_data)
+    # maintain a cache for performance
+    if g_app_store_connection is not None:
+        return g_app_store_connection
 
-        script_user = None
+    config_data = __get_app_store_credentials()
 
-        # determine the script user running currently
-        # get the API script user ID from shotgun
-        script_user = sg.find_one(
-            "ApiUser",
-            [["firstname", "is", config_data["api_script"]]],
-            fields=["type", "id"]
-        )
-        if script_user is None:
-            raise TankError("Could not evaluate the current App Store User! Please contact support.")
+    # get connection parameters
+    sg = __create_sg_connection(config_data)
 
-        g_app_store_connection = sg, script_user
+    script_user = None
+
+    # determine the script user running currently
+    # get the API script user ID from shotgun
+    script_user = sg.find_one(
+        "ApiUser",
+        [["firstname", "is", config_data["api_script"]]],
+        fields=["type", "id"]
+    )
+    if script_user is None:
+        raise TankError("Could not evaluate the current App Store User! Please contact support.")
+
+    g_app_store_connection = sg, script_user
 
     return g_app_store_connection
+
+
+def __get_app_store_credentials():
+    """
+    Get app store credentials from Shotgun
+    :returns: A dictionnary with host, api_key, api_script and http_proxy
+    """
+    client_site_sg = get_sg_connection()
+    (script_name, script_key) = __get_app_store_key_from_shotgun(client_site_sg)
+    
+    # connect to the app store
+    config_data = {}
+    config_data["host"] = constants.SGTK_APP_STORE
+    config_data["api_script"] = script_name
+    config_data["api_key"] = script_key
+    config_data["http_proxy"] = client_site_sg.config.raw_http_proxy
+    
+    return config_data
+
+def __get_app_store_key_from_shotgun(sg_connection):
+    """
+    Given a Shotgun url and script credentials, fetch the app store key
+    for this shotgun instance using a special controller method.
+    Returns a tuple with (app_store_script_name, app_store_auth_key)
+    
+    :param sg_connection: SG connection to the client site for which
+                          app store credentials should be retrieved.
+    :returns: tuple of strings with contents (script_name, script_key)
+    """
+    # handle proxy setup by pulling the proxy details from the main shotgun connection
+    if sg_connection.config.proxy_handler:
+        opener = urllib2.build_opener(sg_connection.config.proxy_handler)
+        urllib2.install_opener(opener)
+    
+    # now connect to our site and use a special url to retrieve the app store script key
+    session_token = sg_connection.get_session_token()
+    post_data = {"session_token": session_token}
+    response = urllib2.urlopen("%s/api3/sgtk_install_script" % sg_connection.base_url, urllib.urlencode(post_data)) 
+    html = response.read()
+    data = json.loads(html)
+    
+    return(data["script_name"], data["script_key"])
+
 
 
 g_entity_display_name_lookup = None
@@ -1088,7 +1126,7 @@ class ToolkitUserAgentHandler(object):
         # sg._user_agents is a list of strings. By default,
         # its value is [ "shotgun-json (1.2.3)" ] 
         
-        # First, remove any old toolkit settings
+        # First, remove any old Toolkit settings
         new_agents = []
         for x in self._sg._user_agents:
             if x.startswith("tk-core") or \
@@ -1098,7 +1136,7 @@ class ToolkitUserAgentHandler(object):
                 continue
             new_agents.append(x)
          
-        # Add new toolkit settings
+        # Add new Toolkit settings
         if self._core_version:
             new_agents.append("tk-core (%s)" % self._core_version)
 

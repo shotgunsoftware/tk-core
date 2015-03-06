@@ -211,3 +211,5 @@ STUDIO_HOOK_SG_CONNECTION_SETTINGS = "sg_connection.py"
 # init cache for fast initialization
 SITE_INIT_CACHE_FILE_NAME = "toolkit_init.cache"
 
+# the location of the toolkit app store
+SGTK_APP_STORE = "https://tank.shotgunstudio.com"
