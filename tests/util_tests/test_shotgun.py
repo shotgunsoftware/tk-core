@@ -395,6 +395,14 @@ class TestGetSgConfigData(TankTestBase):
             "not_a_file.cfg"
         )
 
+    def test_host_missing_valid_if_not_script_user(self, get_api_core_config_location_mock):
+        self._prepare_common_mocks(get_api_core_config_location_mock)
+        tank.util.shotgun._parse_config_data(
+            {},
+            "default",
+            "not_a_file.cfg"
+        )
+
     def test_incomplete_script_user_credentials(self, get_api_core_config_location_mock):
         self._prepare_common_mocks(get_api_core_config_location_mock)
 
@@ -413,6 +421,16 @@ class TestGetSgConfigData(TankTestBase):
                 {
                     "host": "host",
                     "api_key": "api_key"
+                },
+                "default",
+                "not_a_file.cfg"
+            )
+
+        with self.assertRaises(errors.TankError):
+            tank.util.shotgun._parse_config_data(
+                {
+                    "api_key": "api_key",
+                    "api_script": "api_script"
                 },
                 "default",
                 "not_a_file.cfg"

@@ -97,7 +97,7 @@ class AuthenticationManager(object):
         Returns the current host.
         :returns: A string with the hostname.
         """
-        return self._core_config_data["host"]
+        return self._core_config_data.get("host")
 
     def get_http_proxy(self):
         """
@@ -120,7 +120,10 @@ class AuthenticationManager(object):
         if script_user_credentials:
             return script_user_credentials
 
-        login_info = self._get_login_info(self.get_host())
+        host = self.get_host()
+        if not host:
+            return {}
+        login_info = self._get_login_info(host)
         if login_info:
             return login_info
         else:
@@ -167,6 +170,9 @@ class AuthenticationManager(object):
         Clears the session cache for the current site.
         """
         host = self.get_host()
+        if not host:
+            logger.error("Current host not set, nothing to clear.")
+            return
         logger.debug("Clearing session cached on disk.")
         try:
             info_path = self._get_login_info_location(host)

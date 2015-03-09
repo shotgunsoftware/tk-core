@@ -170,20 +170,21 @@ def _parse_config_data(file_data, user, shotgun_cfg_path):
                                         user=user,
                                         cfg_path=shotgun_cfg_path)
 
-    # validate the config data to ensure all fields are present
-    if "host" not in config_data:
-        raise TankError("Missing required field 'host' in config '%s'" % shotgun_cfg_path)
+    def _raise_missing_key(key):
+        raise TankError(
+            "Missing required field '%s' in config '%s' for script user authentication." % (key, shotgun_cfg_path)
+        )
 
     # The script authentication credentials need to be complete in order to work. They can be completely
     # omitted or fully specified, but not halfway configured.
     if "api_script" in config_data and "api_key" not in config_data:
-        raise TankError(
-            "Missing required field 'api_key' in config '%s' for script user authentication." % shotgun_cfg_path
-        )
+        _raise_missing_key("api_key")
     if "api_script" not in config_data and "api_key" in config_data:
-        raise TankError(
-            "Missing required field 'api_script' in config '%s' for script user authentication." % shotgun_cfg_path
-        )
+        _raise_missing_key("api_script")
+    # If we are either, script user keys are both defined or not defined. So if we are in a script
+    # user config, make sure the host is present.
+    if "api_script" in config_data and "host" not in config_data:
+        _raise_missing_key("host")
 
     return config_data
 
