@@ -12,9 +12,9 @@ from __future__ import with_statement
 from mock import patch
 
 from tank_test.tank_test_base import *
-from tank_test import mockgun
+import tank_test
 
-from tank.util import authentication
+from tank.util import authentication, login
 from tank.errors import TankError
 
 from tank_vendor.shotgun_api3 import shotgun
@@ -48,7 +48,7 @@ class SessionTests(TankTestBase):
         }
         # Mock the factory method so we never create a Shotgun instance that tries to connect to the
         # site.
-        shotgun_instance_factory_mock.side_effect = mockgun.Shotgun
+        shotgun_instance_factory_mock.side_effect = tank_test.mockgun.Shotgun
         # Mock the return value
         get_associated_sg_config_data_mock.return_value = {"host": "https://somewhere.shotguntudio.com"}
 
@@ -116,3 +116,20 @@ class SessionTests(TankTestBase):
             {"host": "abc", "login": "login", "session_token": "session_token"}
         ), None)
         self.assertEqual(clear_cached_credentials_mock.call_count, 1)
+
+    @patch("tank_test.mockgun.Shotgun.find_one")
+    def test_get_current_user_uses_session(self, find_one_mock):
+        find_one_mock.return_value = {
+            "login": "tk-user"
+        }
+        try:
+            # Clear the cache so that get_current_user can work. Path cache is being updated by
+            # TankTestBase.setUp which calls get_current_user when nothing is authenticated yet
+            # no we need to uncache the value for the test
+            current_user = tank.util.authentication.g_shotgun_current_user_cache
+            tank.util.authentication.g_shotgun_current_user_cache = "unknown"
+            user = login.get_current_user(self.tk)
+            self.assertEqual(user["login"], "tk-user")
+        finally:
+            # Make sure we ene up back in the original state of no new side effects are introduced in the tests.
+            tank.util.authentication.g_shotgun_current_user_cache = current_user

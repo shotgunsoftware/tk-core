@@ -264,9 +264,7 @@ def get_associated_sg_base_url():
     
     :returns: The base url for the associated Shotgun site
     """
-    cfg = __get_sg_config()
-    config_data = __get_sg_config_data(cfg)
-    return config_data["host"]
+    return get_associated_sg_config_data().get("host", "")
 
 
 def get_associated_sg_config_data():
