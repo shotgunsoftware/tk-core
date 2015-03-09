@@ -22,6 +22,12 @@ class TankError(Exception):
 
 class TankEngineInitError(TankError):
     """
-    Exception that indicates that an engine could not start up 
+    Exception that indicates that an engine could not start up.
+    """
+    pass
+
+class TankErrorProjectIsSetup(TankError):
+    """
+    Exception that indicates that a project already has a toolkit name but no pipeline configuration.
     """
     pass
