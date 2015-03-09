@@ -46,7 +46,7 @@ class SessionTests(TankTestBase):
         self._prepare_common_mocks_with_script_user(get_associated_sg_config_data_mock)
         get_login_info_mock.side_effect = Exception("Should not try to get login information.")
 
-        cred = AuthenticationManager.get_instance().get_connection_information(force_human_user_authentication=False)
+        cred = AuthenticationManager.get_instance().get_connection_information()
         self.assertTrue(authentication._is_script_user_authenticated(cred))
         self.assertFalse(authentication._is_human_user_authenticated(cred))
 
