@@ -1042,21 +1042,32 @@ def _task_from_sg(tk, task_id):
 
 def _entity_from_sg(tk, entity_type, entity_id):
     """
-    Constructs a context from a shotgun task.
-    Because we are constructing the context from a task, we will get a context
-    which has both a project, an entity a step and a task associated with it.
-
-    :param tk:           a Sgtk API instance
-    :param task_id:      The shotgun task id to produce a context for.
+    Determines the entity details for the specified entity type and id by querying Shotgun.
+                        
+    If entity_type is 'Project' then this will return a single dictionary for the project.  For all
+    other entity types, this will return dictionaries for both the entity and the project the entity 
+    exists under.
+                        
+    :param tk:          The sgtk api instance
+    :param entity_type: The entity type to build a context for
+    :param entity_id:   The entity id to build a context for
+    :returns:           Dictionary containing either a project entity-dictionary or both
+                        project and entity entity-dictionaries depending on the input entity type.
+                        e.g. 
+                        {
+                            "project":{"type":"Project", "id":123, "name":"My Project"},
+                            "entity":{"type":"Shot", "id":456, "name":"My Shot"}
+                        }
+                            
     """
 
     # deal with funny naming for certain entities 
     if entity_type == "HumanUser":
-        name_field = "login"
-        
+        # note: previously this would return 'login' but this was inconsistent as the HumanUser
+        # entity already has a name field and this could lead to errors later on!
+        name_field = "name"
     elif entity_type == "Project":
         name_field = "name"
-    
     else:
         name_field = "code"
 
