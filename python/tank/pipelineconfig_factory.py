@@ -90,7 +90,7 @@ def _from_entity(entity_type, entity_id, force_reread_shotgun_cache):
             # the tank command / api proxy which this session was launched for is *not*
             # associated with the given entity type and entity id!
             raise TankError("The Toolkit configuration in '%s' is not associated with "
-                            "% %s. To see which Toolkit configurations are available for a "
+                            "%s %s. To see which Toolkit configurations are available for a "
                             "Project, go to the Pipeline Configurations page "
                             "in Shotgun." % (config_context_path, entity_type, entity_id))                        
             
@@ -115,8 +115,8 @@ def _from_entity(entity_type, entity_id, force_reread_shotgun_cache):
             # and a project has got a distinct set of pipeline configs, exactly one of which
             # is the primary.
             raise TankError("It looks like there are several Primary pipeline configurations "
-                            "associated with the entity %s %s: %s - "
-                            "Please contact Toolkit support." % (entity_type, entity_id, primary_pc_paths))
+                            "associated with the entity %s %s: %s - Please contact support "
+                            "on toolkitsupport@shotgunsoftware.com." % (entity_type, entity_id, primary_pc_paths))
 
         # looks good, we got a primary pipeline config that exists
         return PipelineConfiguration(primary_pc_paths[0])

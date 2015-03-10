@@ -59,7 +59,13 @@ class PipelineConfiguration(object):
             # currently running API is too old!
             current_api_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
             
-            # tell the user that their core is too old
+            # tell the user that their core is too old for this config
+            #
+            # this can happen if you are running a configuration but you are getting the core
+            # API from somewhere else. For example, if you have added a core to your pythonpath
+            # and then try to do sgtk_from_path("/path/to/pipeline/config") and that config
+            # is using a more recent version of the core. 
+            
             raise TankError("You are running Toolkit %s located in '%s'. "
                             "The configuration you are trying to launch needs "
                             "core version %s or higher. To fix this, start "
