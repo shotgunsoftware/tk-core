@@ -74,9 +74,8 @@ def _from_entity(entity_type, entity_id, force_reread_shotgun_cache):
     associated_sg_pipeline_configs = _get_pipeline_configs_for_project(project_id, data)
     
     if len(associated_sg_pipeline_configs) == 0:
-        raise TankError("Cannot resolve a pipeline configuration object from %s %s - looks "
-                        "like its associated Shotgun Project has not been set up with "
-                        "the Shotgun Pipeline Toolkit!" % (entity_type, entity_id))
+        raise TankError("Cannot resolve a pipeline configuration for %s %s - Toolkit is not "
+                        "enabled for that Shotgun project." % (entity_type, entity_id)) 
 
     # extract path data from the pipeline configuration shotgun data
     (local_pc_paths, primary_pc_paths) = _get_pipeline_configuration_paths(associated_sg_pipeline_configs)
@@ -89,12 +88,11 @@ def _from_entity(entity_type, entity_id, force_reread_shotgun_cache):
         
         if config_context_path not in local_pc_paths:
             # the tank command / api proxy which this session was launched for is *not*
-            # associated with the given entity type and entity id!            
-            raise TankError("Error launching %s %s from the configuration located in '%s'. "
-                            "This config is not associated with that project. For a list of "
-                            "which configurations can be used with this project, go to the "
-                            "Pipeline Configurations page in Shotgun "
-                            "for the project." % (entity_type, entity_id, config_context_path))
+            # associated with the given entity type and entity id!
+            raise TankError("The Toolkit configuration in '%s' is not associated with "
+                            "% %s. To see which Toolkit configurations are available for a "
+                            "Project, go to the Pipeline Configurations page "
+                            "in Shotgun." % (config_context_path, entity_type, entity_id))                        
             
         # ok we got a pipeline config matching the tank command from which we launched.
         # because we found the PC in the list of PCs for this project, we know that it must be valid!
@@ -116,11 +114,9 @@ def _from_entity(entity_type, entity_id, force_reread_shotgun_cache):
             # for an entity lookup, there should be no ambiguity - an entity belongs to a project
             # and a project has got a distinct set of pipeline configs, exactly one of which
             # is the primary.
-            raise TankError("More than one primary pipeline configuration detected! Please contact "
-                            "toolkit support for help. It looks like you have several primary "
-                            "pipeline configurations associated with the entity %s %s: %s" % (entity_type, 
-                                                                                              entity_id, 
-                                                                                              primary_pc_paths))
+            raise TankError("It looks like there are several Primary pipeline configurations "
+                            "associated with the entity %s %s: %s - "
+                            "Please contact Toolkit support." % (entity_type, entity_id, primary_pc_paths))
 
         # looks good, we got a primary pipeline config that exists
         return PipelineConfiguration(primary_pc_paths[0])
@@ -217,12 +213,12 @@ def _from_path(path, force_reread_shotgun_cache):
         if config_context_path not in local_pc_paths:
             raise TankError("You are trying to start Toolkit using the configuration and tank command "
                             "located in '%s'. The path '%s' you are trying to load is not "
-                            "associated with that configuration. The path you are trying to load "
-                            "is associated with the following configurations: %s. "
+                            "associated with that configuration. Instead, it is "
+                            "associated with the following configurations: %s. "
                             "Please use the tank command or Toolkit API in any of those "
                             "locations in order to continue. This error can occur if you "
-                            "have moved a Configuration on disk without correctly updating "
-                            "it. It can also occur if you are trying to use a tank command "
+                            "have moved a configuration on disk without correctly updating "
+                            "it in Shotgun. It can also occur if you are trying to use a tank command "
                             "associated with Project A to try to operate on a Shot or Asset that "
                             "that belongs to a project B." % (config_context_path, path, local_pc_paths))
 
