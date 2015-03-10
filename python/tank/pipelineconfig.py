@@ -61,8 +61,8 @@ class PipelineConfiguration(object):
             
             # tell the user that their core is too old
             raise TankError("You are running Toolkit %s located in '%s'. "
-                            "The configuration you are trying to launch needs to "
-                            "be run with a core version %s or higher. To fix this, start "
+                            "The configuration you are trying to launch needs "
+                            "core version %s or higher. To fix this, start "
                             "the configuration with the tank command (or Toolkit core API) "
                             "located in '%s'." % (current_api_version, 
                                                   current_api_path, 
