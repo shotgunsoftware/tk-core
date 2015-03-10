@@ -58,18 +58,16 @@ class PipelineConfiguration(object):
            util.is_version_older(current_api_version, our_associated_api_version):
             # currently running API is too old!
             current_api_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-            raise TankError("You are currently running Core API %s located in '%s'. "
-                            "The Pipeline Configuration you are trying to create ('%s') is "
-                            "associated with a more recent version of the API, "
-                            "%s, located here: '%s'. Initialization cannot proceed at this point, "
-                            "because the currently running Core API is too old. "
-                            "To fix this, please import "
-                            "the API located in '%s' and try again." % (current_api_version,
-                                                                        current_api_path,
-                                                                        self.get_path(),
-                                                                        our_associated_api_version,
-                                                                        self.get_install_location(),
-                                                                        self.get_core_python_location()))
+            
+            # tell the user that their core is too old
+            raise TankError("You are running Toolkit %s located in '%s'. "
+                            "The configuration you are trying to launch needs to "
+                            "be run with a core version %s or higher. To fix this, start "
+                            "the configuration with the tank command (or Toolkit core API) "
+                            "located in '%s'." % (current_api_version, 
+                                                  current_api_path, 
+                                                  our_associated_api_version, 
+                                                  self.get_install_location()))            
 
 
         self._roots = pipelineconfig_utils.get_roots_metadata(self._pc_root)
