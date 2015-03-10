@@ -85,7 +85,6 @@ class UnregisterFoldersAction(Action):
                 log.info("> tank Shot ABC123 unregister_folders")
                 log.info("")
                 log.info("Alternatively, you can use it by passing one or more paths, e.g.")
-                log.info("")
                 log.info("> tank unregister_folders /path/to/folder_a /path/to/folder_b")
                 log.info("")
                 
