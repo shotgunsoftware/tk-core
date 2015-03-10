@@ -990,6 +990,47 @@ class PathCache(object):
     ############################################################################################
     # database accessor methods
 
+    def get_shotgun_id_from_path(self, path):
+        """
+        Returns a FilesystemLocation id given a path. Will return exact matches.
+        
+        :param path: Path to look for in the path cache
+        :returns: A shotgun FilesystemLocation id or None if not found.
+        """
+                
+        try:
+            root_path, relative_path = self._separate_root(path)
+        except TankError:
+            # fail gracefully if path is not a valid path
+            # eg. doesn't belong to the project
+            return None
+
+        # use built in cursor unless specifically provided - means this
+        # is part of a larger transaction
+        c = self._connection.cursor()        
+
+        try:
+            db_path = self._path_to_dbpath(relative_path)
+            res = c.execute("""
+                            select ss.shotgun_id 
+                            from shotgun_status ss 
+                            inner join path_cache pc on pc.rowid = ss.path_cache_id
+                            where pc.path = ? and pc.root = ? and pc.primary_entity = 1
+                            """, (db_path, root_path))
+            data = list(res)
+        finally:
+            c.close()
+        
+        if len(data) > 1:
+            # never supposed to happen!
+            raise TankError("More than one entry in path database for %s!" % path)
+        
+        elif len(data) == 1:
+            return data[0][0]
+        
+        else:
+            return None
+
     def get_folder_tree_from_sg_id(self, shotgun_id):
         """
         Returns a list of items making up the subtree below a certain shotgun id
@@ -1017,7 +1058,8 @@ class PathCache(object):
         root_name = res[0][0]
         path = res[0][1]
         # first append this match
-        matches.append( {"path": self._dbpath_to_path(root_name, path), "sg_id": shotgun_id } )
+        root_path = self._roots.get(root_name)
+        matches.append( {"path": self._dbpath_to_path(root_path, path), "sg_id": shotgun_id } )
                          
         
         # now get all paths that are child paths
@@ -1032,9 +1074,11 @@ class PathCache(object):
             path = x[1]
             sg_id = x[2]
             # first append this match
-            matches.append( {"path": self._dbpath_to_path(root_name, path), "sg_id": sg_id } )
+            root_path = self._roots.get(root_name)
+            matches.append( {"path": self._dbpath_to_path(root_path, path), "sg_id": sg_id } )
             
         return matches
+
 
     def get_paths(self, entity_type, entity_id, primary_only, cursor=None):
         """
