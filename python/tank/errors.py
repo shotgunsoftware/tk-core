@@ -30,4 +30,10 @@ class TankErrorProjectIsSetup(TankError):
     """
     Exception that indicates that a project already has a toolkit name but no pipeline configuration.
     """
-    pass
+
+    def __init__(self):
+        """
+        Include error message
+        """
+        super(TankErrorProjectIsSetup, self).__init__("You are trying to set up a project which has already been set up. "
+                                                      "If you want to do this, make sure to set the force parameter.")
