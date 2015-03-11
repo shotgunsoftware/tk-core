@@ -183,6 +183,8 @@ def _parse_config_data(file_data, user, shotgun_cfg_path):
         _raise_missing_key("api_script")
     # If we are either, script user keys are both defined or not defined. So if we are in a script
     # user config, make sure the host is present.
+    # FIXME: Once authentication is moved outside of core, we should make host be
+    # mandatory again.
     if "api_script" in config_data and "host" not in config_data:
         _raise_missing_key("host")
 
@@ -264,6 +266,8 @@ def get_associated_sg_base_url():
     
     :returns: The base url for the associated Shotgun site
     """
+    # FIXME: Once authentication is moved outside of core, we should put back
+    # ["host"] since it will always be present.
     return get_associated_sg_config_data().get("host", "")
 
 

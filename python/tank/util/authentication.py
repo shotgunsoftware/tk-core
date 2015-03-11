@@ -262,19 +262,16 @@ g_shotgun_current_user_cache = "unknown"
 
 def get_current_user(tk):
     """
-    Retrieves the current user as a dictionary of metadata values.
-    Returns None if the user is not found in shotgun.
-
-    Returns the following fields:
-
-    * id
-    * type
-    * email
-    * login
-    * name
-    * image url (thumbnail)
-
-    This method connects to shotgun.
+    Retrieves the current user as a dictionary of metadata values. Note: This method connects to
+    shotgun the first time around. The result is then cached to reduce latency.
+    :returns: None if the user is not found in shotgun. Otherwise, it returns a dictionary
+              with the following fields:
+                 * id
+                 * type
+                 * email
+                 * login
+                 * name
+                 * image url (thumbnail)
     """
     global g_shotgun_current_user_cache
     if g_shotgun_current_user_cache == "unknown":
