@@ -19,6 +19,8 @@ from tank_vendor.shotgun_api3.lib import httplib2
 from tank_vendor.shotgun_api3 import AuthenticationFault, ProtocolError
 from tank.errors import TankAuthenticationError
 
+from ..platform import constants
+
 from .authentication_manager import AuthenticationManager
 
 # FIXME: Quick hack to easily disable logging in this module while keeping the
@@ -175,7 +177,7 @@ def _create_or_renew_sg_connection_from_session(config_data):
         # If there is a current engine, we can ask the engine to prompt the user to login
         if engine.current_engine():
             engine.current_engine().renew_session()
-            sg = _create_sg_connection_from_session(config_data)
+            sg = _create_sg_connection_from_session(get_connection_information())
             if not sg:
                 raise TankAuthenticationError("Authentication failed.")
         else:
@@ -330,5 +332,3 @@ def cache_connection_information(host, login, session_token):
     :param session_token: Session token to cache.
     """
     AuthenticationManager.get_instance().cache_connection_information(host, login, session_token)
-
-
