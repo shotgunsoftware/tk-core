@@ -143,6 +143,15 @@ class TankTestBase(unittest.TestCase):
 
         tank.pipelineconfig_factory._get_cache_location = _get_cache_location_mock
 
+        # Mock this so that authentication manager works even tough we are not in a config.
+        # If we don't mock it than the path cache calling get_current_user will fail.
+        def _get_associated_sg_config_data_mock():
+             return {
+                "host": "https://somewhere.shotguntudio.com"
+             }
+
+        tank.util.shotgun.get_associated_sg_config_data = _get_associated_sg_config_data_mock
+
         # define entity for test project
         self.project = {"type": "Project",
                         "id": 1,
