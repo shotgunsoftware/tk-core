@@ -274,9 +274,15 @@ class Tank(object):
             return matched[0]
         else:
             # ambiguity!
+            # We're erroring out anyway, take the time to create helpful debug info!
+            fields = []
+            for template in matched:
+                fields.append(template.validate_and_get_fields(path))
+
             msg = "%d templates are matching the path '%s'.\n" % (len(matched), path)
             msg += "The overlapping templates are:\n"
-            msg += "\n".join([str(x) for x in matched])
+            for f, t in zip(fields, matched):
+                msg += "%s\n%s\n" % (t, f)
             raise TankError(msg)
 
     def paths_from_template(self, template, fields, skip_keys=None, skip_missing_optional_keys=False):
