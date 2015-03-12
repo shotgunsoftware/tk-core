@@ -129,7 +129,11 @@ def _is_script_user_authenticated(authentication_data):
     :param authentication_data: Information used to authenticate.
     :returns: True is "api script" and "api_key" are present, False otherwise.
     """
-    return "api_script" in authentication_data and "api_key" in authentication_data
+    if authentication_data.get("api_script") and authentication_data.get("api_key"):
+        # we have non-null data for script credentials
+        return True
+    else:
+        return False
 
 
 def _is_human_user_authenticated(authentication_data):
