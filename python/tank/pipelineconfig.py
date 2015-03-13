@@ -66,14 +66,13 @@ class PipelineConfiguration(object):
             # and then try to do sgtk_from_path("/path/to/pipeline/config") and that config
             # is using a more recent version of the core. 
             
-            raise TankError("You are running Toolkit %s located in '%s'. "
-                            "The configuration you are trying to launch needs "
-                            "core version %s or higher. To fix this, start "
-                            "the configuration with the tank command (or Toolkit core API) "
-                            "located in '%s'." % (current_api_version, 
-                                                  current_api_path, 
-                                                  our_associated_api_version, 
-                                                  self.get_install_location()))            
+            raise TankError("You are running Toolkit %s located in '%s'. The configuration you are "
+                            "trying to use needs core version %s or higher. To fix this, "
+                            "use the tank command (or Toolkit core API) located at '%s' "
+                            "which is associated with this configuration." % (current_api_version, 
+                                                                              current_api_path, 
+                                                                              our_associated_api_version, 
+                                                                              self.get_install_location()))            
 
 
         self._roots = pipelineconfig_utils.get_roots_metadata(self._pc_root)
