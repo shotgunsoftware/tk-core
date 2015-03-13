@@ -367,9 +367,6 @@ class TestFromEntity(TestContext):
         
         self.add_to_sg_mock_db(self.task)
 
-    
-        
-
     @patch("tank.util.login.get_current_user")
     def test_entity_from_cache(self, get_current_user):
         
@@ -482,6 +479,62 @@ class TestFromEntity(TestContext):
         # Use task we have not setup in path cache not in mocked sg
         task = {"type": "Task", "id": 13, "name": "never_seen_me_before", "content": "no_content"}
         self.assertRaises(TankError, context.from_entity, self.tk, task["type"], task["id"])
+
+    @patch("tank.util.login.get_current_user")
+    def test_from_entities(self, get_current_user):
+        """
+        Test context.from_entities - this can contruct a context from
+        a set of provided entities avoiding a Shotgun lookup when
+        possible
+        """
+        get_current_user.return_value = self.current_user
+
+        result = context.from_entities(self.tk, self.project, self.shot, self.step, None, self.current_user)
+
+        self.check_entity(self.project, result.project)
+        self.assertEquals(3, len(result.project))
+
+        self.check_entity(self.shot, result.entity)
+        self.assertEquals(3, len(result.entity))
+                
+        self.check_entity(self.current_user, result.user)
+        
+        self.check_entity(self.step, result.step)
+        self.assertEquals(3, len(result.step))
+
+    @patch("tank.util.login.get_current_user")
+    def test_from_entities_additional_entities(self, get_current_user):
+        """
+        Test context.from_entities with additional entities - this can contruct 
+        a context from a set of provided entities avoiding a Shotgun lookup when
+        possible.  When additional entities are specified a Shotgun lookup is 
+        required!
+        """
+        get_current_user.return_value = self.current_user
+
+        add_value = {"name":"additional", "id": 3, "type": "add_type"}
+        self.task["additional_field"] = add_value
+
+        result = context.from_entities(self.tk, self.project, self.shot, self.step, self.task, self.current_user)
+
+        self.check_entity(self.project, result.project)
+        self.assertEquals(3, len(result.project))
+
+        self.check_entity(self.shot, result.entity)
+        self.assertEquals(3, len(result.entity))
+                
+        self.check_entity(self.current_user, result.user)
+
+        self.assertEquals(self.task["type"], result.task["type"])
+        self.assertEquals(self.task["id"], result.task["id"])
+        self.assertEquals(self.task["content"], result.task["name"])
+        self.assertEquals(3, len(result.task))
+        
+        self.check_entity(self.step, result.step)
+        self.assertEquals(3, len(result.step))
+        
+        add_result = result.additional_entities[0]
+        self.check_entity(add_value, add_result)
 
     def check_entity(self, first_entity, second_entity):
         "Checks two entity dictionaries have the same values for keys type, id and name."

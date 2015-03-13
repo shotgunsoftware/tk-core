@@ -668,6 +668,83 @@ def create_empty(tk):
     """
     return Context(tk)
 
+def from_entities(tk, project, entity, step, task, user):
+    """
+    Construct a new context from the specified entities.
+
+    Note: It is the responsibility of the calling code to ensure that both the entities and the
+    relationships between them are valid.  
+    
+    This only does a Shotgun query if the context_additional_entities hook specifies additional
+    fields on a task to look for additional entities on!
+
+    :param tk:      An sgtk API instance
+    :param project: The project entity dictionary to use when constructing the context
+    :param entity:  The entity entity dictionary to use when constructing the context
+    :param step:    The step entity dictionary to use when constructing the context
+    :param task:    The task entity dictionary to use when constructing the context
+    :param user:    The user entity dictionary to use when constructing the context
+    :returns:       A Context constructed from the specified entities.
+    """
+    # prep our return data structure
+    context = {
+        "tk": tk,
+        "project": None,
+        "entity": None,
+        "step": None,
+        "user": None,
+        "task": None,
+        "additional_entities": []
+    }    
+
+    if project and "type" in project and "id" in project:
+        context["project"] = {
+            "type":project["type"], 
+            "id":project["id"], 
+            "name":project.get("name")
+        }
+
+    if entity and "type" in entity and "id" in entity and entity["type"] != "Project":
+        name_field = {"HumanUser":"name", "Task":"content"}.get(entity["type"], "code")
+        context["entity"] = {
+            "type":entity["type"], 
+            "id":entity["id"], 
+            # name can either be the name field or 'name' if the entity dict has come from another context
+            "name":(entity.get(name_field) or project.get("name"))
+        }
+
+    if step and "type" in step and "id" in step:
+        context["step"] = {
+            "type":step["type"], 
+            "id":step["id"],
+            # name can either be 'code' or 'name' if the entity dict has come from another context
+            "name":(step.get("code") or step.get("name"))
+        }
+        
+    if user and "type" in user and "id" in user:
+        context["user"] = {
+            "type":user["type"], 
+            "id":user["id"], 
+            "name":user.get("name")
+        }
+
+    if task and "type" in task and "id" in task:
+        # first check to see if there are any additional entities specified:
+        additional_fields = tk.execute_core_hook("context_additional_entities").get("entity_fields_on_task", [])
+        if additional_fields:
+            # unfortunately we have to fall back to an sg query to get the additional entities :(
+            task_context = _task_from_sg(tk, task["id"], additional_fields)
+            context["additional_entities"] = task_context.get("additional_entities", [])
+            
+        context["task"] = {
+            "type":task["type"], 
+            "id":task["id"],
+            # name can either be 'content' or 'name' if the entity dict has come from another context
+            "name":(task.get("content") or task.get("name"))
+        }
+            
+    return Context(**context)
+
 def from_entity(tk, entity_type, entity_id):
     """
     Constructs a context from a shotgun entity.
@@ -737,10 +814,10 @@ def from_entity(tk, entity_type, entity_id):
         
         context.update(entity_context)
 
-    if entity_type == "Project":
-        # no need to set entity to point at project in this case
-        # that only produces double entries.
-        context["entity"] = None
+        if entity_type == "Project":
+            # no need to set entity to point at project in this case
+            # that only produces double entries.
+            context["entity"] = None
 
     return Context(**context)
 
@@ -984,7 +1061,7 @@ yaml.add_constructor(u'!TankContext', context_yaml_constructor)
 ################################################################################################
 # utility methods
 
-def _task_from_sg(tk, task_id):
+def _task_from_sg(tk, task_id, additional_fields = None):
     """
     Constructs a context from a shotgun task.
     Because we are constructing the context from a task, we will get a context
@@ -993,8 +1070,10 @@ def _task_from_sg(tk, task_id):
     Manne 9 April 2013: could we use the path cache primarily and fall back onto
                         a shotgun lookup? 
 
-    :param tk:           a Sgtk API instance
-    :param task_id:      The shotgun task id to produce a context for.
+    :param tk:                   An Sgtk API instance
+    :param task_id:              The shotgun task id to produce a context for.
+    :param additional_fields:    List of additional fields to query for additional entities.  If this is
+                                'None' then the function will execute the hook to determine them. 
     """
     context = {}
 
@@ -1005,8 +1084,9 @@ def _task_from_sg(tk, task_id):
     # theses keys map directly to linked entities, users will be handled separately
     context_keys = ["project", "entity", "step", "task"]
 
-    # ask hook for extra Task entity fields we should query and insert into the additional_entities list.
-    additional_fields = tk.execute_core_hook("context_additional_entities").get("entity_fields_on_task", [])
+    if additional_fields is None:
+        # ask hook for extra Task entity fields we should query and insert into the additional_entities list.
+        additional_fields = tk.execute_core_hook("context_additional_entities").get("entity_fields_on_task", [])
 
     task = tk.shotgun.find_one("Task", [["id","is",task_id]], standard_fields + additional_fields)
     if not task:

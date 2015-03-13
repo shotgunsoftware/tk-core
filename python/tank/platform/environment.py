@@ -23,6 +23,8 @@ from . import environment_includes
 from ..errors import TankError
 from ..deploy import descriptor
 
+from ..util.yaml_cache import YamlCache
+
 
 class Environment(object):
     """
@@ -61,19 +63,13 @@ class Environment(object):
     def __refresh(self):
         """Refreshes the environment data from disk
         """
-
         if not os.path.exists(self.__env_path):
             raise TankError("Attempting to load non-existent environment file: %s" % self.__env_path)
 
-        try:
-            env_file = open(self.__env_path, "r")
-            data = yaml.load(env_file)
-            env_file.close()
-        except Exception, exp:
-            raise TankError("Could not parse file %s. Error reported: %s" % (self.__env_path, exp))
+        data = self.__load_data(self.__env_path)
 
         self.__env_data = environment_includes.process_includes(self.__env_path, data, self.__context)
-
+        
         if not self.__env_data:
             raise TankError('No data in env file: %s' % (self.__env_path))
 
@@ -342,15 +338,7 @@ class Environment(object):
         """
         loads the main data from disk, raw form
         """
-        # load the data in
-        try:
-            env_file = open(path, "r")
-            data = yaml.load(env_file)
-            env_file.close()
-        except Exception, exp:
-            raise TankError("Could not parse file %s. Error reported: %s" % (path, exp))
-
-        return data
+        return YamlCache.instance().load(path)
 
     def __write_data(self, path, data):
         """
