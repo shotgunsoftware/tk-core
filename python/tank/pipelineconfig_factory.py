@@ -89,9 +89,9 @@ def _from_entity(entity_type, entity_id, force_reread_shotgun_cache):
         if config_context_path not in local_pc_paths:
             # the tank command / api proxy which this session was launched for is *not*
             # associated with the given entity type and entity id!
-            raise TankError("The Toolkit configuration in '%s' is not associated with "
-                            "%s %s. To see which Toolkit configurations are available for a "
-                            "Project, go to the Pipeline Configurations page "
+            raise TankError("The pipeline configuration in '%s' is is associated with a different "
+                            "project from %s %s. To see which pipeline configurations are available " 
+                            "for a project, open the pipeline configurations page "
                             "in Shotgun." % (config_context_path, entity_type, entity_id))                        
             
         # ok we got a pipeline config matching the tank command from which we launched.
