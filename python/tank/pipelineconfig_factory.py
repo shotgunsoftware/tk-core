@@ -114,9 +114,9 @@ def _from_entity(entity_type, entity_id, force_reread_shotgun_cache):
             # for an entity lookup, there should be no ambiguity - an entity belongs to a project
             # and a project has got a distinct set of pipeline configs, exactly one of which
             # is the primary.
-            raise TankError("It looks like there are several Primary pipeline configurations "
-                            "associated with the entity %s %s: %s - Please contact support "
-                            "on toolkitsupport@shotgunsoftware.com." % (entity_type, entity_id, primary_pc_paths))
+            raise TankError("More than one primary pipeline configuration is associated "
+                            "with the entity %s %s: %s - Please contact support at "
+                            "toolkitsupport@shotgunsoftware.com." % (entity_type, entity_id, primary_pc_paths))            
 
         # looks good, we got a primary pipeline config that exists
         return PipelineConfiguration(primary_pc_paths[0])
@@ -211,16 +211,17 @@ def _from_path(path, force_reread_shotgun_cache):
         # now if this tank command is associated with the path, the registered path should be in 
         # in the list of paths found in the tank data backlink file
         if config_context_path not in local_pc_paths:
-            raise TankError("You are trying to start Toolkit using the configuration and tank command "
+            raise TankError("You are trying to start Toolkit using the pipeline configuration "
                             "located in '%s'. The path '%s' you are trying to load is not "
                             "associated with that configuration. Instead, it is "
-                            "associated with the following configurations: %s. "
+                            "associated with the following pipeline configurations: %s. "
                             "Please use the tank command or Toolkit API in any of those "
                             "locations in order to continue. This error can occur if you "
-                            "have moved a configuration on disk without correctly updating "
-                            "it in Shotgun. It can also occur if you are trying to use a tank command "
-                            "associated with Project A to try to operate on a Shot or Asset that "
-                            "that belongs to a project B." % (config_context_path, path, local_pc_paths))
+                            "have moved a configuration manually rather than using "
+                            "the 'tank move_configuration command'. It can also occur if you " 
+                            "are trying to use a tank command associated with Project A "
+                            "to try to operate on a Shot or Asset that belongs to a "
+                            "project B." % (config_context_path, path, local_pc_paths))
 
         # okay so this PC is valid!
         return PipelineConfiguration(config_context_path)
@@ -229,8 +230,8 @@ def _from_path(path, force_reread_shotgun_cache):
         # we are running a studio level tank command.
         # find the primary pipeline configuration in the list of matching configurations.        
         if len(primary_pc_paths) == 0:
-            raise TankError("Cannot find a Primary Pipeline Configuration for path '%s'. "
-                            "The following Pipeline configuration are associated with the "
+            raise TankError("Cannot find a primary pipeline configuration for path '%s'. "
+                            "The following pipeline configurations are associated with the "
                             "path, but none of them is marked as Primary: %s" % (path, local_pc_paths))
 
         if len(primary_pc_paths) > 1:
