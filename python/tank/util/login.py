@@ -88,7 +88,7 @@ def get_current_user(tk):
     if g_shotgun_current_user_cache != "unknown":
         return g_shotgun_current_user_cache
 
-    from . import authentication
+    from tank_vendor.shotgun_authentication import authentication
     info = authentication.get_connection_information()
 
     if authentication.is_script_user_authenticated(info):

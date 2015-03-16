@@ -15,7 +15,7 @@ from tank_test.tank_test_base import *
 
 from tank_vendor.shotgun_authentication.authentication_manager import AuthenticationManager, ActivationError
 from tank.util.core_authentication_manager import CoreAuthenticationManager
-from tank.util import authentication
+from tank_vendor.shotgun_authentication import authentication
 
 
 class AuthenticationManagerTests(TankTestBase):

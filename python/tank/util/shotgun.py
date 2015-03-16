@@ -1209,9 +1209,7 @@ def _create_or_renew_sg_connection_from_session(connection_information):
     if sg:
         return sg
 
-    # Note that throughout this file we will access some AuthenticationManager specific methods
-    # through CoreAuthenticationManager simply to reduce the amount of code to import directly.
-    from . import authentication
+    from tank_vendor.shotgun_authentication import authentication
 
     try:
         # If there is a current engine, we can ask the engine to prompt the user to login
@@ -1255,9 +1253,7 @@ def _create_authenticated_sg_connection():
     :param config_data: A dictionary holding the site configuration.
     :returns: A Shotgun instance.
     """
-    # Note that throughout this file we will access some AuthenticationManager specific methods
-    # through CoreAuthenticationManager simply to reduce the amount of code to import directly.
-    from . import authentication
+    from tank_vendor.shotgun_authentication import authentication
 
     connection_information = authentication.get_connection_information()
     # If no configuration information

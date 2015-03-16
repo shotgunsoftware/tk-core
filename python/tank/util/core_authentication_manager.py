@@ -46,15 +46,6 @@ else:
 
 class CoreAuthenticationManager(AuthenticationManager):
 
-    @staticmethod
-    def is_script_user_authenticated(connection_information):
-        """
-        Indicates if we are authenticating with a script user for a given configuration.
-        :param connection_information: Information used to connect to Shotgun.
-        :returns: True is "api script" and "api_key" are present, False otherwise.
-        """
-        return connection_information.get("api_script") and connection_information.get("api_key")
-
     def __init__(self):
         """
         Creates a CoreAuthenticationManager instance.
@@ -94,7 +85,7 @@ class CoreAuthenticationManager(AuthenticationManager):
         """
         Returns the script user credentials
         """
-        if CoreAuthenticationManager.is_script_user_authenticated(self._core_config_data):
+        if AuthenticationManager.is_script_user_authenticated(self._core_config_data):
             return {
                 "api_key": self._core_config_data.get("api_key"),
                 "api_script": self._core_config_data.get("api_script")
@@ -109,7 +100,7 @@ class CoreAuthenticationManager(AuthenticationManager):
         :param connection_information: Information used to connect to Shotgun.
         :returns: True is we are authenticated, False otherwise.
         """
-        if CoreAuthenticationManager.is_script_user_authenticated(connection_information):
+        if AuthenticationManager.is_script_user_authenticated(connection_information):
             logger.debug("Is script user authenticated.")
             return True
         else:

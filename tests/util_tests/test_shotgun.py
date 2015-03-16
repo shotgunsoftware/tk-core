@@ -454,7 +454,7 @@ class TestCreateSessionBasedConnection(TankTestBase):
     Tests the creation of a session based Shotgun connection.
     """
 
-    @patch("tank.util.authentication.get_connection_information")
+    @patch("tank_vendor.shotgun_authentication.authentication.get_connection_information")
     @patch("tank.util.shotgun._create_or_renew_sg_connection_from_session")
     def test_no_script_user_uses_human_user(
         self,

@@ -25,6 +25,15 @@ def is_human_user_authenticated(connection_information):
     return AuthenticationManager.get_instance().is_human_user_authenticated(connection_information)
 
 
+def is_script_user_authenticated(connection_information):
+    """
+    Indicates if we are authenticating with a script user for a given configuration.
+    :param connection_information: Information used to connect to Shotgun.
+    :returns: True is "api script" and "api_key" are present, False otherwise.
+    """
+    return AuthenticationManager.is_script_user_authenticated(connection_information)
+
+
 def get_host():
     """
     Returns the current host.

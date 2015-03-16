@@ -28,8 +28,8 @@ class AuthenticationTests(TankTestBase):
     delete_session_data for now, since they have complicated to test and would simply slow us down.
     """
 
-    @patch("tank.util.authentication.is_script_user_authenticated")
-    @patch("tank.util.authentication.is_human_user_authenticated")
+    @patch("tank_vendor.shotgun_authentication.authentication.is_script_user_authenticated")
+    @patch("tank_vendor.shotgun_authentication.authentication.is_human_user_authenticated")
     def setUp(
         self,
         is_human_user_authenticated_mock,

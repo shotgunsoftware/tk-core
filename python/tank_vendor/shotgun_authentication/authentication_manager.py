@@ -141,6 +141,15 @@ class AuthenticationManager(object):
         logger.debug("is_human_user: %s" % is_human_user)
         return is_human_user
 
+    @staticmethod
+    def is_script_user_authenticated(connection_information):
+        """
+        Indicates if we are authenticating with a script user for a given configuration.
+        :param connection_information: Information used to connect to Shotgun.
+        :returns: True is "api script" and "api_key" are present, False otherwise.
+        """
+        return connection_information.get("api_script") and connection_information.get("api_key")
+
     def __init__(self):
         """
         Constructor.
