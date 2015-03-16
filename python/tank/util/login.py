@@ -67,12 +67,49 @@ def get_shotgun_user(sg):
     
     return g_shotgun_user_cache
         
+
+g_shotgun_current_user_cache = "unknown"
+
+
 def get_current_user(tk):
     """
-    Retrieves the current user as a dictionary of metadata values.
-    Returns None if the user is not found in shotgun.
-
-    For more information, see tank.util.authentication.get_current_user
+    Retrieves the current user as a dictionary of metadata values. Note: This method connects to
+    shotgun the first time around. The result is then cached to reduce latency.
+    :returns: None if the user is not found in shotgun. Otherwise, it returns a dictionary
+              with the following fields:
+                 * id
+                 * type
+                 * email
+                 * login
+                 * name
+                 * image url (thumbnail)
     """
+    global g_shotgun_current_user_cache
+    if g_shotgun_current_user_cache != "unknown":
+        return g_shotgun_current_user_cache
+
     from . import authentication
-    return authentication.get_current_user(tk)
+    info = authentication.get_connection_information()
+
+    if authentication.is_script_user_authenticated(info):
+        # If we have a script user, try to find a matching user using the os user name.
+        # call hook to get current login
+        current_login = tk.execute_core_hook(constants.CURRENT_LOGIN_HOOK_NAME)
+    elif authentication.is_human_user_authenticated(info):
+        # If we have a human user, simply use the login value.
+        current_login = info["login"]
+    else:
+        # Something is wrong, no current login available.
+        current_login = None
+
+    if current_login is None:
+        g_shotgun_current_user_cache = None
+    else:
+        fields = ["id", "type", "email", "login", "name", "image"]
+        g_shotgun_current_user_cache = tk.shotgun.find_one(
+            "HumanUser",
+            filters=[["login", "is", current_login]],
+            fields=fields
+        )
+
+    return g_shotgun_current_user_cache

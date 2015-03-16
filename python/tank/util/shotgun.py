@@ -14,7 +14,6 @@ Shotgun utilities
 """
 
 import os
-import sys
 import urllib
 import urllib2
 import urlparse
@@ -24,12 +23,48 @@ from tank_vendor import yaml
 # use api json to cover py 2.5
 from tank_vendor import shotgun_api3  
 json = shotgun_api3.shotgun.json
+from tank_vendor.shotgun_api3 import Shotgun
+from tank_vendor.shotgun_authentication import session
 
 
 from ..errors import TankError
 from .. import hook
 from ..platform import constants
 from . import login
+
+from tank.errors import TankAuthenticationError
+
+# FIXME: Quick hack to easily disable logging in this module while keeping the
+# code compatible. We have to disable it by default because Maya will print all out
+# debug strings.
+if False:
+    import logging
+    # Configure logging
+    logger = logging.getLogger("sgtk.authentication")
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(logging.StreamHandler())
+else:
+    class logger:
+        @staticmethod
+        def debug(*args, **kwargs):
+            pass
+
+        @staticmethod
+        def info(*args, **kwargs):
+            pass
+
+        @staticmethod
+        def warning(*args, **kwargs):
+            pass
+
+        @staticmethod
+        def error(*args, **kwargs):
+            pass
+
+        @staticmethod
+        def exception(*args, **kwargs):
+            pass
+
 
 def __get_api_core_config_location():
     """
@@ -175,18 +210,15 @@ def _parse_config_data(file_data, user, shotgun_cfg_path):
             "Missing required field '%s' in config '%s' for script user authentication." % (key, shotgun_cfg_path)
         )
 
+    if not config_data.get("host"):
+        _raise_missing_key("host")
+
     # The script authentication credentials need to be complete in order to work. They can be completely
     # omitted or fully specified, but not halfway configured.
-    if "api_script" in config_data and "api_key" not in config_data:
+    if config_data.get("api_script") and not config_data.get("api_key"):
         _raise_missing_key("api_key")
-    if "api_script" not in config_data and "api_key" in config_data:
+    if not config_data.get("api_script") and config_data.get("api_key"):
         _raise_missing_key("api_script")
-    # If we are either, script user keys are both defined or not defined. So if we are in a script
-    # user config, make sure the host is present.
-    # FIXME: Once authentication is moved outside of core, we should make host be
-    # mandatory again.
-    if "api_script" in config_data and "host" not in config_data:
-        _raise_missing_key("host")
 
     return config_data
 
@@ -199,13 +231,12 @@ def __create_sg_connection(config_data=None):
                              for determining which credentials to use.
     :returns: A Shotgun connection.
     """
-    from . import authentication
     if config_data:
         # Credentials were passed in, so let's run the legacy authentication mechanism for script user.
-        sg = authentication.create_sg_connection_from_script_user(config_data)
+        sg = _create_sg_connection_from_script_user(config_data)
     else:
         # We're not running any special code for Psyop, so run the new Toolkit authentication code.
-        sg = authentication.create_authenticated_sg_connection()
+        sg = _create_authenticated_sg_connection()
 
     # bolt on our custom user agent manager
     sg.tk_user_agent_handler = ToolkitUserAgentHandler(sg)
@@ -1154,6 +1185,84 @@ class ToolkitUserAgentHandler(object):
 
         # and update shotgun
         self._sg._user_agents = new_agents
-        
-        
-        
+
+
+# Having the factory as an indirection to create a shotgun instance allows us to tweak unit tests
+# more easily
+_shotgun_instance_factory = Shotgun
+
+
+def _create_or_renew_sg_connection_from_session(connection_information):
+    """
+    Creates a shotgun connection using the current session token or a new one if the old one
+    expired.
+    :param connection_information: A dictionary holding the connection information.
+    :returns: A valid Shotgun instance.
+    :raises TankAuthenticationError: If we couldn't get a valid session, a TankAuthenticationError is thrown.
+    """
+    from ..platform import engine
+
+    # If the Shotgun login was not automated, then try to create a Shotgun
+    # instance from the cached session id.
+    sg = session.create_sg_connection_from_session(connection_information, _shotgun_instance_factory)
+    # If worked, just return the result.
+    if sg:
+        return sg
+
+    # Note that throughout this file we will access some AuthenticationManager specific methods
+    # through CoreAuthenticationManager simply to reduce the amount of code to import directly.
+    from . import authentication
+
+    try:
+        # If there is a current engine, we can ask the engine to prompt the user to login
+        if engine.current_engine():
+            engine.current_engine().renew_session()
+            sg = session.create_sg_connection_from_session(
+                authentication.get_connection_information(),
+                _shotgun_instance_factory
+            )
+            if not sg:
+                raise TankAuthenticationError("Authentication failed.")
+        else:
+            # Otherwise we failed and can't login.
+            raise TankAuthenticationError("No valid authentication credentials were found.")
+    except:
+        # If the authentication failed, clear the cached credentials. Only do it here instead of befor
+        # the renewal otherwise multiple threads who are about to ask for credentials might clear
+        # the newer credentials that another thread cached.
+        authentication.clear_cached_credentials()
+        raise
+    return sg
+
+
+def _create_sg_connection_from_script_user(connection_information):
+    """
+    Create a Shotgun connection based on a script user.
+    :param connection_information: A dictionary with keys host, api_script, api_key and an optional http_proxy.
+    :returns: A Shotgun instance.
+    """
+    return _shotgun_instance_factory(
+        connection_information["host"],
+        script_name=connection_information["api_script"],
+        api_key=connection_information["api_key"],
+        http_proxy=connection_information.get("http_proxy", None)
+    )
+
+
+def _create_authenticated_sg_connection():
+    """
+    Creates an authenticated Shotgun connection.
+    :param config_data: A dictionary holding the site configuration.
+    :returns: A Shotgun instance.
+    """
+    # Note that throughout this file we will access some AuthenticationManager specific methods
+    # through CoreAuthenticationManager simply to reduce the amount of code to import directly.
+    from . import authentication
+
+    connection_information = authentication.get_connection_information()
+    # If no configuration information
+    if authentication.is_script_user_authenticated(connection_information):
+        # create API
+        return _create_sg_connection_from_script_user(connection_information)
+    else:
+        return _create_or_renew_sg_connection_from_session(connection_information)

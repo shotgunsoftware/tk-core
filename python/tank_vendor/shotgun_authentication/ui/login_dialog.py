@@ -8,12 +8,14 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-
-from tank.errors import TankAuthenticationError
+"""
+Login dialog for authenticating to a Shotgun server.
+"""
 
 from . import resources_rc
 from . import ui_login_dialog
-from tank.util import authentication
+from .. import session
+from ..errors import AuthenticationError
 from .qt_abstraction import QtGui, QtCore
 
 
@@ -21,7 +23,7 @@ class LoginDialog(QtGui.QDialog):
     """
     Dialog for getting user crendentials.
     """
-    def __init__(self, title, is_session_renewal, hostname="", login="", http_proxy=None, pixmap=None, stay_on_top=True, parent=None):
+    def __init__(self, title, is_session_renewal, hostname="", login="", http_proxy=None, pixmap=None, parent=None):
         """
         Constructs a dialog.
 
@@ -35,10 +37,6 @@ class LoginDialog(QtGui.QDialog):
         :param parent: The Qt parent for the dialog (defaults to None)
         """
         QtGui.QDialog.__init__(self, parent)
-
-        # set the dialog to always stay on top
-        if stay_on_top:
-            self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
 
         # setup the gui
         self.ui = ui_login_dialog.Ui_LoginDialog()
@@ -63,7 +61,7 @@ class LoginDialog(QtGui.QDialog):
 
         # set the logo
         if not pixmap:
-            pixmap = QtGui.QPixmap(":/Tank.Platform.Qt/shotgun_logo_light_medium.png")
+            pixmap = QtGui.QPixmap(":/shotgun_authentication/shotgun_logo_light_medium.png")
         self.ui.logo.setPixmap(pixmap)
 
         # Disable keyboard input in the site and login boxes if we are simply renewing the session.
@@ -95,6 +93,19 @@ class LoginDialog(QtGui.QDialog):
         Invoked when the user clicks cancel in the ui.
         """
         self.reject()
+
+    def show(self):
+        QtGui.QDialog.show(self)
+        self.activateWindow()
+        self.raise_()
+
+    def exec_(self):
+        self.activateWindow()
+        self.raise_()
+        # the trick of activating + raising does not seem to be enough for
+        # modal dialogs. So force put them on top as well.
+        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint | self.windowFlags())
+        QtGui.QDialog.exec_(self)
 
     def result(self):
         """
@@ -147,10 +158,10 @@ class LoginDialog(QtGui.QDialog):
             QtGui.QApplication.processEvents()
 
             # try and authenticate
-            self._new_session_token = authentication.generate_session_token(
+            self._new_session_token = session.generate_session_token(
                 site, login, password, self._http_proxy
             )
-        except TankAuthenticationError, e:
+        except AuthenticationError, e:
             # authentication did not succeed
             self._set_error_message(e[0])
             self.ui.message.show()

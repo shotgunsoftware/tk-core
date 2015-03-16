@@ -14,6 +14,7 @@ import sys
 from tank_test.tank_test_base import *
 from mock import patch
 import tank
+import tank_vendor
 
 
 @skip_if_pyside_missing
@@ -33,7 +34,7 @@ class LoginUiTests(TankTestBase):
         """
         Make sure that the site and user fields are disabled when doing session renewal
         """
-        from tank.platform.qt.login_dialog import LoginDialog
+        from tank_vendor.shotgun_authentication.ui.login_dialog import LoginDialog
         ld = LoginDialog("Dummy", is_session_renewal=True)
         self.assertTrue(ld.ui.site.isReadOnly())
         self.assertTrue(ld.ui.login.isReadOnly())
@@ -57,9 +58,9 @@ class LoginUiTests(TankTestBase):
         }
         cache_connection_information_mock.return_value = None
 
-    @patch("tank.util.authentication.cache_connection_information")
-    @patch("tank.util.authentication.get_connection_information")
-    @patch("tank.util.authentication.is_authenticated")
+    @patch("tank_vendor.shotgun_authentication.authentication.cache_connection_information")
+    @patch("tank_vendor.shotgun_authentication.authentication.get_connection_information")
+    @patch("tank_vendor.shotgun_authentication.authentication.is_authenticated")
     @interactive
     def test_interactive_login(self, *args):
         """
@@ -67,4 +68,4 @@ class LoginUiTests(TankTestBase):
         """
         self._prepare_mocks(*args)
 
-        tank.platform.interactive_authentication.ui_authenticate()
+        tank_vendor.shotgun_authentication.interactive_authentication.ui_authenticate()

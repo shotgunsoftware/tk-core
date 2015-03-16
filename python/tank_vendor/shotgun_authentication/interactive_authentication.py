@@ -13,20 +13,23 @@ UI and console based login for Toolkit.
 """
 
 # Using "with" with the lock to make sure it is always released.
+
 from __future__ import with_statement
 from getpass import getpass
-import logging
 import threading
+import os
+import sys
+from .errors import AuthenticationError, AuthenticationDisabled
+from . import authentication
+from . import session
 
-from tank.errors import TankAuthenticationError, TankAuthenticationDisabled
-from tank.util import authentication
-from tank.util.login import get_login_name
 
 # FIXME: Quick hack to easily disable logging in this module while keeping the
 # code compatible. We have to disable it by default because Maya will print all out
 # debug strings.
 if False:
     # Configure logging
+    import logging
     logger = logging.getLogger("sgtk.interactive_authentication")
     logger.setLevel(logging.DEBUG)
     logger.addHandler(logging.StreamHandler())
@@ -51,6 +54,23 @@ else:
         @staticmethod
         def exception(*args, **kwargs):
             pass
+
+
+def get_login_name():
+    """
+    Retrieves the login name of the current user.
+    Returns None if no login name was found
+    """
+    if sys.platform == "win32":
+        # http://stackoverflow.com/questions/117014/how-to-retrieve-name-of-current-windows-user-ad-or-local-using-python
+        return os.environ.get("USERNAME", None)
+    else:
+        try:
+            import pwd
+            pwd_entry = pwd.getpwuid(os.geteuid())
+            return pwd_entry[0]
+        except:
+            return None
 
 
 class AuthenticationHandlerBase(object):
@@ -78,13 +98,15 @@ class AuthenticationHandlerBase(object):
         :raises: TankAuthenticationError Thrown if the authentication is cancelled.
         :raises: TankAuthenticationDisabled Thrown if authentication was cancelled before.
         """
+        logger.debug("About to take the authentication lock.")
         with AuthenticationHandlerBase._authentication_lock:
+            logger.debug("Took the authentication lock.")
             # If we are authenticated, we're done here.
             if authentication.is_authenticated():
                 return
             # If somebody disabled authentication, we're done here as well.
             elif AuthenticationHandlerBase._authentication_disabled:
-                raise TankAuthenticationDisabled()
+                raise AuthenticationDisabled()
 
             # Get the current authentication values.
             connection_information = authentication.get_connection_information()
@@ -97,7 +119,7 @@ class AuthenticationHandlerBase(object):
                     connection_information.get("login", get_login_name()),
                     connection_information.get("http_proxy")
                 )
-            except TankAuthenticationError:
+            except AuthenticationError:
                 AuthenticationHandlerBase._authentication_disabled = True
                 logger.debug("Authentication cancelled, disabling authentication.")
                 raise
@@ -128,13 +150,12 @@ class AuthenticationHandlerBase(object):
         :returns: If the credentials were valid, returns a session token, otherwise returns None.
         """
         try:
-            return authentication.generate_session_token(hostname, login, password, http_proxy)
-        except TankAuthenticationError:
-            print "Authentication failed."
+            return session.generate_session_token(hostname, login, password, http_proxy)
+        except AuthenticationError:
             return None
 
     def raise_no_credentials_provided_error(self):
-        raise TankAuthenticationError("No credentials provided.")
+        raise AuthenticationError("No credentials provided.")
 
 
 class ConsoleAuthenticationHandlerBase(AuthenticationHandlerBase):
@@ -205,6 +226,24 @@ class ConsoleAuthenticationHandlerBase(AuthenticationHandlerBase):
             user_input = raw_input(text) or default_value
         return user_input
 
+    def _get_session_token(self, hostname, login, password, http_proxy):
+        """
+        Retrieves a session token for the given credentials.
+        :param hostname: The host to connect to.
+        :param login: The user to get a session for.
+        :param password: Password for the user.
+        :param http_proxy: Proxy to use. Can be None.
+        :returns: If the credentials were valid, returns a session token, otherwise returns None.
+        """
+        token = super(ConsoleAuthenticationHandlerBase, self)._get_session_token(hostname, login, password, http_proxy)
+        if not token:
+            print "Login failed."
+        return token
+        try:
+            return session.generate_session_token(hostname, login, password, http_proxy)
+        except AuthenticationError:
+            return None
+
 
 class ConsoleRenewSessionHandler(ConsoleAuthenticationHandlerBase):
     """
@@ -244,12 +283,13 @@ class UiAuthenticationHandler(AuthenticationHandlerBase):
     Handles ui based authentication.
     """
 
-    def __init__(self, is_session_renewal):
+    def __init__(self, is_session_renewal, gui_launcher):
         """
         Creates the UiAuthenticationHandler object.
         :param is_session_renewal: Boolean indicating if we are renewing a session. True if we are, False otherwise.
         """
         self._is_session_renewal = is_session_renewal
+        self._gui_launcher = gui_launcher
 
     def _do_authentication(self, hostname, login, http_proxy):
         """
@@ -260,9 +300,7 @@ class UiAuthenticationHandler(AuthenticationHandlerBase):
         :param http_proxy: Proxy server to use when validating credentials. Can be None.
         :returns: A tuple of (hostname, login, session_token)
         """
-        from .qt import login_dialog
-
-        from tank.platform import engine
+        from .ui import login_dialog
 
         if self._is_session_renewal:
             logger.debug("Requesting password in a dialog.")
@@ -279,31 +317,39 @@ class UiAuthenticationHandler(AuthenticationHandlerBase):
             )
             return dlg.result()
 
-        # If there is a current engine, execute from the main thread.
-        if engine.current_engine():
-            result = engine.current_engine().execute_in_main_thread(_process_ui)
-        else:
-            # Otherwise just run in the current one.
-            result = _process_ui()
+        result = self._gui_launcher(_process_ui)
+
         if not result:
             self.raise_no_credentials_provided_error()
         return result
 
 
-def ui_renew_session():
+def ui_renew_session(gui_launcher=None):
     """
     Prompts the user to enter his password in a dialog to retrieve a new session token.
+    :param gui_launcher: Function that will launch the gui. The function will be receiving a callable object
+                         which will take care of invoking the gui in the right thread. If None, the gui will
+                         be launched in the current thread.
     """
-    UiAuthenticationHandler(is_session_renewal=True).authenticate()
+    UiAuthenticationHandler(
+        is_session_renewal=True,
+        gui_launcher=gui_launcher or (lambda func: func())
+    ).authenticate()
 
 
-def ui_authenticate():
+def ui_authenticate(gui_launcher=None):
     """
     Authenticates the current process. Authentication can be done through script user authentication
     or human user authentication. If doing human user authentication and there is no session cached, a
     dialgo asking for user credentials will appear.
+    :param gui_launcher: Function that will launch the gui. The function will be receiving a callable object
+                         which will take care of invoking the gui in the right thread. If None, the gui will
+                         be launched in the current thread.
     """
-    UiAuthenticationHandler(is_session_renewal=False).authenticate()
+    UiAuthenticationHandler(
+        is_session_renewal=False,
+        gui_launcher=gui_launcher or (lambda func: func())
+    ).authenticate()
 
 
 def console_renew_session():
@@ -326,8 +372,8 @@ def console_logout():
     """
     Logs out of the currently cached session and prints whether it worked or not.
     """
-    if authentication.logout():
-        connection_info = authentication.get_connection_information()
+    connection_info = authentication.logout()
+    if connection_info:
         print "Succesfully logged out of", connection_info["host"]
     else:
         print "Not logged in."

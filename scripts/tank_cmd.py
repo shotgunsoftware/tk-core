@@ -21,8 +21,9 @@ from tank.deploy.tank_commands.clone_configuration import clone_pipeline_configu
 from tank.deploy import tank_command
 from tank.deploy.tank_commands.core_upgrade import TankCoreUpgrader
 from tank.deploy.tank_commands.action_base import Action
-from tank.util import shotgun, authentication
-from tank.platform import engine, console_authenticate, console_logout
+from tank.util import shotgun
+from tank.util.interactive_authentication import console_authenticate, console_logout
+from tank.platform import engine
 from tank import pipelineconfig_utils
 
 
@@ -575,6 +576,13 @@ def _list_commands(log, tk, ctx):
         if x.category not in by_category:
             by_category[x.category] = []
         by_category[x.category].append(x)
+
+    # Add Login category manually, since they are not commands per-se since they are run before the
+    # engine is initialized.
+
+    by_category.setdefault("Login", []).append(
+        Action("logout", "unused", "Log out of the current user (no need for a contex).", "Login")
+    )
 
     num_engine_commands = 0
     for cat in sorted(by_category.keys()):
@@ -1254,7 +1262,7 @@ if __name__ == "__main__":
         logger.info("")
         exit_code = 7
 
-    # Do not use 8, it is alread being used when authentication was cancelled.
+    # Do not use 8, it is alread being used when login was cancelled.
 
     logger.debug("Exiting with exit code %s" % exit_code)
     sys.exit(exit_code)

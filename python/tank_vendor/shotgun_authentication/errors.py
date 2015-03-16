@@ -9,35 +9,20 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-All custom exceptions that Tank emits are defined here.
-
+All custom exceptions that this module emits are defined here.
 """
 
 
-class TankError(Exception):
+class AuthenticationError(Exception):
     """
     Exception that indicates an authentication error has occurred.
     """
     pass
 
 
-class TankAuthenticationError(TankError):
-    """
-    Exception that indicates an error has occurred.
-    """
-    pass
-
-
-class TankEngineInitError(TankError):
-    """
-    Exception that indicates that an engine could not start up
-    """
-    pass
-
-
-class TankAuthenticationDisabled(TankError):
+class AuthenticationDisabled(Exception):
     """
     Exception that indicates that interactive authentication has been disabled.
     """
     def __init__(self):
-        TankError.__init__(self, "Authentication has been disabled.")
+        Exception.__init__(self, "Authentication has been disabled.")

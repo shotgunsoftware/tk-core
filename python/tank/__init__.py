@@ -21,3 +21,8 @@ from .template import TemplatePath, TemplateString
 from .hook import Hook, get_hook_baseclass
 
 from .deploy.tank_command import list_commands, get_command
+
+# Make sure that the Core Authentication Manager is instantiated is no other is set.
+from .util.core_authentication_manager import CoreAuthenticationManager
+if not CoreAuthenticationManager.is_activated():
+    CoreAuthenticationManager.activate()

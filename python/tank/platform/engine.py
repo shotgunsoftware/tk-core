@@ -24,7 +24,7 @@ from ..errors import TankError, TankEngineInitError
 from ..deploy import descriptor
 from ..deploy.dev_descriptor import TankDevDescriptor
 
-from . import interactive_authentication
+from ..util import interactive_authentication
 from . import application
 from . import constants
 from . import validation
@@ -113,6 +113,11 @@ class Engine(TankBundle):
         qt.QtCore = base_def.get("qt_core")
         qt.QtGui = base_def.get("qt_gui")
         qt.TankDialogBase = base_def.get("dialog_base")
+
+        # Update the authentication module to use the engine's Qt.
+        from tank_vendor.shotgun_authentication.ui import qt_abstraction
+        qt_abstraction.QtCore = qt.QtCore
+        qt_abstraction.QtGui = qt.QtGui
         
         # create invoker to allow execution of functions on the
         # main thread:
