@@ -22,6 +22,18 @@ class TankError(Exception):
 
 class TankEngineInitError(TankError):
     """
-    Exception that indicates that an engine could not start up 
+    Exception that indicates that an engine could not start up.
     """
     pass
+
+class TankErrorProjectIsSetup(TankError):
+    """
+    Exception that indicates that a project already has a toolkit name but no pipeline configuration.
+    """
+
+    def __init__(self):
+        """
+        Include error message
+        """
+        super(TankErrorProjectIsSetup, self).__init__("You are trying to set up a project which has already been set up. "
+                                                      "If you want to do this, make sure to set the force parameter.")
