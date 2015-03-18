@@ -44,8 +44,8 @@ class UnregisterFoldersAction(Action):
                                     "default": None,
                                     "type": "str" }
         
-        self.parameters["entity"] = { "description": ("Entity to unregister. Should be a Shotgun style entity "
-                                                      "dictionary with keys type and id."),
+        self.parameters["entity"] = { "description": ("Entity to unregister. Should be a Shotgun-style entity "
+                                                      "dictionary with keys 'type' and 'id'."),
                                       "default": None,
                                       "type": "dict" }
         
@@ -53,13 +53,16 @@ class UnregisterFoldersAction(Action):
     def run_interactive(self, log, args):
         """
         Tank command accessor
+        
+        :param log: Std logging object
+        :param parameters: Std tank command parameters dict        
         """
         
         if not self.tk.pipeline_configuration.get_shotgun_path_cache_enabled():            
             # remote cache not turned on for this project
             log.error("Looks like this project doesn't synchronize its folders with Shotgun! "
-                      "If you want to turn on synchronization for this project, run "
-                      "the 'upgrade_folders' tank command.")
+                      "If you'd like to upgrade your path cache to turn on synchronization for "
+                      "this project, run the 'tank upgrade_folders' command.")
             return
         
         # there are multiple syntaxes for this command
@@ -75,22 +78,23 @@ class UnregisterFoldersAction(Action):
             if len(args) == 0:
                 # display help message
                 
-                log.info("This command is used to unregister folders that have been created via the Toolkit "
-                         "folder creation. When applications are launched and folders are created, new entries "
-                         "are added to the Shotgun FilesystemLocation table. These are then used to track the "
-                         "relationship between Shotgun objects and folders on disk. If you ever need to "
-                         "undo these associations, you can use this command. ")
+                log.info("Unregister folders on your filesystem that are being tracked by Toolkit. "
+                         "When applications are launched and folders are created on your filesystem, "
+                         "new entries are stored in Shotgun as FilesystemLocation entities. These "
+                         "records are called the 'path cache', and are used to track the relationship "
+                         "between Shotgun entities and folders on disk. Use this command if you ever "
+                         "need to remove these associations.")
                 log.info("")
-                log.info("You can use it by passing a Shotgun object, e.g.")
+                log.info("Pass in a Shotgun entity (by name or id):")
                 log.info("> tank Shot ABC123 unregister_folders")
                 log.info("")
-                log.info("Alternatively, you can use it by passing one or more paths, e.g.")
+                log.info("Or pass in one or more paths:")
                 log.info("> tank unregister_folders /path/to/folder_a /path/to/folder_b")
                 log.info("")
                 
             else:
                 paths = args
-                log.info("Will process the following folders:")
+                log.info("Unregistering the following folders:")
                 for p in paths:
                     log.info(" - %s" % p)
                 log.info("")
@@ -135,6 +139,9 @@ class UnregisterFoldersAction(Action):
         """
         Unregisters a path.
         
+        :param paths: list of paths to unregister
+        :param log: python logger
+        :param prompt: Boolean to indicate that we can prompt the user for information or confirmation
         :returns: List of dictionaries to represents the items that were unregistered.
                   Each dictionary has keys path and sg_id.
                   Note that the shotgun ids returned will refer to retired objects in 
@@ -155,7 +162,7 @@ class UnregisterFoldersAction(Action):
                 if sg_id is None:
                     log.warning("Path '%s' is not registered in Shotgun - ignoring." % p)
                 else:
-                    log.debug("The path '%s' is matching filesystem location id %s" % (p, sg_id))
+                    log.debug("The path '%s' matches FilesystemLocation id: %s" % (p, sg_id))
                     fs_location_ids.add(sg_id)
 
         finally:
@@ -233,23 +240,24 @@ class UnregisterFoldersAction(Action):
             log.info(" - %s" % p["path"])
         
         log.info("")
-        log.info("Proceeding would unregister the above paths from Toolkit's folder database. "
+        log.info("Proceeding will unregister the above paths from Toolkit's path cache. "
                  "This will not alter any of the content in the file system, but once you have "
-                 "unregistered the paths, they will not be recognized by Shotgun.")
+                 "unregistered the paths, they will not be recognized by Shotgun util you run "
+                 "Toolkit folder creation again.")
         log.info("")
-        log.info("This is useful if you for example have renamed an Asset or Shot and want to "
-                 "move the data around on disk. In this case, start by unregistering the existing "
-                 "folder entries in Shotgun, then rename the Shot or Asset in Shotgun. Next, "
-                 "create new folders on disk using Toolkit's 'create folders' command and lastly "
-                 "move all your file system data across from the old location to the new location.")
+        log.info("This is useful if you have renamed an Asset or Shot and want to move its "
+                 "files to a new location on disk. In this case, start by unregistering the "
+                 "folders for the entity, then rename the Shot or Asset in Shotgun. "
+                 "Next, create new folders on disk using Toolkit's 'create folders' "
+                 "command. Finally, move the files to the new location on disk.")
         log.info("")
         if prompt:
-            val = raw_input("Proceed with unregister? (Yes/No) ? [Yes]: ")
+            val = raw_input("Proceed with unregistering the above folders? (Yes/No) ? [Yes]: ")
             if val != "" and not val.lower().startswith("y"):
                 log.info("Exiting! Nothing was unregistered.")
                 return []
         
-        log.info("Removing items from Shotgun....")
+        log.info("Unregistering folders from Shotgun...")
         log.info("")
         
         sg_batch_data = []
@@ -262,8 +270,8 @@ class UnregisterFoldersAction(Action):
         try:    
             self.tk.shotgun.batch(sg_batch_data)
         except Exception, e:
-            raise TankError("Shotgun Reported an error. Please contact support. "
-                            "Details: %s Data: %s" % (e, sg_batch_data))
+            raise TankError("Shotgun reported an error while attempting to delete FilesystemLocation entities. "
+                            "Please contact support. Details: %s Data: %s" % (e, sg_batch_data))
         
         # now register the deleted ids in the event log
         # this will later on be read by the synchronization            

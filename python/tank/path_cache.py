@@ -992,7 +992,7 @@ class PathCache(object):
 
     def get_shotgun_id_from_path(self, path):
         """
-        Returns a FilesystemLocation id given a path. Will return exact matches.
+        Returns a FilesystemLocation id given a path.
         
         :param path: Path to look for in the path cache
         :returns: A shotgun FilesystemLocation id or None if not found.
@@ -1023,7 +1023,7 @@ class PathCache(object):
         
         if len(data) > 1:
             # never supposed to happen!
-            raise TankError("More than one entry in path database for %s!" % path)
+            raise TankError("More than one entry in the path cache database for %s!" % path)
         
         elif len(data) == 1:
             return data[0][0]
