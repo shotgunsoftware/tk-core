@@ -20,6 +20,6 @@ credentials are reused if available.
 
 from . import authentication
 from . import interactive_authentication
-from . import session
+from . import connection
 from . import errors
 from .authentication_manager import AuthenticationManager

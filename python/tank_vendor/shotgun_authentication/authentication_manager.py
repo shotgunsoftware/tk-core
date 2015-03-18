@@ -135,9 +135,9 @@ class AuthenticationManager(object):
         :param connection_information: Information used to connect to Shotgun.
         :returns: True is we are using a session, False otherwise.
         """
-        from . import session
+        from . import connection
         # Try to create a connection. If something is created, we are authenticated.
-        is_human_user = session.create_sg_connection_from_session(connection_information) is not None
+        is_human_user = connection.create_sg_connection_from_session(connection_information) is not None
         logger.debug("is_human_user: %s" % is_human_user)
         return is_human_user
 

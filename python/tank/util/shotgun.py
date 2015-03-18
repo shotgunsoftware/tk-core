@@ -21,11 +21,10 @@ import urlparse
 from tank_vendor import yaml
 
 # use api json to cover py 2.5
-from tank_vendor import shotgun_api3  
+from tank_vendor import shotgun_api3
 json = shotgun_api3.shotgun.json
-from tank_vendor.shotgun_api3 import Shotgun
-from tank_vendor.shotgun_authentication import session
-
+from tank_vendor.shotgun_authentication import connection
+from tank_vendor.shotgun_authentication.errors import AuthenticationError
 
 from ..errors import TankError
 from .. import hook
@@ -231,12 +230,16 @@ def __create_sg_connection(config_data=None):
                              for determining which credentials to use.
     :returns: A Shotgun connection.
     """
-    if config_data:
-        # Credentials were passed in, so let's run the legacy authentication mechanism for script user.
-        sg = _create_sg_connection_from_script_user(config_data)
-    else:
-        # We're not running any special code for Psyop, so run the new Toolkit authentication code.
-        sg = _create_authenticated_sg_connection()
+
+    try:
+        if config_data:
+            # Credentials were passed in, so let's run the legacy authentication mechanism for script user.
+            sg = connection.create_sg_connection_from_script_user(config_data)
+        else:
+            # We're not running any special code for Psyop, so run the new Toolkit authentication code.
+            sg = connection.create_authenticated_sg_connection()
+    except AuthenticationError, e:
+        raise TankAuthenticationError(str(e))
 
     # bolt on our custom user agent manager
     sg.tk_user_agent_handler = ToolkitUserAgentHandler(sg)
@@ -1185,80 +1188,3 @@ class ToolkitUserAgentHandler(object):
 
         # and update shotgun
         self._sg._user_agents = new_agents
-
-
-# Having the factory as an indirection to create a shotgun instance allows us to tweak unit tests
-# more easily
-_shotgun_instance_factory = Shotgun
-
-
-def _create_or_renew_sg_connection_from_session(connection_information):
-    """
-    Creates a shotgun connection using the current session token or a new one if the old one
-    expired.
-    :param connection_information: A dictionary holding the connection information.
-    :returns: A valid Shotgun instance.
-    :raises TankAuthenticationError: If we couldn't get a valid session, a TankAuthenticationError is thrown.
-    """
-    from ..platform import engine
-
-    # If the Shotgun login was not automated, then try to create a Shotgun
-    # instance from the cached session id.
-    sg = session.create_sg_connection_from_session(connection_information, _shotgun_instance_factory)
-    # If worked, just return the result.
-    if sg:
-        return sg
-
-    from tank_vendor.shotgun_authentication import authentication
-
-    try:
-        # If there is a current engine, we can ask the engine to prompt the user to login
-        if engine.current_engine():
-            engine.current_engine().renew_session()
-            sg = session.create_sg_connection_from_session(
-                authentication.get_connection_information(),
-                _shotgun_instance_factory
-            )
-            if not sg:
-                raise TankAuthenticationError("Authentication failed.")
-        else:
-            # Otherwise we failed and can't login.
-            raise TankAuthenticationError("No valid authentication credentials were found.")
-    except:
-        # If the authentication failed, clear the cached credentials. Only do it here instead of befor
-        # the renewal otherwise multiple threads who are about to ask for credentials might clear
-        # the newer credentials that another thread cached.
-        authentication.clear_cached_credentials()
-        raise
-    return sg
-
-
-def _create_sg_connection_from_script_user(connection_information):
-    """
-    Create a Shotgun connection based on a script user.
-    :param connection_information: A dictionary with keys host, api_script, api_key and an optional http_proxy.
-    :returns: A Shotgun instance.
-    """
-    return _shotgun_instance_factory(
-        connection_information["host"],
-        script_name=connection_information["api_script"],
-        api_key=connection_information["api_key"],
-        http_proxy=connection_information.get("http_proxy", None)
-    )
-
-
-def _create_authenticated_sg_connection():
-    """
-    Creates an authenticated Shotgun connection.
-    :param config_data: A dictionary holding the site configuration.
-    :returns: A Shotgun instance.
-    """
-    from tank_vendor.shotgun_authentication import authentication
-
-    connection_information = authentication.get_connection_information()
-    # If no configuration information
-    if authentication.is_script_user_authenticated(connection_information):
-        # create API
-        return _create_sg_connection_from_script_user(connection_information)
-    else:
-        return _create_or_renew_sg_connection_from_session(connection_information)

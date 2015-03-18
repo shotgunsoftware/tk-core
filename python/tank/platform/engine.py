@@ -994,8 +994,11 @@ class Engine(TankBundle):
                         Execute function and return result
                         """
                         self._res = self._fn()
-                        
-                return Invoker()
+
+                # Make sure that the invoker is for the main thread only.
+                invoker = Invoker()
+                invoker.moveToThread(QtCore.QThread.currentThread())
+                return invoker
 
         # don't have ui so can't create an invoker!
         return None

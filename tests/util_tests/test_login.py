@@ -22,9 +22,9 @@ class LoginTests(TankTestBase):
     """
 
     @patch("tank_test.mockgun.Shotgun.find_one")
-    @patch("tank.util.authentication.is_script_user_authenticated")
-    @patch("tank.util.authentication.is_human_user_authenticated")
-    @patch("tank.util.authentication.get_connection_information")
+    @patch("tank_vendor.shotgun_authentication.authentication.is_script_user_authenticated")
+    @patch("tank_vendor.shotgun_authentication.authentication.is_human_user_authenticated")
+    @patch("tank_vendor.shotgun_authentication.authentication.get_connection_information")
     def test_get_current_user_uses_session(
         self,
         get_connection_information_mock,

@@ -21,7 +21,7 @@ import os
 import sys
 from .errors import AuthenticationError, AuthenticationDisabled
 from . import authentication
-from . import session
+from . import connection
 
 
 # FIXME: Quick hack to easily disable logging in this module while keeping the
@@ -90,46 +90,7 @@ class AuthenticationHandlerBase(object):
     be impossible to authenticate again.
     """
 
-    def authenticate(self):
-        """
-        Common login logic, regardless of how we are actually logging in. It will first try to reuse
-        any existing session and if that fails then it will ask for credentials and upon success
-        the credentials will be cached.
-        :raises: TankAuthenticationError Thrown if the authentication is cancelled.
-        :raises: TankAuthenticationDisabled Thrown if authentication was cancelled before.
-        """
-        logger.debug("About to take the authentication lock.")
-        with AuthenticationHandlerBase._authentication_lock:
-            logger.debug("Took the authentication lock.")
-            # If we are authenticated, we're done here.
-            if authentication.is_authenticated():
-                return
-            # If somebody disabled authentication, we're done here as well.
-            elif AuthenticationHandlerBase._authentication_disabled:
-                raise AuthenticationDisabled()
-
-            # Get the current authentication values.
-            connection_information = authentication.get_connection_information()
-
-            try:
-                logger.debug("Not authenticated, requesting user input.")
-                # Do the actually credentials prompting and authenticating.
-                hostname, login, session_token = self._do_authentication(
-                    connection_information["host"],
-                    connection_information.get("login", get_login_name()),
-                    connection_information.get("http_proxy")
-                )
-            except AuthenticationError:
-                AuthenticationHandlerBase._authentication_disabled = True
-                logger.debug("Authentication cancelled, disabling authentication.")
-                raise
-
-            logger.debug("Login successful!")
-
-            # Cache the credentials so subsequent session based logins can reuse the session id.
-            authentication.cache_connection_information(hostname, login, session_token)
-
-    def _do_authentication(self, host, login, http_proxy):
+    def authenticate(self, host, login, http_proxy):
         """
         Does the actual authentication. Prompts the user and validates the credentials.
         :param host Host to authenticate for.
@@ -150,7 +111,7 @@ class AuthenticationHandlerBase(object):
         :returns: If the credentials were valid, returns a session token, otherwise returns None.
         """
         try:
-            return session.generate_session_token(hostname, login, password, http_proxy)
+            return connection.generate_session_token(hostname, login, password, http_proxy)
         except AuthenticationError:
             return None
 
@@ -165,7 +126,7 @@ class ConsoleAuthenticationHandlerBase(AuthenticationHandlerBase):
     or cancels the authentication.
     """
 
-    def _do_authentication(self, hostname, login, http_proxy):
+    def authenticate(self, hostname, login, http_proxy):
         """
         Prompts the user for this password to retrieve a new session token and rewews
         the session token.
@@ -240,7 +201,7 @@ class ConsoleAuthenticationHandlerBase(AuthenticationHandlerBase):
             print "Login failed."
         return token
         try:
-            return session.generate_session_token(hostname, login, password, http_proxy)
+            return connection.generate_session_token(hostname, login, password, http_proxy)
         except AuthenticationError:
             return None
 
@@ -291,7 +252,7 @@ class UiAuthenticationHandler(AuthenticationHandlerBase):
         self._is_session_renewal = is_session_renewal
         self._gui_launcher = gui_launcher
 
-    def _do_authentication(self, hostname, login, http_proxy):
+    def authenticate(self, hostname, login, http_proxy):
         """
         Pops a dialog that asks for the hostname, login and password of the user. If there is a current
         engine, it will run the code in the main thread.
@@ -324,6 +285,46 @@ class UiAuthenticationHandler(AuthenticationHandlerBase):
         return result
 
 
+def _authentication_loop(credentials_handler):
+    """
+    Common login logic, regardless of how we are actually logging in. It will first try to reuse
+    any existing session and if that fails then it will ask for credentials and upon success
+    the credentials will be cached.
+    :raises: TankAuthenticationError Thrown if the authentication is cancelled.
+    :raises: TankAuthenticationDisabled Thrown if authentication was cancelled before.
+    """
+    logger.debug("About to take the authentication lock.")
+    with AuthenticationHandlerBase._authentication_lock:
+        logger.debug("Took the authentication lock.")
+        # If we are authenticated, we're done here.
+        if authentication.is_authenticated():
+            return
+        # If somebody disabled authentication, we're done here as well.
+        elif AuthenticationHandlerBase._authentication_disabled:
+            raise AuthenticationDisabled()
+
+        # Get the current authentication values.
+        connection_information = authentication.get_connection_information()
+
+        try:
+            logger.debug("Not authenticated, requesting user input.")
+            # Do the actually credentials prompting and authenticating.
+            hostname, login, session_token = credentials_handler.authenticate(
+                connection_information["host"],
+                connection_information.get("login", get_login_name()),
+                connection_information.get("http_proxy")
+            )
+        except AuthenticationError:
+            AuthenticationHandlerBase._authentication_disabled = True
+            logger.debug("Authentication cancelled, disabling authentication.")
+            raise
+
+        logger.debug("Login successful!")
+
+        # Cache the credentials so subsequent session based logins can reuse the session id.
+        authentication.cache_connection_information(hostname, login, session_token)
+
+
 def ui_renew_session(gui_launcher=None):
     """
     Prompts the user to enter his password in a dialog to retrieve a new session token.
@@ -331,10 +332,10 @@ def ui_renew_session(gui_launcher=None):
                          which will take care of invoking the gui in the right thread. If None, the gui will
                          be launched in the current thread.
     """
-    UiAuthenticationHandler(
+    _authentication_loop(UiAuthenticationHandler(
         is_session_renewal=True,
         gui_launcher=gui_launcher or (lambda func: func())
-    ).authenticate()
+    ))
 
 
 def ui_authenticate(gui_launcher=None):
@@ -346,17 +347,17 @@ def ui_authenticate(gui_launcher=None):
                          which will take care of invoking the gui in the right thread. If None, the gui will
                          be launched in the current thread.
     """
-    UiAuthenticationHandler(
+    _authentication_loop(UiAuthenticationHandler(
         is_session_renewal=False,
         gui_launcher=gui_launcher or (lambda func: func())
-    ).authenticate()
+    ))
 
 
 def console_renew_session():
     """
     Prompts the user to enter his password on the command line to retrieve a new session token.
     """
-    ConsoleRenewSessionHandler().authenticate()
+    _authentication_loop(ConsoleRenewSessionHandler())
 
 
 def console_authenticate():
@@ -365,7 +366,7 @@ def console_authenticate():
     or human user authentication. If doing human user authentication and there is no session cached, the
     user credentials will be retrieved from the console.
     """
-    ConsoleLoginHandler().authenticate()
+    _authentication_loop(ConsoleLoginHandler())
 
 
 def console_logout():
