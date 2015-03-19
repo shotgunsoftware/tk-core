@@ -44,7 +44,7 @@ class Context(object):
 
     """
 
-    def __init__(self, tk, project=None, entity=None, step=None, task=None, user=None, additional_entities=[]):
+    def __init__(self, tk, project=None, entity=None, step=None, task=None, user=None, additional_entities=None):
         """
         Do not create instances of this class directly.
         Instead, use the factory methods.
@@ -55,7 +55,7 @@ class Context(object):
         self.__step = step
         self.__task = task
         self.__user = user
-        self.__additional_entities = additional_entities
+        self.__additional_entities = additional_entities or []
         self._entity_fields_cache = {}
 
     def __repr__(self):
@@ -113,23 +113,82 @@ class Context(object):
         return ctx_name
 
     def __eq__(self, other):
+        """
+        Test if this Context instance is equal to the other Context instance
+                        
+        :param other:   The other Context instance to compare with
+        :returns:       True if self represents the same context as other, 
+                        otherwise False
+        """
+        def _entity_dicts_eq(d1, d2):
+            """
+            Test to see if two entity dictionaries are equal.  They are considered
+            equal if both are dictionaries containing 'type' and 'id' with the same
+            values for both keys, For example:
+            
+            Comparing these two dictionaries would return True:
+            - {"type":"Shot", "id":123, "foo":"foo"}
+            - {"type":"Shot", "id":123, "foo":"bar", "bar":"foo"}
+            
+            But comparing these two dictionaries would return False:
+            - {"type":"Shot", "id":123, "foo":"foo"}
+            - {"type":"Shot", "id":567, "foo":"foo"} 
+    
+            :param d1:  First entity dictionary
+            :param d2:  Second entity dictionary
+            :returns:   True if d1 and d2 are considered equal, otherwise False.
+            """
+            if d1 == d2 == None:
+                return True
+            if d1 == None or d2 == None:
+                return False
+            return d1["type"] == d2["type"] and d1["id"] == d2["id"]        
+        
         if not isinstance(other, Context):
             return NotImplemented
 
-        equal = True
-        equal &= (self.project == other.project)
-        equal &= (self.entity == other.entity)
-        equal &= (self.step == other.step)
-        equal &= (self.task == other.task)
-        equal &= (self.user == other.user)
-        equal &= (self.additional_entities == other.additional_entities)
-        return equal
+        if not _entity_dicts_eq(self.project, other.project):
+            return False
+        
+        if not _entity_dicts_eq(self.entity, other.entity):
+            return False
+        
+        if not _entity_dicts_eq(self.step, other.step):
+            return False
+        
+        if not _entity_dicts_eq(self.task, other.task):
+            return False
+        
+        # compare additional entities
+        if self.additional_entities and other.additional_entities:
+            # compare type, id tuples of all additional entities to ensure they are exactly the same.
+            # this compare ignores duplicates in either list and just ensures that the intersection
+            # of both lists contains all unique elements from both lists. 
+            types_and_ids = set([(e["type"], e["id"]) for e in self.additional_entities if e])
+            other_types_and_ids = set([(e["type"], e["id"]) for e in other.additional_entities if e])
+            if types_and_ids != other_types_and_ids:
+                return False
+        elif self.additional_entities or other.additional_entities:
+            return False
+
+        # finally compare the user - this may result in a Shotgun look-up 
+        # so do this last!
+        if not _entity_dicts_eq(self.user, other.user):
+            return False
+        
+        return True 
 
     def __ne__(self, other):
-        result = self.__eq__(other)
-        if result is NotImplemented:
-            return result
-        return not result
+        """
+        Test if this Context instance is not equal to the other Context instance
+                        
+        :param other:   The other Context instance to compare with
+        :returns:       True if self != other, False otherwise
+        """        
+        is_equal = self.__eq__(other)
+        if is_equal is NotImplemented:
+            return NotImplemented
+        return not is_equal
 
     def __deepcopy__(self, memo):
         """
@@ -983,21 +1042,32 @@ def _task_from_sg(tk, task_id):
 
 def _entity_from_sg(tk, entity_type, entity_id):
     """
-    Constructs a context from a shotgun task.
-    Because we are constructing the context from a task, we will get a context
-    which has both a project, an entity a step and a task associated with it.
-
-    :param tk:           a Sgtk API instance
-    :param task_id:      The shotgun task id to produce a context for.
+    Determines the entity details for the specified entity type and id by querying Shotgun.
+                        
+    If entity_type is 'Project' then this will return a single dictionary for the project.  For all
+    other entity types, this will return dictionaries for both the entity and the project the entity 
+    exists under.
+                        
+    :param tk:          The sgtk api instance
+    :param entity_type: The entity type to build a context for
+    :param entity_id:   The entity id to build a context for
+    :returns:           Dictionary containing either a project entity-dictionary or both
+                        project and entity entity-dictionaries depending on the input entity type.
+                        e.g. 
+                        {
+                            "project":{"type":"Project", "id":123, "name":"My Project"},
+                            "entity":{"type":"Shot", "id":456, "name":"My Shot"}
+                        }
+                            
     """
 
     # deal with funny naming for certain entities 
     if entity_type == "HumanUser":
-        name_field = "login"
-        
+        # note: previously this would return 'login' but this was inconsistent as the HumanUser
+        # entity already has a name field and this could lead to errors later on!
+        name_field = "name"
     elif entity_type == "Project":
         name_field = "name"
-    
     else:
         name_field = "code"
 

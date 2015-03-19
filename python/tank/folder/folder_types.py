@@ -1005,7 +1005,7 @@ class Entity(Folder):
         """
         return the special name field for a given entity
         """
-        spec_name_fields = {"Project": "name", "Task": "content", "HumanUser": "login"}
+        spec_name_fields = {"Project": "name", "Task": "content", "HumanUser": "name"}
         if entity_type in spec_name_fields:
             return spec_name_fields[entity_type]
         else:
@@ -1048,6 +1048,7 @@ class Entity(Folder):
             my_path = os.path.join(parent_path, folder_name)
                         
             # get the name field - which depends on the entity type
+            # Note: this is the 'name' that will get stored in the path cache for this entity
             name_field = self.__get_name_field_for_et(self._entity_type)
             name_value = entity[name_field]            
             # construct a full entity link dict w name, id, type

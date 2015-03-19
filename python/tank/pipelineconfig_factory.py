@@ -74,9 +74,8 @@ def _from_entity(entity_type, entity_id, force_reread_shotgun_cache):
     associated_sg_pipeline_configs = _get_pipeline_configs_for_project(project_id, data)
     
     if len(associated_sg_pipeline_configs) == 0:
-        raise TankError("Cannot resolve a pipeline configuration object from %s %s - looks "
-                        "like its associated Shotgun Project has not been set up with "
-                        "the Shotgun Pipeline Toolkit!" % (entity_type, entity_id))
+        raise TankError("Cannot resolve a pipeline configuration for %s %s - Toolkit is not "
+                        "enabled for that Shotgun project." % (entity_type, entity_id)) 
 
     # extract path data from the pipeline configuration shotgun data
     (local_pc_paths, primary_pc_paths) = _get_pipeline_configuration_paths(associated_sg_pipeline_configs)
@@ -89,12 +88,11 @@ def _from_entity(entity_type, entity_id, force_reread_shotgun_cache):
         
         if config_context_path not in local_pc_paths:
             # the tank command / api proxy which this session was launched for is *not*
-            # associated with the given entity type and entity id!            
-            raise TankError("Error launching %s %s from the configuration located in '%s'. "
-                            "This config is not associated with that project. For a list of "
-                            "which configurations can be used with this project, go to the "
-                            "Pipeline Configurations page in Shotgun "
-                            "for the project." % (entity_type, entity_id, config_context_path))
+            # associated with the given entity type and entity id!
+            raise TankError("The pipeline configuration in '%s' is is associated with a different "
+                            "project from %s %s. To see which pipeline configurations are available " 
+                            "for a project, open the pipeline configurations page "
+                            "in Shotgun." % (config_context_path, entity_type, entity_id))                        
             
         # ok we got a pipeline config matching the tank command from which we launched.
         # because we found the PC in the list of PCs for this project, we know that it must be valid!
@@ -116,11 +114,9 @@ def _from_entity(entity_type, entity_id, force_reread_shotgun_cache):
             # for an entity lookup, there should be no ambiguity - an entity belongs to a project
             # and a project has got a distinct set of pipeline configs, exactly one of which
             # is the primary.
-            raise TankError("More than one primary pipeline configuration detected! Please contact "
-                            "toolkit support for help. It looks like you have several primary "
-                            "pipeline configurations associated with the entity %s %s: %s" % (entity_type, 
-                                                                                              entity_id, 
-                                                                                              primary_pc_paths))
+            raise TankError("More than one primary pipeline configuration is associated "
+                            "with the entity %s %s: %s - Please contact support at "
+                            "toolkitsupport@shotgunsoftware.com." % (entity_type, entity_id, primary_pc_paths))            
 
         # looks good, we got a primary pipeline config that exists
         return PipelineConfiguration(primary_pc_paths[0])
@@ -215,16 +211,17 @@ def _from_path(path, force_reread_shotgun_cache):
         # now if this tank command is associated with the path, the registered path should be in 
         # in the list of paths found in the tank data backlink file
         if config_context_path not in local_pc_paths:
-            raise TankError("You are trying to start Toolkit using the configuration and tank command "
+            raise TankError("You are trying to start Toolkit using the pipeline configuration "
                             "located in '%s'. The path '%s' you are trying to load is not "
-                            "associated with that configuration. The path you are trying to load "
-                            "is associated with the following configurations: %s. "
+                            "associated with that configuration. Instead, it is "
+                            "associated with the following pipeline configurations: %s. "
                             "Please use the tank command or Toolkit API in any of those "
                             "locations in order to continue. This error can occur if you "
-                            "have moved a Configuration on disk without correctly updating "
-                            "it. It can also occur if you are trying to use a tank command "
-                            "associated with Project A to try to operate on a Shot or Asset that "
-                            "that belongs to a project B." % (config_context_path, path, local_pc_paths))
+                            "have moved a configuration manually rather than using "
+                            "the 'tank move_configuration command'. It can also occur if you " 
+                            "are trying to use a tank command associated with Project A "
+                            "to try to operate on a Shot or Asset that belongs to a "
+                            "project B." % (config_context_path, path, local_pc_paths))
 
         # okay so this PC is valid!
         return PipelineConfiguration(config_context_path)
@@ -233,8 +230,8 @@ def _from_path(path, force_reread_shotgun_cache):
         # we are running a studio level tank command.
         # find the primary pipeline configuration in the list of matching configurations.        
         if len(primary_pc_paths) == 0:
-            raise TankError("Cannot find a Primary Pipeline Configuration for path '%s'. "
-                            "The following Pipeline configuration are associated with the "
+            raise TankError("Cannot find a primary pipeline configuration for path '%s'. "
+                            "The following pipeline configurations are associated with the "
                             "path, but none of them is marked as Primary: %s" % (path, local_pc_paths))
 
         if len(primary_pc_paths) > 1:
