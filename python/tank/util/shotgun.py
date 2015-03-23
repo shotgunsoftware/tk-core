@@ -671,6 +671,8 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
                     
         version_entity - the Shotgun version entity this published file should be linked to 
 
+        sg_fields - some additional Shotgun fields as a dict (e.g. {'tag_list': ['foo', 'bar']})
+
     """
     # get the task from the optional args, fall back on context task if not set
     task = kwargs.get("task")
@@ -690,6 +692,7 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
     created_by_user = kwargs.get("created_by")
     created_at = kwargs.get("created_at")
     version_entity = kwargs.get("version_entity")
+    sg_fields = kwargs.get("sg_fields", {})
 
     # convert the abstract fields to their defaults
     path = _translate_abstract_fields(tk, path)
@@ -728,7 +731,8 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
                                     sg_published_file_type, 
                                     created_by_user, 
                                     created_at, 
-                                    version_entity)
+                                    version_entity,
+                                    sg_fields)
 
     # upload thumbnails
     if thumbnail_path and os.path.exists(thumbnail_path):
@@ -854,7 +858,7 @@ def _create_dependencies(tk, publish_entity, dependency_paths, dependency_ids):
                 
 
 def _create_published_file(tk, context, path, name, version_number, task, comment, published_file_type, 
-                           created_by_user, created_at, version_entity):
+                           created_by_user, created_at, version_entity, sg_fields):
     """
     Creates a publish entity in shotgun given some standard fields.
     """
@@ -897,6 +901,7 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
         "task": task,
         "version_number": version_number,
     }
+    data.update(sg_fields)
 
     if path_is_url:
         data["path"] = { "url":path }
