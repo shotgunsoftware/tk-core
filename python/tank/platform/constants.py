@@ -202,6 +202,12 @@ TEMPLATE_PATH_SECTION = "paths"
 # the string section in a templates file
 TEMPLATE_STRING_SECTION = "strings"
 
+# the separator between paths in a template file
+TEMPLATE_PATHS_SEPARATOR = ":"
+
+# the separator in a path in a template file
+TEMPLATE_FOLDERS_SEPARATOR = "/"
+
 # the shotgun engine always has this name
 SHOTGUN_ENGINE_NAME = "tk-shotgun"
 

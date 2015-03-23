@@ -38,6 +38,7 @@ from tank_vendor import yaml
 from ..errors import TankError
 from ..template import TemplatePath
 from ..templatekey import StringKey
+from ..template_includes import process_includes as template_process_includes
 
 from . import constants
 
@@ -155,17 +156,52 @@ def _resolve_refs_r(lookup_dict, data):
         processed_val = {}
         for (k,v) in data.items():
             processed_val[k] = _resolve_refs_r(lookup_dict, v)
-        
-    elif isinstance(data, basestring) and data.startswith("@"):
-        # this is a reference!
-        
+
+    elif isinstance(data, basestring):   # and data.startswith("@"):
+
         ref_token = data[1:]
         if ref_token not in lookup_dict:
-            raise TankError("Undefined Reference %s!" % ref_token)
-        # other parts of the code is making changes nilly-willy to data
-        # structures (ick) so flatten everything out here.... :(
-        processed_val = copy.deepcopy(lookup_dict[ref_token])
-        
+            # look for @ specified in template definition.  This can be escaped by
+            # using @@ so split out escaped @'s first:
+            template_str_parts = data.split("@@")
+            resolved_template_str_parts = []
+            for part in template_str_parts:
+
+                # split to find seperate @ include parts:
+                ref_parts = part.split("@")
+                resolved_ref_parts = ref_parts[:1]
+                for ref_part in ref_parts[1:]:
+
+                    if not ref_part:
+                        # this would have been an @ so ignore!
+                        continue
+
+                    # Manage variables in paths
+                    path_parts = ref_part.split(constants.TEMPLATE_FOLDERS_SEPARATOR)
+                    to_replace = path_parts[0].rstrip(':')
+                    if not to_replace:
+                        continue
+
+                    # find a template that matches the start of the template string:                
+                    if to_replace not in lookup_dict:
+                        raise TankError("Failed to resolve template reference from '@%s' defined by "
+                                        "'%s'" % (ref_part, data))
+    
+                    ref_template = lookup_dict[to_replace]
+    
+                    resolved_ref_str = "%s%s" % (ref_template, ref_part[len(to_replace):])
+                    resolved_ref_parts.append(resolved_ref_str)
+
+                # rejoin resolved parts:
+                resolved_template_str_parts.append("".join(resolved_ref_parts))
+
+            # re-join resolved parts with escaped @:
+            processed_val = "@@".join(resolved_template_str_parts)
+        else:
+            # other parts of the code is making changes nilly-willy to data
+            # structures (ick) so flatten everything out here.... :(
+            processed_val = copy.deepcopy(lookup_dict[ref_token])
+
     return processed_val
             
 def _resolve_frameworks(lookup_dict, data):
@@ -220,46 +256,54 @@ def _process_includes_r(file_name, data, context):
                         together with a lookup for frameworks to the file 
                         they were loaded from.
     """
-    # first build our big fat lookup dict
-    include_files = _resolve_includes(file_name, data, context)
-    
     lookup_dict = {}
     fw_lookup = {}
-    for include_file in include_files:
-                
-        # path exists, so try to read it
-        fh = open(include_file, "r")
-        try:
-            included_data = yaml.load(fh) or {}
-        finally:
-            fh.close()
-                
-        # now resolve this data before proceeding
-        included_data, included_fw_lookup = _process_includes_r(include_file, included_data, context)
-
-        # update our big lookup dict with this included data:
-        if "frameworks" in included_data and isinstance(included_data["frameworks"], dict):
-            # special case handling of frameworks to merge them from the various
-            # different included files rather than have frameworks section from
-            # one file overwrite the frameworks from previous includes!
-            lookup_dict = _resolve_frameworks(included_data, lookup_dict)
-
-            # also, keey track of where the framework has been referenced from:
-            for fw_name in included_data["frameworks"].keys():
-                fw_lookup[fw_name] = include_file
-
-            del(included_data["frameworks"])
-
-        fw_lookup.update(included_fw_lookup)
-        lookup_dict.update(included_data)
     
-    # now go through our own data, recursively, and replace any refs.
-    # recurse down in dicts and lists
-    try:
-        data = _resolve_refs_r(lookup_dict, data)
-        data = _resolve_frameworks(lookup_dict, data)
-    except TankError, e:
-        raise TankError("Include error. Could not resolve references for %s: %s" % (file_name, e))
+    if 'my_studio' in file_name:
+        included_data = template_process_includes(file_name, data)
+        data =  included_data.get(constants.TEMPLATE_STRING_SECTION, {})
+        included_fw_lookup = data
+        fw_lookup.update(included_fw_lookup)
+        lookup_dict.update(data)
+    else:
+        # first build our big fat lookup dict
+        include_files = _resolve_includes(file_name, data, context)
+
+        for include_file in include_files:
+                    
+            # path exists, so try to read it
+            fh = open(include_file, "r")
+            try:
+                included_data = yaml.load(fh) or {}
+            finally:
+                fh.close()
+
+                # now resolve this data before proceeding
+                included_data, included_fw_lookup = _process_includes_r(include_file, included_data, context)
+    
+            # update our big lookup dict with this included data:
+            if "frameworks" in included_data and isinstance(included_data["frameworks"], dict):
+                # special case handling of frameworks to merge them from the various
+                # different included files rather than have frameworks section from
+                # one file overwrite the frameworks from previous includes!
+                lookup_dict = _resolve_frameworks(included_data, lookup_dict)
+    
+                # also, keey track of where the framework has been referenced from:
+                for fw_name in included_data["frameworks"].keys():
+                    fw_lookup[fw_name] = include_file
+    
+                del(included_data["frameworks"])
+
+            fw_lookup.update(included_fw_lookup)
+            lookup_dict.update(included_data)
+    
+        # now go through our own data, recursively, and replace any refs.
+        # recurse down in dicts and lists
+        try:
+            data = _resolve_refs_r(lookup_dict, data)
+            data = _resolve_frameworks(lookup_dict, data)
+        except TankError, e:
+            raise TankError("Include error. Could not resolve references for %s: %s" % (file_name, e))
     
     return data, fw_lookup
     
