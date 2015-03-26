@@ -263,26 +263,26 @@ class Tank(object):
         :returns: Template matching this path
         :rtype: Template instance or None
         """
-        matched = []
+        matched_templates = []
         for key, template in self.templates.items():
             if template.validate(path):
-                matched.append(template)
+                matched_templates.append(template)
 
-        if len(matched) == 0:
+        if len(matched_templates) == 0:
             return None
-        elif len(matched) == 1:
-            return matched[0]
+        elif len(matched_templates) == 1:
+            return matched_templates[0]
         else:
             # ambiguity!
             # We're erroring out anyway, take the time to create helpful debug info!
-            fields = []
-            for template in matched:
-                fields.append(template.validate_and_get_fields(path))
+            matched_fields = []
+            for template in matched_templates:
+                matched_fields.append(template.get_fields(path))
 
-            msg = "%d templates are matching the path '%s'.\n" % (len(matched), path)
+            msg = "%d templates are matching the path '%s'.\n" % (len(matched_templates), path)
             msg += "The overlapping templates are:\n"
-            for f, t in zip(fields, matched):
-                msg += "%s\n%s\n" % (t, f)
+            for fields, template in zip(matched_fields, matched_templates):
+                msg += "%s\n%s\n" % (template, fields)
             raise TankError(msg)
 
     def paths_from_template(self, template, fields, skip_keys=None, skip_missing_optional_keys=False):
