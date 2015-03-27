@@ -15,15 +15,15 @@ import sys
 from tank_test.tank_test_base import *
 import tank_test
 
-from tank.util.core_authentication_manager import CoreAuthenticationManager
-from tank_vendor.shotgun_authentication import connection
+from tank.util.core_session_cache import CoreAuthenticationManager
+from tank_vendor.shotgun_authentication import interactive_authentication
 from tank_vendor.shotgun_api3 import shotgun
 
 
 class AuthenticationTests(TankTestBase):
     """
     Tests the session module. Note that because how caching the session information is still
-    very much in flux, we will not be unit testing cache_session_info, get_login_info and
+    very much in flux, we will not be unit testing cache_session_info, get_session_data and
     delete_session_data for now, since they have complicated to test and would simply slow us down.
     """
 
@@ -153,7 +153,7 @@ class AuthenticationTests(TankTestBase):
                 thrown.
                 """
                 try:
-                    invoker = connection._create_invoker()
+                    invoker = interactive_authentication._create_invoker()
                     # Make sure we have a QObject derived object and not a regular Python function.
                     if not isinstance(invoker, QtCore.QObject):
                         raise Exception("Invoker is not a QObject")

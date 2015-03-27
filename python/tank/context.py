@@ -890,6 +890,8 @@ def serialize(context):
     """
     Serializes the context into a string
     """
+    from .api import Tank, get_current_user
+
     data = {
         "project": context.project,
         "entity": context.entity,
@@ -899,22 +901,38 @@ def serialize(context):
         "additional_entities": context.additional_entities,
         "_pc_path": context.tank.pipeline_configuration.get_path()
     }
+
+    # If there is a current user.
+    user = get_current_user()
+    if user:
+        # We should serialize it as well.
+        data["current_user"] = user.serialize()
     return pickle.dumps(data)
-    
-    
+
+
 def deserialize(context_str):
     """
-    Deserializaes a string created with serialize() into a context object
+    Deserializes a string created with serialize() into a context object
     """
     # lazy load this to avoid cyclic dependencies
-    from .api import Tank
+    from .api import Tank, set_current_user
+    from tank_vendor import shotgun_authentication as sg_auth
     
     data = pickle.loads(context_str)
 
     # first get the pc path out of the dict
     pipeline_config_path = data["_pc_path"] 
     del data["_pc_path"]
-    
+
+    # See if there is a current user set.
+    user_string = data.get("current_user")
+    if user_string:
+        # Remove it from the data
+        del data["current_user"]
+        # and set the current user.
+        user = sg_auth.deserialize_user(user_string)
+        set_current_user(user)
+
     # create a Sgtk API instance.
     tk = Tank(pipeline_config_path)
 

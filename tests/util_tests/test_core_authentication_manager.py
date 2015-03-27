@@ -13,8 +13,8 @@ from mock import patch
 
 from tank_test.tank_test_base import *
 
-from tank_vendor.shotgun_authentication.authentication_manager import AuthenticationManager, ActivationError
-from tank.util.core_authentication_manager import CoreAuthenticationManager
+from tank_vendor.shotgun_authentication.session_cache import AuthenticationManager, ActivationError
+from tank.util.core_session_cache import CoreAuthenticationManager
 from tank_vendor.shotgun_authentication import authentication
 
 
@@ -41,10 +41,10 @@ class AuthenticationManagerTests(TankTestBase):
         }
 
     @patch("tank.util.shotgun.get_associated_sg_config_data")
-    @patch("tank_vendor.shotgun_authentication.authentication_manager.AuthenticationManager._get_login_info")
-    def test_script_user_overrides_human_user(self, get_login_info_mock, get_associated_sg_config_data_mock):
+    @patch("tank_vendor.shotgun_authentication.session_cache.AuthenticationManager.get_session_data")
+    def test_script_user_overrides_human_user(self, get_session_data_mock, get_associated_sg_config_data_mock):
         self._prepare_common_mocks_with_script_user(get_associated_sg_config_data_mock)
-        get_login_info_mock.side_effect = Exception("Should not try to get login information.")
+        get_session_data_mock.side_effect = Exception("Should not try to get login information.")
         CoreAuthenticationManager.activate()
         cred = AuthenticationManager.get_instance().get_connection_information()
         self.assertTrue(authentication.is_script_user_authenticated(cred))

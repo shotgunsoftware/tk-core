@@ -13,11 +13,7 @@ Helper methods that do path management.
 
 """
 
-import os
-import sys
-import errno
-import urlparse
-from tank.errors import TankError
+import os, sys
 
 
 def append_path_to_env_var(env_var_name, path):
@@ -63,22 +59,3 @@ def add_path_to_env_var(env_var_name, path, prepend=False):
             paths.append(path)
     # and put it back
     os.environ[env_var_name] = env_var_sep.join(paths)
-
-
-def get_local_site_cache_location(base_url):
-    """
-    Returns the location of the site cache root based on a site.
-    :param base_url: Site we need to compute the root path for.
-    :returns: An absolute path to the site cache root.
-    """
-    if sys.platform == "darwin":
-        root = os.path.expanduser("~/Library/Caches/Shotgun")
-    elif sys.platform == "win32":
-        root = os.path.join(os.environ["APPDATA"], "Shotgun")
-    elif sys.platform.startswith("linux"):
-        root = os.path.expanduser("~/.shotgun")
-
-    # get site only; https://www.foo.com:8080 -> www.foo.com
-    base_url = urlparse.urlparse(base_url)[1].split(":")[0]
-
-    return os.path.join(root, base_url)

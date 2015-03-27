@@ -14,15 +14,10 @@ from . import platform
 from . import util
 
 # core functionality
-from .api import Tank, tank_from_path, tank_from_entity
+from .api import Tank, tank_from_path, tank_from_entity, set_current_user, get_current_user
 from .api import Sgtk, sgtk_from_path, sgtk_from_entity
 from .errors import TankError, TankEngineInitError, TankAuthenticationError, TankErrorProjectIsSetup
 from .template import TemplatePath, TemplateString
 from .hook import Hook, get_hook_baseclass
 
 from .deploy.tank_command import list_commands, get_command
-
-# Make sure that the Core Authentication Manager is instantiated is no other is set.
-from .util.core_authentication_manager import CoreAuthenticationManager
-if not CoreAuthenticationManager.is_activated():
-    CoreAuthenticationManager.activate()

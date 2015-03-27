@@ -21,7 +21,7 @@ from tank_test.tank_test_base import *
 from tank_test import mockgun
 from tank.template import TemplatePath
 from tank.templatekey import SequenceKey
-from tank_vendor.shotgun_authentication import connection, errors as auth_errors
+from tank_vendor.shotgun_authentication import errors as auth_errors
 
 
 class TestShotgunFindPublish(TankTestBase):
@@ -455,8 +455,14 @@ class TestCreateSessionBasedConnection(TankTestBase):
     Tests the creation of a session based Shotgun connection.
     """
 
-    @patch("tank_vendor.shotgun_authentication.authentication.get_connection_information")
-    @patch("tank_vendor.shotgun_authentication.connection._create_or_renew_sg_connection_from_session")
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        pass
+
+    @patch("tank_vendor.shotgun_authentication.session_cache.AuthenticationManager.get_connection_information")
+    @patch("tank_vendor.shotgun_authentication.connection.create_or_renew_sg_connection_from_session")
     def test_no_script_user_uses_human_user(
         self,
         create_or_renew_sg_connection_from_session_mock,
@@ -464,10 +470,12 @@ class TestCreateSessionBasedConnection(TankTestBase):
     ):
         """
         Makes sure having no user configured in shotgun.yml will invoke the
-        _create_or_renew_sg_connection_from_session function.
+        create_or_renew_sg_connection_from_session function.
         """
         config_data = {
-            "host": "https://something.shotgunstudio.com"
+            "host": "https://something.shotgunstudio.com",
+            "login": "some_login",
+            "session_token": "session_token"
         }
         get_connection_information_mock.return_value = config_data
         create_or_renew_sg_connection_from_session_mock.return_value = mockgun.Shotgun(
@@ -478,12 +486,12 @@ class TestCreateSessionBasedConnection(TankTestBase):
         # would trigger ui prompts.
         self.assertIsNone(tank.platform.engine.current_engine())
         # Because the credentials are invalid and there is no engine, no connection can be created.
-        connection.create_authenticated_sg_connection()
+        tank.util.shotgun.create_sg_connection()
         # Make sure there was an attempt to authenticate using cache session info.
         self.assertEqual(create_or_renew_sg_connection_from_session_mock.call_count, 1)
 
     @patch("tank_vendor.shotgun_authentication.connection.create_sg_connection_from_session")
-    @patch("tank_vendor.shotgun_authentication.connection._renew_session")
+    @patch("tank_vendor.shotgun_authentication.interactive_authentication.renew_session")
     def test_create_connection_with_session_renewal(self, renew_session_mock, create_sg_connection_from_session_mock):
         """
         When there is no valid session cached, the engine's renew session should take care of the
@@ -496,7 +504,7 @@ class TestCreateSessionBasedConnection(TankTestBase):
         create_sg_connection_from_session_mock.side_effect = [None, new_connection]
         renew_session_mock.return_value = None
 
-        result = connection._create_or_renew_sg_connection_from_session(
+        result = connection.create_or_renew_sg_connection_from_session(
             "unused"
         )
 
@@ -506,7 +514,7 @@ class TestCreateSessionBasedConnection(TankTestBase):
         self.assertEqual(id(result), id(new_connection))
 
     @patch("tank_vendor.shotgun_authentication.connection.create_sg_connection_from_session")
-    @patch("tank_vendor.shotgun_authentication.connection._renew_session")
+    @patch("tank_vendor.shotgun_authentication.interactive_authentication.renew_session")
     def test_create_connection_with_session_renewal_failure(self, renew_session_mock, create_sg_connection_from_session_mock):
         """
         When there is no valid session cached, the engine's renew session should take care of the
@@ -517,7 +525,7 @@ class TestCreateSessionBasedConnection(TankTestBase):
         renew_session_mock.return_value = None
 
         with self.assertRaisesRegexp(auth_errors.AuthenticationError, "failed"):
-            connection._create_or_renew_sg_connection_from_session("unused")
+            connection.create_or_renew_sg_connection_from_session("unused")
         # Make sure we tried to renew the sesion
         self.assertTrue(renew_session_mock.called)
         self.assertEqual(create_sg_connection_from_session_mock.call_count, 2)

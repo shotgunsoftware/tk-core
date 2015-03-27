@@ -13,7 +13,7 @@ from mock import patch
 
 from tank_test.tank_test_base import *
 
-from tank_vendor.shotgun_authentication.authentication_manager import AuthenticationManager, ActivationError
+from tank_vendor.shotgun_authentication.session_cache import AuthenticationManager, ActivationError
 
 
 class AuthenticationManagerTests(TankTestBase):

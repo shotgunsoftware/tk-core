@@ -23,51 +23,17 @@ from tank_vendor import yaml
 # use api json to cover py 2.5
 from tank_vendor import shotgun_api3
 json = shotgun_api3.shotgun.json
-from tank_vendor.shotgun_authentication import connection
-from tank_vendor.shotgun_authentication.errors import AuthenticationError
+from tank_vendor.shotgun_authentication import ShotgunAuthenticator, AuthenticationModuleError
 
-from ..errors import TankError
+from ..errors import TankError, TankAuthenticationError
 from .. import hook
 from ..platform import constants
 from . import login
-
-from tank.errors import TankAuthenticationError
-
-# FIXME: Quick hack to easily disable logging in this module while keeping the
-# code compatible. We have to disable it by default because Maya will print all out
-# debug strings.
-if False:
-    import logging
-    # Configure logging
-    logger = logging.getLogger("sgtk.authentication")
-    logger.setLevel(logging.DEBUG)
-    logger.addHandler(logging.StreamHandler())
-else:
-    class logger:
-        @staticmethod
-        def debug(*args, **kwargs):
-            pass
-
-        @staticmethod
-        def info(*args, **kwargs):
-            pass
-
-        @staticmethod
-        def warning(*args, **kwargs):
-            pass
-
-        @staticmethod
-        def error(*args, **kwargs):
-            pass
-
-        @staticmethod
-        def exception(*args, **kwargs):
-            pass
+from .defaults_manager import DefaultsManager
 
 
 def __get_api_core_config_location():
     """
-    Given the location of the code, find the core config location.
 
     Walk from the location of this file on disk to the config area.
     this operation is guaranteed to work on any valid tank installation
@@ -234,11 +200,25 @@ def __create_sg_connection(config_data=None):
     try:
         if config_data:
             # Credentials were passed in, so let's run the legacy authentication mechanism for script user.
-            sg = connection.create_sg_connection_from_script_user(config_data)
+            sg = shotgun_api3.Shotgun(
+                config_data["host"],
+                script_name=config_data["api_script"], api_key=config_data["api_key"],
+                http_proxy=config_data.get("http_proxy")
+            )
         else:
+            from .. import api
             # We're not running any special code for Psyop, so run the new Toolkit authentication code.
-            sg = connection.create_authenticated_sg_connection()
-    except AuthenticationError, e:
+
+            user = api.get_current_user()
+            if not user:
+                sa = ShotgunAuthenticator(DefaultsManager())
+                # This is needed for backwards compatibility with scripts that were written before
+                # authentication was put in place.
+                user = sa.get_user()
+            if not user:
+                raise TankAuthenticationError("No current Shotgun user available.")
+            return user.create_sg_connection()
+    except AuthenticationModuleError, e:
         raise TankAuthenticationError(str(e))
 
     # bolt on our custom user agent manager
@@ -246,7 +226,7 @@ def __create_sg_connection(config_data=None):
 
     return sg
 
-    
+
 def download_url(sg, url, location):
     """
     Convenience method that downloads a file from a given url.
@@ -300,9 +280,7 @@ def get_associated_sg_base_url():
     
     :returns: The base url for the associated Shotgun site
     """
-    # FIXME: Once authentication is moved outside of core, we should put back
-    # ["host"] since it will always be present.
-    return get_associated_sg_config_data().get("host", "")
+    return get_associated_sg_config_data()["host"]
 
 
 def get_associated_sg_config_data():

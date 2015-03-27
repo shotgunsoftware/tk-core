@@ -24,7 +24,7 @@ class LoginUiTests(TankTestBase):
         """
         Adds Qt modules to tank.platform.qt and initializes QApplication
         """
-        from tank.platform.qt.qt_abstraction import QtGui
+        from PySide import QtGui
         # Only configure qApp once, it's a singleton.
         if QtGui.qApp is None:
             self._app = QtGui.QApplication(sys.argv)
@@ -41,17 +41,14 @@ class LoginUiTests(TankTestBase):
 
     def _prepare_mocks(
         self,
-        is_authenticated_mock,
         get_connection_information_mock,
         cache_connection_information_mock
     ):
         """
         Configures all the mocks for the two interactive unit tests.
-        :param is_authenticated_mock: Mock for the tank.util.authentication.is_authenticated method.
         :param get_connection_information_mock: Mock for the tank.util.authentication.get_connection_information_mock
         :param cache_connection_information_mock: Mock for the tank.util.authentication.cache_connection_information_mock
         """
-        is_authenticated_mock.return_value = False
         get_connection_information_mock.return_value = {
             "host": "https://enter_your_host_name_here.shotgunstudio.com",
             "login": "enter_your_username_here"
@@ -60,7 +57,6 @@ class LoginUiTests(TankTestBase):
 
     @patch("tank_vendor.shotgun_authentication.authentication.cache_connection_information")
     @patch("tank_vendor.shotgun_authentication.authentication.get_connection_information")
-    @patch("tank_vendor.shotgun_authentication.authentication.is_authenticated")
     @interactive
     def test_interactive_login(self, *args):
         """
@@ -68,4 +64,4 @@ class LoginUiTests(TankTestBase):
         """
         self._prepare_mocks(*args)
 
-        tank_vendor.shotgun_authentication.interactive_authentication.ui_authenticate()
+        tank_vendor.shotgun_authentication.interactive_authentication.authenticate()

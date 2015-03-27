@@ -24,7 +24,6 @@ from ..errors import TankError, TankEngineInitError
 from ..deploy import descriptor
 from ..deploy.dev_descriptor import TankDevDescriptor
 
-from ..util import interactive_authentication
 from . import application
 from . import constants
 from . import validation
@@ -510,15 +509,6 @@ class Engine(TankBundle):
         else:
             # we don't have an invoker so just call the function:
             return func(*args, **kwargs)
-
-    def renew_session(self):
-        """
-        Reauthenticate with the currently logged in user.
-        """
-        if self.has_ui:
-            interactive_authentication.ui_renew_session()
-        else:
-            interactive_authentication.console_renew_session()
 
     ##########################################################################################
     # logging interfaces

@@ -17,6 +17,7 @@ import os
 import sys
 
 from ..platform import constants
+from tank_vendor import shotgun_authentication as sg_auth
 
 
 def get_login_name():
@@ -39,6 +40,7 @@ def get_login_name():
 # user was found, we cannot use a None value to indicate that the cache has not been
 # populated. 
 g_shotgun_user_cache = "unknown"
+g_shotgun_current_user_cache = "unknown"
 
 def get_shotgun_user(sg):
     """
@@ -66,10 +68,6 @@ def get_shotgun_user(sg):
         g_shotgun_user_cache = sg.find_one("HumanUser", filters=[["login", "is", local_login]], fields=fields)
     
     return g_shotgun_user_cache
-        
-
-g_shotgun_current_user_cache = "unknown"
-
 
 def get_current_user(tk):
     """
@@ -88,16 +86,17 @@ def get_current_user(tk):
     if g_shotgun_current_user_cache != "unknown":
         return g_shotgun_current_user_cache
 
-    from tank_vendor.shotgun_authentication import authentication
-    info = authentication.get_connection_information()
+    from .. import api
 
-    if authentication.is_script_user_authenticated(info):
+    user = api.get_current_user()
+
+    if sg_auth.is_script_user(user):
         # If we have a script user, try to find a matching user using the os user name.
         # call hook to get current login
         current_login = tk.execute_core_hook(constants.CURRENT_LOGIN_HOOK_NAME)
-    elif authentication.is_human_user_authenticated(info):
+    elif sg_auth.is_session_user(user):
         # If we have a human user, simply use the login value.
-        current_login = info["login"]
+        current_login = user.get_login()
     else:
         # Something is wrong, no current login available.
         current_login = None

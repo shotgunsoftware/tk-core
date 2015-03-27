@@ -13,21 +13,21 @@ All custom exceptions that this module emits are defined here.
 """
 
 
-class ShotgunAuthenticationModuleError(Exception):
+class AuthenticationModuleError(Exception):
     """
     Base class for all exceptions coming out from this module.
     """
     pass
 
 
-class AuthenticationError(ShotgunAuthenticationModuleError):
+class AuthenticationError(AuthenticationModuleError):
     """
     Exception that indicates an authentication error has occurred.
     """
     pass
 
 
-class AuthenticationDisabled(ShotgunAuthenticationModuleError):
+class AuthenticationDisabled(AuthenticationModuleError):
     """
     Exception that indicates that interactive authentication has been disabled.
     """

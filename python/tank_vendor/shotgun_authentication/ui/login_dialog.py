@@ -14,7 +14,7 @@ Login dialog for authenticating to a Shotgun server.
 
 from . import resources_rc
 from . import ui_login_dialog
-from .. import connection
+from .. import session_cache
 from ..errors import AuthenticationError
 from .qt_abstraction import QtGui, QtCore
 
@@ -158,7 +158,7 @@ class LoginDialog(QtGui.QDialog):
             QtGui.QApplication.processEvents()
 
             # try and authenticate
-            self._new_session_token = connection.generate_session_token(
+            self._new_session_token = session_cache.generate_session_token(
                 site, login, password, self._http_proxy
             )
         except AuthenticationError, e:

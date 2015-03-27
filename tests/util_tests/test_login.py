@@ -42,7 +42,9 @@ class LoginTests(TankTestBase):
         is_human_user_authenticated_mock.return_value = True
         is_script_user_authenticated_mock.return_value = False
         get_connection_information_mock.return_value = {
-            "login": "tk-user"
+            "host": "https://somewhere.shotgunstudio.com",   
+            "login": "tk-user",
+            "session_token": "session_token"
         }
         try:
             # Clear the cache so that get_current_user can work. Path cache is being updated by

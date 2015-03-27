@@ -13,7 +13,7 @@ Default implementation for the Tank Dialog
 
 """
 
-from .qt_abstraction import QtCore, QtGui
+from . import QtCore, QtGui
 from . import ui_tank_dialog
 from . import TankDialogBase
 from .config_item import ConfigItem

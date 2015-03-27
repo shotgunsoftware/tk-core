@@ -13,16 +13,14 @@ Classes for the main Sgtk API.
 
 """
 import os
-import sys
 import glob
 import threading
-import urlparse
 
 from tank_vendor import yaml
 
 from . import folder
 from . import context
-from .util import shotgun, path
+from .util import shotgun
 from .errors import TankError
 from .path_cache import PathCache
 from .template import read_templates
@@ -594,25 +592,6 @@ class Tank(object):
                                                       engine)
         return folders
 
-    @property
-    def local_site_cache_location(self):
-        """
-        Returns the location of the site cache root for this Tank instance.
-        """
-        # Invoke the global method which is generic and can compute any site
-        # cache root.
-
-        # If we haven't already computed the path
-        if not hasattr(self, "_local_site_cache_location"):
-            # Compute it.
-            local_path = path.get_local_site_cache_location(self.shotgun.base_url)
-            # Make sure it exists.
-            if not os.path.exists(local_path):
-                os.makedirs(local_path, 0700)
-            # Cache the result.
-            self.__local_site_cache_location = local_path
-
-        return self.__local_site_cache_location
 
 ##########################################################################################
 # module methods
@@ -629,6 +608,28 @@ def tank_from_entity(entity_type, entity_id):
     """
     pc = pipelineconfig_factory.from_entity(entity_type, entity_id)
     return Tank(pc)
+
+
+_current_user = None
+
+
+def set_current_user(user):
+    """
+    Sets the current Shotgun user.
+    :params user: a shotgun_authentication.ShotgunUser derived object. Can be None to clear the
+                  current user.
+    """
+    global _current_user
+    _current_user = user
+
+
+def get_current_user():
+    """
+    Returns the current Shotgun user.
+    :returns: A shotgun_authentication.ShotgunUser derived object if set, None otherwise.
+    """
+    global _current_user
+    return _current_user
 
 ##########################################################################################
 # sgtk API aliases

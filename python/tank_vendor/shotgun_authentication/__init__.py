@@ -18,8 +18,7 @@ credentials are reused. If a Toolkit-enabled process is launched a second time, 
 credentials are reused if available.
 """
 
-from . import authentication
-from . import interactive_authentication
-from . import connection
-from . import errors
-from .authentication_manager import AuthenticationManager
+from .errors import *
+from .shotgun_authenticator import ShotgunAuthenticator
+from .defaults_manager import DefaultsManager
+from .user import is_script_user, is_session_user, deserialize as deserialize_user
