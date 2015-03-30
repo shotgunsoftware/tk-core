@@ -120,7 +120,6 @@ class SetupProjectAction(Action):
         """
         API accessor
         """
-        
         # validate params and seed default values
         computed_params = self._validate_parameters(parameters)
         
@@ -162,7 +161,10 @@ class SetupProjectAction(Action):
         # api is the same as the root path for the associated pc
         if pipelineconfig_utils.is_localized(curr_core_path):
             log.info("Localizing Core...")
-            core_localize.do_localize(log, params.get_configuration_location(sys.platform), suppress_prompts=True)
+            core_localize.do_localize(log, 
+                                      params.get_configuration_location(sys.platform), 
+                                      suppress_prompts=True,
+                                      strip_toolkit_credentials=False)
                         
                         
                         
@@ -238,7 +240,10 @@ class SetupProjectAction(Action):
         # api is the same as the root path for the associated pc
         if pipelineconfig_utils.is_localized(curr_core_path):
             log.info("Localizing Core...")
-            core_localize.do_localize(log, params.get_configuration_location(sys.platform), suppress_prompts=True)        
+            core_localize.do_localize(log, 
+                                      params.get_configuration_location(sys.platform), 
+                                      suppress_prompts=True,
+                                      strip_toolkit_credentials=False)        
         
         # display readme etc.
         readme_content = params.get_configuration_readme()

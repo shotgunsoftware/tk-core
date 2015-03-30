@@ -599,8 +599,16 @@ class SetupProjectWizard(object):
         run_project_setup(self._log, self._sg, self._sg_app_store, self._sg_app_store_script_user, self._params)
         
         # check if we should run the localization afterwards
+        # note - when running via the wizard, toolkit script credentials are stripped
+        # out as the core is copied across as part of a localization.
+        #
+        # this is primarily targeting the Shotgun desktop, meaning that even if the 
+        # shotgun desktop's site configuration contains script credentials, these are
+        # not propagated into newly created toolkit projects.
+        #
         if core_settings["localize"]:
             core_localize.do_localize(self._log, 
                                       self._params.get_configuration_location(sys.platform), 
-                                      suppress_prompts=True)
+                                      suppress_prompts=True,
+                                      strip_toolkit_credentials=True)
         
