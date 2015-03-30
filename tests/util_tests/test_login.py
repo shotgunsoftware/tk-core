@@ -14,6 +14,7 @@ from mock import patch
 from tank_test.tank_test_base import *
 
 from tank.util import login
+import tank_vendor
 
 
 class LoginTests(TankTestBase):
@@ -22,14 +23,14 @@ class LoginTests(TankTestBase):
     """
 
     @patch("tank_test.mockgun.Shotgun.find_one")
-    @patch("tank_vendor.shotgun_authentication.authentication.is_script_user_authenticated")
-    @patch("tank_vendor.shotgun_authentication.authentication.is_human_user_authenticated")
-    @patch("tank_vendor.shotgun_authentication.authentication.get_connection_information")
+    @patch("tank_vendor.shotgun_authentication.is_script_user")
+    @patch("tank_vendor.shotgun_authentication.is_session_user")
+    @patch("tank.api.get_current_user")
     def test_get_current_user_uses_session(
         self,
-        get_connection_information_mock,
-        is_human_user_authenticated_mock,
-        is_script_user_authenticated_mock,
+        get_current_user_mock,
+        is_human_user_mock,
+        is_session_user,
         find_one_mock
     ):
         """
@@ -39,13 +40,11 @@ class LoginTests(TankTestBase):
         find_one_mock.return_value = {
             "login": "tk-user"
         }
-        is_human_user_authenticated_mock.return_value = True
-        is_script_user_authenticated_mock.return_value = False
-        get_connection_information_mock.return_value = {
-            "host": "https://somewhere.shotgunstudio.com",   
-            "login": "tk-user",
-            "session_token": "session_token"
-        }
+        is_human_user_mock.return_value = True
+        is_session_user.return_value = False
+        get_current_user_mock.return_value = tank_vendor.shotgun_authentication.user.SessionUser(
+            "host", "tk-user", "session_token", http_proxy=None, is_volatile=False
+        )
         try:
             # Clear the cache so that get_current_user can work. Path cache is being updated by
             # TankTestBase.setUp which calls get_current_user when nothing is authenticated yet
@@ -55,5 +54,6 @@ class LoginTests(TankTestBase):
             user = login.get_current_user(self.tk)
             self.assertEqual(user["login"], "tk-user")
         finally:
-            # Make sure we ene up back in the original state of no new side effects are introduced in the tests.
+            # Make sure we end up back in the original state of so new side effects are
+            # introduced in the tests.
             tank.util.login.g_shotgun_current_user_cache = current_user

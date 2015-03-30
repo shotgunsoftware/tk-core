@@ -13,7 +13,6 @@ import sys
 
 from tank_test.tank_test_base import *
 from mock import patch
-import tank
 import tank_vendor
 
 
@@ -56,3 +55,92 @@ class LoginUiTests(TankTestBase):
             "enter_your_username_here",
             ""
         )
+
+    @skip_if_pyside_missing
+    def test_invoker_rethrows_exception(self):
+        """
+        Makes sure that the invoker will carry the exception back to the calling thread.
+        This test is a bit convoluted but it's written in a way to make sure that the test fails
+        in the main thread.
+
+        From the background thread, we will create an invoker and use it to invoke the thrower
+        method in the main thread. This thrower method will throw a FromMainThreadException.
+        If everything works as planned, the exception will be caught by the invoker and rethrown
+        in the background thread. The background thread will then raise an exception and when the 
+        main thread calls wait it will assert that the exception that was thrown was coming
+        from the thrower function.
+        """
+
+        class FromMainThreadException(Exception):
+            """
+            Exception that will be thrown from the main thead.
+            """
+            pass
+
+        from PySide import QtCore, QtGui
+
+        # Create a QApplication instance.
+        if not QtGui.QApplication.instance():
+            QtGui.QApplication(sys.argv)
+
+        def thrower():
+            """
+            Method that will throw.
+            :throws: FromMainThreadException
+            """
+            if QtGui.QApplication.instance().thread() != QtCore.QThread.currentThread():
+                raise Exception("This should have been invoked in the main thread.")
+            raise FromMainThreadException()
+
+        class BackgroundThread(QtCore.QThread):
+            """
+            Thread that will invoke a method that will throw from the invoked thread.
+            """
+
+            def __init__(self):
+                """
+                Constructor.
+                """
+                QtCore.QThread.__init__(self)
+                self._exception = Exception("No exception was caught!")
+
+            def run(self):
+                """
+                Calls the thrower method using the invoker and catches an exception if one is
+                thrown.
+                """
+                try:
+                    invoker = tank_vendor.shotgun_authentication.interactive_authentication._create_invoker()
+                    # Make sure we have a QObject derived object and not a regular Python function.
+                    if not isinstance(invoker, QtCore.QObject):
+                        raise Exception("Invoker is not a QObject")
+                    if invoker.thread() != QtGui.QApplication.instance().thread():
+                        raise Exception("Invoker should be of the same thread as the QApplication.")
+                    if QtCore.QThread.currentThread() != self:
+                        raise Exception("Current thread not self.")
+                    if QtGui.QApplication.instance().thread == self:
+                        raise Exception("QApplication should be in the main thread, not self.")
+                    invoker(thrower)
+                except Exception, e:
+                    self._exception = e
+                finally:
+                    QtGui.QApplication.instance().exit()
+
+            def wait(self):
+                """
+                Waits for the thread to complete and rethrows the exception that was caught in the
+                thread.
+                """
+                QtCore.QThread.wait(self)
+                if self._exception:
+                    raise self._exception
+
+        # Launch a background thread
+        bg = BackgroundThread()
+        bg.start()
+        # process events
+        QtGui.QApplication.instance().exec_()
+
+        # Make sure the thread got the exception that was thrown from the main thread.
+        with self.assertRaises(FromMainThreadException):
+            bg.wait()
