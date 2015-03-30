@@ -8,17 +8,20 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from __future__ import with_statement
 import os
 import datetime
 
-from mock import Mock, patch
+from mock import patch
 
 import tank
-from tank import context
-from tank import TankError
+from tank import context, errors
+from tank import TankAuthenticationError
 from tank_test.tank_test_base import *
+from tank_test import mockgun
 from tank.template import TemplatePath
 from tank.templatekey import SequenceKey
+from tank_vendor.shotgun_authentication import errors as auth_errors
 
 
 class TestShotgunFindPublish(TankTestBase):
@@ -362,6 +365,70 @@ class TestShotgunRegisterPublish(TankTestBase):
         self.assertEqual(expected_path_cache, actual_path_cache)
 
 
+@patch("tank.util.shotgun.__get_api_core_config_location")
+class TestGetSgConfigData(TankTestBase):
+
+    def _prepare_common_mocks(self, get_api_core_config_location_mock):
+        get_api_core_config_location_mock.return_value = "unknown_path_location"
+
+    def test_all_fields_present(self, get_api_core_config_location_mock):
+        self._prepare_common_mocks(get_api_core_config_location_mock)
+        tank.util.shotgun._parse_config_data(
+            {
+                "host": "host",
+                "api_key": "api_key",
+                "api_script": "api_script",
+                "http_proxy": "http_proxy"
+            },
+            "default",
+            "not_a_file.cfg"
+        )
+
+    def test_proxy_is_optional(self, get_api_core_config_location_mock):
+        self._prepare_common_mocks(get_api_core_config_location_mock)
+        tank.util.shotgun._parse_config_data(
+            {
+                "host": "host",
+                "api_key": "api_key",
+                "api_script": "api_script"
+            },
+            "default",
+            "not_a_file.cfg"
+        )
+
+    def test_incomplete_script_user_credentials(self, get_api_core_config_location_mock):
+        self._prepare_common_mocks(get_api_core_config_location_mock)
+
+        with self.assertRaises(errors.TankError):
+            tank.util.shotgun._parse_config_data(
+                {
+                    "host": "host",
+                    "api_script": "api_script"
+                },
+                "default",
+                "not_a_file.cfg"
+            )
+
+        with self.assertRaises(errors.TankError):
+            tank.util.shotgun._parse_config_data(
+                {
+                    "host": "host",
+                    "api_key": "api_key"
+                },
+                "default",
+                "not_a_file.cfg"
+            )
+
+        with self.assertRaises(errors.TankError):
+            tank.util.shotgun._parse_config_data(
+                {
+                    "api_key": "api_key",
+                    "api_script": "api_script"
+                },
+                "default",
+                "not_a_file.cfg"
+            )
+
 
 class TestCalcPathCache(TankTestBase):
     
@@ -383,3 +450,82 @@ class TestCalcPathCache(TankTestBase):
         self.assertEqual(expected, path_cache)
 
 
+class TestCreateSessionBasedConnection(TankTestBase):
+    """
+    Tests the creation of a session based Shotgun connection.
+    """
+
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        pass
+
+    @patch("tank_vendor.shotgun_authentication.session_cache.AuthenticationManager.get_connection_information")
+    @patch("tank_vendor.shotgun_authentication.connection.create_or_renew_sg_connection_from_session")
+    def test_no_script_user_uses_human_user(
+        self,
+        create_or_renew_sg_connection_from_session_mock,
+        get_connection_information_mock
+    ):
+        """
+        Makes sure having no user configured in shotgun.yml will invoke the
+        create_or_renew_sg_connection_from_session function.
+        """
+        config_data = {
+            "host": "https://something.shotgunstudio.com",
+            "login": "some_login",
+            "session_token": "session_token"
+        }
+        get_connection_information_mock.return_value = config_data
+        create_or_renew_sg_connection_from_session_mock.return_value = mockgun.Shotgun(
+            config_data["host"]
+        )
+
+        # Make sure the engine is None otherwise failing to authenticate (something.shotgunstudio.com doesn't exist)
+        # would trigger ui prompts.
+        self.assertIsNone(tank.platform.engine.current_engine())
+        # Because the credentials are invalid and there is no engine, no connection can be created.
+        tank.util.shotgun.create_sg_connection()
+        # Make sure there was an attempt to authenticate using cache session info.
+        self.assertEqual(create_or_renew_sg_connection_from_session_mock.call_count, 1)
+
+    @patch("tank_vendor.shotgun_authentication.connection.create_sg_connection_from_session")
+    @patch("tank_vendor.shotgun_authentication.interactive_authentication.renew_session")
+    def test_create_connection_with_session_renewal(self, renew_session_mock, create_sg_connection_from_session_mock):
+        """
+        When there is no valid session cached, the engine's renew session should take care of the
+        session renewal
+        """
+
+        new_connection = mockgun.Shotgun("https://something.shotgunstudio.com")
+        # First call will fail creating something from the cache, and the second call will be the 
+        # after we renwed the session.
+        create_sg_connection_from_session_mock.side_effect = [None, new_connection]
+        renew_session_mock.return_value = None
+
+        result = connection.create_or_renew_sg_connection_from_session(
+            "unused"
+        )
+
+        # Make sure we tried to renew the sesion
+        self.assertTrue(renew_session_mock.called)
+        self.assertEqual(create_sg_connection_from_session_mock.call_count, 2)
+        self.assertEqual(id(result), id(new_connection))
+
+    @patch("tank_vendor.shotgun_authentication.connection.create_sg_connection_from_session")
+    @patch("tank_vendor.shotgun_authentication.interactive_authentication.renew_session")
+    def test_create_connection_with_session_renewal_failure(self, renew_session_mock, create_sg_connection_from_session_mock):
+        """
+        When there is no valid session cached, the engine's renew session should take care of the
+        session renewal, but if the session renewal failed, we should get a TankAuthenticationError
+        """
+        # Always fail creating a cached session
+        create_sg_connection_from_session_mock.return_value = None
+        renew_session_mock.return_value = None
+
+        with self.assertRaisesRegexp(auth_errors.AuthenticationError, "failed"):
+            connection.create_or_renew_sg_connection_from_session("unused")
+        # Make sure we tried to renew the sesion
+        self.assertTrue(renew_session_mock.called)
+        self.assertEqual(create_sg_connection_from_session_mock.call_count, 2)

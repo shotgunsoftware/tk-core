@@ -74,7 +74,7 @@ class Shotgun(object):
     testing of code.
     """
     
-    def __init__(self, base_url, script_name, api_key, convert_datetimes_to_utc=True, http_proxy=None):
+    def __init__(self, base_url, script_name=None, api_key=None, session_token=None, convert_datetimes_to_utc=True, http_proxy=None):
         module_dir = os.path.split(__file__)[0]
         schema_path = os.path.join(module_dir, _schema_filename)
         schema_entity_path = os.path.join(module_dir, _schema_entity_filename)

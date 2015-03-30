@@ -1,0 +1,5 @@
+<RCC>
+  <qresource prefix="shotgun_authentication">
+    <file>shotgun_logo_light_medium.png</file>
+  </qresource>
+</RCC>

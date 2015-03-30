@@ -8,14 +8,18 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-
+# make sure that py25 has access to with statement
+from __future__ import with_statement
 
 
 import os
 import sys
 import stat
+import copy
 import shutil
 import datetime
+
+from tank_vendor import yaml
 
 from ...errors import TankError
 from .. import util
@@ -27,8 +31,7 @@ from ... import pipelineconfig_factory
 
 # these are the items that need to be copied across
 # when a configuration is upgraded to contain a core API
-CORE_FILES_FOR_LOCALIZE = ["app_store.yml", 
-                           "shotgun.yml", 
+CORE_FILES_FOR_LOCALIZE = [ "shotgun.yml", 
                            "interpreter_Darwin.cfg", 
                            "interpreter_Linux.cfg", 
                            "interpreter_Windows.cfg"]
@@ -57,7 +60,7 @@ class CoreLocalizeAction(Action):
         """
         pc_root = self.tk.pipeline_configuration.get_path()
         log.debug("Executing the localize command for %r" % self.tk)
-        return do_localize(log, pc_root, suppress_prompts=True)
+        return do_localize(log, pc_root, suppress_prompts=True, strip_toolkit_credentials=False)
     
     def run_interactive(self, log, args):
         """
@@ -68,16 +71,19 @@ class CoreLocalizeAction(Action):
 
         pc_root = self.tk.pipeline_configuration.get_path()
         log.debug("Executing the localize command for %r" % self.tk)
-        return do_localize(log, pc_root, suppress_prompts=False)
+        return do_localize(log, pc_root, suppress_prompts=False, strip_toolkit_credentials=False)
     
     
-def do_localize(log, pc_root_path, suppress_prompts):
+def do_localize(log, pc_root_path, suppress_prompts, strip_toolkit_credentials):
     """
     Perform the actual localize command.
     
     :param log: logging object
     :param pc_root_path: Path to the config that should be localized.
     :param suppress_prompts: Boolean to indicate if no questions should be asked.
+    :param strip_toolkit_credentials: Boolean to indicate if shotgun script credentials should 
+                                      be removed as the shotgun.yml is being carried across into the localized
+                                      configuration.
     """ 
 
     pc = pipelineconfig_factory.from_path(pc_root_path)
@@ -188,6 +194,41 @@ def do_localize(log, pc_root_path, suppress_prompts):
     finally:
         os.umask(old_umask)
             
+    if strip_toolkit_credentials:
+        # open the target shotgun.yml file and remove script crendetials
+        shotgun_cfg_path = os.path.join(pc_root_path, "config", "core", "shotgun.yml")
+        
+        if os.path.exists(shotgun_cfg_path):
+            
+            try:
+                with open(shotgun_cfg_path) as fh:                
+                    shotgun_yml_data = yaml.load(fh)
+                original_shotgun_yml_data = copy.deepcopy(shotgun_yml_data)
+            
+                # this is the anticipated structure:
+                #
+                # host: https://mannedev.shotgunstudio.com
+                # api_script: Toolkit
+                # api_key: xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+                # http_proxy: null
+                
+                # look for keys api_script and api_key and
+                # if they are set, clear them
+                if "api_script" in shotgun_yml_data:
+                    shotgun_yml_data["api_script"] = None
+                if "api_key" in shotgun_yml_data:
+                    shotgun_yml_data["api_key"] = None
+                
+                # if the data has changed, write it back
+                if shotgun_yml_data != original_shotgun_yml_data:
+                    log.info("Removing script credentials from shotgun.yml as it is being localized...")
+                    with open(shotgun_cfg_path, "wt") as fh:
+                        yaml.dump(shotgun_yml_data, fh)
+
+            except Exception, e:
+                # don't break execution, just issue a warning
+                log.warning("Could not strip credentials from shotgun.yml file '%s': %s" % (shotgun_cfg_path, e))
+                
     log.info("The Core API was successfully localized.")
 
     log.info("")
@@ -477,8 +518,7 @@ def _run_unlocalize(tk, log, mac_path, windows_path, linux_path, copy_core, supp
         
         # these core config files are directly related to the core
         # and not needed by a configuration
-        core_config_file_names = ["app_store.yml", 
-                                  "shotgun.yml", 
+        core_config_file_names = ["shotgun.yml", 
                                   "interpreter_Darwin.cfg", 
                                   "interpreter_Linux.cfg", 
                                   "interpreter_Windows.cfg"]

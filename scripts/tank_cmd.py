@@ -16,12 +16,13 @@ import logging
 import tank
 import textwrap
 import datetime
-from tank import TankError
+from tank import TankError, TankAuthenticationError
 from tank.deploy.tank_commands.clone_configuration import clone_pipeline_configuration_html
 from tank.deploy import tank_command
 from tank.deploy.tank_commands.core_upgrade import TankCoreUpgrader
 from tank.deploy.tank_commands.action_base import Action
-from tank.util import shotgun
+from tank.util import shotgun, DefaultsManager
+from tank_vendor.shotgun_authentication import ShotgunAuthenticator, AuthenticationModuleError
 from tank.platform import engine
 from tank import pipelineconfig_utils
 
@@ -175,6 +176,9 @@ Launch maya for a Task in Shotgun using an id:
 
 Launch maya for a folder:
 > tank /studio/proj_xyz/shots/ABC123 launch_maya
+
+Log out of the current user (no need for a contex):
+> tank logout
 
 """
     for x in info.split("\n"):
@@ -572,6 +576,13 @@ def _list_commands(log, tk, ctx):
         if x.category not in by_category:
             by_category[x.category] = []
         by_category[x.category].append(x)
+
+    # Add Login category manually, since they are not commands per-se since they are run before the
+    # engine is initialized.
+
+    by_category.setdefault("Login", []).append(
+        Action("logout", "unused", "Log out of the current user (no need for a contex).", "Login")
+    )
 
     num_engine_commands = 0
     for cat in sorted(by_category.keys()):
@@ -1127,6 +1138,19 @@ if __name__ == "__main__":
     exit_code = 1
     try:
 
+        # If the user is trying to logout, try to do so
+        if "logout" in cmd_line:
+            sa = ShotgunAuthenticator(DefaultsManager())
+            # Clear the saved user.
+            user = sa.clear_saved_user()
+            if user:
+                logger.info("Succesfully logged out from %s." % user.get_host())
+            else:
+                logger.info("Not logged in.")
+            sys.exit()
+        else:
+            tank.set_current_user(ShotgunAuthenticator(DefaultsManager()).get_user())
+
         if len(cmd_line) == 0:
             # > tank, no arguments
             # engine mode, using CWD
@@ -1216,6 +1240,11 @@ if __name__ == "__main__":
 
             exit_code = run_engine_cmd(logger, pipeline_config_root, ctx_list, cmd_name, using_cwd, cmd_args)
 
+    except AuthenticationModuleError, e:
+        logger.info("Authentication was cancelled.")
+        # Error messages and such have already been handled by the method that threw this exception.
+        sys.exit(8)
+
     except TankError, e:
         logger.info("")
         if debug_mode:
@@ -1238,6 +1267,8 @@ if __name__ == "__main__":
         logger.exception("A general error was reported: %s" % e)
         logger.info("")
         exit_code = 7
+
+    # Do not use 8, it is alread being used when login was cancelled.
 
     logger.debug("Exiting with exit code %s" % exit_code)
     sys.exit(exit_code)

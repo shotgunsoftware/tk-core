@@ -1,3 +1,4 @@
+#!/bin/bash
 # Copyright (c) 2013 Shotgun Software Inc.
 # 
 # CONFIDENTIAL AND PROPRIETARY
@@ -8,11 +9,4 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-
-# this class contains QT adapters and functionality for application agnostic QT usage.
-# at engine initialization, the variables QtCore and QtGui are created by the engine
-# init method and set to appropriate libraries.
-
-# in apps and frameworks, for an agnostic qt access, you can then go:
-
-# from tank.platform.qt import QtCore, QtGui
+./run_tests.sh shotgun_authentication_tests.test_connection && ./run_tests.sh util_tests.test_shotgun && ./run_tests.sh shotgun_authentication_tests.test_session_cache && ./run_tests.sh util_tests.test_login && ./run_tests.sh shotgun_authentication_tests.test_interactive_authentication --interactive 
