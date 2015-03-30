@@ -198,6 +198,8 @@ def do_localize(log, pc_root_path, suppress_prompts, strip_toolkit_credentials):
         # open the target shotgun.yml file and remove script crendetials
         shotgun_cfg_path = os.path.join(pc_root_path, "config", "core", "shotgun.yml")
         
+        # if no shotgun.yml file is found, there are no crendetials to strip, so
+        # simply continue.
         if os.path.exists(shotgun_cfg_path):
             
             try:
