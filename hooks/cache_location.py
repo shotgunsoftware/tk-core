@@ -76,24 +76,36 @@ class CacheLocation(HookBaseClass):
         and inside this base level hook. This method calculates the cache root
         for the current project and configuration. In the default implementation,
         all the different types of cache data resides below a common root point. 
-
+        
         :param project_id: The shotgun id of the project to store caches for
         :param pipeline_configuration_id: The shotgun pipeline config id to store caches for
         :returns: The calculated location for the cache root
         """
+        
         # the default implementation will place things in the following locations:
         # macosx: ~/Library/Caches/Shotgun/SITE_NAME/project_xxx/config_yyy
         # windows: $APPDATA/Shotgun/SITE_NAME/project_xxx/config_yyy
         # linux: ~/.shotgun/SITE_NAME/project_xxx/config_yyy
-
+        
+        # first establish the root location
         tk = self.parent
+        if sys.platform == "darwin":
+            root = os.path.expanduser("~/Library/Caches/Shotgun")
+        elif sys.platform == "win32":
+            root = os.path.join(os.environ["APPDATA"], "Shotgun")
+        elif sys.platform.startswith("linux"):
+            root = os.path.expanduser("~/.shotgun")
 
-        # structure things by site, project id, and pipeline config id
-        cache_root = os.path.join(tk.local_site_cache_location,
+        # get site only; https://www.foo.com:8080 -> www.foo.com
+        base_url = urlparse.urlparse(tk.shotgun.base_url)[1].split(":")[0]
+        
+        # now structure things by site, project id, and pipeline config id
+        cache_root = os.path.join(root, 
+                                  base_url, 
                                   "project_%d" % project_id,
                                   "config_%d" % pipeline_configuration_id)
         return cache_root
-
+    
     def _ensure_file_exists(self, path):
         """
         Helper method - creates a file if it doesn't already exists
@@ -114,10 +126,11 @@ class CacheLocation(HookBaseClass):
                     raise TankError("Could not create cache file '%s': %s" % (path, e))
             finally:
                 os.umask(old_umask)
-
+    
     def _ensure_folder_exists(self, path):
         """
         Helper method - creates a folder if it doesn't already exists
+        
         :param path: path to create
         """
         if not os.path.exists(path):
@@ -126,9 +139,10 @@ class CacheLocation(HookBaseClass):
                 os.makedirs(path, 0777)
             except OSError, e:
                 # Race conditions are perfectly possible on some network storage setups
-                # so make sure that we ignore any file already exists errors, as they
+                # so make sure that we ignore any file already exists errors, as they 
                 # are not really errors!
-                if e.errno != errno.EEXIST:
+                if e.errno != errno.EEXIST: 
                     raise TankError("Could not create cache folder '%s': %s" % (path, e))
             finally:
                 os.umask(old_umask)
+            

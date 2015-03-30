@@ -15,6 +15,7 @@ from .shotgun import download_url
 from .shotgun import create_event_log_entry
 from .shotgun import get_entity_type_display_name
 from .shotgun import get_published_file_entity_type
+from .defaults_manager import DefaultsManager
 
 from .path import append_path_to_env_var
 from .path import prepend_path_to_env_var

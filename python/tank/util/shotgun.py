@@ -21,54 +21,19 @@ import urlparse
 from tank_vendor import yaml
 
 # use api json to cover py 2.5
-from tank_vendor import shotgun_api3  
+from tank_vendor import shotgun_api3
 json = shotgun_api3.shotgun.json
-from tank_vendor.shotgun_api3 import Shotgun
-from tank_vendor.shotgun_authentication import session
+from tank_vendor.shotgun_authentication import ShotgunAuthenticator, AuthenticationModuleError
 
-
-from ..errors import TankError
+from ..errors import TankError, TankAuthenticationError
 from .. import hook
 from ..platform import constants
 from . import login
-
-from tank.errors import TankAuthenticationError
-
-# FIXME: Quick hack to easily disable logging in this module while keeping the
-# code compatible. We have to disable it by default because Maya will print all out
-# debug strings.
-if False:
-    import logging
-    # Configure logging
-    logger = logging.getLogger("sgtk.authentication")
-    logger.setLevel(logging.DEBUG)
-    logger.addHandler(logging.StreamHandler())
-else:
-    class logger:
-        @staticmethod
-        def debug(*args, **kwargs):
-            pass
-
-        @staticmethod
-        def info(*args, **kwargs):
-            pass
-
-        @staticmethod
-        def warning(*args, **kwargs):
-            pass
-
-        @staticmethod
-        def error(*args, **kwargs):
-            pass
-
-        @staticmethod
-        def exception(*args, **kwargs):
-            pass
+from .defaults_manager import DefaultsManager
 
 
 def __get_api_core_config_location():
     """
-    Given the location of the code, find the core config location.
 
     Walk from the location of this file on disk to the config area.
     this operation is guaranteed to work on any valid tank installation
@@ -231,19 +196,37 @@ def __create_sg_connection(config_data=None):
                              for determining which credentials to use.
     :returns: A Shotgun connection.
     """
-    if config_data:
-        # Credentials were passed in, so let's run the legacy authentication mechanism for script user.
-        sg = _create_sg_connection_from_script_user(config_data)
-    else:
-        # We're not running any special code for Psyop, so run the new Toolkit authentication code.
-        sg = _create_authenticated_sg_connection()
+
+    try:
+        if config_data:
+            # Credentials were passed in, so let's run the legacy authentication mechanism for script user.
+            sg = shotgun_api3.Shotgun(
+                config_data["host"],
+                script_name=config_data["api_script"], api_key=config_data["api_key"],
+                http_proxy=config_data.get("http_proxy")
+            )
+        else:
+            from .. import api
+            # We're not running any special code for Psyop, so run the new Toolkit authentication code.
+
+            user = api.get_current_user()
+            if not user:
+                sa = ShotgunAuthenticator(DefaultsManager())
+                # This is needed for backwards compatibility with scripts that were written before
+                # authentication was put in place.
+                user = sa.get_user()
+            if not user:
+                raise TankAuthenticationError("No current Shotgun user available.")
+            return user.create_sg_connection()
+    except AuthenticationModuleError, e:
+        raise TankAuthenticationError(str(e))
 
     # bolt on our custom user agent manager
     sg.tk_user_agent_handler = ToolkitUserAgentHandler(sg)
 
     return sg
 
-    
+
 def download_url(sg, url, location):
     """
     Convenience method that downloads a file from a given url.
@@ -297,9 +280,7 @@ def get_associated_sg_base_url():
     
     :returns: The base url for the associated Shotgun site
     """
-    # FIXME: Once authentication is moved outside of core, we should put back
-    # ["host"] since it will always be present.
-    return get_associated_sg_config_data().get("host", "")
+    return get_associated_sg_config_data()["host"]
 
 
 def get_associated_sg_config_data():
@@ -1185,80 +1166,3 @@ class ToolkitUserAgentHandler(object):
 
         # and update shotgun
         self._sg._user_agents = new_agents
-
-
-# Having the factory as an indirection to create a shotgun instance allows us to tweak unit tests
-# more easily
-_shotgun_instance_factory = Shotgun
-
-
-def _create_or_renew_sg_connection_from_session(connection_information):
-    """
-    Creates a shotgun connection using the current session token or a new one if the old one
-    expired.
-    :param connection_information: A dictionary holding the connection information.
-    :returns: A valid Shotgun instance.
-    :raises TankAuthenticationError: If we couldn't get a valid session, a TankAuthenticationError is thrown.
-    """
-    from ..platform import engine
-
-    # If the Shotgun login was not automated, then try to create a Shotgun
-    # instance from the cached session id.
-    sg = session.create_sg_connection_from_session(connection_information, _shotgun_instance_factory)
-    # If worked, just return the result.
-    if sg:
-        return sg
-
-    from tank_vendor.shotgun_authentication import authentication
-
-    try:
-        # If there is a current engine, we can ask the engine to prompt the user to login
-        if engine.current_engine():
-            engine.current_engine().renew_session()
-            sg = session.create_sg_connection_from_session(
-                authentication.get_connection_information(),
-                _shotgun_instance_factory
-            )
-            if not sg:
-                raise TankAuthenticationError("Authentication failed.")
-        else:
-            # Otherwise we failed and can't login.
-            raise TankAuthenticationError("No valid authentication credentials were found.")
-    except:
-        # If the authentication failed, clear the cached credentials. Only do it here instead of befor
-        # the renewal otherwise multiple threads who are about to ask for credentials might clear
-        # the newer credentials that another thread cached.
-        authentication.clear_cached_credentials()
-        raise
-    return sg
-
-
-def _create_sg_connection_from_script_user(connection_information):
-    """
-    Create a Shotgun connection based on a script user.
-    :param connection_information: A dictionary with keys host, api_script, api_key and an optional http_proxy.
-    :returns: A Shotgun instance.
-    """
-    return _shotgun_instance_factory(
-        connection_information["host"],
-        script_name=connection_information["api_script"],
-        api_key=connection_information["api_key"],
-        http_proxy=connection_information.get("http_proxy", None)
-    )
-
-
-def _create_authenticated_sg_connection():
-    """
-    Creates an authenticated Shotgun connection.
-    :param config_data: A dictionary holding the site configuration.
-    :returns: A Shotgun instance.
-    """
-    from tank_vendor.shotgun_authentication import authentication
-
-    connection_information = authentication.get_connection_information()
-    # If no configuration information
-    if authentication.is_script_user_authenticated(connection_information):
-        # create API
-        return _create_sg_connection_from_script_user(connection_information)
-    else:
-        return _create_or_renew_sg_connection_from_session(connection_information)

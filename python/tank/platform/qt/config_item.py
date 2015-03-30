@@ -14,7 +14,7 @@ import urllib
 import shutil
 import sys
 
-from .qt_abstraction import QtCore, QtGui
+from . import QtCore, QtGui
 from .ui_item import Ui_Item
 from .. import constants
 

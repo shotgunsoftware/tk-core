@@ -17,7 +17,7 @@ import uuid
 from ...platform import constants
 from ...util import shotgun
 from ... import hook
-from ...errors import TankError
+from ...errors import TankError, TankErrorProjectIsSetup
 from ... import pipelineconfig_utils
 from ... import pipelineconfig
 
@@ -379,8 +379,7 @@ class ProjectSetupParameters(object):
 
         # if force is false then tank_name must be empty
         if self.get_auto_path_mode() == False and force == False and proj["tank_name"] is not None:
-            raise TankError("You are trying to set up a project which has already been set up. If you want to do "
-                            "this, make sure to set the force parameter.")
+            raise TankErrorProjectIsSetup()
 
         self._project_id = project_id
         self._force_setup = force

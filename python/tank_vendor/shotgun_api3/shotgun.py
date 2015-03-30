@@ -76,7 +76,7 @@ except ImportError:
 
 # ----------------------------------------------------------------------------
 # Version
-__version__ = "3.0.18.dev"
+__version__ = "3.0.19"
 
 # ----------------------------------------------------------------------------
 # Errors
@@ -280,8 +280,15 @@ class Shotgun(object):
 
         :param connect: If True, connect to the server. Only used for testing.
         
-        :param ca_certs: The path to the SSL certificate file. Useful for users
-        who would like to package their application into an executable.
+        :param ca_certs: Optional path to an external SSL certificates file. By 
+        default, the Shotgun API will use its own built-in certificates file
+        which stores root certificates for the most common Certificate 
+        Authorities (CAs). If you are using a corporate or internal CA, or are
+        packaging an application into an executeable, it may be necessary to 
+        point to your own certificates file. You can do this by passing in the 
+        full path to the file via this parameter or by setting the environment 
+        variable `SHOTGUN_API_CACERTS`. In the case both are set, this 
+        parameter will take precedence. 
 
         :param login: The login to use to authenticate to the server. If login
         is provided, then password must be as well and neither script_name nor
@@ -341,7 +348,10 @@ class Shotgun(object):
         self.config.no_ssl_validation = NO_SSL_VALIDATION
         self.config.raw_http_proxy = http_proxy
         self._connection = None
-        self.__ca_certs = ca_certs
+        if ca_certs is not None:
+            self.__ca_certs = ca_certs
+        else:
+            self.__ca_certs = os.environ.get('SHOTGUN_API_CACERTS')
 
         self.base_url = (base_url or "").lower()
         self.config.scheme, self.config.server, api_base, _, _ = \
@@ -983,23 +993,55 @@ class Shotgun(object):
         
         return self._call_rpc('followers', params)
 
-    def schema_entity_read(self):
+    def schema_entity_read(self, project_entity=None):
         """Gets all active entities defined in the schema.
+
+        :param dict project_entity: Optional, if set, each field's visibility is reported accordingly
+        to the specified project's current visibility settings.
+        If None, all fields are reported as visible.
 
         :returns: dict of Entity Type to dict containing the display name.
         """
 
-        return self._call_rpc("schema_entity_read", None)
+        params = {}
 
-    def schema_read(self):
+        if project_entity:
+            if not self.server_caps.version or self.server_caps.version < (5, 4, 4):
+                raise ShotgunError("Per project schema operations require server "\
+                                   "version 5.4.4 or higher, server is %s" % (self.server_caps.version,))
+            else:
+                params["project"] = project_entity
+
+        if params:
+            return self._call_rpc("schema_entity_read", params)
+        else:
+            return self._call_rpc("schema_entity_read", None)
+
+    def schema_read(self, project_entity=None):
         """Gets the schema for all fields in all entities.
+
+        :param dict project_entity: Optional, if set, each field's visibility is reported accordingly
+        to the specified project's current visibility settings.
+        If None, all fields are reported as visible.
 
         :returns: nested dicts
         """
 
-        return self._call_rpc("schema_read", None)
+        params = {}
 
-    def schema_field_read(self, entity_type, field_name=None):
+        if project_entity:
+            if not self.server_caps.version or self.server_caps.version < (5, 4, 4):
+                raise ShotgunError("Per project schema operations require server "\
+                                   "version 5.4.4 or higher, server is %s" % (self.server_caps.version,))
+            else:
+                params["project"] = project_entity
+            
+        if params:
+            return self._call_rpc("schema_read", params)
+        else:
+            return self._call_rpc("schema_read", None)
+
+    def schema_field_read(self, entity_type, field_name=None, project_entity=None):
         """Gets all schema for fields in the specified entity_type or one
         field.
 
@@ -1010,14 +1052,25 @@ class Shotgun(object):
         definition for. If not supplied all fields for the entity type are
         returned.
 
+        :param dict project_entity: Optional, if set, each field's visibility is reported accordingly
+        to the specified project's current visibility settings.
+        If None, all fields are reported as visible.
+
         :returns: dict of field name to nested dicts which describe the field
         """
 
         params = {
-            "type" : entity_type,
+            "type": entity_type,
         }
         if field_name:
             params["field_name"] = field_name
+            
+        if project_entity:            
+            if not self.server_caps.version or self.server_caps.version < (5, 4, 4):
+                raise ShotgunError("Per project schema operations require server "\
+                                   "version 5.4.4 or higher, server is %s" % (self.server_caps.version,))
+            else:
+                params["project"] = project_entity
 
         return self._call_rpc("schema_field_read", params)
 
@@ -1608,11 +1661,16 @@ class Shotgun(object):
 
         # Authenticate using session_id
         elif self.config.session_token:
-            auth_params = {
-                "session_token" : str(self.config.session_token),
-                # Request server side to raise exception for expired sessions
-                "reject_if_expired": True
-            }
+            if self.server_caps.version and self.server_caps.version < (5, 3, 0):
+                raise ShotgunError("Session token based authentication requires server version 5.3.0 or "\
+                    "higher, server is %s" % (self.server_caps.version,))
+            
+            auth_params = {"session_token" : str(self.config.session_token)}
+
+            # Request server side to raise exception for expired sessions. 
+            # This was added in as part of Shotgun 5.4.4            
+            if self.server_caps.version and self.server_caps.version > (5, 4, 3):
+                auth_params["reject_if_expired"] = True
 
         else:
             raise ValueError("invalid auth params")
