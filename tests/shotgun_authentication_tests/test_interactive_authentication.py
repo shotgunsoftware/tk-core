@@ -39,29 +39,20 @@ class LoginUiTests(TankTestBase):
         self.assertTrue(ld.ui.site.isReadOnly())
         self.assertTrue(ld.ui.login.isReadOnly())
 
-    def _prepare_mocks(
+    @patch("tank_vendor.shotgun_authentication.session_cache.cache_session_data")
+    @interactive
+    def test_interactive_login(
         self,
-        get_connection_information_mock,
-        cache_connection_information_mock
+        cache_session_data_mock
     ):
         """
-        Configures all the mocks for the two interactive unit tests.
-        :param get_connection_information_mock: Mock for the tank.util.authentication.get_connection_information_mock
-        :param cache_connection_information_mock: Mock for the tank.util.authentication.cache_connection_information_mock
-        """
-        get_connection_information_mock.return_value = {
-            "host": "https://enter_your_host_name_here.shotgunstudio.com",
-            "login": "enter_your_username_here"
-        }
-        cache_connection_information_mock.return_value = None
-
-    @patch("tank_vendor.shotgun_authentication.authentication.cache_connection_information")
-    @patch("tank_vendor.shotgun_authentication.authentication.get_connection_information")
-    @interactive
-    def test_interactive_login(self, *args):
-        """
         Pops the ui and lets the user authenticate.
+        :param cache_session_data_mock: Mock for the tank.util.session_cache.cache_session_data
         """
-        self._prepare_mocks(*args)
+        cache_session_data_mock.return_value = None
 
-        tank_vendor.shotgun_authentication.interactive_authentication.authenticate()
+        tank_vendor.shotgun_authentication.interactive_authentication.authenticate(
+            "https://enter_your_host_name_here.shotgunstudio.com",
+            "enter_your_username_here",
+            ""
+        )
