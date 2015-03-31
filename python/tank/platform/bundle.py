@@ -709,6 +709,9 @@ class TankBundle(object):
         :param key:   setting name
         :param value: setting value
         """
+        if value is None:
+            return value
+        
         # try to get the type for the setting
         # (may fail if the key does not exist in the schema,
         # which is an old use case we need to support now...)
