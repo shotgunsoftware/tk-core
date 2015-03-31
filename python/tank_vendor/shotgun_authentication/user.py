@@ -153,6 +153,13 @@ class SessionUser(ShotgunUser):
         """
         return self._session_token
 
+    def set_session_token(self, session_token):
+        """
+        Updates the session token for this user.
+        :param session_token: The new session token for this user.
+        """
+        self._session_token = session_token
+
     def create_sg_connection(self):
         """
         Creates a Shotgun instance using the script user's credentials.

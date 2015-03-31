@@ -49,7 +49,6 @@ class LoginUiTests(TankTestBase):
         :param cache_session_data_mock: Mock for the tank.util.session_cache.cache_session_data
         """
         cache_session_data_mock.return_value = None
-
         tank_vendor.shotgun_authentication.interactive_authentication.authenticate(
             "https://enter_your_host_name_here.shotgunstudio.com",
             "enter_your_username_here",

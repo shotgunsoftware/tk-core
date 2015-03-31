@@ -448,3 +448,5 @@ class TestCalcPathCache(TankTestBase):
         root_name, path_cache = tank.util.shotgun._calc_path_cache(self.tk, input_path)
         self.assertEqual("primary", root_name)
         self.assertEqual(expected, path_cache)
+
+
