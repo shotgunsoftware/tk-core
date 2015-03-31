@@ -378,7 +378,7 @@ def shotgun_cache_actions(log, pipeline_config_root, args):
         log.info("<code style='%s'>%s clear_cache</code>" % (code_css_block, tank_cmd))
         log.info("")
 
-def shotgun_run_action_auth(log, install_root, pipeline_config_root, is_localized, args):
+def shotgun_authenticate(log, install_root, pipeline_config_root, is_localized, args):
     """
     Authenticated shotgun actions
     """
@@ -388,17 +388,18 @@ def shotgun_run_action_auth(log, install_root, pipeline_config_root, is_localize
     log.debug("Running shotgun_run_action_auth command")
     log.debug("Arguments passed: %s" % args)
 
-    session_token = args[0]
-    user_entity_id = args[1]
-    user_login = args[2]
-    action_name = args[3]
-    entity_type = args[4]
-    entity_ids_str = args[5].split(",")
+    user_login = args[0]
+    password = args[1]
+    action_name = args[2]
+    entity_type = args[3]
+    entity_ids_str = args[4].split(",")
     entity_ids = [int(x) for x in entity_ids_str]
     
-    from tank_vendor.shotgun_authentication import authentication
-    host = authentication.get_host()
-    authentication.cache_connection_information(host, user_login, session_token)
+    dm = DefaultsManager()
+    sg_auth = ShotgunAuthenticator(dm)
+    user = sg_auth.create_session_user(user_login, password=password)
+    tank.set_current_user(user)
+        
     _shotgun_run_action(log, install_root, pipeline_config_root, is_localized, action_name, entity_type, entity_ids)
 
 
@@ -421,13 +422,6 @@ def shotgun_run_action(log, install_root, pipeline_config_root, is_localized, ar
     entity_type = args[1]
     entity_ids_str = args[2].split(",")
     entity_ids = [int(x) for x in entity_ids_str]
-
-    _shotgun_run_action(log, install_root, pipeline_config_root, is_localized, action_name, entity_type, entity_ids)
-
-def _shotgun_run_action(log, install_root, pipeline_config_root, is_localized, action_name, entity_type, entity_ids):
-    """
-    Actual execution of an action
-    """
     
     try:
         tk = tank.tank_from_path(pipeline_config_root)
@@ -1193,12 +1187,8 @@ if __name__ == "__main__":
             exit_code = 0
 
         # special case when we are called from shotgun
-        elif cmd_line[0] == "shotgun_run_action_auth":
-            exit_code = shotgun_run_action_auth(logger,
-                                                install_root,
-                                                pipeline_config_root,
-                                                is_localized,
-                                                cmd_line[1:])
+        elif cmd_line[0] == "shotgun_auth":
+            exit_code = shotgun_authenticate(logger, cmd_line[1:])
 
         # special case when we are called from shotgun
         # note that this runs un-authenticated
@@ -1208,7 +1198,9 @@ if __name__ == "__main__":
 
         # special case when we are called from shotgun
         elif cmd_line[0] == "shotgun_run_action":
-            console_authenticate()
+            
+            
+            
             exit_code = shotgun_run_action(logger,
                                            install_root,
                                            pipeline_config_root,
