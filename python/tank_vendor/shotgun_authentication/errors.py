@@ -32,4 +32,16 @@ class AuthenticationDisabled(AuthenticationModuleError):
     Exception that indicates that interactive authentication has been disabled.
     """
     def __init__(self):
-        Exception.__init__(self, "Authentication has been disabled.")
+        AuthenticationModuleError.__init__(
+            self, "Authentication has been disabled."
+        )
+
+
+class CachingVolatileUserException(AuthenticationModuleError):
+    """
+    Thrown when someone tries to cache a SessionUser that is volatile.
+    """
+    def __init__(self):
+        AuthenticationModuleError.__init__(
+            self, "Can't cache a volatile SessionUser's credentials."
+        )

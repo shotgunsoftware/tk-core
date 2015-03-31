@@ -17,8 +17,6 @@ UI and console based login for Toolkit.
 from __future__ import with_statement
 from getpass import getpass
 import threading
-import os
-import sys
 from .errors import AuthenticationError, AuthenticationDisabled
 from . import session_cache
 
@@ -136,16 +134,6 @@ class AuthenticationHandlerBase(object):
     Base class for authentication requests. It handles locking reading cached credentials
     on disk and writing newer credentials back. It also keeps track of any attempt to cancel
     authentication.
-    """
-
-    _authentication_lock = threading.Lock()
-    """
-    Lock the assures only one thread at a time can execute the authentication logic.
-    """
-    _authentication_disabled = False
-    """
-    Flag that keeps track if a user cancelled authentication. When the flag is raised, it will
-    be impossible to authenticate again.
     """
 
     def authenticate(self, host, login, http_proxy):
@@ -339,6 +327,17 @@ class UiAuthenticationHandler(AuthenticationHandlerBase):
         return result
 
 
+_renew_session_lock = threading.Lock()
+"""
+Lock the assures only one thread at a time can execute the authentication logic.
+"""
+_renew_session_disabled = False
+"""
+Flag that keeps track if a user cancelled authentication. When the flag is raised, it will
+be impossible to authenticate again.
+"""
+
+
 def _renew_session(user, session_token, credentials_handler):
     """
     Common login logic, regardless of how we are actually logging in. It will first try to reuse
@@ -348,7 +347,9 @@ def _renew_session(user, session_token, credentials_handler):
     :raises: TankAuthenticationDisabled Thrown if authentication was cancelled before.
     """
     logger.debug("About to take the authentication lock.")
-    with AuthenticationHandlerBase._authentication_lock:
+    global _renew_session_lock
+    global _renew_session_disabled
+    with _renew_session_lock:
 
         # If somebody refreshed the session token on the user object since we tried with
         # the session token.
@@ -356,7 +357,7 @@ def _renew_session(user, session_token, credentials_handler):
             return None
         logger.debug("Took the authentication lock.")
         # If somebody disabled authentication, we're done here as well.
-        if AuthenticationHandlerBase._authentication_disabled:
+        if _renew_session_disabled:
             raise AuthenticationDisabled()
 
         try:
@@ -368,7 +369,7 @@ def _renew_session(user, session_token, credentials_handler):
                 user.get_http_proxy()
             )
         except AuthenticationError:
-            AuthenticationHandlerBase._authentication_disabled = True
+            _renew_session_disabled = True
             logger.debug("Authentication cancelled, disabling authentication.")
             if not user.is_volatile():
                 # Clear the cached user from the host.
@@ -385,35 +386,28 @@ def _renew_session(user, session_token, credentials_handler):
             )
 
 
-def _ui_renew_session(user, session_token):
-    """
-    Prompts the user to enter his password in a dialog to retrieve a new session token.
-    """
-    _renew_session(
-        user,
-        session_token,
-        UiAuthenticationHandler(is_session_renewal=True)
-    )
-
-
-def _console_renew_session(user, session_token):
-    """
-    Prompts the user to enter his password on the command line to retrieve a new session token.
-    """
-    _renew_session(user, session_token, ConsoleRenewSessionHandler())
-
-
 def renew_session(user, session_token):
+    """
+    Prompts the user to enter this password on the console or in a ui to
+    retrieve a new session token.
+
+    :param user: SessionUser that needs its session token refreshed.
+    :param session_token: The session token value that originally failed.
+    """
     logger.debug("Credentials were out of date, renewing them.")
     QtCore, QtGui, has_ui = _get_qt_state()
     # If we have a gui, we need gui based authentication
     if has_ui:
-        _ui_renew_session(user, session_token)
+        authenticator = UiAuthenticationHandler(is_session_renewal=True)
     else:
-        _console_renew_session(user, session_token)
+        authenticator = ConsoleRenewSessionHandler()
+    _renew_session(user, session_token, authenticator)
 
 
-def authenticate(host, login, http_proxy):
+def authenticate(default_host, default_login, default_http_proxy):
+    """
+    Authenticates a user.
+    """
     QtCore, QtGui, has_ui = _get_qt_state()
     # If we have a gui, we need gui based authentication
     if has_ui:
@@ -421,4 +415,4 @@ def authenticate(host, login, http_proxy):
         authenticator = UiAuthenticationHandler(is_session_renewal=False)
     else:
         authenticator = ConsoleLoginHandler()
-    return authenticator.authenticate(host, login, http_proxy)
+    return authenticator.authenticate(default_host, default_login, default_http_proxy)

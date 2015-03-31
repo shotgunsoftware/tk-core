@@ -17,6 +17,13 @@ from tank_vendor.shotgun_api3 import Shotgun, AuthenticationFault
 
 from . import session_cache
 from . import AuthenticationError
+from .errors import CachingVolatileUserException
+
+
+_shotgun_instance_factory = Shotgun
+"""
+Indirection to create Shotgun instances. Great for unit testing.
+"""
 
 
 class ShotgunUser(object):
@@ -74,9 +81,6 @@ class ShotgunUser(object):
         self._serialize(payload["data"])
         return pickle.dumps(payload)
 
-    def get_user_info(self):
-        self.__class__._not_implemented("get_user_info")
-
     @classmethod
     def from_dict(cls, payload):
         """
@@ -112,7 +116,7 @@ class SessionUser(ShotgunUser):
     """
     A user that authenticates to the Shotgun server using a session token.
     """
-    def __init__(self, host, login, session_token, http_proxy):
+    def __init__(self, host, login, session_token, http_proxy, is_volatile=False):
         """
         Constructor.
 
@@ -120,13 +124,15 @@ class SessionUser(ShotgunUser):
         :param login: Login name for the user.
         :param session_token: Session token for the user.
         :param http_proxy: HTTP proxy to use with this host. Defaults to None.
+        :param is_volatile: Indicates if the user can cache it's credentials to
+                            disk.
         """
 
         super(SessionUser, self).__init__(host, http_proxy)
 
         self._login = login
         self._session_token = session_token
-        self._is_volatile = False
+        self._is_volatile = is_volatile
 
     def get_login(self):
         """
@@ -143,6 +149,13 @@ class SessionUser(ShotgunUser):
         :returns: The session token string.
         """
         return self._session_token
+
+    def set_session_token(self, session_token):
+        """
+        Updates the session token for this user.
+        :param session_token: The new session token for this user.
+        """
+        self._session_token = session_token
 
     def create_sg_connection(self):
         """
@@ -185,6 +198,8 @@ class SessionUser(ShotgunUser):
 
         :raises AuthenticationError: Raised if the user is a script user.
         """
+        if self._is_volatile:
+            raise CachingVolatileUserException()
         session_cache.cache_session_data(
             self.get_host(),
             self.get_login(),
@@ -230,15 +245,7 @@ class SessionUser(ShotgunUser):
 
         :returns: A SessionUser instance.
         """
-        user = SessionUser(
-            host=representation["host"],
-            http_proxy=representation["http_proxy"],
-            login=representation["login"],
-            session_token=representation["session_token"]
-        )
-        if representation["is_volatile"]:
-            user.mark_volatile()
-        return user
+        return SessionUser(**representation)
 
     def _serialize(self, data):
         """
@@ -251,7 +258,7 @@ class SessionUser(ShotgunUser):
         data["is_volatile"] = self._is_volatile
 
     def _create_sg_connection(self):
-        sg = Shotgun(self._host, session_token=self._session_token, http_proxy=self._http_proxy)
+        sg = _shotgun_instance_factory(self._host, session_token=self._session_token, http_proxy=self._http_proxy)
         try:
             sg.find_one("HumanUser", [])
             return sg
@@ -284,7 +291,7 @@ class ScriptUser(ShotgunUser):
 
         :returns: A Shotgun instance.
         """
-        return Shotgun(
+        return _shotgun_instance_factory(
             self._host,
             script_name=self._api_script,
             api_key=self._api_key,
