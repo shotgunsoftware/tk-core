@@ -349,7 +349,7 @@ class TestMakeTemplateStrings(TankTestBase):
         template_string = result.get("template_name")
         self.assertEquals(self.template_path, template_string.validate_with)
 
-    def test_validate_tempalte_missing(self):
+    def test_validate_template_missing(self):
         data = {"template_name": {"definition": "something.{Shot}",
                                   "validate_with": "non-exitant-template"}}
         self.assertRaises(TankError, make_template_strings, data, self.keys, self.template_paths)
@@ -363,8 +363,17 @@ class TestReadTemplates(TankTestBase):
 
     def test_choices(self):
         """Check a template key which uses choices."""
+        # check old-style (list) choices
         key = self.tk.templates["nuke_shot_render_stereo"].keys["eye"]
-        self.assertEquals(["Left", "Right"], key.choices)
+        self.assertEquals(["Right", "Left"], key.choices)
+        self.assertEquals(["Right", "Left"], key.choice_labels)
+        self.assertEquals("Left", key.get_choice_label("Left"))
+        
+        # check new-style (dict) choices
+        key = self.tk.templates["maya_shot_work"].keys["maya_extension"]
+        self.assertEquals(["ma", "mb"], key.choices)
+        self.assertEquals(["Maya Ascii (.ma)", "Maya Binary (.mb)"], key.choice_labels)
+        self.assertEquals("Maya Ascii (.ma)", key.get_choice_label("ma"))
 
     def test_exclusions(self):
         key = self.tk.templates["asset_work_area"].keys["Asset"]
