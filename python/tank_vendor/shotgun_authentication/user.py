@@ -81,9 +81,6 @@ class ShotgunUser(object):
         self._serialize(payload["data"])
         return pickle.dumps(payload)
 
-    def get_user_info(self):
-        self.__class__._not_implemented("get_user_info")
-
     @classmethod
     def from_dict(cls, payload):
         """

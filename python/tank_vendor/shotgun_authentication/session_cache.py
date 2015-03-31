@@ -72,7 +72,7 @@ def _get_local_site_cache_location(base_url):
     return os.path.join(root, base_url)
 
 
-def get_session_data_location(base_url):
+def _get_session_data_location(base_url):
     """
     Returns the location of the session file on disk for a specific site.
     :param base_url: The site we want the login information for.
@@ -94,7 +94,7 @@ def delete_session_data(host):
         return
     logger.debug("Clearing session cached on disk.")
     try:
-        info_path = get_session_data_location(host)
+        info_path = _get_session_data_location(host)
         if os.path.exists(info_path):
             logger.debug("Session file found.")
             os.remove(info_path)
@@ -112,7 +112,7 @@ def get_session_data(base_url):
     :returns: Returns a dictionary with keys login and session_token or None
     """
     # Retrieve the location of the cached info
-    info_path = get_session_data_location(base_url)
+    info_path = _get_session_data_location(base_url)
     # Nothing was cached, return an empty dictionary.
     if not os.path.exists(info_path):
         logger.debug("No cache found at %s" % info_path)
@@ -146,7 +146,7 @@ def cache_session_data(host, login, session_token):
     :param session_token: Session token we want to cache.
     """
     # Retrieve the cached info file location from the host
-    info_path = get_session_data_location(host)
+    info_path = _get_session_data_location(host)
 
     # make sure the info_dir exists!
     info_dir, info_file = os.path.split(info_path)

@@ -10,6 +10,5 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 ./run_tests.sh shotgun_authentication_tests.test_user &&
-    ./run_tests.sh util_tests.test_shotgun &&
     ./run_tests.sh util_tests.test_login &&
     ./run_tests.sh shotgun_authentication_tests.test_interactive_authentication --interactive
