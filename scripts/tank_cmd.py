@@ -378,30 +378,6 @@ def shotgun_cache_actions(log, pipeline_config_root, args):
         log.info("<code style='%s'>%s clear_cache</code>" % (code_css_block, tank_cmd))
         log.info("")
 
-def shotgun_authenticate(log, install_root, pipeline_config_root, is_localized, args):
-    """
-    Authenticated shotgun actions
-    """
-    # we are talking to shotgun! First of all, make sure we switch on our html style logging
-    log.handlers[0].formatter.enable_html_mode()
-
-    log.debug("Running shotgun_run_action_auth command")
-    log.debug("Arguments passed: %s" % args)
-
-    user_login = args[0]
-    password = args[1]
-    action_name = args[2]
-    entity_type = args[3]
-    entity_ids_str = args[4].split(",")
-    entity_ids = [int(x) for x in entity_ids_str]
-    
-    dm = DefaultsManager()
-    sg_auth = ShotgunAuthenticator(dm)
-    user = sg_auth.create_session_user(user_login, password=password)
-    tank.set_current_user(user)
-        
-    _shotgun_run_action(log, install_root, pipeline_config_root, is_localized, action_name, entity_type, entity_ids)
-
 
 def shotgun_run_action(log, install_root, pipeline_config_root, is_localized, args):
     """
@@ -414,15 +390,6 @@ def shotgun_run_action(log, install_root, pipeline_config_root, is_localized, ar
     log.debug("Running shotgun_run_action command")
     log.debug("Arguments passed: %s" % args)
 
-    # params: action_name, entity_type, entity_ids
-    if len(args) != 3:
-        raise TankError("Invalid arguments! Pass action_name, entity_type, comma_separated_entity_ids")
-
-    action_name = args[0]
-    entity_type = args[1]
-    entity_ids_str = args[2].split(",")
-    entity_ids = [int(x) for x in entity_ids_str]
-    
     try:
         tk = tank.tank_from_path(pipeline_config_root)
         # attach our logger to the tank instance
@@ -431,7 +398,16 @@ def shotgun_run_action(log, install_root, pipeline_config_root, is_localized, ar
         tk.log = log
     except TankError, e:
         raise TankError("Could not instantiate an Sgtk API Object! Details: %s" % e )
-    
+
+    # params: action_name, entity_type, entity_ids
+    if len(args) != 3:
+        raise TankError("Invalid arguments! Pass action_name, entity_type, comma_separated_entity_ids")
+
+    action_name = args[0]
+    entity_type = args[1]
+    entity_ids_str = args[2].split(",")
+    entity_ids = [int(x) for x in entity_ids_str]
+
     if action_name == "__clone_pc":
         # special data passed in entity_type: USER_ID:NAME:LINUX_PATH:MAC_PATH:WINDOWS_PATH
         user_id = int(entity_type.split(":")[0])
@@ -456,7 +432,7 @@ def shotgun_run_action(log, install_root, pipeline_config_root, is_localized, ar
 
         code_css_block = "display: block; padding: 0.5em 1em; border: 1px solid #bebab0; background: #faf8f0;"
 
-        # create an upgrader instance that we can quesry if the install is up to date
+        # create an upgrader instance that we can query if the install is up to date
         installer = TankCoreUpgrader(install_root, log)
 
         cv = installer.get_current_version_number()
@@ -1178,34 +1154,19 @@ if __name__ == "__main__":
         if len(cmd_line) == 0:
             # > tank, no arguments
             # engine mode, using CWD
-            console_authenticate()
             exit_code = run_engine_cmd(logger, pipeline_config_root, [os.getcwd()], None, True, [])
 
         # special case when we are called from shotgun
-        elif cmd_line[0] == "logout":
-            console_logout()
-            exit_code = 0
-
-        # special case when we are called from shotgun
-        elif cmd_line[0] == "shotgun_auth":
-            exit_code = shotgun_authenticate(logger, cmd_line[1:])
-
-        # special case when we are called from shotgun
-        # note that this runs un-authenticated
-        elif cmd_line[0] == "shotgun_cache_actions":
-            # this runs unauthenticated!
-            exit_code = shotgun_cache_actions(logger, pipeline_config_root, cmd_line[1:])
-
-        # special case when we are called from shotgun
         elif cmd_line[0] == "shotgun_run_action":
-            
-            
-            
             exit_code = shotgun_run_action(logger,
                                            install_root,
                                            pipeline_config_root,
                                            is_localized,
                                            cmd_line[1:])
+
+        # special case when we are called from shotgun
+        elif cmd_line[0] == "shotgun_cache_actions":
+            exit_code = shotgun_cache_actions(logger, pipeline_config_root, cmd_line[1:])
 
         else:
             # these choices remain:
@@ -1219,9 +1180,7 @@ if __name__ == "__main__":
             # > tank Shot foo command_name [params]
             # > tank Shot 123
             # > tank Shot foo
-            
-            console_authenticate()
-            
+
             using_cwd = False
             ctx_list = []
             cmd_args = []
@@ -1313,3 +1272,4 @@ if __name__ == "__main__":
 
     logger.debug("Exiting with exit code %s" % exit_code)
     sys.exit(exit_code)
+
