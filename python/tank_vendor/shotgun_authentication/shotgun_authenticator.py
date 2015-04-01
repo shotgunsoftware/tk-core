@@ -11,6 +11,7 @@
 from . import interactive_authentication
 from . import user
 from . import session_cache
+from .errors import IncompleteCredentialsError
 from .defaults_manager import DefaultsManager
 
 
@@ -103,7 +104,8 @@ class ShotgunAuthenticator(object):
         host, login, session_token = interactive_authentication.authenticate(
             self._defaults_manager.get_host(),
             self._defaults_manager.get_login(),
-            self._defaults_manager.get_http_proxy()
+            self._defaults_manager.get_http_proxy(),
+            self._defaults_manager.is_host_fixed()
         )
         return self.create_session_user(
             login=login, session_token=session_token,
@@ -122,48 +124,119 @@ class ShotgunAuthenticator(object):
         :param host: Shotgun host to log in to. If None, the default host will be used.
         :param http_proxy: Shotgun proxy to use. If None, the default http proxy will be used.
 
-        :returns: A ShotgunUser derived instance.
+        :returns: A SessionUser instance.
         """
         # Get the defaults is arguments were None.
         host = host or self._defaults_manager.get_host()
         http_proxy = http_proxy or self._defaults_manager.get_http_proxy()
 
+        if not login:
+            raise IncompleteCredentialsError("missing login.")
+
         # If we only have a password, generate a session token.
         if password and not session_token:
             session_token = session_cache.generate_session_token(host, login, password, http_proxy)
 
+        if not session_token:
+            raise IncompleteCredentialsError("missing session_token")
+
         # Create a session user
         return user.SessionUser(host, login, session_token, http_proxy)
 
-    def create_script_user(self, script_user, script_key, host=None, http_proxy=None):
+    def create_script_user(self, api_script, api_key, host=None, http_proxy=None):
         """
         Create an AuthenticatedUser given a set of script credentials.
 
         :param script_user: Shotgun script user
         :param script_key: Shotgun script key
-        :param host: Shotgun host to log in to. If None, the default host will be used.
-        :param http_proxy: Shotgun proxy to use. If None, the default http proxy will be used.
+        :param host: Shotgun host to log in to. If None, the default host will
+                     be used.
+        :param http_proxy: Shotgun proxy to use. If None, the default http proxy
+                           will be used.
 
         :returns: A ShotgunUser derived instance.
         """
+        if not api_script or not api_key:
+            raise IncompleteCredentialsError("missing api_script and/or api_key")
+
         return user.ScriptUser(
             host or self._defaults_manager.get_host(),
             http_proxy or self._defaults_manager.get_http_proxy(),
-            script_user,
-            script_key
+            api_script,
+            api_key
         )
+
+    def get_default_host(self):
+        """
+        Returns the host from the defaults manager.
+        :returns: The default host string.
+        """
+        return self._defaults_manager.get_host()
+
+    def get_default_http_proxy(self):
+        """
+        Returns the HTTP proxy from the defaults manager.
+        :returns: The default http proxy string.
+        """
+        return self._defaults_manager.get_http_proxy()
+
+    def get_default_user(self):
+        """
+        Returns the default user from the defaults manager.
+        :returns: A ShotgunUser derived instance if available, None otherwise.
+        """
+        # Get the credentials
+        credentials = self._defaults_manager.get_user()
+
+        # There is no default user.
+        if not credentials:
+            return None
+
+        # If this looks like an api user, delegate to create_script_user.
+        # If some of the arguments are missing, don't worry, create_script_user
+        # will take care of it.
+        if "api_script" in credentials or "api_key" in credentials:
+            return self.create_script_user(
+                api_script=credentials.get("api_script"),
+                api_key=credentials.get("api_key"),
+                host=credentials.get("host"),
+                http_proxy=credentials.get("http_proxy")
+            )
+        # If this looks like a session user, delegate to create_session_user.
+        # If some of the arguments are missing, don't worry, create_session_user
+        # will take care of it.
+        elif "login" in credentials or "password" in credentials or "session_token" in credentials:
+            return self.create_session_user(
+                login=credentials.get("login"),
+                password=credentials.get("password"),
+                session_token=credentials.get("session_token"),
+                host=credentials.get("host"),
+                http_proxy=credentials.get("http_proxy")
+            )
+        # We don't know what this is, abort!
+        else:
+            raise IncompleteCredentialsError(
+                "unknown credentials configuration: %s" % credentials
+            )
 
     def get_user(self):
         """
-        This method will always return a valid user. It will first ask for the default user to the
-        defaults manager. If no user is returned, then a saved user will be retrieved for the default
-        host. If none is found, the user will be prompted to enter login information.
+        This method will always return a valid user. It will first ask for the
+        default user to the defaults manager. If no user is returned, then a
+        saved user will be retrieved for the default host. If none is found, the
+        you will be prompted to enter login information interactively.
 
         :returns: A ShotgunUser derived instance.
         """
-        user = self._defaults_manager.get_user() or self.get_saved_user()
+        # Get the default user first for backward compatibility reasons. Toolkit
+        # provides it's own defaults manager which has a get_user that returns
+        # the credentials for the script user in shotgun.yml, so that has to
+        # have precedence over the saved user.
+        user = self.get_default_user() or self.get_saved_user()
         if user:
             return user
+
+        # Prompt the client for user credentials and connection information
         user = self.get_user_from_prompt()
         user.save()
         return user

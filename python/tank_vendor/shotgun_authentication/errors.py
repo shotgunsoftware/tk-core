@@ -45,3 +45,23 @@ class CachingVolatileUserException(AuthenticationModuleError):
         AuthenticationModuleError.__init__(
             self, "Can't cache a volatile SessionUser's credentials."
         )
+
+
+class IncompleteCredentialsError(AuthenticationModuleError):
+    """
+    Thrown when credentials are provided but are incomplete.
+    """
+    def __init__(self, credentials):
+        AuthenticationModuleError.__init__(
+            self, "Incomplete credentials: %s" % credentials
+        )
+
+
+class AuthenticationCancelled(AuthenticationError):
+    """
+    Thrown when the user cancels authentication or session renewal.
+    """
+    def __init__(self):
+        AuthenticationModuleError.__init__(
+            self, "Authentication was cancelled by the user."
+        )

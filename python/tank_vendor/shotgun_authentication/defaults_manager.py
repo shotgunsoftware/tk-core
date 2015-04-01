@@ -17,6 +17,13 @@ class DefaultsManager(object):
     This class allows the ShotgunAuthenticator to get some values when authenticating.
     """
 
+    def is_host_fixed(self):
+        """
+        When doing an interactive login, this indicates if the user can update the host name or
+        if it is being forced.
+        """
+        return False
+
     def get_host(self):
         """
         Override to provide a default host.
