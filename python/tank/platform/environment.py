@@ -23,7 +23,7 @@ from . import environment_includes
 from ..errors import TankError
 from ..deploy import descriptor
 
-from ..util.yaml_cache import YamlCache
+from ..util.yaml_cache import g_yaml_cache
 
 
 class Environment(object):
@@ -338,7 +338,7 @@ class Environment(object):
         """
         loads the main data from disk, raw form
         """
-        return YamlCache.instance().load(path)
+        return g_yaml_cache.get(path)
 
     def __write_data(self, path, data):
         """

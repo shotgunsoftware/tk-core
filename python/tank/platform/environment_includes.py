@@ -41,7 +41,7 @@ from ..templatekey import StringKey
 
 from . import constants
 
-from ..util.yaml_cache import YamlCache
+from ..util.yaml_cache import g_yaml_cache
 
 def _resolve_includes(file_name, data, context):
     """
@@ -230,7 +230,7 @@ def _process_includes_r(file_name, data, context):
     for include_file in include_files:
                 
         # path exists, so try to read it
-        included_data = YamlCache.instance().load(include_file)
+        included_data = g_yaml_cache.get(include_file)
                 
         # now resolve this data before proceeding
         included_data, included_fw_lookup = _process_includes_r(include_file, included_data, context)
@@ -275,7 +275,7 @@ def find_framework_location(file_name, framework_name, context):
                             defined in or None if not found.
     """
     # load the data in for the root file:
-    data = YamlCache.instance().load(file_name)
+    data = g_yaml_cache.get(file_name)
 
     # track root frameworks:
     root_fw_lookup = {}
@@ -298,7 +298,7 @@ def find_reference(file_name, context, token):
     """
     
     # load the data in 
-    data = YamlCache.instance().load(file_name)
+    data = g_yaml_cache.get(file_name)
     
     # first build our big fat lookup dict
     include_files = _resolve_includes(file_name, data, context)
@@ -308,7 +308,7 @@ def find_reference(file_name, context, token):
     for include_file in include_files:
                 
         # path exists, so try to read it
-        included_data = YamlCache.instance().load(include_file)
+        included_data = g_yaml_cache.get(include_file)
         
         if token in included_data:
             found_file = include_file

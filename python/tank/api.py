@@ -520,24 +520,20 @@ class Tank(object):
         """
         return context.from_entity(self, entity_type, entity_id)
 
-    def context_from_entities(self, project=None, entity=None, step=None, task=None, user=None):
+    def context_from_entity_dictionary(self, entity_dictionary):
         """
-        Derive a context from a set of known Shotgun entities.
-        
-        Note: It is the responsibility of the calling code to ensure that both the entities and the
-        relationships between them are valid.  
-        
-        This only results in a Shotgun query if context_additional_entities are specified in the
-        configuration!        
-        
-        :param project: The project entity dictionary to use when constructing the context
-        :param entity:  The entity entity dictionary to use when constructing the context
-        :param step:    The step entity dictionary to use when constructing the context
-        :param task:    The task entity dictionary to use when constructing the context
-        :param user:    The user entity dictionary to use when constructing the context
-        :returns:       A Context constructed from the specified entities.        
+        Derives a context from a shotgun entity dictionary.  This will try to use any 
+        linked information available in the dictionary where possible but if it can't 
+        determine a valid context then it will fall back to 'context_from_entity' which 
+        may result in a Shotgun path cache query and be considerably slower.
+
+        :param entity_dictionary:   A Shotgun entity dictionary containing at least 'type'
+                                    and 'id'
+        :type  entity_dictionary:   dict.
+
+        :returns: Context object.
         """
-        return context.from_entities(self, project, entity, step, task, user)
+        return context.from_entity_dictionary(self, entity_dictionary)
 
     def synchronize_filesystem_structure(self, full_sync=False):
         """

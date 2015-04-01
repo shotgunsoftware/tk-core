@@ -79,23 +79,18 @@ class TemplateKey(object):
     @property
     def choices(self):
         """
-        :returns:    List of choices available for this key
+        :returns:   List of choices available for this key - retained for backwards
+                    compatibility
         """
         return self._choices.keys()
     
     @property
-    def choice_labels(self):
+    def labelled_choices(self):
         """
-        :returns:    List of labels for choices available for this key
+        :returns:   Dictionary of choices together with their labels that are available 
+                    for this key
         """
-        return self._choices.values()
-    
-    def get_choice_label(self, choice):
-        """
-        Get the label for the specified choice.
-        :returns:    The choice label
-        """
-        return self._choices.get(choice, "")
+        return self._choices
     
     def str_from_value(self, value=None, ignore_type=False):
         """

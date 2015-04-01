@@ -24,18 +24,6 @@ class YamlCache(object):
     """
     Main yaml cache class
     """
-    _instance = None
-
-    @staticmethod
-    def instance():
-        """
-        Obtain the single instance of the YamlCache
-        :returns:    The single YamlCache instance
-        """
-        if not YamlCache._instance:
-            YamlCache._instance = YamlCache()
-        return YamlCache._instance
-    
     def __init__(self):
         """
         Construction
@@ -43,9 +31,11 @@ class YamlCache(object):
         self._cache = {}
         self._lock = threading.Lock()
             
-    def load(self, path):
+    def get(self, path):
         """
-        Load the yaml data for the specified path.
+        Retrieve the yaml data for the specified path.  If it's not already
+        in the cache of the cached version is out of date then this will load
+        the Yaml file from disk.
         
         :param path:    The path of the yaml file to load.
         :returns:       The raw yaml data loaded from the file.
@@ -136,3 +126,6 @@ class YamlCache(object):
                 return cache_entry
         finally:
             self._lock.release()
+
+# the global instance of the YamlCache
+g_yaml_cache = YamlCache()
