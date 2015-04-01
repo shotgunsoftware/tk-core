@@ -11,6 +11,7 @@
 from . import interactive_authentication
 from . import user
 from . import session_cache
+from .errors import AuthenticationError
 from .defaults_manager import DefaultsManager
 
 
@@ -129,9 +130,13 @@ class ShotgunAuthenticator(object):
         http_proxy = http_proxy or self._defaults_manager.get_http_proxy()
 
         # If we only have a password, generate a session token.
-        if password and not session_token:
+        if password is None and session_token is None:
+            # todo - find this in our 'phonebook' of stored login/session ids
+            raise AuthenticationError("No session details for this user.")
+        
+        elif password and not session_token:
             session_token = session_cache.generate_session_token(host, login, password, http_proxy)
-
+        
         # Create a session user
         return user.SessionUser(host, login, session_token, http_proxy)
 

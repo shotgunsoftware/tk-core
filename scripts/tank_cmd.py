@@ -22,7 +22,8 @@ from tank.deploy import tank_command
 from tank.deploy.tank_commands.core_upgrade import TankCoreUpgrader
 from tank.deploy.tank_commands.action_base import Action
 from tank.util import shotgun, DefaultsManager
-from tank_vendor.shotgun_authentication import ShotgunAuthenticator, AuthenticationModuleError
+from tank_vendor.shotgun_authentication import ShotgunAuthenticator
+from tank_vendor.shotgun_authentication import AuthenticationError, AuthenticationModuleError
 from tank.platform import engine
 from tank import pipelineconfig_utils
 
@@ -184,6 +185,22 @@ Log out of the current user (no need for a contex):
     for x in info.split("\n"):
         log.info(x)
 
+
+def ensure_authenticated():
+    """
+    Make sure that there is a current toolkit user set.
+    May prompt for a login/password if needed
+    """     
+    # create a core-level defaults manager.
+    # this will read site details from shotgun.yml
+    core_dm = DefaultsManager()
+    # set up the authenticator
+    shotgun_auth = ShotgunAuthenticator(core_dm)
+    # request a user, either by prompting the user or by pulling out of 
+    # saves sessions etc.
+    user = shotgun_auth.get_user()
+    # set the current toolkit user
+    tank.set_current_user(user)
 
 
 
@@ -379,17 +396,144 @@ def shotgun_cache_actions(log, pipeline_config_root, args):
         log.info("")
 
 
+def shotgun_run_action_auth(log, install_root, pipeline_config_root, is_localized, args):
+    """
+    Executes the special shotgun run action command from inside of shotgun.
+    Authenticated version. 
+    
+    This method expects the following arguments to be passed via the args param:
+    args[0]: name of the action
+    args[1]: entity type to operate on
+    args[2]: list of entity ids as a string, e.g. '1,2,3'
+    args[3]: shotgun user login requesting this command
+    args[4]: password for the user. Can be set to "" - in that case,
+             this is a hint to toolkit to try to authenticate via a
+             cached session token
+    args[5:]: reserved for future use. This method will *not* error 
+              if unexpected args are passed to it.
+    
+    :param log: Python logger
+    :param install_root: Root of the toolkit core installation
+    :param pipeline_config_root: Root of the pipeline configuration
+    :param is_localized: True if the pipeline configuration has been localized
+    :param args: list of arguments passed from Shotgun.
+    """
+    # we are talking to shotgun! First of all, make sure we switch on our html style logging
+    log.handlers[0].formatter.enable_html_mode()
+
+    log.debug("Running shotgun_run_action_auth command")
+
+    action_name = args[0]
+    entity_type = args[1]
+    entity_ids_str = args[2].split(",")
+    entity_ids = [int(x) for x in entity_ids_str]
+    login = args[3]
+    password = args[4]
+
+    # now, first try to authenticate
+    dm = DefaultsManager()
+    sa = ShotgunAuthenticator(dm)
+
+    if password == "":
+        # no password given from shotgun. Try to use a stored session token
+        try:
+            user = sa.create_session_user(login)
+        except AuthenticationError:
+            log.error("Cannot authenticate user '%s'" % login)
+            return
+    
+    else:
+        # we have a password, so create a session user
+        # based on full credentials.
+        # the shotgun authenticator will store a session
+        # token for this user behind the scenes, so next time,
+        # we can create a user based on the login only.
+        try:
+            user = sa.create_session_user(login, password=password)
+        except AuthenticationError:
+            log.error("Invalid password! Please try again.")
+            return
+            
+    # tell tk about our current user!
+    tank.set_current_user(user)
+
+    # and fire off the action
+    return _shotgun_run_action(log, 
+                               install_root, 
+                               pipeline_config_root, 
+                               is_localized, 
+                               action_name, 
+                               entity_type, 
+                               entity_ids)
+
 def shotgun_run_action(log, install_root, pipeline_config_root, is_localized, args):
     """
-    Executes the special shotgun run action command from inside of shotgun
+    Executes the special shotgun run action command from inside of shotgun.
+    Legacy - unauthenticated version. 
+    
+    All modern versions of Shotgun will be running the shotgun_run_action_auth method.
+    this method is to serve users who are running an updated version of core with 
+    an older version of Shotgun 
+    
+    This method expects the following arguments to be passed via the args param:
+    args[0]: name of the action
+    args[1]: entity type to operate on
+    args[2]: list of entity ids as a string, e.g. '1,2,3'
+    args[3]: shotgun user login requesting this command
+    
+    :param log: Python logger
+    :param install_root: Root of the toolkit core installation
+    :param pipeline_config_root: Root of the pipeline configuration
+    :param is_localized: True if the pipeline configuration has been localized
+    :param args: list of arguments passed from Shotgun.
     """
-
-    # we are talking to shotgun! First of all, make sure we switch on our html style logging
+    # we are talking to shotgun. First of all, make sure we switch on our html style logging
     log.handlers[0].formatter.enable_html_mode()
 
     log.debug("Running shotgun_run_action command")
     log.debug("Arguments passed: %s" % args)
 
+    # params: action_name, entity_type, entity_ids
+    if len(args) != 3:
+        raise TankError("Invalid arguments! Pass action_name, entity_type, comma_separated_entity_ids")
+    
+    # all modern versions of Shotgun will be running the shotgun_run_action_auth method.
+    # this method is to serve users who are running an updated version of core with 
+    # an older version of Shotgun 
+
+    # in this case, we cannot prompt for a login/password
+    # so we have rely on the built-in user that is given by the manager itself.
+    dm = DefaultsManager()
+    # note - this is likely to change as part of a future refactor.
+    # TODO - review this as part of security code review.
+    user = dm.get_user()    
+    tank.set_current_user(user)
+
+    action_name = args[0]
+    entity_type = args[1]
+    entity_ids_str = args[2].split(",")
+    entity_ids = [int(x) for x in entity_ids_str]
+
+    return _shotgun_run_action(log, 
+                               install_root, 
+                               pipeline_config_root, 
+                               is_localized, 
+                               action_name, 
+                               entity_type, 
+                               entity_ids)
+
+def _shotgun_run_action(log, install_root, pipeline_config_root, is_localized, action_name, entity_type, entity_ids):
+    """
+    Executes a Shotgun action.
+    
+    :param log: Python logger
+    :param install_root: Root of the toolkit core installation
+    :param pipeline_config_root: Root of the pipeline configuration
+    :param is_localized: True if the pipeline configuration has been localized
+    :param ation_name: Name of action to execute (e.g launch_maya)
+    :param entity_type: Entity type to execute action for
+    :param entity_ids: list of entity ids (as ints) to pass to the action.    
+    """
     try:
         tk = tank.tank_from_path(pipeline_config_root)
         # attach our logger to the tank instance
@@ -397,17 +541,8 @@ def shotgun_run_action(log, install_root, pipeline_config_root, is_localized, ar
         # and used.
         tk.log = log
     except TankError, e:
-        raise TankError("Could not instantiate an Sgtk API Object! Details: %s" % e )
-
-    # params: action_name, entity_type, entity_ids
-    if len(args) != 3:
-        raise TankError("Invalid arguments! Pass action_name, entity_type, comma_separated_entity_ids")
-
-    action_name = args[0]
-    entity_type = args[1]
-    entity_ids_str = args[2].split(",")
-    entity_ids = [int(x) for x in entity_ids_str]
-
+        raise TankError("Could not instantiate an Sgtk API Object! Details: %s" % e )    
+    
     if action_name == "__clone_pc":
         # special data passed in entity_type: USER_ID:NAME:LINUX_PATH:MAC_PATH:WINDOWS_PATH
         user_id = int(entity_type.split(":")[0])
@@ -1138,26 +1273,30 @@ if __name__ == "__main__":
     exit_code = 1
     try:
 
-        # If the user is trying to logout, try to do so
-        if "logout" in cmd_line:
-            sa = ShotgunAuthenticator(DefaultsManager())
+        if len(cmd_line) == 0:
+            # > tank, no arguments
+            # engine mode, using CWD
+            
+            # first make sure there is a current user
+            ensure_authenticated()
+            
+            # now run the command
+            exit_code = run_engine_cmd(logger, pipeline_config_root, [os.getcwd()], None, True, [])
+
+        elif cmd_line[0] == "logout":
+            dm = DefaultsManager()
+            sa = ShotgunAuthenticator(dm)
             # Clear the saved user.
             user = sa.clear_saved_user()
             if user:
                 logger.info("Succesfully logged out from %s." % user.get_host())
             else:
                 logger.info("Not logged in.")
-            sys.exit()
-        else:
-            tank.set_current_user(ShotgunAuthenticator(DefaultsManager()).get_user())
-
-        if len(cmd_line) == 0:
-            # > tank, no arguments
-            # engine mode, using CWD
-            exit_code = run_engine_cmd(logger, pipeline_config_root, [os.getcwd()], None, True, [])
 
         # special case when we are called from shotgun
         elif cmd_line[0] == "shotgun_run_action":
+            # note - this pathway is not authenticated from shotgun
+            # this is there for backwards compatibility
             exit_code = shotgun_run_action(logger,
                                            install_root,
                                            pipeline_config_root,
@@ -1165,7 +1304,17 @@ if __name__ == "__main__":
                                            cmd_line[1:])
 
         # special case when we are called from shotgun
+        elif cmd_line[0] == "shotgun_run_action_auth":
+            # note: this pathway retrieves authentication via shotgun
+            exit_code = shotgun_run_action_auth(logger,
+                                                install_root,
+                                                pipeline_config_root,
+                                                is_localized,
+                                                cmd_line[1:])
+
+        # special case when we are called from shotgun
         elif cmd_line[0] == "shotgun_cache_actions":
+            # note: this pathway does not require authentication
             exit_code = shotgun_cache_actions(logger, pipeline_config_root, cmd_line[1:])
 
         else:
@@ -1237,7 +1386,10 @@ if __name__ == "__main__":
                     cmd_args = cmd_line[1:]
                     ctx_list = [ os.getcwd() ] # path
 
-
+            # first make sure there is a current user
+            ensure_authenticated()
+            
+            # now run the command
             exit_code = run_engine_cmd(logger, pipeline_config_root, ctx_list, cmd_name, using_cwd, cmd_args)
 
     except AuthenticationModuleError, e:
