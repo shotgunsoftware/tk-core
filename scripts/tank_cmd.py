@@ -434,28 +434,37 @@ def shotgun_run_action_auth(log, install_root, pipeline_config_root, is_localize
     dm = DefaultsManager()
     sa = ShotgunAuthenticator(dm)
 
-    if password == "":
-        # no password given from shotgun. Try to use a stored session token
-        try:
-            user = sa.create_session_user(login)
-        except AuthenticationError:
-            log.error("Cannot authenticate user '%s'" % login)
-            return
+    # first of all, if there is a default user defined, that takes precedence
+    # TODO: this interface call is likely to change.
+    default_user = dm.get_user()
+    if default_user:
+        # there is a default hard coded user - this takes presedence.
+        tank.set_current_user(default_user)
     
     else:
-        # we have a password, so create a session user
-        # based on full credentials.
-        # the shotgun authenticator will store a session
-        # token for this user behind the scenes, so next time,
-        # we can create a user based on the login only.
-        try:
-            user = sa.create_session_user(login, password=password)
-        except AuthenticationError:
-            log.error("Invalid password! Please try again.")
-            return
-            
-    # tell tk about our current user!
-    tank.set_current_user(user)
+        # no default user. Have to authenticate
+        if password == "":
+            # no password given from shotgun. Try to use a stored session token
+            try:
+                user = sa.create_session_user(login)
+            except AuthenticationError:
+                log.error("Cannot authenticate user '%s'" % login)
+                return
+        
+        else:
+            # we have a password, so create a session user
+            # based on full credentials.
+            # the shotgun authenticator will store a session
+            # token for this user behind the scenes, so next time,
+            # we can create a user based on the login only.
+            try:
+                user = sa.create_session_user(login, password=password)
+            except AuthenticationError:
+                log.error("Invalid password! Please try again.")
+                return
+                
+        # tell tk about our current user!
+        tank.set_current_user(user)
 
     # and fire off the action
     return _shotgun_run_action(log, 
