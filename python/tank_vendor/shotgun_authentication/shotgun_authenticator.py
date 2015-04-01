@@ -161,9 +161,9 @@ class ShotgunAuthenticator(object):
 
         return user.ScriptUser(
             host or self._defaults_manager.get_host(),
-            http_proxy or self._defaults_manager.get_http_proxy(),
             api_script,
-            api_key
+            api_key,
+            http_proxy or self._defaults_manager.get_http_proxy(),
         )
 
     def get_default_host(self):
