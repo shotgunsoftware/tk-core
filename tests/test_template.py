@@ -366,14 +366,12 @@ class TestReadTemplates(TankTestBase):
         # check old-style (list) choices
         key = self.tk.templates["nuke_shot_render_stereo"].keys["eye"]
         self.assertEquals(["Right", "Left"], key.choices)
-        self.assertEquals(["Right", "Left"], key.choice_labels)
-        self.assertEquals("Left", key.get_choice_label("Left"))
+        self.assertEquals({"Right":"Right", "Left":"Left"}, key.labelled_choices)
         
         # check new-style (dict) choices
         key = self.tk.templates["maya_shot_work"].keys["maya_extension"]
         self.assertEquals(["ma", "mb"], key.choices)
-        self.assertEquals(["Maya Ascii (.ma)", "Maya Binary (.mb)"], key.choice_labels)
-        self.assertEquals("Maya Ascii (.ma)", key.get_choice_label("ma"))
+        self.assertEquals({'ma':'Maya Ascii (.ma)', 'mb':'Maya Binary (.mb)'}, key.labelled_choices)
 
     def test_exclusions(self):
         key = self.tk.templates["asset_work_area"].keys["Asset"]
