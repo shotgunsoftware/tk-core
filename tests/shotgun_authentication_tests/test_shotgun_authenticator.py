@@ -18,8 +18,9 @@ from tank_vendor.shotgun_authentication import ShotgunAuthenticator, IncompleteC
 
 class ShotgunAuthenticatorTests(TankTestBase):
 
+    @patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
     @patch("tank_vendor.shotgun_authentication.session_cache.generate_session_token")
-    def test_create_session_user(self, generate_session_token_mock):
+    def test_create_session_user(self, generate_session_token_mock, server_caps_mock):
         """
         Makes sure that create_session_user does correct input validation.
         :param generate_session_token_mock: Mocked so we can skip communicating
@@ -36,11 +37,17 @@ class ShotgunAuthenticatorTests(TankTestBase):
             ShotgunAuthenticator().create_session_user("login")
 
         # Passing a password should generate a session token
-        user = ShotgunAuthenticator().create_session_user("login", password="password")
+        user = ShotgunAuthenticator().create_session_user(
+            "login", password="password", host="https://host.shotgunstudio.com"
+        )
         self.assertEquals(generate_session_token_mock.call_count, 1)
         self.assertEquals(user.get_session_token(), "session_token")
 
-    def test_create_script_user(self):
+        connection = user.create_sg_connection()
+        self.assertEqual(connection.config.session_token, "session_token")
+
+    @patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
+    def test_create_script_user(self, server_caps_mock):
         """
         Makes sure that create_script_user does correct input validation.
         """
@@ -52,6 +59,14 @@ class ShotgunAuthenticatorTests(TankTestBase):
         # No script key should throw
         with self.assertRaises(IncompleteCredentialsError):
             ShotgunAuthenticator().create_script_user("api_script", "")
+
+        # With valid values it should work
+        user = ShotgunAuthenticator().create_script_user(
+            "api_script", "api_key", "https://host.shotgunstudio.com", None
+        )
+        connection = user.create_sg_connection()
+        self.assertEqual(connection.config.script_name, "api_script")
+        self.assertEqual(connection.config.api_key, "api_key")
 
     @patch("tank_vendor.shotgun_authentication.session_cache.generate_session_token")
     def test_get_default_user(self, generate_session_token_mock):

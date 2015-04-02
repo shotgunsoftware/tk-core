@@ -14,7 +14,6 @@ import sys
 from tank_test.tank_test_base import *
 from mock import patch
 import tank_vendor
-from tank_vendor.shotgun_api3 import Shotgun
 
 
 @skip_if_pyside_missing
@@ -85,42 +84,44 @@ class InteractiveTests(TankTestBase):
             mb.setText(text)
             mb.exec_()
 
-    def _test_session_renewal(self, mock, test_console):
+    def _test_session_renewal(self, test_console):
+        """
+        First asks for the complete host and user information.
+        Then prompts for password renewal with that information filled in.
+        :param test_console: True is testing console prompt, False is we are testing ui prompt.
+        """
         self._print_message(
             "We're about to test session renewal. We'll first prompt you for your "
             "credentials and then we'll fake a session that is expired.\nYou will then have to "
             "re-enter your password.", test_console
         )
+        # Get the basic user credentials.
         host, login, session_token = tank_vendor.shotgun_authentication.interactive_authentication.authenticate(
             "https://enter_your_host_name_here.shotgunstudio.com",
             "enter_your_username_here",
             "",
             fixed_host=False
         )
-        result = Shotgun(host, session_token=session_token)
-        mock.side_effect = [None, result]
         sg_user = tank_vendor.shotgun_authentication.user.SessionUser(
-            host=host, login=login, session_token=session_token, http_proxy=None, is_volatile=True
+            host=host, login=login, session_token=session_token, http_proxy=None
         )
-        self.assertEqual(mock.call_count, 0)
         self._print_message("We're about to fake an expired session. Hang tight!", test_console)
-        sg = sg_user.create_sg_connection()
-        # Make sure we are getting back the return from the mock.
-        self.assertEqual(mock.call_count, 2)
-        self.assertEqual(id(result), id(sg))
+        # Test the session renewal code.
+        tank_vendor.shotgun_authentication.interactive_authentication.renew_session(
+            sg_user, sg_user.get_session_token()
+        )
         self._print_message("Test successful", test_console)
 
-    @patch("tank_vendor.shotgun_authentication.user.SessionUser._create_sg_connection")
     @interactive
-    def test_session_renewal_ui(self, _create_sg_connection_mock):
-        self._test_session_renewal(_create_sg_connection_mock, test_console=False)
+    def test_session_renewal_ui(self):
+        self._test_session_renewal(test_console=False)
 
     @patch("tank_vendor.shotgun_authentication.interactive_authentication._get_qt_state")
-    @patch("tank_vendor.shotgun_authentication.user.SessionUser._create_sg_connection")
     @interactive
-    def test_session_renewal_console(self, _create_sg_connection_mock, _get_qt_state_mock):
+    def test_session_renewal_console(self,_get_qt_state_mock):
+        # Doing this forces the prompting code to use the console.
         _get_qt_state_mock.return_value = None, None, None
-        self._test_session_renewal(_create_sg_connection_mock, test_console=True)
+        self._test_session_renewal(test_console=True)
 
     @skip_if_pyside_missing
     def test_invoker_rethrows_exception(self):
