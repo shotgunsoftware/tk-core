@@ -409,7 +409,7 @@ def shotgun_run_action_auth(log, install_root, pipeline_config_root, is_localize
     args[1]: entity type to operate on
     args[2]: list of entity ids as a string, e.g. '1,2,3'
     args[3]: shotgun user login requesting this command
-    args[4]: rot-13 shifted password for the user. Can be set to "" - in that case,
+    args[4]: rot-13 shifted password for the user. Can be set to "-" - in that case,
              this is a hint to toolkit to try to authenticate via a
              cached session token
     args[5:]: reserved for future use. This method will *not* error 
@@ -451,7 +451,7 @@ def shotgun_run_action_auth(log, install_root, pipeline_config_root, is_localize
     
     else:
         # no default user. Have to authenticate
-        if password == "":
+        if password == "-":
             # no password given from shotgun. Try to use a stored session token
             try:
                 user = sa.create_session_user(login)
