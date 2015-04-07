@@ -11,7 +11,7 @@
 from tank_vendor import shotgun_authentication as sg_auth
 
 
-class DefaultsManager(sg_auth.DefaultsManager):
+class CoreDefaultsManager(sg_auth.DefaultsManager):
     """
     This defaults manager implementation taps into core's shotgun.yml to provide
     a default host, proxy and user.

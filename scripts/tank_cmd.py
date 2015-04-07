@@ -22,7 +22,7 @@ from tank.deploy.tank_commands.clone_configuration import clone_pipeline_configu
 from tank.deploy import tank_command
 from tank.deploy.tank_commands.core_upgrade import TankCoreUpgrader
 from tank.deploy.tank_commands.action_base import Action
-from tank.util import shotgun, DefaultsManager
+from tank.util import shotgun, CoreDefaultsManager
 from tank_vendor.shotgun_authentication import ShotgunAuthenticator
 from tank_vendor.shotgun_authentication import AuthenticationError 
 from tank_vendor.shotgun_authentication import AuthenticationModuleError
@@ -196,7 +196,7 @@ def ensure_authenticated():
     """     
     # create a core-level defaults manager.
     # this will read site details from shotgun.yml
-    core_dm = DefaultsManager()
+    core_dm = CoreDefaultsManager()
     # set up the authenticator
     shotgun_auth = ShotgunAuthenticator(core_dm)
     # request a user, either by prompting the user or by pulling out of 
@@ -439,12 +439,12 @@ def shotgun_run_action_auth(log, install_root, pipeline_config_root, is_localize
     password = string.translate(rot13_password, rot13)
 
     # now, first try to authenticate
-    dm = DefaultsManager()
-    sa = ShotgunAuthenticator(dm)
+    core_dm = CoreDefaultsManager()
+    sa = ShotgunAuthenticator(core_dm)
 
     # first of all, if there is a default user defined, that takes precedence
     # TODO: this interface call is likely to change.
-    default_user = dm.get_user()
+    default_user = core_dm.get_user()
     if default_user:
         # there is a default hard coded user - this takes presedence.
         tank.set_current_user(default_user)
@@ -520,10 +520,10 @@ def shotgun_run_action(log, install_root, pipeline_config_root, is_localized, ar
 
     # in this case, we cannot prompt for a login/password
     # so we have rely on the built-in user that is given by the manager itself.
-    dm = DefaultsManager()
+    core_dm = CoreDefaultsManager()
     # note - this is likely to change as part of a future refactor.
     # TODO - review this as part of security code review.
-    user = dm.get_user()    
+    user = core_dm.get_user()    
     tank.set_current_user(user)
 
     action_name = args[0]
@@ -1301,8 +1301,8 @@ if __name__ == "__main__":
             exit_code = run_engine_cmd(logger, pipeline_config_root, [os.getcwd()], None, True, [])
 
         elif cmd_line[0] == "logout":
-            dm = DefaultsManager()
-            sa = ShotgunAuthenticator(dm)
+            core_dm = CoreDefaultsManager()
+            sa = ShotgunAuthenticator(core_dm)
             # Clear the saved user.
             user = sa.clear_saved_user()
             if user:

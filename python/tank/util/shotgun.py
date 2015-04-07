@@ -29,7 +29,7 @@ from ..errors import TankError, TankAuthenticationError
 from .. import hook
 from ..platform import constants
 from . import login
-from .defaults_manager import DefaultsManager
+from .defaults_manager import CoreDefaultsManager
 
 
 def __get_api_core_config_location():
@@ -211,7 +211,7 @@ def __create_sg_connection(config_data=None):
 
             user = api.get_current_user()
             if not user:
-                sa = ShotgunAuthenticator(DefaultsManager())
+                sa = ShotgunAuthenticator(CoreDefaultsManager())
                 # This is needed for backwards compatibility with scripts that were written before
                 # authentication was put in place.
                 user = sa.get_user()
