@@ -443,8 +443,8 @@ def shotgun_run_action_auth(log, install_root, pipeline_config_root, is_localize
     sa = ShotgunAuthenticator(core_dm)
 
     # first of all, if there is a default user defined, that takes precedence
-    # TODO: this interface call is likely to change.
-    default_user = core_dm.get_user()
+    # this is the case if there is a user defined in shotgun.yml
+    default_user = sa.get_default_user()
     if default_user:
         # there is a default hard coded user - this takes presedence.
         tank.set_current_user(default_user)
@@ -456,6 +456,11 @@ def shotgun_run_action_auth(log, install_root, pipeline_config_root, is_localize
             try:
                 user = sa.create_session_user(login)
             except IncompleteCredentialsError:
+                # report back to the Shotgun javascript integration
+                # this error message will trigger the javascript to
+                # prompt the user for a password and run this method 
+                # again, this time with an actual password rather
+                # than an empty string. 
                 log.error("Cannot authenticate user '%s'" % login)
                 return
         
@@ -468,6 +473,8 @@ def shotgun_run_action_auth(log, install_root, pipeline_config_root, is_localize
             try:
                 user = sa.create_session_user(login, password=password)
             except AuthenticationError:
+                # this message will be sent back to the user via the 
+                # javascript integration
                 log.error("Invalid password! Please try again.")
                 return
                 
@@ -519,11 +526,12 @@ def shotgun_run_action(log, install_root, pipeline_config_root, is_localized, ar
     # an older version of Shotgun 
 
     # in this case, we cannot prompt for a login/password
-    # so we have rely on the built-in user that is given by the manager itself.
+    # so we have rely on the built-in user that is given by the defaults manager
+    # in our case, the tk-core defaults manager returns the credentials stored in
+    # the shotgun.yml config file.
     core_dm = CoreDefaultsManager()
-    # note - this is likely to change as part of a future refactor.
-    # TODO - review this as part of security code review.
-    user = core_dm.get_user()    
+    sa = ShotgunAuthenticator(core_dm)
+    user = sa.get_default_user()    
     tank.set_current_user(user)
 
     action_name = args[0]
