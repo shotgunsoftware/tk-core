@@ -13,6 +13,7 @@ import os
 import cgi
 import re
 import logging
+import string
 import tank
 import textwrap
 import datetime
@@ -406,7 +407,7 @@ def shotgun_run_action_auth(log, install_root, pipeline_config_root, is_localize
     args[1]: entity type to operate on
     args[2]: list of entity ids as a string, e.g. '1,2,3'
     args[3]: shotgun user login requesting this command
-    args[4]: password for the user. Can be set to "" - in that case,
+    args[4]: rot-13 shifted password for the user. Can be set to "" - in that case,
              this is a hint to toolkit to try to authenticate via a
              cached session token
     args[5:]: reserved for future use. This method will *not* error 
@@ -428,7 +429,12 @@ def shotgun_run_action_auth(log, install_root, pipeline_config_root, is_localize
     entity_ids_str = args[2].split(",")
     entity_ids = [int(x) for x in entity_ids_str]
     login = args[3]
-    password = args[4]
+    rot13_password = args[4]
+
+    # un-swizzle the password
+    rot13 = string.maketrans("NOPQRSTUVWXYZnopqrstuvwxyzABCDEFGHIJKLMabcdefghijklm", 
+                             "ABCDEFGHIJKLMabcdefghijklmNOPQRSTUVWXYZnopqrstuvwxyz") 
+    password = string.translate(rot13_password, rot13)
 
     # now, first try to authenticate
     dm = DefaultsManager()
