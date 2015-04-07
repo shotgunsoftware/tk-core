@@ -17,7 +17,7 @@ import tank_vendor
 
 
 @skip_if_pyside_missing
-class LoginUiTests(TankTestBase):
+class InteractiveTests(TankTestBase):
 
     def setUp(self, *args, **kwargs):
         """
@@ -27,7 +27,7 @@ class LoginUiTests(TankTestBase):
         # Only configure qApp once, it's a singleton.
         if QtGui.qApp is None:
             self._app = QtGui.QApplication(sys.argv)
-        super(LoginUiTests, self).setUp()
+        super(InteractiveTests, self).setUp()
 
     def test_site_and_user_disabled_on_session_renewal(self):
         """
@@ -38,22 +38,90 @@ class LoginUiTests(TankTestBase):
         self.assertTrue(ld.ui.site.isReadOnly())
         self.assertTrue(ld.ui.login.isReadOnly())
 
-    @patch("tank_vendor.shotgun_authentication.session_cache.cache_session_data")
+    def _test_login(self, console):
+        self._print_message(
+            "We're about to test authentication. Simply enter valid credentials.",
+            console
+        )
+        tank_vendor.shotgun_authentication.interactive_authentication.authenticate(
+            "https://.shotgunstudio.com",
+            "",
+            "",
+            fixed_host=False
+        )
+        self._print_message(
+            "Test successful",
+            console
+        )
+
     @interactive
-    def test_interactive_login(
-        self,
-        cache_session_data_mock
-    ):
+    def test_login_ui(self):
         """
         Pops the ui and lets the user authenticate.
         :param cache_session_data_mock: Mock for the tank.util.session_cache.cache_session_data
         """
-        cache_session_data_mock.return_value = None
-        tank_vendor.shotgun_authentication.interactive_authentication.authenticate(
+        self._test_login(console=False)
+
+    @patch("tank_vendor.shotgun_authentication.interactive_authentication._get_qt_state")
+    @interactive
+    def test_login_console(self, _get_qt_state_mock):
+        """
+        Pops the ui and lets the user authenticate.
+        :param cache_session_data_mock: Mock for the tank.util.session_cache.cache_session_data
+        """
+        _get_qt_state_mock.return_value = None, None, None
+        self._test_login(console=True)
+
+    def _print_message(self, text, test_console):
+        if test_console:
+            print
+            print "=" * len(text)
+            print text
+            print "=" * len(text)
+        else:
+            from PySide import QtGui
+            mb = QtGui.QMessageBox()
+            mb.setText(text)
+            mb.exec_()
+
+    def _test_session_renewal(self, test_console):
+        """
+        First asks for the complete host and user information.
+        Then prompts for password renewal with that information filled in.
+        :param test_console: True is testing console prompt, False is we are testing ui prompt.
+        """
+        self._print_message(
+            "We're about to test session renewal. We'll first prompt you for your "
+            "credentials and then we'll fake a session that is expired.\nYou will then have to "
+            "re-enter your password.", test_console
+        )
+        # Get the basic user credentials.
+        host, login, session_token = tank_vendor.shotgun_authentication.interactive_authentication.authenticate(
             "https://enter_your_host_name_here.shotgunstudio.com",
             "enter_your_username_here",
-            ""
+            "",
+            fixed_host=False
         )
+        sg_user = tank_vendor.shotgun_authentication.user.SessionUser(
+            host=host, login=login, session_token=session_token, http_proxy=None
+        )
+        self._print_message("We're about to fake an expired session. Hang tight!", test_console)
+        # Test the session renewal code.
+        tank_vendor.shotgun_authentication.interactive_authentication.renew_session(
+            sg_user, sg_user.get_session_token()
+        )
+        self._print_message("Test successful", test_console)
+
+    @interactive
+    def test_session_renewal_ui(self):
+        self._test_session_renewal(test_console=False)
+
+    @patch("tank_vendor.shotgun_authentication.interactive_authentication._get_qt_state")
+    @interactive
+    def test_session_renewal_console(self,_get_qt_state_mock):
+        # Doing this forces the prompting code to use the console.
+        _get_qt_state_mock.return_value = None, None, None
+        self._test_session_renewal(test_console=True)
 
     @skip_if_pyside_missing
     def test_invoker_rethrows_exception(self):

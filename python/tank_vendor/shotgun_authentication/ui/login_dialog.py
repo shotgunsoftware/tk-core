@@ -23,7 +23,7 @@ class LoginDialog(QtGui.QDialog):
     """
     Dialog for getting user crendentials.
     """
-    def __init__(self, title, is_session_renewal, hostname="", login="", http_proxy=None, pixmap=None, parent=None):
+    def __init__(self, title, is_session_renewal, hostname="", login="", fixed_host=False, http_proxy=None, pixmap=None, parent=None):
         """
         Constructs a dialog.
 
@@ -65,7 +65,7 @@ class LoginDialog(QtGui.QDialog):
         self.ui.logo.setPixmap(pixmap)
 
         # Disable keyboard input in the site and login boxes if we are simply renewing the session.
-        self.ui.site.setReadOnly(is_session_renewal)
+        self.ui.site.setReadOnly(is_session_renewal or fixed_host)
         self.ui.login.setReadOnly(is_session_renewal)
 
         if is_session_renewal:

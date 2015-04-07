@@ -76,7 +76,7 @@ def setUpModule():
     global TANK_TEMP
     global TANK_SOURCE_PATH
 
-    # determine tests root location 
+    # determine tests root location
     temp_dir = tempfile.gettempdir()
     # make a unique test dir for each file
     temp_dir_name = "tankTemporaryTestData"

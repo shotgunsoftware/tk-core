@@ -17,7 +17,7 @@ UI and console based login for Toolkit.
 from __future__ import with_statement
 from getpass import getpass
 import threading
-from .errors import AuthenticationError, AuthenticationDisabled
+from .errors import AuthenticationError, AuthenticationDisabled, AuthenticationCancelled
 from . import session_cache
 
 
@@ -161,8 +161,8 @@ class AuthenticationHandlerBase(object):
         except AuthenticationError:
             return None
 
-    def raise_no_credentials_provided_error(self):
-        raise AuthenticationError("No credentials provided.")
+    def raise_authentication_cancelled_error(self):
+        raise AuthenticationCancelled()
 
 
 class ConsoleAuthenticationHandlerBase(AuthenticationHandlerBase):
@@ -185,11 +185,11 @@ class ConsoleAuthenticationHandlerBase(AuthenticationHandlerBase):
         while True:
             # Get the credentials from the user
             try:
-                login, password = self._get_user_credentials(hostname, login)
+                hostname, login, password = self._get_user_credentials(hostname, login)
             except EOFError:
                 # Insert a \n on the current line so the print is displayed on a new time.
                 print
-                self.raise_no_credentials_provided_error()
+                self.raise_authentication_cancelled_error()
 
             session_token = self._get_session_token(hostname, login, password, http_proxy)
             if session_token:
@@ -203,6 +203,7 @@ class ConsoleAuthenticationHandlerBase(AuthenticationHandlerBase):
         :param http_proxy: Proxy to connect to when authenticating.
         :raises: TankAuthenticationError If the user cancels the authentication process,
                  this exception will be thrown.
+        :returns: A tuple of (hostname, login, password)
         """
         raise NotImplementedError
 
@@ -214,7 +215,7 @@ class ConsoleAuthenticationHandlerBase(AuthenticationHandlerBase):
         """
         password = getpass("Password (empty to abort): ")
         if not password:
-            self.raise_no_credentials_provided_error()
+            self.raise_authentication_cancelled_error()
         return password
 
     def _get_keyboard_input(self, label, default_value=""):
@@ -261,13 +262,17 @@ class ConsoleRenewSessionHandler(ConsoleAuthenticationHandlerBase):
         """
         print "%s, your current session has expired." % login
         print "Please enter your password to renew your session for %s" % hostname
-        return login, self._get_password()
+        return hostname, login, self._get_password()
 
 
 class ConsoleLoginHandler(ConsoleAuthenticationHandlerBase):
     """
     Handles username/password authentication.
     """
+    def __init__(self, fixed_host):
+        super(ConsoleLoginHandler, self).__init__()
+        self._fixed_host = fixed_host
+
     def _get_user_credentials(self, hostname, login):
         """
         Reads the user credentials from the keyboard.
@@ -275,10 +280,14 @@ class ConsoleLoginHandler(ConsoleAuthenticationHandlerBase):
         :param login: Default value for the login.
         :returns: A tuple of (login, password) strings.
         """
-        print "Please enter your login credentials for %s" % hostname
+        if self._fixed_host:
+            print "Please enter your login credentials for %s" % hostname
+        else:
+            print "Please enter your login credentials."
+            hostname = self._get_keyboard_input("Host", hostname)
         login = self._get_keyboard_input("Login", login)
         password = self._get_password()
-        return login, password
+        return hostname, login, password
 
 
 class UiAuthenticationHandler(AuthenticationHandlerBase):
@@ -286,13 +295,14 @@ class UiAuthenticationHandler(AuthenticationHandlerBase):
     Handles ui based authentication.
     """
 
-    def __init__(self, is_session_renewal):
+    def __init__(self, is_session_renewal, fixed_host=False):
         """
         Creates the UiAuthenticationHandler object.
         :param is_session_renewal: Boolean indicating if we are renewing a session. True if we are, False otherwise.
         """
         self._is_session_renewal = is_session_renewal
         self._gui_launcher = _create_invoker()
+        self._fixed_host = fixed_host
 
     def authenticate(self, hostname, login, http_proxy):
         """
@@ -316,14 +326,15 @@ class UiAuthenticationHandler(AuthenticationHandlerBase):
                 is_session_renewal=self._is_session_renewal,
                 hostname=hostname,
                 login=login,
-                http_proxy=http_proxy
+                http_proxy=http_proxy,
+                fixed_host=self._fixed_host
             )
             return dlg.result()
 
         result = self._gui_launcher(_process_ui)
 
         if not result:
-            self.raise_no_credentials_provided_error()
+            self.raise_authentication_cancelled_error()
         return result
 
 
@@ -404,7 +415,7 @@ def renew_session(user, session_token):
     _renew_session(user, session_token, authenticator)
 
 
-def authenticate(default_host, default_login, default_http_proxy):
+def authenticate(default_host, default_login, default_http_proxy, fixed_host):
     """
     Authenticates a user.
     """
@@ -412,7 +423,7 @@ def authenticate(default_host, default_login, default_http_proxy):
     # If we have a gui, we need gui based authentication
     if has_ui:
         # If we are renewing for a background thread, use the invoker
-        authenticator = UiAuthenticationHandler(is_session_renewal=False)
+        authenticator = UiAuthenticationHandler(is_session_renewal=False, fixed_host=fixed_host)
     else:
-        authenticator = ConsoleLoginHandler()
+        authenticator = ConsoleLoginHandler(fixed_host=fixed_host)
     return authenticator.authenticate(default_host, default_login, default_http_proxy)

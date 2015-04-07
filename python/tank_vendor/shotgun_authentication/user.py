@@ -13,16 +13,15 @@ with a session token with the SessionUser class or with an api key with the Scri
 """
 
 import pickle
-from tank_vendor.shotgun_api3 import Shotgun, AuthenticationFault
+from .shotgun_wrapper import ShotgunWrapper
 
 from . import session_cache
-from . import AuthenticationError
 from .errors import CachingVolatileUserException
 
 
-_shotgun_instance_factory = Shotgun
+_shotgun_instance_factory = ShotgunWrapper
 """
-Indirection to create Shotgun instances. Great for unit testing.
+Indirection to create ShotgunWrapper instances. Great for unit testing.
 """
 
 
@@ -163,18 +162,10 @@ class SessionUser(ShotgunUser):
 
         :returns: A Shotgun instance.
         """
-        original_session_token = self._session_token
-        sg = self._create_sg_connection()
-        if sg:
-            return sg
-
-        from . import interactive_authentication
-        interactive_authentication.renew_session(self, original_session_token)
-        sg = self._create_sg_connection()
-        if not sg:
-            # This is not supposed to happen.
-            raise AuthenticationError("Authentication failed.")
-        return sg
+        return _shotgun_instance_factory(
+            self._host, session_token=self._session_token, http_proxy=self._http_proxy,
+            user=self
+        )
 
     def mark_volatile(self):
         """
@@ -257,15 +248,6 @@ class SessionUser(ShotgunUser):
         data["session_token"] = self._session_token
         data["is_volatile"] = self._is_volatile
 
-    def _create_sg_connection(self):
-        sg = _shotgun_instance_factory(self._host, session_token=self._session_token, http_proxy=self._http_proxy)
-        try:
-            sg.find_one("HumanUser", [])
-            return sg
-        except AuthenticationFault:
-            # Session has expired.
-            return None
-
 
 class ScriptUser(ShotgunUser):
     """
@@ -295,7 +277,8 @@ class ScriptUser(ShotgunUser):
             self._host,
             script_name=self._api_script,
             api_key=self._api_key,
-            http_proxy=self._http_proxy
+            http_proxy=self._http_proxy,
+            user=self
         )
 
     def _serialize(self, data):
