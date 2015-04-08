@@ -375,7 +375,7 @@ def shotgun_cache_actions(log, pipeline_config_root, args):
             tank_cmd = os.path.join(pipeline_config_root, "tank.bat")
         else:
             tank_cmd = os.path.join(pipeline_config_root, "tank")
-        log.info("<code style='%s'>%s clear_cache</code>" % (code_css_block, tank_cmd))
+        log.info("<code style='%s'>%s clear_shotgun_menu_cache</code>" % (code_css_block, tank_cmd))
         log.info("")
 
 
