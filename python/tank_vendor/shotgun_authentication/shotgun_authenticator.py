@@ -138,6 +138,7 @@ class ShotgunAuthenticator(object):
             session_token = session_cache.generate_session_token(host, login, password, http_proxy)
 
         if not session_token:
+            # todo - find this in our 'phonebook' of stored login/session ids
             raise IncompleteCredentialsError("missing session_token")
 
         # Create a session user
