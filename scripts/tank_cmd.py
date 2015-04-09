@@ -397,7 +397,12 @@ def shotgun_cache_actions(log, pipeline_config_root, args):
             tank_cmd = os.path.join(pipeline_config_root, "tank")
         log.info("<code style='%s'>%s clear_shotgun_menu_cache</code>" % (code_css_block, tank_cmd))
         log.info("")
-
+        
+        # return with an error code to indicate a failure to the caller
+        return 1
+    
+    # return success error code
+    return 0
 
 def shotgun_run_action_auth(log, install_root, pipeline_config_root, is_localized, args):
     """
