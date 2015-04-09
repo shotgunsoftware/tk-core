@@ -11,7 +11,7 @@
 from . import interactive_authentication
 from . import user
 from . import session_cache
-from .errors import IncompleteCredentialsError
+from .errors import IncompleteCredentials
 from .defaults_manager import DefaultsManager
 
 
@@ -22,21 +22,17 @@ class ShotgunAuthenticator(object):
 
     This class is used to help maintain an authenticated Shotgun User session
     across multiple application launches and environments. By default, the
-    library is not tied to any particular shotgun site - you can use it to
+    library is not tied to any particular Shotgun site - you can use it to
     produce an authenticated user for any site of their choosing.
 
     The library is essentially a series of factory methods, all returning
     ShotgunUser derived instances. This instance represents an established user
     in Shotgun. You can serialize this object and pass it around, etc. The
     create_sg_connection() method returns a shotgun instance based on the
-    credentials of this user.  It wraps around a Shotgun connection and traps
+    credentials of this user. It wraps around a Shotgun connection and traps
     authentication errors so that whenever the Shotgun connection has expired,
-    it is automatically renewed, either by the system automatically renewing it
-    or by prompting the user to type in their password. Whenever QT is available,
-    this is used to aid in this prompting.
-
-    The library maintains a concept of a saved user. This is useful whenever
-    you want to write code which remembers the most recent user for a given site.
+    it is automatically renewed by prompting the user to type in their password.
+    Whenever QT is available, a dialog is shown to aid in this prompting.
 
     If you want to customize any of the logic of how the authentication
     stores values, handles defaults or manages the behaviour in general,
@@ -50,7 +46,7 @@ class ShotgunAuthenticator(object):
 
         :param defaults_manager: A DefaultsManager object that defines the basic
                                  behaviour of this authenticator. If omitted,
-                                 the default, built-in authentication will be
+                                 the default, built-in DefaultsManager will be
                                  used.
         """
         self._defaults_manager = defaults_manager or DefaultsManager()
@@ -96,8 +92,8 @@ class ShotgunAuthenticator(object):
 
         The DefaultsManager can be used to pre-fill the host and login name.
 
-        :raises AuthenticationError: If the user cancels the authentication process,
-                                     an AuthenticationError is thrown.
+        :raises AuthenticationCancelled: If the user cancels the authentication process,
+                                         an AuthenticationCancelled is thrown.
 
         :returns: The SessionUser based on the login information provided.
         """
@@ -131,7 +127,7 @@ class ShotgunAuthenticator(object):
         http_proxy = http_proxy or self._defaults_manager.get_http_proxy()
 
         if not login:
-            raise IncompleteCredentialsError("missing login.")
+            raise IncompleteCredentials("missing login.")
 
         # If we only have a password, generate a session token.
         if password and not session_token:
@@ -139,7 +135,7 @@ class ShotgunAuthenticator(object):
 
         if not session_token:
             # todo - find this in our 'phonebook' of stored login/session ids
-            raise IncompleteCredentialsError("missing session_token")
+            raise IncompleteCredentials("missing session_token")
 
         # Create a session user
         return user.SessionUser(host, login, session_token, http_proxy)
@@ -158,7 +154,7 @@ class ShotgunAuthenticator(object):
         :returns: A ShotgunUser derived instance.
         """
         if not api_script or not api_key:
-            raise IncompleteCredentialsError("missing api_script and/or api_key")
+            raise IncompleteCredentials("missing api_script and/or api_key")
 
         return user.ScriptUser(
             host or self._defaults_manager.get_host(),
@@ -216,7 +212,7 @@ class ShotgunAuthenticator(object):
             )
         # We don't know what this is, abort!
         else:
-            raise IncompleteCredentialsError(
+            raise IncompleteCredentials(
                 "unknown credentials configuration: %s" % credentials
             )
 

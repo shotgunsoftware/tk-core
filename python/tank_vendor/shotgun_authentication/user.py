@@ -8,8 +8,9 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 """
-Defines the supported types of authentication methods with Shotgun. You can either authenticate
-with a session token with the SessionUser class or with an api key with the ScriptUser class.
+Defines the supported types of authentication methods with Shotgun. You can
+either authenticate with a session token with the SessionUser class or with an
+api key with the ScriptUser class. This module is meant to be used internally.
 """
 
 import pickle
@@ -34,7 +35,7 @@ class ShotgunUser(object):
         Constructor.
 
         :param host: Host for this Shotgun user.
-        :param http_proxy: HTTP proxy to use with this host. Defaults to None.
+        :param http_proxy: HTTP proxy to use with this host.
         """
         self._host = host
         self._http_proxy = http_proxy
@@ -59,43 +60,42 @@ class ShotgunUser(object):
         """
         Creates a Shotgun connection using the credentials for this user.
 
-        :raises NotImplementedError: If not overridden in the derived class, this method will
-                                     throw a NotImplementedError.
+        :raises NotImplementedError: If not overridden in the derived class, 
+                                     this method will raise a 
+                                     NotImplementedError.
         """
         self.__class__._not_implemented("create_sg_connection")
 
-    def serialize(self):
+    def to_dict(self):
         """
-        Serializes a user. Meant to be consumed by <derived-class>.deserialize.
+        Converts the user into a dictionary object.
 
-        :returns: The payload representing the user.
+        :returns: A dictionary with all the attributes of the user.
+
+        :raises NotImplementedError: If not overridden in the derived class, 
+                                     this method will raise a 
+                                     NotImplementedError.
         """
-        payload = {
-            "type": self.__class__.__name__,
-            "data": {
-                "http_proxy": self._http_proxy,
-                "host": self._host
-            }
+        return {
+            "http_proxy": self._http_proxy,
+            "host": self._host
         }
-        self._serialize(payload["data"])
-        return pickle.dumps(payload)
 
     @classmethod
     def from_dict(cls, payload):
         """
-        Deserializes a user from a payload.
+        Creates a user from a dictionary.
+
+        :param payload: Dictionary with the user information.
+
+        :returns: A ShotgunUser derived instance.
+
+        :raises NotImplementedError: If not overridden in the derived class, 
+                                     this method will raise a 
+                                     NotImplementedError.
 
         """
-        cls._not_implemented("deserialize")
-
-    def _serialize(self, data):
-        """
-        Serializes derived class specific information. Derived classes implement this method to add
-        extra information that needs to be serialized.
-
-        :param data: Dictionary that needs to be filled by the derived class.
-        """
-        self.__class__._not_implemented("_serialize")
+        cls._not_implemented("from_dict")
 
     @classmethod
     def _not_implemented(cls, method):
@@ -104,7 +104,8 @@ class ShotgunUser(object):
 
         :param method: Name of the method not implemented.
 
-        :raises NotImplementedError: Thrown with the message "<class-name>.<method-name> is not implemented."
+        :raises NotImplementedError: Thrown with the message "<class-name>.<method-name>
+                                     is not implemented."
         """
         raise NotImplementedError(
             "%s.%s is not implemented." % (cls.__name__, method)
@@ -152,6 +153,7 @@ class SessionUser(ShotgunUser):
     def set_session_token(self, session_token):
         """
         Updates the session token for this user.
+
         :param session_token: The new session token for this user.
         """
         self._session_token = session_token
@@ -187,7 +189,7 @@ class SessionUser(ShotgunUser):
 
         :param user: Specifying a user to be the current user.
 
-        :raises AuthenticationError: Raised if the user is a script user.
+        :raises CachingVolatileUserException: Raised if the user is volatile.
         """
         if self._is_volatile:
             raise CachingVolatileUserException()
@@ -230,23 +232,26 @@ class SessionUser(ShotgunUser):
     @staticmethod
     def from_dict(representation):
         """
-        Creates a SessionUser instance from a dictionary of values.
+        Creates a user from a dictionary.
 
-        :param representation: Dictionary of values.
+        :param payload: Dictionary with the user information.
 
         :returns: A SessionUser instance.
         """
+
         return SessionUser(**representation)
 
-    def _serialize(self, data):
+    def to_dict(self):
         """
-        Serializes class specific information.
+        Converts the user into a dictionary object.
 
-        :param data: Dictionary to serialize into.
+        :returns: A dictionary with all the attributes of the user.
         """
+        data = super(SessionUser, self).to_dict()
         data["login"] = self._login
         data["session_token"] = self._session_token
         data["is_volatile"] = self._is_volatile
+        return data
 
 
 class ScriptUser(ShotgunUser):
@@ -281,21 +286,23 @@ class ScriptUser(ShotgunUser):
             user=self
         )
 
-    def _serialize(self, data):
+    def to_dict(self):
         """
-        Serializes class specific information.
+        Converts the user into a dictionary object.
 
-        :param data: Dictionary to serialize into.
+        :returns: A dictionary with all the attributes of the user.
         """
+        data = super(ScriptUser, self).to_dict()
         data["api_script"] = self._api_script
         data["api_key"] = self._api_key
+        return data
 
     @staticmethod
     def from_dict(representation):
         """
-        Creates a ScriptUser instance from a dictionary of values.
+        Creates a user from a dictionary.
 
-        :param representation: Dictionary of values.
+        :param payload: Dictionary with the user information.
 
         :returns: A ScriptUser instance.
         """
@@ -325,15 +332,32 @@ def is_session_user(user):
 
 
 __factories = {
-    # LoginUser should go here in we ever need it.
+    # LoginPassword-like-User should go here in we ever implement it.
     SessionUser.__name__: SessionUser.from_dict,
     ScriptUser.__name__: ScriptUser.from_dict
 }
 
 
+def serialize(self, user):
+    """
+    Serializes a user. Meant to be consumed by deserialize.
+
+    :param user: User object that needs to be serialized.
+
+    :returns: The payload representing the user.
+    """
+    # Pickle the dictionary and inject the user type in the payload so we know
+    # how to unpickle the user.
+    return pickle.dumps({
+        "type": self.__class__.__name__,
+        "data": self.to_dict()
+    })
+
+
 def deserialize(payload):
     """
-    Converts a pickled dictionary into a ShotgunUser derived instance.
+    Converts a payload produced by serialize into any of the ShotgunUser
+    derived instance.
 
     :params payload: Pickled dictionary of values
 

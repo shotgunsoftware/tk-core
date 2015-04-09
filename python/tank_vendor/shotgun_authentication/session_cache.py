@@ -9,8 +9,8 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-This module provides the basic implementation of the AuthenticationManager. It will read and write
-credentials in the site's cache location.
+This module will provide basic i/o to read and write session user's credentials
+in the site's cache location.
 """
 
 import os
@@ -56,7 +56,9 @@ else:
 def _get_local_site_cache_location(base_url):
     """
     Returns the location of the site cache root based on a site.
+
     :param base_url: Site we need to compute the root path for.
+
     :returns: An absolute path to the site cache root.
     """
     if sys.platform == "darwin":
@@ -75,7 +77,9 @@ def _get_local_site_cache_location(base_url):
 def _get_session_data_location(base_url):
     """
     Returns the location of the session file on disk for a specific site.
+
     :param base_url: The site we want the login information for.
+
     :returns: Path to the login information.
     """
     return os.path.join(
@@ -87,7 +91,9 @@ def _get_session_data_location(base_url):
 
 def delete_session_data(host):
     """
-    Clears the session cache for the current site.
+    Clears the session cache for the given site.
+
+    :param host: Site to clear the session cache for.
     """
     if not host:
         logger.error("Current host not set, nothing to clear.")
@@ -102,13 +108,15 @@ def delete_session_data(host):
         else:
             logger.debug("Session file not found: %s", info_path)
     except:
-        logger.exception("Couldn't delete the site cache file")
+        logger.exception("Couldn't delete the session cache file!")
 
 
 def get_session_data(base_url):
     """
     Returns the cached login info if found.
+
     :param base_url: The site we want the login information for.
+
     :returns: Returns a dictionary with keys login and session_token or None
     """
     # Retrieve the location of the cached info
@@ -141,6 +149,7 @@ def get_session_data(base_url):
 def cache_session_data(host, login, session_token):
     """
     Caches the session data for a site and a user.
+
     :param host: Site we want to cache a session for.
     :param login: User we want to cache a session for.
     :param session_token: Session token we want to cache.
@@ -171,13 +180,15 @@ def cache_session_data(host, login, session_token):
 def generate_session_token(hostname, login, password, http_proxy):
     """
     Generates a session token for a given username/password on a given site.
+
     :param hostname: The host to connect to.
     :param login: The user to get a session for.
     :param password: Password for the user.
     :param http_proxy: Proxy to use. Can be None.
-    :param shotgun_instance_factory: Shotgun API instance factory. Defaults to Shotgun.
+
     :returns: The generated session token for that user/password/site combo.
-    :raises: TankAuthenticationError if the credentials were invalid.
+
+    :raises: AuthenticationError if the credentials were invalid.
     """
     try:
         # Create the instance...

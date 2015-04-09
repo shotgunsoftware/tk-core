@@ -47,7 +47,7 @@ class CachingVolatileUserException(AuthenticationModuleError):
         )
 
 
-class IncompleteCredentialsError(AuthenticationModuleError):
+class IncompleteCredentials(AuthenticationModuleError):
     """
     Thrown when credentials are provided but are incomplete.
     """

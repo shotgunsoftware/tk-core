@@ -902,11 +902,13 @@ def serialize(context):
         "_pc_path": context.tank.pipeline_configuration.get_path()
     }
 
+    from tank_vendor import shotgun_authentication as sg_auth
+
     # If there is a current user.
     user = get_current_user()
     if user:
         # We should serialize it as well.
-        data["current_user"] = user.serialize()
+        data["current_user"] = sg_auth.serialize_user(user)
     return pickle.dumps(data)
 
 

@@ -24,7 +24,7 @@ class ShotgunWrapper(Shotgun):
     def __init__(self, *args, **kwargs):
         """
         Constructor. This has the same parameters as the Shotgun class, but it
-        has an extra named parameter documented below.
+        has an extra nmed parameter documented below.
 
         :param user: ShotgunUser derived instance that represents the
                      authenticated user making the request.
@@ -51,13 +51,13 @@ class ShotgunWrapper(Shotgun):
         #    worry about.
         # 2) Two threads read this value, and both end up in the exception
         #    handler. The first one will take the lock in renew_session while
-        #    the other wil wait. Once the first once updates the session token
+        #    the other will wait. Once the first once updates the session token
         #    on the user, unlocks and the second thread gets the lock, the
         #    comparison will show that the token did indeed get updated and will
-        #    unlock.
+        #    unlock with asking for credentials.
         # 3) One thread gets the authentication error and goes as far as updating
         #    self.config.session_token, but not before another thread has
-        #    initialized original session token with thenold value. Since
+        #    initialized original session token with the old value. Since
         #    self.config.session_token is now valid at the time of the
         #    _call_rpc call, there is no problem.
 

@@ -14,19 +14,23 @@ import sys
 
 class DefaultsManager(object):
     """
-    This class allows the ShotgunAuthenticator to get some values when authenticating.
+    This class allows the ShotgunAuthenticator to get some default values when
+    authenticating a user.
     """
 
     def is_host_fixed(self):
         """
-        When doing an interactive login, this indicates if the user can update the host name or
-        if it is being forced.
+        When doing an interactive login, this indicates if the user can choose
+        the host to connect to.
+
+        :returns: True is the host can't be edited, False otherwise,
         """
         return False
 
     def get_host(self):
         """
         Override to provide a default host.
+
         :returns: Default implementation returns None.
         """
         return None
@@ -34,6 +38,7 @@ class DefaultsManager(object):
     def get_http_proxy(self):
         """
         Override to provide a default http proxy.
+
         :returns: Default implementation returns None.
         """
         return None
@@ -41,6 +46,7 @@ class DefaultsManager(object):
     def get_login(self):
         """
         Override to provide a default login when asking for credentials
+
         :returns: Default implementation returns the current os user login name.
         """
         if sys.platform == "win32":
@@ -56,28 +62,8 @@ class DefaultsManager(object):
 
     def get_user(self):
         """
-        Override to provide a default user.
+        Override to provide a default user's dictionary of credentials.
+
         :returns: Default implementation returns None.
         """
         return None
-
-    def get_password(self, host, login):
-        """
-        Override to retrieve the password got a given user/login pair.
-        :returns: Default implementation returns None.
-        """
-        return None
-
-    def save_password(self, host, login, password):
-        """
-        Override to store the password for a given user/login pair. Default implementation does nothing.
-        """
-        pass
-
-    def clear_password(self, host, login):
-        """
-        Override to clear the password for a given user/login pair. Default implementation does nothing.
-        """
-        pass
-
-
