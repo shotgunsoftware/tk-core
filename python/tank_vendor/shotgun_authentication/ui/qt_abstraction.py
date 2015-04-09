@@ -8,8 +8,9 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-# Cheat a bit here. When this module gets loaded, let's try to get the Qt from
-# Toolkit in case it is available.
+"""
+Imports Qt without having to worry whether we are using PyQt4 or PySide.
+"""
 try:
     from PySide import QtCore, QtGui
 except ImportError:

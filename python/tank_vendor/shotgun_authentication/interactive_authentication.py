@@ -109,6 +109,8 @@ def _create_invoker():
             self._fn = lambda: fn(*args, **kwargs)
             self._res = None
 
+            logger.debug("Sending ui request to main thread.")
+
             QtCore.QMetaObject.invokeMethod(self, "_do_invoke", QtCore.Qt.BlockingQueuedConnection)
 
             # If an exception has been thrown, rethrow it.
@@ -122,6 +124,7 @@ def _create_invoker():
             Execute function and return result
             """
             try:
+                logger.debug("Invoking from main thread.")
                 self._res = self._fn()
             except Exception, e:
                 self._exception = e

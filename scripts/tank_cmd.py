@@ -26,7 +26,7 @@ from tank.util import shotgun, CoreDefaultsManager
 from tank_vendor.shotgun_authentication import ShotgunAuthenticator
 from tank_vendor.shotgun_authentication import AuthenticationError 
 from tank_vendor.shotgun_authentication import AuthenticationModuleError
-from tank_vendor.shotgun_authentication import IncompleteCredentialsError
+from tank_vendor.shotgun_authentication import IncompleteCredentials
 from tank.platform import engine
 from tank import pipelineconfig_utils
 
@@ -455,7 +455,7 @@ def shotgun_run_action_auth(log, install_root, pipeline_config_root, is_localize
             # no password given from shotgun. Try to use a stored session token
             try:
                 user = sa.create_session_user(login)
-            except IncompleteCredentialsError:
+            except IncompleteCredentials:
                 # report back to the Shotgun javascript integration
                 # this error message will trigger the javascript to
                 # prompt the user for a password and run this method 
