@@ -240,22 +240,12 @@ def download_url(sg, url, location):
                      to have write permissions
     :returns: nothing
     """
-
-    # now build the appropriate urrlib2 opener object.
-    # this code is the same as in the Shotgun API, meaning that 
-    # we can re-use the proxy configuration from the shotgun config 
-    if sg.config.proxy_server:
-        # handle proxy auth
-        if sg.config.proxy_user and sg.config.proxy_pass:
-            auth_string = "%s:%s@" % (sg.config.proxy_user, sg.config.proxy_pass)
-        else:
-            auth_string = ""
-        proxy_addr = "http://%s%s:%d" % (auth_string, sg.config.proxy_server, sg.config.proxy_port)
-        proxy_support = urllib2.ProxyHandler({"http" : proxy_addr, "https" : proxy_addr})
-        opener = urllib2.build_opener(proxy_support)
+    # grab proxy server settings from the shotgun API
+    if sg.config.proxy_handler:
+        opener = urllib2.build_opener(sg.config.proxy_handler)
         urllib2.install_opener(opener)
         
-    # ok so the thumbnail was not in the cache. Get it.
+    # download the tiven url
     try:
         response = urllib2.urlopen(url)
         f = open(location, "wb")
@@ -408,6 +398,34 @@ def __get_app_store_key_from_shotgun(sg_connection):
                           app store credentials should be retrieved.
     :returns: tuple of strings with contents (script_name, script_key)
     """
+    # first check if there is an app_store.yml file associated with the 
+    # project. In that case, just use that.
+    core_cfg = __get_api_core_config_location()
+    app_store_yml_path = os.path.join(core_cfg, "app_store.yml")
+    if os.path.exists(app_store_yml_path):
+        # try to extract connection information    
+        try:
+            fh = open(app_store_yml_path)
+            try:
+                yml_data = yaml.load(fh)
+            finally:
+                fh.close()
+        except Exception, error:
+            raise TankError("Cannot load config file '%s'. Error: %s" % (app_store_yml_path, error))
+    
+        api_script = yml_data.get("api_script")
+        api_key = yml_data.get("api_key")
+    
+        if api_script and api_key:
+            # we got two values from the app store file!
+            return(api_script, api_key)
+        else:
+            raise TankError("Could not find keys 'api_script' and 'api_key' in '%s'" % app_store_yml_path)
+             
+    # if app store connection details couldn't be read from the file for 
+    # whatever reason, talk to Shotgun to get the credentials.
+    # note that this functionality requires sg 6.0 or above.
+    
     # handle proxy setup by pulling the proxy details from the main shotgun connection
     if sg_connection.config.proxy_handler:
         opener = urllib2.build_opener(sg_connection.config.proxy_handler)
