@@ -286,6 +286,22 @@ class ScriptUser(ShotgunUser):
             user=self
         )
 
+    def get_script(self):
+        """
+        Returns the script user name.
+
+        :returns: The script user name.
+        """
+        return self._api_script
+
+    def get_key(self):
+        """
+        Returns the script user key.
+
+        :returns: The script user key.
+        """
+        return self._api_key
+
     def to_dict(self):
         """
         Converts the user into a dictionary object.
@@ -338,7 +354,7 @@ __factories = {
 }
 
 
-def serialize(self, user):
+def serialize(user):
     """
     Serializes a user. Meant to be consumed by deserialize.
 
@@ -349,8 +365,8 @@ def serialize(self, user):
     # Pickle the dictionary and inject the user type in the payload so we know
     # how to unpickle the user.
     return pickle.dumps({
-        "type": self.__class__.__name__,
-        "data": self.to_dict()
+        "type": user.__class__.__name__,
+        "data": user.to_dict()
     })
 
 

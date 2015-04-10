@@ -11,5 +11,6 @@
 
 ./run_tests.sh shotgun_authentication_tests.test_shotgun_wrapper &&
     ./run_tests.sh shotgun_authentication_tests.test_shotgun_authenticator &&
+    ./run_tests.sh shotgun_authentication_tests.test_user &&
     ./run_tests.sh util_tests.test_login &&
     ./run_tests.sh shotgun_authentication_tests.test_interactive_authentication --interactive
