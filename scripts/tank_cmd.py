@@ -24,7 +24,7 @@ from tank.deploy.tank_commands.core_upgrade import TankCoreUpgrader
 from tank.deploy.tank_commands.action_base import Action
 from tank.util import shotgun, CoreDefaultsManager
 from tank_vendor.shotgun_authentication import ShotgunAuthenticator
-from tank_vendor.shotgun_authentication import AuthenticationError 
+from tank_vendor.shotgun_authentication import AuthenticationError
 from tank_vendor.shotgun_authentication import AuthenticationModuleError
 from tank_vendor.shotgun_authentication import IncompleteCredentials
 from tank.platform import engine
@@ -193,13 +193,13 @@ def ensure_authenticated():
     """
     Make sure that there is a current toolkit user set.
     May prompt for a login/password if needed
-    """     
+    """
     # create a core-level defaults manager.
     # this will read site details from shotgun.yml
     core_dm = CoreDefaultsManager()
     # set up the authenticator
     shotgun_auth = ShotgunAuthenticator(core_dm)
-    # request a user, either by prompting the user or by pulling out of 
+    # request a user, either by prompting the user or by pulling out of
     # saves sessions etc.
     user = shotgun_auth.get_user()
     # set the current toolkit user
@@ -402,8 +402,8 @@ def shotgun_cache_actions(log, pipeline_config_root, args):
 def shotgun_run_action_auth(log, install_root, pipeline_config_root, is_localized, args):
     """
     Executes the special shotgun run action command from inside of shotgun.
-    Authenticated version. 
-    
+    Authenticated version.
+
     This method expects the following arguments to be passed via the args param:
     args[0]: name of the action
     args[1]: entity type to operate on
@@ -412,9 +412,9 @@ def shotgun_run_action_auth(log, install_root, pipeline_config_root, is_localize
     args[4]: rot-13 shifted password for the user. Can be set to "-" - in that case,
              this is a hint to toolkit to try to authenticate via a
              cached session token
-    args[5:]: reserved for future use. This method will *not* error 
+    args[5:]: reserved for future use. This method will *not* error
               if unexpected args are passed to it.
-    
+
     :param log: Python logger
     :param install_root: Root of the toolkit core installation
     :param pipeline_config_root: Root of the pipeline configuration
@@ -434,8 +434,8 @@ def shotgun_run_action_auth(log, install_root, pipeline_config_root, is_localize
     rot13_password = args[4]
 
     # un-swizzle the password
-    rot13 = string.maketrans("NOPQRSTUVWXYZnopqrstuvwxyzABCDEFGHIJKLMabcdefghijklm", 
-                             "ABCDEFGHIJKLMabcdefghijklmNOPQRSTUVWXYZnopqrstuvwxyz") 
+    rot13 = string.maketrans("NOPQRSTUVWXYZnopqrstuvwxyzABCDEFGHIJKLMabcdefghijklm",
+                             "ABCDEFGHIJKLMabcdefghijklmNOPQRSTUVWXYZnopqrstuvwxyz")
     password = string.translate(rot13_password, rot13)
 
     # now, first try to authenticate
@@ -448,7 +448,7 @@ def shotgun_run_action_auth(log, install_root, pipeline_config_root, is_localize
     if default_user:
         # there is a default hard coded user - this takes presedence.
         tank.set_current_user(default_user)
-    
+
     else:
         # no default user. Have to authenticate
         if password == "-":
@@ -458,12 +458,12 @@ def shotgun_run_action_auth(log, install_root, pipeline_config_root, is_localize
             except IncompleteCredentials:
                 # report back to the Shotgun javascript integration
                 # this error message will trigger the javascript to
-                # prompt the user for a password and run this method 
+                # prompt the user for a password and run this method
                 # again, this time with an actual password rather
-                # than an empty string. 
+                # than an empty string.
                 log.error("Cannot authenticate user '%s'" % login)
                 return
-        
+
         else:
             # we have a password, so create a session user
             # based on full credentials.
@@ -473,38 +473,38 @@ def shotgun_run_action_auth(log, install_root, pipeline_config_root, is_localize
             try:
                 user = sa.create_session_user(login, password=password)
             except AuthenticationError:
-                # this message will be sent back to the user via the 
+                # this message will be sent back to the user via the
                 # javascript integration
                 log.error("Invalid password! Please try again.")
                 return
-                
+
         # tell tk about our current user!
         tank.set_current_user(user)
 
     # and fire off the action
-    return _shotgun_run_action(log, 
-                               install_root, 
-                               pipeline_config_root, 
-                               is_localized, 
-                               action_name, 
-                               entity_type, 
+    return _shotgun_run_action(log,
+                               install_root,
+                               pipeline_config_root,
+                               is_localized,
+                               action_name,
+                               entity_type,
                                entity_ids)
 
 def shotgun_run_action(log, install_root, pipeline_config_root, is_localized, args):
     """
     Executes the special shotgun run action command from inside of shotgun.
-    Legacy - unauthenticated version. 
-    
+    Legacy - unauthenticated version.
+
     All modern versions of Shotgun will be running the shotgun_run_action_auth method.
-    this method is to serve users who are running an updated version of core with 
-    an older version of Shotgun 
-    
+    this method is to serve users who are running an updated version of core with
+    an older version of Shotgun
+
     This method expects the following arguments to be passed via the args param:
     args[0]: name of the action
     args[1]: entity type to operate on
     args[2]: list of entity ids as a string, e.g. '1,2,3'
     args[3]: shotgun user login requesting this command
-    
+
     :param log: Python logger
     :param install_root: Root of the toolkit core installation
     :param pipeline_config_root: Root of the pipeline configuration
@@ -520,10 +520,10 @@ def shotgun_run_action(log, install_root, pipeline_config_root, is_localized, ar
     # params: action_name, entity_type, entity_ids
     if len(args) != 3:
         raise TankError("Invalid arguments! Pass action_name, entity_type, comma_separated_entity_ids")
-    
+
     # all modern versions of Shotgun will be running the shotgun_run_action_auth method.
-    # this method is to serve users who are running an updated version of core with 
-    # an older version of Shotgun 
+    # this method is to serve users who are running an updated version of core with
+    # an older version of Shotgun
 
     # in this case, we cannot prompt for a login/password
     # so we have rely on the built-in user that is given by the defaults manager
@@ -531,7 +531,7 @@ def shotgun_run_action(log, install_root, pipeline_config_root, is_localized, ar
     # the shotgun.yml config file.
     core_dm = CoreDefaultsManager()
     sa = ShotgunAuthenticator(core_dm)
-    user = sa.get_default_user()    
+    user = sa.get_default_user()
     tank.set_current_user(user)
 
     action_name = args[0]
@@ -539,25 +539,25 @@ def shotgun_run_action(log, install_root, pipeline_config_root, is_localized, ar
     entity_ids_str = args[2].split(",")
     entity_ids = [int(x) for x in entity_ids_str]
 
-    return _shotgun_run_action(log, 
-                               install_root, 
-                               pipeline_config_root, 
-                               is_localized, 
-                               action_name, 
-                               entity_type, 
+    return _shotgun_run_action(log,
+                               install_root,
+                               pipeline_config_root,
+                               is_localized,
+                               action_name,
+                               entity_type,
                                entity_ids)
 
 def _shotgun_run_action(log, install_root, pipeline_config_root, is_localized, action_name, entity_type, entity_ids):
     """
     Executes a Shotgun action.
-    
+
     :param log: Python logger
     :param install_root: Root of the toolkit core installation
     :param pipeline_config_root: Root of the pipeline configuration
     :param is_localized: True if the pipeline configuration has been localized
     :param ation_name: Name of action to execute (e.g launch_maya)
     :param entity_type: Entity type to execute action for
-    :param entity_ids: list of entity ids (as ints) to pass to the action.    
+    :param entity_ids: list of entity ids (as ints) to pass to the action.
     """
     try:
         tk = tank.tank_from_path(pipeline_config_root)
@@ -566,8 +566,8 @@ def _shotgun_run_action(log, install_root, pipeline_config_root, is_localized, a
         # and used.
         tk.log = log
     except TankError, e:
-        raise TankError("Could not instantiate an Sgtk API Object! Details: %s" % e )    
-    
+        raise TankError("Could not instantiate an Sgtk API Object! Details: %s" % e )
+
     if action_name == "__clone_pc":
         # special data passed in entity_type: USER_ID:NAME:LINUX_PATH:MAC_PATH:WINDOWS_PATH
         user_id = int(entity_type.split(":")[0])
@@ -675,7 +675,7 @@ def _shotgun_run_action(log, install_root, pipeline_config_root, is_localized, a
 def _get_sg_name_field(entity_type):
     """
     Returns the standard Shotgun name field given an entity type.
-    
+
     :param entity_type: shotgun entity type
     :returns: name field as string
     """
@@ -693,29 +693,29 @@ def _resolve_shotgun_pattern(log, entity_type, name_pattern):
     Resolve a pattern given an entity. Search the 'name' field
     for an entity. For most types, this is the code field.
     Raise exceptions unless there is a single matching item.
-    
+
     :param entity_type: Entity type to search
     :param name_pattern: Name pattern to search for
     :returns: (entity id, name)
     """
 
     name_field = _get_sg_name_field(entity_type)
-    
+
     sg = shotgun.get_sg_connection()
-    
+
     log.debug("Shotgun: find(%s, %s contains %s)" % (entity_type, name_field, name_pattern) )
     data = sg.find(entity_type, [[name_field, "contains", name_pattern]], [name_field])
     log.debug("Got data: %r" % data)
-    
+
     if len(data) == 0:
         raise TankError("No Shotgun %s matching the pattern '%s'!" % (entity_type, name_pattern))
-    
+
     elif len(data) > 1:
         names = ["'%s'" % x[name_field] for x in data]
-        raise TankError("More than one %s matching pattern '%s'. Matching items are %s. " 
+        raise TankError("More than one %s matching pattern '%s'. Matching items are %s. "
                         "Please be more specific." % (entity_type, name_pattern, ", ".join(names)))
-    
-    # got a single item 
+
+    # got a single item
     return (data[0]["id"], data[0][name_field])
 
 
@@ -846,7 +846,7 @@ def _resolve_shotgun_entity(log, entity_type, entity_search_token, constrain_by_
 
     :param entity_type: Entity type to resolve
     :param entity_search_token: Partial name to search for
-    :param constrain_by_project_id: Project id to constrain the search to. 
+    :param constrain_by_project_id: Project id to constrain the search to.
                                     When this is None, all projects will be considered.
     :returns: a matching entity_id
     """
@@ -1052,16 +1052,16 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
             #
             # Right, there is a valid tk api handle, this means one of the following:
             #
-            # - a project specific tank command guarantees a tk instance 
+            # - a project specific tank command guarantees a tk instance
             #
-            # - a studio level tank command which is targetting a path 
-            #   which belongs to a toolkit project 
-            # 
+            # - a studio level tank command which is targetting a path
+            #   which belongs to a toolkit project
+            #
             # It is possible that someone has launched a project specific
             # tank command with a path which is outside the project.
-            # In this case, initialize this to have the project context.   
+            # In this case, initialize this to have the project context.
             # We do this by attempting to construct a context and probing it
-            
+
             ctx = tk.context_from_path(ctx_path)
             if ctx.project is None:
                 # context could not be determined based on the path
@@ -1069,7 +1069,7 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
                 log.info("- The path is not associated with any Shotgun object.")
                 log.info("- Falling back on default project settings.")
                 project_id = tk.pipeline_configuration.get_project_id()
-                ctx = tk.context_from_entity("Project", project_id)                
+                ctx = tk.context_from_entity("Project", project_id)
 
     else:
         # this is a shotgun syntax. e.g. 'tank Shot foo'
@@ -1093,36 +1093,36 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
             tk =  tank.tank_from_path(pipeline_config_root)
             project_id = tk.pipeline_configuration.get_project_id()
             studio_command_mode = False
-                   
+
         else:
             # studio level command
             project_id = None
-            studio_command_mode = True    
-            
+            studio_command_mode = True
+
         # now resolve the given expression. For clarity, this is done as two separate branches
         # depending on if you are calling from a studio tank command or from a project tank command
-        
+
         # the valid syntax here is
         # tank Entitytype name_expression
         # tank EntityType id   (fallback if there is no item with the given name)
         # tank EntityType @123 (explicit addressing by id)
-        
+
         # special studio level only syntax
         # raises an error for project level command
         # tank Shot Project:xxx
-        
+
         # first pass - remove a potential project prefix.
         # if someone passes a project prefix, ensure that the studio command is running
         # otherwise error out.
-        
+
         # first output some info if we are running the project command
         if not studio_command_mode:
             log.info("- You are running a project specific tank command. Only items that are part "
                      "of this project will be considered.")
 
-        # work out the project prefix logic    
+        # work out the project prefix logic
         if ":" in entity_search_token:
-            
+
             # we have an expression on the form tank EntityType project_name:name_expression
             # this is not valid for non-studio commands because these are already project scoped
             if not studio_command_mode:
@@ -1130,35 +1130,35 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
                                 "a project, you are already implicitly scoping your search by "
                                 "that project. Please omit the project prefix from your syntax. "
                                 "For more information, run tank --help")
-            
+
             elif entity_type == "Project":
                 # ok so we have a studio level command
                 # but you cannot scope a project by another project
                 raise TankError("Cannot scope a project with another project! For more information, "
                                 "run tank --help")
-        
+
             else:
                 # studio level command and non-project entity.
                 # pop off the project token from the entity search token
                 proj_token = entity_search_token.split(":")[0]
                 entity_search_token = ":".join(entity_search_token.split(":")[1:])
-                
+
                 # now try to resolve this project
                 (project_id, project_name) = _resolve_shotgun_pattern(log, "Project", proj_token)
                 log.info("- Searching in project '%s' only" % project_name)
 
-            
+
         # now project prefix token has been removed from the path
         # we now have the following cases to consider
         # tank Entitytype name_expression
         # tank EntityType id   (fallback if there is no item with the given name)
-        # tank EntityType @123 (explicit addressing by id)        
-        
+        # tank EntityType @123 (explicit addressing by id)
+
         run_expression_search = True
-        
+
         if entity_search_token.isdigit():
             # the entity name is something like "123"
-            # first look if there is an exact match for it. 
+            # first look if there is an exact match for it.
             # If not, assume it is an id.
             sg = shotgun.get_sg_connection()
             name_field = _get_sg_name_field(entity_type)
@@ -1166,23 +1166,23 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
             # first try by name - e.g. a shot named "123"
             filters = [[name_field, "is", entity_search_token]]
             if project_id:
-                # when running a per project tank command, make sure we 
+                # when running a per project tank command, make sure we
                 # filter out all other items in other projects.
                 filters.append( ["project", "is", {"type": "Project", "id": project_id} ])
-            
+
             log.debug("Shotgun: find(%s, %s)" % (entity_type, filters))
             data = sg.find(entity_type, filters, ["id", name_field])
             log.debug("Got data: %r" % data)
-            
+
             if len(data) == 0:
                 # no exact match. Assume the string is an id
                 log.info("- Did not find a %s named '%s', will look for a %s with id %s "
                          "instead." % (entity_type, entity_search_token, entity_type, entity_search_token))
                 entity_id = int(entity_search_token)
-                
-                # now we have our entity id, make sure we don't search for this as an expression 
+
+                # now we have our entity id, make sure we don't search for this as an expression
                 run_expression_search = False
-                
+
         elif entity_search_token.startswith("@") and entity_search_token[1:].isdigit():
             # special syntax to ensure that you can unambiguously refer to ids
             # 'tank Shot @123' means that you specifically refer to a Shot with id 123,
@@ -1190,17 +1190,17 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
             entity_id = int(entity_search_token[1:])
             log.info("- Looking for a %s with id %d." % (entity_type, entity_id))
             log.debug("Direct @id syntax - will resolve entity id %d" % entity_id)
-            # now we have our entity id, make sure we don't search for this as an expression 
+            # now we have our entity id, make sure we don't search for this as an expression
             run_expression_search = False
-            
-        
+
+
         if run_expression_search:
             # use normal string based parse methods
             # we are now left with the following cases to resolve
             # tank Entitytype name_expression
             entity_id = _resolve_shotgun_entity(log, entity_type, entity_search_token, project_id)
-            
-        # now initialize toolkit and set up the context.  
+
+        # now initialize toolkit and set up the context.
         tk = tank.tank_from_entity(entity_type, entity_id)
         ctx = tk.context_from_entity(entity_type, entity_id)
 
@@ -1301,10 +1301,10 @@ if __name__ == "__main__":
         if len(cmd_line) == 0:
             # > tank, no arguments
             # engine mode, using CWD
-            
+
             # first make sure there is a current user
             ensure_authenticated()
-            
+
             # now run the command
             exit_code = run_engine_cmd(logger, pipeline_config_root, [os.getcwd()], None, True, [])
 
@@ -1413,7 +1413,7 @@ if __name__ == "__main__":
 
             # first make sure there is a current user
             ensure_authenticated()
-            
+
             # now run the command
             exit_code = run_engine_cmd(logger, pipeline_config_root, ctx_list, cmd_name, using_cwd, cmd_args)
 
