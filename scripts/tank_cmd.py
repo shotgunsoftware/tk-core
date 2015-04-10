@@ -8,6 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from __future__ import with_statement
 import sys
 import os
 import cgi
@@ -17,8 +18,7 @@ import string
 import tank
 import textwrap
 import datetime
-from optparse import OptionParser
-from tank import TankError, TankAuthenticationError
+from tank import TankError
 from tank.deploy.tank_commands.clone_configuration import clone_pipeline_configuration_html
 from tank.deploy import tank_command
 from tank.deploy.tank_commands.core_upgrade import TankCoreUpgrader
@@ -28,6 +28,7 @@ from tank_vendor.shotgun_authentication import ShotgunAuthenticator
 from tank_vendor.shotgun_authentication import AuthenticationError
 from tank_vendor.shotgun_authentication import AuthenticationModuleError
 from tank_vendor.shotgun_authentication import InvalidCredentials
+from tank_vendor import yaml
 from tank.platform import engine
 from tank import pipelineconfig_utils
 
@@ -36,6 +37,12 @@ from tank import pipelineconfig_utils
 
 ###############################################################################################
 # Constants
+
+ARG_SCRIPT = "script"
+ARG_KEY = "key"
+ARG_LOGIN = "login"
+ARG_PASSWORD = "password"
+ARG_AUTH = "auth"
 
 SHOTGUN_ENTITY_TYPES = ['Playlist', 'AssetSceneConnection', 'Note', 'TaskDependency', 'PageHit',
                         'ActionMenuItem', 'Attachment', 'AssetMocapTakeConnection',
@@ -205,16 +212,16 @@ def ensure_authenticated(cmd_line_credentials):
     shotgun_auth = ShotgunAuthenticator(core_dm)
 
     if cmd_line_credentials:
-        if "script_name" in cmd_line_credentials:
+        if ARG_SCRIPT in cmd_line_credentials:
             user = shotgun_auth.create_script_user(
-                api_script=cmd_line_credentials["script_name"],
-                api_key=cmd_line_credentials["script_key"]
+                api_script=cmd_line_credentials[ARG_SCRIPT],
+                api_key=cmd_line_credentials[ARG_KEY]
             )
         else:
             # The only other supported type is login.
             user = shotgun_auth.create_session_user(
-                login=cmd_line_credentials["login"],
-                password=cmd_line_credentials["password"]
+                login=cmd_line_credentials[ARG_LOGIN],
+                password=cmd_line_credentials[ARG_PASSWORD]
             )
     else:
         # request a user, either by prompting the user or by pulling out of
@@ -1247,6 +1254,90 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
         return tank_command.run_action(log, tk, ctx, command, args)
 
 
+def _extract_args(cmd_line, *args):
+    """
+    Extract specified arguments and sorts them. Also removes them from the
+    command line.
+
+    :param cmd_line: Array of command line arguments.
+    :param args: Argument list to extract
+
+    :returns: A list of key, value tuples representing each arguments.
+    """
+    # Find all instances of each argument in the command line
+    found_args = []
+    for cmd_line_token in cmd_line:
+        for arg in args:
+            if cmd_line_token.startswith("--%s=" % arg):
+                found_args.append(cmd_line_token)
+
+    # Strip all these arguments from the command line.
+    for a in found_args:
+        cmd_line.remove(a)
+
+    credentials = []
+
+    # Create a list of tuples for each argument we found.
+    for arg in found_args:
+        pos = arg.find("=")
+        # Take everything after the -- up to but not including the =
+        arg_name = arg[2:pos]
+        arg_value = arg[pos + 1:]
+        credentials.append((arg_name, arg_value))
+
+    return credentials
+
+
+def _validate_only_once(args, arg):
+    """
+    Validates that an argument is only present once.
+
+    :param args: List of tuples of arguments that were extracted from the command line.
+    :param arg: Argument to validate
+
+    :raises InvalidCredentials: If an argument has been specified more than once,
+                                this exception is raised.
+    """
+    occurences = filter(lambda a: a[0] == arg, args)
+    if len(occurences) > 1:
+        raise InvalidCredentials("argument '%s' specified more than once." % arg)
+
+
+def _validate_args_cardinality(args, arg1, arg2):
+    """
+    Makes sure that there are no more and no less than 1 value for each argument.
+
+    :param args: List of argument tuples.
+    :param arg1: First argument to test for.
+    :param arg2: Second argument to test for.
+
+    :raises InvalidCredentials: When there is more or less than 1 value for
+                                a given argument, this exception is raised.
+    """
+    # Too few parameters, find out which one is missing, let the user know
+    # which is missing.
+    if len(args) < 2:
+        raise InvalidCredentials("missing argument '%s'" % (arg1 if args[0][0] == arg2 else arg2))
+
+    # Make sure each arguments are not specified more than once.
+    _validate_only_once(args, arg1)
+    _validate_only_once(args, arg2)
+
+
+def _read_credentials_from_file(auth_path):
+    # Read the dictionary from file
+    with open(auth_path) as auth_file:
+        file_data = yaml.load(auth_file)
+
+    # We've already fixed the problem of parsing a bunch of values on the
+    # command line that may be mixed, so reshuffle the information that way
+    # and read from credentials
+    fake_cmd_line = ["--%s=%s" % (arg, value) for arg, value in file_data.iteritems()]
+
+    return (_extract_args(fake_cmd_line, ARG_SCRIPT, ARG_KEY),
+            _extract_args(fake_cmd_line, ARG_LOGIN, ARG_PASSWORD))
+
+
 def _extract_credentials(cmd_line):
     """
     Finds credentials from the command-line if the user specified them and
@@ -1257,77 +1348,33 @@ def _extract_credentials(cmd_line):
     :returns: A tuple of (filtered command line arguments, credentials).
     """
 
-    def _extract_args(cmd_line, arg1, arg2):
-        """
-        Extract specified arguments and sorts them. Also removes them from the
-        command line.
-
-        :param cmd_line: Array of command line arguments.
-        :param arg1: First argument to extract.
-        :param arg2: Second argument to extract.
-
-        :returns: A list of key, value tuples representing each arguments.
-        """
-        # Find all instances of each argument in the command line
-        args = [
-            argument for argument in cmd_line
-            if (argument.startswith("--%s" % arg1)) or (argument.startswith("--%s" % arg2))
-        ]
-        # Strip all these arguments from the command line.
-        for a in args:
-            cmd_line.remove(a)
-
-        credentials = []
-
-        for arg in args:
-            pos = arg.find("=")
-            # Take everything after the -- up to but not including the =
-            arg_name = arg[2:pos]
-            arg_value = arg[pos + 1:]
-            credentials.append((arg_name, arg_value))
-
-        return credentials
-
-    def _validate_args_cardinality(args, arg1, arg2):
-        """
-        Makes sure that there are no more and no less than 1 value for each argument.
-
-        :param args: List of argument tuples.
-        :param arg1: First argument to test for.
-        :param arg2: Second argument to test for.
-
-        :raises InvalidCredentials: When there is more or less than 1 value for
-                                    a given argument, this exception is raised.
-        """
-        # Too few parameters, find out which one is missing, let the user know
-        # which is missing.
-        if len(args) < 2:
-            raise InvalidCredentials("missing argument '%s'" % (arg1 if args[0][0] == arg2 else arg2))
-
-        def _validate_only_once(args, arg):
-            occurences = filter(lambda a: a[0] == arg, args)
-            if len(occurences) > 1:
-                raise InvalidCredentials("argument '%s' specified more than once." % arg)
-
-        # Make sure each arguments are not specified more than once.
-        _validate_only_once(args, arg1)
-        _validate_only_once(args, arg2)
-
     # Extract the credential pairs.
-    script_user_credentials = _extract_args(cmd_line, "script_name", "script_key")
-    human_user_credentials = _extract_args(cmd_line, "login", "password")
+    script_user_credentials = _extract_args(cmd_line, ARG_SCRIPT, ARG_KEY)
+    human_user_credentials = _extract_args(cmd_line, ARG_LOGIN, ARG_PASSWORD)
+    file_credentials_path = _extract_args(cmd_line, ARG_AUTH)
 
-    # If elements of both user types are present, raise an error.
+    # If we have credentials in a file
+    if file_credentials_path:
+        # make sure nothing else was specified on the command line.
+        if script_user_credentials or human_user_credentials:
+            raise InvalidCredentials("can't mix command line credentials and file credentials.")
+        # Validate it's only been specified once.
+        _validate_only_once(file_credentials_path, ARG_AUTH)
+        # Read the credentials from file
+        script_user_credentials, human_user_credentials = _read_credentials_from_file(
+            file_credentials_path[0][1]
+        )
+
+    # If we have credentials for both user types.
     if script_user_credentials and human_user_credentials:
         raise InvalidCredentials("can't mix human user and script user credentials.")
 
-    # At this point, we know one and only one set of credentials was specified.
     if script_user_credentials:
-        _validate_args_cardinality(script_user_credentials, "script_name", "script_key")
+        _validate_args_cardinality(script_user_credentials, ARG_SCRIPT, ARG_KEY)
         return dict(script_user_credentials)
 
     if human_user_credentials:
-        _validate_args_cardinality(human_user_credentials, "login", "password")
+        _validate_args_cardinality(human_user_credentials, ARG_LOGIN, ARG_PASSWORD)
         return dict(human_user_credentials)
 
     # If no elements were specified, that's ok.
@@ -1537,6 +1584,17 @@ if __name__ == "__main__":
             # one line report
             logger.error(str(e))
         exit_code = 9
+
+    except AuthenticationError, e:
+        logger.info("")
+        if debug_mode:
+            # full stack trace
+            logger.exception("An AuthenticationError was raised: %s" % str(e))
+        else:
+            # one line report
+            logger.error(str(e))
+        logger.info("")
+        exit_code = 10
 
     except AuthenticationModuleError, e:
         logger.info("")
