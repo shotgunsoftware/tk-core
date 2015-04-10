@@ -17,6 +17,7 @@ import string
 import tank
 import textwrap
 import datetime
+from optparse import OptionParser
 from tank import TankError, TankAuthenticationError
 from tank.deploy.tank_commands.clone_configuration import clone_pipeline_configuration_html
 from tank.deploy import tank_command
@@ -26,7 +27,7 @@ from tank.util import shotgun, CoreDefaultsManager
 from tank_vendor.shotgun_authentication import ShotgunAuthenticator
 from tank_vendor.shotgun_authentication import AuthenticationError
 from tank_vendor.shotgun_authentication import AuthenticationModuleError
-from tank_vendor.shotgun_authentication import IncompleteCredentials
+from tank_vendor.shotgun_authentication import InvalidCredentials
 from tank.platform import engine
 from tank import pipelineconfig_utils
 
@@ -189,19 +190,36 @@ Log out of the current user (no need for a contex):
         log.info(x)
 
 
-def ensure_authenticated():
+def ensure_authenticated(cmd_line_credentials):
     """
     Make sure that there is a current toolkit user set.
     May prompt for a login/password if needed
+
+    :param cmd_line_credentials: Dictionary of credentials passed from the
+                                 command line. May be empty or None.
     """
     # create a core-level defaults manager.
     # this will read site details from shotgun.yml
     core_dm = CoreDefaultsManager()
     # set up the authenticator
     shotgun_auth = ShotgunAuthenticator(core_dm)
-    # request a user, either by prompting the user or by pulling out of
-    # saves sessions etc.
-    user = shotgun_auth.get_user()
+
+    if cmd_line_credentials:
+        if "script_name" in cmd_line_credentials:
+            user = shotgun_auth.create_script_user(
+                api_script=cmd_line_credentials["script_name"],
+                api_key=cmd_line_credentials["script_key"]
+            )
+        else:
+            # The only other supported type is login.
+            user = shotgun_auth.create_session_user(
+                login=cmd_line_credentials["login"],
+                password=cmd_line_credentials["password"]
+            )
+    else:
+        # request a user, either by prompting the user or by pulling out of
+        # saves sessions etc.
+        user = shotgun_auth.get_user()
     # set the current toolkit user
     tank.set_current_user(user)
 
@@ -460,7 +478,7 @@ def shotgun_run_action_auth(log, install_root, pipeline_config_root, is_localize
             # no password given from shotgun. Try to use a stored session token
             try:
                 user = sa.create_session_user(login)
-            except IncompleteCredentials:
+            except InvalidCredentials:
                 # report back to the Shotgun javascript integration
                 # this error message will trigger the javascript to
                 # prompt the user for a password and run this method
@@ -1229,7 +1247,91 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
         return tank_command.run_action(log, tk, ctx, command, args)
 
 
+def _extract_credentials(cmd_line):
+    """
+    Finds credentials from the command-line if the user specified them and
+    removes them from the array.
 
+    :param cmd_line: Array of arguments passed to the tank command.
+
+    :returns: A tuple of (filtered command line arguments, credentials).
+    """
+
+    def _extract_args(cmd_line, arg1, arg2):
+        """
+        Extract specified arguments and sorts them. Also removes them from the
+        command line.
+
+        :param cmd_line: Array of command line arguments.
+        :param arg1: First argument to extract.
+        :param arg2: Second argument to extract.
+
+        :returns: A list of key, value tuples representing each arguments.
+        """
+        # Find all instances of each argument in the command line
+        args = [
+            argument for argument in cmd_line
+            if (argument.startswith("--%s" % arg1)) or (argument.startswith("--%s" % arg2))
+        ]
+        # Strip all these arguments from the command line.
+        for a in args:
+            cmd_line.remove(a)
+
+        credentials = []
+
+        for arg in args:
+            pos = arg.find("=")
+            # Take everything after the -- up to but not including the =
+            arg_name = arg[2:pos]
+            arg_value = arg[pos + 1:]
+            credentials.append((arg_name, arg_value))
+
+        return credentials
+
+    def _validate_args_cardinality(args, arg1, arg2):
+        """
+        Makes sure that there are no more and no less than 1 value for each argument.
+
+        :param args: List of argument tuples.
+        :param arg1: First argument to test for.
+        :param arg2: Second argument to test for.
+
+        :raises InvalidCredentials: When there is more or less than 1 value for
+                                    a given argument, this exception is raised.
+        """
+        # Too few parameters, find out which one is missing, let the user know
+        # which is missing.
+        if len(args) < 2:
+            raise InvalidCredentials("missing argument '%s'" % (arg1 if args[0][0] == arg2 else arg2))
+
+        def _validate_only_once(args, arg):
+            occurences = filter(lambda a: a[0] == arg, args)
+            if len(occurences) > 1:
+                raise InvalidCredentials("argument '%s' specified more than once." % arg)
+
+        # Make sure each arguments are not specified more than once.
+        _validate_only_once(args, arg1)
+        _validate_only_once(args, arg2)
+
+    # Extract the credential pairs.
+    script_user_credentials = _extract_args(cmd_line, "script_name", "script_key")
+    human_user_credentials = _extract_args(cmd_line, "login", "password")
+
+    # If elements of both user types are present, raise an error.
+    if script_user_credentials and human_user_credentials:
+        raise InvalidCredentials("can't mix human user and script user credentials.")
+
+    # At this point, we know one and only one set of credentials was specified.
+    if script_user_credentials:
+        _validate_args_cardinality(script_user_credentials, "script_name", "script_key")
+        return dict(script_user_credentials)
+
+    if human_user_credentials:
+        _validate_args_cardinality(human_user_credentials, "login", "password")
+        return dict(human_user_credentials)
+
+    # If no elements were specified, that's ok.
+    return None
 
 
 if __name__ == "__main__":
@@ -1302,12 +1404,14 @@ if __name__ == "__main__":
     exit_code = 1
     try:
 
+        credentials = _extract_credentials(cmd_line)
+
         if len(cmd_line) == 0:
             # > tank, no arguments
             # engine mode, using CWD
 
             # first make sure there is a current user
-            ensure_authenticated()
+            ensure_authenticated(credentials)
 
             # now run the command
             exit_code = run_engine_cmd(logger, pipeline_config_root, [os.getcwd()], None, True, [])
@@ -1363,10 +1467,8 @@ if __name__ == "__main__":
             ctx_list = []
             cmd_args = []
 
-            # Hint that we are trying to authenticate with credentials on the
-            # command line.
-            cmd_line, credentials = _extract_credentials(cmd_line)
-
+            # Extract credentials from the command-line if they are found
+            credentials = _extract_credentials(cmd_line)
 
             if len(cmd_line) == 1:
                 # tank /path
@@ -1421,15 +1523,32 @@ if __name__ == "__main__":
                     ctx_list = [ os.getcwd() ] # path
 
             # first make sure there is a current user
-            ensure_authenticated()
+            ensure_authenticated(credentials)
 
             # now run the command
             exit_code = run_engine_cmd(logger, pipeline_config_root, ctx_list, cmd_name, using_cwd, cmd_args)
 
+    except InvalidCredentials, e:
+        logger.info("")
+        if debug_mode:
+            # full stack trace
+            logger.exception("An InvalidCredentials exception was raised: %s" % e)
+        else:
+            # one line report
+            logger.error(str(e))
+        exit_code = 9
+
     except AuthenticationModuleError, e:
-        logger.info("Authentication was cancelled.")
+        logger.info("")
+        if debug_mode:
+            # full stack trace
+            logger.exception("A TankError was raised: %s" % "Authentication was cancelled.")
+        else:
+            # one line report
+            logger.error("Authentication was cancelled.")
+        logger.info("")
         # Error messages and such have already been handled by the method that threw this exception.
-        sys.exit(8)
+        exit_code = 8
 
     except TankError, e:
         logger.info("")

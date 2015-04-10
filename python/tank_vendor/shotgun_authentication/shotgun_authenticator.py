@@ -11,7 +11,7 @@
 from . import interactive_authentication
 from . import user
 from . import session_cache
-from .errors import IncompleteCredentials
+from .errors import InvalidCredentials
 from .defaults_manager import DefaultsManager
 
 
@@ -127,7 +127,7 @@ class ShotgunAuthenticator(object):
         http_proxy = http_proxy or self._defaults_manager.get_http_proxy()
 
         if not login:
-            raise IncompleteCredentials("missing login.")
+            raise InvalidCredentials("missing login.")
 
         # If we only have a password, generate a session token.
         if password and not session_token:
@@ -135,7 +135,7 @@ class ShotgunAuthenticator(object):
 
         if not session_token:
             # todo - find this in our 'phonebook' of stored login/session ids
-            raise IncompleteCredentials("missing session_token")
+            raise InvalidCredentials("missing session_token")
 
         # Create a session user
         return user.SessionUser(host, login, session_token, http_proxy)
@@ -154,7 +154,7 @@ class ShotgunAuthenticator(object):
         :returns: A ShotgunUser derived instance.
         """
         if not api_script or not api_key:
-            raise IncompleteCredentials("missing api_script and/or api_key")
+            raise InvalidCredentials("missing api_script and/or api_key")
 
         return user.ScriptUser(
             host or self._defaults_manager.get_host(),
@@ -212,7 +212,7 @@ class ShotgunAuthenticator(object):
             )
         # We don't know what this is, abort!
         else:
-            raise IncompleteCredentials(
+            raise InvalidCredentials(
                 "unknown credentials configuration: %s" % credentials
             )
 

@@ -47,13 +47,13 @@ class CachingVolatileUserException(AuthenticationModuleError):
         )
 
 
-class IncompleteCredentials(AuthenticationModuleError):
+class InvalidCredentials(AuthenticationModuleError):
     """
     Thrown when credentials are provided but are incomplete.
     """
-    def __init__(self, credentials):
+    def __init__(self, msg):
         AuthenticationModuleError.__init__(
-            self, "Incomplete credentials: %s" % credentials
+            self, "Invalid credentials: %s" % msg
         )
 
 
