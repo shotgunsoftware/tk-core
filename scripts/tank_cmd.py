@@ -997,7 +997,6 @@ def _resolve_shotgun_entity(log, entity_type, entity_search_token, constrain_by_
     return selected_entity["id"]
 
 
-
 def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd, args):
     """
     Launches an engine and potentially executes a command.
@@ -1363,6 +1362,11 @@ if __name__ == "__main__":
             using_cwd = False
             ctx_list = []
             cmd_args = []
+
+            # Hint that we are trying to authenticate with credentials on the
+            # command line.
+            cmd_line, credentials = _extract_credentials(cmd_line)
+
 
             if len(cmd_line) == 1:
                 # tank /path
