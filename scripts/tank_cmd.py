@@ -1325,6 +1325,23 @@ def _validate_args_cardinality(args, arg1, arg2):
 
 
 def _read_credentials_from_file(auth_path):
+    """
+    Reads the credentials from a file and returns two tuples: one for
+    login/password values and the other for script/key values. Any other values
+    are ignored.
+
+    :param auth_path: Path to a file with credentials.
+
+    :returns: A tuple of list of key, value pairs for values parsed. For example,
+       ([("login", "user"), ("password", "12345")],
+        [("script", "name"), ("key", "12345")])
+       The first tuple is concerned with human user based authentication, the second
+       is concerned with script based authentication.
+
+    :raises InvalidCredentials: If the file doesn't exist, this exception is raised.
+    """
+    if not os.path.exists(auth_path):
+        raise InvalidCredentials("credentials file does not exist.")
     # Read the dictionary from file
     with open(auth_path) as auth_file:
         file_data = yaml.load(auth_file)
@@ -1513,9 +1530,6 @@ if __name__ == "__main__":
             using_cwd = False
             ctx_list = []
             cmd_args = []
-
-            # Extract credentials from the command-line if they are found
-            credentials = _extract_credentials(cmd_line)
 
             if len(cmd_line) == 1:
                 # tank /path
