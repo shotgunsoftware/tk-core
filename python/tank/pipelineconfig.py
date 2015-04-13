@@ -58,18 +58,21 @@ class PipelineConfiguration(object):
            util.is_version_older(current_api_version, our_associated_api_version):
             # currently running API is too old!
             current_api_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-            raise TankError("You are currently running Core API %s located in '%s'. "
-                            "The Pipeline Configuration you are trying to create ('%s') is "
-                            "associated with a more recent version of the API, "
-                            "%s, located here: '%s'. Initialization cannot proceed at this point, "
-                            "because the currently running Core API is too old. "
-                            "To fix this, please import "
-                            "the API located in '%s' and try again." % (current_api_version,
-                                                                        current_api_path,
-                                                                        self.get_path(),
-                                                                        our_associated_api_version,
-                                                                        self.get_install_location(),
-                                                                        self.get_core_python_location()))
+            
+            # tell the user that their core is too old for this config
+            #
+            # this can happen if you are running a configuration but you are getting the core
+            # API from somewhere else. For example, if you have added a core to your pythonpath
+            # and then try to do sgtk_from_path("/path/to/pipeline/config") and that config
+            # is using a more recent version of the core. 
+            
+            raise TankError("You are running Toolkit %s located in '%s'. The configuration you are "
+                            "trying to use needs core version %s or higher. To fix this, "
+                            "use the tank command (or Toolkit core API) located at '%s' "
+                            "which is associated with this configuration." % (current_api_version, 
+                                                                              current_api_path, 
+                                                                              our_associated_api_version, 
+                                                                              self.get_install_location()))            
 
 
         self._roots = pipelineconfig_utils.get_roots_metadata(self._pc_root)

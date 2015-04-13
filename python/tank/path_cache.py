@@ -487,6 +487,7 @@ class PathCache(object):
         sg_event_data["user"] = get_current_user(self._tk)
     
         try:
+            self._log_debug(log, "Creating event log entry %s" % sg_event_data)
             response = self._tk.shotgun.create("EventLogEntry", sg_event_data)
         except Exception, e:
             raise TankError("Critical! Could not update Shotgun with folder data event log "

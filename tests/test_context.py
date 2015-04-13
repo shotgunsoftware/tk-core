@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
+import copy
 
 from tank_test.tank_test_base import *
 
@@ -82,27 +83,76 @@ class TestEq(TestContext):
         super(TestEq, self).setUp()
         # params used in creating contexts
         self.kws = {}
-        self.kws["tk"] = self.tk
         self.kws["project"] = self.project
         self.kws["entity"] = self.shot
         self.kws["step"] = self.step
 
     def test_equal(self):
-        context_1 = context.Context(**self.kws)
-        context_2 = context.Context(**self.kws)
+        kws1 = copy.deepcopy(self.kws)
+        kws1["entity"]["foo"] = "foo"
+        context_1 = context.Context(self.tk, **kws1)
+        kws2 = copy.deepcopy(self.kws)
+        # other differing fields in the dictionary should be ignored
+        kws2["entity"]["foo"] = "bar"
+        context_2 = context.Context(self.tk, **kws2)
         self.assertTrue(context_1 == context_2)
         self.assertFalse(context_1 != context_2)
 
     def test_not_equal(self):
-        context_1 = context.Context(**self.kws)
-        kws2 = self.kws.copy()
+        context_1 = context.Context(self.tk, **self.kws)
+        kws2 = copy.deepcopy(self.kws)
         kws2["task"] = {"id":45, "type": "Task"}
-        context_2 = context.Context(**kws2)
+        context_2 = context.Context(self.tk, **kws2)
         self.assertFalse(context_1 == context_2)
         self.assertTrue(context_1 != context_2)
 
+    def test_not_equal_with_none(self):
+        context_1 = context.Context(self.tk, **self.kws)
+        kws2 = copy.deepcopy(self.kws)
+        kws2["entity"] = None
+        context_2 = context.Context(self.tk, **kws2)
+        self.assertFalse(context_1 == context_2)
+        self.assertTrue(context_1 != context_2)
+
+    def test_additional_entities_equal(self):
+        kws1 = copy.deepcopy(self.kws)
+        kws1["additional_entities"] = [
+            {"type":"Asset", "id":123, "foo":"bar"}, 
+            {"type":"Sequence", "id":456, "foo":"bar"}
+        ]
+        context_1 = context.Context(self.tk, **kws1)
+        kws2 = copy.deepcopy(self.kws)
+        kws2["additional_entities"] = [
+            # Only type & id difference should matter
+            {"type":"Sequence", "id":456, "bar":"foo"},
+            {"type":"Asset", "id":123, "bar":"foo"},
+            # None entries should be ignored
+            None,
+            # and ok to have the same entity twice
+            {"type":"Sequence", "id":456, "bar":"foo"}
+        ]
+        context_2 = context.Context(self.tk, **kws2)
+        self.assertTrue(context_1 == context_2)
+        self.assertFalse(context_1 != context_2)
+
+    def test_additional_entities_not_equal(self):
+        kws1 = copy.deepcopy(self.kws)
+        kws1["additional_entities"] = [
+            {"type":"Asset", "id":123}, 
+            {"type":"Sequence", "id":456}
+        ]
+        context_1 = context.Context(self.tk, **kws1)
+        kws2 = copy.deepcopy(self.kws)
+        kws1["additional_entities"] = [
+            {"type":"Asset", "id":789},
+            {"type":"Sequence", "id":456}
+        ]
+        context_2 = context.Context(self.tk, **kws2)
+        self.assertFalse(context_1 == context_2)
+        self.assertTrue(context_1 != context_2)
+        
     def test_not_context(self):
-        context_1 = context.Context(**self.kws)
+        context_1 = context.Context(self.tk, **self.kws)
         not_context = object()
         self.assertFalse(context_1 == not_context)
         self.assertTrue(context_1 != not_context)
@@ -113,7 +163,7 @@ class TestEq(TestContext):
         get_current_user.return_value = self.current_user
         
         # bug ticket 20272
-        context_1 = context.Context(**self.kws)
+        context_1 = context.Context(self.tk, **self.kws)
         kws2 = self.kws.copy()
         # force seed the user for one of the contexts 
         kws2["user"] = {"id": self.current_user["id"], 
@@ -121,7 +171,7 @@ class TestEq(TestContext):
                         "name": self.current_user["name"]} 
         # the other context should pick up the context
         # automatically by the equals operator
-        context_2 = context.Context(**kws2)
+        context_2 = context.Context(self.tk, **kws2)
         self.assertTrue(context_1 == context_2)
         self.assertFalse(context_1 != context_2)
 
