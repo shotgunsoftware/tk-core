@@ -136,10 +136,10 @@ class Action(object):
                 # get param from input data
                 new_param_values[name] = parameters[name]
             
-            elif self.parameters[name].get("default") is not None:
+            elif "default" in self.parameters[name]:
                 # no user defined value, but a default value
                 # use default value from param def 
-                new_param_values[name] = self.parameters[name].get("default")
+                new_param_values[name] = self.parameters[name]["default"]
         
         # pass 2 - make sure all params are defined
         for name in self.parameters:
@@ -155,7 +155,7 @@ class Action(object):
             val = new_param_values[name]
             val_type = val.__class__.__name__
             req_type = self.parameters[name].get("type")
-            if val_type != req_type:
+            if val is not None and val_type != req_type:
                 raise TankError("Cannot execute %s - parameter '%s' not of required type %s" % (self, name, req_type))
         
         return new_param_values
