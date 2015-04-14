@@ -89,8 +89,20 @@ class UnregisterFoldersAction(Action):
                 log.info("> tank Shot ABC123 unregister_folders")
                 log.info("")
                 log.info("Or pass in one or more paths:")
-                log.info("> tank unregister_folders /path/to/folder_a /path/to/folder_b")
+                log.info("> tank unregister_folders /path/to/folder_a /path/to/folder_b ...")
                 log.info("")
+                log.info("Or you can unregister all folders for a project:")
+                log.info("> tank unregister_folders --all")
+                log.info("")
+
+            elif len(args) == 1 and args[0] == "--all":                
+                
+                if self.context.project is None:
+                    log.error("You need to specify a project for the --all parameter.")
+                    return []
+
+                log.info("This will unregister all folders for the project.")
+                self._unregister_entity(self.context.project, log, prompt=True)
                 
             else:
                 paths = args
@@ -133,7 +145,7 @@ class UnregisterFoldersAction(Action):
             if "type" not in entity:
                 raise TankError("Entity dictionary does not contain a type key!")
             return self._unregister_entity(entity, log, prompt=False)
-            
+        
 
     def _unregister_paths(self, paths, log, prompt):
         """
@@ -151,11 +163,13 @@ class UnregisterFoldersAction(Action):
         for p in paths:
             log.debug(p)
         
-        # first of all, make sure we are up to date.
         pc = path_cache.PathCache(self.tk)
         try:
+            
+            # first of all, make sure we are up to date
             pc.synchronize(log)
 
+            # now get a unique list of filesystemlocation ids for the paths
             fs_location_ids = set()
             for p in paths:
                 sg_id = pc.get_shotgun_id_from_path(p)
@@ -167,12 +181,7 @@ class UnregisterFoldersAction(Action):
 
         finally:
             pc.close()
-        
-        if len(fs_location_ids) == 0:
-            log.info("")
-            log.info("No valid paths found!")
-            return []
-        
+                
         return self._unregister_filesystem_location_ids(list(fs_location_ids), log, prompt)                              
 
     
@@ -202,12 +211,8 @@ class UnregisterFoldersAction(Action):
         sg_ids = [x["id"] for x in sg_data]
         log.debug("The following path cache ids are linked to the entity: %s" % sg_ids)
         
-        if len(sg_ids) == 0:
-            log.info("This entity does not have any folder associated!")
-            return []
-        
         return self._unregister_filesystem_location_ids(sg_ids, log, prompt)                              
-        
+
         
     def _unregister_filesystem_location_ids(self, ids, log, prompt):
         """
@@ -216,28 +221,41 @@ class UnregisterFoldersAction(Action):
         filesystem location id.
         
         :param ids: List of filesystem location ids to unregister
-        :param prompt: Should the user be presented with confirmation prompts?
         :param log: Logging instance
+        :param prompt: Should the user be presented with confirmation prompts?
         :returns: List of dictionaries to represents the items that were unregistered.
                   Each dictionary has keys path and sg_id.
                   Note that the shotgun ids returned will refer to retired objects in 
                   Shotgun rather than live ones.
         """
+        
+        # tuple index constants for readability
+        PATH_IDX = 0
+        SG_ID_IDX = 1
+        
+        if len(ids) == 0:
+            log.info("No associated folders found!")
+            return []        
+        
         # now use the path cache to get a list of all folders (recursively) that are
         # linked up to the folders registered for this entity.
+        # store this in a set so that we ensure a unique set of matches
         
-        paths = []
+        paths = set()
         pc = path_cache.PathCache(self.tk)
         try:
             for sg_fs_id in ids:
-                paths.extend(pc.get_folder_tree_from_sg_id(sg_fs_id))
+                # get path subtree for this id via the path cache
+                for path_obj in pc.get_folder_tree_from_sg_id(sg_fs_id):
+                    # store in the set as a tuple which is immutable
+                    paths.add( (path_obj["path"], path_obj["sg_id"]) )
         finally:
             pc.close()
                 
         log.info("")
         log.info("The following folders will be unregistered:")
         for p in paths:
-            log.info(" - %s" % p["path"])
+            log.info(" - %s" % p[PATH_IDX])
         
         log.info("")
         log.info("Proceeding will unregister the above paths from Toolkit's path cache. "
@@ -262,9 +280,9 @@ class UnregisterFoldersAction(Action):
         
         sg_batch_data = []
         for p in paths:                            
-            req = {"request_type":"delete", 
+            req = -{"request_type":"delete", 
                    "entity_type": path_cache.SHOTGUN_ENTITY, 
-                   "entity_id": p["sg_id"] }
+                   "entity_id": p[SG_ID_IDX] }
             sg_batch_data.append(req)
         
         try:    
@@ -288,7 +306,7 @@ class UnregisterFoldersAction(Action):
         # the api version used is always useful to know
         meta["core_api_version"] = self.tk.version
         # shotgun ids created
-        meta["sg_folder_ids"] = [ x["sg_id"] for x in paths]
+        meta["sg_folder_ids"] = [ x[SG_ID_IDX] for x in paths]
         
         sg_event_data = {}
         sg_event_data["event_type"] = "Toolkit_Folders_Delete"
