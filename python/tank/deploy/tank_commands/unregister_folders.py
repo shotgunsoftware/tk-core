@@ -91,7 +91,7 @@ class UnregisterFoldersAction(Action):
                 log.info("You can unregister all folders for a project:")
                 log.info("> tank unregister_folders --all")
                 log.info("")
-                log.info("You can unregister all foldes matching a certain pattern:")
+                log.info("You can unregister all folders matching a certain pattern:")
                 log.info("> tank unregister_folders --filter='john.smith'")
                 log.info("")
                 log.info("Pass in a Shotgun entity (by name or id):")
