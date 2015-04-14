@@ -71,7 +71,9 @@ def _create_invoker():
     Create the object used to invoke function calls on the main thread when
     called from a different thread.
 
-    :returns:  Invoker instance. If Qt is not available or there is no UI, no invoker will be returned.
+    :returns: Invoker instance. If Qt is not available or there is no UI, a
+              simple pass through method will execute the code in the same
+              thread will be produced.
     """
     QtCore, QtGui, has_ui = _get_qt_state()
     # If we have a ui and we're not in the main thread, we'll need to send ui requests to the
@@ -136,7 +138,8 @@ class AuthenticationHandlerBase(object):
     """
     Base class for authentication requests. It handles locking reading cached credentials
     on disk and writing newer credentials back. It also keeps track of any attempt to cancel
-    authentication.
+    authentication. This class should not be instantiated directly and be used through the
+    authenticate and renew_session methods.
     """
 
     def authenticate(self, host, login, http_proxy):
@@ -172,7 +175,8 @@ class ConsoleAuthenticationHandlerBase(AuthenticationHandlerBase):
     """
     Base class for authenticating on the console. It will take care of the credential retrieval loop,
     requesting new credentials as long as they are invalid or until the user provides the right one
-    or cancels the authentication.
+    or cancels the authentication. This class should not be instantiated directly and be used
+    through the authenticate and renew_session methods.
     """
 
     def authenticate(self, hostname, login, http_proxy):
@@ -182,7 +186,7 @@ class ConsoleAuthenticationHandlerBase(AuthenticationHandlerBase):
         :param hostname: Host to renew a token for.
         :param login: User to renew a token for.
         :param http_proxy: Proxy to use for the request. Can be None.
-        :returns: The (session token, login user) tuple.
+        :returns: The (hostname, login, session token) tuple.
         """
         logger.debug("Requesting password on command line.")
         while True:
@@ -254,7 +258,9 @@ class ConsoleAuthenticationHandlerBase(AuthenticationHandlerBase):
 
 class ConsoleRenewSessionHandler(ConsoleAuthenticationHandlerBase):
     """
-    Handles session renewal. Prompts for the user's password.
+    Handles session renewal. Prompts for the user's password. This class should
+    not be instantiated directly and be used through the authenticate and
+    renew_session methods.
     """
     def _get_user_credentials(self, hostname, login):
         """
@@ -270,7 +276,9 @@ class ConsoleRenewSessionHandler(ConsoleAuthenticationHandlerBase):
 
 class ConsoleLoginHandler(ConsoleAuthenticationHandlerBase):
     """
-    Handles username/password authentication.
+    Handles username/password authentication. This class should not be
+    instantiated directly and be used through the authenticate and renew_session
+    methods.
     """
     def __init__(self, fixed_host):
         super(ConsoleLoginHandler, self).__init__()
@@ -295,7 +303,8 @@ class ConsoleLoginHandler(ConsoleAuthenticationHandlerBase):
 
 class UiAuthenticationHandler(AuthenticationHandlerBase):
     """
-    Handles ui based authentication.
+    Handles ui based authentication. This class should not be instantiated
+    directly and be used through the authenticate and renew_session methods.
     """
 
     def __init__(self, is_session_renewal, fixed_host=False):
@@ -341,15 +350,11 @@ class UiAuthenticationHandler(AuthenticationHandlerBase):
         return result
 
 
+# Lock the assures only one thread at a time can execute the authentication logic.
 _renew_session_lock = threading.Lock()
-"""
-Lock the assures only one thread at a time can execute the authentication logic.
-"""
+# Flag that keeps track if a user cancelled authentication. When the flag is raised, it will
+# be impossible to authenticate again.
 _renew_session_disabled = False
-"""
-Flag that keeps track if a user cancelled authentication. When the flag is raised, it will
-be impossible to authenticate again.
-"""
 
 
 def _renew_session(user, session_token, credentials_handler):
@@ -407,6 +412,9 @@ def renew_session(user, session_token):
 
     :param user: SessionUser that needs its session token refreshed.
     :param session_token: The session token value that originally failed.
+
+    :raises AuthenticationCancelled: If the user cancels the authentication,
+                                     this exception is raised.
     """
     logger.debug("Credentials were out of date, renewing them.")
     QtCore, QtGui, has_ui = _get_qt_state()
@@ -418,9 +426,23 @@ def renew_session(user, session_token):
     _renew_session(user, session_token, authenticator)
 
 
-def authenticate(default_host, default_login, default_http_proxy, fixed_host):
+def authenticate(default_host, default_login, http_proxy, fixed_host):
     """
-    Authenticates a user.
+    Prompts the user for his user name and password. If the host is not fixed,
+    it is also possible to edit the host. If Qt is available and an QApplication
+    instantiated, a dialog will prompt for user input. If not, the console will
+    prompt instead.
+
+    :param default_host: Default host to present to the user.
+    :param default_login: Default login to present to the user.
+    :param http_proxy: Proxy to use to connect to the host.
+    :param fixed_host: If True, the host won't be editable.
+
+    :returns: The (hostname, login, session token) tuple for this authenticated
+              user.
+
+    :raises AuthenticationCancelled: If the user cancels the authentication,
+                                     this exception is raised.
     """
     QtCore, QtGui, has_ui = _get_qt_state()
     # If we have a gui, we need gui based authentication
@@ -429,4 +451,4 @@ def authenticate(default_host, default_login, default_http_proxy, fixed_host):
         authenticator = UiAuthenticationHandler(is_session_renewal=False, fixed_host=fixed_host)
     else:
         authenticator = ConsoleLoginHandler(fixed_host=fixed_host)
-    return authenticator.authenticate(default_host, default_login, default_http_proxy)
+    return authenticator.authenticate(default_host, default_login, http_proxy)

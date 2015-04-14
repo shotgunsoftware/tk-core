@@ -20,10 +20,8 @@ from . import session_cache
 from .errors import CachingVolatileUserException
 
 
+# Indirection to create ShotgunWrapper instances. Great for unit testing.
 _shotgun_instance_factory = ShotgunWrapper
-"""
-Indirection to create ShotgunWrapper instances. Great for unit testing.
-"""
 
 
 class ShotgunUser(object):
