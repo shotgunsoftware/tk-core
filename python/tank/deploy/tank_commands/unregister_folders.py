@@ -49,6 +49,9 @@ class UnregisterFoldersAction(Action):
                                       "default": None,
                                       "type": "dict" }
         
+        self.parameters["return_value"] = { "description": ("List of dictionaries where each dict contains " 
+                                                            "the path and entity data for an unregistered path"),
+                                          "type": "list" }
     
     def run_interactive(self, log, args):
         """
@@ -85,14 +88,17 @@ class UnregisterFoldersAction(Action):
                          "between Shotgun entities and folders on disk. Use this command if you ever "
                          "need to remove these associations.")
                 log.info("")
+                log.info("You can unregister all folders for a project:")
+                log.info("> tank unregister_folders --all")
+                log.info("")
+                log.info("You can unregister all foldes matching a certain pattern:")
+                log.info("> tank unregister_folders --filter='john.smith'")
+                log.info("")
                 log.info("Pass in a Shotgun entity (by name or id):")
                 log.info("> tank Shot ABC123 unregister_folders")
                 log.info("")
                 log.info("Or pass in one or more paths:")
                 log.info("> tank unregister_folders /path/to/folder_a /path/to/folder_b ...")
-                log.info("")
-                log.info("Or you can unregister all folders for a project:")
-                log.info("> tank unregister_folders --all")
                 log.info("")
 
             elif len(args) == 1 and args[0] == "--all":                
@@ -103,6 +109,28 @@ class UnregisterFoldersAction(Action):
 
                 log.info("This will unregister all folders for the project.")
                 self._unregister_entity(self.context.project, log, prompt=True)
+
+            elif len(args) == 1 and args[0].startswith("--filter="):                
+                
+                # from '--filter=john.smith' get 'john.smith'
+                filter_str = args[0][len("--filter="):]
+
+                if filter_str == "":
+                    log.error("You need to specify a filter!")
+                    return []
+                
+                if self.context.project is None:
+                    log.error("You need to specify a project!")
+                    return []
+
+                log.info("This will unregister all folders containing the string '%s'." % filter_str)
+
+                # get the filesystem location ids which are associated with the entity    
+                sg_data = self.tk.shotgun.find(path_cache.SHOTGUN_ENTITY, [["project", "is", self.context.project],
+                                                                           ["code", "contains", filter_str]])
+                sg_ids = [x["id"] for x in sg_data]
+                log.debug("The following path cache ids are linked to the entity: %s" % sg_ids)
+                self._unregister_filesystem_location_ids(sg_ids, log, prompt=True)
                 
             else:
                 paths = args
@@ -120,7 +148,8 @@ class UnregisterFoldersAction(Action):
         :param log: Std logging object
         :param parameters: Std tank command parameters dict
         :returns: List of dictionaries to represents the items that were unregistered.
-                  Each dictionary has keys path and sg_id.
+                  Each dictionary has keys path and entity, where entity is a standard
+                  Shotgun-style link dictionary containing the keys type and id. 
                   Note that the shotgun ids returned will refer to retired objects in 
                   Shotgun rather than live ones.
         """
@@ -155,7 +184,8 @@ class UnregisterFoldersAction(Action):
         :param log: python logger
         :param prompt: Boolean to indicate that we can prompt the user for information or confirmation
         :returns: List of dictionaries to represents the items that were unregistered.
-                  Each dictionary has keys path and sg_id.
+                  Each dictionary has keys path and entity, where entity is a standard
+                  Shotgun-style link dictionary containing the keys type and id. 
                   Note that the shotgun ids returned will refer to retired objects in 
                   Shotgun rather than live ones.
         """
@@ -193,24 +223,17 @@ class UnregisterFoldersAction(Action):
         :param log: Logger
         :param prompt: If true, the command may prompt the user for confirmation
         :returns: List of dictionaries to represents the items that were unregistered.
-                  Each dictionary has keys path and sg_id.
+                  Each dictionary has keys path and entity, where entity is a standard
+                  Shotgun-style link dictionary containing the keys type and id. 
                   Note that the shotgun ids returned will refer to retired objects in 
                   Shotgun rather than live ones.
         """
         log.debug("Unregister folders for Shotgun Entity %s..." % entity)
     
-        # first of all, make sure we are up to date.
-        pc = path_cache.PathCache(self.tk)
-        try:
-            pc.synchronize(log)
-        finally:
-            pc.close()
-
         # get the filesystem location ids which are associated with the entity    
         sg_data = self.tk.shotgun.find(path_cache.SHOTGUN_ENTITY, [[path_cache.SG_ENTITY_FIELD, "is", entity]])
         sg_ids = [x["id"] for x in sg_data]
-        log.debug("The following path cache ids are linked to the entity: %s" % sg_ids)
-        
+        log.debug("The following path cache ids are linked to the entity: %s" % sg_ids)        
         return self._unregister_filesystem_location_ids(sg_ids, log, prompt)                              
 
         
@@ -224,11 +247,11 @@ class UnregisterFoldersAction(Action):
         :param log: Logging instance
         :param prompt: Should the user be presented with confirmation prompts?
         :returns: List of dictionaries to represents the items that were unregistered.
-                  Each dictionary has keys path and sg_id.
+                  Each dictionary has keys path and entity, where entity is a standard
+                  Shotgun-style link dictionary containing the keys type and id. 
                   Note that the shotgun ids returned will refer to retired objects in 
                   Shotgun rather than live ones.
         """
-        
         # tuple index constants for readability
         PATH_IDX = 0
         SG_ID_IDX = 1
@@ -236,6 +259,13 @@ class UnregisterFoldersAction(Action):
         if len(ids) == 0:
             log.info("No associated folders found!")
             return []        
+
+        # first of all, make sure we are up to date.
+        pc = path_cache.PathCache(self.tk)
+        try:
+            pc.synchronize(log)
+        finally:
+            pc.close()
         
         # now use the path cache to get a list of all folders (recursively) that are
         # linked up to the folders registered for this entity.
@@ -279,8 +309,8 @@ class UnregisterFoldersAction(Action):
         log.info("")
         
         sg_batch_data = []
-        for p in paths:                            
-            req = -{"request_type":"delete", 
+        for p in paths: 
+            req = {"request_type":"delete", 
                    "entity_type": path_cache.SHOTGUN_ENTITY, 
                    "entity_id": p[SG_ID_IDX] }
             sg_batch_data.append(req)
@@ -331,7 +361,13 @@ class UnregisterFoldersAction(Action):
             pc.close()
 
         log.info("")
-        log.info("Unregister complete!")
+        log.info("Unregister complete. %s paths were unregistered." % len(paths))
         
-        return paths
+        # now shuffle the return data into a list of dicts
+        return_data = []
+        for p in paths:
+            return_data.append( {"path": p[PATH_IDX], 
+                                 "entity": {"type": path_cache.SHOTGUN_ENTITY, "id": p[SG_ID_IDX]}})
+        
+        return return_data
         
