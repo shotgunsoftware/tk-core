@@ -12,11 +12,9 @@ from __future__ import with_statement
 from mock import patch
 
 from tank_test.tank_test_base import *
-import tank_test
-from tank_test import mockgun
 
 from tank_vendor.shotgun_api3 import AuthenticationFault
-from tank_vendor.shotgun_authentication import user, AuthenticationModuleError
+from tank_vendor.shotgun_authentication import user, ShotgunAuthenticationError
 
 
 class ShotgunWrapperTests(TankTestBase):
@@ -68,10 +66,10 @@ class ShotgunWrapperTests(TankTestBase):
         """
 
         _call_rpc_mock.side_effect = AuthenticationFault("This is coming from the _call_rpc_mock.")
-        renew_session_mock.side_effect = AuthenticationModuleError("This is coming from renew_session_mock.")
+        renew_session_mock.side_effect = ShotgunAuthenticationError("This is coming from renew_session_mock.")
 
         sg_user = user.SessionUser("https://host.shotgunstudio.com", "login", "session", "proxy", is_volatile=False)
-        with self.assertRaisesRegexp(AuthenticationModuleError, "This is coming from renew_session_mock."):
+        with self.assertRaisesRegexp(ShotgunAuthenticationError, "This is coming from renew_session_mock."):
             sg_user.create_sg_connection()._call_rpc()
 
         # Make sure we tried to renew the sesion

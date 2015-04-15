@@ -907,8 +907,9 @@ def serialize(context):
     # If there is a current user.
     user = get_current_user()
     if user:
-        # We should serialize it as well.
-        data["current_user"] = sg_auth.serialize_user(user)
+        # We should serialize it as well so that the next process knows who to
+        # run as.
+        data["_current_user"] = sg_auth.serialize_user(user)
     return pickle.dumps(data)
 
 
@@ -919,18 +920,23 @@ def deserialize(context_str):
     # lazy load this to avoid cyclic dependencies
     from .api import Tank, set_current_user
     from tank_vendor import shotgun_authentication as sg_auth
-    
+
     data = pickle.loads(context_str)
 
     # first get the pc path out of the dict
-    pipeline_config_path = data["_pc_path"] 
+    pipeline_config_path = data["_pc_path"]
     del data["_pc_path"]
 
-    # See if there is a current user set.
-    user_string = data.get("current_user")
+    # Authentication in Toolkit requires that credentials are passed from
+    # one process to another so that the notion of the current user is
+    # inherited from once process to another. The current user needs to be part
+    # of the context because multiple DCCs can run at the same time under
+    # different users, e.g. launching Maya from the site as user A and Nuke
+    # from the tank command as user B.
+    user_string = data.get("_current_user")
     if user_string:
         # Remove it from the data
-        del data["current_user"]
+        del data["_current_user"]
         # and set the current user.
         user = sg_auth.deserialize_user(user_string)
         set_current_user(user)
@@ -943,8 +949,6 @@ def deserialize(context_str):
 
     # and lastly make the obejct
     return Context(**data)
-    
-
 
 
 ################################################################################################

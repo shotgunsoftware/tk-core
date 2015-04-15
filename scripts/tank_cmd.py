@@ -25,7 +25,7 @@ from tank.deploy.tank_commands.action_base import Action
 from tank.util import shotgun, CoreDefaultsManager
 from tank_vendor.shotgun_authentication import ShotgunAuthenticator
 from tank_vendor.shotgun_authentication import AuthenticationError
-from tank_vendor.shotgun_authentication import AuthenticationModuleError
+from tank_vendor.shotgun_authentication import ShotgunAuthenticationError
 from tank_vendor.shotgun_authentication import IncompleteCredentials
 from tank.platform import engine
 from tank import pipelineconfig_utils
@@ -181,7 +181,7 @@ Launch maya for a Task in Shotgun using an id:
 Launch maya for a folder:
 > tank /studio/proj_xyz/shots/ABC123 launch_maya
 
-Log out of the current user (no need for a contex):
+Log out of the current user (no context required):
 > tank logout
 
 """
@@ -1422,7 +1422,7 @@ if __name__ == "__main__":
             # now run the command
             exit_code = run_engine_cmd(logger, pipeline_config_root, ctx_list, cmd_name, using_cwd, cmd_args)
 
-    except AuthenticationModuleError, e:
+    except ShotgunAuthenticationError, e:
         logger.info("Authentication was cancelled.")
         # Error messages and such have already been handled by the method that threw this exception.
         sys.exit(8)

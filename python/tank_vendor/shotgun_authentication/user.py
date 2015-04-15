@@ -214,6 +214,7 @@ class SessionUser(ShotgunUser):
         Returns the currenly saved user for a given host.
 
         :param host: Host to retrieve the saved user from.
+        :param http_proxy: HTTP proxy to use with this host.
 
         :returns: A SessionUser instance if a user was saved, None otherwise.
         """
@@ -228,7 +229,7 @@ class SessionUser(ShotgunUser):
             return None
 
     @staticmethod
-    def from_dict(representation):
+    def from_dict(payload):
         """
         Creates a user from a dictionary.
 
@@ -237,7 +238,7 @@ class SessionUser(ShotgunUser):
         :returns: A SessionUser instance.
         """
 
-        return SessionUser(**representation)
+        return SessionUser(**payload)
 
     def to_dict(self):
         """
@@ -312,7 +313,7 @@ class ScriptUser(ShotgunUser):
         return data
 
     @staticmethod
-    def from_dict(representation):
+    def from_dict(payload):
         """
         Creates a user from a dictionary.
 
@@ -320,7 +321,7 @@ class ScriptUser(ShotgunUser):
 
         :returns: A ScriptUser instance.
         """
-        return ScriptUser(**representation)
+        return ScriptUser(**payload)
 
 
 def is_script_user(user):
@@ -352,7 +353,7 @@ __factories = {
 }
 
 
-def serialize(user):
+def serialize_user(user):
     """
     Serializes a user. Meant to be consumed by deserialize.
 
@@ -368,7 +369,7 @@ def serialize(user):
     })
 
 
-def deserialize(payload):
+def deserialize_user(payload):
     """
     Converts a payload produced by serialize into any of the ShotgunUser
     derived instance.
@@ -382,9 +383,9 @@ def deserialize(payload):
 
     # Find which user type we have
     global __factories
-    factory = __factories.get(user_dict["type"])
-    # Unknown representation, something is wrong. Maybe backward compatible code broke?
+    factory = __factories.get(user_dict.get("type"))
+    # Unknown type, something is wrong. Maybe backward compatible code broke?
     if not factory:
-        raise Exception("Invalid user representation: %s" % user_dict)
+        raise Exception("Invalid user type: %s" % user_dict)
     # Instantiate the user object.
     return factory(user_dict["data"])

@@ -55,15 +55,21 @@ else:
 
 def _get_qt_state():
     """
-    Returns the state of Qt: the librairies available and if we have a ui or not.
+    Returns the state of Qt: the libraries available and if we have a ui or not.
     :returns: If Qt is available, a tuple of (QtCore, QtGui, has_ui_boolean_flag).
-              Otherwise, (None, None, None)
+              Otherwise, (None, None, False)
     """
+    qt_core = None
+    qt_gui = None
+    qapp_instance_active = False
     try:
         from .ui.qt_abstraction import QtGui, QtCore
-    except ImportError:
-        return None, None, None
-    return QtCore, QtGui, QtGui.QApplication.instance() is not None
+        qt_core = QtCore
+        qt_gui = QtGui
+        qapp_instance_active = (QtGui.QApplication.instance() is not None)
+    except:
+        pass
+    return (qt_core, qt_gui, qapp_instance_active)
 
 
 def _create_invoker():
@@ -78,7 +84,7 @@ def _create_invoker():
     QtCore, QtGui, has_ui = _get_qt_state()
     # If we have a ui and we're not in the main thread, we'll need to send ui requests to the
     # main thread.
-    if not QtCore or not QtGui or not has_ui:
+    if not has_ui:
         return lambda fn, *args, **kwargs: fn(*args, **kwargs)
 
     # If we are already in the main thread, no need for an invoker, invoke directly in this thread.
@@ -87,7 +93,12 @@ def _create_invoker():
 
     class MainThreadInvoker(QtCore.QObject):
         """
-        Class that allows sending message to the main thread.
+        Class that allows sending message to the main thread. This can be useful
+        when a background thread needs to prompt the user via a dialog. The
+        method passed into the invoker will be invoked on the main thread and
+        the result, either a return value or exception, will be brought back
+        to the invoking thread as if it was the thread that actually executed
+        the code.
         """
         def __init__(self):
             """
@@ -136,19 +147,18 @@ def _create_invoker():
 
 class AuthenticationHandlerBase(object):
     """
-    Base class for authentication requests. It handles locking reading cached credentials
-    on disk and writing newer credentials back. It also keeps track of any attempt to cancel
-    authentication. This class should not be instantiated directly and be used through the
-    authenticate and renew_session methods.
+    Base class for authentication requests. This class should not be
+    instantiated directly and be used through the authenticate and
+    renew_session methods.
     """
 
     def authenticate(self, host, login, http_proxy):
         """
         Does the actual authentication. Prompts the user and validates the credentials.
-        :param host Host to authenticate for.
-        :param login: User that needs authentication.
+        :param host Host to authenticate for. Can be None.
+        :param login: User that needs authentication. Can be None.
         :param http_proxy: Proxy to connect to when authenticating.
-        :raises: TankAuthenticationError If the user cancels the authentication process,
+        :raises: AuthenticationError If the user cancels the authentication process,
                  this exception will be thrown.
         """
         raise NotImplementedError
@@ -167,9 +177,6 @@ class AuthenticationHandlerBase(object):
         except AuthenticationError:
             return None
 
-    def raise_authentication_cancelled_error(self):
-        raise AuthenticationCancelled()
-
 
 class ConsoleAuthenticationHandlerBase(AuthenticationHandlerBase):
     """
@@ -187,6 +194,9 @@ class ConsoleAuthenticationHandlerBase(AuthenticationHandlerBase):
         :param login: User to renew a token for.
         :param http_proxy: Proxy to use for the request. Can be None.
         :returns: The (hostname, login, session token) tuple.
+        :raises AuthenticationCancelled: If the user aborts the login process, this exception
+                                         is raised.
+
         """
         logger.debug("Requesting password on command line.")
         while True:
@@ -196,7 +206,7 @@ class ConsoleAuthenticationHandlerBase(AuthenticationHandlerBase):
             except EOFError:
                 # Insert a \n on the current line so the print is displayed on a new time.
                 print
-                self.raise_authentication_cancelled_error()
+                raise AuthenticationCancelled()
 
             session_token = self._get_session_token(hostname, login, password, http_proxy)
             if session_token:
@@ -208,21 +218,21 @@ class ConsoleAuthenticationHandlerBase(AuthenticationHandlerBase):
         :param host Host to authenticate for.
         :param login: User that needs authentication.
         :param http_proxy: Proxy to connect to when authenticating.
-        :raises: TankAuthenticationError If the user cancels the authentication process,
-                 this exception will be thrown.
         :returns: A tuple of (hostname, login, password)
+        :raises AuthenticationCancelled: If the user cancels the authentication process,
+                 this exception will be thrown.
         """
         raise NotImplementedError
 
     def _get_password(self):
         """
         Prompts the user for his password. The password will not be visible on the console.
-        :raises: TankAuthenticationError If the user enters an empty password, the exception
+        :raises: AuthenticationCancelled If the user enters an empty password, the exception
                                          will be thrown.
         """
         password = getpass("Password (empty to abort): ")
         if not password:
-            self.raise_authentication_cancelled_error()
+            raise AuthenticationCancelled()
         return password
 
     def _get_keyboard_input(self, label, default_value=""):
@@ -346,7 +356,7 @@ class UiAuthenticationHandler(AuthenticationHandlerBase):
         result = self._gui_launcher(_process_ui)
 
         if not result:
-            self.raise_authentication_cancelled_error()
+            raise AuthenticationCancelled()
         return result
 
 
@@ -362,8 +372,8 @@ def _renew_session(user, session_token, credentials_handler):
     Common login logic, regardless of how we are actually logging in. It will first try to reuse
     any existing session and if that fails then it will ask for credentials and upon success
     the credentials will be cached.
-    :raises: TankAuthenticationError Thrown if the authentication is cancelled.
-    :raises: TankAuthenticationDisabled Thrown if authentication was cancelled before.
+    :raises AuthenticationError: Raised if the authentication is cancelled.
+    :raises AuthenticationDisabled: Raised if authentication was cancelled before.
     """
     logger.debug("About to take the authentication lock.")
     global _renew_session_lock

@@ -32,7 +32,7 @@ class CoreDefaultsManager(sg_auth.DefaultsManager):
         :returns: The host value from the configuration
         """
         from . import shotgun
-        return shotgun.get_associated_sg_base_url()
+        return shotgun.get_associated_sg_config_data().get("host")
 
     def get_http_proxy(self):
         """

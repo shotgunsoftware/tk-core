@@ -14,4 +14,4 @@ Imports Qt without having to worry whether we are using PyQt4 or PySide.
 try:
     from PySide import QtCore, QtGui
 except ImportError:
-        from PyQt4 import QtCore, QtGui
+    from PyQt4 import QtCore, QtGui
