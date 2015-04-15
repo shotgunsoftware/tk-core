@@ -17,8 +17,6 @@ import pickle
 from .shotgun_wrapper import ShotgunWrapper
 
 from . import session_cache
-from .errors import CachingVolatileUserException
-
 
 # Indirection to create ShotgunWrapper instances. Great for unit testing.
 _shotgun_instance_factory = ShotgunWrapper
@@ -114,7 +112,7 @@ class SessionUser(ShotgunUser):
     """
     A user that authenticates to the Shotgun server using a session token.
     """
-    def __init__(self, host, login, session_token, http_proxy, is_volatile=False):
+    def __init__(self, host, login, session_token, http_proxy):
         """
         Constructor.
 
@@ -122,15 +120,12 @@ class SessionUser(ShotgunUser):
         :param login: Login name for the user.
         :param session_token: Session token for the user.
         :param http_proxy: HTTP proxy to use with this host. Defaults to None.
-        :param is_volatile: Indicates if the user can cache it's credentials to
-                            disk.
         """
 
         super(SessionUser, self).__init__(host, http_proxy)
 
         self._login = login
         self._session_token = session_token
-        self._is_volatile = is_volatile
 
     def get_login(self):
         """
@@ -167,30 +162,12 @@ class SessionUser(ShotgunUser):
             user=self
         )
 
-    def mark_volatile(self):
-        """
-        Marks this user as volatile. A volatile user won't save it's credentials to disk.
-        """
-        self._is_volatile = True
-
-    def is_volatile(self):
-        """
-        Returns if a user is volatile.
-
-        :returns: True if volatile, False otherwise.
-        """
-        return self._is_volatile
-
     def save(self):
         """
         Saves a user's information in the local site cache.
 
         :param user: Specifying a user to be the current user.
-
-        :raises CachingVolatileUserException: Raised if the user is volatile.
         """
-        if self._is_volatile:
-            raise CachingVolatileUserException()
         session_cache.cache_session_data(
             self.get_host(),
             self.get_login(),
@@ -249,7 +226,6 @@ class SessionUser(ShotgunUser):
         data = super(SessionUser, self).to_dict()
         data["login"] = self._login
         data["session_token"] = self._session_token
-        data["is_volatile"] = self._is_volatile
         return data
 
 

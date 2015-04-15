@@ -25,15 +25,13 @@ class UserTests(TankTestBase):
             host="host",
             login="login",
             session_token="session_token",
-            http_proxy="http_proxy",
-            is_volatile=True
+            http_proxy="http_proxy"
         )
         su_2 = user.deserialize_user(user.serialize_user(su))
         self.assertEquals(su.get_host(), su_2.get_host())
         self.assertEquals(su.get_http_proxy(), su_2.get_http_proxy())
         self.assertEquals(su.get_login(), su_2.get_login())
         self.assertEquals(su.get_session_token(), su_2.get_session_token())
-        self.assertEquals(su.is_volatile(), su_2.is_volatile())
 
         su = user.ScriptUser(
             host="host",

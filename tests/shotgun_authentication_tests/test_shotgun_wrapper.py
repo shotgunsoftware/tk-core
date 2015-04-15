@@ -36,7 +36,7 @@ class ShotgunWrapperTests(TankTestBase):
         mocked_result = {"entities": [1, 2, 3]}
         _call_rpc_mock.side_effect = AuthenticationFault()
 
-        sg_user = user.SessionUser("https://host.shotgunstudio.com", "login", "session", "proxy", is_volatile=False)
+        sg_user = user.SessionUser("https://host.shotgunstudio.com", "login", "session", "proxy")
         # Directly call _call_rpc. We should be invoking the derived class here, which will
         # then invoke the base class which is in fact our mock class so it should throw once and then
         # succeed.
@@ -68,7 +68,7 @@ class ShotgunWrapperTests(TankTestBase):
         _call_rpc_mock.side_effect = AuthenticationFault("This is coming from the _call_rpc_mock.")
         renew_session_mock.side_effect = ShotgunAuthenticationError("This is coming from renew_session_mock.")
 
-        sg_user = user.SessionUser("https://host.shotgunstudio.com", "login", "session", "proxy", is_volatile=False)
+        sg_user = user.SessionUser("https://host.shotgunstudio.com", "login", "session", "proxy")
         with self.assertRaisesRegexp(ShotgunAuthenticationError, "This is coming from renew_session_mock."):
             sg_user.create_sg_connection()._call_rpc()
 

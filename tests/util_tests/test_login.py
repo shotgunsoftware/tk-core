@@ -43,7 +43,7 @@ class LoginTests(TankTestBase):
         is_human_user_mock.return_value = True
         is_session_user.return_value = False
         get_current_user_mock.return_value = tank_vendor.shotgun_authentication.user.SessionUser(
-            "host", "tk-user", "session_token", http_proxy=None, is_volatile=False
+            "host", "tk-user", "session_token", http_proxy=None
         )
         try:
             # Clear the cache so that get_current_user can work. Path cache is being updated by

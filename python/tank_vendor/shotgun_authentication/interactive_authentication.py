@@ -400,19 +400,16 @@ def _renew_session(user, session_token, credentials_handler):
         except AuthenticationError:
             _renew_session_disabled = True
             logger.debug("Authentication cancelled, disabling authentication.")
-            if not user.is_volatile():
-                # Clear the cached user from the host.
-                user.clear_saved_user(user.get_host())
+            user.clear_saved_user(user.get_host())
             raise
 
         logger.debug("Login successful!")
 
         # Do not save credentials for a user that exists only for this process (when loaded from a context for example)
         user.set_session_token(session_token)
-        if not user.is_volatile():
-            session_cache.cache_session_data(
-                user.get_host(), user.get_login(), user.get_session_token()
-            )
+        session_cache.cache_session_data(
+            user.get_host(), user.get_login(), user.get_session_token()
+        )
 
 
 def renew_session(user, session_token):

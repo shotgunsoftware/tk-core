@@ -37,16 +37,6 @@ class AuthenticationDisabled(ShotgunAuthenticationError):
         )
 
 
-class CachingVolatileUserException(ShotgunAuthenticationError):
-    """
-    Thrown when someone tries to cache a SessionUser that is volatile.
-    """
-    def __init__(self):
-        ShotgunAuthenticationError.__init__(
-            self, "Can't cache a volatile SessionUser's credentials."
-        )
-
-
 class IncompleteCredentials(ShotgunAuthenticationError):
     """
     Thrown when credentials are provided but are incomplete.
