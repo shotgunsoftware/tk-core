@@ -9,6 +9,37 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 
+########################################################################
+# Establish pipeline configuration context if needed
+# 
+# When the tank command executes, or when the python API is imported
+# via the API proxy that is available with every non-localized pipeline config,
+# an environment variable TANK_CURRENT_PC, is set, pointing at the configuration
+# associated with the currently running config. This is to ensure that the right 
+# version of the code is associated with the currently running project 
+# configuration. 
+#
+# However, in the case when a cloned configuration has been localized,
+# the API proxy has been replaced by the actual core API code.
+# In this case, we will set the TANK_CURRENT_PC explicitly.
+#
+# The logic below is fundamentally to avoid the issue that when a cloned localized
+# configuration has its python sgtk/tank module imported directly, it will associate
+# itself with the primary config rather than with the config where the code is located. 
+
+import os
+if "TANK_CURRENT_PC" not in os.environ:
+    # find the pipeline configuration root, probe for a key file
+    # (templates.yml) and use this test to determine if this code is 
+    # a core API located inside a pipeline configuration.
+    current_folder = os.path.abspath(os.path.dirname(__file__))
+    pipeline_config = os.path.abspath(os.path.join(current_folder, "..", "..", "..", ".."))
+    templates_file = os.path.join(pipeline_config, "config", "core", "templates.yml")
+    if os.path.exists(templates_file):
+        os.environ["TANK_CURRENT_PC"] = pipeline_config
+    
+########################################################################
+    
 # make sure that all sub-modules are imported at the same as the main module
 from . import platform
 from . import util
