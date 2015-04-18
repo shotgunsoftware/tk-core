@@ -145,40 +145,7 @@ def _create_invoker():
     return MainThreadInvoker()
 
 
-class AuthenticationHandlerBase(object):
-    """
-    Base class for authentication requests. This class should not be
-    instantiated directly and be used through the authenticate and
-    renew_session methods.
-    """
-
-    def authenticate(self, host, login, http_proxy):
-        """
-        Does the actual authentication. Prompts the user and validates the credentials.
-        :param host Host to authenticate for. Can be None.
-        :param login: User that needs authentication. Can be None.
-        :param http_proxy: Proxy to connect to when authenticating.
-        :raises: AuthenticationError If the user cancels the authentication process,
-                 this exception will be thrown.
-        """
-        raise NotImplementedError
-
-    def _get_session_token(self, hostname, login, password, http_proxy):
-        """
-        Retrieves a session token for the given credentials.
-        :param hostname: The host to connect to.
-        :param login: The user to get a session for.
-        :param password: Password for the user.
-        :param http_proxy: Proxy to use. Can be None.
-        :returns: If the credentials were valid, returns a session token, otherwise returns None.
-        """
-        try:
-            return session_cache.generate_session_token(hostname, login, password, http_proxy)
-        except AuthenticationError:
-            return None
-
-
-class ConsoleAuthenticationHandlerBase(AuthenticationHandlerBase):
+class ConsoleAuthenticationHandlerBase(object):
     """
     Base class for authenticating on the console. It will take care of the credential retrieval loop,
     requesting new credentials as long as they are invalid or until the user provides the right one
@@ -260,10 +227,12 @@ class ConsoleAuthenticationHandlerBase(AuthenticationHandlerBase):
         :param http_proxy: Proxy to use. Can be None.
         :returns: If the credentials were valid, returns a session token, otherwise returns None.
         """
-        token = super(ConsoleAuthenticationHandlerBase, self)._get_session_token(hostname, login, password, http_proxy)
-        if not token:
-            print "Login failed."
-        return token
+        try:
+            return session_cache.generate_session_token(hostname, login, password, http_proxy)
+        except AuthenticationError:
+            if not token:
+                print "Login failed."
+            return None
 
 
 class ConsoleRenewSessionHandler(ConsoleAuthenticationHandlerBase):
@@ -311,7 +280,7 @@ class ConsoleLoginHandler(ConsoleAuthenticationHandlerBase):
         return hostname, login, password
 
 
-class UiAuthenticationHandler(AuthenticationHandlerBase):
+class UiAuthenticationHandler(object):
     """
     Handles ui based authentication. This class should not be instantiated
     directly and be used through the authenticate and renew_session methods.
@@ -405,7 +374,6 @@ def _renew_session(user, session_token, credentials_handler):
 
         logger.debug("Login successful!")
 
-        # Do not save credentials for a user that exists only for this process (when loaded from a context for example)
         user.set_session_token(session_token)
         session_cache.cache_session_data(
             user.get_host(), user.get_login(), user.get_session_token()

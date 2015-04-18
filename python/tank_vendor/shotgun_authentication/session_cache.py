@@ -109,6 +109,7 @@ def delete_session_data(host):
             logger.debug("Session file not found: %s", info_path)
     except:
         logger.exception("Couldn't delete the session cache file!")
+        raise
 
 
 def get_session_data(base_url):
@@ -191,14 +192,16 @@ def generate_session_token(hostname, login, password, http_proxy):
     :raises: AuthenticationError if the credentials were invalid.
     """
     try:
-        # Create the instance...
+        # Create the instance taht does not connect right away for speed...
         sg = Shotgun(
             hostname,
             login=login,
             password=password,
-            http_proxy=http_proxy
+            http_proxy=http_proxy,
+            connect=False
         )
-        # .. and generate the session token. If it throws, we have invalid credentials.
+        # .. and generate the session token. If it throws, we have invalid
+        # credentials or invalid host/proxy settings.
         return sg.get_session_token()
     except AuthenticationFault:
         raise AuthenticationError("Authentication failed.")

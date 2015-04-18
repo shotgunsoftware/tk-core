@@ -17,7 +17,7 @@ import string
 import tank
 import textwrap
 import datetime
-from tank import TankError, TankAuthenticationError
+from tank import TankError
 from tank.deploy.tank_commands.clone_configuration import clone_pipeline_configuration_html
 from tank.deploy import tank_command
 from tank.deploy.tank_commands.core_upgrade import TankCoreUpgrader

@@ -64,7 +64,7 @@ class DefaultsManager(object):
             except:
                 return None
 
-    def get_user(self):
+    def get_user_credentials(self):
         """
         Override to provide a default user's dictionary of credentials.
 

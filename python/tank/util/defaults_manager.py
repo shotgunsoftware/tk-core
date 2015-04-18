@@ -46,7 +46,7 @@ class CoreDefaultsManager(sg_auth.DefaultsManager):
         from . import shotgun
         return shotgun.get_associated_sg_config_data().get("http_proxy")
 
-    def get_user(self):
+    def get_user_credentials(self):
         """
         Returns the script user's credentials configured for this core, if
         available.

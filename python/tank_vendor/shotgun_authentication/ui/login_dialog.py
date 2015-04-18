@@ -102,7 +102,7 @@ class LoginDialog(QtGui.QDialog):
         # the trick of activating + raising does not seem to be enough for
         # modal dialogs. So force put them on top as well.
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint | self.windowFlags())
-        QtGui.QDialog.exec_(self)
+        return QtGui.QDialog.exec_(self)
 
     def result(self):
         """
@@ -110,8 +110,7 @@ class LoginDialog(QtGui.QDialog):
         :returns: A tuple of (hostname, username and session token) string if the user authenticated
                   None if the user cancelled.
         """
-        self.exec_()
-        if QtGui.QDialog.result(self) == QtGui.QDialog.Accepted:
+        if self.exec_() == QtGui.QDialog.Accepted:
             return (self.ui.site.text().encode("utf-8"),
                     self.ui.login.text().encode("utf-8"),
                     self._new_session_token)
