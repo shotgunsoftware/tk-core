@@ -51,24 +51,9 @@ class ShotgunAuthenticator(object):
         """
         self._defaults_manager = defaults_manager or DefaultsManager()
 
-    def get_saved_user(self):
+    def clear_default_user(self):
         """
-        Returns the currently saved user for the default site.
-
-        :returns: A ShotgunUser derived object or None if no saved user has been found.
-        """
-        host = self._defaults_manager.get_host()
-        # No default host, no so saved user can be found.
-        if not host:
-            return None
-        return user.SessionUser.get_saved_user(
-            host,
-            self._defaults_manager.get_http_proxy()
-        )
-
-    def clear_saved_user(self):
-        """
-        Removes the saved user's credentials from disk for the default host. The
+        Removes the default user's credentials from disk for the default host. The
         next time the ShotgunAuthenticator.get_saved_user method is called,
         None will be returned.
 
@@ -78,12 +63,16 @@ class ShotgunAuthenticator(object):
         # No default host, no so saved user can be found.
         if not host:
             return None
+        login = self._defaults_manager.get_login()
+        if not login:
+            return None
         sg_user = user.SessionUser.get_saved_user(
             host,
+            login,
             self._defaults_manager.get_http_proxy()
         )
         if sg_user:
-            user.SessionUser.clear_saved_user(host)
+            sg_user.clear_saved_credentials()
         return sg_user
 
     def get_user_from_prompt(self):
@@ -229,11 +218,14 @@ class ShotgunAuthenticator(object):
         # provides it's own defaults manager which has a get_user that returns
         # the credentials for the script user in shotgun.yml, so that has to
         # have precedence over the saved user.
-        user = self.get_default_user() or self.get_saved_user()
+        user = self.get_default_user()
         if user:
             return user
 
         # Prompt the client for user credentials and connection information
         user = self.get_user_from_prompt()
+        # Save the user's credentials.
         user.save()
+        # Remember that this user is the last one that was authenticated.
+        self._defaults_manager.set_login(user.get_login())
         return user

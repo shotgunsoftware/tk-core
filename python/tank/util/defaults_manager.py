@@ -56,4 +56,4 @@ class CoreDefaultsManager(sg_auth.DefaultsManager):
         data = shotgun.get_associated_sg_config_data()
         if data.get("api_script") and data.get("api_key"):
             return data
-        return None
+        return super(CoreDefaultsManager, self).get_user_credentials()

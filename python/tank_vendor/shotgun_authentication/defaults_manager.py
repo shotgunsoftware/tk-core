@@ -8,8 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import os
-import sys
+from . import session_cache
 
 
 class DefaultsManager(object):
@@ -17,6 +16,14 @@ class DefaultsManager(object):
     This class allows the ShotgunAuthenticator to get some default values when
     authenticating a user.
     """
+
+    def __init__(self):
+        """
+        Consructor.
+
+        Reads the default host and login from disk.
+        """
+        self._login = session_cache.get_current_user(self.get_host())
 
     def is_host_fixed(self):
         """
@@ -34,7 +41,7 @@ class DefaultsManager(object):
 
         When the host is fixed, this has to return a value.
 
-        :returns: A string containing the default host name. Default implementation returns None.
+        :returns: A string containing the default host name.
         """
         return None
 
@@ -53,16 +60,7 @@ class DefaultsManager(object):
 
         :returns: Default implementation returns the current os user login name.
         """
-        if sys.platform == "win32":
-            # http://stackoverflow.com/questions/117014/how-to-retrieve-name-of-current-windows-user-ad-or-local-using-python
-            return os.environ.get("USERNAME", None)
-        else:
-            try:
-                import pwd
-                pwd_entry = pwd.getpwuid(os.geteuid())
-                return pwd_entry[0]
-            except:
-                return None
+        return self._login
 
     def get_user_credentials(self):
         """
@@ -70,4 +68,11 @@ class DefaultsManager(object):
 
         :returns: Default implementation returns None.
         """
-        return None
+        return session_cache.get_session_data(self.get_host(), self.get_login())
+
+    def set_login(self, login):
+        """
+        Saves to disk the last user logged in.
+        """
+        self._login = login
+        session_cache.set_current_user(self.get_host(), login)

@@ -127,6 +127,8 @@ class SessionUser(ShotgunUser):
         self._login = login
         self._session_token = session_token
 
+        self._try_save()
+        
     def get_login(self):
         """
         Returns the login name for this user.
@@ -150,6 +152,7 @@ class SessionUser(ShotgunUser):
         :param session_token: The new session token for this user.
         """
         self._session_token = session_token
+        self._try_save()
 
     def create_sg_connection(self):
         """
@@ -158,7 +161,8 @@ class SessionUser(ShotgunUser):
         :returns: A Shotgun instance.
         """
         return _shotgun_instance_factory(
-            self._host, session_token=self._session_token, http_proxy=self._http_proxy,
+            self.get_host(), session_token=self.get_session_token(),
+            http_proxy=self.get_http_proxy(),
             user=self
         )
 
@@ -174,28 +178,29 @@ class SessionUser(ShotgunUser):
             self.get_session_token()
         )
 
-    @staticmethod
-    def clear_saved_user(host):
+    def clear_session_token(self):
         """
-        Removes the saved user's credentials from disk for a given host. The
-        next time the SessionUser.get_saved_user method is called, None will be
-        returned.
+        Removes the user's credentials from disk. The next time the
+        SessionUser.get_saved_user method is called, None will be returned.
+        """
+        self._session_token = ""
+        # Contrary to saving, deleting session token failure should not
+        # be silenced, since not deleting the information might be considered
+        # a security hole.
+        session_cache.delete_session_data(self.get_host(), self.get_login())
 
-        :param host: Host to remove the saved user from.
-        """
-        session_cache.delete_session_data(host)
-
     @staticmethod
-    def get_saved_user(host, http_proxy):
+    def get_saved_user(host, login, http_proxy):
         """
-        Returns the currenly saved user for a given host.
+        Returns a user for a given host.
 
         :param host: Host to retrieve the saved user from.
+        :param login: Saved user to retrieve from the host.
         :param http_proxy: HTTP proxy to use with this host.
 
         :returns: A SessionUser instance if a user was saved, None otherwise.
         """
-        credentials = session_cache.get_session_data(host)
+        credentials = session_cache.get_session_data(host, login)
         if credentials:
             return SessionUser(
                 host=host,
@@ -214,7 +219,6 @@ class SessionUser(ShotgunUser):
 
         :returns: A SessionUser instance.
         """
-
         return SessionUser(**payload)
 
     def to_dict(self):
@@ -224,9 +228,24 @@ class SessionUser(ShotgunUser):
         :returns: A dictionary with all the attributes of the user.
         """
         data = super(SessionUser, self).to_dict()
-        data["login"] = self._login
-        data["session_token"] = self._session_token
+        data["login"] = self.get_login()
+        data["session_token"] = self.get_session_token()
         return data
+
+    def _try_save(self):
+        """
+        Try saving the credentials for this user, but do not raise an exception
+        if it failed.
+        """
+        try:
+            self.save()
+        except:
+            # Do not break the running pass because somehow we couldn't
+            # cache the credentials. We'll simply be asking them again
+            # next time.
+            # FIXME: We should log something here however.
+            pass
+
 
 
 class ScriptUser(ShotgunUser):
@@ -254,10 +273,10 @@ class ScriptUser(ShotgunUser):
         :returns: A Shotgun instance.
         """
         return _shotgun_instance_factory(
-            self._host,
-            script_name=self._api_script,
-            api_key=self._api_key,
-            http_proxy=self._http_proxy,
+            self.get_host(),
+            script_name=self.get_script(),
+            api_key=self.get_key(),
+            http_proxy=self.get_http_proxy(),
             user=self
         )
 
@@ -284,8 +303,8 @@ class ScriptUser(ShotgunUser):
         :returns: A dictionary with all the attributes of the user.
         """
         data = super(ScriptUser, self).to_dict()
-        data["api_script"] = self._api_script
-        data["api_key"] = self._api_key
+        data["api_script"] = self.get_script()
+        data["api_key"] = self.get_key()
         return data
 
     @staticmethod

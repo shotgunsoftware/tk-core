@@ -19,6 +19,7 @@ from getpass import getpass
 import threading
 from .errors import AuthenticationError, AuthenticationCancelled
 from . import session_cache
+import sys
 
 
 # FIXME: Quick hack to easily disable logging in this module while keeping the
@@ -51,6 +52,24 @@ else:
         @staticmethod
         def exception(*args, **kwargs):
             pass
+
+
+def _get_current_os_user():
+    """
+    Gets the current operating system username.
+
+    :returns: The username string.
+    """
+    if sys.platform == "win32":
+        # http://stackoverflow.com/questions/117014/how-to-retrieve-name-of-current-windows-user-ad-or-local-using-python
+        return os.environ.get("USERNAME", None)
+    else:
+        try:
+            import pwd
+            pwd_entry = pwd.getpwuid(os.geteuid())
+            return pwd_entry[0]
+        except:
+            return None
 
 
 def _get_qt_state():
@@ -350,11 +369,12 @@ def _renew_session_internal(user, session_token, credentials_handler):
         if _is_authentication_cancelled:
             raise AuthenticationCancelled()
 
+        logger.debug("Took the authentication lock.")
+
         # If somebody refreshed the session token on the user object since we tried with
         # the session token.
         if user.get_session_token() != session_token:
-            return None
-        logger.debug("Took the authentication lock.")
+            return
 
         try:
             logger.debug("Not authenticated, requesting user input.")
@@ -367,7 +387,7 @@ def _renew_session_internal(user, session_token, credentials_handler):
         except AuthenticationCancelled:
             _is_authentication_cancelled = True
             logger.debug("Authentication cancelled")
-            user.clear_saved_user(user.get_host())
+            user.clear_session_token()
             raise
 
         logger.debug("Login successful!")
@@ -445,7 +465,11 @@ def authenticate(default_host, default_login, http_proxy, fixed_host):
     :raises AuthenticationCancelled: If the user cancels the authentication,
                                      this exception is raised.
     """
+    # If there is no default login, let's provide the os user's instead.
+    default_login = default_login or _get_current_os_user()
+
     QtCore, QtGui, has_ui = _get_qt_state()
+
     # If we have a gui, we need gui based authentication
     if has_ui:
         # If we are renewing for a background thread, use the invoker

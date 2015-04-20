@@ -1317,7 +1317,7 @@ if __name__ == "__main__":
             core_dm = CoreDefaultsManager()
             sa = ShotgunAuthenticator(core_dm)
             # Clear the saved user.
-            user = sa.clear_saved_user()
+            user = sa.clear_default_user()
             if user:
                 logger.info("Succesfully logged out from %s." % user.get_host())
             else:
