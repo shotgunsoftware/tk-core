@@ -128,7 +128,7 @@ class SessionUser(ShotgunUser):
         self._session_token = session_token
 
         self._try_save()
-        
+
     def get_login(self):
         """
         Returns the login name for this user.
@@ -245,7 +245,6 @@ class SessionUser(ShotgunUser):
             # next time.
             # FIXME: We should log something here however.
             pass
-
 
 
 class ScriptUser(ShotgunUser):
