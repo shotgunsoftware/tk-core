@@ -202,12 +202,23 @@ def _insert_or_update_user(users_file, login, session_token):
     :param users_file: Users dictionary to update.
     :param login: Login of the user to update.
     :param session_token: Session token of the user to update.
+
+    :returns: True is the users dictionary has been updated, False otherwise.
     """
+    # Go through all users
     for user in users_file["users"]:
+
+        # If we've matched what we are looking for.
         if user["login"] == login:
-            user["session_token"] = session_token
-            return
+            # Update and return True only if something changed.
+            if user["session_token"] != session_token:
+                user["session_token"] = session_token
+                return True
+            else:
+                return False
+    # This is a new user, add it to the list.
     users_file["users"].append({"login": login, "session_token": session_token})
+    return True
 
 
 def _write_users_file(file_path, users_data):
@@ -288,10 +299,13 @@ def cache_session_data(host, login, session_token):
     logger.debug("Caching login info at %s...", file_path)
 
     document = _try_load_users_file(file_path)
-    _insert_or_update_user(document, login, session_token)
-    _write_users_file(file_path, document)
 
-    logger.debug("Cached!")
+    if _insert_or_update_user(document, login, session_token):
+        # Write back the file only it a new user was added.
+        _write_users_file(file_path, document)
+        logger.debug("Cached!")
+    else:
+        logger.debug("Already cached!")
 
 
 def get_current_user(host):

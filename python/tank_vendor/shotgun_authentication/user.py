@@ -17,6 +17,7 @@ import pickle
 from .shotgun_wrapper import ShotgunWrapper
 
 from . import session_cache
+from .errors import IncompleteCredentials
 
 # Indirection to create ShotgunWrapper instances. Great for unit testing.
 _shotgun_instance_factory = ShotgunWrapper
@@ -56,8 +57,8 @@ class ShotgunUser(object):
         """
         Creates a Shotgun connection using the credentials for this user.
 
-        :raises NotImplementedError: If not overridden in the derived class, 
-                                     this method will raise a 
+        :raises NotImplementedError: If not overridden in the derived class,
+                                     this method will raise a
                                      NotImplementedError.
         """
         self.__class__._not_implemented("create_sg_connection")
@@ -68,8 +69,8 @@ class ShotgunUser(object):
 
         :returns: A dictionary with all the attributes of the user.
 
-        :raises NotImplementedError: If not overridden in the derived class, 
-                                     this method will raise a 
+        :raises NotImplementedError: If not overridden in the derived class,
+                                     this method will raise a
                                      NotImplementedError.
         """
         return {
@@ -86,8 +87,8 @@ class ShotgunUser(object):
 
         :returns: A ShotgunUser derived instance.
 
-        :raises NotImplementedError: If not overridden in the derived class, 
-                                     this method will raise a 
+        :raises NotImplementedError: If not overridden in the derived class,
+                                     this method will raise a
                                      NotImplementedError.
 
         """
@@ -123,6 +124,17 @@ class SessionUser(ShotgunUser):
         """
 
         super(SessionUser, self).__init__(host, http_proxy)
+
+        if not session_token:
+            # Try to see in the phonebook if this user is already authenticated.
+            session_data = session_cache.get_session_data(
+                host,
+                login
+            )
+            # No session data is cached on disk, simply throw.
+            if not session_data:
+                raise IncompleteCredentials("missing session_token")
+            session_token = session_data["session_token"]
 
         self._login = login
         self._session_token = session_token
