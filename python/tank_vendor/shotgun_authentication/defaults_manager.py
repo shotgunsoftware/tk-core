@@ -23,7 +23,11 @@ class DefaultsManager(object):
 
         Reads the default host and login from disk.
         """
-        self._login = session_cache.get_current_user(self.get_host())
+        self._host = session_cache.get_current_host()
+        if self._host:
+            self._login = session_cache.get_current_user(self.get_host())
+        else:
+            self._login = None
 
     def is_host_fixed(self):
         """
@@ -37,13 +41,29 @@ class DefaultsManager(object):
     def get_host(self):
         """
         The default host is used as a useful starting point when doing
-        interactive authentication.
+        interactive authentication. When the host is not fixed, the return
+        value of get_host is what is used to implement single sign-on between
+        all Toolkit desktop applications (at the moment, tank and Shotgun
+        Desktop).
 
         When the host is fixed, this has to return a value.
 
         :returns: A string containing the default host name.
         """
-        return None
+        return self._host
+
+    def set_host(self, host):
+        """
+        Sets the defaults host. If host is fixed, the default host is not
+        updated.
+
+        :param host: The new default host.
+        """
+        # Host is fixed, don't update the default host.
+        if self.is_host_fixed():
+            return
+        self._host = host
+        session_cache.set_current_host(host)
 
     def get_http_proxy(self):
         """
@@ -68,7 +88,10 @@ class DefaultsManager(object):
 
         :returns: Default implementation returns None.
         """
-        return session_cache.get_session_data(self.get_host(), self.get_login())
+        if self.get_host() and self.get_login():
+            return session_cache.get_session_data(self.get_host(), self.get_login())
+        else:
+            return None
 
     def set_login(self, login):
         """

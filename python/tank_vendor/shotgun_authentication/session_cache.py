@@ -126,6 +126,19 @@ def _get_current_user_file_location(base_url):
     )
 
 
+def _get_current_host_file_location():
+    """
+    Returns the location of the current host file.
+
+    :returns: Path to the current host information.
+    """
+    return os.path.join(
+        _get_cache_location(),
+        "authentication",
+        "current_host.yml"
+    )
+
+
 def _ensure_folder_for_file(filepath):
     """
     Makes sure the folder exists for a given file.
@@ -194,6 +207,16 @@ def _try_load_current_user_file(file_path):
     return content
 
 
+def _try_load_current_host_file(file_path):
+    """
+    Loads or creates the hosts file
+    """
+    content = _try_load_yaml_file(file_path)
+    # Make sure any mandatody entry is present.
+    content.setdefault("current_host", None)
+    return content
+
+
 def _insert_or_update_user(users_file, login, session_token):
     """
     Finds or updates an entry in the users file with the given login and
@@ -221,9 +244,9 @@ def _insert_or_update_user(users_file, login, session_token):
     return True
 
 
-def _write_users_file(file_path, users_data):
+def _write_yaml_file(file_path, users_data):
     """
-    Writes the users file at a given location.
+    Writes the yaml file at a given location.
 
     :param file_path: Where to write the users data
     :param users_data: Dictionary to write to disk.
@@ -251,7 +274,7 @@ def delete_session_data(host, login):
         # File the users to remove the token
         users_file["users"] = [u for u in users_file["users"] if u.get("login") != login]
         # Write back the file.
-        _write_users_file(info_path, users_file)
+        _write_yaml_file(info_path, users_file)
         logger.debug("Session cleared.")
     except:
         logger.exception("Couldn't update the session cache file!")
@@ -302,7 +325,7 @@ def cache_session_data(host, login, session_token):
 
     if _insert_or_update_user(document, login, session_token):
         # Write back the file only it a new user was added.
-        _write_users_file(file_path, document)
+        _write_yaml_file(file_path, document)
         logger.debug("Cached!")
     else:
         logger.debug("Already cached!")
@@ -336,7 +359,35 @@ def set_current_user(host, login):
 
     current_user_file = _try_load_current_user_file(file_path)
     current_user_file["current_user"] = login
-    _write_users_file(file_path, current_user_file)
+    _write_yaml_file(file_path, current_user_file)
+
+
+def get_current_host():
+    """
+    Returns the current host.
+
+    :returns: The current host string.
+    """
+    # Retrieve the cached info file location from the host
+    info_path = _get_current_host_file_location()
+    if os.path.exists(info_path):
+        document = _try_load_current_host_file(info_path)
+        return document["current_host"]
+    return None
+
+
+def set_current_host(host):
+    """
+    Saves the current host.
+
+    :param host: The new current host.
+    """
+    file_path = _get_current_host_file_location()
+    _ensure_folder_for_file(file_path)
+
+    current_host_file = _try_load_current_host_file(file_path)
+    current_host_file["current_host"] = host
+    _write_yaml_file(file_path, current_host_file)
 
 
 def generate_session_token(hostname, login, password, http_proxy):

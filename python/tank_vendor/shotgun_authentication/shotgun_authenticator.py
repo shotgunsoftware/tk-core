@@ -72,7 +72,7 @@ class ShotgunAuthenticator(object):
             self._defaults_manager.get_http_proxy()
         )
         if sg_user:
-            sg_user.clear_saved_credentials()
+            sg_user.clear_session_token()
         return sg_user
 
     def get_user_from_prompt(self):
@@ -220,6 +220,8 @@ class ShotgunAuthenticator(object):
 
         # Prompt the client for user credentials and connection information
         user = self.get_user_from_prompt()
-        # Remember that this user is the last one that was authenticated.
+        # Remember that this user and host are the last settings user for
+        # authentication.
+        self._defaults_manager.set_host(user.get_host())
         self._defaults_manager.set_login(user.get_login())
         return user
