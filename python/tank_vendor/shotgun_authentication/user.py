@@ -34,6 +34,10 @@ class ShotgunUser(object):
         :param host: Host for this Shotgun user.
         :param http_proxy: HTTP proxy to use with this host.
         """
+
+        if not host:
+            raise IncompleteCredentials("missing host")
+
         self._host = host
         self._http_proxy = http_proxy
 
@@ -113,7 +117,7 @@ class SessionUser(ShotgunUser):
     """
     A user that authenticates to the Shotgun server using a session token.
     """
-    def __init__(self, host, login, session_token, http_proxy):
+    def __init__(self, host, login, session_token, http_proxy, password=None):
         """
         Constructor.
 
@@ -123,23 +127,32 @@ class SessionUser(ShotgunUser):
             the session token will be looked for in the users file.
         :param http_proxy: HTTP proxy to use with this host. Defaults to None.
 
-        :raises IncompleteCredentials: If there was no session token on file for
-            login, this is raised.
-            login, this is raised.
+        :raises IncompleteCredentials: If there is not enough values
+            provided to initialize the user, this exception will be thrown.
         """
 
         super(SessionUser, self).__init__(host, http_proxy)
 
+        if not login:
+            raise IncompleteCredentials("missing login.")
+
+        # If we only have a password, generate a session token.
+        if password and not session_token:
+            session_token = session_cache.generate_session_token(host, login, password, http_proxy)
+
+        # If we still don't have a session token, look in the session cache
+        # to see if this user was already authenticated in the past.
         if not session_token:
-            # Try to see in the phonebook if this user is already authenticated.
             session_data = session_cache.get_session_data(
                 host,
                 login
             )
             # No session data is cached on disk, simply throw.
-            if not session_data:
-                raise IncompleteCredentials("missing session_token")
-            session_token = session_data["session_token"]
+            if session_data:
+                session_token = session_data["session_token"]
+
+        if not session_token:
+            raise IncompleteCredentials("missing session_token")
 
         self._login = login
         self._session_token = session_token
@@ -183,13 +196,11 @@ class SessionUser(ShotgunUser):
             user=self
         )
 
-    def clear_session_token(self):
+    def uncache_session_token(self):
         """
-        Removes the user's credentials from disk. The next time the
-        SessionUser.get_saved_user method is called, None will be returned.
+        Removes the user's credentials from the cache.
         """
-        self._session_token = ""
-        # Contrary to saving, deleting session token failure should not
+        # Contrary to saving, failing to delete the session token should not
         # be silenced, since not deleting the information might be considered
         # a security hole.
         session_cache.delete_session_data(self.get_host(), self.get_login())

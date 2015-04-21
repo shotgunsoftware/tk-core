@@ -56,7 +56,6 @@ class ShotgunAuthenticatorTests(TankTestBase):
         """
         Makes sure that create_script_user does correct input validation.
         """
-
         # No script name should throw
         with self.assertRaises(IncompleteCredentials):
             ShotgunAuthenticator(TestDefaultManager()).create_script_user("", "api_key")

@@ -65,7 +65,7 @@ class ShotgunAuthenticator(object):
                 login=self._defaults_manager.get_login(),
                 http_proxy=self._defaults_manager.get_http_proxy()
             )
-            user.clear_session_token()
+            user.uncache_session_token()
             return user
         except IncompleteCredentials:
             # Not all credentials were found, so there is no default user.
@@ -111,15 +111,8 @@ class ShotgunAuthenticator(object):
         host = host or self._defaults_manager.get_host()
         http_proxy = http_proxy or self._defaults_manager.get_http_proxy()
 
-        if not login:
-            raise IncompleteCredentials("missing login.")
-
-        # If we only have a password, generate a session token.
-        if password and not session_token:
-            session_token = session_cache.generate_session_token(host, login, password, http_proxy)
-
         # Create a session user
-        return user.SessionUser(host, login, session_token, http_proxy)
+        return user.SessionUser(host, login, session_token, http_proxy, password=password)
 
     def create_script_user(self, api_script, api_key, host=None, http_proxy=None):
         """

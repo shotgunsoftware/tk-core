@@ -201,7 +201,8 @@ def __create_sg_connection(config_data=None):
     """
 
     if config_data:
-        # Credentials were passed in, so let's run the legacy authentication mechanism for script user.
+        # Credentials were passed in, so let's run the legacy authentication
+        # mechanism for script user.
         sg = shotgun_api3.Shotgun(
             config_data["host"],
             script_name=config_data["api_script"], api_key=config_data["api_key"],
@@ -215,8 +216,10 @@ def __create_sg_connection(config_data=None):
             # This is needed for backwards compatibility with scripts that were
             # written before authentication was put in place. Since those scripts
             # don't set the current user, we have to get the one configured for the
-            # core instead.
-            user = sa.get_user()
+            # core instead. If the script user is configured, then the
+            # CoreDefaultsManager will provide it's credentials for us and
+            # sa.get_default_user will return the ScriptUser instance.
+            user = sa.get_default_user()
         if not user:
             raise AuthenticationError("No current Shotgun user available.")
         sg = user.create_sg_connection()

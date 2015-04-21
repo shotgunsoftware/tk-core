@@ -399,7 +399,7 @@ def _renew_session_internal(user, credentials_handler):
         except AuthenticationCancelled:
             _auth_state = AuthState.cancelled
             logger.debug("Authentication cancelled")
-            user.clear_session_token()
+            user.uncache_session_token()
             raise
 
 
