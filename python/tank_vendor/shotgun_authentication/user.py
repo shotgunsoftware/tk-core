@@ -195,27 +195,6 @@ class SessionUser(ShotgunUser):
         session_cache.delete_session_data(self.get_host(), self.get_login())
 
     @staticmethod
-    def get_saved_user(host, login, http_proxy):
-        """
-        Returns a user for a given host.
-
-        :param host: Host to retrieve the saved user from.
-        :param login: Saved user to retrieve from the host.
-        :param http_proxy: HTTP proxy to use with this host.
-
-        :returns: A SessionUser instance if a user was saved, None otherwise.
-        """
-        credentials = session_cache.get_session_data(host, login)
-        if credentials:
-            return SessionUser(
-                host=host,
-                http_proxy=http_proxy,
-                **credentials
-            )
-        else:
-            return None
-
-    @staticmethod
     def from_dict(payload):
         """
         Creates a user from a dictionary.
