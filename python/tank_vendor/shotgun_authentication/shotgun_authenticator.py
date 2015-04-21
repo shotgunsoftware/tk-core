@@ -220,8 +220,6 @@ class ShotgunAuthenticator(object):
 
         # Prompt the client for user credentials and connection information
         user = self.get_user_from_prompt()
-        # Save the user's credentials.
-        user.save()
         # Remember that this user is the last one that was authenticated.
         self._defaults_manager.set_login(user.get_login())
         return user

@@ -119,8 +119,13 @@ class SessionUser(ShotgunUser):
 
         :param host: Host for this Shotgun user.
         :param login: Login name for the user.
-        :param session_token: Session token for the user.
+        :param session_token: Session token for the user. If session token is None
+            the session token will be looked for in the users file.
         :param http_proxy: HTTP proxy to use with this host. Defaults to None.
+
+        :raises IncompleteCredentials: If there was no session token on file for
+            login, this is raised.
+            login, this is raised.
         """
 
         super(SessionUser, self).__init__(host, http_proxy)
@@ -176,18 +181,6 @@ class SessionUser(ShotgunUser):
             self.get_host(), session_token=self.get_session_token(),
             http_proxy=self.get_http_proxy(),
             user=self
-        )
-
-    def save(self):
-        """
-        Saves a user's information in the local site cache.
-
-        :param user: Specifying a user to be the current user.
-        """
-        session_cache.cache_session_data(
-            self.get_host(),
-            self.get_login(),
-            self.get_session_token()
         )
 
     def clear_session_token(self):
@@ -250,7 +243,11 @@ class SessionUser(ShotgunUser):
         if it failed.
         """
         try:
-            self.save()
+            session_cache.cache_session_data(
+                self.get_host(),
+                self.get_login(),
+                self.get_session_token()
+            )
         except:
             # Do not break the running pass because somehow we couldn't
             # cache the credentials. We'll simply be asking them again
