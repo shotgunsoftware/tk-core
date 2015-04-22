@@ -217,7 +217,7 @@ def __create_sg_connection(config_data=None):
             # written before authentication was put in place. Since those scripts
             # don't set the current user, we have to get the one configured for the
             # core instead. If the script user is configured, then the
-            # CoreDefaultsManager will provide it's credentials for us and
+            # CoreDefaultsManager will provide its credentials for us and
             # sa.get_default_user will return the ScriptUser instance.
             user = sa.get_default_user()
         if not user:
