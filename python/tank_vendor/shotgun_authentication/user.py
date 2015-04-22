@@ -17,13 +17,9 @@ import pickle
 from .shotgun_wrapper import ShotgunWrapper
 
 from . import session_cache
-from .errors import CachingVolatileUserException
 
-
+# Indirection to create ShotgunWrapper instances. Great for unit testing.
 _shotgun_instance_factory = ShotgunWrapper
-"""
-Indirection to create ShotgunWrapper instances. Great for unit testing.
-"""
 
 
 class ShotgunUser(object):
@@ -116,7 +112,7 @@ class SessionUser(ShotgunUser):
     """
     A user that authenticates to the Shotgun server using a session token.
     """
-    def __init__(self, host, login, session_token, http_proxy, is_volatile=False):
+    def __init__(self, host, login, session_token, http_proxy):
         """
         Constructor.
 
@@ -124,15 +120,12 @@ class SessionUser(ShotgunUser):
         :param login: Login name for the user.
         :param session_token: Session token for the user.
         :param http_proxy: HTTP proxy to use with this host. Defaults to None.
-        :param is_volatile: Indicates if the user can cache it's credentials to
-                            disk.
         """
 
         super(SessionUser, self).__init__(host, http_proxy)
 
         self._login = login
         self._session_token = session_token
-        self._is_volatile = is_volatile
 
     def get_login(self):
         """
@@ -169,30 +162,12 @@ class SessionUser(ShotgunUser):
             user=self
         )
 
-    def mark_volatile(self):
-        """
-        Marks this user as volatile. A volatile user won't save it's credentials to disk.
-        """
-        self._is_volatile = True
-
-    def is_volatile(self):
-        """
-        Returns if a user is volatile.
-
-        :returns: True if volatile, False otherwise.
-        """
-        return self._is_volatile
-
     def save(self):
         """
         Saves a user's information in the local site cache.
 
         :param user: Specifying a user to be the current user.
-
-        :raises CachingVolatileUserException: Raised if the user is volatile.
         """
-        if self._is_volatile:
-            raise CachingVolatileUserException()
         session_cache.cache_session_data(
             self.get_host(),
             self.get_login(),
@@ -216,6 +191,7 @@ class SessionUser(ShotgunUser):
         Returns the currenly saved user for a given host.
 
         :param host: Host to retrieve the saved user from.
+        :param http_proxy: HTTP proxy to use with this host.
 
         :returns: A SessionUser instance if a user was saved, None otherwise.
         """
@@ -230,7 +206,7 @@ class SessionUser(ShotgunUser):
             return None
 
     @staticmethod
-    def from_dict(representation):
+    def from_dict(payload):
         """
         Creates a user from a dictionary.
 
@@ -239,7 +215,7 @@ class SessionUser(ShotgunUser):
         :returns: A SessionUser instance.
         """
 
-        return SessionUser(**representation)
+        return SessionUser(**payload)
 
     def to_dict(self):
         """
@@ -250,7 +226,6 @@ class SessionUser(ShotgunUser):
         data = super(SessionUser, self).to_dict()
         data["login"] = self._login
         data["session_token"] = self._session_token
-        data["is_volatile"] = self._is_volatile
         return data
 
 
@@ -314,7 +289,7 @@ class ScriptUser(ShotgunUser):
         return data
 
     @staticmethod
-    def from_dict(representation):
+    def from_dict(payload):
         """
         Creates a user from a dictionary.
 
@@ -322,7 +297,7 @@ class ScriptUser(ShotgunUser):
 
         :returns: A ScriptUser instance.
         """
-        return ScriptUser(**representation)
+        return ScriptUser(**payload)
 
 
 def is_script_user(user):
@@ -354,7 +329,7 @@ __factories = {
 }
 
 
-def serialize(user):
+def serialize_user(user):
     """
     Serializes a user. Meant to be consumed by deserialize.
 
@@ -370,7 +345,7 @@ def serialize(user):
     })
 
 
-def deserialize(payload):
+def deserialize_user(payload):
     """
     Converts a payload produced by serialize into any of the ShotgunUser
     derived instance.
@@ -384,9 +359,9 @@ def deserialize(payload):
 
     # Find which user type we have
     global __factories
-    factory = __factories.get(user_dict["type"])
-    # Unknown representation, something is wrong. Maybe backward compatible code broke?
+    factory = __factories.get(user_dict.get("type"))
+    # Unknown type, something is wrong. Maybe backward compatible code broke?
     if not factory:
-        raise Exception("Invalid user representation: %s" % user_dict)
+        raise Exception("Invalid user type: %s" % user_dict)
     # Instantiate the user object.
     return factory(user_dict["data"])

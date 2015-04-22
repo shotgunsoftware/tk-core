@@ -23,9 +23,9 @@ from tank_vendor import yaml
 # use api json to cover py 2.5
 from tank_vendor import shotgun_api3
 json = shotgun_api3.shotgun.json
-from tank_vendor.shotgun_authentication import ShotgunAuthenticator, AuthenticationModuleError
+from tank_vendor.shotgun_authentication import ShotgunAuthenticator, AuthenticationError
 
-from ..errors import TankError, TankAuthenticationError
+from ..errors import TankError
 from .. import hook
 from ..platform import constants
 from . import login
@@ -192,34 +192,34 @@ def __create_sg_connection(config_data=None):
     """
     Creates a standard Toolkit shotgun connection.
 
-    :param shotgun_cfg_path: Configuration data. If None, the authentication module will be responsible
-                             for determining which credentials to use.
+    :param config_data: Configuration data dictionary. Keys host, api_script and api_key are
+                        expected, while http_proxy is optional. If None, the authentication module
+                        will be responsible for determining which credentials to use. This parameter
+                        is present for legacy reason to support a Psyop workflow. You shouldn't
+                        be using this.
     :returns: A Shotgun connection.
     """
 
-    try:
-        if config_data:
-            # Credentials were passed in, so let's run the legacy authentication mechanism for script user.
-            sg = shotgun_api3.Shotgun(
-                config_data["host"],
-                script_name=config_data["api_script"], api_key=config_data["api_key"],
-                http_proxy=config_data.get("http_proxy")
-            )
-        else:
-            from .. import api
-            # We're not running any special code for Psyop, so run the new Toolkit authentication code.
-
-            user = api.get_current_user()
-            if not user:
-                sa = ShotgunAuthenticator(CoreDefaultsManager())
-                # This is needed for backwards compatibility with scripts that were written before
-                # authentication was put in place.
-                user = sa.get_user()
-            if not user:
-                raise TankAuthenticationError("No current Shotgun user available.")
-            return user.create_sg_connection()
-    except AuthenticationModuleError, e:
-        raise TankAuthenticationError(str(e))
+    if config_data:
+        # Credentials were passed in, so let's run the legacy authentication mechanism for script user.
+        sg = shotgun_api3.Shotgun(
+            config_data["host"],
+            script_name=config_data["api_script"], api_key=config_data["api_key"],
+            http_proxy=config_data.get("http_proxy")
+        )
+    else:
+        from .. import api
+        user = api.get_current_user()
+        if not user:
+            sa = ShotgunAuthenticator(CoreDefaultsManager())
+            # This is needed for backwards compatibility with scripts that were
+            # written before authentication was put in place. Since those scripts
+            # don't set the current user, we have to get the one configured for the
+            # core instead.
+            user = sa.get_user()
+        if not user:
+            raise AuthenticationError("No current Shotgun user available.")
+        sg = user.create_sg_connection()
 
     # bolt on our custom user agent manager
     sg.tk_user_agent_handler = ToolkitUserAgentHandler(sg)
@@ -276,7 +276,8 @@ def get_associated_sg_base_url():
 def get_associated_sg_config_data():
     """
     Returns the shotgun configuration which is associated with this Toolkit setup.
-    :returns: The configuration data dictionary
+    :returns: The configuration data dictionary with keys host and optional entries
+              api_script, api_key and http_proxy.
     """
     cfg = __get_sg_config()
     return __get_sg_config_data(cfg)
@@ -348,6 +349,8 @@ def create_sg_app_store_connection():
     if g_app_store_connection is not None:
         return g_app_store_connection
 
+    # Connect to associated Shotgun site and retrieve the credentials to use to
+    # connect to the app store site
     config_data = __get_app_store_connection_information()
 
     # get connection parameters

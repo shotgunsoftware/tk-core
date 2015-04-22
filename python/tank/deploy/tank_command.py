@@ -35,6 +35,7 @@ from .tank_commands import core_localize
 from .tank_commands import install
 from .tank_commands import clone_configuration
 from .tank_commands import copy_apps
+from .tank_commands import unregister_folders
 
 from ..platform import constants
 from ..platform.engine import start_engine, get_environment_from_context
@@ -66,7 +67,7 @@ BUILT_IN_ACTIONS = [setup_project.SetupProjectAction,
                     migrate_entities.MigratePublishedFileEntitiesAction,
                     path_cache.SynchronizePathCache,
                     path_cache.PathCacheMigrationAction,
-                    path_cache.UnregisterFoldersAction,
+                    unregister_folders.UnregisterFoldersAction,
                     clone_configuration.CloneConfigAction,
                     copy_apps.CopyAppsAction,
                     ]

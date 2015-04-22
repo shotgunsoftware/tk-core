@@ -82,7 +82,7 @@ class ShotgunAuthenticatorTests(TankTestBase):
         self.assertIsNone(ShotgunAuthenticator().get_default_user())
 
         class ScriptDefaultManager(DefaultsManager):
-            def get_user(self):
+            def get_user_credentials(self):
                 return self.user
 
         dm = ScriptDefaultManager()

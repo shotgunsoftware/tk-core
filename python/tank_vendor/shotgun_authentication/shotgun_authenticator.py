@@ -183,7 +183,7 @@ class ShotgunAuthenticator(object):
         :returns: A ShotgunUser derived instance if available, None otherwise.
         """
         # Get the credentials
-        credentials = self._defaults_manager.get_user()
+        credentials = self._defaults_manager.get_user_credentials()
 
         # There is no default user.
         if not credentials:

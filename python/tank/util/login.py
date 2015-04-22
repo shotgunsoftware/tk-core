@@ -73,7 +73,13 @@ def get_current_user(tk):
     """
     Retrieves the current user as a dictionary of metadata values. Note: This method connects to
     shotgun the first time around. The result is then cached to reduce latency.
-    :returns: None if the user is not found in shotgun. Otherwise, it returns a dictionary
+
+    If a user has been authenticated via a login prompt, this method will return the credentials
+    associated with that user. If Toolkit has been configured to use a script user to connect to
+    Shotgun, a core hook will be executed to established which user is associated with the current
+    session. This is usually based on the currently logged in user.
+
+    :returns: None if the user is not found in Shotgun. Otherwise, it returns a dictionary
               with the following fields:
                  * id
                  * type

@@ -16,12 +16,10 @@ from mock import patch
 
 import tank
 from tank import context, errors
-from tank import TankAuthenticationError
 from tank_test.tank_test_base import *
 from tank_test import mockgun
 from tank.template import TemplatePath
 from tank.templatekey import SequenceKey
-from tank_vendor.shotgun_authentication import errors as auth_errors
 
 
 class TestShotgunFindPublish(TankTestBase):

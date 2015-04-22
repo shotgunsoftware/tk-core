@@ -21,4 +21,4 @@ credentials are reused if available.
 from .errors import *
 from .shotgun_authenticator import ShotgunAuthenticator
 from .defaults_manager import DefaultsManager
-from .user import is_script_user, is_session_user, deserialize as deserialize_user, serialize as serialize_user
+from .user import is_script_user, is_session_user, deserialize_user, serialize_user

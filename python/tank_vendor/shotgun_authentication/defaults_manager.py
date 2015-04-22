@@ -29,23 +29,27 @@ class DefaultsManager(object):
 
     def get_host(self):
         """
-        Override to provide a default host.
+        The default host is used as a useful starting point when doing
+        interactive authentication.
 
-        :returns: Default implementation returns None.
+        When the host is fixed, this has to return a value.
+
+        :returns: A string containing the default host name. Default implementation returns None.
         """
         return None
 
     def get_http_proxy(self):
         """
-        Override to provide a default http proxy.
+        Provides the http proxy associated to the default host.
 
-        :returns: Default implementation returns None.
+        :returns: String containing the default http proxy. Default implementation returns None.
         """
         return None
 
     def get_login(self):
         """
-        Override to provide a default login when asking for credentials
+        The default login is provided as a useful starting point when doing
+        interactive authentication.
 
         :returns: Default implementation returns the current os user login name.
         """
@@ -60,7 +64,7 @@ class DefaultsManager(object):
             except:
                 return None
 
-    def get_user(self):
+    def get_user_credentials(self):
         """
         Override to provide a default user's dictionary of credentials.
 

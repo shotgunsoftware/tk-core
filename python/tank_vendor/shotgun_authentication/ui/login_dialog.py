@@ -23,7 +23,7 @@ class LoginDialog(QtGui.QDialog):
     """
     Dialog for getting user crendentials.
     """
-    def __init__(self, title, is_session_renewal, hostname="", login="", fixed_host=False, http_proxy=None, pixmap=None, parent=None):
+    def __init__(self, title, is_session_renewal, hostname="", login="", fixed_host=False, http_proxy=None, parent=None):
         """
         Constructs a dialog.
 
@@ -33,7 +33,6 @@ class LoginDialog(QtGui.QDialog):
         :param login: The string to populate the login field with. Defaults to "".
         :param fixed_host: Indicates if the hostname can be changed. Defaults to False.
         :param http_proxy: The proxy server to use when testing authentication. Defaults to None.
-        :param pixmap: QPixmap to show in the dialog (defaults to the Shotgun logo)
         :param parent: The Qt parent for the dialog (defaults to None)
         """
         QtGui.QDialog.__init__(self, parent)
@@ -60,9 +59,7 @@ class LoginDialog(QtGui.QDialog):
             self.ui.site.setFocus()
 
         # set the logo
-        if not pixmap:
-            pixmap = QtGui.QPixmap(":/shotgun_authentication/shotgun_logo_light_medium.png")
-        self.ui.logo.setPixmap(pixmap)
+        self.ui.logo.setPixmap(QtGui.QPixmap(":/shotgun_authentication/shotgun_logo_light_medium.png"))
 
         # Disable keyboard input in the site and login boxes if we are simply renewing the session.
         self.ui.site.setReadOnly(is_session_renewal or fixed_host)
@@ -74,8 +71,8 @@ class LoginDialog(QtGui.QDialog):
             self._set_message("Please enter your Shotgun credentials.")
 
         # hook up signals
-        self.connect(self.ui.sign_in, QtCore.SIGNAL("clicked()"), self._ok_pressed)
-        self.connect(self.ui.cancel, QtCore.SIGNAL("clicked()"), self.reject)
+        self.ui.sign_in.clicked.connect(self._ok_pressed)
+        self.ui.cancel.clicked.connect(self.reject)
 
     def _set_message(self, message):
         """
@@ -105,7 +102,7 @@ class LoginDialog(QtGui.QDialog):
         # the trick of activating + raising does not seem to be enough for
         # modal dialogs. So force put them on top as well.
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint | self.windowFlags())
-        QtGui.QDialog.exec_(self)
+        return QtGui.QDialog.exec_(self)
 
     def result(self):
         """
@@ -113,8 +110,7 @@ class LoginDialog(QtGui.QDialog):
         :returns: A tuple of (hostname, username and session token) string if the user authenticated
                   None if the user cancelled.
         """
-        self.exec_()
-        if QtGui.QDialog.result(self) == QtGui.QDialog.Accepted:
+        if self.exec_() == QtGui.QDialog.Accepted:
             return (self.ui.site.text().encode("utf-8"),
                     self.ui.login.text().encode("utf-8"),
                     self._new_session_token)

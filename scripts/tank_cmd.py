@@ -26,8 +26,9 @@ from tank.deploy.tank_commands.action_base import Action
 from tank.util import shotgun, CoreDefaultsManager
 from tank_vendor.shotgun_authentication import ShotgunAuthenticator
 from tank_vendor.shotgun_authentication import AuthenticationError
-from tank_vendor.shotgun_authentication import AuthenticationModuleError
+from tank_vendor.shotgun_authentication import ShotgunAuthenticationError
 from tank_vendor.shotgun_authentication import InvalidCredentials
+from tank_vendor.shotgun_authentication import AuthenticationCancelled
 from tank_vendor import yaml
 from tank.platform import engine
 from tank import pipelineconfig_utils
@@ -201,7 +202,7 @@ Launch maya for a Task in Shotgun using an id:
 Launch maya for a folder:
 > tank /studio/proj_xyz/shots/ABC123 launch_maya
 
-Log out of the current user (no need for a contex):
+Log out of the current user (no context required):
 > tank logout
 
 """
@@ -1286,7 +1287,6 @@ def _extract_args(cmd_line, args):
         The second element is the cmd_line list without the arguments that were
         extracted.
     """
-    print cmd_line, args
     # Find all instances of each argument in the command line
     found_args = []
     for cmd_line_token in cmd_line:
@@ -1615,6 +1615,18 @@ if __name__ == "__main__":
             # now run the command
             exit_code = run_engine_cmd(logger, pipeline_config_root, ctx_list, cmd_name, using_cwd, cmd_args)
 
+    except AuthenticationCancelled:
+        logger.info("")
+        if debug_mode:
+            # full stack trace
+            logger.exception("An AuthenticationCancelled error was raised: %s" % "Authentication was cancelled.")
+        else:
+            # one line report
+            logger.error("Authentication was cancelled.")
+        logger.info("")
+        # Error messages and such have already been handled by the method that threw this exception.
+        exit_code = 8
+
     except InvalidCredentials, e:
         logger.info("")
         if debug_mode:
@@ -1625,28 +1637,16 @@ if __name__ == "__main__":
             logger.error(str(e))
         exit_code = 9
 
-    except AuthenticationError, e:
+    except ShotgunAuthenticationError, e:
         logger.info("")
         if debug_mode:
             # full stack trace
-            logger.exception("An AuthenticationError was raised: %s" % str(e))
+            logger.exception("A ShotgunAuthenticationError was raised: %s" % str(e))
         else:
             # one line report
             logger.error(str(e))
         logger.info("")
         exit_code = 10
-
-    except AuthenticationModuleError, e:
-        logger.info("")
-        if debug_mode:
-            # full stack trace
-            logger.exception("A TankError was raised: %s" % "Authentication was cancelled.")
-        else:
-            # one line report
-            logger.error("Authentication was cancelled.")
-        logger.info("")
-        # Error messages and such have already been handled by the method that threw this exception.
-        exit_code = 8
 
     except TankError, e:
         logger.info("")
