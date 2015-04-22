@@ -38,11 +38,11 @@ from tank import pipelineconfig_utils
 ###############################################################################################
 # Constants
 
-ARG_SCRIPT = "script"
-ARG_KEY = "key"
+ARG_SCRIPT_NAME = "script-name"
+ARG_SCRIPT_KEY = "script-key"
 ARG_LOGIN = "login"
 ARG_PASSWORD = "password"
-ARG_AUTH = "auth"
+ARG_CREDENTIALS_FILE = "credentials-file"
 
 SHOTGUN_ENTITY_TYPES = ['Playlist', 'AssetSceneConnection', 'Note', 'TaskDependency', 'PageHit',
                         'ActionMenuItem', 'Attachment', 'AssetMocapTakeConnection',
@@ -147,6 +147,18 @@ General options and info
 ----------------------------------------------
 - To show this help, add a -h or --help flag.
 - To display verbose debug, add a --debug flag.
+- To provide a username and a password on the command line for authentication,
+  add the --login=username and --password=password arguments anywhere on
+  the command line.
+- To provide a script name and script key on the command line for
+  authentication, add the --script-name=scriptname and
+  --script-key=scriptkey arguments anywhere on the command line.
+- To provide a script user and script key in a file for authentication,
+  add the --credentials-file=/path/to/credential/file anywhere on the
+  command line. The credentials file should be in the YAML format with keys
+  script-name and script-key set. For example:
+  script-name: Toolkit
+  script-key: cb412dbf815bf9d4c257f648d9ec996722b4b452fc4c54dfbd0684d56fa65956
 
 
 Executing Commands
@@ -200,10 +212,18 @@ Log out of the current user (no need for a contex):
 def ensure_authenticated(cmd_line_credentials):
     """
     Make sure that there is a current toolkit user set.
-    May prompt for a login/password if needed
+    May prompt for a login/password if needed. Note that if command line
+    arguments are used, the current user will be overriden only for this
+    invocation of the tank command and future invocations without credentials
+    on the command line will use the current default user. If no command line
+    credentials are provided and no script user is set, then the user will be
+    prompted for his credentials and those will be remembered in future
+    invocations until that user logs out.
 
     :param cmd_line_credentials: Dictionary of credentials passed from the
-                                 command line. May be empty or None.
+        command line. Possible keys are script-name and script-key or
+        login and password. Empty arrays or None are also supported. For example,
+        {"login": "bob", password: "1234qwertY"}
     """
     # create a core-level defaults manager.
     # this will read site details from shotgun.yml
@@ -212,10 +232,10 @@ def ensure_authenticated(cmd_line_credentials):
     shotgun_auth = ShotgunAuthenticator(core_dm)
 
     if cmd_line_credentials:
-        if ARG_SCRIPT in cmd_line_credentials:
+        if ARG_SCRIPT_NAME in cmd_line_credentials:
             user = shotgun_auth.create_script_user(
-                api_script=cmd_line_credentials[ARG_SCRIPT],
-                api_key=cmd_line_credentials[ARG_KEY]
+                api_script=cmd_line_credentials[ARG_SCRIPT_NAME],
+                api_key=cmd_line_credentials[ARG_SCRIPT_KEY]
             )
         else:
             # The only other supported type is login.
@@ -225,7 +245,7 @@ def ensure_authenticated(cmd_line_credentials):
             )
     else:
         # request a user, either by prompting the user or by pulling out of
-        # saves sessions etc.
+        # saved sessions etc.
         user = shotgun_auth.get_user()
     # set the current toolkit user
     tank.set_current_user(user)
@@ -1254,16 +1274,19 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
         return tank_command.run_action(log, tk, ctx, command, args)
 
 
-def _extract_args(cmd_line, *args):
+def _extract_args(cmd_line, args):
     """
     Extract specified arguments and sorts them. Also removes them from the
     command line.
 
     :param cmd_line: Array of command line arguments.
-    :param args: Argument list to extract
+    :param args: List of arguments to extract.
 
-    :returns: A list of key, value tuples representing each arguments.
+    :returns: A tuple. The first element is a list of key, value tuples representing each arguments.
+        The second element is the cmd_line list without the arguments that were
+        extracted.
     """
+    print cmd_line, args
     # Find all instances of each argument in the command line
     found_args = []
     for cmd_line_token in cmd_line:
@@ -1272,10 +1295,11 @@ def _extract_args(cmd_line, *args):
                 found_args.append(cmd_line_token)
 
     # Strip all these arguments from the command line.
-    for a in found_args:
-        cmd_line.remove(a)
+    new_cmd_line = [
+        argument for argument in cmd_line if argument not in found_args
+    ]
 
-    credentials = []
+    arguments = []
 
     # Create a list of tuples for each argument we found.
     for arg in found_args:
@@ -1283,9 +1307,9 @@ def _extract_args(cmd_line, *args):
         # Take everything after the -- up to but not including the =
         arg_name = arg[2:pos]
         arg_value = arg[pos + 1:]
-        credentials.append((arg_name, arg_value))
+        arguments.append((arg_name, arg_value))
 
-    return credentials
+    return arguments, new_cmd_line
 
 
 def _validate_only_once(args, arg):
@@ -1326,15 +1350,19 @@ def _validate_args_cardinality(args, arg1, arg2):
 
 def _read_credentials_from_file(auth_path):
     """
-    Reads the credentials from a file and returns two tuples: one for
-    login/password values and the other for script/key values. Any other values
-    are ignored.
+    Reads the credentials from a file and returns a list of tuples for each
+    script-key and script-name arguments. Any other values are ignored.
+
+    Here's a sample file:
+
+    script-name: Toolkit
+    script-key: cb412dbf815bf9d4c257f648d9ec996722b4b452fc4c54dfbd0684d56fa65956
+
 
     :param auth_path: Path to a file with credentials.
 
-    :returns: A tuple of list of key, value pairs for values parsed. For example,
-       ([("login", "user"), ("password", "12345")],
-        [("script", "name"), ("key", "12345")])
+    :returns: A list of key, value pairs for values parsed. For example,
+        [("script-name", "name"), ("script-key", "12345")]
        The first tuple is concerned with human user based authentication, the second
        is concerned with script based authentication.
 
@@ -1346,13 +1374,11 @@ def _read_credentials_from_file(auth_path):
     with open(auth_path) as auth_file:
         file_data = yaml.load(auth_file)
 
-    # We've already fixed the problem of parsing a bunch of values on the
-    # command line that may be mixed, so reshuffle the information that way
-    # and read from credentials
-    fake_cmd_line = ["--%s=%s" % (arg, value) for arg, value in file_data.iteritems()]
+    args = [
+        (k, v) for k, v in file_data.iteritems() if k in [ARG_SCRIPT_NAME, ARG_SCRIPT_KEY]
+    ]
 
-    return (_extract_args(fake_cmd_line, ARG_SCRIPT, ARG_KEY),
-            _extract_args(fake_cmd_line, ARG_LOGIN, ARG_PASSWORD))
+    return args
 
 
 def _extract_credentials(cmd_line):
@@ -1366,9 +1392,9 @@ def _extract_credentials(cmd_line):
     """
 
     # Extract the credential pairs.
-    script_user_credentials = _extract_args(cmd_line, ARG_SCRIPT, ARG_KEY)
-    human_user_credentials = _extract_args(cmd_line, ARG_LOGIN, ARG_PASSWORD)
-    file_credentials_path = _extract_args(cmd_line, ARG_AUTH)
+    script_user_credentials, cmd_line = _extract_args(cmd_line, [ARG_SCRIPT_NAME, ARG_SCRIPT_KEY])
+    human_user_credentials, cmd_line = _extract_args(cmd_line, [ARG_LOGIN, ARG_PASSWORD])
+    file_credentials_path, cmd_line = _extract_args(cmd_line, [ARG_CREDENTIALS_FILE])
 
     # If we have credentials in a file
     if file_credentials_path:
@@ -1376,9 +1402,9 @@ def _extract_credentials(cmd_line):
         if script_user_credentials or human_user_credentials:
             raise InvalidCredentials("can't mix command line credentials and file credentials.")
         # Validate it's only been specified once.
-        _validate_only_once(file_credentials_path, ARG_AUTH)
+        _validate_only_once(file_credentials_path, ARG_CREDENTIALS_FILE)
         # Read the credentials from file
-        script_user_credentials, human_user_credentials = _read_credentials_from_file(
+        script_user_credentials = _read_credentials_from_file(
             file_credentials_path[0][1]
         )
 
@@ -1387,15 +1413,15 @@ def _extract_credentials(cmd_line):
         raise InvalidCredentials("can't mix human user and script user credentials.")
 
     if script_user_credentials:
-        _validate_args_cardinality(script_user_credentials, ARG_SCRIPT, ARG_KEY)
-        return dict(script_user_credentials)
+        _validate_args_cardinality(script_user_credentials, ARG_SCRIPT_NAME, ARG_SCRIPT_KEY)
+        return cmd_line, dict(script_user_credentials)
 
     if human_user_credentials:
         _validate_args_cardinality(human_user_credentials, ARG_LOGIN, ARG_PASSWORD)
-        return dict(human_user_credentials)
+        return cmd_line, dict(human_user_credentials)
 
     # If no elements were specified, that's ok.
-    return None
+    return cmd_line, None
 
 
 if __name__ == "__main__":
@@ -1468,7 +1494,7 @@ if __name__ == "__main__":
     exit_code = 1
     try:
 
-        credentials = _extract_credentials(cmd_line)
+        cmd_line, credentials = _extract_credentials(cmd_line)
 
         if len(cmd_line) == 0:
             # > tank, no arguments

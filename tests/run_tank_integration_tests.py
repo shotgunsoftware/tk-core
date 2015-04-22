@@ -63,34 +63,31 @@ def command_line_authentication_tests():
     # missing param
     test_return_value(9, "--login=test")
     test_return_value(9, "--password=1234")
-    test_return_value(9, "--script=test")
-    test_return_value(9, "--key=1234")
-    test_return_value(9, "--auth==%s" % get_test_resource_path("authentication/missing_file"))
+    test_return_value(9, "--script-name=test")
+    test_return_value(9, "--script-key=1234")
+    test_return_value(9, "--credentials-file==%s" % get_test_resource_path("authentication/missing_file"))
 
     # doubling param
     test_return_value(9, "--login=test --login=test --password=1234")
     test_return_value(9, "--login=test --password=1234 --password=1234")
 
-    test_return_value(9, "--script=test --script=test --key=1234")
-    test_return_value(9, "--script=test --key=1234 --key=1234")
+    test_return_value(9, "--script-name=test --script-name=test --script-key=1234")
+    test_return_value(9, "--script-name=test --script-key=1234 --script-key=1234")
 
     # mixing params
-    test_return_value(9, "--login=test --script=test")
-    test_return_value(9, "--login=test --key=test")
-    test_return_value(9, "--login=test --auth=/var/tmp/userpass")
+    test_return_value(9, "--login=test --script-name=test")
+    test_return_value(9, "--login=test --script-key=test")
+    test_return_value(9, "--login=test --credentials-file=/var/tmp/script_credentials.yml")
 
-    test_return_value(9, "--password=test --script=test")
-    test_return_value(9, "--password=test --key=test")
-    test_return_value(9, "--password=test --auth=/var/tmp/userpass")
+    test_return_value(9, "--password=test --script-name=test")
+    test_return_value(9, "--password=test --script-key=test")
+    test_return_value(9, "--password=test --credentials-file=/var/tmp/script_credentials.yml")
 
-    test_return_value(9, "--script=test --auth=/var/tmp/userpass")
-    test_return_value(9, "--key=test --auth=/var/tmp/userpass")
-
-    test_return_value(9, "--auth=%s" % get_test_resource_path("authentication/mixed"))
+    test_return_value(9, "--script-name=test --credentials-file=/var/tmp/script_credentials.yml")
+    test_return_value(9, "--script-key=test --credentials-file=/var/tmp/script_credentials.yml")
 
     # invalid credentials
     test_return_value(10, "--login=test --password=1234")
-    test_return_value(10, "--auth=%s" % get_test_resource_path("authentication/login_password"))
 
 
 def main():
