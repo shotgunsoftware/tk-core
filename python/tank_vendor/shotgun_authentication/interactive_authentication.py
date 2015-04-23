@@ -387,7 +387,7 @@ def _renew_session(user, session_token, credentials_handler):
     global _renew_session_lock
     with _renew_session_lock:
         global _renew_session_thread_count
-        _renew_session_thread_count = _renew_session_thread_count + 1
+        _renew_session_thread_count += 1
 
     try:
         # Renew the session
@@ -396,7 +396,7 @@ def _renew_session(user, session_token, credentials_handler):
         # We're leaving the method somehow, cleanup!
         with _renew_session_lock:
             # Decrement the thread count
-            _renew_session_thread_count = _renew_session_thread_count - 1
+            _renew_session_thread_count -= 1
             # If we're the last one, clear the cancel flag.
             if _renew_session_thread_count == 0:
                 global _is_authentication_cancelled
