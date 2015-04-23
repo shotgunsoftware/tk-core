@@ -38,11 +38,6 @@ class ShotgunWrapper(Shotgun):
         Wraps the _call_rpc method from the base class to trap authentication
         errors and prompt for the user's password.
         """
-        # If we have a script user, there's nothing special to do.
-        from . import user
-        if user.is_script_user(self._user):
-            return super(ShotgunWrapper, self)._call_rpc(*args, **kwargs)
-
         # Capture the current value of the session token. This is not
         # thread-safe, but it doesn't matter at this point. Let's go through the
         # scenarios.

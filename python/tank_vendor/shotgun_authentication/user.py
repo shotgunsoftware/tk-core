@@ -15,6 +15,7 @@ api key with the ScriptUser class. This module is meant to be used internally.
 
 import pickle
 from .shotgun_wrapper import ShotgunWrapper
+from tank_vendor.shotgun_api3 import Shotgun
 
 from . import session_cache
 
@@ -253,12 +254,13 @@ class ScriptUser(ShotgunUser):
 
         :returns: A Shotgun instance.
         """
-        return _shotgun_instance_factory(
+        # No need to instantiate the ShotgunWrapper because we're not using
+        # session-based authentication.
+        return Shotgun(
             self._host,
             script_name=self._api_script,
             api_key=self._api_key,
-            http_proxy=self._http_proxy,
-            user=self
+            http_proxy=self._http_proxy
         )
 
     def get_script(self):
