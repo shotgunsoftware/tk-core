@@ -19,6 +19,7 @@ from getpass import getpass
 import threading
 from .errors import AuthenticationError, AuthenticationCancelled
 from . import session_cache
+import sys
 
 
 # FIXME: Quick hack to easily disable logging in this module while keeping the
@@ -51,6 +52,24 @@ else:
         @staticmethod
         def exception(*args, **kwargs):
             pass
+
+
+def _get_current_os_user():
+    """
+    Gets the current operating system username.
+
+    :returns: The username string.
+    """
+    if sys.platform == "win32":
+        # http://stackoverflow.com/questions/117014/how-to-retrieve-name-of-current-windows-user-ad-or-local-using-python
+        return os.environ.get("USERNAME", None)
+    else:
+        try:
+            import pwd
+            pwd_entry = pwd.getpwuid(os.geteuid())
+            return pwd_entry[0]
+        except:
+            return None
 
 
 def _get_qt_state():
@@ -330,49 +349,58 @@ class UiAuthenticationHandler(object):
 
 # Lock the assures only one thread at a time can execute the authentication logic.
 _renew_session_internal_lock = threading.Lock()
+
+class AuthState:
+    """
+    Authentication can be in three states. Waiting for authentication to complete,
+    authentication was cancelled (user hit Cancel or CTRL-D) and user provided
+    credentials successfully.
+    """
+    waiting = 1
+    cancelled = 2
+    success = 3
 # When a thread cancels session renewal, this flag is set so other threads know
 # to raise an exception as well.
-_is_authentication_cancelled = False
+_auth_state = AuthState.waiting
 
 
-def _renew_session_internal(user, session_token, credentials_handler):
+def _renew_session_internal(user, credentials_handler):
     """
-    Common login logic, regardless of how we are actually logging in. It will first try to reuse
-    any existing session and if that fails then it will ask for credentials and upon success
-    the credentials will be cached.
-    :raises AuthenticationError: Raised if the authentication is cancelled.
-    :raises AuthenticationDisabled: Raised if authentication was cancelled before.
+    Prompts the user for the password. This method should never be called directly
+    and _renew_session should be called instead.
+    :raises AuthenticationCancelled: Raised if the authentication is cancelled.
     """
     logger.debug("About to take the authentication lock.")
     global _renew_session_internal_lock
     with _renew_session_internal_lock:
-        global _is_authentication_cancelled
-        if _is_authentication_cancelled:
-            raise AuthenticationCancelled()
 
-        # If somebody refreshed the session token on the user object since we tried with
-        # the session token.
-        if user.get_session_token() != session_token:
-            return None
         logger.debug("Took the authentication lock.")
 
+        # When authentication is cancelled, every thread who enter the authentication
+        # critical section should throw as well.
+        global _auth_state
+        if _auth_state == AuthState.cancelled:
+            raise AuthenticationCancelled()
+        # If authentication was successful, simply return.
+        elif _auth_state == AuthState.success:
+            return
+
+        # We're the first thread, so authenticate.
         try:
             logger.debug("Not authenticated, requesting user input.")
-            # Do the actually credentials prompting and authenticating.
             hostname, login, session_token = credentials_handler.authenticate(
                 user.get_host(),
                 user.get_login(),
                 user.get_http_proxy()
             )
+            _auth_state = AuthState.success
+            logger.debug("Login successful!")
+            user.set_session_token(session_token)
         except AuthenticationCancelled:
-            _is_authentication_cancelled = True
+            _auth_state = AuthState.cancelled
             logger.debug("Authentication cancelled")
-            user.clear_saved_user(user.get_host())
+            user.uncache_session_token()
             raise
-
-        logger.debug("Login successful!")
-
-        user.set_session_token(session_token)
 
 
 # Makes access to the thread count and executing logic based on it thread
@@ -382,7 +410,22 @@ _renew_session_lock = threading.Lock()
 _renew_session_thread_count = 0
 
 
-def _renew_session(user, session_token, credentials_handler):
+def _renew_session(user, credentials_handler):
+    """
+    Prompts the user for the password. This method is thread-safe, meaning if
+    multiple users call this method at the same time, it will keep track of
+    how many threads are currently running inside it and all threads waiting
+    for the authentication to complete will return with the same result
+    as the thread that actually did the authentication, either returning or
+    raising an exception.
+
+    :param user: SessionUser we are re-authenticating.
+    :param credentials_handler: Method that actually prompts the user for
+                                credentials.
+
+    :raises AuthenticationCancelled: If the user cancels the authentication,
+                                     this exception is raised.
+    """
     # One more renewer.
     global _renew_session_lock
     with _renew_session_lock:
@@ -391,7 +434,7 @@ def _renew_session(user, session_token, credentials_handler):
 
     try:
         # Renew the session
-        _renew_session_internal(user, session_token, credentials_handler)
+        _renew_session_internal(user, credentials_handler)
     finally:
         # We're leaving the method somehow, cleanup!
         with _renew_session_lock:
@@ -399,20 +442,19 @@ def _renew_session(user, session_token, credentials_handler):
             _renew_session_thread_count -= 1
             # If we're the last one, clear the cancel flag.
             if _renew_session_thread_count == 0:
-                global _is_authentication_cancelled
-                _is_authentication_cancelled = False
+                global _auth_state
+                _auth_state = AuthState.waiting
             # At this point, if the method _renew_session_internal simply
             # returned, this method returns. If the method raised an exception,
             # it will keep being propagated.
 
 
-def renew_session(user, session_token):
+def renew_session(user):
     """
     Prompts the user to enter this password on the console or in a ui to
     retrieve a new session token.
 
     :param user: SessionUser that needs its session token refreshed.
-    :param session_token: The session token value that originally failed.
 
     :raises AuthenticationCancelled: If the user cancels the authentication,
                                      this exception is raised.
@@ -424,7 +466,7 @@ def renew_session(user, session_token):
         authenticator = UiAuthenticationHandler(is_session_renewal=True)
     else:
         authenticator = ConsoleRenewSessionHandler()
-    _renew_session(user, session_token, authenticator)
+    _renew_session(user, authenticator)
 
 
 def authenticate(default_host, default_login, http_proxy, fixed_host):
@@ -445,7 +487,11 @@ def authenticate(default_host, default_login, http_proxy, fixed_host):
     :raises AuthenticationCancelled: If the user cancels the authentication,
                                      this exception is raised.
     """
+    # If there is no default login, let's provide the os user's instead.
+    default_login = default_login or _get_current_os_user()
+
     QtCore, QtGui, has_ui = _get_qt_state()
+
     # If we have a gui, we need gui based authentication
     if has_ui:
         # If we are renewing for a background thread, use the invoker
