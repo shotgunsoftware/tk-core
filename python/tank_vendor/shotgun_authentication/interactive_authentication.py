@@ -17,7 +17,7 @@ UI and console based login for Toolkit.
 from __future__ import with_statement
 from getpass import getpass
 import threading
-from .errors import AuthenticationError, AuthenticationDisabled, AuthenticationCancelled
+from .errors import AuthenticationError, AuthenticationCancelled
 from . import session_cache
 
 
@@ -230,8 +230,7 @@ class ConsoleAuthenticationHandlerBase(object):
         try:
             return session_cache.generate_session_token(hostname, login, password, http_proxy)
         except AuthenticationError:
-            if not token:
-                print "Login failed."
+            print "Login failed."
             return None
 
 
@@ -330,13 +329,13 @@ class UiAuthenticationHandler(object):
 
 
 # Lock the assures only one thread at a time can execute the authentication logic.
-_renew_session_lock = threading.Lock()
-# Flag that keeps track if a user cancelled authentication. When the flag is raised, it will
-# be impossible to authenticate again.
-_renew_session_disabled = False
+_renew_session_internal_lock = threading.Lock()
+# When a thread cancels session renewal, this flag is set so other threads know
+# to raise an exception as well.
+_is_authentication_cancelled = False
 
 
-def _renew_session(user, session_token, credentials_handler):
+def _renew_session_internal(user, session_token, credentials_handler):
     """
     Common login logic, regardless of how we are actually logging in. It will first try to reuse
     any existing session and if that fails then it will ask for credentials and upon success
@@ -345,18 +344,17 @@ def _renew_session(user, session_token, credentials_handler):
     :raises AuthenticationDisabled: Raised if authentication was cancelled before.
     """
     logger.debug("About to take the authentication lock.")
-    global _renew_session_lock
-    global _renew_session_disabled
-    with _renew_session_lock:
+    global _renew_session_internal_lock
+    with _renew_session_internal_lock:
+        global _is_authentication_cancelled
+        if _is_authentication_cancelled:
+            raise AuthenticationCancelled()
 
         # If somebody refreshed the session token on the user object since we tried with
         # the session token.
         if user.get_session_token() != session_token:
             return None
         logger.debug("Took the authentication lock.")
-        # If somebody disabled authentication, we're done here as well.
-        if _renew_session_disabled:
-            raise AuthenticationDisabled()
 
         try:
             logger.debug("Not authenticated, requesting user input.")
@@ -366,18 +364,46 @@ def _renew_session(user, session_token, credentials_handler):
                 user.get_login(),
                 user.get_http_proxy()
             )
-        except AuthenticationError:
-            _renew_session_disabled = True
-            logger.debug("Authentication cancelled, disabling authentication.")
+        except AuthenticationCancelled:
+            _is_authentication_cancelled = True
+            logger.debug("Authentication cancelled")
             user.clear_saved_user(user.get_host())
             raise
 
         logger.debug("Login successful!")
 
         user.set_session_token(session_token)
-        session_cache.cache_session_data(
-            user.get_host(), user.get_login(), user.get_session_token()
-        )
+
+
+# Makes access to the thread count and executing logic based on it thread
+# safe.
+_renew_session_lock = threading.Lock()
+# Number of threads who are trying to renew the session.
+_renew_session_thread_count = 0
+
+
+def _renew_session(user, session_token, credentials_handler):
+    # One more renewer.
+    global _renew_session_lock
+    with _renew_session_lock:
+        global _renew_session_thread_count
+        _renew_session_thread_count += 1
+
+    try:
+        # Renew the session
+        _renew_session_internal(user, session_token, credentials_handler)
+    finally:
+        # We're leaving the method somehow, cleanup!
+        with _renew_session_lock:
+            # Decrement the thread count
+            _renew_session_thread_count -= 1
+            # If we're the last one, clear the cancel flag.
+            if _renew_session_thread_count == 0:
+                global _is_authentication_cancelled
+                _is_authentication_cancelled = False
+            # At this point, if the method _renew_session_internal simply
+            # returned, this method returns. If the method raised an exception,
+            # it will keep being propagated.
 
 
 def renew_session(user, session_token):
