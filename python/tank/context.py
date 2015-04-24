@@ -751,6 +751,44 @@ def from_entity_dictionary(tk, entity_dictionary):
     but if it can't determine a valid context then it will fall back to
     'from_entity' which may result in a Shotgun path cache query and be considerably
     slower.
+    
+    If the entity type is a PublishedFile (or legacy TankPublishedFile) then the code
+    will recurse down to the most relevant linked entity (Task, entity or Project,
+    in that order)
+
+    The following values for 'entity_dictionary' will result in a context being
+    created without falling back to a potential Shotgun query - each entity in the
+    dictionary (including linked entities) must have the fields: 'type', 'id' and 
+    'name' (or the name equivelent for specific entity types, e.g. 'content' for 
+    Step entities, 'code' for Shot entities, etc.):
+
+        - {"type":"Project", "id":123, "name":"My Project"}
+
+        - {"type":"Shot", "id":456, "code":"Shot 001", 
+            "project":{"type":"Project", "id":123, "name":"My Project"}
+            }
+
+        - {"type":"Task", "id":789, "name":"Animation",
+            "project":{"type":"Project", "id":123, "name":"My Project"}} 
+            "entity":{"type":"Shot", "id":456, "name":"Shot 001"}
+            "step":{"type":"Step", "id":101112, "name":"Anm"}
+            }
+
+    The following values for 'entity_dictionary' don't contain enough information to
+    fully form a context so the code will fall back to 'from_entity()' which may then
+    result in a Shotgun query to retrieve the missing information:
+
+        - # missing project name
+          {"type":"Project", "id":123}
+
+        - # missing linked project
+          {"type":"Shot", "id":456, "code":"Shot 001"}
+
+        - # missing linked project name and linked step
+          {"type":"Task", "id":789, "name":"Animation",
+            "project":{"type":"Project", "id":123}} 
+            "entity":{"type":"Shot", "id":456, "name":"Shot 001"}
+            }
 
     :param tk:                  Sgtk API handle
     :param entity_dictionary:   The entity dictionary to create the context from 
@@ -823,13 +861,22 @@ def from_entity_dictionary(tk, entity_dictionary):
         # clean up entities and populate context structure:
         def _build_clean_entity(ent):
             """
-            Ensure entity has id, type and name fields:
+            Ensure entity has id, type and name fields and build a clean
+            entity dictionary containing just those fields to return, stripping
+            out all other fields.
+
+            :param ent: The entity dictionary to build a clean dictionary from
+            :returns:   A clean entity dictionary containing just 'type', 'id' 
+                        and 'name' if all three exist in the input dictionary
+                        or None if they don't.
             """
+            # make sure we have id, type and name:
             if "id" not in ent or "type" not in ent:
                 return None
             ent_name = _get_entity_name(ent)
             if ent_name == None:
                 return None
+            # return a clean dictionary:
             return {"type":ent["type"], "id":ent["id"], "name":ent_name}
         
         if project:
