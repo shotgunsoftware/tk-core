@@ -249,7 +249,7 @@ def ensure_authenticated(cmd_line_credentials):
         # saved sessions etc.
         user = shotgun_auth.get_user()
     # set the current toolkit user
-    tank.set_current_user(user)
+    tank.set_authenticated_user(user)
 
 
 
@@ -499,7 +499,7 @@ def shotgun_run_action_auth(log, install_root, pipeline_config_root, is_localize
     default_user = sa.get_default_user()
     if default_user and not default_user.login:
         # there is a default script user - this takes precedence.
-        tank.set_current_user(default_user)
+        tank.set_authenticated_user(default_user)
     else:
         # no default user. Have to authenticate
         if password == "-":
@@ -530,7 +530,7 @@ def shotgun_run_action_auth(log, install_root, pipeline_config_root, is_localize
                 return
 
         # tell tk about our current user!
-        tank.set_current_user(user)
+        tank.set_authenticated_user(user)
 
     # and fire off the action
     return _shotgun_run_action(log,
@@ -583,7 +583,7 @@ def shotgun_run_action(log, install_root, pipeline_config_root, is_localized, ar
     core_dm = CoreDefaultsManager()
     sa = ShotgunAuthenticator(core_dm)
     user = sa.get_default_user()
-    tank.set_current_user(user)
+    tank.set_authenticated_user(user)
 
     action_name = args[0]
     entity_type = args[1]

@@ -95,7 +95,7 @@ def get_current_user(tk):
 
     from .. import api
 
-    user = api.get_current_user()
+    user = api.get_authenticated_user()
 
     if user:
         if not user.login:

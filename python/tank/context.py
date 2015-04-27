@@ -890,7 +890,7 @@ def serialize(context):
     """
     Serializes the context into a string
     """
-    from .api import Tank, get_current_user
+    from .api import Tank, get_authenticated_user
 
     data = {
         "project": context.project,
@@ -904,8 +904,8 @@ def serialize(context):
 
     from tank_vendor import shotgun_authentication as sg_auth
 
-    # If there is a current user.
-    user = get_current_user()
+    # If there is an authenticated user.
+    user = get_authenticated_user()
     if user:
         # We should serialize it as well so that the next process knows who to
         # run as.
@@ -918,7 +918,7 @@ def deserialize(context_str):
     Deserializes a string created with serialize() into a context object
     """
     # lazy load this to avoid cyclic dependencies
-    from .api import Tank, set_current_user
+    from .api import Tank, set_authenticated_user
     from tank_vendor import shotgun_authentication as sg_auth
 
     data = pickle.loads(context_str)
@@ -928,18 +928,18 @@ def deserialize(context_str):
     del data["_pc_path"]
 
     # Authentication in Toolkit requires that credentials are passed from
-    # one process to another so that the notion of the current user is
-    # inherited from once process to another. The current user needs to be part
-    # of the context because multiple DCCs can run at the same time under
-    # different users, e.g. launching Maya from the site as user A and Nuke
-    # from the tank command as user B.
+    # one process to another so the currently authenticated user is carried
+    # from one process to another. The current user needs to be part of the
+    # context because multiple DCCs can run at the same time under different
+    # users, e.g. launching Maya from the site as user A and Nuke from the tank
+    # command as user B.
     user_string = data.get("_current_user")
     if user_string:
         # Remove it from the data
         del data["_current_user"]
-        # and set the current user.
+        # and set the authenticated user user.
         user = sg_auth.deserialize_user(user_string)
-        set_current_user(user)
+        set_authenticated_user(user)
 
     # create a Sgtk API instance.
     tk = Tank(pipeline_config_path)

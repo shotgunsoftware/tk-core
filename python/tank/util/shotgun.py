@@ -210,7 +210,7 @@ def __create_sg_connection(config_data=None):
         )
     else:
         from .. import api
-        user = api.get_current_user()
+        user = api.get_authenticated_user()
         if not user:
             sa = ShotgunAuthenticator(CoreDefaultsManager())
             # This is needed for backwards compatibility with scripts that were
