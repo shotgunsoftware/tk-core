@@ -25,6 +25,7 @@ import unittest2 as unittest
 
 import sgtk
 import tank
+from tank_vendor import shotgun_authentication
 from tank import path_cache
 from tank_vendor import yaml
 
@@ -137,6 +138,10 @@ class TankTestBase(unittest.TestCase):
         self.tank_source_path = TANK_SOURCE_PATH
 
         self.init_cache_location = os.path.join(self.tank_temp, "init_cache.cache") 
+
+        shotgun_authentication.session_cache._get_cache_location = lambda: os.path.join(
+            self.tank_temp, "session_cache"
+        )
 
         def _get_cache_location_mock():
             return self.init_cache_location

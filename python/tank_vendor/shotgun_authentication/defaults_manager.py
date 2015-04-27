@@ -8,8 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import os
-import sys
+from . import session_cache
 
 
 class DefaultsManager(object):
@@ -17,6 +16,18 @@ class DefaultsManager(object):
     This class allows the ShotgunAuthenticator to get some default values when
     authenticating a user.
     """
+
+    def __init__(self):
+        """
+        Constructor.
+
+        Reads the default host and login from disk.
+        """
+        self._host = session_cache.get_current_host()
+        if self._host:
+            self._login = session_cache.get_current_user(self.get_host())
+        else:
+            self._login = None
 
     def is_host_fixed(self):
         """
@@ -30,13 +41,29 @@ class DefaultsManager(object):
     def get_host(self):
         """
         The default host is used as a useful starting point when doing
-        interactive authentication.
+        interactive authentication. When the host is not fixed, the return
+        value of get_host is what is used to implement single sign-on between
+        all Toolkit desktop applications (at the moment, tank and Shotgun
+        Desktop).
 
         When the host is fixed, this has to return a value.
 
-        :returns: A string containing the default host name. Default implementation returns None.
+        :returns: A string containing the default host name.
         """
-        return None
+        return self._host
+
+    def set_host(self, host):
+        """
+        Sets the defaults host. If host is fixed, the default host is not
+        updated.
+
+        :param host: The new default host.
+        """
+        # Host is fixed, don't update the default host.
+        if self.is_host_fixed():
+            return
+        self._host = host
+        session_cache.set_current_host(host)
 
     def get_http_proxy(self):
         """
@@ -53,16 +80,7 @@ class DefaultsManager(object):
 
         :returns: Default implementation returns the current os user login name.
         """
-        if sys.platform == "win32":
-            # http://stackoverflow.com/questions/117014/how-to-retrieve-name-of-current-windows-user-ad-or-local-using-python
-            return os.environ.get("USERNAME", None)
-        else:
-            try:
-                import pwd
-                pwd_entry = pwd.getpwuid(os.geteuid())
-                return pwd_entry[0]
-            except:
-                return None
+        return self._login
 
     def get_user_credentials(self):
         """
@@ -70,4 +88,14 @@ class DefaultsManager(object):
 
         :returns: Default implementation returns None.
         """
-        return None
+        if self.get_host() and self.get_login():
+            return session_cache.get_session_data(self.get_host(), self.get_login())
+        else:
+            return None
+
+    def set_login(self, login):
+        """
+        Saves to disk the last user logged in.
+        """
+        self._login = login
+        session_cache.set_current_user(self.get_host(), login)

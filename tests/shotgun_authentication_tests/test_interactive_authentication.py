@@ -108,7 +108,7 @@ class InteractiveTests(TankTestBase):
         self._print_message("We're about to fake an expired session. Hang tight!", test_console)
         # Test the session renewal code.
         tank_vendor.shotgun_authentication.interactive_authentication.renew_session(
-            sg_user, sg_user.get_session_token()
+            sg_user
         )
         self._print_message("Test successful", test_console)
 
