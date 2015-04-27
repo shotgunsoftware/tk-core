@@ -69,7 +69,7 @@ def _get_cache_location():
     return root
 
 
-def _get_local_site_cache_location(base_url):
+def _get_site_cache_location(base_url):
     """
     Returns the location of the site cache root based on a site.
 
@@ -84,58 +84,31 @@ def _get_local_site_cache_location(base_url):
     )
 
 
-def _get_authentication_cache_location(base_url):
+def _get_global_authentication_file_location():
     """
-    Returns the location for the authentication cache folder for a given site.
-
-    :param base_url: Site we need to compute the authentication cache path for.
-
-    :returns: An absolute path to the authentication cache root.
-    """
-    return os.path.join(
-        _get_local_site_cache_location(base_url),
-        "authentication"
-    )
-
-
-def _get_users_file_location(base_url):
-    """
-    Returns the location of the users file on disk for a specific site.
-
-    :param base_url: The site we want the login information for.
+    Returns the location of the authentication file on disk. This file
+    stores authentication related information for all sites. At this moment,
+    the file stores only the current host.
 
     :returns: Path to the login information.
-    """
-    return os.path.join(
-        _get_authentication_cache_location(base_url),
-        "users.yml"
-    )
-
-
-def _get_current_user_file_location(base_url):
-    """
-    Returns the location of the users file on disk for a specific site.
-
-    :param base_url: The site we want the login information for.
-
-    :returns: Path to the login information.
-    """
-    return os.path.join(
-        _get_authentication_cache_location(base_url),
-        "current_user.yml"
-    )
-
-
-def _get_current_host_file_location():
-    """
-    Returns the location of the current host file.
-
-    :returns: Path to the current host information.
     """
     return os.path.join(
         _get_cache_location(),
-        "authentication",
-        "current_host.yml"
+        "authentication.yml"
+    )
+
+
+def _get_site_authentication_file_location(base_url):
+    """
+    Returns the location of the users file on disk for a specific site.
+
+    :param base_url: The site we want the login information for.
+
+    :returns: Path to the login information.
+    """
+    return os.path.join(
+        _get_site_cache_location(base_url),
+        "authentication.yml"
     )
 
 
@@ -183,31 +156,23 @@ def _try_load_yaml_file(file_path):
         return {}
 
 
-def _try_load_users_file(file_path):
+def _try_load_site_authentication_file(file_path):
     """
     Loads or creates on the file the data for the users file. The users file has the following format:
+        current_user: "login1"
         users:
-           {name: "login", session_token: "session_token"}
-           {name: "login", session_token: "session_token"}
-           {name: "login", session_token: "session_token"}
+           {name: "login1", session_token: "session_token"}
+           {name: "login2", session_token: "session_token"}
+           {name: "login3", session_token: "session_token"}
     """
     content = _try_load_yaml_file(file_path)
     # Make sure any mandatory entry is present.
     content.setdefault("users", [])
-    return content
-
-
-def _try_load_current_user_file(file_path):
-    """
-    Loads or creates the users file
-    """
-    content = _try_load_yaml_file(file_path)
-    # Make sure any mandatody entry is present.
     content.setdefault("current_user", None)
     return content
 
 
-def _try_load_current_host_file(file_path):
+def _try_load_global_authentication_file(file_path):
     """
     Loads or creates the hosts file
     """
@@ -230,7 +195,6 @@ def _insert_or_update_user(users_file, login, session_token):
     """
     # Go through all users
     for user in users_file["users"]:
-
         # If we've matched what we are looking for.
         if user["login"] == login:
             # Update and return True only if something changed.
@@ -267,10 +231,10 @@ def delete_session_data(host, login):
         return
     logger.debug("Clearing session cached on disk.")
     try:
-        info_path = _get_users_file_location(host)
+        info_path = _get_site_authentication_file_location(host)
         logger.debug("Session file found.")
         # Read in the file
-        users_file = _try_load_users_file(info_path)
+        users_file = _try_load_site_authentication_file(info_path)
         # File the users to remove the token
         users_file["users"] = [u for u in users_file["users"] if u.get("login") != login]
         # Write back the file.
@@ -291,10 +255,10 @@ def get_session_data(base_url, login):
     :returns: Returns a dictionary with keys login and session_token or None
     """
     # Retrieve the location of the cached info
-    info_path = _get_users_file_location(base_url)
+    info_path = _get_site_authentication_file_location(base_url)
     try:
         # Nothing was cached, return an empty dictionary.
-        users_file = _try_load_users_file(info_path)
+        users_file = _try_load_site_authentication_file(info_path)
         for user in users_file["users"]:
             if user.get("login") == login:
                 return {
@@ -316,12 +280,12 @@ def cache_session_data(host, login, session_token):
     :param session_token: Session token we want to cache.
     """
     # Retrieve the cached info file location from the host
-    file_path = _get_users_file_location(host)
+    file_path = _get_site_authentication_file_location(host)
     _ensure_folder_for_file(file_path)
 
     logger.debug("Caching login info at %s...", file_path)
 
-    document = _try_load_users_file(file_path)
+    document = _try_load_site_authentication_file(file_path)
 
     if _insert_or_update_user(document, login, session_token):
         # Write back the file only it a new user was added.
@@ -340,9 +304,9 @@ def get_current_user(host):
     :returns: The current user for this host or None if not set.
     """
     # Retrieve the cached info file location from the host
-    info_path = _get_current_user_file_location(host)
+    info_path = _get_site_authentication_file_location(host)
     if os.path.exists(info_path):
-        document = _try_load_current_user_file(info_path)
+        document = _try_load_site_authentication_file(info_path)
         return document["current_user"]
     return None
 
@@ -354,10 +318,10 @@ def set_current_user(host, login):
     :param host: Host to save the current user for.
     :param login: The current user login for specified host.
     """
-    file_path = _get_current_user_file_location(host)
+    file_path = _get_site_authentication_file_location(host)
     _ensure_folder_for_file(file_path)
 
-    current_user_file = _try_load_current_user_file(file_path)
+    current_user_file = _try_load_site_authentication_file(file_path)
     current_user_file["current_user"] = login
     _write_yaml_file(file_path, current_user_file)
 
@@ -369,9 +333,9 @@ def get_current_host():
     :returns: The current host string.
     """
     # Retrieve the cached info file location from the host
-    info_path = _get_current_host_file_location()
+    info_path = _get_global_authentication_file_location()
     if os.path.exists(info_path):
-        document = _try_load_current_host_file(info_path)
+        document = _try_load_global_authentication_file(info_path)
         return document["current_host"]
     return None
 
@@ -382,10 +346,10 @@ def set_current_host(host):
 
     :param host: The new current host.
     """
-    file_path = _get_current_host_file_location()
+    file_path = _get_global_authentication_file_location()
     _ensure_folder_for_file(file_path)
 
-    current_host_file = _try_load_current_host_file(file_path)
+    current_host_file = _try_load_global_authentication_file(file_path)
     current_host_file["current_host"] = host
     _write_yaml_file(file_path, current_host_file)
 
