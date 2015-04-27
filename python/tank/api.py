@@ -364,7 +364,7 @@ class Tank(object):
         return list(found_files) 
 
 
-    def abstract_paths_from_template(self, template, fields):
+    def abstract_paths_from_template(self, template, fields, skip_keys=None, skip_missing_optional_keys=False):
         """Returns an abstract path based on a template.
 
         This method is similar to paths_from_template with the addition that
@@ -380,6 +380,11 @@ class Tank(object):
 
         :param template: Template with which to search.
         :param fields: Mapping of keys to values with which to assemble the abstract path.
+        :param skip_keys: Keys whose values should be ignored from the fields parameter.
+        :type  skip_keys: List of key names.
+        :param skip_missing_optional_keys: Specify if optional keys should be skipped if they 
+                                        aren't found in the fields collection
+        :type skip_missing_optional_keys: Boolean
 
         :returns: A list of paths whose abstract keys use their abstract(default) value unless
                   a value is specified for them in the fields parameter.
@@ -413,7 +418,8 @@ class Tank(object):
             search_template = template.parent
 
         # now carry out a regular search based on the template
-        found_files = self.paths_from_template(search_template, fields)
+        found_files = self.paths_from_template(search_template, fields, skip_keys=skip_keys,
+                                               skip_missing_optional_keys=skip_missing_optional_keys)
 
         st_abstract_key_names = [k.name for k in search_template.keys.values() if k.is_abstract]
 
