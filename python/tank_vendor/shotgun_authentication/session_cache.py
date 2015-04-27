@@ -13,12 +13,13 @@ This module will provide basic i/o to read and write session user's credentials
 in the site's cache location.
 """
 
+from __future__ import with_statement
 import os
 import sys
 import urlparse
-from ConfigParser import SafeConfigParser
 from tank_vendor.shotgun_api3 import Shotgun, AuthenticationFault, ProtocolError
 from tank_vendor.shotgun_api3.lib import httplib2
+from tank_vendor import yaml
 from .errors import AuthenticationError
 
 # FIXME: Quick hack to easily disable logging in this module while keeping the
@@ -53,6 +54,21 @@ else:
             pass
 
 
+def _get_cache_location():
+    """
+    Returns an OS specific cache location.
+
+    :returns: Path to the OS specific cache folder.
+    """
+    if sys.platform == "darwin":
+        root = os.path.expanduser("~/Library/Caches/Shotgun")
+    elif sys.platform == "win32":
+        root = os.path.join(os.environ["APPDATA"], "Shotgun")
+    elif sys.platform.startswith("linux"):
+        root = os.path.expanduser("~/.shotgun")
+    return root
+
+
 def _get_local_site_cache_location(base_url):
     """
     Returns the location of the site cache root based on a site.
@@ -61,87 +77,231 @@ def _get_local_site_cache_location(base_url):
 
     :returns: An absolute path to the site cache root.
     """
-    if sys.platform == "darwin":
-        root = os.path.expanduser("~/Library/Caches/Shotgun")
-    elif sys.platform == "win32":
-        root = os.path.join(os.environ["APPDATA"], "Shotgun")
-    elif sys.platform.startswith("linux"):
-        root = os.path.expanduser("~/.shotgun")
-
-    # get site only; https://www.foo.com:8080 -> www.foo.com
-    base_url = urlparse.urlparse(base_url)[1].split(":")[0]
-
-    return os.path.join(root, base_url)
+    return os.path.join(
+        _get_cache_location(),
+        # get site only; https://www.foo.com:8080 -> www.foo.com
+        urlparse.urlparse(base_url)[1].split(":")[0]
+    )
 
 
-def _get_session_data_location(base_url):
+def _get_authentication_cache_location(base_url):
     """
-    Returns the location of the session file on disk for a specific site.
+    Returns the location for the authentication cache folder for a given site.
+
+    :param base_url: Site we need to compute the authentication cache path for.
+
+    :returns: An absolute path to the authentication cache root.
+    """
+    return os.path.join(
+        _get_local_site_cache_location(base_url),
+        "authentication"
+    )
+
+
+def _get_users_file_location(base_url):
+    """
+    Returns the location of the users file on disk for a specific site.
 
     :param base_url: The site we want the login information for.
 
     :returns: Path to the login information.
     """
     return os.path.join(
-        _get_local_site_cache_location(base_url),
-        "authentication",
-        "login.ini"
+        _get_authentication_cache_location(base_url),
+        "users.yml"
     )
 
 
-def delete_session_data(host):
+def _get_current_user_file_location(base_url):
     """
-    Clears the session cache for the given site.
+    Returns the location of the users file on disk for a specific site.
+
+    :param base_url: The site we want the login information for.
+
+    :returns: Path to the login information.
+    """
+    return os.path.join(
+        _get_authentication_cache_location(base_url),
+        "current_user.yml"
+    )
+
+
+def _get_current_host_file_location():
+    """
+    Returns the location of the current host file.
+
+    :returns: Path to the current host information.
+    """
+    return os.path.join(
+        _get_cache_location(),
+        "authentication",
+        "current_host.yml"
+    )
+
+
+def _ensure_folder_for_file(filepath):
+    """
+    Makes sure the folder exists for a given file.
+
+    :param filepath: Path to the file we want to make sure the parent directory
+                     exists.
+
+    :returns: The path to the file.
+    """
+    folder, _ = os.path.split(filepath)
+    if not os.path.exists(folder):
+        os.makedirs(folder, 0700)
+    return filepath
+
+
+def _try_load_yaml_file(file_path):
+    """
+    Loads a yaml file.
+
+    :param file_path: The yaml file to load.
+
+    :returns: The dictionary for this yaml file. If the file doesn't exist or is
+              corrupted, returns an empty dictionary.
+    """
+
+    if not os.path.exists(file_path):
+        logger.debug("Yaml file missing: %s" % file_path)
+        return {}
+    try:
+        # Open the file and read it.
+        with open(file_path, "r") as config_file:
+            return yaml.load(config_file)
+    except yaml.YAMLError:
+        # Return to the beginning
+        config_file.seek(0)
+        logger.error("File '%s' is corrupted!" % file_path)
+        # And log the complete file for debugging.
+        for line in config_file:
+            # Log line without \n
+            logger.debug(line.rstrip())
+        # Create an empty document
+        return {}
+
+
+def _try_load_users_file(file_path):
+    """
+    Loads or creates on the file the data for the users file. The users file has the following format:
+        users:
+           {name: "login", session_token: "session_token"}
+           {name: "login", session_token: "session_token"}
+           {name: "login", session_token: "session_token"}
+    """
+    content = _try_load_yaml_file(file_path)
+    # Make sure any mandatory entry is present.
+    content.setdefault("users", [])
+    return content
+
+
+def _try_load_current_user_file(file_path):
+    """
+    Loads or creates the users file
+    """
+    content = _try_load_yaml_file(file_path)
+    # Make sure any mandatody entry is present.
+    content.setdefault("current_user", None)
+    return content
+
+
+def _try_load_current_host_file(file_path):
+    """
+    Loads or creates the hosts file
+    """
+    content = _try_load_yaml_file(file_path)
+    # Make sure any mandatody entry is present.
+    content.setdefault("current_host", None)
+    return content
+
+
+def _insert_or_update_user(users_file, login, session_token):
+    """
+    Finds or updates an entry in the users file with the given login and
+    session token.
+
+    :param users_file: Users dictionary to update.
+    :param login: Login of the user to update.
+    :param session_token: Session token of the user to update.
+
+    :returns: True is the users dictionary has been updated, False otherwise.
+    """
+    # Go through all users
+    for user in users_file["users"]:
+
+        # If we've matched what we are looking for.
+        if user["login"] == login:
+            # Update and return True only if something changed.
+            if user["session_token"] != session_token:
+                user["session_token"] = session_token
+                return True
+            else:
+                return False
+    # This is a new user, add it to the list.
+    users_file["users"].append({"login": login, "session_token": session_token})
+    return True
+
+
+def _write_yaml_file(file_path, users_data):
+    """
+    Writes the yaml file at a given location.
+
+    :param file_path: Where to write the users data
+    :param users_data: Dictionary to write to disk.
+    """
+    with open(file_path, "w") as users_file:
+        yaml.dump(users_data, users_file)
+
+
+def delete_session_data(host, login):
+    """
+    Clears the session cache for the given site and login.
 
     :param host: Site to clear the session cache for.
+    :param login: User to clear the session cache for.
     """
     if not host:
         logger.error("Current host not set, nothing to clear.")
         return
     logger.debug("Clearing session cached on disk.")
     try:
-        info_path = _get_session_data_location(host)
-        if os.path.exists(info_path):
-            logger.debug("Session file found.")
-            os.remove(info_path)
-            logger.debug("Session cleared.")
-        else:
-            logger.debug("Session file not found: %s", info_path)
+        info_path = _get_users_file_location(host)
+        logger.debug("Session file found.")
+        # Read in the file
+        users_file = _try_load_users_file(info_path)
+        # File the users to remove the token
+        users_file["users"] = [u for u in users_file["users"] if u.get("login") != login]
+        # Write back the file.
+        _write_yaml_file(info_path, users_file)
+        logger.debug("Session cleared.")
     except:
-        logger.exception("Couldn't delete the session cache file!")
+        logger.exception("Couldn't update the session cache file!")
         raise
 
 
-def get_session_data(base_url):
+def get_session_data(base_url, login):
     """
     Returns the cached login info if found.
 
-    :param base_url: The site we want the login information for.
+    :param base_url: The site to look for the login information.
+    :param login: The user we want the login information for.
 
     :returns: Returns a dictionary with keys login and session_token or None
     """
     # Retrieve the location of the cached info
-    info_path = _get_session_data_location(base_url)
-    # Nothing was cached, return an empty dictionary.
-    if not os.path.exists(info_path):
-        logger.debug("No cache found at %s" % info_path)
-        return None
+    info_path = _get_users_file_location(base_url)
     try:
-        # Read the login information
-        config = SafeConfigParser({"login": None, "session_token": None})
-        config.read(info_path)
-        if not config.has_section("LoginInfo"):
-            logger.debug("No Login info was found")
-            return None
-
-        login = config.get("LoginInfo", "login", raw=True)
-        session_token = config.get("LoginInfo", "session_token", raw=True)
-
-        if not login or not session_token:
-            logger.debug("Incomplete settings (login:%s, session_token:%s)" % (login, session_token))
-            return None
-
-        return {"login": login, "session_token": session_token}
+        # Nothing was cached, return an empty dictionary.
+        users_file = _try_load_users_file(info_path)
+        for user in users_file["users"]:
+            if user.get("login") == login:
+                return {
+                    "login": user["login"],
+                    "session_token": user["session_token"]
+                }
+        logger.debug("No cache found at %s" % info_path)
     except Exception:
         logger.exception("Exception thrown while loading cached session info.")
         return None
@@ -156,26 +316,78 @@ def cache_session_data(host, login, session_token):
     :param session_token: Session token we want to cache.
     """
     # Retrieve the cached info file location from the host
-    info_path = _get_session_data_location(host)
+    file_path = _get_users_file_location(host)
+    _ensure_folder_for_file(file_path)
 
-    # make sure the info_dir exists!
-    info_dir, info_file = os.path.split(info_path)
-    if not os.path.exists(info_dir):
-        os.makedirs(info_dir, 0700)
+    logger.debug("Caching login info at %s...", file_path)
 
-    logger.debug("Caching login info at %s...", info_path)
-    # Create a document with the following format:
-    # [LoginInfo]
-    # login=username
-    # session_token=some_unique_id
-    config = SafeConfigParser()
-    config.add_section("LoginInfo")
-    config.set("LoginInfo", "login", login)
-    config.set("LoginInfo", "session_token", session_token)
-    # Write it to disk.
-    with open(info_path, "w") as configfile:
-        config.write(configfile)
-    logger.debug("Cached!")
+    document = _try_load_users_file(file_path)
+
+    if _insert_or_update_user(document, login, session_token):
+        # Write back the file only it a new user was added.
+        _write_yaml_file(file_path, document)
+        logger.debug("Cached!")
+    else:
+        logger.debug("Already cached!")
+
+
+def get_current_user(host):
+    """
+    Returns the current user for the given host.
+
+    :param host: Host to fetch the current for.
+
+    :returns: The current user for this host or None if not set.
+    """
+    # Retrieve the cached info file location from the host
+    info_path = _get_current_user_file_location(host)
+    if os.path.exists(info_path):
+        document = _try_load_current_user_file(info_path)
+        return document["current_user"]
+    return None
+
+
+def set_current_user(host, login):
+    """
+    Saves the current user for a given host.
+
+    :param host: Host to save the current user for.
+    :param login: The current user login for specified host.
+    """
+    file_path = _get_current_user_file_location(host)
+    _ensure_folder_for_file(file_path)
+
+    current_user_file = _try_load_current_user_file(file_path)
+    current_user_file["current_user"] = login
+    _write_yaml_file(file_path, current_user_file)
+
+
+def get_current_host():
+    """
+    Returns the current host.
+
+    :returns: The current host string.
+    """
+    # Retrieve the cached info file location from the host
+    info_path = _get_current_host_file_location()
+    if os.path.exists(info_path):
+        document = _try_load_current_host_file(info_path)
+        return document["current_host"]
+    return None
+
+
+def set_current_host(host):
+    """
+    Saves the current host.
+
+    :param host: The new current host.
+    """
+    file_path = _get_current_host_file_location()
+    _ensure_folder_for_file(file_path)
+
+    current_host_file = _try_load_current_host_file(file_path)
+    current_host_file["current_host"] = host
+    _write_yaml_file(file_path, current_host_file)
 
 
 def generate_session_token(hostname, login, password, http_proxy):

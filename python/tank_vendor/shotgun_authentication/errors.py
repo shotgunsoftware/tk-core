@@ -27,16 +27,6 @@ class AuthenticationError(ShotgunAuthenticationError):
     pass
 
 
-class AuthenticationDisabled(ShotgunAuthenticationError):
-    """
-    Exception that indicates that interactive authentication has been disabled.
-    """
-    def __init__(self):
-        ShotgunAuthenticationError.__init__(
-            self, "Authentication has been disabled."
-        )
-
-
 class InvalidCredentials(ShotgunAuthenticationError):
     """
     Thrown when credentials are provided but are invalid.

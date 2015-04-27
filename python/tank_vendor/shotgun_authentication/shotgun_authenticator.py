@@ -51,40 +51,25 @@ class ShotgunAuthenticator(object):
         """
         self._defaults_manager = defaults_manager or DefaultsManager()
 
-    def get_saved_user(self):
+    def clear_default_user(self):
         """
-        Returns the currently saved user for the default site.
-
-        :returns: A ShotgunUser derived object or None if no saved user has been found.
-        """
-        host = self._defaults_manager.get_host()
-        # No default host, no so saved user can be found.
-        if not host:
-            return None
-        return user.SessionUser.get_saved_user(
-            host,
-            self._defaults_manager.get_http_proxy()
-        )
-
-    def clear_saved_user(self):
-        """
-        Removes the saved user's credentials from disk for the default host. The
+        Removes the default user's credentials from disk for the default host. The
         next time the ShotgunAuthenticator.get_saved_user method is called,
         None will be returned.
 
         :returns: If a user was cleared, the user object is returned, None otherwise.
         """
-        host = self._defaults_manager.get_host()
-        # No default host, no so saved user can be found.
-        if not host:
+        try:
+            user = self.create_session_user(
+                host=self._defaults_manager.get_host(),
+                login=self._defaults_manager.get_login(),
+                http_proxy=self._defaults_manager.get_http_proxy()
+            )
+            user.uncache_session_token()
+            return user
+        except InvalidCredentials:
+            # Not all credentials were found, so there is no default user.
             return None
-        sg_user = user.SessionUser.get_saved_user(
-            host,
-            self._defaults_manager.get_http_proxy()
-        )
-        if sg_user:
-            user.SessionUser.clear_saved_user(host)
-        return sg_user
 
     def get_user_from_prompt(self):
         """
@@ -126,19 +111,8 @@ class ShotgunAuthenticator(object):
         host = host or self._defaults_manager.get_host()
         http_proxy = http_proxy or self._defaults_manager.get_http_proxy()
 
-        if not login:
-            raise InvalidCredentials("missing login.")
-
-        # If we only have a password, generate a session token.
-        if password and not session_token:
-            session_token = session_cache.generate_session_token(host, login, password, http_proxy)
-
-        if not session_token:
-            # todo - find this in our 'phonebook' of stored login/session ids
-            raise InvalidCredentials("missing session_token")
-
         # Create a session user
-        return user.SessionUser(host, login, session_token, http_proxy)
+        return user.SessionUser(host, login, session_token, http_proxy, password=password)
 
     def create_script_user(self, api_script, api_key, host=None, http_proxy=None):
         """
@@ -219,21 +193,27 @@ class ShotgunAuthenticator(object):
     def get_user(self):
         """
         This method will always return a valid user. It will first ask for the
-        default user to the defaults manager. If no user is returned, then a
-        saved user will be retrieved for the default host. If none is found, the
-        you will be prompted to enter login information interactively.
+        default user to the defaults manager. If none is found, the user will
+        be prompted on the command line or from a dialog for their credentials.
 
-        :returns: A ShotgunUser derived instance.
+        :returns: A ShotgunUser derived instance matching the credentials
+        provided.
+
+        :raises AuthenticationCancelled: This is raised if the user cancelled
+                                         the authentication.
         """
-        # Get the default user first for backward compatibility reasons. Toolkit
-        # provides it's own defaults manager which has a get_user that returns
-        # the credentials for the script user in shotgun.yml, so that has to
-        # have precedence over the saved user.
-        user = self.get_default_user() or self.get_saved_user()
+        # Make sure we don't already have a user logged in through single
+        # sign-on or provided by a DefaultsManager-derived instance.
+        user = self.get_default_user()
         if user:
             return user
 
         # Prompt the client for user credentials and connection information
         user = self.get_user_from_prompt()
-        user.save()
+
+        # Remember that this user and host are the last settings used for
+        # authentication in order to provide single sign-on.
+        self._defaults_manager.set_host(user.get_host())
+        self._defaults_manager.set_login(user.get_login())
+
         return user
