@@ -215,7 +215,7 @@ class ShotgunAuthenticator(object):
 
         # Remember that this user and host are the last settings used for
         # authentication in order to provide single sign-on.
-        self._defaults_manager.set_host(user.get_host())
-        self._defaults_manager.set_login(user.get_login())
+        self._defaults_manager.set_host(user.host)
+        self._defaults_manager.set_login(user.login)
 
         return user

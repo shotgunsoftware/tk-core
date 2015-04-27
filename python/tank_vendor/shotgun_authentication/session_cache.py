@@ -21,6 +21,7 @@ from tank_vendor.shotgun_api3 import Shotgun, AuthenticationFault, ProtocolError
 from tank_vendor.shotgun_api3.lib import httplib2
 from tank_vendor import yaml
 from .errors import AuthenticationError
+from contextlib import contextmanager
 
 # FIXME: Quick hack to easily disable logging in this module while keeping the
 # code compatible. We have to disable it by default because Maya will print all out
@@ -121,9 +122,14 @@ def _ensure_folder_for_file(filepath):
 
     :returns: The path to the file.
     """
+
     folder, _ = os.path.split(filepath)
     if not os.path.exists(folder):
-        os.makedirs(folder, 0700)
+        old_umask = os.umask(0077)
+        try:
+            os.makedirs(folder, 0700)
+        finally:
+            os.umask(old_umask)
     return filepath
 
 
@@ -215,8 +221,12 @@ def _write_yaml_file(file_path, users_data):
     :param file_path: Where to write the users data
     :param users_data: Dictionary to write to disk.
     """
-    with open(file_path, "w") as users_file:
-        yaml.dump(users_data, users_file)
+    old_umask = os.umask(0077)
+    try:
+        with open(file_path, "w") as users_file:
+            yaml.dump(users_data, users_file)
+    finally:
+        os.umask(old_umask)
 
 
 def delete_session_data(host, login):
