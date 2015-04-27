@@ -12,7 +12,7 @@ from __future__ import with_statement
 
 from tank_test.tank_test_base import *
 
-from tank_vendor.shotgun_authentication import user
+from tank_vendor.shotgun_authentication import user, user_impl
 
 
 class UserTests(TankTestBase):
@@ -21,27 +21,28 @@ class UserTests(TankTestBase):
         """
         Makes sure serialization and deserialization works for users
         """
-        su = user.SessionUser(
+        su = user.ShotgunUser(user_impl.SessionUser(
             host="host",
             login="login",
             session_token="session_token",
             http_proxy="http_proxy"
-        )
+        ))
         su_2 = user.deserialize_user(user.serialize_user(su))
-        self.assertEquals(su.get_host(), su_2.get_host())
-        self.assertEquals(su.get_http_proxy(), su_2.get_http_proxy())
-        self.assertEquals(su.get_login(), su_2.get_login())
-        self.assertEquals(su.get_session_token(), su_2.get_session_token())
+        self.assertEquals(su.host, su_2.host)
+        self.assertEquals(su.http_proxy, su_2.http_proxy)
+        self.assertEquals(su.login, su_2.login)
+        self.assertEquals(su.impl.get_session_token(), su_2.impl.get_session_token())
 
-        su = user.ScriptUser(
+        su = user.ShotgunUser(user_impl.ScriptUser(
             host="host",
             api_script="api_script",
             api_key="api_key",
             http_proxy="http_proxy"
-        )
+        ))
 
         su_2 = user.deserialize_user(user.serialize_user(su))
-        self.assertEquals(su.get_host(), su_2.get_host())
-        self.assertEquals(su.get_http_proxy(), su_2.get_http_proxy())
-        self.assertEquals(su.get_key(), su_2.get_key())
-        self.assertEquals(su.get_script(), su_2.get_script())
+        self.assertEquals(su.host, su_2.host)
+        self.assertEquals(su.http_proxy, su_2.http_proxy)
+        self.assertEquals(su.login, su_2.login)
+        self.assertEquals(su.impl.get_key(), su_2.impl.get_key())
+        self.assertEquals(su.impl.get_script(), su_2.impl.get_script())

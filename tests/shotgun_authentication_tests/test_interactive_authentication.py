@@ -14,6 +14,8 @@ import sys
 from tank_test.tank_test_base import *
 from mock import patch
 import tank_vendor
+from tank_vendor.shotgun_authentication import user_impl, interactive_authentication
+from tank_vendor.shotgun_authentication.ui import login_dialog
 
 
 @skip_if_pyside_missing
@@ -33,8 +35,7 @@ class InteractiveTests(TankTestBase):
         """
         Make sure that the site and user fields are disabled when doing session renewal
         """
-        from tank_vendor.shotgun_authentication.ui.login_dialog import LoginDialog
-        ld = LoginDialog("Dummy", is_session_renewal=True)
+        ld = login_dialog.LoginDialog("Dummy", is_session_renewal=True)
         self.assertTrue(ld.ui.site.isReadOnly())
         self.assertTrue(ld.ui.login.isReadOnly())
 
@@ -43,7 +44,7 @@ class InteractiveTests(TankTestBase):
             "We're about to test authentication. Simply enter valid credentials.",
             console
         )
-        tank_vendor.shotgun_authentication.interactive_authentication.authenticate(
+        interactive_authentication.authenticate(
             "https://.shotgunstudio.com",
             "",
             "",
@@ -96,13 +97,13 @@ class InteractiveTests(TankTestBase):
             "re-enter your password.", test_console
         )
         # Get the basic user credentials.
-        host, login, session_token = tank_vendor.shotgun_authentication.interactive_authentication.authenticate(
+        host, login, session_token = interactive_authentication.authenticate(
             "https://enter_your_host_name_here.shotgunstudio.com",
             "enter_your_username_here",
             "",
             fixed_host=False
         )
-        sg_user = tank_vendor.shotgun_authentication.user.SessionUser(
+        sg_user = user_impl.SessionUser(
             host=host, login=login, session_token=session_token, http_proxy=None
         )
         self._print_message("We're about to fake an expired session. Hang tight!", test_console)
@@ -177,7 +178,7 @@ class InteractiveTests(TankTestBase):
                 thrown.
                 """
                 try:
-                    invoker = tank_vendor.shotgun_authentication.interactive_authentication._create_invoker()
+                    invoker = interactive_authentication._create_invoker()
                     # Make sure we have a QObject derived object and not a regular Python function.
                     if not isinstance(invoker, QtCore.QObject):
                         raise Exception("Invoker is not a QObject")

@@ -29,7 +29,6 @@ from tank_vendor.shotgun_authentication import AuthenticationError
 from tank_vendor.shotgun_authentication import ShotgunAuthenticationError
 from tank_vendor.shotgun_authentication import AuthenticationCancelled
 from tank_vendor.shotgun_authentication import InvalidCredentials
-from tank_vendor.shotgun_authentication import is_script_user
 from tank_vendor import yaml
 from tank.platform import engine
 from tank import pipelineconfig_utils
@@ -494,10 +493,11 @@ def shotgun_run_action_auth(log, install_root, pipeline_config_root, is_localize
     core_dm = CoreDefaultsManager()
     sa = ShotgunAuthenticator(core_dm)
 
-    # first of all, if there is a default user and it's a script user,
-    # it takes precedence for backward compatibility reasons.
+    # If there is a default user and it has no name, we should authenticate
+    # with it since it's the script user and we have to remain backwards
+    # compatible.
     default_user = sa.get_default_user()
-    if is_script_user(default_user):
+    if default_user and not default_user.login:
         # there is a default script user - this takes precedence.
         tank.set_current_user(default_user)
     else:

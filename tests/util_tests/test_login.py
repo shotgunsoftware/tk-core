@@ -14,7 +14,7 @@ from mock import patch
 from tank_test.tank_test_base import *
 
 from tank.util import login
-import tank_vendor
+from tank_vendor.shotgun_authentication import ShotgunAuthenticator
 
 
 class LoginTests(TankTestBase):
@@ -23,14 +23,10 @@ class LoginTests(TankTestBase):
     """
 
     @patch("tank_test.mockgun.Shotgun.find_one")
-    @patch("tank_vendor.shotgun_authentication.is_script_user")
-    @patch("tank_vendor.shotgun_authentication.is_session_user")
     @patch("tank.api.get_current_user")
     def test_get_current_user_uses_session(
         self,
         get_current_user_mock,
-        is_human_user_mock,
-        is_session_user,
         find_one_mock
     ):
         """
@@ -40,10 +36,8 @@ class LoginTests(TankTestBase):
         find_one_mock.return_value = {
             "login": "tk-user"
         }
-        is_human_user_mock.return_value = True
-        is_session_user.return_value = False
-        get_current_user_mock.return_value = tank_vendor.shotgun_authentication.user.SessionUser(
-            "host", "tk-user", "session_token", http_proxy=None
+        get_current_user_mock.return_value = ShotgunAuthenticator().create_session_user(
+            host="host", login="tk-user", session_token="session_token", http_proxy=None
         )
         try:
             # Clear the cache so that get_current_user can work. Path cache is being updated by

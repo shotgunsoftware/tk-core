@@ -13,7 +13,7 @@ from mock import patch
 
 from tank_test.tank_test_base import *
 
-from tank_vendor.shotgun_authentication import ShotgunAuthenticator, InvalidCredentials, DefaultsManager, user
+from tank_vendor.shotgun_authentication import ShotgunAuthenticator, InvalidCredentials, DefaultsManager, user_impl
 
 
 class TestDefaultManager(DefaultsManager):
@@ -46,7 +46,7 @@ class ShotgunAuthenticatorTests(TankTestBase):
             "login", password="password", host="https://host.shotgunstudio.com"
         )
         self.assertEquals(generate_session_token_mock.call_count, 1)
-        self.assertEquals(user.get_session_token(), "session_token")
+        self.assertEquals(user.impl.get_session_token(), "session_token")
 
         connection = user.create_sg_connection()
         self.assertEqual(connection.config.session_token, "session_token")
@@ -118,10 +118,10 @@ class ShotgunAuthenticatorTests(TankTestBase):
 
         # Test when the credentials are properly set up
         dm.user = {"api_script": "api_script", "api_key": "api_key"}
-        self.assertIsInstance(ShotgunAuthenticator(dm).get_default_user(), user.ScriptUser)
+        self.assertIsInstance(ShotgunAuthenticator(dm).get_default_user().impl, user_impl.ScriptUser)
 
         dm.user = {"login": "login", "session_token": "session_token"}
-        self.assertIsInstance(ShotgunAuthenticator(dm).get_default_user(), user.SessionUser)
+        self.assertIsInstance(ShotgunAuthenticator(dm).get_default_user().impl, user_impl.SessionUser)
 
         dm.user = {"login": "login", "password": "password"}
-        self.assertIsInstance(ShotgunAuthenticator(dm).get_default_user(), user.SessionUser)
+        self.assertIsInstance(ShotgunAuthenticator(dm).get_default_user().impl, user_impl.SessionUser)

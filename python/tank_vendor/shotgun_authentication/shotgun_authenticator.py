@@ -10,6 +10,7 @@
 
 from . import interactive_authentication
 from . import user
+from . import user_impl
 from . import session_cache
 from .errors import InvalidCredentials
 from .defaults_manager import DefaultsManager
@@ -112,7 +113,9 @@ class ShotgunAuthenticator(object):
         http_proxy = http_proxy or self._defaults_manager.get_http_proxy()
 
         # Create a session user
-        return user.SessionUser(host, login, session_token, http_proxy, password=password)
+        return user.ShotgunUser(
+            user_impl.SessionUser(host, login, session_token, http_proxy, password=password)
+        )
 
     def create_script_user(self, api_script, api_key, host=None, http_proxy=None):
         """
@@ -127,14 +130,13 @@ class ShotgunAuthenticator(object):
 
         :returns: A ShotgunUser derived instance.
         """
-        if not api_script or not api_key:
-            raise InvalidCredentials("missing api_script and/or api_key")
-
-        return user.ScriptUser(
-            host or self._defaults_manager.get_host(),
-            api_script,
-            api_key,
-            http_proxy or self._defaults_manager.get_http_proxy(),
+        return user.ShotgunUser(
+            user_impl.ScriptUser(
+                host or self._defaults_manager.get_host(),
+                api_script,
+                api_key,
+                http_proxy or self._defaults_manager.get_http_proxy(),
+            )
         )
 
     def get_default_host(self):
