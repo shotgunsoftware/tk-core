@@ -14,7 +14,7 @@ import sys
 from tank_test.tank_test_base import *
 from mock import patch
 import tank_vendor
-from tank_vendor.shotgun_authentication import user_impl, interactive_authentication, login_dialog
+from tank_vendor.shotgun_authentication import user_impl, interactive_authentication, ui_authentication, login_dialog
 
 
 @skip_if_pyside_missing
@@ -177,7 +177,7 @@ class InteractiveTests(TankTestBase):
                 thrown.
                 """
                 try:
-                    invoker = interactive_authentication._create_invoker()
+                    invoker = ui_authentication._create_invoker()
                     # Make sure we have a QObject derived object and not a regular Python function.
                     if not isinstance(invoker, QtCore.QObject):
                         raise Exception("Invoker is not a QObject")
