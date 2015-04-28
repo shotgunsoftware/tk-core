@@ -52,27 +52,45 @@ class LoginDialog(QtGui.QDialog):
         # default focus
         if self.ui.site.text():
             if self.ui.login.text():
-                self.ui.password.setFocus()
+                self.ui.password.setFocus(QtCore.Qt.OtherFocusReason)
             else:
-                self.ui.login.setFocus()
+                self.ui.login.setFocus(QtCore.Qt.OtherFocusReason)
         else:
-            self.ui.site.setFocus()
+            self.ui.site.setFocus(QtCore.Qt.OtherFocusReason)
 
         # set the logo
         self.ui.logo.setPixmap(QtGui.QPixmap(":/shotgun_authentication/shotgun_logo_light_medium.png"))
 
+        if fixed_host:
+            self._disable_widget(
+                self.ui.site,
+                "You can't edit the host, your core is configured for this site."
+            )
+
         # Disable keyboard input in the site and login boxes if we are simply renewing the session.
-        self.ui.site.setReadOnly(is_session_renewal or fixed_host)
-        self.ui.login.setReadOnly(is_session_renewal)
+        # If the host is fixed, disable the site textbox.
+        if is_session_renewal:
+            self._disable_widget(
+                self.ui.site,
+                "You are renewing your session: you can't change your host.")
+            self._disable_widget(
+                self.ui.login,
+                "You are renewing your session: you can't change your login."
+            )
 
         if is_session_renewal:
-            self._set_error_message("Your session has expired. Please enter your Shotgun password.")
+            self._set_message("Your session has expired. Please enter your Shotgun password.")
         else:
             self._set_message("Please enter your Shotgun credentials.")
 
         # hook up signals
         self.ui.sign_in.clicked.connect(self._ok_pressed)
         self.ui.cancel.clicked.connect(self.reject)
+
+    def _disable_widget(self, widget, tooltip_text):
+        widget.setReadOnly(True)
+        widget.setEnabled(False)
+        widget.setToolTip(tooltip_text)
 
     def _set_message(self, message):
         """
