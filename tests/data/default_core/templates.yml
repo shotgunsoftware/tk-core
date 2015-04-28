@@ -58,6 +58,10 @@ keys:
     Asset:
         type: str
         exclusions: [Seq, Shot]
+    maya_extension:
+        type: str
+        choices: {'ma':'Maya Ascii (.ma)', 'mb':'Maya Binary (.mb)'}
+        default: ma
 
 
 paths:
@@ -72,13 +76,13 @@ paths:
     # Shot pipeline - maya publishing and snapshotting locations
 
     # The location of WIP files
-    maya_shot_work: sequences/{Sequence}/{Shot}/{Step}/work/{name}.v{version}.ma
+    maya_shot_work: sequences/{Sequence}/{Shot}/{Step}/work/{name}.v{version}.{maya_extension}
 
     # The location of backups of WIP files
-    maya_shot_snapshot: sequences/{Sequence}/{Shot}/{Step}/work/snapshots/{name}.v{version}.{timestamp}.ma
+    maya_shot_snapshot: sequences/{Sequence}/{Shot}/{Step}/work/snapshots/{name}.v{version}.{timestamp}.{maya_extension}
 
     # The location of published maya files
-    maya_shot_publish: sequences/{Sequence}/{Shot}/{Step}/publish/{name}.v{version}.ma
+    maya_shot_publish: sequences/{Sequence}/{Shot}/{Step}/publish/{name}.v{version}.{maya_extension}
 
 
 

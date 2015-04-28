@@ -290,7 +290,7 @@ class UnregisterFoldersAction(Action):
         log.info("")
         log.info("Proceeding will unregister the above paths from Toolkit's path cache. "
                  "This will not alter any of the content in the file system, but once you have "
-                 "unregistered the paths, they will not be recognized by Shotgun util you run "
+                 "unregistered the paths, they will not be recognized by Shotgun until you run "
                  "Toolkit folder creation again.")
         log.info("")
         log.info("This is useful if you have renamed an Asset or Shot and want to move its "
