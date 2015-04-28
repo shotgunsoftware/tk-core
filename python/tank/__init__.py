@@ -28,14 +28,22 @@
 # itself with the primary config rather than with the config where the code is located. 
 
 import os
+from .platform import constants
+
 if "TANK_CURRENT_PC" not in os.environ:
     # find the pipeline configuration root, probe for a key file
     # (templates.yml) and use this test to determine if this code is 
     # a core API located inside a pipeline configuration.
+    #
+    # NOTE! This is a very particular piece of logic, which is also 
+    # duplicated inside the tank command and the python proxy wrappers.
+    # it is intentionally left here in the init method to highlight that  
+    # is unique and special.
+    #
     current_folder = os.path.abspath(os.path.dirname(__file__))
     pipeline_config = os.path.abspath(os.path.join(current_folder, "..", "..", "..", ".."))
-    templates_file = os.path.join(pipeline_config, "config", "core", "templates.yml")
-    if os.path.exists(templates_file):
+    roots_file = os.path.join(pipeline_config, "config", "core", constants.STORAGE_ROOTS_FILE)
+    if os.path.exists(roots_file):
         os.environ["TANK_CURRENT_PC"] = pipeline_config
     
 ########################################################################
