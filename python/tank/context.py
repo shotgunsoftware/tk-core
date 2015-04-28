@@ -737,10 +737,180 @@ def from_entity(tk, entity_type, entity_id):
         
         context.update(entity_context)
 
+        if entity_type == "Project":
+            # no need to set entity to point at project in this case
+            # that only produces double entries.
+            context["entity"] = None
+
+    return Context(**context)
+
+def from_entity_dictionary(tk, entity_dictionary):
+    """
+    Constructs a context from a shotgun entity dictionary.  This method will
+    try to use any linked information available in the dictionary where possible
+    but if it can't determine a valid context then it will fall back to
+    'from_entity' which may result in a Shotgun path cache query and be considerably
+    slower.
+    
+    If the entity type is a PublishedFile (or legacy TankPublishedFile) then the code
+    will recurse down to the most relevant linked entity (Task, entity or Project,
+    in that order)
+
+    The following values for 'entity_dictionary' will result in a context being
+    created without falling back to a potential Shotgun query - each entity in the
+    dictionary (including linked entities) must have the fields: 'type', 'id' and 
+    'name' (or the name equivelent for specific entity types, e.g. 'content' for 
+    Step entities, 'code' for Shot entities, etc.):
+
+        - {"type":"Project", "id":123, "name":"My Project"}
+
+        - {"type":"Shot", "id":456, "code":"Shot 001", 
+            "project":{"type":"Project", "id":123, "name":"My Project"}
+            }
+
+        - {"type":"Task", "id":789, "name":"Animation",
+            "project":{"type":"Project", "id":123, "name":"My Project"}} 
+            "entity":{"type":"Shot", "id":456, "name":"Shot 001"}
+            "step":{"type":"Step", "id":101112, "name":"Anm"}
+            }
+
+    The following values for 'entity_dictionary' don't contain enough information to
+    fully form a context so the code will fall back to 'from_entity()' which may then
+    result in a Shotgun query to retrieve the missing information:
+
+        - # missing project name
+          {"type":"Project", "id":123}
+
+        - # missing linked project
+          {"type":"Shot", "id":456, "code":"Shot 001"}
+
+        - # missing linked project name and linked step
+          {"type":"Task", "id":789, "name":"Animation",
+            "project":{"type":"Project", "id":123}} 
+            "entity":{"type":"Shot", "id":456, "name":"Shot 001"}
+            }
+
+    :param tk:                  Sgtk API handle
+    :param entity_dictionary:   The entity dictionary to create the context from 
+                                containing at least: {"type":entity_type, "id":entity_id}
+    :returns:                   A Context object
+    """
+    # perform validation of the entity dictionary:
+    if not isinstance(entity_dictionary, dict):
+        raise TankError("Cannot create a context from an empty or invalid entity dictionary!")
+    if "type" not in entity_dictionary:
+        raise TankError("Cannot create a context without an entity type!")
+    if "id" not in entity_dictionary:
+        raise TankError("Cannot create a context without an entity id!")
+    
+    # prep our context data structure
+    context = {
+        "tk": tk,
+        "project": None,
+        "entity": None,
+        "step": None,
+        "user": None,
+        "task": None,
+        "additional_entities": []
+    }
+
+    entity_type = entity_dictionary["type"]
+    entity_id = entity_dictionary["id"]
+
+    # try to determine the various entities from the entity dictionary:
+    project = None
+    entity = None
+    step = None
+    task = None
+    fallback_to_ctx_from_entity = False
     if entity_type == "Project":
-        # no need to set entity to point at project in this case
-        # that only produces double entries.
-        context["entity"] = None
+        # find entities for a project context
+        project = entity_dictionary
+    elif entity_type == "Task":
+        # find entities for a task context
+        task = entity_dictionary
+        if "project" not in task or "entity" not in task or "step" not in task:
+            fallback_to_ctx_from_entity = True
+        else:
+            project = task["project"]
+            entity = task["entity"]
+            step = task["step"]
+    elif entity_type in ["PublishedFile", "TankPublishedFile"]:
+        # special case handling for published files:
+        if entity_dictionary.get("task"):
+            # construct a task context
+            return from_entity_dictionary(tk, entity_dictionary["task"])
+        elif entity_dictionary.get("entity"):
+            # construct an entity context
+            return from_entity_dictionary(tk, entity_dictionary["entity"])
+        elif entity_dictionary.get("project"):
+            # construct project context
+            return from_entity_dictionary(tk, entity_dictionary["project"])
+        else:
+            # fall back on from_entity:
+            fallback_to_ctx_from_entity = True
+    else:
+        # find entities for an entity context
+        entity = entity_dictionary
+        if "project" not in entity:
+            fallback_to_ctx_from_entity = True
+        else:
+            project = entity["project"]
+
+    if not fallback_to_ctx_from_entity:
+        # clean up entities and populate context structure:
+        def _build_clean_entity(ent):
+            """
+            Ensure entity has id, type and name fields and build a clean
+            entity dictionary containing just those fields to return, stripping
+            out all other fields.
+
+            :param ent: The entity dictionary to build a clean dictionary from
+            :returns:   A clean entity dictionary containing just 'type', 'id' 
+                        and 'name' if all three exist in the input dictionary
+                        or None if they don't.
+            """
+            # make sure we have id, type and name:
+            if "id" not in ent or "type" not in ent:
+                return None
+            ent_name = _get_entity_name(ent)
+            if ent_name == None:
+                return None
+            # return a clean dictionary:
+            return {"type":ent["type"], "id":ent["id"], "name":ent_name}
+        
+        if project:
+            context["project"] = _build_clean_entity(project)
+            if not context["project"]:
+                fallback_to_ctx_from_entity = True
+                
+        if not fallback_to_ctx_from_entity and entity:
+            context["entity"] = _build_clean_entity(entity)
+            if not context["entity"]:
+                fallback_to_ctx_from_entity = True
+        
+        if not fallback_to_ctx_from_entity and step:
+            context["step"] = _build_clean_entity(step)
+            if not context["step"]:
+                fallback_to_ctx_from_entity = True
+
+        if not fallback_to_ctx_from_entity and task:
+            context["task"] = _build_clean_entity(task)
+            if not context["task"]:
+                fallback_to_ctx_from_entity = True
+
+    if fallback_to_ctx_from_entity:
+        # entity dict doesn't contain enough information to build a 
+        # safe, valid context so fall back on 'from_entity':
+        return from_entity(tk, entity_type, entity_id)
+
+    if task:
+        # one final check if we have a task:
+        additional_fields = tk.execute_core_hook("context_additional_entities").get("entity_fields_on_task", [])
+        if additional_fields:
+            # unfortunately we have to fall back to an sg query to get the additional entities :(
+            task_context = _task_from_sg(tk, task["id"], additional_fields)
+            context.update(task_context)
 
     return Context(**context)
 
@@ -1008,7 +1178,36 @@ yaml.add_constructor(u'!TankContext', context_yaml_constructor)
 ################################################################################################
 # utility methods
 
-def _task_from_sg(tk, task_id):
+def _get_entity_type_sg_name_field(entity_type):
+    """
+    Return the Shotgun name field to use for the specified entity type.  This
+    is needed as not all entity types are consistent!
+
+    :param entity_type:     The entity type to get the name field for
+    :returns:               The name field for the specified entity type
+    """
+    return {"HumanUser":"name", 
+            "Task":"content", 
+            "Project":"name"}.get(entity_type, "code")
+
+def _get_entity_name(entity_dictionary):
+    """
+    Extract the entity name from the specified entity dictionary if it can
+    be found.  The entity dictionary must contain at least 'type'
+
+    :param entity_dictionary:   An entity dictionary to extract the name from
+    :returns:                   The name of the entity if found in the entity
+                                dictionary, otherwise None
+    """
+    name_field = _get_entity_type_sg_name_field(entity_dictionary["type"])
+    entity_name = entity_dictionary.get(name_field)
+    if entity_name == None:
+        # Also check to see if entity contains 'name':
+        if name_field != "name":
+            entity_name = entity_dictionary.get("name")
+    return entity_name
+
+def _task_from_sg(tk, task_id, additional_fields = None):
     """
     Constructs a context from a shotgun task.
     Because we are constructing the context from a task, we will get a context
@@ -1017,8 +1216,10 @@ def _task_from_sg(tk, task_id):
     Manne 9 April 2013: could we use the path cache primarily and fall back onto
                         a shotgun lookup? 
 
-    :param tk:           a Sgtk API instance
-    :param task_id:      The shotgun task id to produce a context for.
+    :param tk:                   An Sgtk API instance
+    :param task_id:              The shotgun task id to produce a context for.
+    :param additional_fields:    List of additional fields to query for additional entities.  If this is
+                                'None' then the function will execute the hook to determine them. 
     """
     context = {}
 
@@ -1029,8 +1230,9 @@ def _task_from_sg(tk, task_id):
     # theses keys map directly to linked entities, users will be handled separately
     context_keys = ["project", "entity", "step", "task"]
 
-    # ask hook for extra Task entity fields we should query and insert into the additional_entities list.
-    additional_fields = tk.execute_core_hook("context_additional_entities").get("entity_fields_on_task", [])
+    if additional_fields is None:
+        # ask hook for extra Task entity fields we should query and insert into the additional_entities list.
+        additional_fields = tk.execute_core_hook("context_additional_entities").get("entity_fields_on_task", [])
 
     task = tk.shotgun.find_one("Task", [["id","is",task_id]], standard_fields + additional_fields)
     if not task:
@@ -1084,17 +1286,10 @@ def _entity_from_sg(tk, entity_type, entity_id):
                         }
                             
     """
-
-    # deal with funny naming for certain entities 
-    if entity_type == "HumanUser":
-        # note: previously this would return 'login' but this was inconsistent as the HumanUser
-        # entity already has a name field and this could lead to errors later on!
-        name_field = "name"
-    elif entity_type == "Project":
-        name_field = "name"
-    else:
-        name_field = "code"
-
+    # get the sg name field for the specified entity type:
+    name_field = _get_entity_type_sg_name_field(entity_type)
+    
+    # get the entity data from Shotgun
     data = tk.shotgun.find_one(entity_type, [["id", "is", entity_id]], ["project", name_field])
 
     if not data:

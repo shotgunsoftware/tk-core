@@ -367,9 +367,6 @@ class TestFromEntity(TestContext):
         
         self.add_to_sg_mock_db(self.task)
 
-    
-        
-
     @patch("tank.util.login.get_current_user")
     def test_entity_from_cache(self, get_current_user):
         
@@ -482,6 +479,77 @@ class TestFromEntity(TestContext):
         # Use task we have not setup in path cache not in mocked sg
         task = {"type": "Task", "id": 13, "name": "never_seen_me_before", "content": "no_content"}
         self.assertRaises(TankError, context.from_entity, self.tk, task["type"], task["id"])
+
+    @patch("tank.context.from_entity")
+    @patch("tank.util.login.get_current_user")
+    def test_from_entity_dictionary(self, get_current_user, from_entity):
+        """
+        Test context.from_entity_dictionary - this can contruct a context from
+        an entity dictionary looking at linked entities where available.
+
+        Falls back to 'from_entity' if the entity dictionary doesn't contain
+        everything needed.
+        """
+        get_current_user.return_value = self.current_user
+
+        # overload from_entity to ensure it causes a test fail if from_entity_dictionary
+        # falls back to it:
+        from_entity.return_value = {}
+
+        ent_dict = {"type":self.shot["type"], "id":self.shot["id"], "code":self.shot["code"]}
+        ent_dict["project"] = self.project
+
+        result = context.from_entity_dictionary(self.tk, ent_dict)
+        self.assertIsNotNone(result)
+
+        self.check_entity(self.project, result.project)
+        self.assertEquals(3, len(result.project))
+
+        self.check_entity(self.shot, result.entity)
+        self.assertEquals(3, len(result.entity))
+        
+        self.check_entity(self.current_user, result.user)
+
+    @patch("tank.context.from_entity")
+    @patch("tank.util.login.get_current_user")
+    def test_from_entity_dictionary_additional_entities(self, get_current_user, from_entity):
+        """
+        Test context.from_entity_dictionary - this can contruct a context from
+        an entity dictionary looking at linked entities where available.
+        
+        Falls back to 'from_entity' if the entity dictionary doesn't contain
+        everything needed.
+        """
+        get_current_user.return_value = self.current_user
+        
+        # overload from_entity to ensure it causes a test fail if from_entity_dictionary
+        # falls back to it:
+        from_entity.return_value = {}
+
+        add_value = {"name":"additional", "id": 3, "type": "add_type"}
+        ent_dict = {"type":"Task", "id":self.task["id"], "content":self.task["content"], "additional_field":add_value}
+        ent_dict["project"] = self.project
+        ent_dict["entity"] = self.shot
+        ent_dict["step"] = self.step
+
+        result = context.from_entity_dictionary(self.tk, ent_dict)
+        self.assertIsNotNone(result)
+
+        self.check_entity(self.project, result.project)
+        self.assertEquals(3, len(result.project))
+
+        self.check_entity(self.shot, result.entity)
+        self.assertEquals(3, len(result.entity))
+        
+        self.check_entity(self.current_user, result.user)
+        
+        self.check_entity(self.step, result.step)
+        self.assertEquals(3, len(result.step))
+        
+        self.assertEquals(self.task["type"], result.task["type"])
+        self.assertEquals(self.task["id"], result.task["id"])
+        self.assertEquals(self.task["content"], result.task["name"])
+        self.assertEquals(3, len(result.task))
 
     def check_entity(self, first_entity, second_entity):
         "Checks two entity dictionaries have the same values for keys type, id and name."
