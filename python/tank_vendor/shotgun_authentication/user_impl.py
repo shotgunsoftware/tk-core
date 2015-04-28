@@ -23,6 +23,9 @@ from .errors import InvalidCredentials
 # Indirection to create ShotgunWrapper instances. Great for unit testing.
 _shotgun_instance_factory = ShotgunWrapper
 
+import logging
+logger = logging.getLogger("shotgun_authentication").getChild("user_impl")
+
 
 class ShotgunUserImpl(object):
     """
@@ -197,15 +200,6 @@ class SessionUser(ShotgunUserImpl):
             user=self
         )
 
-    def uncache_session_token(self):
-        """
-        Removes the user's credentials from the cache.
-        """
-        # Contrary to saving, failing to delete the session token should not
-        # be silenced, since not deleting the information might be considered
-        # a security hole.
-        session_cache.delete_session_data(self.get_host(), self.get_login())
-
     @staticmethod
     def from_dict(payload):
         """
@@ -243,8 +237,7 @@ class SessionUser(ShotgunUserImpl):
             # Do not break the running pass because somehow we couldn't
             # cache the credentials. We'll simply be asking them again
             # next time.
-            # FIXME: We should log something here however.
-            pass
+            logger.exception("Couldn't log the credentials to disk:")
 
 
 class ScriptUser(ShotgunUserImpl):

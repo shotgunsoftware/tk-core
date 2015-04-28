@@ -15,6 +15,9 @@ from . import session_cache
 from .errors import InvalidCredentials
 from .defaults_manager import DefaultsManager
 
+import logging
+logger = logging.getLogger("shotgun_authentication").getChild("shotgun_authenticator")
+
 
 class ShotgunAuthenticator(object):
     """
@@ -66,7 +69,7 @@ class ShotgunAuthenticator(object):
                 login=self._defaults_manager.get_login(),
                 http_proxy=self._defaults_manager.get_http_proxy()
             )
-            user.uncache_session_token()
+            session_cache.delete_session_data(user.host, user.login)
             return user
         except InvalidCredentials:
             # Not all credentials were found, so there is no default user.
@@ -163,6 +166,7 @@ class ShotgunAuthenticator(object):
 
         # There is no default user.
         if not credentials:
+            logger.debug("No default user not found.")
             return None
 
         # If this looks like an api user, delegate to create_script_user.

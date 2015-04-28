@@ -23,10 +23,10 @@ class LoginTests(TankTestBase):
     """
 
     @patch("tank_test.mockgun.Shotgun.find_one")
-    @patch("tank.api.get_current_user")
+    @patch("tank.api.get_authenticated_user")
     def test_get_current_user_uses_session(
         self,
-        get_current_user_mock,
+        get_authenticated_user_mock,
         find_one_mock
     ):
         """
@@ -36,7 +36,7 @@ class LoginTests(TankTestBase):
         find_one_mock.return_value = {
             "login": "tk-user"
         }
-        get_current_user_mock.return_value = ShotgunAuthenticator().create_session_user(
+        get_authenticated_user_mock.return_value = ShotgunAuthenticator().create_session_user(
             host="host", login="tk-user", session_token="session_token", http_proxy=None
         )
         try:

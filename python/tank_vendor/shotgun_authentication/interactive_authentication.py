@@ -20,38 +20,12 @@ import threading
 from .errors import AuthenticationError, AuthenticationCancelled
 from . import session_cache
 import sys
+import os
+import logging
 
-
-# FIXME: Quick hack to easily disable logging in this module while keeping the
-# code compatible. We have to disable it by default because Maya will print all out
-# debug strings.
-if False:
-    # Configure logging
-    import logging
-    logger = logging.getLogger("sgtk.interactive_authentication")
-    logger.setLevel(logging.DEBUG)
-    logger.addHandler(logging.StreamHandler())
-else:
-    class logger:
-        @staticmethod
-        def debug(*args, **kwargs):
-            pass
-
-        @staticmethod
-        def info(*args, **kwargs):
-            pass
-
-        @staticmethod
-        def warning(*args, **kwargs):
-            pass
-
-        @staticmethod
-        def error(*args, **kwargs):
-            pass
-
-        @staticmethod
-        def exception(*args, **kwargs):
-            pass
+logger = logging.getLogger("shotgun_authentication").getChild(
+    "interactive_authentication"
+)
 
 
 def _get_current_os_user():
@@ -322,7 +296,7 @@ class UiAuthenticationHandler(object):
         :param http_proxy: Proxy server to use when validating credentials. Can be None.
         :returns: A tuple of (hostname, login, session_token)
         """
-        from .ui import login_dialog
+        from . import login_dialog
 
         if self._is_session_renewal:
             logger.debug("Requesting password in a dialog.")
@@ -349,6 +323,7 @@ class UiAuthenticationHandler(object):
 
 # Lock the assures only one thread at a time can execute the authentication logic.
 _renew_session_internal_lock = threading.Lock()
+
 
 class AuthState:
     """

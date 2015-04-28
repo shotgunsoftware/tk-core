@@ -21,39 +21,9 @@ from tank_vendor.shotgun_api3 import Shotgun, AuthenticationFault, ProtocolError
 from tank_vendor.shotgun_api3.lib import httplib2
 from tank_vendor import yaml
 from .errors import AuthenticationError
-from contextlib import contextmanager
+import logging
 
-# FIXME: Quick hack to easily disable logging in this module while keeping the
-# code compatible. We have to disable it by default because Maya will print all out
-# debug strings.
-if False:
-    import logging
-    # Configure logging
-    logger = logging.getLogger("sgtk.session_cache")
-    logger.setLevel(logging.DEBUG)
-    logger.addHandler(logging.StreamHandler())
-else:
-    class logger:
-        @staticmethod
-        def debug(*args, **kwargs):
-            pass
-
-        @staticmethod
-        def info(*args, **kwargs):
-            pass
-
-        @staticmethod
-        def warning(*args, **kwargs):
-            pass
-
-        @staticmethod
-        def error(*args, **kwargs):
-            pass
-
-        @staticmethod
-        def exception(*args, **kwargs):
-            pass
-
+logger = logging.getLogger("shotgun_authentication").getChild("session_cache")
 
 def _get_cache_location():
     """
@@ -267,15 +237,15 @@ def get_session_data(base_url, login):
     # Retrieve the location of the cached info
     info_path = _get_site_authentication_file_location(base_url)
     try:
-        # Nothing was cached, return an empty dictionary.
         users_file = _try_load_site_authentication_file(info_path)
         for user in users_file["users"]:
+            # Search for the user in the users dictionary.
             if user.get("login") == login:
                 return {
                     "login": user["login"],
                     "session_token": user["session_token"]
                 }
-        logger.debug("No cache found at %s" % info_path)
+        logger.debug("No cached user found for %s" % login)
     except Exception:
         logger.exception("Exception thrown while loading cached session info.")
         return None
@@ -293,7 +263,7 @@ def cache_session_data(host, login, session_token):
     file_path = _get_site_authentication_file_location(host)
     _ensure_folder_for_file(file_path)
 
-    logger.debug("Caching login info at %s...", file_path)
+    logger.debug("Caching login info at %s..." % file_path)
 
     document = _try_load_site_authentication_file(file_path)
 
@@ -315,10 +285,15 @@ def get_current_user(host):
     """
     # Retrieve the cached info file location from the host
     info_path = _get_site_authentication_file_location(host)
+    logger.debug("Looking for the current user at '%s'" % info_path)
     if os.path.exists(info_path):
         document = _try_load_site_authentication_file(info_path)
-        return document["current_user"]
-    return None
+        user = document["current_user"]
+        logger.debug("Current user is '%s'" % user)
+        return user
+    else:
+        logger.debug("No current user set.")
+        return None
 
 
 def set_current_user(host, login):
@@ -344,10 +319,15 @@ def get_current_host():
     """
     # Retrieve the cached info file location from the host
     info_path = _get_global_authentication_file_location()
+    logger.debug("Looking for the current host at '%s'" % info_path)
     if os.path.exists(info_path):
         document = _try_load_global_authentication_file(info_path)
-        return document["current_host"]
-    return None
+        host =  document["current_host"]
+        logger.debug("Current host is '%s'" % host)
+        return host
+    else:
+        logger.debug("No current host set.")
+        return None
 
 
 def set_current_host(host):

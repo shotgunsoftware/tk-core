@@ -14,8 +14,7 @@ import sys
 from tank_test.tank_test_base import *
 from mock import patch
 import tank_vendor
-from tank_vendor.shotgun_authentication import user_impl, interactive_authentication
-from tank_vendor.shotgun_authentication.ui import login_dialog
+from tank_vendor.shotgun_authentication import user_impl, interactive_authentication, login_dialog
 
 
 @skip_if_pyside_missing
