@@ -28,7 +28,7 @@ from tank_vendor.shotgun_authentication import ShotgunAuthenticator
 from tank_vendor.shotgun_authentication import AuthenticationError
 from tank_vendor.shotgun_authentication import ShotgunAuthenticationError
 from tank_vendor.shotgun_authentication import AuthenticationCancelled
-from tank_vendor.shotgun_authentication import InvalidCredentials
+from tank_vendor.shotgun_authentication import IncompleteCredentials
 from tank_vendor import yaml
 from tank.platform import engine
 from tank import pipelineconfig_utils
@@ -205,7 +205,7 @@ Log out of the current user (no context required):
         log.info(x)
 
 
-def ensure_authenticated(cmd_line_credentials):
+def ensure_authenticated(script_name=None, script_key=None):
     """
     Make sure that there is a current toolkit user set.
     May prompt for a login/password if needed. Note that if command line
@@ -216,10 +216,8 @@ def ensure_authenticated(cmd_line_credentials):
     prompted for his credentials and those will be remembered in future
     invocations until that user logs out.
 
-    :param cmd_line_credentials: Dictionary of credentials passed from the
-        command line. Possible keys are script-name and script-key or
-        login and password. Empty arrays or None are also supported. For example,
-        {"login": "bob", password: "1234qwertY"}
+    :param script_name: Name of the script to authenticate with. Can be None.
+    :param script_key: Key of the script to authenticate with. Can be None.
     """
     # create a core-level defaults manager.
     # this will read site details from shotgun.yml
@@ -227,10 +225,10 @@ def ensure_authenticated(cmd_line_credentials):
     # set up the authenticator
     shotgun_auth = ShotgunAuthenticator(core_dm)
 
-    if cmd_line_credentials:
+    if script_name and script_key:
         user = shotgun_auth.create_script_user(
-            api_script=cmd_line_credentials[ARG_SCRIPT_NAME],
-            api_key=cmd_line_credentials[ARG_SCRIPT_KEY]
+            api_script=script_name,
+            api_key=script_key
         )
     else:
         # request a user, either by prompting the user or by pulling out of
@@ -494,7 +492,7 @@ def shotgun_run_action_auth(log, install_root, pipeline_config_root, is_localize
             # no password given from shotgun. Try to use a stored session token
             try:
                 user = sa.create_session_user(login)
-            except InvalidCredentials:
+            except IncompleteCredentials:
                 # report back to the Shotgun javascript integration
                 # this error message will trigger the javascript to
                 # prompt the user for a password and run this method
@@ -1307,12 +1305,12 @@ def _validate_only_once(args, arg):
     :param args: List of tuples of arguments that were extracted from the command line.
     :param arg: Argument to validate
 
-    :raises InvalidCredentials: If an argument has been specified more than once,
+    :raises IncompleteCredentials: If an argument has been specified more than once,
                                 this exception is raised.
     """
     occurences = filter(lambda a: a[0] == arg, args)
     if len(occurences) > 1:
-        raise InvalidCredentials("argument '%s' specified more than once." % arg)
+        raise IncompleteCredentials("argument '%s' specified more than once." % arg)
 
 
 def _validate_args_cardinality(args, arg1, arg2):
@@ -1323,13 +1321,13 @@ def _validate_args_cardinality(args, arg1, arg2):
     :param arg1: First argument to test for.
     :param arg2: Second argument to test for.
 
-    :raises InvalidCredentials: When there is more or less than 1 value for
+    :raises IncompleteCredentials: When there is more or less than 1 value for
                                 a given argument, this exception is raised.
     """
     # Too few parameters, find out which one is missing, let the user know
     # which is missing.
     if len(args) < 2:
-        raise InvalidCredentials("missing argument '%s'" % (arg1 if args[0][0] == arg2 else arg2))
+        raise IncompleteCredentials("missing argument '%s'" % (arg1 if args[0][0] == arg2 else arg2))
 
     # Make sure each arguments are not specified more than once.
     _validate_only_once(args, arg1)
@@ -1352,10 +1350,10 @@ def _read_credentials_from_file(auth_path):
     :returns: A list of key, value pairs for values parsed. For example,
         [("script-name", "name"), ("script-key", "12345")]
 
-    :raises InvalidCredentials: If the file doesn't exist, this exception is raised.
+    :raises IncompleteCredentials: If the file doesn't exist, this exception is raised.
     """
     if not os.path.exists(auth_path):
-        raise InvalidCredentials("credentials file does not exist.")
+        raise IncompleteCredentials("credentials file does not exist.")
     # Read the dictionary from file
     with open(auth_path) as auth_file:
         file_data = yaml.load(auth_file)
@@ -1383,7 +1381,7 @@ def _extract_credentials(cmd_line):
 
     # make sure we're not mixing both set of arguments
     if file_credentials_path and script_user_credentials:
-            raise InvalidCredentials("can't mix command line credentials and file credentials.")
+            raise IncompleteCredentials("can't mix command line credentials and file credentials.")
 
     # If we have credentials in a file
     if file_credentials_path:
@@ -1399,7 +1397,7 @@ def _extract_credentials(cmd_line):
         return cmd_line, dict(script_user_credentials)
 
     # If no elements were specified, that's ok.
-    return cmd_line, None
+    return cmd_line, {}
 
 
 if __name__ == "__main__":
@@ -1479,7 +1477,10 @@ if __name__ == "__main__":
             # engine mode, using CWD
 
             # first make sure there is a current user
-            ensure_authenticated(credentials)
+            ensure_authenticated(
+                credentials.get("script-name"),
+                credentials.get("script-key")
+            )
 
             # now run the command
             exit_code = run_engine_cmd(logger, pipeline_config_root, [os.getcwd()], None, True, [])
@@ -1605,11 +1606,11 @@ if __name__ == "__main__":
         # Error messages and such have already been handled by the method that threw this exception.
         exit_code = 8
 
-    except InvalidCredentials, e:
+    except IncompleteCredentials, e:
         logger.info("")
         if debug_mode:
             # full stack trace
-            logger.exception("An InvalidCredentials exception was raised: %s" % e)
+            logger.exception("An IncompleteCredentials exception was raised: %s" % e)
         else:
             # one line report
             logger.error(str(e))

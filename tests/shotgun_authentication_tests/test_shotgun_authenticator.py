@@ -13,7 +13,7 @@ from mock import patch
 
 from tank_test.tank_test_base import *
 
-from tank_vendor.shotgun_authentication import ShotgunAuthenticator, InvalidCredentials, DefaultsManager, user_impl
+from tank_vendor.shotgun_authentication import ShotgunAuthenticator, IncompleteCredentials, DefaultsManager, user_impl
 
 
 class TestDefaultManager(DefaultsManager):
@@ -34,11 +34,11 @@ class ShotgunAuthenticatorTests(TankTestBase):
         generate_session_token_mock.return_value = "session_token"
 
         # No login should throw
-        with self.assertRaises(InvalidCredentials):
+        with self.assertRaises(IncompleteCredentials):
             ShotgunAuthenticator(TestDefaultManager()).create_session_user("", "session_token")
 
         # No password or session token should throw
-        with self.assertRaises(InvalidCredentials):
+        with self.assertRaises(IncompleteCredentials):
             ShotgunAuthenticator(TestDefaultManager()).create_session_user("login")
 
         # Passing a password should generate a session token
@@ -57,11 +57,11 @@ class ShotgunAuthenticatorTests(TankTestBase):
         Makes sure that create_script_user does correct input validation.
         """
         # No script name should throw
-        with self.assertRaises(InvalidCredentials):
+        with self.assertRaises(IncompleteCredentials):
             ShotgunAuthenticator(TestDefaultManager()).create_script_user("", "api_key")
 
         # No script key should throw
-        with self.assertRaises(InvalidCredentials):
+        with self.assertRaises(IncompleteCredentials):
             ShotgunAuthenticator(TestDefaultManager()).create_script_user("api_script", "")
 
         # With valid values it should work
@@ -88,32 +88,32 @@ class ShotgunAuthenticatorTests(TankTestBase):
         dm = TestWithUserDefaultManager()
         # Make sure missing the api_script throws.
         dm.user = {"api_key": "api_key"}
-        with self.assertRaises(InvalidCredentials):
+        with self.assertRaises(IncompleteCredentials):
             ShotgunAuthenticator(dm).get_default_user()
 
         # Make sure missing the api_key throws.
         dm.user = {"api_script": "api_script"}
-        with self.assertRaises(InvalidCredentials):
+        with self.assertRaises(IncompleteCredentials):
             ShotgunAuthenticator(dm).get_default_user()
 
         # Make sure missing password or session_token throws.
         dm.user = {"login": "login"}
-        with self.assertRaises(InvalidCredentials):
+        with self.assertRaises(IncompleteCredentials):
             ShotgunAuthenticator(dm).get_default_user()
 
         # Make sure missing login throws.
         dm.user = {"password": "password"}
-        with self.assertRaises(InvalidCredentials):
+        with self.assertRaises(IncompleteCredentials):
             ShotgunAuthenticator(dm).get_default_user()
 
         # Make sure missing login throws.
         dm.user = {"session_token": "session_token"}
-        with self.assertRaises(InvalidCredentials):
+        with self.assertRaises(IncompleteCredentials):
             ShotgunAuthenticator(dm).get_default_user()
 
         # If we can't determine the user time, it should throw.
         dm.user = {"alien_user": "elohim"}
-        with self.assertRaises(InvalidCredentials):
+        with self.assertRaises(IncompleteCredentials):
             ShotgunAuthenticator(dm).get_default_user()
 
         # Test when the credentials are properly set up

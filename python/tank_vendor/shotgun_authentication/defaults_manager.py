@@ -14,7 +14,8 @@ from . import session_cache
 class DefaultsManager(object):
     """
     This class allows the ShotgunAuthenticator to get some default values when
-    authenticating a user.
+    authenticating a user. Having a default host and user allows having a single
+    sign-on mechanism for all Toolkit applications.
     """
 
     def __init__(self):
@@ -84,9 +85,11 @@ class DefaultsManager(object):
 
     def get_user_credentials(self):
         """
-        Override to provide a default user's dictionary of credentials.
+        Returns the credentials for the currently logged in user across all
+        Toolkit applications. This is a combination of the default host and
+        default login.
 
-        :returns: Default implementation returns None.
+        :returns: A dictionary with keys login and session_token or None.
         """
         if self.get_host() and self.get_login():
             return session_cache.get_session_data(self.get_host(), self.get_login())

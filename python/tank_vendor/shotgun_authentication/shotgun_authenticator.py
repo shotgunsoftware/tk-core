@@ -12,7 +12,7 @@ from . import interactive_authentication
 from . import user
 from . import user_impl
 from . import session_cache
-from .errors import InvalidCredentials
+from .errors import IncompleteCredentials
 from .defaults_manager import DefaultsManager
 
 import logging
@@ -71,7 +71,7 @@ class ShotgunAuthenticator(object):
             )
             session_cache.delete_session_data(user.host, user.login)
             return user
-        except InvalidCredentials:
+        except IncompleteCredentials:
             # Not all credentials were found, so there is no default user.
             return None
 
@@ -192,7 +192,7 @@ class ShotgunAuthenticator(object):
             )
         # We don't know what this is, abort!
         else:
-            raise InvalidCredentials(
+            raise IncompleteCredentials(
                 "unknown credentials configuration: %s" % credentials
             )
 

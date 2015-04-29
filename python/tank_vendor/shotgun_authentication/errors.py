@@ -22,22 +22,22 @@ class ShotgunAuthenticationError(Exception):
 
 class AuthenticationError(ShotgunAuthenticationError):
     """
-    Exception that indicates an authentication error has occurred.
+    Thrown when credentials are rejected by the server.
     """
     pass
 
 
-class InvalidCredentials(ShotgunAuthenticationError):
+class IncompleteCredentials(ShotgunAuthenticationError):
     """
-    Thrown when credentials are provided but are invalid.
+    Thrown when credentials are provided but are incomplete.
     """
     def __init__(self, msg):
         ShotgunAuthenticationError.__init__(
-            self, "Invalid credentials: %s" % msg
+            self, "Incomplete credentials: %s" % msg
         )
 
 
-class AuthenticationCancelled(AuthenticationError):
+class AuthenticationCancelled(ShotgunAuthenticationError):
     """
     Thrown when the user cancels authentication or session renewal.
     """

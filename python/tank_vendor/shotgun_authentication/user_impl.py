@@ -18,7 +18,7 @@ from .shotgun_wrapper import ShotgunWrapper
 from tank_vendor.shotgun_api3 import Shotgun
 
 from . import session_cache
-from .errors import InvalidCredentials
+from .errors import IncompleteCredentials
 
 # Indirection to create ShotgunWrapper instances. Great for unit testing.
 _shotgun_instance_factory = ShotgunWrapper
@@ -40,7 +40,7 @@ class ShotgunUserImpl(object):
         """
 
         if not host:
-            raise InvalidCredentials("missing host")
+            raise IncompleteCredentials("missing host")
 
         self._host = host
         self._http_proxy = http_proxy
@@ -131,14 +131,14 @@ class SessionUser(ShotgunUserImpl):
             the session token will be looked for in the users file.
         :param http_proxy: HTTP proxy to use with this host. Defaults to None.
 
-        :raises InvalidCredentials: If there is not enough values
+        :raises IncompleteCredentials: If there is not enough values
             provided to initialize the user, this exception will be thrown.
         """
 
         super(SessionUser, self).__init__(host, http_proxy)
 
         if not login:
-            raise InvalidCredentials("missing login.")
+            raise IncompleteCredentials("missing login.")
 
         # If we only have a password, generate a session token.
         if password and not session_token:
@@ -156,7 +156,7 @@ class SessionUser(ShotgunUserImpl):
                 session_token = session_data["session_token"]
 
         if not session_token:
-            raise InvalidCredentials("missing session_token")
+            raise IncompleteCredentials("missing session_token")
 
         self._login = login
         self._session_token = session_token
@@ -256,7 +256,7 @@ class ScriptUser(ShotgunUserImpl):
         super(ScriptUser, self).__init__(host, http_proxy)
 
         if not api_script or not api_key:
-            raise InvalidCredentials("missing api_script and/or api_key")
+            raise IncompleteCredentials("missing api_script and/or api_key")
 
         self._api_script = api_script
         self._api_key = api_key
