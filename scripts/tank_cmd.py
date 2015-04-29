@@ -41,8 +41,6 @@ from tank import pipelineconfig_utils
 
 ARG_SCRIPT_NAME = "script-name"
 ARG_SCRIPT_KEY = "script-key"
-ARG_LOGIN = "login"
-ARG_PASSWORD = "password"
 ARG_CREDENTIALS_FILE = "credentials-file"
 
 SHOTGUN_ENTITY_TYPES = ['Playlist', 'AssetSceneConnection', 'Note', 'TaskDependency', 'PageHit',
@@ -148,9 +146,6 @@ General options and info
 ----------------------------------------------
 - To show this help, add a -h or --help flag.
 - To display verbose debug, add a --debug flag.
-- To provide a username and a password on the command line for authentication,
-  add the --login=username and --password=password arguments anywhere on
-  the command line.
 - To provide a script name and script key on the command line for
   authentication, add the --script-name=scriptname and
   --script-key=scriptkey arguments anywhere on the command line.
@@ -233,17 +228,10 @@ def ensure_authenticated(cmd_line_credentials):
     shotgun_auth = ShotgunAuthenticator(core_dm)
 
     if cmd_line_credentials:
-        if ARG_SCRIPT_NAME in cmd_line_credentials:
-            user = shotgun_auth.create_script_user(
-                api_script=cmd_line_credentials[ARG_SCRIPT_NAME],
-                api_key=cmd_line_credentials[ARG_SCRIPT_KEY]
-            )
-        else:
-            # The only other supported type is login.
-            user = shotgun_auth.create_session_user(
-                login=cmd_line_credentials[ARG_LOGIN],
-                password=cmd_line_credentials[ARG_PASSWORD]
-            )
+        user = shotgun_auth.create_script_user(
+            api_script=cmd_line_credentials[ARG_SCRIPT_NAME],
+            api_key=cmd_line_credentials[ARG_SCRIPT_KEY]
+        )
     else:
         # request a user, either by prompting the user or by pulling out of
         # saved sessions etc.
@@ -1363,8 +1351,6 @@ def _read_credentials_from_file(auth_path):
 
     :returns: A list of key, value pairs for values parsed. For example,
         [("script-name", "name"), ("script-key", "12345")]
-       The first tuple is concerned with human user based authentication, the second
-       is concerned with script based authentication.
 
     :raises InvalidCredentials: If the file doesn't exist, this exception is raised.
     """
@@ -1393,14 +1379,14 @@ def _extract_credentials(cmd_line):
 
     # Extract the credential pairs.
     script_user_credentials, cmd_line = _extract_args(cmd_line, [ARG_SCRIPT_NAME, ARG_SCRIPT_KEY])
-    human_user_credentials, cmd_line = _extract_args(cmd_line, [ARG_LOGIN, ARG_PASSWORD])
     file_credentials_path, cmd_line = _extract_args(cmd_line, [ARG_CREDENTIALS_FILE])
+
+    # make sure we're not mixing both set of arguments
+    if file_credentials_path and script_user_credentials:
+            raise InvalidCredentials("can't mix command line credentials and file credentials.")
 
     # If we have credentials in a file
     if file_credentials_path:
-        # make sure nothing else was specified on the command line.
-        if script_user_credentials or human_user_credentials:
-            raise InvalidCredentials("can't mix command line credentials and file credentials.")
         # Validate it's only been specified once.
         _validate_only_once(file_credentials_path, ARG_CREDENTIALS_FILE)
         # Read the credentials from file
@@ -1408,17 +1394,9 @@ def _extract_credentials(cmd_line):
             file_credentials_path[0][1]
         )
 
-    # If we have credentials for both user types.
-    if script_user_credentials and human_user_credentials:
-        raise InvalidCredentials("can't mix human user and script user credentials.")
-
     if script_user_credentials:
         _validate_args_cardinality(script_user_credentials, ARG_SCRIPT_NAME, ARG_SCRIPT_KEY)
         return cmd_line, dict(script_user_credentials)
-
-    if human_user_credentials:
-        _validate_args_cardinality(human_user_credentials, ARG_LOGIN, ARG_PASSWORD)
-        return cmd_line, dict(human_user_credentials)
 
     # If no elements were specified, that's ok.
     return cmd_line, None
