@@ -26,11 +26,11 @@ class ShotgunWrapper(Shotgun):
         Constructor. This has the same parameters as the Shotgun class, but it
         has an extra nmed parameter documented below.
 
-        :param user: ShotgunUser derived instance that represents the
-                     authenticated user making the request.
+        :param sg_auth_user: ShotgunUser derived instance that represents the
+                             authenticated user making the request.
         """
-        self._user = kwargs["user"]
-        del kwargs["user"]
+        self._user = kwargs["sg_auth_user"]
+        del kwargs["sg_auth_user"]
         super(ShotgunWrapper, self).__init__(*args, **kwargs)
 
     def _call_rpc(self, *args, **kwargs):

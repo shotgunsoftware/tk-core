@@ -23,11 +23,10 @@ class LoginDialog(QtGui.QDialog):
     """
     Dialog for getting user crendentials.
     """
-    def __init__(self, title, is_session_renewal, hostname="", login="", fixed_host=False, http_proxy=None, parent=None):
+    def __init__(self, is_session_renewal, hostname="", login="", fixed_host=False, http_proxy=None, parent=None):
         """
         Constructs a dialog.
 
-        :param title: Title of this dialog.
         :param is_session_renewal: Boolean indicating if we are renewing a session or authenticating a user from scratch.
         :param hostname: The string to populate the site field with. Defaults to "".
         :param login: The string to populate the login field with. Defaults to "".
@@ -42,7 +41,7 @@ class LoginDialog(QtGui.QDialog):
         self.ui.setupUi(self)
 
         # Set the title
-        self.setWindowTitle(title)
+        self.setWindowTitle("Shotgun Login")
 
         # Assign credentials
         self._http_proxy = http_proxy
@@ -66,9 +65,9 @@ class LoginDialog(QtGui.QDialog):
         self.ui.login.setReadOnly(is_session_renewal)
 
         if is_session_renewal:
-            self._set_error_message("Your session has expired. Please enter your Shotgun password.")
+            self._set_error_message("Your session has expired. Please enter your password.")
         else:
-            self._set_message("Please enter your Shotgun credentials.")
+            self._set_message("Please enter your credentials.")
 
         # hook up signals
         self.ui.sign_in.clicked.connect(self._ok_pressed)

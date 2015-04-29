@@ -8,13 +8,19 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+"""
+Provides defaults for authentication based on a core's configuration. Namely, it
+will provide a default host and an optional http proxy. If a script user has
+been configured with the core, its credentials will also be provided.
+"""
+
 from tank_vendor import shotgun_authentication as sg_auth
 
 
 class CoreDefaultsManager(sg_auth.DefaultsManager):
     """
-    This defaults manager implementation taps into the core's configuration to
-    provide a default host, proxy and user.
+    This defaults manager implementation taps into the core's configuration
+    (shotgun.yml) to provide a default host, proxy and user.
     """
 
     def is_host_fixed(self):
@@ -55,5 +61,8 @@ class CoreDefaultsManager(sg_auth.DefaultsManager):
         from . import shotgun
         data = shotgun.get_associated_sg_config_data()
         if data.get("api_script") and data.get("api_key"):
-            return data
+            return {
+                "api_script": data["api_script"],
+                "api_key": data["api_key"]
+            }
         return super(CoreDefaultsManager, self).get_user_credentials()

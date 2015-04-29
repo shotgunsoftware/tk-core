@@ -13,81 +13,11 @@ Ui based authentication.
 """
 
 from .errors import AuthenticationCancelled
+from . import invoker
 
 import logging
 
-logger = logging.getLogger("shotgun_authentication").getChild(
-    "interactive_authentication"
-).getChild("ui_authentication")
-
-
-def _create_invoker():
-    """
-    Create the object used to invoke function calls on the main thread when
-    called from a different thread.
-
-    :returns: Invoker instance. If Qt is not available or there is no UI, a
-              simple pass through method will execute the code in the same
-              thread will be produced.
-    """
-    from .ui.qt_abstraction import QtCore, QtGui
-
-    # If we are already in the main thread, no need for an invoker, invoke directly in this thread.
-    if QtCore.QThread.currentThread() == QtGui.QApplication.instance().thread():
-        return lambda fn, *args, **kwargs: fn(*args, **kwargs)
-
-    class MainThreadInvoker(QtCore.QObject):
-        """
-        Class that allows sending message to the main thread. This can be useful
-        when a background thread needs to prompt the user via a dialog. The
-        method passed into the invoker will be invoked on the main thread and
-        the result, either a return value or exception, will be brought back
-        to the invoking thread as if it was the thread that actually executed
-        the code.
-        """
-        def __init__(self):
-            """
-            Constructor.
-            """
-            QtCore.QObject.__init__(self)
-            self._res = None
-            self._exception = None
-            # Make sure that the invoker is bound to the main thread
-            self.moveToThread(QtGui.QApplication.instance().thread())
-
-        def __call__(self, fn, *args, **kwargs):
-            """
-            Asks the MainTheadInvoker to call a function with the provided parameters in the main
-            thread.
-            :param fn: Function to call in the main thread.
-            :param args: Array of arguments for the method.
-            :param kwargs: Dictionary of named arguments for the method.
-            :returns: The result from the function.
-            """
-            self._fn = lambda: fn(*args, **kwargs)
-            self._res = None
-
-            logger.debug("Sending ui request to main thread.")
-
-            QtCore.QMetaObject.invokeMethod(self, "_do_invoke", QtCore.Qt.BlockingQueuedConnection)
-
-            # If an exception has been thrown, rethrow it.
-            if self._exception:
-                raise self._exception
-            return self._res
-
-        @QtCore.Slot()
-        def _do_invoke(self):
-            """
-            Execute function and return result
-            """
-            try:
-                logger.debug("Invoking from main thread.")
-                self._res = self._fn()
-            except Exception, e:
-                self._exception = e
-
-    return MainThreadInvoker()
+logger = logging.getLogger("shotgun_auth.ui")
 
 
 class UiAuthenticationHandler(object):
@@ -102,7 +32,7 @@ class UiAuthenticationHandler(object):
         :param is_session_renewal: Boolean indicating if we are renewing a session. True if we are, False otherwise.
         """
         self._is_session_renewal = is_session_renewal
-        self._gui_launcher = _create_invoker()
+        self._gui_launcher = invoker.create()
         self._fixed_host = fixed_host
 
     def authenticate(self, hostname, login, http_proxy):
@@ -123,7 +53,6 @@ class UiAuthenticationHandler(object):
 
         def _process_ui():
             dlg = login_dialog.LoginDialog(
-                "Shotgun Login",
                 is_session_renewal=self._is_session_renewal,
                 hostname=hostname,
                 login=login,

@@ -142,7 +142,7 @@ def __get_sg_config_data(shotgun_cfg_path, user="default"):
 def _parse_config_data(file_data, user, shotgun_cfg_path):
     """
     Parses configuration data and overrides it with the studio level hook's result if available.
-    :param file_data: Dictionnary with all the values from the configuration data.
+    :param file_data: Dictionary with all the values from the configuration data.
     :param user: Picks the configuration for a specific user in the configuration data.
     :param shotgun_cfg_path: Path the configuration was loaded from.
     :raises: TankError if there are missing fields in the configuration. The accepted configurations are:
@@ -209,6 +209,7 @@ def __create_sg_connection(config_data=None):
             http_proxy=config_data.get("http_proxy")
         )
     else:
+        # Avoids cyclic imports.
         from .. import api
         user = api.get_authenticated_user()
         if not user:

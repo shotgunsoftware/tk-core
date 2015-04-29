@@ -18,6 +18,7 @@ import pickle
 import copy
 
 from tank_vendor import yaml
+from tank_vendor import shotgun_authentication as sg_auth
 
 from .util import login
 from .util import shotgun_entity
@@ -1060,7 +1061,8 @@ def serialize(context):
     """
     Serializes the context into a string
     """
-    from .api import Tank, get_authenticated_user
+    # Avoids cyclic imports
+    from .api import get_authenticated_user
 
     data = {
         "project": context.project,
@@ -1071,8 +1073,6 @@ def serialize(context):
         "additional_entities": context.additional_entities,
         "_pc_path": context.tank.pipeline_configuration.get_path()
     }
-
-    from tank_vendor import shotgun_authentication as sg_auth
 
     # If there is an authenticated user.
     user = get_authenticated_user()
@@ -1089,7 +1089,6 @@ def deserialize(context_str):
     """
     # lazy load this to avoid cyclic dependencies
     from .api import Tank, set_authenticated_user
-    from tank_vendor import shotgun_authentication as sg_auth
 
     data = pickle.loads(context_str)
 
