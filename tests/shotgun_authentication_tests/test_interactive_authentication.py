@@ -14,7 +14,7 @@ import sys
 from tank_test.tank_test_base import *
 from mock import patch
 import tank_vendor
-from tank_vendor.shotgun_authentication import user_impl, interactive_authentication, ui_authentication, login_dialog
+from tank_vendor.shotgun_authentication import user_impl, interactive_authentication, login_dialog, invoker
 
 
 @skip_if_pyside_missing
@@ -34,7 +34,7 @@ class InteractiveTests(TankTestBase):
         """
         Make sure that the site and user fields are disabled when doing session renewal
         """
-        ld = login_dialog.LoginDialog("Dummy", is_session_renewal=True)
+        ld = login_dialog.LoginDialog(is_session_renewal=True)
         self.assertTrue(ld.ui.site.isReadOnly())
         self.assertTrue(ld.ui.login.isReadOnly())
 
@@ -177,17 +177,17 @@ class InteractiveTests(TankTestBase):
                 thrown.
                 """
                 try:
-                    invoker = ui_authentication._create_invoker()
+                    invoker_obj = invoker.create()
                     # Make sure we have a QObject derived object and not a regular Python function.
-                    if not isinstance(invoker, QtCore.QObject):
+                    if not isinstance(invoker_obj, QtCore.QObject):
                         raise Exception("Invoker is not a QObject")
-                    if invoker.thread() != QtGui.QApplication.instance().thread():
+                    if invoker_obj.thread() != QtGui.QApplication.instance().thread():
                         raise Exception("Invoker should be of the same thread as the QApplication.")
                     if QtCore.QThread.currentThread() != self:
                         raise Exception("Current thread not self.")
                     if QtGui.QApplication.instance().thread == self:
                         raise Exception("QApplication should be in the main thread, not self.")
-                    invoker(thrower)
+                    invoker_obj(thrower)
                 except Exception, e:
                     self._exception = e
                 finally:

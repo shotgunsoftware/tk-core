@@ -16,7 +16,7 @@ from .errors import InvalidCredentials
 from .defaults_manager import DefaultsManager
 
 import logging
-logger = logging.getLogger("shotgun_authentication").getChild("shotgun_authenticator")
+logger = logging.getLogger("shotgun_auth").getChild("shotgun_authenticator")
 
 
 class ShotgunAuthenticator(object):

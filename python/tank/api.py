@@ -520,6 +520,55 @@ class Tank(object):
         """
         return context.from_entity(self, entity_type, entity_id)
 
+    def context_from_entity_dictionary(self, entity_dictionary):
+        """
+        Derives a context from a shotgun entity dictionary.  This will try to use any 
+        linked information available in the dictionary where possible but if it can't 
+        determine a valid context then it will fall back to 'context_from_entity' which 
+        may result in a Shotgun path cache query and be considerably slower.
+
+        The following values for 'entity_dictionary' will result in a context being
+        created without falling back to a potential Shotgun query - each entity in the
+        dictionary (including linked entities) must have the fields: 'type', 'id' and 
+        'name' (or the name equivelent for specific entity types, e.g. 'content' for 
+        Step entities, 'code' for Shot entities, etc.):
+
+            - {"type":"Project", "id":123, "name":"My Project"}
+
+            - {"type":"Shot", "id":456, "code":"Shot 001", 
+                "project":{"type":"Project", "id":123, "name":"My Project"}
+                }
+
+            - {"type":"Task", "id":789, "name":"Animation",
+                "project":{"type":"Project", "id":123, "name":"My Project"}} 
+                "entity":{"type":"Shot", "id":456, "name":"Shot 001"}
+                "step":{"type":"Step", "id":101112, "name":"Anm"}
+                }
+
+        The following values for 'entity_dictionary' don't contain enough information to
+        fully form a context so the code will fall back to 'context_from_entity()' which 
+        may then result in a Shotgun query to retrieve the missing information:
+
+            - # missing project name
+              {"type":"Project", "id":123}
+
+            - # missing linked project
+              {"type":"Shot", "id":456, "code":"Shot 001"}
+
+            - # missing linked project name and linked step
+              {"type":"Task", "id":789, "name":"Animation",
+                "project":{"type":"Project", "id":123}} 
+                "entity":{"type":"Shot", "id":456, "name":"Shot 001"}
+                }
+
+        :param entity_dictionary:   A Shotgun entity dictionary containing at least 'type'
+                                    and 'id'
+        :type  entity_dictionary:   dict.
+
+        :returns: Context object.
+        """
+        return context.from_entity_dictionary(self, entity_dictionary)
+
     def synchronize_filesystem_structure(self, full_sync=False):
         """
         Ensures that the filesystem structure on this machine is in sync

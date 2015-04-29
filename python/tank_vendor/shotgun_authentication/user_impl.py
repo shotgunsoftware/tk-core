@@ -13,7 +13,7 @@ either authenticate with a session token with the SessionUser class or with an
 api key with the ScriptUser class. This module is meant to be used internally.
 """
 
-import pickle
+import cPickle
 from .shotgun_wrapper import ShotgunWrapper
 from tank_vendor.shotgun_api3 import Shotgun
 
@@ -24,7 +24,7 @@ from .errors import InvalidCredentials
 _shotgun_instance_factory = ShotgunWrapper
 
 import logging
-logger = logging.getLogger("shotgun_authentication").getChild("user_impl")
+logger = logging.getLogger("shotgun_auth").getChild("user_impl")
 
 
 class ShotgunUserImpl(object):
@@ -197,7 +197,7 @@ class SessionUser(ShotgunUserImpl):
         return _shotgun_instance_factory(
             self.get_host(), session_token=self.get_session_token(),
             http_proxy=self.get_http_proxy(),
-            user=self
+            sg_auth_user=self
         )
 
     @staticmethod
@@ -332,7 +332,7 @@ def serialize_user(user):
     """
     # Pickle the dictionary and inject the user type in the payload so we know
     # how to unpickle the user.
-    return pickle.dumps({
+    return cPickle.dumps({
         "type": user.__class__.__name__,
         "data": user.to_dict()
     })
@@ -348,7 +348,7 @@ def deserialize_user(payload):
     :returns: A ShotgunUser derived instance.
     """
     # Unpickle the dictionary
-    user_dict = pickle.loads(payload)
+    user_dict = cPickle.loads(payload)
 
     # Find which user type we have
     global __factories

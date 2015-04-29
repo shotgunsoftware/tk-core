@@ -18,9 +18,7 @@ from .errors import AuthenticationError, AuthenticationCancelled
 from getpass import getpass
 import logging
 
-logger = logging.getLogger("shotgun_authentication").getChild(
-    "interactive_authentication"
-).getChild("console_authentication")
+logger = logging.getLogger("sg_auth.console")
 
 
 class ConsoleAuthenticationHandlerBase(object):

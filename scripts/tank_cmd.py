@@ -1512,7 +1512,7 @@ if __name__ == "__main__":
             # Clear the saved user.
             user = sa.clear_default_user()
             if user:
-                logger.info("Succesfully logged out from %s." % user.get_host())
+                logger.info("Succesfully logged out from %s." % user.host)
             else:
                 logger.info("Not logged in.")
 

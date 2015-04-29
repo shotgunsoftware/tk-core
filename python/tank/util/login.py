@@ -93,17 +93,25 @@ def get_current_user(tk):
     if g_shotgun_current_user_cache != "unknown":
         return g_shotgun_current_user_cache
 
+    # Avoids cyclic imports.
     from .. import api
 
     user = api.get_authenticated_user()
 
     if user:
+        # If the user doesn't have a login associated to it, we'll use the
+        # core hook to determine it. Default implementation returns the os
+        # user name.
         if not user.login:
             current_login = tk.execute_core_hook(constants.CURRENT_LOGIN_HOOK_NAME)
         else:
             current_login = user.login
     else:
-        # Something is wrong, no current login available.
+        # Something is wrong, no current login available. This happens when
+        # no authenticated user was set after the script was started. This can
+        # happen if the context didn't have a current user or if nobody
+        # registered a user.
+        # FIXME: We should log a warning here.
         current_login = None
 
     if current_login is None:

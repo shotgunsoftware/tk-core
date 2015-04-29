@@ -30,7 +30,8 @@ class TemplateKey(object):
         """
         :param name: Key's name.
         :param default: Default value for this key.
-        :param choices: List of possible values for this key.
+        :param choices: List of possible values for this key.  Can be either a list or a dictionary
+                        of choice:label pairs.
         :param shotgun_entity_type: For keys directly linked to a shotgun field, the entity type.
         :param shotgun_field_name: For keys directly linked to a shotgun field, the field name.
         :param exclusions: List of values which are not allowed.
@@ -39,7 +40,17 @@ class TemplateKey(object):
         """
         self.name = name
         self.default = default
-        self.choices = choices or []
+
+        # special handling for choices:
+        if isinstance(choices, dict):
+            # new style choices dictionary containing choice:label pairs:
+            self._choices = choices
+        elif isinstance(choices, list) or isinstance(choices, set):
+            # old style choices - labels and choices are the same:
+            self._choices = dict(zip(choices, choices))
+        else:
+            self._choices = {}
+
         self.exclusions = exclusions or []
         self.shotgun_entity_type = shotgun_entity_type
         self.shotgun_field_name = shotgun_field_name
@@ -48,7 +59,6 @@ class TemplateKey(object):
         self._last_error = ""
 
         # check that the key name doesn't contain invalid characters
-        
         if not re.match(r"^%s$" % constants.TEMPLATE_KEY_NAME_REGEX, name):
             raise TankError("%s: Name contains invalid characters. "
                             "Valid characters are %s." % (self, constants.VALID_TEMPLATE_KEY_NAME_DESC))
@@ -65,6 +75,22 @@ class TemplateKey(object):
         
         if not all(self.validate(choice) for choice in self.choices):
             raise TankError(self._last_error)
+    
+    @property
+    def choices(self):
+        """
+        :returns:   List of choices available for this key - retained for backwards
+                    compatibility
+        """
+        return self._choices.keys()
+    
+    @property
+    def labelled_choices(self):
+        """
+        :returns:   Dictionary of choices together with their labels that are available 
+                    for this key
+        """
+        return self._choices
     
     def str_from_value(self, value=None, ignore_type=False):
         """
@@ -119,7 +145,7 @@ class TemplateKey(object):
             self._last_error = "%s Illegal value: %s is forbidden for this key." % (self, value)
             return False
 
-        if not((value is None) or (self.choices == [])):
+        if value is not None and self.choices:
             if str_value.lower() not in [str(x).lower() for x in self.choices]:
                 self._last_error = "%s Illegal value: '%s' not in choices: %s" % (self, value, str(self.choices))
                 return False

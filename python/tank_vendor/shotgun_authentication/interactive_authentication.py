@@ -25,9 +25,7 @@ import sys
 import os
 import logging
 
-logger = logging.getLogger("shotgun_authentication").getChild(
-    "interactive_authentication"
-)
+logger = logging.getLogger("sg_auth.authentication")
 
 
 def _get_current_os_user():
@@ -93,6 +91,12 @@ class SessionRenewal(object):
         """
         Prompts the user for the password. This method should never be called directly
         and _renew_session should be called instead.
+
+        :param user: SessionUserImpl instance of the user that needs its session
+            renewed.
+        :param credentials_handler: Object that actually prompts the user for
+            credentials.
+
         :raises AuthenticationCancelled: Raised if the authentication is cancelled.
         """
         logger.debug("About to take the authentication lock.")
@@ -135,7 +139,7 @@ class SessionRenewal(object):
         raising an exception.
 
         :param user: SessionUser we are re-authenticating.
-        :param credentials_handler: Method that actually prompts the user for
+        :param credentials_handler: Object that actually prompts the user for
                                     credentials.
 
         :raises AuthenticationCancelled: If the user cancels the authentication,

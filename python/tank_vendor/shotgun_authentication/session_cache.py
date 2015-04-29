@@ -23,7 +23,13 @@ from tank_vendor import yaml
 from .errors import AuthenticationError
 import logging
 
-logger = logging.getLogger("shotgun_authentication").getChild("session_cache")
+logger = logging.getLogger("sg_auth.session")
+
+_CURRENT_HOST = "current_host"
+_CURRENT_USER = "current_user"
+_USERS = "users"
+_LOGIN = "login"
+_SESSION_TOKEN = "session_token"
 
 def _get_cache_location():
     """
@@ -123,12 +129,15 @@ def _try_load_yaml_file(file_path):
     except yaml.YAMLError:
         # Return to the beginning
         config_file.seek(0)
-        logger.error("File '%s' is corrupted!" % file_path)
+        logger.exception("File '%s' is corrupted!" % file_path)
         # And log the complete file for debugging.
         for line in config_file:
             # Log line without \n
             logger.debug(line.rstrip())
         # Create an empty document
+        return {}
+    except:
+        logger.exception("Unexpected error whie opening %s" % file_path)
         return {}
 
 
@@ -143,8 +152,8 @@ def _try_load_site_authentication_file(file_path):
     """
     content = _try_load_yaml_file(file_path)
     # Make sure any mandatory entry is present.
-    content.setdefault("users", [])
-    content.setdefault("current_user", None)
+    content.setdefault(_USERS, [])
+    content.setdefault(_CURRENT_USER, None)
     return content
 
 
@@ -154,7 +163,7 @@ def _try_load_global_authentication_file(file_path):
     """
     content = _try_load_yaml_file(file_path)
     # Make sure any mandatody entry is present.
-    content.setdefault("current_host", None)
+    content.setdefault(_CURRENT_HOST, None)
     return content
 
 
@@ -170,17 +179,17 @@ def _insert_or_update_user(users_file, login, session_token):
     :returns: True is the users dictionary has been updated, False otherwise.
     """
     # Go through all users
-    for user in users_file["users"]:
+    for user in users_file[_USERS]:
         # If we've matched what we are looking for.
-        if user["login"] == login:
+        if user[_LOGIN] == login:
             # Update and return True only if something changed.
-            if user["session_token"] != session_token:
-                user["session_token"] = session_token
+            if user[_SESSION_TOKEN] != session_token:
+                user[_SESSION_TOKEN] = session_token
                 return True
             else:
                 return False
     # This is a new user, add it to the list.
-    users_file["users"].append({"login": login, "session_token": session_token})
+    users_file[_USERS].append({_LOGIN: login, _SESSION_TOKEN: session_token})
     return True
 
 
@@ -216,7 +225,7 @@ def delete_session_data(host, login):
         # Read in the file
         users_file = _try_load_site_authentication_file(info_path)
         # File the users to remove the token
-        users_file["users"] = [u for u in users_file["users"] if u.get("login") != login]
+        users_file[_USERS] = [u for u in users_file[_USERS] if u.get(_LOGIN) != login]
         # Write back the file.
         _write_yaml_file(info_path, users_file)
         logger.debug("Session cleared.")
@@ -238,12 +247,12 @@ def get_session_data(base_url, login):
     info_path = _get_site_authentication_file_location(base_url)
     try:
         users_file = _try_load_site_authentication_file(info_path)
-        for user in users_file["users"]:
+        for user in users_file[_USERS]:
             # Search for the user in the users dictionary.
-            if user.get("login") == login:
+            if user.get(_LOGIN) == login:
                 return {
-                    "login": user["login"],
-                    "session_token": user["session_token"]
+                    _LOGIN: user[_LOGIN],
+                    _SESSION_TOKEN: user[_SESSION_TOKEN]
                 }
         logger.debug("No cached user found for %s" % login)
     except Exception:
@@ -288,7 +297,7 @@ def get_current_user(host):
     logger.debug("Looking for the current user at '%s'" % info_path)
     if os.path.exists(info_path):
         document = _try_load_site_authentication_file(info_path)
-        user = document["current_user"]
+        user = document[_CURRENT_USER]
         logger.debug("Current user is '%s'" % user)
         return user
     else:
@@ -307,7 +316,7 @@ def set_current_user(host, login):
     _ensure_folder_for_file(file_path)
 
     current_user_file = _try_load_site_authentication_file(file_path)
-    current_user_file["current_user"] = login
+    current_user_file[_CURRENT_USER] = login
     _write_yaml_file(file_path, current_user_file)
 
 
@@ -322,7 +331,7 @@ def get_current_host():
     logger.debug("Looking for the current host at '%s'" % info_path)
     if os.path.exists(info_path):
         document = _try_load_global_authentication_file(info_path)
-        host =  document["current_host"]
+        host =  document[_CURRENT_HOST]
         logger.debug("Current host is '%s'" % host)
         return host
     else:
@@ -340,7 +349,7 @@ def set_current_host(host):
     _ensure_folder_for_file(file_path)
 
     current_host_file = _try_load_global_authentication_file(file_path)
-    current_host_file["current_host"] = host
+    current_host_file[_CURRENT_HOST] = host
     _write_yaml_file(file_path, current_host_file)
 
 

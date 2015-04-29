@@ -529,7 +529,7 @@ class TestSequenceKey(TankTestBase):
     def test_choices_frame_spec(self):
         frame_specs = set(["%d", "#", "@", "$F", "<UDIM>", "$UDIM"])
         seq_frame = SequenceKey("field_name", choices=frame_specs)
-        self.assertEquals(frame_specs, seq_frame.choices)
+        self.assertEquals(list(frame_specs), seq_frame.choices)
 
 
 class TestMakeKeys(TankTestBase):

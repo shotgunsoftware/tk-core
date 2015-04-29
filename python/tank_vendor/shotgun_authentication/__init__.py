@@ -25,5 +25,5 @@ from .user import deserialize_user, serialize_user
 
 import logging
 
-logger = logging.getLogger("shotgun_authentication")
+logger = logging.getLogger("sg_auth")
 logger.setLevel(logging.WARNING)
