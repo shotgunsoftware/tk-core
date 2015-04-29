@@ -48,15 +48,6 @@ class LoginDialog(QtGui.QDialog):
         self.ui.site.setText(hostname)
         self.ui.login.setText(login)
 
-        # default focus
-        if self.ui.site.text():
-            if self.ui.login.text():
-                self.ui.password.setFocus(QtCore.Qt.OtherFocusReason)
-            else:
-                self.ui.login.setFocus(QtCore.Qt.OtherFocusReason)
-        else:
-            self.ui.site.setFocus(QtCore.Qt.OtherFocusReason)
-
         # set the logo
         self.ui.logo.setPixmap(QtGui.QPixmap(":/shotgun_authentication/shotgun_logo_light_medium.png"))
 
@@ -102,14 +93,6 @@ class LoginDialog(QtGui.QDialog):
             self.ui.message.setText(message)
             self.ui.message.show()
 
-    def show(self):
-        """
-        Shows the ui.
-        """
-        QtGui.QDialog.show(self)
-        self.activateWindow()
-        self.raise_()
-
     def exec_(self):
         """
         Displays the window modally.
@@ -119,6 +102,16 @@ class LoginDialog(QtGui.QDialog):
         # the trick of activating + raising does not seem to be enough for
         # modal dialogs. So force put them on top as well.
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint | self.windowFlags())
+
+        # Someone else is setting the focus between the init and
+        # the exec_, so set the focus appropriately at the very last minute.
+        if self.ui.site.text():
+            if self.ui.login.text():
+                self.ui.password.setFocus(QtCore.Qt.OtherFocusReason)
+            else:
+                self.ui.login.setFocus(QtCore.Qt.OtherFocusReason)
+        else:
+            self.ui.site.setFocus(QtCore.Qt.OtherFocusReason)
         return QtGui.QDialog.exec_(self)
 
     def result(self):
