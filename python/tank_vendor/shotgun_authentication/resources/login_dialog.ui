@@ -21,6 +21,7 @@
     selection-background-color: rgb(168, 123, 43);
     selection-color: rgb(230, 230, 230);
     font-size: 11px;
+    color: rgb(192, 192, 192);
 }
 
 QPushButton
@@ -44,7 +45,11 @@ QLineEdit
 QLineEdit:focus
 {
 	border: 1px solid rgb(48, 167, 227);
+}
 
+QLineEdit:Disabled {
+    background-color: rgb(60, 60, 60);
+    color: rgb(160, 160, 160);
 }</string>
   </property>
   <property name="modal">
