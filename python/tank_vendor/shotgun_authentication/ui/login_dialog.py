@@ -20,6 +20,7 @@ class Ui_LoginDialog(object):
 "    selection-background-color: rgb(168, 123, 43);\n"
 "    selection-color: rgb(230, 230, 230);\n"
 "    font-size: 11px;\n"
+"    color: rgb(192, 192, 192);\n"
 "}\n"
 "\n"
 "QPushButton\n"
@@ -43,7 +44,11 @@ class Ui_LoginDialog(object):
 "QLineEdit:focus\n"
 "{\n"
 "    border: 1px solid rgb(48, 167, 227);\n"
+"}\n"
 "\n"
+"QLineEdit:Disabled {\n"
+"    background-color: rgb(60, 60, 60);\n"
+"    color: rgb(160, 160, 160);\n"
 "}")
         LoginDialog.setModal(True)
         self.verticalLayout_2 = QtGui.QVBoxLayout(LoginDialog)
