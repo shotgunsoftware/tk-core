@@ -188,7 +188,7 @@ def do_localize(log, pc_root_path, suppress_prompts, strip_toolkit_credentials):
             src = os.path.join(core_api_root, "config", "core", fn)
             tgt = os.path.join(pc_root_path, "config", "core", fn)
             log.debug("Copy %s -> %s" % (src, tgt))
-            # If we're copying any other file than app_store.py, it is mandatory. If we're copying
+            # If we're copying any other file than app_store.yml, it is mandatory. If we're copying
             # app_store.yml, only copy it if it exists This is because when you are localizing a
             # core, app_store.yml might be present or not depending if you are migrating a core
             # configured with a pre Shotgun 6 or post Shotgun 6 site. In the later, AppStore
