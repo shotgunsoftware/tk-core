@@ -119,7 +119,8 @@ def __get_sg_config_data(shotgun_cfg_path, user="default"):
     
     :param shotgun_cfg_path: path to config file
     :param user: Optional user to pass when a multi-user config is being read 
-    :returns: dictionary with keys host, api_script, api_key and optionally http_proxy
+
+    :returns: dictionary with key host and optional keys api_script, api_key and http_proxy
     """
     
     # read in settings from shotgun.yml
@@ -137,6 +138,26 @@ def __get_sg_config_data(shotgun_cfg_path, user="default"):
         raise TankError("Cannot load config file '%s'. Error: %s" % (shotgun_cfg_path, error))
 
     return _parse_config_data(file_data, user, shotgun_cfg_path)
+
+def __get_sg_config_data_with_script_user(shotgun_cfg_path, user="default"):
+    """
+    Returns the Shotgun configuration yml parameters given a config file, just like
+    __get_sg_config_data, but the script user is expected to be present or an exception will be
+    thrown.
+
+    :param shotgun_cfg_path: path to config file
+    :param user: Optional user to pass when a multi-user config is being read
+
+    :raises TankError: Raised if the script user is not configured.
+
+    :returns: dictionary with mandatory keys host, api_script, api_key and optionally http_proxy
+    """
+    config_data = __get_sg_config_data(shotgun_cfg_path, user)
+    # If the user is configured, we're happy.
+    if config_data.get("api_script") and config_data.get("api_key"):
+        return config_data
+    else:
+        raise TankError("Missing required script user in config '%s'" % shotgun_cfg_path)
 
 
 def _parse_config_data(file_data, user, shotgun_cfg_path):
@@ -188,15 +209,18 @@ def _parse_config_data(file_data, user, shotgun_cfg_path):
     return config_data
 
 
-def __create_sg_connection(config_data=None):
+def __create_sg_connection(config_data=None, user=None):
     """
     Creates a standard Toolkit shotgun connection.
 
     :param config_data: Configuration data dictionary. Keys host, api_script and api_key are
-                        expected, while http_proxy is optional. If None, the authentication module
-                        will be responsible for determining which credentials to use. This parameter
-                        is present for legacy reason to support a Psyop workflow. You shouldn't
-                        be using this.
+                        expected, while http_proxy is optional. If None, the user parameter will be
+                        used to determine which credentials to use.
+    :param user: Shotgun user from the shotgun_authentication module to use to create the
+                 connection. Won't be used if config_data is set. Can be None.
+
+    :raises TankError: Raised if both config_data and user are None.
+
     :returns: A Shotgun connection.
     """
 
@@ -208,22 +232,10 @@ def __create_sg_connection(config_data=None):
             script_name=config_data["api_script"], api_key=config_data["api_key"],
             http_proxy=config_data.get("http_proxy")
         )
-    else:
-        # Avoids cyclic imports.
-        from .. import api
-        user = api.get_authenticated_user()
-        if not user:
-            sa = ShotgunAuthenticator(CoreDefaultsManager())
-            # This is needed for backwards compatibility with scripts that were
-            # written before authentication was put in place. Since those scripts
-            # don't set the current user, we have to get the one configured for the
-            # core instead. If the script user is configured, then the
-            # CoreDefaultsManager will provide its credentials for us and
-            # sa.get_default_user will return the ScriptUser instance.
-            user = sa.get_default_user()
-        if not user:
-            raise AuthenticationError("No current Shotgun user available.")
+    elif user:
         sg = user.create_sg_connection()
+    else:
+        raise TankError("No Shotgun user available.")
 
     # bolt on our custom user agent manager
     sg.tk_user_agent_handler = ToolkitUserAgentHandler(sg)
@@ -329,13 +341,20 @@ def create_sg_connection(user="default"):
     :param user: Optional shotgun config user to use when connecting to shotgun, as defined in shotgun.yml
     :returns: SG API instance
     """
-    # The "user" parameter was introduced by Psyop for Psyop. We will be supporting it in legacy
-    # code paths, but not in new ones.
-    if user != "default":
-        config_data = __get_sg_config_data(__get_sg_config(), user)
+
+    # Avoids cyclic imports.
+    from .. import api
+    sg_user = api.get_authenticated_user()
+
+    # If there is no user, that's probably because we're running in an old script that doesn't use
+    # the authenticated user concept. In that case, we'll do what we've always been doing in the
+    # past, which is read shotgun.yml and expect there to be a script user.
+    if sg_user is None:
+        config_data = __get_sg_config_data_with_script_user(__get_sg_config(), user)
         api_handle = __create_sg_connection(config_data)
     else:
-        api_handle = __create_sg_connection()
+        # Otherwise use the authenticated user to create the connection.
+        api_handle = __create_sg_connection(None, sg_user)
     return api_handle
 
 g_app_store_connection = None
@@ -409,26 +428,13 @@ def __get_app_store_key_from_shotgun(sg_connection):
     # project. In that case, just use that.
     core_cfg = __get_api_core_config_location()
     app_store_yml_path = os.path.join(core_cfg, "app_store.yml")
+
     if os.path.exists(app_store_yml_path):
-        # try to extract connection information    
-        try:
-            fh = open(app_store_yml_path)
-            try:
-                yml_data = yaml.load(fh)
-            finally:
-                fh.close()
-        except Exception, error:
-            raise TankError("Cannot load config file '%s'. Error: %s" % (app_store_yml_path, error))
-    
-        api_script = yml_data.get("api_script")
-        api_key = yml_data.get("api_key")
-    
-        if api_script and api_key:
-            # we got two values from the app store file!
-            return(api_script, api_key)
-        else:
-            raise TankError("Could not find keys 'api_script' and 'api_key' in '%s'" % app_store_yml_path)
-             
+        # The file exists, so read the file expecting all values to be present.
+        config_data = __get_sg_config_data_with_script_user(app_store_yml_path)
+        # we got two values from the app store file!
+        return config_data["api_script"], config_data["api_key"]
+
     # if app store connection details couldn't be read from the file for 
     # whatever reason, talk to Shotgun to get the credentials.
     # note that this functionality requires sg 6.0 or above.
