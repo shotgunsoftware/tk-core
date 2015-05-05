@@ -194,7 +194,7 @@ def do_localize(log, pc_root_path, suppress_prompts, strip_toolkit_credentials):
             # configured with a pre Shotgun 6 or post Shotgun 6 site. In the later, AppStore
             # credentials can be retrieved using a session token and therefore we don't need the
             # AppStore credentials to be saved on disk.
-            if fn != "app_store.yml" or os.path.exist(src):
+            if fn != "app_store.yml" or os.path.exists(src):
                 shutil.copy(src, tgt)
 
     except Exception, e:
