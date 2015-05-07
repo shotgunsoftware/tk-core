@@ -28,10 +28,20 @@ sys.path = [python_path] + sys.path
 import unittest2 as unittest
 
 class TankTestRunner(object):
-    def __init__(self):
-        file_path = os.path.abspath(__file__)
-        self.test_path = os.path.dirname(file_path)
-        self.packages_path = os.path.join(os.path.dirname(self.test_path), "python")
+    
+    def __init__(self, test_root=None):
+        
+        curr_dir = os.path.dirname(os.path.abspath(__file__))
+        
+        if test_root is None:    
+            self.test_path = curr_dir
+        else:
+            self.test_path = test_root
+        
+        # set up the path to the core API
+        self.packages_path = os.path.join(os.path.dirname(curr_dir), "python")
+        
+        # add to pythonpath
         sys.path.append(self.packages_path)
         sys.path.append(self.test_path)
         self.suite = None
@@ -67,12 +77,22 @@ if __name__ == "__main__":
                       action="store_true",
                       dest="coverage", 
                       help="run with coverage (requires coverage is installed)")
+    
+    parser.add_option("--test-root",
+                  action="store",
+                  dest="test_root", 
+                  help="Specify a folder where to look for tests.")
+
     (options, args) = parser.parse_args()
+    
     test_name = None
     if args:
         test_name = args[0]
      
-    tank_test_runner = TankTestRunner()
+    if options.test_root:
+        tank_test_runner = TankTestRunner(options.test_root)
+    else:
+        tank_test_runner = TankTestRunner()
 
     if options.coverage:
         ret_val = tank_test_runner.run_tests_with_coverage(test_name)

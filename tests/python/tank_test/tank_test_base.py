@@ -29,7 +29,6 @@ from tank import path_cache
 from tank_vendor import yaml
 
 TANK_TEMP = None
-TANK_SOURCE_PATH = None
 
 __all__ = ['setUpModule', 'TankTestBase', 'tank']
 
@@ -38,7 +37,6 @@ def setUpModule():
     Creates studio level directories in temporary location for tests.
     """
     global TANK_TEMP
-    global TANK_SOURCE_PATH
 
     # determine tests root location 
     temp_dir = tempfile.gettempdir()
@@ -66,7 +64,6 @@ def setUpModule():
     install_dir = os.path.join(studio_tank, "install")
 
     # copy tank engine code into place
-    TANK_SOURCE_PATH = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", ".."))
     os.makedirs(os.path.join(install_dir, "engines"))
 
 
@@ -88,19 +85,21 @@ class TankTestBase(unittest.TestCase):
         # alternate project roots for multi-root tests
         self.alt_root_1 = None
         self.alt_root_2 = None
-        # path to tank source code
-        self.tank_source_path = None
         # project level config directories
         self.project_config = None
 
+        # path to the tk-core repo root point
+        self.tank_source_path = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", ".."))
+        # where to go for test data
+        self.fixtures_root = os.path.join(self.tank_source_path, "tests", "fixtures")
+        
+        
     def setUp(self, project_tank_name = "project_code"):
         """
         Creates and registers test project.
         """
         self.tank_temp = TANK_TEMP
-        self.tank_source_path = TANK_SOURCE_PATH
-
-        self.init_cache_location = os.path.join(self.tank_temp, "init_cache.cache") 
+        self.init_cache_location = os.path.join(self.tank_temp, "init_cache.cache")
 
         def _get_cache_location_mock():
             return self.init_cache_location
@@ -228,30 +227,14 @@ class TankTestBase(unittest.TestCase):
         
         :param core_config: configuration template to use
         """
-        
-        test_data_path = os.path.join(self.tank_source_path, "tests", "data")
-        core_source = os.path.join(test_data_path, core_config)
+        core_source = os.path.join(self.fixtures_root, "config", "core", core_config)
         core_target = os.path.join(self.project_config, "core")
         self._copy_folder(core_source, core_target)
 
-        for config_dir in ["env", "hooks", "test_app", "test_engine"]:
-            config_source = os.path.join(test_data_path, config_dir)
-            config_target = os.path.join(self.project_config, config_dir)
+        for dir in ["env", "hooks", "bundles"]:
+            config_source = os.path.join(self.fixtures_root, "config", dir)
+            config_target = os.path.join(self.project_config, dir)
             self._copy_folder(config_source, config_target)
-        
-        # Edit the test environment with correct hard-coded paths to the test engine and app
-        src = open(os.path.join(test_data_path, "env", "test.yml"))
-        dst = open(os.path.join(self.project_config, "env", "test.yml"), "w")
-        
-        test_app_path = os.path.join(self.project_config, "test_app")
-        test_engine_path = os.path.join(self.project_config, "test_engine")
-        
-        for line in src:
-            tmp = line.replace("TEST_APP_LOCATION", test_app_path)
-            dst.write(tmp.replace("TEST_ENGINE_LOCATION", test_engine_path))
-        
-        src.close()
-        dst.close()
         
         if core_config != "multi_root_core":
             # setup_multi_root_fixtures is messing a bunch with the 

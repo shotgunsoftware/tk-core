@@ -1,11 +1,11 @@
 engines:
     test_engine:
-        location: {'type': 'dev', 'path': 'TEST_ENGINE_LOCATION'}
+        location: {'type': 'dev', 'path': '{PIPELINE_CONFIG}/config/bundles/test_engine'}
         debug_logging: false
 
         apps:
             test_app:
-                location: {'type': 'dev', 'path': 'TEST_APP_LOCATION'}
+                location: {'type': 'dev', 'path': '{PIPELINE_CONFIG}/config/bundles/test_app'}
                 test_str: a
                 test_int: 1 
                 test_float: 1.1
