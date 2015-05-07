@@ -197,7 +197,8 @@ class SessionUser(ShotgunUserImpl):
         return _shotgun_instance_factory(
             self.get_host(), session_token=self.get_session_token(),
             http_proxy=self.get_http_proxy(),
-            sg_auth_user=self
+            sg_auth_user=self,
+            connect=False
         )
 
     @staticmethod
