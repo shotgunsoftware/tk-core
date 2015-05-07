@@ -9,4 +9,4 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-python  `dirname $0`/run_tank_integration_tests.py $*
+python  `dirname $0`/run_integration_tests.py $*
