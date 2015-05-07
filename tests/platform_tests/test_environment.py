@@ -30,13 +30,13 @@ class TestEnvironment(TankTestBase):
         fh.close()
         
         # get raw app metadata
-        app_md = os.path.join(self.project_config, "test_app", "info.yml")
+        app_md = os.path.join(self.project_config, "bundles", "test_app", "info.yml")
         fh = open(app_md)
         self.raw_app_metadata = yaml.load(fh)
         fh.close()
 
         # get raw engine metadata
-        eng_md = os.path.join(self.project_config, "test_engine", "info.yml")
+        eng_md = os.path.join(self.project_config, "bundles", "test_engine", "info.yml")
         fh = open(eng_md)
         self.raw_engine_metadata = yaml.load(fh)
         fh.close()

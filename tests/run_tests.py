@@ -16,6 +16,7 @@ from optparse import OptionParser
 # prepend tank_vendor location to PYTHONPATH to make sure we are running
 # the tests against the vendor libs, not local libs on the machine
 python_path = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "python"))
+print ""
 print "Adding tank location to python_path: %s" % python_path
 sys.path = [python_path] + sys.path
 
@@ -28,10 +29,28 @@ sys.path = [python_path] + sys.path
 import unittest2 as unittest
 
 class TankTestRunner(object):
-    def __init__(self):
-        file_path = os.path.abspath(__file__)
-        self.test_path = os.path.dirname(file_path)
-        self.packages_path = os.path.join(os.path.dirname(self.test_path), "python")
+    
+    def __init__(self, test_root=None):
+        
+        curr_dir = os.path.dirname(os.path.abspath(__file__))
+        
+        if test_root is None:    
+            self.test_path = curr_dir
+        else:
+            self.test_path = test_root
+        
+        print "Tests will be loaded from: %s" % self.test_path
+        
+        # the fixtures are always located relative to the test location
+        # so store away the fixtures location in an environment vartiable
+        # for later use
+        os.environ["TK_TEST_FIXTURES"] = os.path.join(self.test_path, "fixtures")
+        print "Fixtures will be loaded from: %s" % os.environ["TK_TEST_FIXTURES"]
+        
+        # set up the path to the core API
+        self.packages_path = os.path.join(os.path.dirname(curr_dir), "python")
+        
+        # add to pythonpath
         sys.path.append(self.packages_path)
         sys.path.append(self.test_path)
         self.suite = None
@@ -70,13 +89,22 @@ if __name__ == "__main__":
     parser.add_option("--interactive",
                       action="store_true",
                       dest="interactive",
-                      help="run tests that have been decorate with the interactive decorator")
+                      help="run tests that have been decorated with the interactive decorator")
+    parser.add_option("--test-root",
+                      action="store",
+                      dest="test_root", 
+                      help="Specify a folder where to look for tests.")
+
     (options, args) = parser.parse_args()
+    
     test_name = None
     if args:
         test_name = args[0]
      
-    tank_test_runner = TankTestRunner()
+    if options.test_root:
+        tank_test_runner = TankTestRunner(options.test_root)
+    else:
+        tank_test_runner = TankTestRunner()
 
     if options.coverage:
         ret_val = tank_test_runner.run_tests_with_coverage(test_name)

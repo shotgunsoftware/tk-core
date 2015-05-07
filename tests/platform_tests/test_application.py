@@ -77,7 +77,7 @@ class TestGetApplication(TestApplication):
             self.assertTrue(cm.message.startswith(expected_msg))
         
     def test_good_path(self):
-        app_path = os.path.join(self.project_config, "test_app")
+        app_path = os.path.join(self.project_config, "bundles", "test_app")
         # make a dev location and create descriptor
         app_desc = descriptor.get_from_location(descriptor.AppDescriptor.APP, 
                                                 self.tk.pipeline_configuration, 

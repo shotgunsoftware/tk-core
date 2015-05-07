@@ -17,6 +17,7 @@ import os
 import time
 import shutil
 import pprint
+import inspect
 import tempfile
 
 from mockgun import Shotgun as MockGun_Shotgun 
@@ -30,7 +31,6 @@ from tank import path_cache
 from tank_vendor import yaml
 
 TANK_TEMP = None
-TANK_SOURCE_PATH = None
 
 __all__ = ['setUpModule', 'TankTestBase', 'tank', 'interactive', 'skip_if_pyside_missing']
 
@@ -75,7 +75,6 @@ def setUpModule():
     Creates studio level directories in temporary location for tests.
     """
     global TANK_TEMP
-    global TANK_SOURCE_PATH
 
     # determine tests root location
     temp_dir = tempfile.gettempdir()
@@ -103,7 +102,6 @@ def setUpModule():
     install_dir = os.path.join(studio_tank, "install")
 
     # copy tank engine code into place
-    TANK_SOURCE_PATH = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", ".."))
     os.makedirs(os.path.join(install_dir, "engines"))
 
 
@@ -113,7 +111,8 @@ class TankTestBase(unittest.TestCase):
     """
     
     def __init__(self, *args, **kws):
-        super(TankTestBase, self).__init__(*args, **kws)
+         
+        super(TankTestBase, self).__init__(*args, **kws)        
         
         # Below are attributes which will be set during setUp
 
@@ -125,19 +124,22 @@ class TankTestBase(unittest.TestCase):
         # alternate project roots for multi-root tests
         self.alt_root_1 = None
         self.alt_root_2 = None
-        # path to tank source code
-        self.tank_source_path = None
         # project level config directories
         self.project_config = None
 
+        # path to the tk-core repo root point        
+        self.tank_source_path = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", ".."))
+        
+        # where to go for test data
+        self.fixtures_root = os.environ["TK_TEST_FIXTURES"]
+        
+        
     def setUp(self, project_tank_name = "project_code"):
         """
         Creates and registers test project.
         """
         self.tank_temp = TANK_TEMP
-        self.tank_source_path = TANK_SOURCE_PATH
-
-        self.init_cache_location = os.path.join(self.tank_temp, "init_cache.cache") 
+        self.init_cache_location = os.path.join(self.tank_temp, "init_cache.cache")
 
         shotgun_authentication.session_cache._get_cache_location = lambda: os.path.join(
             self.tank_temp, "session_cache"
@@ -280,37 +282,27 @@ class TankTestBase(unittest.TestCase):
         tank.util.shotgun.get_associated_sg_base_url = self._original_get_associated_sg_base_url
         tank.util.shotgun.create_sg_connection = self._original_create_sg_connection
         
-    def setup_fixtures(self, core_config="default_core"):
+    def setup_fixtures(self, core_config=None):
         """
         Helper method which sets up a standard toolkit configuration
         given a configuration template.
         
-        :param core_config: configuration template to use
+        :param core_config: core override fixture to use
         """
-        
-        test_data_path = os.path.join(self.tank_source_path, "tests", "data")
-        core_source = os.path.join(test_data_path, core_config)
+        if core_config:
+            core_source = os.path.join(self.fixtures_root, "core_overrides", core_config)
+        else:
+            # use the default core fixture
+            core_source = os.path.join(self.fixtures_root, "config", "core")
+            
         core_target = os.path.join(self.project_config, "core")
         self._copy_folder(core_source, core_target)
 
-        for config_dir in ["env", "hooks", "test_app", "test_engine"]:
-            config_source = os.path.join(test_data_path, config_dir)
-            config_target = os.path.join(self.project_config, config_dir)
-            self._copy_folder(config_source, config_target)
-        
-        # Edit the test environment with correct hard-coded paths to the test engine and app
-        src = open(os.path.join(test_data_path, "env", "test.yml"))
-        dst = open(os.path.join(self.project_config, "env", "test.yml"), "w")
-        
-        test_app_path = os.path.join(self.project_config, "test_app")
-        test_engine_path = os.path.join(self.project_config, "test_engine")
-        
-        for line in src:
-            tmp = line.replace("TEST_APP_LOCATION", test_app_path)
-            dst.write(tmp.replace("TEST_ENGINE_LOCATION", test_engine_path))
-        
-        src.close()
-        dst.close()
+        for dir in ["env", "hooks", "bundles"]:
+            config_source = os.path.join(self.fixtures_root, "config", dir)
+            if os.path.exists(config_source):
+                config_target = os.path.join(self.project_config, dir)
+                self._copy_folder(config_source, config_target)
         
         if core_config != "multi_root_core":
             # setup_multi_root_fixtures is messing a bunch with the 
