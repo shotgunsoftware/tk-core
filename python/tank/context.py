@@ -732,7 +732,7 @@ def from_entity(tk, entity_type, entity_id):
                     
         # make sure this was actually found in the cache
         # fall back on a shotgun lookup if not found
-        if entity_context["project"] is None:
+        if entity_context["entity"].get("name") is None:
             entity_context = _entity_from_sg(tk, entity_type, entity_id)
         
         context.update(entity_context)
