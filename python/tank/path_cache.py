@@ -804,7 +804,7 @@ class PathCache(object):
                     msg += "with %s '%s' (id %s) in Shotgun. " % (entity_in_db["type"], entity_in_db["name"], entity_in_db["id"])
                     msg += "You are now trying to associate it with %s '%s' (id %s). " % (entity["type"], entity["name"], entity["id"])
                     msg += "If you want to unregister your previously created folders, you can run "
-                    msg += "the following command: 'tank %s %s unregister_folders' " % (entity_in_db["type"], entity_in_db["name"])
+                    msg += "the following command: 'tank unregister_folders %s' " % path
                     raise TankError(msg)
                 
         # Check 2. Check if a folder for this shot has already been created,
