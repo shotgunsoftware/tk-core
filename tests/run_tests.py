@@ -16,6 +16,7 @@ from optparse import OptionParser
 # prepend tank_vendor location to PYTHONPATH to make sure we are running
 # the tests against the vendor libs, not local libs on the machine
 python_path = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "python"))
+print ""
 print "Adding tank location to python_path: %s" % python_path
 sys.path = [python_path] + sys.path
 
@@ -37,6 +38,14 @@ class TankTestRunner(object):
             self.test_path = curr_dir
         else:
             self.test_path = test_root
+        
+        print "Tests will be loaded from: %s" % self.test_path
+        
+        # the fixtures are always located relative to the test location
+        # so store away the fixtures location in an environment vartiable
+        # for later use
+        os.environ["TK_TEST_FIXTURES"] = os.path.join(self.test_path, "fixtures")
+        print "Fixtures will be loaded from: %s" % os.environ["TK_TEST_FIXTURES"]
         
         # set up the path to the core API
         self.packages_path = os.path.join(os.path.dirname(curr_dir), "python")

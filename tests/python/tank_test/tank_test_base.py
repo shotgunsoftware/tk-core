@@ -16,6 +16,7 @@ import os
 import time
 import shutil
 import pprint
+import inspect
 import tempfile
 
 from mockgun import Shotgun as MockGun_Shotgun 
@@ -73,7 +74,8 @@ class TankTestBase(unittest.TestCase):
     """
     
     def __init__(self, *args, **kws):
-        super(TankTestBase, self).__init__(*args, **kws)
+         
+        super(TankTestBase, self).__init__(*args, **kws)        
         
         # Below are attributes which will be set during setUp
 
@@ -88,10 +90,11 @@ class TankTestBase(unittest.TestCase):
         # project level config directories
         self.project_config = None
 
-        # path to the tk-core repo root point
+        # path to the tk-core repo root point        
         self.tank_source_path = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", ".."))
+        
         # where to go for test data
-        self.fixtures_root = os.path.join(self.tank_source_path, "tests", "fixtures")
+        self.fixtures_root = os.environ["TK_TEST_FIXTURES"]
         
         
     def setUp(self, project_tank_name = "project_code"):
@@ -220,21 +223,27 @@ class TankTestBase(unittest.TestCase):
         self.tk = None
         
         
-    def setup_fixtures(self, core_config="default_core"):
+    def setup_fixtures(self, core_config=None):
         """
         Helper method which sets up a standard toolkit configuration
         given a configuration template.
         
-        :param core_config: configuration template to use
+        :param core_config: core override fixture to use
         """
-        core_source = os.path.join(self.fixtures_root, "config", "core", core_config)
+        if core_config:
+            core_source = os.path.join(self.fixtures_root, "core_overrides", core_config)
+        else:
+            # use the default core fixture
+            core_source = os.path.join(self.fixtures_root, "config", "core")
+            
         core_target = os.path.join(self.project_config, "core")
         self._copy_folder(core_source, core_target)
 
         for dir in ["env", "hooks", "bundles"]:
             config_source = os.path.join(self.fixtures_root, "config", dir)
-            config_target = os.path.join(self.project_config, dir)
-            self._copy_folder(config_source, config_target)
+            if os.path.exists(config_source):
+                config_target = os.path.join(self.project_config, dir)
+                self._copy_folder(config_source, config_target)
         
         if core_config != "multi_root_core":
             # setup_multi_root_fixtures is messing a bunch with the 
