@@ -39,8 +39,15 @@ class ShotgunWrapper(Shotgun):
         errors and prompt for the user's password.
         """
         try:
+            # If the user's session token has changed since we last tried to
+            # call the server, it's because the token expired and there's a
+            # new one available, so use that one instead in the future.
+            if self._user.get_session_token() != self.config.session_token:
+                self.config.session_token = self._user.get_session_token()
+
             return super(ShotgunWrapper, self)._call_rpc(*args, **kwargs)
         except AuthenticationFault:
+            # Let's renew the session token!
             interactive_authentication.renew_session(self._user)
             self.config.session_token = self._user.get_session_token()
             #  If there is once again an authentication fault, then it means
