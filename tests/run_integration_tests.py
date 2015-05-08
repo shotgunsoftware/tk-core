@@ -22,7 +22,7 @@ def get_test_resource_path(rel_path):
 
     :param rel_path: Relative file path to the test file.
     """
-    return os.path.join(os.path.split(__file__)[0], "data", "tank_integration_tests", rel_path)
+    return os.path.join(os.path.split(__file__)[0], "fixtures", "integration_tests", rel_path)
 
 
 def test_return_value(expected_result, args):

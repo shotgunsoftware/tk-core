@@ -29,7 +29,7 @@ class TestYamlCache(TankTestBase):
         TankTestBase.__init__(self, *args, **kwargs)
 
         # data root for all test data:
-        self._data_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data", "yaml_cache"))
+        self._data_root = os.path.join(self.fixtures_root, "misc", "yaml_cache")
 
     def test_get_incorrect_path(self):
         """
