@@ -891,7 +891,12 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
         linked_entity = context.project
     else:
         linked_entity = context.entity
-
+    
+    data = {}
+    # we set the optional additional fields first so we don't allow overwriting the standard parameters!
+    data.update(sg_fields)
+    
+    # standard parameters
     data = {
         "code": code,
         "description": comment,
@@ -901,7 +906,6 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
         "task": task,
         "version_number": version_number,
     }
-    data.update(sg_fields)
 
     if path_is_url:
         data["path"] = { "url":path }
