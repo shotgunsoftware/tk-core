@@ -66,6 +66,14 @@ class ShotgunUser(object):
         """
         return self._impl.create_sg_connection()
 
+    def are_credentials_valid(self):
+        """
+        Checks if the credentials for the user are valid.
+
+        :returns: True if the credentials are valid, False otherwise.
+        """
+        return self._impl.are_credentials_valid()
+
     @property
     def impl(self):
         """
