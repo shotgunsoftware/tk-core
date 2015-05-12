@@ -18,17 +18,6 @@ from tank_vendor.shotgun_authentication import user, user_impl
 from tank_vendor.shotgun_api3 import AuthenticationFault
 
 
-class Success(Exception):
-    """
-    We'll use this to break the execution of the code. Since we don't
-    actually call the server to retrieve information, we can't let
-    the _call_rpc mock return to the caller. If we raise this exception
-    from a test, it will signify that we are happy with how _call_rpc
-    was invoked and that the test succeeded.
-    """
-    pass
-
-
 class UserTests(TankTestBase):
 
     def _create_test_user(self):
@@ -64,9 +53,10 @@ class UserTests(TankTestBase):
         self.assertEquals(su.impl.get_key(), su_2.impl.get_key())
         self.assertEquals(su.impl.get_script(), su_2.impl.get_script())
 
+    @patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
     @patch("tank_vendor.shotgun_api3.Shotgun._call_rpc")
     @patch("tank_vendor.shotgun_authentication.interactive_authentication.renew_session")
-    def test_refresh_credentials_failure(self, renew_session_mock, call_rpc_mock):
+    def test_refresh_credentials_failure(self, renew_session_mock, call_rpc_mock, server_caps_mock):
         """
         Makes sure we can refresh credentials correctly.
 
@@ -82,9 +72,10 @@ class UserTests(TankTestBase):
         with self.assertRaises(AuthenticationFault):
             sg._call_rpc()
 
+    @patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
     @patch("tank_vendor.shotgun_api3.Shotgun._call_rpc")
     @patch("tank_vendor.shotgun_authentication.interactive_authentication.renew_session")
-    def test_refresh_credentials_on_old_connection(self, renew_session_mock, call_rpc_mock):
+    def test_refresh_credentials_on_old_connection(self, renew_session_mock, call_rpc_mock, server_caps_mock):
         """
         Makes sure that an existing connection with old session token can still be
         refreshed with the newer token on the user object.
