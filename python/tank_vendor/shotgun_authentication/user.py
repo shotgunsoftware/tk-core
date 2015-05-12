@@ -74,6 +74,16 @@ class ShotgunUser(object):
         """
         return self._impl.are_credentials_valid()
 
+    def refresh_credentials(self):
+        """
+        Refreshes the credentials of this user so that they don't expire.
+        If they are expired, you will be prompted for the user's password.
+        """
+        # Make a very simple authenticated request that returns as little information as possible.
+        # If the session token was expired, the ShotgunWrapper returned by create_sg_connection
+        # will take care of the session renewal.
+        self.create_sg_connection().find_one("HumanUser", [])
+
     @property
     def impl(self):
         """
