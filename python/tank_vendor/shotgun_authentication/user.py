@@ -66,13 +66,13 @@ class ShotgunUser(object):
         """
         return self._impl.create_sg_connection()
 
-    def are_credentials_valid(self):
+    def are_credentials_expired(self):
         """
-        Checks if the credentials for the user are valid.
+        Checks if the credentials for the user are expired.
 
-        :returns: True if the credentials are valid, False otherwise.
+        :returns: True if the credentials are expired, False otherwise.
         """
-        return self._impl.are_credentials_valid()
+        return self._impl.are_credentials_expired()
 
     def refresh_credentials(self):
         """

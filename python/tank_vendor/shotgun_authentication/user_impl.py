@@ -71,13 +71,13 @@ class ShotgunUserImpl(object):
         """
         self.__class__._not_implemented("create_sg_connection")
 
-    def are_credentials_valid(self):
+    def are_credentials_expired(self):
         """
         Checks if the credentials for the user are valid.
 
         :returns: True if the credentials are valid, False otherwise.
         """
-        self.__class__._not_implemented("are_credentials_valid")
+        self.__class__._not_implemented("are_credentials_expired")
 
     def to_dict(self):
         """
@@ -208,11 +208,11 @@ class SessionUser(ShotgunUserImpl):
             sg_auth_user=self
         )
 
-    def are_credentials_valid(self):
+    def are_credentials_expired(self):
         """
-        Checks if the credentials for the user are valid.
+        Checks if the credentials for the user are expired.
 
-        :returns: True if the credentials are valid, False otherwise.
+        :returns: True if the credentials are expired, False otherwise.
         """
         sg = Shotgun(
             self.get_host(), session_token=self.get_session_token(),
@@ -220,9 +220,9 @@ class SessionUser(ShotgunUserImpl):
         )
         try:
             sg.find_one("HumanUser", [])
-            return True
-        except AuthenticationFault:
             return False
+        except AuthenticationFault:
+            return True
 
     @staticmethod
     def from_dict(payload):
@@ -300,18 +300,14 @@ class ScriptUser(ShotgunUserImpl):
             http_proxy=self._http_proxy,
         )
 
-    def are_credentials_valid(self):
+    def are_credentials_expired(self):
         """
-        Checks if the credentials for the user are valid.
+        Checks if the credentials for the user are expired. Script user
+        credentials can never be expired, so this method always returns False.
 
-        :returns: True if the credentials are valid, False otherwise.
+        :returns: False
         """
-        sg = self.create_sg_connection()
-        try:
-            sg.find_one("HumanUser", [])
-            return True
-        except AuthenticationFault:
-            return False
+        return False
 
     def get_script(self):
         """
