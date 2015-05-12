@@ -97,8 +97,10 @@ class LoginDialog(QtGui.QDialog):
         """
         Displays the window modally.
         """
-        self.activateWindow()
+        self.show()
         self.raise_()
+        self.activateWindow()
+
         # the trick of activating + raising does not seem to be enough for
         # modal dialogs. So force put them on top as well.
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint | self.windowFlags())
