@@ -15,7 +15,7 @@ api key with the ScriptUser class. This module is meant to be used internally.
 
 import cPickle
 from .shotgun_wrapper import ShotgunWrapper
-from tank_vendor.shotgun_api3 import Shotgun
+from tank_vendor.shotgun_api3 import Shotgun, AuthenticationFault
 
 from . import session_cache
 from .errors import IncompleteCredentials
@@ -70,6 +70,14 @@ class ShotgunUserImpl(object):
                                      NotImplementedError.
         """
         self.__class__._not_implemented("create_sg_connection")
+
+    def are_credentials_valid(self):
+        """
+        Checks if the credentials for the user are valid.
+
+        :returns: True if the credentials are valid, False otherwise.
+        """
+        self.__class__._not_implemented("are_credentials_valid")
 
     def to_dict(self):
         """
@@ -200,6 +208,22 @@ class SessionUser(ShotgunUserImpl):
             sg_auth_user=self
         )
 
+    def are_credentials_valid(self):
+        """
+        Checks if the credentials for the user are valid.
+
+        :returns: True if the credentials are valid, False otherwise.
+        """
+        sg = Shotgun(
+            self.get_host(), session_token=self.get_session_token(),
+            http_proxy=self.get_http_proxy()
+        )
+        try:
+            sg.find_one("HumanUser", [])
+            return True
+        except AuthenticationFault:
+            return False
+
     @staticmethod
     def from_dict(payload):
         """
@@ -275,6 +299,19 @@ class ScriptUser(ShotgunUserImpl):
             api_key=self._api_key,
             http_proxy=self._http_proxy,
         )
+
+    def are_credentials_valid(self):
+        """
+        Checks if the credentials for the user are valid.
+
+        :returns: True if the credentials are valid, False otherwise.
+        """
+        sg = self.create_sg_connection()
+        try:
+            sg.find_one("HumanUser", [])
+            return True
+        except AuthenticationFault:
+            return False
 
     def get_script(self):
         """

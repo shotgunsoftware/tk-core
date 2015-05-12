@@ -492,6 +492,8 @@ def shotgun_run_action_auth(log, install_root, pipeline_config_root, is_localize
             # no password given from shotgun. Try to use a stored session token
             try:
                 user = sa.create_session_user(login)
+                if not user.are_credentials_valid():
+                    raise IncompleteCredentials("Session token is expired.")
             except IncompleteCredentials:
                 # report back to the Shotgun javascript integration
                 # this error message will trigger the javascript to
