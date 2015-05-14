@@ -858,7 +858,7 @@ def _create_dependencies(tk, publish_entity, dependency_paths, dependency_ids):
                 
 
 def _create_published_file(tk, context, path, name, version_number, task, comment, published_file_type, 
-                           created_by_user, created_at, version_entity, sg_fields):
+                           created_by_user, created_at, version_entity, sg_fields=None):
     """
     Creates a publish entity in shotgun given some standard fields.
     """
@@ -893,7 +893,10 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
         linked_entity = context.entity
     
     data = {}
+    
     # we set the optional additional fields first so we don't allow overwriting the standard parameters
+    if sg_fields is None:
+        sg_fields = {}
     data.update(sg_fields)
     
     # standard parameters
