@@ -1051,6 +1051,31 @@ def from_path(tk, path, previous_context=None):
         # remove double entry!
         context["entity"] = None
 
+    
+    # if task is empty, try to deduce it by querying shotgun for matching tasks
+    if context.get("task") is None and context["project"] and context["entity"] and context["entity"]["type"] in ["Shot", "Asset"] and context["step"]:
+        sg_task = None
+
+        # first try to find a task that is assigned to the user
+        if context["user"]:
+            sg_task = tk.shotgun.find_one("Task",
+                                          [ ["project", "is", context["project"]],
+                                            ["entity", "is", context["entity"]],
+                                            ["step", "is", context["step"]],
+                                            ["task_assignees", "in", context["user"]] ],
+                                          ["content"])
+
+        if not sg_task:
+            # else try to find any task matching
+            sg_task = tk.shotgun.find_one("Task",
+                                          [ ["project", "is", context["project"]],
+                                            ["entity", "is", context["entity"]],
+                                            ["step", "is", context["step"]] ],
+                                          ["content"])
+
+        if sg_task:
+            context["task"] = {"type": "Task", "id": sg_task["id"], "name": sg_task["content"]}
+
     return Context(**context)
 
 ################################################################################################
