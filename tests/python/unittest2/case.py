@@ -466,8 +466,8 @@ class TestCase(unittest.TestCase):
 
                with self.assertRaises(SomeException) as cm:
                    do_something()
-               the_exception = cm.exception
-               self.assertEqual(the_exception.error_code, 3)
+                   the_exception = cm.exception
+                   self.assertEqual(the_exception.error_code, 3)
         """
         if callableObj is None:
             return _AssertRaisesContext(excClass, self)
