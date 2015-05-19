@@ -578,6 +578,91 @@ class TestAsTemplateFields(TestContext):
         template_def =  "/sequence/{Sequence}/{Shot}/{Step}/work"
         self.template = TemplatePath(template_def, self.keys, self.project_root)
 
+    def test_bad_path_cache_entry(self):
+        """
+        Test that as_template_fields() doesn't return incorrect entity fields when entries in the
+        path cache for an entity are invalid/out-of-date.  This can happen if the folder schema/templates
+        are modified after folders have already been created/the path cache has already been populated.
+        
+        For example, given the following path cache:
+        
+        Type     | Id  | Name     | Path
+        ----------------------------------------------------
+        Sequence | 001 | Seq_001  | /Seq_001
+        Shot     | 002 | Shot_A   | /Seq_001/Shot_A
+        Step     | 003 | Lighting | /Seq_001/Shot_A/Lighting
+        Step     | 003 | Lighting | /Seq_001/blah/Shot_B/Lighting   <- this is out of date!
+        Shot     | 004 | Shot_B   | /Seq_001/blah/Shot_B            <- this is out of date!
+        
+        This test ensures that searching for a context containing Step 'Lighting' and Shot 'Shot_B' doesn't
+        return fields for Shot 'Shot_A' by mistake.  This would previously happen because the last two entries
+        are out-of-date but the code still managed to find an entry for the Step which it then used to find the
+        (wrong) value of the Shot field.
+        """
+        # build a new Shot entity and context:
+        test_shot = {"type":"Shot",
+                    "code": "shot_bad",
+                    "id":16,
+                    "sg_sequence": self.seq,
+                    "project": self.project
+                    }
+        kws = {"tk":self.tk,
+               "project":self.project,
+               "entity":test_shot,
+               "step":self.step
+               }
+        test_ctx = context.Context(**kws)
+
+        # add some bad data for this new Shot to the path cache:
+        bad_shot_path = os.path.join(self.seq_path, "bad", "shot_bad")
+        self.add_production_path(bad_shot_path, test_shot)
+        bad_shot_step_path = os.path.join(bad_shot_path, "step_short_name")
+        self.add_production_path(bad_shot_step_path, self.step)
+
+        # query the template fields:
+        result = test_ctx.as_template_fields(self.template)
+
+        # check the result:
+        expected_result = {"Step": "step_short_name"}
+        self.assertEquals(result, expected_result)
+
+    def test_validate_parameter(self):
+        """
+        Test that the validate parameter behaves correctly when all context fields are found
+        for a template and when they are not.
+        """
+        # test a context that should resolve a full set of fields:
+        fields = self.ctx.as_template_fields(self.template, validate=True)
+        expected_fields = {"Sequence": "Seq", "Shot": "shot_code", "Step": "step_short_name"}
+        self.assertEquals(fields, expected_fields)
+
+        # test a context that shouldn't resolve a full set of fields.  For this, we create
+        # a new shot and add it to the path cache but we don't add the Step to ensure the
+        # Step key isn't found.
+        other_shot = {"type":"Shot",
+                    "code": "shot_other",
+                    "id":16,
+                    "sg_sequence": self.seq,
+                    "project": self.project
+                    }
+        kws = {"tk":self.tk,
+               "project":self.project,
+               "entity":other_shot,
+               "step":self.step
+               }
+        other_shot_path = os.path.join(self.seq_path, "shot_other")
+        self.add_production_path(other_shot_path, other_shot)
+        test_ctx = context.Context(**kws)
+
+        # check that running with validate=False returns the expected fields:
+        fields = test_ctx.as_template_fields(self.template, validate=False)
+        expected_fields = {"Sequence": "Seq", "Shot": "shot_other"}
+        self.assertEquals(fields, expected_fields)
+
+        # now check that when validate=True, a TankError is raised:
+        self.assertRaises(TankError, test_ctx.as_template_fields, self.template, True)
+
+
     def test_query_from_template(self):
         query_key = StringKey("shot_extra", shotgun_entity_type="Shot", shotgun_field_name="extra_field")
         self.keys["shot_extra"] = query_key
