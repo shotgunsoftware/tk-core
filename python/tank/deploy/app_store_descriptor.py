@@ -27,7 +27,7 @@ from ..api import Tank
 from ..util import shotgun
 from ..errors import TankError
 from ..platform import constants
-from .descriptor import AppDescriptor
+from .descriptor import AppDescriptor, extract_pipeline_config_paths
 from .zipfilehelper import unzip_file
 
 METADATA_FILE = ".metadata.json"
@@ -43,8 +43,8 @@ class TankAppStoreDescriptor(AppDescriptor):
 
     """
 
-    def __init__(self, pipeline_config, location_dict, bundle_type):
-        super(TankAppStoreDescriptor, self).__init__(pipeline_config, location_dict)
+    def __init__(self, pipeline_paths, location_dict, bundle_type):
+        super(TankAppStoreDescriptor, self).__init__(pipeline_paths, location_dict)
 
         self._type = bundle_type
         self._name = location_dict.get("name")
@@ -166,7 +166,7 @@ class TankAppStoreDescriptor(AppDescriptor):
     # class methods
 
     @classmethod
-    def _find_latest_for_pattern(cls, pipeline_config, bundle_type, name, version_pattern):
+    def _find_latest_for_pattern(cls, pipeline_paths, bundle_type, name, version_pattern):
         """
         Returns an TankAppStoreDescriptor object representing the latest version
         of the sought after object. If no matching item is found, an
@@ -307,7 +307,7 @@ class TankAppStoreDescriptor(AppDescriptor):
         location_dict = {"type": "app_store", "name": name, "version": version_to_use}
 
         # and return a descriptor instance
-        desc = TankAppStoreDescriptor(pipeline_config, location_dict, bundle_type)
+        desc = TankAppStoreDescriptor(pipeline_paths, location_dict, bundle_type)
         
         # now if this item has been deprecated, meaning that someone has gone in to the app
         # store and updated the record's deprecation status, we want to make sure we download
@@ -321,7 +321,7 @@ class TankAppStoreDescriptor(AppDescriptor):
     
     
     @classmethod
-    def _find_latest(cls, pipeline_config, bundle_type, name):
+    def _find_latest(cls, paths_dict, bundle_type, name):
         """
         Returns an TankAppStoreDescriptor object representing the latest version
         of the sought after object. If no matching item is found, an
@@ -390,7 +390,7 @@ class TankAppStoreDescriptor(AppDescriptor):
         location_dict = {"type": "app_store", "name": name, "version": version_str}
 
         # and return a descriptor instance
-        desc = TankAppStoreDescriptor(pipeline_config, location_dict, bundle_type)
+        desc = TankAppStoreDescriptor(paths_dict, location_dict, bundle_type)
         
         # now if this item has been deprecated, meaning that someone has gone in to the app
         # store and updated the record's deprecation status, we want to make sure we download
@@ -408,23 +408,34 @@ class TankAppStoreDescriptor(AppDescriptor):
         of the sought after object. If no matching item is found, an
         exception is raised. A constraint pattern can be specified if you want to search
         a subset of the version space available.
-        
+
         This pattern can be on the following forms:
-        
+
         - v0.1.2, v0.12.3.2, v0.1.3beta - a specific version
         - v0.12.x - get the highest v0.12 version
-        - v1.x.x - get the highest v1 version 
+        - v1.x.x - get the highest v1 version
 
         This method is useful if you know the name of an app (after browsing in the
         app store for example) and want to get a formal "handle" to it.
 
         :returns: TankAppStoreDescriptor instance
         """
-        if constraint_pattern:
-            return cls._find_latest_for_pattern(pipeline_config, bundle_type, name, constraint_pattern)
-        else:
-            return cls._find_latest(pipeline_config, bundle_type, name)
+        cls._find_latest_item_internal(
+            extract_pipeline_config_paths(pipeline_config), bundle_type, name, constraint_pattern
+        )
 
+    @classmethod
+    def _find_latest_item_internal(cls, paths_dict, bundle_type, name, constraint_pattern=None):
+        """
+        Actual implementation of find_latest_item. For parameter and return value information,
+        see find_latest_item for more details.
+
+        :param paths_dict: Dictionary with keys obtained from descriptor.extract_pipeline_config_paths
+        """
+        if constraint_pattern:
+            return cls._find_latest_for_pattern(paths_dict, bundle_type, name, constraint_pattern)
+        else:
+            return cls._find_latest(paths_dict, bundle_type, name)
 
 
     ###############################################################################################
@@ -510,7 +521,7 @@ class TankAppStoreDescriptor(AppDescriptor):
         if not os.path.exists(target):
             old_umask = os.umask(0)
             os.makedirs(target, 0777)
-            os.umask(old_umask)                
+            os.umask(old_umask)
 
         # connect to the app store
         (sg, script_user) = shotgun.create_sg_app_store_connection()
@@ -599,7 +610,7 @@ class TankAppStoreDescriptor(AppDescriptor):
 
         :returns: descriptor object
         """
-        return self.find_latest_item(self._pipeline_config, self._type, self._name, constraint_pattern)
+        return self._find_latest_item_internal(self._pipeline_paths, self._type, self._name, constraint_pattern)
         
         
 
