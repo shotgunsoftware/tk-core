@@ -19,7 +19,7 @@ import pprint
 import inspect
 import tempfile
 
-from mockgun import Shotgun as MockGun_Shotgun 
+from mockgun import Mockgun
 
 from mock import Mock
 import unittest2 as unittest
@@ -47,6 +47,7 @@ def setUpModule():
     temp_dir_name += "_%f" % time.time()
 
     TANK_TEMP = os.path.join(temp_dir, temp_dir_name)
+
     # print out the temp data location
     msg = "Toolkit test data location: %s" % TANK_TEMP
     print "\n" + "="*len(msg)
@@ -97,7 +98,7 @@ class TankTestBase(unittest.TestCase):
         self.fixtures_root = os.environ["TK_TEST_FIXTURES"]
         
         
-    def setUp(self, project_tank_name = "project_code"):
+    def setUp(self, project_tank_name = "project_code", db_schema="default"):
         """
         Creates and registers test project.
         """
@@ -171,23 +172,23 @@ class TankTestBase(unittest.TestCase):
         
         # set up mockgun and make sure shotgun connection calls route via mockgun
         
-        self.mockgun = MockGun_Shotgun("http://unit_test_mock_sg", "mock_user", "mock_key")
+        self.mockgun = Mockgun("http://unit_test_mock_sg", "mock_user", "mock_key", db_schema=db_schema)
         
         def get_associated_sg_base_url_mocker():
             return "http://unit_test_mock_sg"
         
         def create_sg_connection_mocker():
             return self.mockgun
-            
+
         tank.util.shotgun.get_associated_sg_base_url = get_associated_sg_base_url_mocker
         tank.util.shotgun.create_sg_connection = create_sg_connection_mocker
-        
+
         # add project to mock sg and path cache db
         self.add_production_path(self.project_root, self.project)
-        
+
         # add pipeline configuration
         self.add_to_sg_mock_db(self.sg_pc_entity)
-        
+
         # add local storage
         self.primary_storage = {"type": "LocalStorage",
                                 "id": 7777,
@@ -195,7 +196,7 @@ class TankTestBase(unittest.TestCase):
                                 "windows_path": self.tank_temp,
                                 "linux_path": self.tank_temp,
                                 "mac_path": self.tank_temp }
-        
+
         self.add_to_sg_mock_db(self.primary_storage)
         
         

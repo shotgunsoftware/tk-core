@@ -28,9 +28,6 @@ import pprint
 
 from tank_vendor.shotgun_api3 import sg_timezone, ShotgunError, Shotgun
 
-_schema_filename = "schema.pickle"
-_schema_entity_filename = "schema_entity.pickle"
-
 def generate_schema(sg_url, sg_script, sg_key, schema_file_path, schema_entity_file_path):
     """
     Helper method for mockgun.
@@ -58,7 +55,7 @@ def generate_schema(sg_url, sg_script, sg_key, schema_file_path, schema_entity_f
     
 
 
-class Shotgun(object):
+class Mockgun(object):
     """
     mockgun.Shotgun is a mocked Shotgun API, designed for test purposes.
     It generates an object which looks and feels like a normal Shotgun API instance.
@@ -74,10 +71,12 @@ class Shotgun(object):
     testing of code.
     """
     
-    def __init__(self, base_url, script_name, api_key, convert_datetimes_to_utc=True, http_proxy=None):
+    def __init__(self, base_url, script_name, api_key, convert_datetimes_to_utc=True, http_proxy=None, db_schema="default"):
+        schema_filename = "%s.pickle"%db_schema
+        schema_entity_filename = "%s_entity.pickle"%db_schema
         module_dir = os.path.split(__file__)[0]
-        schema_path = os.path.join(module_dir, _schema_filename)
-        schema_entity_path = os.path.join(module_dir, _schema_entity_filename)
+        schema_path = os.path.join(module_dir, "schemas", schema_filename)
+        schema_entity_path = os.path.join(module_dir, "schemas", schema_entity_filename)
         
         fh = open(schema_path, "r")
         self._schema = pickle.load(fh)
@@ -168,7 +167,9 @@ class Shotgun(object):
                                    "serializable": dict,
                                    "date": datetime.date,
                                    "date_time": datetime.datetime,
-                                   "url": dict}[sg_type]
+                                   "url": dict,
+                                   "status_list": basestring,
+                                   "list": basestring}[sg_type]
                 except KeyError:
                     raise ShotgunError("Field %s.%s: Handling for Shotgun type %s is not implemented" % (entity_type, field, sg_type)) 
                 
@@ -229,7 +230,7 @@ class Shotgun(object):
                 return lval < rval[0] or lval > rval[1]
             elif operator == "in":
                 return lval in rval
-        elif field_type == "list":
+        elif field_type == "list" or field_type == "status_list":
             if operator == "is":
                 return lval == rval
             elif operator == "is_not":
@@ -534,8 +535,36 @@ class Shotgun(object):
             return False
     
     def upload(self, entity_type, entity_id, path, field_name=None, display_name=None, tag_list=None):
-        raise NotImplementedError
-    
+        self._validate_entity_type(entity_type)
+        self._validate_entity_exists(entity_type, entity_id)
+        entity = self._db[entity_type][entity_id]
+
+        path = os.path.abspath(os.path.expanduser(path or ""))
+        if not os.path.isfile(path):
+            raise ShotgunError("Path must be a valid file, got '%s'" % path)
+
+        data = {}
+        data["attachment_links"] = [ { "type": entity_type, "id": entity_id } ]
+        data["project"] = { "type": "Project", "id": entity["id"] }
+        if display_name:
+            data["display_name"] = display_name
+        if tag_list:
+            data["tag_list"] = tag_list
+
+        result = self.create("Attachment", data)
+
+        data = {
+            "attachment_links" : [ { "type": entity_type, "id": entity_id } ]
+        }
+
+        if entity["project"]:
+            data["project"] = entity["project"]
+
+        self.update("Attachment", result["id"], data )
+
+        return result["id"]
+
+
     def upload_thumbnail(self, entity_type, entity_id, path, **kwargs):
         pass
 
