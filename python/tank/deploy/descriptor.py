@@ -43,9 +43,10 @@ class AppDescriptor(object):
     # constants describing the type of item we are describing
     APP, ENGINE, FRAMEWORK = range(3)
 
-    def __init__(self, pipeline_paths, location_dict):
-        self._pipeline_paths = pipeline_paths
-        self._location_dict = location_dict        
+    def __init__(self, pipeline_config_path, bundle_install_path, location_dict):
+        self._pipeline_config_path = pipeline_config_path
+        self._bundle_install_path = bundle_install_path
+        self._location_dict = location_dict
         self.__manifest_data = None
 
     def __repr__(self):
@@ -70,11 +71,11 @@ class AppDescriptor(object):
         # /studio/tank/install/apps/APP_TYPE/NAME/VERSION
 
         if app_type == AppDescriptor.APP:
-            root = self._pipeline_paths["apps"]
+            root = os.path.join(self._bundle_install_path, "apps")
         elif app_type == AppDescriptor.ENGINE:
-            root = self._pipeline_paths["engines"]
+            root = os.path.join(self._bundle_install_path, "engines")
         elif app_type == AppDescriptor.FRAMEWORK:
-            root = self._pipeline_paths["frameworks"]
+            root = os.path.join(self._bundle_install_path, "frameworks")
         else:
             raise TankError("Don't know how to figure out the local storage root - unknown type!")
         return os.path.join(root, descriptor_name, name, version)
@@ -209,7 +210,7 @@ class AppDescriptor(object):
         """
         Returns a dictionary with version constraints. The absence of a key
         indicates that there is no defined constraint. The following keys can be
-        returned: min_sg, min_core, min_engine
+        returned: min_sg, min_core, min_engine and min_desktop
         """
         constraints = {}
 
@@ -426,18 +427,17 @@ class AppDescriptor(object):
             try:
                 hook.execute_hook(post_install_hook_path, 
                                   parent=None,
-                                  pipeline_configuration=self._pipeline_paths["root"],
+                                  pipeline_configuration=self._pipeline_config_path,
                                   path=self.get_path())
 
             except Exception, e:
                 raise TankError("Could not run post-install hook for %s. "
                                 "Error reported: %s" % (self, e))
-            
-            
 
 
 ################################################################################################
 # factory method for app descriptors
+
 
 def get_from_location(app_or_engine, pipeline_config, location_dict):
     """
@@ -448,60 +448,54 @@ def get_from_location(app_or_engine, pipeline_config, location_dict):
     :param location_dict: A tank location dict
     :returns: an AppDescriptor object
     """
+
+    return get_from_location_and_paths(
+        app_or_engine,
+        pipeline_config.get_path(),
+        pipeline_config.get_bundles_location(),
+        location_dict
+    )
+
+
+def get_from_location_and_paths(app_or_engine, pc_path, bundle_install_path, location_dict):
+    """
+    Factory method.
+
+    :param app_or_engine: Either AppDescriptor.APP AppDescriptor.ENGINE or FRAMEWORK
+    :param pc_path: Path to the root of the pipeline configuration
+    :param bundle_install_path: Path to the root of the apps, frameworks and engines bundles.
+    :param location_dict: A tank location dict
+    :returns: an AppDescriptor object
+    """
+
     from .app_store_descriptor import TankAppStoreDescriptor
     from .dev_descriptor import TankDevDescriptor
     from .git_descriptor import TankGitDescriptor
     from .manual_descriptor import TankManualDescriptor
-
-    if not isinstance(pipeline_config, dict):
-        paths = extract_pipeline_config_paths(pipeline_config)
-    else:
-        paths = pipeline_config
-
 
     # temporary implementation. Todo: more error checks!
 
     # tank app store format
     # location: {"type": "app_store", "name": "tk-nukepublish", "version": "v0.5.0"}
     if location_dict.get("type") == "app_store":
-        return TankAppStoreDescriptor(paths, location_dict, app_or_engine)
+        return TankAppStoreDescriptor(pc_path, bundle_install_path, location_dict, app_or_engine)
 
     # manual format
     # location: {"type": "manual", "name": "tk-nukepublish", "version": "v0.5.0"}
     elif location_dict.get("type") == "manual":
-        return TankManualDescriptor(paths, location_dict, app_or_engine)
+        return TankManualDescriptor(pc_path, bundle_install_path, location_dict, app_or_engine)
 
     # git repo
     # location: {"type": "git", "path": "/path/to/repo.git", "version": "v0.2.1"}
     elif location_dict.get("type") == "git":
-        return TankGitDescriptor(paths, location_dict, app_or_engine)
+        return TankGitDescriptor(pc_path, bundle_install_path, location_dict, app_or_engine)
 
     # local dev format
     # location: {"type": "dev", "path": "/path/to/app"}
     # or
     # location: {"type": "dev", "windows_path": "c:\\path\\to\\app", "linux_path": "/path/to/app", "mac_path": "/path/to/app"}
     elif location_dict.get("type") == "dev":
-        return TankDevDescriptor(paths, location_dict)
+        return TankDevDescriptor(pc_path, bundle_install_path, location_dict)
 
     else:
         raise TankError("%s: Invalid location dict '%s'" % (app_or_engine, location_dict))
-
-
-def extract_pipeline_config_paths(pipeline_config):
-    """
-    Extracts path information relative to descriptors from the pipeline configuration.
-
-    :param pipeline_config: Pipeline configuration to get the paths from.
-
-    :returns: A dictionary with keys
-        apps: Path to the apps folder for the pipeline configuration.
-        engines: Paths to the engines folder for the pipeline configuration.
-        frameworks: Paths to the frameworks folder for the pipeline configuration.
-        pipeline: Path to the root of the pipeline configuration.
-    """
-    return {
-        "apps": pipeline_config.get_apps_location(),
-        "engines": pipeline_config.get_engines_location(),
-        "frameworks": pipeline_config.get_frameworks_location(),
-        "root": pipeline_config.get_path()
-    }

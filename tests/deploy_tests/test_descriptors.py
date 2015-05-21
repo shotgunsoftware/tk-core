@@ -53,9 +53,19 @@ class TestDescriptors(TankTestBase):
         desc = descriptor.get_from_location(
             bundle_type,
             self.tk.pipeline_configuration,
-            {"type": "dev", "path": "/a/b/c"}
+            {"type": "dev", "path": "/path/to/bundle"}
         )
-        self.assertEqual(desc.get_path(), "/a/b/c")
+        self.assertEqual(desc.get_path(), "/path/to/bundle")
+
+        desc = descriptor.get_from_location(
+            bundle_type,
+            self.tk.pipeline_configuration,
+            {"type": "dev", "path": "{PIPELINE_CONFIG}/bundle"}
+        )
+        self.assertEqual(
+            desc.get_path(),
+            os.path.join(self.tk.pipeline_configuration.get_path(), "bundle")
+        )
 
     def _test_git_descriptor_location_with_repo(self, bundle_type, bundle_location, repo):
         """
@@ -109,9 +119,11 @@ class TestDescriptors(TankTestBase):
         install location of the bundles (descriptor.get_path()).
         """
         bundle_types = {
-            descriptor.AppDescriptor.APP: self.tk.pipeline_configuration.get_apps_location(),
-            descriptor.AppDescriptor.ENGINE: self.tk.pipeline_configuration.get_engines_location(),
-            descriptor.AppDescriptor.FRAMEWORK: self.tk.pipeline_configuration.get_frameworks_location()
+            # Do not rely on get_bundles_location() to generate the expected roots since
+            # we wouldn't be testing against the expected value.
+            descriptor.AppDescriptor.APP: os.path.join(self.tk.pipeline_configuration.get_install_location(), "install", "apps"),
+            descriptor.AppDescriptor.ENGINE: os.path.join(self.tk.pipeline_configuration.get_install_location(), "install", "engines"),
+            descriptor.AppDescriptor.FRAMEWORK: os.path.join(self.tk.pipeline_configuration.get_install_location(), "install", "frameworks")
         }
         for bundle_type, bundle_location in bundle_types.iteritems():
             self._test_name_based_descriptor_location(
