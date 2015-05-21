@@ -19,7 +19,7 @@ import pprint
 import inspect
 import tempfile
 
-from mockgun import MockGun_Shotgun
+from mockgun import Mockgun
 
 from mock import Mock
 import unittest2 as unittest
@@ -172,7 +172,7 @@ class TankTestBase(unittest.TestCase):
         
         # set up mockgun and make sure shotgun connection calls route via mockgun
         
-        self.mockgun = MockGun_Shotgun("http://unit_test_mock_sg", "mock_user", "mock_key", db_schema=db_schema)
+        self.mockgun = Mockgun("http://unit_test_mock_sg", "mock_user", "mock_key", db_schema=db_schema)
         
         def get_associated_sg_base_url_mocker():
             return "http://unit_test_mock_sg"

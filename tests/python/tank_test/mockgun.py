@@ -55,7 +55,7 @@ def generate_schema(sg_url, sg_script, sg_key, schema_file_path, schema_entity_f
     
 
 
-class MockGun_Shotgun(object):
+class Mockgun(object):
     """
     mockgun.Shotgun is a mocked Shotgun API, designed for test purposes.
     It generates an object which looks and feels like a normal Shotgun API instance.
