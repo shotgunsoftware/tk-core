@@ -71,7 +71,7 @@ class TankGitDescriptor(AppDescriptor):
         """
         returns the path to the folder where this item resides
         """
-        # git@github.com:manneohrstrom/tk-hiero-publish.git -> tk-hiero-publish
+        # git@github.com:manneohrstrom/tk-hiero-publish.git -> tk-hiero-publish.git
         # /full/path/to/local/repo.git -> repo.git        
         name = os.path.basename(self._path)
         return self._get_local_location(self._type, "git", name, self._version)
@@ -294,7 +294,7 @@ class TankGitDescriptor(AppDescriptor):
         new_loc_dict = copy.deepcopy(self._location_dict)
         new_loc_dict["version"] = latest_version
 
-        return TankGitDescriptor(self._pipeline_config, new_loc_dict, self._type)
+        return TankGitDescriptor(self._pipeline_paths, new_loc_dict, self._type)
 
     def __clone_repo(self, target_path):
         """
