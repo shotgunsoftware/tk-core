@@ -445,30 +445,36 @@ class PipelineConfiguration(object):
             core_api_root = pipelineconfig_utils.get_path_to_current_core()
         
         return core_api_root
-            
+
+    def get_bundles_location(self):
+        """
+        Returns the location where all bundles are stored in subfolders."
+        """
+        return os.path.join(self.get_install_location(), "install")
+
     def get_apps_location(self):
         """
         Returns the location where apps are stored
         """
-        return os.path.join(self.get_install_location(), "install", "apps")
+        return os.path.join(self.get_bundles_location(), "apps")
 
     def get_engines_location(self):
         """
         Returns the location where apps are stored
         """
-        return os.path.join(self.get_install_location(), "install", "engines")
+        return os.path.join(self.get_bundles_location(), "engines")
 
     def get_frameworks_location(self):
         """
         Returns the location where apps are stored
         """
-        return os.path.join(self.get_install_location(), "install", "frameworks")
+        return os.path.join(self.get_bundles_location(), "frameworks")
 
     def get_core_python_location(self):
         """
         returns the python root for this install.
         """
-        return os.path.join(self.get_install_location(), "install", "core", "python")
+        return os.path.join(self.get_bundles_location(), "core", "python")
 
     ########################################################################################
     # configuration disk locations
