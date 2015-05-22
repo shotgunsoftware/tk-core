@@ -7,8 +7,24 @@
 # By accessing, using, copying or modifying this work you indicate your
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
+
 """
-Exposes information about a user.
+Represents a Shotgun user, either a script or a person and provides an entry point
+into the authentication system.
+
+User objects are retrieved via the ShotgunAuthenticator object, which will handle
+caching user objects on disk, prompting the user for their credentials etc.
+
+Once you have retrieved one of the user objects below, this can be user to access
+Shotgun in a seamless way. The create_sg_connection() will return a Shotgun API handle
+which is associated with the current user. This API handle is also monitored for 
+authentication timeouts, so if the user's session times out (typically due to periods 
+of inactivity), the user may be prompted (via a QT UI or stdin/stdout if only 
+console is accessible) to refresh their Shotgun session by typing in their password.
+
+If you need to persist the user object, this is possible via the serialization 
+methods. This is particularly useful if you need to pass a user object from one
+process to another, for example when launching a DCC such as Maya or Nuke.
 """
 
 from . import user_impl
@@ -16,15 +32,19 @@ from . import user_impl
 
 class ShotgunUser(object):
     """
-    Shotgun user class. It exposes information about the user.
+    Shotgun User object which abstracts an authenticated connection
+    for a particular Shotgun Script or User. 
+    
+    You can use the ShotgunAuthenticator class to construct 
+    ShotgunUser objects.
     """
+    
     def __init__(self, impl):
         """
         Constructor.
 
-        :param impl: User implementation class this class proxies.
+        :param impl: Internal user implementation class this class proxies.
         """
-
         self._impl = impl
 
     @property
@@ -48,10 +68,10 @@ class ShotgunUser(object):
     @property
     def login(self):
         """
-        The login for this current user.
+        The login for this current user. For Shotgun user types that don't have a concept
+        of a login (like API scripts), None is returned. 
 
-        :returns: The login string. If None, this user has no login associated
-            to it.
+        :returns: The login string or None.
         """
         if isinstance(self._impl, user_impl.SessionUser):
             return self._impl.get_login()
@@ -87,13 +107,13 @@ class ShotgunUser(object):
     @property
     def impl(self):
         """
-        Returs the user implementation object. Note: Retrieving the implementation
+        Returns the user implementation object. Note: Retrieving the implementation
         object is unsupported and should not be attempted. It is there to expose
-        functionality to the internals of the authentication module. Autodesk
-        reserves the right to alter the interface of the implementation object
+        functionality to the internals of the authentication module. We
+        reserve the right to alter the interface of the implementation object
         as it needs to.
 
-        :returns: The ShotgunUserImpl dervied object.
+        :returns: The ShotgunUserImpl derived object.
         """
         return self._impl
 

@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-Ui based authentication.
+QT based UI login prompting.
 
 --------------------------------------------------------------------------------
 NOTE! This module is part of the authentication library internals and should
