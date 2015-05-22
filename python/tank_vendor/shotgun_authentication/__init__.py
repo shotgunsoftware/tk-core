@@ -22,8 +22,4 @@ from .errors import *
 from .shotgun_authenticator import ShotgunAuthenticator
 from .defaults_manager import DefaultsManager
 from .user import deserialize_user, serialize_user
-
-import logging
-
-logger = logging.getLogger("sg_auth")
-logger.setLevel(logging.WARNING)
+from .sg_auth_logging import get_logger
