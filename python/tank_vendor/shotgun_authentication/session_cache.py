@@ -36,7 +36,6 @@ _CURRENT_USER = "current_user"
 _USERS = "users"
 _LOGIN = "login"
 _SESSION_TOKEN = "session_token"
-
 _SESSION_CACHE_FILE_NAME = "authentiation.yml" 
 
 def _get_cache_location():
@@ -131,16 +130,35 @@ def _try_load_yaml_file(file_path):
         logger.debug("Yaml file missing: %s" % file_path)
         return {}
     try:
+        config_file = None
         # Open the file and read it.
-        with open(file_path, "r") as config_file:
-            return yaml.load(config_file)
-    except yaml.YAMLError, e:
-        logger.exception("Error reading '%s': %s" % (file_path, e))
+        config_file = open(file_path, "r")
+        result = yaml.load(config_file)
+        # Make sure we got a dictionary back.
+        if isinstance(result, dict):
+            return result
+        else:
+            logger.warning("File '%s' didn't have a dictionary, defaulting to an empty one.")
+            return {}
+    except yaml.YAMLError:
+        # Return to the beginning
+        config_file.seek(0)
+        logger.exception("Error reading '%s'" % file_path)
+
+        logger.debug("Here's its content:")
+        # And log the complete file for debugging.
+        for line in config_file:
+            # Log line without \n
+            logger.debug(line.rstrip())
         # Create an empty document
         return {}
     except:
         logger.exception("Unexpected error while opening %s" % file_path)
         return {}
+    finally:
+        # If the exception occured when we opened the file, there is no file to close.
+        if config_file:
+            config_file.close()
 
 
 def _try_load_site_authentication_file(file_path):
@@ -337,10 +355,21 @@ def get_current_host():
     # Retrieve the cached info file location from the host
     info_path = _get_global_authentication_file_location()
     logger.debug("Looking for the current host at '%s'" % info_path)
+<<<<<<< HEAD
     document = _try_load_global_authentication_file(info_path)
     host =  document[_CURRENT_HOST]
     logger.debug("Current host is '%s'" % host)
     return host
+=======
+    if os.path.exists(info_path):
+        document = _try_load_global_authentication_file(info_path)
+        host = document[_CURRENT_HOST]
+        logger.debug("Current host is '%s'" % host)
+        return host
+    else:
+        logger.debug("No current host set.")
+        return None
+>>>>>>> security
 
 
 def set_current_host(host):
