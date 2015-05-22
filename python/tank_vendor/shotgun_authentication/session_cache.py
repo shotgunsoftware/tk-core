@@ -37,6 +37,8 @@ _USERS = "users"
 _LOGIN = "login"
 _SESSION_TOKEN = "session_token"
 
+_SESSION_CACHE_FILE_NAME = "authentiation.yml" 
+
 def _get_cache_location():
     """
     Returns an OS specific cache location.
@@ -77,7 +79,7 @@ def _get_global_authentication_file_location():
     """
     return os.path.join(
         _get_cache_location(),
-        "authentication.yml"
+        _SESSION_CACHE_FILE_NAME
     )
 
 
@@ -91,7 +93,7 @@ def _get_site_authentication_file_location(base_url):
     """
     return os.path.join(
         _get_site_cache_location(base_url),
-        "authentication.yml"
+        _SESSION_CACHE_FILE_NAME
     )
 
 
@@ -132,29 +134,28 @@ def _try_load_yaml_file(file_path):
         # Open the file and read it.
         with open(file_path, "r") as config_file:
             return yaml.load(config_file)
-    except yaml.YAMLError:
-        # Return to the beginning
-        config_file.seek(0)
-        logger.exception("File '%s' is corrupted!" % file_path)
-        # And log the complete file for debugging.
-        for line in config_file:
-            # Log line without \n
-            logger.debug(line.rstrip())
+    except yaml.YAMLError, e:
+        logger.exception("Error reading '%s': %s" % (file_path, e))
         # Create an empty document
         return {}
     except:
-        logger.exception("Unexpected error whie opening %s" % file_path)
+        logger.exception("Unexpected error while opening %s" % file_path)
         return {}
 
 
 def _try_load_site_authentication_file(file_path):
     """
-    Loads or creates on the file the data for the users file. The users file has the following format:
+    Returns the site level authentication data. This is loaded in from disk if available, 
+    otherwise an empty data structure is returned.
+     
+    The users file has the following format:
         current_user: "login1"
         users:
            {name: "login1", session_token: "session_token"}
            {name: "login2", session_token: "session_token"}
            {name: "login3", session_token: "session_token"}
+        
+    :returns: site authentication style dictionary 
     """
     content = _try_load_yaml_file(file_path)
     # Make sure any mandatory entry is present.
@@ -165,7 +166,11 @@ def _try_load_site_authentication_file(file_path):
 
 def _try_load_global_authentication_file(file_path):
     """
-    Loads or creates the hosts file
+    Returns the global authentication data. 
+    This is loaded in from disk if available, 
+    otherwise an empty data structure is returned.
+    
+    :returns: global authentication style dictionary
     """
     content = _try_load_yaml_file(file_path)
     # Make sure any mandatody entry is present.
@@ -278,16 +283,17 @@ def cache_session_data(host, login, session_token):
     file_path = _get_site_authentication_file_location(host)
     _ensure_folder_for_file(file_path)
 
-    logger.debug("Caching login info at %s..." % file_path)
+    logger.debug("Checking if we need to update cached session data "
+                 "for site '%s' and user '%s' in %s..." % (host, login, file_path))
 
     document = _try_load_site_authentication_file(file_path)
 
     if _insert_or_update_user(document, login, session_token):
         # Write back the file only it a new user was added.
         _write_yaml_file(file_path, document)
-        logger.debug("Cached!")
+        logger.debug("Updated session cache data.")
     else:
-        logger.debug("Already cached!")
+        logger.debug("Session data was already up to date.")
 
 
 def get_current_user(host):
@@ -301,14 +307,10 @@ def get_current_user(host):
     # Retrieve the cached info file location from the host
     info_path = _get_site_authentication_file_location(host)
     logger.debug("Looking for the current user at '%s'" % info_path)
-    if os.path.exists(info_path):
-        document = _try_load_site_authentication_file(info_path)
-        user = document[_CURRENT_USER]
-        logger.debug("Current user is '%s'" % user)
-        return user
-    else:
-        logger.debug("No current user set.")
-        return None
+    document = _try_load_site_authentication_file(info_path)
+    user = document[_CURRENT_USER]
+    logger.debug("Current user is '%s'" % user)
+    return user
 
 
 def set_current_user(host, login):
@@ -330,19 +332,15 @@ def get_current_host():
     """
     Returns the current host.
 
-    :returns: The current host string.
+    :returns: The current host string, None if undefined
     """
     # Retrieve the cached info file location from the host
     info_path = _get_global_authentication_file_location()
     logger.debug("Looking for the current host at '%s'" % info_path)
-    if os.path.exists(info_path):
-        document = _try_load_global_authentication_file(info_path)
-        host =  document[_CURRENT_HOST]
-        logger.debug("Current host is '%s'" % host)
-        return host
-    else:
-        logger.debug("No current host set.")
-        return None
+    document = _try_load_global_authentication_file(info_path)
+    host =  document[_CURRENT_HOST]
+    logger.debug("Current host is '%s'" % host)
+    return host
 
 
 def set_current_host(host):
