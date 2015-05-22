@@ -394,6 +394,6 @@ def deserialize_user(payload):
     factory = __factories.get(user_dict.get("type"))
     # Unknown type, something is wrong. Maybe backward compatible code broke?
     if not factory:
-        raise Exception("Invalid user type: %s" % user_dict)
+        raise Exception("Could not deserialize Shotgun user. Invalid user type: %s" % user_dict)
     # Instantiate the user object.
     return factory(user_dict["data"])

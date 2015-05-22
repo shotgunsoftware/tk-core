@@ -25,16 +25,16 @@ from . import interactive_authentication
 class ShotgunWrapper(Shotgun):
     """
     This class wraps the Shotgun instance that communicates with the Shotgun
-    server. Everytime a request is made to the server and we are authenticated
+    server. Every time a request is made to the server and we are authenticated
     as a session user, the call will be monitored for an AuthenticationFault.
-    If it happens, the call will be interupted by a prompt asking for the user's
+    If it happens, the call will be interrupted by a prompt asking for the user's
     password to renew the session. Once the session is renewed, the call will be
     executed again.
     """
     def __init__(self, *args, **kwargs):
         """
         Constructor. This has the same parameters as the Shotgun class, but it
-        has an extra nmed parameter documented below.
+        has an extra sg_auth_user parameter documented below.
 
         :param sg_auth_user: ShotgunUser derived instance that represents the
                              authenticated user making the request.

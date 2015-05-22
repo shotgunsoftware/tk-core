@@ -13,7 +13,7 @@ Authentication and session renewal handling.
 
 This module handles asking the user for their password, login etc.
 It will try to use a QT UI to prompt the user if possible, but may 
-fall back on a console (stdin/stdout) based workflow if QT isn't availble.
+fall back on a console (stdin/stdout) based workflow if QT isn't available.
 
 --------------------------------------------------------------------------------
 NOTE! This module is part of the authentication library internals and should
@@ -37,6 +37,9 @@ import logging
 
 logger = logging.getLogger("sg_auth.authentication")
 
+
+###############################################################################################
+# internal classes and methods
 
 def _get_current_os_user():
     """
@@ -77,7 +80,11 @@ def _get_qt_state():
 
 class SessionRenewal(object):
     """
-    Handles multi-threaded session renewal.
+    Handles multi-threaded session renewal. This class handles the use case when
+    multiple threads simultaneously try to ask the user for a password. 
+    
+    Use this class by calling the static method renew_session(). Please see this method
+    for more details.
     """
 
     # Lock the assures only one thread at a time can execute the authentication logic.
@@ -103,9 +110,9 @@ class SessionRenewal(object):
         and _renew_session should be called instead.
 
         :param user: SessionUserImpl instance of the user that needs its session
-            renewed.
+                     renewed.
         :param credentials_handler: Object that actually prompts the user for
-            credentials.
+                                    credentials.
 
         :raises AuthenticationCancelled: Raised if the authentication is cancelled.
         """
@@ -174,6 +181,10 @@ class SessionRenewal(object):
                 # returned, this method returns. If the method raised an exception,
                 # it will keep being propagated.
 
+
+
+###############################################################################################
+# public methods
 
 def renew_session(user):
     """
