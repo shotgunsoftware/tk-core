@@ -28,6 +28,21 @@ def create():
     Create the object used to invoke function calls on the main thread when
     called from a different thread.
 
+    You typically use this method like this:
+    
+        def show_ui():
+            # show QT dialog
+            dlg = MyQtDialog()
+            result = dlg.exec_()
+            return result
+        
+        # create invoker object 
+        my_invoker = invoker.create()
+    
+        # launch dialog - invoker ensures that the UI
+        # gets launched in the main thread
+        result = my_invoker(show_ui)
+
     :returns: Invoker instance. If Qt is not available or there is no UI, a
               simple pass through method will execute the code in the same
               thread will be produced.
