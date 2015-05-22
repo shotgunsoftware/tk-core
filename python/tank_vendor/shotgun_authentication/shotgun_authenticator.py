@@ -21,27 +21,55 @@ logger = logging.getLogger("shotgun_auth").getChild("shotgun_authenticator")
 
 class ShotgunAuthenticator(object):
     """
-    Shotgun Authentication
-    ----------------------
+    The ShotgunAuthenticator is the central object in the Shotgun authentication
+    module. It helps you with authentication and login and makes it easy to 
+    create and maintain a shotgun connection so that it belongs to a given user.
+    It also helps store who the current user is, so that users don't have to log
+    in over and over again, but only when needed.
+    
+    A simple use case scenario would look something like this:
+    
+        # create an authenticator
+        sa = ShotgunAuthenticator()
+        
+        # Get a user object. If the authenticator system has already 
+        # stored a default user belonging to a default shotgun site,
+        # it will simply return this. Otherwise, it will pop up a UI
+        # asking the user to log in.
+        user = sg.get_user()
+        
+        # now the user object can be used to generate an authenticated
+        # Shotgun connection.
+        sg =  user.create_sg_connection()
+        
+        # This connection will automatically monitor itself and in the
+        # case the user credentials (session token) that the user object
+        # encapsulates expires or become invalid, the shotgun connection
+        # instance will automatically pop up a UI, asking the user
+        # to type in their password. This typically happens after
+        # 24 hours of inactivity.
+    
+    In addition to the simple code sample, there are a few more concepts:
+    
+    - User objects are serializable, meaning that you can pass one from
+      one process to another, allowing you to maintain an experience where
+      a user is authenticated across multiple applications. This is useful
+      if you for example want to launch RV from Maya or Maya from the 
+      Shotgun Desktop
+      
+    - The authenticator maintains the concept of a default user - which 
+      can be used in order to present good defaults in UIs as well as 
+      headless script based authentication flows.
+      
+    - The API provides methods for authentication where client code
+      can request that the user is prompted to log in.
+      
+    - On the backend, a defaults manager can be specified which implements
+      the logic for how various settings are to be stored. This makes 
+      it possible to easily customize the behaviour of the authenticator
+      to work in different scenarios.  
 
-    This class is used to help maintain an authenticated Shotgun User session
-    across multiple application launches and environments. By default, the
-    library is not tied to any particular Shotgun site - you can use it to
-    produce an authenticated user for any site of their choosing.
-
-    The library is essentially a series of factory methods, all returning
-    ShotgunUser derived instances. This instance represents an established user
-    in Shotgun. You can serialize this object and pass it around, etc. The
-    create_sg_connection() method returns a shotgun instance based on the
-    credentials of this user. It wraps around a Shotgun connection and traps
-    authentication errors so that whenever the Shotgun connection has expired,
-    it is automatically renewed by prompting the user to type in their password.
-    Whenever QT is available, a dialog is shown to aid in this prompting.
-
-    If you want to customize any of the logic of how the authentication
-    stores values, handles defaults or manages the behavior in general,
-    implement an DefaultsManager class and pass it to the constructor of the
-    ShotgunAuthenticator object.
+    For more information, please see the individual methods below.
     """
 
     def __init__(self, defaults_manager=None):
@@ -49,7 +77,7 @@ class ShotgunAuthenticator(object):
         Constructor
 
         :param defaults_manager: A DefaultsManager object that defines the basic
-                                 behaviour of this authenticator. If omitted,
+                                 behavior of this authenticator. If omitted,
                                  the default, built-in DefaultsManager will be
                                  used.
         """
@@ -58,7 +86,7 @@ class ShotgunAuthenticator(object):
     def clear_default_user(self):
         """
         Removes the default user's credentials from disk for the default host. The
-        next time the ShotgunAuthenticator.get_saved_user method is called,
+        next time the ShotgunAuthenticator.get_default_user() method is called,
         None will be returned.
 
         :returns: If a user was cleared, the user object is returned, None otherwise.
@@ -79,7 +107,7 @@ class ShotgunAuthenticator(object):
         """
         Display a UI prompt (QT based UI if possible but may fall back on console)
 
-        The DefaultsManager can be used to pre-fill the host and login name.
+        The DefaultsManager is called to pre-fill the host and login name.
 
         :raises AuthenticationCancelled: If the user cancels the authentication process,
                                          an AuthenticationCancelled is thrown.
@@ -145,6 +173,7 @@ class ShotgunAuthenticator(object):
     def get_default_host(self):
         """
         Returns the host from the defaults manager.
+        
         :returns: The default host string.
         """
         return self._defaults_manager.get_host()
@@ -152,6 +181,7 @@ class ShotgunAuthenticator(object):
     def get_default_http_proxy(self):
         """
         Returns the HTTP proxy from the defaults manager.
+        
         :returns: The default http proxy string.
         """
         return self._defaults_manager.get_http_proxy()
@@ -159,6 +189,7 @@ class ShotgunAuthenticator(object):
     def get_default_user(self):
         """
         Returns the default user from the defaults manager.
+        
         :returns: A ShotgunUser derived instance if available, None otherwise.
         """
         # Get the credentials
@@ -201,6 +232,8 @@ class ShotgunAuthenticator(object):
         This method will always return a valid user. It will first ask for the
         default user to the defaults manager. If none is found, the user will
         be prompted on the command line or from a dialog for their credentials.
+        Once the user has entered valid credentials, the default user will be 
+        updated with these.
 
         :returns: A ShotgunUser derived instance matching the credentials
         provided.
