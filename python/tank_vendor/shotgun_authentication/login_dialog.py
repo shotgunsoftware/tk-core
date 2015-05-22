@@ -9,7 +9,13 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-Login dialog for authenticating to a Shotgun server.
+QT Login dialog for authenticating to a Shotgun server.
+
+--------------------------------------------------------------------------------
+NOTE! This module is part of the authentication library internals and should
+not be called directly. Interfaces and implementation of this module may change
+at any point.
+--------------------------------------------------------------------------------
 """
 
 from .ui import resources_rc
@@ -17,6 +23,7 @@ from .ui import login_dialog
 from . import session_cache
 from .errors import AuthenticationError
 from .ui.qt_abstraction import QtGui, QtCore
+
 
 
 class LoginDialog(QtGui.QDialog):

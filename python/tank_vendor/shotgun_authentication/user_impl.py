@@ -11,6 +11,12 @@
 Defines the supported types of authentication methods with Shotgun. You can
 either authenticate with a session token with the SessionUser class or with an
 api key with the ScriptUser class. This module is meant to be used internally.
+
+--------------------------------------------------------------------------------
+NOTE! This module is part of the authentication library internals and should
+not be called directly. Interfaces and implementation of this module may change
+at any point.
+--------------------------------------------------------------------------------
 """
 
 import cPickle

@@ -11,6 +11,12 @@
 """
 This module will provide basic i/o to read and write session user's credentials
 in the site's cache location.
+
+--------------------------------------------------------------------------------
+NOTE! This module is part of the authentication library internals and should
+not be called directly. Interfaces and implementation of this module may change
+at any point.
+--------------------------------------------------------------------------------
 """
 
 from __future__ import with_statement

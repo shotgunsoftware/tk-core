@@ -9,7 +9,17 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-Authentication and session renewal handling.
+Authentication and session renewal handling. 
+
+This module handles asking the user for their password, login etc.
+It will try to use a QT UI to prompt the user if possible, but may 
+fall back on a console (stdin/stdout) based workflow if QT isn't availble.
+
+--------------------------------------------------------------------------------
+NOTE! This module is part of the authentication library internals and should
+not be called directly. Interfaces and implementation of this module may change
+at any point.
+--------------------------------------------------------------------------------
 """
 
 # Using "with" with the lock to make sure it is always released.

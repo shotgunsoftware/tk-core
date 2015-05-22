@@ -8,8 +8,18 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+"""
+--------------------------------------------------------------------------------
+NOTE! This module is part of the authentication library internals and should
+not be called directly. Interfaces and implementation of this module may change
+at any point.
+--------------------------------------------------------------------------------
+"""
+
 from tank_vendor.shotgun_api3 import Shotgun, AuthenticationFault
 from . import interactive_authentication
+
+
 
 
 class ShotgunWrapper(Shotgun):

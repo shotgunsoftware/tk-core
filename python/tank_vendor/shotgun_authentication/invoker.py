@@ -9,7 +9,13 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-Main thread invoker.
+Main thread invoker utility class
+
+--------------------------------------------------------------------------------
+NOTE! This module is part of the authentication library internals and should
+not be called directly. Interfaces and implementation of this module may change
+at any point.
+--------------------------------------------------------------------------------
 """
 
 import logging

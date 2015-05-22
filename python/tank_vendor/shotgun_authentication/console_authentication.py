@@ -9,7 +9,14 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-Console based authentication.
+Console based authentication. This module implements UX and prompting for a 
+workflow where the user gets prompted via stdin/stdout.
+
+--------------------------------------------------------------------------------
+NOTE! This module is part of the authentication library internals and should
+not be called directly. Interfaces and implementation of this module may change
+at any point.
+--------------------------------------------------------------------------------
 """
 
 from . import session_cache

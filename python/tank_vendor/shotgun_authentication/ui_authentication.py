@@ -10,6 +10,12 @@
 
 """
 Ui based authentication.
+
+--------------------------------------------------------------------------------
+NOTE! This module is part of the authentication library internals and should
+not be called directly. Interfaces and implementation of this module may change
+at any point.
+--------------------------------------------------------------------------------
 """
 
 from .errors import AuthenticationCancelled
@@ -44,6 +50,8 @@ class UiAuthenticationHandler(object):
         :param http_proxy: Proxy server to use when validating credentials. Can be None.
         :returns: A tuple of (hostname, login, session_token)
         """
+        
+        # deferred import because the login dialog contains QT references.
         from . import login_dialog
 
         if self._is_session_renewal:
