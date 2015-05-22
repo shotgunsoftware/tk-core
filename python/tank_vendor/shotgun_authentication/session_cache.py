@@ -163,7 +163,8 @@ def _try_load_yaml_file(file_path):
 
 def _try_load_site_authentication_file(file_path):
     """
-    Returns the site level authentication data. This is loaded in from disk if available, 
+    Returns the site level authentication data. 
+    This is loaded in from disk if available, 
     otherwise an empty data structure is returned.
      
     The users file has the following format:

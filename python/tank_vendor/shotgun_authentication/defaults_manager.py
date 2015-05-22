@@ -48,7 +48,7 @@ class DefaultsManager(object):
         presented with an option to pick a site at login time.
         
         With something like Toolkit, where each project already have a specific
-        project association, you typically want to override this to return True,
+        site association, you typically want to override this to return True,
         indicating to the authenticator not to ask the user which site they want 
         to log in to.
         
@@ -98,7 +98,7 @@ class DefaultsManager(object):
         For more information, see the Shotgun API documentation:
         https://github.com/shotgunsoftware/python-api/wiki/Reference%3A-Methods#shotgun
 
-        :returns: String containing the default http proxy.
+        :returns: String containing the default http proxy, None by default.
         """
         return None
 
@@ -108,7 +108,8 @@ class DefaultsManager(object):
         value for the login. Typically this is used to populate UI
         fields with defaults.
         
-        :returns: Default implementation returns the current os user login name.
+        :returns: Default implementation returns the login for the 
+                  currently stored user.
         """
         return self._login
 

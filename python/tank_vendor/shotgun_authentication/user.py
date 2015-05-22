@@ -15,7 +15,7 @@ into the authentication system.
 User objects are retrieved via the ShotgunAuthenticator object, which will handle
 caching user objects on disk, prompting the user for their credentials etc.
 
-Once you have retrieved one of the user objects below, this can be user to access
+Once you have retrieved one of the user objects below, this can be used to access
 Shotgun in a seamless way. The create_sg_connection() will return a Shotgun API handle
 which is associated with the current user. This API handle is also monitored for 
 authentication timeouts, so if the user's session times out (typically due to periods 
