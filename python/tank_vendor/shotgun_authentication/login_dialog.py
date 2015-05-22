@@ -28,8 +28,9 @@ from .ui.qt_abstraction import QtGui, QtCore
 
 class LoginDialog(QtGui.QDialog):
     """
-    Dialog for getting user crendentials.
+    Dialog for getting user credentials.
     """
+    
     def __init__(self, is_session_renewal, hostname="", login="", fixed_host=False, http_proxy=None, parent=None):
         """
         Constructs a dialog.

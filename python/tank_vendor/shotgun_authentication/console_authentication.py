@@ -32,7 +32,7 @@ class ConsoleAuthenticationHandlerBase(object):
     """
     Base class for authenticating on the console. It will take care of the credential retrieval loop,
     requesting new credentials as long as they are invalid or until the user provides the right one
-    or cancels the authentication. This class should not be instantiated directly and be used
+    or cancels the authentication. This class should not be instantiated directly, instead it is used
     through the authenticate and renew_session methods.
     """
 
@@ -70,7 +70,7 @@ class ConsoleAuthenticationHandlerBase(object):
         :param http_proxy: Proxy to connect to when authenticating.
         :returns: A tuple of (hostname, login, password)
         :raises AuthenticationCancelled: If the user cancels the authentication process,
-                 this exception will be thrown.
+                this exception will be thrown.
         """
         raise NotImplementedError
 

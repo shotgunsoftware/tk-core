@@ -66,7 +66,7 @@ class ShotgunAuthenticator(object):
       
     - On the backend, a defaults manager can be specified which implements
       the logic for how various settings are to be stored. This makes 
-      it possible to easily customize the behaviour of the authenticator
+      it possible to easily customize the behavior of the authenticator
       to work in different scenarios.  
 
     For more information, please see the individual methods below.
