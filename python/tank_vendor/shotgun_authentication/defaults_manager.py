@@ -22,10 +22,9 @@ class DefaultsManager(object):
     on disk and the system maintains a concept of a current user and a current 
     host.
     
-    If, however, you want to implement a custom behavior around how users
-    are managed and how session credentials are stored and maintained, simply
-    derive from this class and pass your custom instance to the 
-    ShotgunAuthenticator object when you construct it.    
+    If, however, you want to implement a custom behavior around how defaults
+    are managed, simply derive from this class and pass your custom instance 
+    to the ShotgunAuthenticator object when you construct it.    
     """
 
     def __init__(self):
