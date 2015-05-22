@@ -39,7 +39,7 @@ class ShotgunAuthenticator(object):
     Whenever QT is available, a dialog is shown to aid in this prompting.
 
     If you want to customize any of the logic of how the authentication
-    stores values, handles defaults or manages the behaviour in general,
+    stores values, handles defaults or manages the behavior in general,
     implement an DefaultsManager class and pass it to the constructor of the
     ShotgunAuthenticator object.
     """
