@@ -356,21 +356,10 @@ def get_current_host():
     # Retrieve the cached info file location from the host
     info_path = _get_global_authentication_file_location()
     logger.debug("Looking for the current host at '%s'" % info_path)
-<<<<<<< HEAD
     document = _try_load_global_authentication_file(info_path)
-    host =  document[_CURRENT_HOST]
+    host = document[_CURRENT_HOST]
     logger.debug("Current host is '%s'" % host)
     return host
-=======
-    if os.path.exists(info_path):
-        document = _try_load_global_authentication_file(info_path)
-        host = document[_CURRENT_HOST]
-        logger.debug("Current host is '%s'" % host)
-        return host
-    else:
-        logger.debug("No current host set.")
-        return None
->>>>>>> security
 
 
 def set_current_host(host):
