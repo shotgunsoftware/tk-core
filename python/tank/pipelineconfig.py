@@ -448,31 +448,50 @@ class PipelineConfiguration(object):
 
     def get_bundles_location(self):
         """
-        Returns the location where all bundles are stored in subfolders."
+        Returns the location where all apps/frameworks/engines are stored in subfolders
+        
+        :returns: path string
         """
         return os.path.join(self.get_install_location(), "install")
 
     def get_apps_location(self):
         """
         Returns the location where apps are stored
+        
+        Note! This method has been deprecated and will be removed at 
+        some point in the future. Please do not use it.
+        
+        :returns: path string        
         """
         return os.path.join(self.get_bundles_location(), "apps")
 
     def get_engines_location(self):
         """
-        Returns the location where apps are stored
+        Returns the location where engines are stored
+        
+        Note! This method has been deprecated and will be removed at 
+        some point in the future. Please do not use it.
+        
+        :returns: path string        
         """
         return os.path.join(self.get_bundles_location(), "engines")
 
     def get_frameworks_location(self):
         """
-        Returns the location where apps are stored
+        Returns the location where frameworks are stored
+        
+        Note! This method has been deprecated and will be removed at 
+        some point in the future. Please do not use it.
+        
+        :returns: path string        
         """
         return os.path.join(self.get_bundles_location(), "frameworks")
 
     def get_core_python_location(self):
         """
-        returns the python root for this install.
+        Returns the python root for this install.
+        
+        :returns: path string
         """
         return os.path.join(self.get_bundles_location(), "core", "python")
 
@@ -482,24 +501,32 @@ class PipelineConfiguration(object):
     def get_core_hooks_location(self):
         """
         Returns the path to the core hooks location
+        
+        :returns: path string
         """
         return os.path.join(self._pc_root, "config", "core", "hooks")
 
     def get_schema_config_location(self):
         """
-        returns the location of the schema
+        Returns the location of the folder schema
+        
+        :returns: path string
         """
         return os.path.join(self._pc_root, "config", "core", "schema")
 
     def get_config_location(self):
         """
-        returns the config folder for the project
+        Returns the config folder for the project
+        
+        :returns: path string
         """
         return os.path.join(self._pc_root, "config")
 
     def get_hooks_location(self):
         """
-        returns the hooks folder for the project
+        Returns the hooks folder for the project
+        
+        :returns: path string
         """
         return os.path.join(self._pc_root, "config", "hooks")
 
@@ -508,8 +535,7 @@ class PipelineConfiguration(object):
         returns the folder where shotgun menu cache files 
         (used by the browser plugin and java applet) are stored.
         
-        NOTE! Because of hard coded values inside the Shotgun java applet,
-        this location cannot be customized.
+        :returns: path string
         """
         return os.path.join(self._pc_root, "cache")
 
