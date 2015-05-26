@@ -8,6 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+import copy
 import sys
 import os
 
@@ -303,19 +304,25 @@ class TestMakeTemplatePaths(TankTestBase):
         self.assertRaises(TankError, make_template_paths, data, self.keys, self.multi_os_data_roots)
 
     def test_dup_def_diff_roots(self):
-        alt_root = os.path.join("some","fake","path")
-        roots = {"primary": self.project_root, 
-                 "alternate_1": alt_root}
+        
+        # add another root
+        modified_roots = copy.copy(self.multi_os_data_roots)
+        
+        modified_roots["alternate_1"] = {}
+        modified_roots["alternate_1"]["win32"] = "z:\\some\\fake\\path"
+        modified_roots["alternate_1"]["linux2"] = "/some/fake/path"
+        modified_roots["alternate_1"]["darwin"] = "/some/fake/path"
         
         
         data = {"template_name": {"definition": "something/{Shot}"},
                 "another_template": {"definition": "something/{Shot}",
                                      "root_name": "alternate_1"}}
-        result = make_template_paths(data, self.keys, roots)
+        
+        result = make_template_paths(data, self.keys, modified_roots)
         prim_template = result.get("template_name")
         alt_templatte = result.get("another_template")
         self.assertEquals(self.project_root, prim_template.root_path)
-        self.assertEquals(alt_root, alt_templatte.root_path)
+        self.assertEquals(modified_roots["alternate_1"][sys.platform], alt_templatte.root_path)
                 
 
 class TestMakeTemplateStrings(TankTestBase):
