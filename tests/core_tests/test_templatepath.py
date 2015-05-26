@@ -300,30 +300,21 @@ class TestApplyFields(TestTemplatePath):
                    "version": 3,
                    "snapshot": 2}        
         
-        result = self.template_path.apply_fields(fields, "win32")
+        result = self.template_path.apply_fields(fields, TemplatePath.PLATFORM_WINDOWS)
         root = self.pipeline_configuration.get_all_platform_data_roots()["primary"]["win32"]
         expected = "%s\\%s" % (root, relative_path.replace(os.sep, "\\"))
         self.assertEquals(expected, result)
 
-        result = self.template_path.apply_fields(fields, "linux2")
+        result = self.template_path.apply_fields(fields, TemplatePath.PLATFORM_LINUX)
         root = self.pipeline_configuration.get_all_platform_data_roots()["primary"]["linux2"]
         expected = "%s/%s" % (root, relative_path.replace(os.sep, "/"))
         self.assertEquals(expected, result)
 
-        result = self.template_path.apply_fields(fields, "darwin")
+        result = self.template_path.apply_fields(fields, TemplatePath.PLATFORM_MAC)
         root = self.pipeline_configuration.get_all_platform_data_roots()["primary"]["darwin"]
         expected = "%s/%s" % (root, relative_path.replace(os.sep, "/"))
         self.assertEquals(expected, result)
 
-    def test_bad_platform(self):
-        fields = {"Sequence": "seq_1",
-                   "Shot": "s1",
-                   "Step": "Anm",
-                   "branch":"mmm",
-                   "version": 3,
-                   "snapshot": 2}
-        self.assertRaises(TankError, self.template_path.apply_fields, fields, "unknown_os")
-    
     def test_legacy_constructor_format(self):
         
         relative_path = os.path.join("shots",
