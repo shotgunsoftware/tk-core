@@ -36,7 +36,8 @@ _CURRENT_USER = "current_user"
 _USERS = "users"
 _LOGIN = "login"
 _SESSION_TOKEN = "session_token"
-_SESSION_CACHE_FILE_NAME = "authentiation.yml" 
+_SESSION_CACHE_FILE_NAME = "authentication.yml"
+
 
 def _get_cache_location():
     """
@@ -163,18 +164,18 @@ def _try_load_yaml_file(file_path):
 
 def _try_load_site_authentication_file(file_path):
     """
-    Returns the site level authentication data. 
-    This is loaded in from disk if available, 
+    Returns the site level authentication data.
+    This is loaded in from disk if available,
     otherwise an empty data structure is returned.
-     
+
     The users file has the following format:
         current_user: "login1"
         users:
            {name: "login1", session_token: "session_token"}
            {name: "login2", session_token: "session_token"}
            {name: "login3", session_token: "session_token"}
-        
-    :returns: site authentication style dictionary 
+
+    :returns: site authentication style dictionary
     """
     content = _try_load_yaml_file(file_path)
     # Make sure any mandatory entry is present.
@@ -185,10 +186,10 @@ def _try_load_site_authentication_file(file_path):
 
 def _try_load_global_authentication_file(file_path):
     """
-    Returns the global authentication data. 
-    This is loaded in from disk if available, 
+    Returns the global authentication data.
+    This is loaded in from disk if available,
     otherwise an empty data structure is returned.
-    
+
     :returns: global authentication style dictionary
     """
     content = _try_load_yaml_file(file_path)
