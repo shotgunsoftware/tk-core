@@ -10,6 +10,7 @@
 
 import os
 import sys
+from distutils.version import StrictVersion
 
 from .action_base import Action
 from . import core_localize
@@ -581,26 +582,63 @@ class SetupProjectWizard(object):
         self._params.set_associated_core_path(core_settings["core_path"]["linux2"], 
                                               core_settings["core_path"]["win32"], 
                                               core_settings["core_path"]["darwin"])
-                    
+
+    def _get_server_version(self, connection):
+        """
+        Retrieves the server version from the connection.
+
+        :param connection: Connection we want the server version from.
+
+        :returns: Tuple of (major, minor) versions.
+        """
+        sg_major_ver = connection.server_info["version"][0]
+        sg_minor_ver = connection.server_info["version"][1]
+        sg_patch_ver = connection.server_info["version"][2]
+
+        return StrictVersion("%d.%d.%d" % (sg_major_ver, sg_minor_ver, sg_patch_ver))
+
+    def _is_session_based_authentication_supported(self):
+        """
+        Returns if a site needs to be configured with a script user or if the new
+        human user based authentication for Toolkit will work with it.
+
+        :returns: If the site is not compatible with the new authentication code,
+            returns True, False otherwise.
+        """
+        # First version to support human based authentication for all operations was
+        # 6.0.2.
+        if self._get_server_version(self._sg) >= StrictVersion("6.0.2"):
+            return True
+        else:
+            return False
+
     def execute(self):
         """
         Execute the actual setup process.
         """
         self._log.debug("Start preparing for project setup!")
-        
+
         # get core logic
         core_settings = self.get_core_settings()
         self.set_default_core()
 
         # Do validation
         self.pre_setup_validation()
-                        
+
         # and finally carry out the setup
         run_project_setup(self._log, self._sg, self._sg_app_store, self._sg_app_store_script_user, self._params)
-        
+
         # check if we should run the localization afterwards
+        # note - when running via the wizard, toolkit script credentials are stripped
+        # out as the core is copied across as part of a localization if the site we are configuring
+        # supports the authentication module, ie, Shotgun 6.0.2 and greater.
+        #
+        # this is primarily targeting the Shotgun desktop, meaning that even if the 
+        # shotgun desktop's site configuration contains script credentials, these are
+        # not propagated into newly created toolkit projects.
+        #
         if core_settings["localize"]:
             core_localize.do_localize(self._log, 
                                       self._params.get_configuration_location(sys.platform), 
-                                      suppress_prompts=True)
-        
+                                      suppress_prompts=True,
+                                      strip_toolkit_credentials=self._is_session_based_authentication_supported())

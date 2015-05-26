@@ -12,6 +12,7 @@
 Base class for engine and app testing
 """
 
+import sys
 import os
 import time
 import shutil
@@ -21,17 +22,53 @@ import tempfile
 
 from mockgun import Shotgun as MockGun_Shotgun 
 
-from mock import Mock
 import unittest2 as unittest
 
 import sgtk
 import tank
+from tank_vendor import shotgun_authentication
 from tank import path_cache
 from tank_vendor import yaml
 
 TANK_TEMP = None
 
-__all__ = ['setUpModule', 'TankTestBase', 'tank']
+__all__ = ['setUpModule', 'TankTestBase', 'tank', 'interactive', 'skip_if_pyside_missing']
+
+
+def interactive(func):
+    """
+    Decorator that allows to skip a test if the interactive flag is not set
+    on the command line.
+    :param func: Function to be decorated.
+    :returns: The decorated function.
+    """
+    interactive_in_argv = "--interactive" not in sys.argv
+    return unittest.skipIf(
+        interactive_in_argv,
+        "add --interactive on the command line to run this test."
+    )(func)
+
+
+def _is_pyside_missing():
+    """
+    Tests is PySide is available.
+    :returns: True is PySide is available, False otherwise.
+    """
+    try:
+        import PySide
+        return False
+    except ImportError:
+        return True
+
+
+def skip_if_pyside_missing(func):
+    """
+    Decorated that allows to skips a test if PySide is missing.
+    :param func: Function to be decorated.
+    :returns: The decorated function.
+    """
+    return unittest.skipIf(_is_pyside_missing(), "PySide is missing")(func)
+
 
 def setUpModule():
     """
@@ -39,7 +76,7 @@ def setUpModule():
     """
     global TANK_TEMP
 
-    # determine tests root location 
+    # determine tests root location
     temp_dir = tempfile.gettempdir()
     # make a unique test dir for each file
     temp_dir_name = "tankTemporaryTestData"
@@ -104,10 +141,25 @@ class TankTestBase(unittest.TestCase):
         self.tank_temp = TANK_TEMP
         self.init_cache_location = os.path.join(self.tank_temp, "init_cache.cache")
 
+        shotgun_authentication.session_cache._get_cache_location = lambda: os.path.join(
+            self.tank_temp, "session_cache"
+        )
+
         def _get_cache_location_mock():
             return self.init_cache_location
 
+        self._original_get_cache_location = tank.pipelineconfig_factory._get_cache_location
         tank.pipelineconfig_factory._get_cache_location = _get_cache_location_mock
+
+        # Mock this so that authentication manager works even tough we are not in a config.
+        # If we don't mock it than the path cache calling get_current_user will fail.
+        def _get_associated_sg_config_data_mock():
+             return {
+                "host": "https://somewhere.shotguntudio.com"
+             }
+
+        self._original_get_associated_sg_config_data = tank.util.shotgun.get_associated_sg_config_data
+        tank.util.shotgun.get_associated_sg_config_data = _get_associated_sg_config_data_mock
 
         # define entity for test project
         self.project = {"type": "Project",
@@ -179,7 +231,10 @@ class TankTestBase(unittest.TestCase):
         def create_sg_connection_mocker():
             return self.mockgun
             
+        self._original_get_associated_sg_base_url = tank.util.shotgun.get_associated_sg_base_url
         tank.util.shotgun.get_associated_sg_base_url = get_associated_sg_base_url_mocker
+
+        self._original_create_sg_connection = tank.util.shotgun.create_sg_connection
         tank.util.shotgun.create_sg_connection = create_sg_connection_mocker
         
         # add project to mock sg and path cache db
@@ -221,7 +276,11 @@ class TankTestBase(unittest.TestCase):
         self._move_project_data()
         # important to delete this to free memory
         self.tk = None
-        
+
+        self._original_get_cache_location = tank.pipelineconfig_factory._get_cache_location
+        tank.util.shotgun.get_associated_sg_config_data = self._original_get_associated_sg_config_data
+        tank.util.shotgun.get_associated_sg_base_url = self._original_get_associated_sg_base_url
+        tank.util.shotgun.create_sg_connection = self._original_create_sg_connection
         
     def setup_fixtures(self, core_config=None):
         """

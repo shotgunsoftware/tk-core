@@ -664,6 +664,29 @@ def tank_from_entity(entity_type, entity_id):
     pc = pipelineconfig_factory.from_entity(entity_type, entity_id)
     return Tank(pc)
 
+
+_authenticated_user = None
+
+
+def set_authenticated_user(user):
+    """
+    Sets the currently authenticated Shotgun user.
+    :params user: A shotgun_authentication.user.ShotgunUser derived object. Can
+    be None to clear the authenticated user.
+    """
+    global _authenticated_user
+    _authenticated_user = user
+
+
+def get_authenticated_user():
+    """
+    Returns the currently authenticated Shotgun user.
+    :returns: A shotgun_authentication.user.ShotgunUser derived object if set,
+        None otherwise.
+    """
+    global _authenticated_user
+    return _authenticated_user
+
 ##########################################################################################
 # sgtk API aliases
 

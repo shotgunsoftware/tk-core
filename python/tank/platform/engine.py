@@ -112,6 +112,11 @@ class Engine(TankBundle):
         qt.QtCore = base_def.get("qt_core")
         qt.QtGui = base_def.get("qt_gui")
         qt.TankDialogBase = base_def.get("dialog_base")
+
+        # Update the authentication module to use the engine's Qt.
+        from tank_vendor.shotgun_authentication.ui import qt_abstraction
+        qt_abstraction.QtCore = qt.QtCore
+        qt_abstraction.QtGui = qt.QtGui
         
         # create invoker to allow execution of functions on the
         # main thread:
@@ -504,7 +509,7 @@ class Engine(TankBundle):
         else:
             # we don't have an invoker so just call the function:
             return func(*args, **kwargs)
-                
+
     ##########################################################################################
     # logging interfaces
 
@@ -979,8 +984,11 @@ class Engine(TankBundle):
                         Execute function and return result
                         """
                         self._res = self._fn()
-                        
-                return Invoker()
+
+                # Make sure that the invoker is for the main thread only.
+                invoker = Invoker()
+                invoker.moveToThread(QtCore.QThread.currentThread())
+                return invoker
 
         # don't have ui so can't create an invoker!
         return None

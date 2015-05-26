@@ -53,7 +53,7 @@ from . import platform
 from . import util
 
 # core functionality
-from .api import Tank, tank_from_path, tank_from_entity
+from .api import Tank, tank_from_path, tank_from_entity, set_authenticated_user, get_authenticated_user
 from .api import Sgtk, sgtk_from_path, sgtk_from_entity
 from .errors import TankError, TankEngineInitError, TankErrorProjectIsSetup
 from .template import TemplatePath, TemplateString

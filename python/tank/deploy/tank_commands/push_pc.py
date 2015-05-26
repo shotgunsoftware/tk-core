@@ -33,7 +33,6 @@ SG_LOCAL_STORAGE_OS_MAP = {"linux2": "linux_path", "win32": "windows_path", "dar
 CORE_API_FILES = ["interpreter_Linux.cfg", 
                   "interpreter_Windows.cfg",
                   "interpreter_Darwin.cfg", 
-                  "app_store.yml", 
                   "shotgun.yml"]
 
 # core configuration files which are associated with a particular PC and should not be moved
