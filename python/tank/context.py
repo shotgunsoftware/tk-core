@@ -397,7 +397,7 @@ class Context(object):
     ################################################################################################
     # public methods
 
-    def as_template_fields(self, template):
+    def as_template_fields(self, template, validate=False):
         """
         Returns the context object as a dictionary of template fields.
         This is useful if you want to use a Context object as part of a call to the Sgtk API.
@@ -409,11 +409,13 @@ class Context(object):
             >>> ctx.as_template_fields(template)
             {'Step': 'Client', 'Shot': 'shot_010', 'Sequence': 'Sequence_1'}
 
-        :param template: Template for which the fields will be used.
-        :type  template: tank.TemplatePath.
-
-        :returns: Dictionary of template files representing the context.
-                  Handy to pass in to the various Sgtk API methods
+        :param template:    Template for which the fields will be used.
+        :param validate:    If True then the fields found will be checked to ensure that all expected fields for
+                            the context were found.  If a field is missing then a TankError will be raised
+        :returns:           A dictionary of template files representing the context. Handy to pass in to the 
+                            various Sgtk API methods
+        :raises:            TankError if the fields can't be resolved for some reason or if 'validate' is True 
+                            and any of the context fields for the template weren't found. 
         """
         # Get all entities into a dictionary
         entities = {}
@@ -436,10 +438,10 @@ class Context(object):
                 entities[add_entity["type"]] = add_entity
 
         fields = {}
-        
+
         # Try to populate fields using paths caches for entity
         if isinstance(template, TemplatePath):
-            
+
             # first, sanity check that we actually have a path cache entry
             # this relates to ticket 22541 where it is possible to create 
             # a context object purely from Shotgun without having it in the path cache
@@ -457,16 +459,36 @@ class Context(object):
                                 "does not have any associated folders created on disk yet and "
                                 "therefore no template data can be extracted. Please run the folder "
                                 "creation for %s and try again!" % (self, self.shotgun_url))
-            
+
             # first look at which ENTITY paths are associated with this context object
             # and use these to extract the right fields for this template
             fields = self._fields_from_entity_paths(template)
-            
-            # Determine field values by walking down the template tree
-            fields.update(self._fields_from_template_tree(template, fields, entities))
+
+            # filter the list of fields to just those that don't have a 'None' value.
+            # Note: A 'None' value for a field indicates an ambiguity and was set in the 
+            # _fields_from_entity_paths method (!)
+            non_none_fields = dict([(key, value) for key, value in fields.iteritems() if value is not None])
+
+            # Determine additional field values by walking down the template tree
+            fields.update(self._fields_from_template_tree(template, non_none_fields, entities))
 
         # get values for shotgun query keys in template
         fields.update(self._fields_from_shotgun(template, entities))
+
+        if validate:
+            # check that all context template fields were found and if not then raise a TankError
+            missing_fields = []
+            for key_name in template.keys.keys():
+                if key_name in entities and key_name not in fields:
+                    # we have a template key that should have been found but wasn't!
+                    missing_fields.append(key_name)
+
+            if missing_fields:
+                raise TankError("Cannot resolve template fields for context '%s' - the following "
+                                "keys could not be resolved: '%s'.  Please run the folder creation "
+                                "for '%s' and try again!" 
+                                % (self, ", ".join(missing_fields), self.shotgun_url))
+
         return fields
 
     def create_copy_for_user(self, user):
@@ -564,24 +586,27 @@ class Context(object):
 
     def _fields_from_entity_paths(self, template):
         """
-        Determines template's key values based on context by walking up the context entities paths until
+        Determines a template's key values based on context by walking up the context entities paths until
         matches for the template are found.
+
+        :param template:    The template to find fields for
+        :returns:           A dictionary of field name, value pairs for any fields found for the template
         """
         fields = {}
         project_roots = self.__tk.pipeline_configuration.get_data_roots().values()
 
         # get all locations on disk for our context object from the path cache
         path_cache_locations = self.entity_locations 
-        
+
         # now loop over all those locations and check if one of the locations 
         # are matching the template that is passed in. In that case, try to
         # extract the fields values.
         for cur_path in path_cache_locations:
-            
+
             # walk up path until we reach the project root and get values
             while cur_path not in project_roots:
-                if template.validate(cur_path):
-                    cur_fields = template.get_fields(cur_path)
+                cur_fields = template.validate_and_get_fields(cur_path)
+                if cur_fields is not None:
                     # If there are conflicts, there is ambiguity in the schema
                     for key, value in cur_fields.items():
                         if value != fields.get(key, value):
@@ -591,25 +616,26 @@ class Context(object):
                     break
                 else:
                     cur_path = os.path.dirname(cur_path)
-                    
+
         return fields
 
-    def _fields_from_template_tree(self, template, fields, entities):
+    def _fields_from_template_tree(self, template, known_fields, context_entities):
         """
         Determines values for a template's keys based on the context by walking down the template tree
         matching template keys with entity types.
+
+        This method attempts to find as many fields as possible from the path cache but will try to ensure 
+        that incorrect fields are never returned, even if the path cache is not 100% clean (e.g. contains 
+        out-of-date paths for one or more of the entities in the context). 
+
+        :param template:            The template to find fields for
+        :param known_fields:        Dictionary of fields that are already known for this template.  The
+                                    logic in this method will ensure that any fields found match these.
+        :param context_entities:    A dictionary of {entity_type:entity_dict} that contains all the entities 
+                                    belonging to this context.
+        :returns:                   A dictionary of all fields found by this method
         """
-        
-        # Step 1 - Cull out ambigious templates
-        fields = fields.copy()
-        for key, value in fields.items():
-            if value is None:
-                # Note: A none value here indicates an ambiguity 
-                # and was set in the _fields_from_entity_paths method.
-                del(fields[key])
-
-
-        # Step 2 - Walk up the template tree and collect templates
+        # Step 1 - Walk up the template tree and collect templates
         #
         # Use cached paths to find field values
         # these will be returned in top-down order:
@@ -621,41 +647,116 @@ class Context(object):
         #  <Sgtk TemplatePath maya_shot_publish: sequences/{Sequence}/{Shot}/{Step}/publish/maya/{name}.v{version}.ma>]
         templates = _get_template_ancestors(template)
 
+        # Step 2 - walk templates from the root down.
+        # for each template, get all paths we have stored in the database and find any fields we can for it, making 
+        # sure that none of the found fields conflict with the list of entities provided to this method
+        #
+        # build up a list of fields as we go so that each level matches
+        # at least the fields from all previous levels
+        found_fields = {}
+
         # get a path cache handle
         path_cache = PathCache(self.__tk)
-
-        # Step 3 - walk templates from the root down,
-        # for each template, get all paths we have stored in the database
-        # and find any fields we can for it
         try:
-            # build up a list of fields as we go so that each level matches
-            # at least the fields from the previous level
-            found_fields = {}
-
-            for cur_template in templates:
-                for key in cur_template.keys.values():
-                    # If we don't already have a value, look for it
-                    if fields.get(key.name) is not None:
-                        # already have value so skip:
-                        found_fields[key.name] = fields[key.name]
+            for template in templates:
+                # iterate over all keys in the {key_name:key} dictionary for the template
+                # looking for any that represent context entities (key name == entity type)
+                template_key_dict = template.keys
+                for key_name in template_key_dict.keys():
+                    # Check to see if we already have a value for this key: 
+                    if key_name in known_fields or key_name in found_fields:
+                        # already have a value so skip
                         continue
-                    
-                    # only care about entities as this is what we'll look for in the path cache:
-                    entity = entities.get(key.name)
-                    if entity:
-                        # context contains an entity for this Shotgun entity type!
-                        temp_fields = _values_from_path_cache(entity, cur_template, path_cache, 
-                                                              required_fields=found_fields)
-                        # make sure the next iteration finds the same fields: 
-                        found_fields.update(temp_fields)
-            
-            # update the list of fields with all the ones we found:
-            fields.update(found_fields)
 
-        finally:    
+                    if key_name not in context_entities:
+                        # key doesn't represent an entity so skip
+                        continue
+
+                    # find fields for any paths associated with this entity by looking in the path cache:
+                    entity_fields = _values_from_path_cache(context_entities[key_name], template, path_cache, 
+                                                           required_fields=found_fields)
+
+                    # entity_fields may contain additional fields that correspond to entities
+                    # so we should be sure to validate these as well if we can.
+                    #
+                    # The following example illustrates where the code could previously return incorrect entity 
+                    # information from this method:
+                    #
+                    # With the following template:
+                    #    /{Sequence}/{Shot}/{Step}
+                    #
+                    # And a path cache that contains:
+                    #    Type     | Id  | Name     | Path
+                    #    ----------------------------------------------------
+                    #    Sequence | 001 | Seq_001  | /Seq_001
+                    #    Shot     | 002 | Shot_A   | /Seq_001/Shot_A
+                    #    Step     | 003 | Lighting | /Seq_001/Shot_A/Lighting
+                    #    Step     | 003 | Lighting | /Seq_001/blah/Shot_B/Lighting   <- this is out of date!
+                    #    Shot     | 004 | Shot_B   | /Seq_001/blah/Shot_B            <- this is out of date!
+                    #
+                    # (Note: the schema/templates have been changed since the entries for Shot_b were added)
+                    #
+                    # The sub-templates used to search for fields are:
+                    #    /{Sequence}
+                    #    /{Sequence}/{Shot}
+                    #    /{Sequence}/{Shot}/{Step}
+                    #
+                    # And the entities passed into the method are:
+                    #    Sequence:   Seq_001
+                    #    Shot:       Shot_B
+                    #    Step:       Lighting
+                    #
+                    # We are searching for fields for 'Shot_B' that has a broken entry in the path cache so the fields 
+                    # returned for each level of the template will be:
+                    #    /{Sequence}                 -> {"Sequence":"Seq_001"} <- Correct
+                    #    /{Sequence}/{Shot}          -> {}                     <- entry not found for Shot_B matching 
+                    #                                                             the template
+                    #    /{Sequence}/{Shot}/{Step}   -> {"Sequence":"Seq_001", <- Correct
+                    #                                    "Shot":"Shot_A",      <- Wrong!
+                    #                                    "Step":"Lighting"}    <- Correct
+                    #
+                    # In previous implementations, the final fields would incorrectly be returned as:
+                    #
+                    #     {"Sequence":"Seq_001",
+                    #      "Shot":"Shot_A",
+                    #      "Step":"Lighting"}
+                    #
+                    # The wrong Shot (Shot_A) is returned and not caught because the code only tested that the Step
+                    # entity matches and just assumes that the rest is correct - this isn't the case when there is
+                    # a one-to-many relationship between entities!
+                    #
+                    # Therefore, we need to validate that we didn't find any entity fields that we should have found
+                    # previously/higher up in the template definition.  If we did then the entries that were found 
+                    # may not be correct so we have to discard them!
+                    found_mismatching_field = False
+                    for field_name, field_value in entity_fields.iteritems():
+                        if field_name in known_fields:
+                            # We found a field we already knew about...
+                            if field_value != known_fields[field_name]:
+                                # ...but it doesn't match!
+                                found_mismatching_field = True
+                        elif field_name in found_fields:
+                            # We found a field we found before...
+                            if field_value != found_fields[field_name]:
+                                # ...but it doesn't match!
+                                found_mismatching_field = True
+                        elif field_name == key_name:
+                            # We found a field that matches the entity we were searching for so it must be valid!
+                            found_fields[field_name] = field_value
+                        elif field_name in context_entities:
+                            # We found an entity type that we should have found before (in a previous/shorter 
+                            # template).  This means we can't trust any other fields that were found as they
+                            # may belong to a completely different entity/path! 
+                            found_mismatching_field = True
+
+                    if not found_mismatching_field:
+                        # all fields are ok so we can add them all to the list of found fields :)
+                        found_fields.update(entity_fields)
+
+        finally:
             path_cache.close()
-        
-        return fields
+
+        return found_fields
 
 
 ################################################################################################
