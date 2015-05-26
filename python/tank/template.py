@@ -465,6 +465,15 @@ class TemplatePath(Template):
     
         else:
             # caller has requested a path for another OS
+            
+            if self._root_paths_all_os is None:
+                # it's possible that the additional os paths are not set for a template
+                # object (mainly because of backwards compatibility reasons) and in this case
+                # we cannot compute the path.
+                raise TankError("Template %s cannot resolve path for operating system '%s' - "
+                                "it was instantiated in a mode which only supports the resolving "
+                                "of current operating system paths." % (self, platform))
+            
             platform_root_path = self._root_paths_all_os.get(platform)
             
             if platform_root_path is None:
@@ -474,11 +483,19 @@ class TemplatePath(Template):
             
             elif platform == "win32":
                 # use backslashes for windows
-                return "%s\\%s" % (platform_root_path, relative_path) if relative_path else platform_root_path
+                if relative_path:
+                    return "%s\\%s" % (platform_root_path, relative_path.replace(os.sep, "\\"))
+                else:
+                    # not path generated - just return the root path
+                    return platform_root_path
             
             elif platform.startswith("linux") or platform == "darwin":
                 # unix-like plaforms - use slashes
-                return "%s/%s" % (platform_root_path, relative_path) if relative_path else platform_root_path
+                if relative_path:
+                    return "%s/%s" % (platform_root_path, relative_path.replace(os.sep, "/"))
+                else:
+                    # not path generated - just return the root path 
+                    return platform_root_path
             
             else:
                 raise TankError("Cannot evaluate path. Unsupported platform '%s'." % platform)

@@ -312,8 +312,7 @@ class TestMakeTemplatePaths(TankTestBase):
         modified_roots["alternate_1"]["win32"] = "z:\\some\\fake\\path"
         modified_roots["alternate_1"]["linux2"] = "/some/fake/path"
         modified_roots["alternate_1"]["darwin"] = "/some/fake/path"
-        
-        
+                
         data = {"template_name": {"definition": "something/{Shot}"},
                 "another_template": {"definition": "something/{Shot}",
                                      "root_name": "alternate_1"}}
