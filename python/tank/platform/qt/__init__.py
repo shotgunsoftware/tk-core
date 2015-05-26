@@ -16,4 +16,3 @@
 # in apps and frameworks, for an agnostic qt access, you can then go:
 
 # from tank.platform.qt import QtCore, QtGui
-

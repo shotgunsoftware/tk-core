@@ -8,15 +8,16 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from __future__ import with_statement
 import os
 import datetime
 
-from mock import Mock, patch
+from mock import patch
 
 import tank
-from tank import context
-from tank import TankError
+from tank import context, errors
 from tank_test.tank_test_base import *
+from tank_test import mockgun
 from tank.template import TemplatePath
 from tank.templatekey import SequenceKey
 
@@ -361,6 +362,70 @@ class TestShotgunRegisterPublish(TankTestBase):
         self.assertEqual(expected_path, actual_path)
         self.assertEqual(expected_path_cache, actual_path_cache)
 
+
+@patch("tank.util.shotgun.__get_api_core_config_location")
+class TestGetSgConfigData(TankTestBase):
+
+    def _prepare_common_mocks(self, get_api_core_config_location_mock):
+        get_api_core_config_location_mock.return_value = "unknown_path_location"
+
+    def test_all_fields_present(self, get_api_core_config_location_mock):
+        self._prepare_common_mocks(get_api_core_config_location_mock)
+        tank.util.shotgun._parse_config_data(
+            {
+                "host": "host",
+                "api_key": "api_key",
+                "api_script": "api_script",
+                "http_proxy": "http_proxy"
+            },
+            "default",
+            "not_a_file.cfg"
+        )
+
+    def test_proxy_is_optional(self, get_api_core_config_location_mock):
+        self._prepare_common_mocks(get_api_core_config_location_mock)
+        tank.util.shotgun._parse_config_data(
+            {
+                "host": "host",
+                "api_key": "api_key",
+                "api_script": "api_script"
+            },
+            "default",
+            "not_a_file.cfg"
+        )
+
+    def test_incomplete_script_user_credentials(self, get_api_core_config_location_mock):
+        self._prepare_common_mocks(get_api_core_config_location_mock)
+
+        with self.assertRaises(errors.TankError):
+            tank.util.shotgun._parse_config_data(
+                {
+                    "host": "host",
+                    "api_script": "api_script"
+                },
+                "default",
+                "not_a_file.cfg"
+            )
+
+        with self.assertRaises(errors.TankError):
+            tank.util.shotgun._parse_config_data(
+                {
+                    "host": "host",
+                    "api_key": "api_key"
+                },
+                "default",
+                "not_a_file.cfg"
+            )
+
+        with self.assertRaises(errors.TankError):
+            tank.util.shotgun._parse_config_data(
+                {
+                    "api_key": "api_key",
+                    "api_script": "api_script"
+                },
+                "default",
+                "not_a_file.cfg"
+            )
 
 
 class TestCalcPathCache(TankTestBase):
