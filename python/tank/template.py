@@ -193,7 +193,7 @@ class Template(object):
 
         :returns: Full path, matching the template with the given fields inserted.
         """
-        return self._apply_fields(fields, platform)
+        return self._apply_fields(fields, platform=platform)
 
     def _apply_fields(self, fields, ignore_types=None, platform=None):
         """
@@ -210,7 +210,7 @@ class Template(object):
                          paths will be generating to target that specific platform.
 
         :returns: Full path, matching the template with the given fields inserted.
-        """
+        """        
         ignore_types = ignore_types or []
 
         # find largest key mapping without missing values
@@ -406,7 +406,7 @@ class TemplatePath(Template):
                                   This is a dictionary with sys.platform-style keys
         """
         super(TemplatePath, self).__init__(definition, keys, name=name)
-        self._root_path = root_path
+        self._prefix = root_path
         self._root_paths_all_os = root_paths_all_os
 
         # Make definition use platform separator
@@ -425,7 +425,7 @@ class TemplatePath(Template):
 
     @property
     def root_path(self):
-        return self._root_path
+        return self._prefix
 
     @property
     def parent(self):
@@ -456,6 +456,7 @@ class TemplatePath(Template):
 
         :returns: Full path, matching the template with the given fields inserted.
         """
+        
         relative_path = super(TemplatePath, self)._apply_fields(fields, ignore_types, platform)
         
         if platform is None:
@@ -475,9 +476,12 @@ class TemplatePath(Template):
                 # use backslashes for windows
                 return "%s\\%s" % (platform_root_path, relative_path) if relative_path else platform_root_path
             
-            else:
+            elif platform.startswith("linux") or platform == "darwin":
                 # unix-like plaforms - use slashes
-                return "%s/%s" % (platform_root_path, relative_path) if relative_path else platform_root_path 
+                return "%s/%s" % (platform_root_path, relative_path) if relative_path else platform_root_path
+            
+            else:
+                raise TankError("Cannot evaluate path. Unsupported platform '%s'." % platform)
 
 
 class TemplateString(Template):
@@ -596,10 +600,9 @@ def make_template_paths(data, keys, multi_os_roots):
 
         root_path = multi_os_roots[root_name][sys.platform]
         if root_path is None:
-            raise TankError("Undefined toolkit storage! The local file storage '%s' is not defined for this "
-                            "operating system! Please contact toolkit support." % root_name)
+            raise TankError("Undefined Shotgun storage! The local file storage '%s' is not defined for this "
+                            "operating system." % root_name)
 
-        
         template_path = TemplatePath(definition, keys, root_path, template_name, multi_os_roots[root_name])
         template_paths[template_name] = template_path
 
