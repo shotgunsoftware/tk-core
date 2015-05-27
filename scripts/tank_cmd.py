@@ -1100,6 +1100,7 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
             # In this case, initialize this to have the project context.
             # We do this by attempting to construct a context and probing it
 
+            tk.synchronize_filesystem_structure()
             ctx = tk.context_from_path(ctx_path)
             if ctx.project is None:
                 # context could not be determined based on the path
