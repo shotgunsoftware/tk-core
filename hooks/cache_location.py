@@ -102,7 +102,7 @@ class CacheLocation(HookBaseClass):
         # now structure things by site, project id, and pipeline config id
         cache_root = os.path.join(root, 
                                   base_url, 
-                                  "project_%d" % project_id,
+                                  "project_%s" % project_id,
                                   "config_%d" % pipeline_configuration_id)
         return cache_root
     
