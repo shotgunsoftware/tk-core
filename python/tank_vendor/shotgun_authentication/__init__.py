@@ -18,7 +18,7 @@ credentials are reused. If a Toolkit-enabled process is launched a second time, 
 credentials are reused if available.
 """
 
-from .errors import *
+from .errors import ShotgunAuthenticationError, AuthenticationError, IncompleteCredentials, AuthenticationCancelled
 from .shotgun_authenticator import ShotgunAuthenticator
 from .defaults_manager import DefaultsManager
 from .user import deserialize_user, serialize_user

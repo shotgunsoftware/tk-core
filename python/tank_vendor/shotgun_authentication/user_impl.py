@@ -30,7 +30,7 @@ from .errors import IncompleteCredentials
 _shotgun_instance_factory = ShotgunWrapper
 
 import logging
-logger = logging.getLogger("shotgun_auth.user_impl")
+logger = logging.getLogger("sg_auth.user_impl")
 
 
 class ShotgunUserImpl(object):

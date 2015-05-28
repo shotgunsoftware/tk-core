@@ -8,16 +8,16 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from __future__ import with_statement
 
 import sys
 
 from tank_test.tank_test_base import *
 from mock import patch
 import tank_vendor
-from tank_vendor.shotgun_authentication import user_impl, interactive_authentication, login_dialog, invoker
+from tank_vendor.shotgun_authentication import user_impl, interactive_authentication, invoker
 
 
-@skip_if_pyside_missing
 class InteractiveTests(TankTestBase):
 
     def setUp(self, *args, **kwargs):
@@ -34,6 +34,8 @@ class InteractiveTests(TankTestBase):
         """
         Make sure that the site and user fields are disabled when doing session renewal
         """
+        # Import locally since login_dialog has a dependency on Qt and it might be missing
+        from tank_vendor.shotgun_authentication import login_dialog
         ld = login_dialog.LoginDialog(is_session_renewal=True)
         self.assertTrue(ld.ui.site.isReadOnly())
         self.assertTrue(ld.ui.login.isReadOnly())
@@ -123,7 +125,6 @@ class InteractiveTests(TankTestBase):
         _get_qt_state_mock.return_value = None, None, None
         self._test_session_renewal(test_console=True)
 
-    @skip_if_pyside_missing
     def test_invoker_rethrows_exception(self):
         """
         Makes sure that the invoker will carry the exception back to the calling thread.
@@ -211,3 +212,7 @@ class InteractiveTests(TankTestBase):
         # Make sure the thread got the exception that was thrown from the main thread.
         with self.assertRaises(FromMainThreadException):
             bg.wait()
+
+
+# Class decorators don't exist on Python2.5
+InteractiveTests = skip_if_pyside_missing(InteractiveTests)

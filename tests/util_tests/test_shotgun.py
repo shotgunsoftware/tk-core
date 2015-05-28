@@ -363,7 +363,6 @@ class TestShotgunRegisterPublish(TankTestBase):
         self.assertEqual(expected_path_cache, actual_path_cache)
 
 
-@patch("tank.util.shotgun.__get_api_core_config_location")
 class TestGetSgConfigData(TankTestBase):
 
     def _prepare_common_mocks(self, get_api_core_config_location_mock):
@@ -426,6 +425,9 @@ class TestGetSgConfigData(TankTestBase):
                 "default",
                 "not_a_file.cfg"
             )
+
+# Class decorators don't exist on Python2.5
+TestGetSgConfigData = patch("tank.util.shotgun.__get_api_core_config_location", TestGetSgConfigData)
 
 
 class TestCalcPathCache(TankTestBase):
