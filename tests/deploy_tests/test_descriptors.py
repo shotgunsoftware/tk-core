@@ -53,9 +53,9 @@ class TestDescriptors(TankTestBase):
         desc = descriptor.get_from_location(
             bundle_type,
             self.tk.pipeline_configuration,
-            {"type": "dev", "path": "/path/to/bundle"}
+            {"type": "dev", "path": "path/to/bundle"}
         )
-        self.assertEqual(desc.get_path(), "/path/to/bundle")
+        self.assertEqual(desc.get_path(), os.path.join("path", "to", "bundle"))
 
         desc = descriptor.get_from_location(
             bundle_type,
