@@ -76,7 +76,7 @@ except ImportError:
 
 # ----------------------------------------------------------------------------
 # Version
-__version__ = "3.0.19"
+__version__ = "3.0.20.RC1"
 
 # ----------------------------------------------------------------------------
 # Errors
@@ -95,6 +95,12 @@ class Fault(ShotgunError):
 
 class AuthenticationFault(Fault):
     """Exception when the server side reports an error related to authentication"""
+    pass
+
+class MissingTwoFactorAuthenticationFault(Fault):
+    """Exception when the server side reports an error related to missing
+    two factor authentication credentials
+    """
     pass
 
 # ----------------------------------------------------------------------------
@@ -137,23 +143,46 @@ class ServerCapabilities(object):
         self._ensure_json_supported()
 
 
-    def _ensure_json_supported(self):
-        """Checks the server version supports the JSON api, raises an
+    def _ensure_support(self, feature, raise_hell=True):
+        """Checks the server version supports a given feature, raises an
         exception if it does not.
 
-        :raises ShotgunError: The current server version does not support json
+        :param feature: dict supported version and human label { 'version': (int, int, int), 'label': str }
+
+        :raises ShotgunError: The current server version does not [feature]
         """
-        if not self.version or self.version < (2, 4, 0):
-            raise ShotgunError("JSON API requires server version 2.4 or "\
-                "higher, server is %s" % (self.version,))
+
+        if not self.version or self.version < feature['version']:
+            if raise_hell:
+                raise ShotgunError(
+                    "%s requires server version %s or higher, "\
+                    "server is %s" % (feature['label'], _version_str(feature['version']), _version_str(self.version))
+                )
+            return False
+        else:
+            return True
+
+
+    def _ensure_json_supported(self):
+        """Wrapper for ensure_support"""
+        self._ensure_support({
+            'version': (2, 4, 0),
+            'label': 'JSON API'
+        })
 
     def ensure_include_archived_projects(self):
-        """Checks the server version support include_archived_projects parameter
-        to find.
-        """
-        if not self.version or self.version < (5, 3, 14):
-            raise ShotgunError("The include_archived_projects flag requires server version 5.3.14 or "\
-                "higher, server is %s" % (self.version,))
+        """Wrapper for ensure_support"""
+        self._ensure_support({
+            'version': (5, 3, 14),
+            'label': 'include_archived_projects parameter'
+        })
+
+    def ensure_per_project_customization(self):
+        """Wrapper for ensure_support"""
+        return self._ensure_support({
+            'version': (5, 4, 4),
+            'label': 'project parameter'
+        }, True)
 
 
     def __str__(self):
@@ -208,6 +237,7 @@ class _Config(object):
         self.script_name = None
         self.user_login = None
         self.user_password = None
+        self.auth_token = None
         self.sudo_as_login = None
         # uuid as a string
         self.session_uuid = None
@@ -256,7 +286,8 @@ class Shotgun(object):
                  login=None,
                  password=None,
                  sudo_as_login=None,
-                 session_token=None):
+                 session_token=None,
+                 auth_token=None):
         """Initialises a new instance of the Shotgun client.
 
         :param base_url: http or https url to the shotgun server.
@@ -306,6 +337,13 @@ class Shotgun(object):
         :param session_token: The session token to use to authenticate to the server. This
         can be used as an alternative to authenticating with a script user or regular user.
         You retrieve the session token by running the get_session_token() method.        
+
+        :param auth_token: The authentication token required to authenticate to
+        a server with two factor authentication turned on. If auth_token is provided,
+        then login and password must be as well and neither script_name nor api_key
+        can be provided. Note that these tokens can be short lived so a session is
+        established right away if an auth_token is provided. A
+        MissingTwoFactorAuthenticationFault will be raised if the auth_token is invalid.
         """
 
         # verify authentication arguments
@@ -332,6 +370,13 @@ class Shotgun(object):
             if api_key is None:
                 raise ValueError("script_name provided without api_key")
 
+        if auth_token is not None:
+            if login is None or password is None:
+                raise ValueError("must provide a user login and password with an auth_token")
+
+            if script_name is not None or api_key is not None:
+                raise ValueError("cannot provide an auth_code with script_name/api_key")
+
         # Can't use 'all' with python 2.4
         if len([x for x in [session_token, script_name, api_key, login, password] if x]) == 0:
             if connect:
@@ -342,6 +387,7 @@ class Shotgun(object):
         self.config.script_name = script_name
         self.config.user_login = login
         self.config.user_password = password
+        self.config.auth_token = auth_token
         self.config.session_token = session_token
         self.config.sudo_as_login = sudo_as_login
         self.config.convert_datetimes_to_utc = convert_datetimes_to_utc
@@ -400,8 +446,6 @@ class Shotgun(object):
             proxy_addr = "http://%s%s:%d" % (auth_string, self.config.proxy_server, self.config.proxy_port)
             self.config.proxy_handler = urllib2.ProxyHandler({self.config.scheme : proxy_addr})
 
-
-
         if ensure_ascii:
             self._json_loads = self._json_loads_ascii
 
@@ -414,6 +458,15 @@ class Shotgun(object):
         # call to server will only be made once and will raise error
         if connect:
             self.server_caps
+
+        # When using auth_token in a 2FA scenario we need to switch to session-based
+        # authentication because the auth token will no longer be valid after a first use.
+        if self.config.auth_token is not None:
+            self.config.session_token = self.get_session_token()
+            self.config.user_login = None
+            self.config.user_password = None
+            self.config.auth_token = None
+
 
     # ========================================================================
     # API Functions
@@ -627,6 +680,15 @@ class Shotgun(object):
             params['sorts'] = sort_list
         return params
 
+
+    def _add_project_param(self, params, project_entity):
+
+        if project_entity and self.server_caps.ensure_per_project_customization():
+            params["project"] = project_entity
+
+        return params
+
+
     def summarize(self,
                   entity_type,
                   filters,
@@ -639,7 +701,7 @@ class Shotgun(object):
         based on the given filters.
         """
 
-        if not isinstance(grouping, list) and grouping != None:
+        if not isinstance(grouping, list) and grouping is not None:
             msg = "summarize() 'grouping' parameter must be a list or None"
             raise ValueError(msg)
 
@@ -659,7 +721,7 @@ class Shotgun(object):
             # Defaults to True on the server, so only pass it if it's False
             params["include_archived_projects"] = False
 
-        if grouping != None:
+        if grouping is not None:
             params['grouping'] = grouping
 
         records = self._call_rpc('summarize', params)
@@ -1005,12 +1067,7 @@ class Shotgun(object):
 
         params = {}
 
-        if project_entity:
-            if not self.server_caps.version or self.server_caps.version < (5, 4, 4):
-                raise ShotgunError("Per project schema operations require server "\
-                                   "version 5.4.4 or higher, server is %s" % (self.server_caps.version,))
-            else:
-                params["project"] = project_entity
+        params = self._add_project_param(params, project_entity)
 
         if params:
             return self._call_rpc("schema_entity_read", params)
@@ -1029,13 +1086,8 @@ class Shotgun(object):
 
         params = {}
 
-        if project_entity:
-            if not self.server_caps.version or self.server_caps.version < (5, 4, 4):
-                raise ShotgunError("Per project schema operations require server "\
-                                   "version 5.4.4 or higher, server is %s" % (self.server_caps.version,))
-            else:
-                params["project"] = project_entity
-            
+        params = self._add_project_param(params, project_entity)
+
         if params:
             return self._call_rpc("schema_read", params)
         else:
@@ -1062,15 +1114,11 @@ class Shotgun(object):
         params = {
             "type": entity_type,
         }
+
         if field_name:
             params["field_name"] = field_name
-            
-        if project_entity:            
-            if not self.server_caps.version or self.server_caps.version < (5, 4, 4):
-                raise ShotgunError("Per project schema operations require server "\
-                                   "version 5.4.4 or higher, server is %s" % (self.server_caps.version,))
-            else:
-                params["project"] = project_entity
+
+        params = self._add_project_param(params, project_entity)
 
         return self._call_rpc("schema_field_read", params)
 
@@ -1501,11 +1549,17 @@ class Shotgun(object):
                 None, None, None))
         return url
 
-    def authenticate_human_user(self, user_login, user_password):
+    def authenticate_human_user(self, user_login, user_password, auth_token=None):
         '''Authenticate Shotgun HumanUser. HumanUser must be an active account.
-        @param user_login: Login name of Shotgun HumanUser
-        @param user_password: Password for Shotgun HumanUser
-        @return: Dictionary of HumanUser including ID if authenticated, None is unauthorized.
+        :param user_login: Login name of Shotgun HumanUser
+
+        :param user_password: Password for Shotgun HumanUser
+
+        :param auth_token: One-time token required to authenticate Shotgun HumanUser
+        when two factor authentication is turned on.
+
+        :return: Dictionary of HumanUser including ID if authenticated, None if unauthorized.
+        """
         '''
         if not user_login:
             raise ValueError('Please supply a username to authenticate.')
@@ -1516,24 +1570,29 @@ class Shotgun(object):
         # Override permissions on Config obj
         original_login = self.config.user_login
         original_password = self.config.user_password
+        original_auth_token = self.config.auth_token
 
         self.config.user_login = user_login
         self.config.user_password = user_password
+        self.config.auth_token = auth_token
 
         try:
             data = self.find_one('HumanUser', [['sg_status_list', 'is', 'act'], ['login', 'is', user_login]], ['id', 'login'], '', 'all')
             # Set back to default - There finally and except cannot be used together in python2.4
             self.config.user_login = original_login
             self.config.user_password = original_password
+            self.config.auth_token = original_auth_token
             return data
         except Fault:
             # Set back to default - There finally and except cannot be used together in python2.4
             self.config.user_login = original_login
             self.config.user_password = original_password
+            self.config.auth_token = original_auth_token
         except:
             # Set back to default - There finally and except cannot be used together in python2.4
             self.config.user_login = original_login
             self.config.user_password = original_password
+            self.config.auth_token = original_auth_token
             raise
 
 
@@ -1579,7 +1638,8 @@ class Shotgun(object):
         session_token = (rv or {}).get("session_id")
         if not session_token:
             raise RuntimeError("Could not extract session_id from %s", rv)
-        self.config.session_token = session_token 
+        self.config.session_token = session_token
+
         return session_token
 
     def _build_opener(self, handler):
@@ -1651,6 +1711,8 @@ class Shotgun(object):
                 "user_login" : str(self.config.user_login),
                 "user_password" : str(self.config.user_password),
             }
+            if self.config.auth_token:
+                auth_params["auth_token"] = str(self.config.auth_token)
 
         # Use script name instead
         elif self.config.script_name and self.config.api_key:
@@ -1849,14 +1911,15 @@ class Shotgun(object):
 
         :raises ShotgunError: If the server response contains an exception.
         """
- 
+
         ERR_AUTH = 102 # error code for authentication related problems
+        ERR_2FA  = 106 # error code when 2FA authentication is required but no 2FA token provided.
 
         if isinstance(sg_response, dict) and sg_response.get("exception"):
-            
             if sg_response.get("error_code") == ERR_AUTH:
                 raise AuthenticationFault(sg_response.get("message", "Unknown Authentication Error"))
-
+            elif sg_response.get("error_code") == ERR_2FA:
+                raise MissingTwoFactorAuthenticationFault(sg_response.get("message", "Unknown 2FA Authentication Error"))
             else:
                 # raise general Fault            
                 raise Fault(sg_response.get("message", "Unknown Error"))
@@ -1893,7 +1956,7 @@ class Shotgun(object):
 
         if self.config.convert_datetimes_to_utc:
             def _change_tz(value):
-                if value.tzinfo == None:
+                if value.tzinfo is None:
                     value = value.replace(tzinfo=SG_TIMEZONE.local)
                 return value.astimezone(SG_TIMEZONE.utc)
         else:
@@ -2208,4 +2271,6 @@ def _translate_filters_simple(sg_filter):
 
     return condition
 
-     
+def _version_str(version):
+    """Converts a tuple of int's to a '.' separated str"""
+    return '.'.join(map(str, version))
