@@ -23,6 +23,16 @@ class CoreDefaultsManager(sg_auth.DefaultsManager):
     (shotgun.yml) to provide a default host, proxy and user.
     """
 
+    def __init__(self, mask_script_user=False):
+        """
+        Constructor
+
+        :param mask_script_user: Prevents the get_user_credentials method from
+            returning the script user credentials if the are available.
+        """
+        self._mask_script_user = mask_script_user
+        super(CoreDefaultsManager, self).__init__()
+
     def is_host_fixed(self):
         """
         Returns if the host is fixed. Note that the defaults manager for a core
@@ -58,11 +68,12 @@ class CoreDefaultsManager(sg_auth.DefaultsManager):
         available.
         :returns: A dictionary with keys api_script and api_key.
         """
-        from . import shotgun
-        data = shotgun.get_associated_sg_config_data()
-        if data.get("api_script") and data.get("api_key"):
-            return {
-                "api_script": data["api_script"],
-                "api_key": data["api_key"]
-            }
+        if not self._mask_script_user:
+            from . import shotgun
+            data = shotgun.get_associated_sg_config_data()
+            if data.get("api_script") and data.get("api_key"):
+                return {
+                    "api_script": data["api_script"],
+                    "api_key": data["api_key"]
+                }
         return super(CoreDefaultsManager, self).get_user_credentials()

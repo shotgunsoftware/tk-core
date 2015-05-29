@@ -73,3 +73,81 @@ class ShotgunWrapperTests(TankTestBase):
         # Make sure we tried to renew the sesion
         self.assertTrue(renew_session_mock.called)
         self.assertEqual(_call_rpc_mock.call_count, 1)
+
+    @patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
+    @patch("tank_vendor.shotgun_authentication.interactive_authentication.renew_session")
+    @patch("tank_vendor.shotgun_authentication.session_cache.get_session_data")
+    @patch("tank_vendor.shotgun_api3.Shotgun._call_rpc")
+    def test_successfull_session_cache_snooping(self, _call_rpc_mock, get_session_data_mock, renew_session_mock, server_caps_mock):
+        """
+        Tests that if the session token is invalid (mocked by the _call_rpc mocker), that we will try to
+        get the session token from disk first before trying to renew the session token.
+        """
+
+        # First create the user and the connection object
+        user = user_impl.SessionUser("https://host.shotgunstudio.com", "login", "session_token", "proxy")
+        connection = user.create_sg_connection()
+
+        # Mock a call to the server that fails authentication.
+        _call_rpc_mock.side_effect = AuthenticationFault("This is coming from the _call_rpc_mock.")
+
+        # Implement a fake get_session_data that returns the required information.
+        def fake_get_session_data(*args):
+            # Disable the mock side effect so that the next time the method is called all is well.
+            _call_rpc_mock.side_effect = None
+            return {"login": "login", "session_token": "session_token_2"}
+        get_session_data_mock.side_effect = fake_get_session_data
+
+        # This should:
+        # - Call the RPC and throw because of the mock
+        # - Look into the session cache is the session token changed (it did, fake_get_session_data returns session_token_2)
+        # - Call the RPC again and not throw (since there is no side effect this time)
+        connection._call_rpc()
+
+        # We should look in the cache once.
+        self.assertEqual(get_session_data_mock.call_count, 1)
+        # We shouldn't try to renew the session.
+        self.assertFalse(renew_session_mock.called)
+        # We should have talked to the server twice.
+        self.assertEqual(_call_rpc_mock.call_count, 2)
+
+    @patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
+    @patch("tank_vendor.shotgun_authentication.interactive_authentication.renew_session")
+    @patch("tank_vendor.shotgun_authentication.session_cache.get_session_data")
+    @patch("tank_vendor.shotgun_api3.Shotgun._call_rpc")
+    def test_failed_session_cache_snooping(self, _call_rpc_mock, get_session_data_mock, renew_session_mock, server_caps_mock):
+        """
+        Tests that if the session token is invalid (mocked by the _call_rpc mocker), that the session cache
+        has been read, did provide an update and wasn't the right one, that we would renew the session.
+        """
+
+        # First create the user and the connection object
+        user = user_impl.SessionUser("https://host.shotgunstudio.com", "login", "session_token", "proxy")
+        connection = user.create_sg_connection()
+
+        # Mock a call to the server that fails authentication.
+        _call_rpc_mock.side_effect = AuthenticationFault("This is coming from the _call_rpc_mock.")
+
+        # Implement a fake get_session_data that returns the required information.
+        def fake_get_session_data(*args):
+            return {"login": "login", "session_token": "session_token_2"}
+        get_session_data_mock.side_effect = fake_get_session_data
+
+        def fake_renew_session(*args):
+            _call_rpc_mock.side_effect = None
+
+        renew_session_mock.side_effect = fake_renew_session
+
+        # This should:
+        # - Call the RPC and throw because of the mock
+        # - Look into the session cache is the session token changed (it did, fake_get_session_data returns session_token_2)
+        # - Call the RPC again and fail again since there the session token is still invalid (simulated bu the mock)
+        # - Call get_session_data a second time.
+        connection._call_rpc()
+
+        # We should look in the cache once.
+        self.assertEqual(get_session_data_mock.call_count, 1)
+        # We shouldn't try to renew the session.
+        self.assertTrue(renew_session_mock.called)
+        # We should have talked to the server twice.
+        self.assertEqual(_call_rpc_mock.call_count, 3)

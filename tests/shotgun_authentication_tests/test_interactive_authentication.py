@@ -40,6 +40,29 @@ class InteractiveTests(TankTestBase):
         self.assertTrue(ld.ui.site.isReadOnly())
         self.assertTrue(ld.ui.login.isReadOnly())
 
+    @interactive
+    def test_focus(self):
+        """
+        Make sure that the site and user fields are disabled when doing session renewal
+        """
+        # Import locally since login_dialog has a dependency on Qt and it might be missing
+        from tank_vendor.shotgun_authentication import login_dialog
+        ld = login_dialog.LoginDialog(is_session_renewal=False)
+        ld._set_message("mystudio should be selected in https://mystudio.shotgunstudio.com")
+        ld.exec_()
+
+        ld = login_dialog.LoginDialog(is_session_renewal=False, login="login")
+        ld._set_message("mystudio should be selected in https://mystudio.shotgunstudio.com")
+        ld.exec_()
+
+        ld = login_dialog.LoginDialog(is_session_renewal=False, hostname="host")
+        ld._set_message("Focus should be on login box")
+        ld.exec_()
+
+        ld = login_dialog.LoginDialog(is_session_renewal=False, hostname="host", login="login")
+        ld._set_message("Focus should be on password box")
+        ld.exec_()
+
     def _test_login(self, console):
         self._print_message(
             "We're about to test authentication. Simply enter valid credentials.",

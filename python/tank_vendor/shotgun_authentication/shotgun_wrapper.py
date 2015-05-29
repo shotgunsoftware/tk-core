@@ -17,9 +17,10 @@ at any point.
 """
 
 from tank_vendor.shotgun_api3 import Shotgun, AuthenticationFault
-from . import interactive_authentication
+from . import interactive_authentication, session_cache
 
-
+import logging
+logger = logging.getLogger("sg_auth.shotgun_wrapper")
 
 
 class ShotgunWrapper(Shotgun):
@@ -53,13 +54,41 @@ class ShotgunWrapper(Shotgun):
             # call the server, it's because the token expired and there's a
             # new one available, so use that one instead in the future.
             if self._user.get_session_token() != self.config.session_token:
+                logger.debug("Global session token has changed. Using that instead.")
                 self.config.session_token = self._user.get_session_token()
 
             return super(ShotgunWrapper, self)._call_rpc(*args, **kwargs)
         except AuthenticationFault:
-            # Let's renew the session token!
-            interactive_authentication.renew_session(self._user)
-            self.config.session_token = self._user.get_session_token()
-            #  If there is once again an authentication fault, then it means
-            # something else is going wrong and we will then simply rethrow
-            return super(ShotgunWrapper, self)._call_rpc(*args, **kwargs)
+            logger.debug("Authentication failure.")
+            pass
+
+        # Before renewing the session token, let's see if there is another
+        # one in the session_cache.
+        session_info = session_cache.get_session_data(self._user.get_host(), self._user.get_login())
+
+        # If the one if the cache is different, maybe another process refreshed the token
+        # for us, let's try that token instead.
+        if session_info and session_info["session_token"] != self._user.get_session_token():
+            logger.debug("Different session token found in the session cache. Will try it.")
+            self.config.session_token = session_info["session_token"]
+            # Try again. If it fails with an authentication fault, that's ok
+            try:
+                result = super(ShotgunWrapper, self)._call_rpc(*args, **kwargs)
+                # It didn't fail, so we can update the session token for the user. The value is
+                # coming from the cache, so we should avoid an unnecessary write to disk.
+                logger.debug("Cached token was not expired. Saving to memory.")
+                self._user.set_session_token(session_info["session_token"], cache=False)
+                return result
+            except AuthenticationFault:
+                logger.debug("Authentication failure, cached token was also expired.")
+                pass
+
+        # We end up here if we were in sync with the cache or if tried the cached value but it
+        # didn't work.
+
+        # Let's renew the session token!
+        interactive_authentication.renew_session(self._user)
+        self.config.session_token = self._user.get_session_token()
+        #  If there is once again an authentication fault, then it means
+        # something else is going wrong and we will then simply rethrow
+        return super(ShotgunWrapper, self)._call_rpc(*args, **kwargs)

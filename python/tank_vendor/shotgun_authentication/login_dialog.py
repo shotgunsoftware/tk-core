@@ -25,12 +25,11 @@ from .errors import AuthenticationError
 from .ui.qt_abstraction import QtGui, QtCore
 
 
-
 class LoginDialog(QtGui.QDialog):
     """
     Dialog for getting user credentials.
     """
-    
+
     def __init__(self, is_session_renewal, hostname="", login="", fixed_host=False, http_proxy=None, parent=None):
         """
         Constructs a dialog.
@@ -81,6 +80,20 @@ class LoginDialog(QtGui.QDialog):
         else:
             self._set_message("Please enter your credentials.")
 
+        # Set the focus appropriately on the topmost line edit that is empty.
+        if self.ui.site.text():
+            if self.ui.login.text():
+                self.ui.password.setFocus(QtCore.Qt.OtherFocusReason)
+            else:
+                self.ui.login.setFocus(QtCore.Qt.OtherFocusReason)
+        else:
+            # If we don't even have a host, pre-fill the field with a friendly
+            # value and selection.
+            self.ui.site.setText("https://mystudio.shotgunstudio.com")
+            # This will select mystudio, making it easy to type something else
+            self.ui.site.setSelection(8, 8)
+            self.ui.site.setFocus(QtCore.Qt.OtherFocusReason)
+
         # hook up signals
         self.ui.sign_in.clicked.connect(self._ok_pressed)
         self.ui.cancel.clicked.connect(self.reject)
@@ -112,16 +125,6 @@ class LoginDialog(QtGui.QDialog):
         # the trick of activating + raising does not seem to be enough for
         # modal dialogs. So force put them on top as well.
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint | self.windowFlags())
-
-        # Someone else is setting the focus between the init and
-        # the exec_, so set the focus appropriately at the very last minute.
-        if self.ui.site.text():
-            if self.ui.login.text():
-                self.ui.password.setFocus(QtCore.Qt.OtherFocusReason)
-            else:
-                self.ui.login.setFocus(QtCore.Qt.OtherFocusReason)
-        else:
-            self.ui.site.setFocus(QtCore.Qt.OtherFocusReason)
         return QtGui.QDialog.exec_(self)
 
     def result(self):
