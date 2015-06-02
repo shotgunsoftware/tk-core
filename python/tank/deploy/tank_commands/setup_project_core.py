@@ -236,7 +236,7 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, set
                                 "parameters, however the name '%s' has already been registered in Shotgun for "
                                 "this project. This name will be used instead of the suggested disk "
                                 "name." % (project_name, data["tank_name"]) )
-                    project_name = data["tank_name"] 
+                    project_name = data["tank_name"]
 
         log.info("Creating Pipeline Configuration in Shotgun...")
         # this is an auto-path project, meaning that shotgun doesn't store the location

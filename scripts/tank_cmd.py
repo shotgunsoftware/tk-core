@@ -1107,10 +1107,10 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
                 log.info("- The path is not associated with any Shotgun object.")
                 log.info("- Falling back on default project settings.")
                 project_id = tk.pipeline_configuration.get_project_id()
-                # Site config has a None project id.
                 if project_id is not None:
                     ctx = tk.context_from_entity("Project", project_id)
                 else:
+                    # Site config has a None project id, so the context is empty.
                     ctx = tk.context_empty()
 
     else:

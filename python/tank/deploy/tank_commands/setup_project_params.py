@@ -369,7 +369,8 @@ class ProjectSetupParameters(object):
         """
         Sets the project id and validates that this id is valid.
 
-        :param project_id: Shotgun project id
+        :param project_id: Shotgun project id. Passing None means we are configuring the site
+                           configuration.
         :param force: If true, existing projects can be overwritten
         """
         if project_id is not None:

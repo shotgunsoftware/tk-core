@@ -331,7 +331,7 @@ class UnregisterFoldersAction(Action):
         
         project_id = self.tk.pipeline_configuration.get_project_id()
         if project_id:
-            project_link = {"type": "Project", "id": self.tk.pipeline_configuration.get_project_id()}
+            project_link = {"type": "Project", "id": project_id}
         else:
             project_link = None
         
