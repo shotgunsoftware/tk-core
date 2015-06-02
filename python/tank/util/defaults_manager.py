@@ -66,7 +66,10 @@ class CoreDefaultsManager(sg_auth.DefaultsManager):
         """
         Returns the script user's credentials configured for this core, if
         available.
-        :returns: A dictionary with keys api_script and api_key.
+
+        :returns: A dictionary either with keys login and session_token in the case
+                  of a normal Shotgun User, keys api_script and api_key in the case of a Script
+                  User or None in case no credentials could be established.
         """
         if not self._mask_script_user:
             from . import shotgun

@@ -131,7 +131,9 @@ class DefaultsManager(object):
         Toolkit uses the default implementation and will therefore remember the user's
         credentials across all DCCs and tools.
 
-        :returns: A dictionary with keys login and session_token or None.
+        :returns: A dictionary either with keys login and session_token in the case
+                  of a normal Shotgun User, keys api_script and api_key in the case of a Script
+                  User or None in case no credentials could be established.
         """
         if self.get_host() and self.get_login():
             return session_cache.get_session_data(self.get_host(), self.get_login())
