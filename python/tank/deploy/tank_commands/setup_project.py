@@ -349,7 +349,12 @@ class SetupProjectAction(Action):
                      "The following configurations were found: ")
             log.info("")
             for ppc in primary_pcs:
+                # As of 6.0.2, pipeline configurations can be project less, so skip those
+                if ppc.get("project") is None:
+                    continue
+
                 pc_path = ppc.get(SG_LOCAL_STORAGE_OS_MAP[sys.platform])
+                # Pipeline configurations can be project less.
                 if pc_path is None or pc_path == "":
                     # this Toolkit config does not exist on a disk that is reachable from this os
                     log.info("   %s: No valid config found for this OS!" % ppc.get("project").get("name"))

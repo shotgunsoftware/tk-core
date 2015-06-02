@@ -58,6 +58,9 @@ class PushPCAction(Action):
 
         # get list of all PCs for this project
         project_id = self.tk.pipeline_configuration.get_project_id()
+        if not project_id:
+            raise TankError("You can't push the site configuration.")
+
         current_pc_name = self.tk.pipeline_configuration.get_name()
         current_pc_id = self.tk.pipeline_configuration.get_shotgun_id()
         pipeline_configs = self.tk.shotgun.find(constants.PIPELINE_CONFIGURATION_ENTITY,

@@ -55,17 +55,24 @@ class PCBreakdownAction(Action):
         
         log.info("Fetching data from Shotgun...")
         project_id = self.tk.pipeline_configuration.get_project_id()
+        is_auto_path = self.tk.pipeline_configuration.is_auto_path()
         
-        proj_data = self.tk.shotgun.find_one("Project", [["id", "is", project_id]], ["name"])
         log.info("")
         log.info("")
         log.info("=" * 70)
-        log.info("Available Configurations for Project '%s'" % proj_data.get("name"))
+        if project_id is not None:
+            proj_data = self.tk.shotgun.find_one("Project", [["id", "is", project_id]], ["name"])
+            log.info("Available Configurations for Project '%s'" % proj_data.get("name"))
+            sg_project_link = {"type": "Project", "id": project_id}
+        else:
+            log.info("Available Configurations for Site configuration")
+            sg_project_link = None
+
         log.info("=" * 70)
         log.info("")
         
         data = self.tk.shotgun.find(constants.PIPELINE_CONFIGURATION_ENTITY, 
-                       [["project", "is", {"type": "Project", "id": project_id}]],
+                       [["project", "is", sg_project_link]],
                        ["code", "users", "mac_path", "windows_path", "linux_path"])
         for d in data:
             
@@ -100,8 +107,12 @@ class PCBreakdownAction(Action):
             
             
             # check for core API etc. 
-            storage_map = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
-            local_path = d.get(storage_map[sys.platform])
+            if is_auto_path:
+                local_path = self.tk.pipeline_configuration.get_path()
+            else:
+                storage_map = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
+                local_path = d.get(storage_map[sys.platform])
+
             if local_path is None:
                 log.info("The Configuration is not accessible from this computer!")
                 

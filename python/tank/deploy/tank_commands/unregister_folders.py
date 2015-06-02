@@ -329,8 +329,11 @@ class UnregisterFoldersAction(Action):
         pc_link = {"type": "PipelineConfiguration",
                    "id": self.tk.pipeline_configuration.get_shotgun_id() }
         
-        project_link = {"type": "Project", 
-                        "id": self.tk.pipeline_configuration.get_project_id() }
+        project_id = self.tk.pipeline_configuration.get_project_id()
+        if project_id:
+            project_link = {"type": "Project", "id": self.tk.pipeline_configuration.get_project_id()}
+        else:
+            project_link = None
         
         meta = {}
         # the api version used is always useful to know
