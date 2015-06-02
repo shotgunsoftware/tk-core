@@ -420,7 +420,7 @@ class TankAppStoreDescriptor(AppDescriptor):
 
         :returns: TankAppStoreDescriptor instance
         """
-        cls._find_latest_item_internal(
+        return cls._find_latest_item_internal(
             pc_path, bundle_install_path, bundle_type, name, constraint_pattern
         )
 
