@@ -160,29 +160,37 @@ class PathCache(object):
         
         finally:
             c.close()
-        
-    
+
     def _get_path_cache_location(self):
         """
         Creates the path cache file and returns its location on disk.
-        
+
         :returns: The path to the path cache file
         """
         if self._tk.pipeline_configuration.get_shotgun_path_cache_enabled():
+
+            # Site configuration's project id is None. Since we're calling a hook, we'll have to
+            # pass in 0 to avoid client code crashing because it expects an integer and not
+            # the None object. This happens when we are building the cache root, where %d is used to
+            # inject the project id in the file path.
+            if self._tk.pipeline_configuration.is_site_configuration():
+                project_id = 0
+            else:
+                project_id = self._tk.pipeline_configuration.get_project_id()
             # 0.15+ path cache setup - call out to a core hook to determine
             # where the path cache should be located.
             path = self._tk.execute_core_hook_method(constants.CACHE_LOCATION_HOOK_NAME,
                                                      "path_cache",
-                                                     project_id=self._tk.pipeline_configuration.get_project_id(),
+                                                     project_id=project_id,
                                                      pipeline_configuration_id=self._tk.pipeline_configuration.get_shotgun_id())
-            
+
         else:
             # old (v0.14) style path cache
             # fall back on the 0.14 setting, where the path cache
-            # is located in a tank folder in the project root 
-            path = os.path.join(self._tk.pipeline_configuration.get_primary_data_root(), 
-                                "tank", 
-                                "cache", 
+            # is located in a tank folder in the project root
+            path = os.path.join(self._tk.pipeline_configuration.get_primary_data_root(),
+                                "tank",
+                                "cache",
                                 "path_cache.db")
 
             # first check that the cache folder exists
@@ -194,9 +202,9 @@ class PathCache(object):
                 try:
                     os.mkdir(cache_folder, 0777)
                 finally:
-                    os.umask(old_umask)            
+                    os.umask(old_umask)
 
-            # now try to write a placeholder file with open permissions        
+            # now try to write a placeholder file with open permissions
             if not os.path.exists(path):
                 old_umask = os.umask(0)
                 try:
@@ -204,11 +212,10 @@ class PathCache(object):
                     fh.close()
                     os.chmod(path, 0666)
                 finally:
-                    os.umask(old_umask)            
-        
+                    os.umask(old_umask)
+
         return path
-    
-    
+
     def _path_to_dbpath(self, relative_path):
         """
         converts a  relative path to a db path form
