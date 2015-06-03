@@ -1256,8 +1256,7 @@ class MigratePublishedFileEntitiesAction(Action):
         sg_project = {} 
         if self.tk:
 
-            project_id = self.tk.pipeline_configuration.get_project_id()
-            if not project_id:
+            if self.tk.pipeline_configuration.is_site_configuration():
                 raise TankError("You can't migrate entities for the site configuration.")
 
             # running for a specific project/pc:

@@ -34,7 +34,9 @@ class PipelineConfiguration(object):
     create directly via constructor.
     """
 
-    _UNKNOWN_PROJECT_ID = "unknown_project_id"
+    # Since the project id can be None for site configurations, we have to
+    # initialize _project_id to an invalid value different from None.
+    _UNDEFINED_PROJECT_ID = -1
 
     def __init__(self, pipeline_configuration_path):
         """
@@ -101,7 +103,7 @@ class PipelineConfiguration(object):
         want these to be picked up. The next time settings are needed,
         these will be automatically re-read from disk.
         """
-        self._project_id = self._UNKNOWN_PROJECT_ID
+        self._project_id = self._UNDEFINED_PROJECT_ID
         self._pc_id = None
         self._pc_name = None
         self._published_file_entity_type = None
@@ -226,7 +228,7 @@ class PipelineConfiguration(object):
         Returns the shotgun id for the project associated with this PC. 
         May connect to Shotgun to retrieve this.
         """
-        if self._project_id == self._UNKNOWN_PROJECT_ID:
+        if self._project_id == self._UNDEFINED_PROJECT_ID:
             # try to get it from the cache file
             data = pipelineconfig_utils.get_metadata(self._pc_root)
 
@@ -237,6 +239,14 @@ class PipelineConfiguration(object):
                 self._project_id = data.get("project_id")
 
         return self._project_id
+
+    def is_site_configuration(self):
+        """
+        Returns in the pipeline configuration is for the site configuration.
+
+        :returns: True if this is a site configuration, False otherwise.
+        """
+        return self.get_project_id() is None
 
     def get_project_disk_name(self):
         """

@@ -54,19 +54,17 @@ class PCBreakdownAction(Action):
         """ 
         
         log.info("Fetching data from Shotgun...")
-        project_id = self.tk.pipeline_configuration.get_project_id()
-        is_auto_path = self.tk.pipeline_configuration.is_auto_path()
-        
         log.info("")
         log.info("")
         log.info("=" * 70)
-        if project_id is not None:
+        if self.tk.pipeline_configuration.is_site_configuration():
+            log.info("Available Configurations for Site")
+            sg_project_link = None
+        else:
+            project_id = self.tk.pipeline_configuration.get_project_id()
             proj_data = self.tk.shotgun.find_one("Project", [["id", "is", project_id]], ["name"])
             log.info("Available Configurations for Project '%s'" % proj_data.get("name"))
             sg_project_link = {"type": "Project", "id": project_id}
-        else:
-            log.info("Available Configurations for Site configuration")
-            sg_project_link = None
 
         log.info("=" * 70)
         log.info("")
@@ -107,7 +105,7 @@ class PCBreakdownAction(Action):
             
             
             # check for core API etc. 
-            if is_auto_path:
+            if self.tk.pipeline_configuration.is_auto_path():
                 local_path = self.tk.pipeline_configuration.get_path()
             else:
                 storage_map = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }

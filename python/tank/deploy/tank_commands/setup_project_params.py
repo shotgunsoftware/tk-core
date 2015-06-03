@@ -376,7 +376,6 @@ class ProjectSetupParameters(object):
         if project_id is not None:
             proj = self._sg.find_one("Project", [["id", "is", project_id]], ["name", "tank_name"])
 
-            # In auto-path mode, a pipeline configuration can be setup without an actual project.
             if proj is None:
                 raise TankError("Could not find a project with id %s!" % self._project_id)
 
