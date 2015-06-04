@@ -12,7 +12,7 @@ class Ui_LoginDialog(object):
     def setupUi(self, LoginDialog):
         LoginDialog.setObjectName("LoginDialog")
         LoginDialog.setWindowModality(QtCore.Qt.NonModal)
-        LoginDialog.resize(389, 371)
+        LoginDialog.resize(389, 340)
         LoginDialog.setStyleSheet("QWidget\n"
 "{\n"
 "    background-color:  rgb(36, 39, 42);\n"
@@ -185,6 +185,11 @@ class Ui_LoginDialog(object):
         self.button_layout_2.addWidget(self.use_backup)
         spacerItem1 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.button_layout_2.addItem(spacerItem1)
+        self.back = QtGui.QPushButton(self._2fa_page)
+        self.back.setAutoDefault(False)
+        self.back.setFlat(True)
+        self.back.setObjectName("back")
+        self.button_layout_2.addWidget(self.back)
         self.cancel_tfa = QtGui.QPushButton(self._2fa_page)
         self.cancel_tfa.setStyleSheet("")
         self.cancel_tfa.setAutoDefault(False)
@@ -192,6 +197,7 @@ class Ui_LoginDialog(object):
         self.cancel_tfa.setObjectName("cancel_tfa")
         self.button_layout_2.addWidget(self.cancel_tfa)
         self.verify_2fa = QtGui.QPushButton(self._2fa_page)
+        self.verify_2fa.setMinimumSize(QtCore.QSize(65, 0))
         self.verify_2fa.setStyleSheet("color: rgb(248, 248, 248);\n"
 "background-color: rgb(35, 165, 225);")
         self.verify_2fa.setAutoDefault(False)
@@ -251,12 +257,18 @@ class Ui_LoginDialog(object):
         self.button_layout_3.addWidget(self.use_app)
         spacerItem2 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.button_layout_3.addItem(spacerItem2)
+        self.back_2 = QtGui.QPushButton(self.backup_page)
+        self.back_2.setAutoDefault(False)
+        self.back_2.setFlat(True)
+        self.back_2.setObjectName("back_2")
+        self.button_layout_3.addWidget(self.back_2)
         self.cancel_backup = QtGui.QPushButton(self.backup_page)
         self.cancel_backup.setAutoDefault(False)
         self.cancel_backup.setFlat(True)
         self.cancel_backup.setObjectName("cancel_backup")
         self.button_layout_3.addWidget(self.cancel_backup)
         self.verify_backup = QtGui.QPushButton(self.backup_page)
+        self.verify_backup.setMinimumSize(QtCore.QSize(65, 0))
         self.verify_backup.setStyleSheet("color: rgb(248, 248, 248);\n"
 "background-color: rgb(35, 165, 225);")
         self.verify_backup.setAutoDefault(True)
@@ -270,7 +282,7 @@ class Ui_LoginDialog(object):
         self.verticalLayout_2.setStretch(0, 1)
 
         self.retranslateUi(LoginDialog)
-        self.stackedWidget.setCurrentIndex(2)
+        self.stackedWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(LoginDialog)
 
     def retranslateUi(self, LoginDialog):
@@ -281,13 +293,15 @@ class Ui_LoginDialog(object):
         self.cancel.setText(QtGui.QApplication.translate("LoginDialog", "Cancel", None, QtGui.QApplication.UnicodeUTF8))
         self.sign_in.setText(QtGui.QApplication.translate("LoginDialog", "Sign In", None, QtGui.QApplication.UnicodeUTF8))
         self._2fa_code.setPlaceholderText(QtGui.QApplication.translate("LoginDialog", "Enter code", None, QtGui.QApplication.UnicodeUTF8))
-        self._2fa_message.setText(QtGui.QApplication.translate("LoginDialog", "Please enter your code.", None, QtGui.QApplication.UnicodeUTF8))
+        self._2fa_message.setText(QtGui.QApplication.translate("LoginDialog", "Please enter the code you received in the Google Authenticator app.", None, QtGui.QApplication.UnicodeUTF8))
         self.use_backup.setText(QtGui.QApplication.translate("LoginDialog", "Use backup code", None, QtGui.QApplication.UnicodeUTF8))
+        self.back.setText(QtGui.QApplication.translate("LoginDialog", "Back", None, QtGui.QApplication.UnicodeUTF8))
         self.cancel_tfa.setText(QtGui.QApplication.translate("LoginDialog", "Cancel", None, QtGui.QApplication.UnicodeUTF8))
         self.verify_2fa.setText(QtGui.QApplication.translate("LoginDialog", "Verify", None, QtGui.QApplication.UnicodeUTF8))
         self.backup_code.setPlaceholderText(QtGui.QApplication.translate("LoginDialog", "Enter code", None, QtGui.QApplication.UnicodeUTF8))
-        self._2fa_message_2.setText(QtGui.QApplication.translate("LoginDialog", "Please enter your code.", None, QtGui.QApplication.UnicodeUTF8))
+        self._2fa_message_2.setText(QtGui.QApplication.translate("LoginDialog", "Please enter one of your backup codes.", None, QtGui.QApplication.UnicodeUTF8))
         self.use_app.setText(QtGui.QApplication.translate("LoginDialog", "Use Google App", None, QtGui.QApplication.UnicodeUTF8))
+        self.back_2.setText(QtGui.QApplication.translate("LoginDialog", "Back", None, QtGui.QApplication.UnicodeUTF8))
         self.cancel_backup.setText(QtGui.QApplication.translate("LoginDialog", "Cancel", None, QtGui.QApplication.UnicodeUTF8))
         self.verify_backup.setText(QtGui.QApplication.translate("LoginDialog", "Verify", None, QtGui.QApplication.UnicodeUTF8))
 

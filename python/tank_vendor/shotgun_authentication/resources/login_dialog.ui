@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>389</width>
-    <height>371</height>
+    <height>340</height>
    </rect>
   </property>
   <property name="styleSheet">
@@ -106,7 +106,7 @@ QLineEdit:Disabled {
       </size>
      </property>
      <property name="currentIndex">
-      <number>2</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="login_page">
       <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -314,7 +314,7 @@ background-color: rgb(35, 165, 225);</string>
           </sizepolicy>
          </property>
          <property name="text">
-          <string>Please enter your code.</string>
+          <string>Please enter the code you received in the Google Authenticator app.</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -328,7 +328,7 @@ background-color: rgb(35, 165, 225);</string>
         </widget>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="button_layout_2" stretch="0,0,0,0">
+        <layout class="QHBoxLayout" name="button_layout_2" stretch="0,0,0,0,0">
          <property name="spacing">
           <number>10</number>
          </property>
@@ -359,6 +359,19 @@ background-color: rgb(35, 165, 225);</string>
           </spacer>
          </item>
          <item>
+          <widget class="QPushButton" name="back">
+           <property name="text">
+            <string>Back</string>
+           </property>
+           <property name="autoDefault">
+            <bool>false</bool>
+           </property>
+           <property name="flat">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QPushButton" name="cancel_tfa">
            <property name="styleSheet">
             <string notr="true"/>
@@ -376,6 +389,12 @@ background-color: rgb(35, 165, 225);</string>
          </item>
          <item>
           <widget class="QPushButton" name="verify_2fa">
+           <property name="minimumSize">
+            <size>
+             <width>65</width>
+             <height>0</height>
+            </size>
+           </property>
            <property name="styleSheet">
             <string notr="true">color: rgb(248, 248, 248);
 background-color: rgb(35, 165, 225);</string>
@@ -453,7 +472,7 @@ background-color: rgb(35, 165, 225);</string>
           </sizepolicy>
          </property>
          <property name="text">
-          <string>Please enter your code.</string>
+          <string>Please enter one of your backup codes.</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -467,7 +486,7 @@ background-color: rgb(35, 165, 225);</string>
         </widget>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="button_layout_3" stretch="0,0,0,0">
+        <layout class="QHBoxLayout" name="button_layout_3" stretch="0,0,0,0,0">
          <property name="spacing">
           <number>10</number>
          </property>
@@ -501,6 +520,19 @@ background-color: rgb(35, 165, 225);</string>
           </spacer>
          </item>
          <item>
+          <widget class="QPushButton" name="back_2">
+           <property name="text">
+            <string>Back</string>
+           </property>
+           <property name="autoDefault">
+            <bool>false</bool>
+           </property>
+           <property name="flat">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QPushButton" name="cancel_backup">
            <property name="text">
             <string>Cancel</string>
@@ -515,6 +547,12 @@ background-color: rgb(35, 165, 225);</string>
          </item>
          <item>
           <widget class="QPushButton" name="verify_backup">
+           <property name="minimumSize">
+            <size>
+             <width>65</width>
+             <height>0</height>
+            </size>
+           </property>
            <property name="styleSheet">
             <string notr="true">color: rgb(248, 248, 248);
 background-color: rgb(35, 165, 225);</string>

@@ -97,13 +97,17 @@ class LoginDialog(QtGui.QDialog):
 
         # hook up signals
         self.ui.sign_in.clicked.connect(self._ok_pressed)
+        self.ui.cancel.clicked.connect(self.reject)
+
         self.ui.verify_2fa.clicked.connect(self._verify_2fa_pressed)
         self.ui.verify_backup.clicked.connect(self._verify_backup_pressed)
         self.ui.use_backup.clicked.connect(self._use_backup_pressed)
+        self.ui.back.clicked.connect(self._back_pressed)
+
         self.ui.use_app.clicked.connect(self._use_app_pressed)
-        self.ui.cancel.clicked.connect(self.reject)
         self.ui.cancel_tfa.clicked.connect(self.reject)
         self.ui.cancel_backup.clicked.connect(self.reject)
+        self.ui.back_2.clicked.connect(self._back_pressed)
 
     def _disable_widget(self, widget, tooltip_text):
         widget.setReadOnly(True)
@@ -258,3 +262,6 @@ class LoginDialog(QtGui.QDialog):
 
     def _use_app_pressed(self):
         self.ui.stackedWidget.setCurrentWidget(self.ui._2fa_page)
+
+    def _back_pressed(self):
+        self.ui.stackedWidget.setCurrentWidget(self.ui.login_page)
