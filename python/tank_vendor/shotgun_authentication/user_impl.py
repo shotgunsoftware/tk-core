@@ -233,6 +233,14 @@ class SessionUser(ShotgunUserImpl):
         except AuthenticationFault:
             return True
 
+    def __repr__(self):
+        """
+        Returns a string reprensentation of the user.
+
+        :returns: A string containing login and site.
+        """
+        return "Human User %s @ %s" % (self._login, self._host)
+
     @staticmethod
     def from_dict(payload):
         """
@@ -344,6 +352,14 @@ class ScriptUser(ShotgunUserImpl):
         data["api_script"] = self.get_script()
         data["api_key"] = self.get_key()
         return data
+
+    def __repr__(self):
+        """
+        Returns a string reprensentation of the user.
+
+        :returns: A string containing script name and site.
+        """
+        return "Script User %s @ %s" % (self._api_script, self._host)
 
     @staticmethod
     def from_dict(payload):
