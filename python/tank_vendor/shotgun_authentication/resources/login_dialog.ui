@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>374</width>
-    <height>399</height>
+    <width>389</width>
+    <height>371</height>
    </rect>
   </property>
   <property name="styleSheet">
@@ -99,8 +99,14 @@ QLineEdit:Disabled {
    </item>
    <item>
     <widget class="QStackedWidget" name="stackedWidget">
+     <property name="minimumSize">
+      <size>
+       <width>86</width>
+       <height>0</height>
+      </size>
+     </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>2</number>
      </property>
      <widget class="QWidget" name="login_page">
       <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -108,45 +114,60 @@ QLineEdit:Disabled {
         <number>0</number>
        </property>
        <item>
-        <widget class="QLineEdit" name="site">
+        <widget class="QWidget" name="credentials" native="true">
          <property name="minimumSize">
           <size>
-           <width>308</width>
-           <height>0</height>
+           <width>0</width>
+           <height>126</height>
           </size>
          </property>
-         <property name="placeholderText">
-          <string>example.shotgunstudio.com</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLineEdit" name="login">
-         <property name="minimumSize">
-          <size>
-           <width>308</width>
-           <height>0</height>
-          </size>
-         </property>
-         <property name="placeholderText">
-          <string>login</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLineEdit" name="password">
-         <property name="minimumSize">
-          <size>
-           <width>308</width>
-           <height>0</height>
-          </size>
-         </property>
-         <property name="echoMode">
-          <enum>QLineEdit::Password</enum>
-         </property>
-         <property name="placeholderText">
-          <string>password</string>
-         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_7">
+          <property name="margin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QLineEdit" name="site">
+            <property name="minimumSize">
+             <size>
+              <width>308</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="placeholderText">
+             <string>example.shotgunstudio.com</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="login">
+            <property name="minimumSize">
+             <size>
+              <width>308</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="placeholderText">
+             <string>login</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="password">
+            <property name="minimumSize">
+             <size>
+              <width>308</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="echoMode">
+             <enum>QLineEdit::Password</enum>
+            </property>
+            <property name="placeholderText">
+             <string>password</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </widget>
        </item>
        <item>
@@ -158,7 +179,7 @@ QLineEdit:Disabled {
           </sizepolicy>
          </property>
          <property name="text">
-          <string/>
+          <string>Please enter your credentials.</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -238,15 +259,33 @@ background-color: rgb(35, 165, 225);</string>
         <number>0</number>
        </property>
        <item>
-        <widget class="QWidget" name="widget" native="true">
+        <widget class="QWidget" name="credentials_2" native="true">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>126</height>
+          </size>
+         </property>
          <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <property name="margin">
+           <number>0</number>
+          </property>
           <item>
            <widget class="QLabel" name="label">
+            <property name="minimumSize">
+             <size>
+              <width>86</width>
+              <height>0</height>
+             </size>
+            </property>
             <property name="text">
              <string/>
             </property>
             <property name="pixmap">
              <pixmap resource="resources.qrc">:/google_authenticator/google_authenticator.png</pixmap>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
             </property>
            </widget>
           </item>
@@ -268,22 +307,44 @@ background-color: rgb(35, 165, 225);</string>
        </item>
        <item>
         <widget class="QLabel" name="_2fa_message">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="text">
-          <string>Enter the code that you received in the Google Authenticator app.</string>
+          <string>Please enter your code.</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
          </property>
          <property name="wordWrap">
           <bool>true</bool>
          </property>
+         <property name="margin">
+          <number>4</number>
+         </property>
         </widget>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="button_layout_2" stretch="1,0,0,0">
+        <layout class="QHBoxLayout" name="button_layout_2" stretch="0,0,0,0">
          <property name="spacing">
           <number>10</number>
          </property>
          <property name="leftMargin">
           <number>5</number>
          </property>
+         <item>
+          <widget class="QPushButton" name="use_backup">
+           <property name="text">
+            <string>Use backup code</string>
+           </property>
+           <property name="flat">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
          <item>
           <spacer name="_2fa_hspacer">
            <property name="orientation">
@@ -307,16 +368,6 @@ background-color: rgb(35, 165, 225);</string>
            </property>
            <property name="autoDefault">
             <bool>false</bool>
-           </property>
-           <property name="flat">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="use_backup">
-           <property name="text">
-            <string>Use backup code</string>
            </property>
            <property name="flat">
             <bool>true</bool>
@@ -353,8 +404,17 @@ background-color: rgb(35, 165, 225);</string>
         <number>0</number>
        </property>
        <item>
-        <widget class="QWidget" name="widget_3" native="true">
+        <widget class="QWidget" name="credentials_3" native="true">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>126</height>
+          </size>
+         </property>
          <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <property name="margin">
+           <number>0</number>
+          </property>
           <item>
            <widget class="QLabel" name="label_2">
             <property name="text">
@@ -362,6 +422,9 @@ background-color: rgb(35, 165, 225);</string>
             </property>
             <property name="pixmap">
              <pixmap resource="resources.qrc">:/backup_codes/backup_codes_light_bg.png</pixmap>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
             </property>
            </widget>
           </item>
@@ -382,23 +445,48 @@ background-color: rgb(35, 165, 225);</string>
         </widget>
        </item>
        <item>
-        <widget class="QLabel" name="backup_message">
+        <widget class="QLabel" name="_2fa_message_2">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="text">
-          <string>Enter one of your backup codes.</string>
+          <string>Please enter your code.</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
          </property>
          <property name="wordWrap">
           <bool>true</bool>
          </property>
+         <property name="margin">
+          <number>4</number>
+         </property>
         </widget>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="button_layout_3" stretch="1,0,0,0">
+        <layout class="QHBoxLayout" name="button_layout_3" stretch="0,0,0,0">
          <property name="spacing">
           <number>10</number>
          </property>
          <property name="leftMargin">
           <number>5</number>
          </property>
+         <item>
+          <widget class="QPushButton" name="use_app">
+           <property name="text">
+            <string>Use Google App</string>
+           </property>
+           <property name="autoDefault">
+            <bool>false</bool>
+           </property>
+           <property name="flat">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
          <item>
           <spacer name="backup_hspacer">
            <property name="orientation">
@@ -416,19 +504,6 @@ background-color: rgb(35, 165, 225);</string>
           <widget class="QPushButton" name="cancel_backup">
            <property name="text">
             <string>Cancel</string>
-           </property>
-           <property name="autoDefault">
-            <bool>false</bool>
-           </property>
-           <property name="flat">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="use_app">
-           <property name="text">
-            <string>Use Google App</string>
            </property>
            <property name="autoDefault">
             <bool>false</bool>
