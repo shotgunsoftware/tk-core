@@ -23,7 +23,8 @@ from __future__ import with_statement
 import os
 import sys
 import urlparse
-from tank_vendor.shotgun_api3 import Shotgun, AuthenticationFault, ProtocolError
+from tank_vendor.shotgun_api3 import (Shotgun, AuthenticationFault, ProtocolError,
+                                      MissingTwoFactorAuthenticationFault)
 from tank_vendor.shotgun_api3.lib import httplib2
 from tank_vendor import yaml
 from .errors import AuthenticationError
@@ -377,7 +378,7 @@ def set_current_host(host):
     _write_yaml_file(file_path, current_host_file)
 
 
-def generate_session_token(hostname, login, password, http_proxy):
+def generate_session_token(hostname, login, password, http_proxy, auth_token=None):
     """
     Generates a session token for a given username/password on a given site.
 
@@ -385,25 +386,30 @@ def generate_session_token(hostname, login, password, http_proxy):
     :param login: The user to get a session for.
     :param password: Password for the user.
     :param http_proxy: Proxy to use. Can be None.
+    :para
 
-    :returns: The generated session token for that user/password/site combo.
+    :returns: The generated session token for that user/password/site combo or
+        None, if two factor authentication is required to log in.
 
     :raises: AuthenticationError if the credentials were invalid.
     """
     try:
-        # Create the instance taht does not connect right away for speed...
+        # Create the instance that does not connect right away for speed...
         sg = Shotgun(
             hostname,
             login=login,
             password=password,
             http_proxy=http_proxy,
-            connect=False
+            connect=False,
+            auth_token=auth_token
         )
         # .. and generate the session token. If it throws, we have invalid
         # credentials or invalid host/proxy settings.
         return sg.get_session_token()
-    except AuthenticationFault:
+    except AuthenticationFault, e:
         raise AuthenticationError("Authentication failed.")
+    except MissingTwoFactorAuthenticationFault:
+        return None
     except (ProtocolError, httplib2.ServerNotFoundError):
         raise AuthenticationError("Server %s was not found." % hostname)
     except:

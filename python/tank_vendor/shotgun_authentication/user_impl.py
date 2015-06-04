@@ -157,6 +157,10 @@ class SessionUser(ShotgunUserImpl):
         # If we only have a password, generate a session token.
         if password and not session_token:
             session_token = session_cache.generate_session_token(host, login, password, http_proxy)
+            # When generate session token returns False, it means we need a two factor
+            # authentication code
+            if not session_token:
+                raise IncompleteCredentials("requires two factor authentication")
 
         # If we still don't have a session token, look in the session cache
         # to see if this user was already authenticated in the past.

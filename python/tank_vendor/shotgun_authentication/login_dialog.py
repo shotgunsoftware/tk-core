@@ -49,6 +49,7 @@ class LoginDialog(QtGui.QDialog):
 
         # Set the title
         self.setWindowTitle("Shotgun Login")
+        self.ui.stackedWidget.setCurrentWidget(self.ui.login_page)
 
         # Assign credentials
         self._http_proxy = http_proxy
@@ -96,23 +97,34 @@ class LoginDialog(QtGui.QDialog):
 
         # hook up signals
         self.ui.sign_in.clicked.connect(self._ok_pressed)
+        self.ui.verify_2fa.clicked.connect(self._verify_2fa_pressed)
+        self.ui.verify_backup.clicked.connect(self._verify_backup_pressed)
+        self.ui.use_backup.clicked.connect(self._use_backup_pressed)
+        self.ui.use_app.clicked.connect(self._use_app_pressed)
         self.ui.cancel.clicked.connect(self.reject)
+        self.ui.cancel_tfa.clicked.connect(self.reject)
+        self.ui.cancel_backup.clicked.connect(self.reject)
 
     def _disable_widget(self, widget, tooltip_text):
         widget.setReadOnly(True)
         widget.setEnabled(False)
         widget.setToolTip(tooltip_text)
 
+    @property
+    def _message_widget(self):
+        if self.ui.stackedWidget.currentWidget() == self.ui.login_page:
+            return self.ui.message
+        elif self.ui.stackedWidget.currentWidget() == self.ui.backup_page:
+            return self.ui.backup_message
+        else:
+            return self.ui._2fa_message
+
     def _set_message(self, message):
         """
         Set the message in the dialog.
         :param message: Message to display in the dialog.
         """
-        if not message:
-            self.ui.message.hide()
-        else:
-            self.ui.message.setText(message)
-            self.ui.message.show()
+        self._message_widget.setText(message)
 
     def exec_(self):
         """
@@ -145,7 +157,7 @@ class LoginDialog(QtGui.QDialog):
         Set the error message in the dialog.
         :param message: Message to display in red in the dialog.
         """
-        self.ui.message.setText("<font style='color: rgb(252, 98, 70);'>%s</font>" % message)
+        self._message_widget.setText("<font style='color: rgb(252, 98, 70);'>%s</font>" % message)
 
     def _ok_pressed(self):
         """
@@ -177,16 +189,72 @@ class LoginDialog(QtGui.QDialog):
             QtGui.QApplication.processEvents()
 
             # try and authenticate
-            self._new_session_token = session_cache.generate_session_token(
+            token = session_cache.generate_session_token(
                 site, login, password, self._http_proxy
             )
         except AuthenticationError, e:
             # authentication did not succeed
             self._set_error_message(e[0])
-            self.ui.message.show()
             return
+        else:
+            if token:
+                self._new_session_token = token
+                self.accept()
+            else:
+                self.ui.stackedWidget.setCurrentWidget(self.ui._2fa_page)
         finally:
             # restore the cursor
             QtGui.QApplication.restoreOverrideCursor()
-            QtGui.QApplication.processEvents()        # dialog is done
-        self.accept()
+            # dialog is done
+            QtGui.QApplication.processEvents()
+
+    def _verify_2fa_pressed(self):
+        """
+        Called when the Verify button is pressed on the 2fa page.
+        """
+        self._verify_pressed(self.ui._2fa_code.text())
+
+    def _verify_backup_pressed(self):
+        """
+        Called when the Verify button is pressed on the backup codes page.
+        """
+        self._verify_pressed(self.ui.backup_code.text())
+
+    def _verify_pressed(self, code):
+        """
+        Validates the code, dismissing the dialog if the login is succesful and displaying an error
+        if not.
+        """
+        if not code:
+            self._set_error_message("Please enter your code.")
+            return
+
+        site = self.ui.site.text()
+        login = self.ui.login.text()
+        password = self.ui.password.text()
+        try:
+            # set the wait cursor
+            QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
+            QtGui.QApplication.processEvents()
+
+            # try and authenticate
+            try:
+                token = session_cache.generate_session_token(
+                    site, login, password, self._http_proxy, code
+                )
+                self._new_session_token = token
+            except AuthenticationError, e:
+                self._set_error_message(e[0])
+            else:
+                self.accept()
+        finally:
+            # restore the cursor
+            QtGui.QApplication.restoreOverrideCursor()
+            # dialog is done
+            QtGui.QApplication.processEvents()
+
+    def _use_backup_pressed(self):
+        self.ui.stackedWidget.setCurrentWidget(self.ui.backup_page)
+
+    def _use_app_pressed(self):
+        self.ui.stackedWidget.setCurrentWidget(self.ui._2fa_page)
