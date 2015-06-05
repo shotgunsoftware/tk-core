@@ -239,7 +239,15 @@ class SessionUser(ShotgunUserImpl):
 
         :returns: A string containing login and site.
         """
-        return "Human User %s @ %s" % (self._login, self._host)
+        return "<SessionUser %s @ %s>" % (self._login, self._host)
+
+    def __str__(self):
+        """
+        Returns the name of the user.
+
+        :returns: A string.
+        """
+        return self._login
 
     @staticmethod
     def from_dict(payload):
@@ -359,7 +367,15 @@ class ScriptUser(ShotgunUserImpl):
 
         :returns: A string containing script name and site.
         """
-        return "Script User %s @ %s" % (self._api_script, self._host)
+        return "<ScriptUser %s @ %s>" % (self._api_script, self._host)
+
+    def __str__(self):
+        """
+        Returns the name of the user.
+
+        :returns: A string.
+        """
+        return self._api_script
 
     @staticmethod
     def from_dict(payload):

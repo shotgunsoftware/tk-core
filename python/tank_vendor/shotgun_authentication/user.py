@@ -104,6 +104,14 @@ class ShotgunUser(object):
         # will take care of the session renewal.
         self.create_sg_connection().find_one("HumanUser", [])
 
+    def __str__(self):
+        """
+        Returns the name of the user.
+
+        :returns: The user's name string.
+        """
+        return str(self.impl)
+
     def __repr__(self):
         """
         Returns a string reprensentation of the user.
