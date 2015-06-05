@@ -1106,9 +1106,13 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
                 # revert back to the project context
                 log.info("- The path is not associated with any Shotgun object.")
                 log.info("- Falling back on default project settings.")
-                project_id = tk.pipeline_configuration.get_project_id()
-                ctx = tk.context_from_entity("Project", project_id)
 
+                if tk.pipeline_configuration.is_site_configuration():
+                    # Site config doesn't have a project, so the context is empty.
+                    ctx = tk.context_empty()
+                else:
+                    project_id = tk.pipeline_configuration.get_project_id()
+                    ctx = tk.context_from_entity("Project", project_id)
     else:
         # this is a shotgun syntax. e.g. 'tank Shot foo'
         # create a context given an entity and entity_id/entity_name

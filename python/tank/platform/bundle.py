@@ -173,9 +173,17 @@ class TankBundle(object):
         An item-specific location on disk where the app or engine can store
         random cache data. This location is guaranteed to exist on disk.
         """
+        # Site configuration's project id is None. Since we're calling a hook, we'll have to
+        # pass in 0 to avoid client code crashing because it expects an integer and not
+        # the None object. This happens when we are building the cache root, where %d is used to
+        # inject the project id in the file path.
+        if self.__tk.pipeline_configuration.is_site_configuration():
+            project_id = 0
+        else:
+            project_id = self.__tk.pipeline_configuration.get_project_id()
         path = self.__tk.execute_core_hook_method(constants.CACHE_LOCATION_HOOK_NAME,
                                                   "bundle_cache",
-                                                  project_id=self.__tk.pipeline_configuration.get_project_id(),
+                                                  project_id=project_id,
                                                   pipeline_configuration_id=self.__tk.pipeline_configuration.get_shotgun_id(),
                                                   bundle=self)
         

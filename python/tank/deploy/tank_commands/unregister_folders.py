@@ -60,7 +60,11 @@ class UnregisterFoldersAction(Action):
         :param log: Std logging object
         :param parameters: Std tank command parameters dict        
         """
-        
+
+        if self.tk.pipeline_configuration.is_site_configuration():
+            log.error("This command is not supported with the site configuration.")
+            return
+
         if not self.tk.pipeline_configuration.get_shotgun_path_cache_enabled():            
             # remote cache not turned on for this project
             log.error("Looks like this project doesn't synchronize its folders with Shotgun! "
@@ -153,6 +157,10 @@ class UnregisterFoldersAction(Action):
                   Note that the shotgun ids returned will refer to retired objects in 
                   Shotgun rather than live ones.
         """
+
+        if self.tk.pipeline_configuration.is_site_configuration():
+            log.error("This command is not supported with the site configuration.")
+            return
         # validate params and seed default values
         computed_params = self._validate_parameters(parameters) 
         
@@ -328,10 +336,12 @@ class UnregisterFoldersAction(Action):
         
         pc_link = {"type": "PipelineConfiguration",
                    "id": self.tk.pipeline_configuration.get_shotgun_id() }
-        
-        project_link = {"type": "Project", 
-                        "id": self.tk.pipeline_configuration.get_project_id() }
-        
+
+        if self.tk.pipeline_configuration.is_site_configuration():
+            project_link = None
+        else:
+            project_link = {"type": "Project", "id": self.tk.pipeline_configuration.get_project_id()}
+
         meta = {}
         # the api version used is always useful to know
         meta["core_api_version"] = self.tk.version

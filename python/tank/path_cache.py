@@ -160,29 +160,37 @@ class PathCache(object):
         
         finally:
             c.close()
-        
-    
+
     def _get_path_cache_location(self):
         """
         Creates the path cache file and returns its location on disk.
-        
+
         :returns: The path to the path cache file
         """
         if self._tk.pipeline_configuration.get_shotgun_path_cache_enabled():
+
+            # Site configuration's project id is None. Since we're calling a hook, we'll have to
+            # pass in 0 to avoid client code crashing because it expects an integer and not
+            # the None object. This happens when we are building the cache root, where %d is used to
+            # inject the project id in the file path.
+            if self._tk.pipeline_configuration.is_site_configuration():
+                project_id = 0
+            else:
+                project_id = self._tk.pipeline_configuration.get_project_id()
             # 0.15+ path cache setup - call out to a core hook to determine
             # where the path cache should be located.
             path = self._tk.execute_core_hook_method(constants.CACHE_LOCATION_HOOK_NAME,
                                                      "path_cache",
-                                                     project_id=self._tk.pipeline_configuration.get_project_id(),
+                                                     project_id=project_id,
                                                      pipeline_configuration_id=self._tk.pipeline_configuration.get_shotgun_id())
-            
+
         else:
             # old (v0.14) style path cache
             # fall back on the 0.14 setting, where the path cache
-            # is located in a tank folder in the project root 
-            path = os.path.join(self._tk.pipeline_configuration.get_primary_data_root(), 
-                                "tank", 
-                                "cache", 
+            # is located in a tank folder in the project root
+            path = os.path.join(self._tk.pipeline_configuration.get_primary_data_root(),
+                                "tank",
+                                "cache",
                                 "path_cache.db")
 
             # first check that the cache folder exists
@@ -194,9 +202,9 @@ class PathCache(object):
                 try:
                     os.mkdir(cache_folder, 0777)
                 finally:
-                    os.umask(old_umask)            
+                    os.umask(old_umask)
 
-            # now try to write a placeholder file with open permissions        
+            # now try to write a placeholder file with open permissions
             if not os.path.exists(path):
                 old_umask = os.umask(0)
                 try:
@@ -204,11 +212,10 @@ class PathCache(object):
                     fh.close()
                     os.chmod(path, 0666)
                 finally:
-                    os.umask(old_umask)            
-        
+                    os.umask(old_umask)
+
         return path
-    
-    
+
     def _path_to_dbpath(self, relative_path):
         """
         converts a  relative path to a db path form
@@ -330,10 +337,7 @@ class PathCache(object):
     
             # we have an event log id - so check if there are any more recent events
             event_log_id = data[0]
-            
-            project_link = {"type": "Project", 
-                            "id": self._tk.pipeline_configuration.get_project_id() }
-            
+
             # note! We search for all events greater than the prev event_log_id-1.
             # this way, the first record returned should be the last record that was 
             # synced. This is a way of detecting that the event log chain is not broken.
@@ -346,7 +350,7 @@ class PathCache(object):
                                              [ ["event_type", "in", ["Toolkit_Folders_Create", 
                                                                      "Toolkit_Folders_Delete"]], 
                                                ["id", "greater_than", (event_log_id - 1)],
-                                               ["project", "is", project_link] ],
+                                               ["project", "is", self._get_project_link()] ],
                                              ["id", "meta", "event_type"],
                                              [{"field_name": "id", "direction": "desc"}] )   
 
@@ -415,10 +419,7 @@ class PathCache(object):
         
         pc_link = {"type": "PipelineConfiguration",
                    "id": self._tk.pipeline_configuration.get_shotgun_id() }
-        
-        project_link = {"type": "Project", 
-                        "id": self._tk.pipeline_configuration.get_project_id() }
-    
+
         sg_batch_data = []
         for d in data:
                             
@@ -430,7 +431,7 @@ class PathCache(object):
             
             req = {"request_type":"create", 
                    "entity_type": SHOTGUN_ENTITY, 
-                   "data": {"project": project_link,
+                   "data": {"project": self._get_project_link(),
                             "created_by": get_current_user(self._tk),
                             SG_ENTITY_FIELD: d["entity"],
                             SG_IS_PRIMARY_FIELD: d["primary"],
@@ -481,7 +482,7 @@ class PathCache(object):
         sg_event_data = {}
         sg_event_data["event_type"] = "Toolkit_Folders_Create"
         sg_event_data["description"] = "Toolkit %s: %s" % (self._tk.version, event_log_desc)
-        sg_event_data["project"] = project_link
+        sg_event_data["project"] = self._get_project_link()
         sg_event_data["entity"] = pc_link
         sg_event_data["meta"] = meta        
         sg_event_data["user"] = get_current_user(self._tk)
@@ -496,6 +497,20 @@ class PathCache(object):
         # return the event log id which represents this uploaded slab
         return (response["id"], rowid_sgid_lookup)
 
+    def _get_project_link(self):
+        """
+        Returns the project link dictionary.
+
+        :returns: If we have a site configuration, None will be returned. Otherwise, a dictionary
+            with keys "type" and "id" will be returned.
+        """
+        if self._tk.pipeline_configuration.is_site_configuration():
+            return None
+        else:
+            return {
+                "type": "Project",
+                "id": self._tk.pipeline_configuration.get_project_id()
+            }
 
     def _do_full_sync(self, cursor, log):
         """
@@ -619,10 +634,8 @@ class PathCache(object):
         
         if ids is None:
             # get all folder data from shotgun
-            project_link = {"type": "Project", 
-                            "id": self._tk.pipeline_configuration.get_project_id() }
             sg_data = self._tk.shotgun.find(SHOTGUN_ENTITY, 
-                                  [["project", "is", project_link]],
+                                  [["project", "is", self._get_project_link()]],
                                   ["id",
                                    SG_METADATA_FIELD, 
                                    SG_IS_PRIMARY_FIELD, 
@@ -1233,12 +1246,9 @@ class PathCache(object):
 
         log.info("")
         log.info("Step 1 - Downloading current path data from Shotgun...")
-        
-        project_link = {"type": "Project", 
-                        "id": self._tk.pipeline_configuration.get_project_id() }        
-        
+
         sg_data = self._tk.shotgun.find(SHOTGUN_ENTITY, 
-                                        [["project", "is", project_link]],
+                                        [["project", "is", self._get_project_link()]],
                                         [SG_PATH_FIELD, SG_ENTITY_TYPE_FIELD, SG_ENTITY_ID_FIELD])
         log.info(" - Got %s records." % len(sg_data))
 

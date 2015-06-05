@@ -363,27 +363,29 @@ class ProjectSetupParameters(object):
         return self._config_template.create_configuration(target_path)
         
     ################################################################################################################
-    # Project related logic     
-        
+    # Project related logic
+
     def set_project_id(self, project_id, force=False):
         """
         Sets the project id and validates that this id is valid.
-        
-        :param project_id: Shotgun project id
+
+        :param project_id: Shotgun project id. Passing None means we are configuring the site
+                           configuration.
         :param force: If true, existing projects can be overwritten
         """
-        proj = self._sg.find_one("Project", [["id", "is", project_id]], ["name", "tank_name"])
-    
-        if proj is None:
-            raise TankError("Could not find a project with id %s!" % self._project_id)
+        if project_id is not None:
+            proj = self._sg.find_one("Project", [["id", "is", project_id]], ["name", "tank_name"])
 
-        # if force is false then tank_name must be empty
-        if self.get_auto_path_mode() == False and force == False and proj["tank_name"] is not None:
-            raise TankErrorProjectIsSetup()
+            if proj is None:
+                raise TankError("Could not find a project with id %s!" % self._project_id)
+
+            # if force is false then tank_name must be empty
+            if self.get_auto_path_mode() == False and force == False and proj["tank_name"] is not None:
+                raise TankErrorProjectIsSetup()
 
         self._project_id = project_id
         self._force_setup = force
-         
+
     def get_default_project_disk_name(self):
         """
         Returns the default folder name for a project
@@ -484,12 +486,9 @@ class ProjectSetupParameters(object):
     def get_project_id(self):
         """
         Returns the project id for the project to be set up.
-        
-        :returns: Shotgun project id as int
+
+        :returns: Shotgun project id as int or None if the id is not set.
         """
-        if self._project_id is None:
-            raise TankError("No project id specified!")
-        
         return self._project_id
         
     def get_force_setup(self):
@@ -722,9 +721,6 @@ class ProjectSetupParameters(object):
         
         if self._config_path is None:
             raise TankError("Path to the target configuration install has not been specified!")
-        
-        if self._project_id is None:
-            raise TankError("A project id has not been specified!")
         
         if self._project_disk_name is None:
             raise TankError("Project disk name has not been specified!")
