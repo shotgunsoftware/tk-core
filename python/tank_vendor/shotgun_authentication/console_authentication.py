@@ -58,9 +58,26 @@ class ConsoleAuthenticationHandlerBase(object):
                 print
                 raise AuthenticationCancelled()
 
-            session_token = self._get_session_token(hostname, login, password, http_proxy)
-            if session_token:
-                return hostname, login, session_token
+            try:
+                # Try to generate a session token
+                session_token = session_cache.generate_session_token(
+                    hostname, login, password, http_proxy
+                )
+                # If we get something back, we're authenticated.
+                if session_token:
+                    return hostname, login, session_token
+
+                # session_token was None, we need 2fa.
+                code = self._get_2fa_code()
+                # Ask again for a token using 2fa this time.
+                return hostname, login, session_cache.generate_session_token(
+                    hostname, login, password, http_proxy, auth_token=code
+                )
+            except AuthenticationError:
+                # If any combination of credentials are invalid (user + invalid pass or
+                # user + valid pass + invalid 2da code) we'll end up here.
+                print "Login failed."
+                print
 
     def _get_user_credentials(self, hostname, login):
         """
@@ -101,20 +118,13 @@ class ConsoleAuthenticationHandlerBase(object):
             user_input = raw_input(text) or default_value
         return user_input
 
-    def _get_session_token(self, hostname, login, password, http_proxy):
+    def _get_2fa_code(self):
         """
-        Retrieves a session token for the given credentials. If it fails, the user is informed
-        :param hostname: The host to connect to.
-        :param login: The user to get a session for.
-        :param password: Password for the user.
-        :param http_proxy: Proxy to use. Can be None.
-        :returns: If the credentials were valid, returns a session token, otherwise returns None.
         """
-        try:
-            return session_cache.generate_session_token(hostname, login, password, http_proxy)
-        except AuthenticationError:
-            print "Login failed."
-            return None
+        code = raw_input("Code (empty to abort): ")
+        if not code:
+            raise AuthenticationCancelled()
+        return code
 
 
 class ConsoleRenewSessionHandler(ConsoleAuthenticationHandlerBase):
