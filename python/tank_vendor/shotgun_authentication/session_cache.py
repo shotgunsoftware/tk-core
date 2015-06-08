@@ -386,10 +386,11 @@ def generate_session_token(hostname, login, password, http_proxy, auth_token=Non
     :param login: The user to get a session for.
     :param password: Password for the user.
     :param http_proxy: Proxy to use. Can be None.
-    :para
+    :param auth_token: Two factor authentication token for the user. Can be None.
 
-    :returns: The generated session token for that user/password/site combo or
-        None, if two factor authentication is required to log in.
+    :returns: The generated session token for that user/password/site combo. If the login
+        and password are valid but the site requires two factor authentication, None will
+        be returned.
 
     :raises: AuthenticationError if the credentials were invalid.
     """
@@ -406,9 +407,10 @@ def generate_session_token(hostname, login, password, http_proxy, auth_token=Non
         # .. and generate the session token. If it throws, we have invalid
         # credentials or invalid host/proxy settings.
         return sg.get_session_token()
-    except AuthenticationFault, e:
+    except AuthenticationFault:
         raise AuthenticationError("Authentication failed.")
     except MissingTwoFactorAuthenticationFault:
+        # We are missing the two factor code, simply return None.
         return None
     except (ProtocolError, httplib2.ServerNotFoundError):
         raise AuthenticationError("Server %s was not found." % hostname)

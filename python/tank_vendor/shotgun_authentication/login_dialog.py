@@ -58,7 +58,7 @@ class LoginDialog(QtGui.QDialog):
         self.ui.login.setText(login)
 
         if fixed_host:
-            self._disable_widget(
+            self._disable_text_widget(
                 self.ui.site,
                 "The Shotgun site has been predefined and cannot be modified."
             )
@@ -66,10 +66,10 @@ class LoginDialog(QtGui.QDialog):
         # Disable keyboard input in the site and login boxes if we are simply renewing the session.
         # If the host is fixed, disable the site textbox.
         if is_session_renewal:
-            self._disable_widget(
+            self._disable_text_widget(
                 self.ui.site,
                 "You are renewing your session: you can't change your host.")
-            self._disable_widget(
+            self._disable_text_widget(
                 self.ui.login,
                 "You are renewing your session: you can't change your login."
             )
@@ -108,12 +108,20 @@ class LoginDialog(QtGui.QDialog):
 
     def _current_page_changed(self, index):
         """
-        Hides the error message labels.
+        Resets text error messages on all pages when we switch page.
+        :param index: Index of the page changed.
         """
-        self.ui.invalid_code.setText("")
-        self.ui.invalid_backup_code.setText("")
+        if self.ui.stackedWidget.indexOf(self.ui._2fa_page) == index:
+            self.ui.invalid_code.setText("")
+        elif self.ui.stackedWidget.indexOf(self.ui.backup_page) == index:
+            self.ui.invalid_backup_code.setText("")
 
-    def _disable_widget(self, widget, tooltip_text):
+    def _disable_text_widget(self, widget, tooltip_text):
+        """
+        Disables a widget and adds tooltip to it.
+        :param widget: Text editing widget to disable.
+        :param toolkit_text: Tooltip text that explains why the widget is disabled.
+        """
         widget.setReadOnly(True)
         widget.setEnabled(False)
         widget.setToolTip(tooltip_text)
@@ -225,6 +233,8 @@ class LoginDialog(QtGui.QDialog):
         """
         Validates the code, dismissing the dialog if the login is succesful and displaying an error
         if not.
+        :param code: Code entered by the user.
+        :param error_label: Label to update if the code is invalid.
         """
         if not code:
             self._set_error_message(error_label, "Please enter your code.")

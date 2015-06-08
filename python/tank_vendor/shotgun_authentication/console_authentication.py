@@ -85,7 +85,7 @@ class ConsoleAuthenticationHandlerBase(object):
         :param host Host to authenticate for.
         :param login: User that needs authentication.
         :param http_proxy: Proxy to connect to when authenticating.
-        :returns: A tuple of (hostname, login, password)
+        :returns: The (hostname, login, plain text password) tuple.
         :raises AuthenticationCancelled: If the user cancels the authentication process,
                 this exception will be thrown.
         """
@@ -94,7 +94,8 @@ class ConsoleAuthenticationHandlerBase(object):
     def _get_password(self):
         """
         Prompts the user for his password. The password will not be visible on the console.
-        :raises: AuthenticationCancelled If the user enters an empty password, the exception
+        :returns: Plain text password.
+        :raises AuthenticationCancelled: If the user enters an empty password, the exception
                                          will be thrown.
         """
         password = getpass("Password (empty to abort): ")
@@ -120,6 +121,10 @@ class ConsoleAuthenticationHandlerBase(object):
 
     def _get_2fa_code(self):
         """
+        Prompts the user for his 2fa code.
+        :returns: Two factor authentication code.
+        :raises AuthenticationCancelled: If the user enters an empty code, the exception will be
+                                         thrown.
         """
         code = raw_input("Code (empty to abort): ")
         if not code:
@@ -138,7 +143,7 @@ class ConsoleRenewSessionHandler(ConsoleAuthenticationHandlerBase):
         Reads the user password from the keyboard.
         :param hostname: Name of the host we will be logging on.
         :param login: Current user
-        :returns: The user's password.
+        :returns: The (hostname, login, plain text password) tuple.
         """
         print "%s, your current session has expired." % login
         print "Please enter your password to renew your session for %s" % hostname
@@ -152,6 +157,9 @@ class ConsoleLoginHandler(ConsoleAuthenticationHandlerBase):
     methods.
     """
     def __init__(self, fixed_host):
+        """
+        Constructor.
+        """
         super(ConsoleLoginHandler, self).__init__()
         self._fixed_host = fixed_host
 
