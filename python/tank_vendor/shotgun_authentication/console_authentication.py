@@ -58,9 +58,26 @@ class ConsoleAuthenticationHandlerBase(object):
                 print
                 raise AuthenticationCancelled()
 
-            session_token = self._get_session_token(hostname, login, password, http_proxy)
-            if session_token:
-                return hostname, login, session_token
+            try:
+                # Try to generate a session token
+                session_token = session_cache.generate_session_token(
+                    hostname, login, password, http_proxy
+                )
+                # If we get something back, we're authenticated.
+                if session_token:
+                    return hostname, login, session_token
+
+                # session_token was None, we need 2fa.
+                code = self._get_2fa_code()
+                # Ask again for a token using 2fa this time.
+                return hostname, login, session_cache.generate_session_token(
+                    hostname, login, password, http_proxy, auth_token=code
+                )
+            except AuthenticationError:
+                # If any combination of credentials are invalid (user + invalid pass or
+                # user + valid pass + invalid 2da code) we'll end up here.
+                print "Login failed."
+                print
 
     def _get_user_credentials(self, hostname, login):
         """
@@ -68,7 +85,7 @@ class ConsoleAuthenticationHandlerBase(object):
         :param host Host to authenticate for.
         :param login: User that needs authentication.
         :param http_proxy: Proxy to connect to when authenticating.
-        :returns: A tuple of (hostname, login, password)
+        :returns: The (hostname, login, plain text password) tuple.
         :raises AuthenticationCancelled: If the user cancels the authentication process,
                 this exception will be thrown.
         """
@@ -77,7 +94,8 @@ class ConsoleAuthenticationHandlerBase(object):
     def _get_password(self):
         """
         Prompts the user for his password. The password will not be visible on the console.
-        :raises: AuthenticationCancelled If the user enters an empty password, the exception
+        :returns: Plain text password.
+        :raises AuthenticationCancelled: If the user enters an empty password, the exception
                                          will be thrown.
         """
         password = getpass("Password (empty to abort): ")
@@ -101,20 +119,17 @@ class ConsoleAuthenticationHandlerBase(object):
             user_input = raw_input(text) or default_value
         return user_input
 
-    def _get_session_token(self, hostname, login, password, http_proxy):
+    def _get_2fa_code(self):
         """
-        Retrieves a session token for the given credentials. If it fails, the user is informed
-        :param hostname: The host to connect to.
-        :param login: The user to get a session for.
-        :param password: Password for the user.
-        :param http_proxy: Proxy to use. Can be None.
-        :returns: If the credentials were valid, returns a session token, otherwise returns None.
+        Prompts the user for his 2fa code.
+        :returns: Two factor authentication code.
+        :raises AuthenticationCancelled: If the user enters an empty code, the exception will be
+                                         thrown.
         """
-        try:
-            return session_cache.generate_session_token(hostname, login, password, http_proxy)
-        except AuthenticationError:
-            print "Login failed."
-            return None
+        code = raw_input("Two factor authentication code (empty to abort): ")
+        if not code:
+            raise AuthenticationCancelled()
+        return code
 
 
 class ConsoleRenewSessionHandler(ConsoleAuthenticationHandlerBase):
@@ -128,7 +143,7 @@ class ConsoleRenewSessionHandler(ConsoleAuthenticationHandlerBase):
         Reads the user password from the keyboard.
         :param hostname: Name of the host we will be logging on.
         :param login: Current user
-        :returns: The user's password.
+        :returns: The (hostname, login, plain text password) tuple.
         """
         print "%s, your current session has expired." % login
         print "Please enter your password to renew your session for %s" % hostname
@@ -142,6 +157,9 @@ class ConsoleLoginHandler(ConsoleAuthenticationHandlerBase):
     methods.
     """
     def __init__(self, fixed_host):
+        """
+        Constructor.
+        """
         super(ConsoleLoginHandler, self).__init__()
         self._fixed_host = fixed_host
 

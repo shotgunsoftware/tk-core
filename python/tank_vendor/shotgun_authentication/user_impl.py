@@ -157,6 +157,10 @@ class SessionUser(ShotgunUserImpl):
         # If we only have a password, generate a session token.
         if password and not session_token:
             session_token = session_cache.generate_session_token(host, login, password, http_proxy)
+            # When generate session token returns None, it means we need a two factor
+            # authentication code
+            if not session_token:
+                raise IncompleteCredentials("requires two factor authentication")
 
         # If we still don't have a session token, look in the session cache
         # to see if this user was already authenticated in the past.
@@ -165,10 +169,11 @@ class SessionUser(ShotgunUserImpl):
                 host,
                 login
             )
-            # No session data is cached on disk, simply throw.
+            # If session data was cached, load it.
             if session_data:
                 session_token = session_data["session_token"]
 
+        # We've exhausted our avenues to get a valid session token, throw.
         if not session_token:
             raise IncompleteCredentials("missing session_token")
 
