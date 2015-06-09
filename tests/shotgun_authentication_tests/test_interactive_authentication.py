@@ -48,19 +48,19 @@ class InteractiveTests(TankTestBase):
         # Import locally since login_dialog has a dependency on Qt and it might be missing
         from tank_vendor.shotgun_authentication import login_dialog
         ld = login_dialog.LoginDialog(is_session_renewal=False)
-        ld._set_message("mystudio should be selected in https://mystudio.shotgunstudio.com")
+        ld._set_login_message("mystudio should be selected in https://mystudio.shotgunstudio.com")
         ld.exec_()
 
         ld = login_dialog.LoginDialog(is_session_renewal=False, login="login")
-        ld._set_message("mystudio should be selected in https://mystudio.shotgunstudio.com")
+        ld._set_login_message("mystudio should be selected in https://mystudio.shotgunstudio.com")
         ld.exec_()
 
         ld = login_dialog.LoginDialog(is_session_renewal=False, hostname="host")
-        ld._set_message("Focus should be on login box")
+        ld._set_login_message("Focus should be on login box")
         ld.exec_()
 
         ld = login_dialog.LoginDialog(is_session_renewal=False, hostname="host", login="login")
-        ld._set_message("Focus should be on password box")
+        ld._set_login_message("Focus should be on password box")
         ld.exec_()
 
     def _test_login(self, console):
