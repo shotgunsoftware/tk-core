@@ -126,7 +126,7 @@ class ConsoleAuthenticationHandlerBase(object):
         :raises AuthenticationCancelled: If the user enters an empty code, the exception will be
                                          thrown.
         """
-        code = raw_input("Code (empty to abort): ")
+        code = raw_input("Two factor authentication code (empty to abort): ")
         if not code:
             raise AuthenticationCancelled()
         return code

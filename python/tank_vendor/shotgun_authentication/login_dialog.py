@@ -30,6 +30,9 @@ class LoginDialog(QtGui.QDialog):
     Dialog for getting user credentials.
     """
 
+    # Formatting required to display error messages.
+    ERROR_MSG_FORMAT = "<font style='color: rgb(252, 98, 70);'>%s</font>"
+
     def __init__(self, is_session_renewal, hostname="", login="", fixed_host=False, http_proxy=None, parent=None):
         """
         Constructs a dialog.
@@ -108,7 +111,7 @@ class LoginDialog(QtGui.QDialog):
 
     def _current_page_changed(self, index):
         """
-        Resets text error messages on all pages when we switch page.
+        Resets text error message on the destination page.
         :param index: Index of the page changed.
         """
         if self.ui.stackedWidget.indexOf(self.ui._2fa_page) == index:
@@ -166,7 +169,7 @@ class LoginDialog(QtGui.QDialog):
         :param widget: Widget to display the message on.
         :param message: Message to display in red in the dialog.
         """
-        widget.setText("<font style='color: rgb(252, 98, 70);'>%s</font>" % message)
+        widget.setText(self.ERROR_MSG_FORMAT % message)
 
     def _ok_pressed(self):
         """
@@ -204,7 +207,6 @@ class LoginDialog(QtGui.QDialog):
         except AuthenticationError, e:
             # authentication did not succeed
             self._set_error_message(self.ui.message, e[0])
-            return
         else:
             if token:
                 self._new_session_token = token
