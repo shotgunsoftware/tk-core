@@ -23,6 +23,7 @@ from .ui import login_dialog
 from . import session_cache
 from .errors import AuthenticationError
 from .ui.qt_abstraction import QtGui, QtCore
+from tank_vendor.shotgun_api3 import MissingTwoFactorAuthenticationFault
 
 
 class LoginDialog(QtGui.QDialog):
@@ -196,23 +197,38 @@ class LoginDialog(QtGui.QDialog):
             self.ui.site.setText(site)
 
         try:
+            self._authenticate(self.ui.message, site, login, password)
+        except MissingTwoFactorAuthenticationFault:
+            # We need a two factor authentication code, move to the next page.
+            self.ui.stackedWidget.setCurrentWidget(self.ui._2fa_page)
+
+    def _authenticate(self, error_label, site, login, password, auth_code=None):
+        """
+        Authenticates the user using the passed in credentials.
+
+        :param error_label: Label to display any error raised from the authentication.
+        :param site: Site to connect to.
+        :param login: Login to use for that site.
+        :param password: Password to use with the login.
+        :param auth_code: Optional two factor authentication code.
+
+        :raises MissingTwoFactorAuthenticationFault: Raised if auth_code was None but was required
+            by the server.
+        """
+        try:
             # set the wait cursor
             QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
             QtGui.QApplication.processEvents()
 
             # try and authenticate
-            token = session_cache.generate_session_token(
-                site, login, password, self._http_proxy
+            self._new_session_token = session_cache.generate_session_token(
+                site, login, password, self._http_proxy, auth_code
             )
         except AuthenticationError, e:
             # authentication did not succeed
-            self._set_error_message(self.ui.message, e[0])
+            self._set_error_message(error_label, e[0])
         else:
-            if token:
-                self._new_session_token = token
-                self.accept()
-            else:
-                self.ui.stackedWidget.setCurrentWidget(self.ui._2fa_page)
+            self.accept()
         finally:
             # restore the cursor
             QtGui.QApplication.restoreOverrideCursor()
@@ -245,29 +261,17 @@ class LoginDialog(QtGui.QDialog):
         site = self.ui.site.text()
         login = self.ui.login.text()
         password = self.ui.password.text()
-        try:
-            # set the wait cursor
-            QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
-            QtGui.QApplication.processEvents()
 
-            # try and authenticate
-            try:
-                token = session_cache.generate_session_token(
-                    site, login, password, self._http_proxy, code
-                )
-                self._new_session_token = token
-            except AuthenticationError, e:
-                self._set_error_message(error_label, str(e))
-            else:
-                self.accept()
-        finally:
-            # restore the cursor
-            QtGui.QApplication.restoreOverrideCursor()
-            # dialog is done
-            QtGui.QApplication.processEvents()
+        self._authenticate(error_label, site, login, password, code)
 
     def _use_backup_pressed(self):
+        """
+        Switches to the backup codes page.
+        """
         self.ui.stackedWidget.setCurrentWidget(self.ui.backup_page)
 
     def _use_app_pressed(self):
+        """
+        Switches to the main two factor authentication page.
+        """
         self.ui.stackedWidget.setCurrentWidget(self.ui._2fa_page)
