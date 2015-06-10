@@ -21,6 +21,7 @@ at any point.
 
 from . import session_cache
 from .errors import AuthenticationError, AuthenticationCancelled
+from tank_vendor.shotgun_api3 import MissingTwoFactorAuthenticationFault
 
 from getpass import getpass
 import logging
@@ -59,20 +60,19 @@ class ConsoleAuthenticationHandlerBase(object):
                 raise AuthenticationCancelled()
 
             try:
-                # Try to generate a session token
-                session_token = session_cache.generate_session_token(
-                    hostname, login, password, http_proxy
-                )
-                # If we get something back, we're authenticated.
-                if session_token:
-                    return hostname, login, session_token
-
-                # session_token was None, we need 2fa.
-                code = self._get_2fa_code()
-                # Ask again for a token using 2fa this time.
-                return hostname, login, session_cache.generate_session_token(
-                    hostname, login, password, http_proxy, auth_token=code
-                )
+                try:
+                    # Try to generate a session token and return the user info.
+                    return hostname, login, session_cache.generate_session_token(
+                        hostname, login, password, http_proxy
+                    )
+                except MissingTwoFactorAuthenticationFault:
+                    # session_token was None, we need 2fa.
+                    code = self._get_2fa_code()
+                    # Ask again for a token using 2fa this time. If this throws an AuthenticationError because
+                    # the code is invalid or already used, it will be caught by the except clause beneath.
+                    return hostname, login, session_cache.generate_session_token(
+                        hostname, login, password, http_proxy, auth_token=code
+                    )
             except AuthenticationError:
                 # If any combination of credentials are invalid (user + invalid pass or
                 # user + valid pass + invalid 2da code) we'll end up here.
