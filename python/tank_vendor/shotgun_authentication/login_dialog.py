@@ -201,6 +201,8 @@ class LoginDialog(QtGui.QDialog):
         except MissingTwoFactorAuthenticationFault:
             # We need a two factor authentication code, move to the next page.
             self.ui.stackedWidget.setCurrentWidget(self.ui._2fa_page)
+        except Exception, e:
+            self._set_error_message(self.ui.message, e[0])
 
     def _authenticate(self, error_label, site, login, password, auth_code=None):
         """
@@ -262,7 +264,11 @@ class LoginDialog(QtGui.QDialog):
         login = self.ui.login.text()
         password = self.ui.password.text()
 
-        self._authenticate(error_label, site, login, password, code)
+        try:
+            self._authenticate(error_label, site, login, password, code)
+        except Exception, e:
+            self._set_error_message(self.ui.message, e[0])
+            raise
 
     def _use_backup_pressed(self):
         """
