@@ -231,7 +231,7 @@ QLineEdit:Disabled {
 }</string>
            </property>
            <property name="text">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;http://6-1-develop.shotgunstudio.com/user/forgot_password&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#c0c1c3;&quot;&gt;Forgot your password?&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;http://mystudio.shotgunstudio.com/user/forgot_password&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#c0c1c3;&quot;&gt;Forgot your password?&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="textFormat">
             <enum>Qt::RichText</enum>
@@ -240,7 +240,7 @@ QLineEdit:Disabled {
             <number>4</number>
            </property>
            <property name="openExternalLinks">
-            <bool>true</bool>
+            <bool>false</bool>
            </property>
           </widget>
          </item>
