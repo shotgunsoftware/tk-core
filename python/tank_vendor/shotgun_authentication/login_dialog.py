@@ -110,6 +110,26 @@ class LoginDialog(QtGui.QDialog):
         self.ui.verify_backup.clicked.connect(self._verify_backup_pressed)
         self.ui.use_app.clicked.connect(self._use_app_pressed)
 
+        self.ui.forgot_password_link.linkActivated.connect(self._link_activated)
+
+    def _link_activated(self, site):
+        # Don't use the URL that is set in the link, but the URL set in the
+        # text box.
+        site = self.ui.site.text()
+
+        # Give visual feedback that we are patching the URL before invoking
+        # the desktop services. Desktop Services requires HTTP or HTTPS to be
+        # present.
+        if len(site.split("://")) == 1:
+            site = "https://%s" % site
+            self.ui.site.setText(site)
+
+        # Launch the browser
+        if not QtGui.QDesktopServices.openUrl("%s/user/forgot_password" % site):
+            self._set_error_message(
+                self.ui.message, "Couldn't open browser to '%s'. Please check the URL." % site
+            )
+
     def _current_page_changed(self, index):
         """
         Resets text error message on the destination page.
