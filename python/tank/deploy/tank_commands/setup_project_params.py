@@ -266,35 +266,38 @@ class ProjectSetupParameters(object):
         """
         Returns information about how the config relates to shotgun.
         Returns a dictionary with shotgun pipelineconfig information,
-        including the fields 
-        
+        including the fields
+
         - id
         - code
         - mac_path
-        - windows_path 
-        - linux_path 
+        - windows_path
+        - linux_path
         - project
         - project.Project.tank_name (the disk name for the project)
-        
+
         :returns: dict or None if no sg association could be found
         """
         if self._config_template is None:
             raise TankError("Please specify a configuration template!")
 
+        if not self._config_template.is_local_configuration():
+            return False
+
         field_name = {"win32": "windows_path", "linux2": "linux_path", "darwin": "mac_path"}[sys.platform]
-        
-        data = self._sg.find_one("PipelineConfiguration", 
-                                 [[field_name, "is", self._config_template.get_uri()]],
-                                 ["id", 
-                                  "code", 
-                                  "mac_path", 
-                                  "windows_path", 
-                                  "linux_path", 
-                                  "project", 
+
+        data = self._sg.find_one("PipelineConfiguration",
+                                 [[field_name, "is", self._config_template.get_pipeline_configuration_uri()]],
+                                 ["id",
+                                  "code",
+                                  "mac_path",
+                                  "windows_path",
+                                  "linux_path",
+                                  "project",
                                   "project.Project.tank_name"])
-        
+
         return data
-    
+
     def get_configuration_readme(self):
         """
         Returns the contents of a configuration README file, if such a file
@@ -1025,7 +1028,7 @@ class TemplateConfiguration(object):
         Returns a path to a config.
         
         :param config_uri: config path of some kind (git/appstore/local)
-        :returns: tuple with (tmp_path_to_config, config_type) where config_type is local/git/app_store
+        :returns: tuple with (tmp_path_to_config, config_type) where config_type is local/zip/git/app_store
         """
         # three cases:
         # tk-config-xyz
@@ -1042,7 +1045,7 @@ class TemplateConfiguration(object):
                 # either a folder or zip file!
                 if config_uri.endswith(".zip"):
                     self._log.info("Hang on, unzipping configuration...")
-                    return (self._process_config_zip(config_uri), "local")
+                    return (self._process_config_zip(config_uri), "zip")
                 else:
                     self._log.info("Hang on, loading configuration...")
                     return (self._process_config_dir(config_uri), "local")
@@ -1194,7 +1197,32 @@ class TemplateConfiguration(object):
         :returns: string
         """
         return self._config_uri
-        
+
+    def is_local_configuration(self):
+        """
+        Returns if the configuration is local.
+
+        :returns: True if the configuration is local, False if it comes from the AppStore, GitHub or a zip file.
+        """
+        return self._config_mode == "local"
+
+    def get_pipeline_configuration_uri(self):
+        """
+        Resolves the potential pipeline configuration based on the configuration uri. Potential is employed here because
+        there's no guarantee this folder is actually part of a pipeline configuration.
+
+        :returns: Path to the pipeline configuration associated with the configuration uri.
+
+        :raises TankError: This exception is raised when the configuration was pulled from GitHub, AppStore or zip file,
+            since no pipeline configuration can be associated with these.
+        """
+        if not self.is_local_configuration():
+            raise TankError("Pipeline configuration uri only exists for local paths!")
+
+        # The config uri points to the config folder inside the pipeline configuration, so we'll have to step out
+        # for this one.
+        return os.path.split(self._config_uri)[0]
+
     def get_readme_content(self):
         """
         Get associated readme content as a list.
