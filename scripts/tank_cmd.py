@@ -1250,6 +1250,8 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
     log.debug("Sgtk API: %s" % tk)
     log.debug("Context: %s" % ctx)
 
+    log.info("- Running as user '%s'" % tank.get_authenticated_user() )
+
     if tk is not None:
         log.info("- Using configuration '%s' and Core %s" % (tk.pipeline_configuration.get_name(), tk.version))
         # attach our logger to the tank instance
