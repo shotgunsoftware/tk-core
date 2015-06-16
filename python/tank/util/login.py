@@ -87,6 +87,8 @@ def get_current_user(tk):
                  * email
                  * login
                  * name
+                 * firstname
+                 * lastname
                  * image url (thumbnail)
     """
     global g_shotgun_current_user_cache
@@ -112,7 +114,7 @@ def get_current_user(tk):
     if current_login is None:
         g_shotgun_current_user_cache = None
     else:
-        fields = ["id", "type", "email", "login", "name", "image"]
+        fields = ["id", "type", "email", "login", "name", "image", "firstname", "lastname"]
         g_shotgun_current_user_cache = tk.shotgun.find_one(
             "HumanUser",
             filters=[["login", "is", current_login]],
