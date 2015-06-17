@@ -278,6 +278,12 @@ class PipelineConfiguration(object):
 
         return self._published_file_entity_type
 
+    def convert_to_site_config(self):
+        """
+        Converts the pipeline configuration into the site configuration.
+        """
+        self._update_pipeline_config({"project_id": None})
+
     ########################################################################################
     # path cache
 
@@ -309,11 +315,19 @@ class PipelineConfiguration(object):
         if self.get_shotgun_path_cache_enabled():
             raise TankError("Shotgun based path cache already turned on!")
                 
+        self._update_pipeline_config({"use_shotgun_path_cache": True})
+
+    def _update_pipeline_config(self, updates):
+        """
+        Updates the pipeline configuration on disk with the passed in values.
+
+        :param updates: Dictionary of values to update in the pipeline configuration
+        """
         # get current settings
         curr_settings = pipelineconfig_utils.get_metadata(self._pc_root)
         
         # add path cache setting
-        curr_settings["use_shotgun_path_cache"] = True
+        curr_settings.update(updates)
         
         # write the record to disk
         pipe_config_sg_id_path = os.path.join(self._pc_root, "config", "core", "pipeline_configuration.yml")        
