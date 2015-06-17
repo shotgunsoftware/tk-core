@@ -8,16 +8,18 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import textwrap
-
 from .action_base import Action
 from . import console_utils
 from ...platform import constants
 
-_MESSAGE = ("This will migrate the Shotgun Desktop configuration away from the 'Template "
-            "Project'. Before running this, make sure all your users have installed version 1.2.0 or "
-            "greater of the Shotgun Desktop or that they are running version 1.2.0 or greater of the Startup framework. "
-            "You can see which versions you are running in the Shotgun Desktop's About Box.")
+_MESSAGE = ("This command will migrate the Shotgun site configuration used by the Desktop app so "
+            "it is no longer associated with the 'Template Project'. Before proceeding, make sure "
+            "all your users are running version 1.2.0 or greater of the Shotgun Desktop Startup "
+            "framework. You can see which version you are running in the Shotgun Desktop's About "
+            "Box. If you don't see the Startup version mentionned in the About Box, you must "
+            "install the latest release of the Shotgun Desktop.\n"
+            "WARNING: If there are people using older versions of the Shotgun Desktop with your "
+            "site, they will get an error when starting Desktop after the migration..")
 
 
 class DesktopMigration(Action):
@@ -41,6 +43,7 @@ class DesktopMigration(Action):
         """
 
         log.info("Retrieving pipeline configuration from Shotgun...")
+        log.info("")
 
         pc = self.tk.pipeline_configuration
 
@@ -48,7 +51,7 @@ class DesktopMigration(Action):
         sg_pc = self.tk.shotgun.find_one(
             constants.PIPELINE_CONFIGURATION_ENTITY,
             [["id", "is", pc.get_shotgun_id()]],
-            ["project.Project.name"]
+            ["id", "code", "project"]
         )
 
         # If the pipeline configuration doesn't exist anymore, abort.
@@ -57,29 +60,32 @@ class DesktopMigration(Action):
             return
 
         # If a pipeline configuration is not assigned to the Template Project, abort.
-        project_name = sg_pc["project.Project.name"]
-        if project_name and project_name != "Template Project":
+        if sg_pc["project"] is not None and sg_pc["project"]["name"] != "Template Project":
             log.error(
-                "Migration is possible only from the project named \"Template Project\". This "
-                "configuration is for project '%s'" % project_name)
+                "This migration only supports configurations linked to \"Template Project\". "
+                "The current configuration (named \"%s\" with id %d) is linked to the project "
+                "\"%s\" with id %d." %
+                (sg_pc["code"], sg_pc["id"], sg_pc["project"]["name"], sg_pc["project"]["id"])
+            )
             return
+
+        log.info(_MESSAGE)
 
         # Make sure the user really wants to go forward with the migration.
-        do_migration = console_utils.ask_yn_question(
-            "\n".join(textwrap.wrap(_MESSAGE, width=68)) + "\nDo you want to continue?"
-        )
+        do_migration = console_utils.ask_yn_question("Do you want to continue?")
 
         if not do_migration:
+            log.info("Migration aborted.")
             return
 
-        if project_name:
+        if sg_pc["project"]:
             # Allright, we can now update the pipeline configuration to make it projectless.
             self.tk.shotgun.update(
                 constants.PIPELINE_CONFIGURATION_ENTITY,
                 pc.get_shotgun_id(),
                 {"project": None}
             )
-            log.debug("Pipeline Configuration updated in Shotgun.")
+            log.debug("Pipeline configuration updated in Shotgun.")
         else:
             log.warning("Pipeline configuration isn't assigned to a project in Shotgun.")
 
