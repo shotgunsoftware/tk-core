@@ -230,7 +230,7 @@ def _process_includes_r(file_name, data, context):
     for include_file in include_files:
                 
         # path exists, so try to read it
-        included_data = g_yaml_cache.get(include_file)
+        included_data = g_yaml_cache.get(include_file) or {}
                 
         # now resolve this data before proceeding
         included_data, included_fw_lookup = _process_includes_r(include_file, included_data, context)
@@ -308,7 +308,7 @@ def find_reference(file_name, context, token):
     for include_file in include_files:
                 
         # path exists, so try to read it
-        included_data = g_yaml_cache.get(include_file)
+        included_data = g_yaml_cache.get(include_file) or {}
         
         if token in included_data:
             found_file = include_file

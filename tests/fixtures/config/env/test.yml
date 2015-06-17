@@ -1,3 +1,5 @@
+include: ./empty_config.yml
+
 engines:
     test_engine:
         location: {'type': 'dev', 'path': '{PIPELINE_CONFIG}/config/bundles/test_engine'}
