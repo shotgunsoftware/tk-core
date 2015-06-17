@@ -308,7 +308,7 @@ def find_reference(file_name, context, token):
     for include_file in include_files:
                 
         # path exists, so try to read it
-        included_data = g_yaml_cache.get(include_file)
+        included_data = g_yaml_cache.get(include_file) or {}
         
         if token in included_data:
             found_file = include_file
