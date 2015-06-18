@@ -922,7 +922,9 @@ class PathCache(object):
                     d["path_cache_row_id"] = new_rowid
                     
                 
-            
+            # now, if there were any FilesystemLocation records created,
+            # create an event log entry that links back to those entries.
+            # This is then used by the incremental path cache syncer. 
             if self._sync_with_sg and len(data_for_sg) > 0:
 
                 # first, a summary of what we are up to for the event log description
