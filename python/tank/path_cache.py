@@ -344,15 +344,22 @@ class PathCache(object):
             # it could break for example if someone has culled the event log table and in 
             # that case we should fall back on a full sync.
             
-            self._log_debug(log, "Fetching folder event log entries...")
+            self._log_debug(log, "Fetching create/delete folder event log "
+                            "entries >= id %s for project %s..." % (event_log_id, self._get_project_link()))
             
+            # note that we return the records in ascending order, meaning that they get 
+            # "played back" in the same order as they were created.
+            #
+            # for a non-truncated event log table, the first record returned
+            # by this query should be the last one previously processed by the 
+            # path cache (via the event_log_id variable)
             response = self._tk.shotgun.find("EventLogEntry", 
                                              [ ["event_type", "in", ["Toolkit_Folders_Create", 
                                                                      "Toolkit_Folders_Delete"]], 
                                                ["id", "greater_than", (event_log_id - 1)],
                                                ["project", "is", self._get_project_link()] ],
                                              ["id", "meta", "event_type"],
-                                             [{"field_name": "id", "direction": "desc"}] )   
+                                             [{"field_name": "id", "direction": "asc"}] )   
 
             self._log_debug(log, "Got %s event log entries" % len(response)) 
         
@@ -365,14 +372,21 @@ class PathCache(object):
                 if r["event_type"] == "Toolkit_Folders_Delete":
                     num_deletions += 1
                     
-            if len(response) == 0 or response[0]["id"] != event_log_id:
+            self._log_debug(log, "Event log contains %s creations and %s deletions" % (num_creations, num_deletions))
+            
+            first_received_event_log_id = response[0]["id"]
+            
+            if len(response) == 0 or first_received_event_log_id != event_log_id:
                 # there is either no event log data at all or a gap
                 # in the event log. Assume that some culling has occured and
                 # fall back on a full sync
-                self._log_debug(log, "Cannot align path cache track marker to SG Event Log. Doing Full Sync instead.")
+                self._log_debug(log, "Local path cache tracking marker is %s. "
+                                     "First event log id returnd is %s. It looks "
+                                     "like the event log has been truncated, so falling back "
+                                     "on a full sync." % (event_log_id, first_received_event_log_id))
                 return self._do_full_sync(c, log)        
             
-            elif len(response) == 1 and response[0]["id"] == event_log_id:
+            elif len(response) == 1 and first_received_event_log_id == event_log_id:
                 # nothing has changed since the last sync
                 self._log_debug(log, "Path cache syncing not necessary - local folders already up to date!") 
                 return []
@@ -380,12 +394,12 @@ class PathCache(object):
             elif num_deletions > 0:
                 # some stuff was deleted. fall back on full sync
                 self._log_debug(log, "Deletions detected, doing full sync") 
-
                 return self._do_full_sync(c, log)
             
             elif num_creations > 0:
                 # we have a complete trail of increments. 
                 # note that we skip the current entity.
+                self._log_debug(log, "Full event log history traced. Running incremental sync.")
                 return self._do_incremental_sync(c, log, response[1:])
             
             else:
@@ -586,29 +600,28 @@ class PathCache(object):
                     - metadata
                     - path 
         """
-
+        
         if len(sg_data) == 0:
             return []
+        
+        self._log_debug(log, "Begin replaying FilesystemLocation entities locally...")
         
         # find the max event log id in sg_data. We will store this in the sync db later.
         max_event_log_id = max( [x["id"] for x in sg_data] )
         
         created_folder_ids = []
         for d in sg_data:
+            self._log_debug(log, "Looking at event log entry %s" % d)
             if d["event_type"] == "Toolkit_Folders_Create":
                 # this is a creation request! Replay it on our database
                 created_folder_ids.extend( d["meta"]["sg_folder_ids"] )
             else:
                 # should never come here
                 raise Exception("Unsupported event type '%s'" % d)
-                
-        if len(created_folder_ids) == 0:
-            # one or more folder creation events were detected but none of them had actually
-            # resulted in any actual folders being created!
-            return []
-                
-        self._log_debug(log, "Updating folders - Applying %s updates..." % len(created_folder_ids)) 
-
+        self._log_debug(log, "Event log analysis complete.")
+        
+        self._log_debug(log, "The following FilesystemLocation ids need replaying: %s" % created_folder_ids)
+        
         return self._replay_folder_entities(cursor, log, max_event_log_id, created_folder_ids)
 
 
@@ -621,7 +634,10 @@ class PathCache(object):
 
         :param cursor: Sqlite database cursor
         :param log: Std python logger or None if logging is not required. 
-        :param max_event_log_id:  
+        :param max_event_log_id: max event log marker to write to the path 
+                                 cache database after a full operation.
+        :param ids: List of FilesystemLocation ids to replay. If set to None,
+                    a full sync will take place.
         :returns: A list of remote items which were detected, created remotely
                   and not existing in this path cache. These are returned as a list of 
                   dictionaries, each containing keys:
@@ -634,6 +650,8 @@ class PathCache(object):
         
         if ids is None:
             # get all folder data from shotgun
+            self._log_debug(log, "Doing a full sync, so getting all the FilesystemLocations for "
+                            "the current project...")
             sg_data = self._tk.shotgun.find(SHOTGUN_ENTITY, 
                                   [["project", "is", self._get_project_link()]],
                                   ["id",
@@ -644,9 +662,17 @@ class PathCache(object):
                                    SG_ENTITY_TYPE_FIELD, 
                                    SG_ENTITY_NAME_FIELD],
                                   [{"field_name": "id", "direction": "asc"},])
+        elif ids == []:
+            # incremental sync but with no folders
+            self._log_debug(log, "No folders need to be replayed, won't fetch anything from Shotgun...")
+            sg_data = []
+        
         else:
             # get the ids that are missing from shotgun
             # need to use this weird special filter syntax
+            self._log_debug(log, "Doing an incremental sync, so getting FilesystemLocation entries for "
+                            "the following ids: %s" % ids)
+            
             id_in_filter = ["id", "in"]
             id_in_filter.extend(ids)
             sg_data = self._tk.shotgun.find(SHOTGUN_ENTITY, 
@@ -665,6 +691,7 @@ class PathCache(object):
         # now start a single transaction in which we do all our work
         if ids is None:
             # complete sync - clear our tables first
+            self._log_debug(log, "Full sync - clearing local sqlite path cache tables...")
             cursor.execute("DELETE FROM event_log_sync")
             cursor.execute("DELETE FROM shotgun_status")
             cursor.execute("DELETE FROM path_cache")
@@ -709,6 +736,8 @@ class PathCache(object):
             #            'type': 'Attachment'},
             #   'type': 'FilesystemLocation'},
             #
+            
+            self._log_debug(log, "Processing id %s..." % x["id"])
             
             # no path at all - this is an anomaly but handle it gracefully regardless
             if x[SG_PATH_FIELD] is None:
@@ -756,6 +785,7 @@ class PathCache(object):
         # lastly, id of this event log entry for purpose of future syncing
         # note - we don't maintain a list of event log entries but just a single
         # value in the db, so start by clearing the table.
+        self._log_debug(log, "Inserting path cache marker %s in the sqlite db" % max_event_log_id)
         cursor.execute("DELETE FROM event_log_sync")
         cursor.execute("INSERT INTO event_log_sync(last_id) VALUES(?)", (max_event_log_id, ))
             
