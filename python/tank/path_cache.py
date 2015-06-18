@@ -486,7 +486,7 @@ class PathCache(object):
         # now register the created ids in the event log
         # this will later on be read by the synchronization            
         # now, based on the entities we just created, assemble a metadata chunk that 
-        # the sync calls can use later on.
+        # the sync calls can use later on.        
         meta = {}
         # the api version used is always useful to know
         meta["core_api_version"] = self._tk.version
@@ -923,7 +923,7 @@ class PathCache(object):
                     
                 
             
-            if self._sync_with_sg:
+            if self._sync_with_sg and len(data_for_sg) > 0:
 
                 # first, a summary of what we are up to for the event log description
                 entity_ids = ", ".join([str(x) for x in entity_ids])
