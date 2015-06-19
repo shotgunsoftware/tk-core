@@ -528,3 +528,43 @@ class TestShotgunSync(TankTestBase):
 
 
 
+    def test_missing_roots_mapping(self):
+        """
+        Tests that invalid roots.yml lookups result in ignored records 
+        """        
+        
+        # create folders 
+        folder.process_filesystem_structure(self.tk, 
+                                            self.task["type"], 
+                                            self.task["id"], 
+                                            preview=False,
+                                            engine=None)  
+        
+        self.assertEqual(len(self.tk.shotgun.find(tank.path_cache.SHOTGUN_ENTITY, [])), 4)
+        self.assertEqual( len(self._get_path_cache()), 4)
+        
+        roots_yml = os.path.join(self.pipeline_config_root, 
+                                 "config", 
+                                 "core", 
+                                 constants.STORAGE_ROOTS_FILE)
+        
+        # construct an invalid roots.yml that is out of sync with the records coming from
+        current_roots = self.pipeline_configuration._roots
+        invalid_roots = {"primary": 
+                         {"linux_path": "/invalid",
+                          "mac_path": "/invalid",
+                          "windows_path": "X:\\invalid"}}
+        
+        self.pipeline_configuration._roots = invalid_roots
+        
+        # perform a full sync
+        log = sync_path_cache(self.tk, force_full_sync=True)
+        self.assertTrue("Could not resolve storages - skipping" in log)
+        self.assertEqual( len(self._get_path_cache()), 0)
+        
+        # and set roots back again and check 
+        self.pipeline_configuration._roots = current_roots
+        # perform a full sync
+        log = sync_path_cache(self.tk, force_full_sync=True)
+        self.assertTrue("Could not resolve storages - skipping" not in log)
+        self.assertEqual( len(self._get_path_cache()), 4)

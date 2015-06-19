@@ -771,7 +771,7 @@ class PathCache(object):
             try:
                 root_name, relative_path = self._separate_root(local_os_path)
             except TankError, e:
-                self._log_debug(log, "Could resolve storages - skipping: %s" % e)
+                self._log_debug(log, "Could not resolve storages - skipping: %s" % e)
                 continue
             
             # all validation checks seem ok - go ahead and make the changes.
@@ -916,7 +916,6 @@ class PathCache(object):
                            the high level folder creation request.
                            
         """        
-        
         if self._path_cache_disabled:
             raise TankError("You are currently running a configuration which does not have any "
                             "capabilities of storing path entry lookups. There is no path cache "
