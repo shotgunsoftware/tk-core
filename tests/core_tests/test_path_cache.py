@@ -432,10 +432,33 @@ class TestShotgunSync(TankTestBase):
         
         
         
+    def test_no_new_folders_created(self):
+        """
+        Test the case when folder creation is running for an already existing path 
+        """        
         
+        # we should have one Toolkit_Folders_Create record in the path cache,
+        # coming from the project setup
+        folder_events = self.tk.shotgun.find("EventLogEntry", [["event_type", "is", "Toolkit_Folders_Create"]])
+        self.assertEqual(len(folder_events), 1)
         
+        folder.process_filesystem_structure(self.tk,
+                                            self.seq["type"], 
+                                            self.seq["id"],
+                                            preview=False,
+                                            engine=None)        
         
-        
+        # a seq should have been added to the path cache and we should have two events
+        folder_events = self.tk.shotgun.find("EventLogEntry", [["event_type", "is", "Toolkit_Folders_Create"]])
+        self.assertEqual(len(folder_events), 2)
 
-        
+        # running this again, no folders should be created and no events should be generated
+        folder.process_filesystem_structure(self.tk,
+                                            self.seq["type"], 
+                                            self.seq["id"],
+                                            preview=False,
+                                            engine=None)        
+
+        folder_events = self.tk.shotgun.find("EventLogEntry", [["event_type", "is", "Toolkit_Folders_Create"]])
+        self.assertEqual(len(folder_events), 2)
         
