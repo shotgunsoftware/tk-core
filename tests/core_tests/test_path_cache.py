@@ -9,8 +9,10 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
+import StringIO
 import sqlite3
 import shutil
+import logging
 
 from tank_test.tank_test_base import *
 
@@ -28,12 +30,26 @@ def sync_path_cache(tk, force_full_sync=False):
     """
     Synchronizes the path cache with Shotgun.
     
-    :param force_full_sync: Force a full sync. 
+    :param force_full_sync: Force a full sync.
+    :returns: log output in a variable 
     """
+    
+    # capture sync log to string
+    stream = StringIO.StringIO()
+    handler = logging.StreamHandler(stream)
+    log = logging.getLogger("synclogger")
+    log.setLevel(logging.DEBUG)
+    log.addHandler(handler)    
+    
     # Use the path cache to look up all paths associated with this entity
     pc = path_cache.PathCache(tk)
-    pc.synchronize(log=None, full_sync=force_full_sync)
+    pc.synchronize(log=log, full_sync=force_full_sync)
     pc.close()
+
+    log_contents = stream.getvalue()
+    stream.close()
+    log.removeHandler(handler)
+    return log_contents
 
 
 class TestPathCache(TankTestBase):
@@ -417,7 +433,8 @@ class TestShotgunSync(TankTestBase):
         
         # now clear the path cache completely. This should trigger a full flush
         os.remove(pcl)
-        sync_path_cache(self.tk)
+        log = sync_path_cache(self.tk)
+        self.assertTrue("Performing a complete Shotgun folder sync" in log)
         
         # check that the sync happend
         self.assertEqual(len(self.tk.shotgun.find(tank.path_cache.SHOTGUN_ENTITY, [])), 4)
@@ -462,3 +479,52 @@ class TestShotgunSync(TankTestBase):
         folder_events = self.tk.shotgun.find("EventLogEntry", [["event_type", "is", "Toolkit_Folders_Create"]])
         self.assertEqual(len(folder_events), 2)
         
+
+
+
+
+    def test_incremental_sync(self):
+        """Tests that the incremental sync kicks in when possible."""
+
+        # get the location of the pc
+        path_cache = tank.path_cache.PathCache(self.tk)
+        pcl = path_cache._get_path_cache_location()
+        path_cache.close()
+        
+        # now process the sequence level folder creation
+        folder.process_filesystem_structure(self.tk, 
+                                            self.seq["type"], 
+                                            self.seq["id"], 
+                                            preview=False,
+                                            engine=None)        
+        
+        # now have project and sequence in the path cache 
+        self.assertEqual(len(self.tk.shotgun.find(tank.path_cache.SHOTGUN_ENTITY, [])), 2)
+        self.assertEqual( len(self._get_path_cache()), 2)
+                
+        # make a copy of the path cache at this point
+        shutil.copy(pcl, "%s.snap1" % pcl) 
+
+        # now create folders down to task level 
+        folder.process_filesystem_structure(self.tk, 
+                                            self.task["type"], 
+                                            self.task["id"], 
+                                            preview=False,
+                                            engine=None)        
+        
+        # now have project / seq / shot / step 
+        self.assertEqual(len(self.tk.shotgun.find(tank.path_cache.SHOTGUN_ENTITY, [])), 4)
+        self.assertEqual( len(self._get_path_cache()), 4)
+        path_cache_contents_1 = self._get_path_cache()
+        
+        # now replace our path cache file with with snap1
+        # so that we have a not-yet-up to date path cache file. 
+        shutil.copy("%s.snap1" % pcl, pcl)
+        
+        # now we run the sync - and this sync should be incremental 
+        log = sync_path_cache(self.tk)
+        # make sure the log mentions an incremental sync
+        self.assertTrue( "Doing an incremental sync" in log )
+
+
+
