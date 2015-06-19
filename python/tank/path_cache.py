@@ -761,7 +761,20 @@ class PathCache(object):
             if local_os_path is None:
                 self._log_debug(log, "No local os path associated with entry for %s. Skipping." % entity)
                 continue
+
+            # if the path cannot be split up into a root_name and a leaf path
+            # using the roots.yml file, log a warning and continue. This can happen
+            # if roots files and storage setups change half-way through a project,
+            # or if roots files are not in sync with the main storage definition
+            # in this case, we want to just warn and skip rather than raise
+            # an exception which will stop execution entirely.
+            try:
+                root_name, relative_path = self._separate_root(local_os_path)
+            except TankError, e:
+                self._log_debug(log, "Could resolve storages - skipping: %s" % e)
+                continue
             
+            # all validation checks seem ok - go ahead and make the changes.
             new_rowid = self._add_db_mapping(cursor, local_os_path, entity, is_primary)
             if new_rowid:
                 # something was inserted into the db!
@@ -778,7 +791,8 @@ class PathCache(object):
             else:
                 # Note: edge case - for some reason there was already an entry in the path cache
                 # representing this. This could be because of duplicate entries and is
-                # not necessarily an anomaly.
+                # not necessarily an anomaly. It could also happen because a previos sync failed
+                # at some point half way through.
                 self._log_debug(log, "Found existing record for '%s', %s. Skipping." % (local_os_path, entity))
                 pass  
             
