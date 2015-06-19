@@ -569,3 +569,26 @@ class TestShotgunSync(TankTestBase):
         log = sync_path_cache(self.tk, force_full_sync=True)
         self.assertTrue("Could not resolve storages - skipping" not in log)
         self.assertEqual( len(self._get_path_cache()), 4)
+
+
+    def test_truncated_eventlog(self):
+        """Tests that a full sync happens if the event log is truncated."""
+
+        
+        # now create folders down to task level 
+        folder.process_filesystem_structure(self.tk, 
+                                            self.task["type"], 
+                                            self.task["id"], 
+                                            preview=False,
+                                            engine=None)        
+
+        # truncate the event log
+        self.tk.shotgun._db["EventLogEntry"] = {}
+        
+        # now have FilesystemLocations but no EventLogEntries
+        self.assertEqual(len(self.tk.shotgun.find(tank.path_cache.SHOTGUN_ENTITY, [])), 4)
+        self.assertEqual(len(self.tk.shotgun.find("EventLogEntry", [])), 0)
+
+        # check that this triggers a full sync        
+        log = sync_path_cache(self.tk)
+        self.assertTrue("Performing a complete Shotgun folder sync" in log)

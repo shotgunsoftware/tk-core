@@ -374,19 +374,23 @@ class PathCache(object):
                     
             self._log_debug(log, "Event log contains %s creations and %s deletions" % (num_creations, num_deletions))
             
-            first_received_event_log_id = response[0]["id"]
+            if len(response) == 0:
+                # nothing in event log. Probably a truncated setup.
+                self._log_debug(log, "No sync information in the event log. Falling back on a full sync.")
+                return self._do_full_sync(c, log)
+                
             
-            if len(response) == 0 or first_received_event_log_id != event_log_id:
+            elif response[0]["id"] != event_log_id:
                 # there is either no event log data at all or a gap
                 # in the event log. Assume that some culling has occured and
                 # fall back on a full sync
                 self._log_debug(log, "Local path cache tracking marker is %s. "
-                                     "First event log id returnd is %s. It looks "
+                                     "First event log id returned is %s. It looks "
                                      "like the event log has been truncated, so falling back "
-                                     "on a full sync." % (event_log_id, first_received_event_log_id))
+                                     "on a full sync." % (event_log_id, response[0]["id"]))
                 return self._do_full_sync(c, log)        
             
-            elif len(response) == 1 and first_received_event_log_id == event_log_id:
+            elif len(response) == 1 and response[0]["id"] == event_log_id:
                 # nothing has changed since the last sync
                 self._log_debug(log, "Path cache syncing not necessary - local folders already up to date!") 
                 return []
@@ -648,6 +652,8 @@ class PathCache(object):
         """
         self._log_debug(log, "Fetching already registered folders from Shotgun...") 
         
+        sg_data = []
+        
         if ids is None:
             # get all folder data from shotgun
             self._log_debug(log, "Doing a full sync, so getting all the FilesystemLocations for "
@@ -665,7 +671,6 @@ class PathCache(object):
         elif ids == []:
             # incremental sync but with no folders
             self._log_debug(log, "No folders need to be replayed, won't fetch anything from Shotgun...")
-            sg_data = []
         
         else:
             # get the ids that are missing from shotgun
@@ -793,8 +798,7 @@ class PathCache(object):
                 # representing this. This could be because of duplicate entries and is
                 # not necessarily an anomaly. It could also happen because a previos sync failed
                 # at some point half way through.
-                self._log_debug(log, "Found existing record for '%s', %s. Skipping." % (local_os_path, entity))
-                pass  
+                self._log_debug(log, "Found existing record for '%s', %s. Skipping." % (local_os_path, entity))  
             
         # lastly, id of this event log entry for purpose of future syncing
         # note - we don't maintain a list of event log entries but just a single
