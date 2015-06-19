@@ -626,6 +626,8 @@ class PathCache(object):
         
         self._log_debug(log, "The following FilesystemLocation ids need replaying: %s" % created_folder_ids)
         
+        # run the actual sync - and at the end, inser the event_log_sync data marker
+        # into the database to show where to start syncing from next time.
         return self._replay_folder_entities(cursor, log, max_event_log_id, created_folder_ids)
 
 
@@ -635,6 +637,9 @@ class PathCache(object):
         to the path cache. If ids is None, this indicates a full sync, and 
         the path cache db table is cleared first. If not, the table
         is appended to.
+        
+        Lastly, this method updates the event_log_sync marker in the sqlite database
+        that tracks what the most recent event log id was being synced.
 
         :param cursor: Sqlite database cursor
         :param log: Std python logger or None if logging is not required. 
