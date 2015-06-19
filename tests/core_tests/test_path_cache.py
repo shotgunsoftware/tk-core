@@ -515,17 +515,18 @@ class TestShotgunSync(TankTestBase):
         # now have project / seq / shot / step 
         self.assertEqual(len(self.tk.shotgun.find(tank.path_cache.SHOTGUN_ENTITY, [])), 4)
         self.assertEqual( len(self._get_path_cache()), 4)
-        path_cache_contents_1 = self._get_path_cache()
         
         # now replace our path cache file with with snap1
         # so that we have a not-yet-up to date path cache file. 
         shutil.copy("%s.snap1" % pcl, pcl)
+        self.assertEqual( len(self._get_path_cache()), 2)
         
         # now we run the sync - and this sync should be incremental 
         log = sync_path_cache(self.tk)
         # make sure the log mentions an incremental sync
         self.assertTrue( "Doing an incremental sync" in log )
-
+        # and make sure the sync generated new records
+        self.assertEqual( len(self._get_path_cache()), 4)
 
 
     def test_missing_roots_mapping(self):
