@@ -1,4 +1,4 @@
-# Copyright (c) 2013 Shotgun Software Inc.
+# Copyright (c) 2015 Shotgun Software Inc.
 # 
 # CONFIDENTIAL AND PROPRIETARY
 # 
@@ -17,6 +17,36 @@ import copy
 from ..util import shotgun_entity
 from ..util import login
 from ..errors import TankError
+
+from .filter_tokens import FilterToken
+from .filter_tokens import FilterExpressionToken
+from .filter_tokens import CurrentStepExpressionToken
+from .filter_tokens import CurrentTaskExpressionToken
+from .filter_tokens import SymlinkToken
+
+class EntityLinkTypeMismatch(Exception):
+    """
+    Exception raised to indicate that a shotgun 
+    entity link is incorrectly typed
+    and therefore cannot be traversed.
+    
+    For example, imagine there is an entity Workspace which 
+    can link to both shots and assets via an sg_entity link.
+    
+    you then have two configuration branches:
+    
+    project->asset->workspace
+       \-->shot->workspace
+    
+    you now have a workspace entity with id 123 which links to an asset.
+    
+    If you run extract_shotgun_data_upwards method for id 123
+    and start from the folder object in the shot branch, the link
+    will be mismatching since the sg_entity for id 123 points at an 
+    asset not a shot. In those cases, this exception is being raised
+    from inside  extract_shotgun_data_upwards.
+    """
+    
 
 
 class Folder(object):
@@ -697,252 +727,6 @@ class ListField(Folder):
 
 ################################################################################################
 
-class SymlinkToken(object):
-    """
-    Represents a folder level in a symlink target.
-    """
-    
-    def __init__(self, name):
-        self._name = name
-    
-    def __repr__(self):
-        return "<SymlinkToken token '%s'>" % self._name
-    
-    def resolve_token(self, folder_obj, sg_data):
-        """
-        Returns a resolved value for this token.
-        """
-        if self._name.startswith("$"):
-            
-            # strip the dollar sign
-            token = self._name[1:]
-            
-            # check that the referenced token is matching one of the tokens which 
-            # has a computed name part to represent the dynamically created folder name
-            # this computed_name field exists for all entity folders for example.
-            valid_tokens = [x for x in sg_data if (isinstance(sg_data[x], dict) and sg_data[x].has_key("computed_name"))]
-            
-            if token not in valid_tokens:
-                raise TankError("Cannot compute symlink target for %s: The reference token '%s' cannot be resolved. "
-                                "Available tokens are %s." % (folder_obj, self._name, valid_tokens)) 
-            
-            name_value = sg_data[token].get("computed_name")
-            
-            return name_value
-            
-        else:
-            # not an expression
-            return self._name
-
-
-
-class CurrentStepExpressionToken(object):
-    """
-    Represents the current step
-    """
-    
-    def __init__(self, sg_task_step_link_field):
-        self._sg_task_step_link_field = sg_task_step_link_field
-    
-    def __repr__(self):
-        return "<CurrentStepId token. Task link field: %s>" % self._sg_task_step_link_field
-    
-    def resolve_shotgun_data(self, shotgun_data):
-        """
-        Given a shotgun data dictionary, return an appropriate value 
-        for this expression. 
-        
-        Because the entire design is centered around "normal" entities, 
-        the task data is preloaded prior to calling the folder recursion.
-        If there is a notion of a current task, this data is contained
-        in a current_task_data dictionary which contains information about 
-        the current task and its connections (for example to a pipeline step).
-        """
-        
-        sg_task_data = shotgun_data.get("current_task_data")
-        
-        if sg_task_data:
-            # we have information about the currently processed task
-            # now see if there is a link field to a step
-            
-            if self._sg_task_step_link_field in sg_task_data:
-                # this is a link field linking the task to its associated step
-                # (a step does not necessarily need to be a pipeline step)
-                # now get the id for this target entity. 
-                sg_task_shot_link_data = sg_task_data[self._sg_task_step_link_field]
-                
-                if sg_task_shot_link_data:
-                    # there is a link from task -> step present
-                    return sg_task_shot_link_data["id"]
-        
-        # if data is missing, return None to indicate this.
-        return None
-    
-
-class CurrentTaskExpressionToken(object):
-    """
-    Represents the current task
-    """
-    
-    def __init__(self):
-        pass
-    
-    def __repr__(self):
-        return "<CurrentTaskId token>"
-    
-    def resolve_shotgun_data(self, shotgun_data):
-        """
-        Given a shotgun data dictionary, return an appropriate value 
-        for this expression.
-        
-        Because the entire design is centered around "normal" entities, 
-        the task data is preloaded prior to calling the folder recursion.
-        If there is a notion of a current task, this data is contained
-        in a current_task_data dictionary which contains information about 
-        the current task and its connections (for example to a pipeline step).
-        """
-        sg_task_data = shotgun_data.get("current_task_data")
-        
-        if sg_task_data:            
-            return sg_task_data.get("id")
-        else:
-            return None
-
-
-class FilterExpressionToken(object):
-    """
-    Represents a $token in a filter expression for entity nodes.
-    """
-    
-    @classmethod
-    def sg_data_key_for_folder_obj(cls, folder_obj):
-        """
-        Returns the data key to be used with a particular folder object
-        For list nodes this is EntityType.fieldname
-        For sg nodes this is EntityType
-        
-        This data key is used in the data dictionary that is preloaded
-        and passed around the folder resolve methods.
-        """
-        if isinstance(folder_obj, Entity):
-            # append a token to the filter with the entity TYPE of the sg node
-            sg_data_key = folder_obj.get_entity_type()
-            
-        elif isinstance(folder_obj, ListField):
-            # append a token to the filter of the form Asset.sg_asset_type
-            sg_data_key = "%s.%s" % (folder_obj.get_entity_type(), folder_obj.get_field_name())
-            
-        elif isinstance(folder_obj, Static):
-            # Static folders cannot be used with folder $expressions. This error
-            # is typically caused by a missing .yml file
-            raise TankError("Static folder objects (%s) cannot be used in dynamic folder "
-                            "expressions using the \"$\" syntax. Perhaps you are missing "
-                            "the %s.yml file in your schema?" % (folder_obj, os.path.basename(folder_obj._full_path)))
-            
-        else:
-            raise TankError("The folder object %s cannot be used in folder $expressions" % folder_obj)
-        
-        return sg_data_key
-    
-    def __init__(self, expression, parent):
-        """
-        Constructor
-        """
-        self._expression = expression
-        if self._expression.startswith("$"):
-            self._expression = self._expression[1:]
-        
-        # now find which node is being pointed at
-        referenced_node = self._resolve_ref_r(parent)
-        
-        if referenced_node is None:
-            raise TankError("The configuration expression $%s could not be found in %s or in "
-                            "any of its parents." % (self._expression, parent))
-
-        self._sg_data_key = self.sg_data_key_for_folder_obj(referenced_node)
-        
-        # all the nodes we refer to have a concept of an entity type.
-        # store that too so that for later use
-        self._associated_entity_type = referenced_node.get_entity_type() 
-        
-    def __repr__(self):
-        return "<FilterExpression '%s' >" % self._expression
-
-    def _resolve_ref_r(self, folder_obj):
-        """
-        Resolves a $ref_token to an object by going up the tree
-        until it finds a match. The token is compared against the 
-        folder name of the configuration item.
-        """
-        full_folder_path = folder_obj.get_path()
-        folder_name = os.path.basename(full_folder_path)
-        
-        if folder_name == self._expression:
-            # match!
-            return folder_obj
-        
-        parent = folder_obj.get_parent()
-        if parent is None:
-            return parent # end recursion!
-        
-        # try parent 
-        return self._resolve_ref_r(parent)
-        
-    def get_entity_type(self):
-        """
-        Returns the shotgun entity type for this link
-        """
-        return self._associated_entity_type
-        
-        
-    def resolve_shotgun_data(self, shotgun_data):
-        """
-        Given a shotgun data dictionary, return an appropriate value 
-        for this expression.
-        """
-        if self._sg_data_key not in shotgun_data:
-            raise TankError("Cannot resolve data key %s from "
-                            "shotgun data bundle %s" % (self._sg_data_key, shotgun_data))
-        
-        value = shotgun_data[self._sg_data_key]
-        return value
-
-    def get_sg_data_key(self):
-        """
-        Returns the data key that is associated with this expression.
-        When passing around pre-fetched shotgun data for node population,
-        this is done as a dictionary. The sg data key indicates which 
-        part of this dictionary is associated with a particular $reference token. 
-        """
-        return self._sg_data_key
-
-
-
-class EntityLinkTypeMismatch(Exception):
-    """
-    Exception raised to indicate that a shotgun 
-    entity link is incorrectly typed
-    and therefore cannot be traversed.
-    
-    For example, imagine there is an entity Workspace which 
-    can link to both shots and assets via an sg_entity link.
-    
-    you then have two configuration branches:
-    
-    project->asset->workspace
-       \-->shot->workspace
-    
-    you now have a workspace entity with id 123 which links to an asset.
-    
-    If you run extract_shotgun_data_upwards method for id 123
-    and start from the folder object in the shot branch, the link
-    will be mismatching since the sg_entity for id 123 points at an 
-    asset not a shot. In those cases, this exception is being raised
-    from inside  extract_shotgun_data_upwards.
-    """
-    
-
-
 class Entity(Folder):
     """
     Represents an entity in Shotgun
@@ -1175,6 +959,7 @@ class Entity(Folder):
             
             # TODO: Support nested conditions
             for condition in self._filters["conditions"]:
+                
                 vals = condition["values"]
                 
                 # note the $FROM$ condition below - this is a bit of a hack to make sure we exclude
@@ -1189,21 +974,34 @@ class Entity(Folder):
                 # the parent folder level (the sequence), this id will be the "seed" when we populate that
                 # level. 
                 
-                if vals[0] and isinstance(vals[0], FilterExpressionToken) and not condition["path"].startswith('$FROM$'):
-                    expr_token = vals[0]
-                    # we should get this field (eg. 'sg_sequence')
-                    fields_to_retrieve.append(condition["path"])
-                    # add to our map for later processing map['sg_sequence'] = 'Sequence'
-                    # note that for List fields, the key is EntityType.field
-                    link_map[ condition["path"] ] = expr_token 
-                
-                elif not condition["path"].startswith('$FROM$'):
-                    # this is a normal filter (we exclude the $FROM$ stuff since it is weird
-                    # and specific to steps.) So for example 'name must begin with X' - we want 
-                    # to include these in the query where we are looking for the object, to
-                    # ensure that assets with names starting with X are not created for an 
-                    # asset folder node which explicitly excludes these via its filters. 
-                    additional_filters.append(condition)
+                if not condition["path"].startswith('$FROM$'):
+                                    
+                    if vals[0] and isinstance(vals[0], FilterExpressionToken):
+                        # this is a filter expression token, for example
+                        # 
+                        # {'path': 'project', 'values': [<FilterExpression 'project' >], 'relation': 'is'}
+                        #
+                        expr_token = vals[0]
+                        # we should get this field (eg. 'sg_sequence')
+                        fields_to_retrieve.append(condition["path"])
+                        # add to our map for later processing map['sg_sequence'] = 'Sequence'
+                        # note that for List fields, the key is EntityType.field
+                        link_map[ condition["path"] ] = expr_token 
+                    
+                    elif vals[0] and isinstance(vals[0], FilterToken):
+                        # this is a condition which contains some other type of dynamic token,
+                        # for example
+                        # {'values': [<CurrentStepId token. Task link field: step>], 'path': 'id', 'relation': 'is'}
+                        # these types are currently all special system types which are handled separately
+                        pass
+                    
+                    else:
+                        # this is a normal filter (we exclude the $FROM$ stuff since it is weird
+                        # and specific to steps.) So for example 'name must begin with X' - we want 
+                        # to include these in the query where we are looking for the object, to
+                        # ensure that assets with names starting with X are not created for an 
+                        # asset folder node which explicitly excludes these via its filters. 
+                        additional_filters.append(condition)
             
             # add some extra fields apart from the stuff in the config
             if self._entity_type == "Project":
