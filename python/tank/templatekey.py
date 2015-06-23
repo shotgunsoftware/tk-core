@@ -256,6 +256,51 @@ class StringKey(TemplateKey):
         return value if isinstance(value, basestring) else str(value)
 
 
+class TimestampKey(TemplateKey):
+    """
+    Key whose value is a time string formatted with strftime.
+    """
+
+    def __init__(
+        self,
+        name,
+        default=None,
+        format_spec="%d_%m_%Y_%H_%M_%S",
+        shotgun_entity_type=None,
+        shotgun_field_name=None,
+    ):
+        super(TemplateKey, self).__init__(
+            name,
+            default=default,
+            choices=None,
+            shotgun_entity_type=shotgun_entity_type,
+            shotgun_field_name=shotgun_field_name,
+        )
+
+        if format_spec is None or isinstance(format_spec, basestring) is False:
+            msg = "Format_spec for TemplateKey %s is not of type string: %s"
+            raise TankError(msg % (name, str(format_spec)))
+
+        self._format_spec = format_spec
+
+    def validate(self, value):
+        try:
+            time.strftime(self._format_spec, value)
+        except TypeError, e:
+            self._last_error = "Invalid time type: %s" % e.message
+            return False
+        except ValueError:
+            self._last_error = "Invalid time value: %s" % e.message
+            return False
+        return True
+
+    def _as_string(self, value):
+        return time.strftime(self._format_spec, value)
+
+    def _as_value(self, str_value):
+        return time.strptime(str_value, self._format_spec)
+
+
 class IntegerKey(TemplateKey):
     """
     Key whose value is an integer.
@@ -316,6 +361,7 @@ class IntegerKey(TemplateKey):
 
     def _as_value(self, str_value):
         return int(str_value)
+
 
 class SequenceKey(IntegerKey):
     """
@@ -509,7 +555,12 @@ def make_keys(data):
     :returns: Dictionary of the form: {<key name>: <TemplateKey object>}
     """
     keys = {}
-    names_classes = {"str": StringKey, "int": IntegerKey, "sequence": SequenceKey}
+    names_classes = {
+        "str": StringKey,
+        "int": IntegerKey,
+        "sequence": SequenceKey,
+        "timestamp": TimestampKey
+    }
     for initial_key_name, key_data in data.items():
         # We need to remove data before passing in as arguments, so copy it.
         prepped_data = key_data.copy()
@@ -528,4 +579,3 @@ def make_keys(data):
         key = KeyClass(key_name, **prepped_data)
         keys[initial_key_name] = key
     return keys
-
