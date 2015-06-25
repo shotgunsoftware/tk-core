@@ -8,15 +8,18 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import sys
+from __future__ import with_statement
 import os
+import time
+import datetime as dt
 
 import tank
+from tank import context
 from tank import TankError
 from tank_test.tank_test_base import *
 from tank.template import Template, TemplatePath, TemplateString
 from tank.template import make_template_paths, make_template_strings, read_templates
-from tank.templatekey import (TemplateKey, StringKey, IntegerKey, SequenceKey)
+from tank.templatekey import (TemplateKey, StringKey, IntegerKey, SequenceKey, TimestampKey)
 
 class TestTemplate(TankTestBase):
     """Base class for tests of Template.
@@ -34,9 +37,10 @@ class TestTemplate(TankTestBase):
                      "snapshot": IntegerKey("snapshot", format_spec="03"),
                      "ext": StringKey("ext"),
                      "seq_num": SequenceKey("seq_num"),
-                     "frame": SequenceKey("frame", format_spec="04")}
+                     "frame": SequenceKey("frame", format_spec="04"),
+                     "day_month_year": TimestampKey("day_month_year", format_spec="%d_%m_%Y")}
         # Make a template
-        self.definition = "shots/{Sequence}/{Shot}/{Step}/work/{Shot}.{branch}.v{version}.{snapshot}.ma"
+        self.definition = "shots/{Sequence}/{Shot}/{Step}/work/{Shot}.{branch}.v{version}.{snapshot}.{day_month_year}.ma"
         self.template = Template(self.definition, self.keys)
 
 
@@ -128,7 +132,7 @@ class TestKeys(TestTemplate):
         self.assertIsNone(key)
 
     def test_mixed_keys(self):
-        expected = ["Sequence", "Shot", "Step", "branch", "version", "snapshot"]
+        expected = ["Sequence", "Shot", "Step", "branch", "version", "snapshot", "day_month_year"]
         # no predictable order
         self.assertEquals(set(self.template.keys), set(expected))
 
@@ -146,28 +150,29 @@ class TestMissingKeys(TestTemplate):
                    "Step": "Anm",
                    "branch":"mmm",
                    "version": 3,
-                   "snapshot": 2}
+                   "snapshot": 2,
+                   "day_month_year": time.gmtime()}
         expected = []
         result = self.template.missing_keys(fields)
         self.assertEquals(set(result), set(expected))
 
     def test_all_keys_missing(self):
         fields = {"Sandwhich": "Mmmmmm"}
-        expected = ["Sequence", "Shot", "Step", "branch", "version", "snapshot"]
+        expected = ["Sequence", "Shot", "Step", "branch", "version", "snapshot", "day_month_year"]
         result = self.template.missing_keys(fields)
         # no predictable order
         self.assertEquals(set(result), set(expected))
 
     def test_empty_fields(self):
         fields = {}
-        expected = ["Sequence", "Shot", "Step", "branch", "version", "snapshot"]
+        expected = ["Sequence", "Shot", "Step", "branch", "version", "snapshot", "day_month_year"]
         result = self.template.missing_keys(fields)
         # no predictable order
         self.assertEquals(set(result), set(expected))
 
     def test_some_keys_missing(self):
         fields = {"Sandwhich": "Mmmmmm", "Shot": "shot_22"}
-        expected = ["Sequence", "Step", "branch", "version", "snapshot"]
+        expected = ["Sequence", "Step", "branch", "version", "snapshot", "day_month_year"]
         result = self.template.missing_keys(fields)
         # no predictable order
         self.assertEquals(set(result), set(expected))
@@ -233,7 +238,8 @@ class TestMissingKeys(TestTemplate):
                    "Step": "Anm",
                    "branch":"mmm",
                    "version": 3,
-                   "snapshot": 2}
+                   "snapshot": 2,
+                   "day_month_year": time.gmtime()}
         result = self.template.missing_keys(fields)
         self.assertEquals(["Shot"], result)
 
@@ -376,5 +382,108 @@ class TestReadTemplates(TankTestBase):
     def test_exclusions(self):
         key = self.tk.templates["asset_work_area"].keys["Asset"]
         self.assertEquals(["Seq", "Shot"], key.exclusions)
+
+
+class TestTimestamp(TankTestBase):
+    """
+    Test timestamp key type.
+    """
+
+    def setUp(self):
+        super(TestTimestamp, self).setUp()
+        # as a tuple
+        self._date_tuple = (2015, 6, 24, 21, 20, 30, 2, 175, -1)
+        # as a list
+        self._date_list = list(self._date_tuple)
+        # as a time struct
+        self._date_struct = time.struct_time(self._date_tuple)
+        # as a date time
+        self._date_datetime = dt.datetime(2015, 6, 24, 21, 20, 30)
+        # as a float
+        self._date_float = time.mktime(self._date_datetime.timetuple())
+        # as an int
+        self._date_int = int(time.mktime(self._date_datetime.timetuple()))
+        # as a string
+        self._date_time_string = "24_06_2015_21_20_30"
+        # as date string
+        self._date_string = "24_06_2015_00_00_00"
+        # as time string
+        self._time_string = "01_01_1900_21_20_30"
+
+    def test_str_from_value(self):
+        key = TimestampKey("test")
+
+        # Try and convert each and every date format to string
+        self.assertEqual(
+            key.str_from_value(self._date_tuple),
+            self._date_time_string
+        )
+        self.assertEqual(
+            key.str_from_value(self._date_list),
+            self._date_time_string
+        )
+        self.assertEqual(
+            key.str_from_value(self._date_struct),
+            self._date_time_string
+        )
+        self.assertEqual(
+            key.str_from_value(self._date_datetime),
+            self._date_time_string
+        )
+        self.assertEqual(
+            key.str_from_value(self._date_datetime.date()),
+            self._date_string
+        )
+        self.assertEqual(
+            key.str_from_value(self._date_datetime.time()),
+            self._time_string
+        )
+        self.assertEqual(
+            key.str_from_value(self._date_float),
+            self._date_time_string
+        )
+        self.assertEqual(
+            key.str_from_value(self._date_int),
+            self._date_time_string
+        )
+
+    def test_value_from_str(self):
+        key = TimestampKey("test")
+        self.assertEqual(
+            key.value_from_str(self._date_time_string),
+            self._date_datetime
+        )
+
+    def test_bad_str(self):
+        key = TimestampKey("test")
+        # bad format
+        with self.assertRaisesRegexp(TankError, "Invalid string"):
+            key.value_from_str("1 2 3")
+        # invalid value
+        with self.assertRaisesRegexp(TankError, "Invalid string"):
+            key.value_from_str("33_06_2015_21_20_30")
+
+        with self.assertRaisesRegexp(TankError, "Invalid type"):
+            key.value_from_str(1)
+
+    def test_bad_value(self):
+        key = TimestampKey("test")
+        with self.assertRaisesRegexp(TankError, "Invalid type"):
+            key.str_from_value("allo")
+
+        with self.assertRaisesRegexp(TankError, "Invalid type"):
+            key.str_from_value([])
+
+        with self.assertRaisesRegexp(TankError, "Invalid type"):
+            key.str_from_value([])
+
+    def test_from_shotgun_entity(self):
+        key = TimestampKey("datetime", shotgun_entity_type="Shot", shotgun_field_name="created_at")
+        definition = "folder/file.{datetime}.ma"
+        template = Template(definition, {"datetime": key})
+        entity = self.mockgun.create("Shot", {"created_at": self._date_datetime})
+        print "created:", entity
+        ctx = context.Context(self.tk, entity=entity)
+        fields = ctx.as_template_fields(template)
 
 

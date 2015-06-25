@@ -13,6 +13,8 @@ Classes for fields on TemplatePaths and TemplateStrings
 """
 
 import re
+import datetime as dt
+import time
 from .platform import constants
 from .errors import TankError
 
@@ -70,10 +72,10 @@ class TemplateKey(object):
         if self.is_abstract and self.default is None:
             raise TankError("%s: Fields marked as abstract needs to have a default value!" % self)
 
-        if not ((self.default is None) or self.validate(default)):
+        if not ((self.default is None) or self._validate_value(self._get_default())):
             raise TankError(self._last_error)
         
-        if not all(self.validate(choice) for choice in self.choices):
+        if not all(self._validate_value(choice) for choice in self.choices):
             raise TankError(self._last_error)
     
     @property
@@ -91,6 +93,12 @@ class TemplateKey(object):
                     for this key
         """
         return self._choices
+
+    def _get_default(self):
+        if callable(self.default):
+            return self.default()
+        else:
+            return self.default
     
     def str_from_value(self, value=None, ignore_type=False):
         """
@@ -103,17 +111,22 @@ class TemplateKey(object):
         :throws: TankError if value is not valid for the key.
         """
         if value is None:
-            if self.default is None:
+            value = self._get_default()
+            if value is None:
                 raise TankError("No value provided and no default available for %s" % self)
-            else:
-                value = self.default
         elif ignore_type:
             return value if isinstance(value, basestring) else str(value)
 
-        if self.validate(value):
+        if self._validate_value(value):
             return self._as_string(value)
         else:
             raise TankError(self._last_error)
+
+    def _validate_value(self, value):
+        return self.validate(value)
+
+    def _validate_str(self, str_value):
+        return self.validate(str_value)
 
     def value_from_str(self, str_value):
         """
@@ -123,7 +136,7 @@ class TemplateKey(object):
 
         :returns: The translated value.
         """
-        if self.validate(str_value):
+        if self._validate_str(str_value):
             value = self._as_value(str_value)
         else:
             raise TankError(self._last_error)
@@ -269,36 +282,63 @@ class TimestampKey(TemplateKey):
         shotgun_entity_type=None,
         shotgun_field_name=None,
     ):
-        super(TemplateKey, self).__init__(
-            name,
-            default=default,
-            choices=None,
-            shotgun_entity_type=shotgun_entity_type,
-            shotgun_field_name=shotgun_field_name,
-        )
-
         if format_spec is None or isinstance(format_spec, basestring) is False:
             msg = "Format_spec for TemplateKey %s is not of type string: %s"
             raise TankError(msg % (name, str(format_spec)))
 
-        self._format_spec = format_spec
+        self.format_spec = format_spec
+
+        super(TimestampKey, self).__init__(
+            name,
+            default=default or dt.datetime.now,
+            choices=None,
+            shotgun_entity_type=shotgun_entity_type,
+            shotgun_field_name=shotgun_field_name
+        )
 
     def validate(self, value):
+        if isinstance(value, basestring) or isinstance(value, unicode):
+            return self._validate_str(value)
+        else:
+            return self._validate_value(value)
+
+    def _validate_str(self, str_value):
         try:
-            time.strftime(self._format_spec, value)
+            self._as_value(str_value)
+            return True
+        except ValueError, e:
+            self._last_error = "Invalid string: %s" % e.message
+            return False
         except TypeError, e:
-            self._last_error = "Invalid time type: %s" % e.message
+            self._last_error = "Invalid type: %s" % e.message
+            return False
+
+    def _validate_value(self, value):
+        try:
+            self._as_string(value)
+        except TypeError, e:
+            self._last_error = "Invalid type: %s" % e.message
             return False
         except ValueError:
-            self._last_error = "Invalid time value: %s" % e.message
+            self._last_error = "Invalid value: %s" % e.message
             return False
         return True
 
     def _as_string(self, value):
-        return time.strftime(self._format_spec, value)
+        if isinstance(value, int) or isinstance(value, float):
+            return dt.datetime.fromtimestamp(value).strftime(self.format_spec)
+        elif (isinstance(value, dt.datetime) or
+              isinstance(value, dt.date) or
+              isinstance(value, dt.time)):
+            return value.strftime(self.format_spec)
+        elif isinstance(value, time.struct_time) or isinstance(value, list) or isinstance(value, tuple):
+            return time.strftime(self.format_spec, value)
+        else:
+            raise TypeError("must be int, float, datetime.datetime, datetime.date, datetime.time "
+                            "or time.struct_time, not %s" % value.__class__.__name__)
 
     def _as_value(self, str_value):
-        return time.strptime(str_value, self._format_spec)
+        return dt.datetime.strptime(str_value, self.format_spec)
 
 
 class IntegerKey(TemplateKey):
