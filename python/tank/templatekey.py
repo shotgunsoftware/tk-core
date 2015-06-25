@@ -269,7 +269,8 @@ class IntegerKey(TemplateKey):
                  shotgun_field_name=None,
                  exclusions=None,
                  abstract=False,
-                 length=None):
+                 length=None,
+                 strict_matching=None):
         """
         :param name: Key's name.
         :param default: Default value for this key.
@@ -283,6 +284,45 @@ class IntegerKey(TemplateKey):
         :param abstract: Bool, should this key be treated as abstract.
         :param length: int, should this key be fixed length
         """
+
+        # make sure that strict_matching is not set or that it is a boolean
+        if not(strict_matching is None or isinstance(strict_matching, bool)):
+            msg = "strict_matching for TemplateKey %s is not of type boolean: %s"
+            raise TankError(msg % (name, str(strict_matching)))
+
+        self.strict_matching = strict_matching
+
+        # Make sure that format_spec is not set or that it is a string.
+        if not(format_spec is None or isinstance(format_spec, basestring)):
+            msg = "Format_spec for TemplateKey %s is not of type string: %s"
+            raise TankError(msg % (name, str(format_spec)))
+
+        if isinstance(format_spec, basestring):
+            # We are expecting a string that is
+            # - at least 2 characters long
+            # - that starts with a 0
+            # - that represents a number
+            # - that the padding is greater than 0.
+
+            # is_digit returns True even if the string starts with 0.
+            if len(format_spec) < 2 or format_spec[0] != "0" or not format_spec.isdigit() or int(format_spec) < 1:
+                raise TankError(
+                    "format_spec should be in the 0x format, where x is any positive integer, "
+                    "got %s" % format_spec
+                )
+
+        self.format_spec = format_spec
+
+        # If there is a format and strict_matching is set, there's an error, since there
+        # is no format to enforce or not.
+        if format_spec is None and strict_matching is not None:
+            raise TankError("strict_matching can't be set if there is no format_spec")
+
+        # By default, if strict_matching is not set but there is a format spec, we'll
+        # strictly match.
+        if strict_matching is None and format_spec is not None:
+            self.strict_matching = True
+
         super(IntegerKey, self).__init__(name,
                                          default=default,
                                          choices=choices,
@@ -292,20 +332,29 @@ class IntegerKey(TemplateKey):
                                          abstract=abstract,
                                          length=length)
 
-        if not(format_spec is None or isinstance(format_spec, basestring)):
-            msg = "Format_spec for TemplateKey %s is not of type string: %s"
-            raise TankError(msg % (name, str(format_spec)))
-
-        self.format_spec = format_spec
-
     def validate(self, value):
 
         if value is not None:
-            if not (isinstance(value, int) or value.isdigit()):
+            # If we have a string and it's a digit
+            if isinstance(value, basestring) and value.isdigit():
+                if self.strict_matching and not self._strictly_matches(value):
+                    self._last_error = "%s Illegal value %s, does not strictly match format spec '%s'" % (self, value, self.format_spec)
+                    return False
+            # If we don't have an integer (either anything or a string that is not a digit)
+            elif not isinstance(value, int):
                 self._last_error = "%s Illegal value %s, expected an Integer" % (self, value)
                 return False
-            else:
-                return super(IntegerKey, self).validate(value)
+            return super(IntegerKey, self).validate(value)
+        return True
+
+    def _strictly_matches(self, value):
+        # Strip out the padding character and get the number of padding digits.
+        padding_length = int(self.format_spec[1:])
+
+        # If there are less digits then expected, it doesn't strictly match
+        if len(value) < padding_length:
+            return False
+
         return True
 
     def _as_string(self, value):

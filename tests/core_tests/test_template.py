@@ -8,7 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import sys
+from __future__ import with_statement
 import os
 
 import tank
@@ -378,3 +378,120 @@ class TestReadTemplates(TankTestBase):
         self.assertEquals(["Seq", "Shot"], key.exclusions)
 
 
+class TestIntegerKey(TankTestBase):
+
+    def test_non_strict_matching(self):
+        """
+        In non strict mode, tokens can actually have less numbers than the padding requests. Also,
+        if there are more, they will be matched all.
+        """
+        # have a template that formats with two digits of padding.
+        keys = {
+            "version_number": IntegerKey("version_number", format_spec="02", strict_matching=False)
+        }
+        definition = "v{version_number}"
+        tpl = TemplatePath(definition, keys, "")
+
+        # It should match a template with only one digit.
+        fields = tpl.validate_and_get_fields("v1")
+        self.assertEqual(fields, {"version_number": 1})
+
+        # It should match a template with too many digits.
+        fields = tpl.validate_and_get_fields("v20000")
+        self.assertEqual(fields, {"version_number": 20000})
+
+        # From path to tokens back to path should be lossy.
+        fields = tpl.validate_and_get_fields("v1")
+        self.assertEqual("v01", tpl.apply_fields(fields))
+
+    def _validate_key(self, key, strict_matching, format_spec):
+        """
+        Makes sure that an integer key's formatting options are correctly set.
+        """
+        self.assertEqual(key.strict_matching, strict_matching)
+        self.assertEqual(key.format_spec, format_spec)
+
+    def test_init_validation(self):
+        """
+        Makes sure that parameter validation is correct in the constructor.
+        """
+        # This should obviously work
+        self._validate_key(
+            IntegerKey("version_number"),
+            strict_matching=None, format_spec=None
+        )
+        # When specifying parameters, they should be set accordingly.
+        self._validate_key(
+            IntegerKey("version_number", format_spec="03", strict_matching=True),
+            strict_matching=True, format_spec="03"
+        )
+        self._validate_key(
+            IntegerKey("version_number", format_spec="03", strict_matching=False),
+            strict_matching=False, format_spec="03"
+        )
+        # When specifying a format but not specifying the strict_matching, it should
+        # still have strict_matching.
+        self._validate_key(
+            IntegerKey("version_number", format_spec="03"),
+            strict_matching=True, format_spec="03"
+        )
+
+        # Make sure than an error is raised when wrong types are passed in.
+        with self.assertRaisesRegexp(TankError, "is not of type boolean"):
+            IntegerKey("version_number", strict_matching=1)
+
+        with self.assertRaisesRegexp(TankError, "is not of type string"):
+            IntegerKey("version_number", format_spec=1)
+
+        # Make sure that if the user specifies strict_matching with no format
+        # there is an error
+        error_regexp = "strict_matching can't be set"
+        with self.assertRaisesRegexp(TankError, error_regexp):
+            IntegerKey("version_number", strict_matching=False)
+
+        with self.assertRaisesRegexp(TankError, error_regexp):
+            IntegerKey("version_number", strict_matching=True)
+
+        # Make sure the format_spec is valid.
+        error_regexp = "format_spec should be in the 0x format"
+        with self.assertRaisesRegexp(TankError, error_regexp):
+            IntegerKey("version_number", format_spec="")
+
+        with self.assertRaisesRegexp(TankError, error_regexp):
+            IntegerKey("version_number", format_spec="0")
+
+        with self.assertRaisesRegexp(TankError, error_regexp):
+            IntegerKey("version_number", format_spec="00")
+
+        with self.assertRaisesRegexp(TankError, error_regexp):
+            IntegerKey("version_number", format_spec="a0")
+
+        with self.assertRaisesRegexp(TankError, error_regexp):
+            IntegerKey("version_number", format_spec="0a")
+
+    def test_strict_matching(self):
+        """
+        In strict mode, tokens have to have as much padding as the format specifier suggests. Less will not
+        match.
+        """
+        # have a template that formats with two digits of padding.
+        keys = {
+            "version_number": IntegerKey("version_number", format_spec="02", strict_matching=True)
+        }
+        self.assertTrue(keys["version_number"].strict_matching)
+        definition = "v{version_number}"
+        tpl = TemplatePath(definition, keys, "")
+
+        # It should not match a template with only one digit.
+        fields = tpl.validate_and_get_fields("v1")
+        self.assertIsNone(fields)
+
+        # From path to tokens back to path should get back the same string when the expected number of
+        # digits are found.
+        fields = tpl.validate_and_get_fields("v01")
+        self.assertEqual("v01", tpl.apply_fields(fields))
+
+        # It should match a template with too many digits.
+        fields = tpl.validate_and_get_fields("v20000")
+        self.assertEqual(fields, {"version_number": 20000})
+        self.assertEqual("v20000", tpl.apply_fields(fields))
