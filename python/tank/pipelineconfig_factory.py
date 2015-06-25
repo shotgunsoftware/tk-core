@@ -397,8 +397,13 @@ def _get_pipeline_configs_for_path(path, data):
             
             # and concatenate it with the storage
             project_path = os.path.join(s, project_name)
-            # associate this path with the pipeline configuration
-            project_paths[project_path].append(pc)
+            # Associate this path with the pipeline configuration if it's not already.
+            # If there are multiple storages defined with the same path, this prevents the pc from
+            # being added multiple times. Ultimately we probably want to check that the storage
+            # is being used by the pipeline config by checking the roots.yml in the pipeline config
+            # before associating it here.
+            if pc not in project_paths[project_path]:
+                project_paths[project_path].append(pc)
     
     # step 3 - look at the path we passed in - see if any of the computed
     # project folders are determined to be a parent path
