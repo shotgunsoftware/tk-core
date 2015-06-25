@@ -12,6 +12,7 @@ from __future__ import with_statement
 import os
 import time
 import datetime as dt
+from mock import patch
 
 import tank
 from tank import context
@@ -477,13 +478,18 @@ class TestTimestamp(TankTestBase):
         with self.assertRaisesRegexp(TankError, "Invalid type"):
             key.str_from_value([])
 
-    def test_from_shotgun_entity(self):
-        key = TimestampKey("datetime", shotgun_entity_type="Shot", shotgun_field_name="created_at")
+    @patch("tank.templatekey.TimestampKey._TimestampKey__get_current_time")
+    def test_defaut_value(self, _get_time_mock):
+        # Mock it to the expected date.
+        _get_time_mock.return_value = self._date_datetime
+        # Create a template using our key.
+        key = TimestampKey("datetime")
         definition = "folder/file.{datetime}.ma"
         template = Template(definition, {"datetime": key})
-        entity = self.mockgun.create("Shot", {"created_at": self._date_datetime})
-        print "created:", entity
-        ctx = context.Context(self.tk, entity=entity)
-        fields = ctx.as_template_fields(template)
 
-
+        # apply fields with no value for datetime, which will generate a default
+        # value by calling __get_current_time
+        self.assertEquals(
+            template.apply_fields({}),
+            "folder/file.%s.ma" % self._date_time_string
+        )

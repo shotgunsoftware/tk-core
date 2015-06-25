@@ -290,11 +290,21 @@ class TimestampKey(TemplateKey):
 
         super(TimestampKey, self).__init__(
             name,
-            default=default or dt.datetime.now,
+            default=default or self.__get_current_time,
             choices=None,
             shotgun_entity_type=shotgun_entity_type,
             shotgun_field_name=shotgun_field_name
         )
+
+    def __get_current_time(self):
+        """
+        Returns the current time, useful for defaults values.
+
+        Do not streamline the code so the __init__ method simply passesd the dt.datetime.now method,
+        we can't mock datetime.now since it's builtin and will make unit tests more complicated to
+        write.
+        """
+        return dt.datetime.now()
 
     def validate(self, value):
         if isinstance(value, basestring) or isinstance(value, unicode):
