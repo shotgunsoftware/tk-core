@@ -277,23 +277,19 @@ class TimestampKey(TemplateKey):
     def __init__(
         self,
         name,
-        default=None,
-        format_spec="%d_%m_%Y_%H_%M_%S",
-        shotgun_entity_type=None,
-        shotgun_field_name=None,
+        utc_default=False,
+        format_spec="%Y-%m-%d-%H-%M-%S"
     ):
         if format_spec is None or isinstance(format_spec, basestring) is False:
             msg = "Format_spec for TemplateKey %s is not of type string: %s"
             raise TankError(msg % (name, str(format_spec)))
 
         self.format_spec = format_spec
+        self.utc_default = utc_default
 
         super(TimestampKey, self).__init__(
             name,
-            default=default or self.__get_current_time,
-            choices=None,
-            shotgun_entity_type=shotgun_entity_type,
-            shotgun_field_name=shotgun_field_name
+            default=self.__get_current_time
         )
 
     def __get_current_time(self):
@@ -304,7 +300,10 @@ class TimestampKey(TemplateKey):
         we can't mock datetime.now since it's builtin and will make unit tests more complicated to
         write.
         """
-        return dt.datetime.now()
+        if self.utc_default:
+            return dt.datetime.utcnow()
+        else:
+            return dt.datetime.now()
 
     def validate(self, value):
         if isinstance(value, basestring) or isinstance(value, unicode):

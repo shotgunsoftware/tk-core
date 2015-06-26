@@ -405,11 +405,11 @@ class TestTimestamp(TankTestBase):
         # as an int
         self._date_int = int(time.mktime(self._date_datetime.timetuple()))
         # as a string
-        self._date_time_string = "24_06_2015_21_20_30"
+        self._date_time_string = "2015-06-24-21-20-30"
         # as date string
-        self._date_string = "24_06_2015_00_00_00"
+        self._date_string = "2015-06-24-00-00-00"
         # as time string
-        self._time_string = "01_01_1900_21_20_30"
+        self._time_string = "1900-01-01-21-20-30"
 
     def test_str_from_value(self):
         key = TimestampKey("test")
@@ -462,7 +462,7 @@ class TestTimestamp(TankTestBase):
             key.value_from_str("1 2 3")
         # invalid value
         with self.assertRaisesRegexp(TankError, "Invalid string"):
-            key.value_from_str("33_06_2015_21_20_30")
+            key.value_from_str("2015-06-33-21-20-30")
 
         with self.assertRaisesRegexp(TankError, "Invalid type"):
             key.value_from_str(1)
