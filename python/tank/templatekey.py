@@ -31,7 +31,8 @@ class TemplateKey(object):
                  length = None):
         """
         :param name: Key's name.
-        :param default: Default value for this key.
+        :param default: Default value for this key. If the default is a callable, it will be invoked
+                        without any parameters whenever a default value is required.
         :param choices: List of possible values for this key.  Can be either a list or a dictionary
                         of choice:label pairs.
         :param shotgun_entity_type: For keys directly linked to a shotgun field, the entity type.
@@ -80,6 +81,12 @@ class TemplateKey(object):
 
     @property
     def default(self):
+        """
+        Returns the default value for this key. If the default argument was specified
+        as a callable in the constructor, it is invoked and assumed to take no parameters.
+
+        :returns: The default value.
+        """
         if callable(self._default):
             return self._default()
         else:
@@ -277,11 +284,23 @@ class TimestampKey(TemplateKey):
         utc_default=False,
         format_spec="%Y-%m-%d-%H-%M-%S"
     ):
-        if format_spec is None or isinstance(format_spec, basestring) is False:
-            msg = "Format_spec for TemplateKey %s is not of type string: %s"
-            raise TankError(msg % (name, str(format_spec)))
-
+        """
+        Constructor
+        :param name: Name by which the key will be refered.
+        :param utc_default: If True, the default value will be an UTC time. Defaults to False.
+        :param format_spec: Specification for formating when casting to/from a string.
+                            The format follows the convention of strftime and strptime. The
+                            default value is "%Y-%m-%d-%H-%M-%S", Given June 24th, 2015 at
+                            9:20:30 PM, this will yield 2015-06-24-21-20-30
+        """
+        if isinstance(format_spec, basestring) is False:
+            raise TankError("format_spec for TimestampKey %s is not of type string: %s" %
+                            (name, format_spec.__class__.__name__))
         self.format_spec = format_spec
+
+        if isinstance(utc_default, bool) is False:
+            raise TankError("utc_default for TimestampKey %s is not of type boolean: %s" %
+                            (name, utc_default.__class__.__name__))
         self.utc_default = utc_default
 
         super(TimestampKey, self).__init__(
@@ -291,11 +310,15 @@ class TimestampKey(TemplateKey):
 
     def __get_current_time(self):
         """
-        Returns the current time, useful for defaults values.
+        Returns the current time as a datetime.datetime instance.
 
         Do not streamline the code so the __init__ method simply passesd the dt.datetime.now method,
         we can't mock datetime.now since it's builtin and will make unit tests more complicated to
         write.
+
+        :returns: If utc_default, a datetime object representing time in the UTC timezone. Otherwise,
+                  a datetime object representing time in the local timezone. In any case, the tzinfo
+                  member is None.
         """
         if self.utc_default:
             return dt.datetime.utcnow()
@@ -303,12 +326,26 @@ class TimestampKey(TemplateKey):
             return dt.datetime.now()
 
     def validate(self, value):
+        """
+        Test if a value is valid for this key.
+
+        :param value: Value to test.
+
+        :returns: Bool
+        """
         if isinstance(value, basestring) or isinstance(value, unicode):
             return self._validate_str(value)
         else:
             return self._validate_value(value)
 
     def _validate_str(self, str_value):
+        """
+        Test if a string is valid for this key.
+
+        :param str_value: String to test.
+
+        :returns: Bool
+        """
         try:
             self._as_value(str_value)
             return True
@@ -320,6 +357,13 @@ class TimestampKey(TemplateKey):
             return False
 
     def _validate_value(self, value):
+        """
+        Test if a string is valid for this key.
+
+        :param str_value: String to test.
+
+        :returns: Bool
+        """
         try:
             self._as_string(value)
         except TypeError, e:
@@ -331,6 +375,20 @@ class TimestampKey(TemplateKey):
         return True
 
     def _as_string(self, value):
+        """
+        Converts a given value as string.
+
+        :param value: Can be any of:
+                          - int or float representing seconds since epoch in local time.
+                          - datetime.datetime
+                          - datetime.time
+                          - datetime.date
+                          - time.struct_time
+                          - tuple of 9 integers
+                          - list of 9 integers
+
+        :returns: A string formatted according to the format_spec.
+        """
         if isinstance(value, int) or isinstance(value, float):
             return dt.datetime.fromtimestamp(value).strftime(self.format_spec)
         elif (isinstance(value, dt.datetime) or
@@ -340,10 +398,17 @@ class TimestampKey(TemplateKey):
         elif isinstance(value, time.struct_time) or isinstance(value, list) or isinstance(value, tuple):
             return time.strftime(self.format_spec, value)
         else:
-            raise TypeError("must be int, float, datetime.datetime, datetime.date, datetime.time "
-                            "or time.struct_time, not %s" % value.__class__.__name__)
+            raise TypeError("must be int, float, datetime.datetime, datetime.date, datetime.time, "
+                            "time.struct_time, tuple or list, not %s" % value.__class__.__name__)
 
     def _as_value(self, str_value):
+        """
+        Converts a string into a datetime.datetime.
+
+        :param str_value: String to convert.
+
+        :returns: A datetime representation of str_value parsed according to the format_spec.
+        """
         return dt.datetime.strptime(str_value, self.format_spec)
 
 

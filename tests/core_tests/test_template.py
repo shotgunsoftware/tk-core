@@ -15,7 +15,6 @@ import datetime as dt
 from mock import patch
 
 import tank
-from tank import context
 from tank import TankError
 from tank_test.tank_test_base import *
 from tank.template import Template, TemplatePath, TemplateString
@@ -391,6 +390,9 @@ class TestTimestamp(TankTestBase):
     """
 
     def setUp(self):
+        """
+        Creates a bunch of dates and strings for testing.
+        """
         super(TestTimestamp, self).setUp()
         # as a tuple
         self._date_tuple = (2015, 6, 24, 21, 20, 30, 2, 175, -1)
@@ -412,6 +414,10 @@ class TestTimestamp(TankTestBase):
         self._time_string = "1900-01-01-21-20-30"
 
     def test_str_from_value(self):
+        """
+        Convert all supported value types into a string and validates that
+        we are getting the right result
+        """
         key = TimestampKey("test")
 
         # Try and convert each and every date format to string
@@ -449,6 +455,9 @@ class TestTimestamp(TankTestBase):
         )
 
     def test_value_from_str(self):
+        """
+        Makes sure that a string can be converted to a datetime.
+        """
         key = TimestampKey("test")
         self.assertEqual(
             key.value_from_str(self._date_time_string),
@@ -456,6 +465,9 @@ class TestTimestamp(TankTestBase):
         )
 
     def test_bad_str(self):
+        """
+        Test with strings that don't match the specified format.
+        """
         key = TimestampKey("test")
         # bad format
         with self.assertRaisesRegexp(TankError, "Invalid string"):
@@ -465,6 +477,9 @@ class TestTimestamp(TankTestBase):
             key.value_from_str("2015-06-33-21-20-30")
 
     def test_bad_value(self):
+        """
+        Test with values that are not supported.
+        """
         key = TimestampKey("test")
         with self.assertRaisesRegexp(TankError, "Invalid type"):
             key.str_from_value([])
@@ -474,6 +489,10 @@ class TestTimestamp(TankTestBase):
 
     @patch("tank.templatekey.TimestampKey._TimestampKey__get_current_time")
     def test_defaut_value(self, _get_time_mock):
+        """
+        Makes sure that a default value is proprely generated when a field dictionary is missing
+        the TimestampKey value.
+        """
         # Mock it to the expected date.
         _get_time_mock.return_value = self._date_datetime
         # Create a template using our key.
@@ -487,3 +506,4 @@ class TestTimestamp(TankTestBase):
             template.apply_fields({}),
             "folder/file.%s.ma" % self._date_time_string
         )
+        self.assertTrue(_get_time_mock.called)
