@@ -413,6 +413,29 @@ class TestTimestamp(TankTestBase):
         # as time string
         self._time_string = "1900-01-01-21-20-30"
 
+    def test_default_values(self):
+        """
+        Makes sure default values are as expected.
+        """
+        key = TimestampKey("name")
+        self.assertFalse(key.utc_default)
+        self.assertEqual(key.format_spec, "%Y-%m-%d-%H-%M-%S")
+
+    def test_init(self):
+        """
+        Tests the __init__ of TimestampKey.
+        """
+        TimestampKey("name")
+        TimestampKey("name", utc_default=True)
+        TimestampKey("name", utc_default=False)
+        TimestampKey("name", format_spec="%Y-%m-%d")
+
+        with self.assertRaisesRegexp(TankError, "is not of type boolean"):
+            TimestampKey("name", utc_default=1)
+
+        with self.assertRaisesRegexp(TankError, "is not of type string"):
+            TimestampKey("name", format_spec=1)
+
     def test_str_from_value(self):
         """
         Convert all supported value types into a string and validates that
@@ -438,20 +461,22 @@ class TestTimestamp(TankTestBase):
             self._date_time_string
         )
         self.assertEqual(
-            key.str_from_value(self._date_datetime.date()),
-            self._date_string
-        )
-        self.assertEqual(
-            key.str_from_value(self._date_datetime.time()),
-            self._time_string
-        )
-        self.assertEqual(
             key.str_from_value(self._date_float),
             self._date_time_string
         )
         self.assertEqual(
             key.str_from_value(self._date_int),
             self._date_time_string
+        )
+        # We've stripped the date or time, so we should only have a date set with
+        # zeroed out time or epoch date.
+        self.assertEqual(
+            key.str_from_value(self._date_datetime.date()),
+            self._date_string
+        )
+        self.assertEqual(
+            key.str_from_value(self._date_datetime.time()),
+            self._time_string
         )
 
     def test_value_from_str(self):
@@ -463,6 +488,10 @@ class TestTimestamp(TankTestBase):
             key.value_from_str(self._date_time_string),
             self._date_datetime
         )
+        self.assertEqual(
+            key.value_from_str(unicode(self._date_time_string)),
+            self._date_datetime
+        )
 
     def test_bad_str(self):
         """
@@ -472,9 +501,13 @@ class TestTimestamp(TankTestBase):
         # bad format
         with self.assertRaisesRegexp(TankError, "Invalid string"):
             key.value_from_str("1 2 3")
-        # invalid value
+        # out of bound values
         with self.assertRaisesRegexp(TankError, "Invalid string"):
             key.value_from_str("2015-06-33-21-20-30")
+
+        # Too much data
+        with self.assertRaisesRegexp(TankError, "Invalid string"):
+            key.value_from_str(self._date_time_string + "bad date")
 
     def test_bad_value(self):
         """

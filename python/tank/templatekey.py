@@ -290,7 +290,7 @@ class TimestampKey(TemplateKey):
         :param utc_default: If True, the default value will be an UTC time. Defaults to False.
         :param format_spec: Specification for formating when casting to/from a string.
                             The format follows the convention of strftime and strptime. The
-                            default value is "%Y-%m-%d-%H-%M-%S", Given June 24th, 2015 at
+                            default value is "%Y-%m-%d-%H-%M-%S". Given June 24th, 2015 at
                             9:20:30 PM, this will yield 2015-06-24-21-20-30
         """
         if isinstance(format_spec, basestring) is False:

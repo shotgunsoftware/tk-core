@@ -568,6 +568,7 @@ class Context(object):
                                                                            entity.get("id"),
                                                                            key.shotgun_field_name, 
                                                                            value)
+                    
                         if not key.validate(processed_val):                    
                             raise TankError("Template validation failed for value '%s'. This "
                                             "value was retrieved from entity %s in Shotgun to "
