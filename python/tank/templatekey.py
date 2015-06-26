@@ -41,7 +41,7 @@ class TemplateKey(object):
         :param length: int, should this key be fixed length
         """
         self.name = name
-        self.default = default
+        self._default = default
 
         # special handling for choices:
         if isinstance(choices, dict):
@@ -72,12 +72,19 @@ class TemplateKey(object):
         if self.is_abstract and self.default is None:
             raise TankError("%s: Fields marked as abstract needs to have a default value!" % self)
 
-        if not ((self.default is None) or self._validate_value(self._get_default())):
+        if not ((self.default is None) or self.validate(self.default)):
             raise TankError(self._last_error)
         
-        if not all(self._validate_value(choice) for choice in self.choices):
+        if not all(self.validate(choice) for choice in self.choices):
             raise TankError(self._last_error)
-    
+
+    @property
+    def default(self):
+        if callable(self._default):
+            return self._default()
+        else:
+            return self._default
+
     @property
     def choices(self):
         """
@@ -93,12 +100,6 @@ class TemplateKey(object):
                     for this key
         """
         return self._choices
-
-    def _get_default(self):
-        if callable(self.default):
-            return self.default()
-        else:
-            return self.default
     
     def str_from_value(self, value=None, ignore_type=False):
         """
@@ -111,22 +112,18 @@ class TemplateKey(object):
         :throws: TankError if value is not valid for the key.
         """
         if value is None:
-            value = self._get_default()
-            if value is None:
+            if self.default is None:
                 raise TankError("No value provided and no default available for %s" % self)
+            else:
+                value = self.default
         elif ignore_type:
             return value if isinstance(value, basestring) else str(value)
 
-        if self._validate_value(value):
+        if self.validate(value):
             return self._as_string(value)
         else:
             raise TankError(self._last_error)
 
-    def _validate_value(self, value):
-        return self.validate(value)
-
-    def _validate_str(self, str_value):
-        return self.validate(str_value)
 
     def value_from_str(self, str_value):
         """
@@ -136,7 +133,7 @@ class TemplateKey(object):
 
         :returns: The translated value.
         """
-        if self._validate_str(str_value):
+        if self.validate(str_value):
             value = self._as_value(str_value)
         else:
             raise TankError(self._last_error)

@@ -464,14 +464,8 @@ class TestTimestamp(TankTestBase):
         with self.assertRaisesRegexp(TankError, "Invalid string"):
             key.value_from_str("2015-06-33-21-20-30")
 
-        with self.assertRaisesRegexp(TankError, "Invalid type"):
-            key.value_from_str(1)
-
     def test_bad_value(self):
         key = TimestampKey("test")
-        with self.assertRaisesRegexp(TankError, "Invalid type"):
-            key.str_from_value("allo")
-
         with self.assertRaisesRegexp(TankError, "Invalid type"):
             key.str_from_value([])
 
