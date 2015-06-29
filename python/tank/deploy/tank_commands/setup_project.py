@@ -163,8 +163,7 @@ class SetupProjectAction(Action):
             log.info("Localizing Core...")
             core_localize.do_localize(log, 
                                       params.get_configuration_location(sys.platform), 
-                                      suppress_prompts=True,
-                                      strip_toolkit_credentials=False)
+                                      suppress_prompts=True)
                         
                         
                         
@@ -242,8 +241,7 @@ class SetupProjectAction(Action):
             log.info("Localizing Core...")
             core_localize.do_localize(log, 
                                       params.get_configuration_location(sys.platform), 
-                                      suppress_prompts=True,
-                                      strip_toolkit_credentials=False)        
+                                      suppress_prompts=True)
         
         # display readme etc.
         readme_content = params.get_configuration_readme()
