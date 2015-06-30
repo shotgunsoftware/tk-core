@@ -263,7 +263,7 @@ class IntegerKey(TemplateKey):
 
     _NON_ZERO_POSITIVE_INTEGER_EXP = "[1-9]\d*"
     _FORMAT_SPEC_RE = re.compile("^([ 0]?)(%s)$" % _NON_ZERO_POSITIVE_INTEGER_EXP)
-    _NON_ZERO_INTEGER_RE = re.compile("^-?%s$" % _NON_ZERO_POSITIVE_INTEGER_EXP)
+    _NON_ZERO_POSITIVE_INTEGER_RE = re.compile("^%s$" % _NON_ZERO_POSITIVE_INTEGER_EXP)
 
     def __init__(self,
                  name,
@@ -355,13 +355,11 @@ class IntegerKey(TemplateKey):
                             "a 0 followed by a number.")
 
         groups = matches.groups()
+        # groups[0] is either ' ' or '0' or '', in which case the padding is ' '
         padding_char = groups[0] or ' '
-        # groups 0 is either ' ' or '0' or '', in which case the padding is ' '
+        # We either have a non zero padded number or a padded zero.
+        self._validation_re = re.compile("^%s*(([1-9]\d*)|0+)$" % padding_char)
         self._max_padded_size = int(groups[1])
-        if padding_char == "0":
-            self._validation_re = re.compile("^-?0*\d*$")
-        else:
-            self._validation_re = re.compile("^ *-?\d*$")
         self.format_spec = format_spec
 
     def validate(self, value):
@@ -376,12 +374,12 @@ class IntegerKey(TemplateKey):
             if isinstance(value, basestring):
                 # We have a string, make sure it loosely or strictly matches the format.
                 if self.strict_matching and not self._strictly_matches(value):
-                    self._last_error = "%s Illegal value %s, does not strictly match format spec '%s'" % (self, value, self.format_spec)
+                    self._last_error = "%s Illegal value '%s', does not strictly match format spec '%s'" % (self, value, self.format_spec)
                     return False
                 elif not self.strict_matching and not self._loosely_matches(value):
                     return False
             elif not isinstance(value, int):
-                self._last_error = "%s Illegal value %s, expected an Integer" % (self, value)
+                self._last_error = "%s Illegal value '%s', expected an Integer" % (self, value)
                 return False
             return super(IntegerKey, self).validate(value)
         return True
@@ -402,19 +400,18 @@ class IntegerKey(TemplateKey):
         """
         # If there is no formatting, we'll accept any integer.
         if self.format_spec is None:
-            try:
-                int(value)
-            except ValueError:
-                self._last_error = "%s Illegal value %s, is not a number." % (self, value)
+            if not value.isdigit():
+                self._last_error = "%s Illegal value '%s', is not a number." % (self, value)
                 return False
-            return True
+            else:
+                return True
 
         # If we have formatting, validate it.
 
         # If there are more characters than the maximum size, we should have a non zero number
         if len(value) > self._max_padded_size:
-            if self._NON_ZERO_INTEGER_RE.match(value) is None:
-                self._last_error = "%s Illegal value %s, overflows padding but not a non zero integer" % (self, value)
+            if self._NON_ZERO_POSITIVE_INTEGER_RE.match(value) is None:
+                self._last_error = "%s Illegal value %s, overflows padding but not a non zero positive integer" % (self, value)
                 return False
 
         # try to match the string.

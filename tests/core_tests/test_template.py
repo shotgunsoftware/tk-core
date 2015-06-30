@@ -492,72 +492,65 @@ class TestIntegerKey(TankTestBase):
         self.assertEqual(fields, {"version_number": 0})
         fields = tpl.validate_and_get_fields("v_1")
         self.assertEqual(fields, {"version_number": 1})
-        fields = tpl.validate_and_get_fields("v_-1")
-        self.assertEqual(fields, {"version_number": -1})
-
-        if padding_char == "0":
-            fields = tpl.validate_and_get_fields("v_-01")
-        else:
-            fields = tpl.validate_and_get_fields("v_ -1")
-        self.assertEqual(fields, {"version_number": -1})
 
         # It should match a template with too many digits.
         fields = tpl.validate_and_get_fields("v_20000")
         self.assertEqual(fields, {"version_number": 20000})
-        fields = tpl.validate_and_get_fields("v_-20000")
-        self.assertEqual(fields, {"version_number": -20000})
 
         # From path to tokens back to path should be lossy.
         fields = tpl.validate_and_get_fields("v_1")
         self.assertEqual("v_%s%s1" % (padding_char, padding_char), tpl.apply_fields(fields))
 
-        # From path to tokens back to path should be lossy.
-        fields = tpl.validate_and_get_fields("v_-1")
-        if padding_char == "0":
-            self.assertEqual("v_-01", tpl.apply_fields(fields))
-        else:
-            self.assertEqual("v_ -1", tpl.apply_fields(fields))
-
         # It shouldn't match because the value 0 wouldn't take more space then the format spec
         # specifies
-        with self.assertRaisesRegexp(TankError, "not a non zero integer"):
+        error_msg = "not a non zero positive integer"
+        with self.assertRaisesRegexp(TankError, error_msg):
             key.value_from_str("%s%s%s0" % (padding_char, padding_char, padding_char))
 
-        with self.assertRaisesRegexp(TankError, "not a non zero integer"):
+        with self.assertRaisesRegexp(TankError, error_msg):
             key.value_from_str("0000")
 
-        with self.assertRaisesRegexp(TankError, "not a non zero integer"):
-            key.value_from_str("-00")
-
         # It shouldn't match because there is too much padding.
-        with self.assertRaisesRegexp(TankError, "not a non zero integer"):
+        with self.assertRaisesRegexp(TankError, error_msg):
             key.value_from_str("%s%s%s1" % (padding_char, padding_char, padding_char))
 
         # It shouldn't match because it is not a non zero integer
-        with self.assertRaisesRegexp(TankError, "not a non zero integer"):
+        with self.assertRaisesRegexp(TankError, error_msg):
             key.value_from_str("aaaa")
 
-        # Equal or lower size should fail is not matching the spec
+        # Equal or lower size should fail if not matching the spec
         with self.assertRaisesRegexp(TankError, "does not match format spec"):
             key.value_from_str("%sa" % padding_char)
 
-        # Equal or lower size should fail is not matching the spec
+        # Equal or lower size should fail if not matching the spec
         with self.assertRaisesRegexp(TankError, "does not match format spec"):
             key.value_from_str("a0")
 
-        # Equal or lower size should fail is not matching the spec
+        # Equal or lower size should fail if not matching the spec
         with self.assertRaisesRegexp(TankError, "does not match format spec"):
             key.value_from_str("aa")
 
+        # Mixed padding is wrong.
+        with self.assertRaisesRegexp(TankError, "does not match format spec"):
+            key.value_from_str(" 01")
+        with self.assertRaisesRegexp(TankError, "does not match format spec"):
+            key.value_from_str("0 1")
+
         # It shouldn't match because there is padding when there shouldn't be.
-        with self.assertRaisesRegexp(TankError, "not a non zero integer"):
+        with self.assertRaisesRegexp(TankError, error_msg):
+            IntegerKey(
+                "version_number", format_spec="%s1" % padding_char, strict_matching=False
+            ).value_from_str("01")
+
+        # It shouldn't match because there is padding when there shouldn't be.
+        with self.assertRaisesRegexp(TankError, error_msg):
             IntegerKey(
                 "version_number", format_spec="%s1" % padding_char, strict_matching=False
             ).value_from_str("01")
 
         # Again, it shouldn't match because the value 0 wouldn't take more space then the format
         # spec specifies
-        with self.assertRaisesRegexp(TankError, "not a non zero integer"):
+        with self.assertRaisesRegexp(TankError, error_msg):
             IntegerKey(
                 "version_number", format_spec="%s1" % padding_char, strict_matching=False
             ).value_from_str("00")
