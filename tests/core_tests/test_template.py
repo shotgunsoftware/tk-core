@@ -473,64 +473,94 @@ class TestIntegerKey(TankTestBase):
 
     def _test_non_strict_matching(self, padding_char):
         # have a template that formats with two digits of padding.
-        key = IntegerKey("version_number", format_spec="%s2" % padding_char, strict_matching=False)
+        key = IntegerKey("version_number", format_spec="%s3" % padding_char, strict_matching=False)
         keys = {
             "version_number": key
         }
-        definition = "v{version_number}"
+        definition = "v_{version_number}"
         tpl = TemplatePath(definition, keys, "")
 
         # It should match because it is of the right length.
-        fields = tpl.validate_and_get_fields("v%s0" % padding_char)
+        fields = tpl.validate_and_get_fields("v_%s%s0" % (padding_char, padding_char))
+        self.assertEqual(fields, {"version_number": 0})
+        # It should also match because it is of the right length
+        fields = tpl.validate_and_get_fields("v_000")
         self.assertEqual(fields, {"version_number": 0})
 
-        fields = tpl.validate_and_get_fields("v00")
+        # It should match a template with only one digit because we're not strict.
+        fields = tpl.validate_and_get_fields("v_0")
         self.assertEqual(fields, {"version_number": 0})
-
-        # It should match a template with only one digit.
-        fields = tpl.validate_and_get_fields("v0")
-        self.assertEqual(fields, {"version_number": 0})
-        fields = tpl.validate_and_get_fields("v1")
+        fields = tpl.validate_and_get_fields("v_1")
         self.assertEqual(fields, {"version_number": 1})
+        fields = tpl.validate_and_get_fields("v_-1")
+        self.assertEqual(fields, {"version_number": -1})
+
+        if padding_char == "0":
+            fields = tpl.validate_and_get_fields("v_-01")
+        else:
+            fields = tpl.validate_and_get_fields("v_ -1")
+        self.assertEqual(fields, {"version_number": -1})
 
         # It should match a template with too many digits.
-        fields = tpl.validate_and_get_fields("v20000")
+        fields = tpl.validate_and_get_fields("v_20000")
         self.assertEqual(fields, {"version_number": 20000})
+        fields = tpl.validate_and_get_fields("v_-20000")
+        self.assertEqual(fields, {"version_number": -20000})
 
         # From path to tokens back to path should be lossy.
-        fields = tpl.validate_and_get_fields("v1")
-        self.assertEqual("v%s1" % padding_char, tpl.apply_fields(fields))
+        fields = tpl.validate_and_get_fields("v_1")
+        self.assertEqual("v_%s%s1" % (padding_char, padding_char), tpl.apply_fields(fields))
 
-        # 0 is valid and should not be confused with padding.
-        key.value_from_str("0")
-        # a single digit should work
-        key.value_from_str("1")
-        # two of them should work too.
-        key.value_from_str("11")
-        # three of them should work too.
-        key.value_from_str("111")
+        # From path to tokens back to path should be lossy.
+        fields = tpl.validate_and_get_fields("v_-1")
+        if padding_char == "0":
+            self.assertEqual("v_-01", tpl.apply_fields(fields))
+        else:
+            self.assertEqual("v_ -1", tpl.apply_fields(fields))
 
         # It shouldn't match because the value 0 wouldn't take more space then the format spec
         # specifies
-        with self.assertRaisesRegexp(TankError, "yet value is 0"):
-            key.value_from_str("000")
+        with self.assertRaisesRegexp(TankError, "not a non zero integer"):
+            key.value_from_str("%s%s%s0" % (padding_char, padding_char, padding_char))
+
+        with self.assertRaisesRegexp(TankError, "not a non zero integer"):
+            key.value_from_str("0000")
+
+        with self.assertRaisesRegexp(TankError, "not a non zero integer"):
+            key.value_from_str("-00")
 
         # It shouldn't match because there is too much padding.
-        with self.assertRaisesRegexp(TankError, "does not match format spec"):
-            key.value_from_str("001")
+        with self.assertRaisesRegexp(TankError, "not a non zero integer"):
+            key.value_from_str("%s%s%s1" % (padding_char, padding_char, padding_char))
 
-        # It shouldn't match because it is not a number
+        # It shouldn't match because it is not a non zero integer
+        with self.assertRaisesRegexp(TankError, "not a non zero integer"):
+            key.value_from_str("aaaa")
+
+        # Equal or lower size should fail is not matching the spec
         with self.assertRaisesRegexp(TankError, "does not match format spec"):
-            key.value_from_str("aaa")
+            key.value_from_str("%sa" % padding_char)
+
+        # Equal or lower size should fail is not matching the spec
+        with self.assertRaisesRegexp(TankError, "does not match format spec"):
+            key.value_from_str("a0")
+
+        # Equal or lower size should fail is not matching the spec
+        with self.assertRaisesRegexp(TankError, "does not match format spec"):
+            key.value_from_str("aa")
 
         # It shouldn't match because there is padding when there shouldn't be.
-        with self.assertRaisesRegexp(TankError, "does not match format spec"):
-            IntegerKey("version_number", format_spec="01", strict_matching=False).value_from_str("01")
+        with self.assertRaisesRegexp(TankError, "not a non zero integer"):
+            IntegerKey(
+                "version_number", format_spec="%s1" % padding_char, strict_matching=False
+            ).value_from_str("01")
 
         # Again, it shouldn't match because the value 0 wouldn't take more space then the format
         # spec specifies
-        with self.assertRaisesRegexp(TankError, "does not match format spec"):
-            IntegerKey("version_number", format_spec="01", strict_matching=False).value_from_str("00")
+        with self.assertRaisesRegexp(TankError, "not a non zero integer"):
+            IntegerKey(
+                "version_number", format_spec="%s1" % padding_char, strict_matching=False
+            ).value_from_str("00")
 
     def test_non_strict_matching(self):
         """
@@ -539,7 +569,6 @@ class TestIntegerKey(TankTestBase):
         """
         self._test_non_strict_matching(' ')
         self._test_non_strict_matching('0')
-
 
     def _validate_key(self, key, strict_matching, format_spec):
         """
