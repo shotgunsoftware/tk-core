@@ -283,7 +283,7 @@ class TestIntegerKey(TankTestBase):
 
     def test_str_from_value_bad(self):
         value = "a"
-        expected = "%s Illegal value %s, expected an Integer" % (str(self.int_field), value)
+        expected = "%s Illegal value '%s', expected an Integer" % (str(self.int_field), value)
         self.check_error_message(TankError, expected, self.int_field.str_from_value, value)
 
     def test_str_from_value_formatted(self):
