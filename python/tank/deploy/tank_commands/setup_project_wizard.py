@@ -640,5 +640,4 @@ class SetupProjectWizard(object):
         if core_settings["localize"]:
             core_localize.do_localize(self._log, 
                                       self._params.get_configuration_location(sys.platform), 
-                                      suppress_prompts=True,
-                                      strip_toolkit_credentials=False)
+                                      suppress_prompts=True)
