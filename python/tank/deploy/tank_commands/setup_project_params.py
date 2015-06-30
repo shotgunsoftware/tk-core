@@ -281,13 +281,13 @@ class ProjectSetupParameters(object):
         if self._config_template is None:
             raise TankError("Please specify a configuration template!")
 
-        if not self._config_template.is_local_configuration():
+        if not self._config_template.is_configured_project():
             return False
 
         field_name = {"win32": "windows_path", "linux2": "linux_path", "darwin": "mac_path"}[sys.platform]
         
         data = self._sg.find_one("PipelineConfiguration", 
-                                 [[field_name, "is", self._config_template.get_pipeline_configuration_uri()]],
+                                 [[field_name, "is", self._config_template.get_pipeline_configuration()]],
                                  ["id", 
                                   "code", 
                                   "mac_path", 
@@ -792,6 +792,8 @@ class TemplateConfiguration(object):
     For git, the git repo is cloned into the config location, therefore being a live repository
     to which changes later on can be pushed or pulled.
     """
+
+    _CONFIGURED_PROJECT = "configured_project"
     
     def __init__(self, config_uri, sg, sg_app_store, script_user, log):
         """
@@ -1027,8 +1029,8 @@ class TemplateConfiguration(object):
         Looks at the starter config string and tries to convert it into a folder
         Returns a path to a config.
         
-        :param config_uri: config path of some kind (git/appstore/local)
-        :returns: tuple with (tmp_path_to_config, config_type) where config_type is local/zip/git/app_store
+        :param config_uri: config path of some kind (git/appstore/configured_project)
+        :returns: tuple with (tmp_path_to_config, config_type) where config_type is configured_project/zip/git/app_store
         """
         # three cases:
         # tk-config-xyz
@@ -1048,7 +1050,7 @@ class TemplateConfiguration(object):
                     return (self._process_config_zip(config_uri), "zip")
                 else:
                     self._log.info("Hang on, loading configuration...")
-                    return (self._process_config_dir(config_uri), "local")
+                    return (self._process_config_dir(config_uri), self._CONFIGURED_PROJECT)
             else:
                 raise TankError("File path %s does not exist on disk!" % config_uri)    
         
@@ -1198,15 +1200,16 @@ class TemplateConfiguration(object):
         """
         return self._config_uri
 
-    def is_local_configuration(self):
+    def is_configured_project(self):
         """
-        Returns if the configuration is local.
+        Returns if the configuration is from a configured project.
 
-        :returns: True if the configuration is local, False if it comes from the AppStore, GitHub or a zip file.
+        :returns: True if the configuration is from a project, False if it comes from the AppStore, GitHub or a zip
+                  file.
         """
-        return self._config_mode == "local"
+        return self._config_mode == self._CONFIGURED_PROJECT
 
-    def get_pipeline_configuration_uri(self):
+    def get_pipeline_configuration(self):
         """
         Resolves the potential pipeline configuration based on the configuration uri. Potential is employed here because
         there's no guarantee this folder is actually part of a pipeline configuration.
@@ -1216,8 +1219,8 @@ class TemplateConfiguration(object):
         :raises TankError: This exception is raised when the configuration was pulled from GitHub, AppStore or zip file,
             since no pipeline configuration can be associated with these.
         """
-        if not self.is_local_configuration():
-            raise TankError("Pipeline configuration uri only exists for local paths!")
+        if not self.is_configured_project():
+            raise TankError("Pipeline configuration uri only exists for configured projects!")
 
         # The config uri points to the config folder inside the pipeline configuration, so we'll have to step out
         # for this one.
