@@ -17,6 +17,7 @@ import os
 import sys
 import traceback
 import weakref
+import threading
         
 from .. import loader
 from .. import hook
@@ -408,22 +409,27 @@ class Engine(TankBundle):
     def destroy(self):
         """
         Destroy all apps, then call destroy_engine so subclasses can add their own tear down code.
-        
+
         This method should not be subclassed.
         """
         self.__destroy_frameworks()
         self.__destroy_apps()
-        
+
         self.log_debug("Destroying %s" % self)
         self.destroy_engine()
-        
+
         # finally remove the current engine reference
         set_current_engine(None)
-        
+
         # now clear the hooks cache to make sure fresh hooks are loaded the 
         # next time an engine is initialized
         hook.clear_hooks_cache()
-    
+
+        # clean up the main thread invoker - it's a QObject so it's important we
+        # explicitly set the value to None!
+        if self._invoker:
+            self._invoker = None
+
     def destroy_engine(self):
         """
         Called when the engine should tear down itself and all its apps.
@@ -487,10 +493,46 @@ class Engine(TankBundle):
         """
         Execute the specified function in the main thread when called from a non-main
         thread.  This will block the calling thread until the function returns.
-        
+
         Note, this currently only works if Qt is available, otherwise it just
         executes on the current thread.
+
+        # ---------------------------------------------------------------------------------
+        # The following test checks that execute_in_main_thread is itself thread-safe!  It
+        # runs a simple test a number of times in multiple threads and ensures the result
+        # returned is as expected.  If this isn't the case it will print out one or more:
+        #     'Result mismatch...'
+        #
+        import threading
+        import random
+        import time
+        import sgtk
+        from sgtk.platform.qt import QtCore
         
+        NUM_TEST_THREADS=20
+        NUM_THREAD_ITERATIONS=30
+        
+        def run_in_main_thread(v):
+            print "Running", v
+            return v
+            
+        def threaded_work(val):
+            eng = sgtk.platform.current_engine()
+            for i in range(NUM_THREAD_ITERATIONS):
+                time.sleep(random.randint(0, 10)/10.0)
+                arg = (val, i)
+                ret_val = eng.execute_in_main_thread(run_in_main_thread, arg)
+                if ret_val != arg:
+                    print "Result mismatch: %s != %s!!" % (ret_val, arg)
+        
+        threads = []
+        for ti in range(NUM_TEST_THREADS):
+            t = threading.Thread(target=lambda:threaded_work(ti))
+            t.start()
+            threads.append(t)
+        # ---------------------------------------------------------------------------------
+        # ---------------------------------------------------------------------------------
+
         :param func: function to call
         :param args: arguments to pass to the function
         :param kwargs: named arguments to pass to the function
@@ -959,33 +1001,59 @@ class Engine(TankBundle):
         """
         Create the object used to invoke function calls on the main thread when
         called from a different thread.
-        
+
         :returns:  Invoker instance
         """
         if self.has_ui:
             from .qt import QtGui, QtCore
             if QtGui and QtCore:
                 class Invoker(QtCore.QObject):
+                    """
+                    Invoker class - implements a mechanism to execute a function with arbitrary
+                    args in the main thread.
+                    """
                     def __init__(self):
+                        """
+                        Construction
+                        """
                         QtCore.QObject.__init__(self)
+                        self._lock = threading.Lock()
+                        self._fn = None
                         self._res = None
-                        
+
                     def invoke(self, fn, *args, **kwargs):
-                        self._fn = lambda: fn(*args, **kwargs) 
-                        self._res = None
-                        
-                        QtCore.QMetaObject.invokeMethod(self, "_do_invoke", QtCore.Qt.BlockingQueuedConnection)
-                        
-                        return self._res
-                
+                        """
+                        Invoke the specified function with the specified args in the main thread
+
+                        :param fn:          The function to execute in the main thread
+                        :param *args:       Args for the function
+                        :param **kwargs:    Named arguments for the function
+                        :returns:           The result returned by the function
+                        """
+                        # acquire lock to ensure that the function and result are not overwritten 
+                        # by syncrounous calls to this method from different threads
+                        self._lock.acquire()
+                        try:
+                            self._fn = lambda: fn(*args, **kwargs)
+                            self._res = None
+
+                            # invoke the internal _do_invoke method that will actually run the function.  Note that
+                            # we are unable to pass/return arguments through invokeMethod as this isn't properly
+                            # supported by PySide.
+                            QtCore.QMetaObject.invokeMethod(self, "_do_invoke", QtCore.Qt.BlockingQueuedConnection)
+
+                            return self._res
+                        finally:
+                            self._lock.release()
+
                     @qt.QtCore.Slot()
                     def _do_invoke(self):
                         """
-                        Execute function and return result
+                        Execute the function
                         """
                         self._res = self._fn()
 
-                # Make sure that the invoker is for the main thread only.
+                # Make sure that the invoker exists in the main thread:
                 invoker = Invoker()
                 invoker.moveToThread(QtCore.QThread.currentThread())
                 return invoker
@@ -993,7 +1061,6 @@ class Engine(TankBundle):
         # don't have ui so can't create an invoker!
         return None
 
-            
     ##########################################################################################
     # private         
         
