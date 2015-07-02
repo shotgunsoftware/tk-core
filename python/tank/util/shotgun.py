@@ -14,6 +14,7 @@ Shotgun utilities
 """
 
 import os
+import sys
 import urllib
 import urllib2
 import urlparse
@@ -260,10 +261,19 @@ def download_url(sg, url, location):
     if sg.config.proxy_handler:
         opener = urllib2.build_opener(sg.config.proxy_handler)
         urllib2.install_opener(opener)
-        
-    # download the tiven url
+    
+    # inherit the timeout value from the sg API    
+    timeout = sg.config.timeout_secs
+    
+    # download the given url
     try:
-        response = urllib2.urlopen(url)
+        if timeout and sys.version_info >= (2,6):
+            # timeout parameter only available in python 2.6+
+            response = urllib2.urlopen(url, timeout=timeout)
+        else:
+            # use system default
+            response = urllib2.urlopen(url)
+            
         f = open(location, "wb")
         try:
             f.write(response.read())
