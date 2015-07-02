@@ -114,6 +114,9 @@ ENVIRONMENT_LOCATION_KEY = "location"
 # the file to look for that defines and bootstraps an app
 APP_FILE = "app.py"
 
+# an optional stylesheet that can be defined by bundles
+BUNDLE_STYLESHEET_FILE = "style.css"
+
 # the storage name that is treated to be the primary storage for tank
 PRIMARY_STORAGE_NAME = "primary"
 

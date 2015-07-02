@@ -668,6 +668,9 @@ class Engine(TankBundle):
         # create the widget:
         widget = self._create_widget(widget_class, *args, **kwargs)
         
+        # apply style sheet
+        self._apply_external_styleshet(bundle, widget)        
+        
         # create the dialog:
         dialog = self._create_dialog(title, bundle, widget, parent)
         return (dialog, widget)
@@ -797,6 +800,37 @@ class Engine(TankBundle):
         
         # lastly, return the instantiated widget
         return (status, widget)
+    
+    def _apply_external_styleshet(self, bundle, widget):
+        """
+        Apply an std external stylesheet, associated with a bundle, to a widget.
+        
+        This will check if a standard style.css file exists in the
+        app/engine/framework root location on disk and if so load it from 
+        disk and apply to the given widget. The style sheet is cascading, meaning 
+        that it will affect all children of the given widget. Typically this is used
+        at window creation in order to allow newly created dialogs to apply app specific
+        styles easily.
+        
+        :param bundle: app/engine/framework instance to load style sheet from
+        :param widget: widget to apply stylesheet to 
+        """
+        css_file = os.path.join(bundle.disk_location, constants.BUNDLE_STYLESHEET_FILE)
+
+        if os.path.exists(css_file):
+            self.log_debug("Detected style sheet file '%s' - applying to widget %s" % (css_file, widget))
+            try:
+                # Read css file
+                f = open(css_file, "rt")
+                css_data = f.read()
+                # apply style sheet to widget
+                widget.setStyleSheet(css_data)
+            except Exception, e:
+                # catch-all and issue a warning and continue.
+                self._app.log_warning( "Could not apply stylesheet '%s': %s" % (css_file, e) )
+            finally:
+                f.close()
+    
     
     def _define_qt_base(self):
         """
