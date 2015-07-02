@@ -281,7 +281,7 @@ class ProjectSetupParameters(object):
         if self._config_template is None:
             raise TankError("Please specify a configuration template!")
 
-        if not self._config_template.is_configured_project():
+        if not self._config_template.is_project_config():
             return False
 
         field_name = {"win32": "windows_path", "linux2": "linux_path", "darwin": "mac_path"}[sys.platform]
@@ -793,7 +793,7 @@ class TemplateConfiguration(object):
     to which changes later on can be pushed or pulled.
     """
 
-    _CONFIGURED_PROJECT = "configured_project"
+    _PROJECT_CONFIG = "project"
     
     def __init__(self, config_uri, sg, sg_app_store, script_user, log):
         """
@@ -1050,7 +1050,7 @@ class TemplateConfiguration(object):
                     return (self._process_config_zip(config_uri), "zip")
                 else:
                     self._log.info("Hang on, loading configuration...")
-                    return (self._process_config_dir(config_uri), self._CONFIGURED_PROJECT)
+                    return (self._process_config_dir(config_uri), self._PROJECT_CONFIG)
             else:
                 raise TankError("File path %s does not exist on disk!" % config_uri)    
         
@@ -1200,14 +1200,14 @@ class TemplateConfiguration(object):
         """
         return self._config_uri
 
-    def is_configured_project(self):
+    def is_project_config(self):
         """
         Returns if the configuration is from a configured project.
 
         :returns: True if the configuration is from a project, False if it comes from the AppStore, GitHub or a zip
                   file.
         """
-        return self._config_mode == self._CONFIGURED_PROJECT
+        return self._config_mode == self._PROJECT_CONFIG
 
     def get_pipeline_configuration(self):
         """
@@ -1219,7 +1219,7 @@ class TemplateConfiguration(object):
         :raises TankError: This exception is raised when the configuration was pulled from GitHub, AppStore or zip file,
             since no pipeline configuration can be associated with these.
         """
-        if not self.is_configured_project():
+        if not self.is_project_config():
             raise TankError("Pipeline configuration uri only exists for configured projects!")
 
         # The config uri points to the config folder inside the pipeline configuration, so we'll have to step out
