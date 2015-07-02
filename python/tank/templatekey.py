@@ -412,7 +412,7 @@ class IntegerKey(TemplateKey):
         # fail if spaces are at the beginning of a string, so strip them out.
         if self._padding_char == ' ':
             value = value.lstrip()
-        # Is digit is the legacy way to test for a number, so keep it
+        # Is digit is how we tested for a number before strict_matching was introduced, so don't change that behaviour
         if not value.isdigit():
             self._last_error = "%s Illegal value '%s', expected an Integer" % (self, value)
             return False
