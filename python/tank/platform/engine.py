@@ -507,24 +507,33 @@ class Engine(TankBundle):
         import random
         import time
         import sgtk
-        from sgtk.platform.qt import QtCore
-        
+        from sgtk.platform.qt import QtCore, QtGui
+
         NUM_TEST_THREADS=20
         NUM_THREAD_ITERATIONS=30
-        
+
         def run_in_main_thread(v):
             print "Running", v
+            if QtCore.QThread.currentThread() != QtGui.QApplication.instance().thread():
+                print " > but not running in main thread!"
             return v
-            
+
         def threaded_work(val):
             eng = sgtk.platform.current_engine()
+            c_time = 0.0
             for i in range(NUM_THREAD_ITERATIONS):
                 time.sleep(random.randint(0, 10)/10.0)
                 arg = (val, i)
+                st = time.time()
                 ret_val = eng.execute_in_main_thread(run_in_main_thread, arg)
+                e = time.time()
+                #print "Time to run: %0.4fs" % (e-st)
+                c_time += (e-st)
                 if ret_val != arg:
                     print "Result mismatch: %s != %s!!" % (ret_val, arg)
-        
+
+            print "Cumulative time for thread %d: %0.4fs" % (val, c_time)
+
         threads = []
         for ti in range(NUM_TEST_THREADS):
             t = threading.Thread(target=lambda:threaded_work(ti))
@@ -536,7 +545,7 @@ class Engine(TankBundle):
         :param func: function to call
         :param args: arguments to pass to the function
         :param kwargs: named arguments to pass to the function
-        
+
         :returns: the result of the function call
         """
         if self._invoker:
@@ -1055,7 +1064,8 @@ class Engine(TankBundle):
 
                 # Make sure that the invoker exists in the main thread:
                 invoker = Invoker()
-                invoker.moveToThread(QtCore.QThread.currentThread())
+                if QtGui.QApplication.instance():
+                    invoker.moveToThread(QtGui.QApplication.instance().thread())
                 return invoker
 
         # don't have ui so can't create an invoker!
