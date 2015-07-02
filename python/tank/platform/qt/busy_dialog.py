@@ -40,6 +40,17 @@ class BusyDialog(QtGui.QWidget):
         """
         self.ui.title.setText(title)
         self.ui.details.setText(details)
+
+    def mousePressEvent(self, event):
+        """
+        Called when the mouse is clicked in the widget
+        
+        :param event: QEvent
+        """
+        QtGui.QWidget.mousePressEvent(self, event)
+        # close the window if someone clicks it
+        self.close()
+        
                 
     @property
     def hide_tk_title_bar(self):
