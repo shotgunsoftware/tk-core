@@ -131,7 +131,6 @@ class TemplateKey(object):
         else:
             raise TankError(self._last_error)
 
-
     def value_from_str(self, str_value):
         """
         Validates and translates a string into an appropriate value for this key.
@@ -287,7 +286,14 @@ class TimestampKey(TemplateKey):
         """
         Constructor
         :param name: Name by which the key will be refered.
-        :param utc_default: If True, the default value will be an UTC time. Defaults to False.
+        :param default: Default value for this field. Acceptable values are
+                            - None
+                            - a datetime.datetime object
+                            - a string formatted according to the format_spec
+                            - utc_now, which means the current time in the UTC timezone will be used
+                              as the default value.
+                            - now, which means the current time in the local timezone will be used
+                              as the default value.
         :param format_spec: Specification for formating when casting to/from a string.
                             The format follows the convention of strftime and strptime. The
                             default value is "%Y-%m-%d-%H-%M-%S". Given June 24th, 2015 at
@@ -311,6 +317,10 @@ class TimestampKey(TemplateKey):
             elif default.lower() == "utc_now":
                 self._default_to_utc = True
                 default = self.__get_current_time
+            # Base class will validate other values using the format specifier.
+        elif not(default is None or isinstance(default, datetime.datetime)):
+            raise TankError("default for <Sgtk TimestampKey %s> is not of type string, "
+                            "datetime.datetime or None: %s" % (name, default.__class__.__name__))
 
         super(TimestampKey, self).__init__(
             name,
@@ -343,70 +353,31 @@ class TimestampKey(TemplateKey):
         :returns: Bool
         """
         if isinstance(value, basestring):
-            return self._validate_str(value)
+            # If we have a string we have to actually try to convert the string to see it if matches
+            # the expected format.
+            try:
+                datetime.datetime.strptime(value, self.format_spec)
+                return True
+            except ValueError, e:
+                # Bad value, report the error to the client code.
+                self._last_error = "Invalid string: %s" % e.message
+                return False
+        elif not isinstance(value, datetime.datetime):
+            self._last_error = "Invalid type: expecting string or datetime.datetime, not %s" % value.__class__.__name__
+            return False
         else:
-            return self._validate_value(value)
-
-    def _validate_str(self, str_value):
-        """
-        Test if a string is valid for this key.
-
-        :param str_value: String to test.
-
-        :returns: Bool
-        """
-        try:
-            self._as_value(str_value)
             return True
-        except ValueError, e:
-            self._last_error = "Invalid string: %s" % e.message
-        except TypeError, e:
-            self._last_error = "Invalid type: %s" % e.message
-        return False
-
-    def _validate_value(self, value):
-        """
-        Test if a string is valid for this key.
-
-        :param str_value: String to test.
-
-        :returns: Bool
-        """
-        try:
-            self._as_string(value)
-            return True
-        except TypeError, e:
-            self._last_error = "Invalid type: %s" % e.message
-        except ValueError:
-            self._last_error = "Invalid value: %s" % e.message
-        return False
 
     def _as_string(self, value):
         """
         Converts a given value as string.
 
-        :param value: Can be any of:
-                          - int or float representing seconds since epoch in local time.
-                          - datetime.datetime
-                          - datetime.time
-                          - datetime.date
-                          - time.struct_time
-                          - tuple of 9 integers
-                          - list of 9 integers
+        :param value: A datetime.datetime object that will be converted to a string according to the
+                      format specification.
 
         :returns: A string formatted according to the format_spec.
         """
-        if isinstance(value, int) or isinstance(value, float):
-            return datetime.datetime.fromtimestamp(value).strftime(self.format_spec)
-        elif (isinstance(value, datetime.datetime) or
-              isinstance(value, datetime.date) or
-              isinstance(value, datetime.time)):
-            return value.strftime(self.format_spec)
-        elif isinstance(value, time.struct_time) or isinstance(value, list) or isinstance(value, tuple):
-            return time.strftime(self.format_spec, value)
-        else:
-            raise TypeError("must be int, float, datetime.datetime, datetime.date, datetime.time, "
-                            "time.struct_time, tuple or list, not %s" % value.__class__.__name__)
+        return value.strftime(self.format_spec)
 
     def _as_value(self, str_value):
         """
