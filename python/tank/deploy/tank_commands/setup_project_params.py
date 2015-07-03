@@ -281,7 +281,7 @@ class ProjectSetupParameters(object):
         if self._config_template is None:
             raise TankError("Please specify a configuration template!")
 
-        if not self._config_template.is_project_config():
+        if not self._config_template.is_local_config():
             return False
 
         field_name = {"win32": "windows_path", "linux2": "linux_path", "darwin": "mac_path"}[sys.platform]
@@ -793,7 +793,7 @@ class TemplateConfiguration(object):
     to which changes later on can be pushed or pulled.
     """
 
-    _PROJECT_CONFIG = "project"
+    _LOCAL = "local"
     
     def __init__(self, config_uri, sg, sg_app_store, script_user, log):
         """
@@ -1050,7 +1050,7 @@ class TemplateConfiguration(object):
                     return (self._process_config_zip(config_uri), "zip")
                 else:
                     self._log.info("Hang on, loading configuration...")
-                    return (self._process_config_dir(config_uri), self._PROJECT_CONFIG)
+                    return (self._process_config_dir(config_uri), self._LOCAL)
             else:
                 raise TankError("File path %s does not exist on disk!" % config_uri)    
         
@@ -1200,14 +1200,13 @@ class TemplateConfiguration(object):
         """
         return self._config_uri
 
-    def is_project_config(self):
+    def is_local_config(self):
         """
-        Returns if the configuration is from a configured project.
+        Returns if the configuration is on the local disk.
 
-        :returns: True if the configuration is from a project, False if it comes from the AppStore, GitHub or a zip
-                  file.
+        :returns: True if the configuration is on the local disk, False otherwise.
         """
-        return self._config_mode == self._PROJECT_CONFIG
+        return self._config_mode == self._LOCAL
 
     def get_pipeline_configuration(self):
         """
@@ -1219,7 +1218,7 @@ class TemplateConfiguration(object):
         :raises TankError: This exception is raised when the configuration was pulled from GitHub, AppStore or zip file,
             since no pipeline configuration can be associated with these.
         """
-        if not self.is_project_config():
+        if not self.is_local_config():
             raise TankError(
                 "Cannot resolve pipeline configuration for '%s' because it doesn't belong to an existing project!" %
                 self._config_uri
