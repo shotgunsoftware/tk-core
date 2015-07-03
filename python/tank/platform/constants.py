@@ -121,7 +121,8 @@ BUNDLE_STYLESHEET_FILE = "custom.qss"
 SG_HIGHLIGHT_COLOR = "#30A7E3"
 
 # define the standard stylesheet replacements 
-QSS_REPLACEMENTS = { "SG_HIGHLIGHT_COLOR": SG_HIGHLIGHT_COLOR }
+QSS_REPLACEMENTS = { "SG_HIGHLIGHT_COLOR": SG_HIGHLIGHT_COLOR,
+                     "SG_ALERT_COLOR": "#FC6246"}
 
 # the storage name that is treated to be the primary storage for tank
 PRIMARY_STORAGE_NAME = "primary"
