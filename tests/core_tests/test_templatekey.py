@@ -711,23 +711,37 @@ class TestTimestamp(TankTestBase):
         Makes sure default values are as expected.
         """
         key = TimestampKey("name")
-        self.assertFalse(key.utc_default)
         self.assertEqual(key.format_spec, "%Y-%m-%d-%H-%M-%S")
+        self.assertIsNone(key.default)
 
     def test_init(self):
         """
         Tests the __init__ of TimestampKey.
         """
+        # No args should be time, it's just a timestamp with default formatting options.
         TimestampKey("name")
-        TimestampKey("name", utc_default=True)
-        TimestampKey("name", utc_default=False)
+        # While unlikely, hardcoding a timestamp matching the format spec should be time.
+        TimestampKey("name", default="2015-07-03-09-09-00")
+        # Hardcoding a default value with a custom format spec should be fine.
+        TimestampKey("name", default="03-07-2015", format_spec="%d-%m-%Y")
+        # utc and now are special cases that end up returning the current time as the default
+        # value.
+        TimestampKey("name", default="utc_now")
+        TimestampKey("name", default="now")
+        # One can override the format_spec without providing a default.
         TimestampKey("name", format_spec="%Y-%m-%d")
 
-        with self.assertRaisesRegexp(TankError, "is not of type boolean"):
-            TimestampKey("name", utc_default=1)
-
+        # format_spec has to be a string.
         with self.assertRaisesRegexp(TankError, "is not of type string"):
             TimestampKey("name", format_spec=1)
+
+        # Date that to be a valid time.
+        with self.assertRaisesRegexp(TankError, "Invalid string"):
+            TimestampKey("name", default="00-07-2015", format_spec="%d-%m-%Y")
+
+        # Date that to be a valid time.
+        with self.assertRaisesRegexp(TankError, "Invalid string"):
+            TimestampKey("name", default="not_a_date")
 
     def test_str_from_value(self):
         """
@@ -822,7 +836,7 @@ class TestTimestamp(TankTestBase):
         # Mock it to the expected date.
         _get_time_mock.return_value = self._date_datetime
         # Create a template using our key.
-        key = TimestampKey("datetime")
+        key = TimestampKey("datetime", default="now")
 
         # apply fields with no value for datetime, which will generate a default
         # value by calling __get_current_time

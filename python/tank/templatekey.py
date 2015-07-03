@@ -281,7 +281,7 @@ class TimestampKey(TemplateKey):
     def __init__(
         self,
         name,
-        utc_default=False,
+        default=None,
         format_spec="%Y-%m-%d-%H-%M-%S"
     ):
         """
@@ -293,19 +293,28 @@ class TimestampKey(TemplateKey):
                             default value is "%Y-%m-%d-%H-%M-%S". Given June 24th, 2015 at
                             9:20:30 PM, this will yield 2015-06-24-21-20-30
         """
+
+        # Can't use __repr__ because of a chicken and egg problem. The base class validates the
+        # default value, so format_spec needs to be set first. But if I am testing format_spec
+        # before calling the base class, then repr will crash since self.name won't have been set
+        # yet.
         if isinstance(format_spec, basestring) is False:
-            raise TankError("format_spec for TimestampKey %s is not of type string: %s" %
+            raise TankError("format_spec for <Sgtk TimestampKey %s> is not of type string: %s" %
                             (name, format_spec.__class__.__name__))
         self.format_spec = format_spec
 
-        if isinstance(utc_default, bool) is False:
-            raise TankError("utc_default for TimestampKey %s is not of type boolean: %s" %
-                            (name, utc_default.__class__.__name__))
-        self.utc_default = utc_default
+        if isinstance(default, basestring):
+            # if the user passes in now or utc, we'll generate the current time as the default time.
+            if default.lower() == "now":
+                self._default_to_utc = False
+                default = self.__get_current_time
+            elif default.lower() == "utc_now":
+                self._default_to_utc = True
+                default = self.__get_current_time
 
         super(TimestampKey, self).__init__(
             name,
-            default=self.__get_current_time
+            default=default
         )
 
     def __get_current_time(self):
@@ -320,7 +329,7 @@ class TimestampKey(TemplateKey):
                   a datetime object representing time in the local timezone. In any case, the tzinfo
                   member is None.
         """
-        if self.utc_default:
+        if self._default_to_utc:
             return datetime.datetime.utcnow()
         else:
             return datetime.datetime.now()
@@ -333,7 +342,7 @@ class TimestampKey(TemplateKey):
 
         :returns: Bool
         """
-        if isinstance(value, basestring) or isinstance(value, unicode):
+        if isinstance(value, basestring):
             return self._validate_str(value)
         else:
             return self._validate_value(value)
@@ -351,10 +360,9 @@ class TimestampKey(TemplateKey):
             return True
         except ValueError, e:
             self._last_error = "Invalid string: %s" % e.message
-            return False
         except TypeError, e:
             self._last_error = "Invalid type: %s" % e.message
-            return False
+        return False
 
     def _validate_value(self, value):
         """
@@ -366,13 +374,12 @@ class TimestampKey(TemplateKey):
         """
         try:
             self._as_string(value)
+            return True
         except TypeError, e:
             self._last_error = "Invalid type: %s" % e.message
-            return False
         except ValueError:
             self._last_error = "Invalid value: %s" % e.message
-            return False
-        return True
+        return False
 
     def _as_string(self, value):
         """
