@@ -51,7 +51,7 @@ QWidget
 QTreeView, QTableView, QListView, QTreeWidget, QTableWidget, QListWidget, QColumnView
 {
     /* Certain widgets don't pick up the selection bg color properly from the palette */
-    selection-background-color: #30A7E3;
+    selection-background-color: {{SG_HIGHLIGHT_COLOR}};
     selection-color: #FFFFFF;
 }
 

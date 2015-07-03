@@ -801,6 +801,21 @@ class Engine(TankBundle):
         # lastly, return the instantiated widget
         return (status, widget)
     
+    def _resolve_sg_stylesheet_tokens(self, style_sheet):
+        """
+        Given a string containing a qt style sheet,
+        perform replacements of key toolkit tokens.
+        
+        For example, "{{SG_HIGHLIGHT_COLOR}}" is converted to "#30A7E3"
+        
+        :param style_sheet: Stylesheet string to process
+        :returns: Stylesheet string with replacements applied
+        """
+        processed_style_sheet = style_sheet
+        for (token, value) in constants.QSS_REPLACEMENTS.iteritems():
+            processed_style_sheet = processed_style_sheet.replace("{{%s}}" % token, value)
+        return processed_style_sheet
+    
     def _apply_external_styleshet(self, bundle, widget):
         """
         Apply an std external stylesheet, associated with a bundle, to a widget.
@@ -815,19 +830,21 @@ class Engine(TankBundle):
         :param bundle: app/engine/framework instance to load style sheet from
         :param widget: widget to apply stylesheet to 
         """
-        css_file = os.path.join(bundle.disk_location, constants.BUNDLE_STYLESHEET_FILE)
+        qss_file = os.path.join(bundle.disk_location, constants.BUNDLE_STYLESHEET_FILE)
 
-        if os.path.exists(css_file):
-            self.log_debug("Detected style sheet file '%s' - applying to widget %s" % (css_file, widget))
+        if os.path.exists(qss_file):
+            self.log_debug("Detected std style sheet file '%s' - applying to widget %s" % (qss_file, widget))
             try:
                 # Read css file
-                f = open(css_file, "rt")
-                css_data = f.read()
-                # apply style sheet to widget
-                widget.setStyleSheet(css_data)
+                f = open(qss_file, "rt")
+                qss_data = f.read()
+                # resolve tokens
+                qss_data = self._resolve_sg_stylesheet_tokens(qss_data)
+                # apply to widget (and all its children)
+                widget.setStyleSheet(qss_data)
             except Exception, e:
                 # catch-all and issue a warning and continue.
-                self._app.log_warning( "Could not apply stylesheet '%s': %s" % (css_file, e) )
+                self._app.log_warning( "Could not apply stylesheet '%s': %s" % (qss_file, e) )
             finally:
                 f.close()
     
@@ -916,7 +933,7 @@ class Engine(TankBundle):
             fh.close()
             
             # set the std selection bg color to be 'shotgun blue'
-            self._dark_palette.setBrush(QtGui.QPalette.Highlight, QtGui.QBrush(QtGui.QColor("#30A7E3")))
+            self._dark_palette.setBrush(QtGui.QPalette.Highlight, QtGui.QBrush(QtGui.QColor(constants.SG_HIGHLIGHT_COLOR)))
             self._dark_palette.setBrush(QtGui.QPalette.HighlightedText, QtGui.QBrush(QtGui.QColor("#FFFFFF")))
             
             # and associate it with the qapplication
@@ -932,7 +949,9 @@ class Engine(TankBundle):
             f = open(css_file)
             css_data = f.read()
             f.close()
+            css_data = self._resolve_sg_stylesheet_tokens(css_data)
             app = QtCore.QCoreApplication.instance()
+            
             app.setStyleSheet(css_data)
         except Exception, e:
             self.log_error("The standard toolkit dark stylesheet could not be set up! The look and feel of your "

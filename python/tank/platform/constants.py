@@ -115,7 +115,13 @@ ENVIRONMENT_LOCATION_KEY = "location"
 APP_FILE = "app.py"
 
 # an optional stylesheet that can be defined by bundles
-BUNDLE_STYLESHEET_FILE = "style.css"
+BUNDLE_STYLESHEET_FILE = "custom.qss"
+
+# define the standard "shotgun blue"
+SG_HIGHLIGHT_COLOR = "#30A7E3"
+
+# define the standard stylesheet replacements 
+QSS_REPLACEMENTS = { "SG_HIGHLIGHT_COLOR": SG_HIGHLIGHT_COLOR }
 
 # the storage name that is treated to be the primary storage for tank
 PRIMARY_STORAGE_NAME = "primary"
