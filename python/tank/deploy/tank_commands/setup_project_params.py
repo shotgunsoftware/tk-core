@@ -1220,7 +1220,10 @@ class TemplateConfiguration(object):
             since no pipeline configuration can be associated with these.
         """
         if not self.is_project_config():
-            raise TankError("Pipeline configuration uri only exists for configured projects!")
+            raise TankError(
+                "Cannot resolve pipeline configuration for '%s' because it doesn't belong to an existing project!" %
+                self._config_uri
+            )
 
         # The config uri points to the config folder inside the pipeline configuration, so we'll have to step out
         # for this one.
