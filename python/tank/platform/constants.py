@@ -115,7 +115,7 @@ ENVIRONMENT_LOCATION_KEY = "location"
 APP_FILE = "app.py"
 
 # an optional stylesheet that can be defined by bundles
-BUNDLE_STYLESHEET_FILE = "custom.qss"
+BUNDLE_STYLESHEET_FILE = "style.qss"
 
 # define the standard "shotgun blue"
 SG_HIGHLIGHT_COLOR = "#30A7E3"
