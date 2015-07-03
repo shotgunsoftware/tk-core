@@ -291,9 +291,17 @@ class IntegerKey(TemplateKey):
         :param exclusions: List of forbidden values.
         :param abstract: Bool, should this key be treated as abstract.
         :param length: int, should this key be fixed length
+        :param strict_matching: Bool, indicates if the padding should be matching exactly the
+                                format_spec when parsing a string. Default behavior is to match
+                                exactly the padding when a format_spec is provided.
         """
-
+        self._zero_padded = None
+        self._minimum_width = None
+        self.format_spec = None
+        self.strict_matching = None
+        # Validate and set up formatting details
         self._init_format_spec(name, format_spec)
+        # Validate and set up strict matching defailts
         self._init_strict_matching(name, strict_matching)
         super(IntegerKey, self).__init__(name,
                                          default=default,
@@ -316,26 +324,23 @@ class IntegerKey(TemplateKey):
         """
         # No format spec means no formatting options.
         if format_spec is None:
-            self._padding_char = None
-            self._minimum_width = None
-            self.format_spec = None
             return
 
-        if isinstance(format_spec, basestring) is False:
+        if not isinstance(format_spec, basestring):
             msg = "format_spec for IntegerKey %s is not of type string: %s"
-            raise TankError(msg % (name, str(format_spec)))
+            raise TankError(msg % (name, format_spec))
 
         if len(format_spec) == 0:
             raise TankError("format_spec can't be empty.")
 
         matches = self._FORMAT_SPEC_RE.match(format_spec)
         if not matches:
-            raise TankError("format_spec for IntegerKey %s has to either be a number (e.g. '3') or "
+            raise TankError("format_spec for <Sgtk IntegerKey %s> has to either be a number (e.g. '3') or "
                             "a 0 followed by a number (e.g. '03'), not '%s'" % (name, format_spec))
 
         groups = matches.groups()
         # groups[0] is either '' or '0', in which case the padding is ' '
-        self._padding_char = groups[0] or ' '
+        self._zero_padded = groups[0] == "0"
         # groups[1] is the minimum width of the number.
         self._minimum_width = int(groups[1])
         self.format_spec = format_spec
@@ -351,7 +356,7 @@ class IntegerKey(TemplateKey):
         """
         # make sure that strict_matching is not set or that it is a boolean
         if not(strict_matching is None or isinstance(strict_matching, bool)):
-            msg = "strict_matching for IntegerKey %s is not of type boolean: %s"
+            msg = "strict_matching for <Sgtk IntegerKey %s> is not of type boolean: %s"
             raise TankError(msg % (name, str(strict_matching)))
 
         # If there is a format and strict_matching is set, there's an error, since there
@@ -367,10 +372,13 @@ class IntegerKey(TemplateKey):
         if strict_matching:
             # This regular expression is blind to the actual length of the string for performance
             # reasons. Code that uses it should test that the string's length is of
-            # self._minimum_width first. It first matches up to n-1 0s. It then matches either a
-            # single 0, or an actual two digit number that doesn't start with 0.
+            # self._minimum_width first. It first matches up to n-1 padding characters. It then
+            # matches either a single 0, or an actual multiple digit number that doesn't start with
+            # 0.
             self._strict_validation_re = re.compile("^%s{0,%d}((%s)|0)$" % (
-                self._padding_char, self._minimum_width - 1, self._NON_ZERO_POSITIVE_INTEGER_EXP)
+                "0" if self._zero_padded else ' ',
+                self._minimum_width - 1,
+                self._NON_ZERO_POSITIVE_INTEGER_EXP)
             )
         else:
             self._strict_validation_re = None
@@ -383,7 +391,7 @@ class IntegerKey(TemplateKey):
 
         :param value: Value to validate.
 
-        :returns: True is the validation was succesfull, False otherwise.
+        :returns: True is the validation was succesful, False otherwise.
         """
         if value is not None:
             if isinstance(value, basestring):
@@ -403,6 +411,11 @@ class IntegerKey(TemplateKey):
         Checks if the value loosely matches. The value loosely matches if it can be turned into an
         int.
 
+        For a given format_spec of "03", here are examples of loosely matching values:
+        - '1'        (missing padding)
+        - '00000001' (too much padding)
+        - '       1' (too much padding)
+
         :param value: String to test
 
         :returns: True if it loosely matches, False otherwise.
@@ -410,7 +423,7 @@ class IntegerKey(TemplateKey):
         # This is the extent of what was tested before strict matching. We're actually a bit more permissive,
         # because the user could have specified a format specifier that uses spaces for padding, but isdigit will
         # fail if spaces are at the beginning of a string, so strip them out.
-        if self._padding_char == ' ':
+        if not self._zero_padded:
             value = value.lstrip()
         # Is digit is how we tested for a number before strict_matching was introduced, so don't change that behaviour
         if not value.isdigit():
@@ -421,21 +434,31 @@ class IntegerKey(TemplateKey):
     def _strictly_matches(self, value):
         """
         Checks if the value strictly matches the format_spec. A value strictly matches the format
-        spec when it both loosely matches it and is at least as wide as the minimum character
-        length.
+        it is at least as wide as the minimum character length. If the string is wider, it must
+        be a non zero positive number. If it is as wide, is must be a padded positive integer.
+
+        :param value: Value to test
+
+        :returns: True if the value strictly matches the format spec, False otherwise.
         """
-        error_msg = "%s Illegal value %s, does not match format spec '%s'" % (self, value, self.format_spec)
-        # If there are more characters than the maximum size, we should have a non zero positive number
+        error_msg = "%s Illegal value '%s', does not match format spec '%s'" % (self, value, self.format_spec)
+        # If there are more characters than the minimum size, we should have a non zero positive number
         if len(value) > self._minimum_width:
             if not self._NON_ZERO_POSITIVE_INTEGER_RE.match(value):
                 self._last_error = error_msg
                 return False
             return True
 
+        # If there are less characters than the minimum size, then then there is no strict matching.
         if len(value) < self._minimum_width:
             self._last_error = error_msg
             return False
 
+        # If there are many characters as the format_spec requires, we'll validate that things are
+        # padded accordingly. Example of things that will fail are.
+        # - '01a'
+        # - '0 1'
+        # - ' 01'
         matches = self._strict_validation_re.match(value)
         if not matches:
             self._last_error = error_msg

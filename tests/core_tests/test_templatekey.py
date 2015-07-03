@@ -411,11 +411,6 @@ class TestIntegerKey(TankTestBase):
         :param padding_char: Character to test padding with. Should be space or 0.
         """
         key = IntegerKey("version_number", format_spec="%s3" % padding_char, strict_matching=False)
-        keys = {
-            "version_number": key
-        }
-        definition = "v_{version_number}"
-        tpl = TemplatePath(definition, keys, "")
 
         # The padding char is missing in the format specifier, but we still need when validating
         # results.
@@ -423,29 +418,24 @@ class TestIntegerKey(TankTestBase):
             padding_char = ' '
 
         # It should match because they are valid numbers.
-        fields = tpl.validate_and_get_fields("v_000")
-        self.assertEqual(fields, {"version_number": 0})
-        fields = tpl.validate_and_get_fields("v_00")
-        self.assertEqual(fields, {"version_number": 0})
-        fields = tpl.validate_and_get_fields("v_0")
-        self.assertEqual(fields, {"version_number": 0})
+
+        self.assertEqual(key.value_from_str("000"), 0)
+        self.assertEqual(key.value_from_str("0"), 0)
+        self.assertEqual(key.value_from_str("0"), 0)
 
         # While the number doesn't make any sense as far as formatting is concerned, this used
         # to work in old versions of Toolkit and needs to keep working in non strict mode.
-        fields = tpl.validate_and_get_fields("v_%s000" % padding_char)
-        self.assertEqual(fields, {"version_number": 0})
+        self.assertEqual(key.value_from_str("%s000" % padding_char), 0)
 
         # It should match a template with too many digits...
-        fields = tpl.validate_and_get_fields("v_20000")
-        self.assertEqual(fields, {"version_number": 20000})
+        self.assertEqual(key.value_from_str("20000"), 20000)
 
         # ... even if they are all zeros because lossy matching.
-        fields = tpl.validate_and_get_fields("v_00000")
-        self.assertEqual(fields, {"version_number": 0})
+        self.assertEqual(key.value_from_str("00000"), 0)
 
         # From path to tokens back to path should be lossy.
-        fields = tpl.validate_and_get_fields("v_1")
-        self.assertEqual("v_%s%s1" % (padding_char, padding_char), tpl.apply_fields(fields))
+        value = key.value_from_str("1")
+        self.assertEqual("%s%s1" % (padding_char, padding_char), key.str_from_value(value))
 
         self._test_nan(key, "expected an Integer")
 
@@ -472,33 +462,30 @@ class TestIntegerKey(TankTestBase):
         """
         # have a template that formats with two digits of padding.
         key = IntegerKey("version_number", format_spec="%s3" % padding_char, strict_matching=True)
-        keys = {
-            "version_number": key
-        }
-        self.assertTrue(keys["version_number"].strict_matching)
-        definition = "v{version_number}"
-        tpl = TemplatePath(definition, keys, "")
+        self.assertTrue(key.strict_matching)
 
         # The padding char is missing in the format specifier, but we still need when validating
         # results.
         if padding_char == '':
             padding_char = ' '
 
-        # It should not match a template with only one digit.
-        fields = tpl.validate_and_get_fields("v1")
-        self.assertIsNone(fields)
-
         # From path to tokens back to path should get back the same string when the expected number of
         # digits are found.
-        fields = tpl.validate_and_get_fields("v%s%s1" % (padding_char, padding_char))
-        self.assertEqual("v%s%s1" % (padding_char, padding_char), tpl.apply_fields(fields))
+        value = key.value_from_str("%s%s1" % (padding_char, padding_char))
+        self.assertEqual("%s%s1" % (padding_char, padding_char), key.str_from_value(value))
 
-        # It should match a template with too many digits.
-        fields = tpl.validate_and_get_fields("v20000")
-        self.assertEqual(fields, {"version_number": 20000})
-        self.assertEqual("v20000", tpl.apply_fields(fields))
+        # It should match a template with more digits.
+        value = key.value_from_str("20000")
+        self.assertEqual("20000", key.str_from_value(value))
+
+        key.value_from_str("123")
 
         error_msg = "does not match format spec"
+
+        # It should not match a string with too few digits
+        with self.assertRaisesRegexp(TankError, error_msg):
+            key.value_from_str("1")
+
         # It should not match a template with too many digits that are all zero because that would
         # lossy. (there are more zeros than the format spec can rebuild)
         with self.assertRaisesRegexp(TankError, error_msg):
