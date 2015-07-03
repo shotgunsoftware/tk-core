@@ -12,10 +12,15 @@
 Tests for templatefield module.
 """
 
+from __future__ import with_statement
+
 from tank import TankError
 import copy
+import datetime
+import time
+from mock import patch
 from tank_test.tank_test_base import *
-from tank.templatekey import TemplateKey, StringKey, IntegerKey, SequenceKey, make_keys
+from tank.templatekey import TemplateKey, StringKey, IntegerKey, SequenceKey, TimestampKey, make_keys
 
 class TestStringKey(TankTestBase):
     def setUp(self):
@@ -671,3 +676,158 @@ class TestEyeKey(TankTestBase):
         self.assertTrue(self.eye_key.validate("l"))
         self.assertTrue(self.eye_key.validate("r"))
 
+
+class TestTimestamp(TankTestBase):
+    """
+    Test timestamp key type.
+    """
+
+    def setUp(self):
+        """
+        Creates a bunch of dates and strings for testing.
+        """
+        super(TestTimestamp, self).setUp()
+        # as a tuple
+        self._date_tuple = (2015, 6, 24, 21, 20, 30, 2, 175, -1)
+        # as a list
+        self._date_list = list(self._date_tuple)
+        # as a time struct
+        self._date_struct = time.struct_time(self._date_tuple)
+        # as a date time
+        self._date_datetime = datetime.datetime(2015, 6, 24, 21, 20, 30)
+        # as a float
+        self._date_float = time.mktime(self._date_datetime.timetuple())
+        # as an int
+        self._date_int = int(time.mktime(self._date_datetime.timetuple()))
+        # as a string
+        self._date_time_string = "2015-06-24-21-20-30"
+        # as date string
+        self._date_string = "2015-06-24-00-00-00"
+        # as time string
+        self._time_string = "1900-01-01-21-20-30"
+
+    def test_default_values(self):
+        """
+        Makes sure default values are as expected.
+        """
+        key = TimestampKey("name")
+        self.assertFalse(key.utc_default)
+        self.assertEqual(key.format_spec, "%Y-%m-%d-%H-%M-%S")
+
+    def test_init(self):
+        """
+        Tests the __init__ of TimestampKey.
+        """
+        TimestampKey("name")
+        TimestampKey("name", utc_default=True)
+        TimestampKey("name", utc_default=False)
+        TimestampKey("name", format_spec="%Y-%m-%d")
+
+        with self.assertRaisesRegexp(TankError, "is not of type boolean"):
+            TimestampKey("name", utc_default=1)
+
+        with self.assertRaisesRegexp(TankError, "is not of type string"):
+            TimestampKey("name", format_spec=1)
+
+    def test_str_from_value(self):
+        """
+        Convert all supported value types into a string and validates that
+        we are getting the right result
+        """
+        key = TimestampKey("test")
+
+        # Try and convert each and every date format to string
+        self.assertEqual(
+            key.str_from_value(self._date_tuple),
+            self._date_time_string
+        )
+        self.assertEqual(
+            key.str_from_value(self._date_list),
+            self._date_time_string
+        )
+        self.assertEqual(
+            key.str_from_value(self._date_struct),
+            self._date_time_string
+        )
+        self.assertEqual(
+            key.str_from_value(self._date_datetime),
+            self._date_time_string
+        )
+        self.assertEqual(
+            key.str_from_value(self._date_float),
+            self._date_time_string
+        )
+        self.assertEqual(
+            key.str_from_value(self._date_int),
+            self._date_time_string
+        )
+        # We've stripped the date or time, so we should only have a date set with
+        # zeroed out time or epoch date.
+        self.assertEqual(
+            key.str_from_value(self._date_datetime.date()),
+            self._date_string
+        )
+        self.assertEqual(
+            key.str_from_value(self._date_datetime.time()),
+            self._time_string
+        )
+
+    def test_value_from_str(self):
+        """
+        Makes sure that a string can be converted to a datetime.
+        """
+        key = TimestampKey("test")
+        self.assertEqual(
+            key.value_from_str(self._date_time_string),
+            self._date_datetime
+        )
+        self.assertEqual(
+            key.value_from_str(unicode(self._date_time_string)),
+            self._date_datetime
+        )
+
+    def test_bad_str(self):
+        """
+        Test with strings that don't match the specified format.
+        """
+        key = TimestampKey("test")
+        # bad format
+        with self.assertRaisesRegexp(TankError, "Invalid string"):
+            key.value_from_str("1 2 3")
+        # out of bound values
+        with self.assertRaisesRegexp(TankError, "Invalid string"):
+            key.value_from_str("2015-06-33-21-20-30")
+
+        # Too much data
+        with self.assertRaisesRegexp(TankError, "Invalid string"):
+            key.value_from_str(self._date_time_string + "bad date")
+
+    def test_bad_value(self):
+        """
+        Test with values that are not supported.
+        """
+        key = TimestampKey("test")
+        with self.assertRaisesRegexp(TankError, "Invalid type"):
+            key.str_from_value([])
+
+        with self.assertRaisesRegexp(TankError, "Invalid type"):
+            key.str_from_value([])
+
+    @patch("tank.templatekey.TimestampKey._TimestampKey__get_current_time")
+    def test_defaut_value(self, _get_time_mock):
+        """
+        Makes sure that a default value is proprely generated when a field dictionary is missing
+        the TimestampKey value.
+        """
+        # Mock it to the expected date.
+        _get_time_mock.return_value = self._date_datetime
+        # Create a template using our key.
+        key = TimestampKey("datetime")
+
+        # apply fields with no value for datetime, which will generate a default
+        # value by calling __get_current_time
+        self.assertEquals(
+            key.str_from_value(None),
+            self._date_time_string
+        )
+        self.assertTrue(_get_time_mock.called)

@@ -13,7 +13,7 @@ Classes for fields on TemplatePaths and TemplateStrings
 """
 
 import re
-import datetime as dt
+import datetime
 import time
 from .platform import constants
 from .errors import TankError
@@ -312,7 +312,7 @@ class TimestampKey(TemplateKey):
         """
         Returns the current time as a datetime.datetime instance.
 
-        Do not streamline the code so the __init__ method simply passesd the dt.datetime.now method,
+        Do not streamline the code so the __init__ method simply passesd the datetime.datetime.now method,
         we can't mock datetime.now since it's builtin and will make unit tests more complicated to
         write.
 
@@ -321,9 +321,9 @@ class TimestampKey(TemplateKey):
                   member is None.
         """
         if self.utc_default:
-            return dt.datetime.utcnow()
+            return datetime.datetime.utcnow()
         else:
-            return dt.datetime.now()
+            return datetime.datetime.now()
 
     def validate(self, value):
         """
@@ -390,10 +390,10 @@ class TimestampKey(TemplateKey):
         :returns: A string formatted according to the format_spec.
         """
         if isinstance(value, int) or isinstance(value, float):
-            return dt.datetime.fromtimestamp(value).strftime(self.format_spec)
-        elif (isinstance(value, dt.datetime) or
-              isinstance(value, dt.date) or
-              isinstance(value, dt.time)):
+            return datetime.datetime.fromtimestamp(value).strftime(self.format_spec)
+        elif (isinstance(value, datetime.datetime) or
+              isinstance(value, datetime.date) or
+              isinstance(value, datetime.time)):
             return value.strftime(self.format_spec)
         elif isinstance(value, time.struct_time) or isinstance(value, list) or isinstance(value, tuple):
             return time.strftime(self.format_spec, value)
@@ -409,7 +409,7 @@ class TimestampKey(TemplateKey):
 
         :returns: A datetime representation of str_value parsed according to the format_spec.
         """
-        return dt.datetime.strptime(str_value, self.format_spec)
+        return datetime.datetime.strptime(str_value, self.format_spec)
 
 
 class IntegerKey(TemplateKey):
