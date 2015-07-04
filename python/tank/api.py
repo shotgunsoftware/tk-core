@@ -146,6 +146,15 @@ class Tank(object):
         return self.__pipeline_config.get_data_roots()
 
     @property
+    def shotgun_url(self):
+        """
+        The shotgun url associated with this API session.
+        
+        :returns: url as string, for example 'https://mysite.shotgunstudio.com'
+        """
+        return shotgun.get_associated_sg_base_url()
+
+    @property
     def shotgun(self):
         """
         Lazily create a Shotgun API handle.

@@ -391,6 +391,18 @@ class TestApiProperties(TankTestBase):
         """
         self.assertEquals(self.tk.documentation_url, None)
 
+    def test_shotgun_url_property(self):
+        """
+        test api.shotgun_url property
+        """
+        self.assertEquals(self.tk.shotgun_url, "http://unit_test_mock_sg")
+
+    def test_shotgun_property(self):
+        """
+        test api.shotgun property
+        """
+        self.assertEquals(self.tk.shotgun.__class__.__name__, "Shotgun")
+
     def test_configuration_name_property(self):
         """
         test api.configuration_name property
