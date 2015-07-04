@@ -320,16 +320,16 @@ class Context(object):
         # walk up task -> entity -> project -> site
         
         if self.task is not None:
-            return "%s/detail/%s/%d" % (self.__tk.shotgun.base_url, "Task", self.task["id"])            
+            return "%s/detail/%s/%d" % (self.__tk.shotgun_url, "Task", self.task["id"])            
         
         if self.entity is not None:
-            return "%s/detail/%s/%d" % (self.__tk.shotgun.base_url, self.entity["type"], self.entity["id"])            
+            return "%s/detail/%s/%d" % (self.__tk.shotgun_url, self.entity["type"], self.entity["id"])            
 
         if self.project is not None:
-            return "%s/detail/%s/%d" % (self.__tk.shotgun.base_url, "Project", self.project["id"])            
+            return "%s/detail/%s/%d" % (self.__tk.shotgun_url, "Project", self.project["id"])            
         
         # fall back on just the site main url
-        return self.__tk.shotgun.base_url
+        return self.__tk.shotgun_url
         
     @property
     def filesystem_locations(self):
