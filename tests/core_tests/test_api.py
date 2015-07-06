@@ -59,7 +59,7 @@ class TestTemplateFromPath(TankTestBase):
     def test_template_string(self):
         """Resolve 'path' which is a resolved TemplateString."""
         # resolved version of 'nuke_publish_name'
-        str_path = "Nuke Script Name, v02"
+        str_path = "Nuke Script Name, v002"
         template = self.tk.template_from_path(str_path)
         self.assertIsNotNone(template)
         self.assertIsInstance(template, TemplateString)
