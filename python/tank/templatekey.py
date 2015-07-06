@@ -13,6 +13,8 @@ Classes for fields on TemplatePaths and TemplateStrings
 """
 
 import re
+import datetime
+import time
 from .platform import constants
 from .errors import TankError
 
@@ -29,7 +31,8 @@ class TemplateKey(object):
                  length = None):
         """
         :param name: Key's name.
-        :param default: Default value for this key.
+        :param default: Default value for this key. If the default is a callable, it will be invoked
+                        without any parameters whenever a default value is required.
         :param choices: List of possible values for this key.  Can be either a list or a dictionary
                         of choice:label pairs.
         :param shotgun_entity_type: For keys directly linked to a shotgun field, the entity type.
@@ -39,7 +42,7 @@ class TemplateKey(object):
         :param length: int, should this key be fixed length
         """
         self.name = name
-        self.default = default
+        self._default = default
 
         # special handling for choices:
         if isinstance(choices, dict):
@@ -70,12 +73,25 @@ class TemplateKey(object):
         if self.is_abstract and self.default is None:
             raise TankError("%s: Fields marked as abstract needs to have a default value!" % self)
 
-        if not ((self.default is None) or self.validate(default)):
+        if not ((self.default is None) or self.validate(self.default)):
             raise TankError(self._last_error)
         
         if not all(self.validate(choice) for choice in self.choices):
             raise TankError(self._last_error)
-    
+
+    @property
+    def default(self):
+        """
+        Returns the default value for this key. If the default argument was specified
+        as a callable in the constructor, it is invoked and assumed to take no parameters.
+
+        :returns: The default value.
+        """
+        if callable(self._default):
+            return self._default()
+        else:
+            return self._default
+
     @property
     def choices(self):
         """
@@ -256,6 +272,124 @@ class StringKey(TemplateKey):
         return value if isinstance(value, basestring) else str(value)
 
 
+class TimestampKey(TemplateKey):
+    """
+    Key whose value is a time string formatted with strftime.
+    """
+
+    def __init__(
+        self,
+        name,
+        default=None,
+        format_spec="%Y-%m-%d-%H-%M-%S"
+    ):
+        """
+        Constructor
+        :param name: Name by which the key will be refered.
+        :param default: Default value for this field. Acceptable values are
+                            - None
+                            - a datetime.datetime object
+                            - a string formatted according to the format_spec
+                            - utc_now, which means the current time in the UTC timezone will be used
+                              as the default value.
+                            - now, which means the current time in the local timezone will be used
+                              as the default value.
+        :param format_spec: Specification for formating when casting to/from a string.
+                            The format follows the convention of strftime and strptime. The
+                            default value is "%Y-%m-%d-%H-%M-%S". Given June 24th, 2015 at
+                            9:20:30 PM, this will yield 2015-06-24-21-20-30
+        """
+
+        # Can't use __repr__ because of a chicken and egg problem. The base class validates the
+        # default value, so format_spec needs to be set first. But if I am testing format_spec
+        # before calling the base class, then repr will crash since self.name won't have been set
+        # yet.
+        if isinstance(format_spec, basestring) is False:
+            raise TankError("format_spec for <Sgtk TimestampKey %s> is not of type string: %s" %
+                            (name, format_spec.__class__.__name__))
+        self.format_spec = format_spec
+
+        if isinstance(default, basestring):
+            # if the user passes in now or utc, we'll generate the current time as the default time.
+            if default.lower() == "now":
+                self._default_to_utc = False
+                default = self.__get_current_time
+            elif default.lower() == "utc_now":
+                self._default_to_utc = True
+                default = self.__get_current_time
+            # Base class will validate other values using the format specifier.
+        elif not(default is None or isinstance(default, datetime.datetime)):
+            raise TankError("default for <Sgtk TimestampKey %s> is not of type string, "
+                            "datetime.datetime or None: %s" % (name, default.__class__.__name__))
+
+        super(TimestampKey, self).__init__(
+            name,
+            default=default
+        )
+
+    def __get_current_time(self):
+        """
+        Returns the current time as a datetime.datetime instance.
+
+        Do not streamline the code so the __init__ method simply passesd the datetime.datetime.now method,
+        we can't mock datetime.now since it's builtin and will make unit tests more complicated to
+        write.
+
+        :returns: If utc_default, a datetime object representing time in the UTC timezone. Otherwise,
+                  a datetime object representing time in the local timezone. In any case, the tzinfo
+                  member is None.
+        """
+        if self._default_to_utc:
+            return datetime.datetime.utcnow()
+        else:
+            return datetime.datetime.now()
+
+    def validate(self, value):
+        """
+        Test if a value is valid for this key.
+
+        :param value: Value to test.
+
+        :returns: Bool
+        """
+        if isinstance(value, basestring):
+            # If we have a string we have to actually try to convert the string to see it if matches
+            # the expected format.
+            try:
+                datetime.datetime.strptime(value, self.format_spec)
+                return True
+            except ValueError, e:
+                # Bad value, report the error to the client code.
+                self._last_error = "Invalid string: %s" % e.message
+                return False
+        elif not isinstance(value, datetime.datetime):
+            self._last_error = "Invalid type: expecting string or datetime.datetime, not %s" % value.__class__.__name__
+            return False
+        else:
+            return True
+
+    def _as_string(self, value):
+        """
+        Converts a given value as string.
+
+        :param value: A datetime.datetime object that will be converted to a string according to the
+                      format specification.
+
+        :returns: A string formatted according to the format_spec.
+        """
+        return value.strftime(self.format_spec)
+
+    def _as_value(self, str_value):
+        """
+        Converts a string into a datetime.datetime.
+
+        :param str_value: String to convert.
+
+        :returns: A datetime representation of str_value parsed according to the format_spec.
+        """
+        return datetime.datetime.strptime(str_value, self.format_spec)
+
+
 class IntegerKey(TemplateKey):
     """
     Key whose value is an integer.
@@ -316,6 +450,7 @@ class IntegerKey(TemplateKey):
 
     def _as_value(self, str_value):
         return int(str_value)
+
 
 class SequenceKey(IntegerKey):
     """
@@ -509,7 +644,12 @@ def make_keys(data):
     :returns: Dictionary of the form: {<key name>: <TemplateKey object>}
     """
     keys = {}
-    names_classes = {"str": StringKey, "int": IntegerKey, "sequence": SequenceKey}
+    names_classes = {
+        "str": StringKey,
+        "int": IntegerKey,
+        "sequence": SequenceKey,
+        "timestamp": TimestampKey
+    }
     for initial_key_name, key_data in data.items():
         # We need to remove data before passing in as arguments, so copy it.
         prepped_data = key_data.copy()
@@ -528,4 +668,3 @@ def make_keys(data):
         key = KeyClass(key_name, **prepped_data)
         keys[initial_key_name] = key
     return keys
-
