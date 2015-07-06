@@ -849,6 +849,20 @@ class Engine(TankBundle):
         # lastly, return the instantiated widget
         return (status, widget)
     
+    def show_panel(self, title, bundle, widget_class, *args, **kwargs):
+        """
+        Shows a panel dialog
+        
+        """
+        return self.show_dialog(title, bundle, widget_class, *args, **kwargs)
+
+    def register_panel(self, title, bundle, widget_class, *args, **kwargs):
+        """
+        Registers a panel dialog
+        """
+        return None
+        
+    
     def _define_qt_base(self):
         """
         This will be called at initialisation time and will allow 
