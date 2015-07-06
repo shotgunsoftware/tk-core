@@ -489,6 +489,12 @@ class Engine(TankBundle):
             
         self.__commands[name] = { "callback": callback, "properties": properties }
         
+    def register_panel(self, title, bundle, widget_class, *args, **kwargs):
+        """
+        Registers a panel dialog
+        """
+        return None        
+        
     def execute_in_main_thread(self, func, *args, **kwargs):
         """
         Execute the specified function in the main thread when called from a non-main
@@ -854,14 +860,7 @@ class Engine(TankBundle):
         Shows a panel dialog
         
         """
-        return self.show_dialog(title, bundle, widget_class, *args, **kwargs)
-
-    def register_panel(self, title, bundle, widget_class, *args, **kwargs):
-        """
-        Registers a panel dialog
-        """
-        return None
-        
+        return self.show_dialog(title, bundle, widget_class, *args, **kwargs)        
     
     def _define_qt_base(self):
         """
