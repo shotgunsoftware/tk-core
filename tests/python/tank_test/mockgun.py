@@ -26,10 +26,11 @@ import os, copy, datetime
 import cPickle as pickle
 import pprint
 
-from tank_vendor.shotgun_api3 import sg_timezone, ShotgunError, Shotgun
+from tank_vendor.shotgun_api3 import sg_timezone, ShotgunError
+# We define our own Shotgun class later in this file, make sure
+# we can access a real Shotgun handle if needed, e.g. to generate schema
+from tank_vendor.shotgun_api3 import Shotgun as RealShotgun
 
-_schema_filename = "schema.pickle"
-_schema_entity_filename = "schema_entity.pickle"
 
 def generate_schema(sg_url, sg_script, sg_key, schema_file_path, schema_entity_file_path):
     """
@@ -44,19 +45,17 @@ def generate_schema(sg_url, sg_script, sg_key, schema_file_path, schema_entity_f
     :param schema_file_path: Path where to write the main schema file to
     :param schema_entity_file_path: Path where to write the entity schema file to
     """
-    sg = Shotgun(sg_url, sg_script, sg_key)
-    
+    sg = RealShotgun(sg_url, sg_script, sg_key)
     schema = sg.schema_read()
     fh = open(schema_file_path, "w")
     pickle.dump(schema, fh)
     fh.close()
-        
+    
     schema_entity = sg.schema_entity_read()
     fh = open(schema_entity_file_path, "w")
     pickle.dump(schema_entity, fh)
     fh.close()
-    
-    
+
 class _Config(object):
     """Container for the client configuration."""
 
@@ -117,6 +116,12 @@ class Shotgun(object):
     testing of code.
     """
     
+    # Default values for mocked schema paths
+    __schema_filename = "schema.pickle"
+    __schema_entity_filename = "schema_entity.pickle"
+    # Default schema from our directory
+    __schema_path = os.path.split(__file__)[0]
+
     def __init__(self, base_url, script_name=None, api_key=None, session_token=None, convert_datetimes_to_utc=True, http_proxy=None):
         
         # emulate the config object in the Shotgun API.
@@ -124,11 +129,43 @@ class Shotgun(object):
         # having them present means code and get and set them
         # they way they would expect to in the real API.
         self.config = _Config()
-        
-        module_dir = os.path.split(__file__)[0]
-        schema_path = os.path.join(module_dir, _schema_filename)
-        schema_entity_path = os.path.join(module_dir, _schema_entity_filename)
-        
+
+        self.base_url = base_url
+
+        # Load the mocked schema
+        self.load_schema()
+
+    @classmethod
+    def set_schema_path(cls, schema_path):
+        """
+        Set the path where schema files can be found. This is done at the class
+        level so all Shotgun instances will share the same schema.
+        The responsability to generate and load these files is left to the user
+        changing the default value.
+
+        :param schema_path: Directory path where schema files are.
+        """
+        cls.__schema_path = schema_path
+
+    @classmethod
+    def schema_files_paths(cls):
+        """
+        Returns a tuple with paths to the files which are part of the schema.
+        These paths can then be used in generate_schema if needed.
+
+        :returns: A tuple with schema_file_path and schema_entity_file_path
+        """
+        schema_path = os.path.join(cls.__schema_path, cls.__schema_filename)
+        schema_entity_path = os.path.join(cls.__schema_path, cls.__schema_entity_filename)
+        return (schema_path, schema_entity_path)
+
+    def load_schema(self):
+        """
+        Load the schema from the schema pickle files.
+        """
+        schema_path = os.path.join(self.__schema_path, self.__schema_filename)
+        schema_entity_path = os.path.join(self.__schema_path, self.__schema_entity_filename)
+
         fh = open(schema_path, "r")
         self._schema = pickle.load(fh)
         fh.close()
@@ -140,8 +177,7 @@ class Shotgun(object):
         # initialize the "database"
         self._db = dict((entity, {}) for entity in self._schema)
 
-        self.base_url = base_url
-        
+
         # let's make sure there is at least one event log id in our mock db
         data = {}
         data["event_type"] = "Hello_Mockgun_World"
