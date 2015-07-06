@@ -491,9 +491,29 @@ class Engine(TankBundle):
         
     def register_panel(self, title, bundle, widget_class, *args, **kwargs):
         """
-        Registers a panel dialog
+        Similar to register_command, but instead of registering a menu item in the form of a
+        command, this method registers a UI panel. The arguments passed to this method is the
+        same as for show_panel().
+        
+        Just like with the register_command() method, panel registration should be executed 
+        from within the init phase of the app. Once a panel has been registered, it is possible
+        for the engine to correctly restore panel UIs that persist between sessions. 
+        
+        Not all engines support this feature, but in for example Nuke, a panel can be saved in 
+        a saved layout. Apps wanting to be able to take advantage of the persistance given by
+        these saved layouts will need to call register_panel as part of their init_app phase.
+        
+        In order to show or focus on a panel, use the show_panel() method instead.
+        
+        :param title: The title of the window
+        :param bundle: The app, engine or framework object that is associated with this panel
+        :param widget_class: The class of the UI to be constructed. This must derive from QWidget.
+        
+        Additional parameters specified will be passed through to the widget_class constructor.
         """
-        return None        
+        # the default implementation does not do anything
+        # engines wishing to implement this behavior should override this method.
+        pass
         
     def execute_in_main_thread(self, func, *args, **kwargs):
         """
@@ -857,9 +877,20 @@ class Engine(TankBundle):
     
     def show_panel(self, title, bundle, widget_class, *args, **kwargs):
         """
-        Shows a panel dialog
+        Shows a panel in a way suitable for this engine. The engine will attempt to
+        integrate it as seamlessly as possible into the host application. If the engine does 
+        not specifically implement panel support, the window will be shown as a modeless
+        dialog instead.
         
+        :param title: The title of the window
+        :param bundle: The app, engine or framework object that is associated with this window
+        :param widget_class: The class of the UI to be constructed. This must derive from QWidget.
+        
+        Additional parameters specified will be passed through to the widget_class constructor.
+
+        :returns: (a standard QT dialog status return code, the created widget_class instance)
         """
+        # engines implementing panel support should subclass this method.
         return self.show_dialog(title, bundle, widget_class, *args, **kwargs)        
     
     def _define_qt_base(self):
