@@ -492,15 +492,19 @@ class Engine(TankBundle):
     def register_panel(self, title, bundle, widget_class, *args, **kwargs):
         """
         Similar to register_command, but instead of registering a menu item in the form of a
-        command, this method registers a UI panel. The arguments passed to this method is the
+        command, this method registers a UI panel. The arguments passed to this method are the
         same as for show_panel().
+        
+        Panels need to be registered if they should persist between DCC sessions (e.g. 
+        for example 'saved layouts'). Engines wishing to support such behavior will need
+        to implement this method. 
         
         Just like with the register_command() method, panel registration should be executed 
         from within the init phase of the app. Once a panel has been registered, it is possible
-        for the engine to correctly restore panel UIs that persist between sessions. 
+        for the engine to correctly restore panel UIs at startup and profile switches. 
         
-        Not all engines support this feature, but in for example Nuke, a panel can be saved in 
-        a saved layout. Apps wanting to be able to take advantage of the persistance given by
+        Not all engines support this feature, but in for example Nuke, a panel can be added to 
+        a saved layout. Apps wanting to be able to take advantage of the persistence given by
         these saved layouts will need to call register_panel as part of their init_app phase.
         
         In order to show or focus on a panel, use the show_panel() method instead.
@@ -877,10 +881,13 @@ class Engine(TankBundle):
     
     def show_panel(self, title, bundle, widget_class, *args, **kwargs):
         """
-        Shows a panel in a way suitable for this engine. The engine will attempt to
-        integrate it as seamlessly as possible into the host application. If the engine does 
-        not specifically implement panel support, the window will be shown as a modeless
-        dialog instead.
+        Shows a panel in a way suitable for this engine. Engines should attempt to
+        integrate panel support as seamlessly as possible into the host application. 
+        Some engines have extensive panel support and workflows, others have none at all.
+        
+        If the engine does not specifically implement panel support, the window will 
+        be shown as a modeless dialog instead and the call is equivalent to 
+        calling show_dialog().
         
         :param title: The title of the window
         :param bundle: The app, engine or framework object that is associated with this window
