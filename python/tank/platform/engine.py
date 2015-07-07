@@ -887,8 +887,6 @@ class Engine(TankBundle):
         :param widget_class: The class of the UI to be constructed. This must derive from QWidget.
         
         Additional parameters specified will be passed through to the widget_class constructor.
-
-        :returns: (a standard QT dialog status return code, the created widget_class instance)
         """
         # engines implementing panel support should subclass this method.
         return self.show_dialog(title, bundle, widget_class, *args, **kwargs)        
