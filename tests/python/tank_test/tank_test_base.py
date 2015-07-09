@@ -21,7 +21,7 @@ import inspect
 import tempfile
 
 from mockgun import Shotgun as MockGun_Shotgun 
-
+from mockgun import generate_schema
 import unittest2 as unittest
 
 import sgtk
@@ -32,7 +32,15 @@ from tank_vendor import yaml
 
 TANK_TEMP = None
 
-__all__ = ['setUpModule', 'TankTestBase', 'tank', 'interactive', 'skip_if_pyside_missing']
+__all__ = [
+    "setUpModule",
+    "TankTestBase",
+    "tank",
+    "interactive",
+    "skip_if_pyside_missing",
+    "MockGun_Shotgun",
+    "generate_schema",
+]
 
 
 def interactive(func):
