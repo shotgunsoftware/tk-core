@@ -585,7 +585,7 @@ class TestSchemaCreateFoldersWorkspaces(TankTestBase):
         """
         super(TestSchemaCreateFoldersWorkspaces, self).setUp()
         
-        self.setup_fixtures("multi_link_core")
+        self.setup_fixtures(parameters = {"core": "core.override/multi_link_core"})
         
         self.seq = {"type": "Sequence",
                     "id": 2,

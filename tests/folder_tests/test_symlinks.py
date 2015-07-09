@@ -26,7 +26,7 @@ class TestSymlinks(TankTestBase):
     def setUp(self):
         
         super(TestSymlinks, self).setUp()
-        self.setup_fixtures("symlinks_core")
+        self.setup_fixtures(parameters = {"core": "core.override/symlinks_core"})
         
         self.shot_aaa = {"type": "Shot", 
                          "id": 1,

@@ -24,7 +24,7 @@ class TestDeferredFolderCreation(TankTestBase):
     """Test deferring of folder creation."""
     def setUp(self):
         super(TestDeferredFolderCreation, self).setUp()
-        self.setup_fixtures("deferred_core")
+        self.setup_fixtures(parameters = {"core": "core.override/deferred_core"})
 
 
         self.shot = {"type": "Shot", 
