@@ -26,10 +26,93 @@
  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+-----------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------
+M O C K G U N 
+-----------------------------------------------------------------------------
+
+Experimental software ahead!
+----------------------------
+Disclaimer! Mockgun is in its early stages of development. It is not fully 
+compatible with the Shotgun API yet and we offer no guarantees at this point 
+that future versions of Mockgun will be backwards compatible. Consider this 
+alpha level software and use at your own risk. 
+
+
+What is Mockgun?
+----------------
+Mockgun is a Shotgun API mocker. It's a class that has got *most* of the same
+methods and parameters that the Shotgun API has got. Mockgun is essentially a 
+Shotgun *emulator* that (for basic operations) looks and feels like Shotgun.
+
+The primary purpose of Mockgun is to drive unit test rigs where it becomes
+too slow, cumbersome or non-practical to connect to a real Shotgun. Using a 
+Mockgun for unit tests means that a test can be rerun over and over again 
+from exactly the same database state. This can be hard to do if you connect
+to a live Shotgun instance.  
+
+
+How do I use Mockgun?
+---------------------
+First of all, you need a Shotgun schema to run against. This will define
+all the fields and entities that mockgun will use. Simply connect to 
+your Shotgun site and use the generate_schema() method to download
+the schema data:
+
+    # connect to your site
+    from shotgun_api3 import Shotgun
+    sg = Shotgun("https://mysite.shotgunstudio.com", script_name="xyz", api_key="abc")
+    
+    # write out schema data to files
+    from shotgun_api3 import mockgun
+    mockgun.generate_schema(sg, "/tmp/schema", "/tmp/entity_schema")
+    
+Now that you have a schema, you can tell your mockgun instance about it.
+We do this as a class-level operation, so that the consctructor can be 
+exactly like the real Shotgun one:
+
+    from shotgun_api3 import mockgun
+    
+    # tell mockgun about the schema
+    mockgun.Shotgun.set_schema_paths("/tmp/schema", "/tmp/entity_schema")
+    
+    # we are ready to mock! 
+    # this call will not connect to mysite, but instead create a 
+    # mockgun instance which is connected to an *empty* shotgun site
+    # which has got the same schema as mysite.
+    sg = mockgun.Shotgun("https://mysite.shotgunstudio.com", script_name="xyz", api_key="abc")
+
+    # now you can start putting stuff in
+    print sg.create("HumanUser", {"firstname": "John", "login": "john"})
+    # prints {'login': 'john', 'type': 'HumanUser', 'id': 1, 'firstname': 'John'}
+ 
+    # and find what you have created
+    print sg.find("HumanUser", [["login", "is", "john"]])
+    prints [{'type': 'HumanUser', 'id': 1}]
+    
+That's it! Mockgun is used to run the Shotgun Pipeline Toolkit unit test rig.
+
+Mockgun has a 'database' in the form of a dictionary stored in Mockgun._db
+By editing this directly, you can modify the database without going through 
+the API.
+
+
+What are the limitations?
+---------------------
+There are many. Don't expect mockgun to be fully featured at this point.
+Below is a non-exhaustive list of things that we still need to implement:
+
+- Many find queries won't work
+- Methods around session handling and authentication is not implemented
+- Attachments and upload is rundimental at best
+- Schema modification isn't most most likely will never be supported
+- There is no validation or sanitation
+
 """
-
-
-
 
 import os, copy, datetime
 import cPickle as pickle
