@@ -117,12 +117,10 @@ APP_FILE = "app.py"
 # an optional stylesheet that can be defined by bundles
 BUNDLE_STYLESHEET_FILE = "style.qss"
 
-# define the standard "shotgun blue"
-SG_HIGHLIGHT_COLOR = "#30A7E3"
-
-# define the standard stylesheet replacements 
-QSS_REPLACEMENTS = { "SG_HIGHLIGHT_COLOR": SG_HIGHLIGHT_COLOR,
-                     "SG_ALERT_COLOR": "#FC6246"}
+# define our standard stylesheet constants 
+SG_STYLESHEET_CONSTANTS = { "SG_HIGHLIGHT_COLOR": "#1B95DB",
+                            "SG_ALERT_COLOR": "#FC6246",
+                            "SG_FOREGROUND_COLOR": "#C8C8C8"}
 
 # the storage name that is treated to be the primary storage for tank
 PRIMARY_STORAGE_NAME = "primary"

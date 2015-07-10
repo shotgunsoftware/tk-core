@@ -45,7 +45,7 @@ QWidget
     from the stylesheet. Adding this color directive seems to gracefully
     resolve this
     */
-    color: #c8c8c8;
+    color: {{SG_FOREGROUND_COLOR}};
 }
 
 QTreeView, QTableView, QListView, QTreeWidget, QTableWidget, QListWidget, QColumnView

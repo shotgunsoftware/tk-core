@@ -812,7 +812,7 @@ class Engine(TankBundle):
         :returns: Stylesheet string with replacements applied
         """
         processed_style_sheet = style_sheet
-        for (token, value) in constants.QSS_REPLACEMENTS.iteritems():
+        for (token, value) in constants.SG_STYLESHEET_CONSTANTS.iteritems():
             processed_style_sheet = processed_style_sheet.replace("{{%s}}" % token, value)
         return processed_style_sheet
     
@@ -933,7 +933,10 @@ class Engine(TankBundle):
             fh.close()
             
             # set the std selection bg color to be 'shotgun blue'
-            self._dark_palette.setBrush(QtGui.QPalette.Highlight, QtGui.QBrush(QtGui.QColor(constants.SG_HIGHLIGHT_COLOR)))
+            highlight_color = QtGui.QBrush(QtGui.QColor(constants.SG_STYLESHEET_CONSTANTS["SG_HIGHLIGHT_COLOR"]))
+            self._dark_palette.setBrush(QtGui.QPalette.Highlight, highlight_color)
+            
+            
             self._dark_palette.setBrush(QtGui.QPalette.HighlightedText, QtGui.QBrush(QtGui.QColor("#FFFFFF")))
             
             # and associate it with the qapplication
