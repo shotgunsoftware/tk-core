@@ -17,7 +17,6 @@ from mock import patch
 import tank
 from tank import context, errors
 from tank_test.tank_test_base import *
-from tank_test import mockgun
 from tank.template import TemplatePath
 from tank.templatekey import SequenceKey
 

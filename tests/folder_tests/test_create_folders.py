@@ -29,7 +29,7 @@ class TestSchemaCreateFolders(TankTestBase):
         to pass in as callbacks to Schema.create_folders. The mock objects are
         then queried to see what paths the code attempted to create.
         """
-        super(TestSchemaCreateFolders, self).setUp(project_tank_name)
+        super(TestSchemaCreateFolders, self).setUp(parameters = {"project_tank_name": project_tank_name })
         self.setup_fixtures()
         
         self.seq = {"type": "Sequence",

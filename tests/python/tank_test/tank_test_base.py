@@ -20,7 +20,7 @@ import pprint
 import inspect
 import tempfile
 
-from mockgun import Shotgun as MockGun_Shotgun 
+from tank_vendor.shotgun_api3 import mockgun
 
 import unittest2 as unittest
 
@@ -134,10 +134,50 @@ class TankTestBase(unittest.TestCase):
         self.fixtures_root = os.environ["TK_TEST_FIXTURES"]
         
         
-    def setUp(self, project_tank_name = "project_code"):
+    def setUp(self, parameters=None):
         """
-        Creates and registers test project.
+        Sets up a Shotgun Mockgun instance with a project and a basic project scaffold on
+        disk.
+        
+        :param parameters: Dictionary with additional parameters to control the setup.
+                           The method currently supports the following parameters:
+                           
+                           - 'project_tank_name': 'name' - Set the tank_name of the project to 
+                                                  something explicit. If not specified, this
+                                                  will default to 'project_code' 
+                           
+                           - 'mockgun_schema_path': '/path/to/file' - Pass a specific schema to use with mockgun.
+                                                    If not specified, the tk-core fixture schema 
+                                                    will be used.
+
+                           - 'mockgun_schema_entity_path': '/path/to/file' - Pass a specific entity schema to use with 
+                                                           mockgun. If not specified, the tk-core fixture schema 
+                                                           will be used. 
+                                                               
+        
         """
+        
+        parameters = parameters or {}
+        
+        if "project_tank_name" in parameters:
+            project_tank_name = parameters["project_tank_name"]
+        else:
+            # default project name
+            project_tank_name = "project_code"
+        
+        if "mockgun_schema_path" in parameters:
+            mockgun_schema_path = parameters["mockgun_schema_path"]
+        else:
+            mockgun_schema_path = os.path.join(self.fixtures_root, "mockgun", "schema.pickle")
+            
+        if "mockgun_schema_entity_path" in parameters:
+            mockgun_schema_entity_path = parameters["mockgun_schema_entity_path"]
+        else:
+            mockgun_schema_entity_path = os.path.join(self.fixtures_root, "mockgun", "schema_entity.pickle")
+        
+        # set up mockgun to use our schema
+        mockgun.Shotgun.set_schema_paths(mockgun_schema_path, mockgun_schema_entity_path)
+        
         self.tank_temp = TANK_TEMP
         self.init_cache_location = os.path.join(self.tank_temp, "init_cache.cache")
 
@@ -222,8 +262,7 @@ class TankTestBase(unittest.TestCase):
         self.tk = tank.Tank(self.pipeline_configuration)
         
         # set up mockgun and make sure shotgun connection calls route via mockgun
-        
-        self.mockgun = MockGun_Shotgun("http://unit_test_mock_sg", "mock_user", "mock_key")
+        self.mockgun = mockgun.Shotgun("http://unit_test_mock_sg", "mock_user", "mock_key")
         
         def get_associated_sg_base_url_mocker():
             return "http://unit_test_mock_sg"
