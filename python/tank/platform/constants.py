@@ -114,6 +114,14 @@ ENVIRONMENT_LOCATION_KEY = "location"
 # the file to look for that defines and bootstraps an app
 APP_FILE = "app.py"
 
+# an optional stylesheet that can be defined by bundles
+BUNDLE_STYLESHEET_FILE = "style.qss"
+
+# define our standard stylesheet constants 
+SG_STYLESHEET_CONSTANTS = { "SG_HIGHLIGHT_COLOR": "#18A7E3",
+                            "SG_ALERT_COLOR": "#FC6246",
+                            "SG_FOREGROUND_COLOR": "#C8C8C8"}
+
 # the storage name that is treated to be the primary storage for tank
 PRIMARY_STORAGE_NAME = "primary"
 

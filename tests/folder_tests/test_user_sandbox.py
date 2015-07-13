@@ -24,7 +24,7 @@ class TestHumanUser(TankTestBase):
     def setUp(self):
         super(TestHumanUser, self).setUp()
         
-        self.setup_fixtures("humanuser_core")
+        self.setup_fixtures(parameters = {"core": "core.override/humanuser_core"})
         
         self.shot = {"type": "Shot",
                      "id": 1,

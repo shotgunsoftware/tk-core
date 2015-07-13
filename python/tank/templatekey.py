@@ -13,6 +13,8 @@ Classes for fields on TemplatePaths and TemplateStrings
 """
 
 import re
+import datetime
+import time
 from .platform import constants
 from .errors import TankError
 
@@ -29,7 +31,8 @@ class TemplateKey(object):
                  length = None):
         """
         :param name: Key's name.
-        :param default: Default value for this key.
+        :param default: Default value for this key. If the default is a callable, it will be invoked
+                        without any parameters whenever a default value is required.
         :param choices: List of possible values for this key.  Can be either a list or a dictionary
                         of choice:label pairs.
         :param shotgun_entity_type: For keys directly linked to a shotgun field, the entity type.
@@ -39,7 +42,7 @@ class TemplateKey(object):
         :param length: int, should this key be fixed length
         """
         self.name = name
-        self.default = default
+        self._default = default
 
         # special handling for choices:
         if isinstance(choices, dict):
@@ -70,12 +73,25 @@ class TemplateKey(object):
         if self.is_abstract and self.default is None:
             raise TankError("%s: Fields marked as abstract needs to have a default value!" % self)
 
-        if not ((self.default is None) or self.validate(default)):
+        if not ((self.default is None) or self.validate(self.default)):
             raise TankError(self._last_error)
         
         if not all(self.validate(choice) for choice in self.choices):
             raise TankError(self._last_error)
-    
+
+    @property
+    def default(self):
+        """
+        Returns the default value for this key. If the default argument was specified
+        as a callable in the constructor, it is invoked and assumed to take no parameters.
+
+        :returns: The default value.
+        """
+        if callable(self._default):
+            return self._default()
+        else:
+            return self._default
+
     @property
     def choices(self):
         """
@@ -256,10 +272,140 @@ class StringKey(TemplateKey):
         return value if isinstance(value, basestring) else str(value)
 
 
+class TimestampKey(TemplateKey):
+    """
+    Key whose value is a time string formatted with strftime.
+    """
+
+    def __init__(
+        self,
+        name,
+        default=None,
+        format_spec="%Y-%m-%d-%H-%M-%S"
+    ):
+        """
+        Constructor
+        :param name: Name by which the key will be refered.
+        :param default: Default value for this field. Acceptable values are
+                            - None
+                            - a string formatted according to the format_spec
+                            - utc_now, which means the current time in the UTC timezone will be used
+                              as the default value.
+                            - now, which means the current time in the local timezone will be used
+                              as the default value.
+        :param format_spec: Specification for formating when casting to/from a string.
+                            The format follows the convention of strftime and strptime. The
+                            default value is "%Y-%m-%d-%H-%M-%S". Given June 24th, 2015 at
+                            9:20:30 PM, this will yield 2015-06-24-21-20-30
+        """
+
+        # Can't use __repr__ because of a chicken and egg problem. The base class validates the
+        # default value, so format_spec needs to be set first. But if I am testing format_spec
+        # before calling the base class, then repr will crash since self.name won't have been set
+        # yet.
+        if isinstance(format_spec, basestring) is False:
+            raise TankError("format_spec for <Sgtk TimestampKey %s> is not of type string: %s" %
+                            (name, format_spec.__class__.__name__))
+        self.format_spec = format_spec
+
+        if isinstance(default, basestring):
+            # if the user passes in now or utc, we'll generate the current time as the default time.
+            if default.lower() == "now":
+                default = self.__get_current_time
+            elif default.lower() == "utc_now":
+                default = self.__get_current_utc_time
+            # Base class will validate other values using the format specifier.
+        elif default is not None:
+            raise TankError("default for <Sgtk TimestampKey %s> is not of type string or None: %s" %
+                            (name, default.__class__.__name__))
+
+        super(TimestampKey, self).__init__(
+            name,
+            default=default
+        )
+
+    def __get_current_time(self):
+        """
+        Returns the current time as a datetime.datetime instance.
+
+        Do not streamline the code so the __init__ method simply passesd the datetime.datetime.now method,
+        we can't mock datetime.now since it's builtin and will make unit tests more complicated to
+        write.
+
+        :returns: A datetime object representing the current time in the local timezone.
+        """
+        return datetime.datetime.now()
+
+    def __get_current_utc_time(self):
+        """
+        Returns the current utc time as a datetime.datetime instance.
+
+        Do not streamline the code so the __init__ method simply passesd the datetime.datetime.utcnow method,
+        we can't mock datatime.datetime.utcnow since it's builtin and will make unit tests more complicated to
+        write.
+
+        :returns: A datetime object representing time current time in the UTC timezone.
+        """
+        return datetime.datetime.utcnow()
+
+    def validate(self, value):
+        """
+        Test if a value is valid for this key.
+
+        :param value: Value to test.
+
+        :returns: Bool
+        """
+        if isinstance(value, basestring):
+            # If we have a string we have to actually try to convert the string to see it if matches
+            # the expected format.
+            try:
+                datetime.datetime.strptime(value, self.format_spec)
+                return True
+            except ValueError, e:
+                # Bad value, report the error to the client code.
+                self._last_error = "Invalid string: %s" % e.message
+                return False
+        elif isinstance(value, datetime.datetime):
+            return True
+        else:
+            self._last_error = "Invalid type: expecting string or datetime.datetime, not %s" % value.__class__.__name__
+            return False
+
+    def _as_string(self, value):
+        """
+        Converts a given value as string.
+
+        :param value: A datetime.datetime object that will be converted to a string according to the
+                      format specification.
+
+        :returns: A string formatted according to the format_spec.
+        """
+        return value.strftime(self.format_spec)
+
+    def _as_value(self, str_value):
+        """
+        Converts a string into a datetime.datetime.
+
+        :param str_value: String to convert.
+
+        :returns: A datetime representation of str_value parsed according to the format_spec.
+        """
+        return datetime.datetime.strptime(str_value, self.format_spec)
+
+
 class IntegerKey(TemplateKey):
     """
     Key whose value is an integer.
     """
+    # Matches one non-zero digit follow by any number of digits.
+    _NON_ZERO_POSITIVE_INTEGER_EXP = "[1-9]\d*"
+    # For the next two regular expressions, the ^ and $ are important to prevent partial matches.
+    # Matches an optional 0 followed by a non zero positive integer.
+    _FORMAT_SPEC_RE = re.compile("^(0?)(%s)$" % _NON_ZERO_POSITIVE_INTEGER_EXP)
+    # Matches a non zero positive integer.
+    _NON_ZERO_POSITIVE_INTEGER_RE = re.compile("^%s$" % _NON_ZERO_POSITIVE_INTEGER_EXP)
+
     def __init__(self,
                  name,
                  default=None,
@@ -269,7 +415,8 @@ class IntegerKey(TemplateKey):
                  shotgun_field_name=None,
                  exclusions=None,
                  abstract=False,
-                 length=None):
+                 length=None,
+                 strict_matching=None):
         """
         :param name: Key's name.
         :param default: Default value for this key.
@@ -282,7 +429,18 @@ class IntegerKey(TemplateKey):
         :param exclusions: List of forbidden values.
         :param abstract: Bool, should this key be treated as abstract.
         :param length: int, should this key be fixed length
+        :param strict_matching: Bool, indicates if the padding should be matching exactly the
+                                format_spec when parsing a string. Default behavior is to match
+                                exactly the padding when a format_spec is provided.
         """
+        self._zero_padded = None
+        self._minimum_width = None
+        self.format_spec = None
+        self.strict_matching = None
+        # Validate and set up formatting details
+        self._init_format_spec(name, format_spec)
+        # Validate and set up strict matching defailts
+        self._init_strict_matching(name, strict_matching)
         super(IntegerKey, self).__init__(name,
                                          default=default,
                                          choices=choices,
@@ -292,30 +450,178 @@ class IntegerKey(TemplateKey):
                                          abstract=abstract,
                                          length=length)
 
-        if not(format_spec is None or isinstance(format_spec, basestring)):
-            msg = "Format_spec for TemplateKey %s is not of type string: %s"
-            raise TankError(msg % (name, str(format_spec)))
+    def _init_format_spec(self, name, format_spec):
+        """
+        Asserts that the format_spec parameter is a valid value.
 
+        :param name: Name of this template key.
+        :param format_spec: Parameter to be validated.
+
+        :raises TankError: Raised when the parameter is not a string that maching a %d format
+                           option.
+        """
+        # No format spec means no formatting options.
+        if format_spec is None:
+            return
+
+        if not isinstance(format_spec, basestring):
+            msg = "format_spec for IntegerKey %s is not of type string: %s"
+            raise TankError(msg % (name, format_spec))
+
+        if len(format_spec) == 0:
+            raise TankError("format_spec can't be empty.")
+
+        matches = self._FORMAT_SPEC_RE.match(format_spec)
+        if not matches:
+            raise TankError("format_spec for <Sgtk IntegerKey %s> has to either be a number (e.g. '3') or "
+                            "a 0 followed by a number (e.g. '03'), not '%s'" % (name, format_spec))
+
+        groups = matches.groups()
+        # groups[0] is either '' or '0', in which case the padding is ' '
+        self._zero_padded = groups[0] == "0"
+        # groups[1] is the minimum width of the number.
+        self._minimum_width = int(groups[1])
         self.format_spec = format_spec
 
-    def validate(self, value):
+    def _init_strict_matching(self, name, strict_matching):
+        """
+        Asserts that the strict_matching parameter is a valid value.
 
+        :param name: Name of this template key.
+        :param strict_matching: Parameter to be validated.
+
+        :raises TankError: Raised when the parameter is not a boolean.
+        """
+        # make sure that strict_matching is not set or that it is a boolean
+        if not(strict_matching is None or isinstance(strict_matching, bool)):
+            msg = "strict_matching for <Sgtk IntegerKey %s> is not of type boolean: %s"
+            raise TankError(msg % (name, str(strict_matching)))
+
+        # If there is a format and strict_matching is set, there's an error, since there
+        # is no format to enforce or not.
+        if self.format_spec is None and strict_matching is not None:
+            raise TankError("strict_matching can't be set if there is no format_spec")
+
+        # By default, if strict_matching is not set but there is a format spec, we'll
+        # strictly match.
+        if strict_matching is None and self.format_spec is not None:
+            strict_matching = True
+
+        if strict_matching:
+            # This regular expression is blind to the actual length of the string for performance
+            # reasons. Code that uses it should test that the string's length is of
+            # self._minimum_width first. It first matches up to n-1 padding characters. It then
+            # matches either a single 0, or an actual multiple digit number that doesn't start with
+            # 0.
+            self._strict_validation_re = re.compile("^%s{0,%d}((%s)|0)$" % (
+                "0" if self._zero_padded else ' ',
+                self._minimum_width - 1,
+                self._NON_ZERO_POSITIVE_INTEGER_EXP)
+            )
+        else:
+            self._strict_validation_re = None
+
+        self.strict_matching = strict_matching
+
+    def validate(self, value):
+        """
+        Validates the value.
+
+        :param value: Value to validate.
+
+        :returns: True is the validation was succesful, False otherwise.
+        """
         if value is not None:
-            if not (isinstance(value, int) or value.isdigit()):
-                self._last_error = "%s Illegal value %s, expected an Integer" % (self, value)
+            if isinstance(value, basestring):
+                # We have a string, make sure it loosely or strictly matches the format.
+                if self.strict_matching and not self._strictly_matches(value):
+                    return False
+                elif not self.strict_matching and not self._loosely_matches(value):
+                    return False
+            elif not isinstance(value, int):
+                self._last_error = "%s Illegal value '%s', expected an Integer" % (self, value)
                 return False
-            else:
-                return super(IntegerKey, self).validate(value)
+            return super(IntegerKey, self).validate(value)
+        return True
+
+    def _loosely_matches(self, value):
+        """
+        Checks if the value loosely matches. The value loosely matches if it can be turned into an
+        int.
+
+        For a given format_spec of "03", here are examples of loosely matching values:
+        - '1'        (missing padding)
+        - '00000001' (too much padding)
+        - '       1' (too much padding)
+
+        :param value: String to test
+
+        :returns: True if it loosely matches, False otherwise.
+        """
+        # This is the extent of what was tested before strict matching. We're actually a bit more permissive,
+        # because the user could have specified a format specifier that uses spaces for padding, but isdigit will
+        # fail if spaces are at the beginning of a string, so strip them out.
+        if not self._zero_padded:
+            value = value.lstrip()
+        # Is digit is how we tested for a number before strict_matching was introduced, so don't change that behaviour
+        if not value.isdigit():
+            self._last_error = "%s Illegal value '%s', expected an Integer" % (self, value)
+            return False
+        return True
+
+    def _strictly_matches(self, value):
+        """
+        Checks if the value strictly matches the format_spec. A value strictly matches the format
+        it is at least as wide as the minimum character length. If the string is wider, it must
+        be a non zero positive number. If it is as wide, is must be a padded positive integer.
+
+        :param value: Value to test
+
+        :returns: True if the value strictly matches the format spec, False otherwise.
+        """
+        error_msg = "%s Illegal value '%s', does not match format spec '%s'" % (self, value, self.format_spec)
+        # If there are more characters than the minimum size, we should have a non zero positive number
+        if len(value) > self._minimum_width:
+            if not self._NON_ZERO_POSITIVE_INTEGER_RE.match(value):
+                self._last_error = error_msg
+                return False
+            return True
+
+        # If there are less characters than the minimum size, then then there is no strict matching.
+        if len(value) < self._minimum_width:
+            self._last_error = error_msg
+            return False
+
+        # If there are many characters as the format_spec requires, we'll validate that things are
+        # padded accordingly. Example of things that will fail are.
+        # - '01a'
+        # - '0 1'
+        # - ' 01'
+        matches = self._strict_validation_re.match(value)
+        if not matches:
+            self._last_error = error_msg
+            return False
         return True
 
     def _as_string(self, value):
+        """
+        Converts value into a string.
+
+        :returns: String representation of the value according to the optional format_spec.
+        """
         if self.format_spec:
             # insert format spec into string
             return ("%%%sd" % self.format_spec) % value
         return "%d" % value
 
     def _as_value(self, str_value):
+        """
+        Converts value into a string.
+
+        :returns: String representation of the value according to the optional format_spec.
+        """
         return int(str_value)
+
 
 class SequenceKey(IntegerKey):
     """
@@ -364,6 +670,7 @@ class SequenceKey(IntegerKey):
         super(SequenceKey, self).__init__(name,
                                           default=default,
                                           choices=choices,
+                                          strict_matching=False,
                                           format_spec=format_spec,
                                           shotgun_entity_type=shotgun_entity_type,
                                           shotgun_field_name=shotgun_field_name,
@@ -509,7 +816,12 @@ def make_keys(data):
     :returns: Dictionary of the form: {<key name>: <TemplateKey object>}
     """
     keys = {}
-    names_classes = {"str": StringKey, "int": IntegerKey, "sequence": SequenceKey}
+    names_classes = {
+        "str": StringKey,
+        "int": IntegerKey,
+        "sequence": SequenceKey,
+        "timestamp": TimestampKey
+    }
     for initial_key_name, key_data in data.items():
         # We need to remove data before passing in as arguments, so copy it.
         prepped_data = key_data.copy()
@@ -528,4 +840,3 @@ def make_keys(data):
         key = KeyClass(key_name, **prepped_data)
         keys[initial_key_name] = key
     return keys
-

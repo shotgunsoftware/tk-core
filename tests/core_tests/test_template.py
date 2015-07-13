@@ -8,15 +8,15 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import sys
 import os
+import time
 
 import tank
 from tank import TankError
 from tank_test.tank_test_base import *
 from tank.template import Template, TemplatePath, TemplateString
 from tank.template import make_template_paths, make_template_strings, read_templates
-from tank.templatekey import (TemplateKey, StringKey, IntegerKey, SequenceKey)
+from tank.templatekey import (TemplateKey, StringKey, IntegerKey, SequenceKey, TimestampKey)
 
 class TestTemplate(TankTestBase):
     """Base class for tests of Template.
@@ -34,9 +34,10 @@ class TestTemplate(TankTestBase):
                      "snapshot": IntegerKey("snapshot", format_spec="03"),
                      "ext": StringKey("ext"),
                      "seq_num": SequenceKey("seq_num"),
-                     "frame": SequenceKey("frame", format_spec="04")}
+                     "frame": SequenceKey("frame", format_spec="04"),
+                     "day_month_year": TimestampKey("day_month_year", format_spec="%d_%m_%Y")}
         # Make a template
-        self.definition = "shots/{Sequence}/{Shot}/{Step}/work/{Shot}.{branch}.v{version}.{snapshot}.ma"
+        self.definition = "shots/{Sequence}/{Shot}/{Step}/work/{Shot}.{branch}.v{version}.{snapshot}.{day_month_year}.ma"
         self.template = Template(self.definition, self.keys)
 
 
@@ -128,7 +129,7 @@ class TestKeys(TestTemplate):
         self.assertIsNone(key)
 
     def test_mixed_keys(self):
-        expected = ["Sequence", "Shot", "Step", "branch", "version", "snapshot"]
+        expected = ["Sequence", "Shot", "Step", "branch", "version", "snapshot", "day_month_year"]
         # no predictable order
         self.assertEquals(set(self.template.keys), set(expected))
 
@@ -146,28 +147,29 @@ class TestMissingKeys(TestTemplate):
                    "Step": "Anm",
                    "branch":"mmm",
                    "version": 3,
-                   "snapshot": 2}
+                   "snapshot": 2,
+                   "day_month_year": time.gmtime()}
         expected = []
         result = self.template.missing_keys(fields)
         self.assertEquals(set(result), set(expected))
 
     def test_all_keys_missing(self):
         fields = {"Sandwhich": "Mmmmmm"}
-        expected = ["Sequence", "Shot", "Step", "branch", "version", "snapshot"]
+        expected = ["Sequence", "Shot", "Step", "branch", "version", "snapshot", "day_month_year"]
         result = self.template.missing_keys(fields)
         # no predictable order
         self.assertEquals(set(result), set(expected))
 
     def test_empty_fields(self):
         fields = {}
-        expected = ["Sequence", "Shot", "Step", "branch", "version", "snapshot"]
+        expected = ["Sequence", "Shot", "Step", "branch", "version", "snapshot", "day_month_year"]
         result = self.template.missing_keys(fields)
         # no predictable order
         self.assertEquals(set(result), set(expected))
 
     def test_some_keys_missing(self):
         fields = {"Sandwhich": "Mmmmmm", "Shot": "shot_22"}
-        expected = ["Sequence", "Step", "branch", "version", "snapshot"]
+        expected = ["Sequence", "Step", "branch", "version", "snapshot", "day_month_year"]
         result = self.template.missing_keys(fields)
         # no predictable order
         self.assertEquals(set(result), set(expected))
@@ -233,7 +235,8 @@ class TestMissingKeys(TestTemplate):
                    "Step": "Anm",
                    "branch":"mmm",
                    "version": 3,
-                   "snapshot": 2}
+                   "snapshot": 2,
+                   "day_month_year": time.gmtime()}
         result = self.template.missing_keys(fields)
         self.assertEquals(["Shot"], result)
 
@@ -376,5 +379,3 @@ class TestReadTemplates(TankTestBase):
     def test_exclusions(self):
         key = self.tk.templates["asset_work_area"].keys["Asset"]
         self.assertEquals(["Seq", "Shot"], key.exclusions)
-
-
