@@ -14,6 +14,7 @@ Defines the base class for all Tank Engines.
 """
 
 import os
+import re
 import sys
 import traceback
 import weakref
@@ -53,6 +54,7 @@ class Engine(TankBundle):
         self.__applications = {}
         self.__shared_frameworks = {}
         self.__commands = {}
+        self.__panels = {}
         self.__currently_initializing_app = None
         
         self.__qt_widget_trash = []
@@ -368,6 +370,16 @@ class Engine(TankBundle):
         return self.__commands
     
     @property
+    def panels(self):
+        """
+        Returns all the panels which have been registered with the engine.
+        
+        :returns: A dictionary keyed by panel unqiue ids. Each value is a dictionary
+                  with keys 'callback' and 'properties'
+        """
+        return self.__panels
+    
+    @property
     def has_ui(self):
         """
         Indicates that the host application that the engine is connected to has a UI enabled.
@@ -489,11 +501,10 @@ class Engine(TankBundle):
             
         self.__commands[name] = { "callback": callback, "properties": properties }
         
-    def register_panel(self, title, bundle, widget_class, *args, **kwargs):
+    def register_panel(self, callback, panel_name="main", properties=None):
         """
         Similar to register_command, but instead of registering a menu item in the form of a
-        command, this method registers a UI panel. The arguments passed to this method are the
-        same as for show_panel().
+        command, this method registers a UI panel.
         
         Panels need to be registered if they should persist between DCC sessions (e.g. 
         for example 'saved layouts'). Engines wishing to support such behavior will need
@@ -509,15 +520,43 @@ class Engine(TankBundle):
         
         In order to show or focus on a panel, use the show_panel() method instead.
         
-        :param title: The title of the window
-        :param bundle: The app, engine or framework object that is associated with this panel
-        :param widget_class: The class of the UI to be constructed. This must derive from QWidget.
-        
-        Additional parameters specified will be passed through to the widget_class constructor.
+        :param unique_id: A unique identifier for the panel. This should match the unique
+                          identifier provided in the show_panel method.
+        :param callback: Callback to a factory method that creates the panel and returns a panel widget.
+        :param panel_name: A string to distinguish this panel from other panels created by 
+                           the app. This will be used as part of the unique id for the panel.
+        :param properties: Properties dictionary. Reserved for future use.
+        :returns: A unique identifier that can be used to consistently identify the 
+                  panel across sessions. This identifier should be used to identify the panel
+                  in all subsequent calls, e.g. for example show_panel().
         """
-        # the default implementation does not do anything
-        # engines wishing to implement this behavior should override this method.
-        pass
+        properties = properties or {}
+        
+        if self.__currently_initializing_app is None:
+            # register_panel is called from outside of init_app
+            raise TankError("register_panel must be called from inside of the init_app() method!")
+        
+        current_app = self.__currently_initializing_app
+        
+        # similar to register_command, track which apps this request came from
+        properties["app"] = current_app 
+        
+        # now compose a unique id for this panel
+        # this is done based on the app instance name plus the given
+        # panel name. By using the instance name rather than the app name,
+        # we support the use case where more than one instance of an app exists 
+        # within a config.
+        panel_id = "%s_%s" % (current_app.instance_name, panel_name)
+        # to ensure the string is safe to use in most engines, 
+        # sanitize to simple alpha-numeric form
+        panel_id = re.sub("\W", "_", panel_id)
+        panel_id = panel_id.lower()
+        self.log_debug("Registered panel %s" % panel_id)
+         
+        # add it to the list of registered panels
+        self.__panels[panel_id] = {"callback": callback, "properties": properties}
+        
+        return panel_id
         
     def execute_in_main_thread(self, func, *args, **kwargs):
         """
@@ -879,7 +918,7 @@ class Engine(TankBundle):
         # lastly, return the instantiated widget
         return (status, widget)
     
-    def show_panel(self, title, bundle, widget_class, *args, **kwargs):
+    def show_panel(self, panel_id, title, bundle, widget_class, *args, **kwargs):
         """
         Shows a panel in a way suitable for this engine. Engines should attempt to
         integrate panel support as seamlessly as possible into the host application. 
@@ -889,13 +928,17 @@ class Engine(TankBundle):
         be shown as a modeless dialog instead and the call is equivalent to 
         calling show_dialog().
         
-        :param title: The title of the window
+        :param panel_id: Unique identifier for the panel, as obtained by register_panel().
+        :param title: The title of the panel
         :param bundle: The app, engine or framework object that is associated with this window
         :param widget_class: The class of the UI to be constructed. This must derive from QWidget.
         
         Additional parameters specified will be passed through to the widget_class constructor.
         """
         # engines implementing panel support should subclass this method.
+        # the core implementation falls back on a modeless window.
+        self.log_warning("Panel functionality not implemented. Falling back to showing "
+                         "panel '%s' in a modeless dialog" % panel_id)
         return self.show_dialog(title, bundle, widget_class, *args, **kwargs)        
     
     def _define_qt_base(self):
