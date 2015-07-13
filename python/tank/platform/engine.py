@@ -520,8 +520,6 @@ class Engine(TankBundle):
         
         In order to show or focus on a panel, use the show_panel() method instead.
         
-        :param unique_id: A unique identifier for the panel. This should match the unique
-                          identifier provided in the show_panel method.
         :param callback: Callback to a factory method that creates the panel and returns a panel widget.
         :param panel_name: A string to distinguish this panel from other panels created by 
                            the app. This will be used as part of the unique id for the panel.
@@ -538,7 +536,7 @@ class Engine(TankBundle):
         
         current_app = self.__currently_initializing_app
         
-        # similar to register_command, track which apps this request came from
+        # similar to register_command, track which app this request came from
         properties["app"] = current_app 
         
         # now compose a unique id for this panel
@@ -551,10 +549,11 @@ class Engine(TankBundle):
         # sanitize to simple alpha-numeric form
         panel_id = re.sub("\W", "_", panel_id)
         panel_id = panel_id.lower()
-        self.log_debug("Registered panel %s" % panel_id)
          
         # add it to the list of registered panels
         self.__panels[panel_id] = {"callback": callback, "properties": properties}
+        
+        self.log_debug("Registered panel %s" % panel_id)
         
         return panel_id
         
