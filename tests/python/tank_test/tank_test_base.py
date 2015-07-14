@@ -282,31 +282,59 @@ class TankTestBase(unittest.TestCase):
         tank.util.shotgun.get_associated_sg_base_url = self._original_get_associated_sg_base_url
         tank.util.shotgun.create_sg_connection = self._original_create_sg_connection
         
-    def setup_fixtures(self, core_config=None):
+    def setup_fixtures(self, name='config', parameters=None):
         """
         Helper method which sets up a standard toolkit configuration
         given a configuration template.
         
-        :param core_config: core override fixture to use
+        :param name: Name of the fixture to use. This is useful if you want to have multiple
+                     toolkit configurations to test against. By default, the fixtures will look for
+                     a `config` folder under the fixtures location, but if you for example wanted to 
+                     have a `vfx_config` fixture and a `games_config` fixture to run your tests against,
+                     simply specify the name parameter.
+        :param parameters: Dictionary with additional parameters to control the fixtures.
+                           The method currently supports the following parameters:
+                           
+                           - 'core': 'foo/bar' - This makes it possible to override
+                                                 the path to the core location within the config.
+                                                 As the fixtures are being set up, the foo/bar folder
+                                                 will be copied into the core location of the final
+                                                 fixtures config.
+                           
+                           - 'skip_template_reload': True - Tell the fixtures loader not to reload 
+                                                            templates. This is useful if you need to 
+                                                            do post processing of your fixtures or config
+                                                            and don't want to load templates into the tk
+                                                            instance just yet.  
         """
-        if core_config:
-            core_source = os.path.join(self.fixtures_root, "core_overrides", core_config)
+        
+        parameters = parameters or {}
+        
+        # figure out root point of fixtures config
+        config_root = os.path.join(self.fixtures_root, name)
+        
+        # first figure out core location
+        if "core" in parameters:
+            # convert slashes to be windows friendly
+            core_path_suffix = parameters["core"].replace("/", os.sep) 
+            core_source = os.path.join(config_root, core_path_suffix)
         else:
             # use the default core fixture
-            core_source = os.path.join(self.fixtures_root, "config", "core")
+            core_source = os.path.join(config_root, "core")
             
+        # copy core over to target
         core_target = os.path.join(self.project_config, "core")
         self._copy_folder(core_source, core_target)
 
-        for dir in ["env", "hooks", "bundles"]:
-            config_source = os.path.join(self.fixtures_root, "config", dir)
+        # now copy the rest of the config fixtures
+        for config_folder in ["env", "hooks", "bundles"]:
+            config_source = os.path.join(config_root, config_folder)
             if os.path.exists(config_source):
-                config_target = os.path.join(self.project_config, dir)
+                config_target = os.path.join(self.project_config, config_folder)
                 self._copy_folder(config_source, config_target)
         
-        if core_config != "multi_root_core":
-            # setup_multi_root_fixtures is messing a bunch with the 
-            # templates so it does a separate reload
+        if not ("skip_template_reload" in parameters and parameters["skip_template_reload"]):
+            # no skip_template_reload flag set to true. So go ahead and reload
             self.tk.reload_templates()
                 
     
@@ -314,7 +342,8 @@ class TankTestBase(unittest.TestCase):
         """
         Helper method which sets up a standard multi-root set of fixtures
         """
-        self.setup_fixtures(core_config="multi_root_core")
+        self.setup_fixtures(parameters = {"core": "core.override/multi_root_core", 
+                                          "skip_template_reload": True})
         
         # Add multiple project roots
         project_name = os.path.basename(self.project_root)

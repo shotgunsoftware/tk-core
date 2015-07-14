@@ -31,7 +31,7 @@ class TestSchemaCreateFoldersSingleStep(TankTestBase):
         """
         super(TestSchemaCreateFoldersSingleStep, self).setUp()
         
-        self.setup_fixtures("shotgun_single_step_core")
+        self.setup_fixtures(parameters = {"core": "core.override/shotgun_single_step_core"})
         
         self.seq = {"type": "Sequence",
                     "id": 2,
@@ -189,7 +189,7 @@ class TestSchemaCreateFoldersMultiStep(TankTestBase):
         """
         super(TestSchemaCreateFoldersMultiStep, self).setUp()
         
-        self.setup_fixtures("shotgun_multi_step_core")
+        self.setup_fixtures(parameters = {"core": "core.override/shotgun_multi_step_core"})
         
         self.seq = {"type": "Sequence",
                     "id": 2,
@@ -332,7 +332,7 @@ class TestSchemaCreateFoldersStepAndUserSandbox(TankTestBase):
         """
         super(TestSchemaCreateFoldersStepAndUserSandbox, self).setUp()
         
-        self.setup_fixtures("humanuser_step_core")
+        self.setup_fixtures(parameters = {"core": "core.override/humanuser_step_core"})
         
         self.seq = {"type": "Sequence",
                     "id": 2,
@@ -457,7 +457,7 @@ class TestSchemaCreateFoldersCustomStep(TankTestBase):
         """
         super(TestSchemaCreateFoldersCustomStep, self).setUp()
         
-        self.setup_fixtures("shotgun_single_custom_step_core")
+        self.setup_fixtures(parameters = {"core": "core.override/shotgun_single_custom_step_core"})
         
         self.seq = {"type": "Sequence",
                     "id": 2,

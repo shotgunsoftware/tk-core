@@ -32,7 +32,7 @@ class TestSchemaCreateFoldersSecondaryEntity(TankTestBase):
         """
         super(TestSchemaCreateFoldersSecondaryEntity, self).setUp()
         
-        self.setup_fixtures("optional_folder_fields")
+        self.setup_fixtures(parameters = {"core": "core.override/optional_folder_fields"})
         
         # set up our schema for sg_other_field (string)        
         field_def = {'data_type': {'editable': False, 'value': 'entity'},

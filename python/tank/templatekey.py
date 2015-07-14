@@ -314,6 +314,14 @@ class TimestampKey(TemplateKey):
                 default = self.__get_current_time
             elif default.lower() == "utc_now":
                 default = self.__get_current_utc_time
+            else:
+                # Normally the base class is the one to validate, but in this case we need to
+                # convert the string value into an actual value because the default is expected to
+                # be a value and not a string, so we'll validate right away.
+                if not self.validate(default):
+                    raise TankError(self._last_error)
+                # If we are here everything went well, so convert the string to an actual value.
+                default = datetime.datetime.strptime(default, self.format_spec)
             # Base class will validate other values using the format specifier.
         elif default is not None:
             raise TankError("default for <Sgtk TimestampKey %s> is not of type string or None: %s" %

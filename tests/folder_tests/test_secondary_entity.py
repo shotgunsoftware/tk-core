@@ -32,7 +32,7 @@ class TestSchemaCreateFoldersSecondaryEntity(TankTestBase):
         """
         super(TestSchemaCreateFoldersSecondaryEntity, self).setUp()
         
-        self.setup_fixtures("secondary_entity")
+        self.setup_fixtures(parameters = {"core": "core.override/secondary_entity"})
         
         self.seq = {"type": "Sequence",
                     "id": 2,

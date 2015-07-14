@@ -31,7 +31,7 @@ class TestSchemaCreateFoldersSingleStep(TankTestBase):
         """
         super(TestSchemaCreateFoldersSingleStep, self).setUp()
         
-        self.setup_fixtures("shotgun_single_task_core")
+        self.setup_fixtures(parameters = {"core": "core.override/shotgun_single_task_core"})
         
         self.seq = {"type": "Sequence",
                     "id": 2,
@@ -191,7 +191,7 @@ class TestSchemaCreateFoldersMultiStep(TankTestBase):
         """
         super(TestSchemaCreateFoldersMultiStep, self).setUp()
         
-        self.setup_fixtures("shotgun_multi_task_core")
+        self.setup_fixtures(parameters = {"core": "core.override/shotgun_multi_task_core"})
                 
         self.seq = {"type": "Sequence",
                     "id": 2,
