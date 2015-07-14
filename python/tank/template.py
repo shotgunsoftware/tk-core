@@ -188,9 +188,8 @@ class Template(object):
         :param platform: Optional operating system platform. If you leave it at the 
                          default value of None, paths will be created to match the 
                          current operating system. If you pass in a sys.platform-style string
-                         (e.g. 'win32', 'linux2' or 'darwin), paths will be generated to 
-                         match that platform. If no storage roots have been defined for 
-                         that platform, None is returned.
+                         (e.g. 'win32', 'linux2' or 'darwin'), paths will be generated to 
+                         match that platform.
 
         :returns: Full path, matching the template with the given fields inserted.
         """
@@ -207,9 +206,8 @@ class Template(object):
         :param platform: Optional operating system platform. If you leave it at the 
                          default value of None, paths will be created to match the 
                          current operating system. If you pass in a sys.platform-style string
-                         (e.g. 'win32', 'linux2' or 'darwin), paths will be generated to 
-                         match that platform. If no storage roots have been defined for 
-                         that platform, None is returned.
+                         (e.g. 'win32', 'linux2' or 'darwin'), paths will be generated to 
+                         match that platform.
 
         :returns: Full path, matching the template with the given fields inserted.
         """        
@@ -453,9 +451,8 @@ class TemplatePath(Template):
         :param platform: Optional operating system platform. If you leave it at the 
                          default value of None, paths will be created to match the 
                          current operating system. If you pass in a sys.platform-style string
-                         (e.g. 'win32', 'linux2' or 'darwin), paths will be generated to 
-                         match that platform. If no storage roots have been defined for that platform,
-                         None is returned.
+                         (e.g. 'win32', 'linux2' or 'darwin'), paths will be generated to 
+                         match that platform.
 
         :returns: Full path, matching the template with the given fields inserted.
         """        
