@@ -562,7 +562,7 @@ def read_templates(pipeline_configuration):
 
     :returns: Dictionary of form {template name: template object}
     """    
-    multi_os_data_roots = pipeline_configuration.get_all_platform_data_roots()
+    per_platform_roots = pipeline_configuration.get_all_platform_data_roots()
     data = pipeline_configuration.get_templates_config()            
     
     # get dictionaries from the templates config file:
@@ -575,7 +575,7 @@ def read_templates(pipeline_configuration):
         return d            
             
     keys = templatekey.make_keys(get_data_section("keys"))
-    template_paths = make_template_paths(get_data_section("paths"), keys, multi_os_data_roots)
+    template_paths = make_template_paths(get_data_section("paths"), keys, per_platform_roots)
     template_strings = make_template_strings(get_data_section("strings"), keys, template_paths)
 
     # Detect duplicate names across paths and strings
@@ -589,15 +589,15 @@ def read_templates(pipeline_configuration):
     return templates
 
 
-def make_template_paths(data, keys, multi_os_roots):
+def make_template_paths(data, keys, all_per_platform_roots):
     """
     Factory function which creates TemplatePaths.
 
     :param data: Data from which to construct the template paths.
                  Dictionary of form: {<template name>: {<option>: <option value>}}
     :param keys: Available keys. Dictionary of form: {<key name> : <TemplateKey object>}
-    :param multi_os_roots: Root paths for all platforms. nested dictionary first keyed by 
-                           storage root name and then by sys.platform-style os name.
+    :param all_per_platform_roots: Root paths for all platforms. nested dictionary first keyed by 
+                                   storage root name and then by sys.platform-style os name.
 
     :returns: Dictionary of form {<template name> : <TemplatePath object>}
     """
@@ -615,12 +615,12 @@ def make_template_paths(data, keys, multi_os_roots):
                             "template should be in the strings section "
                             "instead?" % (template_name, definition))
 
-        root_path = multi_os_roots[root_name][sys.platform]
+        root_path = all_per_platform_roots[root_name].get(sys.platform)
         if root_path is None:
             raise TankError("Undefined Shotgun storage! The local file storage '%s' is not defined for this "
                             "operating system." % root_name)
 
-        template_path = TemplatePath(definition, keys, root_path, template_name, multi_os_roots[root_name])
+        template_path = TemplatePath(definition, keys, root_path, template_name, all_per_platform_roots[root_name])
         template_paths[template_name] = template_path
 
     return template_paths
