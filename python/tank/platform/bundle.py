@@ -148,7 +148,7 @@ class TankBundle(object):
         Returns a dictionary of style constants. These can be used to build
         UIs using standard colors and other style components. All keys returned
         in this dictionary can also be used inside a style.qss that lives 
-        at the root level of the app/engine for framework. Use a 
+        at the root level of the app, engine or framework. Use a 
         {{DOUBLE_BACKET}} syntax in the stylesheet file, for example:
         
             QWidget
