@@ -507,8 +507,7 @@ class Engine(TankBundle):
         command, this method registers a UI panel.
         
         Panels need to be registered if they should persist between DCC sessions (e.g. 
-        for example 'saved layouts'). Engines wishing to support such behavior will need
-        to implement this method. 
+        for example 'saved layouts').
         
         Just like with the register_command() method, panel registration should be executed 
         from within the init phase of the app. Once a panel has been registered, it is possible
