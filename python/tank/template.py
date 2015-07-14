@@ -398,18 +398,18 @@ class TemplatePath(Template):
     """
     Class for templates for paths.
     """
-    def __init__(self, definition, keys, root_path, name=None, root_paths_all_os=None):
+    def __init__(self, definition, keys, root_path, name=None, per_platform_roots=None):
         """
         :param definition: Template definition string.
         :param keys: Mapping of key names to keys (dict)
         :param root_path: Path to project root for this template.
         :param name: Optional name for this template.
-        :param root_paths_all_os: Root paths for all supported operating systems. 
-                                  This is a dictionary with sys.platform-style keys
+        :param per_platform_roots: Root paths for all supported operating systems. 
+                                   This is a dictionary with sys.platform-style keys
         """
         super(TemplatePath, self).__init__(definition, keys, name=name)
         self._prefix = root_path
-        self._root_paths_all_os = root_paths_all_os
+        self._per_platform_roots = per_platform_roots
 
         # Make definition use platform separator
         for index, rel_definition in enumerate(self._definitions):
@@ -439,7 +439,7 @@ class TemplatePath(Template):
         """
         parent_definition = os.path.dirname(self.definition)
         if parent_definition:
-            return TemplatePath(parent_definition, self.keys, self.root_path, None, self._root_paths_all_os)
+            return TemplatePath(parent_definition, self.keys, self.root_path, None, self._per_platform_roots)
         return None
 
     def _apply_fields(self, fields, ignore_types=None, platform=None):
@@ -467,7 +467,7 @@ class TemplatePath(Template):
         else:
             # caller has requested a path for another OS
             
-            if self._root_paths_all_os is None:
+            if self._per_platform_roots is None:
                 # it's possible that the additional os paths are not set for a template
                 # object (mainly because of backwards compatibility reasons) and in this case
                 # we cannot compute the path.
@@ -479,7 +479,7 @@ class TemplatePath(Template):
                            self.PLATFORM_MAC: "darwin", 
                            self.PLATFORM_WINDOWS: "win32"}
             
-            platform_root_path = self._root_paths_all_os.get(PATH_LOOKUP[platform])
+            platform_root_path = self._per_platform_roots.get(PATH_LOOKUP[platform])
             
             if platform_root_path is None:
                 # either the platform is undefined or unknown
