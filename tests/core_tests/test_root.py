@@ -10,6 +10,7 @@
 
 import os
 import sys
+import copy
 
 from tank_vendor import yaml
 from tank_test.tank_test_base import *
@@ -17,6 +18,7 @@ from tank_test.tank_test_base import *
 from tank import TankError
 
 class TestGetProjectRoots(TankTestBase):
+    
     def setUp(self):
         super(TestGetProjectRoots, self).setUp()
         self.setup_fixtures()
@@ -25,10 +27,15 @@ class TestGetProjectRoots(TankTestBase):
         #TODO make os specific paths
         
         self.roots = {"primary":{}, "publish": {}, "render": {}}
-        for os_name in ["windows_path", "linux_path", "mac_path"]:
-            self.roots["primary"][os_name] = os.path.dirname(self.project_root)
-            self.roots["publish"][os_name] = os.path.join(self.tank_temp, "publish")
-            self.roots["render"][os_name]  = os.path.join(self.tank_temp, "render")
+        for os_name in ["linux_path", "mac_path"]:
+            self.roots["primary"][os_name] = os.path.dirname(self.project_root).replace(os.sep, "/")
+            self.roots["publish"][os_name] = os.path.join(self.tank_temp, "publish").replace(os.sep, "/")
+            self.roots["render"][os_name]  = os.path.join(self.tank_temp, "render").replace(os.sep, "/")
+        for os_name in ["windows_path"]:
+            self.roots["primary"][os_name] = os.path.dirname(self.project_root).replace(os.sep, "\\")
+            self.roots["publish"][os_name] = os.path.join(self.tank_temp, "publish").replace(os.sep, "\\")
+            self.roots["render"][os_name]  = os.path.join(self.tank_temp, "render").replace(os.sep, "\\")
+
         # the roots file will be written by each test
 
     def test_file_missing(self):
@@ -62,6 +69,41 @@ class TestGetProjectRoots(TankTestBase):
         for root_name, root_path in result.items():
             expected_path = os.path.join(self.roots[root_name][platform], project_name)
             self.assertEqual(expected_path, root_path)
+
+    def test_all_paths(self):
+        """
+        Tests getting storage paths back from a pipeline config. 
+        """
+        
+        # take one path out and mark as undefined
+        new_roots = copy.deepcopy(self.roots)
+        new_roots["render"]["linux_path"] = None
+        
+        root_file =  open(self.root_file_path, "w") 
+        root_file.write(yaml.dump(new_roots))
+        root_file.close()
+
+        pc = tank.pipelineconfig_factory.from_path(self.project_root)
+        result = pc.get_all_platform_data_roots()
+        
+        platform_lookup = {"win32": "windows_path", "darwin": "mac_path", "linux2": "linux_path"}
+
+        project_name = os.path.basename(self.project_root)
+        for root_name, platform_paths in result.items():
+            for platform in platform_paths:
+                root_path = platform_paths[platform]
+                shotgun_path_key = platform_lookup[platform] 
+                if new_roots[root_name][shotgun_path_key] is None:
+                    expected_path = None
+                elif platform == "win32":
+                    expected_path = "%s\\%s" % (new_roots[root_name][shotgun_path_key], project_name)
+                else:
+                    expected_path = "%s/%s" % (new_roots[root_name][shotgun_path_key], project_name)
+                self.assertEqual(expected_path, root_path)
+
+
+
+
 
 class TestGetPrimaryRoot(TankTestBase):
     def setUp(self):

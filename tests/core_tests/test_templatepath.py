@@ -41,7 +41,18 @@ class TestTemplatePath(TankTestBase):
                      "frame": SequenceKey("frame", format_spec="04")}
         # Make a template
         self.definition = "shots/{Sequence}/{Shot}/{Step}/work/{Shot}.{branch}.v{version}.{snapshot}.ma"
-        self.template_path = TemplatePath(self.definition, self.keys, self.project_root)
+        
+        # legacy style template object which only knows about the currently running operating system
+        self.template_path_current_os_only = TemplatePath(self.definition, self.keys, self.project_root)
+        
+        # new style template object which supports all recognized platforms
+        # get all OS roots for primary storage
+        all_roots = self.pipeline_configuration.get_all_platform_data_roots()["primary"]
+        
+        self.template_path = TemplatePath(self.definition, 
+                                          self.keys, 
+                                          self.project_root, 
+                                          per_platform_roots=all_roots)
 
         # make template with sequence key
         self.sequence = TemplatePath("/path/to/seq.{frame}.ext", self.keys, "", "frame")
@@ -255,6 +266,7 @@ class TestValidate(TestTemplatePath):
 
 
 class TestApplyFields(TestTemplatePath):
+    
     def test_simple(self):
         relative_path = os.path.join("shots",
                                      "seq_1",
@@ -269,7 +281,57 @@ class TestApplyFields(TestTemplatePath):
                    "branch":"mmm",
                    "version": 3,
                    "snapshot": 2}
+        
         result = self.template_path.apply_fields(fields)
+        self.assertEquals(expected, result)        
+
+    def test_multi_platform(self):
+        relative_path = os.path.join("shots",
+                                     "seq_1",
+                                     "s1",
+                                     "Anm",
+                                     "work",
+                                     "s1.mmm.v003.002.ma")
+        expected = os.path.join(self.project_root, relative_path)
+        fields = {"Sequence": "seq_1",
+                   "Shot": "s1",
+                   "Step": "Anm",
+                   "branch":"mmm",
+                   "version": 3,
+                   "snapshot": 2}        
+        
+        result = self.template_path.apply_fields(fields, "win32")
+        root = self.pipeline_configuration.get_all_platform_data_roots()["primary"]["win32"]
+        expected = "%s\\%s" % (root, relative_path.replace(os.sep, "\\"))
+        self.assertEquals(expected, result)
+
+        result = self.template_path.apply_fields(fields, "linux2")
+        root = self.pipeline_configuration.get_all_platform_data_roots()["primary"]["linux2"]
+        expected = "%s/%s" % (root, relative_path.replace(os.sep, "/"))
+        self.assertEquals(expected, result)
+
+        result = self.template_path.apply_fields(fields, "darwin")
+        root = self.pipeline_configuration.get_all_platform_data_roots()["primary"]["darwin"]
+        expected = "%s/%s" % (root, relative_path.replace(os.sep, "/"))
+        self.assertEquals(expected, result)
+
+    def test_legacy_constructor_format(self):
+        
+        relative_path = os.path.join("shots",
+                                     "seq_1",
+                                     "s1",
+                                     "Anm",
+                                     "work",
+                                     "s1.mmm.v003.002.ma")
+        expected = os.path.join(self.project_root, relative_path)
+        fields = {"Sequence": "seq_1",
+                   "Shot": "s1",
+                   "Step": "Anm",
+                   "branch":"mmm",
+                   "version": 3,
+                   "snapshot": 2}
+        
+        result = self.template_path_current_os_only.apply_fields(fields)
         self.assertEquals(expected, result)
 
     def test_fields_missing(self):
