@@ -1,4 +1,4 @@
-# Copyright (c) 2015 Shotgun Software Inc.
+# Copyright (c) 2014 Shotgun Software Inc.
 #
 # CONFIDENTIAL AND PROPRIETARY
 #
@@ -19,31 +19,6 @@ from .platform import constants
 from .util import shotgun
 from . import pipelineconfig_utils
 from .pipelineconfig import PipelineConfiguration
-
-
-def _massage_path(path):
-    """
-    Converts all slashes to forward slashes and normalizes it.
-
-    :param path: Path to massage.
-
-    :returns: A normalized path with only forward slashes
-    """
-    return os.path.normpath(path.replace("\\", "/"))
-
-
-def _is_path_in_paths(path, paths):
-    """
-    Lenient comparison of paths that tolerates / and \ mismatches. For example, "a\b" is
-    considered equivalent to "a/b", which is inside "/a/b/c", so the method would return True.
-
-    :returns: True if the lenient comparison considers subpath to be inside path, False otherwise.
-    """
-    # Massage paths
-    paths = (_massage_path(p) for p in paths)
-    # Massage path we want to test.
-    path = _massage_path(path)
-    return path in paths
 
 
 def from_entity(entity_type, entity_id):
@@ -110,7 +85,7 @@ def _from_entity(entity_type, entity_id, force_reread_shotgun_cache):
     if config_context_path:
         # we are running the tank command or API from a configuration
 
-        if not _is_path_in_paths(config_context_path, local_pc_paths):
+        if config_context_path not in local_pc_paths:
             # the tank command / api proxy which this session was launched for is *not*
             # associated with the given entity type and entity id!
             raise TankError("The pipeline configuration in '%s' is is associated with a different "
@@ -144,6 +119,7 @@ def _from_entity(entity_type, entity_id, force_reread_shotgun_cache):
 
         # looks good, we got a primary pipeline config that exists
         return PipelineConfiguration(primary_pc_paths[0])
+
 
 
 def from_path(path):
@@ -233,7 +209,7 @@ def _from_path(path, force_reread_shotgun_cache):
 
         # now if this tank command is associated with the path, the registered path should be in
         # in the list of paths found in the tank data backlink file
-        if not _is_path_in_paths(config_context_path, local_pc_paths):
+        if config_context_path not in local_pc_paths:
             raise TankError("You are trying to start Toolkit using the pipeline configuration "
                             "located in '%s'. The path '%s' you are trying to load is not "
                             "associated with that configuration. Instead, it is "
@@ -306,6 +282,15 @@ def _get_configuration_context():
     return val
 
 
+def _cleanup_separators(path):
+    """
+    Flips all slashes to the operating system's standard slash separator and strips
+    any dangling slashes.
+    """
+    # Norm path will take care of removing any .. or extra slashes at the end of paths.
+    return os.path.normpath(path.replace("\\", os.path.sep).replace("/", os.path.sep))
+
+
 def _get_pipeline_configuration_paths(sg_pipeline_configs):
     """
     Given a list of Shotgun Pipeline configuration entity data, return a list
@@ -320,7 +305,7 @@ def _get_pipeline_configuration_paths(sg_pipeline_configs):
     local_pc_paths = []
     primary_pc_paths = []
     for pc in sg_pipeline_configs:
-        curr_os_path = pc.get(platform_lookup[sys.platform])
+        curr_os_path = _cleanup_separators(pc.get(platform_lookup[sys.platform]))
         local_pc_paths.append(curr_os_path)
         if pc.get("code") == constants.PRIMARY_PIPELINE_CONFIG_NAME:
             primary_pc_paths.append(curr_os_path)
