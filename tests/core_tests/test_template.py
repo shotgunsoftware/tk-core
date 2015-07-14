@@ -8,6 +8,8 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+import copy
+import sys
 import os
 import time
 
@@ -278,19 +280,19 @@ class TestMakeTemplatePaths(TankTestBase):
     def setUp(self):
         super(TestMakeTemplatePaths, self).setUp()
         self.keys = {"Shot": StringKey("Shot")}
-        self.roots = {"primary": self.project_root}
+        self.multi_os_data_roots = self.pipeline_configuration.get_all_platform_data_roots()
 
 
     def test_simple(self):
         data = {"template_name": "something/{Shot}"}
-        result = make_template_paths(data, self.keys, self.roots)
+        result = make_template_paths(data, self.keys, self.multi_os_data_roots)
         template_path = result.get("template_name")
         self.assertIsInstance(template_path, TemplatePath)
         self.assertEquals(self.keys.get("Shot"), template_path.keys.get("Shot"))
 
     def test_complex(self):
         data = {"template_name": {"definition": "something/{Shot}"}}
-        result = make_template_paths(data, self.keys, self.roots)
+        result = make_template_paths(data, self.keys, self.multi_os_data_roots)
         template_path = result.get("template_name")
         self.assertIsInstance(template_path, TemplatePath)
         self.assertEquals(self.keys.get("Shot"), template_path.keys.get("Shot"))
@@ -298,25 +300,32 @@ class TestMakeTemplatePaths(TankTestBase):
     def test_duplicate_definitions_simple(self):
         data = {"template_name": "something/{Shot}",
                 "another_template": "something/{Shot}"}
-        self.assertRaises(TankError, make_template_paths, data, self.keys, self.roots)
+        self.assertRaises(TankError, make_template_paths, data, self.keys, self.multi_os_data_roots)
 
     def test_duplicate_definitions_complex(self):
         data = {"template_name": {"definition": "something/{Shot}"},
                 "another_template": {"definition": "something/{Shot}"}}
-        self.assertRaises(TankError, make_template_paths, data, self.keys, self.roots)
+        self.assertRaises(TankError, make_template_paths, data, self.keys, self.multi_os_data_roots)
 
     def test_dup_def_diff_roots(self):
-        alt_root = os.path.join("some","fake","path")
-        roots = {"primary": self.project_root, 
-                 "alternate_1": alt_root}
+        
+        # add another root
+        modified_roots = copy.copy(self.multi_os_data_roots)
+        
+        modified_roots["alternate_1"] = {}
+        modified_roots["alternate_1"]["win32"] = "z:\\some\\fake\\path"
+        modified_roots["alternate_1"]["linux2"] = "/some/fake/path"
+        modified_roots["alternate_1"]["darwin"] = "/some/fake/path"
+                
         data = {"template_name": {"definition": "something/{Shot}"},
                 "another_template": {"definition": "something/{Shot}",
                                      "root_name": "alternate_1"}}
-        result = make_template_paths(data, self.keys, roots)
+        
+        result = make_template_paths(data, self.keys, modified_roots)
         prim_template = result.get("template_name")
         alt_templatte = result.get("another_template")
         self.assertEquals(self.project_root, prim_template.root_path)
-        self.assertEquals(alt_root, alt_templatte.root_path)
+        self.assertEquals(modified_roots["alternate_1"][sys.platform], alt_templatte.root_path)
                 
 
 class TestMakeTemplateStrings(TankTestBase):
