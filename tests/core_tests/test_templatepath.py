@@ -52,7 +52,7 @@ class TestTemplatePath(TankTestBase):
         self.template_path = TemplatePath(self.definition, 
                                           self.keys, 
                                           self.project_root, 
-                                          root_paths_all_os=all_roots)
+                                          per_platform_roots=all_roots)
 
         # make template with sequence key
         self.sequence = TemplatePath("/path/to/seq.{frame}.ext", self.keys, "", "frame")
