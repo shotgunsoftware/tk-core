@@ -27,8 +27,6 @@ class Template(object):
     Object which manages the translation between paths and file templates
     """
        
-    PLATFORM_MAC, PLATFORM_WINDOWS, PLATFORM_LINUX = range(3)
-        
     @classmethod
     def _keys_from_definition(cls, definition, template_name, keys):
         """Extracts Template Keys from a definition.
@@ -189,9 +187,10 @@ class Template(object):
                        definition.
         :param platform: Optional operating system platform. If you leave it at the 
                          default value of None, paths will be created to match the 
-                         current operating system. If you pass in a platform constant
-                         (e.g. Template.PLATFORM_XXX), paths will be generating to 
-                         target that specific platform.
+                         current operating system. If you pass in a sys.platform-style string
+                         (e.g. 'win32', 'linux2' or 'darwin), paths will be generated to 
+                         match that platform. If no storage roots have been defined for 
+                         that platform, None is returned.
 
         :returns: Full path, matching the template with the given fields inserted.
         """
@@ -207,9 +206,10 @@ class Template(object):
                             This allows setting a Key whose type is int with a string value.
         :param platform: Optional operating system platform. If you leave it at the 
                          default value of None, paths will be created to match the 
-                         current operating system. If you pass in a platform constant
-                         (e.g. Template.PLATFORM_XXX), paths will be generating to 
-                         target that specific platform.
+                         current operating system. If you pass in a sys.platform-style string
+                         (e.g. 'win32', 'linux2' or 'darwin), paths will be generated to 
+                         match that platform. If no storage roots have been defined for 
+                         that platform, None is returned.
 
         :returns: Full path, matching the template with the given fields inserted.
         """        
@@ -452,9 +452,10 @@ class TemplatePath(Template):
                             This allows setting a Key whose type is int with a string value.
         :param platform: Optional operating system platform. If you leave it at the 
                          default value of None, paths will be created to match the 
-                         current operating system. If you pass in a platform constant
-                         (e.g. Template.PLATFORM_XXX), paths will be generating to 
-                         target that specific platform.
+                         current operating system. If you pass in a sys.platform-style string
+                         (e.g. 'win32', 'linux2' or 'darwin), paths will be generated to 
+                         match that platform. If no storage roots have been defined for that platform,
+                         None is returned.
 
         :returns: Full path, matching the template with the given fields inserted.
         """        
@@ -466,7 +467,6 @@ class TemplatePath(Template):
     
         else:
             # caller has requested a path for another OS
-            
             if self._per_platform_roots is None:
                 # it's possible that the additional os paths are not set for a template
                 # object (mainly because of backwards compatibility reasons) and in this case
@@ -475,18 +475,14 @@ class TemplatePath(Template):
                                 "it was instantiated in a mode which only supports the resolving "
                                 "of current operating system paths." % (self, platform))
             
-            PATH_LOOKUP = {self.PLATFORM_LINUX: "linux2", 
-                           self.PLATFORM_MAC: "darwin", 
-                           self.PLATFORM_WINDOWS: "win32"}
-            
-            platform_root_path = self._per_platform_roots.get(PATH_LOOKUP[platform])
+            platform_root_path = self._per_platform_roots.get(platform)
             
             if platform_root_path is None:
                 # either the platform is undefined or unknown
-                raise TankError("Cannot resolve path for unknown operating system '%s'! Please ensure "
+                raise TankError("Cannot resolve path for operating system '%s'! Please ensure "
                                 "that you have a valid storage set up for this platform." % platform)
             
-            elif platform == Template.PLATFORM_WINDOWS:
+            elif platform == "win32":
                 # use backslashes for windows
                 if relative_path:
                     return "%s\\%s" % (platform_root_path, relative_path.replace(os.sep, "\\"))
@@ -494,7 +490,7 @@ class TemplatePath(Template):
                     # not path generated - just return the root path
                     return platform_root_path
             
-            elif platform in [Template.PLATFORM_LINUX, Template.PLATFORM_MAC]:
+            elif platform == "darwin" or "linux" in platform:
                 # unix-like plaforms - use slashes
                 if relative_path:
                     return "%s/%s" % (platform_root_path, relative_path.replace(os.sep, "/"))
