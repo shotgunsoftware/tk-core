@@ -203,7 +203,7 @@ class Template(object):
 
         :param fields: Mapping of keys to fields. Keys must match those in template 
                        definition.
-        :param ignore_type: Keys for whom the defined type is ignored as list of strings.
+        :param ignore_types: Keys for whom the defined type is ignored as list of strings.
                             This allows setting a Key whose type is int with a string value.
         :param platform: Optional operating system platform. If you leave it at the 
                          default value of None, paths will be created to match the 
@@ -448,7 +448,7 @@ class TemplatePath(Template):
 
         :param fields: Mapping of keys to fields. Keys must match those in template 
                        definition.
-        :param ignore_type: Keys for whom the defined type is ignored as list of strings.
+        :param ignore_types: Keys for whom the defined type is ignored as list of strings.
                             This allows setting a Key whose type is int with a string value.
         :param platform: Optional operating system platform. If you leave it at the 
                          default value of None, paths will be created to match the 
