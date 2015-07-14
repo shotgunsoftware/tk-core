@@ -29,7 +29,7 @@ class TestApplication(TankTestBase):
         
         # setup shot
         seq = {"type":"Sequence", "code": "seq_name", "id":3 }
-        seq_path = os.path.join(self.project_root, "sequences/Seq/seq_name")
+        seq_path = os.path.join(self.project_root, "sequences", "seq_name")
         self.add_production_path(seq_path, seq)
         
         shot = {"type":"Shot", "code": "shot_name", "id":2, "sg_sequence": seq, "project": self.project}

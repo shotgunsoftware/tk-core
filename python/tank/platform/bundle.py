@@ -35,6 +35,7 @@ class TankBundle(object):
         self.__context = context
         self.__settings = settings
         self.__sg = None
+        self.__cache_location = None
         self.__module_uid = None
         self.__descriptor = descriptor    
         self.__frameworks = {}
@@ -142,6 +143,32 @@ class TankBundle(object):
         return self.__descriptor.get_icon_256()
 
     @property
+    def style_constants(self):
+        """
+        Returns a dictionary of style constants. These can be used to build
+        UIs using standard colors and other style components. All keys returned
+        in this dictionary can also be used inside a style.qss that lives 
+        at the root level of the app/engine for framework. Use a 
+        {{DOUBLE_BACKET}} syntax in the stylesheet file, for example:
+        
+            QWidget
+            { 
+                color: {{SG_FOREGROUND_COLOR}};
+            }
+        
+        This property returns the values for all constants, for example:
+        
+            { 
+              "SG_HIGHLIGHT_COLOR": "#18A7E3",
+              "SG_ALERT_COLOR": "#FC6246",
+              "SG_FOREGROUND_COLOR": "#C8C8C8"
+            }
+        
+        :returns: Dictionary. See above for example 
+        """
+        return constants.SG_STYLESHEET_CONSTANTS    
+
+    @property
     def documentation_url(self):
         """
         Return the relevant documentation url for this item.
@@ -173,13 +200,26 @@ class TankBundle(object):
         An item-specific location on disk where the app or engine can store
         random cache data. This location is guaranteed to exist on disk.
         """
-        path = self.__tk.execute_core_hook_method(constants.CACHE_LOCATION_HOOK_NAME,
-                                                  "bundle_cache",
-                                                  project_id=self.__tk.pipeline_configuration.get_project_id(),
-                                                  pipeline_configuration_id=self.__tk.pipeline_configuration.get_shotgun_id(),
-                                                  bundle=self)
+        # this method is memoized for performance since it is being called a lot!
+        if self.__cache_location is None:
+            # Site configuration's project id is None. Since we're calling a hook, we'll have to
+            # pass in 0 to avoid client code crashing because it expects an integer and not
+            # the None object. This happens when we are building the cache root, where %d is used to
+            # inject the project id in the file path.        
+            if self.__tk.pipeline_configuration.is_site_configuration():
+                project_id = 0
+            else:
+                project_id = self.__tk.pipeline_configuration.get_project_id()
+            
+            pc_id = self.__tk.pipeline_configuration.get_shotgun_id()
+            
+            self.__cache_location = self.__tk.execute_core_hook_method(constants.CACHE_LOCATION_HOOK_NAME,
+                                                                       "bundle_cache",
+                                                                       project_id=project_id,
+                                                                       pipeline_configuration_id=pc_id,
+                                                                       bundle=self)
         
-        return path
+        return self.__cache_location
 
     @property
     def context(self):

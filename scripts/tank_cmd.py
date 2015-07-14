@@ -8,11 +8,13 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from __future__ import with_statement
 import sys
 import os
 import cgi
 import re
 import logging
+import string
 import tank
 import textwrap
 import datetime
@@ -21,7 +23,13 @@ from tank.deploy.tank_commands.clone_configuration import clone_pipeline_configu
 from tank.deploy import tank_command
 from tank.deploy.tank_commands.core_upgrade import TankCoreUpgrader
 from tank.deploy.tank_commands.action_base import Action
-from tank.util import shotgun
+from tank.util import shotgun, CoreDefaultsManager
+from tank_vendor.shotgun_authentication import ShotgunAuthenticator
+from tank_vendor.shotgun_authentication import AuthenticationError
+from tank_vendor.shotgun_authentication import ShotgunAuthenticationError
+from tank_vendor.shotgun_authentication import AuthenticationCancelled
+from tank_vendor.shotgun_authentication import IncompleteCredentials
+from tank_vendor import yaml
 from tank.platform import engine
 from tank import pipelineconfig_utils
 
@@ -30,6 +38,10 @@ from tank import pipelineconfig_utils
 
 ###############################################################################################
 # Constants
+
+ARG_SCRIPT_NAME = "script-name"
+ARG_SCRIPT_KEY = "script-key"
+ARG_CREDENTIALS_FILE = "credentials-file"
 
 SHOTGUN_ENTITY_TYPES = ['Playlist', 'AssetSceneConnection', 'Note', 'TaskDependency', 'PageHit',
                         'ActionMenuItem', 'Attachment', 'AssetMocapTakeConnection',
@@ -134,6 +146,15 @@ General options and info
 ----------------------------------------------
 - To show this help, add a -h or --help flag.
 - To display verbose debug, add a --debug flag.
+- To provide a script name and script key on the command line for
+  authentication, add the --script-name=scriptname and
+  --script-key=scriptkey arguments anywhere on the command line.
+- To provide a script user and script key in a file for authentication,
+  add the --credentials-file=/path/to/credential/file anywhere on the
+  command line. The credentials file should be in the YAML format with keys
+  script-name and script-key set. For example:
+  script-name: Toolkit
+  script-key: cb412dbf815bf9d4c257f648d9ec996722b4b452fc4c54dfbd0684d56fa65956
 
 
 Executing Commands
@@ -176,10 +197,45 @@ Launch maya for a Task in Shotgun using an id:
 Launch maya for a folder:
 > tank /studio/proj_xyz/shots/ABC123 launch_maya
 
+Log out of the current user (no context required):
+> tank logout
+
 """
     for x in info.split("\n"):
         log.info(x)
 
+
+def ensure_authenticated(script_name=None, script_key=None):
+    """
+    Make sure that there is a current toolkit user set.
+    May prompt for a login/password if needed. Note that if command line
+    arguments are used, the current user will be overriden only for this
+    invocation of the tank command and future invocations without credentials
+    on the command line will use the current default user. If no command line
+    credentials are provided and no script user is set, then the user will be
+    prompted for his credentials and those will be remembered in future
+    invocations until that user logs out.
+
+    :param script_name: Name of the script to authenticate with. Can be None.
+    :param script_key: Key of the script to authenticate with. Can be None.
+    """
+    # create a core-level defaults manager.
+    # this will read site details from shotgun.yml
+    core_dm = CoreDefaultsManager()
+    # set up the authenticator
+    shotgun_auth = ShotgunAuthenticator(core_dm)
+
+    if script_name and script_key:
+        user = shotgun_auth.create_script_user(
+            api_script=script_name,
+            api_key=script_key
+        )
+    else:
+        # request a user, either by prompting the user or by pulling out of
+        # saved sessions etc.
+        user = shotgun_auth.get_user()
+    # set the current toolkit user
+    tank.set_authenticated_user(user)
 
 
 
@@ -373,19 +429,175 @@ def shotgun_cache_actions(log, pipeline_config_root, args):
             tank_cmd = os.path.join(pipeline_config_root, "tank")
         log.info("<code style='%s'>%s clear_shotgun_menu_cache</code>" % (code_css_block, tank_cmd))
         log.info("")
+        
+        # return with an error code to indicate a failure to the caller
+        return 1
+    
+    # return success error code
+    return 0
 
+def shotgun_run_action_auth(log, install_root, pipeline_config_root, is_localized, args):
+    """
+    Executes the special shotgun run action command from inside of shotgun.
+    Authenticated version.
+
+    This method expects the following arguments to be passed via the args param:
+    args[0]: name of the action
+    args[1]: entity type to operate on
+    args[2]: list of entity ids as a string, e.g. '1,2,3'
+    args[3]: shotgun user login requesting this command
+    args[4]: rot-13 shifted password for the user. Can be set to "-" - in that case,
+             this is a hint to toolkit to try to authenticate via a
+             cached session token
+    args[5:]: reserved for future use. This method will *not* error
+              if unexpected args are passed to it.
+
+    :param log: Python logger
+    :param install_root: Root of the toolkit core installation
+    :param pipeline_config_root: Root of the pipeline configuration
+    :param is_localized: True if the pipeline configuration has been localized
+    :param args: list of arguments passed from Shotgun.
+    """
+    # we are talking to shotgun! First of all, make sure we switch on our html style logging
+    log.handlers[0].formatter.enable_html_mode()
+
+    log.debug("Running shotgun_run_action_auth command")
+
+    action_name = args[0]
+    entity_type = args[1]
+    entity_ids_str = args[2].split(",")
+    entity_ids = [int(x) for x in entity_ids_str]
+    login = args[3]
+    rot13_password = args[4]
+
+    # un-swizzle the password
+    rot13 = string.maketrans("NOPQRSTUVWXYZnopqrstuvwxyzABCDEFGHIJKLMabcdefghijklm",
+                             "ABCDEFGHIJKLMabcdefghijklmNOPQRSTUVWXYZnopqrstuvwxyz")
+    password = string.translate(rot13_password, rot13)
+
+    # now, first try to authenticate
+    core_dm = CoreDefaultsManager()
+    sa = ShotgunAuthenticator(core_dm)
+
+    # If there is a default user and it has no name, we should authenticate
+    # with it since it's the script user and we have to remain backwards
+    # compatible.
+    default_user = sa.get_default_user()
+    if default_user and not default_user.login:
+        # there is a default script user - this takes precedence.
+        tank.set_authenticated_user(default_user)
+    else:
+        # no default user. Have to authenticate
+        if password == "-":
+            # no password given from shotgun. Try to use a stored session token
+            try:
+                user = sa.create_session_user(login)
+                if user.are_credentials_expired():
+                    raise IncompleteCredentials("Session token is expired.")
+            except IncompleteCredentials:
+                # report back to the Shotgun javascript integration
+                # this error message will trigger the javascript to
+                # prompt the user for a password and run this method
+                # again, this time with an actual password rather
+                # than an empty string.
+                log.error("Cannot authenticate user '%s'" % login)
+                return
+
+        else:
+            # we have a password, so create a session user
+            # based on full credentials.
+            # the shotgun authenticator will store a session
+            # token for this user behind the scenes, so next time,
+            # we can create a user based on the login only.
+            try:
+                user = sa.create_session_user(login, password=password)
+            except AuthenticationError:
+                # this message will be sent back to the user via the
+                # javascript integration
+                log.error("Invalid password! Please try again.")
+                return
+
+        # tell tk about our current user!
+        tank.set_authenticated_user(user)
+
+    # and fire off the action
+    return _shotgun_run_action(log,
+                               install_root,
+                               pipeline_config_root,
+                               is_localized,
+                               action_name,
+                               entity_type,
+                               entity_ids)
 
 def shotgun_run_action(log, install_root, pipeline_config_root, is_localized, args):
     """
-    Executes the special shotgun run action command from inside of shotgun
-    """
+    Executes the special shotgun run action command from inside of shotgun.
+    Legacy - unauthenticated version.
 
-    # we are talking to shotgun! First of all, make sure we switch on our html style logging
+    All modern versions of Shotgun will be running the shotgun_run_action_auth method.
+    this method is to serve users who are running an updated version of core with
+    an older version of Shotgun
+
+    This method expects the following arguments to be passed via the args param:
+    args[0]: name of the action
+    args[1]: entity type to operate on
+    args[2]: list of entity ids as a string, e.g. '1,2,3'
+    args[3]: shotgun user login requesting this command
+
+    :param log: Python logger
+    :param install_root: Root of the toolkit core installation
+    :param pipeline_config_root: Root of the pipeline configuration
+    :param is_localized: True if the pipeline configuration has been localized
+    :param args: list of arguments passed from Shotgun.
+    """
+    # we are talking to shotgun. First of all, make sure we switch on our html style logging
     log.handlers[0].formatter.enable_html_mode()
 
     log.debug("Running shotgun_run_action command")
     log.debug("Arguments passed: %s" % args)
 
+    # params: action_name, entity_type, entity_ids
+    if len(args) != 3:
+        raise TankError("Invalid arguments! Pass action_name, entity_type, comma_separated_entity_ids")
+
+    # all modern versions of Shotgun will be running the shotgun_run_action_auth method.
+    # this method is to serve users who are running an updated version of core with
+    # an older version of Shotgun
+
+    # in this case, we cannot prompt for a login/password
+    # so we have rely on the built-in user that is given by the defaults manager
+    # in our case, the tk-core defaults manager returns the credentials stored in
+    # the shotgun.yml config file.
+    core_dm = CoreDefaultsManager()
+    sa = ShotgunAuthenticator(core_dm)
+    user = sa.get_default_user()
+    tank.set_authenticated_user(user)
+
+    action_name = args[0]
+    entity_type = args[1]
+    entity_ids_str = args[2].split(",")
+    entity_ids = [int(x) for x in entity_ids_str]
+
+    return _shotgun_run_action(log,
+                               install_root,
+                               pipeline_config_root,
+                               is_localized,
+                               action_name,
+                               entity_type,
+                               entity_ids)
+
+def _shotgun_run_action(log, install_root, pipeline_config_root, is_localized, action_name, entity_type, entity_ids):
+    """
+    Executes a Shotgun action.
+
+    :param log: Python logger
+    :param install_root: Root of the toolkit core installation
+    :param pipeline_config_root: Root of the pipeline configuration
+    :param is_localized: True if the pipeline configuration has been localized
+    :param ation_name: Name of action to execute (e.g launch_maya)
+    :param entity_type: Entity type to execute action for
+    :param entity_ids: list of entity ids (as ints) to pass to the action.
+    """
     try:
         tk = tank.tank_from_path(pipeline_config_root)
         # attach our logger to the tank instance
@@ -394,15 +606,6 @@ def shotgun_run_action(log, install_root, pipeline_config_root, is_localized, ar
         tk.log = log
     except TankError, e:
         raise TankError("Could not instantiate an Sgtk API Object! Details: %s" % e )
-
-    # params: action_name, entity_type, entity_ids
-    if len(args) != 3:
-        raise TankError("Invalid arguments! Pass action_name, entity_type, comma_separated_entity_ids")
-
-    action_name = args[0]
-    entity_type = args[1]
-    entity_ids_str = args[2].split(",")
-    entity_ids = [int(x) for x in entity_ids_str]
 
     if action_name == "__clone_pc":
         # special data passed in entity_type: USER_ID:NAME:LINUX_PATH:MAC_PATH:WINDOWS_PATH
@@ -511,7 +714,7 @@ def shotgun_run_action(log, install_root, pipeline_config_root, is_localized, ar
 def _get_sg_name_field(entity_type):
     """
     Returns the standard Shotgun name field given an entity type.
-    
+
     :param entity_type: shotgun entity type
     :returns: name field as string
     """
@@ -529,29 +732,29 @@ def _resolve_shotgun_pattern(log, entity_type, name_pattern):
     Resolve a pattern given an entity. Search the 'name' field
     for an entity. For most types, this is the code field.
     Raise exceptions unless there is a single matching item.
-    
+
     :param entity_type: Entity type to search
     :param name_pattern: Name pattern to search for
     :returns: (entity id, name)
     """
 
     name_field = _get_sg_name_field(entity_type)
-    
+
     sg = shotgun.get_sg_connection()
-    
+
     log.debug("Shotgun: find(%s, %s contains %s)" % (entity_type, name_field, name_pattern) )
     data = sg.find(entity_type, [[name_field, "contains", name_pattern]], [name_field])
     log.debug("Got data: %r" % data)
-    
+
     if len(data) == 0:
         raise TankError("No Shotgun %s matching the pattern '%s'!" % (entity_type, name_pattern))
-    
+
     elif len(data) > 1:
         names = ["'%s'" % x[name_field] for x in data]
-        raise TankError("More than one %s matching pattern '%s'. Matching items are %s. " 
+        raise TankError("More than one %s matching pattern '%s'. Matching items are %s. "
                         "Please be more specific." % (entity_type, name_pattern, ", ".join(names)))
-    
-    # got a single item 
+
+    # got a single item
     return (data[0]["id"], data[0][name_field])
 
 
@@ -572,6 +775,13 @@ def _list_commands(log, tk, ctx):
         if x.category not in by_category:
             by_category[x.category] = []
         by_category[x.category].append(x)
+
+    # Add Login category manually, since they are not commands per-se since they are run before the
+    # engine is initialized.
+
+    by_category.setdefault("Login", []).append(
+        Action("logout", "unused", "Log out of the current user (no need for a contex).", "Login")
+    )
 
     num_engine_commands = 0
     for cat in sorted(by_category.keys()):
@@ -675,7 +885,7 @@ def _resolve_shotgun_entity(log, entity_type, entity_search_token, constrain_by_
 
     :param entity_type: Entity type to resolve
     :param entity_search_token: Partial name to search for
-    :param constrain_by_project_id: Project id to constrain the search to. 
+    :param constrain_by_project_id: Project id to constrain the search to.
                                     When this is None, all projects will be considered.
     :returns: a matching entity_id
     """
@@ -821,7 +1031,6 @@ def _resolve_shotgun_entity(log, entity_type, entity_search_token, constrain_by_
     return selected_entity["id"]
 
 
-
 def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd, args):
     """
     Launches an engine and potentially executes a command.
@@ -881,25 +1090,29 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
             #
             # Right, there is a valid tk api handle, this means one of the following:
             #
-            # - a project specific tank command guarantees a tk instance 
+            # - a project specific tank command guarantees a tk instance
             #
-            # - a studio level tank command which is targetting a path 
-            #   which belongs to a toolkit project 
-            # 
+            # - a studio level tank command which is targetting a path
+            #   which belongs to a toolkit project
+            #
             # It is possible that someone has launched a project specific
             # tank command with a path which is outside the project.
-            # In this case, initialize this to have the project context.   
+            # In this case, initialize this to have the project context.
             # We do this by attempting to construct a context and probing it
-            
+
             ctx = tk.context_from_path(ctx_path)
             if ctx.project is None:
                 # context could not be determined based on the path
                 # revert back to the project context
                 log.info("- The path is not associated with any Shotgun object.")
                 log.info("- Falling back on default project settings.")
-                project_id = tk.pipeline_configuration.get_project_id()
-                ctx = tk.context_from_entity("Project", project_id)                
 
+                if tk.pipeline_configuration.is_site_configuration():
+                    # Site config doesn't have a project, so the context is empty.
+                    ctx = tk.context_empty()
+                else:
+                    project_id = tk.pipeline_configuration.get_project_id()
+                    ctx = tk.context_from_entity("Project", project_id)
     else:
         # this is a shotgun syntax. e.g. 'tank Shot foo'
         # create a context given an entity and entity_id/entity_name
@@ -922,36 +1135,36 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
             tk =  tank.tank_from_path(pipeline_config_root)
             project_id = tk.pipeline_configuration.get_project_id()
             studio_command_mode = False
-                   
+
         else:
             # studio level command
             project_id = None
-            studio_command_mode = True    
-            
+            studio_command_mode = True
+
         # now resolve the given expression. For clarity, this is done as two separate branches
         # depending on if you are calling from a studio tank command or from a project tank command
-        
+
         # the valid syntax here is
         # tank Entitytype name_expression
         # tank EntityType id   (fallback if there is no item with the given name)
         # tank EntityType @123 (explicit addressing by id)
-        
+
         # special studio level only syntax
         # raises an error for project level command
         # tank Shot Project:xxx
-        
+
         # first pass - remove a potential project prefix.
         # if someone passes a project prefix, ensure that the studio command is running
         # otherwise error out.
-        
+
         # first output some info if we are running the project command
         if not studio_command_mode:
             log.info("- You are running a project specific tank command. Only items that are part "
                      "of this project will be considered.")
 
-        # work out the project prefix logic    
+        # work out the project prefix logic
         if ":" in entity_search_token:
-            
+
             # we have an expression on the form tank EntityType project_name:name_expression
             # this is not valid for non-studio commands because these are already project scoped
             if not studio_command_mode:
@@ -959,35 +1172,35 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
                                 "a project, you are already implicitly scoping your search by "
                                 "that project. Please omit the project prefix from your syntax. "
                                 "For more information, run tank --help")
-            
+
             elif entity_type == "Project":
                 # ok so we have a studio level command
                 # but you cannot scope a project by another project
                 raise TankError("Cannot scope a project with another project! For more information, "
                                 "run tank --help")
-        
+
             else:
                 # studio level command and non-project entity.
                 # pop off the project token from the entity search token
                 proj_token = entity_search_token.split(":")[0]
                 entity_search_token = ":".join(entity_search_token.split(":")[1:])
-                
+
                 # now try to resolve this project
                 (project_id, project_name) = _resolve_shotgun_pattern(log, "Project", proj_token)
                 log.info("- Searching in project '%s' only" % project_name)
 
-            
+
         # now project prefix token has been removed from the path
         # we now have the following cases to consider
         # tank Entitytype name_expression
         # tank EntityType id   (fallback if there is no item with the given name)
-        # tank EntityType @123 (explicit addressing by id)        
-        
+        # tank EntityType @123 (explicit addressing by id)
+
         run_expression_search = True
-        
+
         if entity_search_token.isdigit():
             # the entity name is something like "123"
-            # first look if there is an exact match for it. 
+            # first look if there is an exact match for it.
             # If not, assume it is an id.
             sg = shotgun.get_sg_connection()
             name_field = _get_sg_name_field(entity_type)
@@ -995,23 +1208,23 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
             # first try by name - e.g. a shot named "123"
             filters = [[name_field, "is", entity_search_token]]
             if project_id:
-                # when running a per project tank command, make sure we 
+                # when running a per project tank command, make sure we
                 # filter out all other items in other projects.
                 filters.append( ["project", "is", {"type": "Project", "id": project_id} ])
-            
+
             log.debug("Shotgun: find(%s, %s)" % (entity_type, filters))
             data = sg.find(entity_type, filters, ["id", name_field])
             log.debug("Got data: %r" % data)
-            
+
             if len(data) == 0:
                 # no exact match. Assume the string is an id
                 log.info("- Did not find a %s named '%s', will look for a %s with id %s "
                          "instead." % (entity_type, entity_search_token, entity_type, entity_search_token))
                 entity_id = int(entity_search_token)
-                
-                # now we have our entity id, make sure we don't search for this as an expression 
+
+                # now we have our entity id, make sure we don't search for this as an expression
                 run_expression_search = False
-                
+
         elif entity_search_token.startswith("@") and entity_search_token[1:].isdigit():
             # special syntax to ensure that you can unambiguously refer to ids
             # 'tank Shot @123' means that you specifically refer to a Shot with id 123,
@@ -1019,23 +1232,25 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
             entity_id = int(entity_search_token[1:])
             log.info("- Looking for a %s with id %d." % (entity_type, entity_id))
             log.debug("Direct @id syntax - will resolve entity id %d" % entity_id)
-            # now we have our entity id, make sure we don't search for this as an expression 
+            # now we have our entity id, make sure we don't search for this as an expression
             run_expression_search = False
-            
-        
+
+
         if run_expression_search:
             # use normal string based parse methods
             # we are now left with the following cases to resolve
             # tank Entitytype name_expression
             entity_id = _resolve_shotgun_entity(log, entity_type, entity_search_token, project_id)
-            
-        # now initialize toolkit and set up the context.  
+
+        # now initialize toolkit and set up the context.
         tk = tank.tank_from_entity(entity_type, entity_id)
         ctx = tk.context_from_entity(entity_type, entity_id)
 
     log.debug("Sgtk API and Context resolve complete.")
     log.debug("Sgtk API: %s" % tk)
     log.debug("Context: %s" % ctx)
+
+    log.info("- Running as user '%s'" % tank.get_authenticated_user() )
 
     if tk is not None:
         log.info("- Using configuration '%s' and Core %s" % (tk.pipeline_configuration.get_name(), tk.version))
@@ -1054,7 +1269,143 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
         return tank_command.run_action(log, tk, ctx, command, args)
 
 
+def _extract_args(cmd_line, args):
+    """
+    Extract specified arguments and sorts them. Also removes them from the
+    command line.
 
+    :param cmd_line: Array of command line arguments.
+    :param args: List of arguments to extract.
+
+    :returns: A tuple. The first element is a list of key, value tuples representing each arguments.
+        The second element is the cmd_line list without the arguments that were
+        extracted.
+    """
+    # Find all instances of each argument in the command line
+    found_args = []
+    for cmd_line_token in cmd_line:
+        for arg in args:
+            if cmd_line_token.startswith("--%s=" % arg):
+                found_args.append(cmd_line_token)
+
+    # Strip all these arguments from the command line.
+    new_cmd_line = [
+        argument for argument in cmd_line if argument not in found_args
+    ]
+
+    arguments = []
+
+    # Create a list of tuples for each argument we found.
+    for arg in found_args:
+        pos = arg.find("=")
+        # Take everything after the -- up to but not including the =
+        arg_name = arg[2:pos]
+        arg_value = arg[pos + 1:]
+        arguments.append((arg_name, arg_value))
+
+    return arguments, new_cmd_line
+
+
+def _validate_only_once(args, arg):
+    """
+    Validates that an argument is only present once.
+
+    :param args: List of tuples of arguments that were extracted from the command line.
+    :param arg: Argument to validate
+
+    :raises IncompleteCredentials: If an argument has been specified more than once,
+                                this exception is raised.
+    """
+    occurences = filter(lambda a: a[0] == arg, args)
+    if len(occurences) > 1:
+        raise IncompleteCredentials("argument '%s' specified more than once." % arg)
+
+
+def _validate_args_cardinality(args, arg1, arg2):
+    """
+    Makes sure that there are no more and no less than 1 value for each argument.
+
+    :param args: List of argument tuples.
+    :param arg1: First argument to test for.
+    :param arg2: Second argument to test for.
+
+    :raises IncompleteCredentials: When there is more or less than 1 value for
+                                a given argument, this exception is raised.
+    """
+    # Too few parameters, find out which one is missing, let the user know
+    # which is missing.
+    if len(args) < 2:
+        raise IncompleteCredentials("missing argument '%s'" % (arg1 if args[0][0] == arg2 else arg2))
+
+    # Make sure each arguments are not specified more than once.
+    _validate_only_once(args, arg1)
+    _validate_only_once(args, arg2)
+
+
+def _read_credentials_from_file(auth_path):
+    """
+    Reads the credentials from a file and returns a list of tuples for each
+    script-key and script-name arguments. Any other values are ignored.
+
+    Here's a sample file:
+
+    script-name: Toolkit
+    script-key: cb412dbf815bf9d4c257f648d9ec996722b4b452fc4c54dfbd0684d56fa65956
+
+
+    :param auth_path: Path to a file with credentials.
+
+    :returns: A list of key, value pairs for values parsed. For example,
+        [("script-name", "name"), ("script-key", "12345")]
+
+    :raises IncompleteCredentials: If the file doesn't exist, this exception is raised.
+    """
+    if not os.path.exists(auth_path):
+        raise IncompleteCredentials("credentials file does not exist.")
+    # Read the dictionary from file
+    with open(auth_path) as auth_file:
+        file_data = yaml.load(auth_file)
+
+    args = [
+        (k, v) for k, v in file_data.iteritems() if k in [ARG_SCRIPT_NAME, ARG_SCRIPT_KEY]
+    ]
+
+    return args
+
+
+def _extract_credentials(cmd_line):
+    """
+    Finds credentials from the command-line if the user specified them and
+    removes them from the array.
+
+    :param cmd_line: Array of arguments passed to the tank command.
+
+    :returns: A tuple of (filtered command line arguments, credentials).
+    """
+
+    # Extract the credential pairs.
+    script_user_credentials, cmd_line = _extract_args(cmd_line, [ARG_SCRIPT_NAME, ARG_SCRIPT_KEY])
+    file_credentials_path, cmd_line = _extract_args(cmd_line, [ARG_CREDENTIALS_FILE])
+
+    # make sure we're not mixing both set of arguments
+    if file_credentials_path and script_user_credentials:
+            raise IncompleteCredentials("can't mix command line credentials and file credentials.")
+
+    # If we have credentials in a file
+    if file_credentials_path:
+        # Validate it's only been specified once.
+        _validate_only_once(file_credentials_path, ARG_CREDENTIALS_FILE)
+        # Read the credentials from file
+        script_user_credentials = _read_credentials_from_file(
+            file_credentials_path[0][1]
+        )
+
+    if script_user_credentials:
+        _validate_args_cardinality(script_user_credentials, ARG_SCRIPT_NAME, ARG_SCRIPT_KEY)
+        return cmd_line, dict(script_user_credentials)
+
+    # If no elements were specified, that's ok.
+    return cmd_line, {}
 
 
 if __name__ == "__main__":
@@ -1127,13 +1478,35 @@ if __name__ == "__main__":
     exit_code = 1
     try:
 
+        cmd_line, credentials = _extract_credentials(cmd_line)
+
         if len(cmd_line) == 0:
             # > tank, no arguments
             # engine mode, using CWD
+
+            # first make sure there is a current user
+            ensure_authenticated(
+                credentials.get("script-name"),
+                credentials.get("script-key")
+            )
+
+            # now run the command
             exit_code = run_engine_cmd(logger, pipeline_config_root, [os.getcwd()], None, True, [])
+
+        elif cmd_line[0] == "logout":
+            core_dm = CoreDefaultsManager()
+            sa = ShotgunAuthenticator(core_dm)
+            # Clear the saved user.
+            user = sa.clear_default_user()
+            if user:
+                logger.info("Succesfully logged out from %s." % user.host)
+            else:
+                logger.info("Not logged in.")
 
         # special case when we are called from shotgun
         elif cmd_line[0] == "shotgun_run_action":
+            # note - this pathway is not authenticated from shotgun
+            # this is there for backwards compatibility
             exit_code = shotgun_run_action(logger,
                                            install_root,
                                            pipeline_config_root,
@@ -1141,7 +1514,17 @@ if __name__ == "__main__":
                                            cmd_line[1:])
 
         # special case when we are called from shotgun
+        elif cmd_line[0] == "shotgun_run_action_auth":
+            # note: this pathway retrieves authentication via shotgun
+            exit_code = shotgun_run_action_auth(logger,
+                                                install_root,
+                                                pipeline_config_root,
+                                                is_localized,
+                                                cmd_line[1:])
+
+        # special case when we are called from shotgun
         elif cmd_line[0] == "shotgun_cache_actions":
+            # note: this pathway does not require authentication
             exit_code = shotgun_cache_actions(logger, pipeline_config_root, cmd_line[1:])
 
         else:
@@ -1213,8 +1596,44 @@ if __name__ == "__main__":
                     cmd_args = cmd_line[1:]
                     ctx_list = [ os.getcwd() ] # path
 
+            # first make sure there is a current user
+            ensure_authenticated(credentials)
 
+            # now run the command
             exit_code = run_engine_cmd(logger, pipeline_config_root, ctx_list, cmd_name, using_cwd, cmd_args)
+
+    except AuthenticationCancelled:
+        logger.info("")
+        if debug_mode:
+            # full stack trace
+            logger.exception("An AuthenticationCancelled error was raised: %s" % "Authentication was cancelled.")
+        else:
+            # one line report
+            logger.error("Authentication was cancelled.")
+        logger.info("")
+        # Error messages and such have already been handled by the method that threw this exception.
+        exit_code = 8
+
+    except IncompleteCredentials, e:
+        logger.info("")
+        if debug_mode:
+            # full stack trace
+            logger.exception("An IncompleteCredentials exception was raised: %s" % e)
+        else:
+            # one line report
+            logger.error(str(e))
+        exit_code = 9
+
+    except ShotgunAuthenticationError, e:
+        logger.info("")
+        if debug_mode:
+            # full stack trace
+            logger.exception("A ShotgunAuthenticationError was raised: %s" % str(e))
+        else:
+            # one line report
+            logger.error(str(e))
+        logger.info("")
+        exit_code = 10
 
     except TankError, e:
         logger.info("")
@@ -1239,5 +1658,8 @@ if __name__ == "__main__":
         logger.info("")
         exit_code = 7
 
+    # Do not use 8, it is alread being used when login was cancelled.
+
     logger.debug("Exiting with exit code %s" % exit_code)
     sys.exit(exit_code)
+

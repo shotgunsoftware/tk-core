@@ -33,7 +33,6 @@ SG_LOCAL_STORAGE_OS_MAP = {"linux2": "linux_path", "win32": "windows_path", "dar
 CORE_API_FILES = ["interpreter_Linux.cfg", 
                   "interpreter_Windows.cfg",
                   "interpreter_Darwin.cfg", 
-                  "app_store.yml", 
                   "shotgun.yml"]
 
 # core configuration files which are associated with a particular PC and should not be moved
@@ -58,7 +57,11 @@ class PushPCAction(Action):
     def run_interactive(self, log, args):
 
         # get list of all PCs for this project
+        if self.tk.pipeline_configuration.is_site_configuration():
+            raise TankError("You can't push the site configuration.")
+
         project_id = self.tk.pipeline_configuration.get_project_id()
+
         current_pc_name = self.tk.pipeline_configuration.get_name()
         current_pc_id = self.tk.pipeline_configuration.get_shotgun_id()
         pipeline_configs = self.tk.shotgun.find(constants.PIPELINE_CONFIGURATION_ENTITY,

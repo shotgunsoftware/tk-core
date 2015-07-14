@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 '''
  -----------------------------------------------------------------------------
- Copyright (c) 2009-2011, Shotgun Software Inc
+ Copyright (c) 2009-2015, Shotgun Software Inc
 
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are met:
@@ -63,6 +63,7 @@ mimetypes.add_type('video/mp4', '.mp4')  # from some OS/distros
 LOG = logging.getLogger("shotgun_api3")
 LOG.setLevel(logging.WARN)
 
+
 SG_TIMEZONE = SgTimezone()
 
 
@@ -75,7 +76,7 @@ except ImportError:
 
 # ----------------------------------------------------------------------------
 # Version
-__version__ = "3.0.17"
+__version__ = "3.0.20.RC1"
 
 # ----------------------------------------------------------------------------
 # Errors
@@ -90,6 +91,16 @@ class ShotgunFileDownloadError(ShotgunError):
 
 class Fault(ShotgunError):
     """Exception when server side exception detected."""
+    pass
+
+class AuthenticationFault(Fault):
+    """Exception when the server side reports an error related to authentication"""
+    pass
+
+class MissingTwoFactorAuthenticationFault(Fault):
+    """Exception when the server side reports an error related to missing
+    two factor authentication credentials
+    """
     pass
 
 # ----------------------------------------------------------------------------
@@ -132,23 +143,46 @@ class ServerCapabilities(object):
         self._ensure_json_supported()
 
 
-    def _ensure_json_supported(self):
-        """Checks the server version supports the JSON api, raises an
+    def _ensure_support(self, feature, raise_hell=True):
+        """Checks the server version supports a given feature, raises an
         exception if it does not.
 
-        :raises ShotgunError: The current server version does not support json
+        :param feature: dict supported version and human label { 'version': (int, int, int), 'label': str }
+
+        :raises ShotgunError: The current server version does not [feature]
         """
-        if not self.version or self.version < (2, 4, 0):
-            raise ShotgunError("JSON API requires server version 2.4 or "\
-                "higher, server is %s" % (self.version,))
+
+        if not self.version or self.version < feature['version']:
+            if raise_hell:
+                raise ShotgunError(
+                    "%s requires server version %s or higher, "\
+                    "server is %s" % (feature['label'], _version_str(feature['version']), _version_str(self.version))
+                )
+            return False
+        else:
+            return True
+
+
+    def _ensure_json_supported(self):
+        """Wrapper for ensure_support"""
+        self._ensure_support({
+            'version': (2, 4, 0),
+            'label': 'JSON API'
+        })
 
     def ensure_include_archived_projects(self):
-        """Checks the server version support include_archived_projects parameter
-        to find.
-        """
-        if not self.version or self.version < (5, 3, 14):
-            raise ShotgunError("The include_archived_projects flag requires server version 5.3.14 or "\
-                "higher, server is %s" % (self.version,))
+        """Wrapper for ensure_support"""
+        self._ensure_support({
+            'version': (5, 3, 14),
+            'label': 'include_archived_projects parameter'
+        })
+
+    def ensure_per_project_customization(self):
+        """Wrapper for ensure_support"""
+        return self._ensure_support({
+            'version': (5, 4, 4),
+            'label': 'project parameter'
+        }, True)
 
 
     def __str__(self):
@@ -203,12 +237,22 @@ class _Config(object):
         self.script_name = None
         self.user_login = None
         self.user_password = None
+        self.auth_token = None
         self.sudo_as_login = None
         # uuid as a string
         self.session_uuid = None
         self.scheme = None
         self.server = None
         self.api_path = None
+        # The raw_http_proxy reflects the exact string passed in 
+        # to the Shotgun constructor. This can be useful if you 
+        # need to construct a Shotgun API instance based on 
+        # another Shotgun API instance.
+        self.raw_http_proxy = None
+        # if a proxy server is being used, the proxy_handler
+        # below will contain a urllib2.ProxyHandler instance
+        # which can be used whenever a request needs to be made.
+        self.proxy_handler = None
         self.proxy_server = None
         self.proxy_port = 8080
         self.proxy_user = None
@@ -216,6 +260,7 @@ class _Config(object):
         self.session_token = None
         self.authorization = None
         self.no_ssl_validation = False
+
 
 class Shotgun(object):
     """Shotgun Client Connection"""
@@ -237,10 +282,12 @@ class Shotgun(object):
                  http_proxy=None,
                  ensure_ascii=True,
                  connect=True,
-				 ca_certs=None,
+                 ca_certs=None,
                  login=None,
                  password=None,
-                 sudo_as_login=None):
+                 sudo_as_login=None,
+                 session_token=None,
+                 auth_token=None):
         """Initialises a new instance of the Shotgun client.
 
         :param base_url: http or https url to the shotgun server.
@@ -263,9 +310,16 @@ class Shotgun(object):
         form [username:pass@]proxy.com[:8080]
 
         :param connect: If True, connect to the server. Only used for testing.
-		
-		:param ca_certs: The path to the SSL certificate file. Useful for users
-		who would like to package their application into an executable.
+        
+        :param ca_certs: Optional path to an external SSL certificates file. By 
+        default, the Shotgun API will use its own built-in certificates file
+        which stores root certificates for the most common Certificate 
+        Authorities (CAs). If you are using a corporate or internal CA, or are
+        packaging an application into an executeable, it may be necessary to 
+        point to your own certificates file. You can do this by passing in the 
+        full path to the file via this parameter or by setting the environment 
+        variable `SHOTGUN_API_CACERTS`. In the case both are set, this 
+        parameter will take precedence. 
 
         :param login: The login to use to authenticate to the server. If login
         is provided, then password must be as well and neither script_name nor
@@ -279,9 +333,28 @@ class Shotgun(object):
         be applied to all actions and who will be logged as the user performing
         all actions. Note that logged events will have an additional extra meta-data parameter 
         'sudo_actual_user' indicating the script or user that actually authenticated.
+        
+        :param session_token: The session token to use to authenticate to the server. This
+        can be used as an alternative to authenticating with a script user or regular user.
+        You retrieve the session token by running the get_session_token() method.        
+
+        :param auth_token: The authentication token required to authenticate to
+        a server with two factor authentication turned on. If auth_token is provided,
+        then login and password must be as well and neither script_name nor api_key
+        can be provided. Note that these tokens can be short lived so a session is
+        established right away if an auth_token is provided. A
+        MissingTwoFactorAuthenticationFault will be raised if the auth_token is invalid.
         """
 
         # verify authentication arguments
+        if session_token is not None:
+            if script_name is not None or api_key is not None:
+                raise ValueError("cannot provide both session_token "
+                                 "and script_name/api_key")
+            if login is not None or password is not None:
+                raise ValueError("cannot provide both session_token "
+                                 "and login/password")
+        
         if login is not None or password is not None:
             if script_name is not None or api_key is not None:
                 raise ValueError("cannot provide both login/password "
@@ -297,22 +370,34 @@ class Shotgun(object):
             if api_key is None:
                 raise ValueError("script_name provided without api_key")
 
+        if auth_token is not None:
+            if login is None or password is None:
+                raise ValueError("must provide a user login and password with an auth_token")
+
+            if script_name is not None or api_key is not None:
+                raise ValueError("cannot provide an auth_code with script_name/api_key")
+
         # Can't use 'all' with python 2.4
-        if len([x for x in [script_name, api_key, login, password] if x]) == 0:
+        if len([x for x in [session_token, script_name, api_key, login, password] if x]) == 0:
             if connect:
-                raise ValueError("must provide either login/password "
-                                 "or script_name/api_key")
+                raise ValueError("must provide login/password, session_token or script_name/api_key")
 
         self.config = _Config()
         self.config.api_key = api_key
         self.config.script_name = script_name
         self.config.user_login = login
         self.config.user_password = password
+        self.config.auth_token = auth_token
+        self.config.session_token = session_token
         self.config.sudo_as_login = sudo_as_login
         self.config.convert_datetimes_to_utc = convert_datetimes_to_utc
         self.config.no_ssl_validation = NO_SSL_VALIDATION
+        self.config.raw_http_proxy = http_proxy
         self._connection = None
-        self.__ca_certs = ca_certs
+        if ca_certs is not None:
+            self.__ca_certs = ca_certs
+        else:
+            self.__ca_certs = os.environ.get('SHOTGUN_API_CACERTS')
 
         self.base_url = (base_url or "").lower()
         self.config.scheme, self.config.server, api_base, _, _ = \
@@ -353,6 +438,13 @@ class Shotgun(object):
                         ". If no port is specified, a default of %d will be "\
                         "used." % (http_proxy, self.config.proxy_port))
 
+            # now populate self.config.proxy_handler
+            if self.config.proxy_user and self.config.proxy_pass:
+                auth_string = "%s:%s@" % (self.config.proxy_user, self.config.proxy_pass)
+            else:
+                auth_string = ""
+            proxy_addr = "http://%s%s:%d" % (auth_string, self.config.proxy_server, self.config.proxy_port)
+            self.config.proxy_handler = urllib2.ProxyHandler({self.config.scheme : proxy_addr})
 
         if ensure_ascii:
             self._json_loads = self._json_loads_ascii
@@ -366,6 +458,15 @@ class Shotgun(object):
         # call to server will only be made once and will raise error
         if connect:
             self.server_caps
+
+        # When using auth_token in a 2FA scenario we need to switch to session-based
+        # authentication because the auth token will no longer be valid after a first use.
+        if self.config.auth_token is not None:
+            self.config.session_token = self.get_session_token()
+            self.config.user_login = None
+            self.config.user_password = None
+            self.config.auth_token = None
+
 
     # ========================================================================
     # API Functions
@@ -579,6 +680,15 @@ class Shotgun(object):
             params['sorts'] = sort_list
         return params
 
+
+    def _add_project_param(self, params, project_entity):
+
+        if project_entity and self.server_caps.ensure_per_project_customization():
+            params["project"] = project_entity
+
+        return params
+
+
     def summarize(self,
                   entity_type,
                   filters,
@@ -591,7 +701,7 @@ class Shotgun(object):
         based on the given filters.
         """
 
-        if not isinstance(grouping, list) and grouping != None:
+        if not isinstance(grouping, list) and grouping is not None:
             msg = "summarize() 'grouping' parameter must be a list or None"
             raise ValueError(msg)
 
@@ -611,7 +721,7 @@ class Shotgun(object):
             # Defaults to True on the server, so only pass it if it's False
             params["include_archived_projects"] = False
 
-        if grouping != None:
+        if grouping is not None:
             params['grouping'] = grouping
 
         records = self._call_rpc('summarize', params)
@@ -945,23 +1055,45 @@ class Shotgun(object):
         
         return self._call_rpc('followers', params)
 
-    def schema_entity_read(self):
+    def schema_entity_read(self, project_entity=None):
         """Gets all active entities defined in the schema.
+
+        :param dict project_entity: Optional, if set, each field's visibility is reported accordingly
+        to the specified project's current visibility settings.
+        If None, all fields are reported as visible.
 
         :returns: dict of Entity Type to dict containing the display name.
         """
 
-        return self._call_rpc("schema_entity_read", None)
+        params = {}
 
-    def schema_read(self):
+        params = self._add_project_param(params, project_entity)
+
+        if params:
+            return self._call_rpc("schema_entity_read", params)
+        else:
+            return self._call_rpc("schema_entity_read", None)
+
+    def schema_read(self, project_entity=None):
         """Gets the schema for all fields in all entities.
+
+        :param dict project_entity: Optional, if set, each field's visibility is reported accordingly
+        to the specified project's current visibility settings.
+        If None, all fields are reported as visible.
 
         :returns: nested dicts
         """
 
-        return self._call_rpc("schema_read", None)
+        params = {}
 
-    def schema_field_read(self, entity_type, field_name=None):
+        params = self._add_project_param(params, project_entity)
+
+        if params:
+            return self._call_rpc("schema_read", params)
+        else:
+            return self._call_rpc("schema_read", None)
+
+    def schema_field_read(self, entity_type, field_name=None, project_entity=None):
         """Gets all schema for fields in the specified entity_type or one
         field.
 
@@ -972,14 +1104,21 @@ class Shotgun(object):
         definition for. If not supplied all fields for the entity type are
         returned.
 
+        :param dict project_entity: Optional, if set, each field's visibility is reported accordingly
+        to the specified project's current visibility settings.
+        If None, all fields are reported as visible.
+
         :returns: dict of field name to nested dicts which describe the field
         """
 
         params = {
-            "type" : entity_type,
+            "type": entity_type,
         }
+
         if field_name:
             params["field_name"] = field_name
+
+        params = self._add_project_param(params, project_entity)
 
         return self._call_rpc("schema_field_read", params)
 
@@ -1359,7 +1498,7 @@ class Shotgun(object):
         """Sets up urllib2 with a cookie for authentication on the Shotgun 
         instance.
         """
-        sid = self._get_session_token()
+        sid = self.get_session_token()
         cj = cookielib.LWPCookieJar()
         c = cookielib.Cookie('0', '_session_id', sid, None, False,
             self.config.server, False, False, "/", True, False, None, True,
@@ -1410,11 +1549,17 @@ class Shotgun(object):
                 None, None, None))
         return url
 
-    def authenticate_human_user(self, user_login, user_password):
+    def authenticate_human_user(self, user_login, user_password, auth_token=None):
         '''Authenticate Shotgun HumanUser. HumanUser must be an active account.
-        @param user_login: Login name of Shotgun HumanUser
-        @param user_password: Password for Shotgun HumanUser
-        @return: Dictionary of HumanUser including ID if authenticated, None is unauthorized.
+        :param user_login: Login name of Shotgun HumanUser
+
+        :param user_password: Password for Shotgun HumanUser
+
+        :param auth_token: One-time token required to authenticate Shotgun HumanUser
+        when two factor authentication is turned on.
+
+        :return: Dictionary of HumanUser including ID if authenticated, None if unauthorized.
+        """
         '''
         if not user_login:
             raise ValueError('Please supply a username to authenticate.')
@@ -1425,24 +1570,29 @@ class Shotgun(object):
         # Override permissions on Config obj
         original_login = self.config.user_login
         original_password = self.config.user_password
+        original_auth_token = self.config.auth_token
 
         self.config.user_login = user_login
         self.config.user_password = user_password
+        self.config.auth_token = auth_token
 
         try:
             data = self.find_one('HumanUser', [['sg_status_list', 'is', 'act'], ['login', 'is', user_login]], ['id', 'login'], '', 'all')
             # Set back to default - There finally and except cannot be used together in python2.4
             self.config.user_login = original_login
             self.config.user_password = original_password
+            self.config.auth_token = original_auth_token
             return data
         except Fault:
             # Set back to default - There finally and except cannot be used together in python2.4
             self.config.user_login = original_login
             self.config.user_password = original_password
+            self.config.auth_token = original_auth_token
         except:
             # Set back to default - There finally and except cannot be used together in python2.4
             self.config.user_login = original_login
             self.config.user_password = original_password
+            self.config.auth_token = original_auth_token
             raise
 
 
@@ -1473,10 +1623,13 @@ class Shotgun(object):
         record = self._call_rpc("update_project_last_accessed_by_current_user", params)
         result = self._parse_records(record)[0]
 
-
-    def _get_session_token(self):
-        """Hack to authenticate in order to download protected content
-        like Attachments
+    def get_session_token(self):
+        """
+        Get the session token associated with the current session.
+        If a session token has already been established, this is returned, 
+        otherwise a new one is generated on the server and returned.
+        
+        :returns: String containing a session token
         """
         if self.config.session_token:
             return self.config.session_token
@@ -1485,22 +1638,14 @@ class Shotgun(object):
         session_token = (rv or {}).get("session_id")
         if not session_token:
             raise RuntimeError("Could not extract session_id from %s", rv)
-
         self.config.session_token = session_token
-        return self.config.session_token
+
+        return session_token
 
     def _build_opener(self, handler):
         """Build urllib2 opener with appropriate proxy handler."""
-        if self.config.proxy_server:
-            # handle proxy auth
-            if self.config.proxy_user and self.config.proxy_pass:
-                auth_string = "%s:%s@" % (self.config.proxy_user, self.config.proxy_pass)
-            else:
-                auth_string = ""
-            proxy_addr = "http://%s%s:%d" % (auth_string, self.config.proxy_server, self.config.proxy_port)
-            proxy_support = urllib2.ProxyHandler({self.config.scheme : proxy_addr})
-
-            opener = urllib2.build_opener(proxy_support, handler)
+        if self.config.proxy_handler:
+            opener = urllib2.build_opener(self.config.proxy_handler, handler)
         else:
             opener = urllib2.build_opener(handler)
         return opener
@@ -1559,12 +1704,15 @@ class Shotgun(object):
 
     def _auth_params(self):
         """ return a dictionary of the authentication parameters being used. """
+                
         # Used to authenticate HumanUser credentials
         if self.config.user_login and self.config.user_password:
             auth_params = {
                 "user_login" : str(self.config.user_login),
                 "user_password" : str(self.config.user_password),
             }
+            if self.config.auth_token:
+                auth_params["auth_token"] = str(self.config.auth_token)
 
         # Use script name instead
         elif self.config.script_name and self.config.api_key:
@@ -1572,6 +1720,19 @@ class Shotgun(object):
                 "script_name" : str(self.config.script_name),
                 "script_key" : str(self.config.api_key),
             }
+
+        # Authenticate using session_id
+        elif self.config.session_token:
+            if self.server_caps.version and self.server_caps.version < (5, 3, 0):
+                raise ShotgunError("Session token based authentication requires server version 5.3.0 or "\
+                    "higher, server is %s" % (self.server_caps.version,))
+            
+            auth_params = {"session_token" : str(self.config.session_token)}
+
+            # Request server side to raise exception for expired sessions. 
+            # This was added in as part of Shotgun 5.4.4            
+            if self.server_caps.version and self.server_caps.version > (5, 4, 3):
+                auth_params["reject_if_expired"] = True
 
         else:
             raise ValueError("invalid auth params")
@@ -1751,9 +1912,17 @@ class Shotgun(object):
         :raises ShotgunError: If the server response contains an exception.
         """
 
+        ERR_AUTH = 102 # error code for authentication related problems
+        ERR_2FA  = 106 # error code when 2FA authentication is required but no 2FA token provided.
+
         if isinstance(sg_response, dict) and sg_response.get("exception"):
-            raise Fault(sg_response.get("message",
-                "Unknown Error"))
+            if sg_response.get("error_code") == ERR_AUTH:
+                raise AuthenticationFault(sg_response.get("message", "Unknown Authentication Error"))
+            elif sg_response.get("error_code") == ERR_2FA:
+                raise MissingTwoFactorAuthenticationFault(sg_response.get("message", "Unknown 2FA Authentication Error"))
+            else:
+                # raise general Fault            
+                raise Fault(sg_response.get("message", "Unknown Error"))
         return
 
     def _visit_data(self, data, visitor):
@@ -1787,7 +1956,7 @@ class Shotgun(object):
 
         if self.config.convert_datetimes_to_utc:
             def _change_tz(value):
-                if value.tzinfo == None:
+                if value.tzinfo is None:
                     value = value.replace(tzinfo=SG_TIMEZONE.local)
                 return value.astimezone(SG_TIMEZONE.utc)
         else:
@@ -2102,4 +2271,6 @@ def _translate_filters_simple(sg_filter):
 
     return condition
 
-     
+def _version_str(version):
+    """Converts a tuple of int's to a '.' separated str"""
+    return '.'.join(map(str, version))

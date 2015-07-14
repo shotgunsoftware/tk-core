@@ -281,10 +281,13 @@ class ProjectSetupParameters(object):
         if self._config_template is None:
             raise TankError("Please specify a configuration template!")
 
+        if not self._config_template.is_local_config():
+            return False
+
         field_name = {"win32": "windows_path", "linux2": "linux_path", "darwin": "mac_path"}[sys.platform]
         
         data = self._sg.find_one("PipelineConfiguration", 
-                                 [[field_name, "is", self._config_template.get_uri()]],
+                                 [[field_name, "is", self._config_template.get_pipeline_configuration()]],
                                  ["id", 
                                   "code", 
                                   "mac_path", 
@@ -363,27 +366,29 @@ class ProjectSetupParameters(object):
         return self._config_template.create_configuration(target_path)
         
     ################################################################################################################
-    # Project related logic     
-        
+    # Project related logic
+
     def set_project_id(self, project_id, force=False):
         """
         Sets the project id and validates that this id is valid.
-        
-        :param project_id: Shotgun project id
+
+        :param project_id: Shotgun project id. Passing None means we are configuring the site
+                           configuration.
         :param force: If true, existing projects can be overwritten
         """
-        proj = self._sg.find_one("Project", [["id", "is", project_id]], ["name", "tank_name"])
-    
-        if proj is None:
-            raise TankError("Could not find a project with id %s!" % self._project_id)
+        if project_id is not None:
+            proj = self._sg.find_one("Project", [["id", "is", project_id]], ["name", "tank_name"])
 
-        # if force is false then tank_name must be empty
-        if self.get_auto_path_mode() == False and force == False and proj["tank_name"] is not None:
-            raise TankErrorProjectIsSetup()
+            if proj is None:
+                raise TankError("Could not find a project with id %s!" % self._project_id)
+
+            # if force is false then tank_name must be empty
+            if self.get_auto_path_mode() == False and force == False and proj["tank_name"] is not None:
+                raise TankErrorProjectIsSetup()
 
         self._project_id = project_id
         self._force_setup = force
-         
+
     def get_default_project_disk_name(self):
         """
         Returns the default folder name for a project
@@ -484,12 +489,9 @@ class ProjectSetupParameters(object):
     def get_project_id(self):
         """
         Returns the project id for the project to be set up.
-        
-        :returns: Shotgun project id as int
+
+        :returns: Shotgun project id as int or None if the id is not set.
         """
-        if self._project_id is None:
-            raise TankError("No project id specified!")
-        
         return self._project_id
         
     def get_force_setup(self):
@@ -723,9 +725,6 @@ class ProjectSetupParameters(object):
         if self._config_path is None:
             raise TankError("Path to the target configuration install has not been specified!")
         
-        if self._project_id is None:
-            raise TankError("A project id has not been specified!")
-        
         if self._project_disk_name is None:
             raise TankError("Project disk name has not been specified!")
             
@@ -793,6 +792,8 @@ class TemplateConfiguration(object):
     For git, the git repo is cloned into the config location, therefore being a live repository
     to which changes later on can be pushed or pulled.
     """
+
+    _LOCAL = "local"
     
     def __init__(self, config_uri, sg, sg_app_store, script_user, log):
         """
@@ -1028,8 +1029,8 @@ class TemplateConfiguration(object):
         Looks at the starter config string and tries to convert it into a folder
         Returns a path to a config.
         
-        :param config_uri: config path of some kind (git/appstore/local)
-        :returns: tuple with (tmp_path_to_config, config_type) where config_type is local/git/app_store
+        :param config_uri: config path of some kind (git/appstore/configured_project)
+        :returns: tuple with (tmp_path_to_config, config_type) where config_type is configured_project/zip/git/app_store
         """
         # three cases:
         # tk-config-xyz
@@ -1046,10 +1047,10 @@ class TemplateConfiguration(object):
                 # either a folder or zip file!
                 if config_uri.endswith(".zip"):
                     self._log.info("Hang on, unzipping configuration...")
-                    return (self._process_config_zip(config_uri), "local")
+                    return (self._process_config_zip(config_uri), "zip")
                 else:
                     self._log.info("Hang on, loading configuration...")
-                    return (self._process_config_dir(config_uri), "local")
+                    return (self._process_config_dir(config_uri), self._LOCAL)
             else:
                 raise TankError("File path %s does not exist on disk!" % config_uri)    
         
@@ -1198,7 +1199,35 @@ class TemplateConfiguration(object):
         :returns: string
         """
         return self._config_uri
-        
+
+    def is_local_config(self):
+        """
+        Returns if the configuration is on the local disk.
+
+        :returns: True if the configuration is on the local disk, False otherwise.
+        """
+        return self._config_mode == self._LOCAL
+
+    def get_pipeline_configuration(self):
+        """
+        Resolves the potential pipeline configuration based on the configuration uri. Potential is employed here because
+        there's no guarantee this folder is actually part of a pipeline configuration.
+
+        :returns: Path to the pipeline configuration associated with the configuration uri.
+
+        :raises TankError: This exception is raised when the configuration was pulled from GitHub, AppStore or zip file,
+            since no pipeline configuration can be associated with these.
+        """
+        if not self.is_local_config():
+            raise TankError(
+                "Cannot resolve pipeline configuration for '%s' because it doesn't belong to an existing project!" %
+                self._config_uri
+            )
+
+        # The config uri points to the config folder inside the pipeline configuration, so we'll have to step out
+        # for this one.
+        return os.path.split(self._config_uri)[0]
+
     def get_readme_content(self):
         """
         Get associated readme content as a list.

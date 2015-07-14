@@ -56,6 +56,49 @@ def generate_schema(sg_url, sg_script, sg_key, schema_file_path, schema_entity_f
     pickle.dump(schema_entity, fh)
     fh.close()
     
+    
+class _Config(object):
+    """Container for the client configuration."""
+
+    def __init__(self):
+        self.max_rpc_attempts = 3
+        # From http://docs.python.org/2.6/library/httplib.html:
+        # If the optional timeout parameter is given, blocking operations 
+        # (like connection attempts) will timeout after that many seconds 
+        # (if it is not given, the global default timeout setting is used)
+        self.timeout_secs = None
+        self.api_ver = 'api3'
+        self.convert_datetimes_to_utc = True
+        self.records_per_page = 500
+        self.api_key = None
+        self.script_name = None
+        self.user_login = None
+        self.user_password = None
+        self.auth_token = None
+        self.sudo_as_login = None
+        # uuid as a string
+        self.session_uuid = None
+        self.scheme = None
+        self.server = None
+        self.api_path = None
+        # The raw_http_proxy reflects the exact string passed in 
+        # to the Shotgun constructor. This can be useful if you 
+        # need to construct a Shotgun API instance based on 
+        # another Shotgun API instance.
+        self.raw_http_proxy = None
+        # if a proxy server is being used, the proxy_handler
+        # below will contain a urllib2.ProxyHandler instance
+        # which can be used whenever a request needs to be made.
+        self.proxy_handler = None
+        self.proxy_server = None
+        self.proxy_port = 8080
+        self.proxy_user = None
+        self.proxy_pass = None
+        self.session_token = None
+        self.authorization = None
+        self.no_ssl_validation = False
+    
+    
 
 
 class Shotgun(object):
@@ -74,7 +117,14 @@ class Shotgun(object):
     testing of code.
     """
     
-    def __init__(self, base_url, script_name, api_key, convert_datetimes_to_utc=True, http_proxy=None):
+    def __init__(self, base_url, script_name=None, api_key=None, session_token=None, convert_datetimes_to_utc=True, http_proxy=None):
+        
+        # emulate the config object in the Shotgun API.
+        # these settings won't make sense for mockgun, but
+        # having them present means code and get and set them
+        # they way they would expect to in the real API.
+        self.config = _Config()
+        
         module_dir = os.path.split(__file__)[0]
         schema_path = os.path.join(module_dir, _schema_filename)
         schema_entity_path = os.path.join(module_dir, _schema_entity_filename)

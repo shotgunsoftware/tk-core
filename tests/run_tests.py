@@ -86,11 +86,14 @@ if __name__ == "__main__":
                       action="store_true",
                       dest="coverage", 
                       help="run with coverage (requires coverage is installed)")
-    
+    parser.add_option("--interactive",
+                      action="store_true",
+                      dest="interactive",
+                      help="run tests that have been decorated with the interactive decorator")
     parser.add_option("--test-root",
-                  action="store",
-                  dest="test_root", 
-                  help="Specify a folder where to look for tests.")
+                      action="store",
+                      dest="test_root", 
+                      help="Specify a folder where to look for tests.")
 
     (options, args) = parser.parse_args()
     

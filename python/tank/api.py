@@ -146,6 +146,15 @@ class Tank(object):
         return self.__pipeline_config.get_data_roots()
 
     @property
+    def shotgun_url(self):
+        """
+        The shotgun url associated with this API session.
+        
+        :returns: url as string, for example 'https://mysite.shotgunstudio.com'
+        """
+        return shotgun.get_associated_sg_base_url()
+
+    @property
     def shotgun(self):
         """
         Lazily create a Shotgun API handle.
@@ -663,6 +672,29 @@ def tank_from_entity(entity_type, entity_id):
     """
     pc = pipelineconfig_factory.from_entity(entity_type, entity_id)
     return Tank(pc)
+
+
+_authenticated_user = None
+
+
+def set_authenticated_user(user):
+    """
+    Sets the currently authenticated Shotgun user.
+    :params user: A shotgun_authentication.user.ShotgunUser derived object. Can
+    be None to clear the authenticated user.
+    """
+    global _authenticated_user
+    _authenticated_user = user
+
+
+def get_authenticated_user():
+    """
+    Returns the currently authenticated Shotgun user.
+    :returns: A shotgun_authentication.user.ShotgunUser derived object if set,
+        None otherwise.
+    """
+    global _authenticated_user
+    return _authenticated_user
 
 ##########################################################################################
 # sgtk API aliases

@@ -34,6 +34,10 @@ class PipelineConfiguration(object):
     create directly via constructor.
     """
 
+    # Since the project id can be None for site configurations, we have to
+    # initialize _project_id to an invalid value different from None.
+    _UNDEFINED_PROJECT_ID = -1
+
     def __init__(self, pipeline_configuration_path):
         """
         Constructor. Do not call this directly, use the factory methods
@@ -99,7 +103,7 @@ class PipelineConfiguration(object):
         want these to be picked up. The next time settings are needed,
         these will be automatically re-read from disk.
         """
-        self._project_id = None
+        self._project_id = self._UNDEFINED_PROJECT_ID
         self._pc_id = None
         self._pc_name = None
         self._published_file_entity_type = None
@@ -224,16 +228,25 @@ class PipelineConfiguration(object):
         Returns the shotgun id for the project associated with this PC. 
         May connect to Shotgun to retrieve this.
         """
-        if self._project_id is None:
+        if self._project_id == self._UNDEFINED_PROJECT_ID:
             # try to get it from the cache file
             data = pipelineconfig_utils.get_metadata(self._pc_root)
-            self._project_id = data.get("project_id")
 
-            if self._project_id is None:
+            if "project_id" not in data:
                 # not in metadata file on disk. Fall back on SG lookup
                 self._load_metadata_from_sg()
+            else:
+                self._project_id = data.get("project_id")
 
         return self._project_id
+
+    def is_site_configuration(self):
+        """
+        Returns in the pipeline configuration is for the site configuration.
+
+        :returns: True if this is a site configuration, False otherwise.
+        """
+        return self.get_project_id() is None
 
     def get_project_disk_name(self):
         """
@@ -264,6 +277,12 @@ class PipelineConfiguration(object):
                 self._published_file_entity_type = "TankPublishedFile"
 
         return self._published_file_entity_type
+
+    def convert_to_site_config(self):
+        """
+        Converts the pipeline configuration into the site configuration.
+        """
+        self._update_pipeline_config({"project_id": None})
 
     ########################################################################################
     # path cache
@@ -296,11 +315,19 @@ class PipelineConfiguration(object):
         if self.get_shotgun_path_cache_enabled():
             raise TankError("Shotgun based path cache already turned on!")
                 
+        self._update_pipeline_config({"use_shotgun_path_cache": True})
+
+    def _update_pipeline_config(self, updates):
+        """
+        Updates the pipeline configuration on disk with the passed in values.
+
+        :param updates: Dictionary of values to update in the pipeline configuration
+        """
         # get current settings
         curr_settings = pipelineconfig_utils.get_metadata(self._pc_root)
         
         # add path cache setting
-        curr_settings["use_shotgun_path_cache"] = True
+        curr_settings.update(updates)
         
         # write the record to disk
         pipe_config_sg_id_path = os.path.join(self._pc_root, "config", "core", "pipeline_configuration.yml")        
@@ -490,30 +517,55 @@ class PipelineConfiguration(object):
             core_api_root = pipelineconfig_utils.get_path_to_current_core()
         
         return core_api_root
-            
+
+    def get_bundles_location(self):
+        """
+        Returns the location where all apps/frameworks/engines are stored in subfolders
+        
+        :returns: path string
+        """
+        return os.path.join(self.get_install_location(), "install")
+
     def get_apps_location(self):
         """
         Returns the location where apps are stored
+        
+        Note! This method has been deprecated and will be removed at 
+        some point in the future. Please do not use it.
+        
+        :returns: path string        
         """
-        return os.path.join(self.get_install_location(), "install", "apps")
+        return os.path.join(self.get_bundles_location(), "apps")
 
     def get_engines_location(self):
         """
-        Returns the location where apps are stored
+        Returns the location where engines are stored
+        
+        Note! This method has been deprecated and will be removed at 
+        some point in the future. Please do not use it.
+        
+        :returns: path string        
         """
-        return os.path.join(self.get_install_location(), "install", "engines")
+        return os.path.join(self.get_bundles_location(), "engines")
 
     def get_frameworks_location(self):
         """
-        Returns the location where apps are stored
+        Returns the location where frameworks are stored
+        
+        Note! This method has been deprecated and will be removed at 
+        some point in the future. Please do not use it.
+        
+        :returns: path string        
         """
-        return os.path.join(self.get_install_location(), "install", "frameworks")
+        return os.path.join(self.get_bundles_location(), "frameworks")
 
     def get_core_python_location(self):
         """
-        returns the python root for this install.
+        Returns the python root for this install.
+        
+        :returns: path string
         """
-        return os.path.join(self.get_install_location(), "install", "core", "python")
+        return os.path.join(self.get_bundles_location(), "core", "python")
 
     ########################################################################################
     # configuration disk locations
@@ -521,24 +573,32 @@ class PipelineConfiguration(object):
     def get_core_hooks_location(self):
         """
         Returns the path to the core hooks location
+        
+        :returns: path string
         """
         return os.path.join(self._pc_root, "config", "core", "hooks")
 
     def get_schema_config_location(self):
         """
-        returns the location of the schema
+        Returns the location of the folder schema
+        
+        :returns: path string
         """
         return os.path.join(self._pc_root, "config", "core", "schema")
 
     def get_config_location(self):
         """
-        returns the config folder for the project
+        Returns the config folder for the project
+        
+        :returns: path string
         """
         return os.path.join(self._pc_root, "config")
 
     def get_hooks_location(self):
         """
-        returns the hooks folder for the project
+        Returns the hooks folder for the project
+        
+        :returns: path string
         """
         return os.path.join(self._pc_root, "config", "hooks")
 
@@ -547,8 +607,7 @@ class PipelineConfiguration(object):
         returns the folder where shotgun menu cache files 
         (used by the browser plugin and java applet) are stored.
         
-        NOTE! Because of hard coded values inside the Shotgun java applet,
-        this location cannot be customized.
+        :returns: path string
         """
         return os.path.join(self._pc_root, "cache")
 

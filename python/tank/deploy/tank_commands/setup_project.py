@@ -120,7 +120,6 @@ class SetupProjectAction(Action):
         """
         API accessor
         """
-        
         # validate params and seed default values
         computed_params = self._validate_parameters(parameters)
         
@@ -162,7 +161,9 @@ class SetupProjectAction(Action):
         # api is the same as the root path for the associated pc
         if pipelineconfig_utils.is_localized(curr_core_path):
             log.info("Localizing Core...")
-            core_localize.do_localize(log, params.get_configuration_location(sys.platform), suppress_prompts=True)
+            core_localize.do_localize(log, 
+                                      params.get_configuration_location(sys.platform), 
+                                      suppress_prompts=True)
                         
                         
                         
@@ -238,7 +239,9 @@ class SetupProjectAction(Action):
         # api is the same as the root path for the associated pc
         if pipelineconfig_utils.is_localized(curr_core_path):
             log.info("Localizing Core...")
-            core_localize.do_localize(log, params.get_configuration_location(sys.platform), suppress_prompts=True)        
+            core_localize.do_localize(log, 
+                                      params.get_configuration_location(sys.platform), 
+                                      suppress_prompts=True)
         
         # display readme etc.
         readme_content = params.get_configuration_readme()
@@ -344,6 +347,10 @@ class SetupProjectAction(Action):
                      "The following configurations were found: ")
             log.info("")
             for ppc in primary_pcs:
+                # As of 6.0.2, pipeline configurations can be project less, so skip those
+                if ppc.get("project") is None:
+                    continue
+
                 pc_path = ppc.get(SG_LOCAL_STORAGE_OS_MAP[sys.platform])
                 if pc_path is None or pc_path == "":
                     # this Toolkit config does not exist on a disk that is reachable from this os

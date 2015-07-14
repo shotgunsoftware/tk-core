@@ -59,7 +59,7 @@ class TestTemplateFromPath(TankTestBase):
     def test_template_string(self):
         """Resolve 'path' which is a resolved TemplateString."""
         # resolved version of 'nuke_publish_name'
-        str_path = "Nuke Script Name, v02"
+        str_path = "Nuke Script Name, v002"
         template = self.tk.template_from_path(str_path)
         self.assertIsNotNone(template)
         self.assertIsInstance(template, TemplateString)
@@ -390,6 +390,18 @@ class TestApiProperties(TankTestBase):
         test api.documentation_url property
         """
         self.assertEquals(self.tk.documentation_url, None)
+
+    def test_shotgun_url_property(self):
+        """
+        test api.shotgun_url property
+        """
+        self.assertEquals(self.tk.shotgun_url, "http://unit_test_mock_sg")
+
+    def test_shotgun_property(self):
+        """
+        test api.shotgun property
+        """
+        self.assertEquals(self.tk.shotgun.__class__.__name__, "Shotgun")
 
     def test_configuration_name_property(self):
         """

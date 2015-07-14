@@ -1,21 +1,26 @@
 # Copyright (c) 2013 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
 Tests for templatefield module.
 """
 
+from __future__ import with_statement
+
 from tank import TankError
 import copy
+import datetime
+import time
+from mock import patch
 from tank_test.tank_test_base import *
-from tank.templatekey import TemplateKey, StringKey, IntegerKey, SequenceKey, make_keys
+from tank.templatekey import TemplateKey, StringKey, IntegerKey, SequenceKey, TimestampKey, make_keys
 
 class TestStringKey(TankTestBase):
     def setUp(self):
@@ -23,9 +28,9 @@ class TestStringKey(TankTestBase):
         self.str_field = StringKey("field_name")
         self.alphanum_field = StringKey("field_name", filter_by="alphanumeric")
         self.alpha_field = StringKey("field_name", filter_by="alpha")
-        
+
         self.regex_field = StringKey("field_name", filter_by="^[0-9]{3}@[a-z]+") # e.g 123@foo
-        
+
         self.choice_field = StringKey("field_name", choices=["a", "b"])
         self.default_field = StringKey("field_name", default="b")
 
@@ -212,7 +217,7 @@ class TestStringKey(TankTestBase):
             expected = bad_value
             result = self.regex_field.str_from_value(bad_value, ignore_type=True)
             self.assertEquals(expected, result)
-    
+
     def test_value_from_str(self):
         str_value = "something"
         self.assertEquals(str_value, self.str_field.value_from_str(str_value))
@@ -283,7 +288,7 @@ class TestIntegerKey(TankTestBase):
 
     def test_str_from_value_bad(self):
         value = "a"
-        expected = "%s Illegal value %s, expected an Integer" % (str(self.int_field), value)
+        expected = "%s Illegal value '%s', expected an Integer" % (str(self.int_field), value)
         self.check_error_message(TankError, expected, self.int_field.str_from_value, value)
 
     def test_str_from_value_formatted(self):
@@ -306,6 +311,211 @@ class TestIntegerKey(TankTestBase):
     def test_repr(self):
         expected = "<Sgtk IntegerKey field_name>"
         self.assertEquals(expected, str(self.int_field))
+
+    def test_init_validation(self):
+        """
+        Makes sure that parameter validation is correct in the constructor.
+        """
+        # This should obviously work
+        self._validate_key(
+            IntegerKey("version_number"),
+            strict_matching=None, format_spec=None
+        )
+        # When specifying parameters, they should be set accordingly.
+        self._validate_key(
+            IntegerKey("version_number", format_spec="03", strict_matching=True),
+            strict_matching=True, format_spec="03"
+        )
+        self._validate_key(
+            IntegerKey("version_number", format_spec="03", strict_matching=False),
+            strict_matching=False, format_spec="03"
+        )
+        self._validate_key(
+            IntegerKey("version_number", format_spec="3", strict_matching=False),
+            strict_matching=False, format_spec="3"
+        )
+        # When specifying a format but not specifying the strict_matching, it should
+        # still have strict_matching.
+        self._validate_key(
+            IntegerKey("version_number", format_spec="03"),
+            strict_matching=True, format_spec="03"
+        )
+        # Make sure than an error is raised when wrong types are passed in.
+        with self.assertRaisesRegexp(TankError, "is not of type boolean"):
+            IntegerKey("version_number", strict_matching=1)
+
+        with self.assertRaisesRegexp(TankError, "is not of type string"):
+            IntegerKey("version_number", format_spec=1)
+
+        # Make sure that if the user specifies strict_matching with no format
+        # there is an error
+        error_regexp = "strict_matching can't be set"
+        with self.assertRaisesRegexp(TankError, error_regexp):
+            IntegerKey("version_number", strict_matching=False)
+
+        with self.assertRaisesRegexp(TankError, error_regexp):
+            IntegerKey("version_number", strict_matching=True)
+
+        # We support 4 format_spec values:
+        # - None
+        # - non zero positive number
+        # - zero followed by a non zero positive number
+        IntegerKey("version_number", format_spec=None)
+        IntegerKey("version_number", format_spec="1")
+        IntegerKey("version_number", format_spec="01")
+
+        # Make sure invalid formats are caught
+        with self.assertRaisesRegexp(TankError, "format_spec can't be empty"):
+            IntegerKey("version_number", format_spec="")
+
+        error_regexp = "has to either be"
+        # We don't support the sign option.
+        with self.assertRaisesRegexp(TankError, error_regexp):
+            IntegerKey("version_number", format_spec=" 3", strict_matching=False)
+
+        with self.assertRaisesRegexp(TankError, error_regexp):
+            # Should throw because the padding number is not non zero.
+            IntegerKey("version_number", format_spec="00")
+
+        with self.assertRaisesRegexp(TankError, error_regexp):
+            # Should throw because it is not a non zero positive integer
+            IntegerKey("version_number", format_spec="0")
+
+        with self.assertRaisesRegexp(TankError, error_regexp):
+            # Should throw because the padding caracter is invalid
+            IntegerKey("version_number", format_spec="a0")
+
+        with self.assertRaisesRegexp(TankError, error_regexp):
+            # Should throw because the padding size is not a number.
+            IntegerKey("version_number", format_spec="0a")
+
+    def test_no_format_spec(self):
+        key = IntegerKey("version_number")
+        key.value_from_str
+
+    def _validate_key(self, key, strict_matching, format_spec):
+        """
+        Makes sure that an integer key's formatting options are correctly set.
+        """
+        self.assertEqual(key.strict_matching, strict_matching)
+        self.assertEqual(key.format_spec, format_spec)
+
+    def test_non_strict_matching(self):
+        """
+        In non strict mode, tokens can actually have less numbers than the padding requests. Also,
+        if there are more, can also match.
+        """
+        self._test_non_strict_matching('0')
+        self._test_non_strict_matching('')
+
+    def _test_non_strict_matching(self, padding_char):
+        """
+        Allows to test strict matching with a specific padding character.
+
+        :param padding_char: Character to test padding with. Should be space or 0.
+        """
+        key = IntegerKey("version_number", format_spec="%s3" % padding_char, strict_matching=False)
+
+        # The padding char is missing in the format specifier, but we still need when validating
+        # results.
+        if padding_char == '':
+            padding_char = ' '
+
+        # It should match because they are valid numbers.
+
+        self.assertEqual(key.value_from_str("000"), 0)
+        self.assertEqual(key.value_from_str("0"), 0)
+        self.assertEqual(key.value_from_str("0"), 0)
+
+        # While the number doesn't make any sense as far as formatting is concerned, this used
+        # to work in old versions of Toolkit and needs to keep working in non strict mode.
+        self.assertEqual(key.value_from_str("%s000" % padding_char), 0)
+
+        # It should match a template with too many digits...
+        self.assertEqual(key.value_from_str("20000"), 20000)
+
+        # ... even if they are all zeros because lossy matching.
+        self.assertEqual(key.value_from_str("00000"), 0)
+
+        # From path to tokens back to path should be lossy.
+        value = key.value_from_str("1")
+        self.assertEqual("%s%s1" % (padding_char, padding_char), key.str_from_value(value))
+
+        self._test_nan(key, "expected an Integer")
+
+    def _test_nan(self, key, error_msg):
+        """
+        Tests a key with against values that are not numbers.
+
+        :param key: Key to test.
+        :param error_msg: Text that partially matches the error message.
+        """
+        # Should fail because not a number
+        with self.assertRaisesRegexp(TankError, error_msg):
+            key.value_from_str("aaaa")
+        with self.assertRaisesRegexp(TankError, error_msg):
+            key.value_from_str("0a")
+        with self.assertRaisesRegexp(TankError, error_msg):
+            key.value_from_str("a0")
+        with self.assertRaisesRegexp(TankError, error_msg):
+            key.value_from_str("aa")
+
+    def _test_strict_matching(self, padding_char):
+        """
+        Allows to test strict matching with any padding type.
+        """
+        # have a template that formats with two digits of padding.
+        key = IntegerKey("version_number", format_spec="%s3" % padding_char, strict_matching=True)
+        self.assertTrue(key.strict_matching)
+
+        # The padding char is missing in the format specifier, but we still need when validating
+        # results.
+        if padding_char == '':
+            padding_char = ' '
+
+        # From path to tokens back to path should get back the same string when the expected number of
+        # digits are found.
+        value = key.value_from_str("%s%s1" % (padding_char, padding_char))
+        self.assertEqual("%s%s1" % (padding_char, padding_char), key.str_from_value(value))
+
+        # It should match a template with more digits.
+        value = key.value_from_str("20000")
+        self.assertEqual("20000", key.str_from_value(value))
+
+        key.value_from_str("123")
+
+        error_msg = "does not match format spec"
+
+        # It should not match a string with too few digits
+        with self.assertRaisesRegexp(TankError, error_msg):
+            key.value_from_str("1")
+
+        # It should not match a template with too many digits that are all zero because that would
+        # lossy. (there are more zeros than the format spec can rebuild)
+        with self.assertRaisesRegexp(TankError, error_msg):
+            key.value_from_str("0000")
+
+        # It should not match negative numbers either
+        with self.assertRaisesRegexp(TankError, error_msg):
+            key.value_from_str("-1000")
+
+        # It should not match baddly padded numbers
+        with self.assertRaisesRegexp(TankError, error_msg):
+            key.value_from_str("0100")
+
+        # It should not match negative values
+        with self.assertRaisesRegexp(TankError, error_msg):
+            key.value_from_str("-01")
+
+        self._test_nan(key, error_msg)
+
+    def test_strict_matching(self):
+        """
+        In strict mode, tokens have to have as much padding as the format specifier suggests. Less will not
+        match.
+        """
+        self._test_strict_matching('')
+        self._test_strict_matching('0')
 
 
 class TestSequenceKey(TankTestBase):
@@ -334,7 +544,7 @@ class TestSequenceKey(TankTestBase):
     def test_validate_good(self):
         good_values = copy.copy(self.seq_field._frame_specs)
         good_values.extend(["FORMAT:%d", "FORMAT:#", "FORMAT:@", "FORMAT:$F", "FORMAT:<UDIM>", "FORMAT:$UDIM"])
-        good_values.extend(["FORMAT:  %d", "FORMAT:  #", "FORMAT:  @", "FORMAT:  $F", 
+        good_values.extend(["FORMAT:  %d", "FORMAT:  #", "FORMAT:  @", "FORMAT:  $F",
                             "FORMAT:  <UDIM>", "FORMAT:  $UDIM"])
         good_values.extend(["243", "0123"])
         good_values.extend(["[243-13123123123]", "[0001-0122]"])
@@ -347,7 +557,7 @@ class TestSequenceKey(TankTestBase):
             self.assertFalse(self.seq_field.validate(bad_value))
 
     def test_value_from_str(self):
-        
+
         # note - default case means frame spec is 01
         valid_str_values = {"12":12,
                             "0":0,
@@ -362,7 +572,7 @@ class TestSequenceKey(TankTestBase):
             self.assertEquals(expected_value, self.seq_field.value_from_str(str_value))
 
     def test_str_from_value_good(self):
-        
+
         # note - default case means frame spec is 01
         valid_value_strs = {12:"12",
                             0:"0",
@@ -375,7 +585,7 @@ class TestSequenceKey(TankTestBase):
                             "$UDIM":"$UDIM"}
         for value, str_value in valid_value_strs.items():
             self.assertEquals(str_value, self.seq_field.str_from_value(value))
-        
+
 
     def test_str_from_value_bad(self):
         value = "a"
@@ -401,7 +611,7 @@ class TestSequenceKey(TankTestBase):
 
     def test_str_from_value_default_one(self):
         """
-        default frame spec value can be returned, frame spec with 
+        default frame spec value can be returned, frame spec with
         one place has special cases.
         """
         value = None
@@ -421,11 +631,11 @@ class TestSequenceKey(TankTestBase):
         expected = "$F"
         result = seq_field.str_from_value(value="FORMAT:$F")
         self.assertEquals(expected, result)
-        
+
         expected = "<UDIM>"
         result = seq_field.str_from_value(value="FORMAT:<UDIM>")
         self.assertEquals(expected, result)
-        
+
         expected = "$UDIM"
         result = seq_field.str_from_value(value="FORMAT:$UDIM")
         self.assertEquals(expected, result)
@@ -441,7 +651,7 @@ class TestSequenceKey(TankTestBase):
         one places.
         """
         seq_field = SequenceKey("field_name", format_spec="03")
-        
+
         expected = "%03d"
         result = seq_field.str_from_value("FORMAT:%d")
         self.assertEquals(expected, result)
@@ -457,11 +667,11 @@ class TestSequenceKey(TankTestBase):
         expected = "$F3"
         result = seq_field.str_from_value("FORMAT:$F")
         self.assertEquals(expected, result)
-        
+
         expected = "<UDIM>"
         result = seq_field.str_from_value(value="FORMAT:<UDIM>")
         self.assertEquals(expected, result)
-        
+
         expected = "$UDIM"
         result = seq_field.str_from_value(value="FORMAT:$UDIM")
         self.assertEquals(expected, result)
@@ -473,9 +683,9 @@ class TestSequenceKey(TankTestBase):
 
     def test_str_from_value_format_whitespace(self):
         """Use of FORMAT: prefix with whitespace."""
-        
+
         seq_field = SequenceKey("field_name", format_spec="03")
-        
+
         expected = "%03d"
         result = seq_field.str_from_value("FORMAT: %d")
         self.assertEquals(expected, result)
@@ -495,7 +705,7 @@ class TestSequenceKey(TankTestBase):
         expected = "<UDIM>"
         result = seq_field.str_from_value(value="FORMAT: <UDIM>")
         self.assertEquals(expected, result)
-        
+
         expected = "$UDIM"
         result = seq_field.str_from_value(value="FORMAT: $UDIM")
         self.assertEquals(expected, result)
@@ -574,7 +784,7 @@ class TestMakeKeys(TankTestBase):
 
         simple_key = result.get("simple")
         complex_key = result.get("complex")
-        
+
         self.assertEquals("simple", simple_key.name)
         self.assertEquals(None, simple_key.default)
         self.assertEquals([], simple_key.choices)
@@ -671,3 +881,148 @@ class TestEyeKey(TankTestBase):
         self.assertTrue(self.eye_key.validate("l"))
         self.assertTrue(self.eye_key.validate("r"))
 
+
+class TestTimestampKey(TankTestBase):
+    """
+    Test timestamp key type.
+    """
+
+    def setUp(self):
+        """
+        Creates a bunch of dates and strings for testing.
+        """
+        super(TestTimestampKey, self).setUp()
+        self._datetime = datetime.datetime(2015, 6, 24, 21, 20, 30)
+        self._datetime_string = "2015-06-24-21-20-30"
+
+    def test_default_values(self):
+        """
+        Makes sure default values are as expected.
+        """
+        key = TimestampKey("name")
+        self.assertEqual(key.format_spec, "%Y-%m-%d-%H-%M-%S")
+        self.assertIsNone(key.default)
+
+    def test_init(self):
+        """
+        Tests the __init__ of TimestampKey.
+        """
+        # No args should be time, it's just a timestamp with default formatting options.
+        TimestampKey("name")
+        # While unlikely, hardcoding a timestamp matching the format spec should be fine.
+        TimestampKey("name", default="2015-07-03-09-09-00")
+        # Hardcoding a default value with a custom format spec should be fine.
+        TimestampKey("name", default="03-07-2015", format_spec="%d-%m-%Y")
+        # utc and now are special cases that end up returning the current time as the default
+        # value.
+        key = TimestampKey("name", default="utc_now")
+        # Make sure UTC time will be generated.
+        self.assertEqual(key._default, key._TimestampKey__get_current_utc_time)
+        key = TimestampKey("name", default="now")
+        # Make sure localtime will be generated.
+        self.assertEqual(key._default, key._TimestampKey__get_current_time)
+        # One can override the format_spec without providing a default.
+        TimestampKey("name", format_spec="%Y-%m-%d")
+
+        # format_spec has to be a string.
+        with self.assertRaisesRegexp(TankError, "is not of type string or None"):
+            TimestampKey("name", default=1)
+
+        # format_spec has to be a string.
+        with self.assertRaisesRegexp(TankError, "is not of type string"):
+            TimestampKey("name", format_spec=1)
+
+        # Date that to be a valid time.
+        with self.assertRaisesRegexp(TankError, "Invalid string"):
+            TimestampKey("name", default="00-07-2015", format_spec="%d-%m-%Y")
+
+        # Date that to be a valid time.
+        with self.assertRaisesRegexp(TankError, "Invalid string"):
+            TimestampKey("name", default="not_a_date")
+
+    def test_str_from_value(self):
+        """
+        Convert all supported value types into a string and validates that
+        we are getting the right result
+        """
+        key = TimestampKey("test")
+
+        # Try and convert each and every date format to string
+        self.assertEqual(
+            key.str_from_value(self._datetime),
+            self._datetime_string
+        )
+
+    def test_value_from_str(self):
+        """
+        Makes sure that a string can be converted to a datetime.
+        """
+        key = TimestampKey("test")
+        self.assertEqual(
+            key.value_from_str(self._datetime_string),
+            self._datetime
+        )
+        self.assertEqual(
+            key.value_from_str(unicode(self._datetime_string)),
+            self._datetime
+        )
+
+    def test_bad_str(self):
+        """
+        Test with strings that don't match the specified format.
+        """
+        key = TimestampKey("test")
+        # bad format
+        with self.assertRaisesRegexp(TankError, "Invalid string"):
+            key.value_from_str("1 2 3")
+        # out of bound values
+        with self.assertRaisesRegexp(TankError, "Invalid string"):
+            key.value_from_str("2015-06-33-21-20-30")
+
+        # Too much data
+        with self.assertRaisesRegexp(TankError, "Invalid string"):
+            key.value_from_str(self._datetime_string + "bad date")
+
+    def test_bad_value(self):
+        """
+        Test with values that are not supported.
+        """
+        key = TimestampKey("test")
+        with self.assertRaisesRegexp(TankError, "Invalid type"):
+            key.str_from_value(1)
+
+    @patch("tank.templatekey.TimestampKey._TimestampKey__get_current_time")
+    def test_now_default_value(self,_get_time_mock):
+        """
+        Makes sure that a default value is proprely generated when the now default
+        value is requested.
+        """
+        # Mock it to the expected date.
+        _get_time_mock.return_value = self._datetime
+        # Create the key
+        key = TimestampKey("datetime", default="now")
+        # Convert to a string and compare the result.
+        self.assertEqual(key.str_from_value(None), self._datetime_string)
+
+    @patch("tank.templatekey.TimestampKey._TimestampKey__get_current_utc_time")
+    def test_utc_now_default_value(self, _get_utc_time_mock):
+        """
+        Makes sure that a default value is proprely generated when the utc_now default
+        value is requested.
+        """
+        # Mock it to the expected date.
+        _get_utc_time_mock.return_value = self._datetime
+        # Create the key
+        key = TimestampKey("datetime", default="utc_now")
+        # Convert to a string and compare the result.
+        self.assertEqual(key.str_from_value(None), self._datetime_string)
+
+    def test_string_default_value(self):
+        """
+        Makes sure that a default value is proprely generated when a string default
+        value is provided.
+        """
+        # Create a template using our key.
+        key = TimestampKey("datetime", default=self._datetime_string)
+        # Convert to a string and compare the result.
+        self.assertEqual(key.str_from_value(None), self._datetime_string)

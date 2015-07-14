@@ -97,7 +97,7 @@ class CacheLocation(HookBaseClass):
             root = os.path.expanduser("~/.shotgun")
 
         # get site only; https://www.foo.com:8080 -> www.foo.com
-        base_url = urlparse.urlparse(tk.shotgun.base_url)[1].split(":")[0]
+        base_url = urlparse.urlparse(tk.shotgun_url)[1].split(":")[0]
         
         # now structure things by site, project id, and pipeline config id
         cache_root = os.path.join(root, 

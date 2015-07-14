@@ -17,6 +17,7 @@ import os
 import sys
 import traceback
 import weakref
+import threading
         
 from .. import loader
 from .. import hook
@@ -112,6 +113,11 @@ class Engine(TankBundle):
         qt.QtCore = base_def.get("qt_core")
         qt.QtGui = base_def.get("qt_gui")
         qt.TankDialogBase = base_def.get("dialog_base")
+
+        # Update the authentication module to use the engine's Qt.
+        from tank_vendor.shotgun_authentication.ui import qt_abstraction
+        qt_abstraction.QtCore = qt.QtCore
+        qt_abstraction.QtGui = qt.QtGui
         
         # create invoker to allow execution of functions on the
         # main thread:
@@ -403,22 +409,27 @@ class Engine(TankBundle):
     def destroy(self):
         """
         Destroy all apps, then call destroy_engine so subclasses can add their own tear down code.
-        
+
         This method should not be subclassed.
         """
         self.__destroy_frameworks()
         self.__destroy_apps()
-        
+
         self.log_debug("Destroying %s" % self)
         self.destroy_engine()
-        
+
         # finally remove the current engine reference
         set_current_engine(None)
-        
+
         # now clear the hooks cache to make sure fresh hooks are loaded the 
         # next time an engine is initialized
         hook.clear_hooks_cache()
-    
+
+        # clean up the main thread invoker - it's a QObject so it's important we
+        # explicitly set the value to None!
+        if self._invoker:
+            self._invoker = None
+
     def destroy_engine(self):
         """
         Called when the engine should tear down itself and all its apps.
@@ -482,14 +493,59 @@ class Engine(TankBundle):
         """
         Execute the specified function in the main thread when called from a non-main
         thread.  This will block the calling thread until the function returns.
-        
+
         Note, this currently only works if Qt is available, otherwise it just
         executes on the current thread.
-        
+
+        # ---------------------------------------------------------------------------------
+        # The following test checks that execute_in_main_thread is itself thread-safe!  It
+        # runs a simple test a number of times in multiple threads and ensures the result
+        # returned is as expected.  If this isn't the case it will print out one or more:
+        #     'Result mismatch...'
+        #
+        import threading
+        import random
+        import time
+        import sgtk
+        from sgtk.platform.qt import QtCore, QtGui
+
+        NUM_TEST_THREADS=20
+        NUM_THREAD_ITERATIONS=30
+
+        def run_in_main_thread(v):
+            print "Running", v
+            if QtCore.QThread.currentThread() != QtGui.QApplication.instance().thread():
+                print " > but not running in main thread!"
+            return v
+
+        def threaded_work(val):
+            eng = sgtk.platform.current_engine()
+            c_time = 0.0
+            for i in range(NUM_THREAD_ITERATIONS):
+                time.sleep(random.randint(0, 10)/10.0)
+                arg = (val, i)
+                st = time.time()
+                ret_val = eng.execute_in_main_thread(run_in_main_thread, arg)
+                e = time.time()
+                #print "Time to run: %0.4fs" % (e-st)
+                c_time += (e-st)
+                if ret_val != arg:
+                    print "Result mismatch: %s != %s!!" % (ret_val, arg)
+
+            print "Cumulative time for thread %d: %0.4fs" % (val, c_time)
+
+        threads = []
+        for ti in range(NUM_TEST_THREADS):
+            t = threading.Thread(target=lambda:threaded_work(ti))
+            t.start()
+            threads.append(t)
+        # ---------------------------------------------------------------------------------
+        # ---------------------------------------------------------------------------------
+
         :param func: function to call
         :param args: arguments to pass to the function
         :param kwargs: named arguments to pass to the function
-        
+
         :returns: the result of the function call
         """
         if self._invoker:
@@ -504,7 +560,7 @@ class Engine(TankBundle):
         else:
             # we don't have an invoker so just call the function:
             return func(*args, **kwargs)
-                
+
     ##########################################################################################
     # logging interfaces
 
@@ -663,6 +719,9 @@ class Engine(TankBundle):
         # create the widget:
         widget = self._create_widget(widget_class, *args, **kwargs)
         
+        # apply style sheet
+        self._apply_external_styleshet(bundle, widget)        
+        
         # create the dialog:
         dialog = self._create_dialog(title, bundle, widget, parent)
         return (dialog, widget)
@@ -793,6 +852,54 @@ class Engine(TankBundle):
         # lastly, return the instantiated widget
         return (status, widget)
     
+    def _resolve_sg_stylesheet_tokens(self, style_sheet):
+        """
+        Given a string containing a qt style sheet,
+        perform replacements of key toolkit tokens.
+        
+        For example, "{{SG_HIGHLIGHT_COLOR}}" is converted to "#30A7E3"
+        
+        :param style_sheet: Stylesheet string to process
+        :returns: Stylesheet string with replacements applied
+        """
+        processed_style_sheet = style_sheet
+        for (token, value) in constants.SG_STYLESHEET_CONSTANTS.iteritems():
+            processed_style_sheet = processed_style_sheet.replace("{{%s}}" % token, value)
+        return processed_style_sheet
+    
+    def _apply_external_styleshet(self, bundle, widget):
+        """
+        Apply an std external stylesheet, associated with a bundle, to a widget.
+        
+        This will check if a standard style.css file exists in the
+        app/engine/framework root location on disk and if so load it from 
+        disk and apply to the given widget. The style sheet is cascading, meaning 
+        that it will affect all children of the given widget. Typically this is used
+        at window creation in order to allow newly created dialogs to apply app specific
+        styles easily.
+        
+        :param bundle: app/engine/framework instance to load style sheet from
+        :param widget: widget to apply stylesheet to 
+        """
+        qss_file = os.path.join(bundle.disk_location, constants.BUNDLE_STYLESHEET_FILE)
+
+        if os.path.exists(qss_file):
+            self.log_debug("Detected std style sheet file '%s' - applying to widget %s" % (qss_file, widget))
+            try:
+                # Read css file
+                f = open(qss_file, "rt")
+                qss_data = f.read()
+                # resolve tokens
+                qss_data = self._resolve_sg_stylesheet_tokens(qss_data)
+                # apply to widget (and all its children)
+                widget.setStyleSheet(qss_data)
+            except Exception, e:
+                # catch-all and issue a warning and continue.
+                self._app.log_warning( "Could not apply stylesheet '%s': %s" % (qss_file, e) )
+            finally:
+                f.close()
+    
+    
     def _define_qt_base(self):
         """
         This will be called at initialisation time and will allow 
@@ -877,7 +984,10 @@ class Engine(TankBundle):
             fh.close()
             
             # set the std selection bg color to be 'shotgun blue'
-            self._dark_palette.setBrush(QtGui.QPalette.Highlight, QtGui.QBrush(QtGui.QColor("#30A7E3")))
+            highlight_color = QtGui.QBrush(QtGui.QColor(constants.SG_STYLESHEET_CONSTANTS["SG_HIGHLIGHT_COLOR"]))
+            self._dark_palette.setBrush(QtGui.QPalette.Highlight, highlight_color)
+            
+            
             self._dark_palette.setBrush(QtGui.QPalette.HighlightedText, QtGui.QBrush(QtGui.QColor("#FFFFFF")))
             
             # and associate it with the qapplication
@@ -893,7 +1003,9 @@ class Engine(TankBundle):
             f = open(css_file)
             css_data = f.read()
             f.close()
+            css_data = self._resolve_sg_stylesheet_tokens(css_data)
             app = QtCore.QCoreApplication.instance()
+            
             app.setStyleSheet(css_data)
         except Exception, e:
             self.log_error("The standard toolkit dark stylesheet could not be set up! The look and feel of your "
@@ -954,38 +1066,67 @@ class Engine(TankBundle):
         """
         Create the object used to invoke function calls on the main thread when
         called from a different thread.
-        
+
         :returns:  Invoker instance
         """
         if self.has_ui:
             from .qt import QtGui, QtCore
             if QtGui and QtCore:
                 class Invoker(QtCore.QObject):
+                    """
+                    Invoker class - implements a mechanism to execute a function with arbitrary
+                    args in the main thread.
+                    """
                     def __init__(self):
+                        """
+                        Construction
+                        """
                         QtCore.QObject.__init__(self)
+                        self._lock = threading.Lock()
+                        self._fn = None
                         self._res = None
-                        
+
                     def invoke(self, fn, *args, **kwargs):
-                        self._fn = lambda: fn(*args, **kwargs) 
-                        self._res = None
-                        
-                        QtCore.QMetaObject.invokeMethod(self, "_do_invoke", QtCore.Qt.BlockingQueuedConnection)
-                        
-                        return self._res
-                
+                        """
+                        Invoke the specified function with the specified args in the main thread
+
+                        :param fn:          The function to execute in the main thread
+                        :param *args:       Args for the function
+                        :param **kwargs:    Named arguments for the function
+                        :returns:           The result returned by the function
+                        """
+                        # acquire lock to ensure that the function and result are not overwritten 
+                        # by syncrounous calls to this method from different threads
+                        self._lock.acquire()
+                        try:
+                            self._fn = lambda: fn(*args, **kwargs)
+                            self._res = None
+
+                            # invoke the internal _do_invoke method that will actually run the function.  Note that
+                            # we are unable to pass/return arguments through invokeMethod as this isn't properly
+                            # supported by PySide.
+                            QtCore.QMetaObject.invokeMethod(self, "_do_invoke", QtCore.Qt.BlockingQueuedConnection)
+
+                            return self._res
+                        finally:
+                            self._lock.release()
+
                     @qt.QtCore.Slot()
                     def _do_invoke(self):
                         """
-                        Execute function and return result
+                        Execute the function
                         """
                         self._res = self._fn()
-                        
-                return Invoker()
+
+                # Make sure that the invoker exists in the main thread:
+                invoker = Invoker()
+                if QtGui.QApplication.instance():
+                    invoker.moveToThread(QtGui.QApplication.instance().thread())
+                return invoker
 
         # don't have ui so can't create an invoker!
         return None
 
-            
     ##########################################################################################
     # private         
         

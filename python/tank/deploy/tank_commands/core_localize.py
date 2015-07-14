@@ -8,14 +8,18 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-
+# make sure that py25 has access to with statement
+from __future__ import with_statement
 
 
 import os
 import sys
 import stat
+import copy
 import shutil
 import datetime
+
+from tank_vendor import yaml
 
 from ...errors import TankError
 from .. import util
@@ -27,8 +31,8 @@ from ... import pipelineconfig_factory
 
 # these are the items that need to be copied across
 # when a configuration is upgraded to contain a core API
-CORE_FILES_FOR_LOCALIZE = ["app_store.yml", 
-                           "shotgun.yml", 
+CORE_FILES_FOR_LOCALIZE = [ "shotgun.yml",
+                            "app_store.yml",
                            "interpreter_Darwin.cfg", 
                            "interpreter_Linux.cfg", 
                            "interpreter_Windows.cfg"]
@@ -181,13 +185,20 @@ def do_localize(log, pc_root_path, suppress_prompts):
             src = os.path.join(core_api_root, "config", "core", fn)
             tgt = os.path.join(pc_root_path, "config", "core", fn)
             log.debug("Copy %s -> %s" % (src, tgt))
-            shutil.copy(src, tgt)
-            
+            # If we're copying any other file than app_store.yml, it is mandatory. If we're copying
+            # app_store.yml, only copy it if it exists This is because when you are localizing a
+            # core, app_store.yml might be present or not depending if you are migrating a core
+            # configured with a pre Shotgun 6 or post Shotgun 6 site. In the later, AppStore
+            # credentials can be retrieved using a session token and therefore we don't need the
+            # AppStore credentials to be saved on disk.
+            if fn != "app_store.yml" or os.path.exists(src):
+                shutil.copy(src, tgt)
+
     except Exception, e:
         raise TankError("Could not localize: %s" % e)
     finally:
         os.umask(old_umask)
-            
+
     log.info("The Core API was successfully localized.")
 
     log.info("")
@@ -477,8 +488,7 @@ def _run_unlocalize(tk, log, mac_path, windows_path, linux_path, copy_core, supp
         
         # these core config files are directly related to the core
         # and not needed by a configuration
-        core_config_file_names = ["app_store.yml", 
-                                  "shotgun.yml", 
+        core_config_file_names = ["shotgun.yml", 
                                   "interpreter_Darwin.cfg", 
                                   "interpreter_Linux.cfg", 
                                   "interpreter_Windows.cfg"]

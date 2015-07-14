@@ -11,6 +11,20 @@
 """
 Hook that gets executed when the current user is being retrieved.
 
+Please note that this hook will only be called whenever Toolkit doesn't 
+have an authenticated user present. In releases prior to v0.16, this was the case 
+for all users and projects, however as of Core v0.16 and above, projects are set
+up to require users to log in by default, meaning that there already is a well
+established notion of who the current user is.
+
+But even in such projects, there are environments (render farms for example),
+where a user cannot easily log in, and a Shotgun script user typically is being
+used for "headless" operation of Toolkit. In these cases, Toolkit doesn't know
+which Shotgun user is associated with the operation and this hook will be called.
+
+The return value from this hook will then be compared with the availalble logins
+for all users in Shotgun and if a match is found, this is deemed to be the 
+current user.
 """
 
 from tank import Hook
