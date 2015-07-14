@@ -71,7 +71,9 @@ class TestGetProjectRoots(TankTestBase):
             self.assertEqual(expected_path, root_path)
 
     def test_all_paths(self):
-        """Tests pipeline_config.get_all_platform_data_roots()"""
+        """
+        Tests getting storage paths back from a pipeline config. 
+        """
         
         # take one path out and mark as undefined
         new_roots = copy.deepcopy(self.roots)

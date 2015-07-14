@@ -300,17 +300,17 @@ class TestApplyFields(TestTemplatePath):
                    "version": 3,
                    "snapshot": 2}        
         
-        result = self.template_path.apply_fields(fields, TemplatePath.PLATFORM_WINDOWS)
+        result = self.template_path.apply_fields(fields, "win32")
         root = self.pipeline_configuration.get_all_platform_data_roots()["primary"]["win32"]
         expected = "%s\\%s" % (root, relative_path.replace(os.sep, "\\"))
         self.assertEquals(expected, result)
 
-        result = self.template_path.apply_fields(fields, TemplatePath.PLATFORM_LINUX)
+        result = self.template_path.apply_fields(fields, "linux2")
         root = self.pipeline_configuration.get_all_platform_data_roots()["primary"]["linux2"]
         expected = "%s/%s" % (root, relative_path.replace(os.sep, "/"))
         self.assertEquals(expected, result)
 
-        result = self.template_path.apply_fields(fields, TemplatePath.PLATFORM_MAC)
+        result = self.template_path.apply_fields(fields, "darwin")
         root = self.pipeline_configuration.get_all_platform_data_roots()["primary"]["darwin"]
         expected = "%s/%s" % (root, relative_path.replace(os.sep, "/"))
         self.assertEquals(expected, result)
