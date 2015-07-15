@@ -54,6 +54,11 @@ class TestTemplatePath(TankTestBase):
                                           self.project_root, 
                                           per_platform_roots=all_roots)
 
+        self.project_root_template = TemplatePath("/", 
+                                                  self.keys, 
+                                                  self.project_root, 
+                                                  per_platform_roots=all_roots)
+
         # make template with sequence key
         self.sequence = TemplatePath("/path/to/seq.{frame}.ext", self.keys, "", "frame")
 
@@ -87,6 +92,14 @@ class TestValidate(TestTemplatePath):
                                      "work",
                                      "shot_1.mmm.v001.002.ma")
         self.valid_path = os.path.join(self.project_root, relative_path)
+
+    def test_project_root(self):
+        """
+        Test that validating the project root against the project root template ('/') works
+        correctly
+        """
+        root = self.pipeline_configuration.get_primary_data_root()
+        self.assertTrue(self.project_root_template.validate(root))
 
     def test_valid_path(self):
         self.assertTrue(self.template_path.validate(self.valid_path))
@@ -284,6 +297,14 @@ class TestApplyFields(TestTemplatePath):
         
         result = self.template_path.apply_fields(fields)
         self.assertEquals(expected, result)        
+
+    def test_project_root(self):
+        """
+        Test that applying fields to the project root template ('/') returns the project root
+        """
+        root = self.pipeline_configuration.get_primary_data_root()
+        result = self.project_root_template.apply_fields({})
+        self.assertEquals(root, result)
 
     def test_multi_platform(self):
         relative_path = os.path.join("shots",
@@ -613,6 +634,15 @@ class TestGetFields(TestTemplatePath):
                     "snapshot": 2}
         result = self.template_path.get_fields(file_path)
         self.assertEquals(result, expected)
+
+    def test_project_root(self):
+        """
+        Test that the getting fields from a project root template ('/') returns an empty fields
+        dictionary and doesn't error
+        """
+        root = self.pipeline_configuration.get_primary_data_root()
+        result = self.project_root_template.get_fields(root)
+        self.assertEquals({}, result)
 
     def test_key_first(self):
         definition = "{Sequence}/{Shot}/{Step}/work/{Shot}.{branch}.v{version}.{snapshot}.ma"
@@ -1066,6 +1096,12 @@ class TestParent(TestTemplatePath):
         parent_def = self.template_path.parent
         self.assertTrue(isinstance(parent_def, TemplatePath))
         self.assertEquals(expected_definition, parent_def.definition, self.project_root)
+
+    def test_project_root(self):
+        """
+        Test that a template with no keys (e.g. the project root '/') has no parent template
+        """
+        self.assertTrue(self.project_root_template.parent is None)
 
     def test_no_parent_exists(self):
         definition = "{Shot}"
