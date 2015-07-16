@@ -282,15 +282,6 @@ def _get_configuration_context():
     return val
 
 
-def _cleanup_separators(path):
-    """
-    Flips all slashes to the operating system's standard slash separator and strips
-    any dangling slashes.
-    """
-    # Norm path will take care of removing any .. or extra slashes at the end of paths.
-    return os.path.normpath(path.replace("\\", os.path.sep).replace("/", os.path.sep))
-
-
 def _get_pipeline_configuration_paths(sg_pipeline_configs):
     """
     Given a list of Shotgun Pipeline configuration entity data, return a list
@@ -305,7 +296,7 @@ def _get_pipeline_configuration_paths(sg_pipeline_configs):
     local_pc_paths = []
     primary_pc_paths = []
     for pc in sg_pipeline_configs:
-        curr_os_path = _cleanup_separators(pc.get(platform_lookup[sys.platform]))
+        curr_os_path = pipelineconfig_utils.sanitize_path(pc.get(platform_lookup[sys.platform]), os.path.sep)
         local_pc_paths.append(curr_os_path)
         if pc.get("code") == constants.PRIMARY_PIPELINE_CONFIG_NAME:
             primary_pc_paths.append(curr_os_path)
