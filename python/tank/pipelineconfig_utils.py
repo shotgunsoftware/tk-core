@@ -126,14 +126,14 @@ def get_roots_metadata(pipeline_config_path):
 
     # now use our helper function to process the paths    
     for s in data:
-        data[s]["mac_path"] = _sanitize_path(data[s]["mac_path"], "/")
-        data[s]["linux_path"] = _sanitize_path(data[s]["linux_path"], "/")
-        data[s]["windows_path"] = _sanitize_path(data[s]["windows_path"], "\\")
+        data[s]["mac_path"] = sanitize_path(data[s]["mac_path"], "/")
+        data[s]["linux_path"] = sanitize_path(data[s]["linux_path"], "/")
+        data[s]["windows_path"] = sanitize_path(data[s]["windows_path"], "\\")
 
     return data
 
 
-def _sanitize_path(path, separator):
+def sanitize_path(path, separator=os.path.sep):
     """
     Sanitize and clean up paths that may be incorrect.
     

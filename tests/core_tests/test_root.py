@@ -166,7 +166,7 @@ class TestGetPrimaryRoot(TankTestBase):
         Tests that the pre-load cleanup logic for roots.yml is sound
         """
         
-        sp = tank.pipelineconfig_utils._sanitize_path
+        sp = tank.pipelineconfig_utils.sanitize_path
         
         self.assertEqual( sp("/foo/bar/baz", "/"), "/foo/bar/baz")
         self.assertEqual( sp("/foo/bar/baz/", "/"), "/foo/bar/baz")
