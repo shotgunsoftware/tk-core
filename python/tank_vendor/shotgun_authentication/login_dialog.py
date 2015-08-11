@@ -159,7 +159,7 @@ class LoginDialog(QtGui.QDialog):
         Set the message in the dialog.
         :param message: Message to display in the dialog.
         """
-        self.ui.message.setText(message)
+        self.ui.message.setText(str(message))
 
     def exec_(self):
         """
@@ -194,7 +194,7 @@ class LoginDialog(QtGui.QDialog):
         :param widget: Widget to display the message on.
         :param message: Message to display in red in the dialog.
         """
-        widget.setText(self.ERROR_MSG_FORMAT % message)
+        widget.setText(self.ERROR_MSG_FORMAT % str(message))
 
     def _ok_pressed(self):
         """
@@ -226,7 +226,7 @@ class LoginDialog(QtGui.QDialog):
             # We need a two factor authentication code, move to the next page.
             self.ui.stackedWidget.setCurrentWidget(self.ui._2fa_page)
         except Exception, e:
-            self._set_error_message(self.ui.message, e[0])
+            self._set_error_message(self.ui.message, e)
             raise
 
     def _authenticate(self, error_label, site, login, password, auth_code=None):
@@ -253,7 +253,7 @@ class LoginDialog(QtGui.QDialog):
             )
         except AuthenticationError, e:
             # authentication did not succeed
-            self._set_error_message(error_label, e[0])
+            self._set_error_message(error_label, e)
         else:
             self.accept()
         finally:
@@ -292,7 +292,7 @@ class LoginDialog(QtGui.QDialog):
         try:
             self._authenticate(error_label, site, login, password, code)
         except Exception, e:
-            self._set_error_message(self.ui.message, e[0])
+            self._set_error_message(self.ui.message, e)
             raise
 
     def _use_backup_pressed(self):

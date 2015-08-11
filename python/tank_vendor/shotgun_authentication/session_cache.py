@@ -23,6 +23,7 @@ from __future__ import with_statement
 import os
 import sys
 import urlparse
+import socket
 from tank_vendor.shotgun_api3 import (Shotgun, AuthenticationFault, ProtocolError,
                                       MissingTwoFactorAuthenticationFault)
 from tank_vendor.shotgun_api3.lib import httplib2
@@ -411,6 +412,12 @@ def generate_session_token(hostname, login, password, http_proxy, auth_token=Non
         raise AuthenticationError("Authentication failed.")
     except (ProtocolError, httplib2.ServerNotFoundError):
         raise AuthenticationError("Server %s was not found." % hostname)
+    except httplib2.socks.ProxyError, e:
+        logger.exception("Unexpected proxy error.")
+        raise AuthenticationError("Proxy error: %s" % str(e))
+    except socket.error, e:
+        logger.exception("Unexpected connection error.")
+        raise AuthenticationError("Unexpected connection error: %s" % str(e))
     except MissingTwoFactorAuthenticationFault:
         # Silently catch and rethrow to avoid logging.
         raise
