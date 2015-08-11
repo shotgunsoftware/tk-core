@@ -412,9 +412,7 @@ def generate_session_token(hostname, login, password, http_proxy, auth_token=Non
     except AuthenticationFault:
         raise AuthenticationError("Authentication failed.")
     except (ProtocolError, httplib2.ServerNotFoundError):
-        logger.exception("Unexpected connection error.")
         raise AuthenticationError("Server %s was not found." % hostname)
-        logger.exception("Unexpected proxy error.")
     except socket.error, e:
         logger.exception("Unexpected connection error.")
         # e.message is always an empty string, so look at the exception's arguments.
