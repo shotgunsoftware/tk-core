@@ -24,6 +24,7 @@ import os
 import sys
 import urlparse
 import socket
+import httplib
 from tank_vendor.shotgun_api3 import (Shotgun, AuthenticationFault, ProtocolError,
                                       MissingTwoFactorAuthenticationFault)
 from tank_vendor.shotgun_api3.lib import httplib2
@@ -411,16 +412,37 @@ def generate_session_token(hostname, login, password, http_proxy, auth_token=Non
     except AuthenticationFault:
         raise AuthenticationError("Authentication failed.")
     except (ProtocolError, httplib2.ServerNotFoundError):
+        logger.exception("Unexpected connection error.")
         raise AuthenticationError("Server %s was not found." % hostname)
-    except httplib2.socks.ProxyError, e:
         logger.exception("Unexpected proxy error.")
-        raise AuthenticationError("Proxy error: %s" % str(e))
     except socket.error, e:
         logger.exception("Unexpected connection error.")
-        raise AuthenticationError("Unexpected connection error: %s" % str(e))
+        # e.message is always an empty string, so look at the exception's arguments.
+        # The arguments are always a string or a number and a string.
+        if isinstance(e.args[0], str):
+            # if the error is just a string, simply forward the message.
+            raise Exception(e.args[0])
+        else:
+            # We could argue here that we should only display the string portion of the
+            # error since the error code is of little relevance to the user, but since
+            # Toolkit doesn't properly log everything to a file at the moment, it's probably
+            # safer to have the error code a little bit more in the open. Also, the formatting
+            # of this exception type is pretty bad so let's reformat it ourselves. By default, it
+            # turns a tuple into a string.
+            raise Exception("%s (%d)" % (e.args[1], e.args[0]))
+    except httplib2.socks.ProxyError, e:
+        logger.exception("Unexpected connection error.")
+        # Same comment applies here around formatting.
+        # Note that e.message is always a tuple in this
+        raise Exception("%s (%d)" % (e.message[1], e.message[0]))
     except MissingTwoFactorAuthenticationFault:
         # Silently catch and rethrow to avoid logging.
         raise
-    except:
+    except Exception, e:
         logger.exception("There was a problem logging in.")
-        raise
+        # If the error message is empty, like httplib.HTTPException, convert
+        # the class name to a string
+        if len(str(e)) == 0:
+            raise Exception("Unknown error: %s" % e.__class__.__name__)
+        else:
+            raise
