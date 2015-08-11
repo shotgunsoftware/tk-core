@@ -24,7 +24,6 @@ import os
 import sys
 import urlparse
 import socket
-import httplib
 from tank_vendor.shotgun_api3 import (Shotgun, AuthenticationFault, ProtocolError,
                                       MissingTwoFactorAuthenticationFault)
 from tank_vendor.shotgun_api3.lib import httplib2
@@ -395,6 +394,7 @@ def generate_session_token(hostname, login, password, http_proxy, auth_token=Non
     :raises AuthenticationError: Raised when the user information is invalid.
     :raises MissingTwoFactorAuthenticationFault: Raised when missing a two factor authentication
         code or backup code.
+    :raises Exception: Raised when a network error occurs.
     """
     try:
         # Create the instance that does not connect right away for speed...
@@ -413,6 +413,11 @@ def generate_session_token(hostname, login, password, http_proxy, auth_token=Non
         raise AuthenticationError("Authentication failed.")
     except (ProtocolError, httplib2.ServerNotFoundError):
         raise AuthenticationError("Server %s was not found." % hostname)
+    # In the following handlers, we are not rethrowing an AuthenticationError for
+    # a very specific reason. While wrong credentials or host is a user
+    # recoverable error, problems with proxy settings or network errors are much
+    # more severe errors which can't be fixed by reprompting. Therefore, they have
+    # nothing to do with authentication and shouldn't be reported as such.
     except socket.error, e:
         logger.exception("Unexpected connection error.")
         # e.message is always an empty string, so look at the exception's arguments.
