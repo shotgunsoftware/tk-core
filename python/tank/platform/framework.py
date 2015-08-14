@@ -194,10 +194,12 @@ def load_framework(engine_obj, env, fw_instance_name):
     :param env:                 The environment containing the framework instance to load
     :param fw_instance_name:    The instance name of the framework (e.g. tk-framework-foo_v0.x.x)
     :returns:                   An initialized framework object.
+    :raises:                    TankError if the framework can't be found, has an invalid
+                                configuration or fails to initialize.
     """
     # see if we have a shared instance of the framework:
     fw = engine_obj._get_shared_framework(fw_instance_name)
-    if fw is not None:
+    if fw:
         # win!
         return fw
 
