@@ -546,38 +546,42 @@ class _SettingsValidator:
             # assume that each app contains its correct hooks
             return
         
-        elif hook_name.startswith("{self}"):
-            # assume that each app contains its correct hooks
-            return
-        
-        elif hook_name.startswith("{config}"):
-            # config hook 
-            path = hook_name.replace("{config}", hooks_folder)
-            hook_path = path.replace("/", os.path.sep)
-        
-        elif hook_name.startswith("{$") and "}" in hook_name:
-            # environment variable: {$HOOK_PATH}/path/to/foo.py
-            # lazy (runtime) validation for this - it may be beneficial
-            # not to actually set the environment variable until later
-            # in the life cycle of the engine 
-            return
-        
-        elif hook_name.startswith("{") and "}" in hook_name:
-            # referencing other instances of items
-            # this cannot be easily validated at this point since
-            # no well defined runtime state exists at the time of validation
-            return
+        hook_files = hook_name.split(":")
+        for hook_name in hook_files:
+            if hook_name.startswith("{self}"):
+                # assume that each app contains its correct hooks
+                # TODO: don't assume... check anyway. How do we get this to resolve to a path?
+                continue
 
-        else:
-            # our standard case
-            hook_path = os.path.join(hooks_folder, "%s.py" % hook_name)
+            elif hook_name.startswith("{config}"):
+                # config hook 
+                path = hook_name.replace("{config}", hooks_folder)
+                hook_path = path.replace("/", os.path.sep)
+        
+            elif hook_name.startswith("{$") and "}" in hook_name:
+                # environment variable: {$HOOK_PATH}/path/to/foo.py
+                # lazy (runtime) validation for this - it may be beneficial
+                # not to actually set the environment variable until later
+                # in the life cycle of the engine 
+                continue
+            
+            elif hook_name.startswith("{") and "}" in hook_name:
+                # referencing other instances of items
+                # this cannot be easily validated at this point since
+                # no well defined runtime state exists at the time of validation
+                continue
 
-        if not os.path.exists(hook_path):
-            msg = ("Invalid configuration setting '%s' for %s: "
-                   "The specified hook file '%s' does not exist." % (settings_key, 
-                                                                     self._display_name,
-                                                                     hook_path) ) 
-            raise TankError(msg)
+            else:
+                # our standard case
+                hook_path = os.path.join(hooks_folder, "%s.py" % hook_name)
+
+            if not os.path.exists(hook_path):
+                msg = ("Invalid configuration setting '%s' for %s: "
+                       "The hook file '%s' located at '%s' does not exist." % (settings_key, 
+                                                                               self._display_name,
+                                                                               hook_name,
+                                                                               hook_path) ) 
+                raise TankError(msg)
             
 
     def __validate_settings_config_path(self, settings_key, schema, config_value):
