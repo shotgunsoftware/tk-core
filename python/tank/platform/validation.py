@@ -550,7 +550,7 @@ class _SettingsValidator:
         for hook_name in hook_files:
             if hook_name.startswith("{self}"):
                 # assume that each app contains its correct hooks
-                # TODO: don't assume... check anyway. How do we get this to resolve to a path?
+                # TODO: don't assume... check anyway. 
                 continue
 
             elif hook_name.startswith("{config}"):
