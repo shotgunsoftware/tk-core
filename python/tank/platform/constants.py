@@ -87,6 +87,13 @@ CACHE_LOCATION_HOOK_NAME = "cache_location"
 # hook to get current login
 CURRENT_LOGIN_HOOK_NAME = "get_current_login"
 
+# the name of the file that holds the inverse root defs
+# note - this is no longer used by the core itself, but it is still
+# being used by the perforce integration to handle
+# back tracking. The perforce code requests this constant directly
+# from its code.
+CONFIG_BACK_MAPPING_FILE = "tank_configs.yml"
+
 # default value for hooks
 TANK_BUNDLE_DEFAULT_HOOK_SETTING = "default"
 
