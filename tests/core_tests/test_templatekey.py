@@ -992,17 +992,37 @@ class TestTimestampKey(TankTestBase):
             key.str_from_value(1)
 
     @patch("tank.templatekey.TimestampKey._TimestampKey__get_current_time")
-    def test_defaut_value(self, _get_time_mock):
+    def test_now_default_value(self,_get_time_mock):
         """
-        Makes sure that a default value is proprely generated when the default
+        Makes sure that a default value is proprely generated when the now default
         value is requested.
         """
         # Mock it to the expected date.
         _get_time_mock.return_value = self._datetime
-        # Create a template using our key.
+        # Create the key
         key = TimestampKey("datetime", default="now")
-
-        # apply fields with no value for datetime, which will generate a default
-        # value by calling __get_current_time
+        # Convert to a string and compare the result.
         self.assertEqual(key.str_from_value(None), self._datetime_string)
-        self.assertTrue(_get_time_mock.called)
+
+    @patch("tank.templatekey.TimestampKey._TimestampKey__get_current_utc_time")
+    def test_utc_now_default_value(self, _get_utc_time_mock):
+        """
+        Makes sure that a default value is proprely generated when the utc_now default
+        value is requested.
+        """
+        # Mock it to the expected date.
+        _get_utc_time_mock.return_value = self._datetime
+        # Create the key
+        key = TimestampKey("datetime", default="utc_now")
+        # Convert to a string and compare the result.
+        self.assertEqual(key.str_from_value(None), self._datetime_string)
+
+    def test_string_default_value(self):
+        """
+        Makes sure that a default value is proprely generated when a string default
+        value is provided.
+        """
+        # Create a template using our key.
+        key = TimestampKey("datetime", default=self._datetime_string)
+        # Convert to a string and compare the result.
+        self.assertEqual(key.str_from_value(None), self._datetime_string)

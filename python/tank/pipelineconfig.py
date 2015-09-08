@@ -358,7 +358,6 @@ class PipelineConfiguration(object):
         
         :returns: dictionary of storages, for example {"primary": "/studio", "textures": "/textures"}
         """
-        
         platform_lookup = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
 
         # now pick current os and append project root
@@ -373,6 +372,52 @@ class PipelineConfiguration(object):
             proj_roots[r] = root
             
         return proj_roots
+    
+    def get_all_platform_data_roots(self):
+        """
+        Similar to get_data_roots but instead of returning the data roots for a single 
+        operating system, the data roots for all operating systems are returned.
+        
+        The return structure is a nested dictionary structure, for example:
+
+        {
+         "primary": {"win32":  "z:\studio\my_project", 
+                     "linux2": "/studio/my_project",
+                     "darwin": "/studio/my_project"},
+                     
+         "textures": {"win32":  "z:\studio\my_project", 
+                      "linux2": None,
+                      "darwin": "/studio/my_project"},
+        }
+         
+        The operating system keys are returned on sys.platform-style notation.
+        If a data root has not been defined on a particular platform, None is 
+        returned (see example above).
+         
+        :returns: dictionary of dictionaries. See above.
+        """
+        
+        # note: currently supported platforms are linux2, win32 and darwin, however additional
+        # platforms may be added in the future.
+        
+        platform_lookup = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
+
+        proj_roots = {}
+        for storage_name in self._roots:
+            # create dict entry for each storage
+            proj_roots[storage_name] = {}
+
+            for (platform, shotgun_platform) in platform_lookup.iteritems():
+                # for each operating system, append the project root path
+                storage_path = self._roots[storage_name][shotgun_platform]
+                if storage_path:
+                    # append project name
+                    storage_path = self.__append_project_name_to_root(storage_path, platform)
+                # key by operating system
+                proj_roots[storage_name][platform] = storage_path
+                
+        return proj_roots
+
     
     def get_data_roots(self):
         """

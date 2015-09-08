@@ -143,6 +143,32 @@ class TankBundle(object):
         return self.__descriptor.get_icon_256()
 
     @property
+    def style_constants(self):
+        """
+        Returns a dictionary of style constants. These can be used to build
+        UIs using standard colors and other style components. All keys returned
+        in this dictionary can also be used inside a style.qss that lives 
+        at the root level of the app, engine or framework. Use a 
+        {{DOUBLE_BACKET}} syntax in the stylesheet file, for example:
+        
+            QWidget
+            { 
+                color: {{SG_FOREGROUND_COLOR}};
+            }
+        
+        This property returns the values for all constants, for example:
+        
+            { 
+              "SG_HIGHLIGHT_COLOR": "#18A7E3",
+              "SG_ALERT_COLOR": "#FC6246",
+              "SG_FOREGROUND_COLOR": "#C8C8C8"
+            }
+        
+        :returns: Dictionary. See above for example 
+        """
+        return constants.SG_STYLESHEET_CONSTANTS    
+
+    @property
     def documentation_url(self):
         """
         Return the relevant documentation url for this item.

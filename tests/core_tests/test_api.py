@@ -1,11 +1,11 @@
 # Copyright (c) 2013 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
@@ -26,11 +26,11 @@ from tank.templatekey import StringKey, IntegerKey, SequenceKey
 from tank_test.tank_test_base import *
 
 class TestInit(TankTestBase):
-        
+
     def setUp(self):
         super(TestInit, self).setUp()
         self.setup_fixtures()
-        
+
     def test_project_from_param(self):
         tank = Tank(self.project_root)
         self.assertEquals(self.project_root, tank.project_path)
@@ -135,7 +135,7 @@ class TestPathsFromTemplate(TankTestBase):
 
     def test_skip_sequence(self):
         """
-        Test skipping the template key 'Sequence', which is part of the path 
+        Test skipping the template key 'Sequence', which is part of the path
         definition, returns files from other sequences.
         """
         skip_keys = "Sequence"
@@ -173,7 +173,7 @@ class TestPathsFromTemplate(TankTestBase):
                 "Step": StringKey("Step"),
                 "name": StringKey("name"),
                 "version": IntegerKey("version", format_spec="03")}
-        
+
         definition = "sequences/{Sequence}/{Shot}/{Step}/work/{name}.v{version}.nk"
         template = TemplatePath(definition, keys, self.project_root, "my_template")
         self.tk._templates = {template.name: template}
@@ -196,7 +196,7 @@ class TestAbstractPathsFromTemplate(TankTestBase):
 
         keys = {"Sequence": StringKey("Sequence"),
                 "Shot": StringKey("Shot"),
-                "eye": StringKey("eye", 
+                "eye": StringKey("eye",
                        default="%V",
                        choices=["left","right","%V"],
                        abstract=True),
@@ -206,7 +206,7 @@ class TestAbstractPathsFromTemplate(TankTestBase):
         definition = "sequences/{Sequence}/{Shot}/{eye}/{name}.{SEQ}.exr"
 
         self.template = TemplatePath(definition, keys, self.project_root)
-        
+
         # create fixtures
         seq_path = os.path.join(self.project_root, "sequences", "SEQ_001")
         self.shot_a_path = os.path.join(seq_path, "AAA")
@@ -222,7 +222,7 @@ class TestAbstractPathsFromTemplate(TankTestBase):
         self.create_file(os.path.join(eye_left_a, "anothername.0002.exr"))
         self.create_file(os.path.join(eye_left_a, "anothername.0003.exr"))
         self.create_file(os.path.join(eye_left_a, "anothername.0004.exr"))
-        
+
         eye_left_b = os.path.join(self.shot_b_path, "left")
 
         self.create_file(os.path.join(eye_left_b, "filename.0001.exr"))
@@ -244,7 +244,7 @@ class TestAbstractPathsFromTemplate(TankTestBase):
         self.create_file(os.path.join(eye_right_a, "anothername.0002.exr"))
         self.create_file(os.path.join(eye_right_a, "anothername.0003.exr"))
         self.create_file(os.path.join(eye_right_a, "anothername.0004.exr"))
-        
+
         eye_right_b = os.path.join(self.shot_b_path, "right")
 
         self.create_file(os.path.join(eye_right_b, "filename.0001.exr"))
@@ -336,7 +336,7 @@ class TestPathsFromTemplateGlob(TankTestBase):
         fields["Shot"] = "shot_name"
         fields["version"] = 4
         fields["seq_num"] = 45
-        expected_glob = os.path.join("%(Shot)s", "%(version)03d", "filename.%(seq_num)05d") % fields 
+        expected_glob = os.path.join("%(Shot)s", "%(version)03d", "filename.%(seq_num)05d") % fields
         self.assert_glob(fields, expected_glob, skip_keys)
 
     def test_skip_dirs(self):
@@ -370,11 +370,11 @@ class TestPathsFromTemplateGlob(TankTestBase):
         fields["Shot"] = "shot_name"
         fields["seq_num"] = 45
         sep = os.path.sep
-        glob_str = "%(Shot)s" + sep + "*" + sep + "filename.%(seq_num)05i" 
+        glob_str = "%(Shot)s" + sep + "*" + sep + "filename.%(seq_num)05i"
         expected_glob =  glob_str % fields
         self.assert_glob(fields, expected_glob, skip_keys)
 
-    
+
 class TestApiProperties(TankTestBase):
     def setUp(self):
         super(TestApiProperties, self).setUp()
@@ -430,7 +430,7 @@ class TestApiProperties(TankTestBase):
 
 
 class TestTankFromPath(TankTestBase):
-    
+
     def setUp(self):
         super(TestTankFromPath, self).setUp()
         self.setup_multi_root_fixtures()
@@ -469,18 +469,45 @@ class TestTankFromPath(TankTestBase):
         self.assertRaises(TankError, tank.tank_from_path, self.tank_temp)
 
 
+class TestTankFromEntityWithMixedSlashes(TankTestBase):
+    """
+    Tests the case where a windows local storage uses forward slashes.
+    """
+
+    def test_with_mixed_slashes(self):
+        """
+        Check that a sgtk init works for this path
+        """
+        # only run this test on windows
+        if sys.platform == "win32":
+
+            self.sg_pc_entity["windows_path"] = self.pipeline_config_root.replace("\\", "/")
+            self.add_to_sg_mock_db(self.sg_pc_entity)
+            self.add_to_sg_mock_db(self.project)
+            self.add_to_sg_mock_db({
+                "type": "Shot",
+                "id": 1,
+                "project": self.project
+            })
+
+            os.environ["TANK_CURRENT_PC"] = self.pipeline_config_root
+            try:
+                sgtk.sgtk_from_entity("Shot", 1)
+            finally:
+                del os.environ["TANK_CURRENT_PC"]
+
+
 class TestTankFromPathWindowsNoSlash(TankTestBase):
     """
     Tests the edge case where a windows local storage is set to be 'C:'
     """
-    
+
     PROJECT_NAME = "temp"
     STORAGE_ROOT = "C:"
-    
+
     def setUp(self):
-        
+
         # set up a project named temp, so that it will end up in c:\temp
-        
         super(TestTankFromPathWindowsNoSlash, self).setUp(parameters = {"project_tank_name": self.PROJECT_NAME})
         
         # set up std fixtures
@@ -495,19 +522,19 @@ class TestTankFromPathWindowsNoSlash(TankTestBase):
         roots = {"primary": {}}
         for os_name in ["windows_path", "linux_path", "mac_path"]:
             #TODO make os specific roots
-            roots["primary"][os_name] = self.sg_pc_entity[os_name]        
-        roots_path = os.path.join(self.pipeline_config_root, 
-                                  "config", 
-                                  "core", 
+            roots["primary"][os_name] = self.sg_pc_entity[os_name]
+        roots_path = os.path.join(self.pipeline_config_root,
+                                  "config",
+                                  "core",
                                   "roots.yml")
-        roots_file = open(roots_path, "w") 
+        roots_file = open(roots_path, "w")
         roots_file.write(yaml.dump(roots))
-        roots_file.close()        
-                
+        roots_file.close()
+
         # need a new PC object that is using the new roots def file we just created
         self.pipeline_configuration = sgtk.pipelineconfig_factory.from_path(self.pipeline_config_root)
         # push this new PC into the tk api
-        self.tk._Tank__pipeline_config = self.pipeline_configuration         
+        self.tk._Tank__pipeline_config = self.pipeline_configuration
         # force reload templates
         self.tk.reload_templates()
 
@@ -518,21 +545,21 @@ class TestTankFromPathWindowsNoSlash(TankTestBase):
         """
         # only run this test on windows
         if sys.platform == "win32":
-            
+
             # probe a path inside of project
             test_path = "%s\\%s\\toolkit_test_path" % (self.STORAGE_ROOT, self.PROJECT_NAME)
             if not os.path.exists(test_path):
                 os.makedirs(test_path)
             self.assertIsInstance(sgtk.sgtk_from_path(test_path), Tank)
-        
-    
+
+
 
 
 
 class TestTankFromPathOverlapStorage(TankTestBase):
     """
     Tests edge case with overlapping storages
-    
+
     For example, imagine the following setup:
     Storages: f:\ and f:\foo
     Project names: foo and bar
@@ -541,37 +568,35 @@ class TestTankFromPathOverlapStorage(TankTestBase):
     (2) f:\bar      (storage f:\, project bar)
     (3) f:\foo\foo  (storage f:\foo, project foo)
     (4) f:\foo\bar  (storage f:\foo, project bar)
-    
-    The path f:\foo\bar\hello_world.ma could either belong to 
+
+    The path f:\foo\bar\hello_world.ma could either belong to
     project bar (matching 4) or project foo (matching 1).
 
     In this case, sgtk_from_path() should succeed in case you are using a local
     tank command or API and fail if you are using a studio level command.
 
     """
-    
+
     def setUp(self):
-        
+
         # set up two storages and two projects
-        
         super(TestTankFromPathOverlapStorage, self).setUp(parameters = {"project_tank_name": "foo"})
-        
 
         # add second project
         self.project_2 = {"type": "Project",
                           "id": 2345,
                           "tank_name": "bar",
                           "name": "project_name"}
-        
+
         # define entity for pipeline configuration
         self.project_2_pc = {"type": "PipelineConfiguration",
-                             "code": "Primary", 
-                             "id": 123456, 
-                             "project": self.project_2, 
+                             "code": "Primary",
+                             "id": 123456,
+                             "project": self.project_2,
                              "windows_path": "F:\\temp\\bar_pc",
                              "mac_path": "/tmp/bar_pc",
                              "linux_path": "/tmp/bar_pc"}
-        
+
         self.add_to_sg_mock_db(self.project_2)
         self.add_to_sg_mock_db(self.project_2_pc)
 
@@ -582,7 +607,7 @@ class TestTankFromPathOverlapStorage(TankTestBase):
         self.alt_storage_1["windows_path"] = "C:\\temp"
         self.alt_storage_1["mac_path"] = "/tmp"
         self.alt_storage_1["linux_path"] = "/tmp"
-        
+
         self.alt_storage_2["windows_path"] = "C:\\temp\\foo"
         self.alt_storage_2["mac_path"] = "/tmp/foo"
         self.alt_storage_2["linux_path"] = "/tmp/foo"
@@ -595,16 +620,16 @@ class TestTankFromPathOverlapStorage(TankTestBase):
         for os_name in ["windows_path", "linux_path", "mac_path"]:
             roots["primary"][os_name] = os.path.dirname(self.project_root)
             roots["alternate_1"][os_name] = self.alt_storage_1[os_name]
-            roots["alternate_2"][os_name] = self.alt_storage_2[os_name]              
-        roots_path = os.path.join(self.pipeline_config_root, "config", "core", "roots.yml")     
-        roots_file = open(roots_path, "w") 
+            roots["alternate_2"][os_name] = self.alt_storage_2[os_name]
+        roots_path = os.path.join(self.pipeline_config_root, "config", "core", "roots.yml")
+        roots_file = open(roots_path, "w")
         roots_file.write(yaml.dump(roots))
         roots_file.close()
-                
+
         # need a new PC object that is using the new roots def file we just created
         self.pipeline_configuration = sgtk.pipelineconfig_factory.from_path(self.pipeline_config_root)
         # push this new PC into the tk api
-        self.tk._Tank__pipeline_config = self.pipeline_configuration         
+        self.tk._Tank__pipeline_config = self.pipeline_configuration
         # force reload templates
         self.tk.reload_templates()
 
@@ -612,68 +637,68 @@ class TestTankFromPathOverlapStorage(TankTestBase):
     def test_project_path_lookup_studio_mode(self):
         """
         When running this edge case from a studio install, we expect an error:
-        
-        TankError: The path '/tmp/foo/bar' is potentially associated with more than one primary 
-        pipeline configuration. This can happen if there is ambiguity in your project setup, 
-        where projects store their data in an overlapping fashion. In this case, try creating 
-        your API instance (or tank command) directly from the pipeline configuration rather 
-        than via the studio level API. This will explicitly call out which project you are 
-        intending to use in conjunction with he path. The pipeline configuration paths 
-        associated with this path are: 
-        ['/var/folders/fq/65bs7wwx3mz7jdsh4vxm34xc0000gn/T/tankTemporaryTestData_1422967258.765262/pipeline_configuration', 
+
+        TankError: The path '/tmp/foo/bar' is potentially associated with more than one primary
+        pipeline configuration. This can happen if there is ambiguity in your project setup,
+        where projects store their data in an overlapping fashion. In this case, try creating
+        your API instance (or tank command) directly from the pipeline configuration rather
+        than via the studio level API. This will explicitly call out which project you are
+        intending to use in conjunction with he path. The pipeline configuration paths
+        associated with this path are:
+        ['/var/folders/fq/65bs7wwx3mz7jdsh4vxm34xc0000gn/T/tankTemporaryTestData_1422967258.765262/pipeline_configuration',
         '/tmp/bar_pc']
-        
+
         """
-        
+
         probe_path = {}
         probe_path["win32"] = "C:\\temp\\foo\\bar\\test.ma"
         probe_path["darwin"] = "/tmp/foo/bar/test.ma"
         probe_path["linux2"] = "/tmp/foo/bar/test.ma"
-        
+
         test_path = probe_path[sys.platform]
         test_path_dir = os.path.dirname(test_path)
-        
+
         if not os.path.exists(test_path_dir):
             os.makedirs(test_path_dir)
-        
-        self.assertRaisesRegexp(TankError, 
+
+        self.assertRaisesRegexp(TankError,
                                 "The path '.*' is associated with more than one primary pipeline configuration.",
                                 sgtk.sgtk_from_path,
-                                test_path)        
-        
+                                test_path)
 
-        
+
+
     def test_project_path_lookup_local_mode(self):
         """
         Check that a sgtk init works for this path
         """
-        
+
         # By setting the TANK_CURRENT_PC, we emulate the behaviour
         # of a local API running. Push this variable
-        old_tank_current_pc = None 
+        old_tank_current_pc = None
         if "TANK_CURRENT_PC" in os.environ:
-            old_tank_current_pc = os.environ["TANK_CURRENT_PC"] 
+            old_tank_current_pc = os.environ["TANK_CURRENT_PC"]
         os.environ["TANK_CURRENT_PC"] = self.pipeline_config_root
-        
+
         probe_path = {}
         probe_path["win32"] = "C:\\temp\\foo\\bar\\test.ma"
         probe_path["darwin"] = "/tmp/foo/bar/test.ma"
         probe_path["linux2"] = "/tmp/foo/bar/test.ma"
-        
+
         test_path = probe_path[sys.platform]
         test_path_dir = os.path.dirname(test_path)
-        
+
         if not os.path.exists(test_path_dir):
             os.makedirs(test_path_dir)
-        
+
         self.assertIsInstance(sgtk.sgtk_from_path(test_path), Tank)
-        
-        # and pop the modification   
-        if old_tank_current_pc is None:    
+
+        # and pop the modification
+        if old_tank_current_pc is None:
             del os.environ["TANK_CURRENT_PC"]
         else:
             os.environ["TANK_CURRENT_PC"] = old_tank_current_pc
-            
-    
+
+
 
 

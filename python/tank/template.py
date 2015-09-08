@@ -15,30 +15,25 @@ Management of file and directory templates.
 
 import os
 import re
+import sys
 
 from . import templatekey
 from .errors import TankError
 from .platform import constants
 from .template_path_parser import TemplatePathParser
 
-
 class Template(object):
     """
     Object which manages the translation between paths and file templates
     """
-    
-    
-    
+       
     @classmethod
     def _keys_from_definition(cls, definition, template_name, keys):
         """Extracts Template Keys from a definition.
 
-        :param definition: Template definition.
-        :type  definition: String.
+        :param definition: Template definition as string
         :param template_name: Name of template.
-        :type  template_name: String.
-        :param keys: Mapping of key names to keys.
-        :type keys: Dictionary.
+        :param keys: Mapping of key names to keys as dict
 
         :returns: Mapping of key names to keys and collection of keys ordered as they appear in the definition.
         :rtype: List of Dictionaries, List of lists
@@ -181,7 +176,7 @@ class Template(object):
 
         return [x for x in required_keys if (x not in fields) or  (fields[x] is None)]
 
-    def apply_fields(self, fields):
+    def apply_fields(self, fields, platform=None):
         """
         Creates path using fields. Certain fields may be processed in special ways, for
         example Sequence fields, which can take a "FORMAT" string which will intelligently
@@ -190,27 +185,32 @@ class Template(object):
 
         :param fields: Mapping of keys to fields. Keys must match those in template 
                        definition.
-        :type fields: Dictionary
+        :param platform: Optional operating system platform. If you leave it at the 
+                         default value of None, paths will be created to match the 
+                         current operating system. If you pass in a sys.platform-style string
+                         (e.g. 'win32', 'linux2' or 'darwin'), paths will be generated to 
+                         match that platform.
 
-        :returns: Path reflecting field values inserted into template definition.
-        :rtype: String
+        :returns: Full path, matching the template with the given fields inserted.
         """
-        return self._apply_fields(fields)
+        return self._apply_fields(fields, platform=platform)
 
-    def _apply_fields(self, fields, ignore_types=None):
+    def _apply_fields(self, fields, ignore_types=None, platform=None):
         """
         Creates path using fields.
 
         :param fields: Mapping of keys to fields. Keys must match those in template 
                        definition.
-        :type fields: Dictionary
-        :param ignore_type: Keys for whom the defined type is ignored. This 
-                            allows setting a Key whose type is int with a string value.
-        :type  ignore_type: List of strings.
+        :param ignore_types: Keys for whom the defined type is ignored as list of strings.
+                            This allows setting a Key whose type is int with a string value.
+        :param platform: Optional operating system platform. If you leave it at the 
+                         default value of None, paths will be created to match the 
+                         current operating system. If you pass in a sys.platform-style string
+                         (e.g. 'win32', 'linux2' or 'darwin'), paths will be generated to 
+                         match that platform.
 
-        :returns: Path reflecting field values inserted into template definition.
-        :rtype: String
-        """
+        :returns: Full path, matching the template with the given fields inserted.
+        """        
         ignore_types = ignore_types or []
 
         # find largest key mapping without missing values
@@ -396,26 +396,24 @@ class TemplatePath(Template):
     """
     Class for templates for paths.
     """
-    def __init__(self, definition, keys, root_path, name=None):
+    def __init__(self, definition, keys, root_path, name=None, per_platform_roots=None):
         """
-        :param definition: Template definition.
-        :type definition: String.
-        :param keys: Mapping of key names to keys
-        :type keys: Dictionary 
+        :param definition: Template definition string.
+        :param keys: Mapping of key names to keys (dict)
         :param root_path: Path to project root for this template.
-        :type root_path: String.
-        :param name: (Optional) name for this template.
-        :type name: String.
-
+        :param name: Optional name for this template.
+        :param per_platform_roots: Root paths for all supported operating systems. 
+                                   This is a dictionary with sys.platform-style keys
         """
         super(TemplatePath, self).__init__(definition, keys, name=name)
         self._prefix = root_path
+        self._per_platform_roots = per_platform_roots
 
-        # Make definition use platform seperator
+        # Make definition use platform separator
         for index, rel_definition in enumerate(self._definitions):
             self._definitions[index] = os.path.join(*split_path(rel_definition))
 
-        # get defintion ready for string substitution
+        # get definition ready for string substitution
         self._cleaned_definitions = []
         for definition in self._definitions:
             self._cleaned_definitions.append(self._clean_definition(definition))
@@ -439,12 +437,66 @@ class TemplatePath(Template):
         """
         parent_definition = os.path.dirname(self.definition)
         if parent_definition:
-            return TemplatePath(parent_definition, self.keys, self.root_path, None)
+            return TemplatePath(parent_definition, self.keys, self.root_path, None, self._per_platform_roots)
         return None
 
-    def _apply_fields(self, fields, ignore_types=None):
-        relative_path = super(TemplatePath, self)._apply_fields(fields, ignore_types)
-        return os.path.join(self.root_path, relative_path) if relative_path else self.root_path
+    def _apply_fields(self, fields, ignore_types=None, platform=None):
+        """
+        Creates path using fields.
+
+        :param fields: Mapping of keys to fields. Keys must match those in template 
+                       definition.
+        :param ignore_types: Keys for whom the defined type is ignored as list of strings.
+                            This allows setting a Key whose type is int with a string value.
+        :param platform: Optional operating system platform. If you leave it at the 
+                         default value of None, paths will be created to match the 
+                         current operating system. If you pass in a sys.platform-style string
+                         (e.g. 'win32', 'linux2' or 'darwin'), paths will be generated to 
+                         match that platform.
+
+        :returns: Full path, matching the template with the given fields inserted.
+        """        
+        relative_path = super(TemplatePath, self)._apply_fields(fields, ignore_types, platform)
+        
+        if platform is None:
+            # return the current OS platform's path
+            return os.path.join(self.root_path, relative_path) if relative_path else self.root_path
+    
+        else:
+            # caller has requested a path for another OS
+            if self._per_platform_roots is None:
+                # it's possible that the additional os paths are not set for a template
+                # object (mainly because of backwards compatibility reasons) and in this case
+                # we cannot compute the path.
+                raise TankError("Template %s cannot resolve path for operating system '%s' - "
+                                "it was instantiated in a mode which only supports the resolving "
+                                "of current operating system paths." % (self, platform))
+            
+            platform_root_path = self._per_platform_roots.get(platform)
+            
+            if platform_root_path is None:
+                # either the platform is undefined or unknown
+                raise TankError("Cannot resolve path for operating system '%s'! Please ensure "
+                                "that you have a valid storage set up for this platform." % platform)
+            
+            elif platform == "win32":
+                # use backslashes for windows
+                if relative_path:
+                    return "%s\\%s" % (platform_root_path, relative_path.replace(os.sep, "\\"))
+                else:
+                    # not path generated - just return the root path
+                    return platform_root_path
+            
+            elif platform == "darwin" or "linux" in platform:
+                # unix-like plaforms - use slashes
+                if relative_path:
+                    return "%s/%s" % (platform_root_path, relative_path.replace(os.sep, "/"))
+                else:
+                    # not path generated - just return the root path 
+                    return platform_root_path
+            
+            else:
+                raise TankError("Cannot evaluate path. Unsupported platform '%s'." % platform)
 
 
 class TemplateString(Template):
@@ -485,7 +537,6 @@ class TemplateString(Template):
         adj_path = os.path.join(self._prefix, input_path)
         return super(TemplateString, self).get_fields(adj_path, skip_keys=skip_keys)
 
-
 def split_path(input_path):
     """
     Split a path into tokens.
@@ -507,8 +558,8 @@ def read_templates(pipeline_configuration):
     :param pipeline_configuration: pipeline config object
 
     :returns: Dictionary of form {template name: template object}
-    """
-    
+    """    
+    per_platform_roots = pipeline_configuration.get_all_platform_data_roots()
     data = pipeline_configuration.get_templates_config()            
     
     # get dictionaries from the templates config file:
@@ -521,7 +572,7 @@ def read_templates(pipeline_configuration):
         return d            
             
     keys = templatekey.make_keys(get_data_section("keys"))
-    template_paths = make_template_paths(get_data_section("paths"), keys, pipeline_configuration.get_data_roots() )
+    template_paths = make_template_paths(get_data_section("paths"), keys, per_platform_roots)
     template_strings = make_template_strings(get_data_section("strings"), keys, template_paths)
 
     # Detect duplicate names across paths and strings
@@ -535,16 +586,15 @@ def read_templates(pipeline_configuration):
     return templates
 
 
-def make_template_paths(data, keys, roots):
+def make_template_paths(data, keys, all_per_platform_roots):
     """
     Factory function which creates TemplatePaths.
 
     :param data: Data from which to construct the template paths.
-    :type data:  Dictionary of form: {<template name>: {<option>: <option value>}}
-    :param keys: Available keys.
-    :type keys:  Dictionary of form: {<key name> : <TemplateKey object>}
-    :param roots: Root paths.
-    :type roots: Dictionary of form: {<root name> : <root path>}
+                 Dictionary of form: {<template name>: {<option>: <option value>}}
+    :param keys: Available keys. Dictionary of form: {<key name> : <TemplateKey object>}
+    :param all_per_platform_roots: Root paths for all platforms. nested dictionary first keyed by 
+                                   storage root name and then by sys.platform-style os name.
 
     :returns: Dictionary of form {<template name> : <TemplatePath object>}
     """
@@ -562,8 +612,12 @@ def make_template_paths(data, keys, roots):
                             "template should be in the strings section "
                             "instead?" % (template_name, definition))
 
-        root_path = roots[root_name]
-        template_path = TemplatePath(definition, keys, root_path, template_name)
+        root_path = all_per_platform_roots[root_name].get(sys.platform)
+        if root_path is None:
+            raise TankError("Undefined Shotgun storage! The local file storage '%s' is not defined for this "
+                            "operating system." % root_name)
+
+        template_path = TemplatePath(definition, keys, root_path, template_name, all_per_platform_roots[root_name])
         template_paths[template_name] = template_path
 
     return template_paths

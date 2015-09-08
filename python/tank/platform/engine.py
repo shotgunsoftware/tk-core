@@ -14,6 +14,7 @@ Defines the base class for all Tank Engines.
 """
 
 import os
+import re
 import sys
 import traceback
 import weakref
@@ -53,6 +54,7 @@ class Engine(TankBundle):
         self.__applications = {}
         self.__shared_frameworks = {}
         self.__commands = {}
+        self.__panels = {}
         self.__currently_initializing_app = None
         
         self.__qt_widget_trash = []
@@ -368,6 +370,16 @@ class Engine(TankBundle):
         return self.__commands
     
     @property
+    def panels(self):
+        """
+        Returns all the panels which have been registered with the engine.
+        
+        :returns: A dictionary keyed by panel unqiue ids. Each value is a dictionary
+                  with keys 'callback' and 'properties'
+        """
+        return self.__panels
+    
+    @property
     def has_ui(self):
         """
         Indicates that the host application that the engine is connected to has a UI enabled.
@@ -488,6 +500,61 @@ class Engine(TankBundle):
                 properties["prefix"] = prefix
             
         self.__commands[name] = { "callback": callback, "properties": properties }
+        
+    def register_panel(self, callback, panel_name="main", properties=None):
+        """
+        Similar to register_command, but instead of registering a menu item in the form of a
+        command, this method registers a UI panel.
+        
+        Panels need to be registered if they should persist between DCC sessions (e.g. 
+        for example 'saved layouts').
+        
+        Just like with the register_command() method, panel registration should be executed 
+        from within the init phase of the app. Once a panel has been registered, it is possible
+        for the engine to correctly restore panel UIs at startup and profile switches. 
+        
+        Not all engines support this feature, but in for example Nuke, a panel can be added to 
+        a saved layout. Apps wanting to be able to take advantage of the persistence given by
+        these saved layouts will need to call register_panel as part of their init_app phase.
+        
+        In order to show or focus on a panel, use the show_panel() method instead.
+        
+        :param callback: Callback to a factory method that creates the panel and returns a panel widget.
+        :param panel_name: A string to distinguish this panel from other panels created by 
+                           the app. This will be used as part of the unique id for the panel.
+        :param properties: Properties dictionary. Reserved for future use.
+        :returns: A unique identifier that can be used to consistently identify the 
+                  panel across sessions. This identifier should be used to identify the panel
+                  in all subsequent calls, e.g. for example show_panel().
+        """
+        properties = properties or {}
+        
+        if self.__currently_initializing_app is None:
+            # register_panel is called from outside of init_app
+            raise TankError("register_panel must be called from inside of the init_app() method!")
+        
+        current_app = self.__currently_initializing_app
+        
+        # similar to register_command, track which app this request came from
+        properties["app"] = current_app 
+        
+        # now compose a unique id for this panel
+        # this is done based on the app instance name plus the given
+        # panel name. By using the instance name rather than the app name,
+        # we support the use case where more than one instance of an app exists 
+        # within a config.
+        panel_id = "%s_%s" % (current_app.instance_name, panel_name)
+        # to ensure the string is safe to use in most engines, 
+        # sanitize to simple alpha-numeric form
+        panel_id = re.sub("\W", "_", panel_id)
+        panel_id = panel_id.lower()
+         
+        # add it to the list of registered panels
+        self.__panels[panel_id] = {"callback": callback, "properties": properties}
+        
+        self.log_debug("Registered panel %s" % panel_id)
+        
+        return panel_id
         
     def execute_in_main_thread(self, func, *args, **kwargs):
         """
@@ -719,6 +786,9 @@ class Engine(TankBundle):
         # create the widget:
         widget = self._create_widget(widget_class, *args, **kwargs)
         
+        # apply style sheet
+        self._apply_external_styleshet(bundle, widget)        
+        
         # create the dialog:
         dialog = self._create_dialog(title, bundle, widget, parent)
         return (dialog, widget)
@@ -849,6 +919,79 @@ class Engine(TankBundle):
         # lastly, return the instantiated widget
         return (status, widget)
     
+
+    def show_panel(self, panel_id, title, bundle, widget_class, *args, **kwargs):
+        """
+        Shows a panel in a way suitable for this engine. Engines should attempt to
+        integrate panel support as seamlessly as possible into the host application. 
+        Some engines have extensive panel support and workflows, others have none at all.
+        
+        If the engine does not specifically implement panel support, the window will 
+        be shown as a modeless dialog instead and the call is equivalent to 
+        calling show_dialog().
+        
+        :param panel_id: Unique identifier for the panel, as obtained by register_panel().
+        :param title: The title of the panel
+        :param bundle: The app, engine or framework object that is associated with this window
+        :param widget_class: The class of the UI to be constructed. This must derive from QWidget.
+        
+        Additional parameters specified will be passed through to the widget_class constructor.
+        """
+        # engines implementing panel support should subclass this method.
+        # the core implementation falls back on a modeless window.
+        self.log_warning("Panel functionality not implemented. Falling back to showing "
+                         "panel '%s' in a modeless dialog" % panel_id)
+        return self.show_dialog(title, bundle, widget_class, *args, **kwargs)        
+
+
+    def _resolve_sg_stylesheet_tokens(self, style_sheet):
+        """
+        Given a string containing a qt style sheet,
+        perform replacements of key toolkit tokens.
+        
+        For example, "{{SG_HIGHLIGHT_COLOR}}" is converted to "#30A7E3"
+        
+        :param style_sheet: Stylesheet string to process
+        :returns: Stylesheet string with replacements applied
+        """
+        processed_style_sheet = style_sheet
+        for (token, value) in constants.SG_STYLESHEET_CONSTANTS.iteritems():
+            processed_style_sheet = processed_style_sheet.replace("{{%s}}" % token, value)
+        return processed_style_sheet
+    
+    def _apply_external_styleshet(self, bundle, widget):
+        """
+        Apply an std external stylesheet, associated with a bundle, to a widget.
+        
+        This will check if a standard style.css file exists in the
+        app/engine/framework root location on disk and if so load it from 
+        disk and apply to the given widget. The style sheet is cascading, meaning 
+        that it will affect all children of the given widget. Typically this is used
+        at window creation in order to allow newly created dialogs to apply app specific
+        styles easily.
+        
+        :param bundle: app/engine/framework instance to load style sheet from
+        :param widget: widget to apply stylesheet to 
+        """
+        qss_file = os.path.join(bundle.disk_location, constants.BUNDLE_STYLESHEET_FILE)
+
+        if os.path.exists(qss_file):
+            self.log_debug("Detected std style sheet file '%s' - applying to widget %s" % (qss_file, widget))
+            try:
+                # Read css file
+                f = open(qss_file, "rt")
+                qss_data = f.read()
+                # resolve tokens
+                qss_data = self._resolve_sg_stylesheet_tokens(qss_data)
+                # apply to widget (and all its children)
+                widget.setStyleSheet(qss_data)
+            except Exception, e:
+                # catch-all and issue a warning and continue.
+                self._app.log_warning( "Could not apply stylesheet '%s': %s" % (qss_file, e) )
+            finally:
+                f.close()
+    
+    
     def _define_qt_base(self):
         """
         This will be called at initialisation time and will allow 
@@ -933,7 +1076,10 @@ class Engine(TankBundle):
             fh.close()
             
             # set the std selection bg color to be 'shotgun blue'
-            self._dark_palette.setBrush(QtGui.QPalette.Highlight, QtGui.QBrush(QtGui.QColor("#30A7E3")))
+            highlight_color = QtGui.QBrush(QtGui.QColor(constants.SG_STYLESHEET_CONSTANTS["SG_HIGHLIGHT_COLOR"]))
+            self._dark_palette.setBrush(QtGui.QPalette.Highlight, highlight_color)
+            
+            
             self._dark_palette.setBrush(QtGui.QPalette.HighlightedText, QtGui.QBrush(QtGui.QColor("#FFFFFF")))
             
             # and associate it with the qapplication
@@ -949,7 +1095,9 @@ class Engine(TankBundle):
             f = open(css_file)
             css_data = f.read()
             f.close()
+            css_data = self._resolve_sg_stylesheet_tokens(css_data)
             app = QtCore.QCoreApplication.instance()
+            
             app.setStyleSheet(css_data)
         except Exception, e:
             self.log_error("The standard toolkit dark stylesheet could not be set up! The look and feel of your "

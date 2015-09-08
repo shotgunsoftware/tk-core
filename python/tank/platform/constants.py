@@ -87,6 +87,13 @@ CACHE_LOCATION_HOOK_NAME = "cache_location"
 # hook to get current login
 CURRENT_LOGIN_HOOK_NAME = "get_current_login"
 
+# the name of the file that holds the inverse root defs
+# note - this is no longer used by the core itself, but it is still
+# being used by the perforce integration to handle
+# back tracking. The perforce code requests this constant directly
+# from its code.
+CONFIG_BACK_MAPPING_FILE = "tank_configs.yml"
+
 # default value for hooks
 TANK_BUNDLE_DEFAULT_HOOK_SETTING = "default"
 
@@ -113,6 +120,14 @@ ENVIRONMENT_LOCATION_KEY = "location"
 
 # the file to look for that defines and bootstraps an app
 APP_FILE = "app.py"
+
+# an optional stylesheet that can be defined by bundles
+BUNDLE_STYLESHEET_FILE = "style.qss"
+
+# define our standard stylesheet constants 
+SG_STYLESHEET_CONSTANTS = { "SG_HIGHLIGHT_COLOR": "#18A7E3",
+                            "SG_ALERT_COLOR": "#FC6246",
+                            "SG_FOREGROUND_COLOR": "#C8C8C8"}
 
 # the storage name that is treated to be the primary storage for tank
 PRIMARY_STORAGE_NAME = "primary"
