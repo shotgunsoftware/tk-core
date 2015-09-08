@@ -20,7 +20,7 @@ import pprint
 import inspect
 import tempfile
 
-from tank_vendor.shotgun_api3 import mockgun
+from tank_vendor.shotgun_api3.lib import mockgun
 
 import unittest2 as unittest
 
