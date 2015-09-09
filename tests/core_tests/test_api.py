@@ -508,9 +508,8 @@ class TestTankFromPathWindowsNoSlash(TankTestBase):
     def setUp(self):
 
         # set up a project named temp, so that it will end up in c:\temp
-
-        super(TestTankFromPathWindowsNoSlash, self).setUp(project_tank_name=self.PROJECT_NAME)
-
+        super(TestTankFromPathWindowsNoSlash, self).setUp(parameters = {"project_tank_name": self.PROJECT_NAME})
+        
         # set up std fixtures
         self.setup_fixtures()
 
@@ -581,9 +580,7 @@ class TestTankFromPathOverlapStorage(TankTestBase):
     def setUp(self):
 
         # set up two storages and two projects
-
-        super(TestTankFromPathOverlapStorage, self).setUp(project_tank_name="foo")
-
+        super(TestTankFromPathOverlapStorage, self).setUp(parameters = {"project_tank_name": "foo"})
 
         # add second project
         self.project_2 = {"type": "Project",

@@ -22,7 +22,7 @@ class LoginTests(TankTestBase):
     Tests the login module.
     """
 
-    @patch("tank_test.mockgun.Shotgun.find_one")
+    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find_one")
     @patch("tank.api.get_authenticated_user")
     def test_get_current_user_uses_session(
         self,
