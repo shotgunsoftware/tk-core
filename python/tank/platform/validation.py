@@ -546,12 +546,15 @@ class _SettingsValidator:
             # assume that each app contains its correct hooks
             return
         
+        # multiple paths can be specified here setting up an inheritance chain in which case
+        # as long as at least one of these files exists, the validation passes.
+        print "validating hook paths '%s'" % settings_key
         hook_files = hook_name.split(":")
         for hook_name in hook_files:
             if hook_name.startswith("{self}"):
                 # assume that each app contains its correct hooks
                 # TODO: don't assume... check anyway. 
-                continue
+                return
 
             elif hook_name.startswith("{config}"):
                 # config hook 
@@ -563,25 +566,28 @@ class _SettingsValidator:
                 # lazy (runtime) validation for this - it may be beneficial
                 # not to actually set the environment variable until later
                 # in the life cycle of the engine 
-                continue
+                return
             
             elif hook_name.startswith("{") and "}" in hook_name:
                 # referencing other instances of items
                 # this cannot be easily validated at this point since
                 # no well defined runtime state exists at the time of validation
-                continue
+                return
 
             else:
                 # our standard case
                 hook_path = os.path.join(hooks_folder, "%s.py" % hook_name)
 
-            if not os.path.exists(hook_path):
-                msg = ("Invalid configuration setting '%s' for %s: "
-                       "The hook file '%s' located at '%s' does not exist." % (settings_key, 
-                                                                               self._display_name,
-                                                                               hook_name,
-                                                                               hook_path) ) 
-                raise TankError(msg)
+            if os.path.exists(hook_path):
+                return
+        
+        # None of the paths exist on disk, raise an error!    
+        msg = ("Invalid configuration setting '%s' for %s: "
+               "The hook file '%s' located at '%s' does not exist." % (settings_key, 
+                                                                       self._display_name,
+                                                                       hook_name,
+                                                                       hook_path) ) 
+        raise TankError(msg)
             
 
     def __validate_settings_config_path(self, settings_key, schema, config_value):
