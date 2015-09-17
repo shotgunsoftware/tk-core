@@ -1263,7 +1263,7 @@ class Engine(TankBundle):
             except TankError, e:
                 # validation error - probably some issue with the settings!
                 # report this as an error message.
-                self.log_error("App configuration Error for %s (configured in in environment '%s'). "
+                self.log_error("App configuration Error for %s (configured in environment '%s'). "
                                "It will not be loaded: %s" % (app_instance_name, self.__env.disk_location, e))
                 continue
             
