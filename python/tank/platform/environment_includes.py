@@ -43,6 +43,26 @@ from . import constants
 
 from ..util.yaml_cache import g_yaml_cache
 
+def _override(master_dict, override_dict):
+    """Override values in the master dict with contents of another dict.
+
+    Like the built-in dict.update, except the values of a nested dict 
+    are overridden rather than updating an entire branch of the dict.
+
+    """
+
+    new_dict = copy.deepcopy(master_dict)
+
+    for key, override_value in override_dict.iteritems():
+        if isinstance(override_value, dict):
+            cur_value = new_dict.get(key, None)
+            if isinstance(cur_value, dict):
+                override_value = _override(cur_value, override_value)
+
+        new_dict[key] = override_value
+
+    return new_dict
+
 def _resolve_includes(file_name, data, context):
     """
     Parses the includes section and returns a list of valid paths
@@ -145,6 +165,7 @@ def _resolve_refs_r(lookup_dict, data):
     """
     Scans data for @refs and attempts to replace based on lookup data
     """
+
     # default is no processing
     processed_val = data
     
@@ -160,7 +181,7 @@ def _resolve_refs_r(lookup_dict, data):
         
     elif isinstance(data, basestring) and data.startswith("@"):
         # this is a reference!
-        
+
         ref_token = data[1:]
         if ref_token not in lookup_dict:
             raise TankError("Undefined Reference %s!" % ref_token)
@@ -170,24 +191,6 @@ def _resolve_refs_r(lookup_dict, data):
         
     return processed_val
             
-def _resolve_frameworks(lookup_dict, data):
-    """
-    Resolves any framework related includes
-    """
-    if "frameworks" in lookup_dict:
-        # cool, we got some frameworks in our lookup section
-        # add them to the main data
-
-        fw = lookup_dict["frameworks"]
-        if "frameworks" not in data:
-            data["frameworks"] = {}
-        if data["frameworks"] is None:
-            data["frameworks"] = {}
-        data["frameworks"].update(fw)    
-    
-    return data
-    
-
 def process_includes(file_name, data, context):
     """
     Process includes for an environment file.
@@ -200,8 +203,19 @@ def process_includes(file_name, data, context):
                         been recursively processed.
     """
     # call the recursive method:
-    data, _ = _process_includes_r(file_name, data, context)
-    return data
+    flattened_data = _process_includes_r(file_name, data, context)
+
+    try:
+        lookup = copy.deepcopy(flattened_data)
+
+        # 2 passes to catch top-level refs of refs. there's probably a better way
+        flattened_data = _resolve_refs_r(lookup, flattened_data)
+        flattened_data = _resolve_refs_r(lookup, flattened_data)
+    except TankError, e:
+        raise TankError("Include error. Could not resolve references for %s: %s" % 
+            (file_name, e))
+
+    return flattened_data
         
 def _process_includes_r(file_name, data, context):
     """
@@ -217,50 +231,33 @@ def _process_includes_r(file_name, data, context):
     :param data:        The contents of the root yml file to process
     :param context:     The current context
 
-    :returns:           A tuple containing the flattened yml data 
-                        after all includes have been recursively processed
-                        together with a lookup for frameworks to the file 
-                        they were loaded from.
+    :returns:           The flattened yml data after all includes have been
+                        recursively processed.
     """
+
     # first build our big fat lookup dict
     include_files = _resolve_includes(file_name, data, context)
-    
-    lookup_dict = {}
-    fw_lookup = {}
+
     for include_file in include_files:
-                
+
         # path exists, so try to read it
         included_data = g_yaml_cache.get(include_file) or {}
                 
         # now resolve this data before proceeding
-        included_data, included_fw_lookup = _process_includes_r(include_file, included_data, context)
+        included_data = _process_includes_r(include_file, included_data, context)
 
         # update our big lookup dict with this included data:
-        if "frameworks" in included_data and isinstance(included_data["frameworks"], dict):
-            # special case handling of frameworks to merge them from the various
-            # different included files rather than have frameworks section from
-            # one file overwrite the frameworks from previous includes!
-            lookup_dict = _resolve_frameworks(included_data, lookup_dict)
+        if ("frameworks" in included_data and 
+            isinstance(included_data["frameworks"], dict)):
 
-            # also, keey track of where the framework has been referenced from:
-            for fw_name in included_data["frameworks"].keys():
-                fw_lookup[fw_name] = include_file
+            # kepe track of where the framework has been referenced from:
+            for fw_dict in included_data["frameworks"].values():
+                fw_dict['__file_path'] = include_file
 
-            del(included_data["frameworks"])
+        # override the included data with the root data
+        data = _override(included_data, data)
 
-        fw_lookup.update(included_fw_lookup)
-        lookup_dict.update(included_data)
-    
-    # now go through our own data, recursively, and replace any refs.
-    # recurse down in dicts and lists
-    try:
-        data = _resolve_refs_r(lookup_dict, data)
-        data = _resolve_frameworks(lookup_dict, data)
-    except TankError, e:
-        raise TankError("Include error. Could not resolve references for %s: %s" % (file_name, e))
-    
-    return data, fw_lookup
-    
+    return data
 
 def find_framework_location(file_name, framework_name, context):
     """
@@ -277,19 +274,14 @@ def find_framework_location(file_name, framework_name, context):
     # load the data in for the root file:
     data = g_yaml_cache.get(file_name)
 
-    # track root frameworks:
-    root_fw_lookup = {}
-    fw_data = data.get("frameworks", {})
-    if fw_data and isinstance(fw_data, dict):
-        for fw in fw_data.keys():
-            root_fw_lookup[fw] = file_name 
-
     # process includes and get the lookup table for the frameworks:        
-    _, fw_lookup = _process_includes_r(file_name, data, context)
-    root_fw_lookup.update(fw_lookup)
+    data = _process_includes_r(file_name, data, context)
     
     # return the location of the framework if we can
-    return root_fw_lookup.get(framework_name) or None
+    try:
+        return data["frameworks"][framework_name]['__file_path']
+    except KeyError:
+        return None
     
 def find_reference(file_name, context, token):
     """
@@ -314,6 +306,4 @@ def find_reference(file_name, context, token):
             found_file = include_file
         
     return found_file
-    
-    
     
