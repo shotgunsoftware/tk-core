@@ -10,6 +10,9 @@
 
 from .action_base import Action
 from . import console_utils
+from ...platform.environment import WritableEnvironment
+import os
+
 
 
 class AppUpdatesAction(Action):
@@ -38,6 +41,9 @@ class AppUpdatesAction(Action):
         self.parameters["app_filter"] = { "description": "Name of app to check.",
                                           "default": "ALL",
                                           "type": "str" }
+        self.parameters["external"] = { "description": "Specify an external config to update.",
+                                        "default": None,
+                                        "type": "str" }
         
         
         
@@ -61,6 +67,7 @@ class AppUpdatesAction(Action):
                                  computed_params["environment_filter"], 
                                  computed_params["engine_filter"],
                                  computed_params["app_filter"],
+                                 computed_params["external"],
                                  True )
 
 
@@ -81,12 +88,22 @@ class AppUpdatesAction(Action):
                      "and app. This may take a long time. You can also run the updater on a subset "
                      "of your installed apps and engines.")
             log.info("")
-            log.info("General syntax:")
-            log.info("> tank updates [environment_name] [engine_name] [app_name]")
             log.info("")
-            log.info("The special keyword ALL can be used to denote all items in a category.")
+            log.info("")
+            log.info("General syntax:")
+            log.info("---------------")
+            log.info("")
+            log.info("> tank updates [environment_name] [engine_name] [app_name] [--external='/path/to/config']")
+            log.info("")
+            log.info("- The special keyword ALL can be used to denote all items in a category.")
+            log.info("")
+            log.info("- If you want to update an external configuration instead of the current project, "
+                     "  pass in a path via the --external flag.")
+            log.info("")
+            log.info("")
             log.info("")
             log.info("Examples:")
+            log.info("---------")
             log.info("")
             log.info("Check everything:")
             log.info("> tank updates")
@@ -108,6 +125,7 @@ class AppUpdatesAction(Action):
             log.info("")
             log.info("")
             
+            
             if console_utils.ask_yn_question("Continue with full update?"):
                 check_for_updates(log, self.tk)
             
@@ -116,6 +134,18 @@ class AppUpdatesAction(Action):
         env_filter = None
         engine_filter = None
         app_filter = None        
+        external_path = None
+        
+        # look for an --external argument
+        for arg in args:
+            if arg.startswith("--external="):
+                # remove it from args list
+                args.remove(arg)                                
+                # from '--external=/path/to/my config' get '/path/to/my config'
+                external_path = arg[len("--external="):]
+                if external_path == "":
+                    log.error("You need to specify a path to a toolkit configuration!")
+                    return        
         
         if len(args) > 0:
             env_filter = args[0]
@@ -141,7 +171,13 @@ class AppUpdatesAction(Action):
             else:
                 log.info("- Update will only check the %s app." % app_filter)
 
-        check_for_updates(log, self.tk, env_filter, engine_filter, app_filter)    
+
+        check_for_updates(log, 
+                          self.tk, 
+                          env_name=env_filter, 
+                          engine_instance_name=engine_filter, 
+                          app_instance_name=app_filter,
+                          external=external_path)    
         
             
 
@@ -149,80 +185,85 @@ class AppUpdatesAction(Action):
 # helper methods for update
     
     
-def check_for_updates(log, tk, env_name=None, engine_instance_name=None, app_instance_name=None, suppress_prompts=False):
+def check_for_updates(log, 
+                      tk, 
+                      env_name=None, 
+                      engine_instance_name=None, 
+                      app_instance_name=None, 
+                      suppress_prompts=False,
+                      external=None):
     """
     Runs the update checker.
+    
+    :param log: Python logger
+    :param tk: Toolkit instance
+    :param env_name: Environment name to update
+    :param engine_instance_name: Engine instance name to update
+    :param app_instance_name: App instance name to update
+    :param suppress_prompts: If True, run without prompting
+    :param external: Path to external config to operate on
     """
+    
     pc = tk.pipeline_configuration
-
-    if env_name is None:
-        env_names_to_process = pc.get_environments()
+    
+    updated_items = []
+    
+    if external:
+        
+        # try to load external file
+        if not os.path.exists(external):
+            log.error("Cannot find external config %s" % external)
+            return
+            
+        env_path = os.path.join(external, "env")
+            
+        if not os.path.exists(env_path):
+            log.error("Cannot find environment folder '%s'" % env_path)
+            return
+            
+        # find all environment files
+        log.info("Looking for matching environments in %s:" % env_path)
+        log.info("")
+        env_filenames = []
+        for filename in os.listdir(env_path):
+            if filename.endswith(".yml"):
+                if env_name is None or ("%s.yml" % env_name) == filename: 
+                    # matching the env filter (or no filter set)
+                    log.info("> found %s" % filename) 
+                    env_filenames.append(os.path.join(env_path, filename))
+        
+        # now process them one after the other
+        for env_filename in env_filenames: 
+            env_obj = WritableEnvironment(env_filename, pc)
+            updated_items += _process_environment(tk, 
+                                                  log, 
+                                                  env_obj, 
+                                                  engine_instance_name, 
+                                                  app_instance_name, 
+                                                  suppress_prompts)
+            
     else:
-        env_names_to_process = [env_name]
 
-    # check engines and apps
-    items = []
-    for env_name in env_names_to_process:
-        
-        # (AD) - Previously all environments were loaded before processing but 
-        # this could lead to errors if an update doesn't know about previous 
-        # updates to the same share files (includes)
-        env = pc.get_environment(env_name, writable=True)
-        
-        log.info("")
-        log.info("")
-        log.info("======================================================================")
-        log.info("Environment %s..." % env.name)
-        log.info("======================================================================")
-        log.info("")
-        
-        if engine_instance_name is None:
-            # process all engines
-            engines_to_process = env.get_engines()
+        # process non-external config 
+        if env_name is None:
+            env_names_to_process = pc.get_environments()
         else:
-            # there is a filter! Ensure the filter matches something
-            # in this environment
-            if engine_instance_name in env.get_engines():
-                # the filter matches something in this environment
-                engines_to_process = [engine_instance_name] 
-            else:
-                # the item we are filtering on does not exist in this env
-                engines_to_process = []
-        
-        for engine in engines_to_process:
-            items.append( _process_item(log, suppress_prompts, tk, env, engine) )
-            log.info("")
-            
-            if app_instance_name is None:
-                # no filter - process all apps
-                apps_to_process = env.get_apps(engine)
-            else:
-                # there is a filter! Ensure the filter matches
-                # something in the current engine apps listing
-                if app_instance_name in env.get_apps(engine):
-                    # the filter matches something!
-                    apps_to_process = [app_instance_name]
-                else:
-                    # the app filter does not match anything in this engine
-                    apps_to_process = []
-            
-            for app in apps_to_process:
-                items.append( _process_item(log, suppress_prompts, tk, env, engine, app) )
-                log.info("")
-        
-        if len(env.get_frameworks()) > 0:
-            log.info("")
-            log.info("Frameworks:")
-            log.info("-" * 70)
-
-            for framework in env.get_frameworks():
-                items.append( _process_item(log, suppress_prompts, tk, env, framework_name=framework) )
-        
-
+            env_names_to_process = [env_name]
+    
+        for env_name in env_names_to_process:
+            env_obj = pc.get_environment(env_name, writable=True)
+            updated_items += _process_environment(tk, 
+                                                  log, 
+                                                  env_obj, 
+                                                  engine_instance_name, 
+                                                  app_instance_name, 
+                                                  suppress_prompts)
+    
+    
     # display summary
     log.info("")
     summary = []
-    for x in items:
+    for x in updated_items:
         if x["was_updated"]:
 
             summary.append("%s was updated from %s to %s" % (x["new_descriptor"],
@@ -244,7 +285,7 @@ def check_for_updates(log, tk, env_name=None, engine_instance_name=None, app_ins
     
     # generate return data for api access
     ret_val = []
-    for x in items:
+    for x in updated_items:
         d = {}
         d["engine_instance"] = x["engine_name"]
         d["app_instance"] = x["app_name"]
@@ -255,9 +296,81 @@ def check_for_updates(log, tk, env_name=None, engine_instance_name=None, app_ins
         ret_val.append(d)
     
     return ret_val
-        
     
 
+def _process_environment(tk,
+                         log, 
+                         environment_obj,
+                         engine_instance_name=None, 
+                         app_instance_name=None, 
+                         suppress_prompts=False):    
+    """
+    Updates a given environment object
+    
+    :param log: Python logger
+    :param tk: Toolkit instance
+    :param environment_obj: Environment object to update
+    :param engine_instance_name: Engine instance name to update
+    :param app_instance_name: App instance name to update
+    :param suppress_prompts: If True, run without prompting
+    
+    :returns: list of updated items
+    """
+    items = []
+        
+    log.info("")
+    log.info("")
+    log.info("======================================================================")
+    log.info("Environment %s..." % environment_obj.name)
+    log.info("======================================================================")
+    log.info("")
+    
+    if engine_instance_name is None:
+        # process all engines
+        engines_to_process = environment_obj.get_engines()
+        
+    else:
+        # there is a filter! Ensure the filter matches something
+        # in this environment
+        if engine_instance_name in environment_obj.get_engines():
+            # the filter matches something in this environment
+            engines_to_process = [engine_instance_name] 
+        else:
+            # the item we are filtering on does not exist in this env
+            engines_to_process = []
+    
+    for engine in engines_to_process:
+        items.append( _process_item(log, suppress_prompts, tk, environment_obj, engine) )
+        log.info("")
+        
+        if app_instance_name is None:
+            # no filter - process all apps
+            apps_to_process = environment_obj.get_apps(engine)
+        else:
+            # there is a filter! Ensure the filter matches
+            # something in the current engine apps listing
+            if app_instance_name in environment_obj.get_apps(engine):
+                # the filter matches something!
+                apps_to_process = [app_instance_name]
+            else:
+                # the app filter does not match anything in this engine
+                apps_to_process = []
+        
+        for app in apps_to_process:
+            items.append( _process_item(log, suppress_prompts, tk, environment_obj, engine, app) )
+            log.info("")
+    
+    if len(environment_obj.get_frameworks()) > 0:
+        log.info("")
+        log.info("Frameworks:")
+        log.info("-" * 70)
+
+        for framework in environment_obj.get_frameworks():
+            items.append( _process_item(log, suppress_prompts, tk, environment_obj, framework_name=framework) )
+        
+    return items
+        
+    
 def _update_item(log, suppress_prompts, tk, env, old_descriptor, new_descriptor, engine_name=None, app_name=None, framework_name=None):
     """
     Performs an upgrade of an engine/app/framework.
