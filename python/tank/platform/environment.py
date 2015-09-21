@@ -486,7 +486,7 @@ class Environment(object):
 
 class WritableEnvironment(Environment):
     """
-    Represents a multable environment.
+    Represents a mutable environment.
     
     If you need to make change to the environment, this class should be used
     rather than the Environment class. Additional methods are added
