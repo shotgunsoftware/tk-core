@@ -163,7 +163,7 @@ class InstallAppAction(Action):
         log.info("Installing into environment %s and engine %s." % (env_name, engine_instance_name))
     
         try:
-            env = self.tk.pipeline_configuration.get_environment(env_name)
+            env = self.tk.pipeline_configuration.get_environment(env_name, writable=True)
         except Exception, e:
             raise TankError("Environment '%s' could not be loaded! Error reported: %s" % (env_name, e))
     
@@ -390,7 +390,7 @@ class InstallEngineAction(Action):
         log.info("")
     
         try:
-            env = self.tk.pipeline_configuration.get_environment(env_name)
+            env = self.tk.pipeline_configuration.get_environment(env_name, writable=True)
         except Exception, e:
             raise TankError("Environment '%s' could not be loaded! Error reported: %s" % (env_name, e))
     

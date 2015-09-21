@@ -90,7 +90,7 @@ class TestUpdateEnvironment(TankTestBase):
         self.test_engine = "test_engine"
 
         # create env object
-        self.env = self.tk.pipeline_configuration.get_environment(self.test_env)
+        self.env = self.tk.pipeline_configuration.get_environment(self.test_env, writable=True)
         
         
         

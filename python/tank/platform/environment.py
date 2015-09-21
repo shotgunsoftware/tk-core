@@ -36,14 +36,18 @@ class Environment(object):
     Don't construct this class by hand! Instead, use the
     pipelineConfiguration.get_environment() method.
 
+    This class contains immutable methods only, e.g. you can only read from
+    the yaml file. If you want to modify the yaml content, create a 
+    WritableEnvironment instance instead.
     """
 
     def __init__(self, env_path, pipeline_config, context=None):
         """
         Constructor
         """
-        self.__env_path = env_path
-        self.__env_data = None
+        self._env_path = env_path
+        self._env_data = None
+        
         self.__engine_locations = {}
         self.__app_locations = {}
         self.__framework_locations = {}
@@ -51,30 +55,30 @@ class Environment(object):
         self.__pipeline_config = pipeline_config
 
         # validate and populate config
-        self.__refresh()
+        self._refresh()
 
 
     def __repr__(self):
-        return "<Sgtk Environment %s>" % self.__env_path
+        return "<Sgtk Environment %s>" % self._env_path
 
     def __str__(self):
-        return "Environment %s" % os.path.basename(self.__env_path)
+        return "Environment %s" % os.path.basename(self._env_path)
 
-    def __refresh(self):
+    def _refresh(self):
         """Refreshes the environment data from disk
         """
-        if not os.path.exists(self.__env_path):
-            raise TankError("Attempting to load non-existent environment file: %s" % self.__env_path)
+        if not os.path.exists(self._env_path):
+            raise TankError("Attempting to load non-existent environment file: %s" % self._env_path)
 
-        data = self.__load_data(self.__env_path)
+        data = self.__load_data(self._env_path)
 
-        self.__env_data = environment_includes.process_includes(self.__env_path, data, self.__context)
+        self._env_data = environment_includes.process_includes(self._env_path, data, self.__context)
         
-        if not self.__env_data:
-            raise TankError('No data in env file: %s' % (self.__env_path))
+        if not self._env_data:
+            raise TankError('No data in env file: %s' % (self._env_path))
 
-        if "engines" not in self.__env_data:
-            raise TankError("No 'engines' section in env file: %s" % (self.__env_path))
+        if "engines" not in self._env_data:
+            raise TankError("No 'engines' section in env file: %s" % (self._env_path))
 
         # now organize the data in dictionaries
 
@@ -87,12 +91,12 @@ class Environment(object):
 
         # populate the above data structures
         # pass a copy of the data since process is destructive
-        d = copy.deepcopy(self.__env_data)
+        d = copy.deepcopy(self._env_data)
         self.__process_engines(d)
 
-        if "frameworks" in self.__env_data:
+        if "frameworks" in self._env_data:
             # there are frameworks defined! Process them
-            d = copy.deepcopy(self.__env_data)
+            d = copy.deepcopy(self._env_data)
             self.__process_frameworks(d)
 
         # now extract the location key for all the configs
@@ -175,7 +179,7 @@ class Environment(object):
             location_dict = self.__framework_settings[fw].get(constants.ENVIRONMENT_LOCATION_KEY)
             if location_dict is None:
                 raise TankError("The environment %s does not have a valid location "
-                                "key for framework %s" % (self.__env_path, fw))
+                                "key for framework %s" % (self._env_path, fw))
             # remove location from dict
             self.__framework_locations[fw] = self.__framework_settings[fw].pop(constants.ENVIRONMENT_LOCATION_KEY)
 
@@ -183,7 +187,7 @@ class Environment(object):
             location_dict = self.__engine_settings[eng].get(constants.ENVIRONMENT_LOCATION_KEY)
             if location_dict is None:
                 raise TankError("The environment %s does not have a valid location "
-                                "key for engine %s" % (self.__env_path, eng))
+                                "key for engine %s" % (self._env_path, eng))
             # remove location from dict
             self.__engine_locations[eng] = self.__engine_settings[eng].pop(constants.ENVIRONMENT_LOCATION_KEY)
 
@@ -191,7 +195,7 @@ class Environment(object):
             location_dict = self.__app_settings[(eng,app)].get(constants.ENVIRONMENT_LOCATION_KEY)
             if location_dict is None:
                 raise TankError("The environment %s does not have a valid location "
-                                "key for app %s.%s" % (self.__env_path, eng, app))
+                                "key for app %s.%s" % (self._env_path, eng, app))
             # remove location from dict
             self.__engine_locations[(eng,app)] = self.__app_settings[(eng,app)].pop(constants.ENVIRONMENT_LOCATION_KEY)
 
@@ -206,7 +210,7 @@ class Environment(object):
         returns the environment name, e.g. the file name of the environment file
         without its extension
         """
-        file_name_with_ext = os.path.basename(self.__env_path)
+        file_name_with_ext = os.path.basename(self._env_path)
         (file_name, ext) = os.path.splitext(file_name_with_ext)
         return file_name
 
@@ -215,14 +219,14 @@ class Environment(object):
         """
         Returns a description of this environment
         """
-        return self.__env_data.get("description", "No description found.")
+        return self._env_data.get("description", "No description found.")
 
     @property
     def disk_location(self):
         """
         Returns a path to this environment
         """
-        return self.__env_path
+        return self._env_path
 
 
     ##########################################################################################
@@ -245,7 +249,7 @@ class Environment(object):
         Returns all apps for an engine contained in this environment file
         """
         if engine not in self.get_engines():
-            raise TankError("Engine '%s' is not part of environment %s" % (engine, self.__env_path))
+            raise TankError("Engine '%s' is not part of environment %s" % (engine, self._env_path))
 
         apps = []
         engine_app_tuples = self.__app_settings.keys()
@@ -260,7 +264,7 @@ class Environment(object):
         """
         d = self.__framework_settings.get(framework)
         if d is None:
-            raise TankError("Framework '%s' is not part of environment %s" % (framework, self.__env_path))
+            raise TankError("Framework '%s' is not part of environment %s" % (framework, self._env_path))
         return d
 
     def get_engine_settings(self, engine):
@@ -269,7 +273,7 @@ class Environment(object):
         """
         d = self.__engine_settings.get(engine)
         if d is None:
-            raise TankError("Engine '%s' is not part of environment %s" % (engine, self.__env_path))
+            raise TankError("Engine '%s' is not part of environment %s" % (engine, self._env_path))
         return d
 
     def get_app_settings(self, engine, app):
@@ -279,7 +283,7 @@ class Environment(object):
         key = (engine, app)
         d = self.__app_settings.get(key)
         if d is None:
-            raise TankError("App '%s.%s' is not part of environment %s" % (engine, app, self.__env_path))
+            raise TankError("App '%s.%s' is not part of environment %s" % (engine, app, self._env_path))
         return d
 
     def get_framework_descriptor(self, framework_name):
@@ -289,7 +293,7 @@ class Environment(object):
         location_dict = self.__framework_locations.get(framework_name)
         if location_dict is None:
             raise TankError("The framework %s does not have a valid location "
-                            "key for engine %s" % (self.__env_path, framework_name))
+                            "key for engine %s" % (self._env_path, framework_name))
 
         # get the descriptor object for the location
         d = descriptor.get_from_location(descriptor.AppDescriptor.FRAMEWORK,
@@ -305,7 +309,7 @@ class Environment(object):
         location_dict = self.__engine_locations.get(engine_name)
         if location_dict is None:
             raise TankError("The environment %s does not have a valid location "
-                            "key for engine %s" % (self.__env_path, engine_name))
+                            "key for engine %s" % (self._env_path, engine_name))
 
         # get the descriptor object for the location
         d = descriptor.get_from_location(descriptor.AppDescriptor.ENGINE,
@@ -322,7 +326,7 @@ class Environment(object):
         location_dict = self.__engine_locations.get( (engine_name, app_name) )
         if location_dict is None:
             raise TankError("The environment %s does not have a valid location "
-                            "key for app %s.%s" % (self.__env_path, engine_name, app_name))
+                            "key for app %s.%s" % (self._env_path, engine_name, app_name))
 
         # get the version object for the location
         d = descriptor.get_from_location(descriptor.AppDescriptor.APP,
@@ -340,17 +344,6 @@ class Environment(object):
         """
         return g_yaml_cache.get(path)
 
-    def __write_data(self, path, data):
-        """
-        writes the main data to disk, raw form
-        """
-        try:
-            env_file = open(path, "wt")
-            yaml.dump(data, env_file)
-            env_file.close()
-        except Exception, exp:
-            raise TankError("Could not write environment file %s. Error reported: %s" % (path, exp))
-
     def find_location_for_engine(self, engine_name):
         """
         Returns the filename and a list of dictionary keys where an engine instance resides.
@@ -360,14 +353,14 @@ class Environment(object):
         :returns:           (list of tokens, file path)
         """
         # get the raw data:
-        root_yml_data = self.__load_data(self.__env_path)
+        root_yml_data = self.__load_data(self._env_path)
         
         # find the location for the engine:
-        tokens, path = self.__find_location_for_bundle(self.__env_path, root_yml_data, "engines", engine_name)
+        tokens, path = self.__find_location_for_bundle(self._env_path, root_yml_data, "engines", engine_name)
     
         if not path:
             raise TankError("Failed to find the location of the '%s' engine in the '%s' environment!"
-                            % (engine_name, self.__env_path))
+                            % (engine_name, self._env_path))
             
         return tokens, path
     
@@ -392,11 +385,11 @@ class Environment(object):
         # first, try to find the location of the framework definition that will be used at 
         # run-time.  This handles the special case where multiple 'frameworks' blocks from 
         # different levels of included files have been concatenated together. 
-        fw_location = environment_includes.find_framework_location(self.__env_path, framework_name, self.__context)
+        fw_location = environment_includes.find_framework_location(self._env_path, framework_name, self.__context)
         if not fw_location:
             # assume the framework is in the environment - this also handles the @include syntax 
             # not handled by the previous search method!
-            fw_location = self.__env_path
+            fw_location = self._env_path
 
         # get the raw data
         root_yml_data = self.__load_data(fw_location)
@@ -406,7 +399,7 @@ class Environment(object):
 
         if not path:
             raise TankError("Failed to find the location of the '%s' framework in the '%s' environment!"
-                            % (framework_name, self.__env_path))
+                            % (framework_name, self._env_path))
             
         return tokens, path
 
@@ -437,7 +430,7 @@ class Environment(object):
         
         if not path:
             raise TankError("Failed to find the location of the '%s' app under the '%s' engine in the '%s' environment!"
-                            % (engine_name, app_name, self.__env_path))
+                            % (engine_name, app_name, self._env_path))
         
         return tokens, path
 
@@ -486,17 +479,77 @@ class Environment(object):
 
         return (bundle_tokens, bundle_yml_file)
 
+
+
+
+
+
+class WritableEnvironment(Environment):
+    """
+    Represents a multable environment.
+    
+    If you need to make change to the environment, this class should be used
+    rather than the Environment class. Additional methods are added
+    to support modification and updates and handling of writing yaml
+    content back to disk.
+    
+    Don't construct this class by hand! Instead, use the
+    pipelineConfiguration.get_environment() method.    
+    """
+
+    def __init__(self, env_path, pipeline_config, context=None):
+        """
+        Constructor
+        """
+        Environment.__init__(self, env_path, pipeline_config, context)
+
+    def __load_writable_yaml(self, path):
+        """
+        Loads yaml data from disk.
+        
+        :param path: Path to yaml file
+        :returns: yaml object representing the data structure
+        """
+        try:
+            fh = open(path, "r")
+        except Exception, e:
+            raise TankError("Could not open file '%s'. Error reported: '%s'" % (path, e))
+        
+        try:
+            yaml_data = yaml.load(fh, yaml.RoundTripLoader)
+        except Exception, e:
+            raise TankError("Could not parse file '%s'. Error reported: '%s'" % (path, e))
+        finally:
+            fh.close()            
+        
+        return yaml_data
+        
+
+    def __write_data(self, path, data):
+        """
+        Writes the yaml data back to disk
+        
+        :param path: Path to yaml file
+        :param data: yaml data structure to write
+        """
+        try:
+            env_file = open(path, "wt")
+            yaml.dump(data, env_file, default_flow_style=False, Dumper=yaml.RoundTripDumper)
+            env_file.close()
+        except Exception, exp:
+            raise TankError("Could not write environment file '%s'. Error reported: %s" % (path, exp))
+        
     def update_engine_settings(self, engine_name, new_data, new_location):
         """
         Updates the engine configuration
         """
-        if engine_name not in self.__env_data["engines"]:
-            raise TankError("Engine %s does not exist in environment %s" % (engine_name, self.__env_path) )
+        if engine_name not in self._env_data["engines"]:
+            raise TankError("Engine %s does not exist in environment %s" % (engine_name, self._env_path) )
 
         (tokens, yml_file) = self.find_location_for_engine(engine_name)
 
         # now update the yml file where the engine is defined
-        yml_data = self.__load_data(yml_file)
+        yml_data = self.__load_writable_yaml(yml_file)
 
         # now the token may be either [my-maya-ref] or [engines, tk-maya]
         # find the right chunk in the file
@@ -511,22 +564,22 @@ class Environment(object):
         self.__write_data(yml_file, yml_data)
 
         # sync internal data with disk
-        self.__refresh()
+        self._refresh()
 
 
     def update_app_settings(self, engine_name, app_name, new_data, new_location):
         """
         Updates the app configuration.
         """
-        if engine_name not in self.__env_data["engines"]:
-            raise TankError("Engine %s does not exist in environment %s" % (engine_name, self.__env_path) )
-        if app_name not in self.__env_data["engines"][engine_name]["apps"]:
-            raise TankError("App %s.%s does not exist in environment %s" % (engine_name, app_name, self.__env_path) )
+        if engine_name not in self._env_data["engines"]:
+            raise TankError("Engine %s does not exist in environment %s" % (engine_name, self._env_path) )
+        if app_name not in self._env_data["engines"][engine_name]["apps"]:
+            raise TankError("App %s.%s does not exist in environment %s" % (engine_name, app_name, self._env_path) )
 
         (tokens, yml_file) = self.find_location_for_app(engine_name, app_name)
 
         # now update the yml file where the engine is defined
-        yml_data = self.__load_data(yml_file)
+        yml_data = self.__load_writable_yaml(yml_file)
 
         # now the token may be either [my-maya-ref] or [engines, tk-maya]
         # find the right chunk in the file
@@ -540,19 +593,19 @@ class Environment(object):
         self.__write_data(yml_file, yml_data)
 
         # sync internal data with disk
-        self.__refresh()
+        self._refresh()
 
     def update_framework_settings(self, framework_name, new_data, new_location):
         """
         Updates the framework configuration
         """
-        if framework_name not in self.__env_data["frameworks"]:
-            raise TankError("Framework %s does not exist in environment %s" % (framework_name, self.__env_path) )
+        if framework_name not in self._env_data["frameworks"]:
+            raise TankError("Framework %s does not exist in environment %s" % (framework_name, self._env_path) )
 
         (tokens, yml_file) = self.find_location_for_framework(framework_name)
 
         # now update the yml file where the engine is defined
-        yml_data = self.__load_data(yml_file)
+        yml_data = self.__load_writable_yaml(yml_file)
 
         # now the token may be either [my_fw_ref] or [frameworks, tk-framework-widget_v0.1.x]
         # find the right chunk in the file
@@ -567,7 +620,7 @@ class Environment(object):
         self.__write_data(yml_file, yml_data)
 
         # sync internal data with disk
-        self.__refresh()
+        self._refresh()
 
 
     def _update_settings_recursive(self, settings, new_data):
@@ -615,7 +668,7 @@ class Environment(object):
         Creates new framework settings.
         """
 
-        data = self.__load_data(yml_file)
+        data = self.__load_writable_yaml(yml_file)
 
         if data.get("frameworks") is None:
             data["frameworks"] = {}
@@ -632,7 +685,7 @@ class Environment(object):
                             "framework include: "
                             "%s: { %s: %s }. "
                             "If the framework has any settings, these need to be added "
-                            "by hand." % (self.__env_path,
+                            "by hand." % (self._env_path,
                                           framework_name,
                                           constants.ENVIRONMENT_LOCATION_KEY,
                                           location))
@@ -646,7 +699,7 @@ class Environment(object):
 
         self.__write_data(yml_file, data)
         # sync internal data with disk
-        self.__refresh()
+        self._refresh()
 
 
     def create_engine_settings(self, engine_name):
@@ -654,10 +707,10 @@ class Environment(object):
         Creates a new engine settings chunk in the root file of the env tree.
         """
 
-        data = self.__load_data(self.__env_path)
+        data = self.__load_writable_yaml(self._env_path)
 
         if engine_name in data["engines"]:
-            raise TankError("Engine %s already exists in environment %s" % (engine_name, self.__env_path) )
+            raise TankError("Engine %s already exists in environment %s" % (engine_name, self._env_path) )
 
         data["engines"][engine_name] = {}
         # and make sure we also create the location key
@@ -665,9 +718,9 @@ class Environment(object):
         # and make sure we also create the apps key
         data["engines"][engine_name]["apps"] = {}
 
-        self.__write_data(self.__env_path, data)
+        self.__write_data(self._env_path, data)
         # sync internal data with disk
-        self.__refresh()
+        self._refresh()
 
     def __verify_engine_local(self, data, engine_name):
         """
@@ -687,7 +740,7 @@ class Environment(object):
             raise TankError("The configuration for engine '%s' located in the environment file '%s' has a "
                             "reference to another file ('%s'). This type "
                             "of configuration arrangement cannot currently be automatically "
-                            "modified - please edit it by hand!" % (engine_name, self.__env_path, engines_section))
+                            "modified - please edit it by hand!" % (engine_name, self._env_path, engines_section))
 
     def __verify_apps_local(self, data, engine_name):
         """
@@ -704,18 +757,18 @@ class Environment(object):
             raise TankError("The configuration for engine '%s' located in the environment file '%s' has an "
                             "apps section which is referenced from another file ('%s'). This type "
                             "of configuration arrangement cannot currently be automatically "
-                            "modified - please edit it by hand!" % (engine_name, self.__env_path, apps_section))
+                            "modified - please edit it by hand!" % (engine_name, self._env_path, apps_section))
 
     def create_app_settings(self, engine_name, app_name):
         """
         Creates a new app settings chunk in the root file of the env tree.
         """
 
-        data = self.__load_data(self.__env_path)
+        data = self.__load_writable_yaml(self._env_path)
 
         # check that the engine name exists in the config
         if engine_name not in data["engines"]:
-            raise TankError("Engine %s does not exist in environment %s" % (engine_name, self.__env_path) )
+            raise TankError("Engine %s does not exist in environment %s" % (engine_name, self._env_path) )
 
         # make sure the engine's apps setting is local to this file
         self.__verify_engine_local(data, engine_name)
@@ -729,15 +782,15 @@ class Environment(object):
         apps_section = data["engines"][engine_name]["apps"]        
             
         if app_name in apps_section:
-            raise TankError("App %s.%s already exists in environment %s" % (engine_name, app_name, self.__env_path) )
+            raise TankError("App %s.%s already exists in environment %s" % (engine_name, app_name, self._env_path) )
 
         data["engines"][engine_name]["apps"][app_name] = {}
         # and make sure we also create the location key
         data["engines"][engine_name]["apps"][app_name][constants.ENVIRONMENT_LOCATION_KEY] = {}
 
-        self.__write_data(self.__env_path, data)
+        self.__write_data(self._env_path, data)
         # sync internal data with disk
-        self.__refresh()
+        self._refresh()
 
     def copy_apps(self, src_engine_name, dst_engine_name):
         """
@@ -747,13 +800,13 @@ class Environment(object):
         :param src_engine_name: The name of the engine instance to copy from (str)
         :param dst_engine_name: The name of the engine instance to copy to (str)
         """
-        data = self.__load_data(self.__env_path)
+        data = self.__load_writable_yaml(self._env_path)
 
         # check that the engine names exists in the config
         if src_engine_name not in data["engines"]:
-            raise TankError("Engine %s does not exist in environment %s" % (src_engine_name, self.__env_path))
+            raise TankError("Engine %s does not exist in environment %s" % (src_engine_name, self._env_path))
         if dst_engine_name not in data["engines"]:
-            raise TankError("Engine %s does not exist in environment %s" % (dst_engine_name, self.__env_path))
+            raise TankError("Engine %s does not exist in environment %s" % (dst_engine_name, self._env_path))
 
         # make sure the actual engine settings are both local
         self.__verify_engine_local(data, src_engine_name)
@@ -763,6 +816,6 @@ class Environment(object):
         src_apps_section = data["engines"][src_engine_name]["apps"]
         data["engines"][dst_engine_name]["apps"] = copy.deepcopy(src_apps_section)
 
-        self.__write_data(self.__env_path, data)
+        self.__write_data(self._env_path, data)
         # sync internal data with disk
-        self.__refresh()
+        self._refresh()

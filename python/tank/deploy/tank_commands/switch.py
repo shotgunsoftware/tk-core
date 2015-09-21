@@ -114,7 +114,7 @@ class SwitchAppAction(Action):
         
         # find locator
         try:
-            env = self.tk.pipeline_configuration.get_environment(env_name)
+            env = self.tk.pipeline_configuration.get_environment(env_name, writable=True)
         except Exception, e:
             raise TankError("Environment '%s' could not be loaded! Error reported: %s" % (env_name, e))
     

@@ -167,7 +167,7 @@ def check_for_updates(log, tk, env_name=None, engine_instance_name=None, app_ins
         # (AD) - Previously all environments were loaded before processing but 
         # this could lead to errors if an update doesn't know about previous 
         # updates to the same share files (includes)
-        env = pc.get_environment(env_name)
+        env = pc.get_environment(env_name, writable=True)
         
         log.info("")
         log.info("")
