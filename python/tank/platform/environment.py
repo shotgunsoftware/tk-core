@@ -492,9 +492,6 @@ class WritableEnvironment(Environment):
     rather than the Environment class. Additional methods are added
     to support modification and updates and handling of writing yaml
     content back to disk.
-    
-    Don't construct this class by hand! Instead, use the
-    pipelineConfiguration.get_environment() method.    
     """
 
     def __init__(self, env_path, pipeline_config, context=None):
@@ -516,6 +513,14 @@ class WritableEnvironment(Environment):
             raise TankError("Could not open file '%s'. Error reported: '%s'" % (path, e))
         
         try:
+            # note that we use the RoundTripLoader loader here. This ensures
+            # that structure and comments are preserved when the yaml is
+            # written back to disk.
+            #
+            # the object returned back is a dictionary-like object
+            # which also holds the additional contextual metadata
+            # required by the parse to maintain the lexical integrity
+            # of the content.
             yaml_data = yaml.load(fh, yaml.RoundTripLoader)
         except Exception, e:
             raise TankError("Could not parse file '%s'. Error reported: '%s'" % (path, e))
@@ -533,11 +538,33 @@ class WritableEnvironment(Environment):
         :param data: yaml data structure to write
         """
         try:
-            env_file = open(path, "wt")
-            yaml.dump(data, env_file, default_flow_style=False, Dumper=yaml.RoundTripDumper)
-            env_file.close()
-        except Exception, exp:
-            raise TankError("Could not write environment file '%s'. Error reported: %s" % (path, exp))
+            fh = open(path, "wt")
+        except Exception, e:
+            raise TankError("Could not open file '%s' for writing. "
+                            "Error reported: '%s'" % (path, e))
+        
+        try:
+            # note that we are using the RoundTripDumper in order to 
+            # preserve the structure when writing the file to disk.
+            #
+            # the default_flow_style=False tells the parse to write
+            # any modified values on multi-line form, e.g.
+            # 
+            # foo:
+            #   bar: 3
+            #   baz: 4
+            #
+            # rather than
+            #
+            # foo: { bar: 3, baz: 4 }
+            #
+            yaml.dump(data, fh, default_flow_style=False, Dumper=yaml.RoundTripDumper)
+        except Exception, e:
+            raise TankError("Could not write to environment file '%s'. "
+                            "Error reported: %s" % (path, e))
+        finally:
+            fh.close()
+
         
     def update_engine_settings(self, engine_name, new_data, new_location):
         """
