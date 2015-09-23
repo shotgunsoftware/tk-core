@@ -497,6 +497,37 @@ class TestTankFromEntityWithMixedSlashes(TankTestBase):
                 del os.environ["TANK_CURRENT_PC"]
 
 
+class TestGetConfigInstallLocationPathSlashes(TankTestBase):
+    """
+    Tests the case where a windows config location uses double slashes.
+    """
+
+    @patch("tank.pipelineconfig_utils._get_install_locations")
+    def test_config_path_cleanup(self, get_install_locations_mock):
+        """
+        Check that any glitches in the path are correctly cleaned up.
+        """
+        # only run this test on windows
+        if sys.platform == "win32":
+
+            get_install_locations_mock.return_value = {
+                # This path has multiple issues we've encountered in the wild
+                # It without any escaping sequence, it reads as
+                #   C:/configs\\site//project
+                # 1. it has whitespace at the begging and end.
+                # 2. Uses double slashes instead of single flash
+                # 3. Uses slash instead of backslash on Windows.
+                # 4. Uses double backslashes as a folder separator.
+                "win32": "   C:/configs\\\\site//project   "
+            }
+
+            self.assertEqual(
+                # We don't need to pass an actual path since _get_install_location is mocked.
+                tank.pipelineconfig_utils.get_config_install_location(None),
+                "C:\\configs\\site\\project"
+            )
+
+
 class TestTankFromPathWindowsNoSlash(TankTestBase):
     """
     Tests the edge case where a windows local storage is set to be 'C:'
