@@ -163,7 +163,7 @@ def sanitize_path(path, separator=os.path.sep):
     # ensure there is no white space around the path
     path = path.strip()
 
-    # first, get rid of any slashes at the end
+    # get rid of any slashes at the end
     # after this step, path value will be "/foo/bar", "c:" or "\\hello"
     path = path.rstrip("/\\")
     
