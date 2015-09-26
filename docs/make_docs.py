@@ -98,6 +98,10 @@ def main():
     cmd = "sphinx-build -c '%s' -D version='%s' -D release='%s' '%s' '%s'" % (this_folder, options.version, options.version, docs_folder, build_folder)
     os.system(cmd)
 
+    # make sure there is a .nojekyll file in the github repo, otherwise
+    # folders beginning with an _ will be ignored
+    no_jekyll = os.path.join(docs_folder, "build", ".nojekyll")
+    os.system("touch '%s'" % no_jekyll)
 
 if __name__ == "__main__":
     main()
