@@ -14,6 +14,11 @@ Documentation generation script.
 This script sets up the environment, primarily
 PYTHONPATH, and then kicks off the sphinx-build command
 for the given app/engine/framework.
+
+Example command line:
+
+python ~/git/tk-core/docs/make_docs.py --version=v2.4.2 --bundle=~/git/tk-framework-qtwidgets
+
 """
 
 import sys
@@ -69,16 +74,17 @@ def main():
     pythonpath.insert(0, core_path)
 
     if options.bundle:
-        
+        # unfold the path
+        bundle_path = os.path.expandvars(os.path.expanduser(options.bundle))
         # get key locations for this app/engine/fw
-        docs_folder = os.path.join(options.bundle, "docs")
+        docs_folder = os.path.join(bundle_path, "docs")
         build_folder = os.path.join(docs_folder, "build")
         # add bundle path to pythonpath (for the app.py)
-        pythonpath.insert(0, options.bundle)
+        pythonpath.insert(0, bundle_path)
         # add python folder to pythonpath (for libraries)
-        pythonpath.insert(0, os.path.join(options.bundle, "python"))
+        pythonpath.insert(0, os.path.join(bundle_path, "python"))
         # assume the git repository name is the leaf of the path
-        git_repository = os.path.basename(options.bundle) 
+        git_repository = os.path.basename(bundle_path) 
                
         
     else:        
