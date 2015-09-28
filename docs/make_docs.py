@@ -11,8 +11,6 @@
 """
 Documentation generation script.
 
-Typically launched via make_docs.sh.
-
 This script sets up the environment, primarily
 PYTHONPATH, and then kicks off the sphinx-build command
 for the given app/engine/framework.
@@ -71,13 +69,17 @@ def main():
     pythonpath.insert(0, core_path)
 
     if options.bundle:
+        
         # get key locations for this app/engine/fw
         docs_folder = os.path.join(options.bundle, "docs")
         build_folder = os.path.join(docs_folder, "build")
         # add bundle path to pythonpath (for the app.py)
         pythonpath.insert(0, options.bundle)
         # add python folder to pythonpath (for libraries)
-        pythonpath.insert(0, os.path.join(options.bundle, "python"))        
+        pythonpath.insert(0, os.path.join(options.bundle, "python"))
+        # assume the git repository name is the leaf of the path
+        git_repository = os.path.basename(options.bundle) 
+               
         
     else:        
         # if a bundle isn't specified, default to core
@@ -86,6 +88,7 @@ def main():
         print("add a --bundle='/path/to/app' argument")
         docs_folder = os.path.join(this_folder, "tk-core")
         build_folder = os.path.join(docs_folder, "build")  
+        git_repository = "tk-core"
 
     if not os.path.exists(docs_folder):
         print "Cannot find folder '%s'!" % docs_folder
@@ -95,7 +98,11 @@ def main():
     os.environ["PYTHONPATH"] = ":".join(pythonpath)
 
     # run build command
-    cmd = "sphinx-build -c '%s' -D version='%s' -D release='%s' '%s' '%s'" % (this_folder, options.version, options.version, docs_folder, build_folder)
+    cmd = "sphinx-build -c '%s' -D project='%s' -D release='%s' '%s' '%s'" % (this_folder, 
+                                                                              git_repository, 
+                                                                              options.version, 
+                                                                              docs_folder, 
+                                                                              build_folder)
     os.system(cmd)
 
     # make sure there is a .nojekyll file in the github repo, otherwise
