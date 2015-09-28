@@ -9,9 +9,4 @@ Welcome to tk-core's documentation!
 Contents:
 
 .. toctree::
-    :maxdepth: 2
-
-    core_api
-    platform_api
-    filesystem_configuration
-    environment_configuration
+   :maxdepth: 2
