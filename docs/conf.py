@@ -234,4 +234,9 @@ intersphinx_mapping = {
     'python' : ('http://docs.python.org/', None),
     'PySide' : ('http://pyside.github.io/docs/pyside/', None),
     'sgtk' : ('http://shotgunsoftware.github.io/tk-core/', None),
+    'tk-framework-qtwidgets' : ('http://shotgunsoftware.github.io/tk-framework-qtwidgets/', None),
+    'tk-framework-shotgunutils' : ('http://shotgunsoftware.github.io/tk-framework-shotgunutils/', None),
+    'tk-framework-login' : ('http://shotgunsoftware.github.io/tk-framework-login/', None),
+    'tk-framework-adminui' : ('http://shotgunsoftware.github.io/tk-framework-adminui/', None),
+    'tk-framework-perforce' : ('http://shotgunsoftware.github.io/tk-framework-perforce/', None),
     }
