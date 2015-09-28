@@ -34,8 +34,24 @@ import shlex
 # auto-doc. 
 from PySide import QtCore, QtGui
 import sgtk
+import tank
 sgtk.platform.qt.QtCore = QtCore
 sgtk.platform.qt.QtGui = QtGui
+
+# some frameworks import other frameworks and this means that they have 
+# an import_framework method call that executes right at load time.
+# this method requires a running sgtk platform and will prevent 
+# sphinx to run its introspection, so we need to replace these import
+# methods with pass-through method in order to run autodoc.
+def nop(*args, **kwargs):
+    """
+    No operation proxy
+    """
+    pass
+    
+tank.platform.import_framework = nop
+sgtk.platform.import_framework = nop
+
 
 # -- General configuration ------------------------------------------------
 
@@ -240,3 +256,5 @@ intersphinx_mapping = {
     'tk-framework-adminui' : ('http://shotgunsoftware.github.io/tk-framework-adminui/', None),
     'tk-framework-perforce' : ('http://shotgunsoftware.github.io/tk-framework-perforce/', None),
     }
+
+    
