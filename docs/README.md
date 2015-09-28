@@ -19,6 +19,15 @@ If you want to edit the core documentation, you'll find it in `/path/to/tk-core/
 
 For apps, engines and framework requiring API documentation, create a `docs` folder and add `.rst` files in that location as needed.
 
+Execute the doc generation script and pass the version number and location of the item you are generating docs for:
+
+```
+> python /path/to/tk-core/docs/make_docs.py --version=v1.2.3 --bundle=/path/to/tk-framework-xyz
+```
+
+Documentation will be generated in `/path/to/tk-framework-xyz/docs/build`.
+
+
 
 ## Referencing other classes
 
