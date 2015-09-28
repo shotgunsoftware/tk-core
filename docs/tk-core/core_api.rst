@@ -14,3 +14,8 @@ Creating an API Instance
 .. autofunction:: sgtk_from_path
 
 .. autofunction:: sgtk_from_entity
+
+.. autoclass:: Sgtk
+
+
+.. autoclass:: sgtk.platform.Application
