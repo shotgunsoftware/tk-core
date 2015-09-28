@@ -219,6 +219,13 @@ html_show_sourcelink = False
 # implements a search results scorer. If empty, the default will be used.
 #html_search_scorer = 'scorer.js'
 
+# toolkit modification:
+# this tells sphinx to include both the doc string from __init__
+# and from the class doc string when creating the doc chunk for a 
+# class. Without this set, the constructor parameters cannot easily be
+# documented.
+autoclass_content = "both"
+
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'tkdoc'
 
