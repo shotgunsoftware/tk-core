@@ -92,7 +92,7 @@ class InstallAppAction(Action):
             log.info("> tank install_app environment_name engine_name /path/on/disk")
             log.info("")
             log.info("For more information about app development, see "
-                     "https://toolkit.shotgunsoftware.com/entries/22275546")
+                     "https://support.shotgunsoftware.com/entries/95440137")
             log.info("")
             log.info("")
             
@@ -130,7 +130,7 @@ class InstallAppAction(Action):
                      "toolkit distribution and have gone through our quality control process. "
                      "To see all apps and engines in the Toolkit App Store, navigate here:")
             log.info("")
-            log.info("https://toolkit.shotgunsoftware.com/entries/23874562")
+            log.info("https://support.shotgunsoftware.com/entries/95441247")
             log.info("")
             log.info("To install an app store app, use the following syntax:")
             log.info("> tank install_app environment_name engine_name app_name")
@@ -358,7 +358,7 @@ class InstallEngineAction(Action):
                      "toolkit distribution and have gone through our quality control process. "
                      "To see all apps and engines in the Toolkit App Store, navigate here:")
             log.info("")
-            log.info("https://toolkit.shotgunsoftware.com/entries/23874562")
+            log.info("https://support.shotgunsoftware.com/entries/95441247")
             log.info("")
             log.info("To install an app store engine, use the following syntax:")
             log.info("> tank install_engine environment_name engine_name")

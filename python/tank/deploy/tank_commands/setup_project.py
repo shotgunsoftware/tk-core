@@ -256,7 +256,7 @@ class SetupProjectAction(Action):
         log.info("versions of all apps and engines for this project.")
         log.info("")
         log.info("For more Apps, Support, Documentation and the Toolkit Community, go to")
-        log.info("https://toolkit.shotgunsoftware.com")
+        log.info("https://support.shotgunsoftware.com")
         log.info("")        
         
         
