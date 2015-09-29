@@ -17,10 +17,25 @@ from __future__ import with_statement
 from tank import TankError
 import copy
 import datetime
-import time
 from mock import patch
 from tank_test.tank_test_base import *
-from tank.templatekey import TemplateKey, StringKey, IntegerKey, SequenceKey, TimestampKey, make_keys
+from tank.templatekey import StringKey, IntegerKey, SequenceKey, TimestampKey, make_keys
+
+
+class TestTemplateKey(TankTestBase):
+    """
+    Tests functionality common to all key classes.
+    """
+
+    def test_override_default_at_runtime(self):
+        """
+        Makes sure that a key's default can be overriden at runtime.
+        """
+        sk = SequenceKey("sequencekey", format_spec="04")
+        self.assertEquals(sk.default, "%04d")
+        sk.default = "%03d"
+        self.assertEquals(sk.default, "%03d")
+
 
 class TestStringKey(TankTestBase):
     def setUp(self):

@@ -92,6 +92,15 @@ class TemplateKey(object):
         else:
             return self._default
 
+    @default.setter
+    def default(self, value):
+        """
+        Sets the default value for this key.
+
+        :param value: New default value for the key. Can be None.
+        """
+        self._default = value
+
     @property
     def choices(self):
         """
