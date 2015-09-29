@@ -115,7 +115,7 @@ def _from_entity(entity_type, entity_id, force_reread_shotgun_cache):
             # is the primary.
             raise TankError("More than one primary pipeline configuration is associated "
                             "with the entity %s %s: %s - Please contact support at "
-                            "toolkitsupport@shotgunsoftware.com." % (entity_type, entity_id, primary_pc_paths))
+                            "support@shotgunsoftware.com." % (entity_type, entity_id, primary_pc_paths))
 
         # looks good, we got a primary pipeline config that exists
         return PipelineConfiguration(primary_pc_paths[0])

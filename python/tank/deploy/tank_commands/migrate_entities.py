@@ -1396,7 +1396,7 @@ class MigratePublishedFileEntitiesAction(Action):
         log.info("- Update any custom apps or hooks you are using to support the new 'PublishedFile' "
                  "entity types.")
         log.info("")
-        log.info("If you are unsure about any of this, please contact toolkitsupport@shotgunsoftware.com!")
+        log.info("If you are unsure about any of this, please contact support@shotgunsoftware.com!")
         
         # now, after all that are they ready to start?
         num_entities_to_migrate = 0
@@ -1705,7 +1705,7 @@ class MigratePublishedFileEntitiesAction(Action):
         
         log.info("")
         log.info("Finally, if you have any problems with this migration, please contact: "
-                 "toolkitsupport@shotgunsoftware.com")
+                 "support@shotgunsoftware.com")
         log.info("")
         
 

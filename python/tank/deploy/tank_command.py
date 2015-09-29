@@ -221,7 +221,7 @@ class SgtkSystemCommand(object):
         # only commands of type GLOBAL, TK_INSTANCE are currently supported
         if self.__internal_action_obj.mode not in (Action.GLOBAL, Action.TK_INSTANCE):
             raise TankError("The command %r is not of a type which is supported by Toolkit. "
-                            "Please contact support on toolkitsupport@shotgunsoftware.com" % self.__internal_action_obj)
+                            "Please contact support on support@shotgunsoftware.com" % self.__internal_action_obj)
         
         # make sure we pass a tk api for actions that require it
         if self.__internal_action_obj.mode == Action.TK_INSTANCE and tk is None:

@@ -361,7 +361,7 @@ def _upgrade_tank_cmd_binaries(sgtk_install_root, log):
             
         except Exception, e:
             log.error("\n   Could not upgrade Pipeline Configuration '%s'! Please contact "
-                      "toolkitsupport@shotgunsoftware.com.\nError: %s\n\n\n" % (str(pc), e))
+                      "support@shotgunsoftware.com.\nError: %s\n\n\n" % (str(pc), e))
 
 
 def upgrade_tank(sgtk_install_root, log):
@@ -382,7 +382,7 @@ def upgrade_tank(sgtk_install_root, log):
         # so that we can advise that they reinstall their setup from scratch.     
         if __is_upgrade(sgtk_install_root) and __current_version_less_than(log, sgtk_install_root, "v0.13.16"):
             log.error("You are running a very old version of the Toolkit Core API. Automatic upgrades "
-                      "are no longer supported. Please contact toolkitsupport@shotgunsoftware.com.")
+                      "are no longer supported. Please contact support@shotgunsoftware.com.")
             return
 
         # Make sure the tank.bat and tank scripts are up to date:
