@@ -320,7 +320,8 @@ class AppDescriptor(object):
         shared = md.get("shared")
         # always return a bool
         if shared is None:
-            shared = False
+            # frameworks are now shared by default unless you opt out.
+            shared = True
         return shared
 
     ###############################################################################################

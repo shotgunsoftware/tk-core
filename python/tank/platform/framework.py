@@ -166,17 +166,9 @@ def setup_frameworks(engine_obj, parent_obj, env, parent_descriptor):
         
         engine_obj.log_debug("%s - loading framework %s" % (parent_obj, fw_inst_name))
         
-        # try to get a shared instance for this framework
-        fw_obj = engine_obj._get_shared_framework(fw_inst_name)
-
-        if fw_obj is None:
-            # load framework
-            # this only occurs once per instance name for shared frameworks
-            fw_obj = load_framework(engine_obj, env, fw_inst_name)
-
-            if fw_obj.is_shared:
-                # register this framework for reuse by other bundles
-                engine_obj._register_shared_framework(fw_inst_name, fw_obj)
+        # load framework
+        # this only occurs once per instance name for shared frameworks
+        fw_obj = load_framework(engine_obj, env, fw_inst_name)
         
         # note! frameworks are keyed by their code name, not their instance name
         parent_obj.frameworks[fw_obj.name] = fw_obj
@@ -239,17 +231,17 @@ def load_framework(engine_obj, env, fw_instance_name):
         # initialize fw class
         fw = _create_framework_instance(engine_obj, descriptor, fw_settings, env)
 
-        # load any frameworks required by the framework :)
-        setup_frameworks(engine_obj, fw, env, descriptor)
-
-        # and run the init
-        fw.init_framework()
-
         # if it's a shared framework then add it to the engine so we can re-use it
         # again in the future if needed:
         if fw.is_shared:
             # register this framework for reuse by other bundles
             engine_obj._register_shared_framework(fw_instance_name, fw)
+
+        # load any frameworks required by the framework :)
+        setup_frameworks(engine_obj, fw, env, descriptor)
+
+        # and run the init
+        fw.init_framework()
 
     except Exception, e:
         raise TankError("Framework %s failed to initialize: %s" % (descriptor, e))
