@@ -1,5 +1,7 @@
 
 
+
+
 <!DOCTYPE html>
 <!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
@@ -8,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Toolkit Core API &mdash; Shotgun Pipeline Toolkit v1.2.3 documentation</title>
+  <title>Toolkit Core API &mdash; tk-core 31455_sphinx_api_docs documentation</title>
   
 
   
@@ -30,9 +32,9 @@
   
 
   
-    <link rel="top" title="Shotgun Pipeline Toolkit v1.2.3 documentation" href="index.html"/>
-        <link rel="next" title="Welcome to tk-core’s documentation!" href="platform_api.html"/>
-        <link rel="prev" title="Welcome to tk-core’s documentation!" href="index.html"/> 
+    <link rel="top" title="tk-core 31455_sphinx_api_docs documentation" href="index.html"/>
+        <link rel="next" title="Toolkit Platform API" href="platform_api.html"/>
+        <link rel="prev" title="Shotgun Pipeline Toolkit Core API" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -48,21 +50,20 @@
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search">
           
+    <img style='width: 191px; 
+                height: 60px; 
+                border-radius: 0px; 
+                padding: 0px;' 
+         src='./_static/logo@2x.png'/>
+    
 
           
-            <a href="index.html" class="icon icon-home"> Shotgun Pipeline Toolkit
+            <a href="index.html" class="icon icon-home"> tk-core
           
 
           
           </a>
 
-          
-            
-            
-              <div class="version">
-                v1.2.3
-              </div>
-            
           
 
           
@@ -75,10 +76,12 @@
 </div>
 
           
+
         </div>
 
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
+    
             
             
                 <ul class="current">
@@ -86,13 +89,39 @@
 <li class="toctree-l2"><a class="reference internal" href="#creating-an-api-instance">Creating an API Instance</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="platform_api.html">Welcome to tk-core&#8217;s documentation!</a></li>
-<li class="toctree-l1"><a class="reference internal" href="filesystem_configuration.html">Welcome to tk-core&#8217;s documentation!</a></li>
-<li class="toctree-l1"><a class="reference internal" href="environment_configuration.html">Welcome to tk-core&#8217;s documentation!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="platform_api.html">Toolkit Platform API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filesystem_configuration.html">Configuring the file system</a></li>
+<li class="toctree-l1"><a class="reference internal" href="environment_configuration.html">Configuration the Environment</a></li>
 </ul>
 
             
           
+       
+    <div style='margin-top: 50px;
+                margin-left: 10px;
+                margin-right: 10px;
+                padding: 10px; 
+                color: #b3b3b3; 
+                font-size: 70%;
+                border-radius: 3px;
+                background-color: #444;
+                line-height: 18px;
+                '>    
+    <style>
+        a.custom_post_menu { display: inline; 
+                             padding: 0px; 
+                             text-decoration: underline; }
+    </style>
+
+    <b>tk-core</b> 31455_sphinx_api_docs.<br>
+    This documentation is part of the Shotgun Pipeline Toolkit. 
+    For more information, please visit 
+    <a class=custom_post_menu href='https://support.shotgunsoftware.com/home'>Shotgun Support</a>.
+    The code associated with this documentation can be found 
+    <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
+
+    </div>
+
         </div>
       </div>
     </nav>
@@ -102,7 +131,7 @@
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="index.html">Shotgun Pipeline Toolkit</a>
+        <a href="index.html">tk-core</a>
       </nav>
 
 
@@ -150,18 +179,6 @@ identify the key sections in a path and how to access Shotgun.</p>
 <dd><p>Create a Sgtk API instance based on a path inside a project.</p>
 </dd></dl>
 
-<dl class="attribute">
-<dt id="sgtk.Sgtk">
-<code class="descclassname">sgtk.</code><code class="descname">Sgtk</code><a class="headerlink" href="#sgtk.Sgtk" title="Permalink to this definition">¶</a></dt>
-<dd><p>alias of <code class="xref py py-class docutils literal"><span class="pre">Tank</span></code></p>
-</dd></dl>
-
-<dl class="class">
-<dt id="sgtk.platform.Application">
-<em class="property">class </em><code class="descclassname">sgtk.platform.</code><code class="descname">Application</code><span class="sig-paren">(</span><em>engine</em>, <em>descriptor</em>, <em>settings</em>, <em>instance_name</em>, <em>env</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/application.html#Application"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Application" title="Permalink to this definition">¶</a></dt>
-<dd><p>Base class for an app in Tank.</p>
-</dd></dl>
-
 </div>
 </div>
 
@@ -172,10 +189,10 @@ identify the key sections in a path and how to access Shotgun.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="platform_api.html" class="btn btn-neutral float-right" title="Welcome to tk-core’s documentation!" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="platform_api.html" class="btn btn-neutral float-right" title="Toolkit Platform API" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="index.html" class="btn btn-neutral" title="Welcome to tk-core’s documentation!" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="index.html" class="btn btn-neutral" title="Shotgun Pipeline Toolkit Core API" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -187,8 +204,7 @@ identify the key sections in a path and how to access Shotgun.</p>
         &copy; Copyright 2015, Autodesk.
 
     </p>
-  </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  </div> 
 
 </footer>
 
@@ -206,7 +222,7 @@ identify the key sections in a path and how to access Shotgun.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v1.2.3',
+            VERSION:'31455_sphinx_api_docs',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
