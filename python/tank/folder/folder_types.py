@@ -255,13 +255,18 @@ class Folder(object):
             # defer create for all engine_strs!
             return True
         
-        if isinstance(dc_value, basestring) and dc_value == engine_str:
-            # defer_creation parameter is a string and this matches the engine_str!
-            return True
-        
-        if isinstance(dc_value, list) and engine_str in dc_value:
-            # defer_creation parameter is a list and the engine_str is contained in this list
-            return True
+        # multiple values can be provided in engine_str by delimiting them with a comma
+        # (eg. 'tk-nuke, tk-myApp'). Split them and remove whitespace (eg. ['tk-nuke', 'tk-myApp']) 
+        # then check each one for a match. If *any* of them match then return True to process!
+        engine_str_list = [x.strip() for x in engine_str.split(",")]
+        for engine_str_val in engine_str_list:
+            if isinstance(dc_value, basestring) and dc_value == engine_str_val:
+                # defer_creation parameter is a string and this matches the engine_str_val!
+                return True
+            
+            if isinstance(dc_value, list) and engine_str_val in dc_value:
+                # defer_creation parameter is a list and the engine_str_val is contained in this list
+                return True
         
         # for all other cases, no match!
         return False
