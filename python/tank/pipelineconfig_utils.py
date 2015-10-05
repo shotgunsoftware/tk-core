@@ -152,15 +152,21 @@ def sanitize_path(path, separator=os.path.sep):
     Double slashes are removed:
     1. //foo//bar    - /foo/bar
     2. \\foo\\bar    - \\foo\bar
-    
+
+    Leading and trailing spaces are removed:
+    1. "   z:\foo  " - "Z:\foo"
+
     :param path: the path to clean up
     :param separator: the os.sep to adjust the path for. / on nix, \ on win.
     :returns: cleaned up path
     """
     if path is None:
         return None
-    
-    # first, get rid of any slashes at the end
+
+    # ensure there is no white space around the path
+    path = path.strip()
+
+    # get rid of any slashes at the end
     # after this step, path value will be "/foo/bar", "c:" or "\\hello"
     path = path.rstrip("/\\")
     
@@ -298,14 +304,10 @@ def get_config_install_location(path):
     :param path: Path to a pipeline configuration on disk.
     :returns: registered path, may be None.
     """
-    # do a bit of cleanup of the input data
-    # ensure there is no white space around the path
-    path = path.strip()
-    # strip trailing slashes 
-    path = path.rstrip("\\/")
     # resolve
     locations = _get_install_locations(path)
-    return locations[sys.platform]
+    # do a bit of cleanup of the input data
+    return sanitize_path(locations[sys.platform])
 
 def _get_install_locations(path):
     """

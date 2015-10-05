@@ -79,8 +79,7 @@ class TemplateKey(object):
         if not all(self.validate(choice) for choice in self.choices):
             raise TankError(self._last_error)
 
-    @property
-    def default(self):
+    def _get_default(self):
         """
         Returns the default value for this key. If the default argument was specified
         as a callable in the constructor, it is invoked and assumed to take no parameters.
@@ -91,6 +90,17 @@ class TemplateKey(object):
             return self._default()
         else:
             return self._default
+
+    def _set_default(self, value):
+        """
+        Sets the default value for this key.
+
+        :param value: New default value for the key. Can be None.
+        """
+        self._default = value
+
+    # Python 2.5 doesn't support @default.setter so use old style property.
+    default = property(_get_default, _set_default)
 
     @property
     def choices(self):

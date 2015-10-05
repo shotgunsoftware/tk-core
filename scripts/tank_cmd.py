@@ -1054,7 +1054,7 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
     log.info("")
 
     log.info("Welcome to the Shotgun Pipeline Toolkit!")
-    log.info("For documentation, see https://toolkit.shotgunsoftware.com")
+    log.info("For documentation, see https://support.shotgunsoftware.com")
 
     # Now create a tk instance and a context if possible
     ctx = None
