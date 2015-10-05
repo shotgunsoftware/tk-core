@@ -169,7 +169,9 @@ class TestUpdateEnvironment(TankTestBase):
         fh.close()
         prev_settings = self.env.get_engine_settings("test_engine")
         
-        self.env.update_engine_settings("test_engine", {"foo":"bar"}, {"type":"dev", "path":"foo"})
+        self.env.update_engine_settings("test_engine", 
+                                        {"foo": u"bar"}, 
+                                        {"type": "dev", "path": "foo"})
         
         # get raw environment after
         env_file = os.path.join(self.project_config, "env", "test.yml")
