@@ -18,6 +18,7 @@ import sys
 import copy
 
 from tank_vendor import yaml
+from tank_vendor import ruamel_yaml
 from . import constants
 from . import environment_includes
 from ..errors import TankError
@@ -498,6 +499,9 @@ class WritableEnvironment(Environment):
         """
         Constructor
         """
+        # flag to indicate with yaml parser to use.
+        self._use_ruamel_yaml_parser = False
+        
         Environment.__init__(self, env_path, pipeline_config, context)
 
     def __load_writable_yaml(self, path):
@@ -513,15 +517,19 @@ class WritableEnvironment(Environment):
             raise TankError("Could not open file '%s'. Error reported: '%s'" % (path, e))
         
         try:
-            # note that we use the RoundTripLoader loader here. This ensures
-            # that structure and comments are preserved when the yaml is
-            # written back to disk.
-            #
-            # the object returned back is a dictionary-like object
-            # which also holds the additional contextual metadata
-            # required by the parse to maintain the lexical integrity
-            # of the content.
-            yaml_data = yaml.load(fh, yaml.RoundTripLoader)
+            if self._use_ruamel_yaml_parser:
+                # note that we use the RoundTripLoader loader here. This ensures
+                # that structure and comments are preserved when the yaml is
+                # written back to disk.
+                #
+                # the object returned back is a dictionary-like object
+                # which also holds the additional contextual metadata
+                # required by the parse to maintain the lexical integrity
+                # of the content.
+                yaml_data = ruamel_yaml.load(fh, ruamel_yaml.RoundTripLoader)
+            else:
+                # use pyyaml parser
+                yaml_data = yaml.load(fh)
         except Exception, e:
             raise TankError("Could not parse file '%s'. Error reported: '%s'" % (path, e))
         finally:
@@ -544,27 +552,47 @@ class WritableEnvironment(Environment):
                             "Error reported: '%s'" % (path, e))
         
         try:
-            # note that we are using the RoundTripDumper in order to 
-            # preserve the structure when writing the file to disk.
-            #
-            # the default_flow_style=False tells the parse to write
-            # any modified values on multi-line form, e.g.
-            # 
-            # foo:
-            #   bar: 3
-            #   baz: 4
-            #
-            # rather than
-            #
-            # foo: { bar: 3, baz: 4 }
-            #
-            yaml.dump(data, fh, default_flow_style=False, Dumper=yaml.RoundTripDumper)
+            if self._use_ruamel_yaml_parser:
+                # note that we are using the RoundTripDumper in order to 
+                # preserve the structure when writing the file to disk.
+                #
+                # the default_flow_style=False tells the parse to write
+                # any modified values on multi-line form, e.g.
+                # 
+                # foo:
+                #   bar: 3
+                #   baz: 4
+                #
+                # rather than
+                #
+                # foo: { bar: 3, baz: 4 }
+                #
+                ruamel_yaml.dump(data, 
+                                 fh, 
+                                 default_flow_style=False, 
+                                 Dumper=ruamel_yaml.RoundTripDumper)
+            else:
+                # use pyyaml parser
+                yaml.dump(data, fh, default_flow_style=False)
+                
         except Exception, e:
             raise TankError("Could not write to environment file '%s'. "
                             "Error reported: %s" % (path, e))
         finally:
             fh.close()
 
+    def use_new_yaml_parser(self, val):
+        """
+        If set to true, the ruamel parser will be used instead of the 
+        traditional pyyaml one. This parser will preserve structure and 
+        comments and generally try to more gracefully update the yaml 
+        content
+        
+        :param val: True to enable new parser, false to disable 
+        
+        """
+        self._use_ruamel_yaml_parser = val
+        
         
     def update_engine_settings(self, engine_name, new_data, new_location):
         """
