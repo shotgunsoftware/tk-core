@@ -170,7 +170,7 @@ class TestUpdateEnvironment(TankTestBase):
         prev_settings = self.env.get_engine_settings("test_engine")
         
         self.env.update_engine_settings("test_engine", 
-                                        {"foo": u"bar"}, 
+                                        {"foo": u"bar"},
                                         {"type": "dev", "path": "foo"})
         
         # get raw environment after
@@ -184,6 +184,9 @@ class TestUpdateEnvironment(TankTestBase):
         env_before["engines"]["test_engine"]["foo"] = "bar"
         env_before["engines"]["test_engine"]["location"] = {"type":"dev", "path":"foo"}
         self.assertEqual(env_after, env_before)
+        
+        # #31315 - make sure the u"bar" unicode was converted to str
+        self.assertEqual(type(env_after["engines"]["test_engine"]["foo"]), str)
         
         # ensure memory was updated
         new_settings = self.env.get_engine_settings("test_engine")
