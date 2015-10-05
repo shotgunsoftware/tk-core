@@ -114,11 +114,11 @@ class AppUpdatesAction(Action):
             log.info("- The special keyword ALL can be used to denote all items in a category.")
             log.info("")
             log.info("- If you want to update an external configuration instead of the current project, "
-                     " pass in a path via the --external flag.")
+                     "pass in a path via the --external flag.")
             log.info("")
             log.info("- If you add a --preserve-yaml flag, existing comments and "
-                     " structure will be preserved as the yaml files are updated. "
-                     " This is an experimental setting and therefore disabled by default.")
+                     "structure will be preserved as the yaml files are updated. "
+                     "This is an experimental setting and therefore disabled by default.")
             log.info("")
             log.info("")
             log.info("")
@@ -169,6 +169,7 @@ class AppUpdatesAction(Action):
                 if external_path == "":
                     log.error("You need to specify a path to a toolkit configuration!")
                     return        
+
         # look for an --preserve-yaml flag
         if "--preserve-yaml" in args:
             preserve_yaml = True

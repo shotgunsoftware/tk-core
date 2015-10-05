@@ -88,9 +88,20 @@ class SwitchAppAction(Action):
             log.info("")
             log.info("")
             log.info("For a list of environments, engines and apps, run the app_info command.")
-            log.info("")
+            log.info("")            
+            log.info("If you add a --preserve-yaml flag, existing comments and "
+                     "structure will be preserved as the yaml files are updated. "
+                     "This is an experimental setting and therefore disabled by default.")
             log.info("")
             return
+
+        # look for an --preserve-yaml flag
+        if "--preserve-yaml" in args:
+            preserve_yaml = True
+            args.remove("--preserve-yaml")
+            log.info("Using yaml parser which preserves structure and comments.")
+        else:
+            preserve_yaml = False        
 
         # get parameters
         env_name = args[0]
@@ -110,11 +121,10 @@ class SwitchAppAction(Action):
             mode = "dev"
             path = fourth_param
         
-        
-        
         # find locator
         try:
             env = self.tk.pipeline_configuration.get_environment(env_name, writable=True)
+            env.use_preserving_yaml_parser(preserve_yaml)
         except Exception, e:
             raise TankError("Environment '%s' could not be loaded! Error reported: %s" % (env_name, e))
     
