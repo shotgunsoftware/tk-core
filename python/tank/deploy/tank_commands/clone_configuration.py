@@ -71,7 +71,11 @@ class CloneConfigAction(Action):
         
     def run_noninteractive(self, log, parameters):
         """
-        API accessor
+        Tank command API accessor. 
+        Called when someone runs a tank command through the core API.
+        
+        :param log: std python logger
+        :param parameters: dictionary with tank command parameters
         """
 
         # validate params and seed default values
@@ -91,6 +95,9 @@ class CloneConfigAction(Action):
     def run_interactive(self, log, args):
         """
         Tank command accessor
+        
+        :param log: std python logger
+        :param args: command line args
         """
         raise TankError("This Action does not support command line access")
 

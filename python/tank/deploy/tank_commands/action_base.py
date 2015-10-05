@@ -162,13 +162,15 @@ class Action(object):
         
     def run_interactive(self, log, args):
         """
-        Run this API in interactive mode. This mode may prompt the user for input via stdin.
+        Run this API in interactive mode. 
+        This mode may prompt the user for input via stdin.
         """
         raise NotImplementedError
              
     def run_noninteractive(self, log, parameters):
         """
-        Run non-interactive. Needs to be implemented if the supports_api property is set to True.
+        Run non-interactive. 
+        Needs to be implemented if the supports_api property is set to True.
         """
         raise NotImplementedError
         

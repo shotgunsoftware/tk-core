@@ -35,22 +35,34 @@ class AppUpdatesAction(Action):
         self.parameters["environment_filter"] = { "description": "Name of environment to check.",
                                                   "default": "ALL",
                                                   "type": "str" }
+        
         self.parameters["engine_filter"] = { "description": "Name of engine to check.",
                                              "default": "ALL",
                                              "type": "str" }
+        
         self.parameters["app_filter"] = { "description": "Name of app to check.",
                                           "default": "ALL",
                                           "type": "str" }
+        
         self.parameters["external"] = { "description": "Specify an external config to update.",
                                         "default": None,
                                         "type": "str" }
+        
+        self.parameters["preserve_yaml"] = { "description": ("Enable alternative yaml parser that better preserves "
+                                                             "yaml structure and comments"),
+                                            "default": False,
+                                            "type": "bool" }        
         
         
         
         
     def run_noninteractive(self, log, parameters):
         """
-        API accessor
+        Tank command API accessor. 
+        Called when someone runs a tank command through the core API.
+        
+        :param log: std python logger
+        :param parameters: dictionary with tank command parameters
         """
         # validate params and seed default values
         computed_params = self._validate_parameters(parameters) 
@@ -74,6 +86,9 @@ class AppUpdatesAction(Action):
     def run_interactive(self, log, args):
         """
         Tank command accessor
+        
+        :param log: std python logger
+        :param args: command line args
         """
                 
         if len(args) == 0:

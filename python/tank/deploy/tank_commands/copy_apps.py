@@ -50,7 +50,11 @@ class CopyAppsAction(Action):
 
     def run_noninteractive(self, log, parameters):
         """
-        API accessor
+        Tank command API accessor. 
+        Called when someone runs a tank command through the core API.
+        
+        :param log: std python logger
+        :param parameters: dictionary with tank command parameters
         """
         computed_params = self._validate_parameters(parameters)
 
@@ -64,6 +68,9 @@ class CopyAppsAction(Action):
     def run_interactive(self, log, args):
         """
         Tank command accessor
+        
+        :param log: std python logger
+        :param args: command line args
         """
 
         if len(args) != 3:
