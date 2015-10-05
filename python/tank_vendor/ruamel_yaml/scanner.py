@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+from __future__ import print_function
 
 # Scanner produces tokens of the following types:
 # STREAM-START
@@ -21,16 +23,22 @@
 # TAG(value)
 # SCALAR(value, plain, style)
 #
+# RoundTripScanner
+# COMMENT(value)
+#
 # Read comments in the Scanner code for more details.
 #
 
-__all__ = ['Scanner', 'ScannerError']
+__all__ = ['Scanner', 'RoundTripScanner', 'ScannerError']
 
-from error import MarkedYAMLError
-from tokens import *
+from .error import MarkedYAMLError
+from .tokens import *
+from .compat import utf8, unichr, PY3
+
 
 class ScannerError(MarkedYAMLError):
     pass
+
 
 class SimpleKey(object):
     # See below simple keys treatment.
@@ -43,6 +51,7 @@ class SimpleKey(object):
         self.column = column
         self.mark = mark
 
+
 class Scanner(object):
 
     def __init__(self):
@@ -52,9 +61,9 @@ class Scanner(object):
         # input data to Unicode. It also adds NUL to the end.
         #
         # Reader supports the following methods
-        #   self.peek(i=0)       # peek the next i-th character
-        #   self.prefix(l=1)     # peek the next l characters
-        #   self.forward(l=1)    # read the next l characters and move the pointer.
+        #   self.peek(i=0)    # peek the next i-th character
+        #   self.prefix(l=1)  # peek the next l characters
+        #   self.forward(l=1) # read the next l characters and move the pointer
 
         # Had we reached the end of the stream?
         self.done = False
@@ -153,7 +162,10 @@ class Scanner(object):
     def fetch_more_tokens(self):
 
         # Eat whitespaces and comments until we reach the next token.
-        self.scan_to_next_token()
+        comment = self.scan_to_next_token()
+
+        if comment is not None:  # never happens for base scanner
+            return self.fetch_comment(comment)
 
         # Remove obsolete possible simple keys.
         self.stale_possible_simple_keys()
@@ -182,8 +194,8 @@ class Scanner(object):
             return self.fetch_document_end()
 
         # TODO: support for BOM within a stream.
-        #if ch == u'\uFEFF':
-        #    return self.fetch_bom()    <-- issue BOMToken
+        # if ch == u'\uFEFF':
+        #     return self.fetch_bom()    <-- issue BOMToken
 
         # Note: the order of the following checks is NOT significant.
 
@@ -253,8 +265,8 @@ class Scanner(object):
 
         # No? It's an error. Let's produce a nice error message.
         raise ScannerError("while scanning for the next token", None,
-                "found character %r that cannot start any token"
-                % ch.encode('utf-8'), self.get_mark())
+                           "found character %r that cannot start any token"
+                           % utf8(ch), self.get_mark())
 
     # Simple keys treatment.
 
@@ -280,13 +292,14 @@ class Scanner(object):
         # - should be no longer than 1024 characters.
         # Disabling this procedure will allow simple keys of any length and
         # height (may cause problems if indentation is broken though).
-        for level in self.possible_simple_keys.keys():
+        for level in list(self.possible_simple_keys):
             key = self.possible_simple_keys[level]
             if key.line != self.line  \
                     or self.index-key.index > 1024:
                 if key.required:
-                    raise ScannerError("while scanning a simple key", key.mark,
-                            "could not found expected ':'", self.get_mark())
+                    raise ScannerError(
+                        "while scanning a simple key", key.mark,
+                        "could not find expected ':'", self.get_mark())
                 del self.possible_simple_keys[level]
 
     def save_possible_simple_key(self):
@@ -297,27 +310,25 @@ class Scanner(object):
         # Check if a simple key is required at the current position.
         required = not self.flow_level and self.indent == self.column
 
-        # A simple key is required only if it is the first token in the current
-        # line. Therefore it is always allowed.
-        assert self.allow_simple_key or not required
-
         # The next token might be a simple key. Let's save it's number and
         # position.
         if self.allow_simple_key:
             self.remove_possible_simple_key()
             token_number = self.tokens_taken+len(self.tokens)
-            key = SimpleKey(token_number, required,
-                    self.index, self.line, self.column, self.get_mark())
+            key = SimpleKey(
+                token_number, required,
+                self.index, self.line, self.column, self.get_mark())
             self.possible_simple_keys[self.flow_level] = key
 
     def remove_possible_simple_key(self):
         # Remove the saved possible key position at the current flow level.
         if self.flow_level in self.possible_simple_keys:
             key = self.possible_simple_keys[self.flow_level]
-            
+
             if key.required:
-                raise ScannerError("while scanning a simple key", key.mark,
-                        "could not found expected ':'", self.get_mark())
+                raise ScannerError(
+                    "while scanning a simple key", key.mark,
+                    "could not find expected ':'", self.get_mark())
 
             del self.possible_simple_keys[self.flow_level]
 
@@ -325,16 +336,17 @@ class Scanner(object):
 
     def unwind_indent(self, column):
 
-        ## In flow context, tokens should respect indentation.
-        ## Actually the condition should be `self.indent >= column` according to
-        ## the spec. But this condition will prohibit intuitively correct
-        ## constructions such as
-        ## key : {
-        ## }
-        #if self.flow_level and self.indent > column:
-        #    raise ScannerError(None, None,
-        #            "invalid intendation or unclosed '[' or '{'",
-        #            self.get_mark())
+        # In flow context, tokens should respect indentation.
+        # Actually the condition should be `self.indent >= column` according to
+        # the spec. But this condition will prohibit intuitively correct
+        # constructions such as
+        # key : {
+        # }
+        # ####
+        # if self.flow_level and self.indent > column:
+        #     raise ScannerError(None, None,
+        #             "invalid intendation or unclosed '[' or '{'",
+        #             self.get_mark())
 
         # In the flow context, indentation is ignored. We make the scanner less
         # restrictive then specification requires.
@@ -363,11 +375,10 @@ class Scanner(object):
 
         # Read the token.
         mark = self.get_mark()
-        
+
         # Add STREAM-START.
         self.tokens.append(StreamStartToken(mark, mark,
-            encoding=self.encoding))
-        
+                                            encoding=self.encoding))
 
     def fetch_stream_end(self):
 
@@ -381,7 +392,7 @@ class Scanner(object):
 
         # Read the token.
         mark = self.get_mark()
-        
+
         # Add STREAM-END.
         self.tokens.append(StreamEndToken(mark, mark))
 
@@ -389,7 +400,7 @@ class Scanner(object):
         self.done = True
 
     def fetch_directive(self):
-        
+
         # Set the current intendation to -1.
         self.unwind_indent(-1)
 
@@ -490,8 +501,8 @@ class Scanner(object):
             # Are we allowed to start a new entry?
             if not self.allow_simple_key:
                 raise ScannerError(None, None,
-                        "sequence entries are not allowed here",
-                        self.get_mark())
+                                   "sequence entries are not allowed here",
+                                   self.get_mark())
 
             # We may need to add BLOCK-SEQUENCE-START.
             if self.add_indent(self.column):
@@ -516,15 +527,15 @@ class Scanner(object):
         self.tokens.append(BlockEntryToken(start_mark, end_mark))
 
     def fetch_key(self):
-        
+
         # Block context needs additional checks.
         if not self.flow_level:
 
             # Are we allowed to start a key (not nessesary a simple)?
             if not self.allow_simple_key:
                 raise ScannerError(None, None,
-                        "mapping keys are not allowed here",
-                        self.get_mark())
+                                   "mapping keys are not allowed here",
+                                   self.get_mark())
 
             # We may need to add BLOCK-MAPPING-START.
             if self.add_indent(self.column):
@@ -547,26 +558,26 @@ class Scanner(object):
 
         # Do we determine a simple key?
         if self.flow_level in self.possible_simple_keys:
-
             # Add KEY.
             key = self.possible_simple_keys[self.flow_level]
             del self.possible_simple_keys[self.flow_level]
             self.tokens.insert(key.token_number-self.tokens_taken,
-                    KeyToken(key.mark, key.mark))
+                               KeyToken(key.mark, key.mark))
 
             # If this key starts a new block mapping, we need to add
             # BLOCK-MAPPING-START.
             if not self.flow_level:
                 if self.add_indent(key.column):
-                    self.tokens.insert(key.token_number-self.tokens_taken,
-                            BlockMappingStartToken(key.mark, key.mark))
+                    self.tokens.insert(
+                        key.token_number-self.tokens_taken,
+                        BlockMappingStartToken(key.mark, key.mark))
 
             # There cannot be two simple keys one after another.
             self.allow_simple_key = False
 
         # It must be a part of a complex key.
         else:
-            
+
             # Block context needs additional checks.
             # (Do we really need them? They will be catched by the parser
             # anyway.)
@@ -576,8 +587,8 @@ class Scanner(object):
                 # we can start a simple key.
                 if not self.allow_simple_key:
                     raise ScannerError(None, None,
-                            "mapping values are not allowed here",
-                            self.get_mark())
+                                       "mapping values are not allowed here",
+                                       self.get_mark())
 
             # If this value starts a new block mapping, we need to add
             # BLOCK-MAPPING-START.  It will be detected as an error later by
@@ -730,7 +741,6 @@ class Scanner(object):
             return self.peek(1) in u'\0 \t\r\n\x85\u2028\u2029'
 
     def check_plain(self):
-
         # A plain scalar may start with any non-space character except:
         #   '-', '?', ':', ',', '[', ']', '{', '}',
         #   '#', '&', '*', '!', '|', '>', '\'', '\"',
@@ -744,9 +754,9 @@ class Scanner(object):
         # '-' character) because we want the flow context to be space
         # independent.
         ch = self.peek()
-        return ch not in u'\0 \t\r\n\x85\u2028\u2029-?:,[]{}#&*!|>\'\"%@`'  \
-                or (self.peek(1) not in u'\0 \t\r\n\x85\u2028\u2029'
-                        and (ch == u'-' or (not self.flow_level and ch in u'?:')))
+        return ch not in u'\0 \t\r\n\x85\u2028\u2029-?:,[]{}#&*!|>\'\"%@`' \
+            or (self.peek(1) not in u'\0 \t\r\n\x85\u2028\u2029'
+                and (ch == u'-' or (not self.flow_level and ch in u'?:')))
 
     # Scanners.
 
@@ -808,21 +818,23 @@ class Scanner(object):
         # See the specification for details.
         length = 0
         ch = self.peek(length)
-        while u'0' <= ch <= u'9' or u'A' <= ch <= u'Z' or u'a' <= ch <= u'z'    \
-                or ch in u'-_':
+        while u'0' <= ch <= u'9' or u'A' <= ch <= u'Z' or u'a' <= ch <= u'z' \
+                or ch in u'-_:.':
             length += 1
             ch = self.peek(length)
         if not length:
-            raise ScannerError("while scanning a directive", start_mark,
-                    "expected alphabetic or numeric character, but found %r"
-                    % ch.encode('utf-8'), self.get_mark())
+            raise ScannerError(
+                "while scanning a directive", start_mark,
+                "expected alphabetic or numeric character, but found %r"
+                % utf8(ch), self.get_mark())
         value = self.prefix(length)
         self.forward(length)
         ch = self.peek()
         if ch not in u'\0 \r\n\x85\u2028\u2029':
-            raise ScannerError("while scanning a directive", start_mark,
-                    "expected alphabetic or numeric character, but found %r"
-                    % ch.encode('utf-8'), self.get_mark())
+            raise ScannerError(
+                "while scanning a directive", start_mark,
+                "expected alphabetic or numeric character, but found %r"
+                % utf8(ch), self.get_mark())
         return value
 
     def scan_yaml_directive_value(self, start_mark):
@@ -831,26 +843,29 @@ class Scanner(object):
             self.forward()
         major = self.scan_yaml_directive_number(start_mark)
         if self.peek() != '.':
-            raise ScannerError("while scanning a directive", start_mark,
-                    "expected a digit or '.', but found %r"
-                    % self.peek().encode('utf-8'),
-                    self.get_mark())
+            raise ScannerError(
+                "while scanning a directive", start_mark,
+                "expected a digit or '.', but found %r"
+                % utf8(self.peek()),
+                self.get_mark())
         self.forward()
         minor = self.scan_yaml_directive_number(start_mark)
         if self.peek() not in u'\0 \r\n\x85\u2028\u2029':
-            raise ScannerError("while scanning a directive", start_mark,
-                    "expected a digit or ' ', but found %r"
-                    % self.peek().encode('utf-8'),
-                    self.get_mark())
+            raise ScannerError(
+                "while scanning a directive", start_mark,
+                "expected a digit or ' ', but found %r"
+                % utf8(self.peek()),
+                self.get_mark())
         return (major, minor)
 
     def scan_yaml_directive_number(self, start_mark):
         # See the specification for details.
         ch = self.peek()
         if not (u'0' <= ch <= u'9'):
-            raise ScannerError("while scanning a directive", start_mark,
-                    "expected a digit, but found %r" % ch.encode('utf-8'),
-                    self.get_mark())
+            raise ScannerError(
+                "while scanning a directive", start_mark,
+                "expected a digit, but found %r" % utf8(ch),
+                self.get_mark())
         length = 0
         while u'0' <= self.peek(length) <= u'9':
             length += 1
@@ -874,8 +889,8 @@ class Scanner(object):
         ch = self.peek()
         if ch != u' ':
             raise ScannerError("while scanning a directive", start_mark,
-                    "expected ' ', but found %r" % ch.encode('utf-8'),
-                    self.get_mark())
+                               "expected ' ', but found %r" % utf8(ch),
+                               self.get_mark())
         return value
 
     def scan_tag_directive_prefix(self, start_mark):
@@ -884,8 +899,8 @@ class Scanner(object):
         ch = self.peek()
         if ch not in u'\0 \r\n\x85\u2028\u2029':
             raise ScannerError("while scanning a directive", start_mark,
-                    "expected ' ', but found %r" % ch.encode('utf-8'),
-                    self.get_mark())
+                               "expected ' ', but found %r" % utf8(ch),
+                               self.get_mark())
         return value
 
     def scan_directive_ignored_line(self, start_mark):
@@ -897,9 +912,10 @@ class Scanner(object):
                 self.forward()
         ch = self.peek()
         if ch not in u'\0\r\n\x85\u2028\u2029':
-            raise ScannerError("while scanning a directive", start_mark,
-                    "expected a comment or a line break, but found %r"
-                        % ch.encode('utf-8'), self.get_mark())
+            raise ScannerError(
+                "while scanning a directive", start_mark,
+                "expected a comment or a line break, but found %r"
+                % utf8(ch), self.get_mark())
         self.scan_line_break()
 
     def scan_anchor(self, TokenClass):
@@ -920,21 +936,23 @@ class Scanner(object):
         self.forward()
         length = 0
         ch = self.peek(length)
-        while u'0' <= ch <= u'9' or u'A' <= ch <= u'Z' or u'a' <= ch <= u'z'    \
+        while u'0' <= ch <= u'9' or u'A' <= ch <= u'Z' or u'a' <= ch <= u'z' \
                 or ch in u'-_':
             length += 1
             ch = self.peek(length)
         if not length:
-            raise ScannerError("while scanning an %s" % name, start_mark,
-                    "expected alphabetic or numeric character, but found %r"
-                    % ch.encode('utf-8'), self.get_mark())
+            raise ScannerError(
+                "while scanning an %s" % name, start_mark,
+                "expected alphabetic or numeric character, but found %r"
+                % utf8(ch), self.get_mark())
         value = self.prefix(length)
         self.forward(length)
         ch = self.peek()
         if ch not in u'\0 \t\r\n\x85\u2028\u2029?:,]}%@`':
-            raise ScannerError("while scanning an %s" % name, start_mark,
-                    "expected alphabetic or numeric character, but found %r"
-                    % ch.encode('utf-8'), self.get_mark())
+            raise ScannerError(
+                "while scanning an %s" % name, start_mark,
+                "expected alphabetic or numeric character, but found %r"
+                % utf8(ch), self.get_mark())
         end_mark = self.get_mark()
         return TokenClass(value, start_mark, end_mark)
 
@@ -947,9 +965,10 @@ class Scanner(object):
             self.forward(2)
             suffix = self.scan_tag_uri('tag', start_mark)
             if self.peek() != u'>':
-                raise ScannerError("while parsing a tag", start_mark,
-                        "expected '>', but found %r" % self.peek().encode('utf-8'),
-                        self.get_mark())
+                raise ScannerError(
+                    "while parsing a tag", start_mark,
+                    "expected '>', but found %r" % utf8(self.peek()),
+                    self.get_mark())
             self.forward()
         elif ch in u'\0 \t\r\n\x85\u2028\u2029':
             handle = None
@@ -974,8 +993,8 @@ class Scanner(object):
         ch = self.peek()
         if ch not in u'\0 \r\n\x85\u2028\u2029':
             raise ScannerError("while scanning a tag", start_mark,
-                    "expected ' ', but found %r" % ch.encode('utf-8'),
-                    self.get_mark())
+                               "expected ' ', but found %r" % utf8(ch),
+                               self.get_mark())
         value = (handle, suffix)
         end_mark = self.get_mark()
         return TagToken(value, start_mark, end_mark)
@@ -1024,37 +1043,49 @@ class Scanner(object):
                 # Unfortunately, folding rules are ambiguous.
                 #
                 # This is the folding according to the specification:
-                
+
                 if folded and line_break == u'\n'   \
                         and leading_non_space and self.peek() not in u' \t':
                     if not breaks:
                         chunks.append(u' ')
                 else:
                     chunks.append(line_break)
-                
+
                 # This is Clark Evans's interpretation (also in the spec
                 # examples):
                 #
-                #if folded and line_break == u'\n':
-                #    if not breaks:
-                #        if self.peek() not in ' \t':
-                #            chunks.append(u' ')
-                #        else:
-                #            chunks.append(line_break)
-                #else:
-                #    chunks.append(line_break)
+                # if folded and line_break == u'\n':
+                #     if not breaks:
+                #         if self.peek() not in ' \t':
+                #             chunks.append(u' ')
+                #         else:
+                #             chunks.append(line_break)
+                # else:
+                #     chunks.append(line_break)
             else:
                 break
 
-        # Chomp the tail.
-        if chomping is not False:
+        # Process trailing line breaks. The 'chomping' setting determines
+        # whether they are included in the value.
+        comment = []
+        if chomping in [None, True]:
             chunks.append(line_break)
         if chomping is True:
             chunks.extend(breaks)
+        elif chomping in [None, False]:
+            comment.extend(breaks)
 
         # We are done.
-        return ScalarToken(u''.join(chunks), False, start_mark, end_mark,
-                style)
+        token = ScalarToken(u''.join(chunks), False, start_mark, end_mark,
+                            style)
+        if len(comment) > 0:
+            # Keep track of the trailing whitespace as a comment token, if
+            # isn't all included in the actual value.
+            comment_end_mark = self.get_mark()
+            comment = CommentToken(''.join(comment), end_mark,
+                                   comment_end_mark)
+            token.add_post_comment(comment)
+        return token
 
     def scan_block_scalar_indicators(self, start_mark):
         # See the specification for details.
@@ -1071,16 +1102,19 @@ class Scanner(object):
             if ch in u'0123456789':
                 increment = int(ch)
                 if increment == 0:
-                    raise ScannerError("while scanning a block scalar", start_mark,
-                            "expected indentation indicator in the range 1-9, but found 0",
-                            self.get_mark())
+                    raise ScannerError(
+                        "while scanning a block scalar", start_mark,
+                        "expected indentation indicator in the range 1-9, "
+                        "but found 0", self.get_mark())
                 self.forward()
         elif ch in u'0123456789':
             increment = int(ch)
             if increment == 0:
-                raise ScannerError("while scanning a block scalar", start_mark,
-                        "expected indentation indicator in the range 1-9, but found 0",
-                        self.get_mark())
+                raise ScannerError(
+                    "while scanning a block scalar", start_mark,
+                    "expected indentation indicator in the range 1-9, "
+                    "but found 0",
+                    self.get_mark())
             self.forward()
             ch = self.peek()
             if ch in u'+-':
@@ -1091,9 +1125,10 @@ class Scanner(object):
                 self.forward()
         ch = self.peek()
         if ch not in u'\0 \r\n\x85\u2028\u2029':
-            raise ScannerError("while scanning a block scalar", start_mark,
-                    "expected chomping or indentation indicators, but found %r"
-                        % ch.encode('utf-8'), self.get_mark())
+            raise ScannerError(
+                "while scanning a block scalar", start_mark,
+                "expected chomping or indentation indicators, but found %r"
+                % utf8(ch), self.get_mark())
         return chomping, increment
 
     def scan_block_scalar_ignored_line(self, start_mark):
@@ -1105,9 +1140,10 @@ class Scanner(object):
                 self.forward()
         ch = self.peek()
         if ch not in u'\0\r\n\x85\u2028\u2029':
-            raise ScannerError("while scanning a block scalar", start_mark,
-                    "expected a comment or a line break, but found %r"
-                        % ch.encode('utf-8'), self.get_mark())
+            raise ScannerError(
+                "while scanning a block scalar", start_mark,
+                "expected a comment or a line break, but found %r"
+                % utf8(ch), self.get_mark())
         self.scan_line_break()
 
     def scan_block_scalar_indentation(self):
@@ -1160,7 +1196,7 @@ class Scanner(object):
         self.forward()
         end_mark = self.get_mark()
         return ScalarToken(u''.join(chunks), False, start_mark, end_mark,
-                style)
+                           style)
 
     ESCAPE_REPLACEMENTS = {
         u'0':   u'\0',
@@ -1175,6 +1211,7 @@ class Scanner(object):
         u'e':   u'\x1B',
         u' ':   u'\x20',
         u'\"':  u'\"',
+        u'/':   u'/',  # as per http://www.json.org/
         u'\\':  u'\\',
         u'N':   u'\x85',
         u'_':   u'\xA0',
@@ -1216,18 +1253,24 @@ class Scanner(object):
                     self.forward()
                     for k in range(length):
                         if self.peek(k) not in u'0123456789ABCDEFabcdef':
-                            raise ScannerError("while scanning a double-quoted scalar", start_mark,
-                                    "expected escape sequence of %d hexdecimal numbers, but found %r" %
-                                        (length, self.peek(k).encode('utf-8')), self.get_mark())
+                            raise ScannerError(
+                                "while scanning a double-quoted scalar",
+                                start_mark,
+                                "expected escape sequence of %d hexdecimal "
+                                "numbers, but found %r" %
+                                (length, utf8(self.peek(k))), self.get_mark())
                     code = int(self.prefix(length), 16)
                     chunks.append(unichr(code))
                     self.forward(length)
                 elif ch in u'\r\n\x85\u2028\u2029':
                     self.scan_line_break()
-                    chunks.extend(self.scan_flow_scalar_breaks(double, start_mark))
+                    chunks.extend(self.scan_flow_scalar_breaks(
+                        double, start_mark))
                 else:
-                    raise ScannerError("while scanning a double-quoted scalar", start_mark,
-                            "found unknown escape character %r" % ch.encode('utf-8'), self.get_mark())
+                    raise ScannerError(
+                        "while scanning a double-quoted scalar", start_mark,
+                        "found unknown escape character %r" % utf8(ch),
+                        self.get_mark())
             else:
                 return chunks
 
@@ -1241,8 +1284,9 @@ class Scanner(object):
         self.forward(length)
         ch = self.peek()
         if ch == u'\0':
-            raise ScannerError("while scanning a quoted scalar", start_mark,
-                    "found unexpected end of stream", self.get_mark())
+            raise ScannerError(
+                "while scanning a quoted scalar", start_mark,
+                "found unexpected end of stream", self.get_mark())
         elif ch in u'\r\n\x85\u2028\u2029':
             line_break = self.scan_line_break()
             breaks = self.scan_flow_scalar_breaks(double, start_mark)
@@ -1264,8 +1308,10 @@ class Scanner(object):
             prefix = self.prefix(3)
             if (prefix == u'---' or prefix == u'...')   \
                     and self.peek(3) in u'\0 \t\r\n\x85\u2028\u2029':
-                raise ScannerError("while scanning a quoted scalar", start_mark,
-                        "found unexpected document separator", self.get_mark())
+                raise ScannerError("while scanning a quoted scalar",
+                                   start_mark,
+                                   "found unexpected document separator",
+                                   self.get_mark())
             while self.peek() in u' \t':
                 self.forward()
             if self.peek() in u'\r\n\x85\u2028\u2029':
@@ -1285,8 +1331,8 @@ class Scanner(object):
         indent = self.indent+1
         # We allow zero indentation for scalars, but then we need to check for
         # document separators at the beginning of the line.
-        #if indent == 0:
-        #    indent = 1
+        # if indent == 0:
+        #     indent = 1
         spaces = []
         while True:
             length = 0
@@ -1294,19 +1340,22 @@ class Scanner(object):
                 break
             while True:
                 ch = self.peek(length)
-                if ch in u'\0 \t\r\n\x85\u2028\u2029'   \
-                        or (not self.flow_level and ch == u':' and
-                                self.peek(length+1) in u'\0 \t\r\n\x85\u2028\u2029') \
-                        or (self.flow_level and ch in u',:?[]{}'):
+                if ch in u'\0 \t\r\n\x85\u2028\u2029' \
+                   or (not self.flow_level and ch == u':' and
+                       self.peek(length+1) in u'\0 \t\r\n\x85\u2028\u2029') \
+                   or (self.flow_level and ch in u',:?[]{}'):
                     break
                 length += 1
             # It's not clear what we should do with ':' in the flow context.
-            if (self.flow_level and ch == u':'
-                    and self.peek(length+1) not in u'\0 \t\r\n\x85\u2028\u2029,[]{}'):
+            if (self.flow_level and ch == u':' and
+               self.peek(length+1) not in u'\0 \t\r\n\x85\u2028\u2029,[]{}'):
                 self.forward(length)
-                raise ScannerError("while scanning a plain scalar", start_mark,
+                raise ScannerError(
+                    "while scanning a plain scalar", start_mark,
                     "found unexpected ':'", self.get_mark(),
-                    "Please check http://pyyaml.org/wiki/YAMLColonInFlowContext for details.")
+                    "Please check "
+                    "http://pyyaml.org/wiki/YAMLColonInFlowContext "
+                    "for details.")
             if length == 0:
                 break
             self.allow_simple_key = False
@@ -1318,7 +1367,14 @@ class Scanner(object):
             if not spaces or self.peek() == u'#' \
                     or (not self.flow_level and self.column < indent):
                 break
-        return ScalarToken(u''.join(chunks), True, start_mark, end_mark)
+
+        token = ScalarToken(u''.join(chunks), True, start_mark, end_mark)
+        if spaces and spaces[0] == '\n':
+            # Create a comment token to preserve the trailing line breaks.
+            comment = CommentToken(''.join(spaces) + '\n', start_mark, end_mark)
+            token.add_post_comment(comment)
+        return token
+
 
     def scan_plain_spaces(self, indent, start_mark):
         # See the specification for details.
@@ -1346,7 +1402,7 @@ class Scanner(object):
                     breaks.append(self.scan_line_break())
                     prefix = self.prefix(3)
                     if (prefix == u'---' or prefix == u'...')   \
-                            and self.peek(3) in u'\0 \t\r\n\x85\u2028\u2029':
+                       and self.peek(3) in u'\0 \t\r\n\x85\u2028\u2029':
                         return
             if line_break != u'\n':
                 chunks.append(line_break)
@@ -1364,20 +1420,21 @@ class Scanner(object):
         ch = self.peek()
         if ch != u'!':
             raise ScannerError("while scanning a %s" % name, start_mark,
-                    "expected '!', but found %r" % ch.encode('utf-8'),
-                    self.get_mark())
+                               "expected '!', but found %r" % utf8(ch),
+                               self.get_mark())
         length = 1
         ch = self.peek(length)
         if ch != u' ':
-            while u'0' <= ch <= u'9' or u'A' <= ch <= u'Z' or u'a' <= ch <= u'z'    \
-                    or ch in u'-_':
+            while u'0' <= ch <= u'9' or u'A' <= ch <= u'Z' \
+                  or u'a' <= ch <= u'z' \
+                  or ch in u'-_':
                 length += 1
                 ch = self.peek(length)
             if ch != u'!':
                 self.forward(length)
                 raise ScannerError("while scanning a %s" % name, start_mark,
-                        "expected '!', but found %r" % ch.encode('utf-8'),
-                        self.get_mark())
+                                   "expected '!', but found %r" % utf8(ch),
+                                   self.get_mark())
             length += 1
         value = self.prefix(length)
         self.forward(length)
@@ -1405,27 +1462,36 @@ class Scanner(object):
             length = 0
         if not chunks:
             raise ScannerError("while parsing a %s" % name, start_mark,
-                    "expected URI, but found %r" % ch.encode('utf-8'),
-                    self.get_mark())
+                               "expected URI, but found %r" % utf8(ch),
+                               self.get_mark())
         return u''.join(chunks)
 
     def scan_uri_escapes(self, name, start_mark):
         # See the specification for details.
-        bytes = []
+        code_bytes = []
         mark = self.get_mark()
         while self.peek() == u'%':
             self.forward()
             for k in range(2):
                 if self.peek(k) not in u'0123456789ABCDEFabcdef':
-                    raise ScannerError("while scanning a %s" % name, start_mark,
-                            "expected URI escape sequence of 2 hexdecimal numbers, but found %r" %
-                                (self.peek(k).encode('utf-8')), self.get_mark())
-            bytes.append(chr(int(self.prefix(2), 16)))
+                    raise ScannerError(
+                        "while scanning a %s" % name, start_mark,
+                        "expected URI escape sequence of 2 hexdecimal numbers,"
+                        " but found %r"
+                        % utf8(self.peek(k)), self.get_mark())
+            if PY3:
+                code_bytes.append(int(self.prefix(2), 16))
+            else:
+                code_bytes.append(chr(int(self.prefix(2), 16)))
             self.forward(2)
         try:
-            value = unicode(''.join(bytes), 'utf-8')
-        except UnicodeDecodeError, exc:
-            raise ScannerError("while scanning a %s" % name, start_mark, str(exc), mark)
+            if PY3:
+                value = bytes(code_bytes).decode('utf-8')
+            else:
+                value = unicode(''.join(code_bytes), 'utf-8')
+        except UnicodeDecodeError as exc:
+            raise ScannerError("while scanning a %s" % name, start_mark,
+                               str(exc), mark)
         return value
 
     def scan_line_break(self):
@@ -1449,9 +1515,141 @@ class Scanner(object):
             return ch
         return u''
 
-#try:
-#    import psyco
-#    psyco.bind(Scanner)
-#except ImportError:
-#    pass
 
+class RoundTripScanner(Scanner):
+    def check_token(self, *choices):
+        # Check if the next token is one of the given types.
+        while self.need_more_tokens():
+            self.fetch_more_tokens()
+        self._gather_comments()
+        if self.tokens:
+            if not choices:
+                return True
+            for choice in choices:
+                if isinstance(self.tokens[0], choice):
+                    return True
+        return False
+
+    def peek_token(self):
+        # Return the next token, but do not delete if from the queue.
+        while self.need_more_tokens():
+            self.fetch_more_tokens()
+        self._gather_comments()
+        if self.tokens:
+            return self.tokens[0]
+
+    def _gather_comments(self):
+        """combine multiple comment lines"""
+        comments = []
+        if not self.tokens:
+            return comments
+        if isinstance(self.tokens[0], CommentToken):
+            comment = self.tokens.pop(0)
+            self.tokens_taken += 1
+            # print('################ dropping', comment)
+            comments.append(comment)
+        while self.need_more_tokens():
+            self.fetch_more_tokens()
+            if not self.tokens:
+                return comments
+            if isinstance(self.tokens[0], CommentToken):
+                self.tokens_taken += 1
+                comment = self.tokens.pop(0)
+                # print 'dropping2', comment
+                comments.append(comment)
+        if len(comments) >= 1:
+            # print('  len', len(comments), comments)
+            # print('  com', comments[0], comments[0].start_mark.line)
+            # print('  tok', self.tokens[0].end_mark.line)
+            self.tokens[0].add_pre_comments(comments)
+        # pull in post comment on e.g. ':'
+        if not self.done and len(self.tokens) < 2:
+            self.fetch_more_tokens()
+
+    def get_token(self):
+        # Return the next token.
+        while self.need_more_tokens():
+            self.fetch_more_tokens()
+        self._gather_comments()
+        if self.tokens:
+            # only add post comment to single line tokens:
+            # scalar, value token. FlowXEndToken, otherwise
+            # hidden streamtokens could get them (leave them and they will be
+            # pre comments for the next map/seq
+            if len(self.tokens) > 1 and \
+               isinstance(self.tokens[0], (
+                   ScalarToken,
+                   ValueToken,
+                   FlowSequenceEndToken,
+                   FlowMappingEndToken,
+                   )) and \
+               isinstance(self.tokens[1], CommentToken) and \
+               self.tokens[0].end_mark.line == self.tokens[1].start_mark.line:
+                self.tokens_taken += 1
+                self.tokens[0].add_post_comment(self.tokens.pop(1))
+            self.tokens_taken += 1
+            return self.tokens.pop(0)
+
+    def fetch_comment(self, comment):  # XXXX
+        value, start_mark, end_mark = comment
+        self.tokens.append(CommentToken(value, start_mark, end_mark))
+
+    # scanner
+
+    def scan_to_next_token(self):
+        # We ignore spaces, line breaks and comments.
+        # If we find a line break in the block context, we set the flag
+        # `allow_simple_key` on.
+        # The byte order mark is stripped if it's the first character in the
+        # stream. We do not yet support BOM inside the stream as the
+        # specification requires. Any such mark will be considered as a part
+        # of the document.
+        #
+        # TODO: We need to make tab handling rules more sane. A good rule is
+        #   Tabs cannot precede tokens
+        #   BLOCK-SEQUENCE-START, BLOCK-MAPPING-START, BLOCK-END,
+        #   KEY(block), VALUE(block), BLOCK-ENTRY
+        # So the checking code is
+        #   if <TAB>:
+        #       self.allow_simple_keys = False
+        # We also need to add the check for `allow_simple_keys == True` to
+        # `unwind_indent` before issuing BLOCK-END.
+        # Scanners for block, flow, and plain scalars need to be modified.
+
+        if self.index == 0 and self.peek() == u'\uFEFF':
+            self.forward()
+        found = False
+        while not found:
+            while self.peek() == u' ':
+                self.forward()
+            ch = self.peek()
+            if ch == u'#':
+                start_mark = self.get_mark()
+                comment = ch
+                self.forward()
+                while ch not in u'\0\r\n\x85\u2028\u2029':
+                    ch = self.peek()
+                    if ch == u'\0':  # don't gobble the end-of-stream character
+                        break
+                    comment += ch
+                    self.forward()
+                # gather any blank lines following the comment too
+                ch = self.scan_line_break()
+                while len(ch) > 0:
+                    comment += ch
+                    ch = self.scan_line_break()
+                end_mark = self.get_mark()
+                if not self.flow_level:
+                    self.allow_simple_key = True
+                return comment, start_mark, end_mark
+            if self.scan_line_break():
+                if not self.flow_level:
+                    self.allow_simple_key = True
+            else:
+                found = True
+
+# try:
+#     import psyco
+#     psyco.bind(Scanner)
+# except ImportError:
+#     pass
