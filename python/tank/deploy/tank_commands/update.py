@@ -51,7 +51,7 @@ class AppUpdatesAction(Action):
         self.parameters["preserve_yaml"] = { "description": ("Enable alternative yaml parser that better preserves "
                                                              "yaml structure and comments"),
                                             "default": False,
-                                            "type": "bool" }        
+                                            "type": "bool" }      
         
         
         
@@ -80,7 +80,8 @@ class AppUpdatesAction(Action):
                                  computed_params["engine_filter"],
                                  computed_params["app_filter"],
                                  computed_params["external"],
-                                 True )
+                                 computed_params["preserve_yaml"],
+                                 suppress_prompts=True )
 
 
     def run_interactive(self, log, args):
@@ -113,7 +114,11 @@ class AppUpdatesAction(Action):
             log.info("- The special keyword ALL can be used to denote all items in a category.")
             log.info("")
             log.info("- If you want to update an external configuration instead of the current project, "
-                     "  pass in a path via the --external flag.")
+                     " pass in a path via the --external flag.")
+            log.info("")
+            log.info("- If you add a --preserve-yaml flag, existing comments and "
+                     " structure will be preserved as the yaml files are updated. "
+                     " This is an experimental setting and therefore disabled by default.")
             log.info("")
             log.info("")
             log.info("")
@@ -140,9 +145,12 @@ class AppUpdatesAction(Action):
             log.info("")
             log.info("")
             
-            
             if console_utils.ask_yn_question("Continue with full update?"):
-                check_for_updates(log, self.tk)
+                check_for_updates(log, 
+                                  self.tk,
+                                  env_name=None,
+                                  engine_instance_name=None, 
+                                  app_instance_name=None)
             
             return
         
@@ -161,7 +169,15 @@ class AppUpdatesAction(Action):
                 if external_path == "":
                     log.error("You need to specify a path to a toolkit configuration!")
                     return        
+        # look for an --preserve-yaml flag
+        if "--preserve-yaml" in args:
+            preserve_yaml = True
+            args.remove("--preserve-yaml")
+            log.info("Using yaml parser which preserves structure and comments.")
+        else:
+            preserve_yaml = False        
         
+
         if len(args) > 0:
             env_filter = args[0]
             if env_filter == "ALL":
@@ -186,13 +202,13 @@ class AppUpdatesAction(Action):
             else:
                 log.info("- Update will only check the %s app." % app_filter)
 
-
         check_for_updates(log, 
                           self.tk, 
                           env_name=env_filter, 
                           engine_instance_name=engine_filter, 
                           app_instance_name=app_filter,
-                          external=external_path)    
+                          external=external_path,
+                          preserve_yaml=preserve_yaml)    
         
             
 
@@ -202,11 +218,12 @@ class AppUpdatesAction(Action):
     
 def check_for_updates(log, 
                       tk, 
-                      env_name=None, 
-                      engine_instance_name=None, 
-                      app_instance_name=None, 
-                      suppress_prompts=False,
-                      external=None):
+                      env_name, 
+                      engine_instance_name, 
+                      app_instance_name, 
+                      external=None,
+                      preserve_yaml=False,
+                      suppress_prompts=False):
     """
     Runs the update checker.
     
@@ -216,6 +233,8 @@ def check_for_updates(log,
     :param engine_instance_name: Engine instance name to update
     :param app_instance_name: App instance name to update
     :param suppress_prompts: If True, run without prompting
+    :param preserve_yaml: Indicates that a comment preserving yaml parser 
+                          should be used.
     :param external: Path to external config to operate on
     """
     
@@ -250,6 +269,8 @@ def check_for_updates(log,
         # now process them one after the other
         for env_filename in env_filenames: 
             env_obj = WritableEnvironment(env_filename, pc)
+            env_obj.use_preserving_yaml_parser(preserve_yaml)
+            
             updated_items += _process_environment(tk, 
                                                   log, 
                                                   env_obj, 
@@ -267,6 +288,8 @@ def check_for_updates(log,
     
         for env_name in env_names_to_process:
             env_obj = pc.get_environment(env_name, writable=True)
+            env_obj.use_preserving_yaml_parser(preserve_yaml)
+            
             updated_items += _process_environment(tk, 
                                                   log, 
                                                   env_obj, 
