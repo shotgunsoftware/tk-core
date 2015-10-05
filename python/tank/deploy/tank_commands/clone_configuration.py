@@ -239,7 +239,7 @@ def _do_clone(log, tk, source_pc_id, user_id, new_name, target_linux, target_mac
         
         # and write the new file
         fh = open(sg_pc_location, "wt")
-        yaml.dump(data, fh)
+        yaml.safe_dump(data, fh)
         fh.close()
 
     except Exception, e:

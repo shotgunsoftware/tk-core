@@ -1776,7 +1776,7 @@ class MigratePublishedFileEntitiesAction(Action):
                 try:
                     # and write the new file
                     fh = open(pc_path, "wt")
-                    yaml.dump(pc_data, fh)
+                    yaml.safe_dump(pc_data, fh)
                 finally:
                     fh.close()
         

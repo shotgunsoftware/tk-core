@@ -187,7 +187,7 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, set
     
     try:
         fh = open(roots_path, "wt")
-        yaml.dump(roots_data, fh)
+        yaml.safe_dump(roots_data, fh)
         fh.close()
     except Exception, exp:
         raise TankError("Could not write to roots file %s. "
@@ -295,7 +295,7 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, set
     
     try:
         fh = open(pipe_config_sg_id_path, "wt")
-        yaml.dump(data, fh)
+        yaml.safe_dump(data, fh)
         fh.close()
     except Exception, exp:
         raise TankError("Could not write to pipeline configuration cache file %s. "

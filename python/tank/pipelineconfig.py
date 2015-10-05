@@ -337,7 +337,7 @@ class PipelineConfiguration(object):
             os.chmod(pipe_config_sg_id_path, 0666)
             # and write the new file
             fh = open(pipe_config_sg_id_path, "wt")
-            yaml.dump(curr_settings, fh)
+            yaml.safe_dump(curr_settings, fh)
         except Exception, exp:
             raise TankError("Could not write to pipeline configuration settings file %s. "
                             "Error reported: %s" % (pipe_config_sg_id_path, exp))
