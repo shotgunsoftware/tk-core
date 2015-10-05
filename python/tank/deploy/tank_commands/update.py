@@ -109,7 +109,7 @@ class AppUpdatesAction(Action):
             log.info("General syntax:")
             log.info("---------------")
             log.info("")
-            log.info("> tank updates [environment_name] [engine_name] [app_name] [--external='/path/to/config']")
+            log.info("> tank updates [environment_name] [engine_name] [app_name] [--preserve-yaml] [--external='/path/to/config']")
             log.info("")
             log.info("- The special keyword ALL can be used to denote all items in a category.")
             log.info("")
@@ -174,7 +174,7 @@ class AppUpdatesAction(Action):
         if "--preserve-yaml" in args:
             preserve_yaml = True
             args.remove("--preserve-yaml")
-            log.info("Using yaml parser which preserves structure and comments.")
+            log.info("Note: Using yaml parser which preserves structure and comments.")
         else:
             preserve_yaml = False        
         

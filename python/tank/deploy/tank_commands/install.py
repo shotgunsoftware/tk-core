@@ -87,7 +87,7 @@ class InstallAppAction(Action):
         if "--preserve-yaml" in args:
             preserve_yaml = True
             args.remove("--preserve-yaml")
-            log.info("Using yaml parser which preserves structure and comments.")
+            log.info("Note: Using yaml parser which preserves structure and comments.")
         else:
             preserve_yaml = False        
 
@@ -361,7 +361,7 @@ class InstallEngineAction(Action):
         if "--preserve-yaml" in args:
             preserve_yaml = True
             args.remove("--preserve-yaml")
-            log.info("Using yaml parser which preserves structure and comments.")
+            log.info("Note: Using yaml parser which preserves structure and comments.")
         else:
             preserve_yaml = False        
 
