@@ -1,19 +1,15 @@
-from __future__ import absolute_import
-from __future__ import print_function
 
 __all__ = ['Composer', 'ComposerError']
 
-from .error import MarkedYAMLError
-from .events import *
-from .nodes import *
-from .compat import utf8
-
+from error import MarkedYAMLError
+from events import *
+from nodes import *
 
 class ComposerError(MarkedYAMLError):
     pass
 
-
 class Composer(object):
+
     def __init__(self):
         self.anchors = {}
 
@@ -42,10 +38,9 @@ class Composer(object):
         # Ensure that the stream contains no more documents.
         if not self.check_event(StreamEndEvent):
             event = self.get_event()
-            raise ComposerError(
-                "expected a single document in the stream",
-                document.start_mark, "but found another document",
-                event.start_mark)
+            raise ComposerError("expected a single document in the stream",
+                    document.start_mark, "but found another document",
+                    event.start_mark)
 
         # Drop the STREAM-END event.
         self.get_event()
@@ -68,20 +63,18 @@ class Composer(object):
     def compose_node(self, parent, index):
         if self.check_event(AliasEvent):
             event = self.get_event()
-            alias = event.anchor
-            if alias not in self.anchors:
-                raise ComposerError(
-                    None, None, "found undefined alias %r"
-                    % utf8(alias), event.start_mark)
-            return self.anchors[alias]
+            anchor = event.anchor
+            if anchor not in self.anchors:
+                raise ComposerError(None, None, "found undefined alias %r"
+                        % anchor.encode('utf-8'), event.start_mark)
+            return self.anchors[anchor]
         event = self.peek_event()
         anchor = event.anchor
-        if anchor is not None:  # have an anchor
+        if anchor is not None:
             if anchor in self.anchors:
-                raise ComposerError(
-                    "found duplicate anchor %r; first occurence"
-                    % utf8(anchor), self.anchors[anchor].start_mark,
-                    "second occurence", event.start_mark)
+                raise ComposerError("found duplicate anchor %r; first occurence"
+                        % anchor.encode('utf-8'), self.anchors[anchor].start_mark,
+                        "second occurence", event.start_mark)
         self.descend_resolver(parent, index)
         if self.check_event(ScalarEvent):
             node = self.compose_scalar_node(anchor)
@@ -98,8 +91,7 @@ class Composer(object):
         if tag is None or tag == u'!':
             tag = self.resolve(ScalarNode, event.value, event.implicit)
         node = ScalarNode(tag, event.value,
-                          event.start_mark, event.end_mark, style=event.style,
-                          comment=event.comment)
+                event.start_mark, event.end_mark, style=event.style)
         if anchor is not None:
             self.anchors[anchor] = node
         return node
@@ -110,9 +102,8 @@ class Composer(object):
         if tag is None or tag == u'!':
             tag = self.resolve(SequenceNode, None, start_event.implicit)
         node = SequenceNode(tag, [],
-                            start_event.start_mark, None,
-                            flow_style=start_event.flow_style,
-                            comment=start_event.comment, anchor=anchor)
+                start_event.start_mark, None,
+                flow_style=start_event.flow_style)
         if anchor is not None:
             self.anchors[anchor] = node
         index = 0
@@ -120,13 +111,7 @@ class Composer(object):
             node.value.append(self.compose_node(node, index))
             index += 1
         end_event = self.get_event()
-        if node.flow_style is True and end_event.comment is not None:
-            if node.comment is not None:
-                print('Warning: unexpected end_event commment in sequence '
-                      'node {}'.format(node.flow_style))
-            node.comment = end_event.comment
         node.end_mark = end_event.end_mark
-        self.check_end_doc_comment(end_event, node)
         return node
 
     def compose_mapping_node(self, anchor):
@@ -135,35 +120,20 @@ class Composer(object):
         if tag is None or tag == u'!':
             tag = self.resolve(MappingNode, None, start_event.implicit)
         node = MappingNode(tag, [],
-                           start_event.start_mark, None,
-                           flow_style=start_event.flow_style,
-                           comment=start_event.comment, anchor=anchor)
+                start_event.start_mark, None,
+                flow_style=start_event.flow_style)
         if anchor is not None:
             self.anchors[anchor] = node
         while not self.check_event(MappingEndEvent):
-            # key_event = self.peek_event()
+            #key_event = self.peek_event()
             item_key = self.compose_node(node, None)
-            # if item_key in node.value:
-            #     raise ComposerError("while composing a mapping",
-            #             start_event.start_mark,
-            #             "found duplicate key", key_event.start_mark)
+            #if item_key in node.value:
+            #    raise ComposerError("while composing a mapping", start_event.start_mark,
+            #            "found duplicate key", key_event.start_mark)
             item_value = self.compose_node(node, item_key)
-            # node.value[item_key] = item_value
+            #node.value[item_key] = item_value
             node.value.append((item_key, item_value))
         end_event = self.get_event()
-        if node.flow_style is True and end_event.comment is not None:
-            node.comment = end_event.comment
         node.end_mark = end_event.end_mark
-        self.check_end_doc_comment(end_event, node)
         return node
 
-    def check_end_doc_comment(self, end_event, node):
-        if end_event.comment and end_event.comment[1]:
-            # pre comments on an end_event, no following to move to
-            if node.comment is None:
-                node.comment = [None, None]
-            assert not isinstance(node, ScalarEvent)
-            # this is a post comment on a mapping node, add as third element
-            # in the list
-            node.comment.append(end_event.comment[1])
-            end_event.comment[1] = None

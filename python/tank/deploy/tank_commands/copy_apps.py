@@ -81,7 +81,7 @@ class CopyAppsAction(Action):
 
     def _run(self, log, env_name, src_engine_instance_name, dst_engine_instance_name):
         try:
-            env = self.tk.pipeline_configuration.get_environment(env_name)
+            env = self.tk.pipeline_configuration.get_environment(env_name, writable=True)
         except Exception, e:
             raise TankError("Environment '%s' could not be loaded! Error reported: %s" % (env_name, e))
 
