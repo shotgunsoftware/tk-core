@@ -567,10 +567,10 @@ class WritableEnvironment(Environment):
                 #
                 # foo: { bar: 3, baz: 4 }
                 #
-                ruamel_yaml.safe_dump(data, 
-                                      fh, 
-                                      default_flow_style=False, 
-                                      Dumper=ruamel_yaml.RoundTripDumper)
+                ruamel_yaml.dump(data, 
+                                 fh, 
+                                 default_flow_style=False, 
+                                 Dumper=ruamel_yaml.RoundTripDumper)
             else:
                 # use pyyaml parser
                 yaml.safe_dump(data, fh, default_flow_style=False)
