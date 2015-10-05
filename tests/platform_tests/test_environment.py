@@ -81,7 +81,11 @@ class TestEnvironment(TankTestBase):
         
     
 class TestUpdateEnvironment(TankTestBase):
-
+    """
+    Tests yaml environment updates
+    """
+    
+    
     def setUp(self):
         super(TestUpdateEnvironment, self).setUp()
         self.setup_fixtures()
@@ -256,8 +260,13 @@ class TestUpdateEnvironment(TankTestBase):
     
     
     
+class TestUpdateEnvironmentRuamelYaml(TestUpdateEnvironment):
+    """
+    Runs the standard environment Update tests with the
+    ruamel parser enabled.
+    """
     
-    
-    
-    
+    def setUp(self):
+        super(TestUpdateEnvironmentRuamelYaml, self).setUp()
+        self.env.use_preserving_yaml_parser(True)
     
