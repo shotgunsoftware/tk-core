@@ -197,8 +197,13 @@ class ProjectSetupParameters(object):
         :param check_storage_path: Validate that storage paths exists on disk
         """
         
+        # Toolkit assumes that strings are in fact string objects encoded to UTF-8, not unicode.
+        # In general we avoid sanitizing input within Toolkit, but since this can be wrapped by
+        # custom studio tools and this is a bridge between external input and Toolkit, we make an
+        # exception here and ensure the input is encoded correctly. 
+        config_uri_utf8 = config_uri.encode("utf-8")
         # cache, get storage breakdown and run basic validation
-        storage_data = self.validate_config_uri(config_uri)
+        storage_data = self.validate_config_uri(config_uri_utf8)
         
         # now validate storages
         #        
@@ -237,7 +242,7 @@ class ProjectSetupParameters(object):
         # all checks passed! Populate official variables
         # note that the validate_config_uri method cached the config for us
         # so can just assign the object from the cache.
-        self._config_template = self._cached_config_templates[config_uri]
+        self._config_template = self._cached_config_templates[config_uri_utf8]
         self._storage_data = storage_data
         
     def get_configuration_display_name(self):
@@ -484,7 +489,7 @@ class ProjectSetupParameters(object):
         :param project_name: name of project
         """
         self.validate_project_disk_name(project_name)
-        self._project_disk_name = project_name
+        self._project_disk_name = project_name.encode("utf-8")
     
     def get_project_id(self):
         """
@@ -651,9 +656,9 @@ class ProjectSetupParameters(object):
 
         # and set member variables
         self._config_path = {}
-        self._config_path["linux2"] = linux_path
-        self._config_path["win32"] = windows_path
-        self._config_path["darwin"] = macosx_path
+        self._config_path["linux2"] = linux_path.encode("utf-8")
+        self._config_path["win32"] = windows_path.encode("utf-8")
+        self._config_path["darwin"] = macosx_path.encode("utf-8")
         
     def get_configuration_location(self, platform):
         """    
@@ -684,9 +689,9 @@ class ProjectSetupParameters(object):
         
         # and set member variables
         self._core_path = {}
-        self._core_path["linux2"] = linux_path
-        self._core_path["win32"] = windows_path
-        self._core_path["darwin"] = macosx_path
+        self._core_path["linux2"] = linux_path.encode("utf-8")
+        self._core_path["win32"] = windows_path.encode("utf-8")
+        self._core_path["darwin"] = macosx_path.encode("utf-8")
     
     def get_associated_core_path(self, platform):
         """
@@ -816,7 +821,7 @@ class TemplateConfiguration(object):
             (self._cfg_folder, self._config_mode) = self._process_config(config_uri)
         finally:
             os.umask(old_umask)
-        self._config_uri = config_uri
+        self._config_uri = config_uri.encode("utf-8")
         self._roots_data = self._read_roots_file()
 
         # if there are more than zero storages defined, ensure one of them is the primary storage
