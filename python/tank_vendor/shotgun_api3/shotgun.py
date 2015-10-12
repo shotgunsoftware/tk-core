@@ -314,7 +314,7 @@ class Shotgun(object):
         self._connection = None
         self.__ca_certs = ca_certs
 
-        self.base_url = (base_url or "").lower()
+        self.base_url = os.path.expandvars(base_url or "").lower()
         self.config.scheme, self.config.server, api_base, _, _ = \
             urlparse.urlsplit(self.base_url)
         if self.config.scheme not in ("http", "https"):

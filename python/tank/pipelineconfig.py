@@ -81,6 +81,9 @@ class PipelineConfiguration(object):
                             "Please contact support." % self._pc_root)
         self._project_name = data.get("project_name")
 
+        # In case project name is an env variable
+        self._project_name = os.path.expandvars(self._project_name)
+
         # cache fields lazily populated on getter access
         self._clear_cached_settings()
         
@@ -213,6 +216,9 @@ class PipelineConfiguration(object):
             if self._pc_id is None:
                 # not in metadata file on disk. Fall back on SG lookup
                 self._load_metadata_from_sg()
+            elif isinstance(self._pc_id, str):
+                # pc id is an env variable
+                self._pc_id = int(os.path.expandvars(self._pc_id))
 
         return self._pc_id
 
@@ -229,6 +235,9 @@ class PipelineConfiguration(object):
             if self._project_id is None:
                 # not in metadata file on disk. Fall back on SG lookup
                 self._load_metadata_from_sg()
+            elif isinstance(self._project_id, str):
+                # pc id is an env variable
+                self._project_id = int(os.path.expandvars(self._project_id))
 
         return self._project_id
 
