@@ -13,7 +13,7 @@ except:
     try:
         from collections import OrderedDict
     except ImportError:
-        from orderddict import OrderedDict
+        from .ordereddict import OrderedDict
     # to get the right name import ... as ordereddict doesn't do that
 
     class ordereddict(OrderedDict):

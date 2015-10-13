@@ -18,7 +18,6 @@ import sys
 import copy
 
 from tank_vendor import yaml
-from tank_vendor import ruamel_yaml
 from . import constants
 from . import environment_includes
 from ..errors import TankError
@@ -521,7 +520,9 @@ class WritableEnvironment(Environment):
             raise TankError("Could not open file '%s'. Error reported: '%s'" % (path, e))
         
         try:
-            if self._use_ruamel_yaml_parser:
+            # the ruamel parser doesn't have 2.5 support so 
+            # only use it on 2.6+            
+            if self._use_ruamel_yaml_parser and not(sys.version_info < (2,6)):
                 # note that we use the RoundTripLoader loader here. This ensures
                 # that structure and comments are preserved when the yaml is
                 # written back to disk.
@@ -530,6 +531,7 @@ class WritableEnvironment(Environment):
                 # which also holds the additional contextual metadata
                 # required by the parse to maintain the lexical integrity
                 # of the content.
+                from tank_vendor import ruamel_yaml
                 yaml_data = ruamel_yaml.load(fh, ruamel_yaml.RoundTripLoader)
             else:
                 # use pyyaml parser
@@ -556,7 +558,9 @@ class WritableEnvironment(Environment):
                             "Error reported: '%s'" % (path, e))
         
         try:
-            if self._use_ruamel_yaml_parser:
+            # the ruamel parser doesn't have 2.5 support so 
+            # only use it on 2.6+
+            if self._use_ruamel_yaml_parser and not(sys.version_info < (2,6)):
                 # note that we are using the RoundTripDumper in order to 
                 # preserve the structure when writing the file to disk.
                 #
@@ -574,6 +578,7 @@ class WritableEnvironment(Environment):
                 # note that safe_dump is not needed when using the 
                 # roundtrip dumper, it will adopt a 'safe' behaviour
                 # by default.
+                from tank_vendor import ruamel_yaml
                 ruamel_yaml.dump(data, 
                                  fh, 
                                  default_flow_style=False, 
