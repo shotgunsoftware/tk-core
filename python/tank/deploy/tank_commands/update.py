@@ -246,6 +246,7 @@ def check_for_updates(log,
     if external:
         
         # try to load external file
+        external = os.path.expanduser(external)
         if not os.path.exists(external):
             log.error("Cannot find external config %s" % external)
             return
