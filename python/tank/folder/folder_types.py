@@ -1361,6 +1361,12 @@ class UserWorkspace(Entity):
         Inherited and wrapps base class implementation
         """
         
+        # first we need to check to see if folders should be created. if the
+        # folder creation is deferred, for example, until a specific engine
+        # is run. 
+        if not self._should_item_be_processed(engine, is_primary):
+            return
+        
         # wraps around the Entity.create_folders() method and adds
         # the current user to the filer query in case this has not already been done.
         # having this set up before the first call to create_folders rather than in the
