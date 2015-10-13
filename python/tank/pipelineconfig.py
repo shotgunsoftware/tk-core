@@ -337,6 +337,20 @@ class PipelineConfiguration(object):
             os.chmod(pipe_config_sg_id_path, 0666)
             # and write the new file
             fh = open(pipe_config_sg_id_path, "wt")
+            # using safe_dump instead of dump ensures that we
+            # don't serialize any non-std yaml content. In particular,
+            # this causes issues if a unicode object containing a 7-bit
+            # ascii string is passed as part of the data. in this case, 
+            # dump will write out a special format which is later on 
+            # *loaded in* as a unicode object, even if the content doesn't  
+            # need unicode handling. And this causes issues down the line
+            # in toolkit code, assuming strings:
+            #
+            # >>> yaml.dump({"foo": u"bar"})
+            # "{foo: !!python/unicode 'bar'}\n"
+            # >>> yaml.safe_dump({"foo": u"bar"})
+            # '{foo: bar}\n'
+            #            
             yaml.safe_dump(curr_settings, fh)
         except Exception, exp:
             raise TankError("Could not write to pipeline configuration settings file %s. "

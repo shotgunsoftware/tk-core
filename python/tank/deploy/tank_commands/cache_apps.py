@@ -35,6 +35,11 @@ class CacheAppsAction(Action):
         Tank command API accessor. 
         Called when someone runs a tank command through the core API.
         
+        This command takes no parameters, so an empty dictionary 
+        should be passed. The parameters argument is there because
+        we are deriving from the Action base class which requires 
+        this parameter to be present.
+        
         :param log: std python logger
         :param parameters: dictionary with tank command parameters
         """

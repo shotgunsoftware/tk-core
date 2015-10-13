@@ -163,7 +163,7 @@ class InstallAppAction(Action):
             log.info("")
             log.info("")
             log.info("Comment and structure preserving mode")
-            log.info("----------------------------------------")
+            log.info("-------------------------------------")
             log.info("")
             log.info("If you add a --preserve-yaml flag, existing comments and "
                      "structure will be preserved as the yaml files are updated. "
@@ -428,7 +428,7 @@ class InstallEngineAction(Action):
             log.info("> tank install_engine Asset tk-houdini")
             log.info("")
             log.info("Comment and structure preserving mode")
-            log.info("----------------------------------------")
+            log.info("-------------------------------------")
             log.info("")
             log.info("If you add a --preserve-yaml flag, existing comments and "
                      "structure will be preserved as the yaml files are updated. "

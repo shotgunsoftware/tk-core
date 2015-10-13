@@ -187,6 +187,20 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, set
     
     try:
         fh = open(roots_path, "wt")
+        # using safe_dump instead of dump ensures that we
+        # don't serialize any non-std yaml content. In particular,
+        # this causes issues if a unicode object containing a 7-bit
+        # ascii string is passed as part of the data. in this case, 
+        # dump will write out a special format which is later on 
+        # *loaded in* as a unicode object, even if the content doesn't  
+        # need unicode handling. And this causes issues down the line
+        # in toolkit code, assuming strings:
+        #
+        # >>> yaml.dump({"foo": u"bar"})
+        # "{foo: !!python/unicode 'bar'}\n"
+        # >>> yaml.safe_dump({"foo": u"bar"})
+        # '{foo: bar}\n'
+        #        
         yaml.safe_dump(roots_data, fh)
         fh.close()
     except Exception, exp:
@@ -295,6 +309,20 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, set
     
     try:
         fh = open(pipe_config_sg_id_path, "wt")
+        # using safe_dump instead of dump ensures that we
+        # don't serialize any non-std yaml content. In particular,
+        # this causes issues if a unicode object containing a 7-bit
+        # ascii string is passed as part of the data. in this case, 
+        # dump will write out a special format which is later on 
+        # *loaded in* as a unicode object, even if the content doesn't  
+        # need unicode handling. And this causes issues down the line
+        # in toolkit code, assuming strings:
+        #
+        # >>> yaml.dump({"foo": u"bar"})
+        # "{foo: !!python/unicode 'bar'}\n"
+        # >>> yaml.safe_dump({"foo": u"bar"})
+        # '{foo: bar}\n'
+        #
         yaml.safe_dump(data, fh)
         fh.close()
     except Exception, exp:

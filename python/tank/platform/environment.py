@@ -567,12 +567,30 @@ class WritableEnvironment(Environment):
                 #
                 # foo: { bar: 3, baz: 4 }
                 #
+                # note that safe_dump is not needed when using the 
+                # roundtrip dumper, it will adopt a 'safe' behaviour
+                # by default.
                 ruamel_yaml.dump(data, 
                                  fh, 
                                  default_flow_style=False, 
                                  Dumper=ruamel_yaml.RoundTripDumper)
             else:
                 # use pyyaml parser
+                #
+                # using safe_dump instead of dump ensures that we
+                # don't serialize any non-std yaml content. In particular,
+                # this causes issues if a unicode object containing a 7-bit
+                # ascii string is passed as part of the data. in this case, 
+                # dump will write out a special format which is later on 
+                # *loaded in* as a unicode object, even if the content doesn't  
+                # need unicode handling. And this causes issues down the line
+                # in toolkit code, assuming strings:
+                #
+                # >>> yaml.dump({"foo": u"bar"})
+                # "{foo: !!python/unicode 'bar'}\n"
+                # >>> yaml.safe_dump({"foo": u"bar"})
+                # '{foo: bar}\n'
+                #                
                 yaml.safe_dump(data, fh, default_flow_style=False)
                 
         except Exception, e:
