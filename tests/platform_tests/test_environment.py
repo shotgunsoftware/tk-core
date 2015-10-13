@@ -273,5 +273,5 @@ class TestUpdateEnvironmentRuamelYaml(TestUpdateEnvironment):
     
     def setUp(self):
         super(TestUpdateEnvironmentRuamelYaml, self).setUp()
-        self.env.use_preserving_yaml_parser(True)
+        self.env.set_yaml_preserve_mode(True)
     

@@ -599,7 +599,7 @@ class WritableEnvironment(Environment):
         finally:
             fh.close()
 
-    def use_preserving_yaml_parser(self, val):
+    def set_yaml_preserve_mode(self, val):
         """
         If set to true, the ruamel parser will be used instead of the 
         traditional pyyaml one. This parser will preserve structure and 

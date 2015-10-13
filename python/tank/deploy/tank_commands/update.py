@@ -234,14 +234,13 @@ def check_for_updates(log,
     :param engine_instance_name: Engine instance name to update
     :param app_instance_name: App instance name to update
     :param suppress_prompts: If True, run without prompting
-    :param preserve_yaml: Indicates that a comment preserving yaml parser 
-                          should be used.
+    :param preserve_yaml: If True, a comment preserving yaml parser is used. 
     :param external: Path to external config to operate on
     """
     
     pc = tk.pipeline_configuration
     
-    updated_items = []
+    processed_items = []
     
     if external:
         
@@ -271,14 +270,14 @@ def check_for_updates(log,
         # now process them one after the other
         for env_filename in env_filenames: 
             env_obj = WritableEnvironment(env_filename, pc)
-            env_obj.use_preserving_yaml_parser(preserve_yaml)
+            env_obj.set_yaml_preserve_mode(preserve_yaml)
             
-            updated_items += _process_environment(tk, 
-                                                  log, 
-                                                  env_obj, 
-                                                  engine_instance_name, 
-                                                  app_instance_name, 
-                                                  suppress_prompts)
+            processed_items += _process_environment(tk, 
+                                                    log, 
+                                                    env_obj, 
+                                                    engine_instance_name, 
+                                                    app_instance_name, 
+                                                    suppress_prompts)
             
     else:
 
@@ -290,20 +289,20 @@ def check_for_updates(log,
     
         for env_name in env_names_to_process:
             env_obj = pc.get_environment(env_name, writable=True)
-            env_obj.use_preserving_yaml_parser(preserve_yaml)
+            env_obj.set_yaml_preserve_mode(preserve_yaml)
             
-            updated_items += _process_environment(tk, 
-                                                  log, 
-                                                  env_obj, 
-                                                  engine_instance_name, 
-                                                  app_instance_name, 
-                                                  suppress_prompts)
+            processed_items += _process_environment(tk, 
+                                                    log, 
+                                                    env_obj, 
+                                                    engine_instance_name, 
+                                                    app_instance_name, 
+                                                    suppress_prompts)
     
     
     # display summary
     log.info("")
     summary = []
-    for x in updated_items:
+    for x in processed_items:
         if x["was_updated"]:
 
             summary.append("%s was updated from %s to %s" % (x["new_descriptor"],
@@ -325,7 +324,7 @@ def check_for_updates(log,
     
     # generate return data for api access
     ret_val = []
-    for x in updated_items:
+    for x in processed_items:
         d = {}
         d["engine_instance"] = x["engine_name"]
         d["app_instance"] = x["app_name"]
