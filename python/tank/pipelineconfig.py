@@ -21,7 +21,7 @@ from tank_vendor import yaml
 from .errors import TankError
 from .deploy import util
 from .platform import constants
-from .platform.environment import Environment
+from .platform.environment import Environment, WritableEnvironment
 from .util import shotgun
 from . import hook
 from . import pipelineconfig_utils
@@ -337,7 +337,21 @@ class PipelineConfiguration(object):
             os.chmod(pipe_config_sg_id_path, 0666)
             # and write the new file
             fh = open(pipe_config_sg_id_path, "wt")
-            yaml.dump(curr_settings, fh)
+            # using safe_dump instead of dump ensures that we
+            # don't serialize any non-std yaml content. In particular,
+            # this causes issues if a unicode object containing a 7-bit
+            # ascii string is passed as part of the data. in this case, 
+            # dump will write out a special format which is later on 
+            # *loaded in* as a unicode object, even if the content doesn't  
+            # need unicode handling. And this causes issues down the line
+            # in toolkit code, assuming strings:
+            #
+            # >>> yaml.dump({"foo": u"bar"})
+            # "{foo: !!python/unicode 'bar'}\n"
+            # >>> yaml.safe_dump({"foo": u"bar"})
+            # '{foo: bar}\n'
+            #            
+            yaml.safe_dump(curr_settings, fh)
         except Exception, exp:
             raise TankError("Could not write to pipeline configuration settings file %s. "
                             "Error reported: %s" % (pipe_config_sg_id_path, exp))
@@ -626,22 +640,28 @@ class PipelineConfiguration(object):
             env_names.append(name)
         return env_names
 
-    def get_environment(self, env_name, context=None):
+    def get_environment(self, env_name, context=None, writable=False):
         """
         Returns an environment object given an environment name.
         You can use the get_environments() method to get a list of
         all the environment names.
         
+        :param env_name: name of the environment to load
+        :param context: context to seed the environment with
+        :param writable: If true, a writable environment object will be 
+                         returned, allowing a user to update it.
         :returns: An environment object
         """        
         env_file = os.path.join(self._pc_root, "config", "env", "%s.yml" % env_name)
         if not os.path.exists(env_file):
             raise TankError("Cannot load environment '%s': Environment configuration "
                             "file '%s' does not exist!" % (env_name, env_file))
-        env_obj = Environment(env_file, self, context)
+        
+        EnvClass = WritableEnvironment if writable else Environment
+        env_obj = EnvClass(env_file, self, context)
         
         return env_obj
-
+    
     def get_templates_config(self):
         """
         Returns the templates configuration as an object

@@ -236,7 +236,7 @@ def _write_yaml_file(file_path, users_data):
     old_umask = os.umask(0077)
     try:
         with open(file_path, "w") as users_file:
-            yaml.dump(users_data, users_file)
+            yaml.safe_dump(users_data, users_file)
     finally:
         os.umask(old_umask)
 

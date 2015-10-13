@@ -31,13 +31,20 @@ class ValidateConfigAction(Action):
         
     def run_noninteractive(self, log, parameters):
         """
-        API accessor
+        Tank command API accessor. 
+        Called when someone runs a tank command through the core API.
+        
+        :param log: std python logger
+        :param parameters: dictionary with tank command parameters
         """
         return self._run(log)
     
     def run_interactive(self, log, args):
         """
         Tank command accessor
+        
+        :param log: std python logger
+        :param args: command line args
         """
         if len(args) != 0:
             raise TankError("This command takes no arguments!")

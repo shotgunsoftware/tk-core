@@ -36,9 +36,16 @@ class InstallAppAction(Action):
         self.parameters["environment"] = { "description": "Name of environment to install into.",
                                            "default": None,
                                            "type": "str" }
+        
         self.parameters["engine_instance"] = { "description": "Name of the engine instance to install into.",
                                                "default": None,
                                                "type": "str" }
+        
+        self.parameters["preserve_yaml"] = { "description": ("Enable alternative yaml parser that better preserves "
+                                                             "yaml structure and comments"),
+                                            "default": False,
+                                            "type": "bool" }      
+          
         self.parameters["app_uri"] = { "description": ("Address to app to install. If you specify the name of "
                                                        "an app (e.g. tk-multi-loader), toolkit will try to download "
                                                        "it from the Shotgun App Store. Alternatively, you can also "
@@ -51,7 +58,11 @@ class InstallAppAction(Action):
     
     def run_noninteractive(self, log, parameters):
         """
-        API accessor
+        Tank command API accessor. 
+        Called when someone runs a tank command through the core API.
+        
+        :param log: std python logger
+        :param parameters: dictionary with tank command parameters
         """
         
         # validate params and seed default values
@@ -61,13 +72,24 @@ class InstallAppAction(Action):
                          True,
                          computed_params["environment"], 
                          computed_params["engine_instance"],
-                         computed_params["app_uri"] )
+                         computed_params["app_uri"],
+                         computed_params["preserve_yaml"] )
     
 
     def run_interactive(self, log, args):
         """
         Tank command accessor
+        
+        :param log: std python logger
+        :param args: command line args
         """
+
+        if "--preserve-yaml" in args:
+            preserve_yaml = True
+            args.remove("--preserve-yaml")
+            log.info("Note: Using yaml parser which preserves structure and comments.")
+        else:
+            preserve_yaml = False        
 
         if len(args) != 3:
             
@@ -140,22 +162,33 @@ class InstallAppAction(Action):
             log.info("> tank install_app Asset tk-shell tk-multi-loader")
             log.info("")
             log.info("")
-            
+            log.info("Comment and structure preserving mode")
+            log.info("-------------------------------------")
+            log.info("")
+            log.info("If you add a --preserve-yaml flag, existing comments and "
+                     "structure will be preserved as the yaml files are updated. "
+                     "This is an experimental setting and therefore disabled by default.")
+            log.info("")
+            log.info("")
             log.info("Handy tip: For a list of existing environments, engines and apps, "
                      "run the 'tank app_info' command.")
             log.info("")
             
             return
             
-
         env_name = args[0]
         engine_instance_name = args[1]
         app_name = args[2]
         
-        self._run(log, False, env_name, engine_instance_name, app_name)
+        self._run(log, 
+                  False, 
+                  env_name, 
+                  engine_instance_name, 
+                  app_name,
+                  preserve_yaml)
         
         
-    def _run(self, log, suppress_prompts, env_name, engine_instance_name, app_name):        
+    def _run(self, log, suppress_prompts, env_name, engine_instance_name, app_name, preserve_yaml):        
         
         
         log.info("")
@@ -163,7 +196,8 @@ class InstallAppAction(Action):
         log.info("Installing into environment %s and engine %s." % (env_name, engine_instance_name))
     
         try:
-            env = self.tk.pipeline_configuration.get_environment(env_name)
+            env = self.tk.pipeline_configuration.get_environment(env_name, writable=True)
+            env.set_yaml_preserve_mode(preserve_yaml)
         except Exception, e:
             raise TankError("Environment '%s' could not be loaded! Error reported: %s" % (env_name, e))
     
@@ -281,6 +315,12 @@ class InstallEngineAction(Action):
         self.parameters["environment"] = { "description": "Name of environment to install into.",
                                            "default": None,
                                            "type": "str" }
+
+        self.parameters["preserve_yaml"] = { "description": ("Enable alternative yaml parser that better preserves "
+                                                             "yaml structure and comments"),
+                                            "default": False,
+                                            "type": "bool" }        
+        
         self.parameters["engine_uri"] = { "description": ("Address to engine to install. If you specify the name of "
                                                        "an engine (e.g. tk-maya), toolkit will try to download "
                                                        "it from the Shotgun App Store. Alternatively, you can also "
@@ -293,16 +333,37 @@ class InstallEngineAction(Action):
     
     def run_noninteractive(self, log, parameters):
         """
-        API accessor
+        Tank command API accessor. 
+        Called when someone runs a tank command through the core API.
+        
+        :param log: std python logger
+        :param parameters: dictionary with tank command parameters
         """
         
         # validate params and seed default values
         computed_params = self._validate_parameters(parameters) 
         
-        return self._run(log, True, computed_params["environment"], computed_params["engine_uri"])
+        return self._run(log, 
+                         True, 
+                         computed_params["environment"], 
+                         computed_params["engine_uri"],
+                         computed_params["preserve_yaml"])
         
     
     def run_interactive(self, log, args):
+        """
+        Tank command accessor
+        
+        :param log: std python logger
+        :param args: command line args
+        """
+
+        if "--preserve-yaml" in args:
+            preserve_yaml = True
+            args.remove("--preserve-yaml")
+            log.info("Note: Using yaml parser which preserves structure and comments.")
+        else:
+            preserve_yaml = False        
 
         if len(args) != 2:
             
@@ -366,6 +427,13 @@ class InstallEngineAction(Action):
             log.info("For example, to install the houdini engine into the Asset environment:")
             log.info("> tank install_engine Asset tk-houdini")
             log.info("")
+            log.info("Comment and structure preserving mode")
+            log.info("-------------------------------------")
+            log.info("")
+            log.info("If you add a --preserve-yaml flag, existing comments and "
+                     "structure will be preserved as the yaml files are updated. "
+                     "This is an experimental setting and therefore disabled by default.")            
+            log.info("")
             log.info("")
             log.info("Handy tip: For a list of existing environments, engines and apps, "
                      "run the 'tank app_info' command.")
@@ -376,10 +444,10 @@ class InstallEngineAction(Action):
         env_name = args[0]
         engine_name = args[1]
         
-        self._run(log, False, env_name, engine_name)   
+        self._run(log, False, env_name, engine_name, preserve_yaml)   
 
 
-    def _run(self, log, suppress_prompts, env_name, engine_name):
+    def _run(self, log, suppress_prompts, env_name, engine_name, preserve_yaml):
         """
         Actual execution payload
         """ 
@@ -390,7 +458,8 @@ class InstallEngineAction(Action):
         log.info("")
     
         try:
-            env = self.tk.pipeline_configuration.get_environment(env_name)
+            env = self.tk.pipeline_configuration.get_environment(env_name, writable=True)
+            env.set_yaml_preserve_mode(preserve_yaml)
         except Exception, e:
             raise TankError("Environment '%s' could not be loaded! Error reported: %s" % (env_name, e))
     
