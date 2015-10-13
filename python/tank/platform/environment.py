@@ -502,6 +502,10 @@ class WritableEnvironment(Environment):
         # flag to indicate with yaml parser to use.
         self._use_ruamel_yaml_parser = False
         
+        # check environment variable setting
+        if constants.PRESERVE_YAML_ENV_VAR in os.environ:
+            self._use_ruamel_yaml_parser = True
+        
         Environment.__init__(self, env_path, pipeline_config, context)
 
     def __load_writable_yaml(self, path):

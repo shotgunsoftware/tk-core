@@ -51,6 +51,9 @@ BUNDLE_PYTHON_FOLDER = "python"
 # app store approvals mode
 APP_STORE_QA_MODE_ENV_VAR = "TANK_QA_ENABLED"
 
+# use new experimental yaml parser
+PRESERVE_YAML_ENV_VAR = "TK_PRESERVE_YAML"
+
 # the file to look for that defines and bootstraps an engine
 ENGINE_FILE = "engine.py"
 
