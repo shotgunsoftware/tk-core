@@ -600,7 +600,7 @@ class WritableEnvironment(Environment):
                 # >>> yaml.safe_dump({"foo": u"bar"})
                 # '{foo: bar}\n'
                 #                
-                yaml.safe_dump(data, fh, default_flow_style=False)
+                yaml.safe_dump(data, fh)
                 
         except Exception, e:
             raise TankError("Could not write to environment file '%s'. "
