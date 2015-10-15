@@ -39,7 +39,11 @@ class DesktopMigration(Action):
     def run_interactive(self, log, args):
         """
         Tank command accessor (tank migrate_desktop)
-        Retrieves the pipeline configuration from Shotgun and unassigns it from the Template Project.
+        Retrieves the pipeline configuration from Shotgun 
+        and unassigns it from the Template Project.
+        
+        :param log: std python logger
+        :param args: command line args        
         """
 
         log.info("Retrieving pipeline configuration from Shotgun...")

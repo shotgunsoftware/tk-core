@@ -81,7 +81,11 @@ class TestEnvironment(TankTestBase):
         
     
 class TestUpdateEnvironment(TankTestBase):
-
+    """
+    Tests yaml environment updates
+    """
+    
+    
     def setUp(self):
         super(TestUpdateEnvironment, self).setUp()
         self.setup_fixtures()
@@ -90,7 +94,7 @@ class TestUpdateEnvironment(TankTestBase):
         self.test_engine = "test_engine"
 
         # create env object
-        self.env = self.tk.pipeline_configuration.get_environment(self.test_env)
+        self.env = self.tk.pipeline_configuration.get_environment(self.test_env, writable=True)
         
         
         
@@ -165,7 +169,9 @@ class TestUpdateEnvironment(TankTestBase):
         fh.close()
         prev_settings = self.env.get_engine_settings("test_engine")
         
-        self.env.update_engine_settings("test_engine", {"foo":"bar"}, {"type":"dev", "path":"foo"})
+        self.env.update_engine_settings("test_engine", 
+                                        {"foo": u"bar"},
+                                        {"type": "dev", "path": "foo"})
         
         # get raw environment after
         env_file = os.path.join(self.project_config, "env", "test.yml")
@@ -178,6 +184,9 @@ class TestUpdateEnvironment(TankTestBase):
         env_before["engines"]["test_engine"]["foo"] = "bar"
         env_before["engines"]["test_engine"]["location"] = {"type":"dev", "path":"foo"}
         self.assertEqual(env_after, env_before)
+        
+        # #31315 - make sure the u"bar" unicode was converted to str
+        self.assertEqual(type(env_after["engines"]["test_engine"]["foo"]), str)
         
         # ensure memory was updated
         new_settings = self.env.get_engine_settings("test_engine")
@@ -256,8 +265,13 @@ class TestUpdateEnvironment(TankTestBase):
     
     
     
+class TestUpdateEnvironmentRuamelYaml(TestUpdateEnvironment):
+    """
+    Runs the standard environment Update tests with the
+    ruamel parser enabled.
+    """
     
-    
-    
-    
+    def setUp(self):
+        super(TestUpdateEnvironmentRuamelYaml, self).setUp()
+        self.env.set_yaml_preserve_mode(True)
     

@@ -152,7 +152,7 @@ class Engine(TankBundle):
         # loaded environment, add a reload button to the menu!
         for app in self.__applications.values():
             if isinstance(app.descriptor, TankDevDescriptor):
-                self.log_debug("App %s is registerered via a dev descriptor. Will add a reload "
+                self.log_debug("App %s is registered via a dev descriptor. Will add a reload "
                                "button to the actions listings."  % app)
                 from . import restart 
                 self.register_command("Reload and Restart", restart, {"short_name": "restart", "type": "context_menu"})                

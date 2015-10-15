@@ -50,7 +50,11 @@ class CopyAppsAction(Action):
 
     def run_noninteractive(self, log, parameters):
         """
-        API accessor
+        Tank command API accessor. 
+        Called when someone runs a tank command through the core API.
+        
+        :param log: std python logger
+        :param parameters: dictionary with tank command parameters
         """
         computed_params = self._validate_parameters(parameters)
 
@@ -64,6 +68,9 @@ class CopyAppsAction(Action):
     def run_interactive(self, log, args):
         """
         Tank command accessor
+        
+        :param log: std python logger
+        :param args: command line args
         """
 
         if len(args) != 3:
@@ -81,7 +88,7 @@ class CopyAppsAction(Action):
 
     def _run(self, log, env_name, src_engine_instance_name, dst_engine_instance_name):
         try:
-            env = self.tk.pipeline_configuration.get_environment(env_name)
+            env = self.tk.pipeline_configuration.get_environment(env_name, writable=True)
         except Exception, e:
             raise TankError("Environment '%s' could not be loaded! Error reported: %s" % (env_name, e))
 

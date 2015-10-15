@@ -44,7 +44,11 @@ class SynchronizePathCache(Action):
         
     def run_noninteractive(self, log, parameters):
         """
-        API accessor
+        Tank command API accessor. 
+        Called when someone runs a tank command through the core API.
+        
+        :param log: std python logger
+        :param parameters: dictionary with tank command parameters
         """
         # validate params and seed default values
         computed_params = self._validate_parameters(parameters)
@@ -53,6 +57,9 @@ class SynchronizePathCache(Action):
     def run_interactive(self, log, args):
         """
         Tank command accessor
+        
+        :param log: std python logger
+        :param args: command line args
         """
         if len(args) == 1 and args[0] == "--full":
             full_sync = True
@@ -119,6 +126,9 @@ class PathCacheMigrationAction(Action):
     def run_interactive(self, log, args):
         """
         Tank command accessor
+        
+        :param log: std python logger
+        :param args: command line args
         """
                 
         log.info("Welcome to the folder sync upgrade command!")

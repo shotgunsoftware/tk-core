@@ -71,7 +71,11 @@ class CloneConfigAction(Action):
         
     def run_noninteractive(self, log, parameters):
         """
-        API accessor
+        Tank command API accessor. 
+        Called when someone runs a tank command through the core API.
+        
+        :param log: std python logger
+        :param parameters: dictionary with tank command parameters
         """
 
         # validate params and seed default values
@@ -91,6 +95,9 @@ class CloneConfigAction(Action):
     def run_interactive(self, log, args):
         """
         Tank command accessor
+        
+        :param log: std python logger
+        :param args: command line args
         """
         raise TankError("This Action does not support command line access")
 
@@ -232,7 +239,22 @@ def _do_clone(log, tk, source_pc_id, user_id, new_name, target_linux, target_mac
         
         # and write the new file
         fh = open(sg_pc_location, "wt")
-        yaml.dump(data, fh)
+
+        # using safe_dump instead of dump ensures that we
+        # don't serialize any non-std yaml content. In particular,
+        # this causes issues if a unicode object containing a 7-bit
+        # ascii string is passed as part of the data. in this case, 
+        # dump will write out a special format which is later on 
+        # *loaded in* as a unicode object, even if the content doesn't  
+        # need unicode handling. And this causes issues down the line
+        # in toolkit code, assuming strings:
+        #
+        # >>> yaml.dump({"foo": u"bar"})
+        # "{foo: !!python/unicode 'bar'}\n"
+        # >>> yaml.safe_dump({"foo": u"bar"})
+        # '{foo: bar}\n'
+        #
+        yaml.safe_dump(data, fh)
         fh.close()
 
     except Exception, e:

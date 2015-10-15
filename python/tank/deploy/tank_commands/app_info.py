@@ -30,13 +30,25 @@ class AppInfoAction(Action):
 
     def run_noninteractive(self, log, parameters):
         """
-        API accessor
+        Tank command API accessor. 
+        Called when someone runs a tank command through the core API.
+        
+        This command takes no parameters, so an empty dictionary 
+        should be passed. The parameters argument is there because
+        we are deriving from the Action base class which requires 
+        this parameter to be present.
+        
+        :param log: std python logger
+        :param parameters: dictionary with tank command parameters
         """
         return self._run(log)
     
     def run_interactive(self, log, args):
         """
         Tank command accessor
+        
+        :param log: std python logger
+        :param args: command line args
         """
         if len(args) != 0:
             raise TankError("This command takes no arguments!")
