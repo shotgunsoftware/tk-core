@@ -498,13 +498,7 @@ class WritableEnvironment(Environment):
         """
         Constructor
         """
-        # flag to indicate with yaml parser to use.
-        self._use_ruamel_yaml_parser = False
-        
-        # check environment variable setting
-        if constants.PRESERVE_YAML_ENV_VAR in os.environ:
-            self._use_ruamel_yaml_parser = True
-        
+        self.set_yaml_preserve_mode(False)        
         Environment.__init__(self, env_path, pipeline_config, context)
 
     def __load_writable_yaml(self, path):
@@ -615,11 +609,13 @@ class WritableEnvironment(Environment):
         comments and generally try to more gracefully update the yaml 
         content
         
-        :param val: True to enable new parser, false to disable 
-        
+        :param val: True to enable new parser, false to disable
         """
-        self._use_ruamel_yaml_parser = val
-        
+        # environment variable setting overrides
+        if constants.PRESERVE_YAML_ENV_VAR in os.environ:
+            self._use_ruamel_yaml_parser = True
+        else:
+            self._use_ruamel_yaml_parser = val
         
     def update_engine_settings(self, engine_name, new_data, new_location):
         """
