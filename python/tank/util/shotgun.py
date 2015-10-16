@@ -243,6 +243,40 @@ def __create_sg_connection(config_data=None, user=None):
 
     return sg
 
+def set_user_metric(sg_connection, metric_name, metric_value):
+    """
+    Sets a metric for the current user
+    
+    :param sg_connection: SG API connection
+    :param metric_name: Name of the metric to set 
+    :param metric_value: Value to set 
+    """
+    print "set user metric"
+    
+
+def log_metric(sg_connection, module, action):
+    """
+    Logs a metric
+    
+    :param sg_connection: SG API connection
+    :param module: Module to log metric for (e.g. 'tk-core')
+    :param action: Action to log (e.g. 'create folders')
+    """
+    
+    print ">>>>> METRIC %s:%s" % (module, action)
+    
+    # handle proxy setup by pulling the proxy details from the main shotgun connection
+    if sg_connection.config.proxy_handler:
+        opener = urllib2.build_opener(sg_connection.config.proxy_handler)
+        urllib2.install_opener(opener)
+
+    session_token = sg_connection.get_session_token()
+    post_data = {"session_token": session_token, 
+                 "metrics_module": module, 
+                 "metrics_action": action}
+    response = urllib2.urlopen("%s/api3/metrics" % sg_connection.base_url, 
+                               urllib.urlencode(post_data))
+
 
 def download_url(sg, url, location):
     """
@@ -422,6 +456,9 @@ def __get_app_store_connection_information():
     config_data["http_proxy"] = client_site_sg.config.raw_http_proxy
 
     return config_data
+
+
+
 
 
 def __get_app_store_key_from_shotgun(sg_connection):

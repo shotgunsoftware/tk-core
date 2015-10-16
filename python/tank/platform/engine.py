@@ -22,6 +22,7 @@ import threading
         
 from .. import loader
 from .. import hook
+from ..util import log_metric
 from ..errors import TankError, TankEngineInitError
 from ..deploy import descriptor
 from ..deploy.dev_descriptor import TankDevDescriptor
@@ -48,6 +49,8 @@ class Engine(TankBundle):
         :param engine_instance_name: The name of the engine as it has been defined in the environment.
         :param env: An Environment object to associate with this engine
         """
+        
+        
         
         self.__env = env
         self.__engine_instance_name = engine_instance_name
@@ -166,6 +169,7 @@ class Engine(TankBundle):
         tk.execute_core_hook(constants.TANK_ENGINE_INIT_HOOK_NAME, engine=self)
         
         self.log_debug("Init complete: %s" % self)
+        log_metric(self.shotgun, self.name, "Startup")
         
         # check if there are any compatibility warnings:
         # do this now in case the engine fails to load!
@@ -499,7 +503,13 @@ class Engine(TankBundle):
                 # also add a prefix key in the properties dict
                 properties["prefix"] = prefix
             
-        self.__commands[name] = { "callback": callback, "properties": properties }
+        def callback_wrapper(*args, **kwargs):
+            if properties.get("app"):
+                app_name = properties["app"].name
+                log_metric(self.shotgun, app_name, name)
+            return callback(*args, **kwargs)
+            
+        self.__commands[name] = { "callback": callback_wrapper, "properties": properties }
         
     def register_panel(self, callback, panel_name="main", properties=None):
         """
