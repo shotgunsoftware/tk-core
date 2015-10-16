@@ -276,7 +276,7 @@ def log_metric(sg_connection, module, action):
                  "metrics_action": action}
     response = urllib2.urlopen("%s/api3/metrics" % sg_connection.base_url, 
                                urllib.urlencode(post_data))
-
+    print "got from sg: %s" % response.read()
 
 def download_url(sg, url, location):
     """

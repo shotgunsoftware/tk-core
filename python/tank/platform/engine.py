@@ -504,9 +504,14 @@ class Engine(TankBundle):
                 properties["prefix"] = prefix
             
         def callback_wrapper(*args, **kwargs):
+            
             if properties.get("app"):
                 app_name = properties["app"].name
-                log_metric(self.shotgun, app_name, name)
+                attribute_name = "%s.%s" % (app_name, name)
+            else:
+                attribute_name = name
+                 
+            log_metric(self.shotgun, self.name, attribute_name)
             return callback(*args, **kwargs)
             
         self.__commands[name] = { "callback": callback_wrapper, "properties": properties }
