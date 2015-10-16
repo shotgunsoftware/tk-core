@@ -507,7 +507,7 @@ class Engine(TankBundle):
             
             if properties.get("app"):
                 app_name = properties["app"].name
-                attribute_name = "%s.%s" % (app_name, name)
+                attribute_name = "%s %s" % (app_name, name)
             else:
                 attribute_name = name
                  
