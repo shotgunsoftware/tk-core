@@ -1435,10 +1435,9 @@ def find_app_settings(engine_name, app_name, tk, context):
 
     env = tk.pipeline_configuration.get_environment(env_name, context)
     
-    # now find all engines whose descriptor matches the engine_name:
+    # now find all engines whose names match the engine_name:
     for eng in env.get_engines():
-        eng_desc = env.get_engine_descriptor(eng)
-        if eng_desc.get_system_name() != engine_name:
+        if eng != engine_name:
             continue
         
         # ok, found engine so look for app:
