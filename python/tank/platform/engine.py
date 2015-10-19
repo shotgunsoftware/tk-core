@@ -1049,7 +1049,7 @@ class Engine(TankBundle):
         x = os.path.abspath(os.path.join(this_folder, "..", "..", "tank_vendor"))
         sys.path.append(x)
         
-        QtGui.QApplication.setStyle("plastique")
+        #QtGui.QApplication.setStyle("plastique")
         qss = qdarkstyle.load_stylesheet()
         
         app = QtCore.QCoreApplication.instance()     
