@@ -2139,6 +2139,11 @@ class Shotgun(object):
         req_headers = {
             "user-agent": "; ".join(self._user_agents),
         }
+        
+        print "--------"
+        print "sending user agent: %s" % "\n".join(self._user_agents)
+        print "--------"
+        
         if self.config.authorization:
             req_headers["Authorization"] = self.config.authorization
 
@@ -2162,9 +2167,9 @@ class Shotgun(object):
         """
         url = urlparse.urlunparse((self.config.scheme, self.config.server,
             path, None, None, None))
-        LOG.debug("Request is %s:%s" % (verb, url))
-        LOG.debug("Request headers are %s" % headers)
-        LOG.debug("Request body is %s" % body)
+        print("Request is %s:%s" % (verb, url))
+        print("Request headers are %s" % headers)
+        print("Request body is %s" % body)
 
         conn = self._get_connection()
         resp, content = conn.request(url, method=verb, body=body,

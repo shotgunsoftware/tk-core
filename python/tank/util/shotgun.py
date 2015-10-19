@@ -243,15 +243,28 @@ def __create_sg_connection(config_data=None, user=None):
 
     return sg
 
-def set_user_metric(sg_connection, metric_name, metric_value):
+def set_user_metric(sg_connection, name, value):
     """
     Sets a metric for the current user
     
     :param sg_connection: SG API connection
-    :param metric_name: Name of the metric to set 
-    :param metric_value: Value to set 
+    :param name: Name of the metric to set 
+    :param value: Value to set 
     """
-    print "set user metric"
+    print ">>> Metric: Set user attribute %s:%s" % (name, value)
+    
+    # handle proxy setup by pulling the proxy details from the main shotgun connection
+    if sg_connection.config.proxy_handler:
+        opener = urllib2.build_opener(sg_connection.config.proxy_handler)
+        urllib2.install_opener(opener)
+
+    session_token = sg_connection.get_session_token()
+    post_data = {"session_token": session_token, 
+                 "mode": "user_attribute",
+                 "attribute_name": name, 
+                 "attribute_value": value}
+    response = urllib2.urlopen("%s/api3/register_metric" % sg_connection.base_url, urllib.urlencode(post_data))
+    print "got from sg: %s" % response.read()
     
 
 def log_metric(sg_connection, module, action):
@@ -263,7 +276,7 @@ def log_metric(sg_connection, module, action):
     :param action: Action to log (e.g. 'create folders')
     """
     
-    print ">>>>> METRIC %s:%s" % (module, action)
+    print ">>> Metric: log value %s:%s" % (module, action)
     
     # handle proxy setup by pulling the proxy details from the main shotgun connection
     if sg_connection.config.proxy_handler:
@@ -271,11 +284,11 @@ def log_metric(sg_connection, module, action):
         urllib2.install_opener(opener)
 
     session_token = sg_connection.get_session_token()
-    post_data = {"session_token": session_token, 
-                 "metrics_module": module, 
-                 "metrics_action": action}
-    response = urllib2.urlopen("%s/api3/metrics" % sg_connection.base_url, 
-                               urllib.urlencode(post_data))
+    post_data = {"session_token": session_token,
+                 "mode": "log_metric", 
+                 "metric_module": module, 
+                 "metric_action": action}
+    response = urllib2.urlopen("%s/api3/register_metric" % sg_connection.base_url, urllib.urlencode(post_data))
     print "got from sg: %s" % response.read()
 
 def download_url(sg, url, location):
@@ -1256,3 +1269,5 @@ class ToolkitUserAgentHandler(object):
 
         # and update shotgun
         self._sg._user_agents = new_agents
+
+

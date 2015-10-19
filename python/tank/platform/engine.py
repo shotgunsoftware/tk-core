@@ -22,7 +22,7 @@ import threading
         
 from .. import loader
 from .. import hook
-from ..util import log_metric
+from ..util import log_metric, set_user_metric
 from ..errors import TankError, TankEngineInitError
 from ..deploy import descriptor
 from ..deploy.dev_descriptor import TankDevDescriptor
@@ -170,6 +170,7 @@ class Engine(TankBundle):
         
         self.log_debug("Init complete: %s" % self)
         log_metric(self.shotgun, self.name, "Startup")
+        set_user_metric(self.shotgun, "Maya Version", "2016")
         
         # check if there are any compatibility warnings:
         # do this now in case the engine fails to load!
