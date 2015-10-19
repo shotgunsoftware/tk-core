@@ -1018,6 +1018,7 @@ class Engine(TankBundle):
         
         return base
         
+        
     def _initialize_dark_look_and_feel(self):
         """
         Initializes a standard toolkit look and feel using a combination of
@@ -1041,67 +1042,19 @@ class Engine(TankBundle):
         """
         from .qt import QtGui, QtCore
         
+        from tank_vendor import qdarkstyle
+        
         this_folder = os.path.abspath(os.path.dirname(__file__))
         
-        # initialize our style
-        QtGui.QApplication.setStyle("plastique")
+        x = os.path.abspath(os.path.join(this_folder, "..", "..", "tank_vendor"))
+        sys.path.append(x)
         
-        # Read in a serialized version of a palette
-        # this file was generated in the following way:
-        #
-        # Inside of maya 2014, the following code was executed:
-        #
-        # from PySide import QtGui, QtCore
-        # app = QtCore.QCoreApplication.instance()
-        # fh = QtCore.QFile("/tmp/palette.dump")
-        # fh.open(QtCore.QIODevice.WriteOnly)
-        # out = QtCore.QDataStream(fh)
-        # out.__lshift__( app.palette() )
-        # fh.close()
-        #
-        # When we load this up in our engine, we will get a look
-        # and feel similar to that of maya.
-
-        try:
-            # open palette file
-            palette_file = os.path.join(this_folder, "qt", "dark_palette.qpalette")
-            fh = QtCore.QFile(palette_file)
-            fh.open(QtCore.QIODevice.ReadOnly);
-            file_in = QtCore.QDataStream(fh)
-    
-            # deserialize the palette
-            # (store it for GC purposes)
-            self._dark_palette = QtGui.QPalette()
-            file_in.__rshift__(self._dark_palette)
-            fh.close()
-            
-            # set the std selection bg color to be 'shotgun blue'
-            highlight_color = QtGui.QBrush(QtGui.QColor(constants.SG_STYLESHEET_CONSTANTS["SG_HIGHLIGHT_COLOR"]))
-            self._dark_palette.setBrush(QtGui.QPalette.Highlight, highlight_color)
-            
-            
-            self._dark_palette.setBrush(QtGui.QPalette.HighlightedText, QtGui.QBrush(QtGui.QColor("#FFFFFF")))
-            
-            # and associate it with the qapplication
-            QtGui.QApplication.setPalette(self._dark_palette)
-
-        except Exception, e:
-            self.log_error("The standard toolkit dark palette could not be set up! The look and feel of your "
-                           "toolkit apps may be sub standard. Please contact support. Details: %s" % e)
-            
-        try:
-            # read css
-            css_file = os.path.join(this_folder, "qt", "dark_palette.css")
-            f = open(css_file)
-            css_data = f.read()
-            f.close()
-            css_data = self._resolve_sg_stylesheet_tokens(css_data)
-            app = QtCore.QCoreApplication.instance()
-            
-            app.setStyleSheet(css_data)
-        except Exception, e:
-            self.log_error("The standard toolkit dark stylesheet could not be set up! The look and feel of your "
-                           "toolkit apps may be sub standard. Please contact support. Details: %s" % e)
+        QtGui.QApplication.setStyle("plastique")
+        qss = qdarkstyle.load_stylesheet()
+        
+        app = QtCore.QCoreApplication.instance()     
+        app.setStyleSheet(qss)
+        
         
     
     def _get_standard_qt_stylesheet(self):
