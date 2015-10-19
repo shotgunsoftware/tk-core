@@ -1413,7 +1413,7 @@ def start_engine(engine_name, tk, context):
 
     return obj
 
-def find_app_settings(engine_name, app_name, tk, context):
+def find_app_settings(engine_name, app_name, tk, context, compare_instance_name=False):
     """
     Utility method to find the settings for an app in an engine in the
     environment determined for the context by pick environment hook.
@@ -1432,12 +1432,24 @@ def find_app_settings(engine_name, app_name, tk, context):
     
     # get the environment via the pick_environment hook
     env_name = __pick_environment(engine_name, tk, context)
-
     env = tk.pipeline_configuration.get_environment(env_name, context)
     
     # now find all engines whose names match the engine_name:
     for eng in env.get_engines():
-        if eng != engine_name:
+        # We will either filter on engine instance name, or system
+        # name. The case where using the instance name makes the
+        # most sense is when looking up app settings for an instance
+        # of an engine that differs from the engine name itself. A
+        # good example would be Hiero making use of the tk-nuke
+        # engine, where it will likely have a different app config
+        # setup than Nuke.
+        if compare_instance_name:
+            eng_comp_name = eng
+        else:
+            eng_desc = env.get_engine_descriptor(eng)
+            eng_comp_name = eng_desc.get_system_name()
+
+        if eng_comp_name != engine_name:
             continue
         
         # ok, found engine so look for app:
