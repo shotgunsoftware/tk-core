@@ -1413,7 +1413,7 @@ def start_engine(engine_name, tk, context):
 
     return obj
 
-def find_app_settings(engine_name, app_name, tk, context, compare_instance_name=False):
+def find_app_settings(engine_name, app_name, tk, context, engine_instance_name=None):
     """
     Utility method to find the settings for an app in an engine in the
     environment determined for the context by pick environment hook.
@@ -1422,6 +1422,7 @@ def find_app_settings(engine_name, app_name, tk, context, compare_instance_name=
     :param app_name: system name of the app to look for
     :param tk: tank instance
     :param context: context to use when picking environment
+    :param engine_instance_name: The instance name of the engine to look for.
     
     :returns: list of dictionaries containing the engine name, 
               application name and settings for any matching
@@ -1436,20 +1437,14 @@ def find_app_settings(engine_name, app_name, tk, context, compare_instance_name=
     
     # now find all engines whose names match the engine_name:
     for eng in env.get_engines():
-        # We will either filter on engine instance name, or system
-        # name. The case where using the instance name makes the
-        # most sense is when looking up app settings for an instance
-        # of an engine that differs from the engine name itself. A
-        # good example would be Hiero making use of the tk-nuke
-        # engine, where it will likely have a different app config
-        # setup than Nuke.
-        if compare_instance_name:
-            eng_comp_name = eng
-        else:
-            eng_desc = env.get_engine_descriptor(eng)
-            eng_comp_name = eng_desc.get_system_name()
+        eng_desc = env.get_engine_descriptor(eng)
+        eng_sys_name = eng_desc.get_system_name()
 
-        if eng_comp_name != engine_name:
+        # Make sure that we get the right engine by comparing engine
+        # name and instance name, if provided.
+        if eng_sys_name != engine_name:
+            continue
+        if engine_instance_name and engine_instance_name != eng:
             continue
         
         # ok, found engine so look for app:
