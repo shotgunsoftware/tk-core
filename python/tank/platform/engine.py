@@ -1413,7 +1413,7 @@ def start_engine(engine_name, tk, context):
 
     return obj
 
-def find_app_settings(engine_name, app_name, tk, context):
+def find_app_settings(engine_name, app_name, tk, context, engine_instance_name=None):
     """
     Utility method to find the settings for an app in an engine in the
     environment determined for the context by pick environment hook.
@@ -1422,6 +1422,7 @@ def find_app_settings(engine_name, app_name, tk, context):
     :param app_name: system name of the app to look for
     :param tk: tank instance
     :param context: context to use when picking environment
+    :param engine_instance_name: The instance name of the engine to look for.
     
     :returns: list of dictionaries containing the engine name, 
               application name and settings for any matching
@@ -1432,13 +1433,18 @@ def find_app_settings(engine_name, app_name, tk, context):
     
     # get the environment via the pick_environment hook
     env_name = __pick_environment(engine_name, tk, context)
-
     env = tk.pipeline_configuration.get_environment(env_name, context)
     
-    # now find all engines whose descriptor matches the engine_name:
+    # now find all engines whose names match the engine_name:
     for eng in env.get_engines():
         eng_desc = env.get_engine_descriptor(eng)
-        if eng_desc.get_system_name() != engine_name:
+        eng_sys_name = eng_desc.get_system_name()
+
+        # Make sure that we get the right engine by comparing engine
+        # name and instance name, if provided.
+        if eng_sys_name != engine_name:
+            continue
+        if engine_instance_name and engine_instance_name != eng:
             continue
         
         # ok, found engine so look for app:
