@@ -169,7 +169,7 @@ class Engine(TankBundle):
         tk.execute_core_hook(constants.TANK_ENGINE_INIT_HOOK_NAME, engine=self)
         
         self.log_debug("Init complete: %s" % self)
-        self.log_metric("Engine init")
+        self.log_metric("Init")
 
         # track which version of an engine is being used        
         set_user_metric(self.shotgun, "%s Version" % self.name, self.version)
@@ -518,11 +518,11 @@ class Engine(TankBundle):
             if properties.get("app"):
                 
                 # track which app command is being launched
-                properties["app"].log_metric("Execute Command '%s'" % name)
+                properties["app"].log_metric("'%s'" % name)
                 
                 # specify which app version is being used
                 set_user_metric(self.shotgun, 
-                                "%s Version" % properties["app"].name, 
+                                "%s version" % properties["app"].name, 
                                 properties["app"].version)
                 
                 # 
@@ -721,6 +721,18 @@ class Engine(TankBundle):
         message.extend(traceback_str.split("\n"))
         
         self.log_error("\n".join(message))
+        
+    def log_metric(self, action):
+        """
+        Log engine metric
+        
+        :param action: Action string to log, e.g. 'Init' 
+        """
+        # the action contains the engine and app name, e.g.
+        # module: tk-maya
+        # action: tk-maya - Init        
+        full_action = "%s - %s" % (self.name, action)
+        log_metric(self.shotgun, self.name, full_action)        
         
     ##########################################################################################
     # debug for tracking Qt Widgets & Dialogs created by the provided methods      

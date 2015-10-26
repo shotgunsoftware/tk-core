@@ -19,7 +19,6 @@ import sys
 import imp
 import uuid
 from .. import hook
-from ..util import log_metric
 from ..errors import TankError
 from . import constants
 
@@ -264,14 +263,6 @@ class TankBundle(object):
     
     ##########################################################################################
     # public methods
-
-    def log_metric(self, action):
-        """
-        Log metric
-        
-        :param action: Action string to log, e.g. 'Execute Action' 
-        """
-        log_metric(self.shotgun, self.name, action)
 
     def import_module(self, module_name):
         """

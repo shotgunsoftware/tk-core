@@ -275,8 +275,6 @@ def log_metric(sg_connection, module, action):
     :param module: Module to log metric for (e.g. 'Core' or 'Maya Engine')
     :param action: Action to log (e.g. 'Create Folders')
     """    
-    full_action = "%s - %s" % (action, module)
-    
     # handle proxy setup by pulling the proxy details from the main shotgun connection
     if sg_connection.config.proxy_handler:
         opener = urllib2.build_opener(sg_connection.config.proxy_handler)
@@ -286,9 +284,9 @@ def log_metric(sg_connection, module, action):
     post_data = {"session_token": session_token,
                  "mode": "log_metric",
                  "metric_module": module,
-                 "metric_action": full_action}
+                 "metric_action": action}
     
-    print ">>> Log Metric module: %s, action: %s" % (module, full_action)
+    print ">>> Log Metric module: %s, action: %s" % (module, action)
     response = urllib2.urlopen("%s/api3/register_metric" % sg_connection.base_url, urllib.urlencode(post_data))
 
 def download_url(sg, url, location):

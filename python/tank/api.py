@@ -25,6 +25,7 @@ from .errors import TankError
 from .path_cache import PathCache
 from .template import read_templates
 from .platform import constants as platform_constants
+from .util import log_metric
 from . import pipelineconfig
 from . import pipelineconfig_utils
 from . import pipelineconfig_factory
@@ -226,6 +227,12 @@ class Tank(object):
 
     ##########################################################################################
     # public methods
+
+    def log_core_metric(self, action):
+        """
+        Log a core metric
+        """
+        log_metric(self.shotgun, "tk-core", action)
 
     def list_commands(self):
         """
