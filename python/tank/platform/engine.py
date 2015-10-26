@@ -169,7 +169,16 @@ class Engine(TankBundle):
         tk.execute_core_hook(constants.TANK_ENGINE_INIT_HOOK_NAME, engine=self)
         
         self.log_debug("Init complete: %s" % self)
-        log_metric(self.shotgun, self.name, "Startup")
+        self.log_metric("Engine init")
+
+        # track which version of an engine is being used        
+        set_user_metric(self.shotgun, "%s Version" % self.name, self.version)
+        
+        # for testing purposes only - this would have to go into the launch app
+        # for the time being. Long term, we talked about adding a launch 
+        # application method to core which would means this call would could
+        # be centralized rather than being part of the launch app.
+        # (there would be many other benefits too)
         set_user_metric(self.shotgun, "Maya Version", "2016")
         
         # check if there are any compatibility warnings:
@@ -507,12 +516,17 @@ class Engine(TankBundle):
         def callback_wrapper(*args, **kwargs):
             
             if properties.get("app"):
-                app_name = properties["app"].name
-                attribute_name = "%s %s" % (app_name, name)
-            else:
-                attribute_name = name
-                 
-            log_metric(self.shotgun, self.name, attribute_name)
+                
+                # track which app command is being launched
+                properties["app"].log_metric("Execute Command '%s'" % name)
+                
+                # specify which app version is being used
+                set_user_metric(self.shotgun, 
+                                "%s Version" % properties["app"].name, 
+                                properties["app"].version)
+                
+                # 
+            
             return callback(*args, **kwargs)
             
         self.__commands[name] = { "callback": callback_wrapper, "properties": properties }

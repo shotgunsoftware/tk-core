@@ -251,8 +251,6 @@ def set_user_metric(sg_connection, name, value):
     :param name: Name of the metric to set 
     :param value: Value to set 
     """
-    print ">>> Metric: Set user attribute %s:%s" % (name, value)
-    
     # handle proxy setup by pulling the proxy details from the main shotgun connection
     if sg_connection.config.proxy_handler:
         opener = urllib2.build_opener(sg_connection.config.proxy_handler)
@@ -263,8 +261,10 @@ def set_user_metric(sg_connection, name, value):
                  "mode": "user_attribute",
                  "attribute_name": name, 
                  "attribute_value": value}
+    
+    print ">>> Log User Metric: %s: %s" % (name, value)
+    
     response = urllib2.urlopen("%s/api3/register_metric" % sg_connection.base_url, urllib.urlencode(post_data))
-    print "got from sg: %s" % response.read()
     
 
 def log_metric(sg_connection, module, action):
@@ -272,11 +272,10 @@ def log_metric(sg_connection, module, action):
     Logs a metric
     
     :param sg_connection: SG API connection
-    :param module: Module to log metric for (e.g. 'tk-core')
-    :param action: Action to log (e.g. 'create folders')
-    """
-    
-    print ">>> Metric: log value %s:%s" % (module, action)
+    :param module: Module to log metric for (e.g. 'Core' or 'Maya Engine')
+    :param action: Action to log (e.g. 'Create Folders')
+    """    
+    full_action = "%s - %s" % (action, module)
     
     # handle proxy setup by pulling the proxy details from the main shotgun connection
     if sg_connection.config.proxy_handler:
@@ -285,11 +284,12 @@ def log_metric(sg_connection, module, action):
 
     session_token = sg_connection.get_session_token()
     post_data = {"session_token": session_token,
-                 "mode": "log_metric", 
-                 "metric_module": module, 
-                 "metric_action": action}
+                 "mode": "log_metric",
+                 "metric_module": module,
+                 "metric_action": full_action}
+    
+    print ">>> Log Metric module: %s, action: %s" % (module, full_action)
     response = urllib2.urlopen("%s/api3/register_metric" % sg_connection.base_url, urllib.urlencode(post_data))
-    print "got from sg: %s" % response.read()
 
 def download_url(sg, url, location):
     """
