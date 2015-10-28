@@ -539,15 +539,8 @@ class Engine(TankBundle):
         properties["app"] = current_app 
         
         # now compose a unique id for this panel
-        # this is done based on the app instance name plus the given
-        # panel name. By using the instance name rather than the app name,
-        # we support the use case where more than one instance of an app exists 
-        # within a config.
-        panel_id = "%s_%s" % (current_app.instance_name, panel_name)
-        # to ensure the string is safe to use in most engines, 
-        # sanitize to simple alpha-numeric form
-        panel_id = re.sub("\W", "_", panel_id)
-        panel_id = panel_id.lower()
+        panel_id = self._generate_panel_id(current_app.instance_name,
+                                            panel_name)
          
         # add it to the list of registered panels
         self.__panels[panel_id] = {"callback": callback, "properties": properties}
@@ -1218,6 +1211,23 @@ class Engine(TankBundle):
 
         # don't have ui so can't create an invoker!
         return None
+
+    def _generate_panel_id(self, app_instance_name, panel_name):
+        """
+        Compose a unique id for a panel. This is done based on the app instance
+        name plus the given panel name. By using the instance name rather than
+        the app name, we support the use case where more than one instance of an
+        app exists within a config.
+        :param app_instance_name: Instance name of the current application.
+        :param panel_name:        Name that uniquely identifies a panel.
+        :returns:                 Id to give to the panel.
+        """
+        panel_id = "%s_%s" % (app_instance_name, panel_name)
+        # to ensure the string is safe to use in most engines,
+        # sanitize to simple alpha-numeric form
+        panel_id = re.sub("\W", "_", panel_id)
+        panel_id = panel_id.lower()
+        return panel_id
 
     ##########################################################################################
     # private         
