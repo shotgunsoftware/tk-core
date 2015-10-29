@@ -1229,6 +1229,36 @@ class Engine(TankBundle):
         panel_id = panel_id.lower()
         return panel_id
 
+    def _setting_get_matching_panels(self, setting):
+        """
+        Reads a setting to find all the panels that match the given selectors.
+        Expects the following structure for the list in the setting:
+            {name: panel-name, app_instance: instance-name }
+        Use '' as a name to select all the panels of the instance-name.
+
+        :param setting: Name of the setting containing the panel selectors.
+        :returns:       A list of tuples for all panels that match the
+                        selectors. Each tuple is of the form:
+                          (instance-name, panel-id, callback)
+        """
+        return self.__setting_get_matching_items(setting, self.panels,
+                                                 self._generate_panel_id)
+
+    def _setting_get_matching_commands(self, setting):
+        """
+        Reads a setting to find all the commands that match the given selectors.
+        Expects the following structure for the list in the setting:
+            {name: command-name, app_instance: instance-name }
+        Use '' as a name to select all the commands of the instance-name.
+
+        :param setting: Name of the setting containing the command selectors.
+        :returns:       A list of tuples for all commands that match the
+                        selectors. Each tuple is of the form:
+                          (instance-name, command-name, callback)
+        """
+        return self.__setting_get_matching_items(setting, self.commands)
+
+
     ##########################################################################################
     # private         
         
@@ -1351,6 +1381,84 @@ class Engine(TankBundle):
             app._destroy_frameworks()
             self.log_debug("Destroying %s" % app)
             app.destroy_app()
+
+    def __setting_get_matching_items(self, setting, dictionary,
+                                     key_selector=None):
+        """
+        Finds all the items from a given dictionary (e.g. panels) that match a
+        list of element selectors (e.g. individual panels).
+        The list of selectors is read from the given setting and expects a list
+        of the following form:
+            {name: item-name, app_instance: instance-name }
+        If the item-name is '', then all items from the given app instance are
+        returned.
+
+        The matching item in the dictionary is then expected to be at:
+            dictionary[key_selector(instance-name, item-name)]
+
+        The use of a functor is used because certain item dictionaries
+        (e.g. panels) store their dictionary items with a key different from
+        their item-name (e.g. the generated panel id for a panel). Other item
+        dictionaries (e.g. commands) can use a trivial key selector that just
+        returns the item-name.
+
+
+        :param setting:      Name of the setting that contains the list of
+                             items.
+        :param dictionary:   Dictionary that contains all the possible items to
+                             match with.
+                             The dictionary should index its item through:
+                               key_selector(instance-name, item-name)
+                             The dictionary items are expected to be
+                             dictionaries with the following keys:
+                               "properties": a dictionary with an "app" key
+                               "callback"  : callback that should be returned
+        :param key_selector: Functor used to produce the key expected by the
+                             dictionary. Should be of the following form:
+                               key_selector(instance-name, item-name)
+                             If this is None, use the item name as a key.
+        :returns:            A list of tuples for all items that match the
+                             selectors. Each tuple is of the form:
+                               (instance-name, item-key, callback)
+                             Where item-key is the key returned by key_selector.
+        """
+        # return a dictionary grouping all the items by instance name
+        items_by_instance = {}
+        for (key, value) in dictionary.iteritems():
+            app_instance = value["properties"].get("app")
+            if app_instance is None:
+                continue
+            instance_name = app_instance.instance_name
+            items_by_instance.setdefault(instance_name, []).append(
+                (key, value["callback"]))
+
+        # go through the values from the setting and return any matching items
+        ret_value = []
+        setting_value = self._engine.get_setting(setting, [])
+        for item in setting_value:
+            item_name = item["name"]
+            instance_name = item["app_instance"]
+            instance_items = items_by_instance.get(instance_name, [])
+
+            item_key = (key_selector(instance_name, item_name) if key_selector
+                        else item_name)
+
+            # add the items if the name of the settings is ''
+            # or the name matches
+            matching_items = [(instance_name, key, callback)
+                              for (key, callback) in instance_items
+                              if not item_name or (item_key == key)]
+            ret_value.extend(matching_items)
+
+            # give feedback if no items were found
+            if not matching_items:
+                self._engine.log_warning(
+                    "Error reading the '%s' configuration settings\n"
+                    "The requested item '%s' from app '%s' isn't loaded.\n"
+                    "Please make sure that you have the app installed" %
+                    (setting, item_name, instance_name))
+
+        return ret_value
 
 
 ##########################################################################################
