@@ -504,7 +504,8 @@ class Engine(TankBundle):
     def register_panel(self, callback, panel_name="main", properties=None):
         """
         Similar to register_command, but instead of registering a menu item in the form of a
-        command, this method registers a UI panel.
+        command, this method registers a UI panel. A register_panel call should
+        be used in conjunction with a register_command call.
         
         Panels need to be registered if they should persist between DCC sessions (e.g. 
         for example 'saved layouts').
