@@ -1273,7 +1273,6 @@ class Engine(TankBundle):
         # don't have ui so can't create an invoker!
         return None
 
-
     ##########################################################################################
     # private         
         
