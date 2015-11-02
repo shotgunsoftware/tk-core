@@ -655,7 +655,8 @@ class Engine(TankBundle):
             if app_instance is None:
                 continue
             instance_name = app_instance.instance_name
-            commands_by_instance.setdefault(instance_name, []).append((name, value["callback"]))
+            commands_by_instance.setdefault(
+                instance_name, []).append((name, value["callback"]))
 
         # go through the selectors and return any matching commands
         ret_value = []
