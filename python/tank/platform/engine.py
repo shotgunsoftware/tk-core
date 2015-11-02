@@ -668,8 +668,8 @@ class Engine(TankBundle):
             # add the commands if the name of the settings is ''
             # or the name matches
             matching_commands = [(instance_name, name, callback)
-                              for (name, callback) in instance_commands
-                              if not command_name or (command_name == name)]
+                                 for (name, callback) in instance_commands
+                                 if not command_name or (command_name == name)]
             ret_value.extend(matching_commands)
 
             # give feedback if no commands were found
