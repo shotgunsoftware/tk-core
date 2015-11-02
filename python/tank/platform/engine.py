@@ -676,7 +676,7 @@ class Engine(TankBundle):
             if not matching_commands:
                 self._engine.log_warning(
                     "The requested command '%s' from app '%s' could not be "
-                    "matched.\nPlease make sure that you have the app is "
+                    "matched.\nPlease make sure that you have the app "
                     "installed and that it is properly loaded." %
                     (command_name, instance_name))
 
