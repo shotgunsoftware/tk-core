@@ -539,7 +539,7 @@ class Engine(TankBundle):
         # similar to register_command, track which app this request came from
         properties["app"] = current_app 
         
-        # now compose a unique id for a panel.
+        # now compose a unique id for this panel.
         # This is done based on the app instance name plus the given panel name.
         # By using the instance name rather than the app name, we support the
         # use case where more than one instance of an app exists within a
