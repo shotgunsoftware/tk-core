@@ -633,7 +633,7 @@ class Engine(TankBundle):
         """
         Finds all the commands that match the given selectors.
 
-        Command selector structures are typically found in engine configurations 
+        Command selector structures are typically found in engine configurations
         and are typically defined on the following form in yaml:
 
         menu_favourites:
