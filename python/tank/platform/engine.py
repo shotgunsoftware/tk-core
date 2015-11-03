@@ -633,6 +633,15 @@ class Engine(TankBundle):
         """
         Finds all the commands that match the given selectors.
 
+        Command selector structures are typically found in engine configurations 
+        and are typically defined on the following form in yaml:
+
+        menu_favourites:
+        - {app_instance: tk-multi-workfiles, name: Shotgun File Manager...}
+        - {app_instance: tk-multi-snapshot,  name: Snapshot...}
+        - {app_instance: tk-multi-workfiles, name: Shotgun Save As...}
+        - {app_instance: tk-multi-publish,   name: Publish...}
+
         Note that selectors that do not match a command will output a warning.
 
         :param command_selectors: A list of command selectors, with each
@@ -675,9 +684,9 @@ class Engine(TankBundle):
             # give feedback if no commands were found
             if not matching_commands:
                 self._engine.log_warning(
-                    "The requested command '%s' from app '%s' could not be "
-                    "matched.\nPlease make sure that you have the app "
-                    "installed and that it is properly loaded." %
+                    "The requested command '%s' from app instance '%s' could "
+                    "not be matched.\nPlease make sure that you have the app "
+                    "installed and that it has successfully initialized." %
                     (command_name, instance_name))
 
         return ret_value
