@@ -18,7 +18,7 @@ import copy
 import threading
 
 from tank_vendor import yaml
-from ..errors import TankError
+from ..errors import TankError, TankUnreadableFileError
 
 class YamlCache(object):
     """
@@ -40,11 +40,11 @@ class YamlCache(object):
         :param path:    The path of the yaml file to load.
         :returns:       The raw yaml data loaded from the file.
         """
-        if not os.path.exists(path):
-            raise TankError("File '%s' could not be found!" % path)            
-        
         # get info about the file:
-        fstat = os.stat(path)
+        try:
+            fstat = os.stat(path)
+        except Exception, exc:
+            raise TankUnreadableFileError("Unable to stat file '%s'" % path)
         modified_at = fstat.st_mtime
         file_size = fstat.st_size
         

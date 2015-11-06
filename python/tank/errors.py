@@ -21,6 +21,13 @@ class TankError(Exception):
     pass
 
 
+class TankUnreadableFileError(TankError):
+    """
+    Exception that indicates that a required file can't be read from disk.
+    """
+    pass
+
+
 class TankEngineInitError(TankError):
     """
     Exception that indicates that an engine could not start up.

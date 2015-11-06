@@ -653,33 +653,31 @@ class PipelineConfiguration(object):
         :returns: An environment object
         """        
         env_file = os.path.join(self._pc_root, "config", "env", "%s.yml" % env_name)
-        if not os.path.exists(env_file):
-            raise TankError("Cannot load environment '%s': Environment configuration "
-                            "file '%s' does not exist!" % (env_name, env_file))
-        
         EnvClass = WritableEnvironment if writable else Environment
         env_obj = EnvClass(env_file, self, context)
-        
         return env_obj
     
     def get_templates_config(self):
         """
         Returns the templates configuration as an object
         """
-        templates_file = os.path.join(self._pc_root, "config", "core", constants.CONTENT_TEMPLATES_FILE)
-
-        if os.path.exists(templates_file):
+        templates_file = os.path.join(
+            self._pc_root,
+            "config",
+            "core",
+            constants.CONTENT_TEMPLATES_FILE,
+        )
+        try:
             config_file = open(templates_file, "r")
-            try:
-                data = yaml.load(config_file) or {}
-            finally:
-                config_file.close()
-        else:
-            data = {}
+            data = yaml.load(config_file) or {}
+        except IOError:
+            # File didn't exist or wasn't readable.
+            data = dict()
+        finally:
+            config_file.close()
 
         # and process include files
         data = template_includes.process_includes(templates_file, data)
-
         return data
 
 

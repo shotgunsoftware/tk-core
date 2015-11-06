@@ -580,17 +580,15 @@ def _load_lookup_cache():
     cache_file = _get_cache_location()
     cache_data = {}
 
-    if os.path.exists(cache_file):
-        # try to load the cache, fail gracefully if this fails for whatever reason
+    try:
+        fh = open(cache_file, "rb")
         try:
-            fh = open(cache_file, "rb")
-            try:
-                cache_data = pickle.load(fh)
-            finally:
-                fh.close()
-        except:
-            # failed to load cache from file. Continue silently.
-            pass
+            cache_data = pickle.load(fh)
+        finally:
+            fh.close()
+    except Exception:
+        # failed to load cache from file. Continue silently.
+        pass
 
     return cache_data
 
@@ -627,7 +625,7 @@ def _add_to_lookup_cache(key, data):
         # and ensure the cache file has got open permissions
         os.chmod(cache_file, 0666)
 
-    except:
+    except Exception:
         # silently continue in case exceptions are raised
         pass
 

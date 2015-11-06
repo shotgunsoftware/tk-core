@@ -95,14 +95,10 @@ class Engine(TankBundle):
 
         # now if a folder named python is defined in the engine, add it to the pythonpath
         my_path = os.path.dirname(sys.modules[self.__module__].__file__)
-        python_path = os.path.join(my_path, constants.BUNDLE_PYTHON_FOLDER)
+        python_path = os.path.join(my_path, constants.BUNDLE_PYTHON_FOLDER, "__init__.py")
         if os.path.exists(python_path):            
-            # only append to python path if __init__.py does not exist
-            # if __init__ exists, we should use the special tank import instead
-            init_path = os.path.join(python_path, "__init__.py")
-            if not os.path.exists(init_path):
-                self.log_debug("Appending to PYTHONPATH: %s" % python_path)
-                sys.path.append(python_path)
+            self.log_debug("Appending to PYTHONPATH: %s" % python_path)
+            sys.path.append(os.path.dirname(python_path))
 
 
         # Note, 'init_engine()' is now deprecated and all derived initialisation should be
@@ -1037,22 +1033,25 @@ class Engine(TankBundle):
         :param widget: widget to apply stylesheet to 
         """
         qss_file = os.path.join(bundle.disk_location, constants.BUNDLE_STYLESHEET_FILE)
-
-        if os.path.exists(qss_file):
+        try:
+            # Read css file
+            f = open(qss_file, "rt")
             self.log_debug("Detected std style sheet file '%s' - applying to widget %s" % (qss_file, widget))
+            qss_data = f.read()
+            # resolve tokens
+            qss_data = self._resolve_sg_stylesheet_tokens(qss_data)
+            # apply to widget (and all its children)
+            widget.setStyleSheet(qss_data)
+        except Exception, e:
+            # catch-all and issue a warning and continue.
+            self._app.log_warning( "Could not apply stylesheet '%s': %s" % (qss_file, e) )
+        finally:
             try:
-                # Read css file
-                f = open(qss_file, "rt")
-                qss_data = f.read()
-                # resolve tokens
-                qss_data = self._resolve_sg_stylesheet_tokens(qss_data)
-                # apply to widget (and all its children)
-                widget.setStyleSheet(qss_data)
-            except Exception, e:
-                # catch-all and issue a warning and continue.
-                self._app.log_warning( "Could not apply stylesheet '%s': %s" % (qss_file, e) )
-            finally:
                 f.close()
+            except NameError:
+                # The file didn't exist so the handle wasn't
+                # opened. We have nothing to do.
+                pass
     
     
     def _define_qt_base(self):

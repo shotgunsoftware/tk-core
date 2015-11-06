@@ -118,24 +118,21 @@ class AppDescriptor(object):
             bundle_root = self.get_path()
         
             file_path = os.path.join(bundle_root, constants.BUNDLE_METADATA_FILE)
-        
-            if not os.path.exists(file_path):
-                raise TankError("Toolkit metadata file '%s' missing." % file_path)
-        
+
             try:
                 file_data = open(file_path)
                 try:
                     metadata = yaml.load(file_data)
                 finally:
                     file_data.close()
+            except IOError, exp:
+                raise TankError("Toolkit metadata file '%s' missing." % file_path)
             except Exception, exp:
                 raise TankError("Cannot load metadata file '%s'. Error: %s" % (file_path, exp))
         
             # cache it
             self.__manifest_data = metadata
-        
-        # return a copy
-        return copy.deepcopy(self.__manifest_data)
+        return self.__manifest_data
 
 
     ###############################################################################################
@@ -422,18 +419,14 @@ class AppDescriptor(object):
         
         post_install_hook_path = os.path.join(self.get_path(), "hooks",
                                               "post_install.py")
-        
-        if os.path.exists(post_install_hook_path):            
-            
-            try:
-                hook.execute_hook(post_install_hook_path, 
-                                  parent=None,
-                                  pipeline_configuration=self._pipeline_config_path,
-                                  path=self.get_path())
-
-            except Exception, e:
-                raise TankError("Could not run post-install hook for %s. "
-                                "Error reported: %s" % (self, e))
+        try:
+            hook.execute_hook(post_install_hook_path, 
+                              parent=None,
+                              pipeline_configuration=self._pipeline_config_path,
+                              path=self.get_path())
+        except Exception, e:
+            raise TankError("Could not run post-install hook for %s. "
+                            "Error reported: %s" % (self, e))
 
 
 ################################################################################################
