@@ -16,7 +16,6 @@ unless it's changed on disk.
 import os
 import copy
 import threading
-import pickle
 
 from tank_vendor import yaml
 from ..errors import TankError
@@ -29,12 +28,8 @@ class YamlCache(object):
         """
         Construction
         """
+        self._cache = {}
         self._lock = threading.Lock()
-        self._pickle_cache_path = os.path.join(os.path.dirname(__file__), "yaml_cache.pickle")
-        if os.path.exists(self._pickle_cache_path):
-            self._cache = self._unpickle()
-        else:
-            self._cache = {}
             
     def get(self, path):
         """
@@ -78,23 +73,8 @@ class YamlCache(object):
         # always return a deep copy of the cached data to ensure that 
         # the cached data is not updated accidentally!:
         data = copy.deepcopy(cache_entry["data"])
+        
         return data
-
-    def _pickle(self):
-        fh = open(self._pickle_cache_path, 'wb')
-        try:
-            pickle.dump(self._cache, fh)
-        finally:
-            fh.close()
-
-    def _unpickle(self):
-        fh = open(self._pickle_cache_path, 'rb')
-        try:
-            return pickle.load(fh)
-        except Exception:
-            return dict()
-        finally:
-            fh.close()
 
     def _get(self, path):
         """
@@ -143,7 +123,6 @@ class YamlCache(object):
                     "data":data
                 }
                 self._cache[path] = cache_entry
-                self._pickle()
                 return cache_entry
         finally:
             self._lock.release()
