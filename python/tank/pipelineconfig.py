@@ -674,7 +674,11 @@ class PipelineConfiguration(object):
             # File didn't exist or wasn't readable.
             data = dict()
         finally:
-            config_file.close()
+            try:
+                config_file.close()
+            except NameError:
+                # Open failed, probably due to the file not existing.
+                pass
 
         # and process include files
         data = template_includes.process_includes(templates_file, data)

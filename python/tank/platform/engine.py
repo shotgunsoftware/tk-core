@@ -95,10 +95,14 @@ class Engine(TankBundle):
 
         # now if a folder named python is defined in the engine, add it to the pythonpath
         my_path = os.path.dirname(sys.modules[self.__module__].__file__)
-        python_path = os.path.join(my_path, constants.BUNDLE_PYTHON_FOLDER, "__init__.py")
-        if os.path.exists(python_path):            
-            self.log_debug("Appending to PYTHONPATH: %s" % python_path)
-            sys.path.append(os.path.dirname(python_path))
+        python_path = os.path.join(my_path, constants.BUNDLE_PYTHON_FOLDER)
+        if os.path.exists(python_path):
+            # Only append if __init__.py doesn't exist. If it does then we
+            # should use the special tank import instead.
+            init_path = os.path.join(python_path, "__init__.py")
+            if not os.path.exists(init_path):
+                self.log_debug("Appending to PYTHONPATH: %s" % python_path)
+                sys.path.append(python_path)
 
 
         # Note, 'init_engine()' is now deprecated and all derived initialisation should be
