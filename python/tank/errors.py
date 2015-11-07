@@ -27,6 +27,12 @@ class TankUnreadableFileError(TankError):
     """
     pass
 
+class TankFileDoesNotExistError(TankUnreadableFileError):
+    """
+    Exceptions that indicates that a required file does not exist.
+    """
+    pass
+
 
 class TankEngineInitError(TankError):
     """

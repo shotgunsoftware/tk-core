@@ -19,7 +19,7 @@ from tank_vendor import yaml
 
 from .. import hook
 from ..util import shotgun
-from ..errors import TankError
+from ..errors import TankError, TankFileDoesNotExistError
 from ..platform import constants
 
 
@@ -424,6 +424,8 @@ class AppDescriptor(object):
                               parent=None,
                               pipeline_configuration=self._pipeline_config_path,
                               path=self.get_path())
+        except TankFileDoesNotExistError:
+            pass
         except Exception, e:
             raise TankError("Could not run post-install hook for %s. "
                             "Error reported: %s" % (self, e))
