@@ -22,7 +22,6 @@ from ..util import shotgun
 from ..errors import TankError, TankFileDoesNotExistError
 from ..platform import constants
 
-
 class AppDescriptor(object):
     """
     An app descriptor describes a particular version of an app, engine or core component.
@@ -116,7 +115,6 @@ class AppDescriptor(object):
                 
             # get the metadata
             bundle_root = self.get_path()
-        
             file_path = os.path.join(bundle_root, constants.BUNDLE_METADATA_FILE)
 
             try:
@@ -126,7 +124,7 @@ class AppDescriptor(object):
                 finally:
                     file_data.close()
             except IOError, exp:
-                raise TankError("Toolkit metadata file '%s' missing." % file_path)
+                raise TankFileDoesNotExistError("Toolkit metadata file '%s' missing." % file_path)
             except Exception, exp:
                 raise TankError("Cannot load metadata file '%s'. Error: %s" % (file_path, exp))
         

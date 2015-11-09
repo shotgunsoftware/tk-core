@@ -1038,26 +1038,24 @@ class Engine(TankBundle):
         """
         qss_file = os.path.join(bundle.disk_location, constants.BUNDLE_STYLESHEET_FILE)
         try:
-            # Read css file
             f = open(qss_file, "rt")
-            self.log_debug("Detected std style sheet file '%s' - applying to widget %s" % (qss_file, widget))
-            qss_data = f.read()
-            # resolve tokens
-            qss_data = self._resolve_sg_stylesheet_tokens(qss_data)
-            # apply to widget (and all its children)
-            widget.setStyleSheet(qss_data)
-        except Exception, e:
-            # catch-all and issue a warning and continue.
-            self._app.log_warning( "Could not apply stylesheet '%s': %s" % (qss_file, e) )
-        finally:
             try:
+                # Read css file
+                self.log_debug("Detected std style sheet file '%s' - applying to widget %s" % (qss_file, widget))
+                qss_data = f.read()
+                # resolve tokens
+                qss_data = self._resolve_sg_stylesheet_tokens(qss_data)
+                # apply to widget (and all its children)
+                widget.setStyleSheet(qss_data)
+            except Exception, e:
+                # catch-all and issue a warning and continue.
+                self.log_warning("Could not apply stylesheet '%s': %s" % (qss_file, e))
+            finally:
                 f.close()
-            except NameError:
-                # The file didn't exist so the handle wasn't
-                # opened. We have nothing to do.
-                pass
-    
-    
+        except IOError:
+            # The file didn't exist, so nothing to do.
+            pass
+
     def _define_qt_base(self):
         """
         This will be called at initialisation time and will allow 

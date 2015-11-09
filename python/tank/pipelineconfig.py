@@ -669,16 +669,16 @@ class PipelineConfiguration(object):
         )
         try:
             config_file = open(templates_file, "r")
-            data = yaml.load(config_file) or {}
-        except IOError:
-            # File didn't exist or wasn't readable.
-            data = dict()
-        finally:
             try:
+                data = yaml.load(config_file) or {}
+            except Exception:
+                # File wasn't readable.
+                data = dict()
+            finally:
                 config_file.close()
-            except NameError:
-                # Open failed, probably due to the file not existing.
-                pass
+        except IOError:
+            # File didn't exist.
+            data = dict()
 
         # and process include files
         data = template_includes.process_includes(templates_file, data)
