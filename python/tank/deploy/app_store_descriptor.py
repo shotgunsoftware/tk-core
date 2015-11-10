@@ -50,7 +50,7 @@ class SingletonDescriptor(type):
         # already have stored away.
         if (bundle_install_path not in cls._instances or
             name not in cls._instances[bundle_install_path] or
-            version not in cls._instances[bundle_install_path][name]) :
+            version not in cls._instances[bundle_install_path][name]):
             cls._instances[bundle_install_path] = dict()
             cls._instances[bundle_install_path][name] = dict()
             cls._instances[bundle_install_path][name][version] = super(SingletonDescriptor, cls).__call__(
