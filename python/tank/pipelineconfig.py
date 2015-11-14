@@ -15,6 +15,7 @@ across storages, configurations etc.
 import os
 import sys
 import glob
+import cPickle
 
 from tank_vendor import yaml
 
@@ -22,7 +23,7 @@ from .errors import TankError
 from .deploy import util
 from .platform import constants
 from .platform.environment import Environment, WritableEnvironment
-from .util import shotgun
+from .util import shotgun, yaml_cache
 from . import hook
 from . import pipelineconfig_utils
 from . import template_includes
@@ -90,6 +91,13 @@ class PipelineConfiguration(object):
 
         # cache fields lazily populated on getter access
         self._clear_cached_settings()
+
+        # Populate the global yaml_cache if we find a pickled cache
+        # on disk.
+        # TODO: Discuss and possibly implement a mechanism to copy
+        # the global pickled cache stored in the config down to
+        # local storage to speed up reading in subsequent sessions.
+        self._populate_yaml_cache()
         
         self.execute_core_hook_internal(constants.PIPELINE_CONFIGURATION_INIT_HOOK_NAME, parent=self)
 
@@ -128,8 +136,27 @@ class PipelineConfiguration(object):
         self._project_id = data.get("project").get("id")
         self._pc_id = data.get("id")
         self._pc_name = data.get("code")
-    
-    
+
+    def _populate_yaml_cache(self):
+        """
+        Loads pickled yaml_cache items if they are found and merges them into
+        the global YamlCache.
+        """
+        cache_file = os.path.join(self._pc_root, "yaml_cache.pickle")
+        try:
+            fh = open(cache_file, 'rb')
+        except Exception:
+            return
+
+        try:
+            cache_items = cPickle.load(fh)
+            yaml_cache.g_yaml_cache.merge_cache_items(cache_items)
+        except Exception:
+            return
+        finally:
+            fh.close()
+
+
     ########################################################################################
     # general access and properties
 

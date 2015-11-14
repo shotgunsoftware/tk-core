@@ -17,7 +17,7 @@ import sys
 
 from tank_vendor import yaml
 
-from .errors import TankError
+from .errors import TankError, TankFileDoesNotExistError
 from .platform import constants
 
 
@@ -59,10 +59,13 @@ def get_metadata(pipeline_config_path):
     # now read in the pipeline_configuration.yml file
     cfg_yml = os.path.join(pipeline_config_path, "config", "core", "pipeline_configuration.yml")
 
-    if not os.path.exists(cfg_yml):
-        raise TankError("Configuration metadata file '%s' missing! Please contact support." % cfg_yml)
+    try:
+        fh = open(cfg_yml, "rt")
+    except IOError:
+        raise TankFileDoesNotExistError(
+            "Configuration metadata file '%s' missing! Please contact support." % cfg_yml
+        )
 
-    fh = open(cfg_yml, "rt")
     try:
         data = yaml.load(fh)
         if data is None:
@@ -106,10 +109,13 @@ def get_roots_metadata(pipeline_config_path):
     # {'primary': {'mac_path': '/studio', 'windows_path': None, 'linux_path': '/studio'}}
     roots_yml = os.path.join(pipeline_config_path, "config", "core", constants.STORAGE_ROOTS_FILE)
 
-    if not os.path.exists(roots_yml):
-        raise TankError("Roots metadata file '%s' missing! Please contact support." % roots_yml)
+    try:
+        fh = open(roots_yml, "rt")
+    except IOError:
+        raise TankFileDoesNotExistError(
+            "Roots metadata file '%s' missing! Please contact support." % roots_yml
+        )
 
-    fh = open(roots_yml, "rt")
     try:
         # if file is empty, initializae with empty dict...
         data = yaml.load(fh) or {}
@@ -322,18 +328,21 @@ def _get_install_locations(path):
     
     # for other platforms, read in install_location
     location_file = os.path.join(path, "config", "core", "install_location.yml")
-    if not os.path.exists(location_file):
-        raise TankError("Cannot find core config file '%s' - please contact support!" % location_file)
+
+    try:
+        open_file = open(location_file)
+    except IOError:
+        raise TankFileDoesNotExistError(
+            "Cannot find core config file '%s' - please contact support!" % location_file
+        )
 
     # load the config file
     try:
-        open_file = open(location_file)
-        try:
-            location_data = yaml.load(open_file)
-        finally:
-            open_file.close()
+        location_data = yaml.load(open_file)
     except Exception, error:
         raise TankError("Cannot load core config file '%s'. Error: %s" % (location_file, error))
+    finally:
+        open_file.close()
 
     # do some cleanup on this file - sometimes there are entries that say "undefined"
     # or is just an empty string - turn those into null values
