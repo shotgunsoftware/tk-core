@@ -23,7 +23,7 @@ from .util import subprocess_check_output, execute_git_command
 from ..api import Tank
 from ..errors import TankError
 from ..platform import constants
-from .descriptor import AppDescriptor
+from .descriptor import AppDescriptor, VersionedSingletonDescriptor
 from .zipfilehelper import unzip_file
 
 class TankGitDescriptor(AppDescriptor):
@@ -36,6 +36,8 @@ class TankGitDescriptor(AppDescriptor):
     git://github.com/manneohrstrom/tk-hiero-publish.git
     /full/path/to/local/repo.git
     """
+
+    __metaclass__ = VersionedSingletonDescriptor
 
     def __init__(self, pc_path, bundle_install_path, location_dict, type):
         super(TankGitDescriptor, self).__init__(pc_path, bundle_install_path, location_dict)

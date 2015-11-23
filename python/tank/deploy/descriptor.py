@@ -14,6 +14,7 @@ Functionality for managing versions of apps.
 
 import os
 import copy
+import sys
 
 from tank_vendor import yaml
 
@@ -21,6 +22,81 @@ from .. import hook
 from ..util import shotgun
 from ..errors import TankError, TankFileDoesNotExistError
 from ..platform import constants
+
+class PathedSingletonDescriptor(type):
+    """
+    Singleton metaclass for the descriptor classes that operate off of disk paths.
+
+    Each descriptor object is a singleton based on its install root path.
+    """
+    _instances = dict()
+
+    def __call__(cls, pc_path, bundle_install_path, location_dict, bundle_type):
+        # platform specific location support
+        system = sys.platform
+        platform_keys = dict(
+            linux2="linux_path",
+            darwin="mac_path",
+            win32="windows_path",
+        )
+        platform_key = platform_keys.get(system, "unsupported_os")
+
+        if platform_key not in location_dict and "path" in location_dict:
+            dev_path = location_dict.get("path")
+        elif platform_key and platform_key in location_dict:
+            dev_path = location_dict.get(platform_key)
+        else:
+            dev_path = None
+
+        # Instantiate and cache if we need to, otherwise just return what we
+        # already have stored away.
+        if dev_path:
+            if dev_path not in cls._instances:
+                cls._instances[dev_path] = super(PathedSingletonDescriptor, cls).__call__(
+                    pc_path,
+                    bundle_install_path,
+                    location_dict,
+                    bundle_type,
+                )
+            return cls._instances[dev_path]
+        else:
+            # If we didn't find a usable path then we just need to return
+            # the object. We can't cache it if we don't have a usable key.
+            return super(PathedSingletonDescriptor, cls).__call__(
+                pc_path,
+                bundle_install_path,
+                location_dict,
+                bundle_type,
+            )
+
+class VersionedSingletonDescriptor(type):
+    """
+    Singleton metaclass for the versioned app descriptor classes.
+
+    Each descriptor object is a singleton based on its install root path,
+    name, and version number.
+    """
+    _instances = dict()
+
+    def __call__(cls, pc_path, bundle_install_path, location_dict, bundle_type):
+        # We will cache based on the install path, name of the app/engine/framework,
+        # and version number.
+        name = location_dict.get("name")
+        version = location_dict.get("version")
+        # Instantiate and cache if we need to, otherwise just return what we
+        # already have stored away.
+        if (bundle_install_path not in cls._instances or
+            name not in cls._instances[bundle_install_path] or
+            version not in cls._instances[bundle_install_path][name]):
+            cls._instances[bundle_install_path] = dict()
+            cls._instances[bundle_install_path][name] = dict()
+            cls._instances[bundle_install_path][name][version] = super(VersionedSingletonDescriptor, cls).__call__(
+                pc_path,
+                bundle_install_path,
+                location_dict,
+                bundle_type,
+            )
+        return cls._instances[bundle_install_path][name][version]
 
 class AppDescriptor(object):
     """

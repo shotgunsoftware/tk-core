@@ -1,4 +1,4 @@
-# Copyright (c) 2013 Shotgun Software Inc.
+# Copyright (c) 2015 Shotgun Software Inc.
 # 
 # CONFIDENTIAL AND PROPRIETARY
 # 
@@ -18,7 +18,8 @@ from ...util import yaml_cache
 
 class CacheYamlAction(Action):
     """
-    Action that ensures that all apps and engines exist locally.
+    Action that ensures that crawls a config, caching all YAML data found
+    to disk as pickled data.
     """
     def __init__(self):
         Action.__init__(

@@ -27,39 +27,10 @@ from ..api import Tank
 from ..util import shotgun
 from ..errors import TankError
 from ..platform import constants
-from .descriptor import AppDescriptor
+from .descriptor import AppDescriptor, VersionedSingletonDescriptor
 from .zipfilehelper import unzip_file
 
 METADATA_FILE = ".metadata.json"
-
-class SingletonDescriptor(type):
-    """
-    Singleton metaclass for the TankAppStoreDescriptor class.
-
-    Each descriptor object is a singleton based on its install root path,
-    name, and version number.
-    """
-    _instances = dict()
-
-    def __call__(cls, pc_path, bundle_install_path, location_dict, bundle_type):
-        # We will cache based on the install path, name of the app/engine/framework,
-        # and version number.
-        name = location_dict.get("name")
-        version = location_dict.get("version")
-        # Instantiate and cache if we need to, otherwise just return what we
-        # already have stored away.
-        if (bundle_install_path not in cls._instances or
-            name not in cls._instances[bundle_install_path] or
-            version not in cls._instances[bundle_install_path][name]):
-            cls._instances[bundle_install_path] = dict()
-            cls._instances[bundle_install_path][name] = dict()
-            cls._instances[bundle_install_path][name][version] = super(SingletonDescriptor, cls).__call__(
-                pc_path,
-                bundle_install_path,
-                location_dict,
-                bundle_type,
-            )
-        return cls._instances[bundle_install_path][name][version]
 
 class TankAppStoreDescriptor(AppDescriptor):
     """
@@ -74,7 +45,7 @@ class TankAppStoreDescriptor(AppDescriptor):
     # This type of descriptor is treated as a singleton based
     # on install path, name, and version number of the app, engine
     # or framework.
-    __metaclass__ = SingletonDescriptor
+    __metaclass__ = VersionedSingletonDescriptor
 
     def __init__(self, pc_path, bundle_install_path, location_dict, bundle_type):
         super(TankAppStoreDescriptor, self).__init__(pc_path, bundle_install_path, location_dict)
