@@ -153,9 +153,11 @@ class Environment(object):
         """
         Populates the __frameworks_settings dict
         """
-        # iterate over the engine dict
+        if frameworks is None:
+            return
+
         for fw, fw_settings in frameworks.items():
-            # Check for engine disabled
+            # Check for framework disabled
             if not self.__is_item_disabled(fw_settings):
                 self.__framework_settings[fw] = fw_settings
 
