@@ -25,7 +25,24 @@ from ..errors import (
 )
 
 class CacheItem(object):
+    """
+    Represents a single item in the global yaml cache.
+
+    Each item carries with it a set of data, an stat from the .yml file that
+    it was sourced from (in os.stat form), and the path to the .yml file that
+    was sourced.
+    """
+
     def __init__(self, path, data=None, stat=None):
+        """
+        Initializes the item.
+
+        :param path:    The path to the .yml file on disk.
+        :param data:    The data sourced from the .yml file.
+        :param stat:    The stat of the file on disk. If not provided, an os.stat
+                        will be run and the result stored.
+        :raises:        tank.errors.TankUnreadableFileError: File stat failure.
+        """
         self._path = path
         self._data = data
         try:
@@ -35,6 +52,7 @@ class CacheItem(object):
 
     @property
     def data(self):
+        """The item's data."""
         return self._data
 
     @data.setter
@@ -43,18 +61,34 @@ class CacheItem(object):
 
     @property
     def path(self):
+        """The path to the file on disk that the item was sourced from."""
         return self._path
 
     @property
     def stat(self):
+        """The stat of the file on disk that the item was sourced from."""
         return self._stat
 
     def given_item_newer(self, other):
+        """
+        Tests whether the given item is newer than this.
+
+        :param other:   The CacheItem to test against.
+        :raises:        TypeError: Given item is not a CacheItem.
+        :returns:       bool, True if other is newer, False if not.
+        """
         if not isinstance(other, CacheItem):
             raise TypeError("Given item must be of type CacheItem.")
         return other.stat.st_mtime > self.stat.st_mtime
 
     def size_differs(self, other):
+        """
+        Tests whether the file size of the given item differs from this item.
+
+        :param other:   The CacheItem to test against.
+        :raises:        TypeError: Given item is not a CacheItem.
+        :returns:       bool, True if other is a different size on disk, False if not.
+        """
         if not isinstance(other, CacheItem):
             raise TypeError("Given item must be of type CacheItem.")
         return other.stat.st_size != self.stat.st_size
