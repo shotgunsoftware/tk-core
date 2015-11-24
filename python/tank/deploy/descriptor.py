@@ -31,14 +31,15 @@ class PathedSingletonDescriptor(type):
     """
     _instances = dict()
 
-    def __call__(cls, pc_path, bundle_install_path, location_dict, bundle_type):
-        # platform specific location support
+    def __call__(cls, pc_path, bundle_install_path, location_dict, *args, **kwargs):
+        # Platform specific location support.
         system = sys.platform
         platform_keys = dict(
             linux2="linux_path",
             darwin="mac_path",
             win32="windows_path",
         )
+
         platform_key = platform_keys.get(system, "unsupported_os")
 
         if platform_key not in location_dict and "path" in location_dict:
@@ -56,7 +57,7 @@ class PathedSingletonDescriptor(type):
                     pc_path,
                     bundle_install_path,
                     location_dict,
-                    bundle_type,
+                    *args, **kwargs
                 )
             return cls._instances[dev_path]
         else:
@@ -66,7 +67,7 @@ class PathedSingletonDescriptor(type):
                 pc_path,
                 bundle_install_path,
                 location_dict,
-                bundle_type,
+                *args, **kwargs
             )
 
 class VersionedSingletonDescriptor(type):
@@ -78,25 +79,34 @@ class VersionedSingletonDescriptor(type):
     """
     _instances = dict()
 
-    def __call__(cls, pc_path, bundle_install_path, location_dict, bundle_type):
-        # We will cache based on the install path, name of the app/engine/framework,
-        # and version number.
+    def __call__(cls, pc_path, bundle_install_path, location_dict, *args, **kwargs):
+        # We will cache based on the bundle install path, name of the
+        # app/engine/framework, and version number.
+        instance_cache = cls._instances
         name = location_dict.get("name")
         version = location_dict.get("version")
+
         # Instantiate and cache if we need to, otherwise just return what we
         # already have stored away.
-        if (bundle_install_path not in cls._instances or
-            name not in cls._instances[bundle_install_path] or
-            version not in cls._instances[bundle_install_path][name]):
-            cls._instances[bundle_install_path] = dict()
-            cls._instances[bundle_install_path][name] = dict()
-            cls._instances[bundle_install_path][name][version] = super(VersionedSingletonDescriptor, cls).__call__(
+        if (bundle_install_path not in instance_cache or
+            name not in instance_cache[bundle_install_path] or
+            version not in instance_cache[bundle_install_path][name]):
+
+            # If the bundle install path isn't in the cache, then we are
+            # starting fresh. Otherwise, check to see if the app (by name)
+            # is cached, and if not initialize its specific cache. After
+            # that we instantiate and store by version.
+            if bundle_install_path not in instance_cache:
+                instance_cache[bundle_install_path] = dict()
+            if name not in instance_cache[bundle_install_path]:
+                instance_cache[bundle_install_path][name] = dict()
+            instance_cache[bundle_install_path][name][version] = super(VersionedSingletonDescriptor, cls).__call__(
                 pc_path,
                 bundle_install_path,
                 location_dict,
-                bundle_type,
+                *args, **kwargs
             )
-        return cls._instances[bundle_install_path][name][version]
+        return instance_cache[bundle_install_path][name][version]
 
 class AppDescriptor(object):
     """
