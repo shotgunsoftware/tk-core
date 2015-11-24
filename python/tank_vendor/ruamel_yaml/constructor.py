@@ -836,7 +836,7 @@ class RoundTripConstructor(SafeConstructor):
             if len(node.comment) > 2:
                 seqtyp.yaml_end_comment_extend(node.comment[2], clear=True)
         if node.anchor:
-            from ruamel.yaml.serializer import templated_id
+            from .serializer import templated_id
             if not templated_id(node.anchor):
                 seqtyp.yaml_set_anchor(node.anchor)
         for idx, child in enumerate(node.value):
@@ -925,7 +925,7 @@ class RoundTripConstructor(SafeConstructor):
             if len(node.comment) > 2:
                 maptyp.yaml_end_comment_extend(node.comment[2], clear=True)
         if node.anchor:
-            from ruamel.yaml.serializer import templated_id
+            from .serializer import templated_id
             if not templated_id(node.anchor):
                 maptyp.yaml_set_anchor(node.anchor)
         for key_node, value_node in node.value:
@@ -969,7 +969,7 @@ class RoundTripConstructor(SafeConstructor):
             if len(node.comment) > 2:
                 typ.yaml_end_comment_extend(node.comment[2], clear=True)
         if node.anchor:
-            from ruamel.yaml.serializer import templated_id
+            from .serializer import templated_id
             if not templated_id(node.anchor):
                 typ.yaml_set_anchor(node.anchor)
         for key_node, value_node in node.value:
