@@ -572,7 +572,7 @@ class Engine(TankBundle):
 
         :returns: the result of the function call
         """
-        return self._execute_in_main_thread(self._invoker, func, *args, **kwargs)
+        return self._execute_in_main_thread("_invoker", func, *args, **kwargs)
 
     def async_execute_in_main_thread(self, func, *args, **kwargs):
         """
@@ -587,12 +587,28 @@ class Engine(TankBundle):
         :param args: arguments to pass to the function
         :param kwargs: named arguments to pass to the function
         """
-        self._execute_in_main_thread(self._async_invoker, func, *args, **kwargs)
+        self._execute_in_main_thread("_async_invoker", func, *args, **kwargs)
 
-    def _execute_in_main_thread(self, invoker, func, *args, **kwargs):
+    def _execute_in_main_thread(self, invoker_name, func, *args, **kwargs):
+        """
+        Executes the given method and arguments with the specified invoker.
+        If the invoker is not ready or if the calling thread is the main thread,
+        the method is called immediately with it's arguments.
+
+        :param invoker_name: Name of the invoker to use.
+        :param func: function to call
+        :param args: arguments to pass to the function
+        :param kwargs: named arguments to pass to the function
+
+        :returns: The return value from the invoker.
+        """
+        # Execute in main thread might be called before the invoker is ready.
+        # For example, an engine might use the invoker for logging to the main
+        # thread.
+        invoker = getattr(self, invoker_name) if hasattr(self, invoker_name) else None
         if invoker:
             from .qt import QtGui, QtCore
-            if (QtGui.QApplication.instance() 
+            if (QtGui.QApplication.instance()
                 and QtCore.QThread.currentThread() != QtGui.QApplication.instance().thread()):
                 # invoke the function on the thread that the QtGui.QApplication was created on.
                 return invoker.invoke(func, *args, **kwargs)
