@@ -23,7 +23,6 @@ import threading
 from .. import loader
 from .. import hook
 from ..errors import TankError, TankEngineInitError
-from ..deploy import descriptor
 from ..deploy.dev_descriptor import TankDevDescriptor
 
 from . import application
@@ -123,7 +122,7 @@ class Engine(TankBundle):
         
         # create invoker to allow execution of functions on the
         # main thread:
-        self._invoker = self.__create_main_thread_invoker()
+        self.__create_invokers()
         
         # run any init that needs to be done before the apps are loaded:
         self.pre_app_init()
@@ -628,6 +627,20 @@ class Engine(TankBundle):
         else:
             # we don't have an invoker so just call the function:
             return func(*args, **kwargs)
+
+    def async_execute_in_main_thread(self, func, *args, **kwargs):
+        if self._invoker:
+            from .qt import QtGui, QtCore
+            if (QtGui.QApplication.instance() 
+                and QtCore.QThread.currentThread() != QtGui.QApplication.instance().thread()):
+                # invoke the function on the thread that the QtGui.QApplication was created on.
+                self._async_invoker.invoke(func, *args, **kwargs)
+            else:
+                # we're already on the main thread so lets just call our function:
+                func(*args, **kwargs)
+        else:
+            # we don't have an invoker so just call the function:
+            func(*args, **kwargs)
 
     def get_matching_commands(self, command_selectors):
         """
@@ -1217,13 +1230,13 @@ class Engine(TankBundle):
         """
         return self.__shared_frameworks.get(instance_name, None)
 
-    def __create_main_thread_invoker(self):
+    def __create_invokers(self):
         """
         Create the object used to invoke function calls on the main thread when
         called from a different thread.
-
-        :returns:  Invoker instance
         """
+        self._invoker = None
+        self._async_invoker = None
         if self.has_ui:
             from .qt import QtGui, QtCore
             if QtGui and QtCore:
@@ -1273,14 +1286,41 @@ class Engine(TankBundle):
                         """
                         self._res = self._fn()
 
-                # Make sure that the invoker exists in the main thread:
-                invoker = Invoker()
-                if QtGui.QApplication.instance():
-                    invoker.moveToThread(QtGui.QApplication.instance().thread())
-                return invoker
+                class AsyncInvoker(QtCore.QObject):
+                    """
+                    Invoker class - implements a mechanism to execute a function with arbitrary
+                    args in the main thread asynchronously.
+                    """
+                    __signal = QtCore.Signal(object)
 
-        # don't have ui so can't create an invoker!
-        return None
+                    def __init__(self):
+                        """
+                        Construction
+                        """
+                        QtCore.QObject.__init__(self)
+                        self.__signal.connect(self.__execute_in_main_thread)
+
+                    def invoke(self, fn, *args, **kwargs):
+                        """
+                        Invoke the specified function with the specified args in the main thread
+
+                        :param fn:          The function to execute in the main thread
+                        :param *args:       Args for the function
+                        :param **kwargs:    Named arguments for the function
+                        :returns:           The result returned by the function
+                        """
+
+                        self.__signal.emit(lambda: fn(*args, **kwargs))
+
+                    def __execute_in_main_thread(self, fn):
+                        fn()
+
+                # Make sure that the invoker exists in the main thread:
+                self._invoker = Invoker()
+                self._async_invoker = AsyncInvoker()
+                if QtGui.QApplication.instance():
+                    self._invoker.moveToThread(QtGui.QApplication.instance().thread())
+                    self._async_invoker.moveToThread(QtGui.QApplication.instance().thread())
 
     ##########################################################################################
     # private         
