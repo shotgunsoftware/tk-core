@@ -440,6 +440,8 @@ class Engine(TankBundle):
         # explicitly set the value to None!
         if self._invoker:
             self._invoker = None
+        if self._async_invoker:
+            self._async_invoker = None
 
     def destroy_engine(self):
         """
@@ -564,83 +566,42 @@ class Engine(TankBundle):
         Note, this currently only works if Qt is available, otherwise it just
         executes on the current thread.
 
-        # ---------------------------------------------------------------------------------
-        # The following test checks that execute_in_main_thread is itself thread-safe!  It
-        # runs a simple test a number of times in multiple threads and ensures the result
-        # returned is as expected.  If this isn't the case it will print out one or more:
-        #     'Result mismatch...'
-        #
-        import threading
-        import random
-        import time
-        import sgtk
-        from sgtk.platform.qt import QtCore, QtGui
-
-        NUM_TEST_THREADS=20
-        NUM_THREAD_ITERATIONS=30
-
-        def run_in_main_thread(v):
-            print "Running", v
-            if QtCore.QThread.currentThread() != QtGui.QApplication.instance().thread():
-                print " > but not running in main thread!"
-            return v
-
-        def threaded_work(val):
-            eng = sgtk.platform.current_engine()
-            c_time = 0.0
-            for i in range(NUM_THREAD_ITERATIONS):
-                time.sleep(random.randint(0, 10)/10.0)
-                arg = (val, i)
-                st = time.time()
-                ret_val = eng.execute_in_main_thread(run_in_main_thread, arg)
-                e = time.time()
-                #print "Time to run: %0.4fs" % (e-st)
-                c_time += (e-st)
-                if ret_val != arg:
-                    print "Result mismatch: %s != %s!!" % (ret_val, arg)
-
-            print "Cumulative time for thread %d: %0.4fs" % (val, c_time)
-
-        threads = []
-        for ti in range(NUM_TEST_THREADS):
-            t = threading.Thread(target=lambda:threaded_work(ti))
-            t.start()
-            threads.append(t)
-        # ---------------------------------------------------------------------------------
-        # ---------------------------------------------------------------------------------
-
         :param func: function to call
         :param args: arguments to pass to the function
         :param kwargs: named arguments to pass to the function
 
         :returns: the result of the function call
         """
-        if self._invoker:
+        return self._execute_in_main_thread(self._invoker, func, *args, **kwargs)
+
+    def async_execute_in_main_thread(self, func, *args, **kwargs):
+        """
+        Execute the specified function in the main thread when called from a non-main
+        thread.  This call will return immediately and will not wait for the code to be
+        executed in the main thread.
+
+        Note, this currently only works if Qt is available, otherwise it just
+        executes on the current thread.
+
+        :param func: function to call
+        :param args: arguments to pass to the function
+        :param kwargs: named arguments to pass to the function
+        """
+        self._execute_in_main_thread(self._async_invoker, func, *args, **kwargs)
+
+    def _execute_in_main_thread(self, invoker, func, *args, **kwargs):
+        if invoker:
             from .qt import QtGui, QtCore
             if (QtGui.QApplication.instance() 
                 and QtCore.QThread.currentThread() != QtGui.QApplication.instance().thread()):
                 # invoke the function on the thread that the QtGui.QApplication was created on.
-                return self._invoker.invoke(func, *args, **kwargs)
+                return invoker.invoke(func, *args, **kwargs)
             else:
                 # we're already on the main thread so lets just call our function:
                 return func(*args, **kwargs)
         else:
             # we don't have an invoker so just call the function:
             return func(*args, **kwargs)
-
-    def async_execute_in_main_thread(self, func, *args, **kwargs):
-        if self._invoker:
-            from .qt import QtGui, QtCore
-            if (QtGui.QApplication.instance() 
-                and QtCore.QThread.currentThread() != QtGui.QApplication.instance().thread()):
-                # invoke the function on the thread that the QtGui.QApplication was created on.
-                self._async_invoker.invoke(func, *args, **kwargs)
-            else:
-                # we're already on the main thread so lets just call our function:
-                func(*args, **kwargs)
-        else:
-            # we don't have an invoker so just call the function:
-            func(*args, **kwargs)
 
     def get_matching_commands(self, command_selectors):
         """
@@ -1318,9 +1279,9 @@ class Engine(TankBundle):
                 # Make sure that the invoker exists in the main thread:
                 self._invoker = Invoker()
                 self._async_invoker = AsyncInvoker()
-                if QtGui.QApplication.instance():
-                    self._invoker.moveToThread(QtGui.QApplication.instance().thread())
-                    self._async_invoker.moveToThread(QtGui.QApplication.instance().thread())
+                if QtCore.QCoreApplication.instance():
+                    self._invoker.moveToThread(QtCore.QCoreApplication.instance().thread())
+                    self._async_invoker.moveToThread(QtCore.QCoreApplication.instance().thread())
 
     ##########################################################################################
     # private         
