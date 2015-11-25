@@ -112,6 +112,7 @@ class TestExecuteInMainThread(TestEngineBase):
     Tests the execute_in_main_thread and async_execute_in_main_thread methods.
     """
 
+    @skip_if_pyside_missing
     def setUp(self):
         """
         Starts up an engine and makes sure Qt is ready to be used.
@@ -121,12 +122,14 @@ class TestExecuteInMainThread(TestEngineBase):
         if sgtk.platform.qt.QtGui.qApp is None:
             sgtk.platform.qt.QtGui.QApplication(sys.argv)
 
+    @skip_if_pyside_missing
     def test_exec_in_main_thread(self):
         """
         Checks that execute in main thread actually executes in the main thread.
         """
         self._test_exec_in_main_thread(sgtk.platform.current_engine().execute_in_main_thread)
 
+    @skip_if_pyside_missing
     def test_async_exec_in_main_thread(self):
         """
         Checks that execute in main thread actually executes in the main thread.
@@ -150,12 +153,14 @@ class TestExecuteInMainThread(TestEngineBase):
         self.assertEqual(QtCore.QThread.currentThread(), QtCore.QCoreApplication.instance().thread())
         QtCore.QCoreApplication.instance().quit()
 
+    @skip_if_pyside_missing
     def test_exec_in_main_thread_deadlock(self):
         """
         Makes sure the main thread invoker doesn't deadlock when called from the main thread.
         """
         sgtk.platform.current_engine().execute_in_main_thread(self._assert_run_in_main_thread_and_quit)
 
+    @skip_if_pyside_missing
     def test_async_exec_in_main_thread_deadlock(self):
         """
         Makes sure the main thread async invoker doesn't deadlock when called from the main thread.
