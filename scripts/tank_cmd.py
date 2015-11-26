@@ -342,22 +342,13 @@ def _write_shotgun_cache(tk, credentials, entity_type, cache_file_name):
                 # deny this platform! :)
                 continue
 
-        if "title" in cmd_params["properties"]:
-            title = cmd_params["properties"]["title"]
-        else:
-            title = cmd_name
+        title = cmd_params["properties"].get("title", cmd_name)
+        supports_multiple_sel = cmd_params["properties"].get(
+            "supports_multiple_selection", False)
+        deny = ",".join(cmd_params["properties"].get("deny_permissions", []))
+        icon = cmd_params["properties"].get("icon", "")
 
-        if "supports_multiple_selection" in cmd_params["properties"]:
-            supports_multiple_sel = cmd_params["properties"]["supports_multiple_selection"]
-        else:
-            supports_multiple_sel = False
-
-        if "deny_permissions" in cmd_params["properties"]:
-            deny = ",".join(cmd_params["properties"]["deny_permissions"])
-        else:
-            deny = ""
-
-        entry = [ cmd_name, title, deny, str(supports_multiple_sel) ]
+        entry = [ cmd_name, title, deny, str(supports_multiple_sel), icon ]
 
         res.append("$".join(entry))
 
