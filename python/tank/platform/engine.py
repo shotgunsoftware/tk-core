@@ -1551,7 +1551,7 @@ def find_app_settings(engine_name, app_name, tk, context, engine_instance_name=N
     return app_settings
     
 
-def start_shotgun_engine(tk, entity_type, context=None):
+def start_shotgun_engine(tk, entity_type, context):
     """
     Special, internal method that handles the shotgun engine.
     """
