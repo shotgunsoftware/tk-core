@@ -10,6 +10,12 @@
 
 from .action_base import Action
 from ...errors import TankError
+from ..util import execute_toolkit_command, SubprocessCalledProcessError
+
+import itertools
+import operator
+import os
+import sys
 
 
 class GetEntityCommandsAction(Action):
@@ -94,16 +100,141 @@ class GetEntityCommandsAction(Action):
         :param log: std python logger
         :param parameters: dictionary with tank command parameters
         """
-        pc_path = parameters["pc_path"]
+        pipeline_config_path = parameters["pc_path"]
         entities = parameters["entities"]
 
-        commands_per_entity = {}
+        # at the moment, the caching mechanism works with the entity types,
+        # so we group by type and fetch the commands for each type
+        per_entity_type = itertools.groupby(entities, operator.itemgetter(0))
 
-        for entity in entities:
-            commands_per_entity[entity] = {
-                "name":  "TODO",
-                "title": "work in progress",
-                "icon":  ""
-            }
+        commands_per_entity = {}
+        for (entity_type, entities_of_type) in per_entity_type:
+            # make a list out of the grouped entity tuples
+            entities_of_type = list(entities_of_type)
+            try:
+                cache_content = self._load_cached_data(
+                    pipeline_config_path, entity_type, entities_of_type)
+                commands = self._parse_cached_commands(cache_content)
+
+                # the commands are the same for all entities of that type
+                for entity in entities_of_type:
+                    commands_per_entity[entity] = commands
+            except TankError as e:
+                log.error("Failed to fetch the commands from the Pipeline "
+                          "Configuration at %s for the entity type %s.\n"
+                          "Details: %s"
+                          % (pipeline_config_path, entity_type, e))
 
         return commands_per_entity
+
+    def _get_cache_name(self, platform, entity_type):
+        """
+        Constructs the expected name for the cache file of a particular entity
+        type.
+
+        :param platform:    platform that will use the cached information
+        :param entity_type: entity type that we want the cache for
+        :returns:           name of the file containing the desired cached data
+        """
+        # we use a cache different than the one used by the Shotgun website, as
+        # we are able to provide a more detailed context to the cache-building
+        # mechanism (i.e. an entity id). Thus, the cache can contain more
+        # advanced information about the commands (e.g. icon path).
+        # Since this detailed cache can have different information from the
+        # Shotgun one, we don't want to mix and match them and get different
+        # results based on which service asked for a cache update.
+        return "%s_%ss.txt" % (platform, entity_type.lower())
+
+    def _get_env_name(self, entity_type):
+        """
+        Constructs the expected name for the environment file of a particular
+        entity type. This environment file should contain the shotgun engine
+        with the apps that will register the desired commands.
+
+        :param entity_type: entity type that we want the environment for
+        :returns:           name of the file with the desired environment
+        """
+        return "shotgun_%s.yml" % entity_type.lower()
+
+    def _load_cached_data(self, pipeline_config_path, entity_type, entities):
+        """
+        Loads the cached data for the given entities from the specified
+        Pipeline Configuration.
+
+        This is done by invoking the toolkit command of the other Pipeline
+        Configuration to update the cache (if needed) and get the cache
+        content.
+
+        :raises:                     will raise a TankError if we were not able
+                                     to update the cache or get its content
+        :param pipeline_config_path: path to the Pipeline Configuration
+                                     containing the cache that we want
+        :param entity_type:          type of the entity we want the cache for
+        :param entities:             entities we want the cache for
+        :returns:                    text data contained in the cache
+        """
+        cache_name = self._get_cache_name(sys.platform, entity_type)
+        env_name = self._get_env_name(entity_type)
+
+        try:
+            return execute_toolkit_command(pipeline_config_path,
+                                           "shotgun_get_actions",
+                                           [cache_name, env_name])
+        except SubprocessCalledProcessError as e:
+            # failed to load from cache, let's try to update it
+            pass
+
+        try:
+            # since the commands are the same for all the entities of that type,
+            # pick the ID of any entity
+            entity_id = entities[0][1]
+            execute_toolkit_command(pipeline_config_path,
+                                    "shotgun_cache_actions",
+                                    [entity_type, cache_name, str(entity_id)])
+            return execute_toolkit_command(pipeline_config_path,
+                                           "shotgun_get_actions",
+                                           [cache_name, env_name])
+        except SubprocessCalledProcessError as e:
+            # failed to update cache or to load from it after the update,
+            # that's an error.
+            raise TankError("Failed to update or to load from updated cache.\n"
+                            "Details: %s\n"
+                            "Output: %s" % (e, e.output))
+
+    def _parse_cached_commands(self, commands_data):
+        """
+        Parses raw commands data into a structured list of dictionaries
+        representing the available commands in a cache.
+
+        :raises:              will raise a TankError if the cache does not
+                              have the expected format
+        :param commands_data: the raw text data contained in the cache
+        :returns:             list of available commands that are in the
+                              cache.
+                              Every command is a dictionary with the
+                              following format:
+                                {
+                                    "name":  unique name of the command
+                                    "title": title to show for the command
+                                    "icon":  path to the command's icon
+                                }
+        """
+        lines = commands_data.splitlines()
+
+        commands = []
+        for line in lines:
+            tokens = line.split("$")
+
+            if len(tokens) < 5:
+                raise TankError("The cache is missing tokens on the line "
+                                "\"%s\".\n"
+                                "Full cache:\n%s"
+                                % (line, commands_data))
+
+            name = tokens[0]
+            title = tokens[1]
+            icon = tokens[4]
+
+            commands.append({ "name": name, "title": title, "icon": icon })
+
+        return commands

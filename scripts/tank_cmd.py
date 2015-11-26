@@ -402,7 +402,7 @@ def shotgun_cache_actions(log, pipeline_config_root, credentials, args):
         raise TankError("Could not instantiate an Sgtk API Object! Details: %s" % e )
 
     # params: entity_type, cache_file_name
-    if len(args) != 2:
+    if len(args) < 2:
         raise TankError("Invalid arguments! Pass entity_type, cache_file_name")
 
     entity_type = args[0]
