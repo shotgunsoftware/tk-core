@@ -309,7 +309,7 @@ def _write_shotgun_cache(tk, entity_type, cache_file_name):
     engine_commands = e.commands
 
     # insert special system commands
-    if entity_type == "Project":
+    if entity_type.lower() == "project":
         engine_commands["__core_info"] = { "properties": {"title": "Check for Core Upgrades...",
                                                           "deny_permissions": ["Artist"] } }
 
