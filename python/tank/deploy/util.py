@@ -38,6 +38,35 @@ def execute_git_command(cmd):
     if status != 0:
         raise TankError("Error executing git operation. The git command '%s' returned error code %s." % (cmd, status))     
 
+_TOOLKIT_COMMAND_NAME = "tank"
+
+def execute_toolkit_command(pipeline_config_path, command, args):
+    """
+    Wrapper around execution of the tank command of a specified pipeline
+    configuration.
+
+    :raises: Will raise a SubprocessCalledProcessError if the toolkit command
+             returns a non-zero error code.
+             Will raise a TankError if the toolkit command could not be
+             executed.
+    :param pipeline_config_path: the path to the pipeline configuration that
+                                 contains the toolkit command
+    :param command:              toolkit command to execute
+    :param args:                 list of arguments to pass to the toolkit
+                                 command
+    """
+    if not os.path.isdir(pipeline_config_path):
+        raise TankError("Could not find the Pipeline Configuration on disk: %s"
+                        % pipeline_config_path)
+
+    command_path = os.path.join(pipeline_config_path, _TOOLKIT_COMMAND_NAME)
+
+    if not os.path.isfile(command_path):
+        raise TankError("Could not find the Toolkit command on disk: %s"
+                        % command_path)
+
+    return subprocess_check_output([command_path, command] + args)
+
 def _copy_folder(log, src, dst, skip_list=None): 
     """
     Alternative implementation to shutil.copytree
