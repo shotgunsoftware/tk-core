@@ -38,6 +38,8 @@ class Engine(TankBundle):
     Base class for an engine in Tank.
     """
 
+    _ASYNC_INVOKER, _SYNC_INVOKER = range(2)
+
     def __init__(self, tk, context, engine_instance_name, env):
         """
         Constructor. Takes the following parameters:
@@ -64,7 +66,10 @@ class Engine(TankBundle):
         
         self.__global_progress_widget = None
         
+        # Initialize these early on so that methods implemented in the derived class and trying
+        # to access the invoker don't trip on undefined variables.
         self._invoker = None
+        self._async_invoker = None
         
         # get the engine settings
         settings = self.__env.get_engine_settings(self.__engine_instance_name)
@@ -122,7 +127,7 @@ class Engine(TankBundle):
         
         # create invoker to allow execution of functions on the
         # main thread:
-        self.__create_invokers()
+        self._invoker, self._async_invoker = self.__create_invokers()
         
         # run any init that needs to be done before the apps are loaded:
         self.pre_app_init()
@@ -438,10 +443,8 @@ class Engine(TankBundle):
 
         # clean up the main thread invoker - it's a QObject so it's important we
         # explicitly set the value to None!
-        if self._invoker:
-            self._invoker = None
-        if self._async_invoker:
-            self._async_invoker = None
+        self._invoker = None
+        self._async_invoker = None
 
     def destroy_engine(self):
         """
@@ -561,10 +564,14 @@ class Engine(TankBundle):
     def execute_in_main_thread(self, func, *args, **kwargs):
         """
         Execute the specified function in the main thread when called from a non-main
-        thread.  This will block the calling thread until the function returns.
+        thread.  This will block the calling thread until the function returns. Note that this
+        method can introduce a deadlock if the main thread is waiting for a background thread
+        and the background thread is invoking this method. Since the main thread is waiting
+        for the background thread to finish, Qt's event loop won't be able to process the request
+        to execute in the main thread.
 
         Note, this currently only works if Qt is available, otherwise it just
-        executes on the current thread.
+        executes immediately on the current thread.
 
         :param func: function to call
         :param args: arguments to pass to the function
@@ -572,7 +579,7 @@ class Engine(TankBundle):
 
         :returns: the result of the function call
         """
-        return self._execute_in_main_thread("_invoker", func, *args, **kwargs)
+        return self._execute_in_main_thread(self._SYNC_INVOKER, func, *args, **kwargs)
 
     def async_execute_in_main_thread(self, func, *args, **kwargs):
         """
@@ -581,21 +588,21 @@ class Engine(TankBundle):
         executed in the main thread.
 
         Note, this currently only works if Qt is available, otherwise it just
-        executes on the current thread.
+        executes immediately on the current thread.
 
         :param func: function to call
         :param args: arguments to pass to the function
         :param kwargs: named arguments to pass to the function
         """
-        self._execute_in_main_thread("_async_invoker", func, *args, **kwargs)
+        self._execute_in_main_thread(self._ASYNC_INVOKER, func, *args, **kwargs)
 
-    def _execute_in_main_thread(self, invoker_name, func, *args, **kwargs):
+    def _execute_in_main_thread(self, invoker_id, func, *args, **kwargs):
         """
         Executes the given method and arguments with the specified invoker.
         If the invoker is not ready or if the calling thread is the main thread,
         the method is called immediately with it's arguments.
 
-        :param invoker_name: Name of the invoker to use.
+        :param invoker_id: Either _ASYNC_INVOKER or _SYNC_INVOKER.
         :param func: function to call
         :param args: arguments to pass to the function
         :param kwargs: named arguments to pass to the function
@@ -605,7 +612,7 @@ class Engine(TankBundle):
         # Execute in main thread might be called before the invoker is ready.
         # For example, an engine might use the invoker for logging to the main
         # thread.
-        invoker = getattr(self, invoker_name) if hasattr(self, invoker_name) else None
+        invoker = self._invoker if invoker_id == self._SYNC_INVOKER else self._async_invoker
         if invoker:
             from .qt import QtGui, QtCore
             if (QtGui.QApplication.instance()
@@ -1214,10 +1221,11 @@ class Engine(TankBundle):
         Create the object used to invoke function calls on the main thread when
         called from a different thread.
         """
-        self._invoker = None
-        self._async_invoker = None
+        invoker = None
+        async_invoker = None
         if self.has_ui:
             from .qt import QtGui, QtCore
+            # Classes are defined locally since Qt might not be available.
             if QtGui and QtCore:
                 class Invoker(QtCore.QObject):
                     """
@@ -1242,7 +1250,7 @@ class Engine(TankBundle):
                         :param **kwargs:    Named arguments for the function
                         :returns:           The result returned by the function
                         """
-                        # acquire lock to ensure that the function and result are not overwritten 
+                        # acquire lock to ensure that the function and result are not overwritten
                         # by syncrounous calls to this method from different threads
                         self._lock.acquire()
                         try:
@@ -1295,11 +1303,13 @@ class Engine(TankBundle):
                         fn()
 
                 # Make sure that the invoker exists in the main thread:
-                self._invoker = Invoker()
-                self._async_invoker = AsyncInvoker()
+                invoker = Invoker()
+                async_invoker = AsyncInvoker()
                 if QtCore.QCoreApplication.instance():
-                    self._invoker.moveToThread(QtCore.QCoreApplication.instance().thread())
-                    self._async_invoker.moveToThread(QtCore.QCoreApplication.instance().thread())
+                    invoker.moveToThread(QtCore.QCoreApplication.instance().thread())
+                    async_invoker.moveToThread(QtCore.QCoreApplication.instance().thread())
+
+        return invoker, async_invoker
 
     ##########################################################################################
     # private         
