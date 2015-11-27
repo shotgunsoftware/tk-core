@@ -142,8 +142,20 @@ class GetEntityCommandsAction(Action):
         # advanced information about the commands (e.g. icon path).
         # Since this detailed cache can have different information from the
         # Shotgun one, we don't want to mix and match them and get different
-        # results based on which service asked for a cache update.
-        return "%s_%ss.txt" % (platform, entity_type.lower())
+        # results based on which service asked for a cache update. Therefore,
+        # different caches.
+
+        # get a platform name that follows the conventions of the shotgun cache
+        platform_name = platform
+        if platform == "darwin":
+            platform_name = "mac"
+        elif platform == "win32":
+            platform_name = "windows"
+        elif platform.startswith("linux"):
+            platform_name = "linux"
+
+        return ("shotgun_%s_%s_detailed.txt" %
+                (platform_name, entity_type)).lower()
 
     def _get_env_name(self, entity_type):
         """
