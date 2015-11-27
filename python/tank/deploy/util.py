@@ -38,8 +38,6 @@ def execute_git_command(cmd):
     if status != 0:
         raise TankError("Error executing git operation. The git command '%s' returned error code %s." % (cmd, status))     
 
-_TOOLKIT_COMMAND_NAME = "tank"
-
 def execute_toolkit_command(pipeline_config_path, command, args):
     """
     Wrapper around execution of the tank command of a specified pipeline
@@ -54,18 +52,24 @@ def execute_toolkit_command(pipeline_config_path, command, args):
     :param command:              toolkit command to execute
     :param args:                 list of arguments to pass to the toolkit
                                  command
+    :returns:                    text output of the command
     """
     if not os.path.isdir(pipeline_config_path):
         raise TankError("Could not find the Pipeline Configuration on disk: %s"
                         % pipeline_config_path)
 
-    command_path = os.path.join(pipeline_config_path, _TOOLKIT_COMMAND_NAME)
+    command_path = os.path.join(pipeline_config_path,
+                                _get_toolkit_command_name())
 
     if not os.path.isfile(command_path):
         raise TankError("Could not find the Toolkit command on disk: %s"
                         % command_path)
 
     return subprocess_check_output([command_path, command] + args)
+
+def _get_toolkit_command_name():
+    """ Returns the name of the toolkit command executable. """
+    return "tank" if sys.platform != "win32" else "tank.bat"
 
 def _copy_folder(log, src, dst, skip_list=None): 
     """
