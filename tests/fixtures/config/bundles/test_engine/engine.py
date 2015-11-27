@@ -37,3 +37,4 @@ class TestEngine(Engine):
     
     def log_error(self, msg):
         sys.stdout.write("ERROR: %s\n" % msg)
+
