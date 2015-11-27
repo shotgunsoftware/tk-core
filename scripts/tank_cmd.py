@@ -303,7 +303,7 @@ def _write_shotgun_cache(tk, credentials, entity_type, entity_id,
 
     :param tk:              toolkit API instance
     :param credentials:     credentials dictionary that potentially has a
-                            script-name and script-key set
+                            'script-name' and 'script-key' set
     :param entity_type:     type of the entity that we want to write the cache
                             for
     :param entity_id:       sample ID of an entity from the specified type.

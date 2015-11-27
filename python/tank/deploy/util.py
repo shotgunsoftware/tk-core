@@ -38,7 +38,7 @@ def execute_git_command(cmd):
     if status != 0:
         raise TankError("Error executing git operation. The git command '%s' returned error code %s." % (cmd, status))     
 
-def execute_toolkit_command(pipeline_config_path, command, args):
+def execute_toolkit_command(pipeline_config_path, toolkit_command, args):
     """
     Wrapper around execution of the tank command of a specified pipeline
     configuration.
@@ -49,7 +49,7 @@ def execute_toolkit_command(pipeline_config_path, command, args):
              executed.
     :param pipeline_config_path: the path to the pipeline configuration that
                                  contains the toolkit command
-    :param command:              toolkit command to execute
+    :param toolkit_command:      toolkit command to execute
     :param args:                 list of arguments to pass to the toolkit
                                  command
     :returns:                    text output of the command
@@ -65,7 +65,7 @@ def execute_toolkit_command(pipeline_config_path, command, args):
         raise TankError("Could not find the Toolkit command on disk: %s"
                         % command_path)
 
-    return subprocess_check_output([command_path, command] + args)
+    return subprocess_check_output([command_path, toolkit_command] + args)
 
 def _get_toolkit_command_name():
     """ Returns the name of the toolkit command executable. """

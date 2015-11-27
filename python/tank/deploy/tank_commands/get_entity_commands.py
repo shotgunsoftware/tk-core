@@ -24,14 +24,14 @@ class GetEntityCommandsAction(Action):
     pipeline configuration.
 
     This is done by calling the tank command on the other pipeline
-    configuration and asking it for its cached entity commands (or asks it to
-    update its cache beforehand if needed).
+    configuration and asking for its cached entity commands (or ask to update
+    its cache beforehand if needed).
 
     It is used like this:
     >>> import tank
     # create our command object
     >>> cmd = tank.get_command("get_entity_commands")
-    # get the commands for tasks
+    # get the commands for tasks, but could mix and match with any other types
     >>> tasks = [("Task", 1234), ("Task", 1235)]
     >>> commands_by_task = cmd.execute({"pc_path": "/my/pc/path",
     >>>                                 "entities": tasks})
@@ -119,7 +119,8 @@ class GetEntityCommandsAction(Action):
                     pipeline_config_path, entity_type, entities_of_type)
                 commands = self._parse_cached_commands(cache_content)
 
-                # the commands are the same for all entities of that type
+                # at the moment, the commands are the same for all entities of
+                # that type
                 for entity in entities_of_type:
                     commands_per_entity[entity] = commands
             except TankError as e:
@@ -201,8 +202,9 @@ class GetEntityCommandsAction(Action):
             # of date
             if e.returncode not in [self._ERROR_CODE_CACHE_OUT_OF_DATE,
                                     self._ERROR_CODE_CACHE_NOT_FOUND]:
-                raise TankError("Error while trying to get the cache content."
-                                "\nDetails: %s\nOutput: %s" % (e, e.output))
+                raise TankError("Error while trying to get the caches's"
+                                "content.\nDetails: %s\nOutput: %s"
+                                % (e, e.output))
 
         # cache is not up to date - update it
         try:
@@ -213,8 +215,8 @@ class GetEntityCommandsAction(Action):
             # So, we first try with the new method and fallback to the old one
             # if it fails.
 
-            # since the commands are the same for all the entities of that type,
-            # pick the ID of any entity
+            # since the commands are currently the same for all the entities
+            # of that type, pick the ID of any entity
             entity_id = entities[0][1]
             execute_toolkit_command(pipeline_config_path,
                                     "shotgun_cache_actions",
@@ -222,13 +224,13 @@ class GetEntityCommandsAction(Action):
 
         except SubprocessCalledProcessError as e:
             # failed to update the cache with the new method, revert to the old
-            # method.
+            # method
             try:
                 execute_toolkit_command(pipeline_config_path,
                                         "shotgun_cache_actions",
                                         [entity_type, cache_name])
             except SubprocessCalledProcessError as e:
-                # failed to update the cache, even with the old method.
+                # failed to update the cache, even with the old method
                 raise TankError("Failed to update the cache.\n"
                                 "Details: %s\nOutput: %s" % (e, e.output))
 
@@ -244,7 +246,7 @@ class GetEntityCommandsAction(Action):
     def _parse_cached_commands(self, commands_data):
         """
         Parses raw commands data into a structured list of dictionaries
-        representing the available commands in a cache.
+        representing the available commands in the cache.
 
         :raises:              will raise a TankError if the cache does not
                               have the expected format
