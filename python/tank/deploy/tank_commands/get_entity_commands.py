@@ -83,6 +83,9 @@ class GetEntityCommandsAction(Action):
             }
         }
 
+    _ERROR_CODE_CACHE_OUT_OF_DATE = 1
+    _ERROR_CODE_CACHE_NOT_FOUND = 2
+
     def run_interactive(self, log, args):
         """
         Tank command accessor
@@ -188,30 +191,55 @@ class GetEntityCommandsAction(Action):
         cache_name = self._get_cache_name(sys.platform, entity_type)
         env_name = self._get_env_name(entity_type)
 
+        # try to load the data right away if it is already cached
         try:
             return execute_toolkit_command(pipeline_config_path,
                                            "shotgun_get_actions",
                                            [cache_name, env_name])
         except SubprocessCalledProcessError as e:
-            # failed to load from cache, let's try to update it
-            pass
+            # failed to load from cache - only OK if cache is missing or out
+            # of date
+            if e.returncode not in [self._ERROR_CODE_CACHE_OUT_OF_DATE,
+                                    self._ERROR_CODE_CACHE_NOT_FOUND]:
+                raise TankError("Error while trying to get the cache content."
+                                "\nDetails: %s\nOutput: %s" % (e, e.output))
 
+        # cache is not up to date - update it
         try:
+            # try to update the cache by passing additional context (a sample
+            # entity ID). This will allow to fetch additional information.
+            # However, it is possible that the target pipeline config does not
+            # support receiving an additional parameter (the entity ID).
+            # So, we first try with the new method and fallback to the old one
+            # if it fails.
+
             # since the commands are the same for all the entities of that type,
             # pick the ID of any entity
             entity_id = entities[0][1]
             execute_toolkit_command(pipeline_config_path,
                                     "shotgun_cache_actions",
                                     [entity_type, cache_name, str(entity_id)])
+
+        except SubprocessCalledProcessError as e:
+            # failed to update the cache with the new method, revert to the old
+            # method.
+            try:
+                execute_toolkit_command(pipeline_config_path,
+                                        "shotgun_cache_actions",
+                                        [entity_type, cache_name])
+            except SubprocessCalledProcessError as e:
+                # failed to update the cache, even with the old method.
+                raise TankError("Failed to update the cache.\n"
+                                "Details: %s\nOutput: %s" % (e, e.output))
+
+        # now that the cache is updated, we can try to load the data again
+        try:
             return execute_toolkit_command(pipeline_config_path,
                                            "shotgun_get_actions",
                                            [cache_name, env_name])
         except SubprocessCalledProcessError as e:
-            # failed to update cache or to load from it after the update,
-            # that's an error.
-            raise TankError("Failed to update or to load from updated cache.\n"
-                            "Details: %s\n"
-                            "Output: %s" % (e, e.output))
+            raise TankError("Failed to get the content of the updated cache.\n"
+                            "Details: %s\nOutput: %s" % (e, e.output))
 
     def _parse_cached_commands(self, commands_data):
         """
