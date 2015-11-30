@@ -80,9 +80,13 @@ class GetEntityCommandsAction(Action):
                                   command is a dictionary with the following
                                   format:
                                     {
-                                      "name":  command to execute
-                                      "title": title to display for the command
-                                      "icon":  path to the icon of this command
+                                      "name":        command to execute
+                                      "title":       title to display for the
+                                                     command
+                                      "description": description of what the
+                                                     command does
+                                      "icon":        path to the icon of this
+                                                     command
                                     }""",
                 "type":        "dict"
             }
@@ -269,7 +273,7 @@ class GetEntityCommandsAction(Action):
         for line in lines:
             tokens = line.split("$")
 
-            if len(tokens) < 5:
+            if len(tokens) < 6:
                 raise TankError("The cache is missing tokens on the line "
                                 "'%s'.\n"
                                 "Full cache:\n%s"
@@ -278,7 +282,9 @@ class GetEntityCommandsAction(Action):
             name = tokens[0]
             title = tokens[1]
             icon = tokens[4]
+            description = tokens[5]
 
-            commands.append({ "name": name, "title": title, "icon": icon })
+            commands.append({ "name": name, "title": title, "icon": icon,
+                              "description": description })
 
         return commands

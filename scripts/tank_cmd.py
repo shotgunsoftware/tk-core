@@ -361,8 +361,10 @@ def _write_shotgun_cache(tk, credentials, entity_type, entity_id,
             "supports_multiple_selection", False)
         deny = ",".join(cmd_params["properties"].get("deny_permissions", []))
         icon = cmd_params["properties"].get("icon", "")
+        description = cmd_params["properties"].get("description", "")
 
-        entry = [ cmd_name, title, deny, str(supports_multiple_sel), icon ]
+        entry = [ cmd_name, title, deny, str(supports_multiple_sel),
+                  icon, description ]
 
         res.append("$".join(entry))
 
