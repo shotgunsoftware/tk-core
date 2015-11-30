@@ -33,11 +33,16 @@ class GetEntityCommandsAction(Action):
     >>> cmd = tank.get_command("get_entity_commands")
     # get the commands for tasks, but could mix and match with any other types
     >>> tasks = [("Task", 1234), ("Task", 1235)]
-    >>> commands_by_task = cmd.execute({"pc_path": "/my/pc/path",
+    >>> commands_by_task = cmd.execute({"configuration_path": "/my/pc/path",
     >>>                                 "entities": tasks})
     # extract the commands of a specific task
     >>> commands = commands_by_task[tasks[0]]
     """
+
+    # Error codes that can be returned by the toolkit command that gets invoked
+    _ERROR_CODE_CACHE_OUT_OF_DATE = 1
+    _ERROR_CODE_CACHE_NOT_FOUND = 2
+
     def __init__(self):
         Action.__init__(self,
                         "get_entity_commands",
@@ -54,17 +59,17 @@ class GetEntityCommandsAction(Action):
         self.supports_api = True
 
         self.parameters = {
-            "pc_path": {
+            "configuration_path": {
                 "description": "Path to the pipeline configuration associated "
                                "with the entities.",
                 "type":        "str"
             },
 
             "entities": {
-                "description": """List of entities to fetch the actions for.
-                                  Every entity should be a tuple with the
-                                  following format:
-                                    (entity_type, entity_id)""",
+                "description": "List of entities to fetch the actions for. "
+                               "Every entity should be a tuple with the "
+                               "following format:"
+                               "  (entity_type, entity_id)",
                 "type":        "list"
             },
 
@@ -83,9 +88,6 @@ class GetEntityCommandsAction(Action):
             }
         }
 
-    _ERROR_CODE_CACHE_OUT_OF_DATE = 1
-    _ERROR_CODE_CACHE_NOT_FOUND = 2
-
     def run_interactive(self, log, args):
         """
         Tank command accessor
@@ -103,7 +105,7 @@ class GetEntityCommandsAction(Action):
         :param log: std python logger
         :param parameters: dictionary with tank command parameters
         """
-        pipeline_config_path = parameters["pc_path"]
+        pipeline_config_path = parameters["configuration_path"]
         entities = parameters["entities"]
 
         # at the moment, the caching mechanism works with the entity types,
@@ -123,9 +125,9 @@ class GetEntityCommandsAction(Action):
                 # that type
                 for entity in entities_of_type:
                     commands_per_entity[entity] = commands
-            except TankError as e:
+            except TankError, e:
                 log.error("Failed to fetch the commands from the Pipeline "
-                          "Configuration at %s for the entity type %s.\n"
+                          "Configuration at '%s' for the entity type %s.\n"
                           "Details: %s"
                           % (pipeline_config_path, entity_type, e))
 
@@ -197,7 +199,7 @@ class GetEntityCommandsAction(Action):
             return execute_toolkit_command(pipeline_config_path,
                                            "shotgun_get_actions",
                                            [cache_name, env_name])
-        except SubprocessCalledProcessError as e:
+        except SubprocessCalledProcessError, e:
             # failed to load from cache - only OK if cache is missing or out
             # of date
             if e.returncode not in [self._ERROR_CODE_CACHE_OUT_OF_DATE,
@@ -222,14 +224,14 @@ class GetEntityCommandsAction(Action):
                                     "shotgun_cache_actions",
                                     [entity_type, cache_name, str(entity_id)])
 
-        except SubprocessCalledProcessError as e:
+        except SubprocessCalledProcessError, e:
             # failed to update the cache with the new method, revert to the old
             # method
             try:
                 execute_toolkit_command(pipeline_config_path,
                                         "shotgun_cache_actions",
                                         [entity_type, cache_name])
-            except SubprocessCalledProcessError as e:
+            except SubprocessCalledProcessError, e:
                 # failed to update the cache, even with the old method
                 raise TankError("Failed to update the cache.\n"
                                 "Details: %s\nOutput: %s" % (e, e.output))
@@ -239,7 +241,7 @@ class GetEntityCommandsAction(Action):
             return execute_toolkit_command(pipeline_config_path,
                                            "shotgun_get_actions",
                                            [cache_name, env_name])
-        except SubprocessCalledProcessError as e:
+        except SubprocessCalledProcessError, e:
             raise TankError("Failed to get the content of the updated cache.\n"
                             "Details: %s\nOutput: %s" % (e, e.output))
 
@@ -269,7 +271,7 @@ class GetEntityCommandsAction(Action):
 
             if len(tokens) < 5:
                 raise TankError("The cache is missing tokens on the line "
-                                "\"%s\".\n"
+                                "'%s'.\n"
                                 "Full cache:\n%s"
                                 % (line, commands_data))
 
