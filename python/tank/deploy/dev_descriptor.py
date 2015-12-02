@@ -18,15 +18,13 @@ import os
 import sys
 
 from ..errors import TankError
-from .descriptor import AppDescriptor, PathedSingletonDescriptor
+from .descriptor import AppDescriptor
 
 class TankDevDescriptor(AppDescriptor):
     """
     Represents a local item. This item is never downloaded
     into the local storage, you interact with it directly.
     """
-
-    __metaclass__ = PathedSingletonDescriptor
     
     def __init__(self, pc_path, bundle_install_path, location_dict):
         super(TankDevDescriptor, self).__init__(pc_path, bundle_install_path, location_dict)
