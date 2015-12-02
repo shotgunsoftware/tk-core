@@ -235,6 +235,8 @@ class GetEntityCommandsAction(Action):
                                 {
                                     "name":  unique name of the command
                                     "title": title to show for the command
+                                    "description": description of what the
+                                                   command does
                                     "icon":  path to the command's icon
                                 }
         """
