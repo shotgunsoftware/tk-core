@@ -50,14 +50,14 @@ class CacheItem(object):
         except Exception, exc:
             raise TankUnreadableFileError("Unable to stat file '%s': %s" % (path, exc))
 
-    @property
-    def data(self):
+    def _get_data(self):
         """The item's data."""
         return self._data
 
-    @data.setter
-    def data(self, config_data):
+    def _set_data(self, config_data):
         self._data = config_data
+
+    data = property(_get_data, _set_data)
 
     @property
     def path(self):
@@ -117,19 +117,6 @@ class YamlCache(object):
     """
     Main yaml cache class
     """
-    # The cache will be a singleton. At the bottom of this
-    # module is defined a global YamlCache object, which
-    # will then be shared if/when other instantiations occur.
-    # It's likely that most all code will be referencing the
-    # global variable for the cache, but this will ensure that
-    # even if that's not the case we'll still only have a single
-    # cache used throughout.
-    _instance = None
-
-    def __new__(cls, *args, **kwargs):
-        if not cls._instance:
-            cls._instance = super(YamlCache, cls).__new__(cls, *args, **kwargs)
-        return cls._instance
 
     def __init__(self, cache_dict=None):
         """
@@ -203,7 +190,7 @@ class YamlCache(object):
         """
         self._lock.acquire()
         try:
-            path = str(item)
+            path = item.path
             cached_item = self._cache.get(path)
             if cached_item and cached_item == item:
                 # It's already in the cache and matches mtime
