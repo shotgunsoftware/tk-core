@@ -295,43 +295,20 @@ def _run_shotgun_command(log, tk, action_name, entity_type, entity_ids):
                     "initializing it.")
 
 
-def _write_shotgun_cache(tk, credentials, entity_type, entity_id,
-                         cache_file_name):
+def _write_shotgun_cache(tk, entity_type, cache_file_name):
     """
     Writes a shotgun cache menu file to disk.
     The cache is per type and per operating system.
 
     :param tk:              toolkit API instance
-    :param credentials:     credentials dictionary that potentially has a
-                            'script-name' and 'script-key' set
     :param entity_type:     type of the entity that we want to write the cache
                             for
-    :param entity_id:       sample ID of an entity from the specified type.
-                            Specifying this ID allows to provide a proper
-                            context to the shotgun engine that is started.
-                            Having this specific context gives the opportunity
-                            for tk-shotgun's apps to fetch additional data
-                            (data that requires a context set).
-
-                            If set to None, an empty context will be used.
     :param cache_file_name: name of the file used to store the cached data
     """
-
     cache_path = os.path.join(tk.pipeline_configuration.get_shotgun_menu_cache_location(), cache_file_name)
 
-    context = tk.context_empty()
-
-    # if the user passes a specific entity, we load it as our context
-    if entity_id is not None:
-        # loading the specific entity requires authentication
-        ensure_authenticated(
-            credentials.get("script-name"),
-            credentials.get("script-key")
-        )
-        context = tank.context.from_entity(tk, entity_type, entity_id)
-
     # start the shotgun engine, load the apps
-    e = engine.start_shotgun_engine(tk, entity_type, context)
+    e = engine.start_shotgun_engine(tk, entity_type, tk.context_empty())
 
     # get list of actions
     engine_commands = e.commands
@@ -397,7 +374,7 @@ def _write_shotgun_cache(tk, credentials, entity_type, entity_id,
         raise TankError("Could not write to cache file %s: %s" % (cache_path, e))
 
 
-def shotgun_cache_actions(log, pipeline_config_root, credentials, args):
+def shotgun_cache_actions(log, pipeline_config_root, args):
     """
     Executes the special shotgun cache actions command
     """
@@ -418,23 +395,15 @@ def shotgun_cache_actions(log, pipeline_config_root, credentials, args):
         raise TankError("Could not instantiate an Sgtk API Object! Details: %s" % e )
 
     # params: entity_type, cache_file_name
-    if len(args) < 2:
+    if len(args) != 2:
         raise TankError("Invalid arguments! Pass entity_type, cache_file_name")
 
     entity_type = args[0]
     cache_file_name = args[1]
-    entity_id = None
-    if len(args) > 2:
-        try:
-            entity_id = int(args[2])
-        except ValueError:
-            raise TankError("Invalid arguments! Pass entity_type, "
-                            "cache_file_name, entity_id")
 
     num_log_messages_before = log.handlers[0].formatter.get_num_items()
     try:
-        _write_shotgun_cache(tk, credentials, entity_type,
-                             entity_id, cache_file_name)
+        _write_shotgun_cache(tk, entity_type, cache_file_name)
     except TankError, e:
         log.error("Error writing shotgun cache file: %s" % e)
     except Exception, e:
@@ -1554,8 +1523,7 @@ if __name__ == "__main__":
         # special case when we are called from shotgun
         elif cmd_line[0] == "shotgun_cache_actions":
             # note: this pathway does not require authentication
-            exit_code = shotgun_cache_actions(logger, pipeline_config_root,
-                                              credentials, cmd_line[1:])
+            exit_code = shotgun_cache_actions(logger, pipeline_config_root, cmd_line[1:])
 
         else:
             # these choices remain:

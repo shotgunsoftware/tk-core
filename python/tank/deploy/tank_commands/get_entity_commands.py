@@ -121,8 +121,8 @@ class GetEntityCommandsAction(Action):
             # make a list out of the grouped entity tuples
             entities_of_type = list(entities_of_type)
             try:
-                cache_content = self._load_cached_data(
-                    pipeline_config_path, entity_type, entities_of_type)
+                cache_content = self._load_cached_data(pipeline_config_path,
+                                                       entity_type)
                 commands = self._parse_cached_commands(cache_content)
 
                 # at the moment, the commands are the same for all entities of
@@ -146,15 +146,6 @@ class GetEntityCommandsAction(Action):
         :param entity_type: entity type that we want the cache for
         :returns:           name of the file containing the desired cached data
         """
-        # we use a cache different than the one used by the Shotgun website, as
-        # we are able to provide a more detailed context to the cache-building
-        # mechanism (i.e. an entity id). Thus, the cache can contain more
-        # advanced information about the commands (e.g. icon path).
-        # Since this detailed cache can have different information from the
-        # Shotgun one, we don't want to mix and match them and get different
-        # results based on which service asked for a cache update. Therefore,
-        # different caches.
-
         # get a platform name that follows the conventions of the shotgun cache
         platform_name = platform
         if platform == "darwin":
@@ -164,8 +155,7 @@ class GetEntityCommandsAction(Action):
         elif platform.startswith("linux"):
             platform_name = "linux"
 
-        return ("shotgun_%s_%s_detailed.txt" %
-                (platform_name, entity_type)).lower()
+        return ("shotgun_%s_%s.txt" % (platform_name, entity_type)).lower()
 
     def _get_env_name(self, entity_type):
         """
@@ -178,7 +168,7 @@ class GetEntityCommandsAction(Action):
         """
         return "shotgun_%s.yml" % entity_type.lower()
 
-    def _load_cached_data(self, pipeline_config_path, entity_type, entities):
+    def _load_cached_data(self, pipeline_config_path, entity_type):
         """
         Loads the cached data for the given entities from the specified
         Pipeline Configuration.
@@ -192,7 +182,6 @@ class GetEntityCommandsAction(Action):
         :param pipeline_config_path: path to the Pipeline Configuration
                                      containing the cache that we want
         :param entity_type:          type of the entity we want the cache for
-        :param entities:             entities we want the cache for
         :returns:                    text data contained in the cache
         """
         cache_name = self._get_cache_name(sys.platform, entity_type)
@@ -214,31 +203,13 @@ class GetEntityCommandsAction(Action):
 
         # cache is not up to date - update it
         try:
-            # try to update the cache by passing additional context (a sample
-            # entity ID). This will allow to fetch additional information.
-            # However, it is possible that the target pipeline config does not
-            # support receiving an additional parameter (the entity ID).
-            # So, we first try with the new method and fallback to the old one
-            # if it fails.
-
-            # since the commands are currently the same for all the entities
-            # of that type, pick the ID of any entity
-            entity_id = entities[0][1]
             execute_toolkit_command(pipeline_config_path,
                                     "shotgun_cache_actions",
-                                    [entity_type, cache_name, str(entity_id)])
-
+                                    [entity_type, cache_name])
         except SubprocessCalledProcessError, e:
-            # failed to update the cache with the new method, revert to the old
-            # method
-            try:
-                execute_toolkit_command(pipeline_config_path,
-                                        "shotgun_cache_actions",
-                                        [entity_type, cache_name])
-            except SubprocessCalledProcessError, e:
-                # failed to update the cache, even with the old method
-                raise TankError("Failed to update the cache.\n"
-                                "Details: %s\nOutput: %s" % (e, e.output))
+            # failed to update the cache
+            raise TankError("Failed to update the cache.\n"
+                            "Details: %s\nOutput: %s" % (e, e.output))
 
         # now that the cache is updated, we can try to load the data again
         try:
@@ -273,18 +244,29 @@ class GetEntityCommandsAction(Action):
         for line in lines:
             tokens = line.split("$")
 
-            if len(tokens) < 6:
-                raise TankError("The cache is missing tokens on the line "
+            # make sure that we have at least some tokens in the cache
+            if not tokens:
+                raise TankError("The cache is badly formatted on the line "
                                 "'%s'.\n"
                                 "Full cache:\n%s"
                                 % (line, commands_data))
 
-            name = tokens[0]
-            title = tokens[1]
-            icon = tokens[4]
-            description = tokens[5]
+            # max number of expected tokens
+            # must match the size of the tuple extracted below
+            NUM_EXPECTED_TOKENS = 6
 
-            commands.append({ "name": name, "title": title, "icon": icon,
-                              "description": description })
+            # pad the missing tokens with empty strings
+
+            # this can happen if toolkit is updated to a new version that uses
+            # new fields (i.e. new tokens) BUT the old caches are still there.
+            # A call to clear the shotgun menu caches will then be required to
+            # get the new fields.
+            tokens += [""] * (NUM_EXPECTED_TOKENS - len(tokens))
+
+            # extract the information from the tokens
+            (name, title, _, _, icon, description) = tuple(tokens)
+
+            commands.append({ "name": name, "title": title,
+                              "icon": icon, "description": description })
 
         return commands
