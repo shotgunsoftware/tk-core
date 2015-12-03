@@ -17,6 +17,7 @@ from sgtk import TankError
 import os
 import errno
 import urlparse
+import datetime
 import sys
 
 HookBaseClass = sgtk.get_hook_baseclass()
@@ -105,6 +106,25 @@ class CacheLocation(HookBaseClass):
         self._ensure_folder_exists(cfg_root)
         return cfg_root
         
+    def managed_config_backup(self, project_id, pipeline_configuration_id):
+        """
+        Establish a location for where backups of managed configs (cloud based configs)
+        are stored.
+        
+        Overriding this method in a hook allows a user to change the location on disk where
+        managed configs are stored for a site. Managed configs are created by
+        the tank synchronize command.  
+        
+        :param project_id: The shotgun id of the project to store caches for
+        :param pipeline_configuration_id: The shotgun pipeline config id to store caches for
+        :returns: The path to where a managed config location on disk should be
+                  created. This folder should exist on disk.
+        """
+        cache_root = self._get_cache_root(project_id, pipeline_configuration_id)
+        cfg_root = os.path.join(cache_root, "cfg.%s" % datetime.datetime.now().strftime("%Y%m%d_%H%M%S"))
+        self._ensure_folder_exists(cfg_root)
+        return cfg_root
+
     def _get_cache_root(self, project_id, pipeline_configuration_id):
         """
         Helper method that can be used both by subclassing hooks

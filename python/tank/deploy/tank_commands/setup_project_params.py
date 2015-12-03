@@ -24,7 +24,7 @@ from ... import pipelineconfig
 from ..zipfilehelper import unzip_file
 from .. import util as deploy_util
 
-from .setup_project_core import _copy_folder
+from .setup_project_core import copy_folder
 
 from tank_vendor import yaml
 
@@ -1258,7 +1258,7 @@ class TemplateConfiguration(object):
                 self._clone_git_repo(self._config_uri, target_path)
             else:
                 # copy the config from its source location into place
-                _copy_folder(self._log, self._cfg_folder, target_path )
+                copy_folder(self._log, self._cfg_folder, target_path )
 
         finally:
             os.umask(old_umask)

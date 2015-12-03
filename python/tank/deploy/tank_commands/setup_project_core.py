@@ -10,6 +10,7 @@
 
 import sys
 import os
+import stat
 import shutil
 
 from ...platform import constants
@@ -90,7 +91,7 @@ def synchronize_project(log, progress_cb, sg, config_source, config_path, core_p
     
     # set up a callback that copies the specified config into the scaffold 
     def config_cb(target_path):
-        _copy_folder(log, config_source, target_path)
+        copy_folder(log, config_source, target_path)
 
     old_umask = os.umask(0)
     try:
@@ -419,15 +420,15 @@ def _set_up_project_scaffold(log, progress_cb, config_paths, config_cb):
         os.makedirs(config_path, 0775)
     
     # create pipeline config base folder structure            
-    _make_folder(log, os.path.join(config_path, "cache"), 0777)    
-    _make_folder(log, os.path.join(config_path, "config"), 0775)
-    _make_folder(log, os.path.join(config_path, "install"), 0775)
-    _make_folder(log, os.path.join(config_path, "install", "core"), 0777)
-    _make_folder(log, os.path.join(config_path, "install", "core", "python"), 0777)
-    _make_folder(log, os.path.join(config_path, "install", "core.backup"), 0777, True)
-    _make_folder(log, os.path.join(config_path, "install", "engines"), 0777, True)
-    _make_folder(log, os.path.join(config_path, "install", "apps"), 0777, True)
-    _make_folder(log, os.path.join(config_path, "install", "frameworks"), 0777, True)
+    make_folder(log, os.path.join(config_path, "cache"), 0777)    
+    make_folder(log, os.path.join(config_path, "config"), 0775)
+    make_folder(log, os.path.join(config_path, "install"), 0775)
+    make_folder(log, os.path.join(config_path, "install", "core"), 0777)
+    make_folder(log, os.path.join(config_path, "install", "core", "python"), 0777)
+    make_folder(log, os.path.join(config_path, "install", "core.backup"), 0777, True)
+    make_folder(log, os.path.join(config_path, "install", "engines"), 0777, True)
+    make_folder(log, os.path.join(config_path, "install", "apps"), 0777, True)
+    make_folder(log, os.path.join(config_path, "install", "frameworks"), 0777, True)
         
     # copy the configuration into place
     progress_cb("Setting up template configuration...")
@@ -483,7 +484,7 @@ def _install_core(log, config_paths, core_path):
     config_path = config_paths[sys.platform]
     
     log.debug("Copying core into place")
-    _copy_folder(log, core_path, os.path.join(config_path, "install", "core"))
+    copy_folder(log, core_path, os.path.join(config_path, "install", "core"))
     
     # specify the parent files in install/core/core_PLATFORM.cfg
     log.debug("Creating core redirection config files...")
@@ -530,7 +531,7 @@ def _reference_external_core(log, config_path, core_paths):
     log.debug("Copying python stubs...")
     running_core_api_root = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "..", ".."))
     tank_proxy = os.path.join(running_core_api_root, "setup", "tank_api_proxy")
-    _copy_folder(log, tank_proxy, os.path.join(config_path, "install", "core", "python"))
+    copy_folder(log, tank_proxy, os.path.join(config_path, "install", "core", "python"))
         
     # specify the parent files in install/core/core_PLATFORM.cfg
     log.debug("Creating core redirection config files...")
@@ -616,7 +617,7 @@ def _process_bundles(log, config_path, progress_cb):
 ########################################################################################
 # helper methods
 
-def _make_folder(log, folder, permissions, create_placeholder_file=False):
+def make_folder(log, folder, permissions, create_placeholder_file=False):
     """
     Creates a folder.
     
@@ -642,7 +643,7 @@ def _make_folder(log, folder, permissions, create_placeholder_file=False):
         fh.close()
     
 
-def _copy_folder(log, src, dst): 
+def copy_folder(log, src, dst): 
     """
     Alternative implementation to shutil.copytree
     Copies recursively with very open permissions.
@@ -651,32 +652,81 @@ def _copy_folder(log, src, dst):
     :param log: Std log handle
     :param src: Source path to copy from
     :param dst: Destination to copy to
+    :returns:   List of files copied
     """
     
+    files = []
+    
     if not os.path.exists(dst):
-        log.debug("Creating folder %s..." % dst)
+        log.debug("MKDIR %s..." % dst)
         os.mkdir(dst, 0775)
 
     names = os.listdir(src)     
     for name in names: 
         
-        # get rid of system files
-        if name in [".svn", ".git", ".gitignore", "__MACOSX"]: 
-            continue
-        
         srcname = os.path.join(src, name) 
         dstname = os.path.join(dst, name) 
 
+        # get rid of system files
+        if name in [".svn", ".git", ".gitignore", "__MACOSX", ".DS_Store"]:
+            log.debug("Skipping file %s" % srcname) 
+            continue
+
         try: 
             if os.path.isdir(srcname): 
-                _copy_folder(log, srcname, dstname)             
+                files.extend(copy_folder(log, srcname, dstname))             
             else: 
-                log.debug("Copying %s --> %s" % (srcname, dstname))
-                shutil.copy(srcname, dstname) 
+                log.debug("COPY %s --> %s" % (srcname, dstname))
+                shutil.copy(srcname, dstname)
+                files.append(srcname)
+                # if the file extension is sh, set executable permissions
+                if dstname.endswith(".sh") or dstname.endswith(".bat") or dstname.endswith(".exe"):
+                    try:
+                        # make it readable and executable for everybody
+                        os.chmod(dstname, 0775)
+                        log.debug("CHMOD 775 %s" % dstname)
+                    except Exception, e:
+                        log.error("Can't set executable permissions on %s: %s" % (dstname, e))                
         
-        except (IOError, os.error), why: 
-            raise TankError("Can't copy %s to %s: %s" % (srcname, dstname, str(why))) 
+        except (IOError, os.error), e: 
+            raise TankError("Can't copy %s to %s: %s" % (srcname, dstname, e)) 
         
+    return files
+        
+    
+def move_folder(log, src, dst):
+    """
+    Move a directory. 
+    
+    First copies all content into target. Then deletes
+    all content from sources. Skip files that won't delete.
+    
+    :param log: Std log handle
+    :param src: Source path to move from
+    :param dst: Destination to move to
+    """
+    if os.path.exists(src):
+        
+        log.info("Moving directory: %s -> %s" % (src, dst))
+        
+        # first copy the content in the core folder
+        src_files = copy_folder(log, src, dst)
+        
+        # now clear out the install location
+        log.info("Clearing out source location...")
+        for f in src_files:
+            try:
+                # on windows, ensure all files are writable
+                if sys.platform == "win32":
+                    attr = os.stat(f)[0]
+                    if (not attr & stat.S_IWRITE):
+                        # file is readonly! - turn off this attribute
+                        os.chmod(f, stat.S_IWRITE)
+                os.remove(f)
+                log.debug("RM %s" % f)
+            except Exception, e:
+                log.error("Could not delete file %s: %s" % (f, e))
+    
     
 def _get_published_file_entity_type(log, sg):
     """
