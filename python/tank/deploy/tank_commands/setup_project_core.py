@@ -20,13 +20,26 @@ from tank_vendor import yaml
     
 def run_project_setup(log, sg, sg_app_store, sg_app_store_script_user, setup_params):
     """
-    Execute the project setup.
-    No validation is happening at this point - ensure that you have run the necessary validation
-    methods in the parameters object.
+    Executes primary project config setup as a series of I/O steps.
+    
+    - Shotgun is set up, 
+        - Project.tank_name is set
+        - A primary pipeline config is created
+        - If the force param is specified, existing settings are 
+          overwritten 
+    - A config scaffold is created on disk
+    - The config template is inserted into the scaffold
+    - The core API is referenced in
+    - All apps, engines and fws are downloaded
+    
+    No validation is happening at this point - ensure that you have run the 
+    necessary validation methods in the setup_params object.
 
-    :param log: python logger object
-    :param sg: shotgun api connection to the associated site
-    :param sg_app_store: toolkit app store sg connection
+    :param log: Python logger object
+    :param sg:  Shotgun api connection to the associated site. This connection
+                must typically have admin permissions.
+    :param sg_app_store: Toolkit app store sg connection. This is used to write
+                         out stats to the 
     :param sg_app_store_script_user: The script user used to connect to the app store, as a shotgun link-dict
     :param setup_params: Parameters object which holds gathered project settings
     """
@@ -37,19 +50,59 @@ def run_project_setup(log, sg, sg_app_store, sg_app_store_script_user, setup_par
         os.umask(old_umask)
 
 
-def synchronize_project(log, sg):
+def synchronize_project(log, progress_cb, sg, config_source, config_path, core_path):
+    """
+    Given an existing pipeline configuration in Shotgun, set up a local
+    scaffold to represent this configuration.
+     
+    The created config scaffold only works with the current os platform.
+    
+    The project config scaffold will be set up with an internal integrated
+    Core API, e.g. a localized setup. 
+    
+    :param log: Python logger object
+    
+    :param progress_cb: Progress reporting callback
+                        The callback function should have the following 
+                        signature::
+        
+                            def cb(chapter_str, percent_progress_int=None)
+        
+                        The installer will run through several "chapters" 
+                        throughout the install and each of these will have a 
+                        separate progress calculation.
+    
+    :param sg:  Shotgun api connection to the associated site. This connection
+                must typically have admin permissions.
+                
+    :param config_source: Source config to use as a template when creating 
+                          this project.
+    
+    :param config_path: Path where the config should be created
+    
+    :param core_path: Path to the core API that should be copied into the 
+                      scaffold.
+    """
+    # platforms other than the current OS will not be supposed
+    # by this config scaffold 
+    config_paths = {"darwin": None, "win32": None, "linux2": None}
+    config_paths[sys.platform] = config_path
+    
+    # set up a callback that copies the specified config into the scaffold 
+    def config_cb(target_path):
+        _copy_folder(log, config_source, target_path)
 
     old_umask = os.umask(0)
     try:
-        print "test"
-        # asd
-        #_set_up_project_scaffold(log, progress_cb, config_paths)
-        # asd
-        #_install_core(log, config_paths, core_path)
-        # asd
-        #_process_apps(log, config_path, progress_cb)
+        _set_up_project_scaffold(log, progress_cb, config_paths, config_cb)
+        _install_core(log, config_paths, core_path)
+        _process_bundles(log, config_path, progress_cb)
     finally:
         os.umask(old_umask)
+        
+        
+########################################################################################
+# internal methods that carried out various parts of the process
 
 def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, setup_params):
     """
@@ -83,7 +136,6 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, set
     pcs = sg.find(constants.PIPELINE_CONFIGURATION_ENTITY, 
                   [["project", "is", sg_project_link]],
                   ["code", "linux_path", "windows_path", "mac_path"])
-    
     
     if len(pcs) > 0:
         if setup_params.get_force_setup():
@@ -174,7 +226,7 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, set
     # Create Project.tank_name and PipelineConfiguration records in Shotgun
     #
     # This logic has some special complexity when the auto_path mode is in use.
-    
+    #
     setup_params.report_progress_from_installer("Registering in Shotgun...")
     
     if setup_params.get_auto_path_mode():
@@ -338,25 +390,24 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, set
     log.info("")
 
 
-    
-
-
-
-
 def _set_up_project_scaffold(log, progress_cb, config_paths, config_cb):
     """
-    Creates all the necessary files on disk for a project.
-    Copies the configuration into place.
-    Does not prepare the core API. For this, use the methods
-    _install_core() or _reference_external_core()
+    Creates all the necessary files on disk for a basic config scaffold.
     
-    :param log: python logger object
-    :param progress_cb: Callback to report high level status messages
+    - Sets up basic folder structure for a config
+    - Copies the configuration into place.
+    
+    Once this scaffold is set up, the core need to be installed.
+    This is done via _install_core() or _reference_external_core() 
+
+    :param log:          Python logger object
+    :param progress_cb:  Callback to report high level status messages
     :param config_paths: Path to configuration. Dictionary with keys
-        darwin, win32 and linux2. Entries in this dictionary can be None.
-    :param config_cb: Callback to run to request that the config is 
-        copied into place. The path to the config folder will be passed
-        as a parameter to this callback.
+                         darwin, win32 and linux2. Entries in this 
+                         dictionary can be None.
+    :param config_cb:    Callback to run to request that the config is 
+                         copied into place. The path to the config folder 
+                         will be passed as a parameter to this callback.
     """
 
     config_path = config_paths[sys.platform]
@@ -417,8 +468,6 @@ def _set_up_project_scaffold(log, progress_cb, config_paths, config_cb):
     fh.write("# End of file.\n")
     fh.close()
 
-    
-
 def _install_core(log, config_paths, core_path):
     """
     Install a core into the given configuration.
@@ -462,12 +511,20 @@ def _reference_external_core(log, config_path, core_paths):
     """
     Reference a core  a project setup.
     
-    :param log: python logger object
-    :param config_path: Path to config to operate on
-    :param core_paths: Path to core API to reference. Dictionary with keys
-        darwin, win32 and linux2. Entries in this dictionary can be None.
-    """
+    This will link the config to a core defined in a different 
+    location. A tank API proxy will be installed into the config
+    scaffold and the core redirection files will be set to point
+    at the core specified.
     
+    This assumes that a basic config scaffold is in place and
+    that this scaffold doesn't yet have a core set up.
+    
+    :param log:         Python logger object
+    :param config_path: Path to config to operate on
+    :param core_paths:  Path to core API to reference. Dictionary with keys
+                        darwin, win32 and linux2. Entries in this dictionary 
+                        can be None.
+    """
     # copy the python API proxy stub into location
     # grab these from the currently executing core API
     log.debug("Copying python stubs...")
@@ -504,7 +561,7 @@ def _process_bundles(log, config_path, progress_cb):
     
     @TODO - merge with code from cache_apps
     
-    :param log: python logger object
+    :param log:         Python logger object
     :param config_path: Path to configuration
     :param progress_cb: Progress reporting callback
     """
@@ -556,20 +613,12 @@ def _process_bundles(log, config_path, progress_cb):
         descriptor.run_post_install()
     
 
-
-
-
-
-
-    
-
 ########################################################################################
 # helper methods
-       
 
-def _make_folder(log, folder, permissions, create_placeholder_file = False):
+def _make_folder(log, folder, permissions, create_placeholder_file=False):
     """
-    Create folder helper method
+    Creates a folder.
     
     :param log: std log handle
     :param folder: path to folder
@@ -598,6 +647,10 @@ def _copy_folder(log, src, dst):
     Alternative implementation to shutil.copytree
     Copies recursively with very open permissions.
     Creates folders if they don't already exist.
+    
+    :param log: Std log handle
+    :param src: Source path to copy from
+    :param dst: Destination to copy to
     """
     
     if not os.path.exists(dst):
