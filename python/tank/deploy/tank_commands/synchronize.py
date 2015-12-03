@@ -267,7 +267,7 @@ class SynchronizeConfigurationAction(Action):
         
         """
         
-        config_info_file = os.path.join(config_root, "caches", self.CONFIG_INFO_FILE)
+        config_info_file = os.path.join(config_root, "cache", self.CONFIG_INFO_FILE)
         fh = open(config_info_file, "wt")
 
         fh.write("# This file contains metadata describing what exact version\n")
@@ -331,7 +331,7 @@ class SynchronizeConfigurationAction(Action):
 
         # local config exists. See if it is up to date.
         # look at the attachment id to determine the generation of the config.
-        config_info_file = os.path.join(config_root, "caches", self.CONFIG_INFO_FILE)
+        config_info_file = os.path.join(config_root, "cache", self.CONFIG_INFO_FILE)
         
         if not os.path.exists(config_info_file):
             # not sure what version this is.
