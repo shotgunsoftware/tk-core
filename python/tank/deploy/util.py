@@ -38,20 +38,19 @@ def execute_git_command(cmd):
     if status != 0:
         raise TankError("Error executing git operation. The git command '%s' returned error code %s." % (cmd, status))     
 
-def execute_toolkit_command(pipeline_config_path, toolkit_command, args):
+def execute_tank_command(pipeline_config_path, tank_command, args):
     """
     Wrapper around execution of the tank command of a specified pipeline
     configuration.
 
-    :raises: Will raise a SubprocessCalledProcessError if the toolkit command
+    :raises: Will raise a SubprocessCalledProcessError if the tank command
              returns a non-zero error code.
-             Will raise a TankError if the toolkit command could not be
+             Will raise a TankError if the tank command could not be
              executed.
     :param pipeline_config_path: the path to the pipeline configuration that
-                                 contains the toolkit command
-    :param toolkit_command:      toolkit command to execute
-    :param args:                 list of arguments to pass to the toolkit
-                                 command
+                                 contains the tank command
+    :param tank_command:         tank command to execute
+    :param args:                 list of arguments to pass to the tank command
     :returns:                    text output of the command
     """
     if not os.path.isdir(pipeline_config_path):
@@ -59,16 +58,16 @@ def execute_toolkit_command(pipeline_config_path, toolkit_command, args):
                         % pipeline_config_path)
 
     command_path = os.path.join(pipeline_config_path,
-                                _get_toolkit_command_name())
+                                _get_tank_command_name())
 
     if not os.path.isfile(command_path):
-        raise TankError("Could not find the Toolkit command on disk: %s"
+        raise TankError("Could not find the tank command on disk: %s"
                         % command_path)
 
-    return subprocess_check_output([command_path, toolkit_command] + args)
+    return subprocess_check_output([command_path, tank_command] + args)
 
-def _get_toolkit_command_name():
-    """ Returns the name of the toolkit command executable. """
+def _get_tank_command_name():
+    """ Returns the name of the tank command executable. """
     return "tank" if sys.platform != "win32" else "tank.bat"
 
 def _copy_folder(log, src, dst, skip_list=None): 

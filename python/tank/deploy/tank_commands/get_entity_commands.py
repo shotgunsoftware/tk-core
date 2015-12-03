@@ -10,7 +10,7 @@
 
 from .action_base import Action
 from ...errors import TankError
-from ..util import execute_toolkit_command, SubprocessCalledProcessError
+from ..util import execute_tank_command, SubprocessCalledProcessError
 
 import itertools
 import operator
@@ -142,7 +142,9 @@ class GetEntityCommandsAction(Action):
         Constructs the expected name for the cache file of a particular entity
         type.
 
-        :param platform:    platform that will use the cached information
+        :param platform:    platform that will use the cached information.
+                            This string is expected to be of the same format as
+                            sys.platform.
         :param entity_type: entity type that we want the cache for
         :returns:           name of the file containing the desired cached data
         """
@@ -189,23 +191,23 @@ class GetEntityCommandsAction(Action):
 
         # try to load the data right away if it is already cached
         try:
-            return execute_toolkit_command(pipeline_config_path,
-                                           "shotgun_get_actions",
-                                           [cache_name, env_name])
+            return execute_tank_command(pipeline_config_path,
+                                        "shotgun_get_actions",
+                                        [cache_name, env_name])
         except SubprocessCalledProcessError, e:
             # failed to load from cache - only OK if cache is missing or out
             # of date
             if e.returncode not in [self._ERROR_CODE_CACHE_OUT_OF_DATE,
                                     self._ERROR_CODE_CACHE_NOT_FOUND]:
-                raise TankError("Error while trying to get the caches's"
-                                "content.\nDetails: %s\nOutput: %s"
+                raise TankError("Error while trying to get the cache content."
+                                "\nDetails: %s\nOutput: %s"
                                 % (e, e.output))
 
         # cache is not up to date - update it
         try:
-            execute_toolkit_command(pipeline_config_path,
-                                    "shotgun_cache_actions",
-                                    [entity_type, cache_name])
+            execute_tank_command(pipeline_config_path,
+                                 "shotgun_cache_actions",
+                                 [entity_type, cache_name])
         except SubprocessCalledProcessError, e:
             # failed to update the cache
             raise TankError("Failed to update the cache.\n"
@@ -213,9 +215,9 @@ class GetEntityCommandsAction(Action):
 
         # now that the cache is updated, we can try to load the data again
         try:
-            return execute_toolkit_command(pipeline_config_path,
-                                           "shotgun_get_actions",
-                                           [cache_name, env_name])
+            return execute_tank_command(pipeline_config_path,
+                                        "shotgun_get_actions",
+                                        [cache_name, env_name])
         except SubprocessCalledProcessError, e:
             raise TankError("Failed to get the content of the updated cache.\n"
                             "Details: %s\nOutput: %s" % (e, e.output))

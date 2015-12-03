@@ -343,7 +343,12 @@ def _write_shotgun_cache(tk, entity_type, cache_file_name):
         entry = [ cmd_name, title, deny, str(supports_multiple_sel),
                   icon, description ]
 
-        res.append("$".join(entry))
+        # sanitize the fields to make sure that they do not break the cache
+        # format
+        sanitized = [ token.replace("\n", " ").replace("$", "_")
+                      for token in entry ]
+
+        res.append("$".join(sanitized))
 
     data = "\n".join(res)
 
