@@ -87,21 +87,24 @@ class CacheLocation(HookBaseClass):
         
         return target_path
         
-    def app_cache(self, project_id, pipeline_configuration_id):
+    def global_app_cache(self):
         """
-        A location where toolkit stores 
+        A location where toolkit stores apps, engines and frameworks
+        for all projects. 
 
-        Establish a location for where managed configs (cloud based configs)
-        are stored.
+        This setting will be used for all projects which has got the
+        global app cache flag set. If the flag is not set, apps will be
+        picked up from the conventional loation, local to where the core
+        API installation is.
+
+        Note that this method is called from a pipeline configuration
+        object and that self.parent resolves to the current
+        pipeline configuration object rather than the tk object which 
+        is normally the case for core hooks.
         
-        Overriding this method in a hook allows a user to change the location on disk where
-        managed configs are stored for a site. Managed configs are created by
-        the tank synchronize command.  
-        
-        :param project_id: The shotgun id of the project to store caches for
-        :param pipeline_configuration_id: The shotgun pipeline config id to store caches for
-        :returns: The path to where a managed config location on disk should be
-                  created. This folder should exist on disk.
+        :returns: The path to a location where all projects and sites
+                  can store apps, engines and frameworks.
+                  This folder should exist on disk.
         """
         sg_cache_root = self._get_shotgun_cache_root()
         app_cache_root = os.path.join(sg_cache_root, "tk_app_cache")

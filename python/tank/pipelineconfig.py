@@ -110,25 +110,10 @@ class PipelineConfiguration(object):
         self._cache_folder = None
         self._path_cache_path = None
         self._use_shotgun_path_cache = None
-
-    def _load_metadata_from_sg(self):
-        """
-        Caches PC metadata from shotgun.
-        """
-        sg = shotgun.get_sg_connection()
-        platform_lookup = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
-        sg_path_field = platform_lookup[sys.platform]
-        data = sg.find_one(constants.PIPELINE_CONFIGURATION_ENTITY,
-                           [[sg_path_field, "is", self._pc_root]],
-                           ["id", "project", "code"])
-        if data is None:
-            raise TankError("Cannot find a Pipeline configuration in Shotgun that has its %s "
-                            "set to '%s'!" % (sg_path_field, self._pc_root))
-
-        self._project_id = data.get("project").get("id")
-        self._pc_id = data.get("id")
-        self._pc_name = data.get("code")
-    
+        self._use_global_app_cache = None
+        
+        # todo: use memoize
+        self._bundles_location = None
     
     ########################################################################################
     # general access and properties
@@ -157,11 +142,6 @@ class PipelineConfiguration(object):
             # try to get it from the cache file
             data = pipelineconfig_utils.get_metadata(self._pc_root)
             self._pc_name = data.get("pc_name")
-
-
-            if self._pc_name is None:
-                # not in metadata file on disk. Fall back on SG lookup
-                self._load_metadata_from_sg()
 
         return self._pc_name
 
@@ -217,10 +197,6 @@ class PipelineConfiguration(object):
             data = pipelineconfig_utils.get_metadata(self._pc_root)
             self._pc_id = data.get("pc_id")
 
-            if self._pc_id is None:
-                # not in metadata file on disk. Fall back on SG lookup
-                self._load_metadata_from_sg()
-
         return self._pc_id
 
     def get_project_id(self):
@@ -231,12 +207,7 @@ class PipelineConfiguration(object):
         if self._project_id == self._UNDEFINED_PROJECT_ID:
             # try to get it from the cache file
             data = pipelineconfig_utils.get_metadata(self._pc_root)
-
-            if "project_id" not in data:
-                # not in metadata file on disk. Fall back on SG lookup
-                self._load_metadata_from_sg()
-            else:
-                self._project_id = data.get("project_id")
+            self._project_id = data.get("project_id")            
 
         return self._project_id
 
@@ -304,6 +275,23 @@ class PipelineConfiguration(object):
 
         return self._use_shotgun_path_cache
 
+    def use_global_app_cache(self):
+        """
+        Returns true if a global app cache should be used to store projects.
+        """
+        return True
+        if self._use_global_app_cache is None:
+            # try to get it from the cache file
+            data = pipelineconfig_utils.get_metadata(self._pc_root)
+            self._use_global_app_cache = data.get("use_global_app_cache")
+
+            if self._use_global_app_cache is None:
+                # if not defined assume it is off
+                self._use_global_app_cache = False
+
+        return self._use_global_app_cache
+
+    
     def turn_on_shotgun_path_cache(self):
         """
         Updates the pipeline configuration settings to have the shotgun based (v0.15+)
@@ -534,11 +522,24 @@ class PipelineConfiguration(object):
 
     def get_bundles_location(self):
         """
-        Returns the location where all apps/frameworks/engines are stored in subfolders
+        Returns the location where all apps/frameworks/engines are stored in subfolders.
+        
+        Note: if you want to find the location to where the core API is stored,
+              use the get_core_python_location() method.
+        
         
         :returns: path string
         """
-        return os.path.join(self.get_install_location(), "install")
+        if self._bundles_location is None:
+            if self.use_global_app_cache():
+                # global location as per core hook
+                self._bundles_location = self.execute_core_hook_method_internal(constants.CACHE_LOCATION_HOOK_NAME, "global_app_cache", self)
+            
+            else:
+                # traditional location relative to core install
+                self._bundles_location = os.path.join(self.get_install_location(), "install")
+
+        return self._bundles_location
 
     def get_core_python_location(self):
         """
@@ -546,7 +547,7 @@ class PipelineConfiguration(object):
         
         :returns: path string
         """
-        return os.path.join(self.get_bundles_location(), "core", "python")
+        return os.path.join(self.get_install_location(), "install", "core", "python")
 
     ########################################################################################
     # configuration disk locations
