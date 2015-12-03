@@ -14,23 +14,12 @@ import tempfile
 import re
 import uuid
 from .action_base import Action
-from . import core_localize
 from ..zipfilehelper import unzip_file
 from ...errors import TankError
 from ...util import shotgun
 from ...platform import constants
-from ... import pipelineconfig_utils
-from ... import pipelineconfig_factory
-
-from tank_vendor import yaml
 
 from .setup_project_core import synchronize_project
-from .setup_project_params import ProjectSetupParameters
-
-SG_LOCAL_STORAGE_OS_MAP = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
-
-
-
 
 class SynchronizeConfigurationAction(Action):
     """
