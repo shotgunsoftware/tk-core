@@ -43,8 +43,8 @@ class TankAppStoreDescriptor(AppDescriptor):
 
     """
 
-    def __init__(self, pc_path, bundle_install_path, location_dict, bundle_type):
-        super(TankAppStoreDescriptor, self).__init__(pc_path, bundle_install_path, location_dict)
+    def __init__(self, bundle_install_path, location_dict, bundle_type):
+        super(TankAppStoreDescriptor, self).__init__(bundle_install_path, location_dict)
 
         self._type = bundle_type
         self._name = location_dict.get("name")
@@ -166,7 +166,7 @@ class TankAppStoreDescriptor(AppDescriptor):
     # class methods
 
     @classmethod
-    def _find_latest_for_pattern(cls, pc_path, bundle_install_path, bundle_type, name, version_pattern):
+    def _find_latest_for_pattern(cls, bundle_install_path, bundle_type, name, version_pattern):
         """
         Returns an TankAppStoreDescriptor object representing the latest version
         of the sought after object. If no matching item is found, an
@@ -307,7 +307,7 @@ class TankAppStoreDescriptor(AppDescriptor):
         location_dict = {"type": "app_store", "name": name, "version": version_to_use}
 
         # and return a descriptor instance
-        desc = TankAppStoreDescriptor(pc_path, bundle_install_path, location_dict, bundle_type)
+        desc = TankAppStoreDescriptor(bundle_install_path, location_dict, bundle_type)
         
         # now if this item has been deprecated, meaning that someone has gone in to the app
         # store and updated the record's deprecation status, we want to make sure we download
@@ -321,7 +321,7 @@ class TankAppStoreDescriptor(AppDescriptor):
     
     
     @classmethod
-    def _find_latest(cls, pc_path, bundle_install_path, bundle_type, name):
+    def _find_latest(cls, bundle_install_path, bundle_type, name):
         """
         Returns an TankAppStoreDescriptor object representing the latest version
         of the sought after object. If no matching item is found, an
@@ -390,7 +390,7 @@ class TankAppStoreDescriptor(AppDescriptor):
         location_dict = {"type": "app_store", "name": name, "version": version_str}
 
         # and return a descriptor instance
-        desc = TankAppStoreDescriptor(pc_path, bundle_install_path, location_dict, bundle_type)
+        desc = TankAppStoreDescriptor(bundle_install_path, location_dict, bundle_type)
         
         # now if this item has been deprecated, meaning that someone has gone in to the app
         # store and updated the record's deprecation status, we want to make sure we download
@@ -402,7 +402,7 @@ class TankAppStoreDescriptor(AppDescriptor):
         return desc
 
     @classmethod
-    def find_latest_item(cls, pc_path, bundle_install_path, bundle_type, name, constraint_pattern=None):
+    def find_latest_item(cls, bundle_install_path, bundle_type, name, constraint_pattern=None):
         """
         Returns an TankAppStoreDescriptor object representing the latest version
         of the sought after object. If no matching item is found, an
@@ -421,19 +421,19 @@ class TankAppStoreDescriptor(AppDescriptor):
         :returns: TankAppStoreDescriptor instance
         """
         return cls._find_latest_item_internal(
-            pc_path, bundle_install_path, bundle_type, name, constraint_pattern
+            bundle_install_path, bundle_type, name, constraint_pattern
         )
 
     @classmethod
-    def _find_latest_item_internal(cls, pc_path, bundle_install_path, bundle_type, name, constraint_pattern=None):
+    def _find_latest_item_internal(cls, bundle_install_path, bundle_type, name, constraint_pattern=None):
         """
         Actual implementation of find_latest_item. For parameter and return value information,
         see find_latest_item for more details.
         """
         if constraint_pattern:
-            return cls._find_latest_for_pattern(pc_path, bundle_install_path, bundle_type, name, constraint_pattern)
+            return cls._find_latest_for_pattern(bundle_install_path, bundle_type, name, constraint_pattern)
         else:
-            return cls._find_latest(pc_path, bundle_install_path, bundle_type, name)
+            return cls._find_latest(bundle_install_path, bundle_type, name)
 
 
     ###############################################################################################
@@ -608,7 +608,7 @@ class TankAppStoreDescriptor(AppDescriptor):
 
         :returns: descriptor object
         """
-        return self._find_latest_item_internal(self._pipeline_config_path, self._bundle_install_path, self._type, self._name, constraint_pattern)
+        return self._find_latest_item_internal(self._bundle_install_path, self._type, self._name, constraint_pattern)
         
         
 

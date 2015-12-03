@@ -44,8 +44,7 @@ class AppDescriptor(object):
     # constants describing the type of item we are describing
     APP, ENGINE, FRAMEWORK = range(3)
 
-    def __init__(self, pipeline_config_path, bundle_install_path, location_dict):
-        self._pipeline_config_path = pipeline_config_path
+    def __init__(self, bundle_install_path, location_dict):
         self._bundle_install_path = bundle_install_path
         self._location_dict = location_dict
         self.__manifest_data = None
@@ -431,7 +430,7 @@ class AppDescriptor(object):
             try:
                 hook.execute_hook(post_install_hook_path, 
                                   parent=None,
-                                  pipeline_configuration=self._pipeline_config_path,
+                                  pipeline_configuration=tk.pipeline_configuration.get_path(),
                                   path=self.get_path())
 
             except Exception, e:
@@ -508,24 +507,24 @@ def get_from_location_and_paths(app_or_engine, pc_path, bundle_install_path, loc
     # tank app store format
     # location: {"type": "app_store", "name": "tk-nukepublish", "version": "v0.5.0"}
     if location_dict.get("type") == "app_store":
-        return TankAppStoreDescriptor(pc_path, bundle_install_path, location_dict, app_or_engine)
+        return TankAppStoreDescriptor(bundle_install_path, location_dict, app_or_engine)
 
     # manual format
     # location: {"type": "manual", "name": "tk-nukepublish", "version": "v0.5.0"}
     elif location_dict.get("type") == "manual":
-        return TankManualDescriptor(pc_path, bundle_install_path, location_dict, app_or_engine)
+        return TankManualDescriptor(bundle_install_path, location_dict, app_or_engine)
 
     # git repo
     # location: {"type": "git", "path": "/path/to/repo.git", "version": "v0.2.1"}
     elif location_dict.get("type") == "git":
-        return TankGitDescriptor(pc_path, bundle_install_path, location_dict, app_or_engine)
+        return TankGitDescriptor(bundle_install_path, location_dict, app_or_engine)
 
     # local dev format
     # location: {"type": "dev", "path": "/path/to/app"}
     # or
     # location: {"type": "dev", "windows_path": "c:\\path\\to\\app", "linux_path": "/path/to/app", "mac_path": "/path/to/app"}
     elif location_dict.get("type") == "dev":
-        return TankDevDescriptor(pc_path, bundle_install_path, location_dict)
+        return TankDevDescriptor(bundle_install_path, location_dict)
 
     else:
         raise TankError("%s: Invalid location dict '%s'" % (app_or_engine, location_dict))

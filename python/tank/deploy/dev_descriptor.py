@@ -26,8 +26,8 @@ class TankDevDescriptor(AppDescriptor):
     into the local storage, you interact with it directly.
     """
     
-    def __init__(self, pc_path, bundle_install_path, location_dict):
-        super(TankDevDescriptor, self).__init__(pc_path, bundle_install_path, location_dict)
+    def __init__(self, bundle_install_path, location_dict):
+        super(TankDevDescriptor, self).__init__(bundle_install_path, location_dict)
 
         # platform specific location support
         system = sys.platform
