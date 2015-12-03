@@ -660,7 +660,7 @@ def copy_folder(log, src, dst):
     files = []
     
     if not os.path.exists(dst):
-        #log.debug("MKDIR %s..." % dst)
+        log.debug("MKDIR %s..." % dst)
         os.mkdir(dst, 0775)
 
     names = os.listdir(src)     
@@ -671,14 +671,14 @@ def copy_folder(log, src, dst):
 
         # get rid of system files
         if name in [".svn", ".git", ".gitignore", "__MACOSX", ".DS_Store"]:
-            #log.debug("Skipping file %s" % srcname) 
+            log.debug("Skipping file %s" % srcname) 
             continue
 
         try: 
             if os.path.isdir(srcname): 
                 files.extend(copy_folder(log, srcname, dstname))             
             else: 
-                #log.debug("COPY %s --> %s" % (srcname, dstname))
+                log.debug("COPY %s --> %s" % (srcname, dstname))
                 shutil.copy(srcname, dstname)
                 files.append(srcname)
                 # if the file extension is sh, set executable permissions
@@ -686,7 +686,7 @@ def copy_folder(log, src, dst):
                     try:
                         # make it readable and executable for everybody
                         os.chmod(dstname, 0775)
-                        #log.debug("CHMOD 775 %s" % dstname)
+                        log.debug("CHMOD 775 %s" % dstname)
                     except Exception, e:
                         log.error("Can't set executable permissions on %s: %s" % (dstname, e))                
         
@@ -725,7 +725,7 @@ def move_folder(log, src, dst):
                         # file is readonly! - turn off this attribute
                         os.chmod(f, stat.S_IWRITE)
                 os.remove(f)
-                #log.debug("RM %s" % f)
+                log.debug("RM %s" % f)
             except Exception, e:
                 log.error("Could not delete file %s: %s" % (f, e))
     
