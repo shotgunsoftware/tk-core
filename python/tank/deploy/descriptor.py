@@ -466,9 +466,6 @@ def preprocess_location(location_dict, pipeline_config):
     return location_dict
 
 
-
-
-
 def descriptor_factory(descriptor_type, app_cache_root, location_dict):
     """
     Factory method.
@@ -479,11 +476,6 @@ def descriptor_factory(descriptor_type, app_cache_root, location_dict):
     :returns: Descriptor object
     """
     return get_from_location_and_paths(descriptor_type, None, app_cache_root, location_dict)
-
-    
-
-
-
 
 
 
@@ -501,7 +493,7 @@ def get_from_location(app_or_engine, pipeline_config, location_dict):
     """
     return get_from_location_and_paths(
         app_or_engine,
-        pipeline_config.get_path(),
+        None,
         pipeline_config.get_bundles_location(),
         location_dict
     )
@@ -511,7 +503,8 @@ def get_from_location_and_paths(app_or_engine, pc_path, bundle_install_path, loc
     Factory method.
 
     :param app_or_engine: Either AppDescriptor.APP AppDescriptor.ENGINE or FRAMEWORK
-    :param pc_path: Path to the root of the pipeline configuration
+    :param pc_path: Path to the root of the pipeline configuration. 
+                    Legacy parameter and no longer used. This value will be ignored.
     :param bundle_install_path: Path to the root of the apps, frameworks and engines bundles.
     :param location_dict: A tank location dict
     :returns: an AppDescriptor object
