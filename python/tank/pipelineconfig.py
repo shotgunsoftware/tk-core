@@ -540,39 +540,6 @@ class PipelineConfiguration(object):
         """
         return os.path.join(self.get_install_location(), "install")
 
-    def get_apps_location(self):
-        """
-        Returns the location where apps are stored
-        
-        Note! This method has been deprecated and will be removed at 
-        some point in the future. Please do not use it.
-        
-        :returns: path string        
-        """
-        return os.path.join(self.get_bundles_location(), "apps")
-
-    def get_engines_location(self):
-        """
-        Returns the location where engines are stored
-        
-        Note! This method has been deprecated and will be removed at 
-        some point in the future. Please do not use it.
-        
-        :returns: path string        
-        """
-        return os.path.join(self.get_bundles_location(), "engines")
-
-    def get_frameworks_location(self):
-        """
-        Returns the location where frameworks are stored
-        
-        Note! This method has been deprecated and will be removed at 
-        some point in the future. Please do not use it.
-        
-        :returns: path string        
-        """
-        return os.path.join(self.get_bundles_location(), "frameworks")
-
     def get_core_python_location(self):
         """
         Returns the python root for this install.

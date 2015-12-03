@@ -231,7 +231,6 @@ class InstallAppAction(Action):
             # this is an app store app!
             log.info("Connecting to the Toolkit App Store...")
             app_descriptor = TankAppStoreDescriptor.find_latest_item(
-                self.tk.pipeline_configuration.get_path(),
                 self.tk.pipeline_configuration.get_bundles_location(),
                 AppDescriptor.APP, app_name
             )
@@ -488,7 +487,6 @@ class InstallEngineAction(Action):
             # this is an app store app!
             log.info("Connecting to the Toolkit App Store...")
             engine_descriptor = TankAppStoreDescriptor.find_latest_item(
-                self.tk.pipeline_configuration.get_path(),
                 self.tk.pipeline_configuration.get_bundles_location(),
                 AppDescriptor.ENGINE, 
                 engine_name)

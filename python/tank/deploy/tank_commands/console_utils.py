@@ -332,7 +332,6 @@ def ensure_frameworks_installed(log, tank_api_instance, file_location, descripto
 
         # get the latest version from the app store...
         fw_descriptor = TankAppStoreDescriptor.find_latest_item(
-            tank_api_instance.pipeline_configuration.get_path(),
             tank_api_instance.pipeline_configuration.get_bundles_location(),
             AppDescriptor.FRAMEWORK,
             name,
