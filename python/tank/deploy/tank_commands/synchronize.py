@@ -208,8 +208,16 @@ class SynchronizeConfigurationAction(Action):
                                                                   "managed_config_backup",
                                                                   project_id=project_id,
                                                                   pipeline_configuration_id=pc["id"])
-            # do the backup
-            move_folder(log, config_root, config_backup_path)
+            # move it out of the way
+            log.debug("Backing up config %s -> %s" % (config_root, config_backup_path))
+            os.rename(config_root, config_backup_path)
+        
+            # make sure the folder is there as it was just renamed 
+            config_root = self.tk.execute_core_hook_method(constants.CACHE_LOCATION_HOOK_NAME,
+                                                           "managed_config",
+                                                           project_id=project_id,
+                                                           pipeline_configuration_id=pc["id"])
+            
         
         else:
             config_backup_path = None
@@ -240,17 +248,16 @@ class SynchronizeConfigurationAction(Action):
             if config_backup_path:
                 log.info("Your previous config will be rolled back")
                 
-                log.info("Moving failed config out of the way...")
                 failed_config_path = self.tk.execute_core_hook_method(constants.CACHE_LOCATION_HOOK_NAME,
                                                                       "managed_config_backup",
                                                                       project_id=project_id,
                                                                       pipeline_configuration_id=pc["id"])
                 
+                log.debug("Backing up failed config %s -> %s" % (config_root, failed_config_path))
+                os.rename(config_root, failed_config_path)
                 
-                move_folder(log, config_root, failed_config_path)
-                
-                log.info("Restoring previous backup...")
-                copy_folder(log, config_backup_path, config_root)
+                log.info("Restoring previous backup %s -> %s" % (config_backup_path, config_root))
+                os.rename(config_backup_path, config_root)
         
         
 
