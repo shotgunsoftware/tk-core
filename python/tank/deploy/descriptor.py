@@ -13,6 +13,7 @@ Functionality for managing versions of apps.
 """
 
 import os
+import sys
 import copy
 
 from tank_vendor import yaml
@@ -440,6 +441,32 @@ class AppDescriptor(object):
 
 ################################################################################################
 # factory method for app descriptors
+
+def preprocess_location(location_dict, pipeline_config):
+    """
+    Preprocess location dict to resolve config-specific constants and directives.
+    
+    For example, for dev descriptors, the {PIPELINE_CONFIG} token will
+    resolve into the root path of the given pipeline config.
+    
+    :param location_dict: Location dict to operate on
+    :param pipeline_config: Pipeline Config object
+    :returns: location dict with any directives resolved.
+    """
+
+    if location_dict.get("type") == "dev":
+        
+        # platform specific location support
+        platform_key = {"linux2": "linux_path", "darwin": "mac_path", "win32": "windows_path"}[sys.platform]
+        if platform_key in location_dict:
+            location_dict[platform_key] = location_dict[platform_key].replace("{PIPELINE_CONFIG}", pipeline_config.get_path())
+
+        if "path" in location_dict:
+            location_dict["path"] = location_dict["path"].replace("{PIPELINE_CONFIG}", pipeline_config.get_path())
+
+    return location_dict
+
+
 
 
 def get_from_location(app_or_engine, pipeline_config, location_dict):

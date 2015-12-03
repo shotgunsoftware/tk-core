@@ -295,6 +295,9 @@ class Environment(object):
             raise TankError("The framework %s does not have a valid location "
                             "key for engine %s" % (self._env_path, framework_name))
 
+        # resolve any config specific aspects of location dict
+        location_dict = descriptor.preprocess_location(location_dict, self.__pipeline_config)
+        
         # get the descriptor object for the location
         d = descriptor.get_from_location(descriptor.AppDescriptor.FRAMEWORK,
                                          self.__pipeline_config,
@@ -310,6 +313,9 @@ class Environment(object):
         if location_dict is None:
             raise TankError("The environment %s does not have a valid location "
                             "key for engine %s" % (self._env_path, engine_name))
+
+        # resolve any config specific aspects of location dict
+        location_dict = descriptor.preprocess_location(location_dict, self.__pipeline_config)
 
         # get the descriptor object for the location
         d = descriptor.get_from_location(descriptor.AppDescriptor.ENGINE,
@@ -327,6 +333,9 @@ class Environment(object):
         if location_dict is None:
             raise TankError("The environment %s does not have a valid location "
                             "key for app %s.%s" % (self._env_path, engine_name, app_name))
+
+        # resolve any config specific aspects of location dict
+        location_dict = descriptor.preprocess_location(location_dict, self.__pipeline_config)
 
         # get the version object for the location
         d = descriptor.get_from_location(descriptor.AppDescriptor.APP,
