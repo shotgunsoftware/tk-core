@@ -36,6 +36,21 @@ def run_project_setup(log, sg, sg_app_store, sg_app_store_script_user, setup_par
     finally:
         os.umask(old_umask)
 
+
+def synchronize_project(log, sg):
+
+    old_umask = os.umask(0)
+    try:
+        print "test"
+        # asd
+        #_set_up_project_scaffold(log, progress_cb, config_paths)
+        # asd
+        #_install_core(log, config_paths, core_path)
+        # asd
+        #_process_apps(log, config_path, progress_cb)
+    finally:
+        os.umask(old_umask)
+
 def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, setup_params):
     """
     Project setup, internal method.
@@ -91,85 +106,23 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, set
                     raise TankError("Cannot set up this project! Non-auto-path style pipeline "
                                     "configuration entries already exist in Shotgun.")
             
-    # first do disk structure setup, this is most likely to fail.
-    setup_params.report_progress_from_installer("Creating main folder structure...")
-    log.info("Installing configuration into '%s'..." % config_location_curr_os )
-    if not os.path.exists(config_location_curr_os):
-        # note that we have already validated that creation is possible
-        os.makedirs(config_location_curr_os, 0775)
+    # first do disk structure setup, this is most likely to fail.    
+    cfg_paths = {"win32":config_location_win, 
+                 "linux2": config_location_linux,
+                 "darwin": config_location_mac}
     
-    # create pipeline config base folder structure            
-    _make_folder(log, os.path.join(config_location_curr_os, "cache"), 0777)    
-    _make_folder(log, os.path.join(config_location_curr_os, "config"), 0775)
-    _make_folder(log, os.path.join(config_location_curr_os, "install"), 0775)
-    _make_folder(log, os.path.join(config_location_curr_os, "install", "core"), 0777)
-    _make_folder(log, os.path.join(config_location_curr_os, "install", "core", "python"), 0777)
-    _make_folder(log, os.path.join(config_location_curr_os, "install", "core.backup"), 0777, True)
-    _make_folder(log, os.path.join(config_location_curr_os, "install", "engines"), 0777, True)
-    _make_folder(log, os.path.join(config_location_curr_os, "install", "apps"), 0777, True)
-    _make_folder(log, os.path.join(config_location_curr_os, "install", "frameworks"), 0777, True)
-        
-    # copy the configuration into place
-    setup_params.report_progress_from_installer("Setting up template configuration...")
-    setup_params.create_configuration(os.path.join(config_location_curr_os, "config"))
+    core_paths = {"win32":setup_params.get_associated_core_path("win32"), 
+                 "linux2": setup_params.get_associated_core_path("linux2"),
+                 "darwin": setup_params.get_associated_core_path("darwin")}
 
-    # copy the tank binaries to the top of the config
-    setup_params.report_progress_from_installer("Copying binaries and API proxies...")
-    log.debug("Copying Toolkit binaries...")
-    core_api_root = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "..", ".."))
-    root_binaries_folder = os.path.join(core_api_root, "setup", "root_binaries")
-    for file_name in os.listdir(root_binaries_folder):
-        src_file = os.path.join(root_binaries_folder, file_name)
-        tgt_file = os.path.join(config_location_curr_os, file_name)
-        shutil.copy(src_file, tgt_file)
-        os.chmod(tgt_file, 0775)
+    _set_up_project_scaffold(log, 
+                             setup_params.report_progress_from_installer, 
+                             cfg_paths,
+                             setup_params.create_configuration)
     
-    # copy the python stubs
-    log.debug("Copying python stubs...")
-    tank_proxy = os.path.join(core_api_root, "setup", "tank_api_proxy")
-    _copy_folder(log, tank_proxy, os.path.join(config_location_curr_os, "install", "core", "python"))
-        
-    # specify the parent files in install/core/core_PLATFORM.cfg
-    log.debug("Creating core redirection config files...")
-    setup_params.report_progress_from_installer("Writing configuration files...")
-    
-    core_path = os.path.join(config_location_curr_os, "install", "core", "core_Darwin.cfg")
-    core_location = setup_params.get_associated_core_path("darwin")
-    fh = open(core_path, "wt")
-    fh.write(core_location if core_location else "undefined")
-    fh.close()
-    
-    core_path = os.path.join(config_location_curr_os, "install", "core", "core_Linux.cfg")
-    core_location = setup_params.get_associated_core_path("linux2")
-    fh = open(core_path, "wt")
-    fh.write(core_location if core_location else "undefined")
-    fh.close()
-
-    core_path = os.path.join(config_location_curr_os, "install", "core", "core_Windows.cfg")
-    core_location = setup_params.get_associated_core_path("win32")
-    fh = open(core_path, "wt")
-    fh.write(core_location if core_location else "undefined")
-    fh.close()
-    
-    # write a file location file for our new setup
-    sg_code_location = os.path.join(config_location_curr_os, "config", "core", "install_location.yml")
-    
-    # if we are basing our setup on an existing project setup, make sure we can write to the file.
-    if os.path.exists(sg_code_location):
-        os.chmod(sg_code_location, 0666)
-
-    fh = open(sg_code_location, "wt")
-    fh.write("# Shotgun Pipeline Toolkit configuration file\n")
-    fh.write("# This file was automatically created by setup_project\n")
-    fh.write("# This file reflects the paths in the primary pipeline\n")
-    fh.write("# configuration defined for this project.\n")
-    fh.write("\n")
-    fh.write("Windows: '%s'\n" % config_location_win)
-    fh.write("Darwin: '%s'\n" % config_location_mac)    
-    fh.write("Linux: '%s'\n" % config_location_linux)                    
-    fh.write("\n")
-    fh.write("# End of file.\n")
-    fh.close()
+    _reference_external_core(log, 
+                             config_location_curr_os, 
+                             core_paths)
         
     # update the roots.yml file in the config to match our settings
     # resuffle list of associated local storages to be a dict keyed by storage name
@@ -343,54 +296,10 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, set
     
     ##########################################################################################
     # install apps
-    
-    # We now have a fully functional tank setup! Time to start it up...
-    pc = pipelineconfig_factory.from_path(config_location_curr_os)
-    
-    # each entry in the config template contains instructions about which version of the app
-    # to use. First loop over all environments and gather all descriptors we should download,
-    # then go ahead and download and post-install them 
-    
-    log.info("Downloading and installing apps...")
-    
-    # pass 1 - populate list of all descriptors    
-    descriptors = []
-    for env_name in pc.get_environments():
-        
-        env_obj = pc.get_environment(env_name)
-        
-        for engine in env_obj.get_engines():
-            descriptors.append( env_obj.get_engine_descriptor(engine) )
-            
-            for app in env_obj.get_apps(engine):
-                descriptors.append( env_obj.get_app_descriptor(engine, app) )
-                
-        for framework in env_obj.get_frameworks():
-            descriptors.append( env_obj.get_framework_descriptor(framework) )
-                
-    # pass 2 - download all apps
-    num_descriptors = len(descriptors)
-    for idx, descriptor in enumerate(descriptors):
-        
-        # note that we push percentages here to the progress bar callback
-        # going from 0 to 100
-        progress = (int)((float)(idx)/(float)(num_descriptors)*100)
-        setup_params.report_progress_from_installer("Downloading apps...", progress)
-        
-        if not descriptor.exists_local():
-            log.info("Downloading %s to the local Toolkit install location..." % descriptor)            
-            descriptor.download_local()
-            
-        else:
-            log.info("Item %s is already locally installed." % descriptor)
 
-    # create required shotgun fields
-    setup_params.report_progress_from_installer("Running post install...")
-    for descriptor in descriptors:
-        descriptor.ensure_shotgun_fields_exist()
-        # run post install hook
-        descriptor.run_post_install()
-        
+    _process_bundles(log, 
+                     config_location_curr_os, 
+                     setup_params.report_progress_from_installer)
 
     ##########################################################################################
     # post processing of the install
@@ -430,6 +339,228 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, set
 
 
     
+
+
+
+
+def _set_up_project_scaffold(log, progress_cb, config_paths, config_cb):
+    """
+    Creates all the necessary files on disk for a project.
+    Copies the configuration into place.
+    Does not prepare the core API. For this, use the methods
+    _install_core() or _reference_external_core()
+    
+    :param log: python logger object
+    :param progress_cb: Callback to report high level status messages
+    :param config_paths: Path to configuration. Dictionary with keys
+        darwin, win32 and linux2. Entries in this dictionary can be None.
+    :param config_cb: Callback to run to request that the config is 
+        copied into place. The path to the config folder will be passed
+        as a parameter to this callback.
+    """
+
+    config_path = config_paths[sys.platform]
+
+    progress_cb("Creating main folder structure...")
+    log.info("Installing configuration into '%s'..." % config_path)
+    if not os.path.exists(config_path):
+        # note that we have already validated that creation is possible
+        os.makedirs(config_path, 0775)
+    
+    # create pipeline config base folder structure            
+    _make_folder(log, os.path.join(config_path, "cache"), 0777)    
+    _make_folder(log, os.path.join(config_path, "config"), 0775)
+    _make_folder(log, os.path.join(config_path, "install"), 0775)
+    _make_folder(log, os.path.join(config_path, "install", "core"), 0777)
+    _make_folder(log, os.path.join(config_path, "install", "core", "python"), 0777)
+    _make_folder(log, os.path.join(config_path, "install", "core.backup"), 0777, True)
+    _make_folder(log, os.path.join(config_path, "install", "engines"), 0777, True)
+    _make_folder(log, os.path.join(config_path, "install", "apps"), 0777, True)
+    _make_folder(log, os.path.join(config_path, "install", "frameworks"), 0777, True)
+        
+    # copy the configuration into place
+    progress_cb("Setting up template configuration...")
+    config_cb(os.path.join(config_path, "config"))
+
+    # copy the tank binaries to the top of the config
+    # grab these from the currently executing core API
+    progress_cb("Copying binaries and API proxies...")
+    log.debug("Copying Toolkit binaries...")
+    running_core_api_root = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "..", ".."))    
+    root_binaries_folder = os.path.join(running_core_api_root, "setup", "root_binaries")
+    for file_name in os.listdir(root_binaries_folder):
+        src_file = os.path.join(root_binaries_folder, file_name)
+        tgt_file = os.path.join(config_path, file_name)
+        shutil.copy(src_file, tgt_file)
+        os.chmod(tgt_file, 0775)
+    
+    # write a file location file for our new setup
+    sg_code_location = os.path.join(config_path, "config", "core", "install_location.yml")
+    
+    # if we are basing our setup on an existing project setup, make sure we can write to the file.
+    if os.path.exists(sg_code_location):
+        os.chmod(sg_code_location, 0666)
+
+    progress_cb("Writing configuration files...")
+    log.debug("Creating install_location file file...")
+
+    fh = open(sg_code_location, "wt")
+    fh.write("# Shotgun Pipeline Toolkit configuration file\n")
+    fh.write("# This file was automatically created by setup_project\n")
+    fh.write("# This file reflects the paths in the pipeline\n")
+    fh.write("# configuration defined for this project.\n")
+    fh.write("\n")
+    fh.write("Windows: '%s'\n" % config_paths["win32"])
+    fh.write("Darwin: '%s'\n" % config_paths["darwin"])    
+    fh.write("Linux: '%s'\n" % config_paths["linux2"])                    
+    fh.write("\n")
+    fh.write("# End of file.\n")
+    fh.close()
+
+    
+
+def _install_core(log, config_paths, core_path):
+    """
+    Install a core into the given configuration.
+
+    This will copy the core API from the given location into
+    the configuration, effectively mimicing a localized setup.
+    
+    :param log: python logger object
+    :param config_paths: Path to configuration. Dictionary with keys
+        darwin, win32 and linux2. Entries in this dictionary can be None.
+    :param core_path: Path to core to copy
+    """
+    config_path = config_paths[sys.platform]
+    
+    log.debug("Copying core into place")
+    _copy_folder(log, core_path, os.path.join(config_path, "install", "core"))
+    
+    # specify the parent files in install/core/core_PLATFORM.cfg
+    log.debug("Creating core redirection config files...")
+    
+    core_path = os.path.join(config_path, "install", "core", "core_Darwin.cfg")
+    core_location = config_paths["darwin"]
+    fh = open(core_path, "wt")
+    fh.write(core_location if core_location else "undefined")
+    fh.close()
+    
+    core_path = os.path.join(config_path, "install", "core", "core_Linux.cfg")
+    core_location = config_paths["linux2"]
+    fh = open(core_path, "wt")
+    fh.write(core_location if core_location else "undefined")
+    fh.close()
+
+    core_path = os.path.join(config_path, "install", "core", "core_Windows.cfg")
+    core_location = config_paths["win32"]
+    fh = open(core_path, "wt")
+    fh.write(core_location if core_location else "undefined")
+    fh.close()
+    
+
+def _reference_external_core(log, config_path, core_paths):
+    """
+    Reference a core  a project setup.
+    
+    :param log: python logger object
+    :param config_path: Path to config to operate on
+    :param core_paths: Path to core API to reference. Dictionary with keys
+        darwin, win32 and linux2. Entries in this dictionary can be None.
+    """
+    
+    # copy the python API proxy stub into location
+    # grab these from the currently executing core API
+    log.debug("Copying python stubs...")
+    running_core_api_root = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "..", ".."))
+    tank_proxy = os.path.join(running_core_api_root, "setup", "tank_api_proxy")
+    _copy_folder(log, tank_proxy, os.path.join(config_path, "install", "core", "python"))
+        
+    # specify the parent files in install/core/core_PLATFORM.cfg
+    log.debug("Creating core redirection config files...")
+    
+    core_path = os.path.join(config_path, "install", "core", "core_Darwin.cfg")
+    core_location = core_paths["darwin"]
+    fh = open(core_path, "wt")
+    fh.write(core_location if core_location else "undefined")
+    fh.close()
+    
+    core_path = os.path.join(config_path, "install", "core", "core_Linux.cfg")
+    core_location = core_paths["linux2"]
+    fh = open(core_path, "wt")
+    fh.write(core_location if core_location else "undefined")
+    fh.close()
+
+    core_path = os.path.join(config_path, "install", "core", "core_Windows.cfg")
+    core_location = core_paths["win32"]
+    fh = open(core_path, "wt")
+    fh.write(core_location if core_location else "undefined")
+    fh.close()
+
+
+def _process_bundles(log, config_path, progress_cb):
+    """
+    Read bundles from the config and make sure these are all downloaded 
+    locally. similar to tank cache_apps
+    
+    @TODO - merge with code from cache_apps
+    
+    :param log: python logger object
+    :param config_path: Path to configuration
+    :param progress_cb: Progress reporting callback
+    """
+    # We now have a fully functional tank setup! Time to start it up...
+    pc = pipelineconfig_factory.from_path(config_path)
+    
+    # each entry in the config template contains instructions about which version of the app
+    # to use. First loop over all environments and gather all descriptors we should download,
+    # then go ahead and download and post-install them 
+    
+    log.info("Downloading and installing apps...")
+    
+    # pass 1 - populate list of all descriptors    
+    descriptors = []
+    for env_name in pc.get_environments():
+        
+        env_obj = pc.get_environment(env_name)
+        
+        for engine in env_obj.get_engines():
+            descriptors.append(env_obj.get_engine_descriptor(engine))
+            
+            for app in env_obj.get_apps(engine):
+                descriptors.append(env_obj.get_app_descriptor(engine, app))
+                
+        for framework in env_obj.get_frameworks():
+            descriptors.append(env_obj.get_framework_descriptor(framework))
+                
+    # pass 2 - download all apps
+    num_descriptors = len(descriptors)
+    for idx, descriptor in enumerate(descriptors):
+        
+        # note that we push percentages here to the progress bar callback
+        # going from 0 to 100
+        progress = (int)((float)(idx)/(float)(num_descriptors)*100)
+        progress_cb("Downloading apps...", progress)
+        
+        if not descriptor.exists_local():
+            log.info("Downloading %s to the local Toolkit install location..." % descriptor)            
+            descriptor.download_local()
+            
+        else:
+            log.info("Item %s is already locally installed." % descriptor)
+
+    # create required shotgun fields
+    progress_cb("Running post install processes...")
+    for descriptor in descriptors:
+        descriptor.ensure_shotgun_fields_exist()
+        # run post install hook
+        descriptor.run_post_install()
+    
+
+
+
+
+
+
     
 
 ########################################################################################
