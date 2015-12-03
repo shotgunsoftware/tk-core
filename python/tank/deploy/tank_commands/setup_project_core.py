@@ -16,6 +16,7 @@ import shutil
 from ...platform import constants
 from ...errors import TankError
 from ... import pipelineconfig_factory
+from ...api import sgtk_from_path
 
 from tank_vendor import yaml
     
@@ -567,7 +568,9 @@ def _process_bundles(log, config_path, progress_cb):
     :param progress_cb: Progress reporting callback
     """
     # We now have a fully functional tank setup! Time to start it up...
-    pc = pipelineconfig_factory.from_path(config_path)
+    tk = sgtk_from_path(config_path)
+    log.debug("Instantiated tk instance: %s" % tk)
+    pc = tk.pipeline_configuration
     
     # each entry in the config template contains instructions about which version of the app
     # to use. First loop over all environments and gather all descriptors we should download,
@@ -611,7 +614,7 @@ def _process_bundles(log, config_path, progress_cb):
     for descriptor in descriptors:
         descriptor.ensure_shotgun_fields_exist()
         # run post install hook
-        descriptor.run_post_install()
+        descriptor.run_post_install(tk)
     
 
 ########################################################################################

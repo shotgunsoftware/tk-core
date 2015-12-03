@@ -413,11 +413,13 @@ class AppDescriptor(object):
                     sg_field_name = field["system_name"]
                     self.__ensure_sg_field_exists(sg, sg_entity_type, sg_field_name, sg_data_type)
 
-    def run_post_install(self):
+    def run_post_install(self, tk):
         """
         If a post install hook exists in a descriptor, execute it. In the
         hooks directory for an app or engine, if a 'post_install.py' hook
         exists, the hook will be executed upon each installation.
+        
+        :param tk: Tk API instance associated with this item
         """
         
         post_install_hook_path = os.path.join(self.get_path(), "hooks",

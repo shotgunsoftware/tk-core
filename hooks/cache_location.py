@@ -105,6 +105,7 @@ class CacheLocation(HookBaseClass):
         """
         sg_cache_root = self._get_shotgun_cache_root()
         app_cache_root = os.path.join(sg_cache_root, "tk_app_cache")
+        self._ensure_folder_exists(app_cache_root)
         return app_cache_root
         
     def managed_config(self, project_id, pipeline_configuration_id):

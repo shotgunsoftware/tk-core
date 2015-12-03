@@ -210,7 +210,7 @@ class SwitchAppAction(Action):
         new_descriptor.ensure_shotgun_fields_exist()
     
         # run post install hook
-        new_descriptor.run_post_install()
+        new_descriptor.run_post_install(self.tk)
     
         # ensure that all required frameworks have been installed
         # find the file where our item is being installed

@@ -271,7 +271,7 @@ class InstallAppAction(Action):
         app_descriptor.ensure_shotgun_fields_exist()
     
         # run post install hook
-        app_descriptor.run_post_install()
+        app_descriptor.run_post_install(self.tk)
     
         # find the name of the engine
         engine_system_name = env.get_engine_descriptor(engine_instance_name).get_system_name()
@@ -531,7 +531,7 @@ class InstallEngineAction(Action):
         engine_descriptor.ensure_shotgun_fields_exist()
     
         # run post install hook
-        engine_descriptor.run_post_install()
+        engine_descriptor.run_post_install(self.tk)
     
         # now get data for all new settings values in the config
         params = console_utils.get_configuration(log, self.tk, engine_descriptor, None, suppress_prompts, None)
