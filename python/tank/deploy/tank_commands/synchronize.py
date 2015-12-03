@@ -24,39 +24,10 @@ from ... import pipelineconfig_factory
 
 from tank_vendor import yaml
 
-from .setup_project_core import run_project_setup
+from .setup_project_core import synchronize_project
 from .setup_project_params import ProjectSetupParameters
 
 SG_LOCAL_STORAGE_OS_MAP = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
-
-
-
-
-
-
-def _get_cache_location():
-    """
-    Returns an OS specific cache location.
-
-    :returns: Path to the OS specific cache folder.
-    """
-    if sys.platform == "darwin":
-        root = os.path.expanduser("~/Library/Caches/Shotgun")
-    elif sys.platform == "win32":
-        root = os.path.join(os.environ["APPDATA"], "Shotgun")
-    elif sys.platform.startswith("linux"):
-        root = os.path.expanduser("~/.shotgun")
-    return root
-
-
-def _get_app_cache_location():
-    """
-    Returns an OS specific cache location.
-
-    :returns: Path to the OS specific cache folder.
-    """
-    return os.path.join(_get_cache_location(), "app_cache")
-
 
 
 
@@ -74,7 +45,7 @@ class SynchronizeConfigurationAction(Action):
         """
         Action.__init__(self, 
                         "synchronize", 
-                        Action.GLOBAL, 
+                        Action.TK_INSTANCE, 
                         "Synchronizes a pipeline configuration.", 
                         "Configuration")
         
@@ -130,26 +101,9 @@ class SynchronizeConfigurationAction(Action):
         self._synchronize(log, project_id, config_name)
     
     
-    def _shotgun_connect(self, log):
-        """
+    def _synchronize(self, log, project_id, pipeline_config_name):
         
-        TODO: This was duplicated from setup_project.
-        
-        Connects to the App store and to the associated shotgun site.
-        Logging in to the app store is optional and in the case this fails,
-        the app store parameters will return None. 
-        
-        The method returns a tuple with three parameters:
-        
-        - sg is an API handle associated with the associated site
-        - sg_app_store is an API handle associated with the app store.
-          Can be None if connection fails.
-        - sg_app_store_script_user is a sg dict (with name, id and type) 
-          representing the script user used to connect to the app store.
-          Can be None if connection fails.
-        
-        :returns: (sg, sg_app_store, sg_app_store_script_user) - see above.
-        """
+        log.debug("Running synchronize for project id %d and pipeline config '%s'" % (project_id, pipeline_config_name))
         
         # now connect to shotgun
         try:
@@ -159,33 +113,9 @@ class SynchronizeConfigurationAction(Action):
             log.debug("Connected to target Shotgun server! (v%s)" % sg_version)
         except Exception, e:
             raise TankError("Could not connect to Shotgun server: %s" % e)
-    
-        try:
-            log.info("Connecting to the App Store...")
-            (sg_app_store, script_user) = shotgun.create_sg_app_store_connection()
-            sg_version = ".".join([ str(x) for x in sg_app_store.server_info["version"]])
-            log.debug("Connected to App Store! (v%s)" % sg_version)
-        except Exception, e:
-            log.warning("Could not establish a connection to the app store! You can "
-                        "still create new projects, but you have to base them on "
-                        "configurations that reside on your local disk.")
-            log.debug("The following error was raised: %s" % e)
-            sg_app_store = None
-            script_user = None
-        
-        return (sg, sg_app_store, script_user)
-    
-    
-    
-    def _synchronize(self, log, project_id, pipeline_config_name):
-        
-        log.debug("Running synchronize for project id %d and pipeline config '%s'" % (project_id, pipeline_config_name))
-        
-        # connect to shotgun
-        # TODO: lazily connect to app store in the future.
-        (sg, sg_app_store, sg_app_store_script_user) = self._shotgun_connect(log)
         
         
+        # 
         pc = sg.find_one("PipelineConfiguration", 
                                    [["code", "is", pipeline_config_name], 
                                     ["project", "is", {"type": "Project", "id": project_id}]],
@@ -244,45 +174,32 @@ class SynchronizeConfigurationAction(Action):
         fh.write(bundle_content)
         fh.close()
         
-#         zip_unpack_tmp = os.path.join(tempfile.gettempdir(), uuid.uuid4().hex)
-#         log.debug("Unzipping configuration and inspecting it to '%s'" % zip_unpack_tmp)
-#         
-#         unzip_file(zip_path, zip_unpack_tmp)
-#         template_items = os.listdir(zip_unpack_tmp)
-#         for item in ["core", "env", "hooks"]:
-#             if item not in template_items:
-#                 raise TankError("Config zip '%s' is missing a %s folder!" % (zip_path, item))
-#         log.debug("Configuration looks valid!")
+        zip_unpack_tmp = os.path.join(tempfile.gettempdir(), uuid.uuid4().hex)
+        log.debug("Unzipping configuration and inspecting it to '%s'" % zip_unpack_tmp)
+         
+        unzip_file(zip_path, zip_unpack_tmp)
+        template_items = os.listdir(zip_unpack_tmp)
+        for item in ["core", "env", "hooks"]:
+            if item not in template_items:
+                raise TankError("Config zip '%s' is missing a %s folder!" % (zip_path, item))
+        log.debug("Configuration looks valid!")
 
-        # create a parameters class
-        params = ProjectSetupParameters(log, sg, sg_app_store, sg_app_store_script_user)
+        def progress_cb(chapter, progress):
+            log.info("PROGRESS [%d]: %s" % (chapter, progress))
+
+        # HACK!
+        path_to_core = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "..", ".."))
+
+        config_root = self.tk.execute_core_hook_method(constants.CACHE_LOCATION_HOOK_NAME,
+                                                       "managed_config",
+                                                       project_id=project_id,
+                                                       pipeline_configuration_id=pc["id"])
         
-        # tell it which core to pick up. 
-        
-        
-        
-        
-        curr_core_path = pipelineconfig_utils.get_path_to_current_core()
-        core_roots = pipelineconfig_utils.resolve_all_os_paths_to_core(curr_core_path)
-        params.set_associated_core_path(core_roots["linux2"], core_roots["win32"], core_roots["darwin"])
-        
-        # specify which config to use
-        params.set_config_uri(zip_path)
-                
-        # set the project
-        params.set_project_id(project_id)
-        params.set_project_disk_name(computed_params["project_folder_name"])
-        
-        # set the config path
-        params.set_configuration_location(computed_params["config_path_linux"], 
-                                          computed_params["config_path_win"], 
-                                          computed_params["config_path_mac"])        
-        
-        # run overall validation of the project setup
-        params.pre_setup_validation()
-        
-        # and finally carry out the setup
-        run_project_setup(log, sg, sg_app_store, sg_app_store_script_user, params)
+        log.debug("Will synchronize into '%s'" % config_root)
+
+        # figure out where our 
+        synchronize_project(log, progress_cb, sg, zip_unpack_tmp, config_root, path_to_core)
+
 
 
 

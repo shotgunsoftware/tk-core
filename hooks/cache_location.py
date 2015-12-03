@@ -92,13 +92,13 @@ class CacheLocation(HookBaseClass):
         are stored.
         
         Overriding this method in a hook allows a user to change the location on disk where
-        the path cache file is located. The path cache file holds a temporary cache representation
-        of the FilesystemLocation entities stored in Shotgun for a project. Typically, this cache
-        is stored on a local machine, separate for each user.  
+        managed configs are stored for a site. Managed configs are created by
+        the tank synchronize command.  
         
         :param project_id: The shotgun id of the project to store caches for
         :param pipeline_configuration_id: The shotgun pipeline config id to store caches for
-        :returns: The path to a path cache file. This file should exist when this method returns.
+        :returns: The path to where a managed config location on disk should be
+                  created. This folder should exist on disk.
         """
         cache_root = self._get_cache_root(project_id, pipeline_configuration_id)
         cfg_root = os.path.join(cache_root, "cfg")
