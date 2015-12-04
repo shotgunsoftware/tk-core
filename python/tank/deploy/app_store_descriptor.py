@@ -112,6 +112,11 @@ class TankAppStoreDescriptor(AppDescriptor):
             version_entity = constants.TANK_ENGINE_VERSION_ENTITY
             link_field = "sg_tank_engine"
 
+        elif self._type == AppDescriptor.CORE:
+            bundle_entity = None
+            version_entity = constants.TANK_CORE_VERSION_ENTITY
+            link_field = None
+
         else:
             raise TankError("Illegal type value!")
 
@@ -329,6 +334,16 @@ class TankAppStoreDescriptor(AppDescriptor):
             data = {}
             data["description"] = "%s: Engine %s %s was downloaded" % (local_sg.base_url, self._name, self._version)
             data["event_type"] = "TankAppStore_Engine_Download"
+            data["entity"] = version
+            data["user"] = script_user
+            data["project"] = constants.TANK_APP_STORE_DUMMY_PROJECT
+            data["attribute_name"] = constants.TANK_CODE_PAYLOAD_FIELD
+            sg.create("EventLogEntry", data)
+
+        elif self._type == AppDescriptor.CORE:
+            data = {}
+            data["description"] = "%s: Core %s %s was downloaded" % (local_sg.base_url, self._name, self._version)
+            data["event_type"] = "TankAppStore_Core_Download"
             data["entity"] = version
             data["user"] = script_user
             data["project"] = constants.TANK_APP_STORE_DUMMY_PROJECT

@@ -237,3 +237,9 @@ SITE_INIT_CACHE_FILE_NAME = "toolkit_init.cache"
 
 # the location of the toolkit app store
 SGTK_APP_STORE = "https://tank.shotgunstudio.com"
+
+# the generation of the logic that handles cloud based deploy.
+# if major changes happen to the way cloud based configs are handled
+# by the system, for example requiring any existing deployed cloud
+# configs to be re-deployed, this version number should be incremented.
+CLOUD_CONFIG_DEPLOY_LOGIC_GENERATION = 1

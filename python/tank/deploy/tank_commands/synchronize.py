@@ -8,19 +8,15 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import sys
 import os
 import tempfile
-import stat
 import uuid
 from tank_vendor import yaml
 from .action_base import Action
 from ..zipfilehelper import unzip_file
 from ...errors import TankError
 from ...platform import constants
-from ..descriptor import descriptor_factory, AppDescriptor
-
-from .setup_project_core import synchronize_project, move_folder, copy_folder
+from .setup_project_core import synchronize_project
 
 class SynchronizeConfigurationAction(Action):
     """
@@ -203,25 +199,29 @@ class SynchronizeConfigurationAction(Action):
 
         if status != self.LOCAL_CFG_MISSING:
             # a config already exists. Move it into a backup location, so that
-            # we can rollback to previous config in case something goes wrong. 
-        
+            # we can rollback to previous config in case something goes wrong.
             config_backup_path = self.tk.execute_core_hook_method(constants.CACHE_LOCATION_HOOK_NAME,
                                                                   "managed_config_backup",
                                                                   project_id=project_id,
                                                                   pipeline_configuration_id=pc["id"])
             # move it out of the way
             log.debug("Backing up config %s -> %s" % (config_root, config_backup_path))
-            os.rename(config_root, config_backup_path)
+            
+            # the config_backup_path has already been created by the hook, so we 
+            # are moving the config folder *into* the backup folder to make
+            # the system as permissions friendly as possible and give maximum
+            # flexibility to the hook logic to do whatever it needs to do.
+            backup_target_path = os.path.join(config_backup_path, os.path.basename(config_root))
+            os.rename(config_root, backup_target_path)
         
             # make sure the folder is there as it was just renamed 
             config_root = self.tk.execute_core_hook_method(constants.CACHE_LOCATION_HOOK_NAME,
                                                            "managed_config",
                                                            project_id=project_id,
                                                            pipeline_configuration_id=pc["id"])
-            
         
         else:
-            config_backup_path = None
+            backup_target_path = None
         
         try:
             # now begin deployment
@@ -231,7 +231,8 @@ class SynchronizeConfigurationAction(Action):
                 log.info("PROGRESS [%s]: %s" % (chapter, progress))
     
             # check core
-            if os.path.exists(zip_unpack_tmp, "core", "core_api.yml"):
+            core_location_path = os.path.join(zip_unpack_tmp, "core", "core_api.yml") 
+            if os.path.exists(core_location_path):
                 # the core_api.yml contains info about the core config:
                 #
                 # location:
@@ -239,21 +240,33 @@ class SynchronizeConfigurationAction(Action):
                 #    type: app_store
                 #    version: v0.16.34
                 
-                location = xxx
+                log.debug("Detected core location file '%s'" % core_location_path)
                 
-                descriptor = descriptor_factory(AppDescriptor.CORE,
-                                                self.tk.pipeline_configuration.get_bundle_root(),
-                                                location)
+                # read the file first
+                fh = open(core_location_path, "rt")
+                try:
+                    data = yaml.load(fh)
+                    location_dict = data["location"]
+                except Exception, e:
+                    raise TankError("Cannot read invalid core "
+                                    "location file '%s': %s" % (core_location_path, e))
+                finally:
+                    fh.close()
+
+                descriptor = self.tk.pipeline_configuration.get_core_descriptor(location_dict)
+                log.debug("This config requires core %s" % descriptor)
+                
+                # cache core locally if not already cached
+                log.debug("Making sure core exists locally...")
                 descriptor.download_local()
                 path_to_core = descriptor.get_path()
-                
-            
             
             else:
                 # use currently running core API version as the source
                 # this core API will be copied across into the config
-                path_to_core = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "..", ".."))
-    
+                path_to_core = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
+                
+            log.debug("Begin project sync!")
             synchronize_project(log, 
                                 progress_cb, 
                                 self.tk.shotgun, 
@@ -267,7 +280,7 @@ class SynchronizeConfigurationAction(Action):
 
         except Exception, e:
             log.error("An error occurred during upgrade: %s" % e)
-            if config_backup_path:
+            if backup_target_path:
                 log.info("Your previous config will be rolled back")
                 
                 failed_config_path = self.tk.execute_core_hook_method(constants.CACHE_LOCATION_HOOK_NAME,
@@ -276,10 +289,11 @@ class SynchronizeConfigurationAction(Action):
                                                                       pipeline_configuration_id=pc["id"])
                 
                 log.debug("Backing up failed config %s -> %s" % (config_root, failed_config_path))
-                os.rename(config_root, failed_config_path)
+                failed_backup_target_path = os.path.join(config_backup_path, os.path.basename(config_root))
+                os.rename(config_root, failed_backup_target_path)
                 
                 log.info("Restoring previous backup %s -> %s" % (config_backup_path, config_root))
-                os.rename(config_backup_path, config_root)
+                os.rename(backup_target_path, config_root)
         
         
 
@@ -298,7 +312,14 @@ class SynchronizeConfigurationAction(Action):
         fh.write("# Below follows details for the sg attachment that is\n")
         fh.write("# reflected within this local configuration.\n")
         fh.write("\n")
-        yaml.safe_dump(sg_data, fh)
+        
+        metadata = {}
+        # bake in which version of the deploy logic was used to push this 
+        # config
+        metadata["deply_generation"] = constants.CLOUD_CONFIG_DEPLOY_LOGIC_GENERATION
+        # and include details about where the config came from
+        metadata["sg_config_attachment"] = sg_data
+        yaml.safe_dump(metadata, fh)
         fh.write("\n")
         fh.close()
         
@@ -361,16 +382,24 @@ class SynchronizeConfigurationAction(Action):
         
         fh = open(config_info_file, "rt")
         try:
+            
             data = yaml.load(fh)
-            local_attachment_id = data.get("id")
+            deploy_generation = data["deply_generation"]
+            local_attachment_id = data["sg_config_attachment"]["id"]
         except Exception:
             # yaml info not valid.
             return self.LOCAL_CFG_INVALID
         finally:
             fh.close()
         
+        if deploy_generation != constants.CLOUD_CONFIG_DEPLOY_LOGIC_GENERATION:
+            # different format or logic of the deploy itself. 
+            # trigger a redeploy
+            return self.LOCAL_CFG_OLD
+        
         if local_attachment_id < sg_data["id"]:
             return self.LOCAL_CFG_OLD
         
         else:
             return self.LOCAL_CFG_UP_TO_DATE
+ 
