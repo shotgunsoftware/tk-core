@@ -490,7 +490,19 @@ class PipelineConfiguration(object):
         
         return core_api_root
 
-    def get_bundles_location(self):
+    def get_core_python_location(self):
+        """
+        Returns the python root for this install.
+        
+        :returns: path string
+        """
+        return os.path.join(self.get_install_location(), "install", "core", "python")
+
+
+    ########################################################################################
+    # accessing cached code
+
+    def _get_bundles_location(self):
         """
         Returns the location where all apps/frameworks/engines are stored in subfolders.
         
@@ -513,13 +525,6 @@ class PipelineConfiguration(object):
 
         return self._bundles_location
 
-    def get_core_python_location(self):
-        """
-        Returns the python root for this install.
-        
-        :returns: path string
-        """
-        return os.path.join(self.get_install_location(), "install", "core", "python")
 
     def get_app_descriptor(self, location):
         """
@@ -532,7 +537,7 @@ class PipelineConfiguration(object):
         # resolve any config specific aspects of location dict
         pp_location = descriptor.preprocess_location(location, self)
         return descriptor.descriptor_factory(descriptor.AppDescriptor.APP, 
-                                             self.get_bundles_location(), 
+                                             self._get_bundles_location(), 
                                              pp_location)
         
     def get_engine_descriptor(self, location):
@@ -546,7 +551,7 @@ class PipelineConfiguration(object):
         # resolve any config specific aspects of location dict
         pp_location = descriptor.preprocess_location(location, self)
         return descriptor.descriptor_factory(descriptor.AppDescriptor.ENGINE, 
-                                             self.get_bundles_location(), 
+                                             self._get_bundles_location(), 
                                              pp_location)
         
     def get_framework_descriptor(self, location):
@@ -560,7 +565,27 @@ class PipelineConfiguration(object):
         # resolve any config specific aspects of location dict
         pp_location = descriptor.preprocess_location(location, self)
         return descriptor.descriptor_factory(descriptor.AppDescriptor.FRAMEWORK, 
-                                             self.get_bundles_location(), 
+                                             self._get_bundles_location(), 
+                                             pp_location)
+
+    def get_core_descriptor(self, location):
+        """
+        Convenience method that returns a descriptor for core
+        that is associated with this pipeline configuration.
+        
+        Note! While Engines, Apps and Frameworks descriptors point
+        at code that is typically used at runtime, a core descriptor
+        is typically not used at runtime but instead at deploy time, 
+        to cache a series of cores locally in the app cache and then
+        choose one to deploy into a configuration.
+        
+        :param location: Location dictionary describing the core source location
+        :returns:        Descriptor object
+        """
+        # resolve any config specific aspects of location dict
+        pp_location = descriptor.preprocess_location(location, self)
+        return descriptor.descriptor_factory(descriptor.AppDescriptor.CORE, 
+                                             self._get_bundles_location(), 
                                              pp_location)
 
     ########################################################################################
