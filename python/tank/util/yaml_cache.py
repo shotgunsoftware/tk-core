@@ -125,14 +125,15 @@ class YamlCache(object):
         self._cache = cache_dict or dict()
         self._lock = threading.Lock()
             
-    def get(self, path):
+    def get(self, path, deepcopy_data=True):
         """
         Retrieve the yaml data for the specified path.  If it's not already
         in the cache of the cached version is out of date then this will load
         the Yaml file from disk.
         
-        :param path:    The path of the yaml file to load.
-        :returns:       The raw yaml data loaded from the file.
+        :param path:            The path of the yaml file to load.
+        :param deepcopy_data:   Return deepcopy of data. Default is True.
+        :returns:               The raw yaml data loaded from the file.
         """
         # Adding a new CacheItem to the cache will cause the file mtime
         # and size on disk to be checked against existing cache data,
@@ -142,9 +143,12 @@ class YamlCache(object):
         # the existing cached data.
         item = self._add(CacheItem(path))
 
-        # Always return a deep copy of the cached data to ensure that 
+        # If asked to, return a deep copy of the cached data to ensure that 
         # the cached data is not updated accidentally!
-        return copy.deepcopy(item.data)
+        if deepcopy_data:
+            return copy.deepcopy(item.data)
+        else:
+            return item.data
 
     def get_cached_items(self):
         return self._cache.values()

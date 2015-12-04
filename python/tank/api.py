@@ -16,11 +16,9 @@ import os
 import glob
 import threading
 
-from tank_vendor import yaml
-
 from . import folder
 from . import context
-from .util import shotgun
+from .util import shotgun, yaml_cache
 from .errors import TankError
 from .path_cache import PathCache
 from .template import read_templates
@@ -202,15 +200,11 @@ class Tank(object):
         # read this from info.yml
         info_yml_path = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "info.yml"))
         try:
-            info_fh = open(info_yml_path, "r")
-            try:
-                data = yaml.load(info_fh)
-            finally:
-                info_fh.close()
+            yaml_cache.g_yaml_cache.get(info_yml_path, deepcopy_data=False)
             data = str(data.get("documentation_url"))
             if data == "":
                 data = None
-        except:
+        except Exception:
             data = None
 
         return data

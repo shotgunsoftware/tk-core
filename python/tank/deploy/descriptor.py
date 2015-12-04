@@ -19,7 +19,7 @@ import sys
 from tank_vendor import yaml
 
 from .. import hook
-from ..util import shotgun
+from ..util import shotgun, yaml_cache
 from ..errors import TankError, TankFileDoesNotExistError
 from ..platform import constants
 
@@ -157,16 +157,12 @@ class AppDescriptor(object):
             file_path = os.path.join(bundle_root, constants.BUNDLE_METADATA_FILE)
 
             try:
-                file_data = open(file_path)
-                try:
-                    metadata = yaml.load(file_data)
-                finally:
-                    file_data.close()
-            except IOError, exp:
-                raise TankFileDoesNotExistError("Toolkit metadata file '%s' missing." % file_path)
+                metadata = yaml_cache.g_yaml_cache.get(file_path, deepcopy_data=False)
+            except TankFileDoesNotExistError:
+                raise
             except Exception, exp:
                 raise TankError("Cannot load metadata file '%s'. Error: %s" % (file_path, exp))
-        
+
             # cache it
             self.__manifest_data = metadata
         return self.__manifest_data

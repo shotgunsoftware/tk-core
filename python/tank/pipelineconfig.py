@@ -19,7 +19,7 @@ import cPickle
 
 from tank_vendor import yaml
 
-from .errors import TankError
+from .errors import TankError, TankUnreadableFileError
 from .deploy import util
 from .platform import constants
 from .platform.environment import Environment, WritableEnvironment
@@ -694,21 +694,13 @@ class PipelineConfiguration(object):
             "core",
             constants.CONTENT_TEMPLATES_FILE,
         )
+
         try:
-            config_file = open(templates_file, "r")
-            try:
-                data = yaml.load(config_file) or {}
-            except Exception:
-                # File wasn't readable.
-                data = dict()
-            finally:
-                config_file.close()
-        except IOError:
-            # File didn't exist.
+            data = yaml_cache.g_yaml_cache.get(templates_file, deepcopy_data=False)
+            data = template_includes.process_includes(templates_file, data)
+        except TankUnreadableFileError:
             data = dict()
 
-        # and process include files
-        data = template_includes.process_includes(templates_file, data)
         return data
 
 

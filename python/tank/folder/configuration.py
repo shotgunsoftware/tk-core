@@ -18,10 +18,9 @@ import fnmatch
 
 from .folder_types import Static, ListField, Entity, Project, UserWorkspace, ShotgunStep, ShotgunTask
 
-from ..errors import TankError
+from ..errors import TankError, TankUnreadableFileError
 from ..platform import constants
-
-from tank_vendor import yaml
+from ..util import yaml_cache
 
 
 def read_ignore_files(schema_config_path):
@@ -163,11 +162,7 @@ class FolderConfiguration(object):
             full_path = os.path.join(parent_path, file_name)
 
             try:
-                fh = open(full_path)
-                try:
-                    metadata = yaml.load(fh)
-                finally:
-                    fh.close()
+                metadata = yaml_cache.g_yaml_cache.get(full_path, deepcopy_data=False)
             except Exception, error:
                 raise TankError("Cannot load config file '%s'. Error: %s" % (full_path, error))
 
@@ -195,16 +190,13 @@ class FolderConfiguration(object):
         metadata = None
         # check if there is a yml file with the same name
         yml_file = "%s.yml" % full_path
-        if os.path.exists(yml_file):
-            # try to parse it
-            try:
-                open_file = open(yml_file)
-                try:
-                    metadata = yaml.load(open_file)
-                finally:
-                    open_file.close()
-            except Exception, error:
-                raise TankError("Cannot load config file '%s'. Error: %s" % (yml_file, error))
+        try:
+            metadata = yaml_cache.g_yaml_cache.get(yml_file, deepcopy_data=False)
+        except TankUnreadableFileError:
+            pass
+        except Exception, error:
+            raise TankError("Cannot load config file '%s'. Error: %s" % (yml_file, error))
+
         return metadata
 
     ##########################################################################################
