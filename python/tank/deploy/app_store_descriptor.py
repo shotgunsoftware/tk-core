@@ -124,21 +124,40 @@ class TankAppStoreDescriptor(AppDescriptor):
         # connect to the app store
         (sg, script_user) = shotgun.create_sg_app_store_connection()
 
-        # first find the bundle level entity
-        bundle = sg.find_one(bundle_entity, [["sg_system_name", "is", self._name]], ["sg_status_list", "sg_deprecation_message"])
-        if bundle is None:
-            raise TankError("The App store does not contain an item named '%s'!" % self._name)
-
-        # now get the version
-        version = sg.find_one(version_entity,
-                              [[link_field, "is", bundle], ["code", "is", self._version]],
-                              ["description", 
-                               "sg_detailed_release_notes", 
-                               "sg_documentation",
-                               constants.TANK_CODE_PAYLOAD_FIELD])
-        if version is None:
-            raise TankError("The App store does not have a version "
-                            "'%s' of item '%s'!" % (self._version, self._name))
+        if self._type == AppDescriptor.CORE:
+            # special handling of core since it doesn't have a high-level
+            # 'bundle' entity
+            
+            bundle = None
+            
+            version = sg.find_one(constants.TANK_CORE_VERSION_ENTITY,
+                                  [["code", "is", self._version]],
+                                  ["description", 
+                                   "sg_detailed_release_notes", 
+                                   "sg_documentation",
+                                   constants.TANK_CODE_PAYLOAD_FIELD])
+            if version is None:
+                raise TankError("The App store does not have a version "
+                                "'%s' of Core!" % self._version)
+            
+            
+        else:
+        
+            # first find the bundle level entity
+            bundle = sg.find_one(bundle_entity, [["sg_system_name", "is", self._name]], ["sg_status_list", "sg_deprecation_message"])
+            if bundle is None:
+                raise TankError("The App store does not contain an item named '%s'!" % self._name)
+    
+            # now get the version
+            version = sg.find_one(version_entity,
+                                  [[link_field, "is", bundle], ["code", "is", self._version]],
+                                  ["description", 
+                                   "sg_detailed_release_notes", 
+                                   "sg_documentation",
+                                   constants.TANK_CODE_PAYLOAD_FIELD])
+            if version is None:
+                raise TankError("The App store does not have a version "
+                                "'%s' of item '%s'!" % (self._version, self._name))
 
         return {"bundle": bundle, "version": version}
 
@@ -345,42 +364,53 @@ class TankAppStoreDescriptor(AppDescriptor):
                              ["sg_status_list", "is_not", "bad" ]]
         
         # set up some lookup tables so we look in the right table in sg
-        main_entity_map = { AppDescriptor.APP: constants.TANK_APP_ENTITY,
+        main_entity_map = { AppDescriptor.APP:       constants.TANK_APP_ENTITY,
                             AppDescriptor.FRAMEWORK: constants.TANK_FRAMEWORK_ENTITY,
-                            AppDescriptor.ENGINE: constants.TANK_ENGINE_ENTITY }
+                            AppDescriptor.ENGINE:    constants.TANK_ENGINE_ENTITY}
 
-        version_entity_map = { AppDescriptor.APP: constants.TANK_APP_VERSION_ENTITY,
+        version_entity_map = { AppDescriptor.APP:       constants.TANK_APP_VERSION_ENTITY,
                                AppDescriptor.FRAMEWORK: constants.TANK_FRAMEWORK_VERSION_ENTITY,
-                               AppDescriptor.ENGINE: constants.TANK_ENGINE_VERSION_ENTITY }
+                               AppDescriptor.ENGINE:    constants.TANK_ENGINE_VERSION_ENTITY}
 
-        link_field_map = { AppDescriptor.APP: "sg_tank_app",
+        link_field_map = { AppDescriptor.APP:       "sg_tank_app",
                            AppDescriptor.FRAMEWORK: "sg_tank_framework",
-                           AppDescriptor.ENGINE: "sg_tank_engine" }
+                           AppDescriptor.ENGINE:    "sg_tank_engine"}
 
-        # find the main entry
-        bundle = sg.find_one(main_entity_map[bundle_type], 
-                             [["sg_system_name", "is", name]], 
-                             ["id", "sg_status_list"])
-        if bundle is None:
-            raise TankError("App store does not contain an item named '%s'!" % name)
-
-        # check if this has been deprecated in the app store
-        # in that case we should ensure that the cache is cleared later
         is_deprecated = False
-        if bundle["sg_status_list"] == "dep":
-            is_deprecated = True
+        
+        if bundle_type != AppDescriptor.CORE:
+            # items other than core have a main entity that represents
+            # app/engine/etc.
+            
+            # find the main entry
+            bundle = sg.find_one(main_entity_map[bundle_type], 
+                                 [["sg_system_name", "is", name]], 
+                                 ["id", "sg_status_list"])
+            if bundle is None:
+                raise TankError("App store does not contain an item named '%s'!" % name)
+    
+            # check if this has been deprecated in the app store
+            # in that case we should ensure that the cache is cleared later    
+            if bundle["sg_status_list"] == "dep":
+                is_deprecated = True
 
-        # now get the version
-        link_field = link_field_map[bundle_type]
-        entity_type = version_entity_map[bundle_type]
-        sg_version_data = sg.find_one(entity_type,
-                                      filters = [[link_field, "is", bundle]] + latest_filter,
-                                      fields = ["code"],
-                                      order=[{"field_name": "created_at", "direction": "desc"}])
+            # now get the version
+            link_field = link_field_map[bundle_type]
+            entity_type = version_entity_map[bundle_type]
+            sg_version_data = sg.find_one(entity_type,
+                                          filters = [[link_field, "is", bundle]] + latest_filter,
+                                          fields = ["code"],
+                                          order=[{"field_name": "created_at", "direction": "desc"}])
+            
+        else:
+            # core API
+            sg_version_data = sg.find_one(constants.TANK_CORE_VERSION_ENTITY,
+                                          filters = latest_filter,
+                                          fields = ["code"],
+                                          order=[{"field_name": "created_at", "direction": "desc"}])
+        
         if sg_version_data is None:
             raise TankError("Cannot find any versions for %s in the App store!" % name)
-
-
 
         version_str = sg_version_data.get("code")
         if version_str is None:

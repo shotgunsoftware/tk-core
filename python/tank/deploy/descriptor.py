@@ -42,7 +42,7 @@ class AppDescriptor(object):
     # constants and helpers
 
     # constants describing the type of item we are describing
-    APP, ENGINE, FRAMEWORK = range(3)
+    APP, ENGINE, FRAMEWORK, CORE = range(4)
 
     def __init__(self, bundle_install_path, location_dict):
         self._bundle_install_path = bundle_install_path
@@ -76,6 +76,8 @@ class AppDescriptor(object):
             root = os.path.join(self._bundle_install_path, "engines")
         elif app_type == AppDescriptor.FRAMEWORK:
             root = os.path.join(self._bundle_install_path, "frameworks")
+        elif app_type == AppDescriptor.CORE:
+            root = os.path.join(self._bundle_install_path, "cores")
         else:
             raise TankError("Don't know how to figure out the local storage root - unknown type!")
         return os.path.join(root, descriptor_name, name, version)
