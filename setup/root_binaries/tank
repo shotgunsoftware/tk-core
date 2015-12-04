@@ -82,7 +82,8 @@ else
    # so try and get the parent and call its tank script
    # the parent location is stored in a config file
    curr_platform=`uname`
-   if [[ "${curr_platform}" == MINGW32_NT* ]] || [[ "${curr_platform}" ==  CYGWIN_NT* ]];
+   if [[ "${curr_platform}" == MINGW64_NT* ]] || [[ "${curr_platform}" == MINGW32_NT* ]] ||
+        [[ "${curr_platform}" ==  CYGWIN_NT* ]];
    then
        curr_platform="Windows"
    fi
