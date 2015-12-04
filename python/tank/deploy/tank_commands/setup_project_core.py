@@ -98,7 +98,7 @@ def synchronize_project(log, progress_cb, sg, config_source, config_path, core_p
     try:
         _set_up_project_scaffold(log, progress_cb, config_paths, config_cb)
         _install_core(log, config_paths, core_path)
-        _process_bundles(log, config_path, progress_cb)
+        _process_bundles(log, config_path, progress_cb, run_post_install=False)
     finally:
         os.umask(old_umask)
         
@@ -353,7 +353,8 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, set
 
     _process_bundles(log, 
                      config_location_curr_os, 
-                     setup_params.report_progress_from_installer)
+                     setup_params.report_progress_from_installer,
+                     run_post_install=True)
 
     ##########################################################################################
     # post processing of the install
@@ -556,7 +557,7 @@ def _reference_external_core(log, config_path, core_paths):
     fh.close()
 
 
-def _process_bundles(log, config_path, progress_cb):
+def _process_bundles(log, config_path, progress_cb, run_post_install):
     """
     Read bundles from the config and make sure these are all downloaded 
     locally. similar to tank cache_apps
@@ -566,6 +567,7 @@ def _process_bundles(log, config_path, progress_cb):
     :param log:         Python logger object
     :param config_path: Path to configuration
     :param progress_cb: Progress reporting callback
+    :param run_post_install: If True, execute post install code 
     """
     # We now have a fully functional tank setup! Time to start it up...
     tk = sgtk_from_path(config_path)
@@ -610,11 +612,12 @@ def _process_bundles(log, config_path, progress_cb):
             log.info("Item %s is already locally installed." % descriptor)
 
     # create required shotgun fields
-    progress_cb("Running post install processes...")
-    for descriptor in descriptors:
-        descriptor.ensure_shotgun_fields_exist()
-        # run post install hook
-        descriptor.run_post_install(tk)
+    if run_post_install:
+        progress_cb("Running post install processes...")
+        for descriptor in descriptors:
+            log.debug("Post install for %s" % descriptor)
+            descriptor.ensure_shotgun_fields_exist()
+            descriptor.run_post_install(tk)
     
 
 ########################################################################################
