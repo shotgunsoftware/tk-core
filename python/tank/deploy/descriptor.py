@@ -30,7 +30,7 @@ class AppDescriptor(object):
     It also knows how to access metadata such as documentation, descriptions etc.
 
     Several AppDescriptor classes exists, all deriving from this base class, and the
-    factory method get_from_location() manufactures the correct descriptor object
+    factory method descriptor_factory() manufactures the correct descriptor object
     based on a location dict, that is found inside of the environment config.
 
     Different App Descriptor implementations typically handle different source control
@@ -478,8 +478,6 @@ def descriptor_factory(descriptor_type, app_cache_root, location_dict):
     :returns: Descriptor object
     """
     return get_from_location_and_paths(descriptor_type, None, app_cache_root, location_dict)
-
-
 
 ################################################################################################
 # legacy methods - do not use.

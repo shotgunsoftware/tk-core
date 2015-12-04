@@ -11,8 +11,7 @@
 from ...errors import TankError
 from . import console_utils
 from .action_base import Action
-from ..descriptor import AppDescriptor 
-from ..descriptor import get_from_location
+from ..descriptor import AppDescriptor
 from ..app_store_descriptor import TankAppStoreDescriptor 
 
 import os
@@ -161,22 +160,15 @@ class SwitchAppAction(Action):
 
             # run descriptor factory method
             location = {"type": "dev", "path": path}
-            new_descriptor = get_from_location(AppDescriptor.APP, 
-                                                          self.tk.pipeline_configuration, 
-                                                          location)
-
-
+            new_descriptor = self.tk.pipeline_configuration.get_app_descriptor(location)
 
         elif mode == "git":
             
             # run descriptor factory method
             location = {"type": "git", "path": path, "version": "v0.0.0"}
-            tmp_descriptor = get_from_location(AppDescriptor.APP, 
-                                               self.tk.pipeline_configuration, 
-                                               location)
+            tmp_descriptor = self.tk.pipeline_configuration.get_app_descriptor(location)
             # now find latest
-            new_descriptor = tmp_descriptor.find_latest_version()
-            
+            new_descriptor = tmp_descriptor.find_latest_version()            
         
         else:
             raise TankError("Unknown mode!")
@@ -230,22 +222,3 @@ class SwitchAppAction(Action):
                                 new_descriptor.get_location())
         
         log.info("Switch complete!")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

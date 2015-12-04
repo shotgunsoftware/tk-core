@@ -20,6 +20,7 @@ from tank_vendor import yaml
 
 from .errors import TankError
 from .deploy import util
+from .deploy import descriptor
 from .platform import constants
 from .platform.environment import Environment, WritableEnvironment
 from .util import shotgun
@@ -519,6 +520,48 @@ class PipelineConfiguration(object):
         :returns: path string
         """
         return os.path.join(self.get_install_location(), "install", "core", "python")
+
+    def get_app_descriptor(self, location):
+        """
+        Convenience method that returns a descriptor for an app
+        that is associated with this pipeline configuration.
+        
+        :param location: Location dictionary describing the app source location
+        :returns:        Descriptor object
+        """
+        # resolve any config specific aspects of location dict
+        pp_location = descriptor.preprocess_location(location, self)
+        return descriptor.descriptor_factory(descriptor.AppDescriptor.APP, 
+                                             self.get_bundles_location(), 
+                                             pp_location)
+        
+    def get_engine_descriptor(self, location):
+        """
+        Convenience method that returns a descriptor for an engine
+        that is associated with this pipeline configuration.
+        
+        :param location: Location dictionary describing the engine source location
+        :returns:        Descriptor object
+        """
+        # resolve any config specific aspects of location dict
+        pp_location = descriptor.preprocess_location(location, self)
+        return descriptor.descriptor_factory(descriptor.AppDescriptor.ENGINE, 
+                                             self.get_bundles_location(), 
+                                             pp_location)
+        
+    def get_framework_descriptor(self, location):
+        """
+        Convenience method that returns a descriptor for a framework
+        that is associated with this pipeline configuration.
+        
+        :param location: Location dictionary describing the framework source location
+        :returns:        Descriptor object
+        """
+        # resolve any config specific aspects of location dict
+        pp_location = descriptor.preprocess_location(location, self)
+        return descriptor.descriptor_factory(descriptor.AppDescriptor.FRAMEWORK, 
+                                             self.get_bundles_location(), 
+                                             pp_location)
 
     ########################################################################################
     # configuration disk locations

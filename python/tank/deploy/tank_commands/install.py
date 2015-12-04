@@ -13,7 +13,6 @@ from . import console_utils
 from .action_base import Action
 
 from ..descriptor import AppDescriptor
-from ..descriptor import get_from_location
 from ..app_store_descriptor import TankAppStoreDescriptor 
 
 
@@ -211,9 +210,7 @@ class InstallAppAction(Action):
             # run descriptor factory method
             log.info("Connecting to git...")
             location = {"type": "git", "path": app_name, "version": "v0.0.0"}
-            tmp_descriptor = get_from_location(AppDescriptor.APP, 
-                                               self.tk.pipeline_configuration, 
-                                               location)
+            tmp_descriptor = self.tk.pipeline_configuration.get_app_descriptor(location)
             # now find latest
             app_descriptor = tmp_descriptor.find_latest_version()
             log.info("Latest version in repository '%s' is %s." % (app_name, 
@@ -223,9 +220,7 @@ class InstallAppAction(Action):
             # this is a local path on disk, meaning that we should set up a dev descriptor!
             log.info("Looking for a locally installed app in '%s'..." % app_name) 
             location = {"type": "dev", "path": app_name}
-            app_descriptor = get_from_location(AppDescriptor.APP, 
-                                               self.tk.pipeline_configuration, 
-                                               location)
+            tmp_descriptor = self.tk.pipeline_configuration.get_app_descriptor(location)
         
         else:
             # this is an app store app!
@@ -468,9 +463,7 @@ class InstallEngineAction(Action):
             # run descriptor factory method
             log.info("Connecting to git...")
             location = {"type": "git", "path": engine_name, "version": "v0.0.0"}
-            tmp_descriptor = get_from_location(AppDescriptor.ENGINE, 
-                                               self.tk.pipeline_configuration, 
-                                               location)
+            tmp_descriptor = self.tk.pipeline_configuration.get_engine_descriptor(location)
             # now find latest
             engine_descriptor = tmp_descriptor.find_latest_version()
             log.info("Latest version in repository '%s' is %s." % (engine_name, engine_descriptor.get_version()))
@@ -479,9 +472,7 @@ class InstallEngineAction(Action):
             # this is a local path on disk, meaning that we should set up a dev descriptor!
             log.info("Looking for a locally installed engine in '%s'..." % engine_name) 
             location = {"type": "dev", "path": engine_name}
-            engine_descriptor = get_from_location(AppDescriptor.ENGINE, 
-                                                  self.tk.pipeline_configuration, 
-                                                  location)
+            engine_descriptor = self.tk.pipeline_configuration.get_engine_descriptor(location)
             
         else:
             # this is an app store app!

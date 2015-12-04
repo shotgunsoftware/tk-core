@@ -18,6 +18,7 @@ from .action_base import Action
 from ..zipfilehelper import unzip_file
 from ...errors import TankError
 from ...platform import constants
+from ..descriptor import descriptor_factory, AppDescriptor
 
 from .setup_project_core import synchronize_project, move_folder, copy_folder
 
@@ -229,8 +230,29 @@ class SynchronizeConfigurationAction(Action):
             def progress_cb(chapter, progress=None):
                 log.info("PROGRESS [%s]: %s" % (chapter, progress))
     
-            # HACK!
-            path_to_core = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "..", ".."))
+            # check core
+            if os.path.exists(zip_unpack_tmp, "core", "core_api.yml"):
+                # the core_api.yml contains info about the core config:
+                #
+                # location:
+                #    name: tk-core
+                #    type: app_store
+                #    version: v0.16.34
+                
+                location = xxx
+                
+                descriptor = descriptor_factory(AppDescriptor.CORE,
+                                                self.tk.pipeline_configuration.get_bundle_root(),
+                                                location)
+                descriptor.download_local()
+                path_to_core = descriptor.get_path()
+                
+            
+            
+            else:
+                # use currently running core API version as the source
+                # this core API will be copied across into the config
+                path_to_core = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "..", ".."))
     
             synchronize_project(log, 
                                 progress_cb, 

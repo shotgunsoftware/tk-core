@@ -38,7 +38,7 @@ class TankAppStoreDescriptor(AppDescriptor):
 
     Note: Construction of instances of this class can happen in two ways:
 
-    - via the factory method in descriptor.get_from_location()
+    - via the factory method in descriptor.descriptor_factory()
     - via the class method TankAppStoreDescriptor.find_latest_item()
 
     """
