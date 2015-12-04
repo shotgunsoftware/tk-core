@@ -10,6 +10,7 @@
 
 import os
 import tempfile
+import pprint
 import uuid
 from tank_vendor import yaml
 from .action_base import Action
@@ -25,12 +26,10 @@ class SynchronizeConfigurationAction(Action):
     This is the standard command that is exposed via the setup_project tank command
     and API equivalent.
     """
-    
     CONFIG_INFO_FILE = "config_info.yml"
     SG_CONFIG_FIELD = "sg_config"
     
     (LOCAL_CFG_UP_TO_DATE, LOCAL_CFG_OLD, LOCAL_CFG_INVALID, LOCAL_CFG_MISSING) = range(4)
-    
     
     def __init__(self):
         """
@@ -44,8 +43,6 @@ class SynchronizeConfigurationAction(Action):
         
         # this method can be executed via the API
         self.supports_api = True
-
-        self._progress_cb = None
 
         self.parameters = {}
         
@@ -73,9 +70,10 @@ class SynchronizeConfigurationAction(Action):
         # validate params and seed default values
         computed_params = self._validate_parameters(parameters)
         
-        self._progress_cb = computed_params["progress_callback"] 
-        
-        return self._synchronize(log, parameters["project_id"], parameters["pipeline_configuration"])
+        return self._synchronize(log, 
+                                 parameters["project_id"], 
+                                 parameters["pipeline_configuration"],
+                                 computed_params["progress_callback"])
                         
     def run_interactive(self, log, args):
         """
@@ -84,18 +82,35 @@ class SynchronizeConfigurationAction(Action):
         :param log: std python logger
         :param args: command line args
         """
-        
         if len(args) != 2:
             raise TankError("Syntax: synchronize project_id config")
 
         project_id = int(args[0])
         config_name = args[1]
-        
         self._synchronize(log, project_id, config_name)
     
-    
-    def _synchronize(self, log, project_id, pipeline_config_name):
+    def _synchronize(self, log, project_id, pipeline_config_name, progress_cb=None):
+        """
+        Do the actual synchronize.
         
+        The callback function should have the following signature:
+        
+        def callback(chapter_str, percent_progress_int=None)
+        
+        The installer will run through several "chapters" throughout the install
+        and each of these will have a separate progress calculation. Some chapters
+        are fast and/or difficult to quantify into steps - in this case, the 
+        percent_progress_int parameter will be passed None. For such chapters,
+        the callback will be called only once.
+        
+        For chapters which report progress, the callback will be called multiple times,
+        each time with an incremented progress. This is an int value in percent.
+        
+        :param log: python log object
+        :param project_id: Project id to sync
+        :param pipeline_config_name: Pipeline configuration name
+        :param progress_cb: Progress callback. See above for details.        
+        """
         log.debug("Running synchronize for project id %d and pipeline config '%s'" % (project_id, pipeline_config_name))
         
         pc = self.tk.shotgun.find_one("PipelineConfiguration", 
@@ -105,10 +120,10 @@ class SynchronizeConfigurationAction(Action):
         if pc is None:    
             raise TankError("Couldn't find a pipeline configuration named '%s' for the given project" % pipeline_config_name)
         
-        log.debug("Resolved pipeline configuration %s" % pc)
+        log.debug("Resolved pipeline configuration: \n%s" % pc)
 
         if pc[self.SG_CONFIG_FIELD] is None:
-            log.info("No zip config found!") 
+            log.info("This pipeline configuration does not have cloud data.") 
             return
 
         # locate zip - there are three different forms
@@ -147,7 +162,8 @@ class SynchronizeConfigurationAction(Action):
 
         # @TODO - support other attachment types (github urls!) 
         if pc[self.SG_CONFIG_FIELD]["link_type"] != "upload":
-            raise TankError("Type not supported")
+            raise TankError("Cloud based configuration currently only supports "
+                            "uploaded configurations.")
         
         # calculate where the config should go        
         config_root = self.tk.execute_core_hook_method(constants.CACHE_LOCATION_HOOK_NAME,
@@ -155,24 +171,28 @@ class SynchronizeConfigurationAction(Action):
                                                        project_id=project_id,
                                                        pipeline_configuration_id=pc["id"])
         
+        log.debug("The local config is located here: '%s'" % config_root)
+        
         # see what we have locally
         status = self._check_local_status(pc[self.SG_CONFIG_FIELD], config_root)
         
         if status == self.LOCAL_CFG_UP_TO_DATE:
-            log.info("Local config is up to date.")
+            log.info("Your configuration is up to date.")
             return
         
         elif status == self.LOCAL_CFG_MISSING:
-            log.info("Local config does not exist yet.")
+            log.info("A brand new configuration will be created locally.")
             
         elif status == self.LOCAL_CFG_OLD:
-            log.info("Local config is out of date.")
+            log.info("Your local configuration is out of date and "
+                     "will be updated.")
 
         elif status == self.LOCAL_CFG_INVALID:
-            log.info("Local config is invalid.")
+            log.info("Your local configuration looks invalid and "
+                     "will be replaced.")
         
         else:
-            raise TankError("Unknown update status!")
+            raise TankError("Unknown configuration update status!")
         
         # download config attachment from Shotgun
         #
@@ -227,9 +247,16 @@ class SynchronizeConfigurationAction(Action):
             # now begin deployment
             log.debug("Will synchronize into '%s'" % config_root)
             
-            def progress_cb(chapter, progress=None):
-                log.info("PROGRESS [%s]: %s" % (chapter, progress))
-    
+            if progress_cb is None:
+                # push progress reporting through the logger
+                def progress_fn(chapter, progress=None):
+                    if progress:
+                        log.info("%s: %s%%" % (chapter, progress))
+                    else:
+                        log.info("%s" % chapter)
+                
+                progress_cb = progress_fn
+            
             # check core
             core_location_path = os.path.join(zip_unpack_tmp, "core", "core_api.yml") 
             if os.path.exists(core_location_path):
@@ -264,7 +291,10 @@ class SynchronizeConfigurationAction(Action):
             else:
                 # use currently running core API version as the source
                 # this core API will be copied across into the config
-                path_to_core = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
+                cur_core_ver = self.tk.pipeline_configuration.get_associated_core_version()
+                log.debug("No core location file detected. Will copy the "
+                          "currently running core (%s) into the project." % cur_core_ver)
+                path_to_core = self.tk.pipeline_configuration.get_install_location()
                 
             log.debug("Begin project sync!")
             synchronize_project(log, 
@@ -295,14 +325,13 @@ class SynchronizeConfigurationAction(Action):
                 log.info("Restoring previous backup %s -> %s" % (config_backup_path, config_root))
                 os.rename(backup_target_path, config_root)
         
-        
-
-
     def _write_config_info_file(self, sg_data, config_root):
         """
+        Writes a cache file with info about where the config came from.
         
+        :param sg_data: Attachment data from Shotgun to describe the cfg payload
+        :param config_root: Root install path for the config  
         """
-        
         config_info_file = os.path.join(config_root, "cache", self.CONFIG_INFO_FILE)
         fh = open(config_info_file, "wt")
 
@@ -314,15 +343,15 @@ class SynchronizeConfigurationAction(Action):
         fh.write("\n")
         
         metadata = {}
-        # bake in which version of the deploy logic was used to push this 
-        # config
+        # bake in which version of the deploy logic was used to push this config
         metadata["deply_generation"] = constants.CLOUD_CONFIG_DEPLOY_LOGIC_GENERATION
         # and include details about where the config came from
         metadata["sg_config_attachment"] = sg_data
+        
+        # write yaml
         yaml.safe_dump(metadata, fh)
         fh.write("\n")
         fh.close()
-        
 
     def _check_local_status(self, sg_data, config_root):
         """
