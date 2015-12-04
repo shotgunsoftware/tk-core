@@ -38,7 +38,7 @@ def execute_git_command(cmd):
     if status != 0:
         raise TankError("Error executing git operation. The git command '%s' returned error code %s." % (cmd, status))     
 
-def execute_tank_command(pipeline_config_path, tank_command, args):
+def execute_tank_command(pipeline_config_path, args):
     """
     Wrapper around execution of the tank command of a specified pipeline
     configuration.
@@ -49,7 +49,6 @@ def execute_tank_command(pipeline_config_path, tank_command, args):
              executed.
     :param pipeline_config_path: the path to the pipeline configuration that
                                  contains the tank command
-    :param tank_command:         tank command to execute
     :param args:                 list of arguments to pass to the tank command
     :returns:                    text output of the command
     """
@@ -64,7 +63,7 @@ def execute_tank_command(pipeline_config_path, tank_command, args):
         raise TankError("Could not find the tank command on disk: %s"
                         % command_path)
 
-    return subprocess_check_output([command_path, tank_command] + args)
+    return subprocess_check_output([command_path] + args)
 
 def _get_tank_command_name():
     """ Returns the name of the tank command executable. """
