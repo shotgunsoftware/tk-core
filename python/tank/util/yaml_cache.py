@@ -183,21 +183,6 @@ class YamlCache(object):
         """
         for item in cache_items:
             self._add(item)
-
-    def _get(self, path):
-        """
-        Return the cache entry for the specified path if it exists.  
-        This method is thread-safe
-
-        :param path:    The path of the yaml file to return the entry for
-        :returns:       A dictionary containing the data, modified_at time and file size
-                        of the cached data.
-        """
-        self._lock.acquire()
-        try:
-            return self._cache.get(path)
-        finally:
-            self._lock.release()
             
     def _add(self, item):
         """
