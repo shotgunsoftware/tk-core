@@ -43,12 +43,9 @@ class CacheItem(object):
                         will be run and the result stored.
         :raises:        tank.errors.TankUnreadableFileError: File stat failure.
         """
-        self._path = path
+        self._path = os.path.normpath(path)
         self._data = data
-        try:
-            self._stat = stat or os.stat(path)
-        except Exception, exc:
-            raise TankUnreadableFileError("Unable to stat file '%s': %s" % (path, exc))
+        self._stat = stat
 
     def _get_data(self):
         """The item's data."""
@@ -67,6 +64,13 @@ class CacheItem(object):
     @property
     def stat(self):
         """The stat of the file on disk that the item was sourced from."""
+        if self._stat is None:
+            try:
+                self._stat = os.stat(self.path)
+            except Exception, exc:
+                raise TankUnreadableFileError(
+                    "Unable to stat file '%s': %s" % (self.path, exc)
+                )
         return self._stat
 
     def given_item_newer(self, other):
@@ -118,12 +122,21 @@ class YamlCache(object):
     Main yaml cache class
     """
 
-    def __init__(self, cache_dict=None):
+    def __init__(self, cache_dict=None, is_static=False):
         """
         Construction
         """
         self._cache = cache_dict or dict()
         self._lock = threading.Lock()
+        self._is_static = is_static
+
+    def _get_is_static(self):
+        return self._is_static
+
+    def _set_is_static(self, state):
+        self._is_static = bool(state)
+
+    is_static = property(_get_is_static, _set_is_static)
             
     def get(self, path, deepcopy_data=True):
         """
@@ -193,40 +206,58 @@ class YamlCache(object):
         :returns:       The cached CacheItem.
         """
         self._lock.acquire()
+
         try:
             path = item.path
             cached_item = self._cache.get(path)
-            if cached_item and cached_item == item:
-                # It's already in the cache and matches mtime
-                # and file size, so we can just return what we
-                # already have. It's technically identical in
-                # terms of data of what we got, but it's best
-                # to return the instance we have since that's
-                # what previous logic in the cache did.
-                return cached_item
-            elif cached_item and item.given_item_newer(cached_item):
-                # If the data already cached is newer (based on mtime)
-                # then we don't need to add to the cache.
-                return cached_item
+
+            # If this is a static cache, we won't do any checks on
+            # mod time and file size. If it's in the cache we return
+            # it, otherwise we populate the item data from disk, cache
+            # it, and then return it.
+            if self.is_static:
+                if cached_item:
+                    return cached_item
+                else:
+                    if not item.data:
+                        self._populate_cache_item_data(item)
+                    self._cache[path] = item
+                    return item
             else:
-                # Load the yaml data from disk. If it's not already populated.
-                if not item.data:
-                    try:
-                        fh = open(path, "r")
-                        raw_data = yaml.load(fh)
-                    except IOError:
-                        raise TankFileDoesNotExistError("File does not exist: %s" % path)
-                    except Exception, e:
-                        raise TankError("Could not open file '%s'. Error reported: '%s'" % (path, e))
-                        # Since it wasn't an IOError it means we have an open
-                        # filehandle to close.
-                        fh.close()
-                    # Populate the item's data before adding it to the cache.
-                    item.data = raw_data
-                self._cache[path] = item
-                return item
+                # Since this isn't a static cache, we need to make sure
+                # that we don't need to invalidate and recache this item
+                # based on mod time and file size on disk.
+                if cached_item and (cached_item == item or item.given_item_newer(cached_item)):
+                    # It's already in the cache and matches mtime
+                    # and file size, so we can just return what we
+                    # already have. It's technically identical in
+                    # terms of data of what we got, but it's best
+                    # to return the instance we have since that's
+                    # what previous logic in the cache did.
+                    return cached_item
+                else:
+                    # Load the yaml data from disk. If it's not already populated.
+                    if not item.data:
+                        self._populate_cache_item_data(item)
+                    self._cache[path] = item
+                    return item
         finally:
             self._lock.release()
+
+    def _populate_cache_item_data(self, item):
+        path = item.path
+        try:
+            fh = open(path, "r")
+            raw_data = yaml.load(fh)
+        except IOError:
+            raise TankFileDoesNotExistError("File does not exist: %s" % path)
+        except Exception, e:
+            raise TankError("Could not open file '%s'. Error reported: '%s'" % (path, e))
+            # Since it wasn't an IOError it means we have an open
+            # filehandle to close.
+            fh.close()
+        # Populate the item's data before adding it to the cache.
+        item.data = raw_data
 
 # The global instance of the YamlCache.
 g_yaml_cache = YamlCache()
