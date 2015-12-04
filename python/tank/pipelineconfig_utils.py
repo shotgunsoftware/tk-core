@@ -47,34 +47,6 @@ def is_pipeline_config(pipeline_config_path):
     # probe by looking for the existence of a key config file.
     pc_file = os.path.join(pipeline_config_path, "config", "core", constants.STORAGE_ROOTS_FILE)
     return os.path.exists(pc_file)
-    
-def get_metadata(pipeline_config_path):
-    """
-    Loads the pipeline config metadata (the pipeline_configuration.yml) file from disk.
-    
-    :param pipeline_config_path: path to a pipeline configuration root folder
-    :returns: deserialized content of the file in the form of a dict.
-    """
-
-    # now read in the pipeline_configuration.yml file
-    cfg_yml = os.path.join(pipeline_config_path, "config", "core", "pipeline_configuration.yml")
-
-    if not os.path.exists(cfg_yml):
-        raise TankError("Configuration metadata file '%s' missing! Please contact support." % cfg_yml)
-
-    fh = open(cfg_yml, "rt")
-    try:
-        data = yaml.load(fh)
-        if data is None:
-            raise Exception("File contains no data!")
-    except Exception, e:
-        raise TankError("Looks like a config file is corrupt. Please contact "
-                        "support! File: '%s' Error: %s" % (cfg_yml, e))
-    finally:
-        fh.close()
-
-    return data
-
 
 def get_roots_metadata(pipeline_config_path):
     """
