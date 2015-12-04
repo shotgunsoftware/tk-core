@@ -131,6 +131,11 @@ class YamlCache(object):
         self._is_static = is_static
 
     def _get_is_static(self):
+        """
+        Whether the cache is considered static or not. If the cache is static,
+        CacheItems in the cache will not be invalidated based on file mtime
+        and size when they are requested from the cache.
+        """
         return self._is_static
 
     def _set_is_static(self, state):
@@ -164,6 +169,9 @@ class YamlCache(object):
             return item.data
 
     def get_cached_items(self):
+        """
+        Returns a list of all CacheItems stored in the cache.
+        """
         return self._cache.values()
 
     def merge_cache_items(self, cache_items):
@@ -245,6 +253,9 @@ class YamlCache(object):
             self._lock.release()
 
     def _populate_cache_item_data(self, item):
+        """
+        Loads the CacheItem's YAML data from disk.
+        """
         path = item.path
         try:
             fh = open(path, "r")
