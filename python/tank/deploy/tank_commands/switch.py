@@ -147,11 +147,11 @@ class SwitchAppAction(Action):
         
         if mode == "app_store":
             
-            new_descriptor = TankAppStoreDescriptor.find_latest_item(
-                self.tk.pipeline_configuration.get_bundles_location(),
-                AppDescriptor.APP,
-                descriptor.get_system_name()
-            )
+            location = {"type": "app_store", 
+                        "name": descriptor.get_system_name(), 
+                        "version": "v0.0.0"}
+            tmp_descriptor = self.tk.pipeline_configuration.get_app_descriptor(location)
+            new_descriptor = tmp_descriptor.find_latest_version()            
         
         elif mode == "dev":
 
@@ -167,7 +167,6 @@ class SwitchAppAction(Action):
             # run descriptor factory method
             location = {"type": "git", "path": path, "version": "v0.0.0"}
             tmp_descriptor = self.tk.pipeline_configuration.get_app_descriptor(location)
-            # now find latest
             new_descriptor = tmp_descriptor.find_latest_version()            
         
         else:

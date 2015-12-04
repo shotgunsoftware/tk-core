@@ -211,9 +211,8 @@ class InstallAppAction(Action):
             log.info("Connecting to git...")
             location = {"type": "git", "path": app_name, "version": "v0.0.0"}
             tmp_descriptor = self.tk.pipeline_configuration.get_app_descriptor(location)
-            # now find latest
             app_descriptor = tmp_descriptor.find_latest_version()
-            log.info("Latest version in repository '%s' is %s." % (app_name, 
+            log.info("Latest tag in repository '%s' is %s." % (app_name, 
                                                                    app_descriptor.get_version()))
             
         elif "/" in app_name or "\\" in app_name:
@@ -224,11 +223,10 @@ class InstallAppAction(Action):
         
         else:
             # this is an app store app!
-            log.info("Connecting to the Toolkit App Store...")
-            app_descriptor = TankAppStoreDescriptor.find_latest_item(
-                self.tk.pipeline_configuration.get_bundles_location(),
-                AppDescriptor.APP, app_name
-            )
+            log.info("Connecting to the Toolkit App Store...")            
+            location = {"type": "app_store", "name": app_name, "version": "v0.0.0"}
+            tmp_descriptor = self.tk.pipeline_configuration.get_app_descriptor(location)
+            app_descriptor = tmp_descriptor.find_latest_version()
             log.info("Latest approved App Store Version is %s." % app_descriptor.get_version())
         
         # note! Some of these methods further down are likely to pull the apps local
@@ -464,9 +462,8 @@ class InstallEngineAction(Action):
             log.info("Connecting to git...")
             location = {"type": "git", "path": engine_name, "version": "v0.0.0"}
             tmp_descriptor = self.tk.pipeline_configuration.get_engine_descriptor(location)
-            # now find latest
             engine_descriptor = tmp_descriptor.find_latest_version()
-            log.info("Latest version in repository '%s' is %s." % (engine_name, engine_descriptor.get_version()))
+            log.info("Latest tag in repository '%s' is %s." % (engine_name, engine_descriptor.get_version()))
             
         elif "/" in engine_name or "\\" in engine_name:
             # this is a local path on disk, meaning that we should set up a dev descriptor!
@@ -477,11 +474,10 @@ class InstallEngineAction(Action):
         else:
             # this is an app store app!
             log.info("Connecting to the Toolkit App Store...")
-            engine_descriptor = TankAppStoreDescriptor.find_latest_item(
-                self.tk.pipeline_configuration.get_bundles_location(),
-                AppDescriptor.ENGINE, 
-                engine_name)
-        log.info("Latest approved App Store Version is %s." % engine_descriptor.get_version())
+            location = {"type": "app_store", "name": engine_name, "version": "v0.0.0"}
+            tmp_descriptor = self.tk.pipeline_configuration.get_engine_descriptor(location)
+            engine_descriptor = tmp_descriptor.find_latest_version()
+            log.info("Latest approved App Store Version is %s." % engine_descriptor.get_version())
         
         log.info("")
     
