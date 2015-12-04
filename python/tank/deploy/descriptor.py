@@ -447,8 +447,13 @@ def preprocess_location(location_dict, pipeline_config):
     """
     Preprocess location dict to resolve config-specific constants and directives.
     
-    For example, for dev descriptors, the {PIPELINE_CONFIG} token will
-    resolve into the root path of the given pipeline config.
+    This is only relevant if the locator system is used in conjunction with 
+    a toolkit configuration. For example, the keyword {PIPELINE_CONFIG} is
+    only meaningful if used in the context of a configuration.
+    
+    Location dictionaries defined and used outside of the scope of a 
+    pipeline configuration do not support such keywords (since no 
+    pipeline configuration exists at that point). 
     
     :param location_dict: Location dict to operate on
     :param pipeline_config: Pipeline Config object
@@ -485,6 +490,9 @@ def descriptor_factory(descriptor_type, app_cache_root, location_dict):
 def get_from_location(app_or_engine, pipeline_config, location_dict):
     """
     Factory method.
+    
+    LEGACY - Use pipelineconfiguration.get_app|engine|framework_descriptor() 
+             instead.
 
     :param app_or_engine: Either AppDescriptor.APP AppDescriptor.ENGINE or FRAMEWORK
     :param pipeline_config: Pipeline Configuration Object
@@ -501,6 +509,8 @@ def get_from_location(app_or_engine, pipeline_config, location_dict):
 def get_from_location_and_paths(app_or_engine, pc_path, bundle_install_path, location_dict):
     """
     Factory method.
+    
+    LEGACY - Use descriptor_factory() instead.
 
     :param app_or_engine: Either AppDescriptor.APP AppDescriptor.ENGINE or FRAMEWORK
     :param pc_path: Path to the root of the pipeline configuration. 
@@ -514,8 +524,6 @@ def get_from_location_and_paths(app_or_engine, pc_path, bundle_install_path, loc
     from .dev_descriptor import TankDevDescriptor
     from .git_descriptor import TankGitDescriptor
     from .manual_descriptor import TankManualDescriptor
-
-    # temporary implementation. Todo: more error checks!
 
     # tank app store format
     # location: {"type": "app_store", "name": "tk-nukepublish", "version": "v0.5.0"}

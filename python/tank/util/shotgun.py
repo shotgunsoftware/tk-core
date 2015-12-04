@@ -389,8 +389,6 @@ def create_sg_app_store_connection():
     # get connection parameters
     sg = __create_sg_connection(config_data)
 
-    script_user = None
-
     # determine the script user running currently
     # get the API script user ID from shotgun
     script_user = sg.find_one(

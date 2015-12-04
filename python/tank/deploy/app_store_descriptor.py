@@ -122,7 +122,7 @@ class TankAppStoreDescriptor(AppDescriptor):
             raise TankError("Illegal type value!")
 
         # connect to the app store
-        (sg, script_user) = shotgun.create_sg_app_store_connection()
+        (sg, _) = shotgun.create_sg_app_store_connection()
 
         if self._type == AppDescriptor.CORE:
             # special handling of core since it doesn't have a high-level
