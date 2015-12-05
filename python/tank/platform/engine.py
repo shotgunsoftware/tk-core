@@ -22,7 +22,7 @@ import threading
         
 from .. import loader
 from .. import hook
-from ..errors import TankError, TankEngineInitError
+from ..errors import TankError, TankEngineInitError, TankContextChangeNotAllowedError
 from ..deploy import descriptor
 from ..deploy.dev_descriptor import TankDevDescriptor
 
@@ -52,6 +52,7 @@ class Engine(TankBundle):
         self.__env = env
         self.__engine_instance_name = engine_instance_name
         self.__applications = {}
+        self.__application_pool = {}
         self.__shared_frameworks = {}
         self.__commands = {}
         self.__panels = {}
@@ -66,6 +67,12 @@ class Engine(TankBundle):
         self.__global_progress_widget = None
         
         self._invoker = None
+
+        # By default we will assume that an engine does not support context
+        # changes. When changing contexts, the engine and all active apps
+        # will need to explicitly support the switch. If any do not, the
+        # engine will be torn down and restarted.
+        self._context_change_allowed = False
         
         # get the engine settings
         settings = self.__env.get_engine_settings(self.__engine_instance_name)
@@ -392,6 +399,13 @@ class Engine(TankBundle):
         # default implementation is to assume a UI exists
         # this is since most engines are supporting a graphical application
         return True
+
+    @property
+    def context_change_allowed(self):
+        """
+        Whether the engine allows a context change without the need for a restart.
+        """
+        return self._context_change_allowed
     
     ##########################################################################################
     # init and destroy
@@ -448,6 +462,51 @@ class Engine(TankBundle):
         Implemented by deriving classes.
         """
         pass
+
+    def change_context(self, new_context):
+        """
+        Called when the engine is being asked to change contexts. This
+        will only be allowed if the engine and all associated apps allow
+        a context change. In most cases this will also be implemented on
+        deriving classes to handle some DCC-specific operations, such as
+        menu reconstruction based on the new context. In those cases, this
+        parent change_context method should be called from the overriding
+        method first via super().
+        """
+        # Make sure we're allowed to change context at the engine level.
+        if not self.context_change_allowed:
+            raise TankContextChangeNotAllowedError()
+
+        # Check to see if all of our apps are capable of accepting
+        # a context change. If one of them is not, then we remove it
+        # from the persistent app pool, which will force it to be
+        # rebuilt when apps are loaded later on.
+        non_compliant_app_names = []
+        for app_name, app in self.__application_pool.iteritems():
+            if not app.context_change_allowed:
+                non_compliant_app_names.append(app_name)
+
+        for app_name in non_compliant_app_names:
+            del self.__application_pool[app_name]
+
+        # Now that we're certain we can perform a context change,
+        # we can tell the environment what the new context is, update
+        # our own context property, and load the apps. The app load
+        # will repopulate the __applications dict to contain the appropriate
+        # apps for the new context, and will pull apps that have already
+        # been loaded from the __application_pool, which is persistent.
+        self.get_env().change_context(new_context)
+        self.context = new_context
+        self.__load_apps(reuse_existing_apps=True)
+
+        # Trigger the context change for each app. At this point any
+        # exceptions raised should be genuine problems that need to
+        # be bubbled up, so no exception handling here. We only need
+        # to trigger this for apps that were already running, as any
+        # apps that come along with the new context will have been
+        # started from scratch with the new context.
+        for app in self.__applications.values():
+            app.change_context(new_context)
     
     ##########################################################################################
     # public methods
@@ -1288,11 +1347,23 @@ class Engine(TankBundle):
     ##########################################################################################
     # private         
         
-    def __load_apps(self):
+    def __load_apps(self, reuse_existing_apps=False):
         """
         Populate the __applications dictionary, skip over apps that fail to initialize.
         """
+        # If this is a load as part of a context change, the applications
+        # dict will already have stuff in it. We can explicitly clean that
+        # out here since those apps also exist in self.__application_pool,
+        # which is persistent.
+        self.__applications = dict()
+
         for app_instance_name in self.__env.get_apps(self.__engine_instance_name):
+            # If we're told to reuse existing app instances, check for it and
+            # continue if it's already there. This is most likely a context
+            # change that's in progress, which means we only want to load apps
+            # that aren't already up and running.
+            if reuse_existing_apps and app_instance_name in self.__application_pool:
+                self.__applications[app_instance_name] = self.__application_pool[app_instance_name]
             
             # get a handle to the app bundle
             descriptor = self.__env.get_app_descriptor(self.__engine_instance_name, app_instance_name)
@@ -1382,7 +1453,9 @@ class Engine(TankBundle):
                 for msg in messages:
                     self.log_warning("")
                     self.log_warning(msg)
-                
+
+            # Update the persistent application pool for use in context changes.
+            self.__application_pool.update(self.__applications)
             
     def __destroy_frameworks(self):
         """

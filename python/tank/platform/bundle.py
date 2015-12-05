@@ -221,14 +221,20 @@ class TankBundle(object):
         
         return self.__cache_location
 
-    @property
-    def context(self):
+    def _get_context(self):
         """
         The current context associated with this item
         
         :returns: context object
         """
         return self.__context
+
+    def _set_context(self, new_context):
+        if not isinstance(new_context, self.__context.__class__):
+            raise TypeError("Given context must be of type tank.context.Context.")
+        self.__context = new_context
+
+    context = property(_get_context, _set_context)
 
     @property
     def shotgun(self):
@@ -263,6 +269,14 @@ class TankBundle(object):
     
     ##########################################################################################
     # public methods
+
+    def change_context(self, new_context):
+        """
+        Abstract method for context changing. If this has not been implemented
+        in the concrete class requesting the context change then NotImplementedError
+        is raised.
+        """
+        raise NotImplementedError()
 
     def import_module(self, module_name):
         """

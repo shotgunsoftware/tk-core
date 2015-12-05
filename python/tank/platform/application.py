@@ -43,6 +43,12 @@ class Application(TankBundle):
         self.__engine = engine
         self.__instance_name = instance_name
 
+        # By default we will assume that an app does not support context
+        # changes. When changing contexts, the engine and all active apps
+        # will need to explicitly support the switch. If any do not, the
+        # engine will be torn down and restarted.
+        self._context_change_allowed = False
+
         self.log_debug("App init: Instantiating %s" % self)
                 
         # now if a folder named python is defined in the app, add it to the pythonpath
@@ -108,10 +114,17 @@ class Application(TankBundle):
         """
         The engine that this app is connected to
         """
-        return self.__engine                
+        return self.__engine
+
+    @property
+    def context_change_allowed(self):
+        """
+        Whether the app allows a context change without the need for a restart.
+        """
+        return self._context_change_allowed
         
     ##########################################################################################
-    # init and destroy
+    # init, destroy, and context changing
         
     def init_app(self):
         """
@@ -135,7 +148,16 @@ class Application(TankBundle):
         Called by the engine as it is being destroyed.
         """
         pass
-    
+
+    def change_context(self, new_context):
+        """
+        Implemented by deriving classes in order to change the context
+        that the app is referencing. This does not have to be implemented
+        in an app that allows context changing (see context_change_allowed),
+        as it is possible and reasonable for the app to not have anything
+        special that needs to be done to work within the new context.
+        """
+        pass
     
     ##########################################################################################
     # logging methods, delegated to the current engine
