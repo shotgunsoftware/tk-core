@@ -32,7 +32,7 @@ from .zipfilehelper import unzip_file
 
 METADATA_FILE = ".metadata.json"
 
-class TankAppStoreDescriptor(AppDescriptor):
+class TankAppStoreDescriptor(VersionedSingletonDescriptor):
     """
     Represents an app store item.
 
@@ -42,10 +42,6 @@ class TankAppStoreDescriptor(AppDescriptor):
     - via the class method TankAppStoreDescriptor.find_latest_item()
 
     """
-    # This type of descriptor is treated as a singleton based
-    # on install path, name, and version number of the app, engine
-    # or framework.
-    __metaclass__ = VersionedSingletonDescriptor
 
     def __init__(self, pc_path, bundle_install_path, location_dict, bundle_type):
         super(TankAppStoreDescriptor, self).__init__(pc_path, bundle_install_path, location_dict)

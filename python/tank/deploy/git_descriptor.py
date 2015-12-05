@@ -26,7 +26,7 @@ from ..platform import constants
 from .descriptor import AppDescriptor, VersionedSingletonDescriptor
 from .zipfilehelper import unzip_file
 
-class TankGitDescriptor(AppDescriptor):
+class TankGitDescriptor(VersionedSingletonDescriptor):
     """
     Represents a repository in git. New versions are represented by new tags.
     
@@ -36,8 +36,6 @@ class TankGitDescriptor(AppDescriptor):
     git://github.com/manneohrstrom/tk-hiero-publish.git
     /full/path/to/local/repo.git
     """
-
-    __metaclass__ = VersionedSingletonDescriptor
 
     def __init__(self, pc_path, bundle_install_path, location_dict, type):
         super(TankGitDescriptor, self).__init__(pc_path, bundle_install_path, location_dict)
