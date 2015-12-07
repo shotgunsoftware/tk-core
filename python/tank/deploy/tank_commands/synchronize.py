@@ -10,7 +10,6 @@
 
 import os
 import tempfile
-import pprint
 import uuid
 from tank_vendor import yaml
 from .action_base import Action
