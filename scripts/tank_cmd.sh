@@ -20,7 +20,7 @@
 
 uname_os_str=`uname`
 
-if [[ "$uname_os_str" == MINGW32_NT* ]];
+if [[ "$uname_os_str" == MINGW64_NT* ]] || [[ "$uname_os_str" == MINGW32_NT* ]];
 then
 	curr_platform="Windows"
 	# see http://stackoverflow.com/questions/12015348/msys-path-conversion-or-cygpath-for-msys/12063651#12063651
