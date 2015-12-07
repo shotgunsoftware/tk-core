@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
+import sys
 import tempfile
 import uuid
 from tank_vendor import yaml
@@ -45,17 +46,18 @@ class SynchronizeConfigurationAction(Action):
 
         self.parameters = {}
         
-        self.parameters["pipeline_configuration"] = { "description": "Pipeline config id to sync",
-                                                      "default": "Primary",
-                                                      "type": "str" }
+        self.parameters["progress_callback"] = { 
+            "description": "Progress callback",
+            "default": None,
+            "type": "callable" }
         
-        self.parameters["project_id"] = { "description": "Shotgun id for the project you want to set up.",
-                                          "default": None,
-                                          "type": "int" }
-        
-        self.parameters["progress_callback"] = { "description": "Progress callback",
-                                                "default": None,
-                                                "type": "function" }
+        self.parameters["shotgun_pipeline_config_data"] = { 
+            "description": ("A Shotgun data dictionary with information about "
+                            "the pipeline configuration that is to be synced. "
+                            "This dictionary should include id, project and "
+                            "all the various path fields."),
+            "default": None,
+            "type": "dict" }
 
         
     def run_noninteractive(self, log, parameters):
@@ -70,8 +72,7 @@ class SynchronizeConfigurationAction(Action):
         computed_params = self._validate_parameters(parameters)
         
         return self._synchronize(log, 
-                                 parameters["project_id"], 
-                                 parameters["pipeline_configuration"],
+                                 parameters["shotgun_pipeline_config_data"], 
                                  computed_params["progress_callback"])
                         
     def run_interactive(self, log, args):
@@ -86,9 +87,22 @@ class SynchronizeConfigurationAction(Action):
 
         project_id = int(args[0])
         config_name = args[1]
-        self._synchronize(log, project_id, config_name)
+        
+        sg_data = self.tk.shotgun.find_one(
+           "PipelineConfiguration", 
+           [["code", "is", config_name], 
+            ["project", "is", {"type": "Project", "id": project_id}]],
+           ["id", "project", "windows_path", "mac_path", "linux_path", self.SG_CONFIG_FIELD])
+        
+        if sg_data is None:    
+            raise TankError("Couldn't find a pipeline configuration named '%s' "
+                            "for the given project" % config_name)
+        
+        log.debug("Resolved pipeline configuration: \n%s" % sg_data)
+        
+        return self._synchronize(log, sg_data)
     
-    def _synchronize(self, log, project_id, pipeline_config_name, progress_cb=None):
+    def _synchronize(self, log, sg_pc_data, progress_cb=None):
         """
         Do the actual synchronize.
         
@@ -106,22 +120,23 @@ class SynchronizeConfigurationAction(Action):
         each time with an incremented progress. This is an int value in percent.
         
         :param log: python log object
-        :param project_id: Project id to sync
-        :param pipeline_config_name: Pipeline configuration name
+        :param sg_pc_data: Shotgun pipeline config data dictionary describing 
+                           the item to be synced. Needs to include id, project
+                           and uploaded path field.
         :param progress_cb: Progress callback. See above for details.        
-        """
-        log.debug("Running synchronize for project id %d and pipeline config '%s'" % (project_id, pipeline_config_name))
+        :returns: The path to the pipeline configuration created
+        """        
         
-        pc = self.tk.shotgun.find_one("PipelineConfiguration", 
-                                      [["code", "is", pipeline_config_name], 
-                                       ["project", "is", {"type": "Project", "id": project_id}]],
-                                      ["id", "windows_path", "mac_path", "linux_path", self.SG_CONFIG_FIELD])
-        if pc is None:    
-            raise TankError("Couldn't find a pipeline configuration named '%s' for the given project" % pipeline_config_name)
+        # validate shotgun fields
+        for field in ["id", "project", self.SG_CONFIG_FIELD]:
+            if field not in sg_pc_data:
+                raise TankError("The required field '%s' is missing from the "
+                                "shotgun pipeline configuration data "
+                                "dictionary." % field)        
         
-        log.debug("Resolved pipeline configuration: \n%s" % pc)
+        log.debug("Resolved pipeline configuration: \n%s" % sg_pc_data)
 
-        if pc[self.SG_CONFIG_FIELD] is None:
+        if sg_pc_data[self.SG_CONFIG_FIELD] is None:
             log.info("This pipeline configuration does not have cloud data.") 
             return
 
@@ -160,24 +175,27 @@ class SynchronizeConfigurationAction(Action):
 
 
         # @TODO - support other attachment types (github urls!) 
-        if pc[self.SG_CONFIG_FIELD]["link_type"] != "upload":
+        if sg_pc_data[self.SG_CONFIG_FIELD]["link_type"] != "upload":
             raise TankError("Cloud based configuration currently only supports "
                             "uploaded configurations.")
         
-        # calculate where the config should go        
+        # for the site project, pass None instead of the project id
+        project_id = sg_pc_data["project"].get("id")
+        
+        # calculate where the config should go
         config_root = self.tk.execute_core_hook_method(constants.CACHE_LOCATION_HOOK_NAME,
                                                        "managed_config",
                                                        project_id=project_id,
-                                                       pipeline_configuration_id=pc["id"])
+                                                       pipeline_configuration_id=sg_pc_data["id"])
         
         log.debug("The local config is located here: '%s'" % config_root)
         
         # see what we have locally
-        status = self._check_local_status(pc[self.SG_CONFIG_FIELD], config_root)
+        status = self._check_local_status(sg_pc_data[self.SG_CONFIG_FIELD], config_root)
         
         if status == self.LOCAL_CFG_UP_TO_DATE:
             log.info("Your configuration is up to date.")
-            return
+            return config_root
         
         elif status == self.LOCAL_CFG_MISSING:
             log.info("A brand new configuration will be created locally.")
@@ -200,7 +218,7 @@ class SynchronizeConfigurationAction(Action):
         #
         zip_path = os.path.join(tempfile.gettempdir(), "tk_cfg_%s.zip" % uuid.uuid4().hex)
         log.debug("downloading attachment to '%s'" % zip_path)
-        bundle_content = self.tk.shotgun.download_attachment(pc[self.SG_CONFIG_FIELD]["id"])
+        bundle_content = self.tk.shotgun.download_attachment(sg_pc_data[self.SG_CONFIG_FIELD]["id"])
         fh = open(zip_path, "wb")
         fh.write(bundle_content)
         fh.close()
@@ -222,7 +240,7 @@ class SynchronizeConfigurationAction(Action):
             config_backup_path = self.tk.execute_core_hook_method(constants.CACHE_LOCATION_HOOK_NAME,
                                                                   "managed_config_backup",
                                                                   project_id=project_id,
-                                                                  pipeline_configuration_id=pc["id"])
+                                                                  pipeline_configuration_id=sg_pc_data["id"])
             # move it out of the way
             log.debug("Backing up config %s -> %s" % (config_root, config_backup_path))
             
@@ -237,7 +255,7 @@ class SynchronizeConfigurationAction(Action):
             config_root = self.tk.execute_core_hook_method(constants.CACHE_LOCATION_HOOK_NAME,
                                                            "managed_config",
                                                            project_id=project_id,
-                                                           pipeline_configuration_id=pc["id"])
+                                                           pipeline_configuration_id=sg_pc_data["id"])
         
         else:
             backup_target_path = None
@@ -305,7 +323,7 @@ class SynchronizeConfigurationAction(Action):
     
             # write info
             log.debug("Writing attachment metadata file")
-            self._write_config_info_file(pc[self.SG_CONFIG_FIELD], config_root)
+            self._write_config_info_file(sg_pc_data[self.SG_CONFIG_FIELD], config_root)
 
         except Exception, e:
             log.error("An error occurred during upgrade: %s" % e)
@@ -315,7 +333,7 @@ class SynchronizeConfigurationAction(Action):
                 failed_config_path = self.tk.execute_core_hook_method(constants.CACHE_LOCATION_HOOK_NAME,
                                                                       "managed_config_backup",
                                                                       project_id=project_id,
-                                                                      pipeline_configuration_id=pc["id"])
+                                                                      pipeline_configuration_id=sg_pc_data["id"])
                 
                 log.debug("Backing up failed config %s -> %s" % (config_root, failed_config_path))
                 failed_backup_target_path = os.path.join(config_backup_path, os.path.basename(config_root))
@@ -323,6 +341,8 @@ class SynchronizeConfigurationAction(Action):
                 
                 log.info("Restoring previous backup %s -> %s" % (config_backup_path, config_root))
                 os.rename(backup_target_path, config_root)
+                
+        return config_root
         
     def _write_config_info_file(self, sg_data, config_root):
         """
