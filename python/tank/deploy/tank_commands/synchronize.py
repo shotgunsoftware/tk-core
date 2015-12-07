@@ -190,7 +190,7 @@ class SynchronizeConfigurationAction(Action):
         # for the site project, pass None instead of the project id
         project_id = sg_pc_data["project"].get("id")
         
-        progress_cb("Analyzing exisiting configuration...")
+        progress_cb("Hang on, Checking configuration...")
         
         # calculate where the config should go
         config_root = self.tk.execute_core_hook_method(constants.CACHE_LOCATION_HOOK_NAME,
@@ -228,7 +228,7 @@ class SynchronizeConfigurationAction(Action):
         # @todo: maybe can use the config wrapper class used in proj setup
         # here to generically support any config 'uri'?
         #
-        progress_cb("Downloading configuration from Shotgun...")
+        progress_cb("Downloading Configuration Update...")
         zip_path = os.path.join(tempfile.gettempdir(), "tk_cfg_%s.zip" % uuid.uuid4().hex)
         log.debug("downloading attachment to '%s'" % zip_path)
         bundle_content = self.tk.shotgun.download_attachment(sg_pc_data[self.SG_CONFIG_FIELD]["id"])
@@ -255,7 +255,7 @@ class SynchronizeConfigurationAction(Action):
                                                                   project_id=project_id,
                                                                   pipeline_configuration_id=sg_pc_data["id"])
             # move it out of the way
-            progress_cb("Taking a backup of configuration...")
+            progress_cb("Backing up existing configuration...")
             log.debug("Backing up config %s -> %s" % (config_root, config_backup_path))
             
             # the config_backup_path has already been created by the hook, so we 
@@ -279,7 +279,7 @@ class SynchronizeConfigurationAction(Action):
             log.debug("Will synchronize into '%s'" % config_root)
             
             # check core
-            progress_cb("Downloading Toolkit Core...")
+            progress_cb("Downloading Toolkit Core Update...")
             
             core_location_path = os.path.join(zip_unpack_tmp, "core", "core_api.yml") 
             if os.path.exists(core_location_path):
@@ -321,7 +321,7 @@ class SynchronizeConfigurationAction(Action):
                 
             log.debug("Begin project sync!")
             
-            progress_cb("Synchronizing Project...")
+            progress_cb("Installing Update...")
             synchronize_project(log, 
                                 progress_cb, 
                                 self.tk.shotgun, 
@@ -350,7 +350,6 @@ class SynchronizeConfigurationAction(Action):
                 log.info("Restoring previous backup %s -> %s" % (config_backup_path, config_root))
                 os.rename(backup_target_path, config_root)
                 
-        progress_cb("Configuration update complete.")
         return config_root
         
     def _write_config_info_file(self, sg_data, config_root):

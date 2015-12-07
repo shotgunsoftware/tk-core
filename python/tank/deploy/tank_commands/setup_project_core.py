@@ -602,7 +602,7 @@ def _process_bundles(log, config_path, progress_cb, run_post_install):
         # note that we push percentages here to the progress bar callback
         # going from 0 to 100
         progress = (int)((float)(idx)/(float)(num_descriptors)*100)
-        progress_cb("Downloading apps...", progress)
+        progress_cb("Downloading %s..." % descriptor.get_system_name(), progress)
         
         if not descriptor.exists_local():
             log.info("Downloading %s to the local Toolkit install location..." % descriptor)            
