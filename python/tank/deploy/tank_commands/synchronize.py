@@ -55,7 +55,7 @@ class SynchronizeConfigurationAction(Action):
             "description": ("A Shotgun data dictionary with information about "
                             "the pipeline configuration that is to be synced. "
                             "This dictionary should include id, project and "
-                            "all the various path fields."),
+                            "the config attachment field."),
             "default": None,
             "type": "dict" }
 
@@ -92,7 +92,7 @@ class SynchronizeConfigurationAction(Action):
            "PipelineConfiguration", 
            [["code", "is", config_name], 
             ["project", "is", {"type": "Project", "id": project_id}]],
-           ["id", "project", "windows_path", "mac_path", "linux_path", self.SG_CONFIG_FIELD])
+           ["id", "project", self.SG_CONFIG_FIELD])
         
         if sg_data is None:    
             raise TankError("Couldn't find a pipeline configuration named '%s' "
@@ -125,8 +125,7 @@ class SynchronizeConfigurationAction(Action):
                            and uploaded path field.
         :param progress_cb: Progress callback. See above for details.        
         :returns: The path to the pipeline configuration created
-        """        
-        
+        """
         # validate shotgun fields
         for field in ["id", "project", self.SG_CONFIG_FIELD]:
             if field not in sg_pc_data:
@@ -173,14 +172,25 @@ class SynchronizeConfigurationAction(Action):
         #  'id': 142, 
         #  'link_type': 'local'}        
 
-
         # @TODO - support other attachment types (github urls!) 
         if sg_pc_data[self.SG_CONFIG_FIELD]["link_type"] != "upload":
             raise TankError("Cloud based configuration currently only supports "
                             "uploaded configurations.")
+
+        # set up progress callback        
+        if progress_cb is None:
+            # push progress reporting through the logger
+            def progress_fn(chapter, progress=None):
+                if progress:
+                    log.info("%s: %s%%" % (chapter, progress))
+                else:
+                    log.info("%s" % chapter)
+            progress_cb = progress_fn
         
         # for the site project, pass None instead of the project id
         project_id = sg_pc_data["project"].get("id")
+        
+        progress_cb("Analyzing exisiting configuration...")
         
         # calculate where the config should go
         config_root = self.tk.execute_core_hook_method(constants.CACHE_LOCATION_HOOK_NAME,
@@ -211,11 +221,14 @@ class SynchronizeConfigurationAction(Action):
         else:
             raise TankError("Unknown configuration update status!")
         
+        
+        
         # download config attachment from Shotgun
         #
         # @todo: maybe can use the config wrapper class used in proj setup
         # here to generically support any config 'uri'?
         #
+        progress_cb("Downloading configuration from Shotgun...")
         zip_path = os.path.join(tempfile.gettempdir(), "tk_cfg_%s.zip" % uuid.uuid4().hex)
         log.debug("downloading attachment to '%s'" % zip_path)
         bundle_content = self.tk.shotgun.download_attachment(sg_pc_data[self.SG_CONFIG_FIELD]["id"])
@@ -242,6 +255,7 @@ class SynchronizeConfigurationAction(Action):
                                                                   project_id=project_id,
                                                                   pipeline_configuration_id=sg_pc_data["id"])
             # move it out of the way
+            progress_cb("Taking a backup of configuration...")
             log.debug("Backing up config %s -> %s" % (config_root, config_backup_path))
             
             # the config_backup_path has already been created by the hook, so we 
@@ -264,17 +278,9 @@ class SynchronizeConfigurationAction(Action):
             # now begin deployment
             log.debug("Will synchronize into '%s'" % config_root)
             
-            if progress_cb is None:
-                # push progress reporting through the logger
-                def progress_fn(chapter, progress=None):
-                    if progress:
-                        log.info("%s: %s%%" % (chapter, progress))
-                    else:
-                        log.info("%s" % chapter)
-                
-                progress_cb = progress_fn
-            
             # check core
+            progress_cb("Downloading Toolkit Core...")
+            
             core_location_path = os.path.join(zip_unpack_tmp, "core", "core_api.yml") 
             if os.path.exists(core_location_path):
                 # the core_api.yml contains info about the core config:
@@ -314,6 +320,8 @@ class SynchronizeConfigurationAction(Action):
                 path_to_core = self.tk.pipeline_configuration.get_install_location()
                 
             log.debug("Begin project sync!")
+            
+            progress_cb("Synchronizing Project...")
             synchronize_project(log, 
                                 progress_cb, 
                                 self.tk.shotgun, 
@@ -342,6 +350,7 @@ class SynchronizeConfigurationAction(Action):
                 log.info("Restoring previous backup %s -> %s" % (config_backup_path, config_root))
                 os.rename(backup_target_path, config_root)
                 
+        progress_cb("Configuration update complete.")
         return config_root
         
     def _write_config_info_file(self, sg_data, config_root):
