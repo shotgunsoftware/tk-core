@@ -1578,9 +1578,20 @@ def find_app_settings(engine_name, app_name, tk, context, engine_instance_name=N
     return app_settings
     
 
-def start_shotgun_engine(tk, entity_type, context=None):
+def start_shotgun_engine(tk, entity_type, context):
     """
     Special, internal method that handles the shotgun engine.
+
+    :param tk:          tank instance
+    :param entity_type: type of the entity to use as a target for picking our
+                        shotgun environment
+    :param context:     context to use for the shotgun engine and its apps.
+
+                        If some apps require a specific context to extract
+                        information (e.g. they call a pick_environment hook to
+                        get the environment to use based on the context), this
+                        should be set to something other than the empty
+                        context.
     """
 
     # bypass the get_environment hook and use a fixed set of environments
