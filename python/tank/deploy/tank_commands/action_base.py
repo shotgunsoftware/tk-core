@@ -153,10 +153,17 @@ class Action(object):
         # pass 3 - check types of all params.
         for name in new_param_values:
             val = new_param_values[name]
-            val_type = val.__class__.__name__
             req_type = self.parameters[name].get("type")
-            if val is not None and val_type != req_type:
-                raise TankError("Cannot execute %s - parameter '%s' not of required type %s" % (self, name, req_type))
+            if req_type == "callable":
+                if not callable(val):
+                    raise TankError("Cannot execute %s - parameter '%s' is not "
+                                    "a callable method" % (self, name))
+            
+            else:
+                val_type = val.__class__.__name__
+                if val is not None and val_type != req_type:
+                    raise TankError("Cannot execute %s - parameter '%s' not of "
+                                    "required type %s" % (self, name, req_type))
         
         return new_param_values
         
