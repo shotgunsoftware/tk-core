@@ -493,6 +493,8 @@ class Engine(TankBundle):
                 non_compliant_app_names.append(app_name)
 
         for app_name in non_compliant_app_names:
+            # Destroy the app and remove it from the pool.
+            self.__application_pool[app_name].destroy_app()
             del self.__application_pool[app_name]
 
         # Now that we're certain we can perform a context change,
