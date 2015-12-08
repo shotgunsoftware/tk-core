@@ -23,7 +23,6 @@ import threading
 from .. import loader
 from .. import hook
 from ..errors import TankError, TankEngineInitError
-from ..deploy import descriptor
 from ..deploy.dev_descriptor import TankDevDescriptor
 
 from . import application
@@ -38,6 +37,8 @@ class Engine(TankBundle):
     """
     Base class for an engine in Tank.
     """
+
+    _ASYNC_INVOKER, _SYNC_INVOKER = range(2)
 
     def __init__(self, tk, context, engine_instance_name, env):
         """
@@ -65,7 +66,10 @@ class Engine(TankBundle):
         
         self.__global_progress_widget = None
         
+        # Initialize these early on so that methods implemented in the derived class and trying
+        # to access the invoker don't trip on undefined variables.
         self._invoker = None
+        self._async_invoker = None
         
         # get the engine settings
         settings = self.__env.get_engine_settings(self.__engine_instance_name)
@@ -123,7 +127,7 @@ class Engine(TankBundle):
         
         # create invoker to allow execution of functions on the
         # main thread:
-        self._invoker = self.__create_main_thread_invoker()
+        self._invoker, self._async_invoker = self.__create_invokers()
         
         # run any init that needs to be done before the apps are loaded:
         self.pre_app_init()
@@ -439,8 +443,8 @@ class Engine(TankBundle):
 
         # clean up the main thread invoker - it's a QObject so it's important we
         # explicitly set the value to None!
-        if self._invoker:
-            self._invoker = None
+        self._invoker = None
+        self._async_invoker = None
 
     def destroy_engine(self):
         """
@@ -560,55 +564,14 @@ class Engine(TankBundle):
     def execute_in_main_thread(self, func, *args, **kwargs):
         """
         Execute the specified function in the main thread when called from a non-main
-        thread.  This will block the calling thread until the function returns.
+        thread.  This will block the calling thread until the function returns. Note that this
+        method can introduce a deadlock if the main thread is waiting for a background thread
+        and the background thread is invoking this method. Since the main thread is waiting
+        for the background thread to finish, Qt's event loop won't be able to process the request
+        to execute in the main thread.
 
         Note, this currently only works if Qt is available, otherwise it just
-        executes on the current thread.
-
-        # ---------------------------------------------------------------------------------
-        # The following test checks that execute_in_main_thread is itself thread-safe!  It
-        # runs a simple test a number of times in multiple threads and ensures the result
-        # returned is as expected.  If this isn't the case it will print out one or more:
-        #     'Result mismatch...'
-        #
-        import threading
-        import random
-        import time
-        import sgtk
-        from sgtk.platform.qt import QtCore, QtGui
-
-        NUM_TEST_THREADS=20
-        NUM_THREAD_ITERATIONS=30
-
-        def run_in_main_thread(v):
-            print "Running", v
-            if QtCore.QThread.currentThread() != QtGui.QApplication.instance().thread():
-                print " > but not running in main thread!"
-            return v
-
-        def threaded_work(val):
-            eng = sgtk.platform.current_engine()
-            c_time = 0.0
-            for i in range(NUM_THREAD_ITERATIONS):
-                time.sleep(random.randint(0, 10)/10.0)
-                arg = (val, i)
-                st = time.time()
-                ret_val = eng.execute_in_main_thread(run_in_main_thread, arg)
-                e = time.time()
-                #print "Time to run: %0.4fs" % (e-st)
-                c_time += (e-st)
-                if ret_val != arg:
-                    print "Result mismatch: %s != %s!!" % (ret_val, arg)
-
-            print "Cumulative time for thread %d: %0.4fs" % (val, c_time)
-
-        threads = []
-        for ti in range(NUM_TEST_THREADS):
-            t = threading.Thread(target=lambda:threaded_work(ti))
-            t.start()
-            threads.append(t)
-        # ---------------------------------------------------------------------------------
-        # ---------------------------------------------------------------------------------
+        executes immediately on the current thread.
 
         :param func: function to call
         :param args: arguments to pass to the function
@@ -616,12 +579,46 @@ class Engine(TankBundle):
 
         :returns: the result of the function call
         """
-        if self._invoker:
+        return self._execute_in_main_thread(self._SYNC_INVOKER, func, *args, **kwargs)
+
+    def async_execute_in_main_thread(self, func, *args, **kwargs):
+        """
+        Execute the specified function in the main thread when called from a non-main
+        thread.  This call will return immediately and will not wait for the code to be
+        executed in the main thread.
+
+        Note, this currently only works if Qt is available, otherwise it just
+        executes immediately on the current thread.
+
+        :param func: function to call
+        :param args: arguments to pass to the function
+        :param kwargs: named arguments to pass to the function
+        """
+        self._execute_in_main_thread(self._ASYNC_INVOKER, func, *args, **kwargs)
+
+    def _execute_in_main_thread(self, invoker_id, func, *args, **kwargs):
+        """
+        Executes the given method and arguments with the specified invoker.
+        If the invoker is not ready or if the calling thread is the main thread,
+        the method is called immediately with it's arguments.
+
+        :param invoker_id: Either _ASYNC_INVOKER or _SYNC_INVOKER.
+        :param func: function to call
+        :param args: arguments to pass to the function
+        :param kwargs: named arguments to pass to the function
+
+        :returns: The return value from the invoker.
+        """
+        # Execute in main thread might be called before the invoker is ready.
+        # For example, an engine might use the invoker for logging to the main
+        # thread.
+        invoker = self._invoker if invoker_id == self._SYNC_INVOKER else self._async_invoker
+        if invoker:
             from .qt import QtGui, QtCore
-            if (QtGui.QApplication.instance() 
+            if (QtGui.QApplication.instance()
                 and QtCore.QThread.currentThread() != QtGui.QApplication.instance().thread()):
                 # invoke the function on the thread that the QtGui.QApplication was created on.
-                return self._invoker.invoke(func, *args, **kwargs)
+                return invoker.invoke(func, *args, **kwargs)
             else:
                 # we're already on the main thread so lets just call our function:
                 return func(*args, **kwargs)
@@ -1220,15 +1217,16 @@ class Engine(TankBundle):
         """
         return self.__shared_frameworks.get(instance_name, None)
 
-    def __create_main_thread_invoker(self):
+    def __create_invokers(self):
         """
         Create the object used to invoke function calls on the main thread when
         called from a different thread.
-
-        :returns:  Invoker instance
         """
+        invoker = None
+        async_invoker = None
         if self.has_ui:
             from .qt import QtGui, QtCore
+            # Classes are defined locally since Qt might not be available.
             if QtGui and QtCore:
                 class Invoker(QtCore.QObject):
                     """
@@ -1253,7 +1251,7 @@ class Engine(TankBundle):
                         :param **kwargs:    Named arguments for the function
                         :returns:           The result returned by the function
                         """
-                        # acquire lock to ensure that the function and result are not overwritten 
+                        # acquire lock to ensure that the function and result are not overwritten
                         # by syncrounous calls to this method from different threads
                         self._lock.acquire()
                         try:
@@ -1276,14 +1274,43 @@ class Engine(TankBundle):
                         """
                         self._res = self._fn()
 
+                class AsyncInvoker(QtCore.QObject):
+                    """
+                    Invoker class - implements a mechanism to execute a function with arbitrary
+                    args in the main thread asynchronously.
+                    """
+                    __signal = QtCore.Signal(object)
+
+                    def __init__(self):
+                        """
+                        Construction
+                        """
+                        QtCore.QObject.__init__(self)
+                        self.__signal.connect(self.__execute_in_main_thread)
+
+                    def invoke(self, fn, *args, **kwargs):
+                        """
+                        Invoke the specified function with the specified args in the main thread
+
+                        :param fn:          The function to execute in the main thread
+                        :param *args:       Args for the function
+                        :param **kwargs:    Named arguments for the function
+                        :returns:           The result returned by the function
+                        """
+
+                        self.__signal.emit(lambda: fn(*args, **kwargs))
+
+                    def __execute_in_main_thread(self, fn):
+                        fn()
+
                 # Make sure that the invoker exists in the main thread:
                 invoker = Invoker()
-                if QtGui.QApplication.instance():
-                    invoker.moveToThread(QtGui.QApplication.instance().thread())
-                return invoker
+                async_invoker = AsyncInvoker()
+                if QtCore.QCoreApplication.instance():
+                    invoker.moveToThread(QtCore.QCoreApplication.instance().thread())
+                    async_invoker.moveToThread(QtCore.QCoreApplication.instance().thread())
 
-        # don't have ui so can't create an invoker!
-        return None
+        return invoker, async_invoker
 
     ##########################################################################################
     # private         
@@ -1552,9 +1579,20 @@ def find_app_settings(engine_name, app_name, tk, context, engine_instance_name=N
     return app_settings
     
 
-def start_shotgun_engine(tk, entity_type, context=None):
+def start_shotgun_engine(tk, entity_type, context):
     """
     Special, internal method that handles the shotgun engine.
+
+    :param tk:          tank instance
+    :param entity_type: type of the entity to use as a target for picking our
+                        shotgun environment
+    :param context:     context to use for the shotgun engine and its apps.
+
+                        If some apps require a specific context to extract
+                        information (e.g. they call a pick_environment hook to
+                        get the environment to use based on the context), this
+                        should be set to something other than the empty
+                        context.
     """
 
     # bypass the get_environment hook and use a fixed set of environments
