@@ -37,6 +37,7 @@ from .tank_commands import clone_configuration
 from .tank_commands import copy_apps
 from .tank_commands import unregister_folders
 from .tank_commands import desktop_migration
+from .tank_commands import cache_yaml
 from .tank_commands import get_entity_commands
 
 from ..platform import constants
@@ -73,6 +74,7 @@ BUILT_IN_ACTIONS = [setup_project.SetupProjectAction,
                     clone_configuration.CloneConfigAction,
                     copy_apps.CopyAppsAction,
                     desktop_migration.DesktopMigration,
+                    cache_yaml.CacheYamlAction,
                     get_entity_commands.GetEntityCommandsAction
                     ]
 

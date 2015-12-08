@@ -23,10 +23,10 @@ from .util import subprocess_check_output, execute_git_command
 from ..api import Tank
 from ..errors import TankError
 from ..platform import constants
-from .descriptor import AppDescriptor
+from .descriptor import AppDescriptor, VersionedSingletonDescriptor
 from .zipfilehelper import unzip_file
 
-class TankGitDescriptor(AppDescriptor):
+class TankGitDescriptor(VersionedSingletonDescriptor):
     """
     Represents a repository in git. New versions are represented by new tags.
     

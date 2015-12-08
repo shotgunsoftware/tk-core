@@ -100,9 +100,9 @@ class Engine(TankBundle):
         # now if a folder named python is defined in the engine, add it to the pythonpath
         my_path = os.path.dirname(sys.modules[self.__module__].__file__)
         python_path = os.path.join(my_path, constants.BUNDLE_PYTHON_FOLDER)
-        if os.path.exists(python_path):            
-            # only append to python path if __init__.py does not exist
-            # if __init__ exists, we should use the special tank import instead
+        if os.path.exists(python_path):
+            # Only append if __init__.py doesn't exist. If it does then we
+            # should use the special tank import instead.
             init_path = os.path.join(python_path, "__init__.py")
             if not os.path.exists(init_path):
                 self.log_debug("Appending to PYTHONPATH: %s" % python_path)
@@ -1036,12 +1036,11 @@ class Engine(TankBundle):
         :param widget: widget to apply stylesheet to 
         """
         qss_file = os.path.join(bundle.disk_location, constants.BUNDLE_STYLESHEET_FILE)
-
-        if os.path.exists(qss_file):
-            self.log_debug("Detected std style sheet file '%s' - applying to widget %s" % (qss_file, widget))
+        try:
+            f = open(qss_file, "rt")
             try:
                 # Read css file
-                f = open(qss_file, "rt")
+                self.log_debug("Detected std style sheet file '%s' - applying to widget %s" % (qss_file, widget))
                 qss_data = f.read()
                 # resolve tokens
                 qss_data = self._resolve_sg_stylesheet_tokens(qss_data)
@@ -1049,11 +1048,13 @@ class Engine(TankBundle):
                 widget.setStyleSheet(qss_data)
             except Exception, e:
                 # catch-all and issue a warning and continue.
-                self._app.log_warning( "Could not apply stylesheet '%s': %s" % (qss_file, e) )
+                self.log_warning("Could not apply stylesheet '%s': %s" % (qss_file, e))
             finally:
                 f.close()
-    
-    
+        except IOError:
+            # The file didn't exist, so nothing to do.
+            pass
+
     def _define_qt_base(self):
         """
         This will be called at initialisation time and will allow 

@@ -20,7 +20,7 @@ import copy
 from tank_vendor import yaml
 from . import constants
 from . import environment_includes
-from ..errors import TankError
+from ..errors import TankError, TankUnreadableFileError
 from ..deploy import descriptor
 
 from ..util.yaml_cache import g_yaml_cache
@@ -67,10 +67,10 @@ class Environment(object):
     def _refresh(self):
         """Refreshes the environment data from disk
         """
-        if not os.path.exists(self._env_path):
-            raise TankError("Attempting to load non-existent environment file: %s" % self._env_path)
-
-        data = self.__load_data(self._env_path)
+        try:
+            data = self.__load_data(self._env_path)
+        except TankUnreadableFileError:
+            raise TankError("Unable to load environment file: %s" % self._env_path)
 
         self._env_data = environment_includes.process_includes(self._env_path, data, self.__context)
         
@@ -92,12 +92,11 @@ class Environment(object):
         # populate the above data structures
         # pass a copy of the data since process is destructive
         d = copy.deepcopy(self._env_data)
-        self.__process_engines(d)
+        self.__process_engines(d.get("engines"))
 
         if "frameworks" in self._env_data:
             # there are frameworks defined! Process them
-            d = copy.deepcopy(self._env_data)
-            self.__process_frameworks(d)
+            self.__process_frameworks(d.get("frameworks"))
 
         # now extract the location key for all the configs
         # these two dicts are keyed in the same way as the settings dicts
@@ -136,12 +135,10 @@ class Environment(object):
             if not self.__is_item_disabled(app_settings):
                 self.__app_settings[(engine, app)] = app_settings
 
-    def __process_engines(self, data):
+    def __process_engines(self, engines):
         """
         Populates the __engine_settings dict
         """
-        # assumes that there is an engines key in the data dict
-        engines = data.pop("engines")
         if engines is None:
             return
         # iterate over the engine dict
@@ -152,18 +149,15 @@ class Environment(object):
                 self.__process_apps(engine, engine_apps)
                 self.__engine_settings[engine] = engine_settings
 
-    def __process_frameworks(self, data):
+    def __process_frameworks(self, frameworks):
         """
         Populates the __frameworks_settings dict
         """
-        # assumes that there is an frameworks key in the data dict
-        frameworks = data.pop("frameworks")
         if frameworks is None:
             return
 
-        # iterate over the engine dict
         for fw, fw_settings in frameworks.items():
-            # Check for engine disabled
+            # Check for framework disabled
             if not self.__is_item_disabled(fw_settings):
                 self.__framework_settings[fw] = fw_settings
 
@@ -334,6 +328,10 @@ class Environment(object):
                                          location_dict)
 
         return d
+
+    def set_context(self, context):
+        self.__context = context
+        self._refresh()
 
     ##########################################################################################
     # Public methods - data update

@@ -16,7 +16,7 @@ import os
 import threading
 from . import loader
 from .platform import constants
-from .errors import TankError
+from .errors import TankError, TankFileDoesNotExistError
 
 class Hook(object):
     """
@@ -234,7 +234,7 @@ def execute_hook_method(hook_paths, parent, method_name, **kwargs):
     for hook_path in hook_paths:
 
         if not os.path.exists(hook_path):
-            raise TankError("Cannot execute hook '%s' - this file does not exist on disk!" % hook_path)
+            raise TankFileDoesNotExistError("Cannot execute hook '%s' - this file does not exist on disk!" % hook_path)
 
         # look to see if we've already loaded this hook into the cache
         found_hook_class = _hooks_cache.find(hook_path, _current_hook_baseclass.value)         
