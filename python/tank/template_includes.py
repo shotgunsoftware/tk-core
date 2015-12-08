@@ -105,7 +105,7 @@ def _process_template_includes_r(file_name, data):
     included_paths = _get_includes(file_name, data)
     
     for included_path in included_paths:
-        included_data = yaml_cache.g_yaml_cache.get(included_path, deepcopy_data=False)
+        included_data = yaml_cache.g_yaml_cache.get(included_path, deepcopy_data=False) or dict()
         
         # before doing any type of processing, allow the included data to be resolved.
         included_data = _process_template_includes_r(included_path, included_data)
