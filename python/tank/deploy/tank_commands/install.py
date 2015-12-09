@@ -219,7 +219,7 @@ class InstallAppAction(Action):
             # this is a local path on disk, meaning that we should set up a dev descriptor!
             log.info("Looking for a locally installed app in '%s'..." % app_name) 
             location = {"type": "dev", "path": app_name}
-            tmp_descriptor = self.tk.pipeline_configuration.get_app_descriptor(location)
+            app_descriptor = self.tk.pipeline_configuration.get_app_descriptor(location)
         
         else:
             # this is an app store app!
