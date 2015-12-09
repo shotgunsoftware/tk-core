@@ -45,7 +45,17 @@ class CacheItem(object):
         """
         self._path = os.path.normpath(path)
         self._data = data
-        self._stat = stat
+
+        if stat is None:
+            try:
+                self._stat = os.stat(self.path)
+            except Exception, exc:
+                raise TankUnreadableFileError(
+                    "Unable to stat file '%s': %s" % (self.path, exc)
+                )
+        else:
+            self._stat = stat
+            
 
     def _get_data(self):
         """The item's data."""
@@ -64,13 +74,6 @@ class CacheItem(object):
     @property
     def stat(self):
         """The stat of the file on disk that the item was sourced from."""
-        if self._stat is None:
-            try:
-                self._stat = os.stat(self.path)
-            except Exception, exc:
-                raise TankUnreadableFileError(
-                    "Unable to stat file '%s': %s" % (self.path, exc)
-                )
         return self._stat
 
     def given_item_newer(self, other):
@@ -220,7 +223,7 @@ class YamlCache(object):
                 # Since this isn't a static cache, we need to make sure
                 # that we don't need to invalidate and recache this item
                 # based on mod time and file size on disk.
-                if cached_item and (cached_item == item or item.given_item_newer(cached_item)):
+                if cached_item and cached_item == item:
                     # It's already in the cache and matches mtime
                     # and file size, so we can just return what we
                     # already have. It's technically identical in
