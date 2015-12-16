@@ -223,13 +223,16 @@ class TankBundle(object):
 
     def _get_context(self):
         """
-        The current context associated with this item
+        The current context associated with this item.
         
         :returns: context object
         """
         return self.__context
 
     def _set_context(self, new_context):
+        """
+        Sets the current context associated with this item.
+        """
         if not isinstance(new_context, self.__context.__class__):
             raise TypeError("Given context must be of type tank.context.Context.")
         self.__context = new_context

@@ -17,7 +17,7 @@ from .application import Application
 from .engine import Engine
 from .framework import Framework
 
-from ..errors import TankError, TankContextChangeNotAllowedError
+from ..errors import TankError, TankContextChangeNotAllowed
 
 ################################################################################################
 # internal methods
@@ -108,7 +108,7 @@ def change_context(new_context):
     try:
         engine.change_context(new_context)
         engine.log_debug("Context changed successfully.")
-    except TankContextChangeNotAllowedError:
+    except TankContextChangeNotAllowed:
         engine.log_debug("Context change not allowed by engine, restarting.")
         restart(new_context)
 

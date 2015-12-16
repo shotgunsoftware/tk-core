@@ -23,7 +23,7 @@ import threading
 from .. import loader
 from .. import hook
 
-from ..errors import TankError, TankEngineInitError, TankContextChangeNotAllowedError
+from ..errors import TankError, TankEngineInitError, TankContextChangeNotAllowed
 from ..deploy import descriptor
 from ..deploy.dev_descriptor import TankDevDescriptor
 
@@ -73,12 +73,6 @@ class Engine(TankBundle):
         # to access the invoker don't trip on undefined variables.
         self._invoker = None
         self._async_invoker = None
-
-        # By default we will assume that an engine does not support context
-        # changes. When changing contexts, the engine and all active apps
-        # will need to explicitly support the switch. If any do not, the
-        # engine will be torn down and restarted.
-        self._context_change_allowed = False
         
         # get the engine settings
         settings = self.__env.get_engine_settings(self.__engine_instance_name)
@@ -409,9 +403,11 @@ class Engine(TankBundle):
     @property
     def context_change_allowed(self):
         """
-        Whether the engine allows a context change without the need for a restart.
+        Whether the engine allows a context change without the need for a restart. If
+        context changing is to be allowed by the engine, this property should be
+        overridden in the deriving class and set to return True.
         """
-        return self._context_change_allowed
+        return False
     
     ##########################################################################################
     # init and destroy
@@ -481,7 +477,7 @@ class Engine(TankBundle):
         """
         # Make sure we're allowed to change context at the engine level.
         if not self.context_change_allowed:
-            raise TankContextChangeNotAllowedError()
+            raise TankContextChangeNotAllowed()
 
         # Check to see if all of our apps are capable of accepting
         # a context change. If one of them is not, then we remove it
@@ -1381,6 +1377,10 @@ class Engine(TankBundle):
     def __load_apps(self, reuse_existing_apps=False):
         """
         Populate the __applications dictionary, skip over apps that fail to initialize.
+
+        :param reuse_existing_apps:     Whether to use already-running apps rather than
+                                        starting up a new instance. This is primarily
+                                        used during context changes. Default is False.
         """
         # If this is a load as part of a context change, the applications
         # dict will already have stuff in it. We can explicitly clean that
@@ -1395,6 +1395,7 @@ class Engine(TankBundle):
             # that aren't already up and running.
             if reuse_existing_apps and app_instance_name in self.__application_pool:
                 self.__applications[app_instance_name] = self.__application_pool[app_instance_name]
+                continue
             
             # get a handle to the app bundle
             descriptor = self.__env.get_app_descriptor(self.__engine_instance_name, app_instance_name)
