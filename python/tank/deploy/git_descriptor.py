@@ -145,9 +145,10 @@ class TankGitDescriptor(VersionedSingletonDescriptor):
         
         :param pattern: Version patterns are on the following forms:
         
-            - v1.2.3 (means the descriptor returned will inevitably be same as self)
-            - v1.2.x 
-            - v1.x.x
+            - v1.2.3 (can return this v1.2.3 but also any forked version under, eg. v1.2.3.2)
+            - v1.2.x (examples: v1.2.4, or a forked version v1.2.4.2)
+            - v1.x.x (examples: v1.3.2, a forked version v1.3.2.2)
+            - v1.2.3.x (will always return a forked version, eg. v1.2.3.2)
 
         :returns: descriptor object
         """
@@ -177,78 +178,71 @@ class TankGitDescriptor(VersionedSingletonDescriptor):
             raise TankError("Git repository %s doesn't seem to have any tags!" % self._path)
 
         # now put all version number strings which match the form
-        # vX.Y.Z into a nested dictionary where it is keyed by major,
-        # then minor then increment.
+        # vX.Y.Z(.*) into a nested dictionary where it is keyed recursively
+        # by each digit (ie. major, minor, increment, then any additional
+        # digit optionally used by forked versions)
         #
         # For example, the following versions:
-        # v1.2.1, v1.2.2, v1.2.3, v1.4.3, v1.4.2, v1.4.1
+        # v1.2.1, v1.2.2, v1.2.3.1, v1.4.3, v1.4.2.1, v1.4.2.2, v1.4.1, 
         # 
         # Would generate the following:
-        # { "1": { "2": [1,2,3], "4": [3,2,1] } }
+        # {1: {2: {1: {}, 2: {}, 3: {1: {}}}, 4: {1: {}, 2: {1: {}, 2: {}}, 3: {}}}}
         #  
         
         versions = {}
-        
         for version_num in git_tags:
-
             try:
-                (major_str, minor_str, increment_str) = version_num[1:].split(".")
-                (major, minor, increment) = (int(major_str), int(minor_str), int(increment_str))
+                version_split = map(int, version_num[1:].split("."))
             except:
-                # this version number was not on the form vX.Y.Z where X Y and Z are ints. skip.
+                # this git tag is not on the expected form vX.Y.Z where X Y and Z are ints. skip.
                 continue
-            
-            if major not in versions:
-                versions[major] = {}
-            if minor not in versions[major]:
-                versions[major][minor] = []
-            if increment not in versions[major][minor]:
-                versions[major][minor].append(increment)
+            if len (version_split) < 3:
+                # git tag has no minor or increment number. skip.
+                continue
 
+            # fill our versions dictionary
+            current = versions
+            for number in version_split:
+                if number not in current:
+                    current[number] = {}
+                current = current[number]
 
-        # now handle the different version strings
+        # now search for the latest version matching our pattern
         version_to_use = None
-        if "x" not in pattern:
-            # we are looking for a specific version
-            if pattern not in git_tags:
-                raise TankError("Could not find requested version '%s' in '%s'." % (pattern, self._path))
-            else:
-                # the requested version exists in the app store!
-                version_to_use = pattern 
-        
-        elif re.match("v[0-9]+\.x\.x", pattern):
-            # we have a v123.x.x pattern
-            (major_str, _, _) = pattern[1:].split(".")
-            major = int(major_str)
-            
-            if major not in versions:
-                raise TankError("%s does not have a version matching the pattern '%s'. "
-                                "Available versions are: %s" % (self._path, pattern, ", ".join(git_tags)))
-
-            # now find the max version
-            max_minor = max(versions[major].keys())            
-            max_increment = max(versions[major][max_minor])
-            version_to_use = "v%s.%s.%s" % (major, max_minor, max_increment)
-            
-            
-        elif re.match("v[0-9]+\.[0-9]+\.x", pattern):
-            # we have a v123.345.x pattern
-            (major_str, minor_str, _) = pattern[1:].split(".")
-            major = int(major_str)
-            minor = int(minor_str)
-
-            # make sure the constraints are fulfilled
-            if (major not in versions) or (minor not in versions[major]):
-                raise TankError("%s does not have a version matching the pattern '%s'. "
-                                "Available versions are: %s" % (self._path, pattern, ", ".join(git_tags)))
-            
-            # now find the max increment
-            max_increment = max(versions[major][minor])
-            version_to_use = "v%s.%s.%s" % (major, minor, max_increment)
-        
+        if re.match("^v([0-9]+|x)(.([0-9]+|x)){2,}$", pattern):
+            # split our pattern, beware each part is a string (even integers)
+            version_split = re.findall("([0-9]+|x)", pattern)
+            if 'x' in version_split:
+                # check that we don't have an incorrect pattern using x
+                # then a digit, eg. v4.x.2
+                first_x = version_split.index('x')
+                if version_split[first_x:].count('x') < len(version_split)-first_x:
+                    raise TankError("Incorrect pattern. There should be no digit after a 'x'.")
+            current = versions
+            version_to_use = None
+            # process each digit in the pattern
+            for version_digit in version_split:
+                if version_digit == 'x':
+                    # replace the 'x' by the latest at this level
+                    version_digit = max(current.keys(), key=int)
+                version_digit = int(version_digit)
+                if version_digit not in current:
+                    raise TankError("%s does not have a version matching the pattern '%s'. "
+                                    "Available versions are: %s" % (self._path, pattern, ", ".join(git_tags)))
+                current = current[version_digit]
+                if version_to_use is None:
+                    version_to_use = "v%d" % version_digit
+                else:
+                    version_to_use = version_to_use + ".%d" % version_digit
+            # at this point we have a matching version (eg. v4.x.x => v4.0.2) but
+            # there may be forked versions under this 4.0.2, so continue to recurse into
+            # the versions dictionary to find the latest forked version
+            while len(current):
+                version_digit = max(current.keys())
+                current = current[version_digit]
+                version_to_use = version_to_use + ".%d" % version_digit
         else:
             raise TankError("Cannot parse version expression '%s'!" % pattern)
-
 
         new_loc_dict = copy.deepcopy(self._location_dict)
         new_loc_dict["version"] = version_to_use
