@@ -43,12 +43,6 @@ class Application(TankBundle):
         self.__engine = engine
         self.__instance_name = instance_name
 
-        # By default we will assume that an app does not support context
-        # changes. When changing contexts, the engine and all active apps
-        # will need to explicitly support the switch. If any do not, the
-        # engine will be torn down and restarted.
-        self._context_change_allowed = False
-
         self.log_debug("App init: Instantiating %s" % self)
                 
         # now if a folder named python is defined in the app, add it to the pythonpath
@@ -120,8 +114,10 @@ class Application(TankBundle):
     def context_change_allowed(self):
         """
         Whether the app allows a context change without the need for a restart.
+        If an app supports on-the-fly context changing, this property should
+        be overridden in the deriving class and forced to return True.
         """
-        return self._context_change_allowed
+        return False
         
     ##########################################################################################
     # init, destroy, and context changing
