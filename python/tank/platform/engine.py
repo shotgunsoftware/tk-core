@@ -23,7 +23,7 @@ import threading
 from .. import loader
 from .. import hook
 
-from ..errors import TankError, TankEngineInitError, TankContextChangeNotAllowed
+from ..errors import TankError, TankEngineInitError, TankContextChangeNotAllowedError
 from ..deploy import descriptor
 from ..deploy.dev_descriptor import TankDevDescriptor
 
@@ -433,6 +433,29 @@ class Engine(TankBundle):
         Implemented by deriving classes.
         """
         pass
+
+    def pre_context_change(self, old_context, new_context):
+        """
+        Called before an engine context change, but after it has been
+        verified that the engine does support a context change.
+
+        Implemented by deriving classes.
+
+        :param old_context:     The context being changed away from.
+        :param new_context:     The context being changed to.
+        """
+        pass
+
+    def post_context_change(self, old_context, new_context):
+        """
+        Called after an engine context change.
+
+        Implemented by deriving classes.
+
+        :param old_context:     The context being changed away from.
+        :param new_context:     The context being changed to.
+        """
+        pass
     
     def destroy(self):
         """
@@ -468,30 +491,39 @@ class Engine(TankBundle):
     def change_context(self, new_context):
         """
         Called when the engine is being asked to change contexts. This
-        will only be allowed if the engine and all associated apps allow
-        a context change. In most cases this will also be implemented on
-        deriving classes to handle some DCC-specific operations, such as
-        menu reconstruction based on the new context. In those cases, this
-        parent change_context method should be called from the overriding
-        method first via super().
+        will only be allowed if the engine explicitly suppose on-the-fly
+        context changes by way of its context_change_allowed property. Any
+        apps that do not support context changing will be restarted instead.
+        Custom behavior at the engine level should be handled by overriding
+        one or both of pre_context_change and post_context_change methods.
+
+        :param new_context:     The context to change to.
         """
         # Make sure we're allowed to change context at the engine level.
         if not self.context_change_allowed:
-            raise TankContextChangeNotAllowed()
+            self.log_debug("Engine %s does not allow context changes." % self.name)
+            raise TankContextChangeNotAllowedError()
+
+        # Run the pre_context_change method to allow for any engine-specific
+        # prep work to happen.
+        self.pre_context_change(self.context, new_context)
 
         # Check to see if all of our apps are capable of accepting
         # a context change. If one of them is not, then we remove it
         # from the persistent app pool, which will force it to be
         # rebuilt when apps are loaded later on.
-        non_compliant_app_names = []
-        for app_name, app in self.__application_pool.iteritems():
+        non_compliant_app_descriptors = []
+        for descriptor, app in self.__application_pool.iteritems():
             if not app.context_change_allowed:
-                non_compliant_app_names.append(app_name)
+                self.log_debug(
+                    "App %s does not allow context changes and will be restarted." % app.name
+                )
+                non_compliant_app_descriptors.append(descriptor)
 
-        for app_name in non_compliant_app_names:
+        for descriptor in non_compliant_app_descriptors:
             # Destroy the app and remove it from the pool.
-            self.__application_pool[app_name].destroy_app()
-            del self.__application_pool[app_name]
+            self.__application_pool[descriptor].destroy_app()
+            del self.__application_pool[descriptor]
 
         # Now that we're certain we can perform a context change,
         # we can tell the environment what the new context is, update
@@ -500,17 +532,13 @@ class Engine(TankBundle):
         # apps for the new context, and will pull apps that have already
         # been loaded from the __application_pool, which is persistent.
         self.get_env().change_context(new_context)
+        old_context = self.context
         self.context = new_context
         self.__load_apps(reuse_existing_apps=True)
 
-        # Trigger the context change for each app. At this point any
-        # exceptions raised should be genuine problems that need to
-        # be bubbled up, so no exception handling here. We only need
-        # to trigger this for apps that were already running, as any
-        # apps that come along with the new context will have been
-        # started from scratch with the new context.
-        for app in self.__applications.values():
-            app.change_context(new_context)
+        # Call the post_context_change method to allow for any engine
+        # specific post-change logic to be run.
+        self.post_context_change(old_context, new_context)
     
     ##########################################################################################
     # public methods
@@ -1389,20 +1417,20 @@ class Engine(TankBundle):
         self.__applications = dict()
 
         for app_instance_name in self.__env.get_apps(self.__engine_instance_name):
-            # If we're told to reuse existing app instances, check for it and
-            # continue if it's already there. This is most likely a context
-            # change that's in progress, which means we only want to load apps
-            # that aren't already up and running.
-            if reuse_existing_apps and app_instance_name in self.__application_pool:
-                self.__applications[app_instance_name] = self.__application_pool[app_instance_name]
-                continue
-            
-            # get a handle to the app bundle
+            # Get a handle to the app bundle. The descriptor will also be used
+            # to key our persistent pool of apps. Since git and app_store type
+            # descriptors are singletons based on app name, version, and install
+            # root we will ensure that we're reusing the exact app that the env
+            # is asking for. With dev descriptor apps, we will never reuse, which
+            # will work the same way because dev descriptors are not singletons,
+            # which means we will never find the app in the persistent pool and
+            # will start it fresh each time.
             descriptor = self.__env.get_app_descriptor(self.__engine_instance_name, app_instance_name)
+
             if not descriptor.exists_local():
                 self.log_error("Cannot start app! %s does not exist on disk." % descriptor)
                 continue
-            
+
             # Load settings for app - skip over the ones that don't validate
             try:
                 # get the app settings data and validate it.
@@ -1412,7 +1440,7 @@ class Engine(TankBundle):
                 # check that the context contains all the info that the app needs
                 if self.__engine_instance_name != constants.SHOTGUN_ENGINE_NAME: 
                     # special case! The shotgun engine is special and does not have a 
-                    # context until you actually run a command, so disable the valiation
+                    # context until you actually run a command, so disable the validation.
                     validation.validate_context(descriptor, self.context)
                 
                 # make sure the current operating system platform is supported
@@ -1427,8 +1455,7 @@ class Engine(TankBundle):
                 
                 # now validate the configuration                
                 validation.validate_settings(app_instance_name, self.tank, self.context, app_schema, app_settings)
-                
-                    
+
             except TankError, e:
                 # validation error - probably some issue with the settings!
                 # report this as an error message.
@@ -1443,8 +1470,20 @@ class Engine(TankBundle):
                                    "validate the configuration loaded from '%s' for app %s. "
                                    "The app will not be loaded." % (self.__env.disk_location, app_instance_name))
                 continue
+
+            # If we're told to reuse existing app instances, check for it and
+            # continue if it's already there. This is most likely a context
+            # change that's in progress, which means we only want to load apps
+            # that aren't already up and running.
+            if reuse_existing_apps and descriptor in self.__application_pool:
+                self.__applications[app_instance_name] = self.__application_pool[descriptor]
+
+                # Make sure that the app that we're reusing is set to the
+                # correct context.
+                self.__applications[app_instance_name].change_context(self.context)
+
+                continue
             
-                                    
             # load the app
             try:
                 # now get the app location and resolve it into a version object
@@ -1487,7 +1526,8 @@ class Engine(TankBundle):
                     self.log_warning(msg)
 
             # Update the persistent application pool for use in context changes.
-            self.__application_pool.update(self.__applications)
+            for app in self.__applications.values():
+                self.__application_pool[app.descriptor] = app
             
     def __destroy_frameworks(self):
         """
