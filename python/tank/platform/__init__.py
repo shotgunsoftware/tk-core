@@ -105,6 +105,11 @@ def change_context(new_context):
     if not isinstance(new_context, engine.context.__class__):
         raise TankError("Given new context must be of type tank.context.Context.")
 
+    # Nothing to do if the new context is the same as the old.
+    if new_context == engine.context:
+        engine.log_debug("Old and new contexts are identical. Not changing context.")
+        return
+
     try:
         engine.change_context(new_context)
         engine.log_debug("Context changed successfully.")

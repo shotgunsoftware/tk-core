@@ -44,6 +44,12 @@ class AppDescriptor(object):
     # constants describing the type of item we are describing
     APP, ENGINE, FRAMEWORK = range(3)
 
+    # Constant defining any direct subclass as being non-singleton in behavior
+    # unless otherwise overridden. This helps in defining the behavior of context
+    # changes at the engine level when dealing with a pool of apps that might
+    # or might not be treated as persistent across context changes.
+    IS_SINGLETON = False
+
     def __init__(self, pipeline_config_path, bundle_install_path, location_dict):
         self._pipeline_config_path = pipeline_config_path
         self._bundle_install_path = bundle_install_path
@@ -435,6 +441,9 @@ class VersionedSingletonDescriptor(AppDescriptor):
     name, and version number.
     """
     _instances = dict()
+
+    # Constant defining any direct subclass as being singleton in behavior.
+    IS_SINGLETON = True
 
     def __new__(cls, pc_path, bundle_install_path, location_dict, *args, **kwargs):
         # We will cache based on the bundle install path, name of the

@@ -519,6 +519,10 @@ class Engine(TankBundle):
                     "App %s does not allow context changes and will be restarted." % app.name
                 )
                 non_compliant_app_descriptors.append(descriptor)
+            else:
+                # Run the pre-change method on each app to give them
+                # the opportunity to run any app-specific preprocessing.
+                app.pre_context_change(self.context, new_context)
 
         for descriptor in non_compliant_app_descriptors:
             # Destroy the app and remove it from the pool.
@@ -534,7 +538,7 @@ class Engine(TankBundle):
         self.get_env().change_context(new_context)
         old_context = self.context
         self.context = new_context
-        self.__load_apps(reuse_existing_apps=True)
+        self.__load_apps(reuse_existing_apps=True, old_context=old_context)
 
         # Call the post_context_change method to allow for any engine
         # specific post-change logic to be run.
@@ -1402,13 +1406,18 @@ class Engine(TankBundle):
     ##########################################################################################
     # private         
         
-    def __load_apps(self, reuse_existing_apps=False):
+    def __load_apps(self, reuse_existing_apps=False, old_context=None):
         """
         Populate the __applications dictionary, skip over apps that fail to initialize.
 
         :param reuse_existing_apps:     Whether to use already-running apps rather than
                                         starting up a new instance. This is primarily
                                         used during context changes. Default is False.
+        :param old_context:             In the event of a context change occurring, this
+                                        represents the context being changed away from,
+                                        which will be provided along with the current
+                                        context to each reused app's post_context_change
+                                        method.
         """
         # If this is a load as part of a context change, the applications
         # dict will already have stuff in it. We can explicitly clean that
@@ -1478,9 +1487,13 @@ class Engine(TankBundle):
             if reuse_existing_apps and descriptor in self.__application_pool:
                 self.__applications[app_instance_name] = self.__application_pool[descriptor]
 
-                # Make sure that the app that we're reusing is set to the
-                # correct context.
-                self.__applications[app_instance_name].change_context(self.context)
+                # Run the post_context_change method for the app if we were given
+                # an old_context.
+                if old_context is not None:
+                    self.__applications[app_instance_name].post_context_change(
+                        old_context,
+                        self.context,
+                    )
 
                 continue
             
@@ -1527,7 +1540,18 @@ class Engine(TankBundle):
 
             # Update the persistent application pool for use in context changes.
             for app in self.__applications.values():
-                self.__application_pool[app.descriptor] = app
+                # We will only track apps that we know can handle a context
+                # change. Any that do not will not be treated as a persistent
+                # app. Similarly, if the app's descriptor isn't a singleton, then
+                # there is no point in adding it to the pool, as we'll never
+                # find it on subsequent app loads. This covers the "dev" descriptor,
+                # which we always want to reload due to its nature as a "sandbox"
+                # descriptor for developers making live code changes. The other
+                # descriptor types (git and app_store) are singletons based on
+                # app name, version, and install root. As a result, apps sourced
+                # in this way can be treated as persistent.
+                if app.context_change_allowed and app.descriptor.IS_SINGLETON:
+                    self.__application_pool[app.descriptor] = app
             
     def __destroy_frameworks(self):
         """

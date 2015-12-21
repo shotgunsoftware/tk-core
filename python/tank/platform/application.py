@@ -145,13 +145,23 @@ class Application(TankBundle):
         """
         pass
 
-    def change_context(self, new_context):
+    def pre_context_change(self, old_context, new_context):
         """
-        Implemented by deriving classes in order to change the context
-        that the app is referencing. This does not have to be implemented
-        in an app that allows context changing (see context_change_allowed),
-        as it is possible and reasonable for the app to not have anything
-        special that needs to be done to work within the new context.
+        Run prior to a change in context at the engine level if this app
+        supports on-the-fly context changing (see context_change_allowed).
+
+        :param old_context:     The old context being changed away from.
+        :param new_context:     The new context being changed to.
+        """
+        pass
+
+    def post_context_change(self, old_context, new_context):
+        """
+        Run after a change in context at the engine level if this app
+        supports on-the-fly context changing (see context_change_allowed).
+
+        :param old_context:     The old context being changed away from.
+        :param new_context:     The new context being changed to.
         """
         pass
     
