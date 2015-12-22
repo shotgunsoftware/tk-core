@@ -95,18 +95,25 @@ class Application(TankBundle):
             pass
         
         return self.tank.shotgun        
-        
-    @property
-    def instance_name(self):
+
+    def _get_instance_name(self):
         """
-        The name for this app instance
+        The name for this app instance.
         """
         return self.__instance_name
+
+    def _set_instance_name(self, instance_name):
+        """
+        Sets the instance name of the app.
+        """
+        self.__instance_name = instance_name
+
+    instance_name = property(_get_instance_name, _set_instance_name)
         
     @property
     def engine(self):
         """
-        The engine that this app is connected to
+        The engine that this app is connected to.
         """
         return self.__engine
 

@@ -57,8 +57,7 @@ class TankBundle(object):
         """
         return self.__descriptor
     
-    @property
-    def settings(self):
+    def _get_settings(self):
         """
         Internal method - not part of Tank's public interface.
         This method may be changed or even removed at some point in the future.
@@ -66,6 +65,17 @@ class TankBundle(object):
         do not use in any app code. 
         """
         return self.__settings
+
+    def _set_settings(self, settings):
+        """
+        Internal method - not part of Tank's public interface.
+        This method may be changed or even removed at some point in the future.
+        We leave no guarantees that it will remain unchanged over time, so 
+        do not use in any app code. 
+        """
+        self.__settings = settings
+
+    settings = property(_get_settings, _set_settings)
     
     ##########################################################################################
     # methods used by internal classes, not part of the public interface

@@ -504,6 +504,39 @@ class Engine(TankBundle):
             self.log_debug("Engine %s does not allow context changes." % self.name)
             raise TankContextChangeNotAllowedError()
 
+        # Make sure that this engine is configured to run in the new context,
+        # and that it's the EXACT same engine. This can be handled by comparing
+        # the current engine's descriptor to the one coming from the new environment.
+        # If this fails then it's more than just the engine not supporting the
+        # context change, it's that the target context isn't configured properly.
+        # As such, we'll let any exceptions (mostly TankEngineInitError) bubble
+        # up since it's a critical error case.
+        (new_env, engine_descriptor) = _get_env_and_descriptor_for_engine(
+            engine_name=self.instance_name,
+            tk=self.tank,
+            context=new_context,
+        )
+
+        # Make sure that the engine in the target context is the same as the current
+        # engine. If the descriptors are the same object then we know for sure we're
+        # good to go. Otherwise we need to do a little more work before we can feel
+        # safe to continue.
+        if engine_descriptor is not self.descriptor:
+            self.log_debug("Engine %s does not match descriptors between %s and %s." % (
+                self.instance_name,
+                str(self.context),
+                str(new_context)
+            ))
+            if engine_descriptor.get_path() == self.descriptor.get_path():
+                # If the descriptors are different but the install location for
+                # the engine remains the same, then we can feel pretty safe. This
+                # is likely due to the engine running off of a dev descriptor.
+                self.log_debug("Engine descriptor disk paths match, allowing context change.")
+            else:
+                # Since the descriptors differ and the install path for the engine
+                # in the target context doesn't match, we have to disallow the change.
+                raise TankContextChangeNotAllowedError()
+
         # Run the pre_context_change method to allow for any engine-specific
         # prep work to happen.
         self.pre_context_change(self.context, new_context)
@@ -512,22 +545,22 @@ class Engine(TankBundle):
         # a context change. If one of them is not, then we remove it
         # from the persistent app pool, which will force it to be
         # rebuilt when apps are loaded later on.
-        non_compliant_app_descriptors = []
-        for descriptor, app in self.__application_pool.iteritems():
+        non_compliant_app_paths = []
+        for install_path, app in self.__application_pool.iteritems():
             if not app.context_change_allowed:
                 self.log_debug(
                     "App %s does not allow context changes and will be restarted." % app.name
                 )
-                non_compliant_app_descriptors.append(descriptor)
+                non_compliant_app_paths.append(install_path)
             else:
                 # Run the pre-change method on each app to give them
                 # the opportunity to run any app-specific preprocessing.
                 app.pre_context_change(self.context, new_context)
 
-        for descriptor in non_compliant_app_descriptors:
+        for install_path in non_compliant_app_paths:
             # Destroy the app and remove it from the pool.
-            self.__application_pool[descriptor].destroy_app()
-            del self.__application_pool[descriptor]
+            self.__application_pool[install_path].destroy_app()
+            del self.__application_pool[install_path]
 
         # Now that we're certain we can perform a context change,
         # we can tell the environment what the new context is, update
@@ -1426,15 +1459,11 @@ class Engine(TankBundle):
         self.__applications = dict()
 
         for app_instance_name in self.__env.get_apps(self.__engine_instance_name):
-            # Get a handle to the app bundle. The descriptor will also be used
-            # to key our persistent pool of apps. Since git and app_store type
-            # descriptors are singletons based on app name, version, and install
-            # root we will ensure that we're reusing the exact app that the env
-            # is asking for. With dev descriptor apps, we will never reuse, which
-            # will work the same way because dev descriptors are not singletons,
-            # which means we will never find the app in the persistent pool and
-            # will start it fresh each time.
-            descriptor = self.__env.get_app_descriptor(self.__engine_instance_name, app_instance_name)
+            # Get a handle to the app bundle.
+            descriptor = self.__env.get_app_descriptor(
+                self.__engine_instance_name,
+                app_instance_name,
+            )
 
             if not descriptor.exists_local():
                 self.log_error("Cannot start app! %s does not exist on disk." % descriptor)
@@ -1444,7 +1473,10 @@ class Engine(TankBundle):
             try:
                 # get the app settings data and validate it.
                 app_schema = descriptor.get_configuration_schema()
-                app_settings = self.__env.get_app_settings(self.__engine_instance_name, app_instance_name)
+                app_settings = self.__env.get_app_settings(
+                    self.__engine_instance_name,
+                    app_instance_name,
+                )
 
                 # check that the context contains all the info that the app needs
                 if self.__engine_instance_name != constants.SHOTGUN_ENGINE_NAME: 
@@ -1463,7 +1495,13 @@ class Engine(TankBundle):
                                     "identified as '%s'" % (supported_engines, self.name))
                 
                 # now validate the configuration                
-                validation.validate_settings(app_instance_name, self.tank, self.context, app_schema, app_settings)
+                validation.validate_settings(
+                    app_instance_name,
+                    self.tank,
+                    self.context,
+                    app_schema,
+                    app_settings,
+                )
 
             except TankError, e:
                 # validation error - probably some issue with the settings!
@@ -1484,18 +1522,47 @@ class Engine(TankBundle):
             # continue if it's already there. This is most likely a context
             # change that's in progress, which means we only want to load apps
             # that aren't already up and running.
-            if reuse_existing_apps and descriptor in self.__application_pool:
-                self.__applications[app_instance_name] = self.__application_pool[descriptor]
-
-                # Run the post_context_change method for the app if we were given
-                # an old_context.
+            install_path = descriptor.get_path()
+            if reuse_existing_apps and install_path in self.__application_pool:
+                # If we were given an "old" context that's being switched away
+                # from, we can run the post change method and do a bit of
+                # reinitialization of certain portions of the app.
                 if old_context is not None:
-                    self.__applications[app_instance_name].post_context_change(
-                        old_context,
-                        self.context,
-                    )
+                    app = self.__application_pool[install_path]
 
-                continue
+                    try:
+                        # Update the app settings.
+                        app.settings = app_settings
+
+                        # Set the instance name.
+                        app.instance_name = app_instance_name
+
+                        # Make sure our frameworks are up and running properly for
+                        # the new context.
+                        setup_frameworks(self, app, self.__env, descriptor)
+
+                        # Run the post method in case there's custom logic implemented
+                        # for the app.
+                        app.post_context_change(old_context, self.context)
+                    except Exception, e:
+                        # If any of the reinitialization failed we will warn and
+                        # continue on to a restart of the app via the normal means.
+                        self.log_warning(
+                            "App %s failed to change context and will be restarted: %s" % (
+                                app_instance_name,
+                                str(e)
+                            )
+                        )
+                    else:
+                        # If the reinitialization of the reused app succeeded, we
+                        # just have to add it to the apps list and continue on to
+                        # the next app.
+                        self.log_debug("App %s successfully reinitialized for new context %s." % (
+                            app_instance_name,
+                            str(self.context)
+                        ))
+                        self.__applications[app_instance_name] = app
+                        continue
             
             # load the app
             try:
@@ -1542,16 +1609,9 @@ class Engine(TankBundle):
             for app in self.__applications.values():
                 # We will only track apps that we know can handle a context
                 # change. Any that do not will not be treated as a persistent
-                # app. Similarly, if the app's descriptor isn't a singleton, then
-                # there is no point in adding it to the pool, as we'll never
-                # find it on subsequent app loads. This covers the "dev" descriptor,
-                # which we always want to reload due to its nature as a "sandbox"
-                # descriptor for developers making live code changes. The other
-                # descriptor types (git and app_store) are singletons based on
-                # app name, version, and install root. As a result, apps sourced
-                # in this way can be treated as persistent.
-                if app.context_change_allowed and app.descriptor.IS_SINGLETON:
-                    self.__application_pool[app.descriptor] = app
+                # app.
+                if app.context_change_allowed:
+                    self.__application_pool[app.descriptor.get_path()] = app
             
     def __destroy_frameworks(self):
         """
@@ -1605,7 +1665,7 @@ def get_engine_path(engine_name, tk, context):
     """
     # get environment and engine location
     try:
-        (env, engine_descriptor) = __get_env_and_descriptor_for_engine(engine_name, tk, context)
+        (env, engine_descriptor) = _get_env_and_descriptor_for_engine(engine_name, tk, context)
     except TankEngineInitError:
         return None
 
@@ -1629,7 +1689,7 @@ def start_engine(engine_name, tk, context):
                         "tank.platform.current_engine().destroy()." % current_engine())
 
     # get environment and engine location
-    (env, engine_descriptor) = __get_env_and_descriptor_for_engine(engine_name, tk, context)
+    (env, engine_descriptor) = _get_env_and_descriptor_for_engine(engine_name, tk, context)
 
     # make sure it exists locally
     if not engine_descriptor.exists_local():
@@ -1808,7 +1868,7 @@ def clear_global_busy():
 ##########################################################################################
 # utilities
 
-def __get_env_and_descriptor_for_engine(engine_name, tk, context):
+def _get_env_and_descriptor_for_engine(engine_name, tk, context):
     """
     Utility method to return commonly needed objects when instantiating engines.
 
