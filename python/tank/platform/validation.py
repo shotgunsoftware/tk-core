@@ -51,11 +51,11 @@ def validate_context(descriptor, context):
     context_check_ok = True
     req_ctx = descriptor.get_required_context()
     for req_ctx_item in req_ctx:
-        context_check_ok &= (req_ctx_item == "user" and context.user is None)
-        context_check_ok &= (req_ctx_item == "entity" and context.entity is None)
-        context_check_ok &= (req_ctx_item == "project" and context.project is None)
-        context_check_ok &= (req_ctx_item == "step" and context.step is None)
-        context_check_ok &= (req_ctx_item == "task" and context.task is None)
+        context_check_ok ^= (req_ctx_item == "user" and context.user is None)
+        context_check_ok ^= (req_ctx_item == "entity" and context.entity is None)
+        context_check_ok ^= (req_ctx_item == "project" and context.project is None)
+        context_check_ok ^= (req_ctx_item == "step" and context.step is None)
+        context_check_ok ^= (req_ctx_item == "task" and context.task is None)
     if not context_check_ok:
         raise TankError("The item requires the following "
                         "items in the context: %s. The current context is missing one "
