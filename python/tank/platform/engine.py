@@ -1531,6 +1531,9 @@ class Engine(TankBundle):
                     app = self.__application_pool[install_path]
 
                     try:
+                        # Update the app's internal context pointer.
+                        app.context = self.context
+
                         # Update the app settings.
                         app.settings = app_settings
 
