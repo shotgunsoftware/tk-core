@@ -125,6 +125,7 @@ def process_filesystem_structure(tk, entity_type, entity_ids, preview, engine):
     :returns: list of items processed
     
     """
+    tk.log_core_metric("Create Folders")
 
     # check that engine is either a string or None
     if not (isinstance(engine, basestring) or engine is None):

@@ -235,6 +235,51 @@ def __create_sg_connection(config_data=None, user=None):
 
     return sg
 
+def set_user_metric(sg_connection, name, value):
+    """
+    Sets a metric for the current user
+    
+    :param sg_connection: SG API connection
+    :param name: Name of the metric to set 
+    :param value: Value to set 
+    """
+    # handle proxy setup by pulling the proxy details from the main shotgun connection
+    if sg_connection.config.proxy_handler:
+        opener = urllib2.build_opener(sg_connection.config.proxy_handler)
+        urllib2.install_opener(opener)
+
+    session_token = sg_connection.get_session_token()
+    post_data = {"session_token": session_token, 
+                 "mode": "user_attribute",
+                 "attribute_name": name, 
+                 "attribute_value": value}
+    
+    print ">>> Log User Metric: %s: %s" % (name, value)
+    
+    response = urllib2.urlopen("%s/api3/register_metric" % sg_connection.base_url, urllib.urlencode(post_data))
+    
+
+def log_metric(sg_connection, module, action):
+    """
+    Logs a metric
+    
+    :param sg_connection: SG API connection
+    :param module: Module to log metric for (e.g. 'Core' or 'Maya Engine')
+    :param action: Action to log (e.g. 'Create Folders')
+    """    
+    # handle proxy setup by pulling the proxy details from the main shotgun connection
+    if sg_connection.config.proxy_handler:
+        opener = urllib2.build_opener(sg_connection.config.proxy_handler)
+        urllib2.install_opener(opener)
+
+    session_token = sg_connection.get_session_token()
+    post_data = {"session_token": session_token,
+                 "mode": "log_metric",
+                 "metric_module": module,
+                 "metric_action": action}
+    
+    print ">>> Log Metric module: %s, action: %s" % (module, action)
+    response = urllib2.urlopen("%s/api3/register_metric" % sg_connection.base_url, urllib.urlencode(post_data))
 
 def download_url(sg, url, location):
     """
@@ -414,6 +459,9 @@ def __get_app_store_connection_information():
     config_data["http_proxy"] = client_site_sg.config.raw_http_proxy
 
     return config_data
+
+
+
 
 
 def __get_app_store_key_from_shotgun(sg_connection):
@@ -1211,3 +1259,5 @@ class ToolkitUserAgentHandler(object):
 
         # and update shotgun
         self._sg._user_agents = new_agents
+
+

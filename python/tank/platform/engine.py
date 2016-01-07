@@ -22,6 +22,7 @@ import threading
         
 from .. import loader
 from .. import hook
+from ..util import log_metric, set_user_metric
 from ..errors import TankError, TankEngineInitError
 from ..deploy.dev_descriptor import TankDevDescriptor
 
@@ -49,6 +50,8 @@ class Engine(TankBundle):
         :param engine_instance_name: The name of the engine as it has been defined in the environment.
         :param env: An Environment object to associate with this engine
         """
+        
+        
         
         self.__env = env
         self.__engine_instance_name = engine_instance_name
@@ -170,6 +173,17 @@ class Engine(TankBundle):
         tk.execute_core_hook(constants.TANK_ENGINE_INIT_HOOK_NAME, engine=self)
         
         self.log_debug("Init complete: %s" % self)
+        self.log_metric("Init")
+
+        # track which version of an engine is being used        
+        set_user_metric(self.shotgun, "%s Version" % self.name, self.version)
+        
+        # for testing purposes only - this would have to go into the launch app
+        # for the time being. Long term, we talked about adding a launch 
+        # application method to core which would means this call would could
+        # be centralized rather than being part of the launch app.
+        # (there would be many other benefits too)
+        set_user_metric(self.shotgun, "Maya Version", "2016")
         
         # check if there are any compatibility warnings:
         # do this now in case the engine fails to load!
@@ -503,7 +517,23 @@ class Engine(TankBundle):
                 # also add a prefix key in the properties dict
                 properties["prefix"] = prefix
             
-        self.__commands[name] = { "callback": callback, "properties": properties }
+        def callback_wrapper(*args, **kwargs):
+            
+            if properties.get("app"):
+                
+                # track which app command is being launched
+                properties["app"].log_metric("'%s'" % name)
+                
+                # specify which app version is being used
+                set_user_metric(self.shotgun, 
+                                "%s version" % properties["app"].name, 
+                                properties["app"].version)
+                
+                # 
+            
+            return callback(*args, **kwargs)
+            
+        self.__commands[name] = { "callback": callback_wrapper, "properties": properties }
         
     def register_panel(self, callback, panel_name="main", properties=None):
         """
@@ -751,6 +781,18 @@ class Engine(TankBundle):
         message.extend(traceback_str.split("\n"))
         
         self.log_error("\n".join(message))
+        
+    def log_metric(self, action):
+        """
+        Log engine metric
+        
+        :param action: Action string to log, e.g. 'Init' 
+        """
+        # the action contains the engine and app name, e.g.
+        # module: tk-maya
+        # action: tk-maya - Init        
+        full_action = "%s - %s" % (self.name, action)
+        log_metric(self.shotgun, self.name, full_action)        
         
     ##########################################################################################
     # debug for tracking Qt Widgets & Dialogs created by the provided methods      
