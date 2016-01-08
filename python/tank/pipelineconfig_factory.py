@@ -85,7 +85,7 @@ def _from_entity(entity_type, entity_id, force_reread_shotgun_cache):
     if config_context_path:
         # we are running the tank command or API from a configuration
 
-        if config_context_path not in local_pc_paths:
+        if config_context_path not in [x["path"] for x in local_pc_paths]:
             # the tank command / api proxy which this session was launched for is *not*
             # associated with the given entity type and entity id!
             raise TankError("The pipeline configuration in '%s' is is associated with a different "
@@ -118,7 +118,7 @@ def _from_entity(entity_type, entity_id, force_reread_shotgun_cache):
                             "support@shotgunsoftware.com." % (entity_type, entity_id, primary_pc_paths))
 
         # looks good, we got a primary pipeline config that exists
-        return PipelineConfiguration(primary_pc_paths[0])
+        return PipelineConfiguration(primary_pc_paths[0]["path"])
 
 
 
@@ -209,7 +209,7 @@ def _from_path(path, force_reread_shotgun_cache):
 
         # now if this tank command is associated with the path, the registered path should be in
         # in the list of paths found in the tank data backlink file
-        if config_context_path not in local_pc_paths:
+        if config_context_path not in [x["path"] for x in local_pc_paths]:
             raise TankError("You are trying to start Toolkit using the pipeline configuration "
                             "located in '%s'. The path '%s' you are trying to load is not "
                             "associated with that configuration. Instead, it is "
@@ -244,7 +244,7 @@ def _from_path(path, force_reread_shotgun_cache):
                             "associated with this path are: %s" % (path, primary_pc_paths))
 
         # looks good, we got a primary pipeline config that exists
-        return PipelineConfiguration(primary_pc_paths[0])
+        return PipelineConfiguration(primary_pc_paths[0]["path"])
 
 
 
@@ -285,8 +285,13 @@ def _get_configuration_context():
 def _get_pipeline_configuration_paths(sg_pipeline_configs):
     """
     Given a list of Shotgun Pipeline configuration entity data, return a list
-    of pipeline configuration paths for the current platform. Also returns
-    the local os path to any primary pipeline configurations if such are found.
+    of pipeline configurations for the current platform. Also returns
+    the local os path to all primary pipeline configurations found.
+
+    Each item returned is a dictionary on the form {path: /xyz/, data: sg_data}
+    where /xyz is a local, sanitized path to a pipeline configuration
+    and sg_data is a shotgun data dictionary representing a pipeline config
+    object, as passed in via sg_pipeline_configs.
 
     :param sg_pipeline_configs: SG pipeline configuration data. List of dicts.
     :returns: (all_paths, primary_paths) - tuple with two lists of path strings
@@ -297,9 +302,9 @@ def _get_pipeline_configuration_paths(sg_pipeline_configs):
     primary_pc_paths = []
     for pc in sg_pipeline_configs:
         curr_os_path = pipelineconfig_utils.sanitize_path(pc.get(platform_lookup[sys.platform]), os.path.sep)
-        local_pc_paths.append(curr_os_path)
+        local_pc_paths.append({"path": curr_os_path, "data": pc})
         if pc.get("code") == constants.PRIMARY_PIPELINE_CONFIG_NAME:
-            primary_pc_paths.append(curr_os_path)
+            primary_pc_paths.append({"path": curr_os_path, "data": pc})
 
     return (local_pc_paths, primary_pc_paths)
 
