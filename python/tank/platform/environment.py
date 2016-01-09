@@ -331,8 +331,21 @@ class Environment(object):
     def change_context(self, new_context):
         """
         Sets the environment's context and refreshes all environment data.
+
+        :param new_context: The new sgtk.context.Context to switch to.
         """
         self.__context = new_context
+
+        # We need to figure out the env file path before we can
+        # refresh. We run it through the new context through the
+        # core hook, which will give us the name (like shot_step),
+        # and then get the filesystem path to that .yml file.
+        sgtk = new_context.tank
+        env_name = sgtk.execute_core_hook(
+            constants.PICK_ENVIRONMENT_CORE_HOOK_NAME,
+            context=new_context,
+        )
+        self._env_path = sgtk.pipeline_configuration.get_environment_path(env_name)
         self._refresh()
 
     ##########################################################################################
