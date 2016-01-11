@@ -261,7 +261,7 @@ def _from_path(path, force_reread_shotgun_cache):
 
             raise TankError("The path '%s' is associated with more than one Primary pipeline "
                             "configuration. This can happen if there is ambiguity in your project setup, where "
-                            "projects store their data in an overlapping fashion, for example if a project is"
+                            "projects store their data in an overlapping fashion, for example if a project is "
                             "named the same as a local storage root. In this case, try creating "
                             "your API instance (or tank command) directly from the pipeline configuration rather "
                             "than via the studio level API. This will explicitly call out which project you are "
