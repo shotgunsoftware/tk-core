@@ -177,30 +177,60 @@ class TankGitDescriptor(VersionedSingletonDescriptor):
         if len(git_tags) == 0:
             raise TankError("Git repository %s doesn't seem to have any tags!" % self._path)
 
+        version_to_use = self._find_latest_tag_by_pattern(git_tags, pattern)
+
+        new_loc_dict = copy.deepcopy(self._location_dict)
+        new_loc_dict["version"] = version_to_use
+
+        return TankGitDescriptor(
+            self._pipeline_config_path,
+            self._bundle_install_path,
+            new_loc_dict,
+            self._type
+        )
+
+    def _find_latest_tag_by_pattern(self, version_numbers, pattern):
+        """
+        Given a list of version numbers, find the one that best matches the given pattern.
+
+        Version numbers passed in that doesn't match the pattern v1.2.3... will be ignored.
+
+        :param version_numbers: List of version number strings
+        :param pattern: Version patterns are on the following forms:
+
+            - v1.2.3 (can return this v1.2.3 but also any forked version under, eg. v1.2.3.2)
+            - v1.2.x (examples: v1.2.4, or a forked version v1.2.4.2)
+            - v1.x.x (examples: v1.3.2, a forked version v1.3.2.2)
+            - v1.2.3.x (will always return a forked version, eg. v1.2.3.2)
+
+        :returns: The most appropriate tag in the given list of tags
+        :raises: TankError if parsing fails
+        """
         # now put all version number strings which match the form
         # vX.Y.Z(.*) into a nested dictionary where it is keyed recursively
         # by each digit (ie. major, minor, increment, then any additional
         # digit optionally used by forked versions)
         #
-        # For example, the following versions:
-        # v1.2.1, v1.2.2, v1.2.3.1, v1.4.3, v1.4.2.1, v1.4.2.2, v1.4.1, 
-        # 
-        # Would generate the following:
-        # {1: {2: {1: {}, 2: {}, 3: {1: {}}}, 4: {1: {}, 2: {1: {}, 2: {}}, 3: {}}}}
-        #  
-        
         versions = {}
-        for version_num in git_tags:
+        for version_num in version_numbers:
             try:
                 version_split = map(int, version_num[1:].split("."))
-            except:
+            except Exception, e:
                 # this git tag is not on the expected form vX.Y.Z where X Y and Z are ints. skip.
                 continue
-            if len (version_split) < 3:
+
+            if len(version_split) < 3:
                 # git tag has no minor or increment number. skip.
                 continue
 
             # fill our versions dictionary
+            #
+            # For example, the following versions:
+            # v1.2.1, v1.2.2, v1.2.3.1, v1.4.3, v1.4.2.1, v1.4.2.2, v1.4.1,
+            #
+            # Would generate the following:
+            # {1: {2: {1: {}, 2: {}, 3: {1: {}}}, 4: {1: {}, 2: {1: {}, 2: {}}, 3: {}}}}
+            #
             current = versions
             for number in version_split:
                 if number not in current:
@@ -217,7 +247,7 @@ class TankGitDescriptor(VersionedSingletonDescriptor):
                 # then a digit, eg. v4.x.2
                 first_x = version_split.index('x')
                 if version_split[first_x:].count('x') < len(version_split)-first_x:
-                    raise TankError("Incorrect pattern. There should be no digit after a 'x'.")
+                    raise TankError("Incorrect version pattern '%s'. There should be no digit after a 'x'." % pattern)
             current = versions
             version_to_use = None
             # process each digit in the pattern
@@ -228,12 +258,13 @@ class TankGitDescriptor(VersionedSingletonDescriptor):
                 version_digit = int(version_digit)
                 if version_digit not in current:
                     raise TankError("%s does not have a version matching the pattern '%s'. "
-                                    "Available versions are: %s" % (self._path, pattern, ", ".join(git_tags)))
+                                    "Available versions are: %s" % (self._path, pattern, ", ".join(version_numbers)))
                 current = current[version_digit]
                 if version_to_use is None:
                     version_to_use = "v%d" % version_digit
                 else:
                     version_to_use = version_to_use + ".%d" % version_digit
+
             # at this point we have a matching version (eg. v4.x.x => v4.0.2) but
             # there may be forked versions under this 4.0.2, so continue to recurse into
             # the versions dictionary to find the latest forked version
@@ -241,20 +272,11 @@ class TankGitDescriptor(VersionedSingletonDescriptor):
                 version_digit = max(current.keys())
                 current = current[version_digit]
                 version_to_use = version_to_use + ".%d" % version_digit
+
         else:
             raise TankError("Cannot parse version expression '%s'!" % pattern)
 
-        new_loc_dict = copy.deepcopy(self._location_dict)
-        new_loc_dict["version"] = version_to_use
-
-        return TankGitDescriptor(
-            self._pipeline_config_path,
-            self._bundle_install_path,
-            new_loc_dict,
-            self._type
-        )
-        
-
+        return version_to_use
 
     def _find_latest_version(self):
         """
@@ -305,5 +327,4 @@ class TankGitDescriptor(VersionedSingletonDescriptor):
         # windows - it also prefers to use forward slashes!
         sanitized_repo_path = self._path.replace(os.path.sep, "/")        
         execute_git_command("clone -q \"%s\" \"%s\"" % (sanitized_repo_path, target_path))
-
 
