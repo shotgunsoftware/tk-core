@@ -273,8 +273,6 @@ def _from_path(path, force_reread_shotgun_cache):
         return PipelineConfiguration(primary_pc_data[0]["path"])
 
 
-
-
 #################################################################################################################
 # utilities
 

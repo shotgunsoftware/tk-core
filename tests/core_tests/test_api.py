@@ -489,22 +489,25 @@ class TestTankFromPathDuplicatePcPaths(TankTestBase):
             "linux_path": self.pipeline_config_root}
 
         self.add_to_sg_mock_db(self.overlapping_pc)
-        print "added %s" % self.overlapping_pc
 
-    def test_primary_branch(self):
+    def test_primary_duplicates_from_path(self):
         """
-        Test path from primary branch.
+        Test primary dupes
         """
+        self.assertRaisesRegexp(TankError,
+                                "The path '.*' is associated with more than one Primary pipeline configuration.",
+                                sgtk.sgtk_from_path,
+                                self.project_root)
 
-        child_path = os.path.join(self.project_root, "child_dir")
-        os.mkdir(os.path.join(self.project_root, "child_dir"))
-        result = tank.tank_from_path(child_path)
-
-        print sgtk.pipelineconfig_factory.from_path(child_path)
-
-        self.assertIsInstance(result, Tank)
-        self.assertEquals(result.project_path, self.project_root)
-
+    def test_primary_duplicates_from_entity(self):
+        """
+        Test primary dupes
+        """
+        self.assertRaisesRegexp(TankError,
+                                "More than one primary pipeline configuration is associated with the entity",
+                                sgtk.sgtk_from_entity,
+                                "Project",
+                                self.project["id"])
 
 class TestTankFromEntityWithMixedSlashes(TankTestBase):
     """
