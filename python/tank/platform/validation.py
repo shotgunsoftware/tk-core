@@ -48,18 +48,20 @@ def validate_context(descriptor, context):
     will work with it. Raises a tankerror if not.
     """
     # check that the context contains all the info that the app needs
-    context_check_ok = True
+    # this returns list of strings, e.g. ["user", "entity"]
     req_ctx = descriptor.get_required_context()
-    for req_ctx_item in req_ctx:
-        context_check_ok &= (req_ctx_item == "user" and context.user is None)
-        context_check_ok &= (req_ctx_item == "entity" and context.entity is None)
-        context_check_ok &= (req_ctx_item == "project" and context.project is None)
-        context_check_ok &= (req_ctx_item == "step" and context.step is None)
-        context_check_ok &= (req_ctx_item == "task" and context.task is None)
+
+    context_check_ok = True
+    for context_attr_name in ["user", "entity", "project", "step", "task"]:
+        # get context attribute
+        ctx_attr = getattr(context, context_attr_name)
+        if context_attr_name in req_ctx and ctx_attr is None:
+            context_check_ok = False
+
     if not context_check_ok:
         raise TankError("The item requires the following "
                         "items in the context: %s. The current context is missing one "
-                        "or more of these items: %s" % (req_ctx, context) )
+                        "or more of these items: %r" % (req_ctx, context))
     
 def validate_platform(descriptor):
     """
