@@ -48,19 +48,15 @@ def validate_context(descriptor, context):
     will work with it. Raises a tankerror if not.
     """
     # check that the context contains all the info that the app needs
-    context_check_ok = True
-
+    # this returns list of strings, e.g. ["user", "entity"]
     req_ctx = descriptor.get_required_context()
-    if "user" in req_ctx and context.user is None:
-        context_check_ok = False
-    if "entity" in req_ctx and context.entity is None:
-        context_check_ok = False
-    if "project" in req_ctx and context.project is None:
-        context_check_ok = False
-    if "step" in req_ctx and context.step is None:
-        context_check_ok = False
-    if "task" in req_ctx and context.task is None:
-        context_check_ok = False
+
+    context_check_ok = True
+    for context_attr_name in ["user", "entity", "project", "step", "task"]:
+        # get context attribute
+        ctx_attr = getattr(context, context_attr_name)
+        if context_attr_name in req_ctx and ctx_attr is None:
+            context_check_ok = False
 
     if not context_check_ok:
         raise TankError("The item requires the following "
