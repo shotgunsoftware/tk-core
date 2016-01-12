@@ -58,9 +58,7 @@ then
 fi
 
 # and check that it exists...
-# use `type` rather than `which` so that it also works with bash functions, used
-# by tools such as rez
-if [ ! -f "$interpreter" ] && [[ ! `type $interpreter` ]];
+if [ ! -f "$interpreter" ];
 then
     echo "Cannot find interpreter $interpreter defined in config file $interpreter_config_file!"
     exit 1
@@ -68,4 +66,4 @@ fi
 
 
 # execute the python script which does the actual work
-$interpreter "$core_install_root/scripts/tank_cmd.py" "$@"
+exec $interpreter "$core_install_root/scripts/tank_cmd.py" "$@"
