@@ -336,9 +336,13 @@ def _get_pipeline_configuration_data(sg_pipeline_configs):
 
         # prepare return data
         curr_os_path = pipelineconfig_utils.sanitize_path(pc.get(platform_lookup[sys.platform]), os.path.sep)
-        pc_id = pc["id"]
-        project_id = (pc["project"] or {}).get("id")  # project can be None for site config.
-        pc_entry = {"path": curr_os_path, "id": pc_id, "project_id": project_id}
+
+        if pc.get("project"):  # project is None for site config else dict
+            project_id = pc["project"]["id"]
+        else:
+            project_id = None
+
+        pc_entry = {"path": curr_os_path, "id": pc["id"], "project_id": project_id}
 
         # and append to our return data structures
         pc_data.append(pc_entry)
