@@ -76,7 +76,11 @@ class UnregisterFoldersAction(Action):
         # - context based: tank Shot ABC123 unregister_folders
         # - path based: tank unregister_folders path1, path2, path3
         
-        if self.context.entity:
+        if self.context.task:
+            # task based - e.g. 'tank Task @12345 unregister_folders'
+            self._unregister_entity(self.context.task, log, prompt=True)
+
+        elif self.context.entity:
             # context based - e.g. 'tank Shot ABC123 unregister_folders' 
             self._unregister_entity(self.context.entity, log, prompt=True)
         
@@ -222,12 +226,11 @@ class UnregisterFoldersAction(Action):
                 
         return self._unregister_filesystem_location_ids(list(fs_location_ids), log, prompt)                              
 
-    
     def _unregister_entity(self, entity, log, prompt):
         """
         Unregisters an entity from the path cache in Shotgun.
         
-        :param entity: Shotgun entity dict (e.g Shot or Asset) with keys type and id
+        :param entity: Shotgun entity dict (e.g Shot, Asset or Task) with keys type and id
         :param log: Logger
         :param prompt: If true, the command may prompt the user for confirmation
         :returns: List of dictionaries to represents the items that were unregistered.
