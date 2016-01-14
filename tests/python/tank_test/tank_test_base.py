@@ -233,8 +233,6 @@ class TankTestBase(unittest.TestCase):
                              "windows_path": self.pipeline_config_root,
                              "mac_path": self.pipeline_config_root,
                              "linux_path": self.pipeline_config_root}
-        
-
 
         # add files needed by the pipeline config        
         pc_yml = os.path.join(self.pipeline_config_root, "config", "core", "pipeline_configuration.yml")
