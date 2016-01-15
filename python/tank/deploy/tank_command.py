@@ -75,12 +75,9 @@ BUILT_IN_ACTIONS = [setup_project.SetupProjectAction,
                     clone_configuration.CloneConfigAction,
                     copy_apps.CopyAppsAction,
                     desktop_migration.DesktopMigration,
-<<<<<<< HEAD
-                    synchronize.SynchronizeConfigurationAction
-=======
+                    synchronize.SynchronizeConfigurationAction,
                     cache_yaml.CacheYamlAction,
                     get_entity_commands.GetEntityCommandsAction
->>>>>>> master
                     ]
 
 
