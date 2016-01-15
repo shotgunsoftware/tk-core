@@ -733,7 +733,7 @@ class TestTankFromPathOverlapStorage(TankTestBase):
             os.makedirs(test_path_dir)
 
         self.assertRaisesRegexp(TankError,
-                                "The path '.*' is associated with more than one primary pipeline configuration.",
+                                "The path '.*' is associated with more than one Primary pipeline configuration.",
                                 sgtk.sgtk_from_path,
                                 test_path)
 
