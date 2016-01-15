@@ -533,7 +533,7 @@ def get_from_location(app_or_engine, pipeline_config, location_dict):
     return get_from_location_and_paths(
         app_or_engine,
         None,
-        pipeline_config.get_bundles_location(),
+        pipeline_config._get_bundles_location(), #TODO - fix this
         location_dict
     )
 
