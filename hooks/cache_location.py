@@ -87,14 +87,14 @@ class CacheLocation(HookBaseClass):
         
         return target_path
         
-    def global_app_cache(self):
+    def global_bundle_cache(self):
         """
         A location where toolkit stores apps, engines and frameworks
         for all projects. 
 
         This setting will be used for all projects which has got the
         global app cache flag set. If the flag is not set, apps will be
-        picked up from the conventional loation, local to where the core
+        picked up from the conventional location, local to where the core
         API installation is.
 
         Note that this method is called from a pipeline configuration

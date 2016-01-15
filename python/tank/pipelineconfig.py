@@ -87,7 +87,7 @@ class PipelineConfiguration(object):
         self._pc_name = pipeline_config_metadata.get("pc_name")
         self._published_file_entity_type = pipeline_config_metadata.get("published_file_entity_type", "TankPublishedFile")        
         self._use_shotgun_path_cache = pipeline_config_metadata.get("use_shotgun_path_cache", False)
-        self._use_global_app_cache = pipeline_config_metadata.get("use_global_app_cache", False)
+        self._use_global_bundle_cache = pipeline_config_metadata.get("use_global_bundle_cache", False)
         
         # lazily loaded member variables
         self._bundles_location = None
@@ -314,11 +314,11 @@ class PipelineConfiguration(object):
         """
         return self._published_file_entity_type
 
-    def use_global_app_cache(self):
+    def use_global_bundle_cache(self):
         """
         Returns true if a global app cache should be used to store projects.
         """
-        return self._use_global_app_cache
+        return self._use_global_bundle_cache
 
     def convert_to_site_config(self):
         """
@@ -544,11 +544,11 @@ class PipelineConfiguration(object):
         """
         if self._bundles_location is None:
             # have not calculated and cached the global bundles root yet
-            if self.use_global_app_cache():
+            if self.use_global_bundle_cache():
                 # global location as per core hook
                 self._bundles_location = self.execute_core_hook_method_internal(
                     constants.CACHE_LOCATION_HOOK_NAME, 
-                    "global_app_cache", 
+                    "global_bundle_cache",
                     self)
             else:
                 # traditional location relative to core install
