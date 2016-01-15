@@ -93,7 +93,7 @@ class CacheLocation(HookBaseClass):
         for all projects. 
 
         This setting will be used for all projects which has got the
-        global app cache flag set. If the flag is not set, apps will be
+        global bundle cache flag set. If the flag is not set, apps will be
         picked up from the conventional location, local to where the core
         API installation is.
 

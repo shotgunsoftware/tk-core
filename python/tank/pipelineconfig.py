@@ -316,7 +316,7 @@ class PipelineConfiguration(object):
 
     def use_global_bundle_cache(self):
         """
-        Returns true if a global app cache should be used to store projects.
+        Returns true if a global bundle cache should be used to store projects.
         """
         return self._use_global_bundle_cache
 
@@ -607,7 +607,7 @@ class PipelineConfiguration(object):
         Note! While Engines, Apps and Frameworks descriptors point
         at code that is typically used at runtime, a core descriptor
         is typically not used at runtime but instead at deploy time, 
-        to cache a series of cores locally in the app cache and then
+        to cache a series of cores locally in the bundle cache and then
         choose one to deploy into a configuration.
         
         :param location: Location dictionary describing the core source location
