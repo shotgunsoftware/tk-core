@@ -15,10 +15,9 @@ across storages, configurations etc.
 import os
 import sys
 
-from tank_vendor import yaml
-
-from .errors import TankError
+from .errors import TankError, TankFileDoesNotExistError
 from .platform import constants
+from .util import yaml_cache
 
 
 def is_localized(pipeline_config_path):
@@ -47,6 +46,26 @@ def is_pipeline_config(pipeline_config_path):
     # probe by looking for the existence of a key config file.
     pc_file = os.path.join(pipeline_config_path, "config", "core", constants.STORAGE_ROOTS_FILE)
     return os.path.exists(pc_file)
+
+def get_metadata(pipeline_config_path):
+    """
+    Loads the pipeline config metadata (the pipeline_configuration.yml) file from disk.
+    
+    :param pipeline_config_path: path to a pipeline configuration root folder
+    :returns: deserialized content of the file in the form of a dict.
+    """
+
+    # now read in the pipeline_configuration.yml file
+    cfg_yml = os.path.join(pipeline_config_path, "config", "core", "pipeline_configuration.yml")
+
+    try:
+        data = yaml_cache.g_yaml_cache.get(cfg_yml, deepcopy_data=False)
+        if data is None:
+            raise Exception("File contains no data!")
+    except Exception, e:
+        raise TankError("Looks like a config file is corrupt. Please contact "
+                        "support! File: '%s' Error: %s" % (cfg_yml, e))
+    return data
 
 def get_roots_metadata(pipeline_config_path):
     """
@@ -78,18 +97,12 @@ def get_roots_metadata(pipeline_config_path):
     # {'primary': {'mac_path': '/studio', 'windows_path': None, 'linux_path': '/studio'}}
     roots_yml = os.path.join(pipeline_config_path, "config", "core", constants.STORAGE_ROOTS_FILE)
 
-    if not os.path.exists(roots_yml):
-        raise TankError("Roots metadata file '%s' missing! Please contact support." % roots_yml)
-
-    fh = open(roots_yml, "rt")
     try:
         # if file is empty, initializae with empty dict...
-        data = yaml.load(fh) or {}
+        data = yaml_cache.g_yaml_cache.get(roots_yml, deepcopy_data=False) or {}
     except Exception, e:
         raise TankError("Looks like the roots file is corrupt. Please contact "
                         "support! File: '%s' Error: %s" % (roots_yml, e))
-    finally:
-        fh.close()
 
     # if there are more than zero storages defined, ensure one of them is the primary storage
     if len(data) > 0 and constants.PRIMARY_STORAGE_NAME not in data:
@@ -233,7 +246,7 @@ def get_core_path_for_config(pipeline_config_path):
             if data not in ["None", "undefined"] and os.path.exists(data):
                 install_path = data
             fh.close()  
-        except:
+        except Exception:
             pass
                 
     return install_path
@@ -294,16 +307,10 @@ def _get_install_locations(path):
     
     # for other platforms, read in install_location
     location_file = os.path.join(path, "config", "core", "install_location.yml")
-    if not os.path.exists(location_file):
-        raise TankError("Cannot find core config file '%s' - please contact support!" % location_file)
 
     # load the config file
     try:
-        open_file = open(location_file)
-        try:
-            location_data = yaml.load(open_file)
-        finally:
-            open_file.close()
+        location_data = yaml_cache.g_yaml_cache.get(location_file, deepcopy_data=False)
     except Exception, error:
         raise TankError("Cannot load core config file '%s'. Error: %s" % (location_file, error))
 
@@ -375,13 +382,9 @@ def _get_version_from_manifest(info_yml_path):
     :returns: Always a string, 'unknown' if data cannot be found
     """
     try:
-        info_fh = open(info_yml_path, "r")
-        try:
-            data = yaml.load(info_fh)
-        finally:
-            info_fh.close()
+        data = yaml_cache.g_yaml_cache.get(info_yml_path, deepcopy_data=False)
         data = str(data.get("version", "unknown"))
-    except:
+    except Exception:
         data = "unknown"
 
     return data

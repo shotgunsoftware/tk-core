@@ -15,15 +15,16 @@ across storages, configurations etc.
 import os
 import sys
 import glob
+import cPickle
 
 from tank_vendor import yaml
 
-from .errors import TankError
+from .errors import TankError, TankUnreadableFileError
 from .deploy import util
 from .deploy import descriptor
 from .platform import constants
 from .platform.environment import Environment, WritableEnvironment
-from .util import shotgun
+from .util import shotgun, yaml_cache
 from . import hook
 from . import pipelineconfig_utils
 from . import template_includes
@@ -90,7 +91,14 @@ class PipelineConfiguration(object):
         
         # lazily loaded member variables
         self._bundles_location = None
-        
+
+        # Populate the global yaml_cache if we find a pickled cache
+        # on disk.
+        # TODO: Discuss and possibly implement a mechanism to copy
+        # the global pickled cache stored in the config down to
+        # local storage to speed up reading in subsequent sessions.
+        self._populate_yaml_cache()
+
         # run init hook
         self.execute_core_hook_internal(constants.PIPELINE_CONFIGURATION_INIT_HOOK_NAME, parent=self)
 
@@ -174,7 +182,30 @@ class PipelineConfiguration(object):
             fh.close()
             os.umask(old_umask)            
 
-    
+        self._project_id = data.get("project").get("id")
+        self._pc_id = data.get("id")
+        self._pc_name = data.get("code")
+
+    def _populate_yaml_cache(self):
+        """
+        Loads pickled yaml_cache items if they are found and merges them into
+        the global YamlCache.
+        """
+        cache_file = os.path.join(self._pc_root, "yaml_cache.pickle")
+        try:
+            fh = open(cache_file, 'rb')
+        except Exception:
+            return
+
+        try:
+            cache_items = cPickle.load(fh)
+            yaml_cache.g_yaml_cache.merge_cache_items(cache_items)
+        except Exception:
+            return
+        finally:
+            fh.close()
+
+
     ########################################################################################
     # general access and properties
 
@@ -660,32 +691,26 @@ class PipelineConfiguration(object):
         :returns: An environment object
         """        
         env_file = os.path.join(self._pc_root, "config", "env", "%s.yml" % env_name)
-        if not os.path.exists(env_file):
-            raise TankError("Cannot load environment '%s': Environment configuration "
-                            "file '%s' does not exist!" % (env_name, env_file))
-        
         EnvClass = WritableEnvironment if writable else Environment
         env_obj = EnvClass(env_file, self, context)
-        
         return env_obj
     
     def get_templates_config(self):
         """
         Returns the templates configuration as an object
         """
-        templates_file = os.path.join(self._pc_root, "config", "core", constants.CONTENT_TEMPLATES_FILE)
+        templates_file = os.path.join(
+            self._pc_root,
+            "config",
+            "core",
+            constants.CONTENT_TEMPLATES_FILE,
+        )
 
-        if os.path.exists(templates_file):
-            config_file = open(templates_file, "r")
-            try:
-                data = yaml.load(config_file) or {}
-            finally:
-                config_file.close()
-        else:
-            data = {}
-
-        # and process include files
-        data = template_includes.process_includes(templates_file, data)
+        try:
+            data = yaml_cache.g_yaml_cache.get(templates_file, deepcopy_data=False)
+            data = template_includes.process_includes(templates_file, data)
+        except TankUnreadableFileError:
+            data = dict()
 
         return data
 

@@ -27,12 +27,12 @@ from ..api import Tank
 from ..util import shotgun
 from ..errors import TankError
 from ..platform import constants
-from .descriptor import AppDescriptor
+from .descriptor import AppDescriptor, VersionedSingletonDescriptor
 from .zipfilehelper import unzip_file
 
 METADATA_FILE = ".metadata.json"
 
-class TankAppStoreDescriptor(AppDescriptor):
+class TankAppStoreDescriptor(VersionedSingletonDescriptor):
     """
     Represents an app store item.
     """

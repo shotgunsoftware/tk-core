@@ -15,12 +15,13 @@ Functionality for managing versions of apps.
 import os
 import sys
 import copy
+import sys
 
 from tank_vendor import yaml
 
 from .. import hook
-from ..util import shotgun
-from ..errors import TankError
+from ..util import shotgun, yaml_cache
+from ..errors import TankError, TankFileDoesNotExistError
 from ..platform import constants
 
 
@@ -118,26 +119,18 @@ class AppDescriptor(object):
                 
             # get the metadata
             bundle_root = self.get_path()
-        
             file_path = os.path.join(bundle_root, constants.BUNDLE_METADATA_FILE)
-        
-            if not os.path.exists(file_path):
-                raise TankError("Toolkit metadata file '%s' missing." % file_path)
-        
+
             try:
-                file_data = open(file_path)
-                try:
-                    metadata = yaml.load(file_data)
-                finally:
-                    file_data.close()
+                metadata = yaml_cache.g_yaml_cache.get(file_path, deepcopy_data=False)
+            except TankFileDoesNotExistError:
+                raise
             except Exception, exp:
                 raise TankError("Cannot load metadata file '%s'. Error: %s" % (file_path, exp))
-        
+
             # cache it
             self.__manifest_data = metadata
-        
-        # return a copy
-        return copy.deepcopy(self.__manifest_data)
+        return self.__manifest_data
 
 
     ###############################################################################################
@@ -426,18 +419,56 @@ class AppDescriptor(object):
         
         post_install_hook_path = os.path.join(self.get_path(), "hooks",
                                               "post_install.py")
-        
-        if os.path.exists(post_install_hook_path):            
-            
-            try:
-                hook.execute_hook(post_install_hook_path, 
-                                  parent=None,
-                                  pipeline_configuration=tk.pipeline_configuration.get_path(),
-                                  path=self.get_path())
+        try:
+            hook.execute_hook(post_install_hook_path, 
+                              parent=None,
+                              pipeline_configuration=tk.pipeline_configuration.get_path(),
+                              path=self.get_path())
+        except TankFileDoesNotExistError:
+            pass
+        except Exception, e:
+            raise TankError("Could not run post-install hook for %s. "
+                            "Error reported: %s" % (self, e))
 
-            except Exception, e:
-                raise TankError("Could not run post-install hook for %s. "
-                                "Error reported: %s" % (self, e))
+
+class VersionedSingletonDescriptor(AppDescriptor):
+    """
+    Singleton base class for the versioned app descriptor classes.
+
+    Each descriptor object is a singleton based on its install root path,
+    name, and version number.
+    """
+    _instances = dict()
+
+    def __new__(cls, pc_path, bundle_install_path, location_dict, *args, **kwargs):
+        # We will cache based on the bundle install path, name of the
+        # app/engine/framework, and version number.
+        instance_cache = cls._instances
+        name = location_dict.get("name")
+        version = location_dict.get("version")
+
+        # Instantiate and cache if we need to, otherwise just return what we
+        # already have stored away.
+        if (bundle_install_path not in instance_cache or
+            name not in instance_cache[bundle_install_path] or
+            version not in instance_cache[bundle_install_path][name]):
+            # If the bundle install path isn't in the cache, then we are
+            # starting fresh. Otherwise, check to see if the app (by name)
+            # is cached, and if not initialize its specific cache. After
+            # that we instantiate and store by version.
+            if bundle_install_path not in instance_cache:
+                instance_cache[bundle_install_path] = dict()
+            if name not in instance_cache[bundle_install_path]:
+                instance_cache[bundle_install_path][name] = dict()
+            instance_cache[bundle_install_path][name][version] = super(VersionedSingletonDescriptor, cls).__new__(
+                cls,
+                pc_path,
+                bundle_install_path,
+                location_dict,
+                *args, **kwargs
+            )
+
+        return instance_cache[bundle_install_path][name][version]
 
 
 ################################################################################################

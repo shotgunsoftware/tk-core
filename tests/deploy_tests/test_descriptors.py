@@ -12,6 +12,7 @@ import os
 
 from tank_test.tank_test_base import *
 from sgtk.deploy import descriptor
+from tank.errors import TankError
 
 
 class TestDescriptors(TankTestBase):
@@ -144,3 +145,34 @@ class TestDescriptors(TankTestBase):
                 bundle_type,
                 bundle_location
             )
+
+    def test_git_version_logic(self):
+        """
+        Test git descriptor version logic
+        """
+        desc = descriptor.get_from_location(
+            descriptor.AppDescriptor.APP,
+            self.tk.pipeline_configuration,
+            {"type": "git", "path": "git@github.com:dummy/tk-multi-dummy.git", "version": "v1.2.3"})
+
+        # absolute match
+        self.assertEqual(desc._find_latest_tag_by_pattern(["v1.2.3"], "v1.2.3"), "v1.2.3")
+        self.assertEqual(desc._find_latest_tag_by_pattern(["v1.2.3", "v1.2.2"], "v1.2.3"), "v1.2.3")
+
+        # simple matches
+        self.assertEqual(desc._find_latest_tag_by_pattern(["v1.2.3", "v1.2.2"], "v1.2.x"), "v1.2.3")
+        self.assertEqual(desc._find_latest_tag_by_pattern(["v1.2.3", "v1.2.2"], "v1.2.x"), "v1.2.3")
+        self.assertEqual(desc._find_latest_tag_by_pattern(["v1.2.3", "v1.2.233", "v1.3.1"], "v1.3.x"), "v1.3.1")
+        self.assertEqual(desc._find_latest_tag_by_pattern(["v1.2.3", "v1.2.233", "v1.3.1", "v2.3.1"], "v1.x.x"), "v1.3.1")
+
+        # forks
+        self.assertEqual(desc._find_latest_tag_by_pattern(["v1.2.3", "v1.2.233", "v1.3.1.2.3"], "v1.3.x"), "v1.3.1.2.3")
+        self.assertEqual(desc._find_latest_tag_by_pattern(["v1.2.3", "v1.2.233", "v1.3.1.2.3", "v1.4.233"], "v1.3.1.x"), "v1.3.1.2.3")
+
+        # invalids
+        self.assertRaisesRegexp(TankError,
+                                "Incorrect version pattern '.*'. There should be no digit after a 'x'",
+                                desc._find_latest_tag_by_pattern,
+                                ["v1.2.3", "v1.2.233", "v1.3.1"],
+                                "v1.x.2")
+

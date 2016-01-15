@@ -469,6 +469,46 @@ class TestTankFromPath(TankTestBase):
         self.assertRaises(TankError, tank.tank_from_path, self.tank_temp)
 
 
+class TestTankFromPathDuplicatePcPaths(TankTestBase):
+    """
+    Test behavior and error messages when multiple pipeline
+    configurations are pointing at the same location
+    """
+
+    def setUp(self):
+        super(TestTankFromPathDuplicatePcPaths, self).setUp()
+
+        # define an additional pc with overlapping paths
+        self.overlapping_pc = {
+            "type": "PipelineConfiguration",
+            "code": "Primary",
+            "id": 123456,
+            "project": self.project,
+            "windows_path": self.pipeline_config_root,
+            "mac_path": self.pipeline_config_root,
+            "linux_path": self.pipeline_config_root}
+
+        self.add_to_sg_mock_db(self.overlapping_pc)
+
+    def test_primary_duplicates_from_path(self):
+        """
+        Test primary dupes
+        """
+        self.assertRaisesRegexp(TankError,
+                                "The path '.*' is associated with more than one Primary pipeline configuration.",
+                                sgtk.sgtk_from_path,
+                                self.project_root)
+
+    def test_primary_duplicates_from_entity(self):
+        """
+        Test primary dupes
+        """
+        self.assertRaisesRegexp(TankError,
+                                "More than one primary pipeline configuration is associated with the entity",
+                                sgtk.sgtk_from_entity,
+                                "Project",
+                                self.project["id"])
+
 class TestTankFromEntityWithMixedSlashes(TankTestBase):
     """
     Tests the case where a windows local storage uses forward slashes.

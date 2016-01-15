@@ -148,3 +148,4 @@ configuration:
 # the Shotgun fields that this app needs in order to operate correctly
 requires_shotgun_fields:
 
+required_context: [project, entity]

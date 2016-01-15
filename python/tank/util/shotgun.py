@@ -31,6 +31,7 @@ from .. import hook
 from ..platform import constants
 from . import login
 from .defaults_manager import CoreDefaultsManager
+from . import yaml_cache
 
 
 def __get_api_core_config_location():
@@ -123,18 +124,9 @@ def __get_sg_config_data(shotgun_cfg_path, user="default"):
 
     :returns: dictionary with key host and optional keys api_script, api_key and http_proxy
     """
-    
-    # read in settings from shotgun.yml
-    if not os.path.exists(shotgun_cfg_path):
-        raise TankError("Could not find shotgun configuration file '%s'!" % shotgun_cfg_path)
-
     # load the config file
     try:
-        open_file = open(shotgun_cfg_path)
-        try:
-            file_data = yaml.load(open_file)
-        finally:
-            open_file.close()
+        file_data = yaml_cache.g_yaml_cache.get(shotgun_cfg_path, deepcopy_data=False)
     except Exception, error:
         raise TankError("Cannot load config file '%s'. Error: %s" % (shotgun_cfg_path, error))
 

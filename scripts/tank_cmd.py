@@ -32,6 +32,7 @@ from tank_vendor.shotgun_authentication import IncompleteCredentials
 from tank_vendor import yaml
 from tank.platform import engine
 from tank import pipelineconfig_utils
+from tank import context
 
 
 
@@ -297,19 +298,23 @@ def _run_shotgun_command(log, tk, action_name, entity_type, entity_ids):
 def _write_shotgun_cache(tk, entity_type, cache_file_name):
     """
     Writes a shotgun cache menu file to disk.
-    The cache is per type and per operating system
-    """
+    The cache is per type and per operating system.
 
+    :param tk:              toolkit API instance
+    :param entity_type:     type of the entity that we want to write the cache
+                            for
+    :param cache_file_name: name of the file used to store the cached data
+    """
     cache_path = os.path.join(tk.pipeline_configuration.get_shotgun_menu_cache_location(), cache_file_name)
 
     # start the shotgun engine, load the apps
-    e = engine.start_shotgun_engine(tk, entity_type)
+    e = engine.start_shotgun_engine(tk, entity_type, tk.context_empty())
 
     # get list of actions
     engine_commands = e.commands
 
     # insert special system commands
-    if entity_type == "Project":
+    if entity_type.lower() == "project":
         engine_commands["__core_info"] = { "properties": {"title": "Check for Core Upgrades...",
                                                           "deny_permissions": ["Artist"] } }
 
@@ -328,24 +333,22 @@ def _write_shotgun_cache(tk, entity_type, cache_file_name):
                 # deny this platform! :)
                 continue
 
-        if "title" in cmd_params["properties"]:
-            title = cmd_params["properties"]["title"]
-        else:
-            title = cmd_name
+        title = cmd_params["properties"].get("title", cmd_name)
+        supports_multiple_sel = cmd_params["properties"].get(
+            "supports_multiple_selection", False)
+        deny = ",".join(cmd_params["properties"].get("deny_permissions", []))
+        icon = cmd_params["properties"].get("icon", "")
+        description = cmd_params["properties"].get("description", "")
 
-        if "supports_multiple_selection" in cmd_params["properties"]:
-            supports_multiple_sel = cmd_params["properties"]["supports_multiple_selection"]
-        else:
-            supports_multiple_sel = False
+        entry = [ cmd_name, title, deny, str(supports_multiple_sel),
+                  icon, description ]
 
-        if "deny_permissions" in cmd_params["properties"]:
-            deny = ",".join(cmd_params["properties"]["deny_permissions"])
-        else:
-            deny = ""
+        # sanitize the fields to make sure that they do not break the cache
+        # format
+        sanitized = [ token.replace("\n", " ").replace("$", "_")
+                      for token in entry ]
 
-        entry = [ cmd_name, title, deny, str(supports_multiple_sel) ]
-
-        res.append("$".join(entry))
+        res.append("$".join(sanitized))
 
     data = "\n".join(res)
 

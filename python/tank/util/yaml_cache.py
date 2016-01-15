@@ -18,114 +18,245 @@ import copy
 import threading
 
 from tank_vendor import yaml
-from ..errors import TankError
+from ..errors import (
+    TankError,
+    TankUnreadableFileError,
+    TankFileDoesNotExistError,
+)
+
+class CacheItem(object):
+    """
+    Represents a single item in the global yaml cache.
+
+    Each item carries with it a set of data, an stat from the .yml file that
+    it was sourced from (in os.stat form), and the path to the .yml file that
+    was sourced.
+    """
+
+    def __init__(self, path, data=None, stat=None):
+        """
+        Initializes the item.
+
+        :param path:    The path to the .yml file on disk.
+        :param data:    The data sourced from the .yml file.
+        :param stat:    The stat of the file on disk. If not provided, an os.stat
+                        will be run and the result stored.
+        :raises:        tank.errors.TankUnreadableFileError: File stat failure.
+        """
+        self._path = os.path.normpath(path)
+        self._data = data
+
+        if stat is None:
+            try:
+                self._stat = os.stat(self.path)
+            except Exception, exc:
+                raise TankUnreadableFileError(
+                    "Unable to stat file '%s': %s" % (self.path, exc)
+                )
+        else:
+            self._stat = stat
+            
+
+    def _get_data(self):
+        """The item's data."""
+        return self._data
+
+    def _set_data(self, config_data):
+        self._data = config_data
+
+    data = property(_get_data, _set_data)
+
+    @property
+    def path(self):
+        """The path to the file on disk that the item was sourced from."""
+        return self._path
+
+    @property
+    def stat(self):
+        """The stat of the file on disk that the item was sourced from."""
+        return self._stat
+
+    def given_item_newer(self, other):
+        """
+        Tests whether the given item is newer than this.
+
+        :param other:   The CacheItem to test against.
+        :raises:        TypeError: Given item is not a CacheItem.
+        :returns:       bool, True if other is newer, False if not.
+        """
+        if not isinstance(other, CacheItem):
+            raise TypeError("Given item must be of type CacheItem.")
+        return other.stat.st_mtime > self.stat.st_mtime
+
+    def size_differs(self, other):
+        """
+        Tests whether the file size of the given item differs from this item.
+
+        :param other:   The CacheItem to test against.
+        :raises:        TypeError: Given item is not a CacheItem.
+        :returns:       bool, True if other is a different size on disk, False if not.
+        """
+        if not isinstance(other, CacheItem):
+            raise TypeError("Given item must be of type CacheItem.")
+        return other.stat.st_size != self.stat.st_size
+
+    def __eq__(self, other):
+        if not isinstance(other, CacheItem):
+            raise TypeError("Given item must be of type CacheItem.")
+        return (other.stat.st_mtime == self.stat.st_mtime and not self.size_differs(other))
+
+    def __getitem__(self, key):
+        # Backwards compatibility just in case something outside
+        # of this module is expecting the old dict structure.
+        if key == "modified_at":
+            return self.stat.st_mtime
+        elif key == "file_size":
+            return self.stat.st_size
+        elif key == "data":
+            return self._data
+        else:
+            return getattr(self._data, key)
+
+    def __str__(self):
+        return str(self.path)
 
 class YamlCache(object):
     """
     Main yaml cache class
     """
-    def __init__(self):
+
+    def __init__(self, cache_dict=None, is_static=False):
         """
         Construction
         """
-        self._cache = {}
+        self._cache = cache_dict or dict()
         self._lock = threading.Lock()
+        self._is_static = is_static
+
+    def _get_is_static(self):
+        """
+        Whether the cache is considered static or not. If the cache is static,
+        CacheItems in the cache will not be invalidated based on file mtime
+        and size when they are requested from the cache.
+        """
+        return self._is_static
+
+    def _set_is_static(self, state):
+        self._is_static = bool(state)
+
+    is_static = property(_get_is_static, _set_is_static)
             
-    def get(self, path):
+    def get(self, path, deepcopy_data=True):
         """
         Retrieve the yaml data for the specified path.  If it's not already
         in the cache of the cached version is out of date then this will load
         the Yaml file from disk.
         
-        :param path:    The path of the yaml file to load.
-        :returns:       The raw yaml data loaded from the file.
+        :param path:            The path of the yaml file to load.
+        :param deepcopy_data:   Return deepcopy of data. Default is True.
+        :returns:               The raw yaml data loaded from the file.
         """
-        if not os.path.exists(path):
-            raise TankError("File '%s' could not be found!" % path)            
-        
-        # get info about the file:
-        fstat = os.stat(path)
-        modified_at = fstat.st_mtime
-        file_size = fstat.st_size
-        
-        # see if this file is already cached:
-        cache_entry = self._get(path)
-        if (not cache_entry
-            or cache_entry["modified_at"] != modified_at
-            or cache_entry["file_size"] != file_size):
-            # try to load the file data:
-            try:
-                fh = open(path, "r")
-            except Exception, e:
-                raise TankError("Could not open file '%s'. Error reported: '%s'" % (path, e))
+        # Adding a new CacheItem to the cache will cause the file mtime
+        # and size on disk to be checked against existing cache data,
+        # then the loading of the yaml data if necessary before returning
+        # the appropriate item back to us, which will be either the new
+        # item we have created here with the yaml data stored within, or
+        # the existing cached data.
+        item = self._add(CacheItem(path))
+
+        # If asked to, return a deep copy of the cached data to ensure that 
+        # the cached data is not updated accidentally!
+        if deepcopy_data:
+            return copy.deepcopy(item.data)
+        else:
+            return item.data
+
+    def get_cached_items(self):
+        """
+        Returns a list of all CacheItems stored in the cache.
+        """
+        return self._cache.values()
+
+    def merge_cache_items(self, cache_items):
+        """
+        Merges the given CacheItem objects into the cache if they are newer
+        or of a different size on disk than what's already in the cache.
+
+        :param cache_items: A list of CacheItem objects.
+        """
+        for item in cache_items:
+            self._add(item)
             
-            try:
-                # load the data:
-                raw_data = yaml.load(fh)
-                # add/update the data in the cache - note that only the latest version of the 
-                # data is retained!
-                cache_entry = self._add(path, raw_data, modified_at, file_size)
-            except Exception, e:
-                raise TankError("Could not parse file '%s'. Error reported: '%s'" % (path, e))
-            finally:
-                fh.close()            
-
-        # always return a deep copy of the cached data to ensure that 
-        # the cached data is not updated accidentally!:
-        data = copy.deepcopy(cache_entry["data"])
-        
-        return data
-
-    def _get(self, path):
+    def _add(self, item):
         """
-        Return the cache entry for the specified path if it exists.  
-        This method is thread-safe
-
-        :param path:    The path of the yaml file to return the entry for
-        :returns:       A dictionary containing the data, modified_at time and file size
-                        of the cached data.
+        Adds the given item to the cache in a thread-safe way. If the given item
+        is older (by file mtime) than the existing cache data for that file then
+        the already-cached item will be returned. If the item is identical in
+        file mtime and file size to what's cached, the already-cached item will be
+        returned. Otherwise the item will be added to the cache and returned to
+        the caller. If the given item is added to the cache and it has not already
+        been populated with the yaml data from disk, that data will be read prior
+        to the item being added to the cache.
+        
+        :param item:    The CacheItem to add to the cache.
+        :returns:       The cached CacheItem.
         """
         self._lock.acquire()
+
         try:
-            return self._cache.get(path)
-        finally:
-            self._lock.release()
-            
-    def _add(self, path, data, modified_at, file_size):
-        """
-        Add the specified data to the cache if it doesn't already exist.  If the data
-        does exist in the cache with the same modified time and file size then the
-        already cached version will be returned.
-        This method is thread-safe.
-        
-        :param path:        The path of the yaml file being cached
-        :param data:        The raw yaml data being cached
-        :param modified_at: The time the file was last modified
-        :param file_size:   The size of the yaml file
-        :returns:           A dictionary containing the data, modified_at time and file size
-                            of the cached data.
-        """
-        self._lock.acquire()
-        try:
-            # see if the item is already in the cache:
-            cache_entry = self._cache.get(path)
-            if (cache_entry
-                and cache_entry["modified_at"] == modified_at
-                and cache_entry["file_size"] == file_size):
-                # must have been loaded by another thread so just use 
-                # this one instead!
-                return cache_entry
+            path = item.path
+            cached_item = self._cache.get(path)
+
+            # If this is a static cache, we won't do any checks on
+            # mod time and file size. If it's in the cache we return
+            # it, otherwise we populate the item data from disk, cache
+            # it, and then return it.
+            if self.is_static:
+                if cached_item:
+                    return cached_item
+                else:
+                    if not item.data:
+                        self._populate_cache_item_data(item)
+                    self._cache[path] = item
+                    return item
             else:
-                # add new item to cache and return:
-                cache_entry = {
-                    "modified_at":modified_at, 
-                    "file_size":file_size, 
-                    "data":data
-                }
-                self._cache[path] = cache_entry
-                return cache_entry
+                # Since this isn't a static cache, we need to make sure
+                # that we don't need to invalidate and recache this item
+                # based on mod time and file size on disk.
+                if cached_item and cached_item == item:
+                    # It's already in the cache and matches mtime
+                    # and file size, so we can just return what we
+                    # already have. It's technically identical in
+                    # terms of data of what we got, but it's best
+                    # to return the instance we have since that's
+                    # what previous logic in the cache did.
+                    return cached_item
+                else:
+                    # Load the yaml data from disk. If it's not already populated.
+                    if not item.data:
+                        self._populate_cache_item_data(item)
+                    self._cache[path] = item
+                    return item
         finally:
             self._lock.release()
 
-# the global instance of the YamlCache
+    def _populate_cache_item_data(self, item):
+        """
+        Loads the CacheItem's YAML data from disk.
+        """
+        path = item.path
+        try:
+            fh = open(path, "r")
+            raw_data = yaml.load(fh)
+        except IOError:
+            raise TankFileDoesNotExistError("File does not exist: %s" % path)
+        except Exception, e:
+            raise TankError("Could not open file '%s'. Error reported: '%s'" % (path, e))
+            # Since it wasn't an IOError it means we have an open
+            # filehandle to close.
+            fh.close()
+        # Populate the item's data before adding it to the cache.
+        item.data = raw_data
+
+# The global instance of the YamlCache.
 g_yaml_cache = YamlCache()
