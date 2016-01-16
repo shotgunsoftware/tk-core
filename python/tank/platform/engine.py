@@ -23,7 +23,7 @@ import threading
 from .. import loader
 from .. import hook
 
-from ..errors import TankError, TankEngineInitError, TankContextChangeNotAllowedError
+from ..errors import TankError, TankEngineInitError, TankContextChangeNotSupportedError
 from ..deploy import descriptor
 from ..deploy.dev_descriptor import TankDevDescriptor
 
@@ -144,27 +144,11 @@ class Engine(TankBundle):
         # init in the engine will contain code which captures the
         # state of the apps - for example creates a menu, so at that 
         # point we want to try and have all app initialization complete.
-        for app in self.__applications.values():
-
-            try:
-                app.post_engine_init()
-            except TankError, e:
-                self.log_error("App %s Failed to run its post_engine_init. It is loaded, but"
-                               "may not operate in its desired state! Details: %s" % (app, e))
-            except Exception:
-                self.log_exception("App %s failed run its post_engine_init. It is loaded, but"
-                                   "may not operate in its desired state!" % app)
+        self.__run_post_engine_inits()
         
         # Useful dev helpers: If there is one or more dev descriptors in the 
         # loaded environment, add a reload button to the menu!
-        for app in self.__applications.values():
-            if isinstance(app.descriptor, TankDevDescriptor):
-                self.log_debug("App %s is registered via a dev descriptor. Will add a reload "
-                               "button to the actions listings."  % app)
-                from . import restart 
-                self.register_command("Reload and Restart", restart, {"short_name": "restart", "type": "context_menu"})                
-                # only need one reload button, so don't keep iterating :)
-                break
+        self.__register_reload_command()
         
         # now run the post app init
         self.post_app_init()
@@ -399,15 +383,6 @@ class Engine(TankBundle):
         # default implementation is to assume a UI exists
         # this is since most engines are supporting a graphical application
         return True
-
-    @property
-    def context_change_allowed(self):
-        """
-        Whether the engine allows a context change without the need for a restart. If
-        context changing is to be allowed by the engine, this property should be
-        overridden in the deriving class and set to return True.
-        """
-        return False
     
     ##########################################################################################
     # init and destroy
@@ -431,29 +406,6 @@ class Engine(TankBundle):
         Runs after all apps have been initialized.
         
         Implemented by deriving classes.
-        """
-        pass
-
-    def pre_context_change(self, old_context, new_context):
-        """
-        Called before an engine context change, but after it has been
-        verified that the engine does support a context change.
-
-        Implemented by deriving classes.
-
-        :param old_context:     The context being changed away from.
-        :param new_context:     The context being changed to.
-        """
-        pass
-
-    def post_context_change(self, old_context, new_context):
-        """
-        Called after an engine context change.
-
-        Implemented by deriving classes.
-
-        :param old_context:     The context being changed away from.
-        :param new_context:     The context being changed to.
         """
         pass
     
@@ -501,8 +453,8 @@ class Engine(TankBundle):
         """
         # Make sure we're allowed to change context at the engine level.
         if not self.context_change_allowed:
-            self.log_debug("Engine %s does not allow context changes." % self.name)
-            raise TankContextChangeNotAllowedError()
+            self.log_debug("Engine %r does not allow context changes." % self)
+            raise TankContextChangeNotSupportedError()
 
         # Make sure that this engine is configured to run in the new context,
         # and that it's the EXACT same engine. This can be handled by comparing
@@ -518,49 +470,47 @@ class Engine(TankBundle):
         )
 
         # Make sure that the engine in the target context is the same as the current
-        # engine. If the descriptors are the same object then we know for sure we're
-        # good to go. Otherwise we need to do a little more work before we can feel
-        # safe to continue.
-        if engine_descriptor is not self.descriptor:
-            self.log_debug("Engine %s does not match descriptors between %s and %s." % (
-                self.instance_name,
-                str(self.context),
-                str(new_context)
+        # engine. In the case of git or app_store descriptors, the equality check
+        # is an "is" check to see if they're references to the same object due to the
+        # fact that those descriptor types are singletons. For dev descriptors, the
+        # check is going to compare the paths of the descriptors to see if they're
+        # referencing the same data on disk, in which case they are equivalent.
+        if engine_descriptor != self.descriptor:
+            self.log_debug("Engine %r does not match descriptors between %r and %r." % (
+                self,
+                self.context,
+                new_context
             ))
-            if engine_descriptor.get_path() == self.descriptor.get_path():
-                # If the descriptors are different but the install location for
-                # the engine remains the same, then we can feel pretty safe. This
-                # is likely due to the engine running off of a dev descriptor.
-                self.log_debug("Engine descriptor disk paths match, allowing context change.")
-            else:
-                # Since the descriptors differ and the install path for the engine
-                # in the target context doesn't match, we have to disallow the change.
-                raise TankContextChangeNotAllowedError()
+            raise TankContextChangeNotSupportedError()
 
         # Run the pre_context_change method to allow for any engine-specific
         # prep work to happen.
+        self.log_debug(
+            "Executing pre_context_change for %r, changing from %r to %r." % (
+                self,
+                self.context,
+                new_context
+            )
+        )
         self.pre_context_change(self.context, new_context)
+        self.log_debug("Execution of pre_context_change for engine %r is complete." % self)
 
         # Check to see if all of our apps are capable of accepting
         # a context change. If one of them is not, then we remove it
         # from the persistent app pool, which will force it to be
         # rebuilt when apps are loaded later on.
         non_compliant_app_paths = []
-        for install_path, app in self.__application_pool.iteritems():
-            if not app.context_change_allowed:
+        for install_path, app_instances in self.__application_pool.iteritems():
+            for instance_name, app in app_instances.iteritems():
                 self.log_debug(
-                    "App %s does not allow context changes and will be restarted." % app.name
+                    "Executing pre_context_change for %r, changing from %r to %r." % (
+                        app,
+                        self.context,
+                        new_context
+                    )
                 )
-                non_compliant_app_paths.append(install_path)
-            else:
-                # Run the pre-change method on each app to give them
-                # the opportunity to run any app-specific preprocessing.
                 app.pre_context_change(self.context, new_context)
-
-        for install_path in non_compliant_app_paths:
-            # Destroy the app and remove it from the pool.
-            self.__application_pool[install_path].destroy_app()
-            del self.__application_pool[install_path]
+                self.log_debug("Execution of pre_context_change for app %r is complete." % app)
 
         # Now that we're certain we can perform a context change,
         # we can tell the environment what the new context is, update
@@ -568,14 +518,30 @@ class Engine(TankBundle):
         # will repopulate the __applications dict to contain the appropriate
         # apps for the new context, and will pull apps that have already
         # been loaded from the __application_pool, which is persistent.
+        self.log_debug("Changing %r context to %r." % (self.get_env(), new_context))
         self.get_env().change_context(new_context)
         old_context = self.context
-        self.context = new_context
+        self._set_context(new_context)
+        self.__commands = dict()
         self.__load_apps(reuse_existing_apps=True, old_context=old_context)
+        self.__register_reload_command()
 
         # Call the post_context_change method to allow for any engine
         # specific post-change logic to be run.
+        self.log_debug(
+            "Executing post_context_change for %r, changing from %r to %r." % (
+                self,
+                self.context,
+                new_context
+            )
+        )
+
         self.post_context_change(old_context, new_context)
+        self.log_debug("Execution of post_context_change for engine %r is complete." % self)
+
+        # Last, now that we're otherwise done, we can run the
+        # apps' post_engine_init methods.
+        self.__run_post_engine_inits()
     
     ##########################################################################################
     # public methods
@@ -1523,19 +1489,20 @@ class Engine(TankBundle):
             # change that's in progress, which means we only want to load apps
             # that aren't already up and running.
             install_path = descriptor.get_path()
-            if reuse_existing_apps and install_path in self.__application_pool:
+            app_pool = self.__application_pool
+            if reuse_existing_apps and install_path in app_pool:
                 # If we were given an "old" context that's being switched away
                 # from, we can run the post change method and do a bit of
                 # reinitialization of certain portions of the app.
-                if old_context is not None:
-                    app = self.__application_pool[install_path]
+                if old_context is not None and app_instance_name in app_pool[install_path]:
+                    app = self.__application_pool[install_path][app_instance_name]
 
                     try:
                         # Update the app's internal context pointer.
-                        app.context = self.context
+                        app._set_context(self.context)
 
                         # Update the app settings.
-                        app.settings = app_settings
+                        app._set_settings(app_settings)
 
                         # Set the instance name.
                         app.instance_name = app_instance_name
@@ -1544,16 +1511,23 @@ class Engine(TankBundle):
                         # the new context.
                         setup_frameworks(self, app, self.__env, descriptor)
 
+                        # Track the init of the app.
+                        self.__currently_initializing_app = app
+                        try:
+                            app.init_app()
+                        finally:
+                            self.__currently_initializing_app = None
+
                         # Run the post method in case there's custom logic implemented
                         # for the app.
                         app.post_context_change(old_context, self.context)
-                    except Exception, e:
+                    except Exception:
                         # If any of the reinitialization failed we will warn and
                         # continue on to a restart of the app via the normal means.
                         self.log_warning(
-                            "App %s failed to change context and will be restarted: %s" % (
-                                app_instance_name,
-                                str(e)
+                            "App %r failed to change context and will be restarted: %s" % (
+                                app,
+                                traceback.format_exc()
                             )
                         )
                     else:
@@ -1614,7 +1588,12 @@ class Engine(TankBundle):
                 # change. Any that do not will not be treated as a persistent
                 # app.
                 if app.context_change_allowed:
-                    self.__application_pool[app.descriptor.get_path()] = app
+                    app_path = app.descriptor.get_path()
+
+                    if app_path not in self.__application_pool:
+                        self.__application_pool[app_path] = dict()
+
+                    self.__application_pool[app.descriptor.get_path()][app_instance_name] = app
             
     def __destroy_frameworks(self):
         """
@@ -1639,6 +1618,34 @@ class Engine(TankBundle):
             app._destroy_frameworks()
             self.log_debug("Destroying %s" % app)
             app.destroy_app()
+
+    def __register_reload_command(self):
+        """
+        Registers a "Reload and Restart" command with the engine if any
+        running apps are registered via a dev descriptor.
+        """
+        for app in self.__applications.values():
+            if isinstance(app.descriptor, TankDevDescriptor):
+                self.log_debug("App %s is registered via a dev descriptor. Will add a reload "
+                               "button to the actions listings."  % app)
+                from . import restart 
+                self.register_command("Reload and Restart", restart, {"short_name": "restart", "type": "context_menu"})                
+                # only need one reload button, so don't keep iterating :)
+                break
+
+    def __run_post_engine_inits(self):
+        """
+        Executes the post_engine_init method for all running apps.
+        """
+        for app in self.__applications.values():
+            try:
+                app.post_engine_init()
+            except TankError, e:
+                self.log_error("App %s Failed to run its post_engine_init. It is loaded, but"
+                               "may not operate in its desired state! Details: %s" % (app, e))
+            except Exception:
+                self.log_exception("App %s failed run its post_engine_init. It is loaded, but"
+                                   "may not operate in its desired state!" % app)
 
 
 ##########################################################################################

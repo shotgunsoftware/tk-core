@@ -17,7 +17,7 @@ from .application import Application
 from .engine import Engine
 from .framework import Framework
 
-from ..errors import TankError, TankContextChangeNotAllowedError
+from ..errors import TankError, TankContextChangeNotSupportedError
 
 ################################################################################################
 # internal methods
@@ -83,8 +83,16 @@ def change_context(new_context):
     its apps are running in on the fly. The current engine must accept the
     context change, otherwise a full restart of the engine will be run instead.
 
-    Any apps that support context switching on the fly will do so. Any that do
-    not will be restarted.
+    The determination of whether an engine supports context changing comes from
+    its "context_change_allowed" property. If that property returns True, then
+    the context change will be allowed to proceed. If it returns False, then
+    the engine's "change_context" method will raise
+    TankContextChangeNotSupportedError, which will then trigger a restart of
+    the engine and all of its apps.
+
+    In the event that the engine does support context changes, any apps that
+    support context changing will do so, as well. Any that do not will themselves
+    be restarted within the new context.
 
     The benefit of supporting context changes in engines and apps is speed. The
     end result of this routine should be identical to that of a restart, but
@@ -96,19 +104,19 @@ def change_context(new_context):
         tank.platform.application.context_change_allowed
         tank.platform.engine.change_context()
         tank.platform.application.change_context()
+
+    :param new_context: The new Context to change to.
     """
     engine = current_engine()
 
     if engine is None:
         raise TankError("No engine is currently running! Run start_engine instead.")
 
-    if not isinstance(new_context, engine.context.__class__):
-        raise TankError("Given new context must be of type tank.context.Context.")
-
     try:
+        engine.log_debug("Changing context to %r." % new_context)
         engine.change_context(new_context)
         engine.log_debug("Context changed successfully.")
-    except TankContextChangeNotAllowedError:
+    except TankContextChangeNotSupportedError:
         engine.log_debug("Context change not allowed by engine, restarting instead.")
         restart(new_context)
 
@@ -123,14 +131,14 @@ def restart(new_context=None):
     Any open windows will remain open and will use the old code base and settings. In order to
     access any changes that have happened as part of a reload, you need to launch new app
     windows and these will use the fresh code and configs.
+
+    :param new_context: The new Context to start the engine in, if desired. Default behavior
+                        is to restart the engine with its current context.
     """
     engine = current_engine()
     
     if engine is None:
         raise TankError("No engine is currently running! Run start_engine instead.")
-
-    if new_context and not isinstance(new_context, engine.context.__class__):
-        raise TankError("Given new context must be of type tank.context.Context.")
 
     try:
         # first, reload the template defs

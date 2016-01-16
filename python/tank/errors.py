@@ -21,7 +21,7 @@ class TankError(Exception):
     pass
 
 
-class TankContextChangeNotAllowedError(TankError):
+class TankContextChangeNotSupportedError(TankError):
     """
     Exception that indicates that a requested context change is not allowed
     based on a check of the current engine and all of its active apps.

@@ -116,15 +116,6 @@ class Application(TankBundle):
         The engine that this app is connected to.
         """
         return self.__engine
-
-    @property
-    def context_change_allowed(self):
-        """
-        Whether the app allows a context change without the need for a restart.
-        If an app supports on-the-fly context changing, this property should
-        be overridden in the deriving class and forced to return True.
-        """
-        return False
         
     ##########################################################################################
     # init, destroy, and context changing
@@ -149,26 +140,6 @@ class Application(TankBundle):
         """
         Implemented by deriving classes in order to tear down the app
         Called by the engine as it is being destroyed.
-        """
-        pass
-
-    def pre_context_change(self, old_context, new_context):
-        """
-        Run prior to a change in context at the engine level if this app
-        supports on-the-fly context changing (see context_change_allowed).
-
-        :param old_context:     The old context being changed away from.
-        :param new_context:     The new context being changed to.
-        """
-        pass
-
-    def post_context_change(self, old_context, new_context):
-        """
-        Run after a change in context at the engine level if this app
-        supports on-the-fly context changing (see context_change_allowed).
-
-        :param old_context:     The old context being changed away from.
-        :param new_context:     The new context being changed to.
         """
         pass
     
