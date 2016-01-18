@@ -46,7 +46,7 @@ def is_pipeline_config(pipeline_config_path):
     # probe by looking for the existence of a key config file.
     pc_file = os.path.join(pipeline_config_path, "config", "core", constants.STORAGE_ROOTS_FILE)
     return os.path.exists(pc_file)
-    
+
 def get_metadata(pipeline_config_path):
     """
     Loads the pipeline config metadata (the pipeline_configuration.yml) file from disk.

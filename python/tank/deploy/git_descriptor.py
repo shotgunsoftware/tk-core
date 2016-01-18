@@ -37,8 +37,8 @@ class TankGitDescriptor(VersionedSingletonDescriptor):
     /full/path/to/local/repo.git
     """
 
-    def __init__(self, pc_path, bundle_install_path, location_dict, type):
-        super(TankGitDescriptor, self).__init__(pc_path, bundle_install_path, location_dict)
+    def __init__(self, bundle_install_path, location_dict, type):
+        super(TankGitDescriptor, self).__init__(bundle_install_path, location_dict)
 
         self._type = type
         self._path = location_dict.get("path")
@@ -324,7 +324,7 @@ class TankGitDescriptor(VersionedSingletonDescriptor):
         new_loc_dict = copy.deepcopy(self._location_dict)
         new_loc_dict["version"] = latest_version
 
-        return TankGitDescriptor(self._pipeline_config_path, self._bundle_install_path, new_loc_dict, self._type)
+        return TankGitDescriptor(self._bundle_install_path, new_loc_dict, self._type)
 
     def __clone_repo(self, target_path):
         """
