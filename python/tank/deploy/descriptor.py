@@ -437,11 +437,30 @@ class VersionedSingletonDescriptor(AppDescriptor):
     _instances = dict()
 
     def __new__(cls, pc_path, bundle_install_path, location_dict, *args, **kwargs):
+        """
+        Executed prior to all __init__s. Handles singleton caching of descriptors.
+
+        Since all our normal descriptors are immutable - they represent a specific,
+        readonly and cached version of an app, engine or framework on disk, we can
+        also cache their wrapper objects.
+
+        All descriptor types deriving from this caching class need to have a
+        required name and version key as part of their location dict. These
+        keys are used by the class to uniquely identify objects.
+
+        :param bundle_install_path: Location on disk where items are cached
+        :param location_dict: Location dictionary describing the bundle
+        :return: Descriptor instance
+        """
+
         # We will cache based on the bundle install path, name of the
         # app/engine/framework, and version number.
         instance_cache = cls._instances
         name = location_dict.get("name")
         version = location_dict.get("version")
+
+        if name is None or version is None:
+            raise TankError("Cannot process location '%s'. Name and version keys required." % location_dict)
 
         # Instantiate and cache if we need to, otherwise just return what we
         # already have stored away.
