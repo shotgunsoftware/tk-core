@@ -26,8 +26,8 @@ class TankDevDescriptor(AppDescriptor):
     into the local storage, you interact with it directly.
     """
     
-    def __init__(self, pc_path, bundle_install_path, location_dict):
-        super(TankDevDescriptor, self).__init__(pc_path, bundle_install_path, location_dict)
+    def __init__(self, bundle_install_path, location_dict):
+        super(TankDevDescriptor, self).__init__(bundle_install_path, location_dict)
 
         # platform specific location support
         system = sys.platform
@@ -42,9 +42,6 @@ class TankDevDescriptor(AppDescriptor):
             raise TankError("Invalid dev descriptor! Could not find a path or a %s entry in the "
                             "location dict %s." % (platform_key, location_dict))
 
-        # replace magic token {PIPELINE_CONFIG} with path to pipeline configuration
-        self._path = self._path.replace("{PIPELINE_CONFIG}", self._pipeline_config_path)
-        
         # lastly, resolve environment variables
         self._path = os.path.expandvars(self._path)
         
