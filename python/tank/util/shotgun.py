@@ -23,14 +23,11 @@ from tank_vendor import yaml
 
 # use api json to cover py 2.5
 from tank_vendor import shotgun_api3
-json = shotgun_api3.shotgun.json
-from tank_vendor.shotgun_authentication import ShotgunAuthenticator, AuthenticationError
 
 from ..errors import TankError
 from .. import hook
 from ..platform import constants
 from . import login
-from .defaults_manager import CoreDefaultsManager
 from . import yaml_cache
 
 
@@ -358,100 +355,6 @@ def create_sg_connection(user="default"):
         # Otherwise use the authenticated user to create the connection.
         api_handle = __create_sg_connection(None, sg_user)
     return api_handle
-
-g_app_store_connection = None
-def create_sg_app_store_connection():
-    """
-    Creates a shotgun connection that can be used to access the Toolkit app store.
-
-    :returns: (sg, dict) where the first item is the shotgun api instance and the second 
-              is an sg entity dictionary (keys type/id) corresponding to to the user used
-              to connect to the app store.
-    """
-    global g_app_store_connection
-
-    # maintain a cache for performance
-    if g_app_store_connection is not None:
-        return g_app_store_connection
-
-    # Connect to associated Shotgun site and retrieve the credentials to use to
-    # connect to the app store site
-    config_data = __get_app_store_connection_information()
-
-    # get connection parameters
-    sg = __create_sg_connection(config_data)
-
-    # determine the script user running currently
-    # get the API script user ID from shotgun
-    script_user = sg.find_one(
-        "ApiUser",
-        [["firstname", "is", config_data["api_script"]]],
-        fields=["type", "id"]
-    )
-    if script_user is None:
-        raise TankError("Could not evaluate the current App Store User! Please contact support.")
-
-    g_app_store_connection = sg, script_user
-
-    return g_app_store_connection
-
-
-def __get_app_store_connection_information():
-    """
-    Get app store connection information
-    :returns: A dictionary with host, api_key, api_script and http_proxy
-    """
-    client_site_sg = get_sg_connection()
-    (script_name, script_key) = __get_app_store_key_from_shotgun(client_site_sg)
-
-    # connect to the app store
-    config_data = {}
-    config_data["host"] = constants.SGTK_APP_STORE
-    config_data["api_script"] = script_name
-    config_data["api_key"] = script_key
-    config_data["http_proxy"] = client_site_sg.config.raw_http_proxy
-
-    return config_data
-
-
-def __get_app_store_key_from_shotgun(sg_connection):
-    """
-    Given a Shotgun url and script credentials, fetch the app store key
-    for this shotgun instance using a special controller method.
-    Returns a tuple with (app_store_script_name, app_store_auth_key)
-
-    :param sg_connection: SG connection to the client site for which
-                          app store credentials should be retrieved.
-    :returns: tuple of strings with contents (script_name, script_key)
-    """
-    # first check if there is an app_store.yml file associated with the 
-    # project. In that case, just use that.
-    core_cfg = __get_api_core_config_location()
-    app_store_yml_path = os.path.join(core_cfg, "app_store.yml")
-
-    if os.path.exists(app_store_yml_path):
-        # The file exists, so read the file expecting all values to be present.
-        config_data = __get_sg_config_data_with_script_user(app_store_yml_path)
-        # we got two values from the app store file!
-        return config_data["api_script"], config_data["api_key"]
-
-    # if app store connection details couldn't be read from the file for 
-    # whatever reason, talk to Shotgun to get the credentials.
-    # note that this functionality requires sg 6.0 or above.
-    
-    # handle proxy setup by pulling the proxy details from the main shotgun connection
-    if sg_connection.config.proxy_handler:
-        opener = urllib2.build_opener(sg_connection.config.proxy_handler)
-        urllib2.install_opener(opener)
-
-    # now connect to our site and use a special url to retrieve the app store script key
-    session_token = sg_connection.get_session_token()
-    post_data = {"session_token": session_token}
-    response = urllib2.urlopen("%s/api3/sgtk_install_script" % sg_connection.base_url, urllib.urlencode(post_data)) 
-    html = response.read()
-    data = json.loads(html)
-
-    return(data["script_name"], data["script_key"])
 
 
 g_entity_display_name_lookup = None

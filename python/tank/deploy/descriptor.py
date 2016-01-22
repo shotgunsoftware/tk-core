@@ -13,6 +13,7 @@ Functionality for managing versions of apps.
 """
 
 from tank_vendor.shotgun_deploy import create_descriptor
+from ..util import shotgun
 
 
 def get_from_location_and_paths(app_or_engine, pc_path, bundle_install_path, location_dict):
@@ -28,4 +29,10 @@ def get_from_location_and_paths(app_or_engine, pc_path, bundle_install_path, loc
     :param location_dict: A tank location dict
     :returns: an AppDescriptor object
     """
-    return create_descriptor(app_or_engine, location_dict, bundle_install_path)
+    sg_connection = shotgun.get_sg_connection()
+    return create_descriptor(
+            sg_connection,
+            app_or_engine,
+            location_dict,
+            bundle_install_path
+    )

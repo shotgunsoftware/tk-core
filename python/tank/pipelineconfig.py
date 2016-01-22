@@ -562,15 +562,16 @@ class PipelineConfiguration(object):
         :param location:        Location dictionary
         :returns:               Descriptor object
         """
+        sg_connection = shotgun.get_sg_connection()
         pp_location = self._preprocess_location(location)
 
         if self.use_global_bundle_cache():
             # deferring to the deploy module to locate the app cache
-            desc = create_descriptor(descriptor_type, pp_location)
+            desc = create_descriptor(sg_connection, descriptor_type, pp_location)
         else:
             # classic toolkit mode where we cache apps in the core install folder
             bundles_location = os.path.join(self.get_install_location(), "install")
-            desc = create_descriptor(descriptor_type, pp_location, bundles_location)
+            desc = create_descriptor(sg_connection, descriptor_type, pp_location, bundles_location)
 
         return desc
 
