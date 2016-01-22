@@ -518,9 +518,8 @@ class Engine(TankBundle):
         # will repopulate the __applications dict to contain the appropriate
         # apps for the new context, and will pull apps that have already
         # been loaded from the __application_pool, which is persistent.
-        self.log_debug("Changing %r context to %r." % (self.get_env(), new_context))
-        self.get_env().change_context(new_context)
         old_context = self.context
+        self.__env = new_env
         self._set_context(new_context)
         self.__commands = dict()
         self.__load_apps(reuse_existing_apps=True, old_context=old_context)
