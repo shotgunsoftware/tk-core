@@ -31,6 +31,8 @@ from tank_vendor import yaml
 from .errors import AuthenticationError
 import logging
 
+from ..shotgun_base import get_cache_root, get_site_cache_root
+
 logger = logging.getLogger("sg_auth.session")
 
 _CURRENT_HOST = "current_host"
@@ -40,37 +42,6 @@ _LOGIN = "login"
 _SESSION_TOKEN = "session_token"
 _SESSION_CACHE_FILE_NAME = "authentication.yml"
 
-
-def _get_cache_location():
-    """
-    Returns an OS specific cache location.
-
-    :returns: Path to the OS specific cache folder.
-    """
-    if sys.platform == "darwin":
-        root = os.path.expanduser("~/Library/Caches/Shotgun")
-    elif sys.platform == "win32":
-        root = os.path.join(os.environ["APPDATA"], "Shotgun")
-    elif sys.platform.startswith("linux"):
-        root = os.path.expanduser("~/.shotgun")
-    return root
-
-
-def _get_site_cache_location(base_url):
-    """
-    Returns the location of the site cache root based on a site.
-
-    :param base_url: Site we need to compute the root path for.
-
-    :returns: An absolute path to the site cache root.
-    """
-    return os.path.join(
-        _get_cache_location(),
-        # get site only; https://www.foo.com:8080 -> www.foo.com
-        urlparse.urlparse(base_url)[1].split(":")[0]
-    )
-
-
 def _get_global_authentication_file_location():
     """
     Returns the location of the authentication file on disk. This file
@@ -79,10 +50,7 @@ def _get_global_authentication_file_location():
 
     :returns: Path to the login information.
     """
-    return os.path.join(
-        _get_cache_location(),
-        _SESSION_CACHE_FILE_NAME
-    )
+    return os.path.join(get_cache_root(), _SESSION_CACHE_FILE_NAME)
 
 
 def _get_site_authentication_file_location(base_url):
@@ -93,10 +61,7 @@ def _get_site_authentication_file_location(base_url):
 
     :returns: Path to the login information.
     """
-    return os.path.join(
-        _get_site_cache_location(base_url),
-        _SESSION_CACHE_FILE_NAME
-    )
+    return os.path.join(get_site_cache_root(base_url), _SESSION_CACHE_FILE_NAME)
 
 
 def _ensure_folder_for_file(filepath):
