@@ -20,11 +20,10 @@ import uuid
 import tempfile
 
 from .util import subprocess_check_output, execute_git_command
-from ..api import Tank
-from ..errors import TankError
-from ..platform import constants
-from .descriptor import AppDescriptor, VersionedSingletonDescriptor
+from .cached_descriptor import CachedDescriptor
 from .zipfilehelper import unzip_file
+from .errors import ShotgunDeployError
+
 
 class GitDescriptor(CachedDescriptor):
     """
@@ -49,7 +48,7 @@ class GitDescriptor(CachedDescriptor):
         self._version = location_dict.get("version")
 
         if self._path is None or self._version is None:
-            raise TankError("Git descriptor is not valid: %s" % str(location_dict))
+            raise ShotgunDeployError("Git descriptor is not valid: %s" % str(location_dict))
 
 
     def get_system_name(self):
@@ -169,13 +168,13 @@ class GitDescriptor(CachedDescriptor):
                 # get list of tags from git
                 git_tags = subprocess_check_output("git tag", shell=True).split("\n")
             except Exception, e:
-                raise TankError("Could not get list of tags for %s: %s" % (self._path, e))
+                raise ShotgunDeployError("Could not get list of tags for %s: %s" % (self._path, e))
 
         finally:
             os.chdir(cwd)
         
         if len(git_tags) == 0:
-            raise TankError("Git repository %s doesn't seem to have any tags!" % self._path)
+            raise ShotgunDeployError("Git repository %s doesn't seem to have any tags!" % self._path)
 
         version_to_use = self._find_latest_tag_by_pattern(git_tags, pattern)
 
@@ -251,7 +250,7 @@ class GitDescriptor(CachedDescriptor):
         # now search for the latest version matching our pattern
         version_to_use = None
         if not re.match("^v([0-9]+|x)(.([0-9]+|x)){2,}$", pattern):
-            raise TankError("Cannot parse version expression '%s'!" % pattern)
+            raise ShotgunDeployError("Cannot parse version expression '%s'!" % pattern)
 
         # split our pattern, beware each part is a string (even integers)
         version_split = re.findall("([0-9]+|x)", pattern)
@@ -259,7 +258,7 @@ class GitDescriptor(CachedDescriptor):
             # check that we don't have an incorrect pattern using x
             # then a digit, eg. v4.x.2
             if re.match("^v[0-9\.]+[x\.]+[0-9\.]+$", pattern):
-                raise TankError("Incorrect version pattern '%s'. There should be no digit after a 'x'." % pattern)
+                raise ShotgunDeployError("Incorrect version pattern '%s'. There should be no digit after a 'x'." % pattern)
 
         current = versions
         version_to_use = None
@@ -270,7 +269,7 @@ class GitDescriptor(CachedDescriptor):
                 version_digit = max(current.keys(), key=int)
             version_digit = int(version_digit)
             if version_digit not in current:
-                raise TankError("%s does not have a version matching the pattern '%s'. "
+                raise ShotgunDeployError("%s does not have a version matching the pattern '%s'. "
                                 "Available versions are: %s" % (self._path, pattern, ", ".join(version_numbers)))
             current = current[version_digit]
             if version_to_use is None:
@@ -311,12 +310,12 @@ class GitDescriptor(CachedDescriptor):
             try:
                 git_hash = subprocess_check_output("git rev-list --tags --max-count=1", shell=True).strip()
             except Exception, e:
-                raise TankError("Could not get list of tags for %s: %s" % (self._path, e))
+                raise ShotgunDeployError("Could not get list of tags for %s: %s" % (self._path, e))
 
             try:
                 latest_version = subprocess_check_output("git describe --tags %s" % git_hash, shell=True).strip()
             except Exception, e:
-                raise TankError("Could not get tag for hash %s: %s" % (hash, e))
+                raise ShotgunDeployError("Could not get tag for hash %s: %s" % (hash, e))
         
         finally:
             os.chdir(cwd)

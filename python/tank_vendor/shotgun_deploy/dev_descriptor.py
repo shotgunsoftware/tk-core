@@ -18,6 +18,7 @@ import os
 import sys
 
 from .descriptor import Descriptor
+from .errors import ShotgunDeployError
 
 class DevDescriptor(Descriptor):
     """
@@ -26,6 +27,14 @@ class DevDescriptor(Descriptor):
     """
     
     def __init__(self, bundle_install_path, location_dict):
+        """
+        Constructor
+
+        :param bundle_install_path: Location on disk where items are cached
+        :param location_dict: Location dictionary describing the bundle
+        :return: Descriptor instance
+        """
+
         super(DevDescriptor, self).__init__(bundle_install_path, location_dict)
 
         # platform specific location support
@@ -38,8 +47,10 @@ class DevDescriptor(Descriptor):
         elif platform_key and platform_key in location_dict:
             self._path = location_dict.get(platform_key, "")
         else:
-            raise TankError("Invalid dev descriptor! Could not find a path or a %s entry in the "
-                            "location dict %s." % (platform_key, location_dict))
+            raise ShotgunDeployError(
+                    "Invalid dev descriptor! Could not find a path or a %s entry in the "
+                    "location dict %s." % (platform_key, location_dict)
+            )
 
         # lastly, resolve environment variables
         self._path = os.path.expandvars(self._path)

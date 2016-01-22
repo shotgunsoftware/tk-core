@@ -52,7 +52,8 @@ class CachedDescriptor(Descriptor):
                 cls,
                 bundle_cache_root,
                 location_dict,
-                *args, **kwargs
+                *args,
+                **kwargs
             )
 
         return instance_cache[cache_key]

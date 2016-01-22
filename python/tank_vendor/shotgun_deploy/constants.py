@@ -15,7 +15,7 @@ Constants relating to the app/engine part of the Tank Stack.
 
 """
 
-# app store approvals mode
+# pending QA environment variable
 APP_STORE_QA_MODE_ENV_VAR = "TANK_QA_ENABLED"
 
 # app store: the entity that represents the core api
@@ -56,3 +56,6 @@ PIPELINE_CONFIGURATION_ENTITY = "PipelineConfiguration"
 
 # the location of the toolkit app store
 SGTK_APP_STORE = "https://tank.shotgunstudio.com"
+
+# the manifest file inside a bundle
+BUNDLE_METADATA_FILE = "info.yml"

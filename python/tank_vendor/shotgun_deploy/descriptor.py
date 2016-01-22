@@ -13,7 +13,9 @@ Functionality for managing versions of apps.
 """
 
 import os
-
+from . import constants
+from .. import yaml
+from .errors import ShotgunDeployError
 
 class Descriptor(object):
     """
@@ -76,7 +78,7 @@ class Descriptor(object):
         elif app_type == self.CORE:
             root = os.path.join(self._bundle_cache_root, "cores")
         else:
-            raise TankError("Don't know how to figure out the local storage root - unknown type!")
+            raise ShotgunDeployError("Don't know how to figure out the local storage root - unknown type!")
         return os.path.join(root, descriptor_name, name, version)
 
     def __ensure_sg_field_exists(self, sg, sg_type, sg_field_name, sg_data_type):
@@ -94,7 +96,7 @@ class Descriptor(object):
         try:
             sg.find_one(sg_type, [])
         except:
-            raise TankError("The required entity type %s is not enabled in Shotgun!" % sg_type)
+            raise ShotgunDeployError("The required entity type %s is not enabled in Shotgun!" % sg_type)
 
         # now check that the field exists
         sg_field_schema = sg.schema_field_read(sg_type)
@@ -111,22 +113,31 @@ class Descriptor(object):
         if self.__manifest_data is None:
             # make sure payload exists locally
             if not self.exists_local():
+                # @todo - at this point add to a metadata cache for performance
                 self.download_local()
-                
+
             # get the metadata
             bundle_root = self.get_path()
             file_path = os.path.join(bundle_root, constants.BUNDLE_METADATA_FILE)
 
+            if not os.path.exists(file_path):
+                raise ShotgunDeployError("Toolkit metadata file '%s' missing." % file_path)
+
             try:
-                metadata = yaml_cache.g_yaml_cache.get(file_path, deepcopy_data=False)
-            except TankFileDoesNotExistError:
-                raise
+                file_data = open(file_path)
+                try:
+                    metadata = yaml.load(file_data)
+                finally:
+                    file_data.close()
             except Exception, exp:
-                raise TankError("Cannot load metadata file '%s'. Error: %s" % (file_path, exp))
+                raise ShotgunDeployError("Cannot load metadata file '%s'. Error: %s" % (file_path, exp))
 
             # cache it
             self.__manifest_data = metadata
+
         return self.__manifest_data
+
+
 
 
     ###############################################################################################
@@ -371,60 +382,4 @@ class Descriptor(object):
         :returns: descriptor object
         """
         raise NotImplementedError
-
-    ###############################################################################################
-    # helper methods
-
-    def ensure_shotgun_fields_exist(self):
-        """
-        Ensures that any shotgun fields a particular descriptor requires
-        exists in shotgun. In the metadata (info.yml) for an app or an engine,
-        it is possible to define a section for this:
-
-        # the Shotgun fields that this app needs in order to operate correctly
-        requires_shotgun_fields:
-            Version:
-                - { "system_name": "sg_movie_type", "type": "text" }
-
-        This method will retrieve the metadata and ensure that any required
-        fields exists.
-        """
-        # first fetch metadata
-        meta = self._get_metadata()
-        # get fields def
-        sg_fields_def = meta.get("requires_shotgun_fields")
-        if sg_fields_def:  # can be defined as None from yml file
-            # get a sg handle
-            sg = shotgun.get_sg_connection()
-            
-            for sg_entity_type in sg_fields_def:
-                for field in sg_fields_def.get(sg_entity_type, []):
-                    # attempt to create field!
-                    sg_data_type = field["type"]
-                    sg_field_name = field["system_name"]
-                    self.__ensure_sg_field_exists(sg, sg_entity_type, sg_field_name, sg_data_type)
-
-    def run_post_install(self, tk):
-        """
-        If a post install hook exists in a descriptor, execute it. In the
-        hooks directory for an app or engine, if a 'post_install.py' hook
-        exists, the hook will be executed upon each installation.
-        
-        :param tk: Tk API instance associated with this item
-        """
-        
-        post_install_hook_path = os.path.join(self.get_path(), "hooks",
-                                              "post_install.py")
-        try:
-            hook.execute_hook(post_install_hook_path, 
-                              parent=None,
-                              pipeline_configuration=tk.pipeline_configuration.get_path(),
-                              path=self.get_path())
-        except TankFileDoesNotExistError:
-            pass
-        except Exception, e:
-            raise TankError("Could not run post-install hook for %s. "
-                            "Error reported: %s" % (self, e))
-
-
 

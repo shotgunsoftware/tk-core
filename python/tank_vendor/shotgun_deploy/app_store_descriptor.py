@@ -18,29 +18,29 @@ import copy
 import uuid
 import tempfile
 
-# use api json to cover py 2.5
-# todo - replace with proper external library  
-from tank_vendor import shotgun_api3
-json = shotgun_api3.shotgun.json
+import cPickle as pickle
 
-from ..util import shotgun
-from ..errors import TankError
-from ..platform import constants
 from .zipfilehelper import unzip_file
-
 from .cached_descriptor import CachedDescriptor
 
-METADATA_FILE = ".metadata.json"
+from . import constants
+from .app_store import create_sg_app_store_connection
+
+from .errors import ShotgunDeployError
+
+METADATA_FILE = ".cached_metadata.pickle"
+
 
 class AppStoreDescriptor(CachedDescriptor):
     """
     Represents an app store item.
     """
 
-    def __init__(self, bundle_install_path, location_dict, bundle_type):
+    def __init__(self, sg_connection, bundle_install_path, location_dict, bundle_type):
         """
         Constructor
 
+        :param sg_connection: Shotgun connection to associated site
         :param bundle_install_path: Location on disk where items are cached
         :param location_dict: Location dictionary describing the bundle
         :param bundle_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK
@@ -48,6 +48,7 @@ class AppStoreDescriptor(CachedDescriptor):
         """
         super(AppStoreDescriptor, self).__init__(bundle_install_path, location_dict)
 
+        self._sg_connection = sg_connection
         self._type = bundle_type
         self._name = location_dict.get("name")
         self._version = location_dict.get("version")
@@ -86,9 +87,9 @@ class AppStoreDescriptor(CachedDescriptor):
                 # try to load
                 try:
                     fp = open(cache_file, "rt")
-                    self.__cached_metadata = json.load(fp)
+                    self.__cached_metadata = pickle.load(fp)
                     fp.close()
-                except:
+                except Exception:
                     pass
 
         if self.__cached_metadata is None:
@@ -105,33 +106,33 @@ class AppStoreDescriptor(CachedDescriptor):
         """
         
         # find the right shotgun entity types
-        if self._type == AppDescriptor.APP:
+        if self._type == self.APP:
             bundle_entity = constants.TANK_APP_ENTITY
             version_entity = constants.TANK_APP_VERSION_ENTITY
             link_field = "sg_tank_app"
 
-        elif self._type == AppDescriptor.FRAMEWORK:
+        elif self._type == self.FRAMEWORK:
             bundle_entity = constants.TANK_FRAMEWORK_ENTITY
             version_entity = constants.TANK_FRAMEWORK_VERSION_ENTITY
             link_field = "sg_tank_framework"
 
-        elif self._type == AppDescriptor.ENGINE:
+        elif self._type == self.ENGINE:
             bundle_entity = constants.TANK_ENGINE_ENTITY
             version_entity = constants.TANK_ENGINE_VERSION_ENTITY
             link_field = "sg_tank_engine"
 
-        elif self._type == AppDescriptor.CORE:
+        elif self._type == self.CORE:
             bundle_entity = None
             version_entity = constants.TANK_CORE_VERSION_ENTITY
             link_field = None
 
         else:
-            raise TankError("Illegal type value!")
+            raise ShotgunDeployError("Illegal type value!")
 
         # connect to the app store
-        (sg, _) = shotgun.create_sg_app_store_connection()
+        (sg, _) = create_sg_app_store_connection(self._sg_connection)
 
-        if self._type == AppDescriptor.CORE:
+        if self._type == self.CORE:
             # special handling of core since it doesn't have a high-level
             # 'bundle' entity
             
@@ -144,16 +145,22 @@ class AppStoreDescriptor(CachedDescriptor):
                                    "sg_documentation",
                                    constants.TANK_CODE_PAYLOAD_FIELD])
             if version is None:
-                raise TankError("The App store does not have a version "
-                                "'%s' of Core!" % self._version)
+                raise ShotgunDeployError(
+                    "The App store does not have a version '%s' of Core!" % self._version
+                )
             
             
         else:
         
             # first find the bundle level entity
-            bundle = sg.find_one(bundle_entity, [["sg_system_name", "is", self._name]], ["sg_status_list", "sg_deprecation_message"])
+            bundle = sg.find_one(
+                    bundle_entity,
+                    [["sg_system_name", "is", self._name]],
+                    ["sg_status_list", "sg_deprecation_message"]
+            )
+
             if bundle is None:
-                raise TankError("The App store does not contain an item named '%s'!" % self._name)
+                raise ShotgunDeployError("The App store does not contain an item named '%s'!" % self._name)
     
             # now get the version
             version = sg.find_one(version_entity,
@@ -163,8 +170,9 @@ class AppStoreDescriptor(CachedDescriptor):
                                    "sg_documentation",
                                    constants.TANK_CODE_PAYLOAD_FIELD])
             if version is None:
-                raise TankError("The App store does not have a version "
-                                "'%s' of item '%s'!" % (self._version, self._name))
+                raise ShotgunDeployError(
+                    "The App store does not have a version '%s' of item '%s'!" % (self._version, self._name)
+                )
 
         return {"bundle": bundle, "version": version}
 
@@ -182,15 +190,11 @@ class AppStoreDescriptor(CachedDescriptor):
                 os.makedirs(folder, 0777)
                 os.umask(old_umask)                
             fp = open(os.path.join(folder, METADATA_FILE), "wt")
-            json.dump(metadata, fp)
+            pickle.dump(metadata, fp)
             fp.close()
-        except:
+        except Exception:
             # fail gracefully - this is only a cache!
             pass
-
-
-
-
 
     ###############################################################################################
     # data accessors
@@ -278,8 +282,7 @@ class AppStoreDescriptor(CachedDescriptor):
             os.umask(old_umask)
 
         # connect to the app store
-        (sg, script_user) = shotgun.create_sg_app_store_connection()
-        local_sg = shotgun.get_sg_connection()
+        (sg, script_user) = create_sg_app_store_connection(self._sg_connection)
 
         # get metadata from sg...
         metadata = self.__download_app_store_metadata()
@@ -296,7 +299,7 @@ class AppStoreDescriptor(CachedDescriptor):
         try:
             attachment_id = int(version[constants.TANK_CODE_PAYLOAD_FIELD]["url"].split("/")[-1])
         except:
-            raise TankError("Could not extract attachment id from data %s" % version)
+            raise ShotgunDeployError("Could not extract attachment id from data %s" % version)
 
         # and now for the download.
         # @todo: progress feedback here - when the SG api supports it!
@@ -318,9 +321,9 @@ class AppStoreDescriptor(CachedDescriptor):
         unzip_file(zip_tmp, target)
 
         # write a record to the tank app store
-        if self._type == AppDescriptor.APP:
+        if self._type == self.APP:
             data = {}
-            data["description"] = "%s: App %s %s was downloaded" % (local_sg.base_url, self._name, self._version)
+            data["description"] = "%s: App %s %s was downloaded" % (self._sg_connection.base_url, self._name, self._version)
             data["event_type"] = "TankAppStore_App_Download"
             data["entity"] = version
             data["user"] = script_user
@@ -328,9 +331,9 @@ class AppStoreDescriptor(CachedDescriptor):
             data["attribute_name"] = constants.TANK_CODE_PAYLOAD_FIELD
             sg.create("EventLogEntry", data)
 
-        elif self._type == AppDescriptor.FRAMEWORK:
+        elif self._type == self.FRAMEWORK:
             data = {}
-            data["description"] = "%s: Framework %s %s was downloaded" % (local_sg.base_url, self._name, self._version)
+            data["description"] = "%s: Framework %s %s was downloaded" % (self._sg_connection.base_url, self._name, self._version)
             data["event_type"] = "TankAppStore_Framework_Download"
             data["entity"] = version
             data["user"] = script_user
@@ -338,9 +341,9 @@ class AppStoreDescriptor(CachedDescriptor):
             data["attribute_name"] = constants.TANK_CODE_PAYLOAD_FIELD
             sg.create("EventLogEntry", data)
 
-        elif self._type == AppDescriptor.ENGINE:
+        elif self._type == self.ENGINE:
             data = {}
-            data["description"] = "%s: Engine %s %s was downloaded" % (local_sg.base_url, self._name, self._version)
+            data["description"] = "%s: Engine %s %s was downloaded" % (self._sg_connection.base_url, self._name, self._version)
             data["event_type"] = "TankAppStore_Engine_Download"
             data["entity"] = version
             data["user"] = script_user
@@ -348,9 +351,9 @@ class AppStoreDescriptor(CachedDescriptor):
             data["attribute_name"] = constants.TANK_CODE_PAYLOAD_FIELD
             sg.create("EventLogEntry", data)
 
-        elif self._type == AppDescriptor.CORE:
+        elif self._type == self.CORE:
             data = {}
-            data["description"] = "%s: Core %s %s was downloaded" % (local_sg.base_url, self._name, self._version)
+            data["description"] = "%s: Core %s %s was downloaded" % (self._sg_connection.base_url, self._name, self._version)
             data["event_type"] = "TankAppStore_Core_Download"
             data["entity"] = version
             data["user"] = script_user
@@ -359,7 +362,7 @@ class AppStoreDescriptor(CachedDescriptor):
             sg.create("EventLogEntry", data)
 
         else:
-            raise TankError("Invalid bundle type")
+            raise ShotgunDeployError("Invalid bundle type")
 
 
     #############################################################################
@@ -402,27 +405,27 @@ class AppStoreDescriptor(CachedDescriptor):
         """
 
         # connect to the app store
-        (sg, _) = shotgun.create_sg_app_store_connection()
+        (sg, _) = create_sg_app_store_connection(self._sg_connection)
 
         # set up some lookup tables so we look in the right table in sg
-        main_entity_map = { AppDescriptor.APP: constants.TANK_APP_ENTITY,
-                            AppDescriptor.FRAMEWORK: constants.TANK_FRAMEWORK_ENTITY,
-                            AppDescriptor.ENGINE: constants.TANK_ENGINE_ENTITY }
+        main_entity_map = { self.APP: constants.TANK_APP_ENTITY,
+                            self.FRAMEWORK: constants.TANK_FRAMEWORK_ENTITY,
+                            self.ENGINE: constants.TANK_ENGINE_ENTITY }
 
-        version_entity_map = { AppDescriptor.APP: constants.TANK_APP_VERSION_ENTITY,
-                               AppDescriptor.FRAMEWORK: constants.TANK_FRAMEWORK_VERSION_ENTITY,
-                               AppDescriptor.ENGINE: constants.TANK_ENGINE_VERSION_ENTITY }
+        version_entity_map = { self.APP: constants.TANK_APP_VERSION_ENTITY,
+                               self.FRAMEWORK: constants.TANK_FRAMEWORK_VERSION_ENTITY,
+                               self.ENGINE: constants.TANK_ENGINE_VERSION_ENTITY }
 
-        link_field_map = { AppDescriptor.APP: "sg_tank_app",
-                           AppDescriptor.FRAMEWORK: "sg_tank_framework",
-                           AppDescriptor.ENGINE: "sg_tank_engine" }
+        link_field_map = { self.APP: "sg_tank_app",
+                           self.FRAMEWORK: "sg_tank_framework",
+                           self.ENGINE: "sg_tank_engine" }
 
         # find the main entry
         bundle = sg.find_one(main_entity_map[self._type], 
                              [["sg_system_name", "is", self._name]], 
                              ["id", "sg_status_list"])
         if bundle is None:
-            raise TankError("App store does not contain an item named '%s'!" % self._name)
+            raise ShotgunDeployError("App store does not contain an item named '%s'!" % self._name)
 
         # check if this has been deprecated in the app store
         # in that case we should ensure that the cache is cleared later
@@ -444,7 +447,7 @@ class AppStoreDescriptor(CachedDescriptor):
         sg_data = sg.find(entity_type, [[link_field, "is", bundle]] + latest_filter, ["code"])
 
         if len(sg_data) == 0:
-            raise TankError("Cannot find any versions for %s in the App store!" % self._name)
+            raise ShotgunDeployError("Cannot find any versions for %s in the App store!" % self._name)
 
         # now put all version number strings which match the form
         # vX.Y.Z into a nested dictionary where it is keyed by major,
@@ -482,7 +485,7 @@ class AppStoreDescriptor(CachedDescriptor):
         if "x" not in version_pattern:
             # we are looking for a specific version
             if version_pattern not in version_numbers:
-                raise TankError("Could not find requested version '%s' "
+                raise ShotgunDeployError("Could not find requested version '%s' "
                                 "of '%s' in the App store!" % (version_pattern, self._name))
             else:
                 # the requested version exists in the app store!
@@ -494,7 +497,7 @@ class AppStoreDescriptor(CachedDescriptor):
             major = int(major_str)
             
             if major not in versions:
-                raise TankError("%s does not have a version matching the pattern '%s'. "
+                raise ShotgunDeployError("%s does not have a version matching the pattern '%s'. "
                                 "Available versions are: %s" % (self._name, version_pattern, ", ".join(version_numbers)))
             # now find the max version
             max_minor = max(versions[major].keys())            
@@ -510,7 +513,7 @@ class AppStoreDescriptor(CachedDescriptor):
 
             # make sure the constraints are fulfilled
             if (major not in versions) or (minor not in versions[major]):
-                raise TankError("%s does not have a version matching the pattern '%s'. "
+                raise ShotgunDeployError("%s does not have a version matching the pattern '%s'. "
                                 "Available versions are: %s" % (self._name, version_pattern, ", ".join(version_numbers)))
             
             # now find the max increment
@@ -518,7 +521,7 @@ class AppStoreDescriptor(CachedDescriptor):
             version_to_use = "v%s.%s.%s" % (major, minor, max_increment)
         
         else:
-            raise TankError("Cannot parse version expression '%s'!" % version_pattern)
+            raise ShotgunDeployError("Cannot parse version expression '%s'!" % version_pattern)
 
         # make a location dict
         location_dict = {"type": "app_store", "name": self._name, "version": version_to_use}
@@ -545,7 +548,7 @@ class AppStoreDescriptor(CachedDescriptor):
         """
 
         # connect to the app store
-        (sg, _) = shotgun.create_sg_app_store_connection()
+        (sg, _) = create_sg_app_store_connection(self._sg_connection)
 
         # get latest
         # get the filter logic for what to exclude
@@ -556,21 +559,21 @@ class AppStoreDescriptor(CachedDescriptor):
                              ["sg_status_list", "is_not", "bad" ]]
         
         # set up some lookup tables so we look in the right table in sg
-        main_entity_map = { AppDescriptor.APP:       constants.TANK_APP_ENTITY,
-                            AppDescriptor.FRAMEWORK: constants.TANK_FRAMEWORK_ENTITY,
-                            AppDescriptor.ENGINE:    constants.TANK_ENGINE_ENTITY}
+        main_entity_map = { self.APP:       constants.TANK_APP_ENTITY,
+                            self.FRAMEWORK: constants.TANK_FRAMEWORK_ENTITY,
+                            self.ENGINE:    constants.TANK_ENGINE_ENTITY}
 
-        version_entity_map = { AppDescriptor.APP:       constants.TANK_APP_VERSION_ENTITY,
-                               AppDescriptor.FRAMEWORK: constants.TANK_FRAMEWORK_VERSION_ENTITY,
-                               AppDescriptor.ENGINE:    constants.TANK_ENGINE_VERSION_ENTITY}
+        version_entity_map = { self.APP:       constants.TANK_APP_VERSION_ENTITY,
+                               self.FRAMEWORK: constants.TANK_FRAMEWORK_VERSION_ENTITY,
+                               self.ENGINE:    constants.TANK_ENGINE_VERSION_ENTITY}
 
-        link_field_map = { AppDescriptor.APP:       "sg_tank_app",
-                           AppDescriptor.FRAMEWORK: "sg_tank_framework",
-                           AppDescriptor.ENGINE:    "sg_tank_engine"}
+        link_field_map = { self.APP:       "sg_tank_app",
+                           self.FRAMEWORK: "sg_tank_framework",
+                           self.ENGINE:    "sg_tank_engine"}
 
         is_deprecated = False
         
-        if self._type != AppDescriptor.CORE:
+        if self._type != self.CORE:
             # items other than core have a main entity that represents
             # app/engine/etc.
             
@@ -579,7 +582,7 @@ class AppStoreDescriptor(CachedDescriptor):
                                  [["sg_system_name", "is", self._name]], 
                                  ["id", "sg_status_list"])
             if bundle is None:
-                raise TankError("App store does not contain an item named '%s'!" % self._name)
+                raise ShotgunDeployError("App store does not contain an item named '%s'!" % self._name)
     
             # check if this has been deprecated in the app store
             # in that case we should ensure that the cache is cleared later    
@@ -602,11 +605,11 @@ class AppStoreDescriptor(CachedDescriptor):
                                           order=[{"field_name": "created_at", "direction": "desc"}])
         
         if sg_version_data is None:
-            raise TankError("Cannot find any versions for %s in the App store!" % self._name)
+            raise ShotgunDeployError("Cannot find any versions for %s in the App store!" % self._name)
 
         version_str = sg_version_data.get("code")
         if version_str is None:
-            raise TankError("Invalid version number for %s" % sg_version_data)
+            raise ShotgunDeployError("Invalid version number for %s" % sg_version_data)
 
         # make a location dict
         location_dict = {"type": "app_store", 
