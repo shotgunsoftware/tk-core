@@ -20,19 +20,19 @@ import tempfile
 
 # use api json to cover py 2.5
 # todo - replace with proper external library  
-from tank_vendor import shotgun_api3  
+from tank_vendor import shotgun_api3
 json = shotgun_api3.shotgun.json
 
-from ..api import Tank
 from ..util import shotgun
 from ..errors import TankError
 from ..platform import constants
-from .descriptor import AppDescriptor, VersionedSingletonDescriptor
 from .zipfilehelper import unzip_file
+
+from .cached_descriptor import CachedDescriptor
 
 METADATA_FILE = ".metadata.json"
 
-class TankAppStoreDescriptor(VersionedSingletonDescriptor):
+class AppStoreDescriptor(CachedDescriptor):
     """
     Represents an app store item.
     """
@@ -46,7 +46,7 @@ class TankAppStoreDescriptor(VersionedSingletonDescriptor):
         :param bundle_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK
         :return: Descriptor instance
         """
-        super(TankAppStoreDescriptor, self).__init__(bundle_install_path, location_dict)
+        super(AppStoreDescriptor, self).__init__(bundle_install_path, location_dict)
 
         self._type = bundle_type
         self._name = location_dict.get("name")
@@ -388,7 +388,7 @@ class TankAppStoreDescriptor(VersionedSingletonDescriptor):
 
     def _find_latest_for_pattern(self, name, version_pattern):
         """
-        Returns an TankAppStoreDescriptor object representing the latest version
+        Returns an AppStoreDescriptor object representing the latest version
         of the sought after object. If no matching item is found, an
         exception is raised.
 
@@ -398,7 +398,7 @@ class TankAppStoreDescriptor(VersionedSingletonDescriptor):
         - v0.12.x - get the highest v0.12 version
         - v1.x.x - get the highest v1 version 
 
-        :returns: TankAppStoreDescriptor instance
+        :returns: AppStoreDescriptor instance
         """
 
         # connect to the app store
@@ -524,7 +524,7 @@ class TankAppStoreDescriptor(VersionedSingletonDescriptor):
         location_dict = {"type": "app_store", "name": self._name, "version": version_to_use}
 
         # and return a descriptor instance
-        desc = TankAppStoreDescriptor(self._bundle_install_path, location_dict, self._type)
+        desc = AppStoreDescriptor(self._bundle_install_path, location_dict, self._type)
         
         # now if this item has been deprecated, meaning that someone has gone in to the app
         # store and updated the record's deprecation status, we want to make sure we download
@@ -537,11 +537,11 @@ class TankAppStoreDescriptor(VersionedSingletonDescriptor):
 
     def _find_latest(self):
         """
-        Returns an TankAppStoreDescriptor object representing the latest version
+        Returns an AppStoreDescriptor object representing the latest version
         of the sought after object. If no matching item is found, an
         exception is raised.
 
-        :returns: TankAppStoreDescriptor instance
+        :returns: AppStoreDescriptor instance
         """
 
         # connect to the app store
@@ -614,7 +614,7 @@ class TankAppStoreDescriptor(VersionedSingletonDescriptor):
                          "version": version_str}
 
         # and return a descriptor instance
-        desc = TankAppStoreDescriptor(self._bundle_install_path, location_dict, self._type)
+        desc = AppStoreDescriptor(self._bundle_install_path, location_dict, self._type)
         
         # now if this item has been deprecated, meaning that someone has gone in to the app
         # store and updated the record's deprecation status, we want to make sure we download

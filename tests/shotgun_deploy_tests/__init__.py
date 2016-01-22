@@ -7,11 +7,3 @@
 # By accessing, using, copying or modifying this work you indicate your 
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
-
-from .descriptor_factory import create_descriptor
-
-from .app_store_descriptor import AppStoreDescriptor
-from .dev_descriptor import DevDescriptor
-from .git_descriptor import GitDescriptor
-from .manual_descriptor import ManualDescriptor
-from .descriptor import Descriptor

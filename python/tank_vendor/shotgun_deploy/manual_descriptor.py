@@ -9,22 +9,21 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-Descriptor for manual 
-
+Descriptor for manual
 """
 
 import os
 
-from ..platform import constants
-from .descriptor import AppDescriptor
+from . import constants
+from .descriptor import Descriptor
 
-class TankManualDescriptor(AppDescriptor):
+class ManualDescriptor(Descriptor):
     """
     Represents a manually installed item
     """
 
     def __init__(self, bundle_install_path, location_dict, bundle_type):
-        super(TankManualDescriptor, self).__init__(bundle_install_path, location_dict)
+        super(ManualDescriptor, self).__init__(bundle_install_path, location_dict)
         self._type = bundle_type
         self._name = location_dict.get("name")
         self._version = location_dict.get("version")

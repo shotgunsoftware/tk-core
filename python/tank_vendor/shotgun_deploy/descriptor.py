@@ -13,19 +13,9 @@ Functionality for managing versions of apps.
 """
 
 import os
-import sys
-import copy
-import sys
-
-from tank_vendor import yaml
-
-from .. import hook
-from ..util import shotgun, yaml_cache
-from ..errors import TankError, TankFileDoesNotExistError
-from ..platform import constants
 
 
-class AppDescriptor(object):
+class Descriptor(object):
     """
     An app descriptor describes a particular version of an app, engine or core component.
     It also knows how to access metadata such as documentation, descriptions etc.
@@ -45,8 +35,14 @@ class AppDescriptor(object):
     # constants describing the type of item we are describing
     APP, ENGINE, FRAMEWORK, CORE = range(4)
 
-    def __init__(self, bundle_install_path, location_dict):
-        self._bundle_install_path = bundle_install_path
+    def __init__(self, bundle_cache_root, location_dict):
+        """
+        Constructor
+
+        :param bundle_cache_root: Root location for bundle cache storage
+        :param location_dict: dictionary describing the location
+        """
+        self._bundle_cache_root = bundle_cache_root
         self._location_dict = location_dict
         self.__manifest_data = None
 
@@ -71,14 +67,14 @@ class AppDescriptor(object):
         # /studio/tank/install/engines/app_store/tk-nuke/v0.2.3
         # /studio/tank/install/apps/APP_TYPE/NAME/VERSION
 
-        if app_type == AppDescriptor.APP:
-            root = os.path.join(self._bundle_install_path, "apps")
-        elif app_type == AppDescriptor.ENGINE:
-            root = os.path.join(self._bundle_install_path, "engines")
-        elif app_type == AppDescriptor.FRAMEWORK:
-            root = os.path.join(self._bundle_install_path, "frameworks")
-        elif app_type == AppDescriptor.CORE:
-            root = os.path.join(self._bundle_install_path, "cores")
+        if app_type == self.APP:
+            root = os.path.join(self._bundle_cache_root, "apps")
+        elif app_type == self.ENGINE:
+            root = os.path.join(self._bundle_cache_root, "engines")
+        elif app_type == self.FRAMEWORK:
+            root = os.path.join(self._bundle_cache_root, "frameworks")
+        elif app_type == self.CORE:
+            root = os.path.join(self._bundle_cache_root, "cores")
         else:
             raise TankError("Don't know how to figure out the local storage root - unknown type!")
         return os.path.join(root, descriptor_name, name, version)
@@ -431,47 +427,4 @@ class AppDescriptor(object):
                             "Error reported: %s" % (self, e))
 
 
-
-################################################################################################
-# factory method for app descriptors
-
-
-def descriptor_factory(descriptor_type, app_cache_root, location_dict):
-    """
-    Factory method.
-
-    :param descriptor_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK
-    :param app_cache_root: Root path to where downloaded apps are cached
-    :param location_dict: A std location dictionary
-    :returns: Descriptor object
-    """
-    from .app_store_descriptor import TankAppStoreDescriptor
-    from .dev_descriptor import TankDevDescriptor
-    from .git_descriptor import TankGitDescriptor
-    from .manual_descriptor import TankManualDescriptor
-
-    # tank app store format
-    # location: {"type": "app_store", "name": "tk-nukepublish", "version": "v0.5.0"}
-    if location_dict.get("type") == "app_store":
-        return TankAppStoreDescriptor(bundle_install_path, location_dict, app_or_engine)
-
-    # manual format
-    # location: {"type": "manual", "name": "tk-nukepublish", "version": "v0.5.0"}
-    elif location_dict.get("type") == "manual":
-        return TankManualDescriptor(bundle_install_path, location_dict, app_or_engine)
-
-    # git repo
-    # location: {"type": "git", "path": "/path/to/repo.git", "version": "v0.2.1"}
-    elif location_dict.get("type") == "git":
-        return TankGitDescriptor(bundle_install_path, location_dict, app_or_engine)
-
-    # local dev format
-    # location: {"type": "dev", "path": "/path/to/app"}
-    # or
-    # location: {"type": "dev", "windows_path": "c:\\path\\to\\app", "linux_path": "/path/to/app", "mac_path": "/path/to/app"}
-    elif location_dict.get("type") == "dev":
-        return TankDevDescriptor(bundle_install_path, location_dict)
-
-    else:
-        raise TankError("%s: Invalid location dict '%s'" % (app_or_engine, location_dict))
 

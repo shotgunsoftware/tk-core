@@ -17,17 +17,16 @@ This is handy when doing development.
 import os
 import sys
 
-from ..errors import TankError
-from .descriptor import AppDescriptor
+from .descriptor import Descriptor
 
-class TankDevDescriptor(AppDescriptor):
+class DevDescriptor(Descriptor):
     """
     Represents a local item. This item is never downloaded
     into the local storage, you interact with it directly.
     """
     
     def __init__(self, bundle_install_path, location_dict):
-        super(TankDevDescriptor, self).__init__(bundle_install_path, location_dict)
+        super(DevDescriptor, self).__init__(bundle_install_path, location_dict)
 
         # platform specific location support
         system = sys.platform
