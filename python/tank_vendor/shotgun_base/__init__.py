@@ -8,10 +8,8 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from .descriptor_factory import create_descriptor
+from .paths import get_cache_root, get_site_cache_root, get_pipeline_config_cache_root
 
-from .app_store_descriptor import AppStoreDescriptor
-from .dev_descriptor import DevDescriptor
-from .git_descriptor import GitDescriptor
-from .manual_descriptor import ManualDescriptor
-from .descriptor import Descriptor
+from .utils import ensure_folder_exists
+
+from .errors import ShotgunBaseError
