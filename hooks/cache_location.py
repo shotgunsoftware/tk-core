@@ -16,8 +16,8 @@ import sgtk
 from sgtk import TankError
 import os
 import errno
-import urlparse
-import sys
+
+from tank_vendor.shotgun_base import get_pipeline_config_cache_root
 
 HookBaseClass = sgtk.get_hook_baseclass()
 
@@ -41,7 +41,8 @@ class CacheLocation(HookBaseClass):
         :param pipeline_configuration_id: The shotgun pipeline config id to store caches for
         :returns: The path to a path cache file. This file should exist when this method returns.
         """
-        cache_root = self._get_cache_root(project_id, pipeline_configuration_id)
+        tk = self.parent
+        cache_root = get_pipeline_config_cache_root(tk.shotgun_url, project_id, pipeline_configuration_id)
         self._ensure_folder_exists(cache_root)
         target_path = os.path.join(cache_root, "path_cache.db")
         self._ensure_file_exists(target_path)
@@ -64,48 +65,29 @@ class CacheLocation(HookBaseClass):
         :param bundle: The app, engine or framework object which is requesting the cache folder.
         :returns: The path to a folder which should exist on disk.
         """
-        cache_root = self._get_cache_root(project_id, pipeline_configuration_id)
-        target_path = os.path.join(cache_root, bundle.name)
+        tk = self.parent
+        cache_root = get_pipeline_config_cache_root(tk.shotgun_url, project_id, pipeline_configuration_id)
+
+        # in the interest of trying to minimize path lengths (to avoid
+        # the MAX_PATH limit on windows, we apply some shortcuts
+        
+        # if the bundle is a framework, we shorten it:
+        # tk-framework-shotgunutils --> fw-shotgunutils        
+        bundle_name = bundle.name
+        if bundle_name.startswith("tk-framework-"):
+            bundle_name = "fw-%s" % bundle_name[len("tk-framework-"):]
+        
+        # if the bundle is a multi-app, we shorten it:
+        # tk-multi-workfiles2 --> tm-workfiles2        
+        bundle_name = bundle.name
+        if bundle_name.startswith("tk-multi-"):
+            bundle_name = "tm-%s" % bundle_name[len("tk-multi-"):]
+
+        target_path = os.path.join(cache_root, bundle_name)
         self._ensure_folder_exists(target_path)
         
         return target_path
-        
-    def _get_cache_root(self, project_id, pipeline_configuration_id):
-        """
-        Helper method that can be used both by subclassing hooks
-        and inside this base level hook. This method calculates the cache root
-        for the current project and configuration. In the default implementation,
-        all the different types of cache data resides below a common root point. 
-        
-        :param project_id: The shotgun id of the project to store caches for
-        :param pipeline_configuration_id: The shotgun pipeline config id to store caches for
-        :returns: The calculated location for the cache root
-        """
-        
-        # the default implementation will place things in the following locations:
-        # macosx: ~/Library/Caches/Shotgun/SITE_NAME/project_xxx/config_yyy
-        # windows: $APPDATA/Shotgun/SITE_NAME/project_xxx/config_yyy
-        # linux: ~/.shotgun/SITE_NAME/project_xxx/config_yyy
-        
-        # first establish the root location
-        tk = self.parent
-        if sys.platform == "darwin":
-            root = os.path.expanduser("~/Library/Caches/Shotgun")
-        elif sys.platform == "win32":
-            root = os.path.join(os.environ["APPDATA"], "Shotgun")
-        elif sys.platform.startswith("linux"):
-            root = os.path.expanduser("~/.shotgun")
 
-        # get site only; https://www.foo.com:8080 -> www.foo.com
-        base_url = urlparse.urlparse(tk.shotgun_url)[1].split(":")[0]
-        
-        # now structure things by site, project id, and pipeline config id
-        cache_root = os.path.join(root, 
-                                  base_url, 
-                                  "project_%d" % project_id,
-                                  "config_%d" % pipeline_configuration_id)
-        return cache_root
-    
     def _ensure_file_exists(self, path):
         """
         Helper method - creates a file if it doesn't already exists
@@ -145,4 +127,4 @@ class CacheLocation(HookBaseClass):
                     raise TankError("Could not create cache folder '%s': %s" % (path, e))
             finally:
                 os.umask(old_umask)
-            
+
