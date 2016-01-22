@@ -28,16 +28,14 @@ from . import hook
 from . import pipelineconfig_utils
 from . import template_includes
 
+from tank_vendor.shotgun_deploy import Descriptor, create_descriptor
+
 class PipelineConfiguration(object):
     """
     Represents a pipeline configuration in Tank.
     Use the factory methods below to construct this object, do not
     create directly via constructor.
     """
-
-    # Since the project id can be None for site configurations, we have to
-    # initialize _project_id to an invalid value different from None.
-    _UNDEFINED_PROJECT_ID = -1
 
     def __init__(self, pipeline_configuration_path):
         """
@@ -83,14 +81,14 @@ class PipelineConfiguration(object):
         self._roots = pipelineconfig_utils.get_roots_metadata(self._pc_root)
 
         # get the project tank disk name (Project.tank_name), stored in the PC metadata file.
-        data = pipelineconfig_utils.get_metadata(self._pc_root)
-        if data.get("project_name") is None:
-            raise TankError("Project name not defined in config metadata for config %s! "
-                            "Please contact support." % self._pc_root)
-        self._project_name = data.get("project_name")
-
-        # cache fields lazily populated on getter access
-        self._clear_cached_settings()
+        pipeline_config_metadata = self._get_metadata()
+        self._project_name = pipeline_config_metadata.get("project_name")
+        self._project_id = pipeline_config_metadata.get("project_id")
+        self._pc_id = pipeline_config_metadata.get("pc_id")
+        self._pc_name = pipeline_config_metadata.get("pc_name")
+        self._published_file_entity_type = pipeline_config_metadata.get("published_file_entity_type", "TankPublishedFile")        
+        self._use_shotgun_path_cache = pipeline_config_metadata.get("use_shotgun_path_cache", False)
+        self._use_global_bundle_cache = pipeline_config_metadata.get("use_global_bundle_cache", False)
 
         # Populate the global yaml_cache if we find a pickled cache
         # on disk.
@@ -98,44 +96,93 @@ class PipelineConfiguration(object):
         # the global pickled cache stored in the config down to
         # local storage to speed up reading in subsequent sessions.
         self._populate_yaml_cache()
-        
+
+        # run init hook
         self.execute_core_hook_internal(constants.PIPELINE_CONFIGURATION_INIT_HOOK_NAME, parent=self)
 
     def __repr__(self):
         return "<Sgtk Configuration %s>" % self._pc_root
 
-    def _clear_cached_settings(self):
+    ########################################################################################
+    # handling pc metadata
+    
+    def _get_metadata(self):
         """
-        Force the pc object to reread its settings from disk.
-        Call this if you have made changes to config files and 
-        want these to be picked up. The next time settings are needed,
-        these will be automatically re-read from disk.
+        Loads the pipeline config metadata (the pipeline_configuration.yml) file from disk.
+        
+        :param pipeline_config_path: path to a pipeline configuration root folder
+        :returns: deserialized content of the file in the form of a dict.
         """
-        self._project_id = self._UNDEFINED_PROJECT_ID
-        self._pc_id = None
-        self._pc_name = None
-        self._published_file_entity_type = None
-        self._cache_folder = None
-        self._path_cache_path = None
-        self._use_shotgun_path_cache = None
+    
+        # now read in the pipeline_configuration.yml file
+        cfg_yml = os.path.join(self.get_config_location(), 
+                               "core", 
+                               "pipeline_configuration.yml")
+    
+        if not os.path.exists(cfg_yml):
+            raise TankError("Configuration metadata file '%s' missing! "
+                            "Please contact support." % cfg_yml)
+    
+        fh = open(cfg_yml, "rt")
+        try:
+            data = yaml.load(fh)
+            if data is None:
+                raise Exception("File contains no data!")
+        except Exception, e:
+            raise TankError("Looks like a config file is corrupt. Please contact "
+                            "support! File: '%s' Error: %s" % (cfg_yml, e))
+        finally:
+            fh.close()
+    
+        return data
+    
+    def _update_pipeline_config(self, updates):
+        """
+        Updates the pipeline configuration on disk with the passed in values.
 
-    def _load_metadata_from_sg(self):
+        :param updates: Dictionary of values to update in the pipeline configuration
         """
-        Caches PC metadata from shotgun.
-        """
-        sg = shotgun.get_sg_connection()
-        platform_lookup = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
-        sg_path_field = platform_lookup[sys.platform]
-        data = sg.find_one(constants.PIPELINE_CONFIGURATION_ENTITY,
-                           [[sg_path_field, "is", self._pc_root]],
-                           ["id", "project", "code"])
-        if data is None:
-            raise TankError("Cannot find a Pipeline configuration in Shotgun that has its %s "
-                            "set to '%s'!" % (sg_path_field, self._pc_root))
+        # get current settings
+        curr_settings = self._get_metadata()
+        
+        # add path cache setting
+        curr_settings.update(updates)
+        
+        # write the record to disk
+        pipe_config_sg_id_path = os.path.join(self.get_config_location(), 
+                                              "core", 
+                                              "pipeline_configuration.yml")        
+        
+        old_umask = os.umask(0)
+        try:
+            os.chmod(pipe_config_sg_id_path, 0666)
+            # and write the new file
+            fh = open(pipe_config_sg_id_path, "wt")
+            # using safe_dump instead of dump ensures that we
+            # don't serialize any non-std yaml content. In particular,
+            # this causes issues if a unicode object containing a 7-bit
+            # ascii string is passed as part of the data. in this case, 
+            # dump will write out a special format which is later on 
+            # *loaded in* as a unicode object, even if the content doesn't  
+            # need unicode handling. And this causes issues down the line
+            # in toolkit code, assuming strings:
+            #
+            # >>> yaml.dump({"foo": u"bar"})
+            # "{foo: !!python/unicode 'bar'}\n"
+            # >>> yaml.safe_dump({"foo": u"bar"})
+            # '{foo: bar}\n'
+            #            
+            yaml.safe_dump(curr_settings, fh)
+        except Exception, exp:
+            raise TankError("Could not write to configuration file '%s'. "
+                            "Error reported: %s" % (pipe_config_sg_id_path, exp))
+        finally:
+            fh.close()
+            os.umask(old_umask)            
 
-        self._project_id = data.get("project").get("id")
-        self._pc_id = data.get("id")
-        self._pc_name = data.get("code")
+        self._project_id = curr_settings.get("project").get("id")
+        self._pc_id = curr_settings.get("id")
+        self._pc_name = curr_settings.get("code")
 
     def _populate_yaml_cache(self):
         """
@@ -178,24 +225,14 @@ class PipelineConfiguration(object):
     def get_name(self):
         """
         Returns the name of this PC.
-        May connect to Shotgun to retrieve this.
         """
-        if self._pc_name is None:
-            # try to get it from the cache file
-            data = pipelineconfig_utils.get_metadata(self._pc_root)
-            self._pc_name = data.get("pc_name")
-
-
-            if self._pc_name is None:
-                # not in metadata file on disk. Fall back on SG lookup
-                self._load_metadata_from_sg()
-
         return self._pc_name
 
     def is_auto_path(self):
         """
         Returns true if this config was set up with auto path mode.
-        This method will connect to shotgun in order to determine the auto path status.
+        This method will connect to shotgun in order to determine the 
+        auto path status.
         
         :returns: boolean indicating auto path state
         """
@@ -236,35 +273,14 @@ class PipelineConfiguration(object):
 
     def get_shotgun_id(self):
         """
-        Returns the shotgun id for this PC. 
-        May connect to Shotgun to retrieve this.
+        Returns the shotgun id for this PC.
         """
-        if self._pc_id is None:
-            # try to get it from the cache file
-            data = pipelineconfig_utils.get_metadata(self._pc_root)
-            self._pc_id = data.get("pc_id")
-
-            if self._pc_id is None:
-                # not in metadata file on disk. Fall back on SG lookup
-                self._load_metadata_from_sg()
-
         return self._pc_id
 
     def get_project_id(self):
         """
-        Returns the shotgun id for the project associated with this PC. 
-        May connect to Shotgun to retrieve this.
+        Returns the shotgun id for the project associated with this PC.
         """
-        if self._project_id == self._UNDEFINED_PROJECT_ID:
-            # try to get it from the cache file
-            data = pipelineconfig_utils.get_metadata(self._pc_root)
-
-            if "project_id" not in data:
-                # not in metadata file on disk. Fall back on SG lookup
-                self._load_metadata_from_sg()
-            else:
-                self._project_id = data.get("project_id")
-
         return self._project_id
 
     def is_site_configuration(self):
@@ -294,15 +310,6 @@ class PipelineConfiguration(object):
         Returns the type of entity being used
         for the 'published file' entity
         """
-        if self._published_file_entity_type is None:
-            # try to get it from the cache file
-            data = pipelineconfig_utils.get_metadata(self._pc_root)
-            self._published_file_entity_type = data.get("published_file_entity_type")
-
-            if self._published_file_entity_type is None:
-                # fall back to legacy type:
-                self._published_file_entity_type = "TankPublishedFile"
-
         return self._published_file_entity_type
 
     def convert_to_site_config(self):
@@ -310,6 +317,7 @@ class PipelineConfiguration(object):
         Converts the pipeline configuration into the site configuration.
         """
         self._update_pipeline_config({"project_id": None})
+        self._project_id = None
 
     ########################################################################################
     # path cache
@@ -320,17 +328,8 @@ class PipelineConfiguration(object):
         This should only ever return False for setups created before 0.15.
         All projects created with 0.14+ automatically sets this to true.
         """
-        if self._use_shotgun_path_cache is None:
-            # try to get it from the cache file
-            data = pipelineconfig_utils.get_metadata(self._pc_root)
-            self._use_shotgun_path_cache = data.get("use_shotgun_path_cache")
-
-            if self._use_shotgun_path_cache is None:
-                # if not defined assume it is off
-                self._use_shotgun_path_cache = False
-
         return self._use_shotgun_path_cache
-
+    
     def turn_on_shotgun_path_cache(self):
         """
         Updates the pipeline configuration settings to have the shotgun based (v0.15+)
@@ -343,51 +342,8 @@ class PipelineConfiguration(object):
             raise TankError("Shotgun based path cache already turned on!")
                 
         self._update_pipeline_config({"use_shotgun_path_cache": True})
+        self._use_shotgun_path_cache = True
 
-    def _update_pipeline_config(self, updates):
-        """
-        Updates the pipeline configuration on disk with the passed in values.
-
-        :param updates: Dictionary of values to update in the pipeline configuration
-        """
-        # get current settings
-        curr_settings = pipelineconfig_utils.get_metadata(self._pc_root)
-        
-        # add path cache setting
-        curr_settings.update(updates)
-        
-        # write the record to disk
-        pipe_config_sg_id_path = os.path.join(self._pc_root, "config", "core", "pipeline_configuration.yml")        
-        
-        old_umask = os.umask(0)
-        try:
-            os.chmod(pipe_config_sg_id_path, 0666)
-            # and write the new file
-            fh = open(pipe_config_sg_id_path, "wt")
-            # using safe_dump instead of dump ensures that we
-            # don't serialize any non-std yaml content. In particular,
-            # this causes issues if a unicode object containing a 7-bit
-            # ascii string is passed as part of the data. in this case, 
-            # dump will write out a special format which is later on 
-            # *loaded in* as a unicode object, even if the content doesn't  
-            # need unicode handling. And this causes issues down the line
-            # in toolkit code, assuming strings:
-            #
-            # >>> yaml.dump({"foo": u"bar"})
-            # "{foo: !!python/unicode 'bar'}\n"
-            # >>> yaml.safe_dump({"foo": u"bar"})
-            # '{foo: bar}\n'
-            #            
-            yaml.safe_dump(curr_settings, fh)
-        except Exception, exp:
-            raise TankError("Could not write to pipeline configuration settings file %s. "
-                            "Error reported: %s" % (pipe_config_sg_id_path, exp))
-        finally:
-            fh.close()
-            os.umask(old_umask)             
-            
-        # update settings in memory
-        self._clear_cached_settings()      
         
     ########################################################################################
     # storage roots related
@@ -458,7 +414,6 @@ class PipelineConfiguration(object):
                 proj_roots[storage_name][platform] = storage_path
                 
         return proj_roots
-
     
     def get_data_roots(self):
         """
@@ -485,7 +440,6 @@ class PipelineConfiguration(object):
           
         :returns: the project disk name properly concatenated onto the root_value
         """
-        
         # get the valid separator for this path
         separators = {"linux2": "/", "win32": "\\", "darwin": "/" }
         separator = separators[os_name] 
@@ -559,54 +513,112 @@ class PipelineConfiguration(object):
         
         return core_api_root
 
-    def get_bundles_location(self):
-        """
-        Returns the location where all apps/frameworks/engines are stored in subfolders
-        
-        :returns: path string
-        """
-        return os.path.join(self.get_install_location(), "install")
-
-    def get_apps_location(self):
-        """
-        Returns the location where apps are stored
-        
-        Note! This method has been deprecated and will be removed at 
-        some point in the future. Please do not use it.
-        
-        :returns: path string        
-        """
-        return os.path.join(self.get_bundles_location(), "apps")
-
-    def get_engines_location(self):
-        """
-        Returns the location where engines are stored
-        
-        Note! This method has been deprecated and will be removed at 
-        some point in the future. Please do not use it.
-        
-        :returns: path string        
-        """
-        return os.path.join(self.get_bundles_location(), "engines")
-
-    def get_frameworks_location(self):
-        """
-        Returns the location where frameworks are stored
-        
-        Note! This method has been deprecated and will be removed at 
-        some point in the future. Please do not use it.
-        
-        :returns: path string        
-        """
-        return os.path.join(self.get_bundles_location(), "frameworks")
-
     def get_core_python_location(self):
         """
         Returns the python root for this install.
         
         :returns: path string
         """
-        return os.path.join(self.get_bundles_location(), "core", "python")
+        return os.path.join(self.get_install_location(), "install", "core", "python")
+
+
+    ########################################################################################
+    # accessing cached code
+
+    def _preprocess_location(self, location_dict):
+        """
+        Preprocess location dict to resolve config-specific constants and directives.
+
+        This is only relevant if the locator system is used in conjunction with
+        a toolkit configuration. For example, the keyword {PIPELINE_CONFIG} is
+        only meaningful if used in the context of a configuration.
+
+        Location dictionaries defined and used outside of the scope of a
+        pipeline configuration do not support such keywords (since no
+        pipeline configuration exists at that point).
+
+        :param location_dict: Location dict to operate on
+        :param pipeline_config: Pipeline Config object
+        :returns: location dict with any directives resolved.
+        """
+
+        if location_dict.get("type") == "dev":
+
+            # platform specific location support
+            platform_key = {"linux2": "linux_path", "darwin": "mac_path", "win32": "windows_path"}[sys.platform]
+            if platform_key in location_dict:
+                location_dict[platform_key] = location_dict[platform_key].replace("{PIPELINE_CONFIG}", self.get_path())
+
+            if "path" in location_dict:
+                location_dict["path"] = location_dict["path"].replace("{PIPELINE_CONFIG}", self.get_path())
+
+        return location_dict
+
+    def _get_descriptor(self, descriptor_type, location):
+        """
+        Constructs a descriptor object given a location dictionary.
+
+        :param descriptor_type: Descriptor type (APP, ENGINE, etc)
+        :param location:        Location dictionary
+        :returns:               Descriptor object
+        """
+        pp_location = self._preprocess_location(location)
+
+        if self.use_global_bundle_cache():
+            # deferring to the deploy module to locate the app cache
+            desc = create_descriptor(descriptor_type, pp_location)
+        else:
+            # classic toolkit mode where we cache apps in the core install folder
+            bundles_location = os.path.join(self.get_install_location(), "install")
+            desc = create_descriptor(descriptor_type, pp_location, bundles_location)
+
+        return desc
+
+    def get_app_descriptor(self, location):
+        """
+        Convenience method that returns a descriptor for an app
+        that is associated with this pipeline configuration.
+        
+        :param location: Location dictionary describing the app source location
+        :returns:        Descriptor object
+        """
+        return self._get_descriptor(Descriptor.APP, location)
+
+    def get_engine_descriptor(self, location):
+        """
+        Convenience method that returns a descriptor for an engine
+        that is associated with this pipeline configuration.
+        
+        :param location: Location dictionary describing the engine source location
+        :returns:        Descriptor object
+        """
+        return self._get_descriptor(Descriptor.ENGINE, location)
+
+    def get_framework_descriptor(self, location):
+        """
+        Convenience method that returns a descriptor for a framework
+        that is associated with this pipeline configuration.
+        
+        :param location: Location dictionary describing the framework source location
+        :returns:        Descriptor object
+        """
+        return self._get_descriptor(Descriptor.FRAMEWORK, location)
+
+    def get_core_descriptor(self, location):
+        """
+        Convenience method that returns a descriptor for core
+        that is associated with this pipeline configuration.
+        
+        Note! While Engines, Apps and Frameworks descriptors point
+        at code that is typically used at runtime, a core descriptor
+        is typically not used at runtime but instead at deploy time, 
+        to cache a series of cores locally in the bundle cache and then
+        choose one to deploy into a configuration.
+        
+        :param location: Location dictionary describing the core source location
+        :returns:        Descriptor object
+        """
+        return self._get_descriptor(Descriptor.CORE, location)
 
     ########################################################################################
     # configuration disk locations
@@ -702,7 +714,6 @@ class PipelineConfiguration(object):
             data = dict()
 
         return data
-
 
     ########################################################################################
     # helpers and internal
