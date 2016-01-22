@@ -21,7 +21,6 @@ from tank_vendor import yaml
 from . import constants
 from . import environment_includes
 from ..errors import TankError, TankUnreadableFileError
-from ..deploy import descriptor
 
 from ..util.yaml_cache import g_yaml_cache
 
