@@ -42,6 +42,7 @@ _LOGIN = "login"
 _SESSION_TOKEN = "session_token"
 _SESSION_CACHE_FILE_NAME = "authentication.yml"
 
+
 def _get_global_authentication_file_location():
     """
     Returns the location of the authentication file on disk. This file

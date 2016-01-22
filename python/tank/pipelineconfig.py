@@ -565,7 +565,7 @@ class PipelineConfiguration(object):
         sg_connection = shotgun.get_sg_connection()
         pp_location = self._preprocess_location(location)
 
-        if self.use_global_bundle_cache():
+        if self._use_global_bundle_cache:
             # deferring to the deploy module to locate the app cache
             desc = create_descriptor(sg_connection, descriptor_type, pp_location)
         else:

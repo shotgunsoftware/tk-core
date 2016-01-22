@@ -17,7 +17,6 @@ import os
 import time
 import shutil
 import pprint
-import inspect
 import tempfile
 
 from tank_vendor.shotgun_api3.lib import mockgun
@@ -26,7 +25,7 @@ import unittest2 as unittest
 
 import sgtk
 import tank
-from tank_vendor import shotgun_authentication
+from tank_vendor import shotgun_base
 from tank import path_cache
 from tank_vendor import yaml
 
@@ -181,9 +180,7 @@ class TankTestBase(unittest.TestCase):
         self.tank_temp = TANK_TEMP
         self.init_cache_location = os.path.join(self.tank_temp, "init_cache.cache")
 
-        shotgun_authentication.session_cache._get_cache_location = lambda: os.path.join(
-            self.tank_temp, "session_cache"
-        )
+        shotgun_base.paths.get_cache_root = lambda: os.path.join(self.tank_temp, "cache_root")
 
         def _get_cache_location_mock():
             return self.init_cache_location
