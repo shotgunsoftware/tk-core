@@ -28,4 +28,4 @@ def get_from_location_and_paths(app_or_engine, pc_path, bundle_install_path, loc
     :param location_dict: A tank location dict
     :returns: an AppDescriptor object
     """
-    return create_descriptor(app_or_engine, bundle_install_path, location_dict)
+    return create_descriptor(app_or_engine, location_dict, bundle_install_path)
