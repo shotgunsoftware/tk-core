@@ -16,6 +16,7 @@ from tank.errors import TankError
 
 class TestDescriptors(TankTestBase):
 
+
     def test_app_store_descriptor_location(self):
         """
         Tests an appstore descriptor bundle path for the given bundle type and location.
@@ -39,15 +40,15 @@ class TestDescriptors(TankTestBase):
         d = self.tk.pipeline_configuration.get_core_descriptor(location)
         self.assertEqual(d.get_path(), core_path)
 
-    def test_locator_caching(self):
+    def test_locator_cache(self):
         """
-        Tests the in-memory cache of locators
+        Tests caching of locators
         """
-        location = {"type": "app_store", "version": "v0.1.2", "name": "tk-bundle"}
-        location2 = {"type": "app_store", "version": "v0.1.3", "name": "tk-bundle"}
+        location1 = {"type": "app_store", "version": "v0.1.2", "name": "tk-bundle"}
+        location2 = {"type": "app_store", "version": "v0.1.2", "name": "tk-bundle"}
 
-        d1 = self.tk.pipeline_configuration.get_app_descriptor(location)
-        d2 = self.tk.pipeline_configuration.get_app_descriptor(location)
+        d1 = self.tk.pipeline_configuration.get_app_descriptor(location1)
+        d2 = self.tk.pipeline_configuration.get_app_descriptor(location1)
         d3 = self.tk.pipeline_configuration.get_app_descriptor(location2)
 
         # note that we don't use the equality operator here but using 'is' to
@@ -101,7 +102,6 @@ class TestDescriptors(TankTestBase):
 
         d = self.tk.pipeline_configuration.get_app_descriptor({"type": "git", "path": repo, "version": "v0.1.2"})
         self.assertEqual(d.get_path(), os.path.join(install_root , "git", os.path.basename(repo), "v0.1.2"))
-
 
     def test_git_descriptor_location(self):
         """
