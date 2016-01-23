@@ -8,29 +8,29 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-"""
-Functionality for managing versions of apps.
-"""
-
 from .descriptor import Descriptor
 
 class CachedDescriptor(Descriptor):
     """
     Mixin class that caches descriptor instances.
+
+    Executes prior to __init__, caches descriptor instances so that
+    an instance for a given locator is only ever created once.
+
+    The cache keys based on the bundle storage root path and
+    the locator dictionary.
     """
     _instances = dict()
 
     def __new__(cls, bundle_cache_root, location_dict, *args, **kwargs):
         """
-        Executed prior to __init__. Handles singleton caching of descriptors.
+        Handles caching of descriptors.
+
+        Executed prior to __init__ being executed.
 
         Since all our normal descriptors are immutable - they represent a specific,
-        readonly and cached version of an app, engine or framework on disk, we can
+        read only and cached version of an app, engine or framework on disk, we can
         also cache their wrapper objects.
-
-        All descriptor types deriving from this caching class need to have a
-        required name and version key as part of their location dict. These
-        keys are used by the class to uniquely identify objects.
 
         :param bundle_cache_root: Root location for bundle cache
         :param location_dict: Location dictionary describing the bundle

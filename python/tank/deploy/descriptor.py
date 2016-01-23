@@ -16,6 +16,8 @@ from tank_vendor.shotgun_deploy import create_descriptor
 from ..util import shotgun
 
 
+
+
 def get_from_location_and_paths(app_or_engine, pc_path, bundle_install_path, location_dict):
     """
     Factory method.
