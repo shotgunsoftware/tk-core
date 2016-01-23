@@ -12,27 +12,43 @@
 Functionality for managing versions of apps.
 """
 
-from tank_vendor.shotgun_deploy import create_descriptor
+from tank_vendor.shotgun_deploy import create_descriptor, Descriptor
 from ..util import shotgun
+
+
+class AppDescriptor(object):
+    """
+    Kept for backwards compatibility reasons for get_from_location_and_paths()
+    """
+    APP, ENGINE, FRAMEWORK = range(3)
 
 
 def get_from_location_and_paths(app_or_engine, pc_path, bundle_install_path, location_dict):
     """
     Factory method.
-    
+
     LEGACY - Use descriptor_factory() instead.
 
-    :param app_or_engine: Either AppDescriptor.APP ENGINE CORE or FRAMEWORK
-    :param pc_path: Path to the root of the pipeline configuration. 
+    :param app_or_engine: Either AppDescriptor.APP ENGINE CORE or FRAMEWORK (as defined above)
+    :param pc_path: Path to the root of the pipeline configuration.
                     Legacy parameter and no longer used. This value will be ignored.
     :param bundle_install_path: Path to the root of the apps, frameworks and engines bundles.
     :param location_dict: A tank location dict
     :returns: an AppDescriptor object
     """
     sg_connection = shotgun.get_sg_connection()
+
+    # cast legacy enums to use new form
+    enums = {
+        AppDescriptor.APP: Descriptor.APP,
+        AppDescriptor.ENGINE: Descriptor.ENGINE,
+        AppDescriptor.FRAMEWORK: Descriptor.FRAMEWORK
+    }
+    new_descriptor_type = enums[app_or_engine]
+
     return create_descriptor(
             sg_connection,
-            app_or_engine,
+            new_descriptor_type,
             location_dict,
             bundle_install_path
     )
