@@ -227,7 +227,7 @@ class AppStoreDescriptor(CachedDescriptor):
         """
         returns the path to the folder where this item resides
         """
-        return self._get_local_location(self._type, "app_store", self._name, self._version)
+        return self._get_local_location("app_store", self._name, self._version)
 
     def get_doc_url(self):
         """

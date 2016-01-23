@@ -58,28 +58,16 @@ class Descriptor(object):
         """
         return "%s %s" % (self.get_system_name(), self.get_version())
 
-    def _get_local_location(self, app_type, descriptor_name, name, version):
+    def _get_local_location(self, descriptor_name, name, version):
         """
         Calculate the local location for an item. This is a convenience method
         that can be used by implementing classes if they want to stash the code
         payload in a standardized location in the file system.
         """
-
         # examples:
-        # /studio/tank/install/engines/app_store/tk-nuke/v0.2.3
-        # /studio/tank/install/apps/APP_TYPE/NAME/VERSION
-
-        if app_type == self.APP:
-            root = os.path.join(self._bundle_cache_root, "apps")
-        elif app_type == self.ENGINE:
-            root = os.path.join(self._bundle_cache_root, "engines")
-        elif app_type == self.FRAMEWORK:
-            root = os.path.join(self._bundle_cache_root, "frameworks")
-        elif app_type == self.CORE:
-            root = os.path.join(self._bundle_cache_root, "cores")
-        else:
-            raise ShotgunDeployError("Don't know how to figure out the local storage root - unknown type!")
-        return os.path.join(root, descriptor_name, name, version)
+        # /studio/tank/install/app_store/tk-nuke/v0.2.3
+        # /studio/tank/install/app_store/NAME/VERSION
+        return os.path.join(self._bundle_cache_root, descriptor_name, name, version)
 
     def __ensure_sg_field_exists(self, sg, sg_type, sg_field_name, sg_data_type):
         """

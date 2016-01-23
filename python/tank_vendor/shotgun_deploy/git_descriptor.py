@@ -36,10 +36,9 @@ class GitDescriptor(CachedDescriptor):
     /full/path/to/local/repo.git
     """
 
-    def __init__(self, bundle_install_path, location_dict, type):
+    def __init__(self, bundle_install_path, location_dict):
         super(GitDescriptor, self).__init__(bundle_install_path, location_dict)
 
-        self._type = type
         self._path = location_dict.get("path")
         # strip trailing slashes - this is so that when we build
         # the name later (using os.basename) we construct it correctly.
@@ -73,7 +72,7 @@ class GitDescriptor(CachedDescriptor):
         # git@github.com:manneohrstrom/tk-hiero-publish.git -> tk-hiero-publish.git
         # /full/path/to/local/repo.git -> repo.git        
         name = os.path.basename(self._path)
-        return self._get_local_location(self._type, "git", name, self._version)
+        return self._get_local_location("git", name, self._version)
 
     def exists_local(self):
         """
@@ -181,12 +180,7 @@ class GitDescriptor(CachedDescriptor):
         new_loc_dict = copy.deepcopy(self._location_dict)
         new_loc_dict["version"] = version_to_use
 
-        return GitDescriptor(
-            self._pipeline_config_path,
-            self._bundle_install_path,
-            new_loc_dict,
-            self._type
-        )
+        return GitDescriptor(self._bundle_install_path, new_loc_dict)
 
     def _find_latest_tag_by_pattern(self, version_numbers, pattern):
         """
@@ -323,7 +317,7 @@ class GitDescriptor(CachedDescriptor):
         new_loc_dict = copy.deepcopy(self._location_dict)
         new_loc_dict["version"] = latest_version
 
-        return GitDescriptor(self._bundle_install_path, new_loc_dict, self._type)
+        return GitDescriptor(self._bundle_install_path, new_loc_dict)
 
     def __clone_repo(self, target_path):
         """

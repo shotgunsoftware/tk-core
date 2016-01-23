@@ -22,9 +22,8 @@ class ManualDescriptor(Descriptor):
     Represents a manually installed item
     """
 
-    def __init__(self, bundle_install_path, location_dict, bundle_type):
+    def __init__(self, bundle_install_path, location_dict):
         super(ManualDescriptor, self).__init__(bundle_install_path, location_dict)
-        self._type = bundle_type
         self._name = location_dict.get("name")
         self._version = location_dict.get("version")
 
@@ -45,7 +44,7 @@ class ManualDescriptor(Descriptor):
         """
         returns the path to the folder where this item resides
         """
-        return self._get_local_location(self._type, "manual", self._name, self._version)
+        return self._get_local_location("manual", self._name, self._version)
 
     def exists_local(self):
         """

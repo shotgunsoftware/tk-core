@@ -51,12 +51,12 @@ def create_descriptor(sg_connection, descriptor_type, location_dict, bundle_cach
     # manual format
     # location: {"type": "manual", "name": "tk-nukepublish", "version": "v0.5.0"}
     elif location_dict.get("type") == "manual":
-        return ManualDescriptor(bundle_cache_root, location_dict, descriptor_type)
+        return ManualDescriptor(bundle_cache_root, location_dict)
 
     # git repo
     # location: {"type": "git", "path": "/path/to/repo.git", "version": "v0.2.1"}
     elif location_dict.get("type") == "git":
-        return GitDescriptor(bundle_cache_root, location_dict, descriptor_type)
+        return GitDescriptor(bundle_cache_root, location_dict)
 
     # local dev format - for example
     # location: {"type": "dev", "path": "/path/to/app"}
