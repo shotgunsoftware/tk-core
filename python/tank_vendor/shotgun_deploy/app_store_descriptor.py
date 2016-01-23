@@ -36,13 +36,13 @@ class AppStoreDescriptor(CachedDescriptor):
     Represents an app store item.
     """
 
-    def __init__(self, sg_connection, bundle_install_path, location_dict, bundle_type):
+    def __init__(self, bundle_install_path, location_dict, sg_connection, bundle_type):
         """
         Constructor
 
-        :param sg_connection: Shotgun connection to associated site
         :param bundle_install_path: Location on disk where items are cached
         :param location_dict: Location dictionary describing the bundle
+        :param sg_connection: Shotgun connection to associated site
         :param bundle_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK
         :return: Descriptor instance
         """

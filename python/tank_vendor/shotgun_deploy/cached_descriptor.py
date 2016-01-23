@@ -10,12 +10,10 @@
 
 from .descriptor import Descriptor
 
+
 class CachedDescriptor(Descriptor):
     """
     Mixin class that caches descriptor instances.
-
-    Executes prior to __init__, caches descriptor instances so that
-    an instance for a given locator is only ever created once.
 
     The cache keys based on the bundle storage root path and
     the locator dictionary.

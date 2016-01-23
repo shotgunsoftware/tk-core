@@ -44,8 +44,8 @@ class TestDescriptors(TankTestBase):
         """
         Tests caching of locators
         """
-        location1 = {"type": "app_store", "version": "v0.1.2", "name": "tk-bundle"}
-        location2 = {"type": "app_store", "version": "v0.1.2", "name": "tk-bundle"}
+        location1 = {"type": "app_store", "version": "v1.1.1", "name": "tk-bundle"}
+        location2 = {"type": "app_store", "version": "v3.3.3", "name": "tk-bundle"}
 
         d1 = self.tk.pipeline_configuration.get_app_descriptor(location1)
         d2 = self.tk.pipeline_configuration.get_app_descriptor(location1)

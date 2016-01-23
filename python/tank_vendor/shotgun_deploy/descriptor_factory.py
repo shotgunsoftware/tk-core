@@ -46,7 +46,7 @@ def create_descriptor(sg_connection, descriptor_type, location_dict, bundle_cach
     # tank app store format
     # location: {"type": "app_store", "name": "tk-nukepublish", "version": "v0.5.0"}
     if location_dict.get("type") == "app_store":
-        return AppStoreDescriptor(sg_connection, bundle_cache_root, location_dict, descriptor_type)
+        return AppStoreDescriptor(bundle_cache_root, location_dict, sg_connection, descriptor_type)
 
     # manual format
     # location: {"type": "manual", "name": "tk-nukepublish", "version": "v0.5.0"}
