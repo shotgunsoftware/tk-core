@@ -35,7 +35,7 @@ class Descriptor(object):
     # constants and helpers
 
     # constants describing the type of item we are describing
-    APP, ENGINE, FRAMEWORK, CORE = range(4)
+    APP, ENGINE, FRAMEWORK, CORE, CONFIG = range(5)
 
     def __init__(self, bundle_cache_root, location_dict):
         """
@@ -102,6 +102,8 @@ class Descriptor(object):
             # make sure payload exists locally
             if not self.exists_local():
                 # @todo - at this point add to a metadata cache for performance
+                # note - cannot cache dev descriptors - these do not have an immutal info.yml
+
                 self.download_local()
 
             # get the metadata

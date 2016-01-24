@@ -23,22 +23,19 @@ class TestDescriptors(TankTestBase):
         """
         install_root = os.path.join(self.tk.pipeline_configuration.get_install_location(), "install")
         location = {"type": "app_store", "version": "v0.1.2", "name": "tk-bundle"}
+        path = os.path.join(install_root, "app_store", "tk-bundle", "v0.1.2")
 
-        app_path = os.path.join(install_root, "apps", "app_store", "tk-bundle", "v0.1.2")
         d = self.tk.pipeline_configuration.get_app_descriptor(location)
-        self.assertEqual(d.get_path(), app_path)
+        self.assertEqual(d.get_path(), path)
 
-        engine_path = os.path.join(install_root, "engines", "app_store", "tk-bundle", "v0.1.2")
         d = self.tk.pipeline_configuration.get_engine_descriptor(location)
-        self.assertEqual(d.get_path(), engine_path)
+        self.assertEqual(d.get_path(), path)
 
-        fw_path = os.path.join(install_root, "frameworks", "app_store", "tk-bundle", "v0.1.2")
         d = self.tk.pipeline_configuration.get_framework_descriptor(location)
-        self.assertEqual(d.get_path(), fw_path)
+        self.assertEqual(d.get_path(), path)
 
-        core_path = os.path.join(install_root, "cores", "app_store", "tk-bundle", "v0.1.2")
         d = self.tk.pipeline_configuration.get_core_descriptor(location)
-        self.assertEqual(d.get_path(), core_path)
+        self.assertEqual(d.get_path(), path)
 
     def test_locator_cache(self):
         """
@@ -63,23 +60,19 @@ class TestDescriptors(TankTestBase):
 
         install_root = os.path.join(self.tk.pipeline_configuration.get_install_location(), "install")
         location = {"type": "manual", "version": "v0.1.2", "name": "tk-bundle"}
+        path = os.path.join(install_root, "manual", "tk-bundle", "v0.1.2")
 
-        app_path = os.path.join(install_root, "apps", "manual", "tk-bundle", "v0.1.2")
         d = self.tk.pipeline_configuration.get_app_descriptor(location)
-        self.assertEqual(d.get_path(), app_path)
+        self.assertEqual(d.get_path(), path)
 
-        engine_path = os.path.join(install_root, "engines", "manual", "tk-bundle", "v0.1.2")
         d = self.tk.pipeline_configuration.get_engine_descriptor(location)
-        self.assertEqual(d.get_path(), engine_path)
+        self.assertEqual(d.get_path(), path)
 
-        fw_path = os.path.join(install_root, "frameworks", "manual", "tk-bundle", "v0.1.2")
         d = self.tk.pipeline_configuration.get_framework_descriptor(location)
-        self.assertEqual(d.get_path(), fw_path)
+        self.assertEqual(d.get_path(), path)
 
-        core_path = os.path.join(install_root, "cores", "manual", "tk-bundle", "v0.1.2")
         d = self.tk.pipeline_configuration.get_core_descriptor(location)
-        self.assertEqual(d.get_path(), core_path)
-
+        self.assertEqual(d.get_path(), path)
 
     def test_dev_descriptor_location(self):
         """
@@ -98,7 +91,7 @@ class TestDescriptors(TankTestBase):
         Tests a git descriptor bundle path for the given bundle type and location and a given
         repo.
         """
-        install_root = os.path.join(self.tk.pipeline_configuration.get_install_location(), "install", "apps")
+        install_root = os.path.join(self.tk.pipeline_configuration.get_install_location(), "install")
 
         d = self.tk.pipeline_configuration.get_app_descriptor({"type": "git", "path": repo, "version": "v0.1.2"})
         self.assertEqual(d.get_path(), os.path.join(install_root , "git", os.path.basename(repo), "v0.1.2"))

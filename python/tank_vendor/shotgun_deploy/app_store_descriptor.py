@@ -22,6 +22,7 @@ import cPickle as pickle
 
 from .zipfilehelper import unzip_file
 from .cached_descriptor import CachedDescriptor
+from .descriptor import Descriptor
 
 from . import constants
 from .app_store import create_sg_app_store_connection
@@ -35,6 +36,40 @@ class AppStoreDescriptor(CachedDescriptor):
     """
     Represents an app store item.
     """
+
+    # internal app store mappings
+    _APP_STORE_OBJECT = {
+        Descriptor.APP: constants.TANK_APP_ENTITY,
+        Descriptor.FRAMEWORK: constants.TANK_FRAMEWORK_ENTITY,
+        Descriptor.ENGINE: constants.TANK_ENGINE_ENTITY,
+        Descriptor.CONFIG: constants.TANK_CONFIG_ENTITY,
+        Descriptor.CORE: None,
+    }
+
+    _APP_STORE_VERSION = {
+        Descriptor.APP: constants.TANK_APP_VERSION_ENTITY,
+        Descriptor.FRAMEWORK: constants.TANK_FRAMEWORK_VERSION_ENTITY,
+        Descriptor.ENGINE: constants.TANK_ENGINE_VERSION_ENTITY,
+        Descriptor.CONFIG: constants.TANK_CONFIG_VERSION_ENTITY,
+        Descriptor.CORE: constants.TANK_CORE_VERSION_ENTITY,
+    }
+
+    _APP_STORE_LINK = {
+        Descriptor.APP: "sg_tank_app",
+        Descriptor.FRAMEWORK: "sg_tank_framework",
+        Descriptor.ENGINE: "sg_tank_engine",
+        Descriptor.CONFIG: "sg_tank_config",
+        Descriptor.CORE: None,
+    }
+
+    _DOWNLOAD_STATS_EVENT_TYPE = {
+        Descriptor.APP: "TankAppStore_App_Download",
+        Descriptor.FRAMEWORK: "TankAppStore_Framework_Download",
+        Descriptor.ENGINE: "TankAppStore_Engine_Download",
+        Descriptor.CONFIG: "TankAppStore_Config_Download",
+        Descriptor.CORE: "TankAppStore_Core_Download",
+    }
+
 
     def __init__(self, bundle_install_path, location_dict, sg_connection, bundle_type):
         """
@@ -104,30 +139,11 @@ class AppStoreDescriptor(CachedDescriptor):
         Fetches metadata about the app from the tank app store
         returns a dictionary with a bundle key and a version key.
         """
-        
-        # find the right shotgun entity types
-        if self._type == self.APP:
-            bundle_entity = constants.TANK_APP_ENTITY
-            version_entity = constants.TANK_APP_VERSION_ENTITY
-            link_field = "sg_tank_app"
 
-        elif self._type == self.FRAMEWORK:
-            bundle_entity = constants.TANK_FRAMEWORK_ENTITY
-            version_entity = constants.TANK_FRAMEWORK_VERSION_ENTITY
-            link_field = "sg_tank_framework"
-
-        elif self._type == self.ENGINE:
-            bundle_entity = constants.TANK_ENGINE_ENTITY
-            version_entity = constants.TANK_ENGINE_VERSION_ENTITY
-            link_field = "sg_tank_engine"
-
-        elif self._type == self.CORE:
-            bundle_entity = None
-            version_entity = constants.TANK_CORE_VERSION_ENTITY
-            link_field = None
-
-        else:
-            raise ShotgunDeployError("Illegal type value!")
+        # get the appropriate shotgun app store types and fields
+        bundle_entity = self._APP_STORE_OBJECT[self._type]
+        version_entity = self._APP_STORE_VERSION[self._type]
+        link_field = self._APP_STORE_LINK[self._type]
 
         # connect to the app store
         (sg, _) = create_sg_app_store_connection(self._sg_connection)
@@ -320,50 +336,15 @@ class AppStoreDescriptor(CachedDescriptor):
         # unzip core zip file to app target location
         unzip_file(zip_tmp, target)
 
-        # write a record to the tank app store
-        if self._type == self.APP:
-            data = {}
-            data["description"] = "%s: App %s %s was downloaded" % (self._sg_connection.base_url, self._name, self._version)
-            data["event_type"] = "TankAppStore_App_Download"
-            data["entity"] = version
-            data["user"] = script_user
-            data["project"] = constants.TANK_APP_STORE_DUMMY_PROJECT
-            data["attribute_name"] = constants.TANK_CODE_PAYLOAD_FIELD
-            sg.create("EventLogEntry", data)
-
-        elif self._type == self.FRAMEWORK:
-            data = {}
-            data["description"] = "%s: Framework %s %s was downloaded" % (self._sg_connection.base_url, self._name, self._version)
-            data["event_type"] = "TankAppStore_Framework_Download"
-            data["entity"] = version
-            data["user"] = script_user
-            data["project"] = constants.TANK_APP_STORE_DUMMY_PROJECT
-            data["attribute_name"] = constants.TANK_CODE_PAYLOAD_FIELD
-            sg.create("EventLogEntry", data)
-
-        elif self._type == self.ENGINE:
-            data = {}
-            data["description"] = "%s: Engine %s %s was downloaded" % (self._sg_connection.base_url, self._name, self._version)
-            data["event_type"] = "TankAppStore_Engine_Download"
-            data["entity"] = version
-            data["user"] = script_user
-            data["project"] = constants.TANK_APP_STORE_DUMMY_PROJECT
-            data["attribute_name"] = constants.TANK_CODE_PAYLOAD_FIELD
-            sg.create("EventLogEntry", data)
-
-        elif self._type == self.CORE:
-            data = {}
-            data["description"] = "%s: Core %s %s was downloaded" % (self._sg_connection.base_url, self._name, self._version)
-            data["event_type"] = "TankAppStore_Core_Download"
-            data["entity"] = version
-            data["user"] = script_user
-            data["project"] = constants.TANK_APP_STORE_DUMMY_PROJECT
-            data["attribute_name"] = constants.TANK_CODE_PAYLOAD_FIELD
-            sg.create("EventLogEntry", data)
-
-        else:
-            raise ShotgunDeployError("Invalid bundle type")
-
+        # write a stats record to the tank app store
+        data = {}
+        data["description"] = "%s: %s %s was downloaded" % (self._sg_connection.base_url, self._name, self._version)
+        data["event_type"] = self._DOWNLOAD_STATS_EVENT_TYPE[self._type]
+        data["entity"] = version
+        data["user"] = script_user
+        data["project"] = constants.TANK_APP_STORE_DUMMY_PROJECT
+        data["attribute_name"] = constants.TANK_CODE_PAYLOAD_FIELD
+        sg.create("EventLogEntry", data)
 
     #############################################################################
     # searching for other versions
@@ -408,20 +389,9 @@ class AppStoreDescriptor(CachedDescriptor):
         (sg, _) = create_sg_app_store_connection(self._sg_connection)
 
         # set up some lookup tables so we look in the right table in sg
-        main_entity_map = { self.APP: constants.TANK_APP_ENTITY,
-                            self.FRAMEWORK: constants.TANK_FRAMEWORK_ENTITY,
-                            self.ENGINE: constants.TANK_ENGINE_ENTITY }
-
-        version_entity_map = { self.APP: constants.TANK_APP_VERSION_ENTITY,
-                               self.FRAMEWORK: constants.TANK_FRAMEWORK_VERSION_ENTITY,
-                               self.ENGINE: constants.TANK_ENGINE_VERSION_ENTITY }
-
-        link_field_map = { self.APP: "sg_tank_app",
-                           self.FRAMEWORK: "sg_tank_framework",
-                           self.ENGINE: "sg_tank_engine" }
 
         # find the main entry
-        bundle = sg.find_one(main_entity_map[self._type], 
+        bundle = sg.find_one(self._APP_STORE_OBJECT[self._type],
                              [["sg_system_name", "is", self._name]], 
                              ["id", "sg_status_list"])
         if bundle is None:
@@ -442,8 +412,8 @@ class AppStoreDescriptor(CachedDescriptor):
             latest_filter = [["sg_status_list", "is_not", "rev" ],
                              ["sg_status_list", "is_not", "bad" ]]        
         
-        link_field = link_field_map[self._type]
-        entity_type = version_entity_map[self._type]
+        link_field = self._APP_STORE_LINK[self._type]
+        entity_type = self._APP_STORE_VERSION[self._type]
         sg_data = sg.find(entity_type, [[link_field, "is", bundle]] + latest_filter, ["code"])
 
         if len(sg_data) == 0:
@@ -503,8 +473,7 @@ class AppStoreDescriptor(CachedDescriptor):
             max_minor = max(versions[major].keys())            
             max_increment = max(versions[major][max_minor])
             version_to_use = "v%s.%s.%s" % (major, max_minor, max_increment)
-            
-            
+
         elif re.match("v[0-9]+\.[0-9]+\.x", version_pattern):
             # we have a v123.345.x pattern
             (major_str, minor_str, _) = version_pattern[1:].split(".")
@@ -557,19 +526,6 @@ class AppStoreDescriptor(CachedDescriptor):
         else:
             latest_filter = [["sg_status_list", "is_not", "rev" ],
                              ["sg_status_list", "is_not", "bad" ]]
-        
-        # set up some lookup tables so we look in the right table in sg
-        main_entity_map = { self.APP:       constants.TANK_APP_ENTITY,
-                            self.FRAMEWORK: constants.TANK_FRAMEWORK_ENTITY,
-                            self.ENGINE:    constants.TANK_ENGINE_ENTITY}
-
-        version_entity_map = { self.APP:       constants.TANK_APP_VERSION_ENTITY,
-                               self.FRAMEWORK: constants.TANK_FRAMEWORK_VERSION_ENTITY,
-                               self.ENGINE:    constants.TANK_ENGINE_VERSION_ENTITY}
-
-        link_field_map = { self.APP:       "sg_tank_app",
-                           self.FRAMEWORK: "sg_tank_framework",
-                           self.ENGINE:    "sg_tank_engine"}
 
         is_deprecated = False
         
@@ -578,7 +534,7 @@ class AppStoreDescriptor(CachedDescriptor):
             # app/engine/etc.
             
             # find the main entry
-            bundle = sg.find_one(main_entity_map[self._type], 
+            bundle = sg.find_one(self._APP_STORE_OBJECT[self._type],
                                  [["sg_system_name", "is", self._name]], 
                                  ["id", "sg_status_list"])
             if bundle is None:
@@ -590,8 +546,8 @@ class AppStoreDescriptor(CachedDescriptor):
                 is_deprecated = True
 
             # now get the version
-            link_field = link_field_map[self._type]
-            entity_type = version_entity_map[self._type]
+            link_field = self._APP_STORE_LINK[self._type]
+            entity_type = self._APP_STORE_VERSION[self._type]
             sg_version_data = sg.find_one(entity_type,
                                           filters = [[link_field, "is", bundle]] + latest_filter,
                                           fields = ["code"],
