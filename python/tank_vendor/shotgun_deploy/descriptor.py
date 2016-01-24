@@ -169,9 +169,11 @@ class Descriptor(object):
             return app_icon
         else:
             # return default
-            default_icon = os.path.abspath(os.path.join( os.path.dirname(__file__), 
-                                                         "..", "platform", "qt",
-                                                         "default_app_icon_256.png"))
+            default_icon = os.path.abspath(os.path.join(
+                    os.path.dirname(__file__),
+                    "resources",
+                    "default_bundle_256px.png"
+            ))
             return default_icon
 
     def get_support_url(self):
