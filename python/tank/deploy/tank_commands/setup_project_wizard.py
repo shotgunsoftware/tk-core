@@ -17,6 +17,7 @@ from . import core_localize
 from ...util import shotgun
 from ...errors import TankError
 from ... import pipelineconfig_utils
+from ...platform import constants
 
 from .setup_project_core import run_project_setup
 from .setup_project_params import ProjectSetupParameters
@@ -395,7 +396,7 @@ class SetupProjectWizard(object):
         if not data:
             # we are not based on an existing project. Instead pick the last primary config
             data = self._sg.find_one("PipelineConfiguration", 
-                                     [["code", "is", "primary"]],
+                                     [["code", "is", constants.PRIMARY_PIPELINE_CONFIG_NAME]],
                                      ["id", 
                                       "mac_path", 
                                       "windows_path", 

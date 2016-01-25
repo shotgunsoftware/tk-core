@@ -685,6 +685,11 @@ def _get_cache_location():
     Get the location of the initializtion lookup cache.
     Just computes the path, no I/O.
 
+    NOTE! This logic is duplicated in the default cache core hook.
+    The hook should be used whenever possible. This method
+    is inteded for edge cases where a config has not yet been 
+    established and therefore a hook cannot be run. 
+
     :returns: A path on disk to the cache file
     """
 
@@ -707,7 +712,17 @@ def _get_cache_location():
 
     # get site only; https://www.foo.com:8080 -> www.foo.com
     base_url = urlparse.urlparse(sg_base_url)[1].split(":")[0]
-
+    
+    # in order to apply further shortcuts to avoid hitting 
+    # MAX_PATH on windows, strip shotgunstudio.com from all
+    # hosted sites
+    #
+    # mysite.shotgunstudio.com -> mysite
+    # shotgun.internal.int     -> shotgun.internal.int
+    #
+    if base_url.endswith("shotgunstudio.com"):
+        base_url = base_url[:-len(".shotgunstudio.com")]
+    
     # now structure things by site, project id, and pipeline config id
     return os.path.join(root, base_url, constants.SITE_INIT_CACHE_FILE_NAME)
 

@@ -17,6 +17,7 @@ from sgtk import TankError
 import os
 import errno
 import urlparse
+import datetime
 import sys
 
 HookBaseClass = sgtk.get_hook_baseclass()
@@ -65,30 +66,105 @@ class CacheLocation(HookBaseClass):
         :returns: The path to a folder which should exist on disk.
         """
         cache_root = self._get_cache_root(project_id, pipeline_configuration_id)
-        target_path = os.path.join(cache_root, bundle.name)
+        
+        # in the interest of trying to minimize path lengths (to avoid
+        # the MAX_PATH limit on windows, we apply some shortcuts
+        
+        # if the bundle is a framework, we shorten it:
+        # tk-framework-shotgunutils --> fw-shotgunutils        
+        bundle_name = bundle.name
+        if bundle_name.startswith("tk-framework-"):
+            bundle_name = "fw-%s" % bundle_name[len("tk-framework-"):]
+        
+        # if the bundle is a multi-app, we shorten it:
+        # tk-multi-workfiles2 --> tm-workfiles2        
+        bundle_name = bundle.name
+        if bundle_name.startswith("tk-multi-"):
+            bundle_name = "tm-%s" % bundle_name[len("tk-multi-"):]
+
+        target_path = os.path.join(cache_root, bundle_name)
         self._ensure_folder_exists(target_path)
         
         return target_path
         
-    def _get_cache_root(self, project_id, pipeline_configuration_id):
+    def global_bundle_cache(self):
         """
-        Helper method that can be used both by subclassing hooks
-        and inside this base level hook. This method calculates the cache root
-        for the current project and configuration. In the default implementation,
-        all the different types of cache data resides below a common root point. 
+        A location where toolkit stores apps, engines and frameworks
+        for all projects. 
+
+        This setting will be used for all projects which has got the
+        global bundle cache flag set. If the flag is not set, apps will be
+        picked up from the conventional location, local to where the core
+        API installation is.
+
+        Note that this method is called from a pipeline configuration
+        object and that self.parent resolves to the current
+        pipeline configuration object rather than the tk object which 
+        is normally the case for core hooks.
+        
+        :returns: The path to a location where all projects and sites
+                  can store apps, engines and frameworks.
+                  This folder should exist on disk.
+        """
+        sg_cache_root = self._get_shotgun_cache_root()
+        app_cache_root = os.path.join(sg_cache_root, "tk_app_cache")
+        self._ensure_folder_exists(app_cache_root)
+        return app_cache_root
+        
+    def managed_config(self, project_id, pipeline_configuration_id):
+        """
+        Establish a location for where managed configs (cloud based configs)
+        are stored.
+        
+        Overriding this method in a hook allows a user to change the location on disk where
+        managed configs are stored for a site. Managed configs are created by
+        the tank synchronize command.  
         
         :param project_id: The shotgun id of the project to store caches for
         :param pipeline_configuration_id: The shotgun pipeline config id to store caches for
+        :returns: The path to where a managed config location on disk should be
+                  created. This folder should exist on disk.
+        """
+        cache_root = self._get_cache_root(project_id, pipeline_configuration_id)
+        cfg_root = os.path.join(cache_root, "cfg")
+        self._ensure_folder_exists(cfg_root)
+        return cfg_root
+        
+    def managed_config_backup(self, project_id, pipeline_configuration_id):
+        """
+        Establish a location for where backups of managed configs (cloud based configs)
+        are stored.
+        
+        Overriding this method in a hook allows a user to change the location on disk where
+        managed configs are stored for a site. Managed configs are created by
+        the tank synchronize command.  
+        
+        :param project_id: The shotgun id of the project to store caches for
+        :param pipeline_configuration_id: The shotgun pipeline config id to store caches for
+        :returns: The path to where a managed config location on disk should be
+                  created. This folder should exist on disk.
+        """
+        cache_root = self._get_cache_root(project_id, pipeline_configuration_id)
+        cfg_root = os.path.join(cache_root, "cfg.%s" % datetime.datetime.now().strftime("%Y%m%d_%H%M%S"))
+        self._ensure_folder_exists(cfg_root)
+        return cfg_root
+
+    def _get_shotgun_cache_root(self):
+        """
+        Returns a cache root suitable for all Shotgun related data, 
+        regardless of site.
+        
+        Helper method that can be used both by subclassing hooks
+        and inside this base level hook.        
+        
         :returns: The calculated location for the cache root
         """
-        
         # the default implementation will place things in the following locations:
-        # macosx: ~/Library/Caches/Shotgun/SITE_NAME/project_xxx/config_yyy
-        # windows: $APPDATA/Shotgun/SITE_NAME/project_xxx/config_yyy
-        # linux: ~/.shotgun/SITE_NAME/project_xxx/config_yyy
+        # macosx: ~/Library/Caches/Shotgun
+        # windows: %APPDATA%\Shotgun
+        # linux: ~/.shotgun
         
         # first establish the root location
-        tk = self.parent
         if sys.platform == "darwin":
             root = os.path.expanduser("~/Library/Caches/Shotgun")
         elif sys.platform == "win32":
@@ -96,14 +172,57 @@ class CacheLocation(HookBaseClass):
         elif sys.platform.startswith("linux"):
             root = os.path.expanduser("~/.shotgun")
 
+        return root
+    
+    def _get_site_cache_root(self):
+        """
+        Returns a cache root suitable for all Shotgun related
+        data for the current shotgun site.
+        
+        Helper method that can be used both by subclassing hooks
+        and inside this base level hook.        
+        
+        :returns: The calculated location for the cache root
+        """
+        # the default implementation will place things in the following locations:
+        # macosx: ~/Library/Caches/Shotgun/SITE_NAME
+        # windows: %APPDATA%\Shotgun\SITE_NAME
+        # linux: ~/.shotgun/SITE_NAME
+        
         # get site only; https://www.foo.com:8080 -> www.foo.com
+        tk = self.parent
         base_url = urlparse.urlparse(tk.shotgun_url)[1].split(":")[0]
         
-        # now structure things by site, project id, and pipeline config id
-        cache_root = os.path.join(root, 
-                                  base_url, 
-                                  "project_%d" % project_id,
-                                  "config_%d" % pipeline_configuration_id)
+        # in order to apply further shortcuts to avoid hitting 
+        # MAX_PATH on windows, strip shotgunstudio.com from all
+        # hosted sites
+        #
+        # mysite.shotgunstudio.com -> mysite
+        # shotgun.internal.int     -> shotgun.internal.int
+        #
+        if base_url.endswith("shotgunstudio.com"):
+            base_url = base_url[:-len(".shotgunstudio.com")]
+        
+        return os.path.join(self._get_shotgun_cache_root(), base_url)
+
+    def _get_cache_root(self, project_id, pipeline_configuration_id):
+        """
+        Calculates the cache root for the current project and configuration. 
+        
+        Helper method that can be used both by subclassing hooks
+        and inside this base level hook.        
+        
+        :param project_id: The shotgun id of the project to store caches for
+        :param pipeline_configuration_id: The shotgun pipeline config id to store caches for
+        :returns: The calculated location for the cache root
+        """
+        # the default implementation will place things in the following locations:
+        # macosx: ~/Library/Caches/Shotgun/SITE_NAME/p123c456
+        # windows: %APPDAT%\Shotgun\SITE_NAME\p123c456
+        # linux: ~/.shotgun/SITE_NAME/p123c456
+        
+        project_config_folder = "p%dc%d" % (project_id, pipeline_configuration_id)     
+        cache_root = os.path.join(self._get_site_cache_root(), project_config_folder)
         return cache_root
     
     def _ensure_file_exists(self, path):

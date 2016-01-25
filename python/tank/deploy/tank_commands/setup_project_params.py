@@ -24,7 +24,7 @@ from ... import pipelineconfig
 from ..zipfilehelper import unzip_file
 from .. import util as deploy_util
 
-from .setup_project_core import _copy_folder
+from .setup_project_core import copy_folder
 
 from tank_vendor import yaml
 
@@ -265,8 +265,12 @@ class ProjectSetupParameters(object):
     def get_configuration_shotgun_info(self):
         """
         Returns information about how the config relates to shotgun.
-        Returns a dictionary with shotgun pipelineconfig information,
-        including the fields 
+        
+        If the config doesn't have any relationship to an existing
+        pipeline configuration in Shotgun, None is returned.
+        
+        Connects to Shotgun and Returns a dictionary with shotgun 
+        pipelineconfig information, including the fields: 
         
         - id
         - code
@@ -276,27 +280,13 @@ class ProjectSetupParameters(object):
         - project
         - project.Project.tank_name (the disk name for the project)
         
-        :returns: dict or None if no sg association could be found
+        :returns: Shotgun dict, None if no associated shotgun pipeline
+                  configuration exists.
         """
         if self._config_template is None:
             raise TankError("Please specify a configuration template!")
 
-        if not self._config_template.is_local_config():
-            return False
-
-        field_name = {"win32": "windows_path", "linux2": "linux_path", "darwin": "mac_path"}[sys.platform]
-        
-        data = self._sg.find_one("PipelineConfiguration", 
-                                 [[field_name, "is", self._config_template.get_pipeline_configuration()]],
-                                 ["id", 
-                                  "code", 
-                                  "mac_path", 
-                                  "windows_path", 
-                                  "linux_path", 
-                                  "project", 
-                                  "project.Project.tank_name"])
-        
-        return data
+        return self._config_template.get_shotgun_info()
     
     def get_configuration_readme(self):
         """
@@ -793,7 +783,7 @@ class TemplateConfiguration(object):
     to which changes later on can be pushed or pulled.
     """
 
-    _LOCAL = "local"
+    (MODE_LOCAL_DIR, MODE_PC, MODE_ZIP, MODE_GIT, MODE_APP_STORE) = range(5)
     
     def __init__(self, config_uri, sg, sg_app_store, script_user, log):
         """
@@ -1039,7 +1029,7 @@ class TemplateConfiguration(object):
         if config_uri.endswith(".git"):
             # this is a git repository!
             self._log.info("Hang on, loading configuration from git...")
-            return (self._process_config_git(config_uri), "git")
+            return (self._process_config_git(config_uri), self.MODE_GIT)
             
         elif os.path.sep in config_uri:
             # probably a file path!
@@ -1047,17 +1037,25 @@ class TemplateConfiguration(object):
                 # either a folder or zip file!
                 if config_uri.endswith(".zip"):
                     self._log.info("Hang on, unzipping configuration...")
-                    return (self._process_config_zip(config_uri), "zip")
+                    return (self._process_config_zip(config_uri), self.MODE_ZIP)
                 else:
-                    self._log.info("Hang on, loading configuration...")
-                    return (self._process_config_dir(config_uri), self._LOCAL)
+                    # this is a directory on disk. It either belongs to an existing
+                    # pipeline configuration or to a plain folder on disk.
+                    # if it belongs to a project, there is a tank command on 
+                    # the level above in the folder structure
+                    if os.path.exists(os.path.join(config_uri), "..", "tank"):
+                        return (self._process_config_dir(config_uri), self.MODE_PC)
+                    else:
+                        # this is a free floating config                    
+                        self._log.info("Hang on, loading configuration...")
+                        return (self._process_config_dir(config_uri), self.MODE_LOCAL_DIR)
             else:
                 raise TankError("File path %s does not exist on disk!" % config_uri)    
         
         elif config_uri.startswith("tk-"):
             # app store!
             self._log.info("Hang on, loading configuration from the app store...")
-            return (self._process_config_app_store(config_uri), "app_store")
+            return (self._process_config_app_store(config_uri), self.MODE_APP_STORE)
         
         else:
             raise TankError("Don't know how to handle config '%s'" % config_uri)
@@ -1200,33 +1198,52 @@ class TemplateConfiguration(object):
         """
         return self._config_uri
 
-    def is_local_config(self):
+    def get_shotgun_info(self):
         """
-        Returns if the configuration is on the local disk.
-
-        :returns: True if the configuration is on the local disk, False otherwise.
+        Returns information about an associated shotgun pipeline configuration.
+        
+        This is only relevant for configuration templates that are also currently
+        part of active Shotgun projects. For other templates, this method will
+        always return None. 
+        
+        If the configuration template belongs to a pipeline configuration
+        associated with the current Shotun site, information about this 
+        configuration will be returned. The method will connect to Shotgun
+        in order to retrieve this. The following fields will be fetched:
+        
+            - id
+            - code
+            - mac_path
+            - windows_path 
+            - linux_path 
+            - project
+            - project.Project.tank_name (the disk name for the project)
+        
+        :returns: Shotgun dictionary or None if not data could be determined 
         """
-        return self._config_mode == self._LOCAL
+        if self._config_mode != self.MODE_PC:
+            # not a config from a pipeline config so skip
+            return None 
 
-    def get_pipeline_configuration(self):
-        """
-        Resolves the potential pipeline configuration based on the configuration uri. Potential is employed here because
-        there's no guarantee this folder is actually part of a pipeline configuration.
+        # pc root point is one level up in folder structure
+        pc_root = os.path.split(self._config_uri)[0]
 
-        :returns: Path to the pipeline configuration associated with the configuration uri.
-
-        :raises TankError: This exception is raised when the configuration was pulled from GitHub, AppStore or zip file,
-            since no pipeline configuration can be associated with these.
-        """
-        if not self.is_local_config():
-            raise TankError(
-                "Cannot resolve pipeline configuration for '%s' because it doesn't belong to an existing project!" %
-                self._config_uri
-            )
-
-        # The config uri points to the config folder inside the pipeline configuration, so we'll have to step out
-        # for this one.
-        return os.path.split(self._config_uri)[0]
+        curr_path_field = {"win32": "windows_path", 
+                      "linux2": "linux_path", 
+                      "darwin": "mac_path"}[sys.platform]
+                      
+        # given this path, find the matching Shotgun config
+        data = self._sg.find_one("PipelineConfiguration", 
+                                 [[curr_path_field, "is", pc_root]],
+                                 ["id", 
+                                  "code", 
+                                  "mac_path", 
+                                  "windows_path", 
+                                  "linux_path", 
+                                  "project", 
+                                  "project.Project.tank_name"])
+        
+        return data
 
     def get_readme_content(self):
         """
@@ -1252,13 +1269,13 @@ class TemplateConfiguration(object):
         old_umask = os.umask(0)
         try:
 
-            if self._config_mode == "git":
+            if self._config_mode == self.MODE_GIT:
                 # clone the config into place
                 self._log.info("Cloning git configuration into '%s'..." % target_path)
                 self._clone_git_repo(self._config_uri, target_path)
             else:
                 # copy the config from its source location into place
-                _copy_folder(self._log, self._cfg_folder, target_path )
+                copy_folder(self._log, self._cfg_folder, target_path )
 
         finally:
             os.umask(old_umask)

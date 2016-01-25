@@ -13,6 +13,7 @@ Functionality for managing versions of apps.
 """
 
 import os
+import sys
 import copy
 import sys
 
@@ -30,7 +31,7 @@ class AppDescriptor(object):
     It also knows how to access metadata such as documentation, descriptions etc.
 
     Several AppDescriptor classes exists, all deriving from this base class, and the
-    factory method get_from_location() manufactures the correct descriptor object
+    factory method descriptor_factory() manufactures the correct descriptor object
     based on a location dict, that is found inside of the environment config.
 
     Different App Descriptor implementations typically handle different source control
@@ -42,10 +43,9 @@ class AppDescriptor(object):
     # constants and helpers
 
     # constants describing the type of item we are describing
-    APP, ENGINE, FRAMEWORK = range(3)
+    APP, ENGINE, FRAMEWORK, CORE = range(4)
 
-    def __init__(self, pipeline_config_path, bundle_install_path, location_dict):
-        self._pipeline_config_path = pipeline_config_path
+    def __init__(self, bundle_install_path, location_dict):
         self._bundle_install_path = bundle_install_path
         self._location_dict = location_dict
         self.__manifest_data = None
@@ -77,6 +77,8 @@ class AppDescriptor(object):
             root = os.path.join(self._bundle_install_path, "engines")
         elif app_type == AppDescriptor.FRAMEWORK:
             root = os.path.join(self._bundle_install_path, "frameworks")
+        elif app_type == AppDescriptor.CORE:
+            root = os.path.join(self._bundle_install_path, "cores")
         else:
             raise TankError("Don't know how to figure out the local storage root - unknown type!")
         return os.path.join(root, descriptor_name, name, version)
@@ -406,11 +408,13 @@ class AppDescriptor(object):
                     sg_field_name = field["system_name"]
                     self.__ensure_sg_field_exists(sg, sg_entity_type, sg_field_name, sg_data_type)
 
-    def run_post_install(self):
+    def run_post_install(self, tk):
         """
         If a post install hook exists in a descriptor, execute it. In the
         hooks directory for an app or engine, if a 'post_install.py' hook
         exists, the hook will be executed upon each installation.
+        
+        :param tk: Tk API instance associated with this item
         """
         
         post_install_hook_path = os.path.join(self.get_path(), "hooks",
@@ -418,7 +422,7 @@ class AppDescriptor(object):
         try:
             hook.execute_hook(post_install_hook_path, 
                               parent=None,
-                              pipeline_configuration=self._pipeline_config_path,
+                              pipeline_configuration=tk.pipeline_configuration.get_path(),
                               path=self.get_path())
         except TankFileDoesNotExistError:
             pass
@@ -480,31 +484,78 @@ class VersionedSingletonDescriptor(AppDescriptor):
 ################################################################################################
 # factory method for app descriptors
 
+def preprocess_location(location_dict, pipeline_config):
+    """
+    Preprocess location dict to resolve config-specific constants and directives.
+    
+    This is only relevant if the locator system is used in conjunction with 
+    a toolkit configuration. For example, the keyword {PIPELINE_CONFIG} is
+    only meaningful if used in the context of a configuration.
+    
+    Location dictionaries defined and used outside of the scope of a 
+    pipeline configuration do not support such keywords (since no 
+    pipeline configuration exists at that point). 
+    
+    :param location_dict: Location dict to operate on
+    :param pipeline_config: Pipeline Config object
+    :returns: location dict with any directives resolved.
+    """
+
+    if location_dict.get("type") == "dev":
+        
+        # platform specific location support
+        platform_key = {"linux2": "linux_path", "darwin": "mac_path", "win32": "windows_path"}[sys.platform]
+        if platform_key in location_dict:
+            location_dict[platform_key] = location_dict[platform_key].replace("{PIPELINE_CONFIG}", pipeline_config.get_path())
+
+        if "path" in location_dict:
+            location_dict["path"] = location_dict["path"].replace("{PIPELINE_CONFIG}", pipeline_config.get_path())
+
+    return location_dict
+
+
+def descriptor_factory(descriptor_type, app_cache_root, location_dict):
+    """
+    Factory method.
+
+    :param descriptor_type: Either AppDescriptor.APP, ENGINE or FRAMEWORK
+    :param app_cache_root: Root path to where downloaded apps are cached
+    :param location_dict: A std location dictionary
+    :returns: Descriptor object
+    """
+    return get_from_location_and_paths(descriptor_type, None, app_cache_root, location_dict)
+
+################################################################################################
+# legacy methods - do not use.
 
 def get_from_location(app_or_engine, pipeline_config, location_dict):
     """
     Factory method.
+    
+    LEGACY - Use pipelineconfiguration.get_app|engine|framework_descriptor() 
+             instead.
 
     :param app_or_engine: Either AppDescriptor.APP AppDescriptor.ENGINE or FRAMEWORK
     :param pipeline_config: Pipeline Configuration Object
     :param location_dict: A tank location dict
     :returns: an AppDescriptor object
     """
-
     return get_from_location_and_paths(
         app_or_engine,
-        pipeline_config.get_path(),
-        pipeline_config.get_bundles_location(),
+        None,
+        pipeline_config._get_bundles_location(), #TODO - fix this
         location_dict
     )
-
 
 def get_from_location_and_paths(app_or_engine, pc_path, bundle_install_path, location_dict):
     """
     Factory method.
+    
+    LEGACY - Use descriptor_factory() instead.
 
     :param app_or_engine: Either AppDescriptor.APP AppDescriptor.ENGINE or FRAMEWORK
-    :param pc_path: Path to the root of the pipeline configuration
+    :param pc_path: Path to the root of the pipeline configuration. 
+                    Legacy parameter and no longer used. This value will be ignored.
     :param bundle_install_path: Path to the root of the apps, frameworks and engines bundles.
     :param location_dict: A tank location dict
     :returns: an AppDescriptor object
@@ -515,29 +566,27 @@ def get_from_location_and_paths(app_or_engine, pc_path, bundle_install_path, loc
     from .git_descriptor import TankGitDescriptor
     from .manual_descriptor import TankManualDescriptor
 
-    # temporary implementation. Todo: more error checks!
-
     # tank app store format
     # location: {"type": "app_store", "name": "tk-nukepublish", "version": "v0.5.0"}
     if location_dict.get("type") == "app_store":
-        return TankAppStoreDescriptor(pc_path, bundle_install_path, location_dict, app_or_engine)
+        return TankAppStoreDescriptor(bundle_install_path, location_dict, app_or_engine)
 
     # manual format
     # location: {"type": "manual", "name": "tk-nukepublish", "version": "v0.5.0"}
     elif location_dict.get("type") == "manual":
-        return TankManualDescriptor(pc_path, bundle_install_path, location_dict, app_or_engine)
+        return TankManualDescriptor(bundle_install_path, location_dict, app_or_engine)
 
     # git repo
     # location: {"type": "git", "path": "/path/to/repo.git", "version": "v0.2.1"}
     elif location_dict.get("type") == "git":
-        return TankGitDescriptor(pc_path, bundle_install_path, location_dict, app_or_engine)
+        return TankGitDescriptor(bundle_install_path, location_dict, app_or_engine)
 
     # local dev format
     # location: {"type": "dev", "path": "/path/to/app"}
     # or
     # location: {"type": "dev", "windows_path": "c:\\path\\to\\app", "linux_path": "/path/to/app", "mac_path": "/path/to/app"}
     elif location_dict.get("type") == "dev":
-        return TankDevDescriptor(pc_path, bundle_install_path, location_dict)
+        return TankDevDescriptor(bundle_install_path, location_dict)
 
     else:
         raise TankError("%s: Invalid location dict '%s'" % (app_or_engine, location_dict))
