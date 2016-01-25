@@ -11,152 +11,92 @@
 import os
 
 from tank_test.tank_test_base import *
-from sgtk.deploy import descriptor
 from tank.errors import TankError
 
 
 class TestDescriptors(TankTestBase):
 
-    def _test_app_store_descriptor_location(self, bundle_type, bundle_location):
+
+    def test_app_store_descriptor_location(self):
         """
-        Tests an app store descriptor bundle path for the given bundle type and location.
-
-        :param bundle_type: One of descriptor.AppDescriptor.{APP,ENGINE,FRAMEWORK}
-        :param bundle_location: Location in the pipeline configuration where bundles of the given
-            type get installed.
+        Tests an appstore descriptor bundle path for the given bundle type and location.
         """
+        install_root = os.path.join(self.tk.pipeline_configuration.get_install_location(), "install")
+        location = {"type": "app_store", "version": "v0.1.2", "name": "tk-bundle"}
+        path = os.path.join(install_root, "app_store", "tk-bundle", "v0.1.2")
 
-        desc = descriptor.get_from_location(
-            bundle_type,
-            self.tk.pipeline_configuration,
-            {"type": "app_store", "version": "v0.1.2", "name": "tk-bundle"}
-        )
-        self.assertEqual(
-            desc.get_path(),
-            os.path.join(
-                bundle_location,
-                "app_store",
-                "tk-bundle",
-                "v0.1.2"
-            )
-        )
+        d = self.tk.pipeline_configuration.get_app_descriptor(location)
+        self.assertEqual(d.get_path(), path)
 
-        # test caching
-        desc2 = descriptor.get_from_location(
-            bundle_type,
-            self.tk.pipeline_configuration,
-            {"type": "app_store", "version": "v0.1.2", "name": "tk-bundle"}
-        )
+        d = self.tk.pipeline_configuration.get_engine_descriptor(location)
+        self.assertEqual(d.get_path(), path)
+
+        d = self.tk.pipeline_configuration.get_framework_descriptor(location)
+        self.assertEqual(d.get_path(), path)
+
+        d = self.tk.pipeline_configuration.get_core_descriptor(location)
+        self.assertEqual(d.get_path(), path)
+
+    def test_locator_cache(self):
+        """
+        Tests caching of locators
+        """
+        location1 = {"type": "app_store", "version": "v1.1.1", "name": "tk-bundle"}
+        location2 = {"type": "app_store", "version": "v3.3.3", "name": "tk-bundle"}
+
+        d1 = self.tk.pipeline_configuration.get_app_descriptor(location1)
+        d2 = self.tk.pipeline_configuration.get_app_descriptor(location1)
+        d3 = self.tk.pipeline_configuration.get_app_descriptor(location2)
+
         # note that we don't use the equality operator here but using 'is' to
         # make sure we are getting the same instance back
-        self.assertTrue(desc is desc2)
+        self.assertTrue(d1 is d2)
+        self.assertTrue(d1 is not d3)
 
-        desc3 = descriptor.get_from_location(
-            bundle_type,
-            self.tk.pipeline_configuration,
-            {"type": "app_store", "version": "v0.1.3", "name": "tk-bundle"}
-        )
-        # note that we don't use the equality operator here but using 'is' to
-        # make sure we are getting the same instance back
-        self.assertTrue(desc is not desc3)
-
-    def _test_manual_descriptor_location(self, bundle_type, bundle_location):
+    def test_manual_descriptor_location(self):
         """
         Tests a manual descriptor bundle path for the given bundle type and location.
-
-        :param bundle_type: One of descriptor.AppDescriptor.{APP,ENGINE,FRAMEWORK}
-        :param bundle_location: Location in the pipeline configuration where bundles of the given
-            type get installed.
         """
 
-        desc = descriptor.get_from_location(
-            bundle_type,
-            self.tk.pipeline_configuration,
-            {"type": "manual", "version": "v0.1.2", "name": "tk-bundle"}
-        )
-        self.assertEqual(
-            desc.get_path(),
-            os.path.join(
-                bundle_location,
-                "manual",
-                "tk-bundle",
-                "v0.1.2"
-            )
-        )
+        install_root = os.path.join(self.tk.pipeline_configuration.get_install_location(), "install")
+        location = {"type": "manual", "version": "v0.1.2", "name": "tk-bundle"}
+        path = os.path.join(install_root, "manual", "tk-bundle", "v0.1.2")
 
+        d = self.tk.pipeline_configuration.get_app_descriptor(location)
+        self.assertEqual(d.get_path(), path)
 
-    def _test_dev_descriptor_location(self, bundle_type, bundle_location):
+        d = self.tk.pipeline_configuration.get_engine_descriptor(location)
+        self.assertEqual(d.get_path(), path)
+
+        d = self.tk.pipeline_configuration.get_framework_descriptor(location)
+        self.assertEqual(d.get_path(), path)
+
+        d = self.tk.pipeline_configuration.get_core_descriptor(location)
+        self.assertEqual(d.get_path(), path)
+
+    def test_dev_descriptor_location(self):
         """
-        Tests a dev descriptor bundle path for the given bundle_type and bundle_location.
-        Note that the bundle type and location should not have any impact on this descriptor
-        type.
-
-        :param bundle_type: One of descriptor.AppDescriptor.{APP,ENGINE,FRAMEWORK}
-        :param bundle_location: Location in the pipeline configuration where bundles of the given
-            type get installed.
+        Tests a dev descriptor bundle path
         """
-        desc = descriptor.get_from_location(
-            bundle_type,
-            self.tk.pipeline_configuration,
-            {"type": "dev", "path": "path/to/bundle"}
-        )
-        self.assertEqual(desc.get_path(), os.path.join("path", "to", "bundle"))
 
-        desc = descriptor.get_from_location(
-            bundle_type,
-            self.tk.pipeline_configuration,
-            {"type": "dev", "path": "{PIPELINE_CONFIG}/bundle"}
-        )
-        self.assertEqual(
-            desc.get_path(),
-            os.path.join(self.tk.pipeline_configuration.get_path(), "bundle")
-        )
+        d = self.tk.pipeline_configuration.get_app_descriptor({"type": "dev", "path": "{PIPELINE_CONFIG}/bundle"})
+        self.assertEqual(d.get_path(), os.path.join(self.tk.pipeline_configuration.get_path(), "bundle"))
 
-    def _test_git_descriptor_location_with_repo(self, bundle_type, bundle_location, repo):
+        d = self.tk.pipeline_configuration.get_app_descriptor({"type": "dev", "path": "path/to/bundle"})
+        self.assertEqual(d.get_path(), os.path.join("path", "to", "bundle"))
+
+
+    def _test_git_descriptor_location_with_repo(self, repo):
         """
         Tests a git descriptor bundle path for the given bundle type and location and a given
         repo.
-
-        :param bundle_type: One of descriptor.AppDescriptor.{APP,ENGINE,FRAMEWORK}
-        :param bundle_location: Location in the pipeline configuration where bundles of the given
-            type get installed.
         """
+        install_root = os.path.join(self.tk.pipeline_configuration.get_install_location(), "install")
 
-        desc = descriptor.get_from_location(
-            bundle_type,
-            self.tk.pipeline_configuration,
-            {"type": "git", "path": repo, "version": "v0.1.2"}
-        )
-        self.assertEqual(
-            desc.get_path(),
-            os.path.join(
-                bundle_location,
-                "git",
-                os.path.basename(repo),
-                "v0.1.2"
-            )
-        )
+        d = self.tk.pipeline_configuration.get_app_descriptor({"type": "git", "path": repo, "version": "v0.1.2"})
+        self.assertEqual(d.get_path(), os.path.join(install_root , "git", os.path.basename(repo), "v0.1.2"))
 
-        # test caching
-        desc2 = descriptor.get_from_location(
-            bundle_type,
-            self.tk.pipeline_configuration,
-            {"type": "git", "path": repo, "version": "v0.1.2"}
-        )
-        # note that we don't use the equality operator here but using 'is' to
-        # make sure we are getting the same instance back
-        self.assertTrue(desc is desc2)
-
-        desc3 = descriptor.get_from_location(
-            bundle_type,
-            self.tk.pipeline_configuration,
-            {"type": "git", "path": repo, "version": "v0.1.3"}
-        )
-        # note that we don't use the equality operator here but using 'is' to
-        # make sure we are getting the same instance back
-        self.assertTrue(desc is not desc3)
-
-    def _test_git_descriptor_location(self, bundle_type, bundle_location):
+    def test_git_descriptor_location(self):
         """
         Tests a git descriptor bundle path for the given bundle type and location for all
         supported repo naming convention.
@@ -171,50 +111,16 @@ class TestDescriptors(TankTestBase):
             "git://github.com/manneohrstrom/tk-hiero-publish.git",
             "/full/path/to/local/repo.git"
         ]:
-            self._test_git_descriptor_location_with_repo(
-                bundle_type,
-                bundle_location,
-                uri
-            )
+            self._test_git_descriptor_location_with_repo(uri)
 
-    def test_descriptors_location(self):
-        """
-        For all descriptor types and bundle types, this test validates the
-        install location of the bundles (descriptor.get_path()).
-        """
-        bundle_types = {
-            # Do not rely on get_bundles_location() to generate the expected roots since
-            # we wouldn't be testing against the expected value.
-            descriptor.AppDescriptor.APP: os.path.join(self.tk.pipeline_configuration.get_install_location(), "install", "apps"),
-            descriptor.AppDescriptor.ENGINE: os.path.join(self.tk.pipeline_configuration.get_install_location(), "install", "engines"),
-            descriptor.AppDescriptor.FRAMEWORK: os.path.join(self.tk.pipeline_configuration.get_install_location(), "install", "frameworks")
-        }
-        for bundle_type, bundle_location in bundle_types.iteritems():
-            self._test_app_store_descriptor_location(
-                bundle_type,
-                bundle_location
-            )
-            self._test_manual_descriptor_location(
-                bundle_type,
-                bundle_location
-            )
-            self._test_dev_descriptor_location(
-                bundle_type,
-                bundle_location
-            )
-            self._test_git_descriptor_location(
-                bundle_type,
-                bundle_location
-            )
 
     def test_git_version_logic(self):
         """
         Test git descriptor version logic
         """
-        desc = descriptor.get_from_location(
-            descriptor.AppDescriptor.APP,
-            self.tk.pipeline_configuration,
-            {"type": "git", "path": "git@github.com:dummy/tk-multi-dummy.git", "version": "v1.2.3"})
+        desc = self.tk.pipeline_configuration.get_app_descriptor(
+                {"type": "git", "path": "git@github.com:dummy/tk-multi-dummy.git", "version": "v1.2.3"}
+        )
 
         # absolute match
         self.assertEqual(desc._find_latest_tag_by_pattern(["v1.2.3"], "v1.2.3"), "v1.2.3")
@@ -236,4 +142,3 @@ class TestDescriptors(TankTestBase):
                                 desc._find_latest_tag_by_pattern,
                                 ["v1.2.3", "v1.2.233", "v1.3.1"],
                                 "v1.x.2")
-

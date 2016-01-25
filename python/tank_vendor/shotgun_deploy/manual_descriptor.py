@@ -1,4 +1,4 @@
-# Copyright (c) 2013 Shotgun Software Inc.
+# Copyright (c) 2016 Shotgun Software Inc.
 # 
 # CONFIDENTIAL AND PROPRIETARY
 # 
@@ -9,23 +9,21 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-Descriptor for manual 
-
+Descriptor for manual
 """
 
 import os
 
-from ..platform import constants
-from .descriptor import AppDescriptor
+from . import constants
+from .descriptor import Descriptor
 
-class TankManualDescriptor(AppDescriptor):
+class ManualDescriptor(Descriptor):
     """
     Represents a manually installed item
     """
 
-    def __init__(self, pc_path, bundle_install_path, location_dict, bundle_type):
-        super(TankManualDescriptor, self).__init__(pc_path, bundle_install_path, location_dict)
-        self._type = bundle_type
+    def __init__(self, bundle_install_path, location_dict):
+        super(ManualDescriptor, self).__init__(bundle_install_path, location_dict)
         self._name = location_dict.get("name")
         self._version = location_dict.get("version")
 
@@ -46,7 +44,7 @@ class TankManualDescriptor(AppDescriptor):
         """
         returns the path to the folder where this item resides
         """
-        return self._get_local_location(self._type, "manual", self._name, self._version)
+        return self._get_local_location("manual", self._name, self._version)
 
     def exists_local(self):
         """

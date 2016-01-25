@@ -19,7 +19,7 @@ class CacheAppsAction(Action):
         Action.__init__(self, 
                         "cache_apps", 
                         Action.TK_INSTANCE, 
-                        ("Toolkit manages an app cache to ensure that all versions of apps and "
+                        ("Toolkit manages a bundle cache to ensure that all versions of apps and "
                         "engines that are specified in the environments exists locally. This "
                         "cache is normally automatically managed by the update and install "
                         "commands, but if you are manually editing version numbers inside "

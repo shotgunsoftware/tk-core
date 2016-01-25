@@ -20,6 +20,7 @@ from .util import shotgun
 from . import pipelineconfig_utils
 from .pipelineconfig import PipelineConfiguration
 
+from tank_vendor.shotgun_base import get_site_cache_root
 
 def from_entity(entity_type, entity_id):
     """
@@ -680,6 +681,7 @@ def _add_to_lookup_cache(key, data):
     finally:
         os.umask(old_umask)
 
+
 def _get_cache_location():
     """
     Get the location of the initializtion lookup cache.
@@ -687,27 +689,9 @@ def _get_cache_location():
 
     :returns: A path on disk to the cache file
     """
-
     # optimized version of creating an sg instance and then calling sg.base_url
     # this is to avoid connecting to shotgun if possible.
     sg_base_url = shotgun.get_associated_sg_base_url()
 
-    # the default implementation will place things in the following locations:
-    # macosx: ~/Library/Caches/Shotgun/SITE_NAME/toolkit_init.cache
-    # windows: $APPDATA/Shotgun/SITE_NAME/toolkit_init.cache
-    # linux: ~/.shotgun/SITE_NAME/toolkit_init.cache
-
-    # first establish the root location
-    if sys.platform == "darwin":
-        root = os.path.expanduser("~/Library/Caches/Shotgun")
-    elif sys.platform == "win32":
-        root = os.path.join(os.environ["APPDATA"], "Shotgun")
-    elif sys.platform.startswith("linux"):
-        root = os.path.expanduser("~/.shotgun")
-
-    # get site only; https://www.foo.com:8080 -> www.foo.com
-    base_url = urlparse.urlparse(sg_base_url)[1].split(":")[0]
-
-    # now structure things by site, project id, and pipeline config id
-    return os.path.join(root, base_url, constants.SITE_INIT_CACHE_FILE_NAME)
+    return get_site_cache_root(sg_base_url)
 

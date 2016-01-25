@@ -1,4 +1,4 @@
-# Copyright (c) 2013 Shotgun Software Inc.
+# Copyright (c) 2016 Shotgun Software Inc.
 # 
 # CONFIDENTIAL AND PROPRIETARY
 # 
@@ -17,17 +17,25 @@ This is handy when doing development.
 import os
 import sys
 
-from ..errors import TankError
-from .descriptor import AppDescriptor
+from .descriptor import Descriptor
+from .errors import ShotgunDeployError
 
-class TankDevDescriptor(AppDescriptor):
+class DevDescriptor(Descriptor):
     """
     Represents a local item. This item is never downloaded
     into the local storage, you interact with it directly.
     """
     
-    def __init__(self, pc_path, bundle_install_path, location_dict):
-        super(TankDevDescriptor, self).__init__(pc_path, bundle_install_path, location_dict)
+    def __init__(self, bundle_install_path, location_dict):
+        """
+        Constructor
+
+        :param bundle_install_path: Location on disk where items are cached
+        :param location_dict: Location dictionary describing the bundle
+        :return: Descriptor instance
+        """
+
+        super(DevDescriptor, self).__init__(bundle_install_path, location_dict)
 
         # platform specific location support
         system = sys.platform
@@ -39,12 +47,11 @@ class TankDevDescriptor(AppDescriptor):
         elif platform_key and platform_key in location_dict:
             self._path = location_dict.get(platform_key, "")
         else:
-            raise TankError("Invalid dev descriptor! Could not find a path or a %s entry in the "
-                            "location dict %s." % (platform_key, location_dict))
+            raise ShotgunDeployError(
+                    "Invalid dev descriptor! Could not find a path or a %s entry in the "
+                    "location dict %s." % (platform_key, location_dict)
+            )
 
-        # replace magic token {PIPELINE_CONFIG} with path to pipeline configuration
-        self._path = self._path.replace("{PIPELINE_CONFIG}", self._pipeline_config_path)
-        
         # lastly, resolve environment variables
         self._path = os.path.expandvars(self._path)
         
