@@ -58,6 +58,7 @@ class Engine(TankBundle):
         self.__application_pool = {}
         self.__shared_frameworks = {}
         self.__commands = {}
+        self.__command_pool = {}
         self.__panels = {}
         self.__currently_initializing_app = None
         
@@ -521,9 +522,7 @@ class Engine(TankBundle):
         old_context = self.context
         self.__env = new_env
         self._set_context(new_context)
-        self.__commands = dict()
         self.__load_apps(reuse_existing_apps=True, old_context=old_context)
-        self.__register_reload_command()
 
         # Call the post_context_change method to allow for any engine
         # specific post-change logic to be run.
@@ -1423,6 +1422,12 @@ class Engine(TankBundle):
         # which is persistent.
         self.__applications = dict()
 
+        # The commands dict will be repopulated either by new app inits,
+        # or by pulling existing commands for reused apps from the persistant
+        # cache of commands.
+        self.__commands = dict()
+        self.__register_reload_command()
+
         for app_instance_name in self.__env.get_apps(self.__engine_instance_name):
             # Get a handle to the app bundle.
             descriptor = self.__env.get_app_descriptor(
@@ -1489,6 +1494,7 @@ class Engine(TankBundle):
             # that aren't already up and running.
             install_path = descriptor.get_path()
             app_pool = self.__application_pool
+
             if reuse_existing_apps and install_path in app_pool:
                 # If we were given an "old" context that's being switched away
                 # from, we can run the post change method and do a bit of
@@ -1510,12 +1516,10 @@ class Engine(TankBundle):
                         # the new context.
                         setup_frameworks(self, app, self.__env, descriptor)
 
-                        # Track the init of the app.
-                        self.__currently_initializing_app = app
-                        try:
-                            app.init_app()
-                        finally:
-                            self.__currently_initializing_app = None
+                        # Repopulate the app's commands into the engine.
+                        for command_name, command in self.__command_pool.iteritems():
+                            if app is command.get("properties", dict()).get("app"):
+                                self.__commands[command_name] = command
 
                         # Run the post method in case there's custom logic implemented
                         # for the app.
@@ -1593,6 +1597,10 @@ class Engine(TankBundle):
                         self.__application_pool[app_path] = dict()
 
                     self.__application_pool[app.descriptor.get_path()][app_instance_name] = app
+
+            # Update the persistent commands pool for use in context changes.
+            for command_name, command in self.__commands.iteritems():
+                self.__command_pool[command_name] = command
             
     def __destroy_frameworks(self):
         """
