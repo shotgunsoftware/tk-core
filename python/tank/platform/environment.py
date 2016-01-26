@@ -316,7 +316,6 @@ class Environment(object):
         """
         Returns the descriptor object for an app.
         """
-
         location_dict = self.__engine_locations.get( (engine_name, app_name) )
         if location_dict is None:
             raise TankError("The environment %s does not have a valid location "
@@ -328,10 +327,6 @@ class Environment(object):
                                          location_dict)
 
         return d
-
-    def set_context(self, context):
-        self.__context = context
-        self._refresh()
 
     ##########################################################################################
     # Public methods - data update

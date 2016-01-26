@@ -21,11 +21,20 @@ class TankError(Exception):
     pass
 
 
+class TankContextChangeNotSupportedError(TankError):
+    """
+    Exception that indicates that a requested context change is not allowed
+    based on a check of the current engine and all of its active apps.
+    """
+    pass
+
+
 class TankUnreadableFileError(TankError):
     """
     Exception that indicates that a required file can't be read from disk.
     """
     pass
+
 
 class TankFileDoesNotExistError(TankUnreadableFileError):
     """

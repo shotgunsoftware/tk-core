@@ -673,16 +673,26 @@ class PipelineConfiguration(object):
         You can use the get_environments() method to get a list of
         all the environment names.
         
-        :param env_name: name of the environment to load
-        :param context: context to seed the environment with
-        :param writable: If true, a writable environment object will be 
-                         returned, allowing a user to update it.
-        :returns: An environment object
+        :param env_name:    name of the environment to load
+        :param context:     context to seed the environment with
+        :param writable:    If true, a writable environment object will be 
+                            returned, allowing a user to update it.
+        :returns:           An environment object
         """        
-        env_file = os.path.join(self._pc_root, "config", "env", "%s.yml" % env_name)
+        env_file = self.get_environment_path(env_name)
         EnvClass = WritableEnvironment if writable else Environment
         env_obj = EnvClass(env_file, self, context)
         return env_obj
+
+    def get_environment_path(self, env_name):
+        """
+        Returns the path to the environment yaml file for the given
+        environment name for this pipeline configuration.
+
+        :param env_name:    The name of the environment.
+        :returns:           String path to the environment yaml file.
+        """
+        return os.path.join(self._pc_root, "config", "env", "%s.yml" % env_name)
     
     def get_templates_config(self):
         """

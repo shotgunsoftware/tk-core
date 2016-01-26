@@ -50,6 +50,17 @@ class AppDescriptor(object):
         self._location_dict = location_dict
         self.__manifest_data = None
 
+    def __eq__(self, other):
+        # By default, we can assume equality if the path to the data
+        # on disk is equivalent.
+        if isinstance(other, self.__class__):
+            return self.get_path() == other.get_path()
+        else:
+            return False
+
+    def __ne__(self, other):
+        return not (self == other)
+
     def __repr__(self):
         class_name = self.__class__.__name__
         return "<%s %s %s>" % (class_name, self.get_system_name(), self.get_version())
@@ -475,6 +486,14 @@ class VersionedSingletonDescriptor(AppDescriptor):
             )
 
         return instance_cache[cache_key]
+
+    def __eq__(self, other):
+        # Since this is a singleton descriptor, we can check
+        # to see if it's a reference to the same object.
+        return self is other
+
+    def __ne__(self, other):
+        return self is not other
 
 
 ################################################################################################
