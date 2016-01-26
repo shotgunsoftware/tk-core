@@ -495,6 +495,14 @@ class VersionedSingletonDescriptor(AppDescriptor):
     def __ne__(self, other):
         return self is not other
 
+    def __eq__(self, other):
+        # Since this is a singleton descriptor, we can check
+        # to see if it's a reference to the same object.
+        return self is other
+
+    def __ne__(self, other):
+        return self is not other
+
 
 ################################################################################################
 # factory method for app descriptors
