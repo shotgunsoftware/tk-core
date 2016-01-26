@@ -23,7 +23,6 @@ import threading
 from .. import loader
 from .. import hook
 from ..errors import TankError, TankEngineInitError
-from tank_vendor.shotgun_deploy import DevDescriptor
 
 from . import application
 from . import constants
@@ -155,9 +154,9 @@ class Engine(TankBundle):
         # Useful dev helpers: If there is one or more dev descriptors in the 
         # loaded environment, add a reload button to the menu!
         for app in self.__applications.values():
-            if isinstance(app.descriptor, DevDescriptor):
+            if app.descriptor.is_developer():
                 self.log_debug("App %s is registered via a dev descriptor. Will add a reload "
-                               "button to the actions listings."  % app)
+                               "button to the actions listings." % app)
                 from . import restart 
                 self.register_command("Reload and Restart", restart, {"short_name": "restart", "type": "context_menu"})                
                 # only need one reload button, so don't keep iterating :)

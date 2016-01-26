@@ -8,13 +8,6 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-"""
-Constants relating to the app/engine part of the Tank Stack.
-
-(for constants relating to the low level part of the tank stack, see ..constants)
-
-"""
-
 # pending QA environment variable
 APP_STORE_QA_MODE_ENV_VAR = "TANK_QA_ENABLED"
 

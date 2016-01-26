@@ -7,23 +7,18 @@
 # By accessing, using, copying or modifying this work you indicate your 
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
-
-"""
-Descriptor for manual
-"""
-
 import os
 
-from . import constants
-from .descriptor import Descriptor
+from .. import constants
+from .base import IODescriptorBase
 
-class ManualDescriptor(Descriptor):
+class IODescriptorManual(IODescriptorBase):
     """
     Represents a manually installed item
     """
 
     def __init__(self, bundle_install_path, location_dict):
-        super(ManualDescriptor, self).__init__(bundle_install_path, location_dict)
+        super(IODescriptorManual, self).__init__(bundle_install_path, location_dict)
         self._name = location_dict.get("name")
         self._version = location_dict.get("version")
 

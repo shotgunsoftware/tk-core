@@ -21,6 +21,12 @@ class ShotgunDeployError(ShotgunBaseError):
     """
     pass
 
+class ShotgunDescriptorError(ShotgunDeployError):
+    """
+    Errors relating to descriptors
+    """
+    pass
+
 class ShotgunAppStoreError(ShotgunDeployError):
     """
     Errors relating to the shotgun app store

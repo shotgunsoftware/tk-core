@@ -7,43 +7,40 @@
 # By accessing, using, copying or modifying this work you indicate your 
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
-
-"""
-This git descriptor is for a formal git workflow.
-It will base version numbering off tags in git.
-"""
-
 import os
 import re
 import copy
 import uuid
 import tempfile
 
-from .util import subprocess_check_output, execute_git_command
-from .cached_descriptor import CachedDescriptor
-from .zipfilehelper import unzip_file
-from .errors import ShotgunDeployError
+from ..util import subprocess_check_output, execute_git_command
+from .base import IODescriptorBase
+from ..zipfilehelper import unzip_file
+from ..errors import ShotgunDeployError
 
 
-class GitDescriptor(CachedDescriptor):
+class IODescriptorGit(IODescriptorBase):
     """
     Represents a repository in git. New versions are represented by new tags.
-    
+
+    # location: {"type": "git", "path": "/path/to/repo.git", "version": "v0.2.1"}
+
     path can be on the form:
-    git@github.com:manneohrstrom/tk-hiero-publish.git
-    https://github.com/manneohrstrom/tk-hiero-publish.git
-    git://github.com/manneohrstrom/tk-hiero-publish.git
-    /full/path/to/local/repo.git
+
+        git@github.com:manneohrstrom/tk-hiero-publish.git
+        https://github.com/manneohrstrom/tk-hiero-publish.git
+        git://github.com/manneohrstrom/tk-hiero-publish.git
+        /full/path/to/local/repo.git
     """
 
     def __init__(self, bundle_install_path, location_dict):
-        super(GitDescriptor, self).__init__(bundle_install_path, location_dict)
+        super(IODescriptorGit, self).__init__(bundle_install_path, location_dict)
 
         self._path = location_dict.get("path")
         # strip trailing slashes - this is so that when we build
         # the name later (using os.basename) we construct it correctly.
         if self._path.endswith("/") or self._path.endswith("\\"):
-            self._path = self._path[:-1] 
+            self._path = self._path[:-1]
         self._version = location_dict.get("version")
 
         if self._path is None or self._version is None:
@@ -180,7 +177,7 @@ class GitDescriptor(CachedDescriptor):
         new_loc_dict = copy.deepcopy(self._location_dict)
         new_loc_dict["version"] = version_to_use
 
-        return GitDescriptor(self._bundle_install_path, new_loc_dict)
+        return IODescriptorGit(self._bundle_install_path, new_loc_dict)
 
     def _find_latest_tag_by_pattern(self, version_numbers, pattern):
         """
@@ -317,7 +314,7 @@ class GitDescriptor(CachedDescriptor):
         new_loc_dict = copy.deepcopy(self._location_dict)
         new_loc_dict["version"] = latest_version
 
-        return GitDescriptor(self._bundle_install_path, new_loc_dict)
+        return IODescriptorGit(self._bundle_install_path, new_loc_dict)
 
     def __clone_repo(self, target_path):
         """

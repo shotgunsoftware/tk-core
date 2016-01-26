@@ -8,22 +8,25 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-"""
-Descriptor that let's you work with local, unversioned files.
-This is handy when doing development.
-
-"""
-
 import os
 import sys
 
-from .descriptor import Descriptor
-from .errors import ShotgunDeployError
+from .base import IODescriptorBase
+from ..errors import ShotgunDeployError
 
-class DevDescriptor(Descriptor):
+class IODescriptorDev(IODescriptorBase):
     """
     Represents a local item. This item is never downloaded
     into the local storage, you interact with it directly.
+
+    # location: {"type": "dev", "path": "/path/to/app"}
+
+    name is optional and if not specified will be determined based on folder path.
+    In the case above, the name would be 'app'
+    In the case below, the name would be 'my-app'
+
+    # location: {"type": "dev", "path": "/path/to/app", name: "my-app"}
+
     """
     
     def __init__(self, bundle_install_path, location_dict):
@@ -35,7 +38,7 @@ class DevDescriptor(Descriptor):
         :return: Descriptor instance
         """
 
-        super(DevDescriptor, self).__init__(bundle_install_path, location_dict)
+        super(IODescriptorDev, self).__init__(bundle_install_path, location_dict)
 
         # platform specific location support
         system = sys.platform
@@ -103,6 +106,18 @@ class DevDescriptor(Descriptor):
         Retrieves this version to local repo
         """
         # do nothing!
+
+    def is_developer(self):
+        """
+        Returns true if this item is intended for development purposes
+        """
+        return True
+
+    def is_immutable(self):
+        """
+        Returns true if this items content never changes
+        """
+        return False
 
     def find_latest_version(self, constraint_pattern=None):
         """

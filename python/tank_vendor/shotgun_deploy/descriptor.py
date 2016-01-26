@@ -8,14 +8,8 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-"""
-Functionality for managing versions of apps.
-"""
-
 import os
-from . import constants
-from .. import yaml
-from .errors import ShotgunDeployError
+
 
 class Descriptor(object):
     """
@@ -31,22 +25,17 @@ class Descriptor(object):
     Tank App store and one which knows how to handle the local file system.
     """
 
+    (APP, FRAMEWORK, ENGINE, CONFIG, CORE) = range(5)
+
     ###############################################################################################
     # constants and helpers
 
-    # constants describing the type of item we are describing
-    APP, ENGINE, FRAMEWORK, CORE, CONFIG = range(5)
-
-    def __init__(self, bundle_cache_root, location_dict):
+    def __init__(self, io_descriptor):
         """
         Constructor
-
-        :param bundle_cache_root: Root location for bundle cache storage
-        :param location_dict: dictionary describing the location
         """
-        self._bundle_cache_root = bundle_cache_root
-        self._location_dict = location_dict
-        self.__manifest_data = None
+        # construct a suitable IO descriptor for this locator
+        self._io_descriptor = io_descriptor
 
     def __repr__(self):
         class_name = self.__class__.__name__
@@ -58,77 +47,6 @@ class Descriptor(object):
         """
         return "%s %s" % (self.get_system_name(), self.get_version())
 
-    def _get_local_location(self, descriptor_name, name, version):
-        """
-        Calculate the local location for an item. This is a convenience method
-        that can be used by implementing classes if they want to stash the code
-        payload in a standardized location in the file system.
-        """
-        # examples:
-        # /studio/tank/install/app_store/tk-nuke/v0.2.3
-        # /studio/tank/install/app_store/NAME/VERSION
-        return os.path.join(self._bundle_cache_root, descriptor_name, name, version)
-
-    def __ensure_sg_field_exists(self, sg, sg_type, sg_field_name, sg_data_type):
-        """
-        Ensures that a shotgun field exists.
-        """
-
-        # sg_my_awesome_field -> My Awesome Field
-        if not sg_field_name.startswith("sg_"):
-            # invalid field name - exit early
-            return
-        ui_field_name = " ".join(word.capitalize() for word in sg_field_name[3:].split("_"))
-
-        # ensure that the Entity type is enabled in tank
-        try:
-            sg.find_one(sg_type, [])
-        except:
-            raise ShotgunDeployError("The required entity type %s is not enabled in Shotgun!" % sg_type)
-
-        # now check that the field exists
-        sg_field_schema = sg.schema_field_read(sg_type)
-        if sg_field_name not in sg_field_schema:
-            sg.schema_field_create(sg_type, sg_data_type, ui_field_name)
-
-    def _get_metadata(self):
-        """
-        Returns the info.yml metadata associated with this descriptor.
-        Note that this call involves deep introspection; in order to
-        access the metadata we normally need to have the code content
-        local, so this method may trigger a remote code fetch if necessary.
-        """
-        if self.__manifest_data is None:
-            # make sure payload exists locally
-            if not self.exists_local():
-                # @todo - at this point add to a metadata cache for performance
-                # note - cannot cache dev descriptors - these do not have an immutal info.yml
-
-                self.download_local()
-
-            # get the metadata
-            bundle_root = self.get_path()
-            file_path = os.path.join(bundle_root, constants.BUNDLE_METADATA_FILE)
-
-            if not os.path.exists(file_path):
-                raise ShotgunDeployError("Toolkit metadata file '%s' missing." % file_path)
-
-            try:
-                file_data = open(file_path)
-                try:
-                    metadata = yaml.load(file_data)
-                finally:
-                    file_data.close()
-            except Exception, exp:
-                raise ShotgunDeployError("Cannot load metadata file '%s'. Error: %s" % (file_path, exp))
-
-            # cache it
-            self.__manifest_data = metadata
-
-        return self.__manifest_data
-
-
-
 
     ###############################################################################################
     # data accessors
@@ -137,24 +55,30 @@ class Descriptor(object):
         """
         Returns the location dict associated with this descriptor
         """
-        return self._location_dict
+        return self._io_descriptor.get_location()
 
     def get_display_name(self):
         """
         Returns the display name for this item.
         If no display name has been defined, the system name will be returned.
         """
-        meta = self._get_metadata()
+        meta = self._io_descriptor.get_manifest()
         display_name = meta.get("display_name")
         if display_name is None:
             display_name = self.get_system_name()
         return display_name
 
+    def is_developer(self):
+        """
+        Returns true if this item is intended for development purposes
+        """
+        return self._io_descriptor.is_developer()
+
     def get_description(self):
         """
         Returns a short description for the app.
         """
-        meta = self._get_metadata()
+        meta = self._io_descriptor.get_manifest()
         desc = meta.get("description")
         if desc is None:
             desc = "No description available." 
@@ -164,7 +88,7 @@ class Descriptor(object):
         """
         Returns the path to a 256px square png icon file for this app
         """
-        app_icon = os.path.join(self.get_path(), "icon_256.png")
+        app_icon = os.path.join(self._io_descriptor.get_path(), "icon_256.png")
         if os.path.exists(app_icon):
             return app_icon
         else:
@@ -181,7 +105,7 @@ class Descriptor(object):
         Returns a url that points to a support web page where you can get help
         if you are stuck with this item.
         """
-        meta = self._get_metadata()
+        meta = self._io_descriptor.get_manifest()
         support_url = meta.get("support_url")
         if support_url is None:
             support_url = "https://support.shotgunsoftware.com" 
@@ -194,106 +118,10 @@ class Descriptor(object):
         store) and support for automatic, built in documentation management. If not, the 
         default implementation will search the manifest for a doc url location.
         """
-        meta = self._get_metadata()
+        meta = self._io_descriptor.get_manifest()
         doc_url = meta.get("documentation_url")
         # note - doc_url can be none which is fine.
         return doc_url
-
-
-    def get_version_constraints(self):
-        """
-        Returns a dictionary with version constraints. The absence of a key
-        indicates that there is no defined constraint. The following keys can be
-        returned: min_sg, min_core, min_engine and min_desktop
-        """
-        constraints = {}
-
-        meta = self._get_metadata()
-        
-        if meta.get("requires_shotgun_version") is not None:
-            constraints["min_sg"] = meta.get("requires_shotgun_version")
-        
-        if meta.get("requires_core_version") is not None:
-            constraints["min_core"] = meta.get("requires_core_version")
-
-        if meta.get("requires_engine_version") is not None:
-            constraints["min_engine"] = meta.get("requires_engine_version")
-
-        if meta.get("requires_desktop_version") is not None:
-            constraints["min_desktop"] = meta.get("requires_desktop_version")
-
-        return constraints
-
-    def get_supported_engines(self):
-        """
-        Returns the engines supported for this app. May return None,
-        meaning that anything goes.
-        
-        return: None                   (all engines are fine!)
-        return: ["tk-maya", "tk-nuke"] (works with maya and nuke)
-        """
-        md  = self._get_metadata()
-        return md.get("supported_engines")
-        
-    def get_required_context(self):
-        """
-        Returns the required context, if there is one defined for a bundle.
-        This is a list of strings, something along the lines of 
-        ["user", "task", "step"] for an app that requires a context with 
-        user task and step defined.
-        
-        Always returns a list, with an empty list meaning no items required.
-        """
-        md  = self._get_metadata()
-        rc = md.get("required_context")
-        if rc is None:
-            rc = []
-        return rc
-    
-    def get_supported_platforms(self):
-        """
-        Returns the platforms supported. Possible values
-        are windows, linux and mac. 
-        
-        Always returns a list, returns an empty list if there is 
-        no constraint in place. 
-        
-        example: ["windows", "linux"]
-        example: []
-        """
-        md  = self._get_metadata()
-        sp = md.get("supported_platforms")
-        if sp is None:
-            sp = []
-        return sp
-        
-    def get_configuration_schema(self):
-        """
-        Returns the manifest configuration schema for this bundle.
-        Always returns a dictionary.
-        """
-        md  = self._get_metadata()
-        cfg = md.get("configuration")
-        # always return a dict
-        if cfg is None:
-            cfg = {}
-        return cfg
-         
-    def get_required_frameworks(self):
-        """
-        returns the list of required frameworks for this item.
-        Always returns a list for example
-        
-        [{'version': 'v0.1.0', 'name': 'tk-framework-widget'}]
-        
-        Each item contains a name and a version key.
-        """
-        md  = self._get_metadata()
-        frameworks = md.get("frameworks")
-        # always return a list
-        if frameworks is None:
-            frameworks = []
-        return frameworks
 
     def get_deprecation_status(self):
         """
@@ -301,44 +129,26 @@ class Descriptor(object):
         """
         # only some descriptors handle this. Default is to not support deprecation, e.g.
         # always return that things are active.
-        return (False, "")
+        return self._io_descriptor.get_deprecation_status()
 
-    def is_shared_framework(self):
-        """
-        Returns a boolean indicating whether the bundle is a shared framework.
-
-        Shared frameworks only have a single instance per instance name in the
-        current environment.
-        """
-        md  = self._get_metadata()
-        shared = md.get("shared")
-        # always return a bool
-        if shared is None:
-            # frameworks are now shared by default unless you opt out.
-            shared = True
-        return shared
-
-    ###############################################################################################
-    # stuff typically implemented by deriving classes
-    
     def get_system_name(self):
         """
         Returns a short name, suitable for use in configuration files
         and for folders on disk
         """
-        raise NotImplementedError
+        return self._io_descriptor.get_system_name()
     
     def get_version(self):
         """
         Returns the version number string for this item.
         """
-        raise NotImplementedError    
+        return self._io_descriptor.get_version()
     
     def get_path(self):
         """
         returns the path to the folder where this item resides
         """
-        raise NotImplementedError
+        return self._io_descriptor.get_path()
         
     def get_changelog(self):
         """
@@ -346,19 +156,19 @@ class Descriptor(object):
         Returns a tuple: (changelog_summary, changelog_url). Values may be None
         to indicate that no changelog exists.
         """
-        return (None, None)
+        return self._io_descriptor.get_changelog()
     
     def exists_local(self):
         """
         Returns true if this item exists in a local repo
         """
-        raise NotImplementedError
+        return self._io_descriptor.exists_local()
 
     def download_local(self):
         """
         Retrieves this version to local repo.
         """
-        raise NotImplementedError
+        return self._io_descriptor.download_local()
 
     def find_latest_version(self, constraint_pattern=None):
         """
@@ -373,5 +183,5 @@ class Descriptor(object):
 
         :returns: descriptor object
         """
-        raise NotImplementedError
+        return self._io_descriptor.find_latest_version(constraint_pattern)
 

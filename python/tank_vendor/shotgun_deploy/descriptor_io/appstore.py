@@ -8,10 +8,6 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-"""
-Tank App Store Connectivity.
-"""
-
 import os
 import re
 import copy
@@ -20,24 +16,37 @@ import tempfile
 
 import cPickle as pickle
 
-from .zipfilehelper import unzip_file
-from .cached_descriptor import CachedDescriptor
-from .descriptor import Descriptor
+from ..zipfilehelper import unzip_file
+from .base import IODescriptorBase
 
-from . import constants
-from .app_store import create_sg_app_store_connection
+# use api json to cover py 2.5
+from ... import shotgun_api3
+json = shotgun_api3.shotgun.json
 
-from .errors import ShotgunDeployError
+from .. import constants
+
+from ..descriptor import Descriptor
+
+from ..errors import ShotgunDeployError, ShotgunAppStoreError
+
+import urllib
+import urllib2
+
 
 METADATA_FILE = ".cached_metadata.pickle"
 
 
-class AppStoreDescriptor(CachedDescriptor):
+class IODescriptorAppStore(IODescriptorBase):
     """
     Represents an app store item.
     """
 
+    # cache app store connections for performance
+    _app_store_connections = {}
+
     # internal app store mappings
+    (APP, FRAMEWORK, ENGINE, CONFIG, CORE) = range(5)
+
     _APP_STORE_OBJECT = {
         Descriptor.APP: constants.TANK_APP_ENTITY,
         Descriptor.FRAMEWORK: constants.TANK_FRAMEWORK_ENTITY,
@@ -78,10 +87,10 @@ class AppStoreDescriptor(CachedDescriptor):
         :param bundle_install_path: Location on disk where items are cached
         :param location_dict: Location dictionary describing the bundle
         :param sg_connection: Shotgun connection to associated site
-        :param bundle_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK
+        :param bundle_type: Either Descriptor.APP, CORE, ENGINE or FRAMEWORK
         :return: Descriptor instance
         """
-        super(AppStoreDescriptor, self).__init__(bundle_install_path, location_dict)
+        super(IODescriptorAppStore, self).__init__(bundle_install_path, location_dict)
 
         self._sg_connection = sg_connection
         self._type = bundle_type
@@ -146,7 +155,7 @@ class AppStoreDescriptor(CachedDescriptor):
         link_field = self._APP_STORE_LINK[self._type]
 
         # connect to the app store
-        (sg, _) = create_sg_app_store_connection(self._sg_connection)
+        (sg, _) = self.__create_sg_app_store_connection()
 
         if self._type == self.CORE:
             # special handling of core since it doesn't have a high-level
@@ -245,18 +254,6 @@ class AppStoreDescriptor(CachedDescriptor):
         """
         return self._get_local_location("app_store", self._name, self._version)
 
-    def get_doc_url(self):
-        """
-        Returns the documentation url for this item. May return None.
-        """
-        metadata = self._get_app_store_metadata()
-        url = None
-        try:
-            url = metadata.get("version").get("sg_documentation").get("url")
-        except:
-            pass
-        return url
-
     def get_changelog(self):
         """
         Returns information about the changelog for this item.
@@ -298,7 +295,7 @@ class AppStoreDescriptor(CachedDescriptor):
             os.umask(old_umask)
 
         # connect to the app store
-        (sg, script_user) = create_sg_app_store_connection(self._sg_connection)
+        (sg, script_user) = self.__create_sg_app_store_connection()
 
         # get metadata from sg...
         metadata = self.__download_app_store_metadata()
@@ -372,7 +369,7 @@ class AppStoreDescriptor(CachedDescriptor):
 
     def _find_latest_for_pattern(self, name, version_pattern):
         """
-        Returns an AppStoreDescriptor object representing the latest version
+        Returns an IODescriptorAppStore object representing the latest version
         of the sought after object. If no matching item is found, an
         exception is raised.
 
@@ -382,11 +379,11 @@ class AppStoreDescriptor(CachedDescriptor):
         - v0.12.x - get the highest v0.12 version
         - v1.x.x - get the highest v1 version 
 
-        :returns: AppStoreDescriptor instance
+        :returns: IODescriptorAppStore instance
         """
 
         # connect to the app store
-        (sg, _) = create_sg_app_store_connection(self._sg_connection)
+        (sg, _) = self.__create_sg_app_store_connection()
 
         # set up some lookup tables so we look in the right table in sg
 
@@ -496,7 +493,7 @@ class AppStoreDescriptor(CachedDescriptor):
         location_dict = {"type": "app_store", "name": self._name, "version": version_to_use}
 
         # and return a descriptor instance
-        desc = AppStoreDescriptor(self._bundle_install_path, location_dict, self._type)
+        desc = IODescriptorAppStore(self._bundle_install_path, location_dict, self._type)
         
         # now if this item has been deprecated, meaning that someone has gone in to the app
         # store and updated the record's deprecation status, we want to make sure we download
@@ -509,15 +506,15 @@ class AppStoreDescriptor(CachedDescriptor):
 
     def _find_latest(self):
         """
-        Returns an AppStoreDescriptor object representing the latest version
+        Returns an IODescriptorAppStore object representing the latest version
         of the sought after object. If no matching item is found, an
         exception is raised.
 
-        :returns: AppStoreDescriptor instance
+        :returns: IODescriptorAppStore instance
         """
 
         # connect to the app store
-        (sg, _) = create_sg_app_store_connection(self._sg_connection)
+        (sg, _) = self.__create_sg_app_store_connection()
 
         # get latest
         # get the filter logic for what to exclude
@@ -573,7 +570,7 @@ class AppStoreDescriptor(CachedDescriptor):
                          "version": version_str}
 
         # and return a descriptor instance
-        desc = AppStoreDescriptor(self._bundle_install_path, location_dict, self._type)
+        desc = IODescriptorAppStore(self._bundle_install_path, location_dict, self._type)
         
         # now if this item has been deprecated, meaning that someone has gone in to the app
         # store and updated the record's deprecation status, we want to make sure we download
@@ -583,5 +580,74 @@ class AppStoreDescriptor(CachedDescriptor):
             desc._remove_app_store_metadata()
         
         return desc
+
+    def __create_sg_app_store_connection(self):
+        """
+        Creates a shotgun connection that can be used to access the Toolkit app store.
+
+        :returns: (sg, dict) where the first item is the shotgun api instance and the second
+                  is an sg entity dictionary (keys type/id) corresponding to to the user used
+                  to connect to the app store.
+        """
+        # maintain a cache for performance
+        # cache is keyed by client shotgun site
+        # this assumes that there is a strict
+        # 1:1 relationship between app store accounts
+        # and shotgun sites.
+        sg_url = self._sg_connection.base_url
+
+        if sg_url not in self._app_store_connections:
+
+            # Connect to associated Shotgun site and retrieve the credentials to use to
+            # connect to the app store site
+            (script_name, script_key) = self.__get_app_store_key_from_shotgun()
+
+            # connect to the app store and resolve the script user id we are connecting with
+            app_store_sg = shotgun_api3.Shotgun(
+                constants.SGTK_APP_STORE,
+                script_name=script_name,
+                api_key=script_key,
+                http_proxy=self._sg_connection.config.raw_http_proxy
+            )
+
+            # determine the script user running currently
+            # get the API script user ID from shotgun
+            script_user = app_store_sg .find_one(
+                "ApiUser",
+                [["firstname", "is", script_name]],
+                fields=["type", "id"]
+            )
+
+            if script_user is None:
+                raise ShotgunAppStoreError("Could not evaluate the current App Store User! Please contact support.")
+
+            self._app_store_connections[sg_url] = (app_store_sg, script_user)
+
+        return self._app_store_connections[sg_url]
+
+
+    def __get_app_store_key_from_shotgun(self):
+        """
+        Given a Shotgun url and script credentials, fetch the app store key
+        for this shotgun instance using a special controller method.
+        Returns a tuple with (app_store_script_name, app_store_auth_key)
+
+        :returns: tuple of strings with contents (script_name, script_key)
+        """
+        sg = self._sg_connection
+
+        # handle proxy setup by pulling the proxy details from the main shotgun connection
+        if sg.config.proxy_handler:
+            opener = urllib2.build_opener(sg.config.proxy_handler)
+            urllib2.install_opener(opener)
+
+        # now connect to our site and use a special url to retrieve the app store script key
+        session_token = sg.get_session_token()
+        post_data = {"session_token": session_token}
+        response = urllib2.urlopen("%s/api3/sgtk_install_script" % sg.base_url, urllib.urlencode(post_data))
+        html = response.read()
+        data = json.loads(html)
+
+        return data["script_name"], data["script_key"]
 
 

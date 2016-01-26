@@ -13,6 +13,14 @@ import os
 from ..shotgun_base import get_cache_root, ensure_folder_exists
 from .errors import ShotgunDeployError
 
+from .descriptor_io import create_io_descriptor
+
+from .descriptor import Descriptor
+from .descriptor_bundle import AppDescriptor, EngineDescriptor, FrameworkDescriptor
+from .descriptor_config import ConfigDescriptor
+from .descriptor_core import CoreDescriptor
+
+
 def _get_bundle_cache_root():
     """
     Returns the cache location for the global bundle cache.
@@ -35,33 +43,26 @@ def create_descriptor(sg_connection, descriptor_type, location_dict, bundle_cach
     :param location_dict: A std location dictionary
     :returns: Descriptor object
     """
-
     bundle_cache_root = bundle_cache_root or _get_bundle_cache_root()
 
-    from .app_store_descriptor import AppStoreDescriptor
-    from .dev_descriptor import DevDescriptor
-    from .git_descriptor import GitDescriptor
-    from .manual_descriptor import ManualDescriptor
+    # first construct a low level IO descriptor
+    io_descriptor = create_io_descriptor(sg_connection, descriptor_type, location_dict, bundle_cache_root)
 
-    # tank app store format
-    # location: {"type": "app_store", "name": "tk-nukepublish", "version": "v0.5.0"}
-    if location_dict.get("type") == "app_store":
-        return AppStoreDescriptor(bundle_cache_root, location_dict, sg_connection, descriptor_type)
+    # now create a high level descriptor and bind that with the low level descriptor
+    if descriptor_type == Descriptor.APP:
+        return AppDescriptor(io_descriptor)
 
-    # manual format
-    # location: {"type": "manual", "name": "tk-nukepublish", "version": "v0.5.0"}
-    elif location_dict.get("type") == "manual":
-        return ManualDescriptor(bundle_cache_root, location_dict)
+    elif descriptor_type == Descriptor.ENGINE:
+        return EngineDescriptor(io_descriptor)
 
-    # git repo
-    # location: {"type": "git", "path": "/path/to/repo.git", "version": "v0.2.1"}
-    elif location_dict.get("type") == "git":
-        return GitDescriptor(bundle_cache_root, location_dict)
+    elif descriptor_type == Descriptor.FRAMEWORK:
+        return FrameworkDescriptor(io_descriptor)
 
-    # local dev format - for example
-    # location: {"type": "dev", "path": "/path/to/app"}
-    elif location_dict.get("type") == "dev":
-        return DevDescriptor(bundle_cache_root, location_dict)
+    elif descriptor_type == Descriptor.CONFIG:
+        return ConfigDescriptor(io_descriptor)
+
+    elif descriptor_type == Descriptor.CORE:
+        return CoreDescriptor(io_descriptor)
 
     else:
         raise ShotgunDeployError("%s: Invalid location dict '%s'" % (descriptor_type, location_dict))

@@ -20,8 +20,6 @@ from . import console_utils
 
 from .action_base import Action
 
-from tank_vendor.shotgun_deploy import DevDescriptor
-
 import sys
 import os
 import datetime
@@ -136,12 +134,12 @@ class PushPCAction(Action):
             env = self.tk.pipeline_configuration.get_environment(env_name)
             for eng in env.get_engines():
                 desc = env.get_engine_descriptor(eng)
-                if isinstance(desc, DevDescriptor):
+                if desc.is_developer():
                     dev_desc = desc
                     break
                 for app in env.get_apps(eng):
                     desc = env.get_app_descriptor(eng, app)
-                    if isinstance(desc, DevDescriptor):
+                    if desc.is_developer():
                         dev_desc = desc
                         break
         if dev_desc:
