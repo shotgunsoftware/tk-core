@@ -1585,6 +1585,24 @@ class Engine(TankBundle):
                     self.log_warning("")
                     self.log_warning(msg)
 
+            # For the sake of potetial context changes, apps and commands are cached
+            # into a persistent pool such that they can be reused at some later time.
+            # This is required because, during context changes, some apps that were
+            # active in the old context might not be active in the new context. Because
+            # we might then switch BACK to the old context at some later time, or some
+            # future context might simply make use of some of the same apps, we want
+            # to keep a running cache of everything that's been initialized over time.
+            # This will allow us to reuse those (assuming they support on-the-fly
+            # context changes) rather than having to import and instantiate the same
+            # app(s) all over again, thereby hurting performance.
+
+            # Likewise, with commands, those from the old context that are not associated
+            # with apps that are active in the new context are filtered out of the engine's
+            # list of commands. When switching back to the old context, or any time the
+            # associated app is reused, we can then add back in the commands that the app
+            # had previously registered. With that, we're not required to re-run the init
+            # process for the app.
+
             # Update the persistent application pool for use in context changes.
             for app in self.__applications.values():
                 # We will only track apps that we know can handle a context

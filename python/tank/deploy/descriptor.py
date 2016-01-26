@@ -59,7 +59,7 @@ class AppDescriptor(object):
             return False
 
     def __ne__(self, other):
-        return self.get_path() != other.get_path()
+        return not (self == other)
 
     def __repr__(self):
         class_name = self.__class__.__name__
