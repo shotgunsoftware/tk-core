@@ -53,7 +53,10 @@ class AppDescriptor(object):
     def __eq__(self, other):
         # By default, we can assume equality if the path to the data
         # on disk is equivalent.
-        return self.get_path() == other.get_path()
+        if isinstance(other, self.__class__):
+            return self.get_path() == other.get_path()
+        else:
+            return False
 
     def __ne__(self, other):
         return self.get_path() != other.get_path()
