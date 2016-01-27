@@ -19,7 +19,8 @@ from Queue import Queue
 
 import urllib
 import urllib2
-
+ 
+from ..platform import constants as platform_constants
 
 ###############################################################################
 # Metrics dispatch Thread and Queue classes
@@ -69,7 +70,7 @@ class MetricsDispatchWorkerThread(Thread):
             try:
                 metric = self._metrics_queue.get(block=True)
                 self._dispatch(metric)
-            except Exception as e:
+            except Exception, e:
                 if self._log:
                     self._log.error("Error dispatching metric: %s" % (e,))
             finally:
@@ -90,8 +91,7 @@ class MetricsDispatchWorkerThread(Thread):
         # handle proxy setup by pulling the proxy details from the main
         # shotgun connection
         if sg_connection.config.proxy_handler:
-            opener = urllib2.build_opener(
-                sg_connection.config.proxy_handler)
+            opener = urllib2.build_opener(sg_connection.config.proxy_handler)
             urllib2.install_opener(opener)
 
         # get the session token and add it to the metrics payload
@@ -105,9 +105,15 @@ class MetricsDispatchWorkerThread(Thread):
         # remove the session token so that it doesn't show up in the log
         del metric.data["session_token"]
 
+        # execute the log_metrics core hook
+        self._tk.execute_core_hook(
+            platform_constants.TANK_LOG_METRICS_HOOK_NAME,
+            tk=self._tk,
+            metrics=[metric],
+        )
+
         if self._log:
             self._log.debug("Logged metric: %s" % (metric,))
-
 
     def _metrics_supported(self):
         """Returns True if server supports the metrics api endpoint."""
@@ -178,9 +184,9 @@ class MetricsDispatchQueueSingleton(object):
 
         """
 
-        # Uncomment these lines to debug metrics
+        # Uncomment these lines to debug metrics XXX comment these out
         import logging
-        log = logging.getLogger('tk.metrics')
+        log = logging.getLogger('sgtk.metrics')
         log.addHandler(logging.StreamHandler())
         log.setLevel(logging.DEBUG)
 

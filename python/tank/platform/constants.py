@@ -81,6 +81,9 @@ TANK_ENGINE_INIT_HOOK_NAME = "engine_init"
 # hook that is executed whenever a bundle has initialized
 TANK_BUNDLE_INIT_HOOK_NAME = "bundle_init"
 
+# hook to log metrics
+TANK_LOG_METRICS_HOOK_NAME = "log_metrics"
+
 # hook that is executed whenever a PipelineConfiguration instance initializes.
 PIPELINE_CONFIGURATION_INIT_HOOK_NAME = "pipeline_configuration_init"
 
