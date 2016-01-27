@@ -8,20 +8,17 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-"""
-All custom exceptions that this module emits are defined here.
-"""
+import logging
 
-from ..shotgun_base import ShotgunBaseError
+sgtk_root_logger = logging.getLogger("sgtk")
+sgtk_root_logger.propagate = False
 
+def get_sgtk_logger(name=None):
+    """
+    Returns the official sgtk root logger
+    """
+    if name is None:
+        return sgtk_root_logger
+    else:
+        return logging.getLogger("sgtk.%s" % name)
 
-class ShotgunDeployError(ShotgunBaseError):
-    """
-    Base class for all deploy related errors
-    """
-    pass
-
-class ShotgunAppStoreError(ShotgunDeployError):
-    """
-    Errors relating to the shotgun app store
-    """

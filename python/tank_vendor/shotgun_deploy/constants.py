@@ -52,3 +52,25 @@ SGTK_APP_STORE = "https://tank.shotgunstudio.com"
 
 # the manifest file inside a bundle
 BUNDLE_METADATA_FILE = "info.yml"
+
+# the generation of the logic that handles cloud based deploy.
+# if major changes happen to the way cloud based configs are handled
+# by the system, for example requiring any existing deployed cloud
+# configs to be re-deployed, this version number should be incremented.
+CLOUD_CONFIG_DEPLOY_LOGIC_GENERATION = 1
+
+# readme file for toolkit configurations
+CONFIG_README_FILE = "README"
+
+# config file with information about which core to use
+CONFIG_CORE_LOCATION_FILE = "core_api.yml"
+
+CONFIG_INFO_CACHE = "config_info.yml"
+
+STORAGE_ROOTS_FILE = "roots.yml"
+
+PRIMARY_STORAGE_NAME = "primary"
+
+CONFIG_SHOTGUN_FILE = "shotgun.yml"
+
+PIPELINECONFIG_FILE = "pipeline_configuration.yml"

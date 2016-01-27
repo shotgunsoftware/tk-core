@@ -8,12 +8,30 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+import os
+
+from . import constants
+from .. import yaml
+from .errors import ShotgunDeployError
 from .descriptor import Descriptor
+from . import util
+
+log = util.get_shotgun_deploy_logger()
+
+
 
 class ConfigDescriptor(Descriptor):
 
     def __init__(self, io_descriptor):
         super(ConfigDescriptor, self).__init__(io_descriptor)
+
+    def needs_installation(self):
+        """
+        Returns true if this config needs to be installed before
+        it can be used.
+        """
+        # @todo - add logic for this once we get the new descriptors for pipeline config etc up and running
+        return True
 
     def get_version_constraints(self):
         """
@@ -40,48 +58,89 @@ class ConfigDescriptor(Descriptor):
 
         :returns: list of strings
         """
-        # @TODO - implement!
+        self._io_descriptor.ensure_local()
+        readme_content = []
 
+        readme_file = os.path.join(self._io_descriptor.get_path(), constants.CONFIG_README_FILE)
+        if os.path.exists(readme_file):
+            fh = open(readme_file)
+            for line in fh:
+                readme_content.append(line.strip())
+            fh.close()
 
-    def resolve_storages(self):
+        return readme_content
+
+    def get_associated_core_location(self):
         """
-        Validate that the roots exist in shotgun. Communicates with Shotgun.
+        Introspects a configuration and returns the required core version
 
-        Returns the root paths from shotgun for each storage.
-
-        {
-          "primary" : { "description": "Description",
-                        "exists_on_disk": False,
-                        "defined_in_shotgun": True,
-                        "shotgun_id": 12,
-                        "darwin": "/mnt/foo",
-                        "win32": "z:\mnt\foo",
-                        "linux2": "/mnt/foo"},
-
-          "textures" : { "description": None,
-                         "exists_on_disk": False,
-                         "defined_in_shotgun": True,
-                         "shotgun_id": 14,
-                         "darwin": None,
-                         "win32": "z:\mnt\foo",
-                         "linux2": "/mnt/foo"}
-        }
-
-        The main dictionary is keyed by storage name. It will contain one entry
-        for each local storage which is required by the configuration template.
-        Each sub-dictionary contains the following items:
-
-        - description: Description what the storage is used for. This comes from the
-          configuration template and can be used to help a user to explain the purpose
-          of a particular storage required by a configuration.
-        - defined_in_shotgun: If false, no local storage with this name exists in Shotgun.
-        - shotgun_id: If defined_in_shotgun is True, this will contain the entity id for
-          the storage. If defined_in_shotgun is False, this will be set to none.
-        - darwin/win32/linux: Paths to storages, as defined in Shotgun. These values can be
-          None if a storage has not been defined.
-        - exists_on_disk: Flag if the path defined for the current operating system exists on
-          disk or not.
-
-        :returns: dictionary with storage breakdown, see example above.
+        :returns: Core version string or None if undefined
         """
-        # @todo - implement
+        core_location_dict = None
+
+        self._io_descriptor.ensure_local()
+
+        core_location_path = os.path.join(
+            self._io_descriptor.get_path(),
+            "core",
+            constants.CONFIG_CORE_LOCATION_FILE
+        )
+
+        if os.path.exists(core_location_path):
+            # the core_api.yml contains info about the core config:
+            #
+            # location:
+            #    name: tk-core
+            #    type: app_store
+            #    version: v0.16.34
+
+            log.debug("Detected core location file '%s'" % core_location_path)
+
+            # read the file first
+            fh = open(core_location_path, "rt")
+            try:
+                data = yaml.load(fh)
+                core_location_dict = data["location"]
+            except Exception, e:
+                raise ShotgunDeployError(
+                    "Cannot read invalid core location file '%s': %s" % (core_location_path, e)
+                )
+            finally:
+                fh.close()
+
+        return core_location_dict
+
+
+    def _get_roots_data(self):
+        """
+        Returns roots.yml data for this config
+        """
+
+        self._io_descriptor.ensure_local()
+
+        # get the roots definition
+        root_file_path = os.path.join(self._io_descriptor.get_path(), "core", constants.STORAGE_ROOTS_FILE)
+
+        roots_data = {}
+
+        if os.path.exists(root_file_path):
+            root_file = open(root_file_path, "r")
+            try:
+                # if file is empty, initializae with empty dict...
+                roots_data = yaml.load(root_file) or {}
+            finally:
+                root_file.close()
+
+        return roots_data
+
+
+
+    def get_required_storages(self):
+        """
+        Returns a list of storage names needed for this config
+        """
+        roots_data = self._get_roots_data()
+        return roots_data.keys()
+
+
+

@@ -8,8 +8,6 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from ..errors import ShotgunDescriptorError
-
 def create_io_descriptor(sg, descriptor_type, location_dict, bundle_cache_root):
     """
     Factory method.
@@ -38,4 +36,4 @@ def create_io_descriptor(sg, descriptor_type, location_dict, bundle_cache_root):
         return IODescriptorDev(bundle_cache_root, location_dict)
 
     else:
-        raise ShotgunDescriptorError("Invalid location dict '%s'" % location_dict)
+        raise ShotgunDeployError("Invalid location dict '%s'" % location_dict)

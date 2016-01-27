@@ -12,25 +12,13 @@ import os
 
 from ..shotgun_base import get_cache_root, ensure_folder_exists
 from .errors import ShotgunDeployError
-
+from . import paths
 from .descriptor_io import create_io_descriptor
 
 from .descriptor import Descriptor
 from .descriptor_bundle import AppDescriptor, EngineDescriptor, FrameworkDescriptor
 from .descriptor_config import ConfigDescriptor
 from .descriptor_core import CoreDescriptor
-
-
-def _get_bundle_cache_root():
-    """
-    Returns the cache location for the global bundle cache.
-    Ensures that this folder exists
-
-    :returns: path on disk
-    """
-    bundle_cache_root = os.path.join(get_cache_root(), "bundle_cache")
-    ensure_folder_exists(bundle_cache_root)
-    return bundle_cache_root
 
 
 def create_descriptor(sg_connection, descriptor_type, location_dict, bundle_cache_root=None):
@@ -43,7 +31,8 @@ def create_descriptor(sg_connection, descriptor_type, location_dict, bundle_cach
     :param location_dict: A std location dictionary
     :returns: Descriptor object
     """
-    bundle_cache_root = bundle_cache_root or _get_bundle_cache_root()
+
+    bundle_cache_root = bundle_cache_root or paths.get_bundle_cache_root()
 
     # first construct a low level IO descriptor
     io_descriptor = create_io_descriptor(sg_connection, descriptor_type, location_dict, bundle_cache_root)

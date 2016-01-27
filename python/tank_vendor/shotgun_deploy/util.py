@@ -11,7 +11,14 @@
 from distutils.version import LooseVersion
 import os
 from .errors import ShotgunDeployError
+from ..shotgun_base import get_sgtk_logger
 
+def get_shotgun_deploy_logger():
+    """
+    Returns a logger object suitable for the shotgun deploy module
+    :return:
+    """
+    return get_sgtk_logger("deploy")
 
 def execute_git_command(cmd):
     """
@@ -29,12 +36,17 @@ def execute_git_command(cmd):
     try:
         git_version_info = subprocess_check_output("git --version", shell=True)
     except:
-        raise ShotgunDeployError("Cannot execute the 'git' command. Please make sure that git is installed on your system "
-                        "and that the git executable has been added to the PATH.")
+        raise ShotgunDeployError(
+            "Cannot execute the 'git' command. Please make sure that git is "
+            "installed on your system and that the git executable has been added to the PATH."
+        )
         
     status = os.system("git %s" % cmd)
     if status != 0:
-        raise ShotgunDeployError("Error executing git operation. The git command '%s' returned error code %s." % (cmd, status))
+        raise ShotgunDeployError(
+            "Error executing git operation. The git command '%s' "
+            "returned error code %s." % (cmd, status)
+        )
 
 
 ################################################################################################

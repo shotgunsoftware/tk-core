@@ -157,7 +157,13 @@ class Descriptor(object):
         to indicate that no changelog exists.
         """
         return self._io_descriptor.get_changelog()
-    
+
+    def ensure_local(self):
+        """
+        Helper method. Ensures that the item is locally available.
+        """
+        return self._io_descriptor.ensure_local()
+
     def exists_local(self):
         """
         Returns true if this item exists in a local repo

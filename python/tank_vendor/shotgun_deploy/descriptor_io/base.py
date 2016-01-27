@@ -65,9 +65,6 @@ class IODescriptorBase(object):
 
         return instance_cache[cache_key]
 
-    ###############################################################################################
-    # constants and helpers
-
     def __init__(self, bundle_cache_root, location_dict):
         """
         Constructor
@@ -137,7 +134,6 @@ class IODescriptorBase(object):
         """
         return self._location_dict
 
-
     def get_deprecation_status(self):
         """
         Returns (is_deprecated (bool), message (str)) to indicate if this item is deprecated.
@@ -194,6 +190,10 @@ class IODescriptorBase(object):
         Returns true if this items content never changes
         """
         return True
+
+    def ensure_local(self):
+        if not self.exists_local():
+            self.download_local()
 
     def download_local(self):
         """

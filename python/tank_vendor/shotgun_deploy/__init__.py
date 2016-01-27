@@ -11,3 +11,5 @@
 from .descriptor_factory import create_descriptor
 
 from .descriptor import Descriptor
+
+from .bootstrap import bootstrap
