@@ -24,6 +24,8 @@ from .. import loader
 from .. import hook
 from ..errors import TankError, TankEngineInitError
 from ..deploy.dev_descriptor import TankDevDescriptor
+from ..util import log_user_activity_metric, log_user_attribute_metric
+from ..util.metrics import MetricsDispatchQueueSingleton as MetricsQueue
 
 from . import application
 from . import constants
@@ -168,9 +170,13 @@ class Engine(TankBundle):
         
         # emit an engine started event
         tk.execute_core_hook(constants.TANK_ENGINE_INIT_HOOK_NAME, engine=self)
-        
+
         self.log_debug("Init complete: %s" % self)
-        
+        self.log_engine_metric("Init")
+
+        # log the engine version being used by the current user
+        log_user_attribute_metric("%s Version" % self.name, self.version)
+
         # check if there are any compatibility warnings:
         # do this now in case the engine fails to load!
         messages = black_list.compare_against_black_list(descriptor)
@@ -502,9 +508,30 @@ class Engine(TankBundle):
                 name = "%s:%s" % (prefix, name)
                 # also add a prefix key in the properties dict
                 properties["prefix"] = prefix
-            
-        self.__commands[name] = { "callback": callback, "properties": properties }
-        
+
+        # wrapper that logs app and usage metrics before executing the
+        # callback.
+        def callback_wrapper(*args, **kwargs):
+
+            if properties.get("app"):
+
+                # track which app command is being launched
+                properties["app"].log_app_metric("'%s'" % name)
+
+                # specify which app version is being used
+                log_user_attribute_metric(
+                    "%s version" % properties["app"].name,
+                    properties["app"].version
+                )
+
+            return callback(*args, **kwargs)
+
+        self.__commands[name] = {
+            "callback": callback_wrapper,
+            "properties": properties,
+        }
+
+
     def register_panel(self, callback, panel_name="main", properties=None):
         """
         Similar to register_command, but instead of registering a menu item in the form of a
@@ -751,7 +778,26 @@ class Engine(TankBundle):
         message.extend(traceback_str.split("\n"))
         
         self.log_error("\n".join(message))
-        
+
+
+    def log_engine_metric(self, action):
+        """Log an engine metric.
+
+        :param action: Action string to log, e.g. 'Init'
+
+        Logs a user activity metric as performed within an engine. This is
+        a convenience method that auto-populates the module portion of 
+        `tank.util.log_user_activity_metric()`
+
+        """
+
+        # the action contains the engine and app name, e.g.
+        # module: tk-maya
+        # action: tk-maya - Init
+        full_action = "%s - %s" % (self.name, action)
+        log_user_activity_metric(self.name, full_action)
+
+
     ##########################################################################################
     # debug for tracking Qt Widgets & Dialogs created by the provided methods      
 
@@ -1503,6 +1549,11 @@ def start_engine(engine_name, tk, context):
 
     # register this engine as the current engine
     set_current_engine(obj)
+
+    # ensure the metrics queue is initialized (dispatchers are running)
+    metrics_queue = MetricsQueue()
+    if not metrics_queue.initialized:
+        metrics_queue.init(tk)
 
     return obj
 
