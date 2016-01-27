@@ -21,6 +21,7 @@ from . import constants
 
 from ..errors import TankError
 from .bundle import TankBundle
+from ..util import log_user_activity_metric
 
 class Application(TankBundle):
     """
@@ -160,6 +161,22 @@ class Application(TankBundle):
 
     def log_exception(self, msg):
         self.engine.log_exception(msg)
+
+    def log_app_metric(self, action):
+        """Logs an app metric.
+
+        :param action: Action string to log, e.g. 'Execute Action'
+
+        Logs a user activity metric as performed within an app. This is a 
+        convenience method that auto-populates the module portion of 
+        `tank.util.log_user_activity_metric()`.
+
+        """
+        # the action contains the engine and app name, e.g.
+        # module: tk-multi-loader2
+        # action: tk-multi-loader2 (tk-maya) - Execute 'Load...'
+        full_action = "%s - %s (%s)" % (self.name, action, self.engine.name)
+        log_user_activity_metric(self.name, full_action)
 
 
 def get_application(engine, app_folder, descriptor, settings, instance_name, env):
