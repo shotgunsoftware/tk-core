@@ -41,14 +41,6 @@ class IODescriptorManual(IODescriptorBase):
         """
         return self._get_local_location("manual", self._name, self._version)
 
-    def exists_local(self):
-        """
-        Returns true if this item exists in a local repo
-        """
-        # we determine local existance based on the info.yml
-        info_yml_path = os.path.join(self.get_path(), constants.BUNDLE_METADATA_FILE)
-        return os.path.exists(info_yml_path)
-
     def download_local(self):
         """
         Retrieves this version to local repo

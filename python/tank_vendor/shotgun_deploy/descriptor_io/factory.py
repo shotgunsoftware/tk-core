@@ -24,11 +24,15 @@ def create_io_descriptor(sg, descriptor_type, location_dict, bundle_cache_root):
     from .dev import IODescriptorDev
     from .path import IODescriptorPath
     from .pipeline_config import IODescriptorPipelineConfig
+    from .shotgun_entity import IODescriptorShotgunEntity
     from .git import IODescriptorGit
     from .manual import IODescriptorManual
 
     if location_dict.get("type") == "app_store":
         return IODescriptorAppStore(bundle_cache_root, location_dict, sg, descriptor_type)
+
+    elif location_dict.get("type") == "shotgun":
+        return IODescriptorShotgunEntity(bundle_cache_root, location_dict, sg)
 
     elif location_dict.get("type") == "manual":
         return IODescriptorManual(bundle_cache_root, location_dict)

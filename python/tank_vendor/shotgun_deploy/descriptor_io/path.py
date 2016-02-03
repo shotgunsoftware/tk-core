@@ -92,12 +92,6 @@ class IODescriptorPath(IODescriptorBase):
         """
         return self._path
 
-    def exists_local(self):
-        """
-        Returns true if this item exists in a local repo
-        """
-        return os.path.exists(self._path)
-
     def download_local(self):
         """
         Retrieves this version to local repo

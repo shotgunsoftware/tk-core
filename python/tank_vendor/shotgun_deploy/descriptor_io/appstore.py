@@ -200,16 +200,11 @@ class IODescriptorAppStore(IODescriptorBase):
                     "The App store does not have a version '%s' of item '%s'!" % (self._version, self._name)
                 )
 
-        return {"bundle": bundle, "version": version}
 
-    def __cache_app_store_metadata(self, metadata):
-        """
-        Caches app store metadata to disk.
-        """
-        # write it to file for later access
+        metadata = {"bundle": bundle, "version": version}
 
+        # cache it on disk
         folder = self.get_path()
-
         try:
             ensure_folder_exists(folder)
             fp = open(os.path.join(folder, METADATA_FILE), "wt")
@@ -218,6 +213,9 @@ class IODescriptorAppStore(IODescriptorBase):
         except Exception:
             # fail gracefully - this is only a cache!
             pass
+
+        return metadata
+
 
     ###############################################################################################
     # data accessors
@@ -250,7 +248,7 @@ class IODescriptorAppStore(IODescriptorBase):
         """
         returns the path to the folder where this item resides
         """
-        return self._get_local_location("app_store", self._name, self._version)
+        return self._get_local_location("app_store", self.get_system_name(), self.get_version())
 
     def get_changelog(self):
         """
@@ -292,8 +290,7 @@ class IODescriptorAppStore(IODescriptorBase):
         (sg, script_user) = self.__create_sg_app_store_connection()
 
         # get metadata from sg...
-        metadata = self.__download_app_store_metadata()
-        self.__cache_app_store_metadata(metadata)
+        metadata = self._get_app_store_metadata()
         version = metadata.get("version")
 
         # attachment field is on the following form in the case a file has been uploaded:
@@ -407,78 +404,8 @@ class IODescriptorAppStore(IODescriptorBase):
         if len(sg_data) == 0:
             raise ShotgunDeployError("Cannot find any versions for %s in the App store!" % self._name)
 
-        # now put all version number strings which match the form
-        # vX.Y.Z into a nested dictionary where it is keyed by major,
-        # then minor then increment.
-        #
-        # For example, the following versions:
-        # v1.2.1, v1.2.2, v1.2.3, v1.4.3, v1.4.2, v1.4.1
-        # 
-        # Would generate the following:
-        # { "1": { "2": [1,2,3], "4": [3,2,1] } }
-        #  
-        
         version_numbers = [x.get("code") for x in sg_data]
-        versions = {}
-        
-        for version_num in version_numbers:
-
-            try:
-                (major_str, minor_str, increment_str) = version_num[1:].split(".")
-                (major, minor, increment) = (int(major_str), int(minor_str), int(increment_str))
-            except:
-                # this version number was not on the form vX.Y.Z where X Y and Z are ints. skip.
-                continue
-            
-            if major not in versions:
-                versions[major] = {}
-            if minor not in versions[major]:
-                versions[major][minor] = []
-            if increment not in versions[major][minor]:
-                versions[major][minor].append(increment)
-
-
-        # now handle the different version strings
-        version_to_use = None
-        if "x" not in version_pattern:
-            # we are looking for a specific version
-            if version_pattern not in version_numbers:
-                raise ShotgunDeployError("Could not find requested version '%s' "
-                                "of '%s' in the App store!" % (version_pattern, self._name))
-            else:
-                # the requested version exists in the app store!
-                version_to_use = version_pattern 
-        
-        elif re.match("v[0-9]+\.x\.x", version_pattern):
-            # we have a v123.x.x pattern
-            (major_str, _, _) = version_pattern[1:].split(".")
-            major = int(major_str)
-            
-            if major not in versions:
-                raise ShotgunDeployError("%s does not have a version matching the pattern '%s'. "
-                                "Available versions are: %s" % (self._name, version_pattern, ", ".join(version_numbers)))
-            # now find the max version
-            max_minor = max(versions[major].keys())            
-            max_increment = max(versions[major][max_minor])
-            version_to_use = "v%s.%s.%s" % (major, max_minor, max_increment)
-
-        elif re.match("v[0-9]+\.[0-9]+\.x", version_pattern):
-            # we have a v123.345.x pattern
-            (major_str, minor_str, _) = version_pattern[1:].split(".")
-            major = int(major_str)
-            minor = int(minor_str)
-
-            # make sure the constraints are fulfilled
-            if (major not in versions) or (minor not in versions[major]):
-                raise ShotgunDeployError("%s does not have a version matching the pattern '%s'. "
-                                "Available versions are: %s" % (self._name, version_pattern, ", ".join(version_numbers)))
-            
-            # now find the max increment
-            max_increment = max(versions[major][minor])
-            version_to_use = "v%s.%s.%s" % (major, minor, max_increment)
-        
-        else:
-            raise ShotgunDeployError("Cannot parse version expression '%s'!" % version_pattern)
+        version_to_use = self._find_latest_tag_by_pattern(version_numbers, version_pattern)
 
         # make a location dict
         location_dict = {"type": "app_store", "name": self._name, "version": version_to_use}

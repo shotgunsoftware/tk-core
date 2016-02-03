@@ -72,12 +72,6 @@ class IODescriptorGit(IODescriptorBase):
         name = os.path.basename(self._path)
         return self._get_local_location("git", name, self._version)
 
-    def exists_local(self):
-        """
-        Returns true if this item exists in a local repo
-        """
-        return os.path.exists(self.get_path())
-
     def download_local(self):
         """
         Retrieves this version to local repo.
@@ -172,105 +166,6 @@ class IODescriptorGit(IODescriptorBase):
         new_loc_dict["version"] = version_to_use
 
         return IODescriptorGit(self._bundle_install_path, new_loc_dict)
-
-    def _find_latest_tag_by_pattern(self, version_numbers, pattern):
-        """
-        Given a list of version strings (e.g. 'v1.2.3'), find the one that best matches the given pattern.
-
-        Version numbers passed in that don't match the pattern v1.2.3... will be ignored.
-
-        :param version_numbers: List of version number strings, e.g. ``['v1.2.3', 'v1.2.5']``
-        :param pattern: Version pattern string, e.g. 'v1.x.x'. Patterns are on the following forms:
-
-            - v1.2.3 (can return this v1.2.3 but also any forked version under, eg. v1.2.3.2)
-            - v1.2.x (examples: v1.2.4, or a forked version v1.2.4.2)
-            - v1.x.x (examples: v1.3.2, a forked version v1.3.2.2)
-            - v1.2.3.x (will always return a forked version, eg. v1.2.3.2)
-
-        :returns: The most appropriate tag in the given list of tags
-        :raises: TankError if parsing fails
-        """
-        # now put all version number strings which match the form
-        # vX.Y.Z(.*) into a nested dictionary where it is keyed recursively
-        # by each digit (ie. major, minor, increment, then any additional
-        # digit optionally used by forked versions)
-        #
-        versions = {}
-        for version_num in version_numbers:
-            try:
-                version_split = map(int, version_num[1:].split("."))
-            except Exception, e:
-                # this git tag is not on the expected form vX.Y.Z where X Y and Z are ints. skip.
-                continue
-
-            if len(version_split) < 3:
-                # git tag has no minor or increment number. skip.
-                continue
-
-            # fill our versions dictionary
-            #
-            # For example, the following versions:
-            # v1.2.1, v1.2.2, v1.2.3.1, v1.4.3, v1.4.2.1, v1.4.2.2, v1.4.1,
-            #
-            # Would generate the following:
-            # {1:
-            #   {2: {1: {},
-            #        2: {},
-            #        3: {1: {}
-            #       }
-            #   },
-            #   4: {1: {},
-            #       2: {1: {}, 2: {}},
-            #       3: {}
-            #       }
-            #   }
-            # }
-            #
-            current = versions
-            for number in version_split:
-                if number not in current:
-                    current[number] = {}
-                current = current[number]
-
-        # now search for the latest version matching our pattern
-        version_to_use = None
-        if not re.match("^v([0-9]+|x)(.([0-9]+|x)){2,}$", pattern):
-            raise ShotgunDeployError("Cannot parse version expression '%s'!" % pattern)
-
-        # split our pattern, beware each part is a string (even integers)
-        version_split = re.findall("([0-9]+|x)", pattern)
-        if 'x' in version_split:
-            # check that we don't have an incorrect pattern using x
-            # then a digit, eg. v4.x.2
-            if re.match("^v[0-9\.]+[x\.]+[0-9\.]+$", pattern):
-                raise ShotgunDeployError("Incorrect version pattern '%s'. There should be no digit after a 'x'." % pattern)
-
-        current = versions
-        version_to_use = None
-        # process each digit in the pattern
-        for version_digit in version_split:
-            if version_digit == 'x':
-                # replace the 'x' by the latest at this level
-                version_digit = max(current.keys(), key=int)
-            version_digit = int(version_digit)
-            if version_digit not in current:
-                raise ShotgunDeployError("%s does not have a version matching the pattern '%s'. "
-                                "Available versions are: %s" % (self._path, pattern, ", ".join(version_numbers)))
-            current = current[version_digit]
-            if version_to_use is None:
-                version_to_use = "v%d" % version_digit
-            else:
-                version_to_use = version_to_use + ".%d" % version_digit
-
-        # at this point we have a matching version (eg. v4.x.x => v4.0.2) but
-        # there may be forked versions under this 4.0.2, so continue to recurse into
-        # the versions dictionary to find the latest forked version
-        while len(current):
-            version_digit = max(current.keys())
-            current = current[version_digit]
-            version_to_use = version_to_use + ".%d" % version_digit
-
-        return version_to_use
 
     def _find_latest_version(self):
         """

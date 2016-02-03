@@ -77,3 +77,9 @@ PIPELINECONFIG_FILE = "pipeline_configuration.yml"
 
 # field used to upload a config
 SHOTGUN_PIPELINECONFIG_ATTACHMENT_FIELD = "sg_config"
+
+PRIMARY_PIPELINE_CONFIG_NAME = "primary"
+
+ENTITY_DESCRIPTOR_VERSION_FIELD = "sg_version"
+ENTITY_DESCRIPTOR_PAYLOAD_FIELD = "sg_payload"
+
