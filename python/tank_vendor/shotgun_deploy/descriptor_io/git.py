@@ -17,6 +17,7 @@ from ..util import subprocess_check_output, execute_git_command
 from .base import IODescriptorBase
 from ..zipfilehelper import unzip_file
 from ..errors import ShotgunDeployError
+from ...shotgun_base import ensure_folder_exists
 
 
 class IODescriptorGit(IODescriptorBase):
@@ -87,19 +88,14 @@ class IODescriptorGit(IODescriptorBase):
             return
 
         target = self.get_path()
-        if not os.path.exists(target):
-            old_umask = os.umask(0)
-            os.makedirs(target, 0777)
-            os.umask(old_umask)                
+        ensure_folder_exists(target)
 
         # now first clone the repo into a tmp location
         # then zip up the tag we are looking for
         # finally, move that zip file into the target location
         zip_tmp = os.path.join(tempfile.gettempdir(), "%s_tank.zip" % uuid.uuid4().hex)
         clone_tmp = os.path.join(tempfile.gettempdir(), "%s_tank_clone" % uuid.uuid4().hex)
-        old_umask = os.umask(0)
-        os.makedirs(clone_tmp, 0777)
-        os.umask(old_umask)                
+        ensure_folder_exists(clone_tmp)
 
         # now clone and archive
         cwd = os.getcwd()
@@ -149,9 +145,7 @@ class IODescriptorGit(IODescriptorBase):
         """
         # now first clone the repo into a tmp location
         clone_tmp = os.path.join(tempfile.gettempdir(), "%s_tank_clone" % uuid.uuid4().hex)
-        old_umask = os.umask(0)
-        os.makedirs(clone_tmp, 0777)
-        os.umask(old_umask)                
+        ensure_folder_exists(clone_tmp)
 
         # get the most recent tag hash
         cwd = os.getcwd()
@@ -287,9 +281,7 @@ class IODescriptorGit(IODescriptorBase):
         
         # now first clone the repo into a tmp location
         clone_tmp = os.path.join(tempfile.gettempdir(), "%s_tank_clone" % uuid.uuid4().hex)
-        old_umask = os.umask(0)
-        os.makedirs(clone_tmp, 0777)
-        os.umask(old_umask)                
+        ensure_folder_exists(clone_tmp)
 
         # get the most recent tag hash
         cwd = os.getcwd()

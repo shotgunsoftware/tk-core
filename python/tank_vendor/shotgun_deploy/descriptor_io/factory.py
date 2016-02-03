@@ -8,6 +8,8 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from ..errors import ShotgunDeployError, ShotgunAppStoreError
+
 def create_io_descriptor(sg, descriptor_type, location_dict, bundle_cache_root):
     """
     Factory method.
@@ -21,6 +23,7 @@ def create_io_descriptor(sg, descriptor_type, location_dict, bundle_cache_root):
     from .appstore import IODescriptorAppStore
     from .dev import IODescriptorDev
     from .path import IODescriptorPath
+    from .pipeline_config import IODescriptorPipelineConfig
     from .git import IODescriptorGit
     from .manual import IODescriptorManual
 
@@ -38,6 +41,9 @@ def create_io_descriptor(sg, descriptor_type, location_dict, bundle_cache_root):
 
     elif location_dict.get("type") == "path":
         return IODescriptorPath(bundle_cache_root, location_dict)
+
+    elif location_dict.get("type") == "pipeline_configuration":
+        return IODescriptorPipelineConfig(bundle_cache_root, location_dict, sg)
 
     else:
         raise ShotgunDeployError("Invalid location dict '%s'" % location_dict)

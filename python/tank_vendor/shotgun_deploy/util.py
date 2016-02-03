@@ -10,6 +10,7 @@
 
 from distutils.version import LooseVersion
 import os
+import re
 from .errors import ShotgunDeployError
 from ..shotgun_base import get_sgtk_logger
 
@@ -47,6 +48,29 @@ def execute_git_command(cmd):
             "Error executing git operation. The git command '%s' "
             "returned error code %s." % (cmd, status)
         )
+
+
+def create_valid_filename(value):
+    """
+    Create a sanitized file name given a string.
+    Replaces spaces and other characters with underscores
+
+    'my lovely name ' -> 'my_lovely_name'
+
+    :returns: sanitized string
+    """
+    # regex to find non-word characters - in ascii land, that is [^A-Za-z0-9_]
+    # note that we use a unicode expression, meaning that it will include other
+    # "word" characters, not just A-Z.
+    exp = re.compile(u"\W", re.UNICODE)
+
+    # strip trailing whitespace
+    value = value.strip()
+
+    # assume string is utf-8 encoded. decode, replace
+    # and re-encode the returned result
+    u_src = value.decode("utf-8")
+    return exp.sub("_", u_src).encode("utf-8")
 
 
 ################################################################################################

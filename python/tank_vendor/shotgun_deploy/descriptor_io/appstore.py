@@ -28,6 +28,7 @@ from .. import constants
 from ..descriptor import Descriptor
 
 from ..errors import ShotgunDeployError, ShotgunAppStoreError
+from ...shotgun_base import ensure_folder_exists
 
 import urllib
 import urllib2
@@ -210,10 +211,7 @@ class IODescriptorAppStore(IODescriptorBase):
         folder = self.get_path()
 
         try:
-            if not os.path.exists(folder):
-                old_umask = os.umask(0)
-                os.makedirs(folder, 0777)
-                os.umask(old_umask)                
+            ensure_folder_exists(folder)
             fp = open(os.path.join(folder, METADATA_FILE), "wt")
             pickle.dump(metadata, fp)
             fp.close()
@@ -288,11 +286,7 @@ class IODescriptorAppStore(IODescriptorBase):
             return
 
         target = self.get_path()
-
-        if not os.path.exists(target):
-            old_umask = os.umask(0)
-            os.makedirs(target, 0777)
-            os.umask(old_umask)
+        ensure_folder_exists(target)
 
         # connect to the app store
         (sg, script_user) = self.__create_sg_app_store_connection()
@@ -302,17 +296,14 @@ class IODescriptorAppStore(IODescriptorBase):
         self.__cache_app_store_metadata(metadata)
         version = metadata.get("version")
 
-        # now have to get the attachment id from the data we obtained. This is a bit hacky.
-        # data example for the payload field, as returned by the query above:
-        # {'url': 'http://tank.shotgunstudio.com/file_serve/attachment/21', 'name': 'tank_core.zip',
-        #  'content_type': 'application/zip', 'link_type': 'upload'}
-        #
-        # grab the attachment id off the url field and pass that to the download_attachment()
-        # method below.
-        try:
-            attachment_id = int(version[constants.TANK_CODE_PAYLOAD_FIELD]["url"].split("/")[-1])
-        except:
-            raise ShotgunDeployError("Could not extract attachment id from data %s" % version)
+        # attachment field is on the following form in the case a file has been uploaded:
+        #  {'name': 'v1.2.3.zip',
+        #  'url': 'https://sg-media-usor-01.s3.amazonaws.com/...',
+        #  'content_type': 'application/zip',
+        #  'type': 'Attachment',
+        #  'id': 139,
+        #  'link_type': 'upload'}
+        attachment_id = version[constants.TANK_CODE_PAYLOAD_FIELD]["id"]
 
         # and now for the download.
         # @todo: progress feedback here - when the SG api supports it!
@@ -493,7 +484,7 @@ class IODescriptorAppStore(IODescriptorBase):
         location_dict = {"type": "app_store", "name": self._name, "version": version_to_use}
 
         # and return a descriptor instance
-        desc = IODescriptorAppStore(self._bundle_install_path, location_dict, self._type)
+        desc = IODescriptorAppStore(self._bundle_install_path, location_dict, self._sg_connection, self._type)
         
         # now if this item has been deprecated, meaning that someone has gone in to the app
         # store and updated the record's deprecation status, we want to make sure we download
@@ -570,7 +561,7 @@ class IODescriptorAppStore(IODescriptorBase):
                          "version": version_str}
 
         # and return a descriptor instance
-        desc = IODescriptorAppStore(self._bundle_install_path, location_dict, self._type)
+        desc = IODescriptorAppStore(self._bundle_install_path, location_dict, self._sg_connection, self._type)
         
         # now if this item has been deprecated, meaning that someone has gone in to the app
         # store and updated the record's deprecation status, we want to make sure we download
