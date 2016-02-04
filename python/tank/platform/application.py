@@ -169,7 +169,7 @@ class Application(TankBundle):
         # the action contains the engine and app name, e.g.
         # module: tk-multi-loader2
         # action: tk-multi-loader2 (tk-maya) - Execute 'Load...'
-        full_action = "%s - %s (%s)" % (self.name, action, self.engine.name)
+        full_action = "%s (%s) - %s" % (self.name, self.engine.name, action)
         log_user_activity_metric(self.name, full_action)
 
 

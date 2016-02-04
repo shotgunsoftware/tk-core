@@ -14,34 +14,47 @@
 ###############################################################################
 # imports
 
-from threading import Thread
-from Queue import Queue
-
-import urllib
+from collections import deque
+from threading import Thread, Lock
+import time
 import urllib2
  
 from ..platform import constants as platform_constants
 
+# use api json to cover py 2.5
+from tank_vendor import shotgun_api3
+json = shotgun_api3.shotgun.json
+
+
 ###############################################################################
 # Metrics dispatch Thread and Queue classes
-
 class MetricsDispatchWorkerThread(Thread):
-    """Worker thread for dispatching metrics to sg registration endpoint.
+    """Worker thread for dispatching metrics to sg logging endpoint.
 
     Given a queue where metrics are logged in the client code, once started,
-    this worker will dispatch them to the shotgun api endpoint as they
-    arrive. 
+    this worker will dispatch them to the shotgun api endpoint. The worker
+    retrieves any pending metrics after the `DISPATCH_INTERVAL` and sends
+    them all in a single request to sg.
 
     This thread runs as a `daemon` in order to prevent process shutdown
     from waiting until all metrics are processed.
     
     """
 
+    API_ENDPOINT = "api3/log_metrics/"
+    """SG API endpoint for logging metrics."""
+
+    DISPATCH_INTERVAL = 5
+    """Worker will wait this long between metrics dispatch attempts."""
+
+    DISPATCH_BATCH_SIZE = 0
+    """Worker will dispatch this many metrics at a time, or all if <= 0."""
+
     def __init__(self, tk, metrics_queue, log=None):
         """Initialize the worker thread.
 
         :params tk: Toolkit api instance.
-        :params queue.Queue metrics_queue: FIFO queue for metrics to dispatch.
+        :params metrics_queue: Holds metrics to log in SG.
         :params logging.Logger log: Logger for debugging purposes.
 
         """
@@ -68,20 +81,22 @@ class MetricsDispatchWorkerThread(Thread):
 
             # get the next available metric and dispatch it
             try:
-                metric = self._metrics_queue.get(block=True)
-                self._dispatch(metric)
+                metrics = self._metrics_queue.get_metrics(
+                    self.DISPATCH_BATCH_SIZE)
+                if metrics:
+                    self._dispatch(metrics)
             except Exception, e:
                 if self._log:
-                    self._log.error("Error dispatching metric: %s" % (e,))
+                    self._log.error("Error dispatching metrics: %s" % (e,))
             finally:
-                # success or fail, we don't want to reprocess this metric
-                self._metrics_queue.task_done()
+                # wait before dispatching more metrics
+                time.sleep(self.DISPATCH_INTERVAL)
 
 
-    def _dispatch(self, metric):
+    def _dispatch(self, metrics):
         """Dispatch the supplied metric to the sg api registration endpoint.
 
-        :param Metric metric: The Toolkit metric to dispatch.
+        :param Metric metrics: The Toolkit metric to dispatch.
 
         """
 
@@ -94,26 +109,32 @@ class MetricsDispatchWorkerThread(Thread):
             opener = urllib2.build_opener(sg_connection.config.proxy_handler)
             urllib2.install_opener(opener)
 
-        # get the session token and add it to the metrics payload
-        session_token = sg_connection.get_session_token()
-        metric.data["session_token"] = session_token
+        # build the full endpoint url with the shotgun site url
+        url = "%s/%s" % (sg_connection.base_url, self.API_ENDPOINT)
 
-        # format the url based on the sg connection and post the data
-        url = "%s/%s" % (sg_connection.base_url, metric.API_ENDPOINT)
-        #res = urllib2.urlopen(url, urllib.urlencode(metric.data)) # XXX uncomment
+        # construct the payload with the auth args and metrics data
+        payload = {
+            "auth_args": {
+                "session_token": sg_connection.get_session_token()
+            },
+            "metrics": [m.data for m in metrics]
+        }
+        payload_json = json.dumps(payload)
 
-        # remove the session token so that it doesn't show up in the log
-        del metric.data["session_token"]
+        header = {'Content-Type': 'application/json'}
+        request = urllib2.Request(url, payload_json, header)
+        response = urllib2.urlopen(request)
 
         # execute the log_metrics core hook
         self._tk.execute_core_hook(
             platform_constants.TANK_LOG_METRICS_HOOK_NAME,
             tk=self._tk,
-            metrics=[metric],
+            metrics=metrics,
         )
 
         if self._log:
-            self._log.debug("Logged metric: %s" % (metric,))
+            for metric in metrics:
+                self._log.debug("Logged metric: %s" % (metric,))
 
     def _metrics_supported(self):
         """Returns True if server supports the metrics api endpoint."""
@@ -121,14 +142,15 @@ class MetricsDispatchWorkerThread(Thread):
         if not hasattr(self, '_metrics_ok'):
 
             sg_connection = self._tk.shotgun
+
+            # TODO: update the version number once the endpoint is available
             self._metrics_ok = (
                 sg_connection.server_caps.version and 
-                sg_connection.server_caps.version >= (6, 2, 0)
-                # XXX update the version number once metric endpoint available
+                sg_connection.server_caps.version >= (7, 0, 0)
             )
-            
-        self._metrics_ok = True # XXX remove after tsting
 
+        # TODO: remove after testing
+        self._metrics_ok = True
         return self._metrics_ok
 
 
@@ -138,8 +160,8 @@ class MetricsDispatchQueueSingleton(object):
     This is a singleton class, so any instantiation will return the same object
     instance within the current process.
 
-    The `init()` method must be called in order to create and start the 
-    worker threads. Metrics can be added before or after `init()` is called 
+    The `init()` method must be called in order to create and start the
+    worker threads. Metrics can be added before or after `init()` is called
     and they will be processed in order.
 
     """
@@ -161,9 +183,10 @@ class MetricsDispatchQueueSingleton(object):
 
             # False until init() is called
             metrics_queue._initialized = False
+            metrics_queue._lock = Lock()
 
             # The underlying Queue.Queue instance
-            metrics_queue._queue = Queue()
+            metrics_queue._queue = deque()
 
             cls.__instance = metrics_queue
 
@@ -184,7 +207,8 @@ class MetricsDispatchQueueSingleton(object):
 
         """
 
-        # Uncomment these lines to debug metrics XXX comment these out
+        # Uncomment these lines to debug metrics 
+        # TODO: comment these out before release
         import logging
         log = logging.getLogger('sgtk.metrics')
         log.addHandler(logging.StreamHandler())
@@ -197,7 +221,7 @@ class MetricsDispatchQueueSingleton(object):
 
         # start the dispatch workers to use this queue
         for i in range(workers):
-            worker = MetricsDispatchWorkerThread(tk, self._queue, log)
+            worker = MetricsDispatchWorkerThread(tk, self, log)
             worker.start()
             if log:
                 log.debug("Added worker thread: %s" % (worker,))
@@ -211,8 +235,44 @@ class MetricsDispatchQueueSingleton(object):
         :param ToolkitMetric metric: The metric to log.
 
         """
-        self._queue.put(metric)
+        self._lock.acquire()
+        self._queue.append(metric)
+        self._lock.release()
 
+    def get_metrics(self, count=None):
+        """Return `count` metrics.
+
+        :param int count: The number of pending metrics to return.
+
+        If `count` is not supplied, or greater than the number of pending
+        metrics, returns all metrics.
+
+        Should never raise an exception.
+
+        """
+
+        metrics = []
+
+        self._lock.acquire()
+
+        num_pending = len(self._queue)
+
+        # there are pending metrics
+        if num_pending:
+
+            # determine how many metrics to retrieve
+            if not count or count > num_pending:
+                count = num_pending
+
+            try:
+                # would be nice to be able to pop N from deque. oh well.
+                metrics = [self._queue.popleft() for i in range(0, count)]
+            except Exception:
+                pass
+
+        self._lock.release()
+
+        return metrics
 
     @property
     def initialized(self):
@@ -224,10 +284,7 @@ class MetricsDispatchQueueSingleton(object):
 # ToolkitMetric classes and subclasses
 
 class ToolkitMetric(object):
-    """Simple class representing tk metric data and destination endpoint."""
-
-    API_ENDPOINT = "api3/register_metric"
-    """Endpoint for registering metrics. Could be overridden by subclasses."""
+    """Simple class representing tk metric data."""
 
     def __init__(self, data):
         """Initialize the object with a dictionary of metric data.
@@ -258,7 +315,7 @@ class UserActivityMetric(ToolkitMetric):
         
         """
         super(UserActivityMetric, self).__init__({
-            "mode": "user_activity",
+            "type": "user_activity",
             "module": module,
             "action": action,
         })
@@ -275,7 +332,7 @@ class UserAttributeMetric(ToolkitMetric):
 
         """
         super(UserAttributeMetric, self).__init__({
-            "mode": "user_attribute",
+            "type": "user_attribute",
             "attr_name": attr_name,
             "attr_value": attr_value,
         })
