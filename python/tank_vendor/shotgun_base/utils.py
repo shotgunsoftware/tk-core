@@ -50,6 +50,22 @@ def ensure_folder_exists(path, permissions=0775, create_placeholder_file=False):
             os.umask(old_umask)
 
 
+def copy_file(src, dst, permissions=0555):
+    """
+    Copy file with permissions
+
+    :param src:
+    :param dst:
+    :param permissions:
+    :return:
+    """
+    old_umask = os.umask(0)
+    try:
+        log.debug("Copy %s -> %s" % (src, dst))
+        shutil.copy(src, dst)
+        os.chmod(dst, permissions)
+    finally:
+        os.umask(old_umask)
 
 def copy_folder(src, dst, folder_permissions=0775):
     """

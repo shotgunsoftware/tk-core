@@ -30,8 +30,9 @@ class ConfigDescriptor(Descriptor):
         Returns true if this config needs to be installed before
         it can be used.
         """
-        # @todo - add logic for this once we get the new descriptors for pipeline config etc up and running
-        return True
+        # immutable descriptors are always installed
+        # @todo - maybe dev descriptor should also return true?
+        return self._io_descriptor.is_immutable()
 
     def get_version_constraints(self):
         """

@@ -37,7 +37,7 @@ class ToolkitBootstrap(object):
         # public properties that can be changed
         self.bundle_cache_root = get_bundle_cache_root()
 
-        self.pipeline_configuration = constants.PRIMARY_PIPELINE_CONFIG_NAME
+        self.pipeline_configuration_name = constants.PRIMARY_PIPELINE_CONFIG_NAME
 
         self.skip_shotgun_lookup = False
 
@@ -156,7 +156,7 @@ class ToolkitBootstrap(object):
                     "version": attachment_data["name"]
                 }
             else:
-                log.debug("Url '%s' not supported." % url)
+                log.debug("Url '%s' not supported by the bootstrap." % url)
 
         elif attachment_data["link_type"] == "upload":
             config_location = {
@@ -185,15 +185,22 @@ class ToolkitBootstrap(object):
 
         sg = self._sg_user.create_sg_connection()
 
+        # now resolve pipeline config details
         project_entity = None if project_id is None else {"type": "Project", "id": project_id}
 
-        if not self.skip_shotgun_lookup:
+        pipeline_configuration_id = None
 
-            #  first of all, find a pipeline configuration in Shotgun.
+        if self.skip_shotgun_lookup:
+            log.debug("Completely skipping shotgun lookup for bootstrap.")
+            config_location = self.fallback_config_location
+
+        else:
+
+            # find a pipeline configuration in Shotgun.
             log.debug("Checking pipeline configuration in Shotgun...")
             pc_data = sg.find_one(
                 constants.PIPELINE_CONFIGURATION_ENTITY,
-                [["code", "is", self.pipeline_configuration],
+                [["code", "is", self.pipeline_configuration_name],
                  ["project", "is", project_entity]],
                 ["mac_path",
                  "windows_path",
@@ -203,26 +210,32 @@ class ToolkitBootstrap(object):
 
             log.debug("Shotgun returned: %s" % pc_data)
 
-            # first see if we have the path fields set. If we do, then
-            # this takes presedence.
+            # populate some values for later use
+            if pc_data:
+                pipeline_configuration_id = pc_data["id"]
 
+            # now analyze the configuratiojn data for this pc.
+            #
+            # first see if we have the path fields set.
             lookup_dict = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
 
             if pc_data is None:
+                # nothing in shotgun
                 log.debug("No pipeline config found. Reverting to external settings.")
                 config_location = self.fallback_config_location
-                pipeline_configuration_id = None
 
             elif pc_data.get(lookup_dict[sys.platform]):
+                # paths specified in Shotgun
                 log.debug("Using path found in PipelineConfiguration.%s" % lookup_dict[sys.platform])
                 pc_path = pc_data.get(lookup_dict[sys.platform])
                 config_location = {"type": "path", "path": pc_path}
-                pipeline_configuration_id = pc_data["id"]
 
             elif pc_data.get(constants.SHOTGUN_PIPELINECONFIG_ATTACHMENT_FIELD):
-                attachment = pc_data.get(constants.SHOTGUN_PIPELINECONFIG_ATTACHMENT_FIELD)
-                pc_name = pc_data["code"]
-                config_location = self._extract_pipeline_attachment_config_location(pc_name, attachment)
+                # config attachment present in shotgun
+                config_location = self._extract_pipeline_attachment_config_location(
+                    self.pipeline_configuration_name,
+                    pc_data.get(constants.SHOTGUN_PIPELINECONFIG_ATTACHMENT_FIELD)
+                )
 
                 if config_location is None:
                     # could not extract a location from attachment field. This could be
@@ -234,18 +247,10 @@ class ToolkitBootstrap(object):
                         "Reverting to external settings."
                     )
                     config_location = self.fallback_config_location
-                    pipeline_configuration_id = None
-                else:
-                    pipeline_configuration_id = pc_data["id"]
 
             else:
                 log.debug("Pipeline configuration empty. Reverting to external settings.")
                 config_location = self.fallback_config_location
-                pipeline_configuration_id = None
-
-        else:
-            log.debug("Completely skipping shotgun lookup for bootstrap.")
-            config_location = self.fallback_config_location
 
         log.debug("Determined config locator: %s" % config_location)
 
@@ -271,6 +276,7 @@ class ToolkitBootstrap(object):
         # create an object to represent our configuration install
         config = InstalledConfiguration(
                 sg,
+                self.bundle_cache_root,
                 cfg_descriptor,
                 project_id,
                 pipeline_configuration_id
@@ -285,19 +291,16 @@ class ToolkitBootstrap(object):
         elif status == InstalledConfiguration.LOCAL_CFG_MISSING:
             log.info("A brand new configuration will be created locally.")
             config.set_up_project_scaffold()
-            config.install_core()
 
         elif status == InstalledConfiguration.LOCAL_CFG_OLD:
             log.info("Your local configuration is out of date and will be updated.")
             config.move_to_backup()
             config.set_up_project_scaffold()
-            config.install_core()
 
         elif status == InstalledConfiguration.LOCAL_CFG_INVALID:
             log.info("Your local configuration looks invalid and will be replaced.")
             config.move_to_backup()
             config.set_up_project_scaffold()
-            config.install_core()
 
         else:
             raise ShotgunDeployError("Unknown configuration update status!")

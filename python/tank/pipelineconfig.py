@@ -297,14 +297,6 @@ class PipelineConfiguration(object):
         """
         return self._project_name
 
-    def set_project_disk_name(self, project_disk_name):
-        """
-        Sets the internal project_name.  This is temporary and only available
-        while this instance is in memory.  Will not affect the metadata on
-        disk nor in Shotgun.
-        """
-        self._project_name = project_disk_name
-
     def get_published_file_entity_type(self):
         """
         Returns the type of entity being used

@@ -10,9 +10,6 @@
 
 import os
 import sys
-import shutil
-import uuid
-import imp
 from . import constants
 from . import Descriptor
 from . import descriptor_factory
@@ -20,12 +17,12 @@ from . import paths
 from .errors import ShotgunDeployError
 from . import util
 
+from ..shotgun_base import copy_file
+
 from .. import yaml
 from ..shotgun_base import copy_folder, ensure_folder_exists
 
 log = util.get_shotgun_deploy_logger()
-
-
 
 class InstalledConfiguration(object):
     """
@@ -34,7 +31,7 @@ class InstalledConfiguration(object):
 
     (LOCAL_CFG_UP_TO_DATE, LOCAL_CFG_MISSING, LOCAL_CFG_OLD, LOCAL_CFG_INVALID) = range(4)
 
-    def __init__(self, sg, descriptor, project_id, pipeline_config_id=None):
+    def __init__(self, sg, bundle_cache_root, descriptor, project_id, pipeline_config_id):
         """
 
         :param sg:
@@ -46,6 +43,7 @@ class InstalledConfiguration(object):
         self._descriptor = descriptor
         self._project_id = project_id
         self._pipeline_config_id = pipeline_config_id
+        self._bundle_cache_root = bundle_cache_root
 
     def __repr__(self):
         return "<Config with id %s, project id %s and base %s>" % (
@@ -180,7 +178,7 @@ class InstalledConfiguration(object):
 
         # copy the configuration into place
         # @todo - how do we handle git clone??
-        # @todo - need to handle the traditional setup!
+        # @todo - need to handle the traditional setup?
         copy_folder(self._descriptor.get_path(),
                     os.path.join(config_path, "config"))
 
@@ -211,11 +209,15 @@ class InstalledConfiguration(object):
         fh.write("# End of file.\n")
         fh.close()
 
+        self._write_config_info_file()
         self._write_shotgun_file()
         self._write_pipeline_config_file()
+        self._update_roots_file()
 
+        # and lastly install core
+        self._install_core()
 
-    def install_core(self):
+    def _install_core(self):
         """
         Install a core into the given configuration.
 
@@ -231,17 +233,32 @@ class InstalledConfiguration(object):
         core_location = self._descriptor.get_associated_core_location()
 
         if core_location is None:
-            # @todo - find latest in app store
-            core_location = {"type":"app_store", "name": "tk-core", "version": "v0.16.42"}
+            # we don't have a core location specified. Get latest from app store.
+            log.debug("Config does not define which core to use. Will use latest.")
+            core_location = {"type": "app_store", "name": "tk-core"}
+            core_descriptor = descriptor_factory.create_latest_descriptor(
+                    self._sg_connection,
+                    Descriptor.CORE,
+                    core_location,
+                    self._bundle_cache_root
+            )
+        else:
+            # we have an exact core location. Get a descriptor for it
+            log.debug("Config needs core %s" % core_location)
+            core_descriptor = descriptor_factory.create_descriptor(
+                    self._sg_connection,
+                    Descriptor.CORE,
+                    core_location,
+                    self._bundle_cache_root
+            )
 
-        core_descriptor = descriptor_factory.create_descriptor(self._sg_connection, Descriptor.CORE, core_location)
-        core_descriptor.download_local()
+        log.debug("Config will use Core %s" % core_descriptor)
+
+        # make sure we have our core on disk
+        core_descriptor.ensure_local()
         core_path = core_descriptor.get_path()
-
         config_root_path = self.get_path()
-
         core_target_path = os.path.join(config_root_path, "install", "core")
-
 
         log.debug("Copying core into place")
         copy_folder(core_path, core_target_path)
@@ -249,29 +266,11 @@ class InstalledConfiguration(object):
         # copy the tank binaries to the top of the config
         # grab these from the currently executing core API
         log.debug("Copying Toolkit binaries...")
-
         root_binaries_folder = os.path.join(core_target_path, "setup", "root_binaries")
         for file_name in os.listdir(root_binaries_folder):
             src_file = os.path.join(root_binaries_folder, file_name)
             tgt_file = os.path.join(config_root_path, file_name)
-            shutil.copy(src_file, tgt_file)
-            os.chmod(tgt_file, 0775)
-
-
-    def __uuid_import(self, path):
-        """
-        Imports a module with a given name at a given location with a decorated
-        namespace so that it can be reloaded multiple times at different locations.
-
-        :param module: Name of the module we are importing.
-        :param path: Path to the folder containing the module we are importing.
-
-        :returns: The imported module.
-        """
-        log.debug("Trying to import module from path '%s'..." % path)
-        module = imp.load_module(uuid.uuid4().hex, None, path, ("", "", imp.PKG_DIRECTORY) )
-        log.debug("Successfully imported %s" % module)
-        return module
+            copy_file(src_file, tgt_file, 0775)
 
 
     def get_tk_instance(self, sg_user):
@@ -340,11 +339,39 @@ class InstalledConfiguration(object):
         """
         Writes pipeline configuration yml
         """
+        # the pipeline config metadata
+        # resolve project name and pipeline config name from shotgun.
+        if self._pipeline_config_id:
+            # look up pc name and project name via the pc
+            log.debug("Checking pipeline config in Shotgun...")
+            sg_data = self._sg_connection.find_one(
+                    "PipelineConfiguration",
+                    [["id", "is", self._pipeline_config_id]],
+                    ["code", "project.Project.name"])
+            project_name = sg_data["project.Project.name"]
+            pipeline_config_name = sg_data["code"]
+
+        elif self._project_id:
+            # no pc. look up the project name via the project id
+            log.debug("Checking project in Shotgun...")
+            sg_data = self._sg_connection.find_one(
+                    "Project",
+                    [["id", "is", self._project_id]],
+                    ["name"]
+            )
+            project_name = sg_data["name"]
+            pipeline_config_name = None
+
+        else:
+            project_name = None
+            pipeline_config_name = None
+
+
         data = {
-            "pc_id": 3,
-            "pc_name": "Primary",
-            "project_id": 65,
-            "project_name": "big_buck_bunny",
+            "pc_id": self._pipeline_config_id,
+            "pc_name": pipeline_config_name,
+            "project_id": self._project_id,
+            "project_name": project_name,
             "published_file_entity_type": "PublishedFile",
             "use_global_bundle_cache": True,
             "use_shotgun_path_cache": True}
@@ -364,126 +391,45 @@ class InstalledConfiguration(object):
 
 
 
-
-
-    def _get_published_file_entity_type(self):
+    def _update_roots_file(self):
         """
-        Find the published file entity type to use for this project.
-        Communicates with Shotgun, introspects the sg schema.
-
-        :returns: 'PublishedFile' if the PublishedFile entity type has
-                  been enabled, otherwise returns 'TankPublishedFile'
+        Updates roots.yml based on local storage defs in shotugn
         """
-        log.debug("Retrieving schema from Shotgun to determine entity type to use for published files")
-
-        pf_entity_type = "TankPublishedFile"
-        try:
-            sg_schema = self._sg_connection.schema_read()
-            if ("PublishedFile" in sg_schema
-                and "PublishedFileType" in sg_schema
-                and "PublishedFileDependency" in sg_schema):
-                pf_entity_type = "PublishedFile"
-        except Exception, e:
-            raise ShotgunDeployError("Could not retrieve the Shotgun schema: %s" % e)
-
-        log.debug(" > Using %s entity type for published files" % pf_entity_type)
-
-        return pf_entity_type
-
-
-
-    def validate_storages(self):
-        """
-        Validate that the roots exist in shotgun. Communicates with Shotgun.
-
-        Returns the root paths from shotgun for each storage.
-
-        {
-          "primary" : {
-                        "exists_on_disk": False,
-                        "defined_in_shotgun": True,
-                        "shotgun_id": 12,
-                        "darwin": "/mnt/foo",
-                        "win32": "z:\mnt\foo",
-                        "linux2": "/mnt/foo"},
-
-          "textures" : {
-                         "exists_on_disk": False,
-                         "defined_in_shotgun": True,
-                         "shotgun_id": 14,
-                         "darwin": None,
-                         "win32": "z:\mnt\foo",
-                         "linux2": "/mnt/foo"}
-        }
-
-        The main dictionary is keyed by storage name. It will contain one entry
-        for each local storage which is required by the configuration template.
-        Each sub-dictionary contains the following items:
-
-        - description: Description what the storage is used for. This comes from the
-          configuration template and can be used to help a user to explain the purpose
-          of a particular storage required by a configuration.
-        - defined_in_shotgun: If false, no local storage with this name exists in Shotgun.
-        - shotgun_id: If defined_in_shotgun is True, this will contain the entity id for
-          the storage. If defined_in_shotgun is False, this will be set to none.
-        - darwin/win32/linux: Paths to storages, as defined in Shotgun. These values can be
-          None if a storage has not been defined.
-        - exists_on_disk: Flag if the path defined for the current operating system exists on
-          disk or not.
-
-        :returns: dictionary with storage breakdown, see example above.
-        """
-
-        return_data = {}
-
-        log.debug("Checking so that all the local storages are registered...")
-        sg_storage = self._sg_connection.find(
+        # get list of storages in Shotgun
+        sg_data = self._sg_connection.find(
             "LocalStorage",
             [],
             fields=["id", "code", "linux_path", "mac_path", "windows_path"])
 
-        # make sure that there is a storage in shotgun matching all storages for this config
-        sg_storage_codes = [x.get("code") for x in sg_storage]
-        cfg_storages = self._descriptor.get_required_storages()
+        # organize them by name
+        storage_by_name = {}
+        for storage in sg_data:
+            storage_by_name[storage["code"]] = storage
 
-        for s in cfg_storages:
+        # now write out roots data
+        roots_data = {}
 
-            return_data[s] = { "shotgun_id": None,
-                               "darwin": None,
-                               "win32": None,
-                               "linux2": None}
+        for storage in self._descriptor.get_required_storages():
+            roots_data[storage] = {}
+            if storage not in storage_by_name:
+                raise ShotgunDeployError("A '%s' storage is defined by %s but is not defined in Shotgun." % (storage, self._descriptor))
+            roots_data[storage]["mac_path"] = storage_by_name[storage]["mac_path"]
+            roots_data[storage]["linux_path"] = storage_by_name[storage]["linux_path"]
+            roots_data[storage]["windows_path"] = storage_by_name[storage]["windows_path"]
 
-            if s not in sg_storage_codes:
-                return_data[s]["defined_in_shotgun"] = False
-                return_data[s]["exists_on_disk"] = False
-            else:
-                return_data[s]["defined_in_shotgun"] = True
+        config_info_file = os.path.join(self.get_path(), "config", "core", constants.STORAGE_ROOTS_FILE)
+        fh = open(config_info_file, "wt")
 
-                # find the sg storage paths and add to return data
-                for x in sg_storage:
+        fh.write("# This file was auto generated\n")
 
-                    if x.get("code") == s:
+        # write yaml
+        yaml.safe_dump(roots_data, fh)
+        fh.write("\n")
+        fh.close()
 
-                        # copy the storage paths across
-                        return_data[s]["darwin"] = x.get("mac_path")
-                        return_data[s]["linux2"] = x.get("linux_path")
-                        return_data[s]["win32"] = x.get("windows_path")
-                        return_data[s]["shotgun_id"] = x.get("id")
+        log.debug("Wrote %s" % config_info_file)
 
-                        # get the local path
-                        lookup_dict = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
-                        local_storage_path = x.get(lookup_dict[sys.platform])
 
-                        if local_storage_path is None:
-                            # shotgun has no path for our local storage
-                            return_data[s]["exists_on_disk"] = False
 
-                        elif not os.path.exists(local_storage_path):
-                            # path is defined but cannot be found
-                            return_data[s]["exists_on_disk"] = False
 
-                        else:
-                            # path exists! yay!
-                            return_data[s]["exists_on_disk"] = True
 
-        return return_data
