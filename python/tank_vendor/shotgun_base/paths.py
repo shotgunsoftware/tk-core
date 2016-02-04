@@ -85,6 +85,6 @@ def get_pipeline_config_cache_root(site_url, project_id, pipeline_configuration_
     :param pipeline_configuration_id: The shotgun pipeline config id to store caches for. Can be None.
     :returns: The calculated location for the cache root
     """
-    project_config_folder = "pr%d_cfg%s" % (project_id, pipeline_configuration_id)
+    project_config_folder = "pr%s_cfg%s" % (project_id, pipeline_configuration_id)
     cache_root = os.path.join(get_site_cache_root(site_url), project_config_folder)
     return cache_root

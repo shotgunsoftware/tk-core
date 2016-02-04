@@ -17,8 +17,8 @@ class IODescriptorManual(IODescriptorBase):
     Represents a manually installed item
     """
 
-    def __init__(self, bundle_install_path, location_dict):
-        super(IODescriptorManual, self).__init__(bundle_install_path, location_dict)
+    def __init__(self, bundle_cache_root, location_dict):
+        super(IODescriptorManual, self).__init__(bundle_cache_root, location_dict)
         self._name = location_dict.get("name")
         self._version = location_dict.get("version")
 

@@ -26,16 +26,16 @@ class IODescriptorDev(IODescriptorPath):
 
     """
     
-    def __init__(self, bundle_install_path, location_dict):
+    def __init__(self, bundle_cache_root, location_dict):
         """
         Constructor
 
-        :param bundle_install_path: Location on disk where items are cached
+        :param bundle_cache_root: Location on disk where items are cached
         :param location_dict: Location dictionary describing the bundle
         :return: Descriptor instance
         """
 
-        super(IODescriptorPath, self).__init__(bundle_install_path, location_dict)
+        super(IODescriptorPath, self).__init__(bundle_cache_root, location_dict)
 
     def is_developer(self):
         """

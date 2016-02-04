@@ -34,8 +34,8 @@ class IODescriptorGit(IODescriptorBase):
         /full/path/to/local/repo.git
     """
 
-    def __init__(self, bundle_install_path, location_dict):
-        super(IODescriptorGit, self).__init__(bundle_install_path, location_dict)
+    def __init__(self, bundle_cache_root, location_dict):
+        super(IODescriptorGit, self).__init__(bundle_cache_root, location_dict)
 
         self._path = location_dict.get("path")
         # strip trailing slashes - this is so that when we build
@@ -165,7 +165,7 @@ class IODescriptorGit(IODescriptorBase):
         new_loc_dict = copy.deepcopy(self._location_dict)
         new_loc_dict["version"] = version_to_use
 
-        return IODescriptorGit(self._bundle_install_path, new_loc_dict)
+        return IODescriptorGit(self._bundle_cache_root, new_loc_dict)
 
     def _find_latest_version(self):
         """
@@ -201,7 +201,7 @@ class IODescriptorGit(IODescriptorBase):
         new_loc_dict = copy.deepcopy(self._location_dict)
         new_loc_dict["version"] = latest_version
 
-        return IODescriptorGit(self._bundle_install_path, new_loc_dict)
+        return IODescriptorGit(self._bundle_cache_root, new_loc_dict)
 
     def __clone_repo(self, target_path):
         """

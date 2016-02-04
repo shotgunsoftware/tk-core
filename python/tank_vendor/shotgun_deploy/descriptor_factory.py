@@ -8,9 +8,6 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import os
-
-from ..shotgun_base import get_cache_root, ensure_folder_exists
 from .errors import ShotgunDeployError
 from . import paths
 from .descriptor_io import create_io_descriptor
@@ -56,3 +53,25 @@ def create_descriptor(sg_connection, descriptor_type, location_dict, bundle_cach
     else:
         raise ShotgunDeployError("%s: Invalid location dict '%s'" % (descriptor_type, location_dict))
 
+
+def create_latest_descriptor(sg_connection, descriptor_type, location_dict, bundle_cache_root=None):
+    """
+    Factory method. Creates a descriptor based on the latest available version.
+    The location dictionary passed to this method does not need to include a version
+    number. This will be automatically determined by the method. Note that this
+    typically requires connecting to services such as shotgun or git.
+
+    :param sg_connection: Shotgun connection to associated site
+    :param descriptor_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK
+    :param bundle_cache_root: Root path to where downloaded apps are cached
+    :param location_dict: A std location dictionary
+    :returns: Descriptor object
+    """
+
+    if location_dict.get("version") is None:
+        # add a stub version
+        location_dict["version"] = "v0.0.0"
+
+    desc = create_descriptor(sg_connection, descriptor_type, location_dict, bundle_cache_root)
+    latest_desc = desc.find_latest_version()
+    return latest_desc

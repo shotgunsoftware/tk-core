@@ -38,16 +38,16 @@ class IODescriptorPipelineConfig(IODescriptorBase):
     {type: pipeline_configuration, name: primary, attachment_id: 456}
     """
 
-    def __init__(self, bundle_install_path, location_dict, sg_connection):
+    def __init__(self, bundle_cache_root, location_dict, sg_connection):
         """
         Constructor
 
-        :param bundle_install_path: Location on disk where items are cached
+        :param bundle_cache_root: Location on disk where items are cached
         :param location_dict: Location dictionary describing the bundle
         :param sg_connection: Shotgun connection to associated site
         :return: Descriptor instance
         """
-        super(IODescriptorPipelineConfig, self).__init__(bundle_install_path, location_dict)
+        super(IODescriptorPipelineConfig, self).__init__(bundle_cache_root, location_dict)
 
         self._sg_connection = sg_connection
         self._name = location_dict.get("name")
@@ -163,7 +163,7 @@ class IODescriptorPipelineConfig(IODescriptorBase):
                          "attachment_id": attachment_id}
 
         # and return a descriptor instance
-        desc = IODescriptorPipelineConfig(self._bundle_install_path, location_dict, self._sg_connection)
+        desc = IODescriptorPipelineConfig(self._bundle_cache_root, location_dict, self._sg_connection)
 
         return desc
 

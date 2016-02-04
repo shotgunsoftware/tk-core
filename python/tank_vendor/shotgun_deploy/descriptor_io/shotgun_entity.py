@@ -44,16 +44,16 @@ class IODescriptorShotgunEntity(IODescriptorBase):
     {type: shotgun, entity_type: CustomEntity01, name: tk-foo, version: v0.1.2}
     """
 
-    def __init__(self, bundle_install_path, location_dict, sg_connection):
+    def __init__(self, bundle_cache_root, location_dict, sg_connection):
         """
         Constructor
 
-        :param bundle_install_path: Location on disk where items are cached
+        :param bundle_cache_root: Location on disk where items are cached
         :param location_dict: Location dictionary describing the bundle
         :param sg_connection: Shotgun connection to associated site
         :return: Descriptor instance
         """
-        super(IODescriptorShotgunEntity, self).__init__(bundle_install_path, location_dict)
+        super(IODescriptorShotgunEntity, self).__init__(bundle_cache_root, location_dict)
 
         self._sg_connection = sg_connection
         self._entity_type = location_dict.get("entity_type")
@@ -265,7 +265,7 @@ class IODescriptorShotgunEntity(IODescriptorBase):
                          "version": version_to_use}
 
         # and return a descriptor instance
-        desc = IODescriptorShotgunEntity(self._bundle_install_path, location_dict, self._sg_connection)
+        desc = IODescriptorShotgunEntity(self._bundle_cache_root, location_dict, self._sg_connection)
 
         return desc
 
@@ -299,7 +299,7 @@ class IODescriptorShotgunEntity(IODescriptorBase):
                          "version": version_str}
 
         # and return a descriptor instance
-        desc = IODescriptorShotgunEntity(self._bundle_install_path, location_dict, self._sg_connection)
+        desc = IODescriptorShotgunEntity(self._bundle_cache_root, location_dict, self._sg_connection)
         
         return desc
 
