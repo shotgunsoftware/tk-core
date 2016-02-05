@@ -217,6 +217,12 @@ class InstalledConfiguration(object):
         # and lastly install core
         self._install_core()
 
+        # @todo - prime caches
+        # @todo - fetch path cache
+        # @todo - bake yaml caches
+        # @todo - look at actions baking
+
+
     def _install_core(self):
         """
         Install a core into the given configuration.
@@ -348,8 +354,8 @@ class InstalledConfiguration(object):
                     "PipelineConfiguration",
                     [["id", "is", self._pipeline_config_id]],
                     ["code", "project.Project.name"])
-            project_name = sg_data["project.Project.name"]
-            pipeline_config_name = sg_data["code"]
+            project_name = sg_data["project.Project.name"] or "Site"
+            pipeline_config_name = sg_data["code"] or constants.UNMANAGED_PIPELINE_CONFIG_NAME
 
         elif self._project_id:
             # no pc. look up the project name via the project id
@@ -359,16 +365,16 @@ class InstalledConfiguration(object):
                     [["id", "is", self._project_id]],
                     ["name"]
             )
-            project_name = sg_data["name"]
-            pipeline_config_name = None
+            project_name = sg_data["name"] or "Unnamed"
+            pipeline_config_name = constants.UNMANAGED_PIPELINE_CONFIG_NAME
 
         else:
-            project_name = None
-            pipeline_config_name = None
+            project_name = "Site"
+            pipeline_config_name = constants.UNMANAGED_PIPELINE_CONFIG_NAME
 
 
         data = {
-            "pc_id": self._pipeline_config_id,
+            "pc_id": self._pipeline_config_id or 0,
             "pc_name": pipeline_config_name,
             "project_id": self._project_id,
             "project_name": project_name,
