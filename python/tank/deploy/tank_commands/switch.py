@@ -144,15 +144,10 @@ class SwitchAppAction(Action):
         log.info("")
         
         if mode == "app_store":
-            
-            location = {"type": "app_store", 
-                        "name": descriptor.get_system_name(), 
-                        "version": "v0.0.0"}
-            tmp_descriptor = self.tk.pipeline_configuration.get_app_descriptor(location)
-            new_descriptor = tmp_descriptor.find_latest_version()            
+            location = {"type": "app_store", "name": descriptor.get_system_name()}
+            new_descriptor = self.tk.pipeline_configuration.get_app_descriptor(location, latest=True)
         
         elif mode == "dev":
-
             if not os.path.exists(path):
                 raise TankError("Cannot find path '%s' on disk!" % path)
 
@@ -161,11 +156,9 @@ class SwitchAppAction(Action):
             new_descriptor = self.tk.pipeline_configuration.get_app_descriptor(location)
 
         elif mode == "git":
-            
             # run descriptor factory method
-            location = {"type": "git", "path": path, "version": "v0.0.0"}
-            tmp_descriptor = self.tk.pipeline_configuration.get_app_descriptor(location)
-            new_descriptor = tmp_descriptor.find_latest_version()            
+            location = {"type": "git", "path": path}
+            new_descriptor = self.tk.pipeline_configuration.get_app_descriptor(location, latest=True)
         
         else:
             raise TankError("Unknown mode!")

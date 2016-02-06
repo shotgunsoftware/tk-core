@@ -28,7 +28,7 @@ from . import hook
 from . import pipelineconfig_utils
 from . import template_includes
 
-from tank_vendor.shotgun_deploy import Descriptor, create_descriptor
+from tank_vendor.shotgun_deploy import Descriptor, create_descriptor, create_latest_descriptor
 
 class PipelineConfiguration(object):
     """
@@ -546,12 +546,13 @@ class PipelineConfiguration(object):
 
         return location_dict
 
-    def _get_descriptor(self, descriptor_type, location):
+    def _get_descriptor(self, descriptor_type, location, latest=False):
         """
         Constructs a descriptor object given a location dictionary.
 
         :param descriptor_type: Descriptor type (APP, ENGINE, etc)
         :param location:        Location dictionary
+        :param latest:          Return latest available version of descriptor
         :returns:               Descriptor object
         """
         sg_connection = shotgun.get_sg_connection()
@@ -559,33 +560,41 @@ class PipelineConfiguration(object):
 
         if self._use_global_bundle_cache:
             # deferring to the deploy module to locate the app cache
-            desc = create_descriptor(sg_connection, descriptor_type, pp_location)
+            if latest:
+                desc = create_latest_descriptor(sg_connection, descriptor_type, pp_location)
+            else:
+                desc = create_descriptor(sg_connection, descriptor_type, pp_location)
         else:
             # classic toolkit mode where we cache apps in the core install folder
             bundles_location = os.path.join(self.get_install_location(), "install")
-            desc = create_descriptor(sg_connection, descriptor_type, pp_location, bundles_location)
+            if latest:
+                desc = create_latest_descriptor(sg_connection, descriptor_type, pp_location, bundles_location)
+            else:
+                desc = create_descriptor(sg_connection, descriptor_type, pp_location, bundles_location)
 
         return desc
 
-    def get_app_descriptor(self, location):
+    def get_app_descriptor(self, location, latest=False):
         """
         Convenience method that returns a descriptor for an app
         that is associated with this pipeline configuration.
         
         :param location: Location dictionary describing the app source location
+        :param latest: Return latest available version of descriptor
         :returns:        Descriptor object
         """
-        return self._get_descriptor(Descriptor.APP, location)
+        return self._get_descriptor(Descriptor.APP, location, latest)
 
-    def get_engine_descriptor(self, location):
+    def get_engine_descriptor(self, location, latest=False):
         """
         Convenience method that returns a descriptor for an engine
         that is associated with this pipeline configuration.
         
         :param location: Location dictionary describing the engine source location
+        :param latest: Return latest available version of descriptor
         :returns:        Descriptor object
         """
-        return self._get_descriptor(Descriptor.ENGINE, location)
+        return self._get_descriptor(Descriptor.ENGINE, location, latest)
 
     def get_framework_descriptor(self, location):
         """
@@ -597,21 +606,6 @@ class PipelineConfiguration(object):
         """
         return self._get_descriptor(Descriptor.FRAMEWORK, location)
 
-    def get_core_descriptor(self, location):
-        """
-        Convenience method that returns a descriptor for core
-        that is associated with this pipeline configuration.
-        
-        Note! While Engines, Apps and Frameworks descriptors point
-        at code that is typically used at runtime, a core descriptor
-        is typically not used at runtime but instead at deploy time, 
-        to cache a series of cores locally in the bundle cache and then
-        choose one to deploy into a configuration.
-        
-        :param location: Location dictionary describing the core source location
-        :returns:        Descriptor object
-        """
-        return self._get_descriptor(Descriptor.CORE, location)
 
     ########################################################################################
     # configuration disk locations

@@ -191,6 +191,6 @@ class Descriptor(object):
         """
         self._io_descriptor = self._io_descriptor.find_latest_version(constraint_pattern)
 
-        #@todo - this interface makes less sense now with the new object structure.
+        # @todo - this interface makes less sense now with the new object structure.
         return self
 

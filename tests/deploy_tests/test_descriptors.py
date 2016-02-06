@@ -34,8 +34,6 @@ class TestDescriptors(TankTestBase):
         d = self.tk.pipeline_configuration.get_framework_descriptor(location)
         self.assertEqual(d.get_path(), path)
 
-        d = self.tk.pipeline_configuration.get_core_descriptor(location)
-        self.assertEqual(d.get_path(), path)
 
     def test_manual_descriptor_location(self):
         """
@@ -55,8 +53,6 @@ class TestDescriptors(TankTestBase):
         d = self.tk.pipeline_configuration.get_framework_descriptor(location)
         self.assertEqual(d.get_path(), path)
 
-        d = self.tk.pipeline_configuration.get_core_descriptor(location)
-        self.assertEqual(d.get_path(), path)
 
     def test_dev_descriptor_location(self):
         """
