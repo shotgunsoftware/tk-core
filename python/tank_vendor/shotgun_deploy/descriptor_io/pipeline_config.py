@@ -111,7 +111,7 @@ class IODescriptorPipelineConfig(IODescriptorBase):
     #############################################################################
     # searching for other versions
 
-    def find_latest_version(self, constraint_pattern=None):
+    def get_latest_version(self, constraint_pattern=None):
         """
         Returns a descriptor object that represents the latest version.
 

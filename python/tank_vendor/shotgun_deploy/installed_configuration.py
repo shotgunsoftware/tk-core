@@ -83,8 +83,8 @@ class InstalledConfiguration(object):
         config_root = self.get_path()
 
         # first check if there is any config at all
-        # probe for tank command
-        if not os.path.exists(os.path.join(config_root, "tank")):
+        # probe for shotgun.yml connection params file
+        if not os.path.exists(os.path.join(config_root, "config", "core", "shotgun.yml")):
             return self.LOCAL_CFG_MISSING
 
         # local config exists. See if it is up to date.
@@ -147,7 +147,7 @@ class InstalledConfiguration(object):
         log.debug("backup complete.")
 
 
-    def set_up_project_scaffold(self):
+    def set_up_project_scaffold(self, create_tank_command=False):
         """
         Creates all the necessary files on disk for a basic config scaffold.
 
@@ -177,45 +177,18 @@ class InstalledConfiguration(object):
         self._descriptor.ensure_local()
 
         # copy the configuration into place
-        # @todo - how do we handle git clone??
-        # @todo - need to handle the traditional setup?
-        copy_folder(self._descriptor.get_path(),
-                    os.path.join(config_path, "config"))
+        copy_folder(self._descriptor.get_path(), os.path.join(config_path, "config"))
 
-        # write a file location file for our new setup
-        sg_code_location = os.path.join(config_path, "config", "core", "install_location.yml")
 
         #
-        log.debug("Creating install_location file file...")
-
-        # @todo - support other platforms
-        local_install_path = self.get_path()
-
-        # platforms other than the current OS will not be supposed
-        # by this config scaffold
-        config_paths = {"darwin": None, "win32": None, "linux2": None}
-        config_paths[sys.platform] = local_install_path
-
-        fh = open(sg_code_location, "wt")
-        fh.write("# Shotgun Pipeline Toolkit configuration file\n")
-        fh.write("# This file was automatically created\n")
-        fh.write("# This file reflects the paths in the pipeline\n")
-        fh.write("# configuration defined for this project.\n")
-        fh.write("\n")
-        fh.write("Windows: '%s'\n" % config_paths["win32"])
-        fh.write("Darwin: '%s'\n" % config_paths["darwin"])
-        fh.write("Linux: '%s'\n" % config_paths["linux2"])
-        fh.write("\n")
-        fh.write("# End of file.\n")
-        fh.close()
-
+        self._write_install_location_file()
         self._write_config_info_file()
         self._write_shotgun_file()
         self._write_pipeline_config_file()
         self._update_roots_file()
 
         # and lastly install core
-        self._install_core()
+        self._install_core(create_tank_command)
 
         # @todo - prime caches
         # @todo - fetch path cache
@@ -223,7 +196,7 @@ class InstalledConfiguration(object):
         # @todo - look at actions baking
 
 
-    def _install_core(self):
+    def _install_core(self, create_tank_command):
         """
         Install a core into the given configuration.
 
@@ -269,14 +242,15 @@ class InstalledConfiguration(object):
         log.debug("Copying core into place")
         copy_folder(core_path, core_target_path)
 
-        # copy the tank binaries to the top of the config
-        # grab these from the currently executing core API
-        log.debug("Copying Toolkit binaries...")
-        root_binaries_folder = os.path.join(core_target_path, "setup", "root_binaries")
-        for file_name in os.listdir(root_binaries_folder):
-            src_file = os.path.join(root_binaries_folder, file_name)
-            tgt_file = os.path.join(config_root_path, file_name)
-            copy_file(src_file, tgt_file, 0775)
+        if create_tank_command:
+            # copy the tank binaries to the top of the config
+            # grab these from the currently executing core API
+            log.debug("Copying Toolkit binaries...")
+            root_binaries_folder = os.path.join(core_target_path, "setup", "root_binaries")
+            for file_name in os.listdir(root_binaries_folder):
+                src_file = os.path.join(root_binaries_folder, file_name)
+                tgt_file = os.path.join(config_root_path, file_name)
+                copy_file(src_file, tgt_file, 0775)
 
 
     def get_tk_instance(self, sg_user):
@@ -292,6 +266,37 @@ class InstalledConfiguration(object):
         tk = tank.tank_from_path(path)
         log.info("API created: %s" % tk)
         return tk
+
+    def _write_install_location_file(self):
+        """
+        Writes the install location file
+        :return:
+        """
+        config_path = self.get_path()
+
+        # write a file location file for our new setup
+        sg_code_location = os.path.join(config_path, "config", "core", "install_location.yml")
+
+        log.debug("Creating install_location file...")
+
+        # platforms other than the current OS will not be supposed
+        # by this config scaffold
+        config_paths = {"darwin": None, "win32": None, "linux2": None}
+        config_paths[sys.platform] = config_path
+
+        fh = open(sg_code_location, "wt")
+        fh.write("# Shotgun Pipeline Toolkit configuration file\n")
+        fh.write("# This file was automatically created\n")
+        fh.write("# This file reflects the paths in the pipeline\n")
+        fh.write("# configuration defined for this project.\n")
+        fh.write("\n")
+        fh.write("Windows: '%s'\n" % config_paths["win32"])
+        fh.write("Darwin: '%s'\n" % config_paths["darwin"])
+        fh.write("Linux: '%s'\n" % config_paths["linux2"])
+        fh.write("\n")
+        fh.write("# End of file.\n")
+        fh.close()
+
 
     def _write_config_info_file(self):
         """
@@ -372,7 +377,6 @@ class InstalledConfiguration(object):
             project_name = "Site"
             pipeline_config_name = constants.UNMANAGED_PIPELINE_CONFIG_NAME
 
-
         data = {
             "pc_id": self._pipeline_config_id or 0,
             "pc_name": pipeline_config_name,
@@ -393,9 +397,6 @@ class InstalledConfiguration(object):
         fh.close()
 
         log.debug("Wrote %s" % config_info_file)
-
-
-
 
     def _update_roots_file(self):
         """
@@ -434,8 +435,6 @@ class InstalledConfiguration(object):
         fh.close()
 
         log.debug("Wrote %s" % config_info_file)
-
-
 
 
 

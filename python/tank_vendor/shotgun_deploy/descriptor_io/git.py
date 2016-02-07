@@ -104,7 +104,7 @@ class IODescriptorGit(IODescriptorBase):
         # unzip core zip file to app target location
         unzip_file(zip_tmp, target)
 
-    def find_latest_version(self, constraint_pattern=None):
+    def get_latest_version(self, constraint_pattern=None):
         """
         Returns a descriptor object that represents the latest version.
         

@@ -233,7 +233,10 @@ class PipelineConfiguration(object):
         Returns true if this config was set up with auto path mode.
         This method will connect to shotgun in order to determine the 
         auto path status.
-        
+
+        January 2016:
+        DEPRECATED - DO NOT USE! At some stage this wil be removed.
+
         :returns: boolean indicating auto path state
         """
         sg = shotgun.get_sg_connection()

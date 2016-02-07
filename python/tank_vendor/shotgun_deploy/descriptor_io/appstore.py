@@ -9,7 +9,6 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import re
 import copy
 import uuid
 import tempfile
@@ -334,7 +333,7 @@ class IODescriptorAppStore(IODescriptorBase):
     #############################################################################
     # searching for other versions
 
-    def find_latest_version(self, constraint_pattern=None):
+    def get_latest_version(self, constraint_pattern=None):
         """
         Returns a descriptor object that represents the latest version.
         

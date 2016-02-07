@@ -189,7 +189,7 @@ class Descriptor(object):
 
         :returns: descriptor object
         """
-        self._io_descriptor = self._io_descriptor.find_latest_version(constraint_pattern)
+        self._io_descriptor = self._io_descriptor.get_latest_version(constraint_pattern)
 
         # @todo - this interface makes less sense now with the new object structure.
         return self
