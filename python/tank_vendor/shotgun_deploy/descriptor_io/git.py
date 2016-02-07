@@ -19,6 +19,8 @@ from ..zipfilehelper import unzip_file
 from ..errors import ShotgunDeployError
 from ...shotgun_base import ensure_folder_exists
 
+from .. import util
+log = util.get_shotgun_deploy_logger()
 
 class IODescriptorGit(IODescriptorBase):
     """

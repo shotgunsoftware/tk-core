@@ -11,6 +11,9 @@
 
 from .path import IODescriptorPath
 
+from .. import util
+log = util.get_shotgun_deploy_logger()
+
 class IODescriptorDev(IODescriptorPath):
     """
     Represents a local dev item. This item is never downloaded

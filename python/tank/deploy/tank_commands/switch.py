@@ -188,7 +188,7 @@ class SwitchAppAction(Action):
             new_descriptor.download_local()
     
         # create required shotgun fields
-        new_descriptor.ensure_shotgun_fields_exist()
+        new_descriptor.ensure_shotgun_fields_exist(self.tk)
     
         # run post install hook
         new_descriptor.run_post_install(self.tk)

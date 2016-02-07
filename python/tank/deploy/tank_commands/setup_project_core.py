@@ -390,7 +390,7 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, set
     # create required shotgun fields
     setup_params.report_progress_from_installer("Running post install...")
     for descriptor in descriptors:
-        descriptor.ensure_shotgun_fields_exist()
+        descriptor.ensure_shotgun_fields_exist(tk)
         # run post install hook
         descriptor.run_post_install(tk)
 

@@ -9,6 +9,8 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from .descriptor import Descriptor
+import os
+from .errors import ShotgunDeployError
 
 class BundleDescriptor(Descriptor):
 
@@ -101,11 +103,77 @@ class BundleDescriptor(Descriptor):
             frameworks = []
         return frameworks
 
+
+    ###############################################################################################
+    # helper methods
+
+    def ensure_shotgun_fields_exist(self, tk):
+        """
+        Ensures that any shotgun fields a particular descriptor requires
+        exists in shotgun. In the metadata (info.yml) for an app or an engine,
+        it is possible to define a section for this:
+        # the Shotgun fields that this app needs in order to operate correctly
+        requires_shotgun_fields:
+            Version:
+                - { "system_name": "sg_movie_type", "type": "text" }
+        This method will retrieve the metadata and ensure that any required
+        fields exists.
+        """
+        # first fetch metadata
+        manifest = self._io_descriptor.get_manifest()
+        sg_fields_def = manifest.get("requires_shotgun_fields")
+
+        if sg_fields_def:  # can be defined as None from yml file
+            for sg_entity_type in sg_fields_def:
+                for field in sg_fields_def.get(sg_entity_type, []):
+                    # attempt to create field!
+                    sg_data_type = field["type"]
+                    sg_field_name = field["system_name"]
+
+                    # sg_my_awesome_field -> My Awesome Field
+                    if not sg_field_name.startswith("sg_"):
+                        # invalid field name
+                        raise ShotgunDeployError(
+                            "Invalid field name '%s' in app manifest. Must start with sg_" % sg_field_name
+                        )
+
+                    ui_field_name = " ".join(word.capitalize() for word in sg_field_name[3:].split("_"))
+
+                    # now check that the field exists
+                    sg_field_schema = tk.shotgun.schema_field_read(sg_entity_type)
+                    if sg_field_name not in sg_field_schema:
+                        tk.shotgun.schema_field_create(sg_entity_type, sg_data_type, ui_field_name)
+
+    def run_post_install(self, tk):
+        """
+        If a post install hook exists in a descriptor, execute it. In the
+        hooks directory for an app or engine, if a 'post_install.py' hook
+        exists, the hook will be executed upon each installation.
+
+        :param tk: Tk API instance associated with this item
+        """
+
+        post_install_hook_path = os.path.join(self.get_path(), "hooks", "post_install.py")
+
+        if os.path.exists(post_install_hook_path):
+            try:
+                # @todo - sort out this import once shotgun_deply is parented under sgtk
+                from tank import hook
+                hook.execute_hook(post_install_hook_path,
+                                  parent=None,
+                                  pipeline_configuration=tk.pipeline_configuration.get_path(),
+                                  path=self.get_path())
+            except Exception, e:
+                raise ShotgunDeployError(
+                    "Could not run post-install hook for %s. Error reported: %s" % (self, e)
+                )
+
+
+
 class EngineDescriptor(BundleDescriptor):
 
     def __init__(self, io_descriptor):
         super(EngineDescriptor, self).__init__(io_descriptor)
-
 
 
 class AppDescriptor(BundleDescriptor):
@@ -123,6 +191,7 @@ class AppDescriptor(BundleDescriptor):
         """
         manifest = self._io_descriptor.get_manifest()
         return manifest.get("supported_engines")
+
 
 class FrameworkDescriptor(BundleDescriptor):
 

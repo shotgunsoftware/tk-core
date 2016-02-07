@@ -12,6 +12,8 @@ import os
 from .. import constants
 from ... import yaml
 from ..errors import ShotgunDeployError
+from .. import util
+log = util.get_shotgun_deploy_logger()
 
 class IODescriptorBase(object):
     """
@@ -295,6 +297,7 @@ class IODescriptorBase(object):
 
     def ensure_local(self):
         if not self.exists_local():
+            log.debug("Downloading %s to the local Toolkit install location..." % self)
             self.download_local()
 
     def download_local(self):

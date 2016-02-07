@@ -254,7 +254,7 @@ class InstallAppAction(Action):
         console_utils.ensure_frameworks_installed(log, self.tk, fw_location, app_descriptor, env, suppress_prompts)
     
         # create required shotgun fields
-        app_descriptor.ensure_shotgun_fields_exist()
+        app_descriptor.ensure_shotgun_fields_exist(self.tk)
     
         # run post install hook
         app_descriptor.run_post_install(self.tk)
@@ -505,7 +505,7 @@ class InstallEngineAction(Action):
             log.info("")
     
         # create required shotgun fields
-        engine_descriptor.ensure_shotgun_fields_exist()
+        engine_descriptor.ensure_shotgun_fields_exist(self.tk)
     
         # run post install hook
         engine_descriptor.run_post_install(self.tk)

@@ -9,8 +9,6 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import re
-import copy
 import uuid
 import tempfile
 
@@ -19,20 +17,19 @@ import cPickle as pickle
 from ..zipfilehelper import unzip_file
 from .base import IODescriptorBase
 
+from .. import constants
+
+from ..errors import ShotgunDeployError
+from ...shotgun_base import ensure_folder_exists
+
+
+from .. import util
+
 # use api json to cover py 2.5
 from ... import shotgun_api3
 json = shotgun_api3.shotgun.json
 
-from .. import constants
-
-from ..descriptor import Descriptor
-
-from ..errors import ShotgunDeployError, ShotgunAppStoreError
-from ...shotgun_base import ensure_folder_exists
-
-import urllib
-import urllib2
-
+log = util.get_shotgun_deploy_logger()
 
 METADATA_FILE = ".cached_metadata.pickle"
 

@@ -23,7 +23,6 @@ from ...shotgun_base import ensure_folder_exists
 
 log = util.get_shotgun_deploy_logger()
 
-
 class IODescriptorPipelineConfig(IODescriptorBase):
     """
     Represents a pipeline configuration configuration attachment.

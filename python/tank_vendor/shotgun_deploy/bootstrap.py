@@ -53,7 +53,7 @@ class ToolkitBootstrap(object):
         # cache apps?
 
 
-    def _cache_apps(self, tk):
+    def _cache_apps(self, tk, do_post_install=False):
         # each entry in the config template contains instructions about which version of the app
         # to use. First loop over all environments and gather all descriptors we should download,
         # then go ahead and download and post-install them
@@ -78,7 +78,6 @@ class ToolkitBootstrap(object):
                 descriptors.append(env_obj.get_framework_descriptor(framework))
 
         # pass 2 - download all apps
-        num_descriptors = len(descriptors)
         for idx, descriptor in enumerate(descriptors):
 
             if not descriptor.exists_local():
@@ -88,13 +87,12 @@ class ToolkitBootstrap(object):
             else:
                 log.info("Item %s is already locally installed." % descriptor)
 
-        # # create required shotgun fields
-        # if run_post_install:
-        #     progress_cb("Running post install processes...")
-        #     for descriptor in descriptors:
-        #         log.debug("Post install for %s" % descriptor)
-        #         descriptor.ensure_shotgun_fields_exist()
-        #         descriptor.run_post_install(tk)
+
+        if do_post_install:
+            for descriptor in descriptors:
+                log.debug("Post install for %s" % descriptor)
+                descriptor.ensure_shotgun_fields_exist(tk)
+                descriptor.run_post_install(tk)
 
 
     def _extract_pipeline_attachment_config_location(self, pc_name, attachment_data):
@@ -337,6 +335,7 @@ class ToolkitBootstrap(object):
             ctx = tk.context_from_entity_dictionary(entity)
 
         log.debug("Attempting to start engine %s for context %r" % (engine_name, ctx))
+        # @todo - fix this import
         import tank
         engine = tank.platform.start_engine(engine_name, tk, ctx)
 

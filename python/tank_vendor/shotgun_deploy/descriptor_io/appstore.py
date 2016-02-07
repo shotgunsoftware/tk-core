@@ -18,10 +18,6 @@ import cPickle as pickle
 from ..zipfilehelper import unzip_file
 from .base import IODescriptorBase
 
-# use api json to cover py 2.5
-from ... import shotgun_api3
-json = shotgun_api3.shotgun.json
-
 from .. import constants
 
 from ..descriptor import Descriptor
@@ -32,6 +28,13 @@ from ...shotgun_base import ensure_folder_exists
 import urllib
 import urllib2
 
+from .. import util
+
+# use api json to cover py 2.5
+from ... import shotgun_api3
+json = shotgun_api3.shotgun.json
+
+log = util.get_shotgun_deploy_logger()
 
 METADATA_FILE = ".cached_metadata.pickle"
 
