@@ -520,7 +520,24 @@ class IODescriptorAppStore(IODescriptorBase):
 
             # Connect to associated Shotgun site and retrieve the credentials to use to
             # connect to the app store site
-            (script_name, script_key) = self.__get_app_store_key_from_shotgun()
+            try:
+                (script_name, script_key) = self.__get_app_store_key_from_shotgun()
+            except urllib2.HTTPError, e:
+                if e.code == 403:
+                    # edge case alert!
+                    # this is likely because our session token in shotgun has expired.
+                    # The authentication system is based around wrapping the shotgun API,
+                    # and requesting authentication if needed. Because the app store
+                    # credentials is a separate endpoint and doesn't go via the shotgun
+                    # API, we have to explicitly check.
+                    #
+                    # trigger a refresh of our session token by issuing a shotgun API call
+                    self._sg_connection.find_one("HumanUser", [])
+                    # and retry
+                    (script_name, script_key) = self.__get_app_store_key_from_shotgun()
+                else:
+                    raise
+
 
             # connect to the app store and resolve the script user id we are connecting with
             app_store_sg = shotgun_api3.Shotgun(
