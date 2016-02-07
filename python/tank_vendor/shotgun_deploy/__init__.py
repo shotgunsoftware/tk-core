@@ -12,4 +12,4 @@ from .descriptor_factory import create_descriptor, create_latest_descriptor
 
 from .descriptor import Descriptor
 
-from .bootstrap import ToolkitBootstrap
+from .manager import ToolkitManager

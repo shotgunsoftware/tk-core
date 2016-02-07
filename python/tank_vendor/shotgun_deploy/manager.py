@@ -21,7 +21,7 @@ from .paths import get_bundle_cache_root
 log = util.get_shotgun_deploy_logger()
 
 
-class ToolkitBootstrap(object):
+class ToolkitManager(object):
     """
     A class that defines toolkit bootstrap operations
     """
@@ -39,18 +39,9 @@ class ToolkitBootstrap(object):
 
         self.pipeline_configuration_name = constants.PRIMARY_PIPELINE_CONFIG_NAME
 
-        self.skip_shotgun_lookup = False
-
         self.fallback_config_location = None
-
         self.use_latest_fallback_config = True
-
-        # potential additional overrides:
-        # UI overlays
-        # logging ?
-        # expert flags -
-        # warm up caches
-        # cache apps?
+        self.progress_callback = None
 
 
     def _cache_apps(self, tk, do_post_install=False):
@@ -158,7 +149,7 @@ class ToolkitBootstrap(object):
 
         elif attachment_data["link_type"] == "upload":
             config_location = {
-                "type": "pipeline_configuation",
+                "type": "shotgun_uploaded_configuration",
                 "name": pc_name,
                 "attachment_id": attachment_data["id"]
             }
@@ -172,8 +163,22 @@ class ToolkitBootstrap(object):
 
         return config_location
 
+    def create_uploaded_config(self):
+        """
+        Create a pipeline configuration uploaded to Shotgun
 
-    def bootstrap_sgtk(self, project_id=None):
+        :return:
+        """
+
+    def create_disk_config(self):
+        """
+        Create a pipeline configuration on disk
+
+        :return:
+        """
+
+
+    def bootstrap_sgtk(self, project_id=None, skip_shotgun_lookup=False):
         """
         Bootstrap into an sgtk instance
 
@@ -188,7 +193,7 @@ class ToolkitBootstrap(object):
 
         pipeline_configuration_id = None
 
-        if self.skip_shotgun_lookup:
+        if skip_shotgun_lookup:
             log.debug("Completely skipping shotgun lookup for bootstrap.")
             config_location = self.fallback_config_location
 
@@ -314,7 +319,7 @@ class ToolkitBootstrap(object):
 
 
 
-    def bootstrap_engine(self, engine_name, project_id=None, entity=None):
+    def bootstrap_engine(self, engine_name, project_id=None, entity=None, skip_shotgun_lookup=False):
         """
         Bootstraps into the given engine
 
@@ -326,7 +331,7 @@ class ToolkitBootstrap(object):
         sg = self._sg_user.create_sg_connection()
         log.debug("using %r to connect to Shotgun" % sg)
 
-        tk = self.bootstrap_sgtk(project_id)
+        tk = self.bootstrap_sgtk(project_id, skip_shotgun_lookup)
         log.debug("Bootstrapped into tk instance %r" % tk)
 
         if entity is None:

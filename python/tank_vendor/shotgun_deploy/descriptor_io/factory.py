@@ -23,7 +23,7 @@ def create_io_descriptor(sg, descriptor_type, location_dict, bundle_cache_root):
     from .appstore import IODescriptorAppStore
     from .dev import IODescriptorDev
     from .path import IODescriptorPath
-    from .pipeline_config import IODescriptorPipelineConfig
+    from .pipeline_config import IODescriptorUploadedConfig
     from .shotgun_entity import IODescriptorShotgunEntity
     from .git import IODescriptorGit
     from .manual import IODescriptorManual
@@ -46,8 +46,8 @@ def create_io_descriptor(sg, descriptor_type, location_dict, bundle_cache_root):
     elif location_dict.get("type") == "path":
         return IODescriptorPath(bundle_cache_root, location_dict)
 
-    elif location_dict.get("type") == "pipeline_configuration":
-        return IODescriptorPipelineConfig(bundle_cache_root, location_dict, sg)
+    elif location_dict.get("type") == "shotgun_uploaded_configuration":
+        return IODescriptorUploadedConfig(bundle_cache_root, location_dict, sg)
 
     else:
         raise ShotgunDeployError("Invalid location dict '%s'" % location_dict)

@@ -23,7 +23,7 @@ from ...shotgun_base import ensure_folder_exists
 
 log = util.get_shotgun_deploy_logger()
 
-class IODescriptorPipelineConfig(IODescriptorBase):
+class IODescriptorUploadedConfig(IODescriptorBase):
     """
     Represents a pipeline configuration configuration attachment.
 
@@ -34,7 +34,7 @@ class IODescriptorPipelineConfig(IODescriptorBase):
     Note that it only makes sense to use this descriptor in conjunction with
     bundle type configuration
 
-    {type: pipeline_configuration, name: primary, attachment_id: 456}
+    {type: shotgun_uploaded_configuration, name: primary, attachment_id: 456}
     """
 
     def __init__(self, bundle_cache_root, location_dict, sg_connection):
@@ -46,7 +46,7 @@ class IODescriptorPipelineConfig(IODescriptorBase):
         :param sg_connection: Shotgun connection to associated site
         :return: Descriptor instance
         """
-        super(IODescriptorPipelineConfig, self).__init__(bundle_cache_root, location_dict)
+        super(IODescriptorUploadedConfig, self).__init__(bundle_cache_root, location_dict)
 
         self._sg_connection = sg_connection
         self._name = location_dict.get("name")
@@ -151,18 +151,17 @@ class IODescriptorPipelineConfig(IODescriptorBase):
             raise ShotgunDeployError("Cannot find a pipeline configuration named '%s'!" % self._name)
 
         if pc[constants.SHOTGUN_PIPELINECONFIG_ATTACHMENT_FIELD].get("link_type") != "upload":
-            #@todo - maybe a path descriptor should be returned in this case?
             raise ShotgunDeployError("Latest version of pipeline configuration is not an uploaded file: %s" % pc)
 
         attachment_id = pc[constants.SHOTGUN_PIPELINECONFIG_ATTACHMENT_FIELD]["id"]
 
         # make a location dict
-        location_dict = {"type": "pipeline_configuration",
+        location_dict = {"type": "shotgun_uploaded_configuration",
                          "name": self._name,
                          "attachment_id": attachment_id}
 
         # and return a descriptor instance
-        desc = IODescriptorPipelineConfig(self._bundle_cache_root, location_dict, self._sg_connection)
+        desc = IODescriptorUploadedConfig(self._bundle_cache_root, location_dict, self._sg_connection)
 
         return desc
 
