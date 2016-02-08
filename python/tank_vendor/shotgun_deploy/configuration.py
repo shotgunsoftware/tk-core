@@ -234,6 +234,8 @@ class Configuration(object):
         os.rename(configuration_payload, backup_target_path)
         log.debug("backup complete.")
 
+        #@todo - also back up core!
+
 
     def install_external_configuration(self, source_descriptor):
         """
@@ -248,14 +250,9 @@ class Configuration(object):
            # @todo -error message
            raise ShotgunDeployError("Cannot install a configuration into a managed scaffold")
 
-        # download config
-        source_descriptor.ensure_local()
-
         # copy the configuration into place
         config_path = self.get_path()
-        copy_folder(source_descriptor.get_path(), os.path.join(config_path, "config"))
-
-
+        source_descriptor.deploy(os.path.join(config_path, "config"))
 
         # write out config files
         self._write_install_location_file()
@@ -282,12 +279,9 @@ class Configuration(object):
             # already local configs are always up to date
             return
 
-        # download config
-        self._descriptor.ensure_local()
-
         # copy the configuration into place
         config_path = self.get_path()
-        copy_folder(self._descriptor.get_path(), os.path.join(config_path, "config"))
+        self._descriptor.deploy(os.path.join(config_path, "config"))
 
         # write out config files
         self._write_install_location_file()

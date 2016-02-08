@@ -17,9 +17,18 @@ log = util.get_shotgun_deploy_logger()
 class IODescriptorDev(IODescriptorPath):
     """
     Represents a local dev item. This item is never downloaded
-    into the local storage, you interact with it directly.
+    into the local storage, you interact with it directly::
 
-    # location: {"type": "dev", "path": "/path/to/app"}
+        {"type": "dev", "path": "/path/to/app"}
+
+    Optional parameters are possible::
+
+        {"type": "dev", "path": "/path/to/app", "name": "my-app"}
+
+        {"type": "dev",
+         "linux_path": "/path/to/app",
+         "windows_path": "d:\\foo\\bar",
+         "mac_path": "/path/to/app" }
 
     name is optional and if not specified will be determined based on folder path.
     In the case above, the name would be 'app'

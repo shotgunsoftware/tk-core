@@ -17,9 +17,18 @@ from ..errors import ShotgunDeployError
 class IODescriptorPath(IODescriptorBase):
     """
     Represents a local item. This item is never downloaded
-    into the local storage, you interact with it directly.
+    into the local storage, you interact with it directly::
 
-    # location: {"type": "path", "path": "/path/to/app"}
+        {"type": "path", "path": "/path/to/app"}
+
+    Optional parameters are possible::
+
+        {"type": "path", "path": "/path/to/app", "name": "my-app"}
+
+        {"type": "path",
+         "linux_path": "/path/to/app",
+         "windows_path": "d:\\foo\\bar",
+         "mac_path": "/path/to/app" }
 
     name is optional and if not specified will be determined based on folder path.
     In the case above, the name would be 'app'
@@ -64,7 +73,7 @@ class IODescriptorPath(IODescriptorBase):
         # if there is a version defined in the location dict
         # (this is handy when doing framework development, but totally
         #  non-required for finding the code) 
-        self._version = "Undefined"
+        self._version = "v0.0.0"
         if "version" in location_dict:
             self._version = location_dict.get("version")
             
