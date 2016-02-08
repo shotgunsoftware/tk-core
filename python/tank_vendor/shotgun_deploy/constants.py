@@ -87,4 +87,7 @@ ENTITY_DESCRIPTOR_VERSION_FIELD = "sg_version"
 ENTITY_DESCRIPTOR_PAYLOAD_FIELD = "sg_payload"
 
 
-
+# shotgun desktop python installations
+DESKTOP_PYTHON_MAC = "/Applications/Shotgun.app/Contents/Resources/Python/bin/python"
+DESKTOP_PYTHON_WIN = "C:\\Program Files\\Shotgun\\Python\\python.exe"
+DESKTOP_PYTHON_LINUX = "/opt/Shotgun/Python/bin/python"

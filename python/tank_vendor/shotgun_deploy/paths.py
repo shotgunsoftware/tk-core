@@ -46,26 +46,3 @@ def get_configuration_cache_root(site_url, project_id, pipeline_configuration_id
 
     return config_cache_root
 
-def get_configuration_backup(site_url, project_id, pipeline_configuration_id):
-    """
-    Calculates the location of a cached configuration backup.
-    Ensures that this folder exists.
-
-    :param project_id: The shotgun id of the project to store caches for
-    :param pipeline_configuration_id: The shotgun pipeline config id to store caches for
-    :returns: path on disk
-    """
-
-    date_str = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-
-    config_cache_root = os.path.join(
-            shotgun_base.get_pipeline_config_cache_root(
-                    site_url,
-                    project_id,
-                    pipeline_configuration_id),
-            "config.bak",
-            date_str
-    )
-    shotgun_base.ensure_folder_exists(config_cache_root)
-
-    return config_cache_root

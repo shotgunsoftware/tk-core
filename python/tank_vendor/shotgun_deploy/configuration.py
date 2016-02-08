@@ -10,6 +10,7 @@
 
 import os
 import sys
+import datetime
 from . import constants
 from . import Descriptor
 from . import descriptor_factory
@@ -17,14 +18,84 @@ from . import paths
 from .errors import ShotgunDeployError
 from . import util
 
-from ..shotgun_base import copy_file
+from ..shotgun_base import copy_file, append_folder_to_path
 
 from .. import yaml
 from ..shotgun_base import copy_folder, ensure_folder_exists
 
 log = util.get_shotgun_deploy_logger()
 
-class InstalledConfiguration(object):
+
+def create_managed_configuration(sg, bundle_cache_root, project_id, pipeline_config_id, win_path, linux_path, mac_path):
+    """
+    Factory method for creating a managed configuration wrapper object.
+
+    :param sg:
+    :param bundle_cache_root:
+    :param project_id:
+    :param pipeline_config_id:
+    :param win_path:
+    :param linux_path:
+    :param mac_path:
+    :return:
+    """
+    log.debug("Creating a configuration wrapper for managed config.")
+
+    config_root = {
+        "win32": win_path,
+        "linux2": linux_path,
+        "darwin": mac_path
+    }
+
+    # first determine the descriptor. This resides inside the config folder of the path
+    config_path_win = append_folder_to_path("win32", win_path, "config")
+    config_path_linux = append_folder_to_path("linux2", linux_path, "config")
+    config_path_mac = append_folder_to_path("darwin", mac_path, "config")
+
+    config_location = {
+        "type": "path",
+        "linux_path": config_path_linux,
+        "mac_path": config_path_mac,
+        "windows_path": config_path_win
+    }
+
+    config_descriptor = descriptor_factory.create_descriptor(
+        sg,
+        Descriptor.CONFIG,
+        config_location,
+        bundle_cache_root
+    )
+
+    return ManagedConfiguration(
+        sg,
+        bundle_cache_root,
+        config_descriptor,
+        project_id,
+        pipeline_config_id,
+        config_root)
+
+def create_unmanaged_configuration(sg, bundle_cache_root, descriptor, project_id, pipeline_config_id):
+    """
+    Factory method for creating an unmanaged configuration object
+
+    :param sg:
+    :param bundle_cache_root:
+    :param descriptor:
+    :param project_id:
+    :param pipeline_config_id:
+    :return:
+    """
+    log.debug("Creating a configuration wrapper for unmanaged config %r" % descriptor)
+
+    # this is an unmanaged configuration
+    return Configuration(sg, bundle_cache_root, descriptor, project_id, pipeline_config_id)
+
+
+
+
+
+
+class Configuration(object):
     """
     Represents a configuration that has been installed on disk
     """
@@ -33,7 +104,6 @@ class InstalledConfiguration(object):
 
     def __init__(self, sg, bundle_cache_root, descriptor, project_id, pipeline_config_id):
         """
-
         :param sg:
         :param descriptor:
         :param project_id:
@@ -52,21 +122,19 @@ class InstalledConfiguration(object):
             self._descriptor
         )
 
-    def get_path(self):
+    def get_path(self, platform=sys.platform):
         """
-        Returns the path to this configuration on the current os
+        Returns the path to the configuraton on the given os.
 
         :return: path on disk as string
         """
-        if self._descriptor.needs_installation():
-            # this is a config that needs to be copied into place
-            # and installed
+        if platform != sys.platform:
+            path = None
+        else:
             path = paths.get_configuration_cache_root(
                 self._sg_connection.base_url,
                 self._project_id,
                 self._pipeline_config_id)
-        else:
-            path = os.path.abspath(os.path.join(self._descriptor.get_path(), ".."))
 
         return path
 
@@ -122,32 +190,7 @@ class InstalledConfiguration(object):
             return self.LOCAL_CFG_UP_TO_DATE
 
 
-    def move_to_backup(self):
-        """
-        Move the config to a backup location.
-        """
-        if not self._descriptor.needs_installation():
-            raise ShotgunDeployError("%s does not support backups." % self._descriptor)
-
-        config_path = self.get_path()
-        backup_path = paths.get_configuration_backup(
-                self._sg_connection.base_url,
-                self._project_id,
-                self._pipeline_config_id)
-
-        log.debug("Backing up config %s -> %s" % (config_path, backup_path))
-
-        # the config_backup_path has already been created by the hook, so we
-        # are moving the config folder *into* the backup folder to make
-        # the system as permissions friendly as possible and give maximum
-        # flexibility to the hook logic to do whatever it needs to do.
-        backup_target_path = os.path.join(backup_path, os.path.basename(config_path))
-        os.rename(config_path, backup_target_path)
-
-        log.debug("backup complete.")
-
-
-    def set_up_project_scaffold(self, create_tank_command=False):
+    def ensure_project_scaffold(self):
         """
         Creates all the necessary files on disk for a basic config scaffold.
 
@@ -160,27 +203,61 @@ class InstalledConfiguration(object):
 
         config_path = self.get_path()
 
-        log.info("Installing configuration into '%s'..." % config_path)
+        log.info("Ensuring project scaffold in '%s'..." % config_path)
 
         ensure_folder_exists(config_path)
-
-        # create pipeline config base folder structure
         ensure_folder_exists(os.path.join(config_path, "cache"))
         ensure_folder_exists(os.path.join(config_path, "config"))
-        ensure_folder_exists(os.path.join(config_path, "install"))
-        ensure_folder_exists(os.path.join(config_path, "install", "core", "python"))
+        ensure_folder_exists(os.path.join(config_path, "install", "config.backup"), create_placeholder_file=True)
         ensure_folder_exists(os.path.join(config_path, "install", "core.backup"), create_placeholder_file=True)
         ensure_folder_exists(os.path.join(config_path, "install", "engines"), create_placeholder_file=True)
         ensure_folder_exists(os.path.join(config_path, "install", "apps"), create_placeholder_file=True)
         ensure_folder_exists(os.path.join(config_path, "install", "frameworks"), create_placeholder_file=True)
 
-        self._descriptor.ensure_local()
+    def move_to_backup(self):
+        """
+        Move the existing config data to a backup location.
+        """
+        # get backup root location
+        config_path = self.get_path()
+
+        configuration_payload = os.path.join(config_path, "config")
+
+        backup_root = os.path.join(config_path, "install", "config.backup")
+
+        # make sure we have a backup folder present
+        backup_path = os.path.join(backup_root, datetime.datetime.now().strftime("%Y%m%d_%H%M%S"))
+        ensure_folder_exists(backup_path)
+
+        log.debug("Moving config %s -> %s" % (configuration_payload, backup_path))
+        backup_target_path = os.path.join(backup_path, os.path.basename(configuration_payload))
+        os.rename(configuration_payload, backup_target_path)
+        log.debug("backup complete.")
+
+
+    def install_external_configuration(self, source_descriptor):
+        """
+        Installs a configurations into a managed configuration
+
+        :param source_descriptor:
+        :return:
+        """
+        if self._descriptor.needs_installation():
+           # cannot install into the installed config of an immutable
+           # source config
+           # @todo -error message
+           raise ShotgunDeployError("Cannot install a configuration into a managed scaffold")
+
+        # download config
+        source_descriptor.ensure_local()
 
         # copy the configuration into place
-        copy_folder(self._descriptor.get_path(), os.path.join(config_path, "config"))
+        config_path = self.get_path()
+        copy_folder(source_descriptor.get_path(), os.path.join(config_path, "config"))
 
 
-        #
+
+        # write out config files
         self._write_install_location_file()
         self._write_config_info_file()
         self._write_shotgun_file()
@@ -188,7 +265,7 @@ class InstalledConfiguration(object):
         self._update_roots_file()
 
         # and lastly install core
-        self._install_core(create_tank_command)
+        self._install_core()
 
         # @todo - prime caches
         # @todo - fetch path cache
@@ -196,7 +273,95 @@ class InstalledConfiguration(object):
         # @todo - look at actions baking
 
 
-    def _install_core(self, create_tank_command):
+    def update_configuration(self):
+        """
+        Ensure that the configuration is up to date with the one
+        given by the associated descriptor.
+        """
+        if not self._descriptor.needs_installation():
+            # already local configs are always up to date
+            return
+
+        # download config
+        self._descriptor.ensure_local()
+
+        # copy the configuration into place
+        config_path = self.get_path()
+        copy_folder(self._descriptor.get_path(), os.path.join(config_path, "config"))
+
+        # write out config files
+        self._write_install_location_file()
+        self._write_config_info_file()
+        self._write_shotgun_file()
+        self._write_pipeline_config_file()
+        self._update_roots_file()
+
+        # and lastly install core
+        self._install_core()
+
+        # @todo - prime caches
+        # @todo - fetch path cache
+        # @todo - bake yaml caches
+        # @todo - look at actions baking
+
+
+
+
+    def create_tank_command(self, win_python=None, mac_python=None, linux_python=None):
+        """
+        Create a tank command for this configuration.
+        Overwrites existing binaries
+        Creates interpreter files.
+        Uses sg desktop python if no interpreter paths are provided.
+
+        :return:
+        """
+        log.debug("Installing tank command...")
+
+        # first set up the interpreter_xxx files needed for the tank command
+        # default to the shotgun desktop python
+        executables = {}
+        executables["Linux"] = linux_python or constants.DESKTOP_PYTHON_LINUX
+        executables["Darwin"] = mac_python or constants.DESKTOP_PYTHON_MAC
+        executables["Windows"] = win_python or constants.DESKTOP_PYTHON_WIN
+
+        config_root_path = self.get_path()
+
+        for platform in executables:
+            sg_config_location = os.path.join(
+                config_root_path,
+                "config",
+                "core",
+                "interpreter_%s.cfg" % platform
+            )
+            # @todo - write file using util method instead
+            fh = open(sg_config_location, "wt")
+            fh.write(executables[platform])
+            fh.close()
+
+        # now deploy the actual tank command
+        core_target_path = os.path.join(config_root_path, "install", "core")
+        root_binaries_folder = os.path.join(core_target_path, "setup", "root_binaries")
+        for file_name in os.listdir(root_binaries_folder):
+            src_file = os.path.join(root_binaries_folder, file_name)
+            tgt_file = os.path.join(config_root_path, file_name)
+            if os.path.exists(tgt_file):
+                log.debug("File already exists, replacing.")
+                try:
+                    os.remove(tgt_file)
+                    copy_file(src_file, tgt_file, 0775)
+                except Exception, e:
+                    log.warning("Could not replace existing tank command file '%s': %s" % (tgt_file, e))
+            else:
+                log.debug("Installing brand new tank command")
+                copy_file(src_file, tgt_file, 0775)
+
+
+
+
+
+
+    def _install_core(self):
         """
         Install a core into the given configuration.
 
@@ -242,17 +407,6 @@ class InstalledConfiguration(object):
         log.debug("Copying core into place")
         copy_folder(core_path, core_target_path)
 
-        if create_tank_command:
-            # copy the tank binaries to the top of the config
-            # grab these from the currently executing core API
-            log.debug("Copying Toolkit binaries...")
-            root_binaries_folder = os.path.join(core_target_path, "setup", "root_binaries")
-            for file_name in os.listdir(root_binaries_folder):
-                src_file = os.path.join(root_binaries_folder, file_name)
-                tgt_file = os.path.join(config_root_path, file_name)
-                copy_file(src_file, tgt_file, 0775)
-
-
     def get_tk_instance(self, sg_user):
         """
         Returns a tk instance for this configuration
@@ -281,8 +435,11 @@ class InstalledConfiguration(object):
 
         # platforms other than the current OS will not be supposed
         # by this config scaffold
-        config_paths = {"darwin": None, "win32": None, "linux2": None}
-        config_paths[sys.platform] = config_path
+        config_paths = {
+            "darwin": self.get_path("darwin"),
+            "win32": self.get_path("win32"),
+            "linux2": self.get_path("linux2")
+        }
 
         fh = open(sg_code_location, "wt")
         fh.write("# Shotgun Pipeline Toolkit configuration file\n")
@@ -356,7 +513,7 @@ class InstalledConfiguration(object):
             # look up pc name and project name via the pc
             log.debug("Checking pipeline config in Shotgun...")
             sg_data = self._sg_connection.find_one(
-                    "PipelineConfiguration",
+                    constants.PIPELINE_CONFIGURATION_ENTITY,
                     [["id", "is", self._pipeline_config_id]],
                     ["code", "project.Project.name"])
             project_name = sg_data["project.Project.name"] or "Site"
@@ -381,7 +538,7 @@ class InstalledConfiguration(object):
             "pc_id": self._pipeline_config_id or 0,
             "pc_name": pipeline_config_name,
             "project_id": self._project_id,
-            "project_name": project_name,
+            "project_name": project_name,                   # @todo - should be project.tank_name
             "published_file_entity_type": "PublishedFile",
             "use_global_bundle_cache": True,
             "use_shotgun_path_cache": True}
@@ -402,6 +559,7 @@ class InstalledConfiguration(object):
         """
         Updates roots.yml based on local storage defs in shotugn
         """
+        log.debug("Creating storage roots file...")
         # get list of storages in Shotgun
         sg_data = self._sg_connection.find(
             "LocalStorage",
@@ -438,3 +596,28 @@ class InstalledConfiguration(object):
 
 
 
+
+
+class ManagedConfiguration(Configuration):
+    """
+    Represents a configuration that has been installed on disk in a specific location
+    """
+
+    def __init__(self, sg, bundle_cache_root, descriptor, project_id, pipeline_config_id, config_root):
+        """
+        :param sg:
+        :param descriptor:
+        :param project_id:
+        :param pipeline_config_id:
+        """
+        self._config_root = config_root
+        super(ManagedConfiguration, self).__init__(sg, bundle_cache_root, descriptor, project_id, pipeline_config_id)
+
+
+    def get_path(self, platform=sys.platform):
+        """
+        Returns the path to the configuraton on the given os.
+
+        :return: path on disk as string
+        """
+        return self._config_root[platform]

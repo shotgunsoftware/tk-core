@@ -31,7 +31,7 @@ class ConfigDescriptor(Descriptor):
         it can be used.
         """
         # immutable descriptors are always installed
-        # @todo - maybe dev descriptor should also return true?
+        # dev and path descriptors return false
         return self._io_descriptor.is_immutable()
 
     def get_version_constraints(self):

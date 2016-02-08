@@ -19,6 +19,36 @@ from .log import get_sgtk_logger
 log = get_sgtk_logger("base")
 
 
+def append_folder_to_path(os_name, base, folder_name):
+    """
+    Multi-os method that appends a folder to an existing path.
+
+    This is effectively os.path.join() that can be executed on
+    an alternative platform.
+
+    base Paths that are None will return None
+
+    :param os_name: Operating system, sys.platform style, e.g. win32, linux2, darwin
+    :param base: Base path
+    :param folder_name: Name of folder to append
+    """
+    if base is None:
+        return None
+
+    # get the valid separator for this path
+    separators = {"linux2": "/", "win32": "\\", "darwin": "/" }
+    separator = separators[os_name]
+
+    # get rid of any slashes at the end
+    root_value = base.rstrip("/\\")
+    # now root value is "/foo/bar", "c:" or "\\hello"
+
+    # concat the full path.
+    full_path = root_value + separator + folder_name
+
+    return full_path
+
+
 def ensure_folder_exists(path, permissions=0775, create_placeholder_file=False):
     """
     Helper method - creates a folder and parent folders if such do not already exist.

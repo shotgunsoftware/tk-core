@@ -9,6 +9,8 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
+import re
+import sys
 from .. import constants
 from ... import yaml
 from ..errors import ShotgunDeployError
@@ -266,7 +268,18 @@ class IODescriptorBase(object):
         returns the path to the folder where this item resides
         """
         raise NotImplementedError
-        
+
+    def get_platform_path(self, platform):
+        """
+        Returns the path to the descriptor on the given platform.
+        If the location is not known, None is returned.
+        get_platform_path(sys.platform) is equivalent of get_path()
+        """
+        if platform == sys.platform:
+            return self.get_path()
+        else:
+            return None
+
     def get_changelog(self):
         """
         Returns information about the changelog for this item.

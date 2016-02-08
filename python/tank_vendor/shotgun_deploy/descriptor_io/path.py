@@ -38,18 +38,21 @@ class IODescriptorPath(IODescriptorBase):
         super(IODescriptorPath, self).__init__(bundle_cache_root, location_dict)
 
         # platform specific location support
-        system = sys.platform
-        platform_keys = {"linux2": "linux_path", "darwin": "mac_path", "win32": "windows_path"}
-        platform_key = platform_keys.get(system, "unsupported_os")
+        platform_key = {
+            "linux2": "linux_path",
+            "darwin": "mac_path",
+            "win32": "windows_path"}[sys.platform]
 
-        if platform_key not in location_dict and "path" in location_dict:
-            self._path = location_dict.get("path", "")
-        elif platform_key and platform_key in location_dict:
-            self._path = location_dict.get(platform_key, "")
+        if "path" in location_dict:
+            # first look for 'path' key
+            self._path = location_dict["path"]
+        elif platform_key in location_dict:
+            # if not defined, look for os specific key
+            self._path = location_dict[platform_key]
         else:
             raise ShotgunDeployError(
-                    "Invalid descriptor! Could not find a path or a %s entry in the "
-                    "location dict %s." % (platform_key, location_dict)
+                "Invalid descriptor! Could not find a path or a %s entry in the "
+                "location dict %s." % (platform_key, location_dict)
             )
 
         # lastly, resolve environment variables
@@ -91,6 +94,27 @@ class IODescriptorPath(IODescriptorBase):
         returns the path to the folder where this item resides
         """
         return self._path
+
+    def get_platform_path(self, platform):
+        """
+        Returns the path to the descriptor on the given platform.
+        If the location is not known, None is returned.
+        get_platform_path(sys.platform) is equivalent of get_path()
+        """
+        if platform == sys.platform:
+            # current os
+            return self.get_path()
+
+        else:
+            platform_key = {
+                "linux2": "linux_path",
+                "darwin": "mac_path",
+                "win32": "windows_path"}[platform]
+            if platform_key in self.get_location():
+                return self.get_location()[platform_key]
+            else:
+                return None
+
 
     def download_local(self):
         """

@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
+import sys
 
 
 class Descriptor(object):
@@ -39,7 +40,7 @@ class Descriptor(object):
 
     def __repr__(self):
         class_name = self.__class__.__name__
-        return "<%s %s %s>" % (class_name, self.get_system_name(), self.get_version())
+        return "<%s %r>" % (class_name, self._io_descriptor)
 
     def __str__(self):
         """
@@ -149,7 +150,18 @@ class Descriptor(object):
         returns the path to the folder where this item resides
         """
         return self._io_descriptor.get_path()
-        
+
+    def get_platform_path(self, platform):
+        """
+        Returns the path to the descriptor on the given platform.
+        If the location is not known, None is returned.
+        get_platform_path(sys.platform) is equivalent of get_path()
+        """
+        if platform == sys.platform:
+            return self.get_path()
+        else:
+            return None
+
     def get_changelog(self):
         """
         Returns information about the changelog for this item.

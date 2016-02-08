@@ -23,7 +23,7 @@ def create_io_descriptor(sg, descriptor_type, location_dict, bundle_cache_root):
     from .appstore import IODescriptorAppStore
     from .dev import IODescriptorDev
     from .path import IODescriptorPath
-    from .pipeline_config import IODescriptorUploadedConfig
+    from .uploaded_pipeline_config import IODescriptorUploadedConfig
     from .shotgun_entity import IODescriptorShotgunEntity
     from .git import IODescriptorGit
     from .manual import IODescriptorManual
