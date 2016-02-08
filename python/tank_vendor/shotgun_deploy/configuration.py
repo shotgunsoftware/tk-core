@@ -515,8 +515,8 @@ class Configuration(object):
             sg_data = self._sg_connection.find_one(
                     constants.PIPELINE_CONFIGURATION_ENTITY,
                     [["id", "is", self._pipeline_config_id]],
-                    ["code", "project.Project.name"])
-            project_name = sg_data["project.Project.name"] or "Site"
+                    ["code", "project.Project.tank_name"])
+            project_name = sg_data["project.Project.tank_name"] or "Unnamed"
             pipeline_config_name = sg_data["code"] or constants.UNMANAGED_PIPELINE_CONFIG_NAME
 
         elif self._project_id:
@@ -525,9 +525,9 @@ class Configuration(object):
             sg_data = self._sg_connection.find_one(
                     "Project",
                     [["id", "is", self._project_id]],
-                    ["name"]
+                    ["tank_name"]
             )
-            project_name = sg_data["name"] or "Unnamed"
+            project_name = sg_data["tank_name"] or "Unnamed"
             pipeline_config_name = constants.UNMANAGED_PIPELINE_CONFIG_NAME
 
         else:
@@ -538,7 +538,7 @@ class Configuration(object):
             "pc_id": self._pipeline_config_id or 0,
             "pc_name": pipeline_config_name,
             "project_id": self._project_id,
-            "project_name": project_name,                   # @todo - should be project.tank_name
+            "project_name": project_name,
             "published_file_entity_type": "PublishedFile",
             "use_global_bundle_cache": True,
             "use_shotgun_path_cache": True}

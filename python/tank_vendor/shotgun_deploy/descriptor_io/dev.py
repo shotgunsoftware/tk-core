@@ -26,7 +26,6 @@ class IODescriptorDev(IODescriptorPath):
     In the case below, the name would be 'my-app'
 
     # location: {"type": "dev", "path": "/path/to/app", name: "my-app"}
-
     """
     
     def __init__(self, bundle_cache_root, location_dict):
@@ -37,8 +36,7 @@ class IODescriptorDev(IODescriptorPath):
         :param location_dict: Location dictionary describing the bundle
         :return: Descriptor instance
         """
-
-        super(IODescriptorPath, self).__init__(bundle_cache_root, location_dict)
+        super(IODescriptorDev, self).__init__(bundle_cache_root, location_dict)
 
     def is_developer(self):
         """
