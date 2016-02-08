@@ -34,7 +34,7 @@ class IODescriptorUploadedConfig(IODescriptorBase):
     Note that it only makes sense to use this descriptor in conjunction with
     bundle type configuration
 
-    {type: shotgun_uploaded_configuration, name: primary, attachment_id: 456}
+    {type: shotgun_uploaded_configuration, project_id: 123, name: primary, attachment_id: 456}
     """
 
     def __init__(self, bundle_cache_root, location_dict, sg_connection):
@@ -50,6 +50,7 @@ class IODescriptorUploadedConfig(IODescriptorBase):
 
         self._sg_connection = sg_connection
         self._name = location_dict.get("name")
+        self._project_id = location_dict.get("project_id")
         self._attachment_id = location_dict.get("attachment_id")
 
     def get_system_name(self):
@@ -60,7 +61,7 @@ class IODescriptorUploadedConfig(IODescriptorBase):
         In this case, this corresponds to the name of the pipeline configuration,
         usually 'primary'. Note that the value is sanitized for filesystem use.
         """
-        return util.create_valid_filename(self._name)
+        return util.create_valid_filename("p%s_%s" % (self._project_id, self._name))
 
     def get_version(self):
         """
@@ -129,13 +130,18 @@ class IODescriptorUploadedConfig(IODescriptorBase):
         if constraint_pattern:
             raise ShotgunDeployError("%s does not support version constraint patterns." % constraint_pattern)
 
+        log.debug("Finding latest version of %s..." % self)
+
         # in the case of a pipeline configuration, simply fetch the current pipeline configuration attachment
         # and build a descriptor based on that
 
+        project_entity = None if self._project_id is None else {"type": "Project", "id": self._project_id}
+
         pc = self._sg_connection.find_one(
-                constants.PIPELINE_CONFIGURATION_ENTITY,
-                [["code", "is", self._name]],
-                constants.SHOTGUN_PIPELINECONFIG_ATTACHMENT_FIELD
+            constants.PIPELINE_CONFIGURATION_ENTITY,
+            [["project", "is", project_entity],
+             ["code", "is", self._name]],
+            [constants.SHOTGUN_PIPELINECONFIG_ATTACHMENT_FIELD]
         )
 
         # attachment field is on the following form in the case a file has been
@@ -158,11 +164,12 @@ class IODescriptorUploadedConfig(IODescriptorBase):
         # make a location dict
         location_dict = {"type": "shotgun_uploaded_configuration",
                          "name": self._name,
+                         "project_id": self._project_id,
                          "attachment_id": attachment_id}
 
         # and return a descriptor instance
         desc = IODescriptorUploadedConfig(self._bundle_cache_root, location_dict, self._sg_connection)
-
+        log.debug("Latest version resolved to %s" % desc)
         return desc
 
 

@@ -8,12 +8,18 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+import os
 import sys
+import uuid
+import datetime
+import tempfile
 
 from . import util
+from . import zipfilehelper
 from . import Descriptor
 from . import constants
 from . import descriptor_factory
+from ..shotgun_base import ensure_folder_exists
 from .errors import ShotgunDeployError
 from .installed_configuration import InstalledConfiguration
 from .paths import get_bundle_cache_root
@@ -36,13 +42,324 @@ class ToolkitManager(object):
 
         # public properties that can be changed
         self.bundle_cache_root = get_bundle_cache_root()
-
         self.pipeline_configuration_name = constants.PRIMARY_PIPELINE_CONFIG_NAME
-
-        self.fallback_config_location = None
+        self.base_config_location = None
+        self.cache_apps = True
         self.use_latest_fallback_config = True
         self.progress_callback = None
 
+    def __repr__(self):
+        repr  = "<TkManager "
+        repr += " User %s\n" % self._sg_user
+        repr += " Cache root %s\n" % self.bundle_cache_root
+        repr += " Config %s\n" % self.pipeline_configuration_name
+        repr += " Base %s >" % self.base_config_location
+        return repr
+
+    def validate(self, project_id):
+        """
+        Validate that the given project can receive mgmt operations.
+
+        :return:
+        """
+
+    def upload_configuration(self, project_id):
+        """
+        Create a pipeline configuration uploaded to Shotgun
+
+        :param project_id:
+        :return:
+        """
+        log.debug("Begin uploading config to sgtk.")
+
+        sg = self._sg_user.create_sg_connection()
+
+        # first resolve the config we are going to upload
+        if self.use_latest_fallback_config:
+            cfg_descriptor = descriptor_factory.create_latest_descriptor(
+                sg,
+                Descriptor.CONFIG,
+                self.base_config_location,
+                self.bundle_cache_root
+            )
+
+        else:
+            cfg_descriptor = descriptor_factory.create_descriptor(
+                sg,
+                Descriptor.CONFIG,
+                self.base_config_location,
+                self.bundle_cache_root
+            )
+        log.debug("Will upload %s to %r, project %s" % (cfg_descriptor, self, project_id))
+
+        # make sure it exists locally
+        cfg_descriptor.ensure_local()
+
+        # zip up the config
+        config_root_path = cfg_descriptor.get_path()
+        log.debug("Zipping up %s" % config_root_path)
+
+        zip_tmp = os.path.join(
+            tempfile.gettempdir(),
+            "tk_%s" % uuid.uuid4().hex,
+            datetime.datetime.now().strftime("%Y%m%d_%H%M%S.zip")
+        )
+        ensure_folder_exists(os.path.dirname(zip_tmp))
+        zipfilehelper.zip_file(config_root_path, zip_tmp)
+
+        # make sure a pipeline config record exists
+        pc_id = self._ensure_pipeline_config_exists(project_id)
+
+        log.debug("Uploading zip file...")
+        sg.upload(
+            constants.PIPELINE_CONFIGURATION_ENTITY,
+            pc_id,
+            zip_tmp,
+            constants.SHOTGUN_PIPELINECONFIG_ATTACHMENT_FIELD
+        )
+        log.debug("Upload complete!")
+
+        return pc_id
+
+    def create_disk_configuration(self, project_id, win_path, mac_path, linux_path, win_python, mac_python, linux_python):
+        """
+        Create a pipeline configuration on disk
+
+        :return:
+        """
+
+
+
+    def bootstrap_sgtk(self, project_id=None, skip_shotgun_lookup=False):
+        """
+        Bootstrap into an sgtk instance
+
+        :returns: sgtk instance
+        """
+        log.debug("Begin bootstrapping sgtk.")
+
+        sg = self._sg_user.create_sg_connection()
+
+        # now resolve pipeline config details
+        project_entity = None if project_id is None else {"type": "Project", "id": project_id}
+
+        pipeline_configuration_id = None
+
+        if skip_shotgun_lookup:
+            log.debug("Completely skipping shotgun lookup for bootstrap.")
+            config_location = self.base_config_location
+
+        else:
+            # find a pipeline configuration in Shotgun.
+            log.debug("Checking pipeline configuration in Shotgun...")
+            pc_data = sg.find_one(
+                constants.PIPELINE_CONFIGURATION_ENTITY,
+                [["code", "is", self.pipeline_configuration_name],
+                 ["project", "is", project_entity]],
+                ["mac_path",
+                 "windows_path",
+                 "linux_path",
+                 constants.SHOTGUN_PIPELINECONFIG_ATTACHMENT_FIELD]
+            )
+
+            log.debug("Shotgun returned: %s" % pc_data)
+
+            # populate some values for later use
+            if pc_data:
+                pipeline_configuration_id = pc_data["id"]
+
+            # now analyze the configuratiojn data for this pc.
+            #
+            # first see if we have the path fields set.
+            lookup_dict = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path"}
+
+            if pc_data is None:
+                # nothing in shotgun
+                log.debug("No pipeline config found. Reverting to external settings.")
+                config_location = self.base_config_location
+
+            elif pc_data.get(lookup_dict[sys.platform]):
+                # paths specified in Shotgun
+                log.debug("Using path found in PipelineConfiguration.%s" % lookup_dict[sys.platform])
+                pc_path = pc_data.get(lookup_dict[sys.platform])
+                config_location = {"type": "path", "path": pc_path}
+
+            elif pc_data.get(constants.SHOTGUN_PIPELINECONFIG_ATTACHMENT_FIELD):
+                # config attachment present in shotgun
+                config_location = self._extract_pipeline_attachment_config_location(
+                    self.pipeline_configuration_name,
+                    pc_data.get(constants.SHOTGUN_PIPELINECONFIG_ATTACHMENT_FIELD)
+                )
+
+                if config_location is None:
+                    # could not extract a location from attachment field. This could be
+                    # because the field is there but not valid or supported on our
+                    # system. One example is a local file link which doesn't have a
+                    # valid representation on the current os.
+                    log.debug(
+                        "Pipeline configuration cannot resolve to valid resource. "
+                        "Reverting to external settings."
+                    )
+                    config_location = self.base_config_location
+
+            else:
+                log.debug("Pipeline configuration empty. Reverting to external settings.")
+                config_location = self.base_config_location
+
+        log.debug("Determined config locator: %s" % config_location)
+
+        # resolve the config as a descriptor object
+        if self.use_latest_fallback_config:
+            cfg_descriptor = descriptor_factory.create_latest_descriptor(
+                sg,
+                Descriptor.CONFIG,
+                config_location,
+                self.bundle_cache_root
+            )
+
+        else:
+            cfg_descriptor = descriptor_factory.create_descriptor(
+                sg,
+                Descriptor.CONFIG,
+                config_location,
+                self.bundle_cache_root
+            )
+
+        log.debug("Resolved config descriptor %r" % cfg_descriptor)
+
+        # create an object to represent our configuration install
+        config = InstalledConfiguration(
+                sg,
+                self.bundle_cache_root,
+                cfg_descriptor,
+                project_id,
+                pipeline_configuration_id
+        )
+
+        # see what we have locally
+        status = config.status()
+
+        if status == InstalledConfiguration.LOCAL_CFG_UP_TO_DATE:
+            log.info("Your configuration is up to date.")
+
+        elif status == InstalledConfiguration.LOCAL_CFG_MISSING:
+            log.info("A brand new configuration will be created locally.")
+            config.set_up_project_scaffold()
+
+        elif status == InstalledConfiguration.LOCAL_CFG_OLD:
+            log.info("Your local configuration is out of date and will be updated.")
+            config.move_to_backup()
+            config.set_up_project_scaffold()
+
+        elif status == InstalledConfiguration.LOCAL_CFG_INVALID:
+            log.info("Your local configuration looks invalid and will be replaced.")
+            config.move_to_backup()
+            config.set_up_project_scaffold()
+
+        else:
+            raise ShotgunDeployError("Unknown configuration update status!")
+
+        # @todo - add rollback logic from zip config branch
+
+        # we can now boot up this config.
+        tk = config.get_tk_instance(self._sg_user)
+
+        if self.cache_apps:
+            self._cache_apps(tk)
+
+        return tk
+
+
+
+    def bootstrap_engine(self, engine_name, project_id=None, entity=None, skip_shotgun_lookup=False):
+        """
+        Convenience method that bootstraps into the given engine.
+
+        :param engine_name: name of engine to launch (e.g. tk-nuke)
+        :return: engine instance
+        """
+        log.debug("bootstrapping into an engine.")
+
+        sg = self._sg_user.create_sg_connection()
+        log.debug("using %r to connect to Shotgun" % sg)
+
+        tk = self.bootstrap_sgtk(project_id, skip_shotgun_lookup)
+        log.debug("Bootstrapped into tk instance %r" % tk)
+
+        if entity is None:
+            ctx = tk.context_empty()
+        else:
+            ctx = tk.context_from_entity_dictionary(entity)
+
+        log.debug("Attempting to start engine %s for context %r" % (engine_name, ctx))
+        # @todo - fix this import
+        import tank
+        engine = tank.platform.start_engine(engine_name, tk, ctx)
+
+        log.debug("Launched engine %r" % engine)
+        return engine
+
+
+    def _ensure_pipeline_config_exists(self, project_id):
+        """
+        Helper method. Creates a pipeline configuration entity if
+        one doesn't already exist. Checks that the currently
+
+        :param project_id:
+        :return:
+        """
+        sg = self._sg_user.create_sg_connection()
+
+        # if we are looking at a non-default config,
+        # attempt to determine current user so that we can
+        # populate the user restrictions field later on
+        current_user = None
+        if not self._is_primary_config() and self._sg_user.login:
+            # the current user object is linked to a person
+            current_user = sg.find_one("HumanUser", [["login", "is", self._sg_user.login]])
+            log.debug("Resolved current shotgun user %s to %s" % (self._sg_user, current_user))
+
+        log.debug(
+            "Looking for a pipeline configuration "
+            "named '%s' for project %s" % (self.pipeline_configuration_name, project_id)
+        )
+        pc_data = sg.find_one(
+            constants.PIPELINE_CONFIGURATION_ENTITY,
+            [["code", "is", self.pipeline_configuration_name],
+             ["project", "is", {"type": "Project", "id": project_id}]],
+            ["users"]
+        )
+        log.debug("Shotgun returned %s" % pc_data)
+
+        if pc_data is None:
+            # pipeline configuration missing. Create a new one
+            users = [current_user] if current_user else []
+            pc_data = sg.create(
+                constants.PIPELINE_CONFIGURATION_ENTITY,
+                {"code": self.pipeline_configuration_name,
+                 "project": {"type": "Project", "id": project_id},
+                 "users": users
+                 }
+            )
+            log.debug("Created new pipeline config: %s" % pc_data)
+
+        elif current_user and current_user not in pc_data["users"]:
+            log.debug("Adding %s to user access list..." % current_user)
+            sg.update(
+                constants.PIPELINE_CONFIGURATION_ENTITY,
+                pc_data["id"],
+                {"users": pc_data["users"] + [current_user]}
+            )
+
+        return pc_data["id"]
+
+
+    def _is_primary_config(self):
+        """
+        Returns true if the pipeline configuration associated with the manager is
+        the primary (default) one.
+        """
+        return self.pipeline_configuration_name == constants.PRIMARY_PIPELINE_CONFIG_NAME
 
     def _cache_apps(self, tk, do_post_install=False):
         # each entry in the config template contains instructions about which version of the app
@@ -162,189 +479,4 @@ class ToolkitManager(object):
                 config_location = {"type": "path", "path": local_path}
 
         return config_location
-
-    def create_uploaded_config(self):
-        """
-        Create a pipeline configuration uploaded to Shotgun
-
-        :return:
-        """
-
-    def create_disk_config(self):
-        """
-        Create a pipeline configuration on disk
-
-        :return:
-        """
-
-
-    def bootstrap_sgtk(self, project_id=None, skip_shotgun_lookup=False):
-        """
-        Bootstrap into an sgtk instance
-
-        :returns: sgtk instance
-        """
-        log.debug("Begin bootstrapping sgtk.")
-
-        sg = self._sg_user.create_sg_connection()
-
-        # now resolve pipeline config details
-        project_entity = None if project_id is None else {"type": "Project", "id": project_id}
-
-        pipeline_configuration_id = None
-
-        if skip_shotgun_lookup:
-            log.debug("Completely skipping shotgun lookup for bootstrap.")
-            config_location = self.fallback_config_location
-
-        else:
-
-            # find a pipeline configuration in Shotgun.
-            log.debug("Checking pipeline configuration in Shotgun...")
-            pc_data = sg.find_one(
-                constants.PIPELINE_CONFIGURATION_ENTITY,
-                [["code", "is", self.pipeline_configuration_name],
-                 ["project", "is", project_entity]],
-                ["mac_path",
-                 "windows_path",
-                 "linux_path",
-                 constants.SHOTGUN_PIPELINECONFIG_ATTACHMENT_FIELD]
-            )
-
-            log.debug("Shotgun returned: %s" % pc_data)
-
-            # populate some values for later use
-            if pc_data:
-                pipeline_configuration_id = pc_data["id"]
-
-            # now analyze the configuratiojn data for this pc.
-            #
-            # first see if we have the path fields set.
-            lookup_dict = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
-
-            if pc_data is None:
-                # nothing in shotgun
-                log.debug("No pipeline config found. Reverting to external settings.")
-                config_location = self.fallback_config_location
-
-            elif pc_data.get(lookup_dict[sys.platform]):
-                # paths specified in Shotgun
-                log.debug("Using path found in PipelineConfiguration.%s" % lookup_dict[sys.platform])
-                pc_path = pc_data.get(lookup_dict[sys.platform])
-                config_location = {"type": "path", "path": pc_path}
-
-            elif pc_data.get(constants.SHOTGUN_PIPELINECONFIG_ATTACHMENT_FIELD):
-                # config attachment present in shotgun
-                config_location = self._extract_pipeline_attachment_config_location(
-                    self.pipeline_configuration_name,
-                    pc_data.get(constants.SHOTGUN_PIPELINECONFIG_ATTACHMENT_FIELD)
-                )
-
-                if config_location is None:
-                    # could not extract a location from attachment field. This could be
-                    # because the field is there but not valid or supported on our
-                    # system. One example is a local file link which doesn't have a
-                    # valid representation on the current os.
-                    log.debug(
-                        "Pipeline configuration cannot resolve to valid resource. "
-                        "Reverting to external settings."
-                    )
-                    config_location = self.fallback_config_location
-
-            else:
-                log.debug("Pipeline configuration empty. Reverting to external settings.")
-                config_location = self.fallback_config_location
-
-        log.debug("Determined config locator: %s" % config_location)
-
-        # resolve the config as a descriptor object
-        if self.use_latest_fallback_config:
-            cfg_descriptor = descriptor_factory.create_latest_descriptor(
-                sg,
-                Descriptor.CONFIG,
-                config_location,
-                self.bundle_cache_root
-            )
-
-        else:
-            cfg_descriptor = descriptor_factory.create_descriptor(
-                sg,
-                Descriptor.CONFIG,
-                config_location,
-                self.bundle_cache_root
-            )
-
-        log.debug("Resolved config descriptor %r" % cfg_descriptor)
-
-        # create an object to represent our configuration install
-        config = InstalledConfiguration(
-                sg,
-                self.bundle_cache_root,
-                cfg_descriptor,
-                project_id,
-                pipeline_configuration_id
-        )
-
-        # see what we have locally
-        status = config.status()
-
-        if status == InstalledConfiguration.LOCAL_CFG_UP_TO_DATE:
-            log.info("Your configuration is up to date.")
-
-        elif status == InstalledConfiguration.LOCAL_CFG_MISSING:
-            log.info("A brand new configuration will be created locally.")
-            config.set_up_project_scaffold()
-
-        elif status == InstalledConfiguration.LOCAL_CFG_OLD:
-            log.info("Your local configuration is out of date and will be updated.")
-            config.move_to_backup()
-            config.set_up_project_scaffold()
-
-        elif status == InstalledConfiguration.LOCAL_CFG_INVALID:
-            log.info("Your local configuration looks invalid and will be replaced.")
-            config.move_to_backup()
-            config.set_up_project_scaffold()
-
-        else:
-            raise ShotgunDeployError("Unknown configuration update status!")
-
-        # @todo - add rollback logic from zip config branch
-
-        # we can now boot up this config.
-        tk = config.get_tk_instance(self._sg_user)
-
-        self._cache_apps(tk)
-
-        return tk
-
-
-
-    def bootstrap_engine(self, engine_name, project_id=None, entity=None, skip_shotgun_lookup=False):
-        """
-        Bootstraps into the given engine
-
-        :param engine_name: name of engine to launch (e.g. tk-nuke)
-        :return: engine instance
-        """
-        log.debug("bootstrapping into an engine.")
-
-        sg = self._sg_user.create_sg_connection()
-        log.debug("using %r to connect to Shotgun" % sg)
-
-        tk = self.bootstrap_sgtk(project_id, skip_shotgun_lookup)
-        log.debug("Bootstrapped into tk instance %r" % tk)
-
-        if entity is None:
-            ctx = tk.context_empty()
-        else:
-            ctx = tk.context_from_entity_dictionary(entity)
-
-        log.debug("Attempting to start engine %s for context %r" % (engine_name, ctx))
-        # @todo - fix this import
-        import tank
-        engine = tank.platform.start_engine(engine_name, tk, ctx)
-
-        log.debug("Launched engine %r" % engine)
-        return engine
-
 

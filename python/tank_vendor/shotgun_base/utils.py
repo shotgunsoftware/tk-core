@@ -61,7 +61,7 @@ def copy_file(src, dst, permissions=0555):
     """
     old_umask = os.umask(0)
     try:
-        log.debug("Copy %s -> %s" % (src, dst))
+        #log.debug("Copy %s -> %s" % (src, dst))
         shutil.copy(src, dst)
         os.chmod(dst, permissions)
     finally:
@@ -114,14 +114,14 @@ def _copy_folder_r(src, dst, folder_permissions):
 
         # get rid of system files
         if name in SKIP_LIST:
-            log.debug("Skipping system file %s" % srcname)
+            #log.debug("Skipping system file %s" % srcname)
             continue
 
         try:
             if os.path.isdir(srcname):
                 files.extend(_copy_folder_r(srcname, dstname, folder_permissions))
             else:
-                log.debug("Copy %s -> %s" % (srcname, dstname))
+                #log.debug("Copy %s -> %s" % (srcname, dstname))
                 shutil.copy(srcname, dstname)
                 files.append(srcname)
                 # if the file extension is sh, set executable permissions
@@ -129,7 +129,7 @@ def _copy_folder_r(src, dst, folder_permissions):
                     try:
                         # make it readable and executable for everybody
                         os.chmod(dstname, 0775)
-                        log.debug("Setting 775 permissions on %s" % dstname)
+                        #log.debug("Setting 775 permissions on %s" % dstname)
                     except Exception, e:
                         log.error("Can't set executable permissions on %s: %s" % (dstname, e))
 
@@ -167,6 +167,6 @@ def move_folder(src, dst, folder_permissions=0775):
                         # file is readonly! - turn off this attribute
                         os.chmod(f, stat.S_IWRITE)
                 os.remove(f)
-                log.debug("Delete %s" % f)
+                #log.debug("Delete %s" % f)
             except Exception, e:
                 log.error("Could not delete file %s: %s" % (f, e))

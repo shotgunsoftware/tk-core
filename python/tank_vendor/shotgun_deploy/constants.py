@@ -78,7 +78,7 @@ PIPELINECONFIG_FILE = "pipeline_configuration.yml"
 # field used to upload a config
 SHOTGUN_PIPELINECONFIG_ATTACHMENT_FIELD = "sg_config"
 
-PRIMARY_PIPELINE_CONFIG_NAME = "primary"
+PRIMARY_PIPELINE_CONFIG_NAME = "Primary"
 
 UNMANAGED_PIPELINE_CONFIG_NAME = "Unmanaged"
 

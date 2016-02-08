@@ -10,6 +10,8 @@
 
 import os
 import zipfile
+from . import util
+log = util.get_shotgun_deploy_logger()
 
 def _process_item(zip_obj, item_path, targetpath):
     """
@@ -91,3 +93,26 @@ def unzip_file(zip_file, target_folder):
             _process_item(zip_obj, x, target_folder)
     finally:
         os.umask(old_umask)
+
+
+
+def zip_file(source_folder, target_zip_file):
+    """
+    Zips up the contents of a folder, recursively
+
+    :param source_folder:
+    :param zip_file:
+    :return:
+    """
+    log.debug("Zipping contents of %s to %s" % (source_folder, target_zip_file))
+    zf = zipfile.ZipFile(target_zip_file, "w", zipfile.ZIP_DEFLATED)
+    for root, ignored, files, in os.walk(source_folder):
+        for fname in files:
+            fspath = os.path.join(root, fname)
+            arcpath = os.path.join(root, fname)[len(source_folder)+1:]
+            #log.debug(" - Added %s to %s" % (fspath, arcpath))
+            zf.write(fspath, arcpath)
+    zf.close()
+
+    log.debug("Zip complete. Size: %s" % os.path.getsize(target_zip_file))
+
