@@ -392,7 +392,7 @@ class ToolkitManager(object):
             self.bundle_cache_root,
             cfg_descriptor,
             project_id,
-            pipeline_configuration_id=None
+            pipeline_config_id=None
         )
 
 
@@ -435,17 +435,19 @@ class ToolkitManager(object):
 
         elif pc_data:
             # we have a pipeline config. see if there is a url pointing at a zip or git url
+            log.debug("Attempting to resolve pipeline locaation from sg config attachment...")
             config_location = self._extract_pipeline_attachment_config_location(
                 project_id,
                 self.pipeline_configuration_name,
                 pc_data.get(constants.SHOTGUN_PIPELINECONFIG_ATTACHMENT_FIELD)
             )
+            log.debug("Resolved pipeline configuration to %r" % config_location)
             if config_location:
                 # create a descriptor from the location
                 cfg_descriptor = descriptor_factory.create_descriptor(
                     self._sg_connection,
                     Descriptor.CONFIG,
-                    self.base_config_location,
+                    config_location,
                     self.bundle_cache_root
                 )
                 return create_unmanaged_configuration(
