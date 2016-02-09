@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
+import re
 import sys
 import uuid
 import datetime
@@ -436,20 +437,13 @@ class ToolkitManager(object):
         elif pc_data:
             # we have a pipeline config. see if there is a url pointing at a zip or git url
             log.debug("Attempting to resolve pipeline locaation from sg config attachment...")
-            config_location = self._extract_pipeline_attachment_config_location(
+            cfg_descriptor = self._extract_pipeline_attachment_config_location(
                 project_id,
                 self.pipeline_configuration_name,
                 pc_data.get(constants.SHOTGUN_PIPELINECONFIG_ATTACHMENT_FIELD)
             )
-            log.debug("Resolved pipeline configuration to %r" % config_location)
-            if config_location:
-                # create a descriptor from the location
-                cfg_descriptor = descriptor_factory.create_descriptor(
-                    self._sg_connection,
-                    Descriptor.CONFIG,
-                    config_location,
-                    self.bundle_cache_root
-                )
+            log.debug("Resolved pipeline configuration to %r" % cfg_descriptor)
+            if cfg_descriptor:
                 return create_unmanaged_configuration(
                     self._sg_connection,
                     self.bundle_cache_root,
@@ -505,6 +499,7 @@ class ToolkitManager(object):
         #  'link_type': 'local'}
 
         config_location = None
+        use_latest = False
 
         if attachment_data["link_type"] == "web":
             # some web urls are supported, others are not. The following
@@ -517,11 +512,17 @@ class ToolkitManager(object):
 
             url = attachment_data["url"]
             if url.startswith("git://") or (url.startswith("https://") and url.endswith(".git")):
-                config_location = {
-                    "type": "git",
-                    "path": url,
-                    "version": attachment_data["name"]
-                }
+                # if the name of the tag begins with vX, assume this is a version number
+                # if not, resolve latest
+                link_name = attachment_data["name"]
+                if re.match("^v[0-9\.]\.", link_name):
+                    log.debug("Will use tag %s in git repo" % link_name)
+                    config_location = {"type": "git", "path": url, "version": link_name}
+                else:
+                    # find latest
+                    log.debug("Will search for latest in git repo")
+                    config_location = {"type": "git", "path": url}
+                    use_latest = True
             else:
                 log.debug("Url '%s' not supported by the bootstrap." % url)
 
@@ -540,5 +541,21 @@ class ToolkitManager(object):
             else:
                 config_location = {"type": "path", "path": local_path}
 
-        return config_location
+        # create a descriptor from the location
+        if use_latest:
+            cfg_descriptor = descriptor_factory.create_latest_descriptor(
+                self._sg_connection,
+                Descriptor.CONFIG,
+                config_location,
+                self.bundle_cache_root
+            )
+        else:
+            cfg_descriptor = descriptor_factory.create_descriptor(
+                self._sg_connection,
+                Descriptor.CONFIG,
+                config_location,
+                self.bundle_cache_root
+            )
+
+        return cfg_descriptor
 

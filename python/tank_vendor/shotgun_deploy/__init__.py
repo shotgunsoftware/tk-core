@@ -13,3 +13,5 @@ from .descriptor_factory import create_descriptor, create_latest_descriptor
 from .descriptor import Descriptor
 
 from .manager import ToolkitManager
+
+from .paths import get_bundle_cache_root

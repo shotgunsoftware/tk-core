@@ -18,6 +18,7 @@ import glob
 import cPickle
 
 from tank_vendor import yaml
+from tank_vendor.shotgun_deploy import get_bundle_cache_root
 
 from .errors import TankError, TankUnreadableFileError
 from .deploy import util
@@ -89,6 +90,12 @@ class PipelineConfiguration(object):
         self._published_file_entity_type = pipeline_config_metadata.get("published_file_entity_type", "TankPublishedFile")        
         self._use_shotgun_path_cache = pipeline_config_metadata.get("use_shotgun_path_cache", False)
         self._use_global_bundle_cache = pipeline_config_metadata.get("use_global_bundle_cache", False)
+
+        if self._use_global_bundle_cache:
+            self._bundle_cache_root = get_bundle_cache_root()
+        else:
+            # pre-global cache root
+            self._bundle_cache_root = os.path.join(self.get_install_location(), "install")
 
         # Populate the global yaml_cache if we find a pickled cache
         # on disk.
@@ -479,6 +486,15 @@ class PipelineConfiguration(object):
     ########################################################################################
     # installation payload (core/apps/engines) disk locations
 
+    def set_bundle_cache_root(self, path):
+        """
+        Specify where apps engines and frameworks should be cached
+
+        :param path:
+        :return:
+        """
+        self._bundle_cache_root = path
+
     def get_associated_core_version(self):
         """
         Returns the version string for the core api associated with this config.
@@ -561,19 +577,19 @@ class PipelineConfiguration(object):
         sg_connection = shotgun.get_sg_connection()
         pp_location = self._preprocess_location(location)
 
-        if self._use_global_bundle_cache:
-            # deferring to the deploy module to locate the app cache
-            if latest:
-                desc = create_latest_descriptor(sg_connection, descriptor_type, pp_location)
-            else:
-                desc = create_descriptor(sg_connection, descriptor_type, pp_location)
+
+        if latest:
+            desc = create_latest_descriptor(
+                sg_connection,
+                descriptor_type,
+                pp_location,
+                self._bundle_cache_root)
         else:
-            # classic toolkit mode where we cache apps in the core install folder
-            bundles_location = os.path.join(self.get_install_location(), "install")
-            if latest:
-                desc = create_latest_descriptor(sg_connection, descriptor_type, pp_location, bundles_location)
-            else:
-                desc = create_descriptor(sg_connection, descriptor_type, pp_location, bundles_location)
+            desc = create_descriptor(
+                sg_connection,
+                descriptor_type,
+                pp_location,
+                self._bundle_cache_root)
 
         return desc
 
