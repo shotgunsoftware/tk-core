@@ -28,7 +28,156 @@ json = shotgun_api3.shotgun.json
 
 ###############################################################################
 # Metrics dispatch Thread and Queue classes
-class MetricsDispatchWorkerThread(Thread):
+
+class MetricsDispatchQueueSingleton(object):
+    """A FIFO queue for logging metrics to dispatch via worker thread(s).
+
+    This is a singleton class, so any instantiation will return the same object
+    instance within the current process.
+
+    The `init()` method must be called in order to create and start the
+    worker threads. Metrics can be added before or after `init()` is called
+    and they will be processed in order.
+
+    """
+
+    # keeps track of the single instance of the class
+    __instance = None
+
+    def __new__(cls, *args, **kwargs):
+        """Ensures only one instance of the metrics queue exists."""
+
+        # create the queue instance if it hasn't been created already
+        if not cls.__instance:
+
+            # remember the instance so that no more are created
+            metrics_queue = super(
+                MetricsDispatchQueueSingleton, cls).__new__(
+                    cls, *args, **kwargs)
+
+            # False until init() is called
+            metrics_queue._initialized = False
+            metrics_queue._lock = Lock()
+            metrics_queue._workers = []
+
+            # The underlying collections.deque instance
+            metrics_queue._queue = deque()
+
+            cls.__instance = metrics_queue
+
+        return cls.__instance
+
+    def init(self, tk, workers=1, log=None):
+        """Initialize the Queue by starting up the workers.
+
+        :param tk: Toolkit api instance to use for sg connection.
+            Forwarded to the worker threads.
+        :param int workers: Number of worker threads to start.
+        :param loggin.Logger log: Optional logger for debugging.
+            Forwarded to the worker threads.
+
+        Creates and starts worker threads for dispatching metrics. Only
+        callable once. Subsequent calls are a no-op.
+
+        """
+
+        # Uncomment these lines to debug metrics 
+        #import logging
+        #log = logging.getLogger('sgtk.metrics')
+        #log.addHandler(logging.StreamHandler())
+        #log.setLevel(logging.DEBUG)
+
+        if self._initialized:
+            if log:
+                log.debug("Metrics queue already initialized. Doing nothing.")
+            return
+
+        # if metrics are not supported, then no reason to start up any workers.
+        if not self._metrics_supported(tk.shotgun):
+            if log:
+                log.debug("This version of SG doesn't support metrics logging.")
+            return
+
+        # start the dispatch workers to use this queue
+        for i in range(workers):
+            worker = _MetricsDispatchWorkerThread(tk, self, log)
+            worker.start()
+            if log:
+                log.debug("Added worker thread: %s" % (worker,))
+            self._workers.append(worker)
+
+        self._initialized = True
+
+    def log(self, metric):
+        """Add the metric to the queue for dispatching.
+
+        :param ToolkitMetric metric: The metric to log.
+
+        """
+        self._lock.acquire()
+        self._queue.append(metric)
+        self._lock.release()
+
+    @property
+    def initialized(self):
+        """True if the queue has been initialized."""
+        return self._initialized
+
+    @property
+    def workers(self):
+        """A list of initialized workers for the queue."""
+        return self._workers
+
+    def _get_metrics(self, count=None):
+        """Return `count` metrics.
+
+        :param int count: The number of pending metrics to return.
+
+        If `count` is not supplied, or greater than the number of pending
+        metrics, returns all metrics.
+
+        Should never raise an exception.
+
+        """
+
+        metrics = []
+
+        self._lock.acquire()
+
+        num_pending = len(self._queue)
+
+        # there are pending metrics
+        if num_pending:
+
+            # determine how many metrics to retrieve
+            if not count or count > num_pending:
+                count = num_pending
+
+            try:
+                # would be nice to be able to pop N from deque. oh well.
+                metrics = [self._queue.popleft() for i in range(0, count)]
+            except Exception:
+                pass
+
+        self._lock.release()
+
+        return metrics
+
+    def _metrics_supported(self, sg_connection):
+        """Returns True if server supports the metrics api endpoint."""
+
+        # TODO: update the version number once the endpoint is available
+        self._metrics_ok = (
+            sg_connection.server_caps.version and
+            sg_connection.server_caps.version >= (7, 0, 0)
+        )
+
+        # TODO: remove after testing
+        self._metrics_ok = True
+        return self._metrics_ok
+
+
+class _MetricsDispatchWorkerThread(Thread):
     """Worker thread for dispatching metrics to sg logging endpoint.
 
     Given a queue where metrics are logged in the client code, once started,
@@ -38,7 +187,7 @@ class MetricsDispatchWorkerThread(Thread):
 
     This thread runs as a `daemon` in order to prevent process shutdown
     from waiting until all metrics are processed.
-    
+
     """
 
     API_ENDPOINT = "api3/log_metrics/"
@@ -59,29 +208,24 @@ class MetricsDispatchWorkerThread(Thread):
 
         """
 
-        super(MetricsDispatchWorkerThread, self).__init__()
+        super(_MetricsDispatchWorkerThread, self).__init__()
 
         self._tk = tk
         self._log = log
         self._metrics_queue = metrics_queue
 
-        # don't wait for this thread to exit 
+        # don't wait for this thread to exit
         self.daemon = True
-
 
     def run(self):
         """Runs a loop to dispatch metrics as they're added to the queue."""
-
-        # if metrics are not supported, then no reason to process the queue
-        if not self._metrics_supported():
-            return
 
         # The thread is a daemon. Let it run for the duration of the process
         while True:
 
             # get the next available metric and dispatch it
             try:
-                metrics = self._metrics_queue.get_metrics(
+                metrics = self._metrics_queue._get_metrics(
                     self.DISPATCH_BATCH_SIZE)
                 if metrics:
                     self._dispatch(metrics)
@@ -91,7 +235,6 @@ class MetricsDispatchWorkerThread(Thread):
             finally:
                 # wait before dispatching more metrics
                 time.sleep(self.DISPATCH_INTERVAL)
-
 
     def _dispatch(self, metrics):
         """Dispatch the supplied metric to the sg api registration endpoint.
@@ -135,149 +278,6 @@ class MetricsDispatchWorkerThread(Thread):
         if self._log:
             for metric in metrics:
                 self._log.debug("Logged metric: %s" % (metric,))
-
-    def _metrics_supported(self):
-        """Returns True if server supports the metrics api endpoint."""
-
-        if not hasattr(self, '_metrics_ok'):
-
-            sg_connection = self._tk.shotgun
-
-            # TODO: update the version number once the endpoint is available
-            self._metrics_ok = (
-                sg_connection.server_caps.version and 
-                sg_connection.server_caps.version >= (7, 0, 0)
-            )
-
-        # TODO: remove after testing
-        self._metrics_ok = True
-        return self._metrics_ok
-
-
-class MetricsDispatchQueueSingleton(object):
-    """A FIFO queue for logging metrics to dispatch via worker thread(s).
-
-    This is a singleton class, so any instantiation will return the same object
-    instance within the current process.
-
-    The `init()` method must be called in order to create and start the
-    worker threads. Metrics can be added before or after `init()` is called
-    and they will be processed in order.
-
-    """
-
-    # keeps track of the single instance of the class
-    __instance = None
-
-
-    def __new__(cls, *args, **kwargs):
-        """Ensures only one instance of the metrics queue exists."""
-
-        # create the queue instance if it hasn't been created already
-        if not cls.__instance:
-
-            # remember the instance so that no more are created
-            metrics_queue = super(
-                MetricsDispatchQueueSingleton, cls).__new__(
-                    cls, *args, **kwargs)
-
-            # False until init() is called
-            metrics_queue._initialized = False
-            metrics_queue._lock = Lock()
-
-            # The underlying Queue.Queue instance
-            metrics_queue._queue = deque()
-
-            cls.__instance = metrics_queue
-
-        return cls.__instance
-
-
-    def init(self, tk, workers=1, log=None):
-        """Initialize the Queue by starting up the workers.
-
-        :param tk: Toolkit api instance to use for sg connection.
-            Forwarded to the worker threads.
-        :param int workers: Number of worker threads to start.
-        :param loggin.Logger log: Optional logger for debugging.
-            Forwarded to the worker threads.
-
-        Creates and starts worker threads for dispatching metrics. Only
-        callable once. Subsequent calls are a no-op.
-
-        """
-
-        # Uncomment these lines to debug metrics 
-        # TODO: comment these out before release
-        import logging
-        log = logging.getLogger('sgtk.metrics')
-        log.addHandler(logging.StreamHandler())
-        log.setLevel(logging.DEBUG)
-
-        if self._initialized:
-            if log:
-                log.debug("Metrics queue already initialized. Doing nothing.")
-            return
-
-        # start the dispatch workers to use this queue
-        for i in range(workers):
-            worker = MetricsDispatchWorkerThread(tk, self, log)
-            worker.start()
-            if log:
-                log.debug("Added worker thread: %s" % (worker,))
-
-        self._initialized = True
-
-
-    def log(self, metric):
-        """Add the metric to the queue for dispatching.
-
-        :param ToolkitMetric metric: The metric to log.
-
-        """
-        self._lock.acquire()
-        self._queue.append(metric)
-        self._lock.release()
-
-    def get_metrics(self, count=None):
-        """Return `count` metrics.
-
-        :param int count: The number of pending metrics to return.
-
-        If `count` is not supplied, or greater than the number of pending
-        metrics, returns all metrics.
-
-        Should never raise an exception.
-
-        """
-
-        metrics = []
-
-        self._lock.acquire()
-
-        num_pending = len(self._queue)
-
-        # there are pending metrics
-        if num_pending:
-
-            # determine how many metrics to retrieve
-            if not count or count > num_pending:
-                count = num_pending
-
-            try:
-                # would be nice to be able to pop N from deque. oh well.
-                metrics = [self._queue.popleft() for i in range(0, count)]
-            except Exception:
-                pass
-
-        self._lock.release()
-
-        return metrics
-
-    @property
-    def initialized(self):
-        """True if the queue has been initialized."""
-        return self._initialized
 
 
 ###############################################################################
@@ -351,7 +351,6 @@ def log_metric(metric):
     """
     MetricsDispatchQueueSingleton().log(metric)
 
-
 def log_user_activity_metric(module, action):
     """Convenience method for logging a user activity metric.
 
@@ -361,7 +360,6 @@ def log_user_activity_metric(module, action):
     """
     log_metric(UserActivityMetric(module, action))
 
-    
 def log_user_attribute_metric(attr_name, attr_value):
     """Convenience method for logging a user attribute metric.
 
@@ -370,5 +368,4 @@ def log_user_attribute_metric(attr_name, attr_value):
 
     """
     log_metric(UserAttributeMetric(attr_name, attr_value))
-
 
