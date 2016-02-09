@@ -53,7 +53,7 @@ class IODescriptorUploadedConfig(IODescriptorBase):
         self._project_id = location_dict.get("project_id")
         self._attachment_id = location_dict.get("attachment_id")
 
-        if self._name is None or self._project_id is None or self._attachment_id is None:
+        if self._name is None or self._project_id is None:
             raise ShotgunDeployError("Descriptor is not valid: %s" % str(location_dict))
 
 

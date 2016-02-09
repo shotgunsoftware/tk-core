@@ -161,6 +161,10 @@ class ToolkitManager(object):
         # we can now boot up this config.
         tk = config.get_tk_instance(self._sg_user)
 
+        # specify which bundle cache to use
+        tk.pipeline_configuration.set_bundle_cache_root(self.bundle_cache_root)
+
+        # and cache
         if self.cache_apps:
             self._cache_apps(tk)
 
@@ -216,6 +220,9 @@ class ToolkitManager(object):
 
         # we can now boot up this config.
         tk = config.get_tk_instance(self._sg_user)
+
+        # specify which bundle cache to use
+        tk.pipeline_configuration.set_bundle_cache_root(self.bundle_cache_root)
 
         if self.cache_apps and status != Configuration.LOCAL_CFG_UP_TO_DATE:
             self._cache_apps(tk)
@@ -294,7 +301,7 @@ class ToolkitManager(object):
             )
             log.debug("Created new pipeline config: %s" % pc_data)
 
-        elif current_user and current_user not in pc_data["users"]:
+        elif current_user and current_user["id"] not in [x["id"] for x in pc_data["users"]]:
             log.debug("Adding %s to user access list..." % current_user)
             self._sg_connection.update(
                 constants.PIPELINE_CONFIGURATION_ENTITY,
@@ -500,6 +507,9 @@ class ToolkitManager(object):
 
         config_location = None
         use_latest = False
+
+        if attachment_data is None:
+            return None
 
         if attachment_data["link_type"] == "web":
             # some web urls are supported, others are not. The following
