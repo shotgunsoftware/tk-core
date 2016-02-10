@@ -1229,8 +1229,12 @@ class Engine(TankBundle):
             # set the std selection bg color to be 'shotgun blue'
             highlight_color = QtGui.QBrush(QtGui.QColor(constants.SG_STYLESHEET_CONSTANTS["SG_HIGHLIGHT_COLOR"]))
             self._dark_palette.setBrush(QtGui.QPalette.Highlight, highlight_color)
-            
-            
+
+            # update link colors
+            fg_color = self._dark_palette.color(QtGui.QPalette.Text)
+            self._dark_palette.setColor(QtGui.QPalette.Link, fg_color)
+            self._dark_palette.setColor(QtGui.QPalette.LinkVisited, fg_color)
+
             self._dark_palette.setBrush(QtGui.QPalette.HighlightedText, QtGui.QBrush(QtGui.QColor("#FFFFFF")))
             
             # and associate it with the qapplication
