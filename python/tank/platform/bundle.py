@@ -19,7 +19,7 @@ import sys
 import imp
 import uuid
 from .. import hook
-from ..errors import TankError
+from ..errors import TankError, TankContextChangeNotSupportedError
 from . import constants
 
 class TankBundle(object):
@@ -56,7 +56,7 @@ class TankBundle(object):
         do not use in any app code. 
         """
         return self.__descriptor
-    
+
     @property
     def settings(self):
         """
@@ -224,11 +224,22 @@ class TankBundle(object):
     @property
     def context(self):
         """
-        The current context associated with this item
+        The current context associated with this item.
         
         :returns: context object
         """
         return self.__context
+
+    @property
+    def context_change_allowed(self):
+        """
+        Whether a context change is allowed without the need for a restart.
+        If a bundle supports on-the-fly context changing, this property should
+        be overridden in the deriving class and forced to return True.
+
+        :returns: bool
+        """
+        return False
 
     @property
     def shotgun(self):
@@ -263,6 +274,41 @@ class TankBundle(object):
     
     ##########################################################################################
     # public methods
+
+    def change_context(self, new_context):
+        """
+        Abstract method for context changing.
+
+        Implemented by deriving classes that wish to support context changes and
+        require specific logic to do so safely.
+
+        :param new_context: The context being changed to.
+        """
+        if not self.context_change_allowed:
+            self.log_debug("Bundle %r does not allow context changes." % self)
+            raise TankContextChangeNotSupportedError()
+
+    def pre_context_change(self, old_context, new_context):
+        """
+        Called before a context change.
+
+        Implemented by deriving classes.
+
+        :param old_context:     The context being changed away from.
+        :param new_context:     The context being changed to.
+        """
+        pass
+
+    def post_context_change(self, old_context, new_context):
+        """
+        Called after a context change.
+
+        Implemented by deriving classes.
+
+        :param old_context:     The context being changed away from.
+        :param new_context:     The context being changed to.
+        """
+        pass
 
     def import_module(self, module_name):
         """
@@ -445,6 +491,22 @@ class TankBundle(object):
 
     ##########################################################################################
     # internal helpers
+
+    def _set_context(self, new_context):
+        """
+        Sets the current context associated with this item.
+
+        :param new_context: The new context to associate with the bundle.
+        """
+        self.__context = new_context
+
+    def _set_settings(self, settings):
+        """
+        Sets the bundle's internal settings dictionary.
+
+        :param settings:    The new settings dict to store.
+        """
+        self.__settings = settings
 
     def __resolve_hook_path(self, settings_name, hook_expression):
         """
