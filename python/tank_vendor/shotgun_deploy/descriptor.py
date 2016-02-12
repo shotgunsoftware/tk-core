@@ -42,6 +42,17 @@ class Descriptor(object):
         class_name = self.__class__.__name__
         return "<%s %r>" % (class_name, self._io_descriptor)
 
+    def __eq__(self, other):
+        # By default, we can assume equality if the path to the data
+        # on disk is equivalent.
+        if isinstance(other, self.__class__):
+            return self.get_path() == other.get_path()
+        else:
+            return False
+
+    def __ne__(self, other):
+        return not (self == other)
+
     def __str__(self):
         """
         Used for pretty printing
