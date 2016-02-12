@@ -51,6 +51,11 @@ class DesktopMigration(Action):
 
         pc = self.tk.pipeline_configuration
 
+        if pc.is_managed():
+            log.error("Cannot migrate managed configurations.")
+            return
+
+
         # Fetch the project id from the actual pipeline configuration.
         sg_pc = self.tk.shotgun.find_one(
             constants.PIPELINE_CONFIGURATION_ENTITY,

@@ -529,7 +529,7 @@ class Configuration(object):
             pipeline_config_name = constants.UNMANAGED_PIPELINE_CONFIG_NAME
 
         data = {
-            "pc_id": self._pipeline_config_id or 0,
+            "pc_id": self._pipeline_config_id,
             "pc_name": pipeline_config_name,
             "project_id": self._project_id,
             "project_name": project_name,

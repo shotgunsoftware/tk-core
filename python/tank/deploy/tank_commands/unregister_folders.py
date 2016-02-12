@@ -337,8 +337,13 @@ class UnregisterFoldersAction(Action):
         # now, based on the entities we just deleted, assemble a metadata chunk that 
         # the sync calls can use later on.
         
-        pc_link = {"type": "PipelineConfiguration",
-                   "id": self.tk.pipeline_configuration.get_shotgun_id() }
+        if self.tk.pipeline_configuration.get_shotgun_id() is None:
+            pc_link = None
+        else:
+            pc_link = {
+                "type": "PipelineConfiguration",
+                "id": self.tk.pipeline_configuration.get_shotgun_id()
+            }
 
         if self.tk.pipeline_configuration.is_site_configuration():
             project_link = None

@@ -77,14 +77,31 @@ def get_pipeline_config_cache_root(site_url, project_id, pipeline_configuration_
 
     The following paths will be generated:
 
-    - macosx: ~/Library/Caches/Shotgun/SITE_NAME/pr123_cfg12
-    - windows: %APPDATA%\Shotgun\SITE_NAME\pr123_cfg12
-    - linux: ~/.shotgun/SITE_NAME/pr123_cfg12
+    - macosx: ~/Library/Caches/Shotgun/SITE_NAME/proj123_cfg12
+    - windows: %APPDATA%\Shotgun\SITE_NAME\proj123_cfg12
+    - linux: ~/.shotgun/SITE_NAME/proj123_cfg12
+
+    Alternatively, the following syntaxes are also possible:
+
+    - site config: ~/Library/Caches/Shotgun/SITE_NAME/site_cfg12
+    - unmanaged site config: ~/Library/Caches/Shotgun/SITE_NAME/site
+    - unmanaged project config: ~/Library/Caches/Shotgun/SITE_NAME/proj123
 
     :param project_id: The shotgun id of the project to store caches for
     :param pipeline_configuration_id: The shotgun pipeline config id to store caches for. Can be None.
     :returns: The calculated location for the cache root
     """
-    project_config_folder = "pr%s_cfg%s" % (project_id, pipeline_configuration_id)
+    if pipeline_configuration_id is None:
+        # unmanaged config
+        pc_suffix = ""
+    else:
+        pc_suffix = "_cfg%d" % pipeline_configuration_id
+
+    if project_id is None:
+        # site configuration
+        project_config_folder = "site%s" % (project_id, pc_suffix)
+    else:
+        project_config_folder = "proj%d%s" % (project_id, pc_suffix)
+
     cache_root = os.path.join(get_site_cache_root(site_url), project_config_folder)
     return cache_root

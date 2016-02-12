@@ -36,13 +36,21 @@ class CacheLocation(HookBaseClass):
         the path cache file is located. The path cache file holds a temporary cache representation
         of the FilesystemLocation entities stored in Shotgun for a project. Typically, this cache
         is stored on a local machine, separate for each user.  
-        
+
+        Note! In the case of the site configuration, project id will be set to None.
+        In the case of an unmanaged pipeline configuration, pipeline config
+        id will be set to None.
+
         :param project_id: The shotgun id of the project to store caches for
         :param pipeline_configuration_id: The shotgun pipeline config id to store caches for
         :returns: The path to a path cache file. This file should exist when this method returns.
         """
         tk = self.parent
-        cache_root = get_pipeline_config_cache_root(tk.shotgun_url, project_id, pipeline_configuration_id)
+        cache_root = get_pipeline_config_cache_root(
+            tk.shotgun_url,
+            project_id,
+            pipeline_configuration_id
+        )
         self._ensure_folder_exists(cache_root)
         target_path = os.path.join(cache_root, "path_cache.db")
         self._ensure_file_exists(target_path)

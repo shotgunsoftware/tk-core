@@ -59,6 +59,9 @@ class PushPCAction(Action):
         if self.tk.pipeline_configuration.is_site_configuration():
             raise TankError("You can't push the site configuration.")
 
+        if self.tk.pipeline_configuration.is_unmanaged():
+            raise TankError("You can't push an unmanaged configuration.")
+
         project_id = self.tk.pipeline_configuration.get_project_id()
 
         current_pc_name = self.tk.pipeline_configuration.get_name()

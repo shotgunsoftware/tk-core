@@ -246,6 +246,9 @@ class PipelineConfiguration(object):
 
         :returns: boolean indicating auto path state
         """
+        if self.is_unmanaged():
+            return False
+
         sg = shotgun.get_sg_connection()
         data = sg.find_one(constants.PIPELINE_CONFIGURATION_ENTITY,
                            [["id", "is", self.get_shotgun_id()]],
@@ -272,7 +275,16 @@ class PipelineConfiguration(object):
         
         else:
             return False
-        
+
+    def is_unmanaged(self):
+        """
+        Returns true if the configuration is unmanaged, e.g. it does not have a
+        corresponding path cache in Shotgun.
+
+        :return: boolean indicating if config is unmanaged
+        """
+        return self.get_shotgun_id() is None
+
     def is_localized(self):
         """
         Returns true if this pipeline configuration has its own Core
@@ -290,6 +302,7 @@ class PipelineConfiguration(object):
     def get_project_id(self):
         """
         Returns the shotgun id for the project associated with this PC.
+        Can return None if the pipeline configuratoin represents the site and not a project.
         """
         return self._project_id
 

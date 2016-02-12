@@ -97,7 +97,12 @@ class MovePCAction(Action):
     
     
     def run_interactive(self, log, args):
-        
+
+        if self.tk.pipeline_configuration.is_unmanaged():
+            log.error("Cannot move unmanaged configurations!")
+            return
+
+
         pipeline_config_id = self.tk.pipeline_configuration.get_shotgun_id()
         current_paths = self.tk.pipeline_configuration.get_all_os_paths()
         
