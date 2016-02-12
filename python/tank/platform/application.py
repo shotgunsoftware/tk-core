@@ -162,14 +162,21 @@ class Application(TankBundle):
     def log_exception(self, msg):
         self.engine.log_exception(msg)
 
-    def log_app_metric(self, action):
+
+    ##########################################################################################
+    # internal API
+
+    def log_metric(self, action):
         """Logs an app metric.
 
         :param action: Action string to log, e.g. 'Execute Action'
 
-        Logs a user activity metric as performed within an app. This is a 
-        convenience method that auto-populates the module portion of 
+        Logs a user activity metric as performed within an app. This is a
+        convenience method that auto-populates the module portion of
         `tank.util.log_user_activity_metric()`.
+
+        Internal Use Only - We provide no guarantees that this method
+        will be backwards compatible.
 
         """
         # the action contains the engine and app name, e.g.

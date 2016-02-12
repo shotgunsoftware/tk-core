@@ -15,13 +15,11 @@ from tank import Hook
 
 class LogMetrics(Hook):
     
-    def execute(self, tk, metrics):
+    def execute(self, metrics):
         """Called when Toolkit logs a user metric.
         
-        :param tk: Toolkit instance 
-        :param list metrics: list of `ToolkitMetric` objects that were logged.
+        :param list metrics: list of dictionaries with logged data.
         
         """
         pass
-
 

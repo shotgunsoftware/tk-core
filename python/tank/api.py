@@ -125,6 +125,22 @@ class Tank(object):
                                                                              parent=self, 
                                                                              **kwargs)
 
+    def log_metric(self, action):
+        """Log a core metric.
+
+        :param action: Action string to log, e.g. 'Init'
+
+        Logs a user activity metric as performed within core. This is
+        a convenience method that auto-populates the module portion of
+        `tank.util.log_user_activity_metric()`
+
+        Internal Use Only - We provide no guarantees that this method
+        will be backwards compatible.
+
+        """
+        log_user_activity_metric('tk-core', action)
+
+
     ################################################################################################
     # properties
 
@@ -221,19 +237,6 @@ class Tank(object):
 
     ##########################################################################################
     # public methods
-
-    def log_core_metric(self, action):
-        """Log a core metric.
-
-        :param action: Action string to log, e.g. 'Init'
-
-        Logs a user activity metric as performed within core. This is
-        a convenience method that auto-populates the module portion of 
-        `tank.util.log_user_activity_metric()`
-
-        """
-        log_user_activity_metric('tk-core', action)
-
 
     def list_commands(self):
         """

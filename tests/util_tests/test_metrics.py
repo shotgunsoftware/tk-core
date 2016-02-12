@@ -78,14 +78,14 @@ class TestMetricsDispatchQueueSingleton(TankTestBase):
 
     # TODO: figure out why server_caps not being patched as in other tests.
     #@patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
-    #def test_initialized(self, server_caps_mock):
-    #    """Initialized/workers properties set properly when `init` is called."""
+    #def test_dispatching(self, server_caps_mock):
+    #    """dispatching/workers properties set properly when `start_dispatching` is called."""
     #
     #    obj = MetricsDispatchQueueSingleton()
-    #    self.assertFalse(obj.initialized)
+    #    self.assertFalse(obj.dispatching)
     #    self.assertEquals(obj.workers, [])
-    #    obj.init(self.tk)
-    #    self.assertTrue(obj.initialized)
+    #    obj.start_dispatching(self.tk)
+    #    self.assertTrue(obj.dispatchign)
     #    self.assertNotEqual(obj.workers, [])
 
 

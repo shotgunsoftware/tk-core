@@ -27,7 +27,7 @@ from ..errors import TankError, TankEngineInitError, TankContextChangeNotSupport
 from ..deploy import descriptor
 from ..deploy.dev_descriptor import TankDevDescriptor
 from ..util import log_user_activity_metric, log_user_attribute_metric
-from ..util.metrics import MetricsDispatchQueueSingleton as MetricsQueue
+from ..util.metrics import MetricsDispatchQueueSingleton as MetricsDispatchQueue
 
 from . import application
 from . import constants
@@ -160,10 +160,11 @@ class Engine(TankBundle):
         tk.execute_core_hook(constants.TANK_ENGINE_INIT_HOOK_NAME, engine=self)
 
         self.log_debug("Init complete: %s" % self)
-        self.log_engine_metric("Init")
+        self.log_metric("Init")
 
-        # log the engine version being used by the current user
-        log_user_attribute_metric("%s Version" % self.name, self.version)
+        # log the core and engine versions being used by the current user
+        log_user_attribute_metric("tk-core version" % (tk.version,))
+        log_user_attribute_metric("%s version" % (self.name, self.version))
 
         # check if there are any compatibility warnings:
         # do this now in case the engine fails to load!
@@ -295,6 +296,27 @@ class Engine(TankBundle):
         if self.__global_progress_widget:
             self.execute_in_main_thread(self.__clear_busy)
 
+    def log_metric(self, action):
+        """Log an engine metric.
+
+        :param action: Action string to log, e.g. 'Init'
+
+        Logs a user activity metric as performed within an engine. This is
+        a convenience method that auto-populates the module portion of
+        `tank.util.log_user_activity_metric()`
+
+        Internal Use Only - We provide no guarantees that this method
+        will be backwards compatible.
+
+        """
+
+        # the action contains the engine and app name, e.g.
+        # module: tk-maya
+        # action: tk-maya - Init
+        full_action = "%s - %s" % (self.name, action)
+        log_user_activity_metric(self.name, full_action)
+
+
     ##########################################################################################
     # properties
 
@@ -390,7 +412,19 @@ class Engine(TankBundle):
         # default implementation is to assume a UI exists
         # this is since most engines are supporting a graphical application
         return True
-    
+
+    @property
+    def metrics_dispatch_allowed(self):
+        """
+        Inidicates this engine will allow the metrics worker threads to forward
+        the user metrics logged via core, this engine, or registered apps to
+        SG.
+
+        :returns: boolean value indicating that the engine allows user metrics
+            to be forwarded to SG.
+        """
+        return True
+
     ##########################################################################################
     # init and destroy
     
@@ -439,6 +473,11 @@ class Engine(TankBundle):
         # explicitly set the value to None!
         self._invoker = None
         self._async_invoker = None
+
+        # halt metrics dispatching
+        metrics_dispatch_queue = MetricsDispatchQueue()
+        if metrics_dispatch_queue.dispatching:
+            metrics_dispatch_queue.stop_dispatching()
 
     def destroy_engine(self):
         """
@@ -604,7 +643,7 @@ class Engine(TankBundle):
             if properties.get("app"):
 
                 # track which app command is being launched
-                properties["app"].log_app_metric("'%s'" % name)
+                properties["app"].log_metric("'%s'" % name)
 
                 # specify which app version is being used
                 log_user_attribute_metric(
@@ -866,24 +905,6 @@ class Engine(TankBundle):
         message.extend(traceback_str.split("\n"))
         
         self.log_error("\n".join(message))
-
-
-    def log_engine_metric(self, action):
-        """Log an engine metric.
-
-        :param action: Action string to log, e.g. 'Init'
-
-        Logs a user activity metric as performed within an engine. This is
-        a convenience method that auto-populates the module portion of 
-        `tank.util.log_user_activity_metric()`
-
-        """
-
-        # the action contains the engine and app name, e.g.
-        # module: tk-maya
-        # action: tk-maya - Init
-        full_action = "%s - %s" % (self.name, action)
-        log_user_activity_metric(self.name, full_action)
 
 
     ##########################################################################################
@@ -1782,17 +1803,20 @@ def start_engine(engine_name, tk, context):
 
     # Instantiate the engine
     class_obj = loader.load_plugin(plugin_file, Engine)
-    obj = class_obj(tk, context, engine_name, env)
+    engine = class_obj(tk, context, engine_name, env)
 
     # register this engine as the current engine
-    set_current_engine(obj)
+    set_current_engine(engine)
 
-    # ensure the metrics queue is initialized (dispatchers are running)
-    metrics_queue = MetricsQueue()
-    if not metrics_queue.initialized:
-        metrics_queue.init(tk)
+    # if the engine supports logging metrics, initialize the workers
+    metrics_dispatch_queue = MetricsDispatchQueue()
+    if engine.metrics_dispatch_allowed and not metrics_dispatch_queue.dispatching:
+        metrics_dispatch_queue.start_dispatching(tk)
 
-    return obj
+        # while here, go ahead and log some metrics
+
+
+    return engine
 
 def find_app_settings(engine_name, app_name, tk, context, engine_instance_name=None):
     """
