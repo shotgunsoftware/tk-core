@@ -12,17 +12,17 @@ import os
 import sys
 
 from . import paths
-from .descriptor_io import create_io_descriptor
+from .descriptor_io import create_io_descriptor, uri_to_dict
 from .errors import ShotgunDeployError
 
-def create_descriptor(sg_connection, descriptor_type, location_dict, bundle_cache_root=None):
+def create_descriptor(sg_connection, descriptor_type, location, bundle_cache_root=None):
     """
     Factory method.
 
     :param sg_connection: Shotgun connection to associated site
     :param descriptor_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK
     :param bundle_cache_root: Root path to where downloaded apps are cached
-    :param location_dict: A std location dictionary
+    :param location: A std location dictionary dictionary or string
     :returns: Descriptor object
     """
     from .descriptor_bundle import AppDescriptor, EngineDescriptor, FrameworkDescriptor
@@ -32,7 +32,12 @@ def create_descriptor(sg_connection, descriptor_type, location_dict, bundle_cach
     bundle_cache_root = bundle_cache_root or paths.get_bundle_cache_root()
 
     # first construct a low level IO descriptor
-    io_descriptor = create_io_descriptor(sg_connection, descriptor_type, location_dict, bundle_cache_root)
+
+    if isinstance(location, basestring):
+        # translate uri to dict
+        location = uri_to_dict(location)
+
+    io_descriptor = create_io_descriptor(sg_connection, descriptor_type, location, bundle_cache_root)
 
     # now create a high level descriptor and bind that with the low level descriptor
     if descriptor_type == Descriptor.APP:
@@ -51,9 +56,7 @@ def create_descriptor(sg_connection, descriptor_type, location_dict, bundle_cach
         return CoreDescriptor(io_descriptor)
 
     else:
-        raise ShotgunDeployError("%s: Invalid location dict '%s'" % (descriptor_type, location_dict))
-
-
+        raise ShotgunDeployError("Unsupported descriptor type %s" % descriptor_type)
 
 
 class Descriptor(object):

@@ -36,7 +36,9 @@ class IODescriptorDev(IODescriptorPath):
 
     # location: {"type": "dev", "path": "/path/to/app", name: "my-app"}
     """
-    
+
+
+
     def __init__(self, bundle_cache_root, location_dict):
         """
         Constructor

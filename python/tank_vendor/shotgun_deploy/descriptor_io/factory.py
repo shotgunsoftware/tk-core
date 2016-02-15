@@ -8,10 +8,67 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from ..errors import ShotgunDeployError, ShotgunAppStoreError
+from ..errors import ShotgunDeployError
 from .. import constants
 from .. import util
 log = util.get_shotgun_deploy_logger()
+
+def uri_to_dict(location_uri):
+    """
+    Translates a location uri into a location dictionary
+    :param location_uri:
+    :return:
+    """
+    chunks = location_uri.split(":")
+    if chunks[0] != "sgtk" or len(chunks) < 3:
+        raise ShotgunDeployError("Invalid uri %s" % location_uri)
+    descriptor_type = chunks[1]
+
+    location_dict = {}
+    location_dict["type"] = descriptor_type
+
+    if descriptor_type == "app_store":
+        # sgtk:app_store:tk-core:v12.3.4
+        location_dict["name"] = chunks[2]
+        location_dict["version"] = chunks[3]
+
+    elif descriptor_type == "shotgun":
+        #@todo - add
+        pass
+
+
+    elif descriptor_type == "manual":
+        # sgtk:manual:tk-core:v12.3.4
+        location_dict["name"] = chunks[2]
+        location_dict["version"] = chunks[3]
+
+    elif descriptor_type == "git":
+        # sgtk:git:git/path:v12.3.4
+        #@todo - add
+        pass
+
+    elif descriptor_type == "dev":
+        #@todo - add
+        pass
+
+    elif descriptor_type == "git_dev":
+        #@todo - add
+        pass
+
+    elif descriptor_type == "path":
+        #@todo - add
+        pass
+
+    elif descriptor_type == "shotgun_uploaded_configuration":
+        #@todo - add
+        pass
+
+    else:
+        raise ShotgunDeployError("Unknown location type for '%s'" % location_dict)
+
+    return location_dict
+
+
 
 
 def create_io_descriptor(sg, descriptor_type, location_dict, bundle_cache_root):
@@ -58,7 +115,7 @@ def create_io_descriptor(sg, descriptor_type, location_dict, bundle_cache_root):
         descriptor = IODescriptorUploadedConfig(bundle_cache_root, location_dict, sg)
 
     else:
-        raise ShotgunDeployError("Invalid location dict '%s'" % location_dict)
+        raise ShotgunDeployError("Unknown location type for '%s'" % location_dict)
 
     log.debug("Resolved %s -> %r" % (location_dict, descriptor))
 

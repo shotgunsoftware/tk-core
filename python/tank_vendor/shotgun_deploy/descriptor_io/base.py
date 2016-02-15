@@ -227,7 +227,6 @@ class IODescriptorBase(object):
 
         return version_to_use
 
-
     def get_manifest(self):
         """
         Returns the info.yml metadata associated with this descriptor.
