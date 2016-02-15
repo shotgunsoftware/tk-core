@@ -528,7 +528,7 @@ class Configuration(object):
             "project_id": self._project_id,
             "project_name": project_name,
             "published_file_entity_type": "PublishedFile",
-            "use_global_bundle_cache": True,
+            "bundle_cache_root": self._bundle_cache_root,
             "use_shotgun_path_cache": True}
 
         config_info_file = os.path.join(self.get_path(), "config", "core", constants.PIPELINECONFIG_FILE)
@@ -604,7 +604,7 @@ class ManagedConfiguration(Configuration):
 
     def get_path(self, platform=sys.platform):
         """
-        Returns the path to the configuraton on the given os.
+        Returns the path to the configuration on the given os.
 
         :return: path on disk as string
         """

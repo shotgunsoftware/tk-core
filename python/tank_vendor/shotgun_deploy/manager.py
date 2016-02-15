@@ -159,9 +159,6 @@ class ToolkitManager(object):
         # we can now boot up this config.
         tk = config.get_tk_instance(self._sg_user)
 
-        # specify which bundle cache to use
-        tk.pipeline_configuration.set_bundle_cache_root(self.bundle_cache_root)
-
         # and cache
         if self.cache_apps:
             self._cache_apps(tk)
@@ -218,9 +215,6 @@ class ToolkitManager(object):
 
         # we can now boot up this config.
         tk = config.get_tk_instance(self._sg_user)
-
-        # specify which bundle cache to use
-        tk.pipeline_configuration.set_bundle_cache_root(self.bundle_cache_root)
 
         if self.cache_apps and status != Configuration.LOCAL_CFG_UP_TO_DATE:
             self._cache_apps(tk)

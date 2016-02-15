@@ -18,7 +18,6 @@ import glob
 import cPickle
 
 from tank_vendor import yaml
-from tank_vendor.shotgun_deploy import get_bundle_cache_root
 
 from .errors import TankError, TankUnreadableFileError
 from .deploy import util
@@ -89,12 +88,9 @@ class PipelineConfiguration(object):
         self._pc_name = pipeline_config_metadata.get("pc_name")
         self._published_file_entity_type = pipeline_config_metadata.get("published_file_entity_type", "TankPublishedFile")        
         self._use_shotgun_path_cache = pipeline_config_metadata.get("use_shotgun_path_cache", False)
-        self._use_global_bundle_cache = pipeline_config_metadata.get("use_global_bundle_cache", False)
-
-        if self._use_global_bundle_cache:
-            self._bundle_cache_root = get_bundle_cache_root()
-        else:
-            # pre-global cache root
+        self._bundle_cache_root = pipeline_config_metadata.get("bundle_cache_root")
+        if self._bundle_cache_root is None:
+            # pre-global cache root. default to an install root local to the installation
             self._bundle_cache_root = os.path.join(self.get_install_location(), "install")
 
         # Populate the global yaml_cache if we find a pickled cache
@@ -498,15 +494,6 @@ class PipelineConfiguration(object):
 
     ########################################################################################
     # installation payload (core/apps/engines) disk locations
-
-    def set_bundle_cache_root(self, path):
-        """
-        Specify where apps engines and frameworks should be cached
-
-        :param path:
-        :return:
-        """
-        self._bundle_cache_root = path
 
     def get_associated_core_version(self):
         """
