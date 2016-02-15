@@ -95,6 +95,12 @@ class IODescriptorAppStore(IODescriptorBase):
         """
         super(IODescriptorAppStore, self).__init__(bundle_cache_root, location_dict)
 
+        self._validate_locator(
+            location_dict,
+            required=["type", "name", "version"],
+            optional=[]
+        )
+
         self._sg_connection = sg_connection
         self._type = bundle_type
         self._name = location_dict.get("name")

@@ -23,7 +23,7 @@ class IODescriptorBase(object):
     It also knows how to access metadata such as documentation, descriptions etc.
 
     Several AppDescriptor classes exists, all deriving from this base class, and the
-    factory method descriptor_factory() manufactures the correct descriptor object
+    factory method create_descriptor() manufactures the correct descriptor object
     based on a location dict, that is found inside of the environment config.
 
     Different App Descriptor implementations typically handle different source control
@@ -83,6 +83,39 @@ class IODescriptorBase(object):
     def __repr__(self):
         class_name = self.__class__.__name__
         return "<%s %s %s>" % (class_name, self.get_system_name(), self.get_version())
+
+    def _validate_locator(self, location, required, optional):
+        """
+        Validate that the locator dictionary has got the necessary keys
+
+        Raises ShotgunDeployError if required parameters are missing.
+        Logs warnings if parameters outside the required/optional range are specified.
+
+        :param location: Location dict
+        :param required: List of required parameters
+        :param optional: List of optionally supported parameters
+        :raises: ShotgunDeployError if the location dict does not include all parameters.
+        """
+        log.debug(
+            "Validating locator %s against "
+            "required tokens %s and optional tokens %s" % (location, required, optional)
+        )
+
+        location_keys_set = set(location.keys())
+        required_set = set(required)
+        optional_set = set(optional)
+
+        if not required_set.issubset(location_keys_set):
+            missing_keys = required_set.difference(location_keys_set)
+            raise ShotgunDeployError("%s are missing required keys %s" % (location, missing_keys))
+
+        all_keys = required_set.union(optional_set)
+
+        if location_keys_set.difference(all_keys):
+            log.warning(
+                "Found unsupported parameters %s in %s. "
+                "These will be ignored." % (location_keys_set.difference(all_keys), location)
+            )
 
     def _get_local_location(self, descriptor_name, name, version):
         """

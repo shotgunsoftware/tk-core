@@ -144,8 +144,8 @@ class SwitchAppAction(Action):
         log.info("")
         
         if mode == "app_store":
-            location = {"type": "app_store", "name": descriptor.get_system_name()}
-            new_descriptor = self.tk.pipeline_configuration.get_app_descriptor(location, latest=True)
+            location = {"type": "app_store", "name": descriptor.get_system_name(), "version": "latest"}
+            new_descriptor = self.tk.pipeline_configuration.get_app_descriptor(location)
         
         elif mode == "dev":
             if not os.path.exists(path):
@@ -157,8 +157,8 @@ class SwitchAppAction(Action):
 
         elif mode == "git":
             # run descriptor factory method
-            location = {"type": "git", "path": path}
-            new_descriptor = self.tk.pipeline_configuration.get_app_descriptor(location, latest=True)
+            location = {"type": "git", "path": path, "version": "latest"}
+            new_descriptor = self.tk.pipeline_configuration.get_app_descriptor(location)
         
         else:
             raise TankError("Unknown mode!")

@@ -17,9 +17,8 @@ import tempfile
 
 from . import util
 from . import zipfilehelper
-from . import Descriptor
+from . import Descriptor, create_descriptor
 from . import constants
-from . import descriptor_factory
 from ..shotgun_base import ensure_folder_exists
 from .errors import ShotgunDeployError
 from .paths import get_bundle_cache_root
@@ -45,7 +44,6 @@ class ToolkitManager(object):
         self.bundle_cache_root = get_bundle_cache_root()
         self.pipeline_configuration_name = constants.PRIMARY_PIPELINE_CONFIG_NAME
         self.base_config_location = None
-        self.use_latest_base_config = True
 
         self.cache_apps = True
         self.progress_callback = None
@@ -325,21 +323,12 @@ class ToolkitManager(object):
 
         :return:
         """
-        if self.use_latest_base_config:
-            cfg_descriptor = descriptor_factory.create_latest_descriptor(
-                self._sg_connection,
-                Descriptor.CONFIG,
-                self.base_config_location,
-                self.bundle_cache_root
-            )
-        else:
-            cfg_descriptor = descriptor_factory.create_descriptor(
-                self._sg_connection,
-                Descriptor.CONFIG,
-                self.base_config_location,
-                self.bundle_cache_root
-            )
-
+        cfg_descriptor = create_descriptor(
+            self._sg_connection,
+            Descriptor.CONFIG,
+            self.base_config_location,
+            self.bundle_cache_root
+        )
         log.debug("Base config resolved to: %r" % cfg_descriptor)
         return cfg_descriptor
 
@@ -506,7 +495,6 @@ class ToolkitManager(object):
         #  'link_type': 'local'}
 
         config_location = None
-        use_latest = False
 
         if attachment_data is None:
             return None
@@ -531,8 +519,7 @@ class ToolkitManager(object):
                 else:
                     # find latest
                     log.debug("Will search for latest in git repo")
-                    config_location = {"type": "git", "path": url}
-                    use_latest = True
+                    config_location = {"type": "git", "path": url, "version": "latest"}
             else:
                 log.debug("Url '%s' not supported by the bootstrap." % url)
 
@@ -552,20 +539,12 @@ class ToolkitManager(object):
                 config_location = {"type": "path", "path": local_path}
 
         # create a descriptor from the location
-        if use_latest:
-            cfg_descriptor = descriptor_factory.create_latest_descriptor(
-                self._sg_connection,
-                Descriptor.CONFIG,
-                config_location,
-                self.bundle_cache_root
-            )
-        else:
-            cfg_descriptor = descriptor_factory.create_descriptor(
-                self._sg_connection,
-                Descriptor.CONFIG,
-                config_location,
-                self.bundle_cache_root
-            )
+        cfg_descriptor = create_descriptor(
+            self._sg_connection,
+            Descriptor.CONFIG,
+            config_location,
+            self.bundle_cache_root
+        )
 
         return cfg_descriptor
 

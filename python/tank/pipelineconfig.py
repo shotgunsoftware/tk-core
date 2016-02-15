@@ -29,7 +29,7 @@ from . import hook
 from . import pipelineconfig_utils
 from . import template_includes
 
-from tank_vendor.shotgun_deploy import Descriptor, create_descriptor, create_latest_descriptor
+from tank_vendor.shotgun_deploy import Descriptor, create_descriptor
 
 class PipelineConfiguration(object):
     """
@@ -578,7 +578,7 @@ class PipelineConfiguration(object):
 
         return location_dict
 
-    def _get_descriptor(self, descriptor_type, location, latest=False):
+    def _get_descriptor(self, descriptor_type, location):
         """
         Constructs a descriptor object given a location dictionary.
 
@@ -590,23 +590,15 @@ class PipelineConfiguration(object):
         sg_connection = shotgun.get_sg_connection()
         pp_location = self._preprocess_location(location)
 
-
-        if latest:
-            desc = create_latest_descriptor(
-                sg_connection,
-                descriptor_type,
-                pp_location,
-                self._bundle_cache_root)
-        else:
-            desc = create_descriptor(
-                sg_connection,
-                descriptor_type,
-                pp_location,
-                self._bundle_cache_root)
+        desc = create_descriptor(
+            sg_connection,
+            descriptor_type,
+            pp_location,
+            self._bundle_cache_root)
 
         return desc
 
-    def get_app_descriptor(self, location, latest=False):
+    def get_app_descriptor(self, location):
         """
         Convenience method that returns a descriptor for an app
         that is associated with this pipeline configuration.
@@ -615,9 +607,9 @@ class PipelineConfiguration(object):
         :param latest: Return latest available version of descriptor
         :returns:        Descriptor object
         """
-        return self._get_descriptor(Descriptor.APP, location, latest)
+        return self._get_descriptor(Descriptor.APP, location)
 
-    def get_engine_descriptor(self, location, latest=False):
+    def get_engine_descriptor(self, location):
         """
         Convenience method that returns a descriptor for an engine
         that is associated with this pipeline configuration.
@@ -626,7 +618,7 @@ class PipelineConfiguration(object):
         :param latest: Return latest available version of descriptor
         :returns:        Descriptor object
         """
-        return self._get_descriptor(Descriptor.ENGINE, location, latest)
+        return self._get_descriptor(Descriptor.ENGINE, location)
 
     def get_framework_descriptor(self, location):
         """

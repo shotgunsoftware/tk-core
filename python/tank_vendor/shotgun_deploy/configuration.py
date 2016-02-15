@@ -12,8 +12,7 @@ import os
 import sys
 import datetime
 from . import constants
-from . import Descriptor
-from . import descriptor_factory
+from . import Descriptor, create_descriptor
 from . import paths
 from .errors import ShotgunDeployError
 from . import util
@@ -59,7 +58,7 @@ def create_managed_configuration(sg, bundle_cache_root, project_id, pipeline_con
         "windows_path": config_path_win
     }
 
-    config_descriptor = descriptor_factory.create_descriptor(
+    config_descriptor = create_descriptor(
         sg,
         Descriptor.CONFIG,
         config_location,
@@ -373,22 +372,17 @@ class Configuration(object):
         if core_location is None:
             # we don't have a core location specified. Get latest from app store.
             log.debug("Config does not define which core to use. Will use latest.")
-            core_location = {"type": "app_store", "name": "tk-core"}
-            core_descriptor = descriptor_factory.create_latest_descriptor(
-                    self._sg_connection,
-                    Descriptor.CORE,
-                    core_location,
-                    self._bundle_cache_root
-            )
+            core_location = {"type": "app_store", "name": "tk-core", "version": "latest"}
         else:
             # we have an exact core location. Get a descriptor for it
             log.debug("Config needs core %s" % core_location)
-            core_descriptor = descriptor_factory.create_descriptor(
-                    self._sg_connection,
-                    Descriptor.CORE,
-                    core_location,
-                    self._bundle_cache_root
-            )
+
+        core_descriptor = create_descriptor(
+            self._sg_connection,
+            Descriptor.CORE,
+            core_location,
+            self._bundle_cache_root
+        )
 
         log.debug("Config will use Core %s" % core_descriptor)
 

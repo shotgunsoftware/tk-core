@@ -46,6 +46,12 @@ class IODescriptorPath(IODescriptorBase):
 
         super(IODescriptorPath, self).__init__(bundle_cache_root, location_dict)
 
+        self._validate_locator(
+            location_dict,
+            required=["type"],
+            optional=["name", "version", "linux_path", "mac_path", "path", "windows_path"]
+        )
+
         # platform specific location support
         platform_key = {
             "linux2": "linux_path",

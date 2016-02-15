@@ -9,12 +9,16 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from ..errors import ShotgunDeployError, ShotgunAppStoreError
+from .. import constants
+from .. import util
+log = util.get_shotgun_deploy_logger()
+
 
 def create_io_descriptor(sg, descriptor_type, location_dict, bundle_cache_root):
     """
     Factory method.
 
-    :param sg_connection: Shotgun connection to associated site
+    :param sg: Shotgun connection to associated site
     :param descriptor_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK
     :param bundle_cache_root: Root path to where downloaded apps are cached
     :param location_dict: A std location dictionary
@@ -30,28 +34,38 @@ def create_io_descriptor(sg, descriptor_type, location_dict, bundle_cache_root):
     from .manual import IODescriptorManual
 
     if location_dict.get("type") == "app_store":
-        return IODescriptorAppStore(bundle_cache_root, location_dict, sg, descriptor_type)
+        descriptor = IODescriptorAppStore(bundle_cache_root, location_dict, sg, descriptor_type)
 
     elif location_dict.get("type") == "shotgun":
-        return IODescriptorShotgunEntity(bundle_cache_root, location_dict, sg)
+        descriptor = IODescriptorShotgunEntity(bundle_cache_root, location_dict, sg)
 
     elif location_dict.get("type") == "manual":
-        return IODescriptorManual(bundle_cache_root, location_dict)
+        descriptor = IODescriptorManual(bundle_cache_root, location_dict)
 
     elif location_dict.get("type") == "git":
-        return IODescriptorGit(bundle_cache_root, location_dict)
+        descriptor = IODescriptorGit(bundle_cache_root, location_dict)
 
     elif location_dict.get("type") == "dev":
-        return IODescriptorDev(bundle_cache_root, location_dict)
+        descriptor = IODescriptorDev(bundle_cache_root, location_dict)
 
     elif location_dict.get("type") == "git_dev":
-        return IODescriptorGitDev(bundle_cache_root, location_dict)
+        descriptor = IODescriptorGitDev(bundle_cache_root, location_dict)
 
     elif location_dict.get("type") == "path":
-        return IODescriptorPath(bundle_cache_root, location_dict)
+        descriptor = IODescriptorPath(bundle_cache_root, location_dict)
 
     elif location_dict.get("type") == "shotgun_uploaded_configuration":
-        return IODescriptorUploadedConfig(bundle_cache_root, location_dict, sg)
+        descriptor = IODescriptorUploadedConfig(bundle_cache_root, location_dict, sg)
 
     else:
         raise ShotgunDeployError("Invalid location dict '%s'" % location_dict)
+
+    log.debug("Resolved %s -> %r" % (location_dict, descriptor))
+
+    if constants.LATEST_DESCRIPTOR_KEYWORD in location_dict.get("version"):
+        log.debug("Latest keyword detected. Searching for latest version...")
+        descriptor = descriptor.get_latest_version()
+        log.debug("Resolved latest to be %r" % descriptor)
+
+
+    return descriptor
