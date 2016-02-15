@@ -15,7 +15,7 @@ from .. import yaml
 from ..shotgun_base import copy_folder
 from .errors import ShotgunDeployError
 from .descriptor import Descriptor
-from .descriptor_io.git_dev import IODescriptorGitDev
+from .descriptor_io.git import IODescriptorGit
 from . import util
 
 log = util.get_shotgun_deploy_logger()
@@ -153,13 +153,4 @@ class ConfigDescriptor(Descriptor):
         :param target_folder:
         :return:
         """
-        if isinstance(self._io_descriptor, IODescriptorGitDev):
-            # clone git descriptor
-            # @todo - at some point we may need to tighten up the
-            #         design around this and have better encapsulation
-            self._io_descriptor.clone(target_folder)
-        else:
-            # make sure config exists
-            self.ensure_local()
-            # copy descriptor in
-            copy_folder(self.get_path(), target_folder)
+        self._io_descriptor.copy(target_folder)

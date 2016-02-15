@@ -26,7 +26,11 @@ class IODescriptorGit(IODescriptorBase):
     """
     Represents a repository in git. New versions are represented by new tags.
 
-    # location: {"type": "git", "path": "/path/to/repo.git", "version": "v0.2.1"}
+    Tag format:
+    location: {"type": "git", "path": "/path/to/repo.git", "version": "v0.2.1"}
+
+    Branch format:
+    location: {"type": "git", "path": "/path/to/repo.git", "version": "master"}
 
     path can be on the form:
 
@@ -97,7 +101,7 @@ class IODescriptorGit(IODescriptorBase):
         cwd = os.getcwd()
         try:
             # clone the repo
-            self.__clone_repo(clone_tmp)
+            self._clone_repo(clone_tmp)
             os.chdir(clone_tmp)            
             execute_git_command("archive --format zip --output %s %s" % (zip_tmp, self._version))
         finally:
@@ -105,6 +109,23 @@ class IODescriptorGit(IODescriptorBase):
         
         # unzip core zip file to app target location
         unzip_file(zip_tmp, target)
+
+    def copy(self, target_path):
+        """
+        Copy the contents of the descriptor to an external location
+
+        :param target_path: target path
+        """
+        log.debug("Copying %r -> %s" % (self, target_path))
+        # now clone and archive
+        cwd = os.getcwd()
+        try:
+            # clone the repo
+            self._clone_repo(target_path)
+            execute_git_command("checkout %s -q" % self._version)
+        finally:
+            os.chdir(cwd)
+
 
     def get_latest_version(self, constraint_pattern=None):
         """
@@ -147,7 +168,7 @@ class IODescriptorGit(IODescriptorBase):
         cwd = os.getcwd()
         try:
             # clone the repo
-            self.__clone_repo(clone_tmp)
+            self._clone_repo(clone_tmp)
             os.chdir(clone_tmp)
             
             try:
@@ -184,7 +205,7 @@ class IODescriptorGit(IODescriptorBase):
         cwd = os.getcwd()
         try:
             # clone the repo
-            self.__clone_repo(clone_tmp)
+            self._clone_repo(clone_tmp)
             os.chdir(clone_tmp)
             
             try:
@@ -205,15 +226,18 @@ class IODescriptorGit(IODescriptorBase):
 
         return IODescriptorGit(self._bundle_cache_root, new_loc_dict)
 
-    def __clone_repo(self, target_path):
+    def _clone_repo(self, target_path):
         """
         Clone the repo into the target path
-        
+
         :param target_path: The target path to clone the repo to
         :raises:            TankError if the clone command fails
         """
-        # Note: git doesn't like paths in single quotes when running on 
+        # Note: git doesn't like paths in single quotes when running on
         # windows - it also prefers to use forward slashes!
-        sanitized_repo_path = self._path.replace(os.path.sep, "/")        
+        log.debug("Git Cloning %r into %s" % (self, target_path))
+        sanitized_repo_path = self._path.replace(os.path.sep, "/")
         execute_git_command("clone -q \"%s\" \"%s\"" % (sanitized_repo_path, target_path))
+
+
 

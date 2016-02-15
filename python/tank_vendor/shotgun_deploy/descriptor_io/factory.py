@@ -51,10 +51,6 @@ def uri_to_dict(location_uri):
         #@todo - add
         pass
 
-    elif descriptor_type == "git_dev":
-        #@todo - add
-        pass
-
     elif descriptor_type == "path":
         #@todo - add
         pass
@@ -87,7 +83,6 @@ def create_io_descriptor(sg, descriptor_type, location_dict, bundle_cache_root):
     from .uploaded_pipeline_config import IODescriptorUploadedConfig
     from .shotgun_entity import IODescriptorShotgunEntity
     from .git import IODescriptorGit
-    from .git_dev import IODescriptorGitDev
     from .manual import IODescriptorManual
 
     if location_dict.get("type") == "app_store":
@@ -104,9 +99,6 @@ def create_io_descriptor(sg, descriptor_type, location_dict, bundle_cache_root):
 
     elif location_dict.get("type") == "dev":
         descriptor = IODescriptorDev(bundle_cache_root, location_dict)
-
-    elif location_dict.get("type") == "git_dev":
-        descriptor = IODescriptorGitDev(bundle_cache_root, location_dict)
 
     elif location_dict.get("type") == "path":
         descriptor = IODescriptorPath(bundle_cache_root, location_dict)

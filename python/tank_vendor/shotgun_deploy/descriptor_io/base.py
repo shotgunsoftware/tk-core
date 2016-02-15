@@ -14,6 +14,7 @@ import sys
 from .. import constants
 from ... import yaml
 from ..errors import ShotgunDeployError
+from ...shotgun_base import copy_folder
 from .. import util
 log = util.get_shotgun_deploy_logger()
 
@@ -226,6 +227,19 @@ class IODescriptorBase(object):
             version_to_use = version_to_use + ".%d" % version_digit
 
         return version_to_use
+
+    def copy(self, target_path):
+        """
+        Copy the contents of the descriptor to an external location
+
+        :param target_path: target path
+        """
+        log.debug("Copying %r -> %s" % (self, target_path))
+        # base class implementation does a straight copy
+        # make sure config exists
+        self.ensure_local()
+        # copy descriptor in
+        copy_folder(self.get_path(), target_path)
 
     def get_manifest(self):
         """
