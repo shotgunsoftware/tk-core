@@ -15,9 +15,7 @@ import stat
 import shutil
 from .log import get_sgtk_logger
 
-
 log = get_sgtk_logger("base")
-
 
 def append_folder_to_path(os_name, base, folder_name):
     """
