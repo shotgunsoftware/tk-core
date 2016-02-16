@@ -519,10 +519,12 @@ class ToolkitManager(object):
 
         elif attachment_data["link_type"] == "upload":
             config_location = {
-                "type": "shotgun_uploaded_configuration",
+                "type": "shotgun",
+                "entity_type": "PipelineConfiguration",
                 "project_id": project_id,
                 "name": pc_name,
-                "attachment_id": attachment_data["id"]
+                "field": constants.SHOTGUN_PIPELINECONFIG_ATTACHMENT_FIELD,
+                "version": attachment_data["id"]
             }
 
         elif attachment_data["link_type"] == "local":

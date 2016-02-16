@@ -12,8 +12,6 @@ import os
 import uuid
 import tempfile
 
-import cPickle as pickle
-
 from ..zipfilehelper import unzip_file
 from .base import IODescriptorBase
 
@@ -31,14 +29,31 @@ json = shotgun_api3.shotgun.json
 
 log = util.get_shotgun_deploy_logger()
 
-METADATA_FILE = ".cached_metadata.pickle"
-
 
 class IODescriptorShotgunEntity(IODescriptorBase):
     """
     Represents a shotgun entity to which apps have been attached.
 
-    {type: shotgun, entity_type: CustomEntity01, name: tk-foo, version: v0.1.2}
+    {
+     type: shotgun,
+     entity_type: CustomEntity01,   # entity type
+     name: tk-foo,                  # name of the record in shotgun (e.g. 'code' field)
+     project_id: 123,               # optional project id. If omitted, name is assumed to be unique.
+     field: sg_config,              # attachment field where payload can be found
+     version: 456                   # attachment id of particular attachment
+    }
+
+    This can for example be used for attaching items to a pipeline configuration.
+    Create an attachment field named sg_config, upload a zip file, and use the following
+    descriptor:
+
+    {type: shotgun, entity_type: PipelineConfiguration,
+     name: primary, project_id: 123, field: sg_config, version: 1341}
+
+    When a new zip file is uploaded, the attachment id (e.g. version) changes, resulting in
+    a new descriptor.
+
+    The latest version is defined as the current record available in Shotgun.
     """
 
     def __init__(self, bundle_cache_root, location_dict, sg_connection):
@@ -56,72 +71,13 @@ class IODescriptorShotgunEntity(IODescriptorBase):
         self._entity_type = location_dict.get("entity_type")
         self._name = location_dict.get("name")
         self._version = location_dict.get("version")
-        # cached metadata - loaded on demand
-        self.__cached_metadata = None
+        self._field = location_dict.get("field")
 
-    def _get_app_store_metadata(self):
-        """
-        Returns a metadata dictionary for this particular location.
-        The manner in which this is being retrieved depends on the state of the descriptor.
+        self._project_link = None
+        if "project_id" in location_dict:
+            self._project_link = {"type": "Project", "id": location_dict["project_id"]}
 
-        - First it will see if it has already been loaded into this class instance. In that
-          case it will make a copy of the dict and return that.
-        - Secondly it will look for a local cache file. This is normally present if the
-          app/engine is installed locally.
-        - Failing this, it will connect to shotgun and download it from the app store.
-        """
-
-        if self.__cached_metadata is None:
-            # no locally loaded. Try to load from disk
-            cache_file = os.path.join(self.get_path(), METADATA_FILE)
-            if os.path.exists(cache_file):
-                # try to load
-                try:
-                    fp = open(cache_file, "rt")
-                    self.__cached_metadata = pickle.load(fp)
-                    fp.close()
-                except Exception:
-                    pass
-
-        if self.__cached_metadata is None:
-            # load from disk failed. Get from shotgun
-            self.__cached_metadata = self.__download_app_store_metadata()
-
-        # finally return the data!
-        return self.__cached_metadata
-
-    def __download_app_store_metadata(self):
-        """
-        Fetches metadata about the app from the tank app store
-        returns a dictionary with a bundle key and a version key.
-        """
-        data = self._sg_connection.find_one(
-            self._entity_type,
-            [["code", "is", self._name],
-             [constants.ENTITY_DESCRIPTOR_VERSION_FIELD , "is", self._version]],
-            ["description", constants.ENTITY_DESCRIPTOR_PAYLOAD_FIELD]
-        )
-
-        if data is None:
-            raise ShotgunDeployError("%s not found in %s" % (self._location_dict, self._sg_connection.base_url))
-
-        if data[constants.ENTITY_DESCRIPTOR_PAYLOAD_FIELD] is None:
-            raise ShotgunDeployError("Cannot find zip contents for %s" % self._location_dict)
-
-        # cache it on disk
-        folder = self.get_path()
-
-        try:
-            ensure_folder_exists(folder)
-            fp = open(os.path.join(folder, METADATA_FILE), "wt")
-            pickle.dump(data, fp)
-            fp.close()
-        except Exception:
-            # fail gracefully - this is only a cache!
-            pass
-
-        return data
-
+        self._project_id = location_dict.get("project_id")
 
     ###############################################################################################
     # data accessors
@@ -131,33 +87,29 @@ class IODescriptorShotgunEntity(IODescriptorBase):
         Returns a short name, suitable for use in configuration files
         and for folders on disk
         """
-        return self._name
+        if self._project_id:
+            name = "p%s_%s" % (self._project_id, self._name)
+        else:
+            name = self._name
+        return util.create_valid_filename(name)
 
     def get_version(self):
         """
-        Returns the version number string for this item
+        Returns the version number string for this item.
+
+        In this case, this is the shotgun attachment id that is linked with the
         """
-        return self._version
+        return "v%s" % self._version
 
     def get_path(self):
         """
         returns the path to the folder where this item resides
         """
-        return self._get_local_location("sg", self.get_system_name(), self.get_version())
-
-    def get_changelog(self):
-        """
-        Returns information about the changelog for this item.
-        Returns a tuple: (changelog_summary, changelog_url). Values may be None
-        to indicate that no changelog exists.
-        """
-        summary = None
-        metadata = self._get_app_store_metadata()
-        try:
-            summary = metadata.get("description")
-        except:
-            pass
-        return (summary, None)
+        return self._get_local_location(
+            "sg",
+            self._entity_type,
+            self.get_system_name(),
+            self.get_version())
 
     def download_local(self):
         """
@@ -171,28 +123,14 @@ class IODescriptorShotgunEntity(IODescriptorBase):
         target = self.get_path()
         ensure_folder_exists(target)
 
-        # get metadata from sg...
-        metadata = self._get_app_store_metadata()
-
-        # attachment field is on the following form in the case a file has been uploaded:
-        #  {'name': 'v1.2.3.zip',
-        #  'url': 'https://sg-media-usor-01.s3.amazonaws.com/...',
-        #  'content_type': 'application/zip',
-        #  'type': 'Attachment',
-        #  'id': 139,
-        #  'link_type': 'upload'}
-        attachment_id = metadata[constants.ENTITY_DESCRIPTOR_PAYLOAD_FIELD]["id"]
-
         # and now for the download.
         # @todo: progress feedback here - when the SG api supports it!
         # sometimes people report that this download fails (because of flaky connections etc)
-        # engines can often be 30-50MiB - as a quick fix, just retry the download once
-        # if it fails.
         try:
-            bundle_content = self._sg_connection.download_attachment(attachment_id)
+            bundle_content = self._sg_connection.download_attachment(self._version)
         except:
             # retry once
-            bundle_content = self._sg_connection.download_attachment(attachment_id)
+            bundle_content = self._sg_connection.download_attachment(self._version)
 
         zip_tmp = os.path.join(tempfile.gettempdir(), "%s_tank.zip" % uuid.uuid4().hex)
         fh = open(zip_tmp, "wb")
@@ -223,80 +161,47 @@ class IODescriptorShotgunEntity(IODescriptorBase):
         :returns: descriptor object
         """
         if constraint_pattern:
-            return self._find_latest_for_pattern(constraint_pattern)
-        else:
-            return self._find_latest()
+            raise ShotgunDeployError("%s does not support version constraint patterns." % constraint_pattern)
 
-    def _find_latest_for_pattern(self, name, version_pattern):
-        """
-        Returns an IODescriptorAppStore object representing the latest version
-        of the sought after object. If no matching item is found, an
-        exception is raised.
+        log.debug("Finding latest version of %s..." % self)
 
-        the version_pattern parameter can be on the following forms:
-        
-        - v0.1.2, v0.12.3.2, v0.1.3beta - a specific version
-        - v0.12.x - get the highest v0.12 version
-        - v1.x.x - get the highest v1 version 
+        # in the case of a pipeline configuration, simply fetch the current pipeline configuration attachment
+        # and build a descriptor based on that
 
-        :returns: IODescriptorAppStore instance
-        """
-        sg_data = self._sg_connection.find(
-            self._entity_type,
-            [["code", "is", self._name]],
-            [constants.ENTITY_DESCRIPTOR_VERSION_FIELD]
-        )
+        filters = [["code", "is", self._name]]
+        if self._project_link:
+            filters.append(["project", "is", self._project_link])
 
-        if len(sg_data) == 0:
-            raise ShotgunDeployError(
-                "Cannot find any versions for %s in %s!" % (self._name, self._sg_connection.base_url)
-            )
+        data = self._sg_connection.find_one(self._entity_type, filters, [self._field])
 
-        version_numbers = [x.get(constants.ENTITY_DESCRIPTOR_VERSION_FIELD) for x in sg_data]
-        version_to_use = self._find_latest_tag_by_pattern(version_numbers, version_pattern)
+        # attachment field is on the following form in the case a file has been
+        # uploaded:
+        #  {'name': 'v1.2.3.zip',
+        #  'url': 'https://sg-media-usor-01.s3.amazonaws.com/...',
+        #  'content_type': 'application/zip',
+        #  'type': 'Attachment',
+        #  'id': 139,
+        #  'link_type': 'upload'}
+
+        if data is None:
+            raise ShotgunDeployError("Cannot find a pipeline configuration named '%s'!" % self._name)
+
+        if data[self._field].get("link_type") != "upload":
+            raise ShotgunDeployError("Latest version of %s is not an uploaded file: %s" % (self, data))
+
+        attachment_id = data[self._field]["id"]
 
         # make a location dict
         location_dict = {"type": "shotgun",
                          "entity_type": self._entity_type,
+                         "field": self._field,
                          "name": self._name,
-                         "version": version_to_use}
+                         "version": attachment_id}
+
+        if self._project_link:
+            location_dict[self._project_id] = self._project_id
 
         # and return a descriptor instance
         desc = IODescriptorShotgunEntity(self._bundle_cache_root, location_dict, self._sg_connection)
-
+        log.debug("Latest version resolved to %s" % desc)
         return desc
-
-    def _find_latest(self):
-        """
-        Returns an IODescriptorAppStore object representing the latest version
-        of the sought after object. If no matching item is found, an
-        exception is raised.
-
-        :returns: IODescriptorAppStore instance
-        """
-        sg_version_data = self._sg_connection.find_one(
-            self._entity_type,
-            [["code", "is", self._name]],
-            [constants.ENTITY_DESCRIPTOR_VERSION_FIELD]
-        )
-
-        if sg_version_data is None:
-            raise ShotgunDeployError(
-                "Cannot find any versions for %s in %s!" % (self._name, self._sg_connection.base_url)
-            )
-
-        version_str = sg_version_data.get(constants.ENTITY_DESCRIPTOR_VERSION_FIELD)
-        if version_str is None:
-            raise ShotgunDeployError("Invalid version number for %s" % sg_version_data)
-
-        # make a location dict
-        location_dict = {"type": "shotgun",
-                         "entity_type": self._entity_type,
-                         "name": self._name, 
-                         "version": version_str}
-
-        # and return a descriptor instance
-        desc = IODescriptorShotgunEntity(self._bundle_cache_root, location_dict, self._sg_connection)
-        
-        return desc
-

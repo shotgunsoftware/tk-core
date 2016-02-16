@@ -33,9 +33,15 @@ def uri_to_dict(location_uri):
         location_dict["version"] = chunks[3]
 
     elif descriptor_type == "shotgun":
-        #@todo - add
-        pass
+        # sgtk:shotgun:PipelineConfiguration:sg_config:primary:p123:v456
+        location_dict["entity_type"] = chunks[2]
+        location_dict["field"] = chunks[3]
+        location_dict["name"] = chunks[4]
 
+        if chunks[5].startswith("p"):
+            location_dict["project_id"] = int(chunks[5][1:])
+
+        location_dict["version"] = int(chunks[6][1:])
 
     elif descriptor_type == "manual":
         # sgtk:manual:tk-core:v12.3.4
@@ -44,18 +50,14 @@ def uri_to_dict(location_uri):
 
     elif descriptor_type == "git":
         # sgtk:git:git/path:v12.3.4
-        #@todo - add
-        pass
+        location_dict["path"] = chunks[2]
+        location_dict["version"] = chunks[3]
 
     elif descriptor_type == "dev":
         #@todo - add
         pass
 
     elif descriptor_type == "path":
-        #@todo - add
-        pass
-
-    elif descriptor_type == "shotgun_uploaded_configuration":
         #@todo - add
         pass
 
@@ -80,7 +82,6 @@ def create_io_descriptor(sg, descriptor_type, location_dict, bundle_cache_root):
     from .appstore import IODescriptorAppStore
     from .dev import IODescriptorDev
     from .path import IODescriptorPath
-    from .uploaded_pipeline_config import IODescriptorUploadedConfig
     from .shotgun_entity import IODescriptorShotgunEntity
     from .git import IODescriptorGit
     from .manual import IODescriptorManual
@@ -102,9 +103,6 @@ def create_io_descriptor(sg, descriptor_type, location_dict, bundle_cache_root):
 
     elif location_dict.get("type") == "path":
         descriptor = IODescriptorPath(bundle_cache_root, location_dict)
-
-    elif location_dict.get("type") == "shotgun_uploaded_configuration":
-        descriptor = IODescriptorUploadedConfig(bundle_cache_root, location_dict, sg)
 
     else:
         raise ShotgunDeployError("Unknown location type for '%s'" % location_dict)

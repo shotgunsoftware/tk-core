@@ -82,11 +82,6 @@ PRIMARY_PIPELINE_CONFIG_NAME = "Primary"
 
 UNMANAGED_PIPELINE_CONFIG_NAME = "Unmanaged"
 
-ENTITY_DESCRIPTOR_VERSION_FIELD = "sg_version"
-
-ENTITY_DESCRIPTOR_PAYLOAD_FIELD = "sg_payload"
-
-
 LATEST_DESCRIPTOR_KEYWORD = "latest"
 
 # shotgun desktop python installations
