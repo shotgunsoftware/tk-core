@@ -15,17 +15,10 @@ import tempfile
 from ..zipfilehelper import unzip_file
 from .base import IODescriptorBase
 
-from .. import constants
-
 from ..errors import ShotgunDeployError
 from ...shotgun_base import ensure_folder_exists
 
-
 from .. import util
-
-# use api json to cover py 2.5
-from ... import shotgun_api3
-json = shotgun_api3.shotgun.json
 
 log = util.get_shotgun_deploy_logger()
 
@@ -66,6 +59,12 @@ class IODescriptorShotgunEntity(IODescriptorBase):
         :return: Descriptor instance
         """
         super(IODescriptorShotgunEntity, self).__init__(bundle_cache_root, location_dict)
+
+        self._validate_locator(
+            location_dict,
+            required=["type", "entity_type", "name", "version", "field"],
+            optional=["project_id"]
+        )
 
         self._sg_connection = sg_connection
         self._entity_type = location_dict.get("entity_type")

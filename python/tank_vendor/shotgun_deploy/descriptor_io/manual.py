@@ -19,6 +19,13 @@ class IODescriptorManual(IODescriptorBase):
 
     def __init__(self, bundle_cache_root, location_dict):
         super(IODescriptorManual, self).__init__(bundle_cache_root, location_dict)
+
+        self._validate_locator(
+            location_dict,
+            required=["type", "name", "version"],
+            optional=[]
+        )
+
         self._name = location_dict.get("name")
         self._version = location_dict.get("version")
 

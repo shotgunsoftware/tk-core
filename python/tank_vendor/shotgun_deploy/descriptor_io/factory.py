@@ -33,7 +33,8 @@ def uri_to_dict(location_uri):
         location_dict["version"] = chunks[3]
 
     elif descriptor_type == "shotgun":
-        # sgtk:shotgun:PipelineConfiguration:sg_config:primary:p123:v456
+        # sgtk:shotgun:PipelineConfiguration:sg_config:primary:p123:v456    # with project id
+        # sgtk:shotgun:PipelineConfiguration:sg_config:primary::v456        # without project id
         location_dict["entity_type"] = chunks[2]
         location_dict["field"] = chunks[3]
         location_dict["name"] = chunks[4]

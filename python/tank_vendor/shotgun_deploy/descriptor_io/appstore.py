@@ -108,9 +108,6 @@ class IODescriptorAppStore(IODescriptorBase):
         # cached metadata - loaded on demand
         self.__cached_metadata = None
 
-        if self._version is None or self._name is None:
-            raise ShotgunDeployError("Descriptor is not valid: %s" % str(location_dict))
-
     def _remove_app_store_metadata(self):
         """
         Clears the app store metadata that is cached on disk.

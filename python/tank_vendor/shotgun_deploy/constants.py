@@ -65,26 +65,38 @@ CONFIG_README_FILE = "README"
 # config file with information about which core to use
 CONFIG_CORE_LOCATION_FILE = "core_api.yml"
 
+# file where info about the configuration is cached
 CONFIG_INFO_CACHE = "config_info.yml"
 
+# the file that defines which storages a configuration requires
 STORAGE_ROOTS_FILE = "roots.yml"
 
+# the implied main storage
 PRIMARY_STORAGE_NAME = "primary"
 
+# Configuration file containing shotgun site details
 CONFIG_SHOTGUN_FILE = "shotgun.yml"
 
+# Configuration file containing setup and path details
 PIPELINECONFIG_FILE = "pipeline_configuration.yml"
 
 # field used to upload a config
 SHOTGUN_PIPELINECONFIG_ATTACHMENT_FIELD = "sg_config"
 
+# field used
+
+# The name of the primary pipeline config
 PRIMARY_PIPELINE_CONFIG_NAME = "Primary"
 
+# The name of an unmanaged pipeline config
+# Unmanaged pipeline configs don't have a corresponding
+# record in Shotgun.
 UNMANAGED_PIPELINE_CONFIG_NAME = "Unmanaged"
 
+# descriptor keyword denoting the latest version number
 LATEST_DESCRIPTOR_KEYWORD = "latest"
 
-# shotgun desktop python installations
+# default shotgun desktop python installations
 DESKTOP_PYTHON_MAC = "/Applications/Shotgun.app/Contents/Resources/Python/bin/python"
 DESKTOP_PYTHON_WIN = "C:\\Program Files\\Shotgun\\Python\\python.exe"
 DESKTOP_PYTHON_LINUX = "/opt/Shotgun/Python/bin/python"

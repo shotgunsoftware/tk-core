@@ -43,15 +43,18 @@ class IODescriptorGit(IODescriptorBase):
     def __init__(self, bundle_cache_root, location_dict):
         super(IODescriptorGit, self).__init__(bundle_cache_root, location_dict)
 
+        self._validate_locator(
+            location_dict,
+            required=["type", "path", "version"],
+            optional=[]
+        )
+
         self._path = location_dict.get("path")
         # strip trailing slashes - this is so that when we build
         # the name later (using os.basename) we construct it correctly.
         if self._path.endswith("/") or self._path.endswith("\\"):
             self._path = self._path[:-1]
         self._version = location_dict.get("version")
-
-        if self._path is None or self._version is None:
-            raise ShotgunDeployError("Git descriptor is not valid: %s" % str(location_dict))
 
 
     def get_system_name(self):
