@@ -9,15 +9,23 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 import os
 
-from .. import constants
 from .base import IODescriptorBase
 
 class IODescriptorManual(IODescriptorBase):
     """
-    Represents a manually installed item
+    Represents a manually installed item.
+
+    This descriptor type is largely deprecated. Please do not use.
     """
 
     def __init__(self, bundle_cache_root, location_dict):
+        """
+        Constructor
+
+        :param bundle_cache_root: Location on disk where items are cached
+        :param location_dict: Location dictionary describing the bundle
+        :return: Descriptor instance
+        """
         super(IODescriptorManual, self).__init__(bundle_cache_root, location_dict)
 
         self._validate_locator(
@@ -32,13 +40,13 @@ class IODescriptorManual(IODescriptorBase):
     def get_system_name(self):
         """
         Returns a short name, suitable for use in configuration files
-        and for folders on disk
+        and for folders on disk, e.g. 'tk-maya'
         """
         return self._name
 
     def get_version(self):
         """
-        Returns the version number string for this item
+        Returns the version number string for this item, .e.g 'v1.2.3'
         """
         return self._version
 

@@ -97,6 +97,23 @@ def copy_file(src, dst, permissions=0555):
     finally:
         os.umask(old_umask)
 
+def safe_delete_file(path):
+    """
+    Deletes the given file if it exists.
+    Ignores any errors raised in the process.
+    If the user does not have sufficent permissions to
+    remove the file, nothing will happen, it will simply
+    be skipped over.
+
+    :param path: Full path to file to remove
+    """
+    try:
+        if os.path.exists(path):
+            os.remove(path)
+    except Exception, e:
+        log.warning("File '%s' could not be deleted, skipping: %s" % (path, e))
+
+
 def copy_folder(src, dst, folder_permissions=0775):
     """
     Alternative implementation to shutil.copytree

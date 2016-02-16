@@ -11,25 +11,34 @@
 import os
 import re
 import sys
-from .. import constants
-from ... import yaml
-from ..errors import ShotgunDeployError
-from ...shotgun_base import copy_folder
+
 from .. import util
+from .. import constants
+from ..errors import ShotgunDeployError
+
+from ...shotgun_base import copy_folder
+from ... import yaml
+
+
 log = util.get_shotgun_deploy_logger()
 
 class IODescriptorBase(object):
     """
-    An app descriptor describes a particular version of an app, engine or core component.
+    An I/O descriptor describes a particular version of an app, engine or core component.
     It also knows how to access metadata such as documentation, descriptions etc.
 
-    Several AppDescriptor classes exists, all deriving from this base class, and the
+    Several Descriptor classes exists, all deriving from this base class, and the
     factory method create_descriptor() manufactures the correct descriptor object
     based on a location dict, that is found inside of the environment config.
 
     Different App Descriptor implementations typically handle different source control
     systems: There may be an app descriptor which knows how to communicate with the
     Tank App store and one which knows how to handle the local file system.
+
+    A descriptor is immutable in the sense that it always points at the same code -
+    this may be a particular frozen version out of that toolkit app store that
+    will not change or it may be a dev area where the code can change. Given this,
+    descriptors are cached and only constructed once for a given descriptor URL.
     """
 
     _instances = dict()
@@ -46,7 +55,7 @@ class IODescriptorBase(object):
 
         :param bundle_cache_root: Root location for bundle cache
         :param location_dict: Location dictionary describing the bundle
-        :return: Descriptor instance
+        :returns: Descriptor instance
         """
         instance_cache = cls._instances
 
@@ -82,12 +91,15 @@ class IODescriptorBase(object):
         self.__manifest_data = None
 
     def __repr__(self):
+        """
+        Low level representation
+        """
         class_name = self.__class__.__name__
         return "<%s %s %s>" % (class_name, self.get_system_name(), self.get_version())
 
     def _validate_locator(self, location, required, optional):
         """
-        Validate that the locator dictionary has got the necessary keys
+        Validate that the locator dictionary has got the necessary keys.
 
         Raises ShotgunDeployError if required parameters are missing.
         Logs warnings if parameters outside the required/optional range are specified.
@@ -115,7 +127,8 @@ class IODescriptorBase(object):
 
     def _find_latest_tag_by_pattern(self, version_numbers, pattern):
         """
-        Given a list of version strings (e.g. 'v1.2.3'), find the one that best matches the given pattern.
+        Given a list of version strings (e.g. 'v1.2.3'), find the one
+        that best matches the given pattern.
 
         Version numbers passed in that don't match the pattern v1.2.3... will be ignored.
 
@@ -128,7 +141,7 @@ class IODescriptorBase(object):
             - v1.2.3.x (will always return a forked version, eg. v1.2.3.2)
 
         :returns: The most appropriate tag in the given list of tags
-        :raises: TankError if parsing fails
+        :raises: ShotgunDeployError if parsing fails
         """
         # now put all version number strings which match the form
         # vX.Y.Z(.*) into a nested dictionary where it is keyed recursively
@@ -183,7 +196,10 @@ class IODescriptorBase(object):
             # check that we don't have an incorrect pattern using x
             # then a digit, eg. v4.x.2
             if re.match("^v[0-9\.]+[x\.]+[0-9\.]+$", pattern):
-                raise ShotgunDeployError("Incorrect version pattern '%s'. There should be no digit after a 'x'." % pattern)
+                raise ShotgunDeployError(
+                    "Incorrect version pattern '%s'. "
+                    "There should be no digit after a 'x'." % pattern
+                )
 
         current = versions
         version_to_use = None
@@ -194,8 +210,10 @@ class IODescriptorBase(object):
                 version_digit = max(current.keys(), key=int)
             version_digit = int(version_digit)
             if version_digit not in current:
-                raise ShotgunDeployError("%s does not have a version matching the pattern '%s'. "
-                                "Available versions are: %s" % (self._path, pattern, ", ".join(version_numbers)))
+                raise ShotgunDeployError(
+                    "%s does not have a version matching the pattern '%s'. "
+                    "Available versions are: %s" % (self._path, pattern, ", ".join(version_numbers))
+                )
             current = current[version_digit]
             if version_to_use is None:
                 version_to_use = "v%d" % version_digit
@@ -216,7 +234,7 @@ class IODescriptorBase(object):
         """
         Copy the contents of the descriptor to an external location
 
-        :param target_path: target path
+        :param target_path: target path to copy the descriptor to.
         """
         log.debug("Copying %r -> %s" % (self, target_path))
         # base class implementation does a straight copy
@@ -231,13 +249,14 @@ class IODescriptorBase(object):
         Note that this call involves deep introspection; in order to
         access the metadata we normally need to have the code content
         local, so this method may trigger a remote code fetch if necessary.
+
+        :returns: dictionary with the contents of info.yml
         """
         if self.__manifest_data is None:
             # make sure payload exists locally
             if not self.exists_local():
                 # @todo - at this point add to a metadata cache for performance
-                # note - cannot cache dev descriptors - these do not have an immutal info.yml
-
+                #         note - cannot cache dev descriptors - these do not have an immutal info.yml
                 self.download_local()
 
             # get the metadata
@@ -261,7 +280,6 @@ class IODescriptorBase(object):
 
         return self.__manifest_data
 
-
     def get_location(self):
         """
         Returns the location dict associated with this descriptor
@@ -270,40 +288,25 @@ class IODescriptorBase(object):
 
     def get_deprecation_status(self):
         """
-        Returns (is_deprecated (bool), message (str)) to indicate if this item is deprecated.
+        Returns information about deprecation.
+
+        :returns: Returns a tuple (is_deprecated, message) to indicate
+                  if this item is deprecated.
         """
         # only some descriptors handle this. Default is to not support deprecation, e.g.
         # always return that things are active.
         return False, ""
 
-
-    ###############################################################################################
-    # stuff typically implemented by deriving classes
-    
-    def get_system_name(self):
-        """
-        Returns a short name, suitable for use in configuration files
-        and for folders on disk
-        """
-        raise NotImplementedError
-    
-    def get_version(self):
-        """
-        Returns the version number string for this item.
-        """
-        raise NotImplementedError    
-    
-    def get_path(self):
-        """
-        returns the path to the folder where this item resides
-        """
-        raise NotImplementedError
-
     def get_platform_path(self, platform):
         """
         Returns the path to the descriptor on the given platform.
         If the location is not known, None is returned.
-        get_platform_path(sys.platform) is equivalent of get_path()
+
+        The call ``get_platform_path(sys.platform)`` is equivalent to ``get_path()``
+
+        :param platform: sys.platform-style operating system string, e.g.
+                         'win32', 'linux2', 'darwin'
+        :returns: Path to the given platform or None if not known.
         """
         if platform == sys.platform:
             return self.get_path()
@@ -313,11 +316,12 @@ class IODescriptorBase(object):
     def get_changelog(self):
         """
         Returns information about the changelog for this item.
-        Returns a tuple: (changelog_summary, changelog_url). Values may be None
-        to indicate that no changelog exists.
+
+        :returns: A tuple (changelog_summary, changelog_url). Values may be None
+                  to indicate that no changelog exists.
         """
         return (None, None)
-    
+
     def exists_local(self):
         """
         Returns true if this item exists in a locally accessible form
@@ -334,14 +338,39 @@ class IODescriptorBase(object):
 
     def is_immutable(self):
         """
-        Returns true if this items content never changes
+        Returns true if this item's content never changes
         """
         return True
 
     def ensure_local(self):
+        """
+        Convenience method. Ensures that the descriptor exists locally.
+        """
         if not self.exists_local():
             log.debug("Downloading %s to the local Toolkit install location..." % self)
             self.download_local()
+
+    ###############################################################################################
+    # stuff typically implemented by deriving classes
+    
+    def get_system_name(self):
+        """
+        Returns a short name, suitable for use in configuration files
+        and for folders on disk, e.g. 'tk-maya'
+        """
+        raise NotImplementedError
+    
+    def get_version(self):
+        """
+        Returns the version number string for this item, .e.g 'v1.2.3'
+        """
+        raise NotImplementedError    
+    
+    def get_path(self):
+        """
+        returns the path to the folder where this item resides
+        """
+        raise NotImplementedError
 
     def download_local(self):
         """
@@ -352,15 +381,17 @@ class IODescriptorBase(object):
     def get_latest_version(self, constraint_pattern=None):
         """
         Returns a descriptor object that represents the latest version.
-        
+
         :param constraint_pattern: If this is specified, the query will be constrained
-        by the given pattern. Version patterns are on the following forms:
-        
-            - v1.2.3 (means the descriptor returned will inevitably be same as self)
-            - v1.2.x 
-            - v1.x.x
+               by the given pattern. Version patterns are on the following forms:
+
+                - v0.1.2, v0.12.3.2, v0.1.3beta - a specific version
+                - v0.12.x - get the highest v0.12 version
+                - v1.x.x - get the highest v1 version
 
         :returns: descriptor object
         """
         raise NotImplementedError
+
+
 

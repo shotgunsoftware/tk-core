@@ -9,26 +9,20 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import copy
 import uuid
 import tempfile
-
+import urllib
+import urllib2
 import cPickle as pickle
 
 from ..zipfilehelper import unzip_file
-from .base import IODescriptorBase
-
-from .. import constants
-
 from ..descriptor import Descriptor
-
 from ..errors import ShotgunDeployError, ShotgunAppStoreError
-from ...shotgun_base import ensure_folder_exists
-
-import urllib
-import urllib2
+from ...shotgun_base import ensure_folder_exists, safe_delete_file
 
 from .. import util
+from .. import constants
+from .base import IODescriptorBase
 
 # use api json to cover py 2.5
 from ... import shotgun_api3
@@ -36,12 +30,20 @@ json = shotgun_api3.shotgun.json
 
 log = util.get_shotgun_deploy_logger()
 
+# file where we cache the app store metadata for an item
 METADATA_FILE = ".cached_metadata.pickle"
-
 
 class IODescriptorAppStore(IODescriptorBase):
     """
-    Represents an app store item.
+    Represents a toolkit app store item.
+
+    Short syntax:
+        sgtk:app_store:tk-core:v12.3.4
+        sgtk:app_store:NAME:VERSION
+
+    Dictionary syntax:
+        {type: app_store, name: tk-core, version: v12.3.4}
+        {type: app_store, name: NAME, version: VERSION}
     """
 
     # cache app store connections for performance
@@ -111,7 +113,10 @@ class IODescriptorAppStore(IODescriptorBase):
     def _remove_app_store_metadata(self):
         """
         Clears the app store metadata that is cached on disk.
-        This will force a re-fetch from shotgun the next time the metadata is needed
+        This will force a re-fetch from shotgun the next time the metadata is needed.
+        Note that while the payload of the app is immutable - e.g. v1.2.3 always stays
+        the same, the metadata may change. This typically happens when an item gets deprecated
+        and its deprecation status changes.
         """
         cache_file = os.path.join(self.get_path(), METADATA_FILE)
         if os.path.exists(cache_file):
@@ -124,13 +129,7 @@ class IODescriptorAppStore(IODescriptorBase):
     def _get_app_store_metadata(self):
         """
         Returns a metadata dictionary for this particular location.
-        The manner in which this is being retrieved depends on the state of the descriptor.
-
-        - First it will see if it has already been loaded into this class instance. In that
-          case it will make a copy of the dict and return that.
-        - Secondly it will look for a local cache file. This is normally present if the
-          app/engine is installed locally.
-        - Failing this, it will connect to shotgun and download it from the app store.
+        Tries to use a cache if possible.
         """
 
         if self.__cached_metadata is None:
@@ -150,12 +149,14 @@ class IODescriptorAppStore(IODescriptorBase):
             self.__cached_metadata = self.__download_app_store_metadata()
 
         # finally return the data!
-        return copy.deepcopy(self.__cached_metadata)
+        return self.__cached_metadata
 
     def __download_app_store_metadata(self):
         """
-        Fetches metadata about the app from the tank app store
-        returns a dictionary with a bundle key and a version key.
+        Fetches metadata about the app from the toolkit app store
+
+        :returns: A dictionary with keys bundle and version, containing
+                  Shotgun metadata.
         """
 
         # get the appropriate shotgun app store types and fields
@@ -169,45 +170,50 @@ class IODescriptorAppStore(IODescriptorBase):
         if self._type == self.CORE:
             # special handling of core since it doesn't have a high-level
             # 'bundle' entity
-            
             bundle = None
             
-            version = sg.find_one(constants.TANK_CORE_VERSION_ENTITY,
-                                  [["code", "is", self._version]],
-                                  ["description", 
-                                   "sg_detailed_release_notes", 
-                                   "sg_documentation",
-                                   constants.TANK_CODE_PAYLOAD_FIELD])
+            version = sg.find_one(
+                constants.TANK_CORE_VERSION_ENTITY,
+                [["code", "is", self._version]],
+                ["description",
+                 "sg_detailed_release_notes",
+                 "sg_documentation",
+                 constants.TANK_CODE_PAYLOAD_FIELD]
+            )
             if version is None:
                 raise ShotgunDeployError(
                     "The App store does not have a version '%s' of Core!" % self._version
                 )
             
-            
         else:
-        
-            # first find the bundle level entity
+            # engines, apps etc have a 'bundle level entity' in the app store,
+            # e.g. something representing the app or engine.
+            # then a version entity representing a particular version
             bundle = sg.find_one(
-                    bundle_entity,
-                    [["sg_system_name", "is", self._name]],
-                    ["sg_status_list", "sg_deprecation_message"]
+                bundle_entity,
+                [["sg_system_name", "is", self._name]],
+                ["sg_status_list", "sg_deprecation_message"]
             )
 
             if bundle is None:
-                raise ShotgunDeployError("The App store does not contain an item named '%s'!" % self._name)
+                raise ShotgunDeployError(
+                    "The App store does not contain an item named '%s'!" % self._name
+                )
     
             # now get the version
-            version = sg.find_one(version_entity,
-                                  [[link_field, "is", bundle], ["code", "is", self._version]],
-                                  ["description", 
-                                   "sg_detailed_release_notes", 
-                                   "sg_documentation",
-                                   constants.TANK_CODE_PAYLOAD_FIELD])
+            version = sg.find_one(
+                version_entity,
+                [[link_field, "is", bundle], ["code", "is", self._version]],
+                ["description",
+                 "sg_detailed_release_notes",
+                 "sg_documentation",
+                 constants.TANK_CODE_PAYLOAD_FIELD]
+            )
             if version is None:
                 raise ShotgunDeployError(
-                    "The App store does not have a version '%s' of item '%s'!" % (self._version, self._name)
+                    "The App store does not have a "
+                    "version '%s' of item '%s'!" % (self._version, self._name)
                 )
-
 
         metadata = {"bundle": bundle, "version": version}
 
@@ -237,7 +243,10 @@ class IODescriptorAppStore(IODescriptorBase):
 
     def get_deprecation_status(self):
         """
-        Returns (is_deprecated (bool), message (str)) to indicate if this item is deprecated.
+        Returns information about deprecation.
+
+        :returns: Returns a tuple (is_deprecated, message) to indicate
+                  if this item is deprecated.
         """
         metadata = self._get_app_store_metadata()
         if metadata.get("bundle").get("sg_status_list") == "dep":
@@ -266,8 +275,9 @@ class IODescriptorAppStore(IODescriptorBase):
     def get_changelog(self):
         """
         Returns information about the changelog for this item.
-        Returns a tuple: (changelog_summary, changelog_url). Values may be None
-        to indicate that no changelog exists.
+
+        :returns: A tuple (changelog_summary, changelog_url). Values may be None
+                  to indicate that no changelog exists.
         """
         summary = None
         url = None
@@ -275,7 +285,7 @@ class IODescriptorAppStore(IODescriptorBase):
         try:
             summary = metadata.get("version").get("description")
             url = metadata.get("version").get("sg_detailed_release_notes").get("url")
-        except:
+        except Exception:
             pass
         return (summary, url)
 
@@ -322,7 +332,7 @@ class IODescriptorAppStore(IODescriptorBase):
         # if it fails.
         try:
             bundle_content = sg.download_attachment(attachment_id)
-        except:
+        except Exception:
             # retry once
             bundle_content = sg.download_attachment(attachment_id)
 
@@ -333,6 +343,9 @@ class IODescriptorAppStore(IODescriptorBase):
 
         # unzip core zip file to app target location
         unzip_file(zip_tmp, target)
+
+        # remove zip file
+        safe_delete_file(zip_tmp)
 
         # write a stats record to the tank app store
         data = {}
@@ -351,9 +364,6 @@ class IODescriptorAppStore(IODescriptorBase):
         """
         Returns a descriptor object that represents the latest version.
         
-        This method is useful if you know the name of an app (after browsing in the
-        app store for example) and want to get a formal "handle" to it.
-        
         :param constraint_pattern: If this is specified, the query will be constrained
                by the given pattern. Version patterns are on the following forms:
         
@@ -368,17 +378,18 @@ class IODescriptorAppStore(IODescriptorBase):
         else:
             return self._find_latest()
 
-    def _find_latest_for_pattern(self, name, version_pattern):
+    def _find_latest_for_pattern(self, version_pattern):
         """
-        Returns an IODescriptorAppStore object representing the latest version
+        Returns an object representing the latest version
         of the sought after object. If no matching item is found, an
         exception is raised.
 
-        the version_pattern parameter can be on the following forms:
-        
-        - v0.1.2, v0.12.3.2, v0.1.3beta - a specific version
-        - v0.12.x - get the highest v0.12 version
-        - v1.x.x - get the highest v1 version 
+        :param version_pattern: If this is specified, the query will be constrained
+               by the given pattern. Version patterns are on the following forms:
+
+                - v0.1.2, v0.12.3.2, v0.1.3beta - a specific version
+                - v0.12.x - get the highest v0.12 version
+                - v1.x.x - get the highest v1 version
 
         :returns: IODescriptorAppStore instance
         """
@@ -501,7 +512,11 @@ class IODescriptorAppStore(IODescriptorBase):
                          "version": version_str}
 
         # and return a descriptor instance
-        desc = IODescriptorAppStore(self._bundle_cache_root, location_dict, self._sg_connection, self._type)
+        desc = IODescriptorAppStore(
+            self._bundle_cache_root,
+            location_dict,
+            self._sg_connection,
+            self._type)
         
         # now if this item has been deprecated, meaning that someone has gone in to the app
         # store and updated the record's deprecation status, we want to make sure we download
@@ -567,7 +582,9 @@ class IODescriptorAppStore(IODescriptorBase):
             )
 
             if script_user is None:
-                raise ShotgunAppStoreError("Could not evaluate the current App Store User! Please contact support.")
+                raise ShotgunAppStoreError(
+                    "Could not evaluate the current App Store User! Please contact support."
+                )
 
             self._app_store_connections[sg_url] = (app_store_sg, script_user)
 

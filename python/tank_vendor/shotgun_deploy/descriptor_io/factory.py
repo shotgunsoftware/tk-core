@@ -8,6 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+import urllib
 from ..errors import ShotgunDeployError
 from .. import constants
 from .. import util
@@ -15,52 +16,96 @@ log = util.get_shotgun_deploy_logger()
 
 def uri_to_dict(location_uri):
     """
-    Translates a location uri into a location dictionary
-    :param location_uri:
-    :return:
+    Translates a location uri into a location dictionary, suitable for
+    use with the create_io_descriptor factory method below.
+
+    :param location_uri: location string uri
+    :returns: location dictionary
     """
     chunks = location_uri.split(":")
     if chunks[0] != "sgtk" or len(chunks) < 3:
         raise ShotgunDeployError("Invalid uri %s" % location_uri)
-    descriptor_type = chunks[1]
+    descriptor_type = urllib.unquote(chunks[1])
 
     location_dict = {}
     location_dict["type"] = descriptor_type
 
     if descriptor_type == "app_store":
         # sgtk:app_store:tk-core:v12.3.4
-        location_dict["name"] = chunks[2]
-        location_dict["version"] = chunks[3]
+        location_dict["name"] = urllib.unquote(chunks[2])
+        location_dict["version"] = urllib.unquote(chunks[3])
 
     elif descriptor_type == "shotgun":
         # sgtk:shotgun:PipelineConfiguration:sg_config:primary:p123:v456    # with project id
         # sgtk:shotgun:PipelineConfiguration:sg_config:primary::v456        # without project id
-        location_dict["entity_type"] = chunks[2]
-        location_dict["field"] = chunks[3]
-        location_dict["name"] = chunks[4]
+        location_dict["entity_type"] = urllib.unquote(chunks[2])
+        location_dict["field"] = urllib.unquote(chunks[3])
+        location_dict["name"] = urllib.unquote(chunks[4])
 
         if chunks[5].startswith("p"):
-            location_dict["project_id"] = int(chunks[5][1:])
+            project_str = urllib.unquote(chunks[5])
+            location_dict["project_id"] = int(project_str[1:])
 
-        location_dict["version"] = int(chunks[6][1:])
+        version_str = urllib.unquote(chunks[6])
+        location_dict["version"] = int(version_str[1:])
 
     elif descriptor_type == "manual":
         # sgtk:manual:tk-core:v12.3.4
-        location_dict["name"] = chunks[2]
-        location_dict["version"] = chunks[3]
+        location_dict["name"] = urllib.unquote(chunks[2])
+        location_dict["version"] = urllib.unquote(chunks[3])
 
     elif descriptor_type == "git":
         # sgtk:git:git/path:v12.3.4
-        location_dict["path"] = chunks[2]
-        location_dict["version"] = chunks[3]
+        location_dict["path"] = urllib.unquote(chunks[2])
+        location_dict["version"] = urllib.unquote(chunks[3])
 
-    elif descriptor_type == "dev":
-        #@todo - add
-        pass
+    elif descriptor_type == "dev" or descriptor_type == "dev3":
+        # sgtk:dev:[name]:local_path
+        # sgtk:dev3:[name]:win_path:linux_path:mac_path
+        #
+        # Examples:
+        # sgtk:dev:my-app:/tmp/foo/bar
+        # sgtk:dev3::c%3A%0Coo%08ar:/tmp/foo/bar:
 
-    elif descriptor_type == "path":
-        #@todo - add
-        pass
+        if chunks[2] != "":
+            # there is a name defined
+            location_dict["name"] = urllib.unquote(chunks[2])
+
+        if chunks[1] == "dev":
+            # local path descriptor
+            location_dict["path"] = urllib.unquote(chunks[3])
+        else:
+            # three os format
+            if chunks[3] != "":
+                location_dict["windows_path"] = urllib.unquote(chunks[3])
+            if chunks[4] != "":
+                location_dict["linux_path"] = urllib.unquote(chunks[4])
+            if chunks[5] != "":
+                location_dict["mac_path"] = urllib.unquote(chunks[5])
+
+    elif descriptor_type == "path" or descriptor_type == "path3":
+        # sgtk:path:[name]:local_path
+        # sgtk:path3:[name]:win_path:linux_path:mac_path
+        #
+        # Examples:
+        # sgtk:path:my-app:/tmp/foo/bar
+        # sgtk:path3::c%3A%0Coo%08ar:/tmp/foo/bar:
+
+        if chunks[2] != "":
+            # there is a name defined
+            location_dict["name"] = urllib.unquote(chunks[2])
+
+        if chunks[1] == "path":
+            # local path descriptor
+            location_dict["path"] = urllib.unquote(chunks[3])
+        else:
+            # three os format
+            if chunks[3] != "":
+                location_dict["windows_path"] = urllib.unquote(chunks[3])
+            if chunks[4] != "":
+                location_dict["linux_path"] = urllib.unquote(chunks[4])
+            if chunks[5] != "":
+                location_dict["mac_path"] = urllib.unquote(chunks[5])
 
     else:
         raise ShotgunDeployError("Unknown location type for '%s'" % location_dict)
@@ -68,16 +113,14 @@ def uri_to_dict(location_uri):
     return location_dict
 
 
-
-
 def create_io_descriptor(sg, descriptor_type, location_dict, bundle_cache_root):
     """
-    Factory method.
+    Factory method. Use this method to construct all DescriptorIO instances.
 
     :param sg: Shotgun connection to associated site
     :param descriptor_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK
-    :param bundle_cache_root: Root path to where downloaded apps are cached
     :param location_dict: A std location dictionary
+    :param bundle_cache_root: Root path to where downloaded apps are cached
     :returns: Descriptor object
     """
     from .appstore import IODescriptorAppStore
@@ -108,12 +151,9 @@ def create_io_descriptor(sg, descriptor_type, location_dict, bundle_cache_root):
     else:
         raise ShotgunDeployError("Unknown location type for '%s'" % location_dict)
 
-    log.debug("Resolved %s -> %r" % (location_dict, descriptor))
-
     if location_dict.get("version") == constants.LATEST_DESCRIPTOR_KEYWORD:
         log.debug("Latest keyword detected. Searching for latest version...")
         descriptor = descriptor.get_latest_version()
         log.debug("Resolved latest to be %r" % descriptor)
-
 
     return descriptor

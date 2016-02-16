@@ -16,7 +16,7 @@ from ..errors import ShotgunDeployError
 
 class IODescriptorPath(IODescriptorBase):
     """
-    Represents a local item. This item is never downloaded
+    Represents a local item on disk. This item is never downloaded
     into the local storage, you interact with it directly::
 
         {"type": "path", "path": "/path/to/app"}
@@ -27,12 +27,19 @@ class IODescriptorPath(IODescriptorBase):
 
         {"type": "path",
          "linux_path": "/path/to/app",
-         "windows_path": "d:\\foo\\bar",
+         "windows_path": "d:\foo\bar",
          "mac_path": "/path/to/app" }
 
-    name is optional and if not specified will be determined based on folder path.
-    In the case above, the name would be 'app'
-    In the case below, the name would be 'my-app'
+    String urls are on the following form::
+
+        sgtk:path:[name]:local_path
+        sgtk:path3:[name]:win_path:linux_path:mac_path
+
+        sgtk:path:my-app:/tmp/foo/bar
+        sgtk:path3::c%3A%0Coo%08ar:/tmp/foo/bar:
+
+    Name is optional and if not specified will be determined based on folder path.
+    If name is not specified and path is /tmp/foo/bar, the name will set to 'bar'
     """
     
     def __init__(self, bundle_cache_root, location_dict):
@@ -76,14 +83,7 @@ class IODescriptorPath(IODescriptorBase):
         # and normalise:
         self._path = os.path.normpath(self._path)
         
-        # if there is a version defined in the location dict
-        # (this is handy when doing framework development, but totally
-        #  non-required for finding the code) 
-        self._version = "v0.0.0"
-        if "version" in location_dict:
-            self._version = location_dict.get("version")
-            
-        # if there is a name defined in the location dict then lets use 
+        # if there is a name defined in the location dict then lets use
         # this, otherwise we'll fall back to the folder name:
         self._name = location_dict.get("name")
         if not self._name:
@@ -91,10 +91,17 @@ class IODescriptorPath(IODescriptorBase):
             bn = os.path.basename(self._path)
             self._name, _ = os.path.splitext(bn)
 
+    def __repr__(self):
+        """
+        Low level string representation
+        """
+        class_name = self.__class__.__name__
+        return "<%s %s>" % (class_name, self._path)
+
     def get_system_name(self):
         """
         Returns a short name, suitable for use in configuration files
-        and for folders on disk
+        and for folders on disk, e.g. 'tk-maya'
         """
         return self._name
 
@@ -102,7 +109,9 @@ class IODescriptorPath(IODescriptorBase):
         """
         Returns the version number string for this item
         """
-        return self._version
+        # version number does not make sense for this type of item
+        # so a fixed string is returned
+        return "v0.0.0"
 
     def get_path(self):
         """
@@ -114,7 +123,12 @@ class IODescriptorPath(IODescriptorBase):
         """
         Returns the path to the descriptor on the given platform.
         If the location is not known, None is returned.
-        get_platform_path(sys.platform) is equivalent of get_path()
+
+        The call ``get_platform_path(sys.platform)`` is equivalent to ``get_path()``
+
+        :param platform: sys.platform-style operating system string, e.g.
+                         'win32', 'linux2', 'darwin'
+        :returns: Path to the given platform or None if not known.
         """
         if platform == sys.platform:
             # current os
@@ -129,7 +143,6 @@ class IODescriptorPath(IODescriptorBase):
                 return self.get_location()[platform_key]
             else:
                 return None
-
 
     def download_local(self):
         """
@@ -146,13 +159,13 @@ class IODescriptorPath(IODescriptorBase):
     def get_latest_version(self, constraint_pattern=None):
         """
         Returns a descriptor object that represents the latest version.
-        
+
         :param constraint_pattern: If this is specified, the query will be constrained
-        by the given pattern. Version patterns are on the following forms:
-        
-            - v1.2.3 (means the descriptor returned will inevitably be same as self)
-            - v1.2.x 
-            - v1.x.x
+               by the given pattern. Version patterns are on the following forms:
+
+                - v0.1.2, v0.12.3.2, v0.1.3beta - a specific version
+                - v0.12.x - get the highest v0.12 version
+                - v1.x.x - get the highest v1 version
 
         :returns: descriptor object
         """

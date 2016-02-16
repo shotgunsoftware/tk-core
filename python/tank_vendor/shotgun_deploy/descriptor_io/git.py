@@ -8,7 +8,6 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 import os
-import re
 import copy
 import uuid
 import tempfile
@@ -17,7 +16,7 @@ from ..util import subprocess_check_output, execute_git_command
 from .base import IODescriptorBase
 from ..zipfilehelper import unzip_file
 from ..errors import ShotgunDeployError
-from ...shotgun_base import ensure_folder_exists
+from ...shotgun_base import ensure_folder_exists, safe_delete_file
 
 from .. import util
 log = util.get_shotgun_deploy_logger()
@@ -38,9 +37,21 @@ class IODescriptorGit(IODescriptorBase):
         https://github.com/manneohrstrom/tk-hiero-publish.git
         git://github.com/manneohrstrom/tk-hiero-publish.git
         /full/path/to/local/repo.git
+
+    Uris are on the form:
+
+        sgtk:git:path/to/git/repo:v12.3.4
+
     """
 
     def __init__(self, bundle_cache_root, location_dict):
+        """
+        Constructor
+
+        :param bundle_cache_root: Location on disk where items are cached
+        :param location_dict: Location dictionary describing the bundle
+        :return: Descriptor instance
+        """
         super(IODescriptorGit, self).__init__(bundle_cache_root, location_dict)
 
         self._validate_locator(
@@ -60,7 +71,7 @@ class IODescriptorGit(IODescriptorBase):
     def get_system_name(self):
         """
         Returns a short name, suitable for use in configuration files
-        and for folders on disk
+        and for folders on disk, e.g. 'tk-maya'
         """
         bn = os.path.basename(self._path)
         (name, ext) = os.path.splitext(bn)
@@ -68,7 +79,7 @@ class IODescriptorGit(IODescriptorBase):
 
     def get_version(self):
         """
-        Returns the version number string for this item
+        Returns the version number string for this item, .e.g 'v1.2.3'
         """
         return self._version
 
@@ -77,7 +88,7 @@ class IODescriptorGit(IODescriptorBase):
         returns the path to the folder where this item resides
         """
         # git@github.com:manneohrstrom/tk-hiero-publish.git -> tk-hiero-publish.git
-        # /full/path/to/local/repo.git -> repo.git        
+        # /full/path/to/local/repo.git -> repo.git
         name = os.path.basename(self._path)
         return os.path.join(self._bundle_cache_root, "git", name, self._version)
 
@@ -113,12 +124,17 @@ class IODescriptorGit(IODescriptorBase):
         # unzip core zip file to app target location
         unzip_file(zip_tmp, target)
 
+        # clear temp file
+        safe_delete_file(zip_tmp)
+
     def copy(self, target_path):
         """
         Copy the contents of the descriptor to an external location
 
         :param target_path: target path
         """
+        # git repos are cloned into place to retain their
+        # repository status
         log.debug("Copying %r -> %s" % (self, target_path))
         # now clone and archive
         cwd = os.getcwd()
@@ -134,13 +150,13 @@ class IODescriptorGit(IODescriptorBase):
     def get_latest_version(self, constraint_pattern=None):
         """
         Returns a descriptor object that represents the latest version.
-        
+
         :param constraint_pattern: If this is specified, the query will be constrained
-        by the given pattern. Version patterns are on the following forms:
-        
-            - v1.2.3 (means the descriptor returned will inevitably be same as self)
-            - v1.2.x 
-            - v1.x.x
+               by the given pattern. Version patterns are on the following forms:
+
+                - v0.1.2, v0.12.3.2, v0.1.3beta - a specific version
+                - v0.12.x - get the highest v0.12 version
+                - v1.x.x - get the highest v1 version
 
         :returns: descriptor object
         """

@@ -8,7 +8,6 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-
 from .path import IODescriptorPath
 
 from .. import util
@@ -27,14 +26,19 @@ class IODescriptorDev(IODescriptorPath):
 
         {"type": "dev",
          "linux_path": "/path/to/app",
-         "windows_path": "d:\\foo\\bar",
+         "windows_path": "d:\foo\bar",
          "mac_path": "/path/to/app" }
 
-    name is optional and if not specified will be determined based on folder path.
-    In the case above, the name would be 'app'
-    In the case below, the name would be 'my-app'
+    String urls are on the following form::
 
-    # location: {"type": "dev", "path": "/path/to/app", name: "my-app"}
+        sgtk:dev:[name]:local_path
+        sgtk:dev3:[name]:win_path:linux_path:mac_path
+
+        sgtk:dev:my-app:/tmp/foo/bar
+        sgtk:dev3::c%3A%0Coo%08ar:/tmp/foo/bar:
+
+    Name is optional and if not specified will be determined based on folder path.
+    If name is not specified and path is /tmp/foo/bar, the name will set to 'bar'
     """
 
     def __init__(self, bundle_cache_root, location_dict):

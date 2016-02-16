@@ -12,13 +12,11 @@ import os
 import uuid
 import tempfile
 
-from ..zipfilehelper import unzip_file
 from .base import IODescriptorBase
-
+from .. import util
+from ..zipfilehelper import unzip_file
 from ..errors import ShotgunDeployError
 from ...shotgun_base import ensure_folder_exists
-
-from .. import util
 
 log = util.get_shotgun_deploy_logger()
 
@@ -26,6 +24,11 @@ log = util.get_shotgun_deploy_logger()
 class IODescriptorShotgunEntity(IODescriptorBase):
     """
     Represents a shotgun entity to which apps have been attached.
+    This can be an attachment field on any entity. Typically it will be
+    a pipeline configuration. In that configuration, the descriptor represents
+    a 'cloud based configuration'. It could also be a custom entity or non-project
+    entity in the case you want to store a descriptor (app, engine or config)
+    that can be easily accessed from any project.
 
     {
      type: shotgun,
@@ -47,6 +50,12 @@ class IODescriptorShotgunEntity(IODescriptorBase):
     a new descriptor.
 
     The latest version is defined as the current record available in Shotgun.
+
+    Url format:
+
+        sgtk:shotgun:PipelineConfiguration:sg_config:primary:p123:v456 (with project id)
+        sgtk:shotgun:PipelineConfiguration:sg_config:primary::v456     (without project id)
+
     """
 
     def __init__(self, bundle_cache_root, location_dict, sg_connection):
@@ -84,7 +93,7 @@ class IODescriptorShotgunEntity(IODescriptorBase):
     def get_system_name(self):
         """
         Returns a short name, suitable for use in configuration files
-        and for folders on disk
+        and for folders on disk, e.g. 'tk-maya'
         """
         if self._project_id:
             name = "p%s_%s" % (self._project_id, self._name)
@@ -95,8 +104,7 @@ class IODescriptorShotgunEntity(IODescriptorBase):
     def get_version(self):
         """
         Returns the version number string for this item.
-
-        In this case, this is the shotgun attachment id that is linked with the
+        In this case, this is the linked shotgun attachment id.
         """
         return "v%s" % self._version
 
@@ -104,8 +112,8 @@ class IODescriptorShotgunEntity(IODescriptorBase):
         """
         returns the path to the folder where this item resides
         """
-        # note that the version for this descriptor is the attachment id, which is unqiue
-        # acrosss all entity types etc. In order to keep paths short, we don't include
+        # note that the version for this descriptor is the attachment id, which is unique
+        # across all entity types etc. In order to keep paths short, we don't include
         # any of the other descriptor elements when we cache the path.
         return os.path.join(
             self._bundle_cache_root,
@@ -129,7 +137,7 @@ class IODescriptorShotgunEntity(IODescriptorBase):
         # sometimes people report that this download fails (because of flaky connections etc)
         try:
             bundle_content = self._sg_connection.download_attachment(self._version)
-        except:
+        except Exception:
             # retry once
             bundle_content = self._sg_connection.download_attachment(self._version)
 
@@ -148,13 +156,10 @@ class IODescriptorShotgunEntity(IODescriptorBase):
     def get_latest_version(self, constraint_pattern=None):
         """
         Returns a descriptor object that represents the latest version.
-        
-        This method is useful if you know the name of an app (after browsing in the
-        app store for example) and want to get a formal "handle" to it.
-        
+
         :param constraint_pattern: If this is specified, the query will be constrained
                by the given pattern. Version patterns are on the following forms:
-        
+
                 - v0.1.2, v0.12.3.2, v0.1.3beta - a specific version
                 - v0.12.x - get the highest v0.12 version
                 - v1.x.x - get the highest v1 version
@@ -162,7 +167,9 @@ class IODescriptorShotgunEntity(IODescriptorBase):
         :returns: descriptor object
         """
         if constraint_pattern:
-            raise ShotgunDeployError("%s does not support version constraint patterns." % constraint_pattern)
+            raise ShotgunDeployError(
+                "%s does not support version constraint patterns." % self
+            )
 
         log.debug("Finding latest version of %s..." % self)
 
