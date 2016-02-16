@@ -741,6 +741,8 @@ class PipelineConfiguration(object):
             # of the core API.
             hooks_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "hooks"))
             hook_path = os.path.join(hooks_path, file_name)
+        else:
+            parent.log_metric("custom core hook")
 
         return hook.execute_hook(hook_path, parent, **kwargs)
 

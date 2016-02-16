@@ -73,8 +73,10 @@ class AppUpdatesAction(Action):
             computed_params["engine_filter"] = None
         if computed_params["app_filter"] == "ALL":
             computed_params["app_filter"] = None
-        
-        return check_for_updates(log, 
+
+        self.tk.log_metric("updates")
+
+        return check_for_updates(log,
                                  self.tk,
                                  computed_params["environment_filter"], 
                                  computed_params["engine_filter"],
@@ -210,7 +212,8 @@ class AppUpdatesAction(Action):
                           app_instance_name=app_filter,
                           external=external_path,
                           preserve_yaml=preserve_yaml)    
-        
+
+        self.tk.log_metric("updates (interactive)")
             
 
 ################################################################################################
@@ -237,7 +240,7 @@ def check_for_updates(log,
     :param preserve_yaml: If True, a comment preserving yaml parser is used. 
     :param external: Path to external config to operate on
     """
-    
+
     pc = tk.pipeline_configuration
     
     processed_items = []

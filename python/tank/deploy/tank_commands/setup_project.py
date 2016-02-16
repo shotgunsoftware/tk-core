@@ -168,8 +168,9 @@ class SetupProjectAction(Action):
             core_localize.do_localize(log, 
                                       params.get_configuration_location(sys.platform), 
                                       suppress_prompts=True)
-                        
-                        
+
+        self.tk.log_metric("project setup")
+
                         
     def run_interactive(self, log, args):
         """
@@ -264,7 +265,9 @@ class SetupProjectAction(Action):
         log.info("")
         log.info("For more Apps, Support, Documentation and the Toolkit Community, go to")
         log.info("https://support.shotgunsoftware.com")
-        log.info("")        
+        log.info("")
+
+        self.tk.log_metric("project setup (interactive)")
         
         
     def _shotgun_connect(self, log):

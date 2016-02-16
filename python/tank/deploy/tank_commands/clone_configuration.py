@@ -90,6 +90,8 @@ class CloneConfigAction(Action):
                          computed_params["path_mac"], 
                          computed_params["path_win"])
 
+        self.tk.log_metric("clone config")
+
         return data["id"]
     
     def run_interactive(self, log, args):
