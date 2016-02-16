@@ -163,8 +163,8 @@ class Engine(TankBundle):
         self.log_metric("Init")
 
         # log the core and engine versions being used by the current user
-        log_user_attribute_metric("tk-core version" % (tk.version,))
-        log_user_attribute_metric("%s version" % (self.name, self.version))
+        log_user_attribute_metric("tk-core version", tk.version)
+        log_user_attribute_metric("%s version" % (self.name,), self.version)
 
         # check if there are any compatibility warnings:
         # do this now in case the engine fails to load!
@@ -315,6 +315,22 @@ class Engine(TankBundle):
         # action: tk-maya - Init
         full_action = "%s - %s" % (self.name, action)
         log_user_activity_metric(self.name, full_action)
+
+    def log_user_attribute_metric(self, attr_name, attr_value):
+        """Convenience class. Logs a user attribute metric.
+
+        :param attr_name: The name of the attribute to set for the user.
+        :param attr_value: The value of the attribute to set for the user.
+
+        This is a convenience wrapper around
+        `tank.util.log_user_activity_metric()` that prevents engine subclasses
+        from having to import from `tank.util`.
+
+        Internal Use Only - We provide no guarantees that this method
+        will be backwards compatible.
+
+        """
+        log_user_attribute_metric(attr_name, attr_value)
 
 
     ##########################################################################################
@@ -1812,9 +1828,6 @@ def start_engine(engine_name, tk, context):
     metrics_dispatch_queue = MetricsDispatchQueue()
     if engine.metrics_dispatch_allowed and not metrics_dispatch_queue.dispatching:
         metrics_dispatch_queue.start_dispatching(tk)
-
-        # while here, go ahead and log some metrics
-
 
     return engine
 
