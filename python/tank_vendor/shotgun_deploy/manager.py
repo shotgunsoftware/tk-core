@@ -105,7 +105,16 @@ class ToolkitManager(object):
 
         return pc_id
 
-    def create_disk_configuration(self, project_id, win_path=None, mac_path=None, linux_path=None, win_python=None, mac_python=None, linux_python=None):
+    def create_disk_configuration(
+            self,
+            project_id,
+            win_path=None,
+            mac_path=None,
+            linux_path=None,
+            win_python=None,
+            mac_python=None,
+            linux_python=None
+    ):
         """
         Create a pipeline configuration on disk
 
@@ -166,8 +175,6 @@ class ToolkitManager(object):
         return pc_id
 
 
-
-
     def bootstrap_sgtk(self, project_id=None, skip_shotgun_lookup=False):
         """
         Bootstrap into an sgtk instance
@@ -221,8 +228,6 @@ class ToolkitManager(object):
 
         return tk
 
-
-
     def bootstrap_engine(self, engine_name, project_id=None, entity=None, skip_shotgun_lookup=False):
         """
         Convenience method that bootstraps into the given engine.
@@ -247,7 +252,6 @@ class ToolkitManager(object):
 
         log.debug("Launched engine %r" % engine)
         return engine
-
 
     def _ensure_pipeline_config_exists(self, project_id):
         """
@@ -386,8 +390,6 @@ class ToolkitManager(object):
             pipeline_config_id=None
         )
 
-
-
     def _get_configuration_from_shotgun(self, project_id):
         """
 
@@ -406,7 +408,7 @@ class ToolkitManager(object):
             ["mac_path",
              "windows_path",
              "linux_path",
-             constants.SHOTGUN_PIPELINECONFIG_ATTACHMENT_FIELD]
+             constants.SHOTGUN_PIPELINECONFIG_URI_FIELD]
         )
         log.debug("Shotgun returned: %s" % pc_data)
 
@@ -424,123 +426,28 @@ class ToolkitManager(object):
                 pc_data.get("mac_path"),
             )
 
-        elif pc_data:
-            # we have a pipeline config. see if there is a url pointing at a zip or git url
-            log.debug("Attempting to resolve pipeline locaation from sg config attachment...")
-            cfg_descriptor = self._extract_pipeline_attachment_config_location(
-                project_id,
-                self.pipeline_configuration_name,
-                pc_data.get(constants.SHOTGUN_PIPELINECONFIG_ATTACHMENT_FIELD)
+        elif pc_data.get(constants.SHOTGUN_PIPELINECONFIG_URI_FIELD):
+            uri = pc_data.get(constants.SHOTGUN_PIPELINECONFIG_URI_FIELD)
+            log.debug("Attempting to resolve config uri %s" % uri)
+
+            cfg_descriptor = create_descriptor(
+                self._sg_connection,
+                Descriptor.CONFIG,
+                uri,
+                self.bundle_cache_root
             )
-            log.debug("Resolved pipeline configuration to %r" % cfg_descriptor)
-            if cfg_descriptor:
-                return create_unmanaged_configuration(
-                    self._sg_connection,
-                    self.bundle_cache_root,
-                    cfg_descriptor,
-                    project_id,
-                    pc_data.get("id")
-                )
+
+            return create_unmanaged_configuration(
+                self._sg_connection,
+                self.bundle_cache_root,
+                cfg_descriptor,
+                project_id,
+                pc_data.get("id")
+            )
 
         # fall back on base
         return self._create_base_configuration(project_id)
 
 
 
-
-    def _extract_pipeline_attachment_config_location(self, project_id, pc_name, attachment_data):
-        """
-        Given attachment data from Shotgun, create a location dictionary
-
-        :param attachment_data:
-        :return:
-        """
-
-        # the attachment can have the following formats
-        #
-        # Web url:
-        # {'name': 'v1.2.3',
-        #  'url': 'https://github.com/shotgunsoftware/tk-config-default',
-        #  'content_type': None,
-        #  'type': 'Attachment',
-        #  'id': 141,
-        #  'link_type': 'web'}
-        #
-        # Uploaded file:
-        # {'name': 'v1.2.3.zip',
-        #  'url': 'https://sg-media-usor-01.s3.amazonaws.com/...',
-        #  'content_type': 'application/zip',
-        #  'type': 'Attachment',
-        #  'id': 139,
-        #  'link_type': 'upload'}
-        #
-        # Locally linked via file system:
-        #
-        # {'local_path_windows': 'D:\\toolkit\\manne-dev-2\\project\\zip_test\\v1.2.3.zip',
-        #  'name': 'v1.2.3.zip',
-        #  'local_path_linux': '/mnt/manne-dev-2/project/zip_test/v1.2.3.zip',
-        #  'url': 'file:///mnt/manne-dev-2/project/zip_test/v1.2.3.zip',
-        #  'local_storage': {'type': 'LocalStorage', 'id': 1, 'name': 'primary'},
-        #  'local_path': '/mnt/manne-dev-2/project/zip_test/v1.2.3.zip',
-        #  'content_type': 'application/zip',
-        #  'local_path_mac': '/mnt/manne-dev-2/project/zip_test/v1.2.3.zip',
-        #  'type': 'Attachment',
-        #  'id': 142,
-        #  'link_type': 'local'}
-
-        config_location = None
-
-        if attachment_data is None:
-            return None
-
-        if attachment_data["link_type"] == "web":
-            # some web urls are supported, others are not. The following
-            # ones are supported:
-            # git://github.com/manneohrstrom/tk-hiero-publish.git
-            # https://github.com/manneohrstrom/tk-hiero-publish.git
-
-            # the version tag to pick up from the git repo is fetched from
-            # the url display name.
-
-            url = attachment_data["url"]
-            if url.startswith("git://") or (url.startswith("https://") and url.endswith(".git")):
-                # if the name of the tag begins with vX, assume this is a version number
-                # if not, resolve latest
-                link_name = attachment_data["name"]
-                if re.match("^v[0-9\.]\.", link_name):
-                    log.debug("Will use tag %s in git repo" % link_name)
-                    config_location = {"type": "git", "path": url, "version": link_name}
-                else:
-                    # find latest
-                    log.debug("Will search for latest in git repo")
-                    config_location = {"type": "git", "path": url, "version": "latest"}
-            else:
-                log.debug("Url '%s' not supported by the bootstrap." % url)
-
-        elif attachment_data["link_type"] == "upload":
-            config_location = {
-                "type": "shotgun",
-                "entity_type": "PipelineConfiguration",
-                "project_id": project_id,
-                "name": pc_name,
-                "field": constants.SHOTGUN_PIPELINECONFIG_ATTACHMENT_FIELD,
-                "version": attachment_data["id"]
-            }
-
-        elif attachment_data["link_type"] == "local":
-            local_path = attachment_data["local_path"]
-            if local_path is None:
-                log.debug("Attachment doesn't have a valid local path.")
-            else:
-                config_location = {"type": "path", "path": local_path}
-
-        # create a descriptor from the location
-        cfg_descriptor = create_descriptor(
-            self._sg_connection,
-            Descriptor.CONFIG,
-            config_location,
-            self.bundle_cache_root
-        )
-
-        return cfg_descriptor
 

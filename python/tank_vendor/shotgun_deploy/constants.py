@@ -83,7 +83,8 @@ PIPELINECONFIG_FILE = "pipeline_configuration.yml"
 # field used to upload a config
 SHOTGUN_PIPELINECONFIG_ATTACHMENT_FIELD = "sg_config"
 
-# field used
+# field used to store a config uri
+SHOTGUN_PIPELINECONFIG_URI_FIELD = "sg_location"
 
 # The name of the primary pipeline config
 PRIMARY_PIPELINE_CONFIG_NAME = "Primary"
