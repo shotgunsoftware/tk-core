@@ -14,7 +14,60 @@ from .. import constants
 from .. import util
 log = util.get_shotgun_deploy_logger()
 
-def uri_to_dict(location_uri):
+def create_io_descriptor(sg, descriptor_type, location, bundle_cache_root):
+    """
+    Factory method. Use this method to construct all DescriptorIO instances.
+
+    :param sg: Shotgun connection to associated site
+    :param descriptor_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK
+    :param location: A std location dictionary dictionary or string
+    :param bundle_cache_root: Root path to where downloaded apps are cached
+    :returns: Descriptor object
+    """
+    from .appstore import IODescriptorAppStore
+    from .dev import IODescriptorDev
+    from .path import IODescriptorPath
+    from .shotgun_entity import IODescriptorShotgunEntity
+    from .git import IODescriptorGit
+    from .manual import IODescriptorManual
+
+
+    if isinstance(location, basestring):
+        # translate uri to dict
+        location_dict = _uri_to_dict(location)
+    else:
+        location_dict = location
+
+    if location_dict.get("type") == "app_store":
+        descriptor = IODescriptorAppStore(bundle_cache_root, location_dict, sg, descriptor_type)
+
+    elif location_dict.get("type") == "shotgun":
+        descriptor = IODescriptorShotgunEntity(bundle_cache_root, location_dict, sg)
+
+    elif location_dict.get("type") == "manual":
+        descriptor = IODescriptorManual(bundle_cache_root, location_dict)
+
+    elif location_dict.get("type") == "git":
+        descriptor = IODescriptorGit(bundle_cache_root, location_dict)
+
+    elif location_dict.get("type") == "dev":
+        descriptor = IODescriptorDev(bundle_cache_root, location_dict)
+
+    elif location_dict.get("type") == "path":
+        descriptor = IODescriptorPath(bundle_cache_root, location_dict)
+
+    else:
+        raise ShotgunDeployError("Unknown location type for '%s'" % location_dict)
+
+    if location_dict.get("version") == constants.LATEST_DESCRIPTOR_KEYWORD:
+        log.debug("Latest keyword detected. Searching for latest version...")
+        descriptor = descriptor.get_latest_version()
+        log.debug("Resolved latest to be %r" % descriptor)
+
+    return descriptor
+
+
+def _uri_to_dict(location_uri):
     """
     Translates a location uri into a location dictionary, suitable for
     use with the create_io_descriptor factory method below.
@@ -113,47 +166,3 @@ def uri_to_dict(location_uri):
     return location_dict
 
 
-def create_io_descriptor(sg, descriptor_type, location_dict, bundle_cache_root):
-    """
-    Factory method. Use this method to construct all DescriptorIO instances.
-
-    :param sg: Shotgun connection to associated site
-    :param descriptor_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK
-    :param location_dict: A std location dictionary
-    :param bundle_cache_root: Root path to where downloaded apps are cached
-    :returns: Descriptor object
-    """
-    from .appstore import IODescriptorAppStore
-    from .dev import IODescriptorDev
-    from .path import IODescriptorPath
-    from .shotgun_entity import IODescriptorShotgunEntity
-    from .git import IODescriptorGit
-    from .manual import IODescriptorManual
-
-    if location_dict.get("type") == "app_store":
-        descriptor = IODescriptorAppStore(bundle_cache_root, location_dict, sg, descriptor_type)
-
-    elif location_dict.get("type") == "shotgun":
-        descriptor = IODescriptorShotgunEntity(bundle_cache_root, location_dict, sg)
-
-    elif location_dict.get("type") == "manual":
-        descriptor = IODescriptorManual(bundle_cache_root, location_dict)
-
-    elif location_dict.get("type") == "git":
-        descriptor = IODescriptorGit(bundle_cache_root, location_dict)
-
-    elif location_dict.get("type") == "dev":
-        descriptor = IODescriptorDev(bundle_cache_root, location_dict)
-
-    elif location_dict.get("type") == "path":
-        descriptor = IODescriptorPath(bundle_cache_root, location_dict)
-
-    else:
-        raise ShotgunDeployError("Unknown location type for '%s'" % location_dict)
-
-    if location_dict.get("version") == constants.LATEST_DESCRIPTOR_KEYWORD:
-        log.debug("Latest keyword detected. Searching for latest version...")
-        descriptor = descriptor.get_latest_version()
-        log.debug("Resolved latest to be %r" % descriptor)
-
-    return descriptor

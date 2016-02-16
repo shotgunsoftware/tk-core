@@ -14,7 +14,6 @@ All custom exceptions that this module emits are defined here.
 
 from ..shotgun_base import ShotgunBaseError
 
-
 class ShotgunDeployError(ShotgunBaseError):
     """
     Base class for all deploy related errors
@@ -25,3 +24,4 @@ class ShotgunAppStoreError(ShotgunDeployError):
     """
     Errors relating to the shotgun app store
     """
+    pass

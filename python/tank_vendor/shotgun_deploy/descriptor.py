@@ -12,32 +12,33 @@ import os
 import sys
 
 from . import paths
-from .descriptor_io import create_io_descriptor, uri_to_dict
+from .descriptor_io import create_io_descriptor
 from .errors import ShotgunDeployError
 
 def create_descriptor(sg_connection, descriptor_type, location, bundle_cache_root=None):
     """
-    Factory method.
+    Factory method. Use this when creating descriptor objects.
 
     :param sg_connection: Shotgun connection to associated site
     :param descriptor_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK
-    :param bundle_cache_root: Root path to where downloaded apps are cached
     :param location: A std location dictionary dictionary or string
+    :param bundle_cache_root: Root path to where downloaded apps are cached
     :returns: Descriptor object
     """
     from .descriptor_bundle import AppDescriptor, EngineDescriptor, FrameworkDescriptor
     from .descriptor_config import ConfigDescriptor
     from .descriptor_core import CoreDescriptor
 
+    # if bundle root is not set, fall back on default location
     bundle_cache_root = bundle_cache_root or paths.get_bundle_cache_root()
 
     # first construct a low level IO descriptor
-
-    if isinstance(location, basestring):
-        # translate uri to dict
-        location = uri_to_dict(location)
-
-    io_descriptor = create_io_descriptor(sg_connection, descriptor_type, location, bundle_cache_root)
+    io_descriptor = create_io_descriptor(
+        sg_connection,
+        descriptor_type,
+        location,
+        bundle_cache_root
+    )
 
     # now create a high level descriptor and bind that with the low level descriptor
     if descriptor_type == Descriptor.APP:
@@ -64,23 +65,18 @@ class Descriptor(object):
     A descriptor describes a particular version of an app, engine or core component.
     It also knows how to access metadata such as documentation, descriptions etc.
 
-    Several AppDescriptor classes exists, all deriving from this base class, and the
-    factory method create_descriptor() manufactures the correct descriptor object
-    based on a location dict, that is found inside of the environment config.
-
-    Different App Descriptor implementations typically handle different source control
-    systems: There may be an app descriptor which knows how to communicate with the
-    Tank App store and one which knows how to handle the local file system.
+    Descriptor is subclassed to distinguish different types of payload;
+    apps, engines, configs, cores etc. Each payload may have different accessors
+    and helper methods.
     """
 
     (APP, FRAMEWORK, ENGINE, CONFIG, CORE) = range(5)
 
-    ###############################################################################################
-    # constants and helpers
-
     def __init__(self, io_descriptor):
         """
         Constructor
+
+        :param io_descriptor: Associated IO descriptor.
         """
         # construct a suitable IO descriptor for this locator
         self._io_descriptor = io_descriptor
@@ -115,6 +111,8 @@ class Descriptor(object):
     def get_location(self):
         """
         Returns the location dict associated with this descriptor
+
+        :returns: Dictionary that can be used to construct the descriptor
         """
         return self._io_descriptor.get_location()
 
@@ -122,6 +120,8 @@ class Descriptor(object):
         """
         Returns the display name for this item.
         If no display name has been defined, the system name will be returned.
+
+        :returns: Display name as string
         """
         meta = self._io_descriptor.get_manifest()
         display_name = meta.get("display_name")
@@ -132,12 +132,16 @@ class Descriptor(object):
     def is_developer(self):
         """
         Returns true if this item is intended for development purposes
+
+        :returns: True if this is a developer item
         """
         return self._io_descriptor.is_developer()
 
     def get_description(self):
         """
         Returns a short description for the app.
+
+        :returns: Description as string
         """
         meta = self._io_descriptor.get_manifest()
         desc = meta.get("description")
@@ -148,6 +152,8 @@ class Descriptor(object):
     def get_icon_256(self):
         """
         Returns the path to a 256px square png icon file for this app
+
+        :returns: Path to a 256px png icon file
         """
         app_icon = os.path.join(self._io_descriptor.get_path(), "icon_256.png")
         if os.path.exists(app_icon):
@@ -165,6 +171,8 @@ class Descriptor(object):
         """
         Returns a url that points to a support web page where you can get help
         if you are stuck with this item.
+
+        :returns: Url as string or None if not defined
         """
         meta = self._io_descriptor.get_manifest()
         support_url = meta.get("support_url")
@@ -178,6 +186,8 @@ class Descriptor(object):
         is not defined. This is sometimes subclassed, where a descriptor (like the tank app
         store) and support for automatic, built in documentation management. If not, the 
         default implementation will search the manifest for a doc url location.
+
+        :returns: Url as string or None if not defined
         """
         meta = self._io_descriptor.get_manifest()
         doc_url = meta.get("documentation_url")
@@ -186,10 +196,11 @@ class Descriptor(object):
 
     def get_deprecation_status(self):
         """
-        Returns (is_deprecated (bool), message (str)) to indicate if this item is deprecated.
+        Returns information about deprecation.
+
+        :returns: Returns a tuple (is_deprecated, message) to indicate
+                  if this item is deprecated.
         """
-        # only some descriptors handle this. Default is to not support deprecation, e.g.
-        # always return that things are active.
         return self._io_descriptor.get_deprecation_status()
 
     def get_system_name(self):
@@ -215,7 +226,12 @@ class Descriptor(object):
         """
         Returns the path to the descriptor on the given platform.
         If the location is not known, None is returned.
-        get_platform_path(sys.platform) is equivalent of get_path()
+
+        The call ``get_platform_path(sys.platform)`` is equivalent to ``get_path()``
+
+        :param platform: sys.platform-style operating system string, e.g.
+                         'win32', 'linux2', 'darwin'
+        :returns: Path to the given platform or None if not known.
         """
         if platform == sys.platform:
             return self.get_path()
@@ -225,8 +241,9 @@ class Descriptor(object):
     def get_changelog(self):
         """
         Returns information about the changelog for this item.
-        Returns a tuple: (changelog_summary, changelog_url). Values may be None
-        to indicate that no changelog exists.
+
+        :returns: A tuple (changelog_summary, changelog_url). Values may be None
+                  to indicate that no changelog exists.
         """
         return self._io_descriptor.get_changelog()
 
@@ -238,7 +255,7 @@ class Descriptor(object):
 
     def exists_local(self):
         """
-        Returns true if this item exists in a local repo
+        Returns true if this item exists in a local repo.
         """
         return self._io_descriptor.exists_local()
 
@@ -251,13 +268,13 @@ class Descriptor(object):
     def find_latest_version(self, constraint_pattern=None):
         """
         Returns a descriptor object that represents the latest version.
-        
+
         :param constraint_pattern: If this is specified, the query will be constrained
-        by the given pattern. Version patterns are on the following forms:
-        
-            - v1.2.3 (means the descriptor returned will inevitably be same as self)
-            - v1.2.x 
-            - v1.x.x
+               by the given pattern. Version patterns are on the following forms:
+
+                - v0.1.2, v0.12.3.2, v0.1.3beta - a specific version
+                - v0.12.x - get the highest v0.12 version
+                - v1.x.x - get the highest v1 version
 
         :returns: descriptor object
         """

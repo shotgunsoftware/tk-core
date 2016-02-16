@@ -11,16 +11,25 @@
 from .descriptor import Descriptor
 
 class CoreDescriptor(Descriptor):
+    """
+    Descriptor object which describes a Toolkit Core API version.
+    """
 
     def __init__(self, io_descriptor):
-        super(CoreDescriptor, self).__init__(io_descriptor)
+        """
+        Constructor
 
+        :param io_descriptor: Associated IO descriptor.
+        """
+        super(CoreDescriptor, self).__init__(io_descriptor)
 
     def get_version_constraints(self):
         """
         Returns a dictionary with version constraints. The absence of a key
         indicates that there is no defined constraint. The following keys can be
         returned: min_sg, min_core, min_engine and min_desktop
+
+        :returns: Dictionary with optional keys min_sg, min_core, min_engine, min_desktop
         """
         constraints = {}
 

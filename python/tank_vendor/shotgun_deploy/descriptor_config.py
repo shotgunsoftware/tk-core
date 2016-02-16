@@ -25,6 +25,11 @@ log = util.get_shotgun_deploy_logger()
 class ConfigDescriptor(Descriptor):
 
     def __init__(self, io_descriptor):
+        """
+        Constructor
+
+        :param io_descriptor: Associated IO descriptor.
+        """
         super(ConfigDescriptor, self).__init__(io_descriptor)
 
     def needs_installation(self):

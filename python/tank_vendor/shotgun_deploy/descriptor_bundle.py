@@ -15,6 +15,11 @@ from .errors import ShotgunDeployError
 class BundleDescriptor(Descriptor):
 
     def __init__(self, io_descriptor):
+        """
+        Constructor
+
+        :param io_descriptor: Associated IO descriptor.
+        """
         super(BundleDescriptor, self).__init__(io_descriptor)
 
     def get_version_constraints(self):
@@ -22,6 +27,8 @@ class BundleDescriptor(Descriptor):
         Returns a dictionary with version constraints. The absence of a key
         indicates that there is no defined constraint. The following keys can be
         returned: min_sg, min_core, min_engine and min_desktop
+
+        :returns: Dictionary with optional keys min_sg, min_core, min_engine and min_desktop
         """
         constraints = {}
 
@@ -48,14 +55,13 @@ class BundleDescriptor(Descriptor):
         ["user", "task", "step"] for an app that requires a context with
         user task and step defined.
 
-        Always returns a list, with an empty list meaning no items required.
+        :returns: A list of strings, with an empty list meaning no items required.
         """
         manifest = self._io_descriptor.get_manifest()
         rc = manifest.get("required_context")
         if rc is None:
             rc = []
         return rc
-
 
     def get_supported_platforms(self):
         """
@@ -78,6 +84,9 @@ class BundleDescriptor(Descriptor):
         """
         Returns the manifest configuration schema for this bundle.
         Always returns a dictionary.
+
+        :returns: Configuration dictionary as defined
+                  in the manifest or {} if not defined
         """
         manifest = self._io_descriptor.get_manifest()
         cfg = manifest.get("configuration")
@@ -86,15 +95,17 @@ class BundleDescriptor(Descriptor):
             cfg = {}
         return cfg
 
-
     def get_required_frameworks(self):
         """
-        returns the list of required frameworks for this item.
-        Always returns a list for example
+        Returns the list of required frameworks for this item.
 
-        [{'version': 'v0.1.0', 'name': 'tk-framework-widget'}]
+        Always returns a list - for example::
+
+            [{'version': 'v0.1.0', 'name': 'tk-framework-widget'}]
 
         Each item contains a name and a version key.
+
+        :returns: list of dictionaries
         """
         manifest = self._io_descriptor.get_manifest()
         frameworks = manifest.get("frameworks")
@@ -102,7 +113,6 @@ class BundleDescriptor(Descriptor):
         if frameworks is None:
             frameworks = []
         return frameworks
-
 
     ###############################################################################################
     # helper methods
@@ -112,12 +122,16 @@ class BundleDescriptor(Descriptor):
         Ensures that any shotgun fields a particular descriptor requires
         exists in shotgun. In the metadata (info.yml) for an app or an engine,
         it is possible to define a section for this:
+
         # the Shotgun fields that this app needs in order to operate correctly
         requires_shotgun_fields:
             Version:
                 - { "system_name": "sg_movie_type", "type": "text" }
+
         This method will retrieve the metadata and ensure that any required
         fields exists.
+
+        :param tk: Core API instance to use for post install execution
         """
         # first fetch metadata
         manifest = self._io_descriptor.get_manifest()
@@ -150,14 +164,14 @@ class BundleDescriptor(Descriptor):
         hooks directory for an app or engine, if a 'post_install.py' hook
         exists, the hook will be executed upon each installation.
 
-        :param tk: Tk API instance associated with this item
+        :param tk: Core API instance to use for post install execution
         """
 
         post_install_hook_path = os.path.join(self.get_path(), "hooks", "post_install.py")
 
         if os.path.exists(post_install_hook_path):
             try:
-                # @todo - sort out this import once shotgun_deply is parented under sgtk
+                # @todo - sort out this import once shotgun_deploy is parented under sgtk
                 from tank import hook
                 hook.execute_hook(post_install_hook_path,
                                   parent=None,
@@ -169,16 +183,25 @@ class BundleDescriptor(Descriptor):
                 )
 
 
-
 class EngineDescriptor(BundleDescriptor):
 
     def __init__(self, io_descriptor):
+        """
+        Constructor
+
+        :param io_descriptor: Associated IO descriptor.
+        """
         super(EngineDescriptor, self).__init__(io_descriptor)
 
 
 class AppDescriptor(BundleDescriptor):
 
     def __init__(self, io_descriptor):
+        """
+        Constructor
+
+        :param io_descriptor: Associated IO descriptor.
+        """
         super(AppDescriptor, self).__init__(io_descriptor)
 
     def get_supported_engines(self):
@@ -196,14 +219,20 @@ class AppDescriptor(BundleDescriptor):
 class FrameworkDescriptor(BundleDescriptor):
 
     def __init__(self, io_descriptor):
+        """
+        Constructor
+
+        :param io_descriptor: Associated IO descriptor.
+        """
         super(FrameworkDescriptor, self).__init__(io_descriptor)
 
     def is_shared_framework(self):
         """
         Returns a boolean indicating whether the bundle is a shared framework.
-
         Shared frameworks only have a single instance per instance name in the
         current environment.
+
+        :returns: True if the framework is shared
         """
         manifest = self._io_descriptor.get_manifest()
         shared = manifest.get("shared")

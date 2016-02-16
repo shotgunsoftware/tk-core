@@ -8,7 +8,6 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from distutils.version import LooseVersion
 import os
 import re
 from .errors import ShotgunDeployError
@@ -35,7 +34,7 @@ def execute_git_command(cmd):
     """
     # first probe to check that git exists in our PATH
     try:
-        git_version_info = subprocess_check_output("git --version", shell=True)
+        _ = subprocess_check_output("git --version", shell=True)
     except:
         raise ShotgunDeployError(
             "Cannot execute the 'git' command. Please make sure that git is "
