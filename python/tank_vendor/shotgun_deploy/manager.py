@@ -95,13 +95,28 @@ class ToolkitManager(object):
         pc_id = self._ensure_pipeline_config_exists(project_id)
 
         log.debug("Uploading zip file...")
-        self._sg_connection.upload(
+        attachment_id = self._sg_connection.upload(
             constants.PIPELINE_CONFIGURATION_ENTITY,
             pc_id,
             zip_tmp,
             constants.SHOTGUN_PIPELINECONFIG_ATTACHMENT_FIELD
         )
         log.debug("Upload complete!")
+
+        # write uri
+        uri = "sgtk:shotgun:%s:%s:%s:p%d:v%d" % (
+            constants.PIPELINE_CONFIGURATION_ENTITY,
+            constants.SHOTGUN_PIPELINECONFIG_ATTACHMENT_FIELD,
+            self.pipeline_configuration_name,
+            project_id,
+            attachment_id
+            )
+        log.debug("Updating pipeline config with new uri %s" % uri)
+        self._sg_connection.update(
+            constants.PIPELINE_CONFIGURATION_ENTITY,
+            pc_id,
+            {constants.SHOTGUN_PIPELINECONFIG_URI_FIELD: uri}
+        )
 
         return pc_id
 
