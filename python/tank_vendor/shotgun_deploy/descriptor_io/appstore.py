@@ -330,10 +330,12 @@ class IODescriptorAppStore(IODescriptorBase):
         # sometimes people report that this download fails (because of flaky connections etc)
         # engines can often be 30-50MiB - as a quick fix, just retry the download once
         # if it fails.
+        log.debug("Downloading attachment %s..." % self._version)
         try:
             bundle_content = sg.download_attachment(attachment_id)
-        except Exception:
+        except Exception, e:
             # retry once
+            log.debug("Downloading failed, retrying. Error: %s" % e)
             bundle_content = sg.download_attachment(attachment_id)
 
         zip_tmp = os.path.join(tempfile.gettempdir(), "%s_tank.zip" % uuid.uuid4().hex)
@@ -342,6 +344,7 @@ class IODescriptorAppStore(IODescriptorBase):
         fh.close()
 
         # unzip core zip file to app target location
+        log.debug("Unpacking %s bytes to %s..." % (os.path.getsize(zip_tmp), target))
         unzip_file(zip_tmp, target)
 
         # remove zip file

@@ -16,7 +16,7 @@ from .base import IODescriptorBase
 from .. import util
 from ..zipfilehelper import unzip_file
 from ..errors import ShotgunDeployError
-from ...shotgun_base import ensure_folder_exists
+from ...shotgun_base import ensure_folder_exists, safe_delete_file
 
 log = util.get_shotgun_deploy_logger()
 
@@ -135,10 +135,12 @@ class IODescriptorShotgunEntity(IODescriptorBase):
         # and now for the download.
         # @todo: progress feedback here - when the SG api supports it!
         # sometimes people report that this download fails (because of flaky connections etc)
+        log.debug("Downloading attachment %s..." % self._version)
         try:
             bundle_content = self._sg_connection.download_attachment(self._version)
-        except Exception:
+        except Exception, e:
             # retry once
+            log.debug("Downloading failed, retrying. Error: %s" % e)
             bundle_content = self._sg_connection.download_attachment(self._version)
 
         zip_tmp = os.path.join(tempfile.gettempdir(), "%s_tank.zip" % uuid.uuid4().hex)
@@ -147,7 +149,12 @@ class IODescriptorShotgunEntity(IODescriptorBase):
         fh.close()
 
         # unzip core zip file to app target location
+        log.debug("Unpacking %s bytes to %s..." % (os.path.getsize(zip_tmp), target))
         unzip_file(zip_tmp, target)
+
+        # clear temp file
+        safe_delete_file(zip_tmp)
+
 
 
     #############################################################################

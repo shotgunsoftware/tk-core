@@ -405,7 +405,7 @@ class ToolkitManager(object):
         for idx, descriptor in enumerate(descriptors):
 
             if not descriptor.exists_local():
-                log.info("Downloading %s to the local Toolkit install location..." % descriptor)
+                log.info("Downloading %s..." % descriptor)
                 descriptor.download_local()
 
             else:

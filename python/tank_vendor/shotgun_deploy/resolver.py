@@ -108,36 +108,38 @@ class BasicConfigurationResolver(ConfigurationResolver):
 
         lookup_dict = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path"}
 
-        if pc_data and pc_data.get(lookup_dict[sys.platform]):
-            # we have paths specified for the local platform!
-            return create_managed_configuration(
-                self._sg_connection,
-                self._bundle_cache_root,
-                project_id,
-                pc_data.get("id"),
-                pc_data.get("windows_path"),
-                pc_data.get("linux_path"),
-                pc_data.get("mac_path"),
-            )
+        if pc_data:
 
-        elif pc_data.get(constants.SHOTGUN_PIPELINECONFIG_URI_FIELD):
-            uri = pc_data.get(constants.SHOTGUN_PIPELINECONFIG_URI_FIELD)
-            log.debug("Attempting to resolve config uri %s" % uri)
+            if pc_data.get(lookup_dict[sys.platform]):
+                # we have paths specified for the local platform!
+                return create_managed_configuration(
+                    self._sg_connection,
+                    self._bundle_cache_root,
+                    project_id,
+                    pc_data.get("id"),
+                    pc_data.get("windows_path"),
+                    pc_data.get("linux_path"),
+                    pc_data.get("mac_path"),
+                )
 
-            cfg_descriptor = create_descriptor(
-                self._sg_connection,
-                Descriptor.CONFIG,
-                uri,
-                self._bundle_cache_root
-            )
+            elif pc_data.get(constants.SHOTGUN_PIPELINECONFIG_URI_FIELD):
+                uri = pc_data.get(constants.SHOTGUN_PIPELINECONFIG_URI_FIELD)
+                log.debug("Attempting to resolve config uri %s" % uri)
 
-            return create_unmanaged_configuration(
-                self._sg_connection,
-                self._bundle_cache_root,
-                cfg_descriptor,
-                project_id,
-                pc_data.get("id")
-            )
+                cfg_descriptor = create_descriptor(
+                    self._sg_connection,
+                    Descriptor.CONFIG,
+                    uri,
+                    self._bundle_cache_root
+                )
+
+                return create_unmanaged_configuration(
+                    self._sg_connection,
+                    self._bundle_cache_root,
+                    cfg_descriptor,
+                    project_id,
+                    pc_data.get("id")
+                )
 
         # fall back on base
         return self._create_base_configuration(project_id)

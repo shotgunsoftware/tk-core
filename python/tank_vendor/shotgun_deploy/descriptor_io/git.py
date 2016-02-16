@@ -116,12 +116,14 @@ class IODescriptorGit(IODescriptorBase):
         try:
             # clone the repo
             self._clone_repo(clone_tmp)
-            os.chdir(clone_tmp)            
+            os.chdir(clone_tmp)
+            log.debug("Extracting tag %s..." % self._version)
             execute_git_command("archive --format zip --output %s %s" % (zip_tmp, self._version))
         finally:
             os.chdir(cwd)
         
         # unzip core zip file to app target location
+        log.debug("Unpacking %s bytes to %s..." % (os.path.getsize(zip_tmp), target))
         unzip_file(zip_tmp, target)
 
         # clear temp file
