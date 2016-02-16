@@ -9,7 +9,6 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import re
 import sys
 import uuid
 import datetime
@@ -23,6 +22,7 @@ from ..shotgun_base import ensure_folder_exists
 from .errors import ShotgunDeployError
 from .paths import get_bundle_cache_root
 from .configuration import Configuration, create_managed_configuration, create_unmanaged_configuration
+from .resolver import BasicConfigurationResolver
 
 log = util.get_shotgun_deploy_logger()
 
@@ -110,7 +110,7 @@ class ToolkitManager(object):
             self.pipeline_configuration_name,
             project_id,
             attachment_id
-            )
+        )
         log.debug("Updating pipeline config with new uri %s" % uri)
         self._sg_connection.update(
             constants.PIPELINE_CONFIGURATION_ENTITY,
@@ -121,19 +121,34 @@ class ToolkitManager(object):
         return pc_id
 
     def create_disk_configuration(
-            self,
-            project_id,
-            win_path=None,
-            mac_path=None,
-            linux_path=None,
-            win_python=None,
-            mac_python=None,
-            linux_python=None
+        self,
+        project_id,
+        win_path=None,
+        mac_path=None,
+        linux_path=None,
+        win_python=None,
+        mac_python=None,
+        linux_python=None
     ):
         """
-        Create a pipeline configuration on disk
+        Creates a managed configuration on disk given the base location specified
+        for the manager. The configuration will be downloaded and deployed for the
+        given project. A pipeline configuration will be created with paths referencing
+        the given locations on disk.
 
-        :return:
+        A path to a python interpreter can be specified. If this is not set, the
+        Shotgun desktop default python path will be used.
+
+        This process is akin to the toolkit project setup tank command.
+
+        :param project_id: Project id for which to create the configuration
+        :param win_path: Optional windows install path
+        :param mac_path: Otional mac install path
+        :param linux_path: Optional linux install path.
+        :param win_python: Optional python interpreter path.
+        :param mac_python: Optional python interpreter path.
+        :param linux_python: Optional python interpreter path.
+        :return: Shotgun id for the pipeline relevant configuration
         """
         log.debug("Begin installing config on disk.")
 
@@ -190,22 +205,23 @@ class ToolkitManager(object):
         return pc_id
 
 
-    def bootstrap_sgtk(self, project_id=None, skip_shotgun_lookup=False):
+    def bootstrap_sgtk(self, project_id=None):
         """
         Bootstrap into an sgtk instance
 
+        :param project_id: Project to bootstrap into, None for site mode
         :returns: sgtk instance
         """
         log.debug("Begin bootstrapping sgtk.")
 
-        if skip_shotgun_lookup:
-            log.debug("Completely skipping shotgun lookup for bootstrap.")
-            # no configuration in Shotgun. Fall back on base
-            config = self._create_base_configuration(project_id)
+        resolver = BasicConfigurationResolver(
+            self._sg_connection,
+            self.bundle_cache_root,
+            self.pipeline_configuration_name,
+            self.base_config_location
+        )
 
-        else:
-            # look up in shotgun
-            config = self._get_configuration_from_shotgun(project_id)
+        config = resolver.resolve_project_configuration(project_id)
 
         # see what we have locally
         status = config.status()
@@ -243,16 +259,32 @@ class ToolkitManager(object):
 
         return tk
 
-    def bootstrap_engine(self, engine_name, project_id=None, entity=None, skip_shotgun_lookup=False):
+    def bootstrap_engine(self, engine_name, entity=None):
         """
         Convenience method that bootstraps into the given engine.
 
+        :param entity: Shotgun entity to launch engine for
         :param engine_name: name of engine to launch (e.g. tk-nuke)
         :return: engine instance
         """
         log.debug("bootstrapping into an engine.")
 
-        tk = self.bootstrap_sgtk(project_id, skip_shotgun_lookup)
+        if entity:
+
+            data = self._sg_connection.find_one(
+                entity["type"],
+                [["id", "is", entity["id"]]],
+                ["project"]
+            )
+
+            if not data.get("project"):
+                raise ShotgunDeployError("Cannot resolve project for %s" % entity)
+            project_id = data["project"]["id"]
+
+        else:
+            project_id = None
+
+        tk = self.bootstrap_sgtk(project_id)
         log.debug("Bootstrapped into tk instance %r" % tk)
 
         if entity is None:
@@ -386,82 +418,6 @@ class ToolkitManager(object):
                 descriptor.ensure_shotgun_fields_exist(tk)
                 descriptor.run_post_install(tk)
 
-    def _create_base_configuration(self, project_id):
-        """
-        Helper method that creates a config wrapper object
-
-        :param project_id:
-        :return:
-        """
-        cfg_descriptor = self._get_base_descriptor()
-        log.debug("Creating a configuration wrapper based on %r." % cfg_descriptor)
-
-        # create an object to represent our configuration install
-        return create_unmanaged_configuration(
-            self._sg_connection,
-            self.bundle_cache_root,
-            cfg_descriptor,
-            project_id,
-            pipeline_config_id=None
-        )
-
-    def _get_configuration_from_shotgun(self, project_id):
-        """
-
-        :param project_id:
-        :return:
-        """
-        # now resolve pipeline config details
-        project_entity = None if project_id is None else {"type": "Project", "id": project_id}
-
-        # find a pipeline configuration in Shotgun.
-        log.debug("Checking pipeline configuration in Shotgun...")
-        pc_data = self._sg_connection.find_one(
-            constants.PIPELINE_CONFIGURATION_ENTITY,
-            [["code", "is", self.pipeline_configuration_name],
-             ["project", "is", project_entity]],
-            ["mac_path",
-             "windows_path",
-             "linux_path",
-             constants.SHOTGUN_PIPELINECONFIG_URI_FIELD]
-        )
-        log.debug("Shotgun returned: %s" % pc_data)
-
-        lookup_dict = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path"}
-
-        if pc_data and pc_data.get(lookup_dict[sys.platform]):
-            # we have paths specified for the local platform!
-            return create_managed_configuration(
-                self._sg_connection,
-                self.bundle_cache_root,
-                project_id,
-                pc_data.get("id"),
-                pc_data.get("windows_path"),
-                pc_data.get("linux_path"),
-                pc_data.get("mac_path"),
-            )
-
-        elif pc_data.get(constants.SHOTGUN_PIPELINECONFIG_URI_FIELD):
-            uri = pc_data.get(constants.SHOTGUN_PIPELINECONFIG_URI_FIELD)
-            log.debug("Attempting to resolve config uri %s" % uri)
-
-            cfg_descriptor = create_descriptor(
-                self._sg_connection,
-                Descriptor.CONFIG,
-                uri,
-                self.bundle_cache_root
-            )
-
-            return create_unmanaged_configuration(
-                self._sg_connection,
-                self.bundle_cache_root,
-                cfg_descriptor,
-                project_id,
-                pc_data.get("id")
-            )
-
-        # fall back on base
-        return self._create_base_configuration(project_id)
 
 
 

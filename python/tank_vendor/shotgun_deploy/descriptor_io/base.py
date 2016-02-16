@@ -364,7 +364,7 @@ class IODescriptorBase(object):
         """
         Returns the version number string for this item, .e.g 'v1.2.3'
         """
-        raise NotImplementedError    
+        raise NotImplementedError
     
     def get_path(self):
         """
