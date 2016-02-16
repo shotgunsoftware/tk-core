@@ -256,7 +256,12 @@ class IODescriptorAppStore(IODescriptorBase):
         """
         returns the path to the folder where this item resides
         """
-        return self._get_local_location("app_store", self.get_system_name(), self.get_version())
+        return os.path.join(
+            self._bundle_cache_root,
+            "app_store",
+            self.get_system_name(),
+            self.get_version()
+        )
 
     def get_changelog(self):
         """

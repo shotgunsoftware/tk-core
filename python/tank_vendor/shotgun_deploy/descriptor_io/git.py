@@ -79,7 +79,7 @@ class IODescriptorGit(IODescriptorBase):
         # git@github.com:manneohrstrom/tk-hiero-publish.git -> tk-hiero-publish.git
         # /full/path/to/local/repo.git -> repo.git        
         name = os.path.basename(self._path)
-        return self._get_local_location("git", name, self._version)
+        return os.path.join(self._bundle_cache_root, "git", name, self._version)
 
     def download_local(self):
         """
@@ -125,6 +125,7 @@ class IODescriptorGit(IODescriptorBase):
         try:
             # clone the repo
             self._clone_repo(target_path)
+            os.chdir(target_path)
             execute_git_command("checkout %s -q" % self._version)
         finally:
             os.chdir(cwd)

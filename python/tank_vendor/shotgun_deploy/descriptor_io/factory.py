@@ -110,7 +110,7 @@ def create_io_descriptor(sg, descriptor_type, location_dict, bundle_cache_root):
 
     log.debug("Resolved %s -> %r" % (location_dict, descriptor))
 
-    if constants.LATEST_DESCRIPTOR_KEYWORD in location_dict.get("version"):
+    if location_dict.get("version") == constants.LATEST_DESCRIPTOR_KEYWORD:
         log.debug("Latest keyword detected. Searching for latest version...")
         descriptor = descriptor.get_latest_version()
         log.debug("Resolved latest to be %r" % descriptor)

@@ -46,7 +46,7 @@ class IODescriptorManual(IODescriptorBase):
         """
         returns the path to the folder where this item resides
         """
-        return self._get_local_location("manual", self._name, self._version)
+        return os.path.join(self._bundle_cache_root, "manual", self._name, self._version)
 
     def download_local(self):
         """

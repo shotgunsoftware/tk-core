@@ -97,11 +97,6 @@ class IODescriptorBase(object):
         :param optional: List of optionally supported parameters
         :raises: ShotgunDeployError if the location dict does not include all parameters.
         """
-        log.debug(
-            "Validating locator %s against "
-            "required tokens %s and optional tokens %s" % (location, required, optional)
-        )
-
         location_keys_set = set(location.keys())
         required_set = set(required)
         optional_set = set(optional)
@@ -117,17 +112,6 @@ class IODescriptorBase(object):
                 "Found unsupported parameters %s in %s. "
                 "These will be ignored." % (location_keys_set.difference(all_keys), location)
             )
-
-    def _get_local_location(self, descriptor_name, name, version):
-        """
-        Calculate the local location for an item. This is a convenience method
-        that can be used by implementing classes if they want to stash the code
-        payload in a standardized location in the file system.
-        """
-        # examples:
-        # /studio/tank/install/app_store/tk-nuke/v0.2.3
-        # /studio/tank/install/app_store/NAME/VERSION
-        return os.path.join(self._bundle_cache_root, descriptor_name, name, version)
 
     def _find_latest_tag_by_pattern(self, version_numbers, pattern):
         """

@@ -104,10 +104,12 @@ class IODescriptorShotgunEntity(IODescriptorBase):
         """
         returns the path to the folder where this item resides
         """
-        return self._get_local_location(
-            "sg",
-            self._entity_type,
-            self.get_system_name(),
+        # note that the version for this descriptor is the attachment id, which is unqiue
+        # acrosss all entity types etc. In order to keep paths short, we don't include
+        # any of the other descriptor elements when we cache the path.
+        return os.path.join(
+            self._bundle_cache_root,
+            "sg_upload",
             self.get_version())
 
     def download_local(self):
