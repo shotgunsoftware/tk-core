@@ -1,4 +1,4 @@
-# Copyright (c) 2013 Shotgun Software Inc.
+# Copyright (c) 2016 Shotgun Software Inc.
 # 
 # CONFIDENTIAL AND PROPRIETARY
 # 
@@ -20,13 +20,13 @@ log = util.get_shotgun_deploy_logger()
 
 class ConfigurationResolver(object):
     """
-    Base class for defining recipies for how to resolve a configuration object
+    Base class for defining recipes for how to resolve a configuration object
     given a particular project and configuration.
     """
 
     def __init__(self, sg_connection, bundle_cache_root, pipeline_config_name, base_config_location):
         """
-        Constructor
+        Constructor.
 
         :param sg_connection: Shotgun API instance
         :param bundle_cache_root: Root where content should be cached
@@ -51,9 +51,6 @@ class ConfigurationResolver(object):
         :return: Configuration instance
         """
         raise NotImplementedError
-
-
-
 
 
 class BasicConfigurationResolver(ConfigurationResolver):
@@ -144,13 +141,13 @@ class BasicConfigurationResolver(ConfigurationResolver):
         # fall back on base
         return self._create_base_configuration(project_id)
 
-
     def _create_base_configuration(self, project_id):
         """
         Helper method that creates a config wrapper object
+        from the base configuration locator.
 
-        :param project_id:
-        :return:
+        :param project_id: Shotgun project id
+        :return: Configuration instance
         """
         cfg_descriptor = create_descriptor(
             self._sg_connection,

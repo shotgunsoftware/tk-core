@@ -13,40 +13,96 @@ import zipfile
 from . import util
 log = util.get_shotgun_deploy_logger()
 
-def _process_item(zip_obj, item_path, targetpath):
+def unzip_file(src_zip_file, target_folder):
     """
-    Modified version of _extract_member in http://hg.python.org/cpython/file/538f4e774c18/Lib/zipfile.py
+    Unzips the given file into the given folder.
+
+    Does the following command, but in a way which works with
+    Python 2.5 and Python2.6.2::
+
+        z = zipfile.ZipFile(zip_file, "r")
+        z.extractall(target_folder)
     
+    Works around http://bugs.python.org/issue6050
+
+    :param src_zip_file: Path to zip file to uncompress
+    :param target_folder: Folder to extract into
+    """
+    log.debug("Unpacking %s into %s" % (src_zip_file, target_folder))
+    zip_obj = zipfile.ZipFile(src_zip_file, "r")
+    
+    # loosely based on:
+    # http://forums.devshed.com/python-programming-11/unzipping-a-zip-file-having-folders-and-subfolders-534487.html
+
+    # make sure we are using consistent permissions
+    old_umask = os.umask(0)
+    try:
+        # get list of filenames contained in archinve
+        for x in zip_obj.namelist(): 
+            # process them one by one
+            _process_item(zip_obj, x, target_folder)
+    finally:
+        os.umask(old_umask)
+
+def zip_file(source_folder, target_zip_file):
+    """
+    Zips the contents of a folder.
+
+    :param source_folder: Folder to process
+    :param target_zip_file: Path to zip file to create
+    """
+    log.debug("Zipping contents of %s to %s" % (source_folder, target_zip_file))
+    zf = zipfile.ZipFile(target_zip_file, "w", zipfile.ZIP_DEFLATED)
+    for root, ignored, files, in os.walk(source_folder):
+        for fname in files:
+            fspath = os.path.join(root, fname)
+            arcpath = os.path.join(root, fname)[len(source_folder) + 1:]
+            zf.write(fspath, arcpath)
+    zf.close()
+    log.debug("Zip complete. Size: %s" % os.path.getsize(target_zip_file))
+
+
+def _process_item(zip_obj, item_path, target_path):
+    """
+    Helper method used by unzip_file()
+
+    Modified version of _extract_member in
+    http://hg.python.org/cpython/file/538f4e774c18/Lib/zipfile.py
+
+    :param zip_obj: Zipfile object to extract from
+    :param item_path: zip file object to unpack
+    :param target_path: path to unpack into
+    :returns: full path to unpacked file
     """
     # build the destination pathname, replacing
     # forward slashes to platform specific separators.
     # Strip trailing path separator, unless it represents the root.
-    if (targetpath[-1:] in (os.path.sep, os.path.altsep)
-        and len(os.path.splitdrive(targetpath)[1]) > 1):
-        targetpath = targetpath[:-1]
-    
+    if (target_path[-1:] in (os.path.sep, os.path.altsep)
+        and len(os.path.splitdrive(target_path)[1]) > 1):
+        target_path = target_path[:-1]
+
     # don't include leading "/" from file name if present
     if item_path[0] == '/':
-        targetpath = os.path.join(targetpath, item_path[1:])
+        target_path = os.path.join(target_path, item_path[1:])
     else:
-        targetpath = os.path.join(targetpath, item_path)
-    
-    targetpath = os.path.normpath(targetpath)
-    
+        target_path = os.path.join(target_path, item_path)
+
+    target_path = os.path.normpath(target_path)
+
     # Create all upper directories if necessary.
-    upperdirs = os.path.dirname(targetpath)
+    upperdirs = os.path.dirname(target_path)
     if upperdirs and not os.path.exists(upperdirs):
         os.makedirs(upperdirs, 0777)
-    
+
     if item_path[-1] == '/':
         # this is a directory!
-        if not os.path.isdir(targetpath):
-            os.mkdir(targetpath, 0777)
-    
+        if not os.path.isdir(target_path):
+            os.mkdir(target_path, 0777)
+
     else:
         # this is a file! - write it in a way which is compatible
         # with py25 zipfile library interface
-        target_obj = open(targetpath, "wb")
+        target_obj = open(target_path, "wb")
         target_obj.write(zip_obj.read(item_path))
         target_obj.close()
         # Restore permissions on the extracted file
@@ -61,58 +117,6 @@ def _process_item(zip_obj, item_path, targetpath):
         # If one execution bit is set, give execution rights to everyone
         mode = zip_info.external_attr >> 16 & 0x49
         if mode:
-            os.chmod(targetpath, 0777)
-    
-    return targetpath
-    
+            os.chmod(target_path, 0777)
 
-
-def unzip_file(zip_file, target_folder):
-    """
-    Does the following command, but in a way which works with 
-    Python 2.5 and Python2.6.2
-
-    z = zipfile.ZipFile(zip_file, "r")
-    z.extractall(target_folder)    
-    
-    works around http://bugs.python.org/issue6050
-    
-    """
-        
-    zip_obj = zipfile.ZipFile(zip_file, "r")
-    
-    # loosely based on:
-    # http://forums.devshed.com/python-programming-11/unzipping-a-zip-file-having-folders-and-subfolders-534487.html
-
-    # make sure we are using consistent permissions    
-    old_umask = os.umask(0)
-    try:
-        # get list of filenames contained in archinve
-        for x in zip_obj.namelist(): 
-            # process them one by one
-            _process_item(zip_obj, x, target_folder)
-    finally:
-        os.umask(old_umask)
-
-
-
-def zip_file(source_folder, target_zip_file):
-    """
-    Zips up the contents of a folder, recursively
-
-    :param source_folder:
-    :param zip_file:
-    :return:
-    """
-    log.debug("Zipping contents of %s to %s" % (source_folder, target_zip_file))
-    zf = zipfile.ZipFile(target_zip_file, "w", zipfile.ZIP_DEFLATED)
-    for root, ignored, files, in os.walk(source_folder):
-        for fname in files:
-            fspath = os.path.join(root, fname)
-            arcpath = os.path.join(root, fname)[len(source_folder)+1:]
-            #log.debug(" - Added %s to %s" % (fspath, arcpath))
-            zf.write(fspath, arcpath)
-    zf.close()
-
-    log.debug("Zip complete. Size: %s" % os.path.getsize(target_zip_file))
-
+    return target_path
