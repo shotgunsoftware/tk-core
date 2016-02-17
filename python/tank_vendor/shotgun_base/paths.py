@@ -100,7 +100,7 @@ def get_pipeline_config_cache_root(site_url, project_id, pipeline_configuration_
 
     if project_id is None:
         # site configuration
-        project_config_folder = "site%s" % (project_id, pc_suffix)
+        project_config_folder = "site%s" % pc_suffix
     else:
         project_config_folder = "proj%d%s" % (project_id, pc_suffix)
 
