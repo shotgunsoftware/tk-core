@@ -166,7 +166,7 @@ class Framework(TankBundle):
         # the action contains the engine and framework name, e.g.
         # module: tk-framework-perforce
         # action: (tk-maya) tk-framework-perforce - Connected
-        full_action = "(%s) %s - %s" % (self.engine.name, self.name, action)
+        full_action = "(%s) %s %s" % (self.engine.name, self.name, action)
         log_user_activity_metric(self.name, full_action)
 
 

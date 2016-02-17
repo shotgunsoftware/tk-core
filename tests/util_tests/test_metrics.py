@@ -11,7 +11,8 @@
 from mock import patch
 
 from tank.util.metrics import (
-    MetricsDispatchQueueSingleton,
+    MetricsQueueSingleton,
+    MetricsDispatcher,
     ToolkitMetric,
     UserAttributeMetric,
     UserActivityMetric,
@@ -65,29 +66,16 @@ class TestUserActivityMetric(TankTestBase):
         self.assertIsInstance(obj.data, dict)
 
 
-class TestMetricsDispatchQueueSingleton(TankTestBase):
-    """Cases testing tank.util.metrics.MetricsDispatchQueueSingleton class."""
+class TestMetricsQueueSingleton(TankTestBase):
+    """Cases testing tank.util.metrics.MetricsQueueSingleton class."""
 
     def test_singleton(self):
         """Multiple instantiations return same instance."""
 
-        obj1 = MetricsDispatchQueueSingleton()
-        obj2 = MetricsDispatchQueueSingleton()
-        obj3 = MetricsDispatchQueueSingleton()
+        obj1 = MetricsQueueSingleton()
+        obj2 = MetricsQueueSingleton()
+        obj3 = MetricsQueueSingleton()
         self.assertTrue(obj1 == obj2 == obj3)
-
-    # TODO: figure out why server_caps not being patched as in other tests.
-    #@patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
-    #def test_dispatching(self, server_caps_mock):
-    #    """dispatching/workers properties set properly when `start_dispatching` is called."""
-    #
-    #    obj = MetricsDispatchQueueSingleton()
-    #    self.assertFalse(obj.dispatching)
-    #    self.assertEquals(obj.workers, [])
-    #    obj.start_dispatching(self.tk)
-    #    self.assertTrue(obj.dispatchign)
-    #    self.assertNotEqual(obj.workers, [])
-
 
 class TestMetricsFunctions(TankTestBase):
     """Cases testing tank.util.metrics functions"""

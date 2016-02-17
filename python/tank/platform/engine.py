@@ -27,7 +27,7 @@ from ..errors import TankError, TankEngineInitError, TankContextChangeNotSupport
 from ..deploy import descriptor
 from ..deploy.dev_descriptor import TankDevDescriptor
 from ..util import log_user_activity_metric, log_user_attribute_metric
-from ..util.metrics import MetricsDispatchQueueSingleton as MetricsDispatchQueue
+from ..util.metrics import MetricsDispatcher
 
 from . import application
 from . import constants
@@ -71,7 +71,9 @@ class Engine(TankBundle):
         self.__commands_that_need_prefixing = []
         
         self.__global_progress_widget = None
-        
+
+        self._metrics_dispatcher = None
+
         # Initialize these early on so that methods implemented in the derived class and trying
         # to access the invoker don't trip on undefined variables.
         self._invoker = None
@@ -174,6 +176,12 @@ class Engine(TankBundle):
             for msg in messages:
                 self.log_warning("")
                 self.log_warning(msg)
+
+        # if the engine supports logging metrics, begin dispatching logged metrics
+        if self.metrics_dispatch_allowed:
+            self._metrics_dispatcher = MetricsDispatcher(self, tk)
+            self._metrics_dispatcher.start()
+            self.log_debug("Metrics dispatching started.")
         
     def __repr__(self):
         return "<Sgtk Engine 0x%08x: %s, env: %s>" % (id(self),  
@@ -313,7 +321,7 @@ class Engine(TankBundle):
         # the action contains the engine and app name, e.g.
         # module: tk-maya
         # action: tk-maya - Init
-        full_action = "%s - %s" % (self.name, action)
+        full_action = "%s %s" % (self.name, action)
         log_user_activity_metric(self.name, full_action)
 
     def log_user_attribute_metric(self, attr_name, attr_value):
@@ -491,9 +499,9 @@ class Engine(TankBundle):
         self._async_invoker = None
 
         # halt metrics dispatching
-        metrics_dispatch_queue = MetricsDispatchQueue()
-        if metrics_dispatch_queue.dispatching:
-            metrics_dispatch_queue.stop_dispatching()
+        if self._metrics_dispatcher and self._metrics_dispatcher.dispatching:
+            self._metrics_dispatcher.stop()
+            self.log_debug("Metrics dispatching stopped.")
 
     def destroy_engine(self):
         """
@@ -1823,11 +1831,6 @@ def start_engine(engine_name, tk, context):
 
     # register this engine as the current engine
     set_current_engine(engine)
-
-    # if the engine supports logging metrics, initialize the workers
-    metrics_dispatch_queue = MetricsDispatchQueue()
-    if engine.metrics_dispatch_allowed and not metrics_dispatch_queue.dispatching:
-        metrics_dispatch_queue.start_dispatching(tk)
 
     return engine
 

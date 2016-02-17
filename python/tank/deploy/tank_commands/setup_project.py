@@ -169,9 +169,7 @@ class SetupProjectAction(Action):
                                       params.get_configuration_location(sys.platform), 
                                       suppress_prompts=True)
 
-        self.tk.log_metric("project setup")
 
-                        
     def run_interactive(self, log, args):
         """
         Tank command accessor
@@ -267,9 +265,7 @@ class SetupProjectAction(Action):
         log.info("https://support.shotgunsoftware.com")
         log.info("")
 
-        self.tk.log_metric("project setup (interactive)")
-        
-        
+
     def _shotgun_connect(self, log):
         """
         Connects to the App store and to the associated shotgun site.

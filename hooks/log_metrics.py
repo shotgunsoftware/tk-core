@@ -19,7 +19,27 @@ class LogMetrics(Hook):
         """Called when Toolkit logs a user metric.
         
         :param list metrics: list of dictionaries with logged data.
-        
+
+        The metrics dictionaries will take one of two forms:
+
+        1. A user attribute metric. These typically log the version of
+           an app, engine, framework, DCC, etc.
+
+        {
+            "type": "user_attribute",
+            "attr_name": <attr name>
+            "attr_value": <attr value>
+        }
+
+        2. A user activity metric. These metrics are more common and
+           log the usage of a particular api, hook, engine, app, framework,
+           method, etc.
+
+        {
+            "type": "user_activity",
+            "module": <module name>
+            "action": <action name>
+        }
+
         """
         pass
-

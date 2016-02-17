@@ -74,8 +74,6 @@ class AppUpdatesAction(Action):
         if computed_params["app_filter"] == "ALL":
             computed_params["app_filter"] = None
 
-        self.tk.log_metric("updates")
-
         return check_for_updates(log,
                                  self.tk,
                                  computed_params["environment_filter"], 
@@ -213,8 +211,6 @@ class AppUpdatesAction(Action):
                           external=external_path,
                           preserve_yaml=preserve_yaml)    
 
-        self.tk.log_metric("updates (interactive)")
-            
 
 ################################################################################################
 # helper methods for update

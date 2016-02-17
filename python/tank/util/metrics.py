@@ -32,19 +32,13 @@ json = shotgun_api3.shotgun.json
 
 
 ###############################################################################
-# Metrics dispatch Thread and Queue classes
+# Metrics Queue, Dispatcher, and worker thread classes
 
-class MetricsDispatchQueueSingleton(object):
-    """A FIFO queue for logging metrics to dispatch via worker thread(s).
+class MetricsQueueSingleton(object):
+    """A FIFO queue for logging metrics.
 
     This is a singleton class, so any instantiation will return the same object
     instance within the current process.
-
-    The `start_dispatching()` method must be called in order to create and
-    start the worker threads. Metrics can be added before or after
-    `start_dispatching()` is called and they will be processed in order.
-
-    To halt the dispatching of metrics, call `stop_dispatching()`.
 
     """
 
@@ -58,13 +52,10 @@ class MetricsDispatchQueueSingleton(object):
         if not cls.__instance:
 
             # remember the instance so that no more are created
-            metrics_queue = super(
-                MetricsDispatchQueueSingleton, cls).__new__(
-                    cls, *args, **kwargs)
+            metrics_queue = super(MetricsQueueSingleton, cls).__new__(
+                cls, *args, **kwargs)
 
-            metrics_queue._dispatching = False
             metrics_queue._lock = Lock()
-            metrics_queue._workers = []
 
             # The underlying collections.deque instance
             metrics_queue._queue = deque()
@@ -72,49 +63,6 @@ class MetricsDispatchQueueSingleton(object):
             cls.__instance = metrics_queue
 
         return cls.__instance
-
-    def start_dispatching(self, tk, workers=1, log=None):
-        """Starting up the workers for dispatching logged metrics.
-
-        :param tk: Toolkit api instance to use for sg connection.
-            Forwarded to the worker threads.
-        :param int workers: Number of worker threads to start.
-        :param loggin.Logger log: Optional logger for debugging.
-            Forwarded to the worker threads.
-
-        Creates and starts worker threads for dispatching metrics. Only
-        callable once. Subsequent calls are a no-op.
-
-        """
-
-        if self._dispatching:
-            if log:
-                log.debug("Metrics queue already started. Doing nothing.")
-            return
-
-        # if metrics are not supported, then no reason to process the queue
-        if not self._metrics_supported(tk.shotgun):
-            if log:
-                log.debug("Metrics not supported for this version of Shotgun.")
-            return
-
-        # start the dispatch workers to use this queue
-        for i in range(workers):
-            worker = _MetricsDispatchWorkerThread(tk, self, log)
-            worker.start()
-            if log:
-                log.debug("Added worker thread: %s" % (worker,))
-            self._workers.append(worker)
-
-        self._dispatching = True
-
-    def stop_dispatching(self):
-        """Instructs all worker threads to stop processing metrics."""
-        for worker in self.workers:
-            worker.halt()
-
-        self._dispatching = False
-        self._workers = []
 
     def log(self, metric):
         """Add the metric to the queue for dispatching.
@@ -126,17 +74,7 @@ class MetricsDispatchQueueSingleton(object):
         self._queue.append(metric)
         self._lock.release()
 
-    @property
-    def dispatching(self):
-        """True if the queue has been started and is dispatching metrics."""
-        return self._dispatching
-
-    @property
-    def workers(self):
-        """A list of workers threads dispatching metrics from the queue."""
-        return self._workers
-
-    def _get_metrics(self, count=None):
+    def get_metrics(self, count=None):
         """Return `count` metrics.
 
         :param int count: The number of pending metrics to return.
@@ -171,6 +109,76 @@ class MetricsDispatchQueueSingleton(object):
 
         return metrics
 
+
+class MetricsDispatcher(object):
+    """This class manages 1 or more worker threads dispatching toolkit metrics.
+
+    After initializing the object, the `start()` method is called to
+    spin up worker threads for dispatching logged metrics. The `stop()` method
+    is later called to stop the worker threads.
+
+    """
+
+    def __init__(self, engine, tk, num_workers=1):
+        """Initialize the dispatcher object.
+
+        :param engine: Engine instance, used for logging
+        :param tk: Toolkit api instance
+        :param workers: The number of worker threads to start.
+
+        """
+
+        self._engine = engine
+        self._tk = tk
+        self._num_workers = num_workers
+        self._workers = []
+        self._dispatching = False
+
+    def start(self):
+        """Starts up the workers for dispatching logged metrics.
+
+        If called on an already dispatching instance, then result is a no-op.
+
+        """
+
+        if self._dispatching:
+            self._engine.log_debug(
+                "Metrics dispatching already started. Doing nothing.")
+            return
+
+        # if metrics are not supported, then no reason to process the queue
+        if not self._metrics_supported(self._tk.shotgun):
+            self._engine.log_debug(
+                "Metrics not supported for this version of Shotgun.")
+            return
+
+        # start the dispatch workers to use this queue
+        for i in range(self._num_workers):
+            worker = _MetricsDispatchWorkerThread(self._tk, self._engine)
+            worker.start()
+            self._engine.log_debug("Added worker thread: %s" % (worker,))
+            self._workers.append(worker)
+
+        self._dispatching = True
+
+    def stop(self):
+        """Instructs all worker threads to stop processing metrics."""
+        for worker in self.workers:
+            worker.halt()
+
+        self._dispatching = False
+        self._workers = []
+
+    @property
+    def dispatching(self):
+        """True if started and dispatching metrics."""
+        return self._dispatching
+
+    @property
+    def workers(self):
+        """A list of workers threads dispatching metrics from the queue."""
+        return self._workers
+
     def _metrics_supported(self, sg_connection):
         """Returns True if server supports the metrics api endpoint."""
 
@@ -188,10 +196,9 @@ class MetricsDispatchQueueSingleton(object):
 class _MetricsDispatchWorkerThread(Thread):
     """Worker thread for dispatching metrics to sg logging endpoint.
 
-    Given a queue where metrics are logged in the client code, once started,
-    this worker will dispatch them to the shotgun api endpoint. The worker
-    retrieves any pending metrics after the `DISPATCH_INTERVAL` and sends
-    them all in a single request to sg.
+    Once started this worker will dispatch logged metrics to the shotgun api
+    endpoint. The worker retrieves any pending metrics after the
+    `DISPATCH_INTERVAL` and sends them all in a single request to sg.
 
     """
 
@@ -204,20 +211,18 @@ class _MetricsDispatchWorkerThread(Thread):
     DISPATCH_BATCH_SIZE = 10
     """Worker will dispatch this many metrics at a time, or all if <= 0."""
 
-    def __init__(self, tk, metrics_queue, log=None):
+    def __init__(self, tk, engine):
         """Initialize the worker thread.
 
         :params tk: Toolkit api instance.
-        :params metrics_queue: Holds metrics to log in SG.
-        :params logging.Logger log: Logger for debugging purposes.
+        :params engine: Engine instance.
 
         """
 
         super(_MetricsDispatchWorkerThread, self).__init__()
 
         self._tk = tk
-        self._log = log
-        self._metrics_queue = metrics_queue
+        self._engine = engine
 
         # Make this thread a daemon. This means the process won't wait for this
         # thread to complete before exiting. In most cases, proper engine
@@ -229,20 +234,19 @@ class _MetricsDispatchWorkerThread(Thread):
         self._halt_event = Event()
 
     def run(self):
-        """Runs a loop to dispatch metrics as they're added to the queue."""
+        """Runs a loop to dispatch metrics that have been logged."""
 
-        # The thread is a daemon. Let it run for the duration of the process
+        # run until halted
         while not self._halt_event.isSet():
 
             # get the next available metric and dispatch it
             try:
-                metrics = self._metrics_queue._get_metrics(
+                metrics = MetricsQueueSingleton().get_metrics(
                     self.DISPATCH_BATCH_SIZE)
                 if metrics:
                     self._dispatch(metrics)
             except Exception, e:
-                if self._log:
-                    self._log.error("Error dispatching metrics: %s" % (e,))
+                self._engine.log_error("Error dispatching metrics: %s" % (e,))
             finally:
                 # wait, checking for halt event before more processing
                 self._halt_event.wait(self.DISPATCH_INTERVAL)
@@ -287,9 +291,8 @@ class _MetricsDispatchWorkerThread(Thread):
             # fire and forget, so if there's an error, ignore it.
             pass
         else:
-            if self._log:
-                for metric in metrics:
-                    self._log.debug("Logged metric: %s" % (metric,))
+            for metric in metrics:
+                self._engine.log_debug("Logged metric: %s" % (metric,))
 
         # execute the log_metrics core hook
         self._tk.execute_core_hook(
@@ -366,7 +369,7 @@ def log_metric(metric):
     This method simply adds the metric to the dispatch queue.
     
     """
-    MetricsDispatchQueueSingleton().log(metric)
+    MetricsQueueSingleton().log(metric)
 
 def log_user_activity_metric(module, action):
     """Convenience method for logging a user activity metric.

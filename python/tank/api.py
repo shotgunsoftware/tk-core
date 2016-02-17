@@ -138,7 +138,8 @@ class Tank(object):
         will be backwards compatible.
 
         """
-        log_user_activity_metric('tk-core', action)
+        full_action = "%s %s" % ('tk-core', action)
+        log_user_activity_metric('tk-core', full_action)
 
 
     ################################################################################################
