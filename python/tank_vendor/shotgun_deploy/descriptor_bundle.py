@@ -13,6 +13,9 @@ import os
 from .errors import ShotgunDeployError
 
 class BundleDescriptor(Descriptor):
+    """
+    Descriptor that describes a Toolkit Bundle (App/Engine/Framework)
+    """
 
     def __init__(self, io_descriptor):
         """
@@ -184,6 +187,9 @@ class BundleDescriptor(Descriptor):
 
 
 class EngineDescriptor(BundleDescriptor):
+    """
+    Descriptor that describes a Toolkit Engine
+    """
 
     def __init__(self, io_descriptor):
         """
@@ -195,6 +201,9 @@ class EngineDescriptor(BundleDescriptor):
 
 
 class AppDescriptor(BundleDescriptor):
+    """
+    Descriptor that describes a Toolkit App
+    """
 
     def __init__(self, io_descriptor):
         """
@@ -217,6 +226,9 @@ class AppDescriptor(BundleDescriptor):
 
 
 class FrameworkDescriptor(BundleDescriptor):
+    """
+    Descriptor that describes a Toolkit Framework
+    """
 
     def __init__(self, io_descriptor):
         """

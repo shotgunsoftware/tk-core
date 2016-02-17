@@ -12,15 +12,11 @@ import os
 
 from . import constants
 from .. import yaml
-from ..shotgun_base import copy_folder
 from .errors import ShotgunDeployError
 from .descriptor import Descriptor
-from .descriptor_io.git import IODescriptorGit
 from . import util
 
 log = util.get_shotgun_deploy_logger()
-
-
 
 class ConfigDescriptor(Descriptor):
 
@@ -141,15 +137,12 @@ class ConfigDescriptor(Descriptor):
 
         return roots_data
 
-
-
     def get_required_storages(self):
         """
         Returns a list of storage names needed for this config
         """
         roots_data = self._get_roots_data()
         return roots_data.keys()
-
 
     def deploy(self, target_folder):
         """

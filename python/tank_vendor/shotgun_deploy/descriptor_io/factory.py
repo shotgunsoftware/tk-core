@@ -112,6 +112,11 @@ def _uri_to_dict(location_uri):
         location_dict["path"] = urllib.unquote(chunks[2])
         location_dict["version"] = urllib.unquote(chunks[3])
 
+    elif descriptor_type == "gitbranch":
+        # sgtk:gitbranch:git/path:branchname
+        location_dict["path"] = urllib.unquote(chunks[2])
+        location_dict["branch"] = urllib.unquote(chunks[3])
+
     elif descriptor_type == "dev" or descriptor_type == "dev3":
         # sgtk:dev:[name]:local_path
         # sgtk:dev3:[name]:win_path:linux_path:mac_path
