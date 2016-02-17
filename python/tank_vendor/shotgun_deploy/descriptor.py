@@ -161,9 +161,9 @@ class Descriptor(object):
         else:
             # return default
             default_icon = os.path.abspath(os.path.join(
-                    os.path.dirname(__file__),
-                    "resources",
-                    "default_bundle_256px.png"
+                os.path.dirname(__file__),
+                "resources",
+                "default_bundle_256px.png"
             ))
             return default_icon
 

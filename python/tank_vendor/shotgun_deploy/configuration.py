@@ -251,7 +251,7 @@ class Configuration(object):
 
         # copy the configuration into place
         config_path = self.get_path()
-        source_descriptor.deploy(os.path.join(config_path, "config"))
+        source_descriptor.copy(os.path.join(config_path, "config"))
 
         # write out config files
         self._write_install_location_file()
@@ -280,7 +280,7 @@ class Configuration(object):
 
         # copy the configuration into place
         config_path = self.get_path()
-        self._descriptor.deploy(os.path.join(config_path, "config"))
+        self._descriptor.copy(os.path.join(config_path, "config"))
 
         # write out config files
         self._write_install_location_file()

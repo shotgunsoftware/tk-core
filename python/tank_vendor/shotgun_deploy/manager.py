@@ -21,7 +21,7 @@ from . import constants
 from ..shotgun_base import ensure_folder_exists
 from .errors import ShotgunDeployError
 from .paths import get_bundle_cache_root
-from .configuration import Configuration, create_managed_configuration, create_unmanaged_configuration
+from .configuration import Configuration, create_managed_configuration
 from .resolver import BasicConfigurationResolver
 
 log = util.get_shotgun_deploy_logger()

@@ -29,7 +29,8 @@ class CoreDescriptor(Descriptor):
         indicates that there is no defined constraint. The following keys can be
         returned: min_sg, min_core, min_engine and min_desktop
 
-        :returns: Dictionary with optional keys min_sg, min_core, min_engine, min_desktop
+        :returns: Dictionary with optional keys min_sg, min_core,
+                  min_engine, min_desktop
         """
         constraints = {}
 

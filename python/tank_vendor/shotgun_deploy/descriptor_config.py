@@ -19,6 +19,9 @@ from . import util
 log = util.get_shotgun_deploy_logger()
 
 class ConfigDescriptor(Descriptor):
+    """
+    Descriptor that describes a Toolkit Configuration
+    """
 
     def __init__(self, io_descriptor):
         """
@@ -32,6 +35,8 @@ class ConfigDescriptor(Descriptor):
         """
         Returns true if this config needs to be installed before
         it can be used.
+
+        :returns: True if installation is required prior to use.
         """
         # immutable descriptors are always installed
         # dev and path descriptors return false
@@ -42,6 +47,9 @@ class ConfigDescriptor(Descriptor):
         Returns a dictionary with version constraints. The absence of a key
         indicates that there is no defined constraint. The following keys can be
         returned: min_sg, min_core, min_engine and min_desktop
+
+        :returns: Dictionary with optional keys min_sg, min_core,
+                  min_engine and min_desktop
         """
         constraints = {}
 
@@ -65,7 +73,10 @@ class ConfigDescriptor(Descriptor):
         self._io_descriptor.ensure_local()
         readme_content = []
 
-        readme_file = os.path.join(self._io_descriptor.get_path(), constants.CONFIG_README_FILE)
+        readme_file = os.path.join(
+            self._io_descriptor.get_path(),
+            constants.CONFIG_README_FILE
+        )
         if os.path.exists(readme_file):
             fh = open(readme_file)
             for line in fh:
@@ -117,9 +128,11 @@ class ConfigDescriptor(Descriptor):
 
     def _get_roots_data(self):
         """
-        Returns roots.yml data for this config
-        """
+        Returns roots.yml data for this config.
+        If no root file can be loaded, {} is returned.
 
+        :returns: Roots data yaml content, usually a dictionary
+        """
         self._io_descriptor.ensure_local()
 
         # get the roots definition
@@ -139,16 +152,19 @@ class ConfigDescriptor(Descriptor):
 
     def get_required_storages(self):
         """
-        Returns a list of storage names needed for this config
+        Returns a list of storage names needed for this config.
+        This may be an empty list if the configuration doesn't
+        make use of the file system.
+
+        :returns: List of storage names as strings
         """
         roots_data = self._get_roots_data()
         return roots_data.keys()
 
-    def deploy(self, target_folder):
+    def copy(self, target_folder):
         """
-        Deploy to a config scaffold
+        Copy the config descriptor into the specified target location
 
-        :param target_folder:
-        :return:
+        :param target_folder: Folder to copy the descriptor to
         """
         self._io_descriptor.copy(target_folder)
