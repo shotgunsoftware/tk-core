@@ -330,15 +330,13 @@ def ensure_frameworks_installed(log, tank_api_instance, file_location, descripto
         # get the latest version from the app store by 
         # first getting a stub and then looking for latest.
         location_stub = {"type": "app_store", 
-                         "version": "v0.0.0", 
+                         "version": "latest",
                          "name": name}
         
         pc = tank_api_instance.pipeline_configuration
         
-        descriptor_stub = pc.get_framwork_descriptor(location_stub)
-        
-        fw_descriptor = descriptor_stub.find_latest_version(version_pattern)
-                
+        fw_descriptor = pc.get_framework_descriptor(location_stub)
+
         installed_fw_descriptors.append(fw_descriptor)
 
         # and now process this framework
