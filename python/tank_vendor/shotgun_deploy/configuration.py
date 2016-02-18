@@ -238,11 +238,26 @@ class Configuration(object):
         ensure_folder_exists(config_path)
         ensure_folder_exists(os.path.join(config_path, "cache"))
         ensure_folder_exists(os.path.join(config_path, "config"))
-        ensure_folder_exists(os.path.join(config_path, "install", "config.backup"), True)
-        ensure_folder_exists(os.path.join(config_path, "install", "core.backup"), True)
-        ensure_folder_exists(os.path.join(config_path, "install", "engines"), True)
-        ensure_folder_exists(os.path.join(config_path, "install", "apps"), True)
-        ensure_folder_exists(os.path.join(config_path, "install", "frameworks"), True)
+        ensure_folder_exists(
+            os.path.join(config_path, "install", "config.backup"),
+            create_placeholder_file=True
+        )
+        ensure_folder_exists(
+            os.path.join(config_path, "install", "core.backup"),
+            create_placeholder_file=True
+        )
+        ensure_folder_exists(
+            os.path.join(config_path, "install", "engines"),
+            create_placeholder_file=True
+        )
+        ensure_folder_exists(
+            os.path.join(config_path, "install", "apps"),
+            create_placeholder_file=True
+        )
+        ensure_folder_exists(
+            os.path.join(config_path, "install", "frameworks"),
+            create_placeholder_file=True
+        )
 
     def move_to_backup(self):
         """

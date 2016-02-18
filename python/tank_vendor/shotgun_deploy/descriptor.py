@@ -116,6 +116,14 @@ class Descriptor(object):
         """
         return self._io_descriptor.get_location()
 
+    def copy(self, target_folder):
+        """
+        Copy the config descriptor into the specified target location
+
+        :param target_folder: Folder to copy the descriptor to
+        """
+        self._io_descriptor.copy(target_folder)
+
     def get_bundle_cache_root(self):
         """
         Returns the folder which is used as the base point

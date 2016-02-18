@@ -163,11 +163,3 @@ class ConfigDescriptor(Descriptor):
         """
         roots_data = self._get_roots_data()
         return roots_data.keys()
-
-    def copy(self, target_folder):
-        """
-        Copy the config descriptor into the specified target location
-
-        :param target_folder: Folder to copy the descriptor to
-        """
-        self._io_descriptor.copy(target_folder)

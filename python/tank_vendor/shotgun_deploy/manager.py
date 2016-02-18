@@ -71,7 +71,7 @@ class ToolkitManager(object):
         """
         self._pipeline_configuration_name = name
 
-    def set_base_config(self, location):
+    def set_base_configuration(self, location):
         """
         Specify the config location (string or dict)
         for the fallback config that is used whenever
