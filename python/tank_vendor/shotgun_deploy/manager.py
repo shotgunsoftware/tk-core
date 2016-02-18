@@ -40,35 +40,175 @@ class ToolkitManager(object):
         self._sg_user = sg_user
         self._sg_connection = self._sg_user.create_sg_connection()
 
-        # public properties that can be changed
-        self.bundle_cache_root = get_bundle_cache_root()
-        self.pipeline_configuration_name = constants.PRIMARY_PIPELINE_CONFIG_NAME
-        self.base_config_location = None
-
-        self.cache_apps = True
-        self.progress_callback = None
+        # defaults
+        self._bundle_cache_root = get_bundle_cache_root()
+        self._pipeline_configuration_name = constants.PRIMARY_PIPELINE_CONFIG_NAME
+        self._base_config_location = None
 
     def __repr__(self):
         repr  = "<TkManager "
         repr += " User %s\n" % self._sg_user
-        repr += " Cache root %s\n" % self.bundle_cache_root
-        repr += " Config %s\n" % self.pipeline_configuration_name
-        repr += " Base %s >" % self.base_config_location
+        repr += " Cache root %s\n" % self._bundle_cache_root
+        repr += " Config %s\n" % self._pipeline_configuration_name
+        repr += " Base %s >" % self._base_config_location
         return repr
+
+    def set_bundle_cache_root(self, path):
+        """
+        Specify where the toolkit manager should tell new projects
+        and items to go and cache any associated content.
+
+        :param path: Path on disk for cache
+        """
+        self._bundle_cache_root = path
+
+    def set_pipeline_configuration(self, name):
+        """
+        Specify a non-default pipeline configuration to operate on.
+        By default, the primary config will be used.
+
+        :param name: Pipeline configuration name as string
+        """
+        self._pipeline_configuration_name = name
+
+    def set_base_config(self, location):
+        """
+        Specify the config location (string or dict)
+        for the fallback config that is used whenever
+        shotgun lookups fail.
+
+        :param location: location dictionary or str
+        """
+        self._base_config_location = location
+
+    def bootstrap_sgtk(self, project_id=None):
+        """
+        Create an sgtk instance for the given project or site.
+
+        If project_id is None, the method will bootstrap into the site
+        config. This method will attempt to resolve the config according
+        to business logic set in the assocaited resolver class and based
+        on this launch a configuration. This may involve downloading new
+        apps from the toolkit app store and installing files on disk.
+
+        Please note that the API version of the tk instance may not
+        be the same as the API version that was executed to bootstrap.
+
+        :param project_id: Project to bootstrap into, None for site mode
+        :returns: sgtk instance
+        """
+        log.debug("Begin bootstrapping sgtk.")
+
+        resolver = BasicConfigurationResolver(
+            self._sg_connection,
+            self._bundle_cache_root,
+            self._pipeline_configuration_name,
+            self._base_config_location
+        )
+
+        config = resolver.resolve_project_configuration(project_id)
+
+        # see what we have locally
+        status = config.status()
+
+        if status == Configuration.LOCAL_CFG_UP_TO_DATE:
+            log.info("Your configuration is up to date.")
+
+        elif status == Configuration.LOCAL_CFG_MISSING:
+            log.info("A brand new configuration will be created locally.")
+            config.ensure_project_scaffold()
+            config.update_configuration()
+
+        elif status == Configuration.LOCAL_CFG_OLD:
+            log.info("Your local configuration is out of date and will be updated.")
+            config.ensure_project_scaffold()
+            config.move_to_backup()
+            config.update_configuration()
+
+        elif status == Configuration.LOCAL_CFG_INVALID:
+            log.info("Your local configuration looks invalid and will be replaced.")
+            config.ensure_project_scaffold()
+            config.move_to_backup()
+            config.update_configuration()
+
+        else:
+            raise ShotgunDeployError("Unknown configuration update status!")
+
+        # @todo - add rollback logic from zip config branch
+
+        # we can now boot up this config.
+        tk = config.get_tk_instance(self._sg_user)
+
+        if status != Configuration.LOCAL_CFG_UP_TO_DATE:
+            self._cache_apps(tk)
+
+        return tk
+
+    def bootstrap_engine(self, engine_name, entity=None):
+        """
+        Convenience method that bootstraps into the given engine.
+
+        Similar to bootstrap_sgtk(), this will configure and install
+        items necessary in order to start up toolkit. Once launched,
+        the specified engine will be initiated.
+
+        :param entity: Shotgun entity to launch engine for
+        :param engine_name: name of engine to launch (e.g. tk-nuke)
+        :returns: engine instance
+        """
+        log.debug("bootstrapping into an engine.")
+
+        if entity:
+
+            data = self._sg_connection.find_one(
+                entity["type"],
+                [["id", "is", entity["id"]]],
+                ["project"]
+            )
+
+            if not data.get("project"):
+                raise ShotgunDeployError("Cannot resolve project for %s" % entity)
+            project_id = data["project"]["id"]
+
+        else:
+            project_id = None
+
+        tk = self.bootstrap_sgtk(project_id)
+        log.debug("Bootstrapped into tk instance %r" % tk)
+
+        if entity is None:
+            ctx = tk.context_empty()
+        else:
+            ctx = tk.context_from_entity_dictionary(entity)
+
+        log.debug("Attempting to start engine %s for context %r" % (engine_name, ctx))
+        # @todo - fix this import
+        import tank
+        engine = tank.platform.start_engine(engine_name, tk, ctx)
+
+        log.debug("Launched engine %r" % engine)
+        return engine
 
     def validate(self, project_id):
         """
-        Validate that the given project can receive mgmt operations.
+        Check the validity of the given project against the given
+        base config. This can used to determine that a particular
+        base config can be assocaited with a given shotgun project.
 
-        :return:
+        Checks that storages exists and are correctly named and checks
+        that a tank project name has been set when necessary.
+
+        :param project_id: Project id for which to check
+        :returns: TBD
         """
+        # @todo - implement validate() method
 
     def upload_configuration(self, project_id):
         """
-        Create a pipeline configuration uploaded to Shotgun
+        Convenience method that uploads the given base
+        config to Shotgun.
 
-        :param project_id:
-        :return:
+        :param project_id: Project to upload config to.
         """
         log.debug("Begin uploading config to sgtk.")
 
@@ -107,7 +247,7 @@ class ToolkitManager(object):
         uri = "sgtk:shotgun:%s:%s:%s:p%d:v%d" % (
             constants.PIPELINE_CONFIGURATION_ENTITY,
             constants.SHOTGUN_PIPELINECONFIG_ATTACHMENT_FIELD,
-            self.pipeline_configuration_name,
+            self._pipeline_configuration_name,
             project_id,
             attachment_id
         )
@@ -131,8 +271,8 @@ class ToolkitManager(object):
         linux_python=None
     ):
         """
-        Creates a managed configuration on disk given the base location specified
-        for the manager. The configuration will be downloaded and deployed for the
+        Creates a managed configuration on disk given the base location.
+        The configuration will be downloaded and deployed for the
         given project. A pipeline configuration will be created with paths referencing
         the given locations on disk.
 
@@ -168,7 +308,7 @@ class ToolkitManager(object):
         # create an object to represent our configuration install
         config = create_managed_configuration(
             self._sg_connection,
-            self.bundle_cache_root,
+            self._bundle_cache_root,
             project_id,
             pc_id,
             win_path,
@@ -199,114 +339,17 @@ class ToolkitManager(object):
         tk = config.get_tk_instance(self._sg_user)
 
         # and cache
-        if self.cache_apps:
-            self._cache_apps(tk)
+        self._cache_apps(tk)
 
         return pc_id
-
-
-    def bootstrap_sgtk(self, project_id=None):
-        """
-        Bootstrap into an sgtk instance
-
-        :param project_id: Project to bootstrap into, None for site mode
-        :returns: sgtk instance
-        """
-        log.debug("Begin bootstrapping sgtk.")
-
-        resolver = BasicConfigurationResolver(
-            self._sg_connection,
-            self.bundle_cache_root,
-            self.pipeline_configuration_name,
-            self.base_config_location
-        )
-
-        config = resolver.resolve_project_configuration(project_id)
-
-        # see what we have locally
-        status = config.status()
-
-        if status == Configuration.LOCAL_CFG_UP_TO_DATE:
-            log.info("Your configuration is up to date.")
-
-        elif status == Configuration.LOCAL_CFG_MISSING:
-            log.info("A brand new configuration will be created locally.")
-            config.ensure_project_scaffold()
-            config.update_configuration()
-
-        elif status == Configuration.LOCAL_CFG_OLD:
-            log.info("Your local configuration is out of date and will be updated.")
-            config.ensure_project_scaffold()
-            config.move_to_backup()
-            config.update_configuration()
-
-        elif status == Configuration.LOCAL_CFG_INVALID:
-            log.info("Your local configuration looks invalid and will be replaced.")
-            config.ensure_project_scaffold()
-            config.move_to_backup()
-            config.update_configuration()
-
-        else:
-            raise ShotgunDeployError("Unknown configuration update status!")
-
-        # @todo - add rollback logic from zip config branch
-
-        # we can now boot up this config.
-        tk = config.get_tk_instance(self._sg_user)
-
-        if self.cache_apps and status != Configuration.LOCAL_CFG_UP_TO_DATE:
-            self._cache_apps(tk)
-
-        return tk
-
-    def bootstrap_engine(self, engine_name, entity=None):
-        """
-        Convenience method that bootstraps into the given engine.
-
-        :param entity: Shotgun entity to launch engine for
-        :param engine_name: name of engine to launch (e.g. tk-nuke)
-        :return: engine instance
-        """
-        log.debug("bootstrapping into an engine.")
-
-        if entity:
-
-            data = self._sg_connection.find_one(
-                entity["type"],
-                [["id", "is", entity["id"]]],
-                ["project"]
-            )
-
-            if not data.get("project"):
-                raise ShotgunDeployError("Cannot resolve project for %s" % entity)
-            project_id = data["project"]["id"]
-
-        else:
-            project_id = None
-
-        tk = self.bootstrap_sgtk(project_id)
-        log.debug("Bootstrapped into tk instance %r" % tk)
-
-        if entity is None:
-            ctx = tk.context_empty()
-        else:
-            ctx = tk.context_from_entity_dictionary(entity)
-
-        log.debug("Attempting to start engine %s for context %r" % (engine_name, ctx))
-        # @todo - fix this import
-        import tank
-        engine = tank.platform.start_engine(engine_name, tk, ctx)
-
-        log.debug("Launched engine %r" % engine)
-        return engine
 
     def _ensure_pipeline_config_exists(self, project_id):
         """
         Helper method. Creates a pipeline configuration entity if
-        one doesn't already exist. Checks that the currently
+        one doesn't already exist.
 
-        :param project_id:
-        :return:
+        :param project_id: Project id to check
+        :returns: pipeline configuration id
         """
         # if we are looking at a non-default config,
         # attempt to determine current user so that we can
@@ -322,11 +365,11 @@ class ToolkitManager(object):
 
         log.debug(
             "Looking for a pipeline configuration "
-            "named '%s' for project %s" % (self.pipeline_configuration_name, project_id)
+            "named '%s' for project %s" % (self._pipeline_configuration_name, project_id)
         )
         pc_data = self._sg_connection.find_one(
             constants.PIPELINE_CONFIGURATION_ENTITY,
-            [["code", "is", self.pipeline_configuration_name],
+            [["code", "is", self._pipeline_configuration_name],
              ["project", "is", {"type": "Project", "id": project_id}]],
             ["users"]
         )
@@ -337,7 +380,7 @@ class ToolkitManager(object):
             users = [current_user] if current_user else []
             pc_data = self._sg_connection.create(
                 constants.PIPELINE_CONFIGURATION_ENTITY,
-                {"code": self.pipeline_configuration_name,
+                {"code": self._pipeline_configuration_name,
                  "project": {"type": "Project", "id": project_id},
                  "users": users
                  }
@@ -354,37 +397,41 @@ class ToolkitManager(object):
 
         return pc_data["id"]
 
-
     def _is_primary_config(self):
         """
         Returns true if the pipeline configuration associated with the manager is
         the primary (default) one.
         """
-        return self.pipeline_configuration_name == constants.PRIMARY_PIPELINE_CONFIG_NAME
+        return self._pipeline_configuration_name == constants.PRIMARY_PIPELINE_CONFIG_NAME
 
     def _get_base_descriptor(self):
         """
         Resolves and returns a descriptor to the base config
 
-        :return:
+        :return: ConfigDescriptor object
         """
         cfg_descriptor = create_descriptor(
             self._sg_connection,
             Descriptor.CONFIG,
-            self.base_config_location,
-            self.bundle_cache_root
+            self._base_config_location,
+            self._bundle_cache_root
         )
         log.debug("Base config resolved to: %r" % cfg_descriptor)
         return cfg_descriptor
 
     def _cache_apps(self, tk, do_post_install=False):
+        """
+        Caches all apps associated with the given tk instance
+
+        :param tk: Toolkit instance to cache items for
+        :param do_post_install: Set to true for post install triggers to execute
+        """
+        log.info("Downloading and installing apps...")
+
         # each entry in the config template contains instructions about which version of the app
         # to use. First loop over all environments and gather all descriptors we should download,
         # then go ahead and download and post-install them
-
         pc = tk.pipeline_configuration
-
-        log.info("Downloading and installing apps...")
 
         # pass 1 - populate list of all descriptors
         descriptors = []
@@ -411,14 +458,10 @@ class ToolkitManager(object):
             else:
                 log.info("Item %s is already locally installed." % descriptor)
 
-
+        # pass 3 - do post install
         if do_post_install:
             for descriptor in descriptors:
                 log.debug("Post install for %s" % descriptor)
                 descriptor.ensure_shotgun_fields_exist(tk)
                 descriptor.run_post_install(tk)
-
-
-
-
 
