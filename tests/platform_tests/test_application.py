@@ -255,7 +255,7 @@ class TestProperties(TestApplication):
         app = self.engine.apps["test_app"]
         self.assertEqual(app.name, "test_app")
         self.assertEqual(app.display_name, "Test App")
-        self.assertEqual(app.version, "Undefined")
+        self.assertEqual(app.version, "v0.0.0")
         self.assertEqual(app.documentation_url, None)
         
 
