@@ -97,6 +97,9 @@ UNMANAGED_PIPELINE_CONFIG_NAME = "Unmanaged"
 # descriptor keyword denoting the latest version number
 LATEST_DESCRIPTOR_KEYWORD = "latest"
 
+# latest core
+LATEST_CORE_LOCATION = {"type": "app_store", "name": "tk-core", "version": "latest"}
+
 # default shotgun desktop python installations
 DESKTOP_PYTHON_MAC = "/Applications/Shotgun.app/Contents/Resources/Python/bin/python"
 DESKTOP_PYTHON_WIN = "C:\\Program Files\\Shotgun\\Python\\python.exe"

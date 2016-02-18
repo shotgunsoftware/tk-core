@@ -243,6 +243,15 @@ class IODescriptorBase(object):
         # copy descriptor in
         copy_folder(self.get_path(), target_path)
 
+    def get_bundle_cache_root(self):
+        """
+        Returns the folder which is used as the base point
+        for caching of resources relevant to this descriptor
+
+        :returns: path on disk as string
+        """
+        return self._bundle_cache_root
+
     def get_manifest(self):
         """
         Returns the info.yml metadata associated with this descriptor.

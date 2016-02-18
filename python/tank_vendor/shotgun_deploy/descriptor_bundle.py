@@ -152,15 +152,22 @@ class BundleDescriptor(Descriptor):
                     if not sg_field_name.startswith("sg_"):
                         # invalid field name
                         raise ShotgunDeployError(
-                            "Invalid field name '%s' in app manifest. Must start with sg_" % sg_field_name
+                            "Invalid field name '%s' in app manifest. "
+                            "Must start with sg_" % sg_field_name
                         )
 
-                    ui_field_name = " ".join(word.capitalize() for word in sg_field_name[3:].split("_"))
+                    ui_field_name = " ".join(
+                        word.capitalize() for word in sg_field_name[3:].split("_")
+                    )
 
                     # now check that the field exists
                     sg_field_schema = tk.shotgun.schema_field_read(sg_entity_type)
                     if sg_field_name not in sg_field_schema:
-                        tk.shotgun.schema_field_create(sg_entity_type, sg_data_type, ui_field_name)
+                        tk.shotgun.schema_field_create(
+                            sg_entity_type,
+                            sg_data_type,
+                            ui_field_name
+                        )
 
     def run_post_install(self, tk):
         """

@@ -116,6 +116,15 @@ class Descriptor(object):
         """
         return self._io_descriptor.get_location()
 
+    def get_bundle_cache_root(self):
+        """
+        Returns the folder which is used as the base point
+        for caching of resources relevant to this descriptor
+
+        :returns: path on disk as string
+        """
+        return self._io_descriptor.get_bundle_cache_root()
+
     def get_display_name(self):
         """
         Returns the display name for this item.

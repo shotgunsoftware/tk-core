@@ -132,7 +132,6 @@ class BasicConfigurationResolver(ConfigurationResolver):
 
                 return create_unmanaged_configuration(
                     self._sg_connection,
-                    self._bundle_cache_root,
                     cfg_descriptor,
                     project_id,
                     pc_data.get("id")
@@ -161,7 +160,6 @@ class BasicConfigurationResolver(ConfigurationResolver):
         # create an object to represent our configuration install
         return create_unmanaged_configuration(
             self._sg_connection,
-            self._bundle_cache_root,
             cfg_descriptor,
             project_id,
             pipeline_config_id=None

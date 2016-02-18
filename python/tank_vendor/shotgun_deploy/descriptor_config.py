@@ -136,7 +136,10 @@ class ConfigDescriptor(Descriptor):
         self._io_descriptor.ensure_local()
 
         # get the roots definition
-        root_file_path = os.path.join(self._io_descriptor.get_path(), "core", constants.STORAGE_ROOTS_FILE)
+        root_file_path = os.path.join(
+            self._io_descriptor.get_path(),
+            "core",
+            constants.STORAGE_ROOTS_FILE)
 
         roots_data = {}
 
