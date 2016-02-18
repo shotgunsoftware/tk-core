@@ -12,7 +12,6 @@ import os
 import sys
 import urlparse
 
-
 def get_cache_root():
     """
     Returns a cache root suitable for all Shotgun related data,
@@ -26,18 +25,17 @@ def get_cache_root():
 
     :returns: The calculated location for the cache root
     """
-    # the default implementation will place things in the following locations:
-    # macosx: ~/Library/Caches/Shotgun
-    # windows: %APPDATA%\Shotgun
-    # linux: ~/.shotgun
-
-    # first establish the root location
     if sys.platform == "darwin":
         root = os.path.expanduser("~/Library/Caches/Shotgun")
+
     elif sys.platform == "win32":
         root = os.path.join(os.environ["APPDATA"], "Shotgun")
+
     elif sys.platform.startswith("linux"):
         root = os.path.expanduser("~/.shotgun")
+
+    else:
+        raise RuntimeError("Unsupported operating system!")
 
     return root
 
@@ -87,9 +85,10 @@ def get_pipeline_config_cache_root(site_url, project_id, pipeline_configuration_
     - unmanaged site config: ~/Library/Caches/Shotgun/SITE_NAME/site
     - unmanaged project config: ~/Library/Caches/Shotgun/SITE_NAME/proj123
 
-    :param site_url: Shotgun site url string, eg 'https://mysite.shotgunstudio.com'
+    :param site_url: Shotgun site url string, e.g. 'https://mysite.shotgunstudio.com'
     :param project_id: The shotgun id of the project to store caches for
-    :param pipeline_configuration_id: The shotgun pipeline config id to store caches for. Can be None.
+    :param pipeline_configuration_id: The shotgun pipeline config id to
+                                      store caches for. Can be None.
     :returns: The calculated location for the cache root
     """
     if pipeline_configuration_id is None:
