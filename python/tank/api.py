@@ -23,6 +23,7 @@ from .errors import TankError
 from .path_cache import PathCache
 from .template import read_templates
 from .platform import constants as platform_constants
+from .util import log_user_activity_metric
 from . import pipelineconfig
 from . import pipelineconfig_utils
 from . import pipelineconfig_factory
@@ -123,6 +124,23 @@ class Tank(object):
                                                                              method_name, 
                                                                              parent=self, 
                                                                              **kwargs)
+
+    def log_metric(self, action):
+        """Log a core metric.
+
+        :param action: Action string to log, e.g. 'Init'
+
+        Logs a user activity metric as performed within core. This is
+        a convenience method that auto-populates the module portion of
+        `tank.util.log_user_activity_metric()`
+
+        Internal Use Only - We provide no guarantees that this method
+        will be backwards compatible.
+
+        """
+        full_action = "%s %s" % ('tk-core', action)
+        log_user_activity_metric('tk-core', full_action)
+
 
     ################################################################################################
     # properties

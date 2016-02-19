@@ -741,6 +741,10 @@ class PipelineConfiguration(object):
             # of the core API.
             hooks_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "hooks"))
             hook_path = os.path.join(hooks_path, file_name)
+        else:
+            # some hooks are always custom. ignore those and log the rest.
+            if hook_name not in constants.TANK_LOG_METRICS_CUSTOM_HOOK_BLACKLIST:
+                parent.log_metric("custom hook %s" % (hook_name,))
 
         return hook.execute_hook(hook_path, parent, **kwargs)
 
@@ -770,6 +774,7 @@ class PipelineConfiguration(object):
         hook_path = os.path.join(hook_folder, file_name)
         if os.path.exists(hook_path):
             hook_paths.append(hook_path)
-            
+            parent.log_metric("custom hook %s" % (hook_name,))
+
         return hook.execute_hook_method(hook_paths, parent, method_name, **kwargs)
 
