@@ -290,8 +290,7 @@ class MetricsDispatchWorkerThread(Thread):
             pass
 
         # execute the log_metrics core hook
-        self._engine.execute_in_main_thread(
-            self._engine.tank.execute_core_hook,
+        self._engine.tank.execute_core_hook(
             platform_constants.TANK_LOG_METRICS_HOOK_NAME,
             metrics=[m.data for m in metrics]
         )

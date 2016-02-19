@@ -8,7 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-"""Hook that gets executed every time Toolkit logs a user metric."""
+"""Hook that gets executed every time Toolkit logs user metrics."""
 
 from tank import Hook
  
@@ -16,7 +16,7 @@ from tank import Hook
 class LogMetrics(Hook):
     
     def execute(self, metrics):
-        """Called when Toolkit logs a user metric.
+        """Called when Toolkit logs user metrics.
         
         :param list metrics: list of dictionaries with logged data.
 
@@ -40,6 +40,11 @@ class LogMetrics(Hook):
             "module": <module name>
             "action": <action name>
         }
+
+        Please note that this hook will be executed within one or more
+        dedicated metrics logging worker threads and not in the main thread.
+        Overriding this hook may require additional care to avoid issues
+        related to accessing shared resources across multiple threads.
 
         """
         pass
