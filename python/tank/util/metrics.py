@@ -186,6 +186,7 @@ class MetricsDispatcher(object):
         if not hasattr(self, '_metrics_ok'):
 
             self._metrics_ok = (
+                hasattr(sg_connection, 'server_caps') and
                 sg_connection.server_caps.version and
                 sg_connection.server_caps.version >= (6, 3, 11)
             )
