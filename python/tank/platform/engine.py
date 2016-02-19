@@ -179,9 +179,10 @@ class Engine(TankBundle):
 
         # if the engine supports logging metrics, begin dispatching logged metrics
         if self.metrics_dispatch_allowed:
-            self._metrics_dispatcher = MetricsDispatcher(self, tk)
+            self._metrics_dispatcher = MetricsDispatcher(self)
+            self.log_debug("Starting metrics dispatcher...")
             self._metrics_dispatcher.start()
-            self.log_debug("Metrics dispatching started.")
+            self.log_debug("Metrics dispatcher started.")
         
     def __repr__(self):
         return "<Sgtk Engine 0x%08x: %s, env: %s>" % (id(self),  
@@ -500,8 +501,9 @@ class Engine(TankBundle):
 
         # halt metrics dispatching
         if self._metrics_dispatcher and self._metrics_dispatcher.dispatching:
+            self.log_debug("Stopping metrics dispatcher.")
             self._metrics_dispatcher.stop()
-            self.log_debug("Metrics dispatching stopped.")
+            self.log_debug("Metrics dispatcher stopped.")
 
     def destroy_engine(self):
         """

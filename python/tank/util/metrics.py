@@ -71,8 +71,12 @@ class MetricsQueueSingleton(object):
 
         """
         self._lock.acquire()
-        self._queue.append(metric)
-        self._lock.release()
+        try:
+            self._queue.append(metric)
+        except:
+            pass
+        finally:
+            self._lock.release()
 
     def get_metrics(self, count=None):
         """Return `count` metrics.
@@ -89,23 +93,22 @@ class MetricsQueueSingleton(object):
         metrics = []
 
         self._lock.acquire()
+        try:
+            num_pending = len(self._queue)
 
-        num_pending = len(self._queue)
+            # there are pending metrics
+            if num_pending:
 
-        # there are pending metrics
-        if num_pending:
+                # determine how many metrics to retrieve
+                if not count or count > num_pending:
+                    count = num_pending
 
-            # determine how many metrics to retrieve
-            if not count or count > num_pending:
-                count = num_pending
-
-            try:
                 # would be nice to be able to pop N from deque. oh well.
                 metrics = [self._queue.popleft() for i in range(0, count)]
-            except Exception:
-                pass
-
-        self._lock.release()
+        except:
+            pass
+        finally:
+            self._lock.release()
 
         return metrics
 
@@ -119,17 +122,15 @@ class MetricsDispatcher(object):
 
     """
 
-    def __init__(self, engine, tk, num_workers=1):
+    def __init__(self, engine, num_workers=1):
         """Initialize the dispatcher object.
 
-        :param engine: Engine instance, used for logging
-        :param tk: Toolkit api instance
+        :param engine: An engine instance for logging, and api access
         :param workers: The number of worker threads to start.
 
         """
 
         self._engine = engine
-        self._tk = tk
         self._num_workers = num_workers
         self._workers = []
         self._dispatching = False
@@ -147,14 +148,14 @@ class MetricsDispatcher(object):
             return
 
         # if metrics are not supported, then no reason to process the queue
-        if not self._metrics_supported(self._tk.shotgun):
+        if not self._metrics_supported(self._engine.tank.shotgun):
             self._engine.log_debug(
                 "Metrics not supported for this version of Shotgun.")
             return
 
         # start the dispatch workers to use this queue
         for i in range(self._num_workers):
-            worker = _MetricsDispatchWorkerThread(self._tk, self._engine)
+            worker = MetricsDispatchWorkerThread(self._engine)
             worker.start()
             self._engine.log_debug("Added worker thread: %s" % (worker,))
             self._workers.append(worker)
@@ -182,18 +183,17 @@ class MetricsDispatcher(object):
     def _metrics_supported(self, sg_connection):
         """Returns True if server supports the metrics api endpoint."""
 
-        # TODO: update the version number once the endpoint is available
-        self._metrics_ok = (
-            sg_connection.server_caps.version and
-            sg_connection.server_caps.version >= (7, 0, 0)
-        )
+        if not hasattr(self, '_metrics_ok'):
 
-        # TODO: remove after testing
-        self._metrics_ok = True
+            self._metrics_ok = (
+                sg_connection.server_caps.version and
+                sg_connection.server_caps.version >= (6, 3, 11)
+            )
+
         return self._metrics_ok
 
 
-class _MetricsDispatchWorkerThread(Thread):
+class MetricsDispatchWorkerThread(Thread):
     """Worker thread for dispatching metrics to sg logging endpoint.
 
     Once started this worker will dispatch logged metrics to the shotgun api
@@ -211,17 +211,15 @@ class _MetricsDispatchWorkerThread(Thread):
     DISPATCH_BATCH_SIZE = 10
     """Worker will dispatch this many metrics at a time, or all if <= 0."""
 
-    def __init__(self, tk, engine):
+    def __init__(self, engine):
         """Initialize the worker thread.
 
-        :params tk: Toolkit api instance.
-        :params engine: Engine instance.
+        :params engine: Engine instance
 
         """
 
-        super(_MetricsDispatchWorkerThread, self).__init__()
+        super(MetricsDispatchWorkerThread, self).__init__()
 
-        self._tk = tk
         self._engine = engine
 
         # Make this thread a daemon. This means the process won't wait for this
@@ -246,7 +244,7 @@ class _MetricsDispatchWorkerThread(Thread):
                 if metrics:
                     self._dispatch(metrics)
             except Exception, e:
-                self._engine.log_error("Error dispatching metrics: %s" % (e,))
+                pass
             finally:
                 # wait, checking for halt event before more processing
                 self._halt_event.wait(self.DISPATCH_INTERVAL)
@@ -263,7 +261,7 @@ class _MetricsDispatchWorkerThread(Thread):
         """
 
         # get this thread's sg connection via tk api
-        sg_connection = self._tk.shotgun
+        sg_connection = self._engine.tank.shotgun
 
         # handle proxy setup by pulling the proxy details from the main
         # shotgun connection
@@ -290,14 +288,13 @@ class _MetricsDispatchWorkerThread(Thread):
         except urllib2.HTTPError, e:
             # fire and forget, so if there's an error, ignore it.
             pass
-        else:
-            for metric in metrics:
-                self._engine.log_debug("Logged metric: %s" % (metric,))
 
         # execute the log_metrics core hook
-        self._tk.execute_core_hook(
+        self._engine.execute_in_main_thread(
+            self._engine.tank.execute_core_hook,
             platform_constants.TANK_LOG_METRICS_HOOK_NAME,
-                metrics=[m.data for m in metrics])
+            metrics=[m.data for m in metrics]
+        )
 
 
 ###############################################################################

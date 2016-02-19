@@ -84,6 +84,11 @@ TANK_BUNDLE_INIT_HOOK_NAME = "bundle_init"
 # hook to log metrics
 TANK_LOG_METRICS_HOOK_NAME = "log_metrics"
 
+# metrics logging custom hooks blacklist
+TANK_LOG_METRICS_CUSTOM_HOOK_BLACKLIST = [
+    "pick_environment",
+]
+
 # hook that is executed whenever a PipelineConfiguration instance initializes.
 PIPELINE_CONFIGURATION_INIT_HOOK_NAME = "pipeline_configuration_init"
 
