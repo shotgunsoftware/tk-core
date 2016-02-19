@@ -41,6 +41,19 @@ _SESSION_TOKEN = "session_token"
 _SESSION_CACHE_FILE_NAME = "authentication.yml"
 
 
+def _is_same_user(session_data, login):
+    """
+    Compares the session data's login with a given login name. The comparison
+    is not case sensitive.
+
+    :param session_data: Dictionary with keys 'login' and 'session_token'.
+    :param login: Login of a user.
+
+    :returns: True if the session data is for the given login.
+    """
+    return session_data.get(_LOGIN, "").lower() == login.lower()
+
+
 def _get_cache_location():
     """
     Returns an OS specific cache location.
@@ -214,7 +227,7 @@ def _insert_or_update_user(users_file, login, session_token):
     # Go through all users
     for user in users_file[_USERS]:
         # If we've matched what we are looking for.
-        if user[_LOGIN] == login:
+        if _is_same_user(user, login):
             # Update and return True only if something changed.
             if user[_SESSION_TOKEN] != session_token:
                 user[_SESSION_TOKEN] = session_token
@@ -258,7 +271,7 @@ def delete_session_data(host, login):
         # Read in the file
         users_file = _try_load_site_authentication_file(info_path)
         # File the users to remove the token
-        users_file[_USERS] = [u for u in users_file[_USERS] if u.get(_LOGIN) != login]
+        users_file[_USERS] = [u for u in users_file[_USERS] if not _is_same_user(u, login)]
         # Write back the file.
         _write_yaml_file(info_path, users_file)
         logger.debug("Session cleared.")
@@ -282,7 +295,7 @@ def get_session_data(base_url, login):
         users_file = _try_load_site_authentication_file(info_path)
         for user in users_file[_USERS]:
             # Search for the user in the users dictionary.
-            if user.get(_LOGIN) == login:
+            if _is_same_user(user, login):
                 return {
                     _LOGIN: user[_LOGIN],
                     _SESSION_TOKEN: user[_SESSION_TOKEN]
@@ -342,6 +355,7 @@ def set_current_user(host, login):
     :param host: Host to save the current user for.
     :param login: The current user login for specified host.
     """
+
     file_path = _get_site_authentication_file_location(host)
     _ensure_folder_for_file(file_path)
 

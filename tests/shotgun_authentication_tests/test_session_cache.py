@@ -37,7 +37,9 @@ class SessionCacheTests(TankTestBase):
         """
 
         host = "https://host.shotgunstudio.com"
-        user = "bob"
+        # Even tough the session cache login name comparison is case
+        # insensitive, it should be case preserving.
+        user = "BoB"
 
         # Write the current user for a host and makes sure we get it back.
         session_cache.set_current_user(host, user)
@@ -89,3 +91,44 @@ class SessionCacheTests(TankTestBase):
         self.assertEqual(
             session_cache.get_session_data(host, "alice")["session_token"], "alice_session_token"
         )
+
+    def test_login_case_insensitivity(self):
+        host = "https://case_insensitive.shotgunstudio.com"
+        lowercase_bob = "bob"
+        uppercase_bob = "BOB"
+        session_token = "123"
+        session_data = {
+            "login": lowercase_bob,
+            "session_token": session_token
+        }
+
+        # Store using lower
+        session_cache.cache_session_data(
+            host,
+            lowercase_bob,
+            session_token
+        )
+
+        # Same inputs should resolve the token.
+        self.assertEqual(
+            session_cache.get_session_data(host, lowercase_bob),
+            session_data
+        )
+
+        # upper case user should still recover the session token.
+        self.assertEqual(
+            session_cache.get_session_data(host, uppercase_bob),
+            session_data
+        )
+
+        # Deleting with the upper case user should also work.
+        session_cache.delete_session_data(host, uppercase_bob)
+
+        # Should not be able to resolve the user, with any case
+        self.assertIsNone(
+            session_cache.get_session_data(host, uppercase_bob)
+        )
+        self.assertIsNone(
+            session_cache.get_session_data(host, lowercase_bob),
+        )
+
