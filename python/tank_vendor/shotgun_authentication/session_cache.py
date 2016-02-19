@@ -80,7 +80,7 @@ def _get_site_cache_location(base_url):
     return os.path.join(
         _get_cache_location(),
         # get site only; https://www.foo.com:8080 -> www.foo.com
-        urlparse.urlparse(base_url)[1].split(":")[0]
+        urlparse.urlparse(base_url)[1].split(":")[0].lower()
     )
 
 
