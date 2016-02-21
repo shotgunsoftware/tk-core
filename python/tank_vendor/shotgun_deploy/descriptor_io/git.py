@@ -23,14 +23,9 @@ log = util.get_shotgun_deploy_logger()
 
 class IODescriptorGit(IODescriptorBase):
     """
-    Represents a repository in git. New versions are represented by new tags.
+    Represents a tag in a git repository.
 
-    Tag format:
     location: {"type": "git", "path": "/path/to/repo.git", "version": "v0.2.1"}
-
-    Branch format:
-    location: {"type": "git", "path": "/path/to/repo.git", "branch": "master"}
-
 
     path can be on the form:
 
@@ -42,7 +37,6 @@ class IODescriptorGit(IODescriptorBase):
     Uris are on the form:
 
         sgtk:git:path/to/git/repo:v12.3.4
-        sgtk:gitbranch:path/to/git/repo:master
 
     """
 
@@ -58,8 +52,8 @@ class IODescriptorGit(IODescriptorBase):
 
         self._validate_locator(
             location_dict,
-            required=["type", "path"],
-            optional=["version", "branch"]
+            required=["type", "path", "version"],
+            optional=[]
         )
 
         self._path = location_dict.get("path")
@@ -68,16 +62,11 @@ class IODescriptorGit(IODescriptorBase):
         if self._path.endswith("/") or self._path.endswith("\\"):
             self._path = self._path[:-1]
 
-        if location_dict.get("version") is None and location_dict.get("branch") is None:
-            raise ShotgunDeployError(
-                "Invalid location %s: Must specify either version or branch" % location_dict
-            )
+        # Note: the git command always uses forward slashes
+        self._sanitized_repo_path = self._path.replace(os.path.sep, "/")
 
         self._version = location_dict.get("version")
-        self._branch = location_dict.get("branch")
 
-        # flag to determine that we are in branch mode
-        self._branch_mode = self._version is None
 
     def get_system_name(self):
         """
@@ -91,12 +80,8 @@ class IODescriptorGit(IODescriptorBase):
     def get_version(self):
         """
         Returns the version number string for this item, .e.g 'v1.2.3'
-        or the branch name 'master'
         """
-        if self._branch_mode:
-            return self._branch
-        else:
-            return self._version
+        return self._version
 
     def get_path(self):
         """
@@ -118,52 +103,35 @@ class IODescriptorGit(IODescriptorBase):
 
         target = self.get_path()
 
-        if self._branch_mode:
-            # clone branch into local location
+        # clone into temp location and extract tag
+        ensure_folder_exists(target)
 
-            # ensure parent folder exists
-            parent_folder = os.path.dirname(target)
-            ensure_folder_exists(parent_folder)
+        # now first clone the repo into a tmp location
+        # then zip up the tag we are looking for
+        # finally, move that zip file into the target location
+        zip_tmp = os.path.join(tempfile.gettempdir(), "%s_tank.zip" % uuid.uuid4().hex)
+        clone_tmp = os.path.join(tempfile.gettempdir(), "%s_tank_clone" % uuid.uuid4().hex)
+        ensure_folder_exists(clone_tmp)
 
-            # now clone and archive
-            cwd = os.getcwd()
-            try:
-                # clone the repo
-                self._clone_repo(target)
-                os.chdir(target)
-                log.debug("Checking out branch %s..." % self._branch)
-                execute_git_command("checkout %s -q" % self._branch)
-            finally:
-                os.chdir(cwd)
+        # now clone and archive
+        cwd = os.getcwd()
+        try:
+            # clone the repo
+            self._clone_repo(clone_tmp)
+            os.chdir(clone_tmp)
+            log.debug("Extracting tag %s..." % self._version)
+            execute_git_command(
+                "archive --format zip --output %s %s" % (zip_tmp, self._version)
+            )
+        finally:
+            os.chdir(cwd)
 
-        else:
-            # clone into temp location and extract tag
-            ensure_folder_exists(target)
+        # unzip core zip file to app target location
+        log.debug("Unpacking %s bytes to %s..." % (os.path.getsize(zip_tmp), target))
+        unzip_file(zip_tmp, target)
 
-            # now first clone the repo into a tmp location
-            # then zip up the tag we are looking for
-            # finally, move that zip file into the target location
-            zip_tmp = os.path.join(tempfile.gettempdir(), "%s_tank.zip" % uuid.uuid4().hex)
-            clone_tmp = os.path.join(tempfile.gettempdir(), "%s_tank_clone" % uuid.uuid4().hex)
-            ensure_folder_exists(clone_tmp)
-
-            # now clone and archive
-            cwd = os.getcwd()
-            try:
-                # clone the repo
-                self._clone_repo(clone_tmp)
-                os.chdir(clone_tmp)
-                log.debug("Extracting tag %s..." % self._version)
-                execute_git_command("archive --format zip --output %s %s" % (zip_tmp, self._version))
-            finally:
-                os.chdir(cwd)
-
-            # unzip core zip file to app target location
-            log.debug("Unpacking %s bytes to %s..." % (os.path.getsize(zip_tmp), target))
-            unzip_file(zip_tmp, target)
-
-            # clear temp file
-            safe_delete_file(zip_tmp)
+        # clear temp file
+        safe_delete_file(zip_tmp)
 
     def copy(self, target_path):
         """
@@ -180,10 +148,7 @@ class IODescriptorGit(IODescriptorBase):
             # clone the repo
             self._clone_repo(target_path)
             os.chdir(target_path)
-            if self._branch_mode:
-                execute_git_command("checkout %s -q" % self._branch)
-            else:
-                execute_git_command("checkout %s -q" % self._version)
+            execute_git_command("checkout %s -q" % self._version)
         finally:
             os.chdir(cwd)
 
@@ -201,12 +166,6 @@ class IODescriptorGit(IODescriptorBase):
 
         :returns: descriptor object
         """
-        if self._branch_mode:
-            # when in branch mode, the current version is always the latest
-            # this is akin to how a dev descriptor works
-            return self
-
-        # tag mode
         if constraint_pattern:
             return self._find_latest_by_pattern(constraint_pattern)
         else:
@@ -240,15 +199,20 @@ class IODescriptorGit(IODescriptorBase):
             
             try:
                 # get list of tags from git
-                git_tags = subprocess_check_output("git tag", shell=True).split("\n")
+                git_tags = subprocess_check_output(
+                    "git tag",
+                    shell=True
+                ).split("\n")
             except Exception, e:
-                raise ShotgunDeployError("Could not get list of tags for %s: %s" % (self._path, e))
+                raise ShotgunDeployError("Could not get list of tags for %s: %s" % (self, e))
 
         finally:
             os.chdir(cwd)
         
         if len(git_tags) == 0:
-            raise ShotgunDeployError("Git repository %s doesn't seem to have any tags!" % self._path)
+            raise ShotgunDeployError(
+                "Git repository %s doesn't seem to have any tags!" % self._path
+            )
 
         version_to_use = self._find_latest_tag_by_pattern(git_tags, pattern)
 
@@ -275,12 +239,18 @@ class IODescriptorGit(IODescriptorBase):
             os.chdir(clone_tmp)
             
             try:
-                git_hash = subprocess_check_output("git rev-list --tags --max-count=1", shell=True).strip()
+                git_hash = subprocess_check_output(
+                    "git rev-list --tags --max-count=1",
+                    shell=True
+                ).strip()
             except Exception, e:
-                raise ShotgunDeployError("Could not get list of tags for %s: %s" % (self._path, e))
+                raise ShotgunDeployError("Could not get list of tags for %s: %s" % (self, e))
 
             try:
-                latest_version = subprocess_check_output("git describe --tags %s" % git_hash, shell=True).strip()
+                latest_version = subprocess_check_output(
+                    "git describe --tags %s" % git_hash,
+                    shell=True
+                ).strip()
             except Exception, e:
                 raise ShotgunDeployError("Could not get tag for hash %s: %s" % (hash, e))
         
@@ -302,8 +272,4 @@ class IODescriptorGit(IODescriptorBase):
         # Note: git doesn't like paths in single quotes when running on
         # windows - it also prefers to use forward slashes!
         log.debug("Git Cloning %r into %s" % (self, target_path))
-        sanitized_repo_path = self._path.replace(os.path.sep, "/")
-        execute_git_command("clone -q \"%s\" \"%s\"" % (sanitized_repo_path, target_path))
-
-
-
+        execute_git_command("clone -q \"%s\" \"%s\"" % (self._sanitized_repo_path, target_path))

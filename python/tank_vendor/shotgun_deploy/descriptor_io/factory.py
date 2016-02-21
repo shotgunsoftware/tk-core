@@ -29,6 +29,7 @@ def create_io_descriptor(sg, descriptor_type, location, bundle_cache_root):
     from .path import IODescriptorPath
     from .shotgun_entity import IODescriptorShotgunEntity
     from .git import IODescriptorGit
+    from .git_branch import IODescriptorGitBranch
     from .manual import IODescriptorManual
 
 
@@ -49,6 +50,9 @@ def create_io_descriptor(sg, descriptor_type, location, bundle_cache_root):
 
     elif location_dict.get("type") == "git":
         descriptor = IODescriptorGit(bundle_cache_root, location_dict)
+
+    elif location_dict.get("type") == "git_branch":
+        descriptor = IODescriptorGitBranch(bundle_cache_root, location_dict)
 
     elif location_dict.get("type") == "dev":
         descriptor = IODescriptorDev(bundle_cache_root, location_dict)
@@ -89,8 +93,8 @@ def _uri_to_dict(location_uri):
         location_dict["version"] = urllib.unquote(chunks[3])
 
     elif descriptor_type == "shotgun":
-        # sgtk:shotgun:PipelineConfiguration:sg_config:primary:p123:v456    # with project id
-        # sgtk:shotgun:PipelineConfiguration:sg_config:primary::v456        # without project id
+        # sgtk:shotgun:PipelineConfiguration:sg_config:primary:p123:v456 # with project id
+        # sgtk:shotgun:PipelineConfiguration:sg_config:primary::v456     # without project id
         location_dict["entity_type"] = urllib.unquote(chunks[2])
         location_dict["field"] = urllib.unquote(chunks[3])
         location_dict["name"] = urllib.unquote(chunks[4])
@@ -112,10 +116,11 @@ def _uri_to_dict(location_uri):
         location_dict["path"] = urllib.unquote(chunks[2])
         location_dict["version"] = urllib.unquote(chunks[3])
 
-    elif descriptor_type == "gitbranch":
-        # sgtk:gitbranch:git/path:branchname
+    elif descriptor_type == "git_branch":
+        # sgtk:git_branch:git/path:branchname:commithash
         location_dict["path"] = urllib.unquote(chunks[2])
         location_dict["branch"] = urllib.unquote(chunks[3])
+        location_dict["version"] = urllib.unquote(chunks[4])
 
     elif descriptor_type == "dev" or descriptor_type == "dev3":
         # sgtk:dev:[name]:local_path
