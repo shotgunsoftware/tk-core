@@ -135,6 +135,7 @@ class IODescriptorGitBranch(IODescriptorBase):
 
         :param target_path: Path to clone into. This cannot exist on disk.
         """
+
         # ensure *parent* folder exists
         parent_folder = os.path.dirname(target_path)
         ensure_folder_exists(parent_folder)

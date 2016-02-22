@@ -97,6 +97,9 @@ UNMANAGED_PIPELINE_CONFIG_NAME = "Unmanaged"
 # descriptor keyword denoting the latest version number
 LATEST_DESCRIPTOR_KEYWORD = "latest"
 
+# default namespace
+DEFAULT_NAMESPACE = "default"
+
 # latest core
 LATEST_CORE_LOCATION = {"type": "app_store", "name": "tk-core", "version": "latest"}
 

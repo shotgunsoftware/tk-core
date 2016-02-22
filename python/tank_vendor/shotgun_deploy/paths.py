@@ -10,6 +10,7 @@
 
 import os
 from .. import shotgun_base
+from . import util
 
 def get_bundle_cache_root():
     """
@@ -23,7 +24,7 @@ def get_bundle_cache_root():
     return bundle_cache_root
 
 
-def get_configuration_cache_root(site_url, project_id, pipeline_configuration_id):
+def get_configuration_cache_root(site_url, project_id, pipeline_configuration_id, namespace):
     """
     Calculates the location of a cached configuration.
     Ensures that this folder exists.
@@ -31,6 +32,8 @@ def get_configuration_cache_root(site_url, project_id, pipeline_configuration_id
     :param site_url: Shotgun site url string, eg 'https://mysite.shotgunstudio.com'
     :param project_id: The shotgun id of the project to store caches for
     :param pipeline_configuration_id: The shotgun pipeline config id to store caches for
+    :param namespace: name space string, typically one short word,
+                      e.g. 'maya', 'rv', 'desktop'.
     :returns: path on disk
     """
     config_cache_root = os.path.join(
@@ -39,7 +42,8 @@ def get_configuration_cache_root(site_url, project_id, pipeline_configuration_id
             project_id,
             pipeline_configuration_id
         ),
-        "config"
+        "cfg",
+        util.create_valid_filename(namespace)
     )
     shotgun_base.ensure_folder_exists(config_cache_root)
     return config_cache_root

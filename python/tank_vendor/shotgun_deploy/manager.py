@@ -44,12 +44,14 @@ class ToolkitManager(object):
         self._bundle_cache_root = get_bundle_cache_root()
         self._pipeline_configuration_name = constants.PRIMARY_PIPELINE_CONFIG_NAME
         self._base_config_location = None
+        self._namespace = constants.DEFAULT_NAMESPACE
 
     def __repr__(self):
         repr  = "<TkManager "
         repr += " User %s\n" % self._sg_user
         repr += " Cache root %s\n" % self._bundle_cache_root
         repr += " Config %s\n" % self._pipeline_configuration_name
+        repr += " Namespace: %s\n" % self._namespace
         repr += " Base %s >" % self._base_config_location
         return repr
 
@@ -61,6 +63,19 @@ class ToolkitManager(object):
         :param path: Path on disk for cache
         """
         self._bundle_cache_root = path
+
+    def set_namespace(self, namespace):
+        """
+        Specify a namespace to bootstrap into. Namespaces makes it possible
+        to have more than a single pipeline configuration for a
+        project/pipeline config name combo. For example, you may have primary
+        site configurations for both rv, desktop and maya, each with specific
+        apps and settings that can live alongside each other.
+
+        :param namespace: name space string, typically one short word,
+                          e.g. 'maya', 'rv', 'desktop'
+        """
+        self._namespace = namespace
 
     def set_pipeline_configuration(self, name):
         """
@@ -101,12 +116,15 @@ class ToolkitManager(object):
 
         resolver = BasicConfigurationResolver(
             self._sg_connection,
-            self._bundle_cache_root,
-            self._pipeline_configuration_name,
-            self._base_config_location
+            self._bundle_cache_root
         )
 
-        config = resolver.resolve_project_configuration(project_id)
+        config = resolver.resolve_project_configuration(
+            project_id,
+            self._pipeline_configuration_name,
+            self._namespace,
+            self._base_config_location
+        )
 
         # see what we have locally
         status = config.status()

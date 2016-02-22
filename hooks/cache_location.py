@@ -74,7 +74,11 @@ class CacheLocation(HookBaseClass):
         :returns: The path to a folder which should exist on disk.
         """
         tk = self.parent
-        cache_root = get_pipeline_config_cache_root(tk.shotgun_url, project_id, pipeline_configuration_id)
+        cache_root = get_pipeline_config_cache_root(
+            tk.shotgun_url,
+            project_id,
+            pipeline_configuration_id
+        )
 
         # in the interest of trying to minimize path lengths (to avoid
         # the MAX_PATH limit on windows, we apply some shortcuts

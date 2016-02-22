@@ -24,7 +24,7 @@ from ..shotgun_base import copy_folder, ensure_folder_exists
 
 log = util.get_shotgun_deploy_logger()
 
-def create_unmanaged_configuration(sg, descriptor, project_id, pipeline_config_id):
+def create_unmanaged_configuration(sg, descriptor, project_id, pipeline_config_id, namespace):
     """
     Factory method for creating an unmanaged configuration object. Unmanaged configurations
     are auto-installed on disk and the user doesn't have any power over where they are located.
@@ -38,13 +38,24 @@ def create_unmanaged_configuration(sg, descriptor, project_id, pipeline_config_i
                                pipeline config id associated. If a config does
                                not have an associated entity in Shotgun, this
                                should be set to None.
+    :param namespace: name space string, typically one short word,
+                      e.g. 'maya', 'rv', 'desktop'.
     :returns: Configuration instance
     """
     log.debug("Creating a configuration wrapper for unmanaged config %r" % descriptor)
-    return Configuration(sg, descriptor, project_id, pipeline_config_id)
+    return Configuration(sg, descriptor, project_id, pipeline_config_id, namespace)
 
 
-def create_managed_configuration(sg, bundle_cache_root, project_id, pipeline_config_id, win_path, linux_path, mac_path):
+def create_managed_configuration(
+    sg,
+    bundle_cache_root,
+    project_id,
+    pipeline_config_id,
+    namespace,
+    win_path,
+    linux_path,
+    mac_path
+):
     """
     Factory method for creating a managed configuration wrapper object.
 
@@ -57,6 +68,8 @@ def create_managed_configuration(sg, bundle_cache_root, project_id, pipeline_con
                                pipeline config id associated. If a config does
                                not have an associated entity in Shotgun, this
                                should be set to None.
+    :param namespace: name space string, typically one short word,
+                      e.g. 'maya', 'rv', 'desktop'.
     :param win_path: Path on windows where the config should be located
     :param linux_path: Path on linux where the config should be located
     :param mac_path: Path on macosx where the config should be located
@@ -95,6 +108,7 @@ def create_managed_configuration(sg, bundle_cache_root, project_id, pipeline_con
         config_descriptor,
         project_id,
         pipeline_config_id,
+        namespace,
         config_root)
 
 
@@ -113,7 +127,7 @@ class Configuration(object):
 
     (LOCAL_CFG_UP_TO_DATE, LOCAL_CFG_MISSING, LOCAL_CFG_OLD, LOCAL_CFG_INVALID) = range(4)
 
-    def __init__(self, sg, descriptor, project_id, pipeline_config_id):
+    def __init__(self, sg, descriptor, project_id, pipeline_config_id, namespace):
         """
         Constructor.
 
@@ -126,11 +140,14 @@ class Configuration(object):
                                    pipeline config id associated. If a config does
                                    not have an associated entity in Shotgun, this
                                    should be set to None.
+        :param namespace: name space string, typically one short word,
+                          e.g. 'maya', 'rv', 'desktop'.
         """
         self._sg_connection = sg
         self._descriptor = descriptor
         self._project_id = project_id
         self._pipeline_config_id = pipeline_config_id
+        self._namespace = namespace
 
     def __repr__(self):
         return "<Config with id %s, project id %s and base %s>" % (
@@ -157,7 +174,9 @@ class Configuration(object):
             path = paths.get_configuration_cache_root(
                 self._sg_connection.base_url,
                 self._project_id,
-                self._pipeline_config_id)
+                self._pipeline_config_id,
+                self._namespace
+            )
 
         return path
 
@@ -623,7 +642,7 @@ class ManagedConfiguration(Configuration):
     Represents a configuration that has been installed on disk in a specific location.
     """
 
-    def __init__(self, sg, descriptor, project_id, pipeline_config_id, config_root):
+    def __init__(self, sg, descriptor, project_id, pipeline_config_id, namespace, config_root):
         """
         Constructor.
 
@@ -636,13 +655,21 @@ class ManagedConfiguration(Configuration):
                                    pipeline config id associated. If a config does
                                    not have an associated entity in Shotgun, this
                                    should be set to None.
+        :param namespace: name space string, typically one short word,
+                          e.g. 'maya', 'rv', 'desktop'.
         :param config_root: Root path where the installed configuration should be located
                             This is the same path that is being referenced by absolute paths
                             in a pipeline configuration. Note that the configuration itself
                             is installed inside a CONFIG_ROOT/config folder.
         """
         self._config_root = config_root
-        super(ManagedConfiguration, self).__init__(sg, descriptor, project_id, pipeline_config_id)
+        super(ManagedConfiguration, self).__init__(
+            sg,
+            descriptor,
+            project_id,
+            pipeline_config_id,
+            namespace
+        )
 
     def get_path(self, platform=sys.platform):
         """

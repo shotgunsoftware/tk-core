@@ -24,21 +24,17 @@ class ConfigurationResolver(object):
     given a particular project and configuration.
     """
 
-    def __init__(self, sg_connection, bundle_cache_root, pipeline_config_name, base_config_location):
+    def __init__(self, sg_connection, bundle_cache_root):
         """
         Constructor.
 
         :param sg_connection: Shotgun API instance
         :param bundle_cache_root: Root where content should be cached
-        :param pipeline_config_name: Name of configuration branch (e.g Primary)
-        :param base_config_location: Location dict or string for fallback config.
         """
         self._sg_connection = sg_connection
         self._bundle_cache_root = bundle_cache_root
-        self._pipeline_config_name = pipeline_config_name
-        self._base_config_location = base_config_location
 
-    def resolve_project_configuration(self, project_id):
+    def resolve_project_configuration(self, project_id, pipeline_config_name, namespace, base_config_location):
         """
         Given a Shotgun project (or None for site mode), return a configuration
         object based on a particular set of resolution logic rules.
@@ -48,6 +44,10 @@ class ConfigurationResolver(object):
         schemes, simple non-shotgun schemes etc.
 
         :param project_id: Project id to create a config object for, None for the site config.
+        :param pipeline_config_name: Name of configuration branch (e.g Primary)
+        :param namespace: Config namespace to distinguish it from other configs with the
+                          same project id and pipeline configuration name.
+        :param base_config_location: Location dict or string for fallback config.
         :return: Configuration instance
         """
         raise NotImplementedError
@@ -59,32 +59,28 @@ class BasicConfigurationResolver(ConfigurationResolver):
     toolkit is using today.
     """
 
-    def __init__(self, sg_connection, bundle_cache_root, pipeline_config_name, base_config_location):
+    def __init__(self, sg_connection, bundle_cache_root):
         """
         Constructor
 
         :param sg_connection: Shotgun API instance
         :param bundle_cache_root: Root where content should be cached
-        :param pipeline_config_name: Name of configuration branch (e.g Primary)
-        :param base_config_location: Location dict or string for fallback config.
         """
         super(BasicConfigurationResolver, self).__init__(
             sg_connection,
             bundle_cache_root,
-            pipeline_config_name,
-            base_config_location
         )
 
-    def resolve_project_configuration(self, project_id):
+    def resolve_project_configuration(self, project_id, pipeline_config_name, namespace, base_config_location):
         """
         Given a Shotgun project (or None for site mode), return a configuration
         object based on a particular set of resolution logic rules.
 
-        This method needs to be subclassed by different methods, implementing different
-        business logic for resolve. This resolve may include different type of fallback
-        schemes, simple non-shotgun schemes etc.
-
         :param project_id: Project id to create a config object for, None for the site config.
+        :param pipeline_config_name: Name of configuration branch (e.g Primary)
+        :param namespace: Config namespace to distinguish it from other configs with the
+                          same project id and pipeline configuration name.
+        :param base_config_location: Location dict or string for fallback config.
         :return: Configuration instance
         """
         # now resolve pipeline config details
@@ -94,7 +90,7 @@ class BasicConfigurationResolver(ConfigurationResolver):
         log.debug("Checking pipeline configuration in Shotgun...")
         pc_data = self._sg_connection.find_one(
             constants.PIPELINE_CONFIGURATION_ENTITY,
-            [["code", "is", self._pipeline_config_name],
+            [["code", "is", pipeline_config_name],
              ["project", "is", project_entity]],
             ["mac_path",
              "windows_path",
@@ -134,24 +130,32 @@ class BasicConfigurationResolver(ConfigurationResolver):
                     self._sg_connection,
                     cfg_descriptor,
                     project_id,
-                    pc_data.get("id")
+                    pc_data.get("id"),
+                    namespace
                 )
 
         # fall back on base
-        return self._create_base_configuration(project_id)
+        return self._create_base_configuration(
+            project_id,
+            base_config_location,
+            namespace
+        )
 
-    def _create_base_configuration(self, project_id):
+    def _create_base_configuration(self, project_id, base_config_location, namespace):
         """
         Helper method that creates a config wrapper object
         from the base configuration locator.
 
         :param project_id: Shotgun project id
+        :param base_config_location: Location dict or string for fallback config.
+        :param namespace: Config namespace to distinguish it from other configs with the
+                          same project id and pipeline configuration name.
         :return: Configuration instance
         """
         cfg_descriptor = create_descriptor(
             self._sg_connection,
             Descriptor.CONFIG,
-            self._base_config_location,
+            base_config_location,
             self._bundle_cache_root
         )
 
@@ -162,5 +166,6 @@ class BasicConfigurationResolver(ConfigurationResolver):
             self._sg_connection,
             cfg_descriptor,
             project_id,
-            pipeline_config_id=None
+            None,           # pipeline config id
+            namespace
         )
