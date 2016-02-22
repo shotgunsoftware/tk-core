@@ -31,17 +31,6 @@ class ConfigDescriptor(Descriptor):
         """
         super(ConfigDescriptor, self).__init__(io_descriptor)
 
-    def needs_installation(self):
-        """
-        Returns true if this config needs to be installed before
-        it can be used.
-
-        :returns: True if installation is required prior to use.
-        """
-        # immutable descriptors are always installed
-        # dev and path descriptors return false
-        return self._io_descriptor.is_immutable()
-
     def get_version_constraints(self):
         """
         Returns a dictionary with version constraints. The absence of a key

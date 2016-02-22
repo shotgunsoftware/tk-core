@@ -126,7 +126,6 @@ class IODescriptorGitBranch(IODescriptorBase):
 
         :param target_path: target path
         """
-        log.debug("Copying %r -> %s" % (self, target_path))
         self._clone_into(target_path)
 
     def _clone_into(self, target_path):

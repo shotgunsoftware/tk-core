@@ -43,7 +43,7 @@ def create_unmanaged_configuration(sg, descriptor, project_id, pipeline_config_i
     :returns: Configuration instance
     """
     log.debug("Creating a configuration wrapper for unmanaged config %r" % descriptor)
-    return Configuration(sg, descriptor, project_id, pipeline_config_id, namespace)
+    return UnmanagedConfiguration(sg, descriptor, project_id, pipeline_config_id, namespace)
 
 
 def create_managed_configuration(
@@ -65,9 +65,8 @@ def create_managed_configuration(
                        configuration. For a site-level configuration, this
                        can be set to None.
     :param pipeline_config_id: Pipeline Configuration id for the shotgun
-                               pipeline config id associated. If a config does
-                               not have an associated entity in Shotgun, this
-                               should be set to None.
+                               pipeline config id associated. For managed
+                               configs, this option cannot be None.
     :param namespace: name space string, typically one short word,
                       e.g. 'maya', 'rv', 'desktop'.
     :param win_path: Path on windows where the config should be located
@@ -76,6 +75,9 @@ def create_managed_configuration(
     :returns: ManagedConfiguration instance
     """
     log.debug("Creating a configuration wrapper for managed config.")
+
+    if pipeline_config_id is None:
+        raise ValueError("Managed configurations require a Pipeline Configuration id.")
 
     config_root = {
         "win32": win_path,
@@ -104,7 +106,6 @@ def create_managed_configuration(
 
     return ManagedConfiguration(
         sg,
-        bundle_cache_root,
         config_descriptor,
         project_id,
         pipeline_config_id,
@@ -118,11 +119,6 @@ class Configuration(object):
 
     The configuration is identified by a ConfigurationDescriptor
     object and may or may not exist on disk.
-
-    The descriptor implies a certain location where the configuration
-    resides on disk and though the configuration object you can
-    perform operations on this location such as checking that the
-    config on disk exists, is up to date, back it up, install it etc.
     """
 
     (LOCAL_CFG_UP_TO_DATE, LOCAL_CFG_MISSING, LOCAL_CFG_OLD, LOCAL_CFG_INVALID) = range(4)
@@ -168,95 +164,61 @@ class Configuration(object):
         :param platform: Operating system platform
         :return: path on disk as string
         """
-        if platform != sys.platform:
-            path = None
-        else:
-            path = paths.get_configuration_cache_root(
-                self._sg_connection.base_url,
-                self._project_id,
-                self._pipeline_config_id,
-                self._namespace
-            )
-
-        return path
+        raise NotImplementedError
 
     def status(self):
         """
         Compares the actual configuration installed on disk against the
-        assocated configuration described by the descriptor passed in via
+        associated configuration described by the descriptor passed in via
         the class constructor.
 
         :returns: LOCAL_CFG_UP_TO_DATE, LOCAL_CFG_MISSING,
                   LOCAL_CFG_OLD, or LOCAL_CFG_INVALID
         """
-        log.debug("Checking status of %r" % self)
-        if not self._descriptor.needs_installation():
-            return self.LOCAL_CFG_UP_TO_DATE
+        raise NotImplementedError
 
-        config_root = self.get_path()
+    def update_configuration(self):
+        """
+        Ensure that the configuration is up to date with the one
+        given by the associated descriptor.
+        """
+        raise NotImplementedError
 
-        # first check if there is any config at all
-        # probe for shotgun.yml connection params file
-        if not os.path.exists(os.path.join(config_root, "config", "core", "shotgun.yml")):
-            return self.LOCAL_CFG_MISSING
+    def get_tk_instance(self, sg_user):
+        """
+        Returns a tk instance for this configuration.
 
-        # local config exists. See if it is up to date.
-        # look at the attachment id to determine the generation of the config.
-        config_info_file = os.path.join(
-            config_root,
-            "cache",
-            constants.CONFIG_INFO_CACHE
-        )
+        :param sg_user: Authenticated Shotgun user to associate
+                        the tk instance with.
+        """
+        # @todo - check if there is already a tank instance, in that case unload or warn
+        path = self.get_path()
+        core_path = os.path.join(path, "install", "core", "python")
+        sys.path.insert(0, core_path)
+        import tank
+        tank.set_authenticated_user(sg_user)
+        tk = tank.tank_from_path(path)
+        log.info("API created: %s" % tk)
+        return tk
 
-        if not os.path.exists(config_info_file):
-            # not sure what version this is.
-            return self.LOCAL_CFG_INVALID
-
-        fh = open(config_info_file, "rt")
-        try:
-            data = yaml.load(fh)
-            deploy_generation = data["deploy_generation"]
-            location = data["config_location"]
-        except Exception, e:
-            # yaml info not valid.
-            log.warning("Cannot parse file '%s' - ignoring. Error: %s" % (config_info_file, e))
-            return self.LOCAL_CFG_INVALID
-        finally:
-            fh.close()
-
-        if deploy_generation != constants.CLOUD_CONFIG_DEPLOY_LOGIC_GENERATION:
-            # different format or logic of the deploy itself.
-            # trigger a redeploy
-            log.debug("Config was installed with an old generation of the logic.")
-            return self.LOCAL_CFG_OLD
-
-        if location != self._descriptor.get_location():
-            log.debug(
-                "Local Config %r does not match "
-                "associated descriptor %r" % (location, self._descriptor.get_location())
-            )
-            return self.LOCAL_CFG_OLD
-
-        else:
-            log.debug("Local config is up to date")
-            return self.LOCAL_CFG_UP_TO_DATE
-
-
-    def ensure_project_scaffold(self):
+    def _ensure_project_scaffold(self):
         """
         Creates all the necessary files on disk for a basic config scaffold.
 
         - Sets up basic folder structure for a config
         - Copies the configuration into place.
+
+        :returns: True if a scaffold was created, False if a complete or
+                  partial configuration already existed on disk.
         """
-
         config_path = self.get_path()
-
         log.info("Ensuring project scaffold in '%s'..." % config_path)
+
+        config_exists = os.path.exists(config_path)
 
         ensure_folder_exists(config_path)
         ensure_folder_exists(os.path.join(config_path, "cache"))
-        ensure_folder_exists(os.path.join(config_path, "config"))
+
         ensure_folder_exists(
             os.path.join(config_path, "install", "config.backup"),
             create_placeholder_file=True
@@ -278,71 +240,57 @@ class Configuration(object):
             create_placeholder_file=True
         )
 
-    def move_to_backup(self):
+        return config_exists
+
+    def _move_to_backup(self):
         """
-        Move the existing config data to a backup location.
+        Move any existing config and core to a backup location.
+
+        After this method has been executed, there is no config and
+        no install/core folder present in the configuration scaffold.
+        Both have been moved into their respective backup locations.
+
         """
         # get backup root location
         config_path = self.get_path()
 
         configuration_payload = os.path.join(config_path, "config")
-        config_backup_root = os.path.join(config_path, "install", "config.backup")
 
-        # make sure we have a backup folder present
-        config_backup_path = os.path.join(
-            config_backup_root,
-            datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        )
-        ensure_folder_exists(config_backup_path)
+        if os.path.exists(configuration_payload):
 
-        log.debug("Moving config %s -> %s" % (configuration_payload, config_backup_path))
-        backup_target_path = os.path.join(config_backup_path, os.path.basename(configuration_payload))
-        os.rename(configuration_payload, backup_target_path)
-        log.debug("Backup complete.")
+            config_backup_root = os.path.join(config_path, "install", "config.backup")
+
+            # make sure we have a backup folder present
+            config_backup_path = os.path.join(
+                config_backup_root,
+                datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            )
+            ensure_folder_exists(config_backup_path)
+
+            log.debug("Moving config %s -> %s" % (configuration_payload, config_backup_path))
+            backup_target_path = os.path.join(config_backup_path, os.path.basename(configuration_payload))
+            os.rename(configuration_payload, backup_target_path)
+            log.debug("Backup complete.")
 
         # now back up the core API
         core_payload = os.path.join(config_path, "install", "core")
-        core_backup_root = os.path.join(config_path, "install", "core.backup")
-        # should not be necessary but just in case.
-        ensure_folder_exists(core_backup_root)
 
-        # make sure we have a backup folder present
-        core_backup_path = os.path.join(
-            core_backup_root,
-            datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        )
+        if os.path.exists(core_payload):
+            core_backup_root = os.path.join(config_path, "install", "core.backup")
+            # should not be necessary but just in case.
+            ensure_folder_exists(core_backup_root)
 
-        log.debug("Moving core %s -> %s" % (core_payload, core_backup_path))
-        os.rename(core_payload, core_backup_path)
-        log.debug("Backup complete.")
+            # make sure we have a backup folder present
+            core_backup_path = os.path.join(
+                core_backup_root,
+                datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            )
 
+            log.debug("Moving core %s -> %s" % (core_payload, core_backup_path))
+            os.rename(core_payload, core_backup_path)
+            log.debug("Backup complete.")
 
-    def update_configuration(self):
-        """
-        Ensure that the configuration is up to date with the one
-        given by the associated descriptor.
-        """
-        if not self._descriptor.needs_installation():
-            # already local configs are always up to date
-            return
-
-        # copy the configuration into place
-        config_path = self.get_path()
-        self._descriptor.copy(os.path.join(config_path, "config"))
-
-        # write out config files
-        self._write_install_location_file()
-        self._write_config_info_file()
-        self._write_shotgun_file()
-        self._write_pipeline_config_file()
-        self._update_roots_file()
-
-        # and lastly install core
-        self._install_core()
-
-        # @todo - prime caches (yaml, path cache)
-
-    def create_tank_command(self, win_python=None, mac_python=None, linux_python=None):
+    def _create_tank_command(self, win_python=None, mac_python=None, linux_python=None):
         """
         Create a tank command for this configuration.
         This will overwrites existing binaries and create interpreter files.
@@ -393,23 +341,6 @@ class Configuration(object):
                 log.debug("Installing brand new tank command")
                 copy_file(src_file, tgt_file, 0775)
 
-    def get_tk_instance(self, sg_user):
-        """
-        Returns a tk instance for this configuration.
-
-        :param sg_user: Authenticated Shotgun user to associate
-                        the tk instance with.
-        """
-        # @todo - check if there is already a tank instance, in that case unload or warn
-        path = self.get_path()
-        core_path = os.path.join(path, "install", "core", "python")
-        sys.path.insert(0, core_path)
-        import tank
-        tank.set_authenticated_user(sg_user)
-        tk = tank.tank_from_path(path)
-        log.info("API created: %s" % tk)
-        return tk
-
 
     def _install_core(self):
         """
@@ -444,7 +375,6 @@ class Configuration(object):
 
         log.debug("Copying core into place")
         core_descriptor.copy(core_target_path)
-
 
     def _write_install_location_file(self):
         """
@@ -483,7 +413,6 @@ class Configuration(object):
         fh.write("# End of file.\n")
         fh.close()
 
-
     def _write_config_info_file(self):
         """
         Writes a cache file with info about where the config came from.
@@ -514,7 +443,6 @@ class Configuration(object):
         fh.close()
 
         log.debug("Wrote %s" % config_info_file)
-
 
     def _write_shotgun_file(self):
         """
@@ -653,6 +581,156 @@ class Configuration(object):
         log.debug("Wrote %s" % roots_file)
 
 
+class UnmanagedConfiguration(Configuration):
+    """
+    An abstraction around an unmanaged Toolkit configuration.
+    Unmanaged configs are not installed in a particular location
+    on disk, but their life cycle is managed by toolkit internally.
+
+    An unmanaged configuration tracks against a config descriptor
+    and the locally cached configuration can be up to date with the
+    descriptor or out of date. You can execute the status() method
+    to determine this.
+
+    For configurations that are not up to date, the update() method
+    will ensure that they are gracefully brought to the version that
+    is defined in the descriptor.
+    """
+
+    def __init__(self, sg, descriptor, project_id, pipeline_config_id, namespace):
+        """
+        Constructor.
+
+        :param sg: Shotgun API instance
+        :param descriptor: ConfigDescriptor for the associated config
+        :param project_id: Project id for the shotgun project associated with the
+                           configuration. For a site-level configuration, this
+                           can be set to None.
+        :param pipeline_config_id: Pipeline Configuration id for the shotgun
+                                   pipeline config id associated. If a config does
+                                   not have an associated entity in Shotgun, this
+                                   should be set to None.
+        :param namespace: name space string, typically one short word,
+                          e.g. 'maya', 'rv', 'desktop'.
+        """
+        super(UnmanagedConfiguration, self).__init__(
+            sg,
+            descriptor,
+            project_id,
+            pipeline_config_id,
+            namespace
+        )
+
+    def get_path(self, platform=sys.platform):
+        """
+        Returns the path to the installed configuration
+        on the given os. Note how the location returned by
+        this method is the root folder of an installed configuration.
+
+        This root folder in turn contains a 'config' folder which contains
+        the configuration described by the config descriptor.
+
+        :param platform: Operating system platform
+        :return: path on disk as string
+        """
+        if platform != sys.platform:
+            path = None
+        else:
+            path = paths.get_configuration_cache_root(
+                self._sg_connection.base_url,
+                self._project_id,
+                self._pipeline_config_id,
+                self._namespace
+            )
+
+        return path
+
+    def status(self):
+        """
+        Compares the actual configuration installed on disk against the
+        associated configuration described by the descriptor passed in via
+        the class constructor.
+
+        :returns: LOCAL_CFG_UP_TO_DATE, LOCAL_CFG_MISSING,
+                  LOCAL_CFG_OLD, or LOCAL_CFG_INVALID
+        """
+        log.debug("Checking status of %r" % self)
+
+        config_root = self.get_path()
+
+        # first check if there is any config at all
+        # probe for shotgun.yml connection params file
+        if not os.path.exists(os.path.join(config_root, "config", "core", "shotgun.yml")):
+            return self.LOCAL_CFG_MISSING
+
+        # local config exists. See if it is up to date.
+        # look at the attachment id to determine the generation of the config.
+        config_info_file = os.path.join(
+            config_root,
+            "cache",
+            constants.CONFIG_INFO_CACHE
+        )
+
+        if not os.path.exists(config_info_file):
+            # not sure what version this is.
+            return self.LOCAL_CFG_INVALID
+
+        fh = open(config_info_file, "rt")
+        try:
+            data = yaml.load(fh)
+            deploy_generation = data["deploy_generation"]
+            location = data["config_location"]
+        except Exception, e:
+            # yaml info not valid.
+            log.warning("Cannot parse file '%s' - ignoring. Error: %s" % (config_info_file, e))
+            return self.LOCAL_CFG_INVALID
+        finally:
+            fh.close()
+
+        if deploy_generation != constants.CLOUD_CONFIG_DEPLOY_LOGIC_GENERATION:
+            # different format or logic of the deploy itself.
+            # trigger a redeploy
+            log.debug("Config was installed with an old generation of the logic.")
+            return self.LOCAL_CFG_OLD
+
+        if location != self._descriptor.get_location():
+            log.debug(
+                "Local Config %r does not match "
+                "associated descriptor %r" % (location, self._descriptor.get_location())
+            )
+            return self.LOCAL_CFG_OLD
+
+        else:
+            log.debug("Local config is up to date")
+            return self.LOCAL_CFG_UP_TO_DATE
+
+    def update_configuration(self):
+        """
+        Ensure that the configuration is up to date with the one
+        given by the associated descriptor.
+        """
+        # make sure a scaffold is in place
+        self._ensure_project_scaffold()
+
+        # stow away any previous versions of core or config
+        self._move_to_backup()
+
+        # copy the configuration into place
+        config_path = self.get_path()
+        self._descriptor.copy(os.path.join(config_path, "config"))
+
+        # write out config files
+        self._write_install_location_file()
+        self._write_config_info_file()
+        self._write_shotgun_file()
+        self._write_pipeline_config_file()
+        self._update_roots_file()
+
+        # and lastly install core
+        self._install_core()
+
+        # @todo - prime caches (yaml, path cache)
+
 
 class ManagedConfiguration(Configuration):
     """
@@ -696,18 +774,52 @@ class ManagedConfiguration(Configuration):
         """
         return self._config_root[platform]
 
-    def install_external_configuration(self, source_descriptor):
+    def status(self):
+        """
+        Compares the actual configuration installed on disk against the
+        associated configuration described by the descriptor passed in via
+        the class constructor.
+
+        :returns: LOCAL_CFG_UP_TO_DATE, LOCAL_CFG_MISSING,
+                  LOCAL_CFG_OLD, or LOCAL_CFG_INVALID
+        """
+        # managed configs are always up to date - they track
+        # their status against themselves.
+        return self.LOCAL_CFG_UP_TO_DATE
+
+    def update_configuration(self):
+        """
+        Ensure that the configuration is up to date with the one
+        given by the associated descriptor.
+        """
+        # we are always up to date with ourselves.
+        return
+
+    def install_external_configuration(
+            self,
+            source_descriptor,
+            win_python=None,
+            mac_python=None,
+            linux_python=None
+    ):
         """
         Installs the configuration described by the source descriptor.
 
-        Akin to a project setup, this method will take the confguration
+        Akin to a project setup, this method will take the configuration
         described by the source descriptor and copy this config folder
         of this configuration object.
 
         :param source_descriptor: Config to install
+        :param win_python: Optional path to a python interpreter
+        :param mac_python: Optional path to a python interpreter
+        :param linux_python: Optional path to a python interpreter
+
         """
-        if self._descriptor.needs_installation():
-           raise ShotgunDeployError("Cannot install %s into %s" % (source_descriptor, self))
+        # make sure a scaffold is in place
+        self._ensure_project_scaffold()
+
+        # stow away any previous versions of core or config
+        self._move_to_backup()
 
         # copy the configuration into place
         config_path = self.get_path()
@@ -720,7 +832,20 @@ class ManagedConfiguration(Configuration):
         self._write_pipeline_config_file()
         self._update_roots_file()
 
-        # and lastly install core
+        # install core
         self._install_core()
 
         # @todo - prime caches (yaml, path cache)
+
+        # create tank executable for this config
+        self._create_tank_command(win_python, mac_python, linux_python)
+
+        # create pipeline configuration entry in Shotgun
+        log.debug("Updating pipeline configuration %s with new paths..." % self._pipeline_config_id)
+        self._sg_connection.update(
+            constants.PIPELINE_CONFIGURATION_ENTITY,
+            self._pipeline_config_id,
+            {"linux_path": self.get_path("linux2"),
+             "windows_path": self.get_path("win32"),
+             "mac_path": self.get_path("darwin")}
+        )

@@ -114,11 +114,19 @@ class ToolkitManager(object):
         """
         log.debug("Begin bootstrapping sgtk.")
 
-        resolver = BasicConfigurationResolver(
-            self._sg_connection,
-            self._bundle_cache_root
-        )
+        # get an object to represent the business logic for
+        # how a configuration location is being determined
+        #
+        # @todo - in the future, there may be more and/or other
+        # resolvers to implement different workflows.
+        # For now, this logic is just separated out in a
+        # separate file.
+        resolver = BasicConfigurationResolver(self._sg_connection, self._bundle_cache_root)
 
+        # now request a configuration object from the resolver.
+        # this object represents a configuration that may or may not
+        # exist on disk. We can use the config object to check if the
+        # object needs installation, updating etc.
         config = resolver.resolve_project_configuration(
             project_id,
             self._pipeline_configuration_name,
@@ -134,19 +142,14 @@ class ToolkitManager(object):
 
         elif status == Configuration.LOCAL_CFG_MISSING:
             log.info("A brand new configuration will be created locally.")
-            config.ensure_project_scaffold()
             config.update_configuration()
 
         elif status == Configuration.LOCAL_CFG_OLD:
             log.info("Your local configuration is out of date and will be updated.")
-            config.ensure_project_scaffold()
-            config.move_to_backup()
             config.update_configuration()
 
         elif status == Configuration.LOCAL_CFG_INVALID:
             log.info("Your local configuration looks invalid and will be replaced.")
-            config.ensure_project_scaffold()
-            config.move_to_backup()
             config.update_configuration()
 
         else:
@@ -329,28 +332,18 @@ class ToolkitManager(object):
             self._bundle_cache_root,
             project_id,
             pc_id,
+            self._namespace,
             win_path,
             linux_path,
             mac_path
         )
 
-        # first make sure a scaffold is in place
-        config.ensure_project_scaffold()
-        # if there is already content in there, back it up
-        config.move_to_backup()
-        # and install new content
-        config.install_external_configuration(descriptor_to_install)
-        # create a tank command
-        config.create_tank_command(win_python, mac_python, linux_python)
-
-        # update the paths record
-        log.debug("Updating pipeline configuration %s with new paths..." % pc_id)
-        self._sg_connection.update(
-            constants.PIPELINE_CONFIGURATION_ENTITY,
-            pc_id,
-            {"linux_path": linux_path,
-             "windows_path": win_path,
-             "mac_path": mac_path}
+        # and install or update the configuration with the new content
+        config.install_external_configuration(
+            descriptor_to_install,
+            win_python,
+            mac_python,
+            linux_python
         )
 
         # we can now boot up this config.
