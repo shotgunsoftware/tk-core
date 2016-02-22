@@ -95,9 +95,7 @@ class PipelineConfiguration(object):
 
         # Populate the global yaml_cache if we find a pickled cache
         # on disk.
-        # TODO: Discuss and possibly implement a mechanism to copy
-        # the global pickled cache stored in the config down to
-        # local storage to speed up reading in subsequent sessions.
+        # TODO: For immutable configs, move this into bootstrap
         self._populate_yaml_cache()
 
         # run init hook

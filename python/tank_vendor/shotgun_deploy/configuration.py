@@ -286,19 +286,36 @@ class Configuration(object):
         config_path = self.get_path()
 
         configuration_payload = os.path.join(config_path, "config")
-
-        backup_root = os.path.join(config_path, "install", "config.backup")
+        config_backup_root = os.path.join(config_path, "install", "config.backup")
 
         # make sure we have a backup folder present
-        backup_path = os.path.join(backup_root, datetime.datetime.now().strftime("%Y%m%d_%H%M%S"))
-        ensure_folder_exists(backup_path)
+        config_backup_path = os.path.join(
+            config_backup_root,
+            datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        )
+        ensure_folder_exists(config_backup_path)
 
-        log.debug("Moving config %s -> %s" % (configuration_payload, backup_path))
-        backup_target_path = os.path.join(backup_path, os.path.basename(configuration_payload))
+        log.debug("Moving config %s -> %s" % (configuration_payload, config_backup_path))
+        backup_target_path = os.path.join(config_backup_path, os.path.basename(configuration_payload))
         os.rename(configuration_payload, backup_target_path)
         log.debug("Backup complete.")
 
-        #@todo - also back up core!
+        # now back up the core API
+        core_payload = os.path.join(config_path, "install", "core")
+        core_backup_root = os.path.join(config_path, "install", "core.backup")
+        # should not be necessary but just in case.
+        ensure_folder_exists(core_backup_root)
+
+        # make sure we have a backup folder present
+        core_backup_path = os.path.join(
+            core_backup_root,
+            datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        )
+
+        log.debug("Moving core %s -> %s" % (core_payload, core_backup_path))
+        os.rename(core_payload, core_backup_path)
+        log.debug("Backup complete.")
+
 
     def update_configuration(self):
         """
