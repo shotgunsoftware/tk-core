@@ -213,11 +213,13 @@ class TankBundle(object):
             
             pc_id = self.__tk.pipeline_configuration.get_shotgun_id()
             
-            self.__cache_location = self.__tk.execute_core_hook_method(constants.CACHE_LOCATION_HOOK_NAME,
-                                                                       "bundle_cache",
-                                                                       project_id=project_id,
-                                                                       pipeline_configuration_id=pc_id,
-                                                                       bundle=self)
+            self.__cache_location = self.__tk.execute_core_hook_method(
+                constants.CACHE_LOCATION_HOOK_NAME,
+                "bundle_cache",
+                project_id=project_id,
+                pipeline_configuration_id=pc_id,
+                bundle=self
+            )
         
         return self.__cache_location
 

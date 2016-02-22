@@ -579,7 +579,8 @@ class PipelineConfiguration(object):
             sg_connection,
             descriptor_type,
             pp_location,
-            self._bundle_cache_root)
+            self._bundle_cache_root
+        )
 
         return desc
 
