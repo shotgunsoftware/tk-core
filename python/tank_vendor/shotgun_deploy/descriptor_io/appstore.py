@@ -85,17 +85,16 @@ class IODescriptorAppStore(IODescriptorBase):
     }
 
 
-    def __init__(self, bundle_cache_root, location_dict, sg_connection, bundle_type):
+    def __init__(self, location_dict, sg_connection, bundle_type):
         """
         Constructor
 
-        :param bundle_cache_root: Location on disk where items are cached
         :param location_dict: Location dictionary describing the bundle
         :param sg_connection: Shotgun connection to associated site
         :param bundle_type: Either Descriptor.APP, CORE, ENGINE or FRAMEWORK
         :return: Descriptor instance
         """
-        super(IODescriptorAppStore, self).__init__(bundle_cache_root, location_dict)
+        super(IODescriptorAppStore, self).__init__(location_dict)
 
         self._validate_locator(
             location_dict,
@@ -438,7 +437,8 @@ class IODescriptorAppStore(IODescriptorBase):
         location_dict = {"type": "app_store", "name": self._name, "version": version_to_use}
 
         # and return a descriptor instance
-        desc = IODescriptorAppStore(self._bundle_cache_root, location_dict, self._sg_connection, self._type)
+        desc = IODescriptorAppStore(location_dict, self._sg_connection, self._type)
+        desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
         
         # now if this item has been deprecated, meaning that someone has gone in to the app
         # store and updated the record's deprecation status, we want to make sure we download
@@ -515,11 +515,8 @@ class IODescriptorAppStore(IODescriptorBase):
                          "version": version_str}
 
         # and return a descriptor instance
-        desc = IODescriptorAppStore(
-            self._bundle_cache_root,
-            location_dict,
-            self._sg_connection,
-            self._type)
+        desc = IODescriptorAppStore(location_dict, self._sg_connection, self._type)
+        desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
         
         # now if this item has been deprecated, meaning that someone has gone in to the app
         # store and updated the record's deprecation status, we want to make sure we download

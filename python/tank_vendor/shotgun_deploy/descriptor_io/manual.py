@@ -18,15 +18,14 @@ class IODescriptorManual(IODescriptorBase):
     This descriptor type is largely deprecated. Please do not use.
     """
 
-    def __init__(self, bundle_cache_root, location_dict):
+    def __init__(self, location_dict):
         """
         Constructor
 
-        :param bundle_cache_root: Location on disk where items are cached
         :param location_dict: Location dictionary describing the bundle
         :return: Descriptor instance
         """
-        super(IODescriptorManual, self).__init__(bundle_cache_root, location_dict)
+        super(IODescriptorManual, self).__init__(location_dict)
 
         self._validate_locator(
             location_dict,
@@ -61,6 +60,12 @@ class IODescriptorManual(IODescriptorBase):
         Retrieves this version to local repo
         """
         # do nothing!
+
+    def is_immutable(self):
+        """
+        Returns true if this items content never changes
+        """
+        return False
 
     def get_latest_version(self, constraint_pattern=None):
         """

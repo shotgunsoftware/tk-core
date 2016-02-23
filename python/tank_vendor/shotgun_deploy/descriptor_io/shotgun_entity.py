@@ -58,16 +58,15 @@ class IODescriptorShotgunEntity(IODescriptorBase):
 
     """
 
-    def __init__(self, bundle_cache_root, location_dict, sg_connection):
+    def __init__(self, location_dict, sg_connection):
         """
         Constructor
 
-        :param bundle_cache_root: Location on disk where items are cached
         :param location_dict: Location dictionary describing the bundle
         :param sg_connection: Shotgun connection to associated site
         :return: Descriptor instance
         """
-        super(IODescriptorShotgunEntity, self).__init__(bundle_cache_root, location_dict)
+        super(IODescriptorShotgunEntity, self).__init__(location_dict)
 
         self._validate_locator(
             location_dict,
@@ -199,24 +198,32 @@ class IODescriptorShotgunEntity(IODescriptorBase):
         #  'link_type': 'upload'}
 
         if data is None:
-            raise ShotgunDeployError("Cannot find a pipeline configuration named '%s'!" % self._name)
+            raise ShotgunDeployError(
+                "Cannot find a pipeline configuration named '%s'!" % self._name
+            )
 
         if data[self._field].get("link_type") != "upload":
-            raise ShotgunDeployError("Latest version of %s is not an uploaded file: %s" % (self, data))
+            raise ShotgunDeployError(
+                "Latest version of %s is not an uploaded file: %s" % (self, data)
+            )
 
         attachment_id = data[self._field]["id"]
 
         # make a location dict
-        location_dict = {"type": "shotgun",
-                         "entity_type": self._entity_type,
-                         "field": self._field,
-                         "name": self._name,
-                         "version": attachment_id}
+        location_dict = {
+            "type": "shotgun",
+            "entity_type": self._entity_type,
+            "field": self._field,
+            "name": self._name,
+            "version": attachment_id
+        }
 
         if self._project_link:
             location_dict[self._project_id] = self._project_id
 
         # and return a descriptor instance
-        desc = IODescriptorShotgunEntity(self._bundle_cache_root, location_dict, self._sg_connection)
+        desc = IODescriptorShotgunEntity(location_dict, self._sg_connection)
+        desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
+
         log.debug("Latest version resolved to %s" % desc)
         return desc

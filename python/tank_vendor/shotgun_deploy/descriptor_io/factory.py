@@ -32,7 +32,6 @@ def create_io_descriptor(sg, descriptor_type, location, bundle_cache_root):
     from .git_branch import IODescriptorGitBranch
     from .manual import IODescriptorManual
 
-
     if isinstance(location, basestring):
         # translate uri to dict
         location_dict = _uri_to_dict(location)
@@ -40,28 +39,31 @@ def create_io_descriptor(sg, descriptor_type, location, bundle_cache_root):
         location_dict = location
 
     if location_dict.get("type") == "app_store":
-        descriptor = IODescriptorAppStore(bundle_cache_root, location_dict, sg, descriptor_type)
+        descriptor = IODescriptorAppStore(location_dict, sg, descriptor_type)
 
     elif location_dict.get("type") == "shotgun":
-        descriptor = IODescriptorShotgunEntity(bundle_cache_root, location_dict, sg)
+        descriptor = IODescriptorShotgunEntity(location_dict, sg)
 
     elif location_dict.get("type") == "manual":
-        descriptor = IODescriptorManual(bundle_cache_root, location_dict)
+        descriptor = IODescriptorManual(location_dict)
 
     elif location_dict.get("type") == "git":
-        descriptor = IODescriptorGit(bundle_cache_root, location_dict)
+        descriptor = IODescriptorGit(location_dict)
 
     elif location_dict.get("type") == "git_branch":
-        descriptor = IODescriptorGitBranch(bundle_cache_root, location_dict)
+        descriptor = IODescriptorGitBranch(location_dict)
 
     elif location_dict.get("type") == "dev":
-        descriptor = IODescriptorDev(bundle_cache_root, location_dict)
+        descriptor = IODescriptorDev(location_dict)
 
     elif location_dict.get("type") == "path":
-        descriptor = IODescriptorPath(bundle_cache_root, location_dict)
+        descriptor = IODescriptorPath(location_dict)
 
     else:
         raise ShotgunDeployError("Unknown location type for '%s'" % location_dict)
+
+    # specify where to go look for caches
+    descriptor.set_cache_roots(bundle_cache_root, [])
 
     if location_dict.get("version") == constants.LATEST_DESCRIPTOR_KEYWORD:
         log.debug("Latest keyword detected. Searching for latest version...")

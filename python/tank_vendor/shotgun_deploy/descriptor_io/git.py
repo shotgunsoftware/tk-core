@@ -40,15 +40,14 @@ class IODescriptorGit(IODescriptorBase):
 
     """
 
-    def __init__(self, bundle_cache_root, location_dict):
+    def __init__(self, location_dict):
         """
         Constructor
 
-        :param bundle_cache_root: Location on disk where items are cached
         :param location_dict: Location dictionary describing the bundle
         :return: Descriptor instance
         """
-        super(IODescriptorGit, self).__init__(bundle_cache_root, location_dict)
+        super(IODescriptorGit, self).__init__(location_dict)
 
         self._validate_locator(
             location_dict,
@@ -66,7 +65,6 @@ class IODescriptorGit(IODescriptorBase):
         self._sanitized_repo_path = self._path.replace(os.path.sep, "/")
 
         self._version = location_dict.get("version")
-
 
     def get_system_name(self):
         """
@@ -219,7 +217,10 @@ class IODescriptorGit(IODescriptorBase):
         new_loc_dict = copy.deepcopy(self._location_dict)
         new_loc_dict["version"] = version_to_use
 
-        return IODescriptorGit(self._bundle_cache_root, new_loc_dict)
+        # create new descriptor to represent this tag
+        desc = IODescriptorGit(new_loc_dict)
+        desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
+        return desc
 
     def _get_latest_version(self):
         """
@@ -260,7 +261,11 @@ class IODescriptorGit(IODescriptorBase):
         new_loc_dict = copy.deepcopy(self._location_dict)
         new_loc_dict["version"] = latest_version
 
-        return IODescriptorGit(self._bundle_cache_root, new_loc_dict)
+        # create new descriptor to represent this tag
+        desc = IODescriptorGit(new_loc_dict)
+        desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
+        return desc
+
 
     def _clone_repo(self, target_path):
         """

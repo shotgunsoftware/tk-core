@@ -51,15 +51,14 @@ class IODescriptorGitBranch(IODescriptorBase):
     seven digits to describe a hash that is unique within a repository.
     """
 
-    def __init__(self, bundle_cache_root, location_dict):
+    def __init__(self, location_dict):
         """
         Constructor
 
-        :param bundle_cache_root: Location on disk where items are cached
         :param location_dict: Location dictionary describing the bundle
         :return: Descriptor instance
         """
-        super(IODescriptorGitBranch, self).__init__(bundle_cache_root, location_dict)
+        super(IODescriptorGitBranch, self).__init__(location_dict)
 
         self._validate_locator(
             location_dict,
@@ -194,7 +193,10 @@ class IODescriptorGitBranch(IODescriptorBase):
         # make a new descriptor
         new_loc_dict = copy.deepcopy(self._location_dict)
         new_loc_dict["version"] = git_hash
-        return IODescriptorGitBranch(self._bundle_cache_root, new_loc_dict)
+        desc = IODescriptorGitBranch(new_loc_dict)
+        desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
+        return desc
+
 
     def _clone_repo(self, target_path):
         """

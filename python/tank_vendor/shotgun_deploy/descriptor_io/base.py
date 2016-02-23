@@ -41,9 +41,12 @@ class IODescriptorBase(object):
     descriptors are cached and only constructed once for a given descriptor URL.
     """
 
+    # @todo - need a way to clear this cache (for example when switching tk APIs)
+    #         we should look at a general cache system (maybe part of shotgun_base)
+    #         where we can keep better track of globals in general.
     _instances = dict()
 
-    def __new__(cls, bundle_cache_root, location_dict, *args, **kwargs):
+    def __new__(cls, location_dict, *args, **kwargs):
         """
         Handles caching of descriptors.
 
@@ -59,8 +62,8 @@ class IODescriptorBase(object):
         """
         instance_cache = cls._instances
 
-        # The cache is keyed based on the location dict and the bundle install root
-        cache_key = (bundle_cache_root, str(location_dict))
+        # The cache is keyed based on the location dict
+        cache_key = str(location_dict)
 
         # Instantiate and cache if we need to, otherwise just return what we
         # already have stored away.
@@ -71,7 +74,6 @@ class IODescriptorBase(object):
             # that we instantiate and store by version.
             instance_cache[cache_key] = super(IODescriptorBase, cls).__new__(
                 cls,
-                bundle_cache_root,
                 location_dict,
                 *args,
                 **kwargs
@@ -79,16 +81,40 @@ class IODescriptorBase(object):
 
         return instance_cache[cache_key]
 
-    def __init__(self, bundle_cache_root, location_dict):
+    def __init__(self, location_dict):
         """
         Constructor
 
         :param bundle_cache_root: Root location for bundle cache storage
         :param location_dict: dictionary describing the location
         """
-        self._bundle_cache_root = bundle_cache_root
+        self._bundle_cache_root = None
+        self._fallback_roots = []
         self._location_dict = location_dict
         self.__manifest_data = None
+
+    def set_cache_roots(self, primary_root, fallback_roots):
+        """
+        Specify where to go look for cached versions of the app.
+        The primary root is where new data is always written to
+        if something is downloaded and cached. The fallback_roots
+        parameter is a list of paths where the descriptor system
+        will look in case a cached entry is not found in the
+        primary root. If you specify several fallback roots, they
+        will be traversed in order.
+
+        This is an internal method that is part of the construction
+        of the descriptor instances. Do not call directly.
+
+        :param primary_root: Path for reading and writing cached apps
+        :param fallback_roots: Paths to attempt to read cached apps from
+                               in case it's not found in the primary root.
+                               Paths will be traversed in the order they are
+                               specified.
+
+        """
+        self._bundle_cache_root = primary_root
+        self._fallback_roots = fallback_roots
 
     def __repr__(self):
         """
@@ -381,7 +407,7 @@ class IODescriptorBase(object):
     
     def get_path(self):
         """
-        returns the path to the folder where this item resides
+        Returns the path to the folder where this item resides.
         """
         raise NotImplementedError
 

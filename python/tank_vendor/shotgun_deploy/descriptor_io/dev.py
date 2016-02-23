@@ -41,15 +41,14 @@ class IODescriptorDev(IODescriptorPath):
     If name is not specified and path is /tmp/foo/bar, the name will set to 'bar'
     """
 
-    def __init__(self, bundle_cache_root, location_dict):
+    def __init__(self, location_dict):
         """
         Constructor
 
-        :param bundle_cache_root: Location on disk where items are cached
         :param location_dict: Location dictionary describing the bundle
         :return: Descriptor instance
         """
-        super(IODescriptorDev, self).__init__(bundle_cache_root, location_dict)
+        super(IODescriptorDev, self).__init__(location_dict)
 
     def is_developer(self):
         """
