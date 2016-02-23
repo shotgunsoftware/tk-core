@@ -155,8 +155,6 @@ class ToolkitManager(object):
         else:
             raise ShotgunDeployError("Unknown configuration update status!")
 
-        # @todo - add rollback logic from zip config branch
-
         # we can now boot up this config.
         tk = config.get_tk_instance(self._sg_user)
 
@@ -362,6 +360,7 @@ class ToolkitManager(object):
         :param project_id: Project id to check
         :returns: pipeline configuration id
         """
+        # @todo - in the future, need to add namespace handling here.
         # if we are looking at a non-default config,
         # attempt to determine current user so that we can
         # populate the user restrictions field later on

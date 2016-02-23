@@ -17,7 +17,7 @@ from . import paths
 from .errors import ShotgunDeployError
 from . import util
 
-from ..shotgun_base import copy_file, append_folder_to_path
+from ..shotgun_base import copy_file, append_folder_to_path, copy_folder
 
 from .. import yaml
 from ..shotgun_base import copy_folder, ensure_folder_exists
@@ -181,6 +181,9 @@ class Configuration(object):
         """
         Ensure that the configuration is up to date with the one
         given by the associated descriptor.
+
+        This method fails gracefully and attempts to roll back to a
+        stable state on failure.
         """
         raise NotImplementedError
 
@@ -250,10 +253,15 @@ class Configuration(object):
         no install/core folder present in the configuration scaffold.
         Both have been moved into their respective backup locations.
 
+        :returns: (config_backup_path, core_backup_path) where the paths
+                  can be None in case nothing was carried over.
+
         """
+        config_backup_path = None
+        core_backup_path = None
+
         # get backup root location
         config_path = self.get_path()
-
         configuration_payload = os.path.join(config_path, "config")
 
         if os.path.exists(configuration_payload):
@@ -271,6 +279,7 @@ class Configuration(object):
             backup_target_path = os.path.join(config_backup_path, os.path.basename(configuration_payload))
             os.rename(configuration_payload, backup_target_path)
             log.debug("Backup complete.")
+            config_backup_path = backup_target_path
 
         # now back up the core API
         core_payload = os.path.join(config_path, "install", "core")
@@ -289,6 +298,9 @@ class Configuration(object):
             log.debug("Moving core %s -> %s" % (core_payload, core_backup_path))
             os.rename(core_payload, core_backup_path)
             log.debug("Backup complete.")
+            core_backup_path = core_backup_path
+
+        return (config_backup_path, core_backup_path)
 
     def _create_tank_command(self, win_python=None, mac_python=None, linux_python=None):
         """
@@ -708,26 +720,42 @@ class UnmanagedConfiguration(Configuration):
         """
         Ensure that the configuration is up to date with the one
         given by the associated descriptor.
+
+        This method fails gracefully and attempts to roll back to a
+        stable state on failure.
         """
         # make sure a scaffold is in place
         self._ensure_project_scaffold()
 
         # stow away any previous versions of core or config
-        self._move_to_backup()
+        (config_backup_path, core_backup_path) = self._move_to_backup()
 
         # copy the configuration into place
-        config_path = self.get_path()
-        self._descriptor.copy(os.path.join(config_path, "config"))
+        try:
+            config_path = self.get_path()
+            self._descriptor.copy(os.path.join(config_path, "config"))
 
-        # write out config files
-        self._write_install_location_file()
-        self._write_config_info_file()
-        self._write_shotgun_file()
-        self._write_pipeline_config_file()
-        self._update_roots_file()
+            # write out config files
+            self._write_install_location_file()
+            self._write_config_info_file()
+            self._write_shotgun_file()
+            self._write_pipeline_config_file()
+            self._update_roots_file()
 
-        # and lastly install core
-        self._install_core()
+            # and lastly install core
+            self._install_core()
+        except Exception, e:
+            log.error("Failed to update configuration. Attempting Rollback. Error: %s" % e)
+            # step 1 - clear core and config locations
+            log.debug("Cleaning out faulty config location...")
+            self._move_to_backup()
+            # step 2 - recover previous core and backup
+            if config_backup_path:
+                log.debug("Restoring previous config...")
+                copy_folder(config_backup_path, os.path.join(config_path, "config"))
+            if core_backup_path:
+                log.debug("Restoring previous core...")
+                copy_folder(core_backup_path, os.path.join(config_path, "install", "core"))
 
         # @todo - prime caches (yaml, path cache)
 
@@ -841,6 +869,7 @@ class ManagedConfiguration(Configuration):
         self._create_tank_command(win_python, mac_python, linux_python)
 
         # create pipeline configuration entry in Shotgun
+        # @todo - in the future, need to add namespace handling here.
         log.debug("Updating pipeline configuration %s with new paths..." % self._pipeline_config_id)
         self._sg_connection.update(
             constants.PIPELINE_CONFIGURATION_ENTITY,

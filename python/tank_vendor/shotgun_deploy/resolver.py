@@ -34,7 +34,13 @@ class ConfigurationResolver(object):
         self._sg_connection = sg_connection
         self._bundle_cache_root = bundle_cache_root
 
-    def resolve_project_configuration(self, project_id, pipeline_config_name, namespace, base_config_location):
+    def resolve_project_configuration(
+            self,
+            project_id,
+            pipeline_config_name,
+            namespace,
+            base_config_location
+    ):
         """
         Given a Shotgun project (or None for site mode), return a configuration
         object based on a particular set of resolution logic rules.
@@ -110,9 +116,10 @@ class BasicConfigurationResolver(ConfigurationResolver):
                     self._bundle_cache_root,
                     project_id,
                     pc_data.get("id"),
+                    namespace,
                     pc_data.get("windows_path"),
                     pc_data.get("linux_path"),
-                    pc_data.get("mac_path"),
+                    pc_data.get("mac_path")
                 )
 
             elif pc_data.get(constants.SHOTGUN_PIPELINECONFIG_URI_FIELD):

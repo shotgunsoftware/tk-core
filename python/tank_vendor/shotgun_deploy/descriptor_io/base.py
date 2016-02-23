@@ -265,7 +265,11 @@ class IODescriptorBase(object):
             # make sure payload exists locally
             if not self.exists_local():
                 # @todo - at this point add to a metadata cache for performance
-                #         note - cannot cache dev descriptors - these do not have an immutal info.yml
+                # we can either just store it in a pickle, in order to avoid yaml parsing, which
+                # is expensive, or if we want to be more fancy, we can maintain a single
+                # "registry" file which holds the metadata for all known bundles in a single place.
+                # given that all descriptors are immutable (except the ones where the immutable)
+                # property returns false, we can keep adding to this global cache file over time.
                 self.download_local()
 
             # get the metadata

@@ -10,6 +10,7 @@
 
 import os
 import sys
+import copy
 
 from . import paths
 from .descriptor_io import create_io_descriptor
@@ -295,8 +296,10 @@ class Descriptor(object):
 
         :returns: descriptor object
         """
-        self._io_descriptor = self._io_descriptor.get_latest_version(constraint_pattern)
+        # make a copy of the descriptor
+        latest = copy.copy(self)
+        # find latest I/O descriptor
+        latest._io_descriptor = self._io_descriptor.get_latest_version(constraint_pattern)
+        return latest
 
-        # @todo - this interface makes less sense now with the new object structure.
-        return self
 

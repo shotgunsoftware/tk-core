@@ -167,12 +167,12 @@ class IODescriptorGit(IODescriptorBase):
         :returns: descriptor object
         """
         if constraint_pattern:
-            return self._find_latest_by_pattern(constraint_pattern)
+            return self._get_latest_by_pattern(constraint_pattern)
         else:
-            return self._find_latest_version()
+            return self._get_latest_version()
 
 
-    def _find_latest_by_pattern(self, pattern):
+    def _get_latest_by_pattern(self, pattern):
         """
         Returns a descriptor object that represents the latest 
         version, but based on a version pattern.
@@ -221,7 +221,7 @@ class IODescriptorGit(IODescriptorBase):
 
         return IODescriptorGit(self._bundle_cache_root, new_loc_dict)
 
-    def _find_latest_version(self):
+    def _get_latest_version(self):
         """
         Returns a descriptor object that represents the latest version.
         
