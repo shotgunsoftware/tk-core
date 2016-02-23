@@ -78,26 +78,15 @@ class IODescriptorGitBranch(IODescriptorBase):
         self._version = location_dict.get("version")
         self._branch = location_dict.get("branch")
 
-    def get_system_name(self):
+    def _get_cache_paths(self):
         """
-        Returns a short name, suitable for use in configuration files
-        and for folders on disk, e.g. 'tk-maya'
-        """
-        bn = os.path.basename(self._path)
-        (name, ext) = os.path.splitext(bn)
-        return name
+        Get a list of resolved paths, starting with the primary and
+        continuing with alternative locations where it may reside.
 
-    def get_version(self):
+        :return: List of path strings
         """
-        Returns the version number string for this item, .e.g 'v1.2.3'
-        or the branch name 'master'
-        """
-        return self._version
+        paths = []
 
-    def get_path(self):
-        """
-        returns the path to the folder where this item resides
-        """
         # to be MAXPATH-friendly, we only use the first seven chars
         short_hash = self._version[:7]
 
@@ -105,27 +94,16 @@ class IODescriptorGitBranch(IODescriptorBase):
         # /full/path/to/local/repo.git -> repo.git
         name = os.path.basename(self._path)
 
-        return os.path.join(self._bundle_cache_root, "git", name, short_hash)
-
-    def download_local(self):
-        """
-        Retrieves this version to local repo.
-        Will exit early if app already exists local.
-        """
-        if self.exists_local():
-            # nothing to do!
-            return
-
-        target = self.get_path()
-        self._clone_into(target)
-
-    def copy(self, target_path):
-        """
-        Copy the contents of the descriptor to an external location
-
-        :param target_path: target path
-        """
-        self._clone_into(target_path)
+        for root in [self._bundle_cache_root] + self._fallback_roots:
+            paths.append(
+                os.path.join(
+                    root,
+                    "git",
+                    name,
+                    short_hash
+                )
+            )
+        return paths
 
     def _clone_into(self, target_path):
         """
@@ -150,6 +128,55 @@ class IODescriptorGitBranch(IODescriptorBase):
             execute_git_command("reset --hard -q %s" % self._version)
         finally:
             os.chdir(cwd)
+
+    def _clone_repo(self, target_path):
+        """
+        Clone the repo into the target path
+
+        :param target_path: The target path to clone the repo to
+        :raises:            TankError if the clone command fails
+        """
+        # Note: git doesn't like paths in single quotes when running on
+        # windows - it also prefers to use forward slashes!
+        log.debug("Git Cloning %r into %s" % (self, target_path))
+        execute_git_command("clone -q \"%s\" \"%s\"" % (self._sanitized_repo_path, target_path))
+
+    def get_system_name(self):
+        """
+        Returns a short name, suitable for use in configuration files
+        and for folders on disk, e.g. 'tk-maya'
+        """
+        bn = os.path.basename(self._path)
+        (name, ext) = os.path.splitext(bn)
+        return name
+
+    def get_version(self):
+        """
+        Returns the version number string for this item, .e.g 'v1.2.3'
+        or the branch name 'master'
+        """
+        return self._version
+
+    def download_local(self):
+        """
+        Retrieves this version to local repo.
+        Will exit early if app already exists local.
+        """
+        if self.exists_local():
+            # nothing to do!
+            return
+
+        # cache into the primary location
+        target = self._get_cache_paths()[0]
+        self._clone_into(target)
+
+    def copy(self, target_path):
+        """
+        Copy the contents of the descriptor to an external location
+
+        :param target_path: target path
+        """
+        self._clone_into(target_path)
 
     def get_latest_version(self, constraint_pattern=None):
         """
@@ -198,14 +225,3 @@ class IODescriptorGitBranch(IODescriptorBase):
         return desc
 
 
-    def _clone_repo(self, target_path):
-        """
-        Clone the repo into the target path
-
-        :param target_path: The target path to clone the repo to
-        :raises:            TankError if the clone command fails
-        """
-        # Note: git doesn't like paths in single quotes when running on
-        # windows - it also prefers to use forward slashes!
-        log.debug("Git Cloning %r into %s" % (self, target_path))
-        execute_git_command("clone -q \"%s\" \"%s\"" % (self._sanitized_repo_path, target_path))

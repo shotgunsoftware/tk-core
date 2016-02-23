@@ -97,6 +97,15 @@ class IODescriptorPath(IODescriptorBase):
         class_name = self.__class__.__name__
         return "<%s %s>" % (class_name, self._path)
 
+    def _get_cache_paths(self):
+        """
+        Get a list of resolved paths, starting with the primary and
+        continuing with alternative locations where it may reside.
+
+        :return: List of path strings
+        """
+        return [self._path]
+
     def get_system_name(self):
         """
         Returns a short name, suitable for use in configuration files
@@ -111,37 +120,6 @@ class IODescriptorPath(IODescriptorBase):
         # version number does not make sense for this type of item
         # so a fixed string is returned
         return "v0.0.0"
-
-    def get_path(self):
-        """
-        returns the path to the folder where this item resides
-        """
-        return self._path
-
-    def get_platform_path(self, platform):
-        """
-        Returns the path to the descriptor on the given platform.
-        If the location is not known, None is returned.
-
-        The call ``get_platform_path(sys.platform)`` is equivalent to ``get_path()``
-
-        :param platform: sys.platform-style operating system string, e.g.
-                         'win32', 'linux2', 'darwin'
-        :returns: Path to the given platform or None if not known.
-        """
-        if platform == sys.platform:
-            # current os
-            return self.get_path()
-
-        else:
-            platform_key = {
-                "linux2": "linux_path",
-                "darwin": "mac_path",
-                "win32": "windows_path"}[platform]
-            if platform_key in self.get_location():
-                return self.get_location()[platform_key]
-            else:
-                return None
 
     def download_local(self):
         """

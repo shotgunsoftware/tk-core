@@ -256,6 +256,7 @@ class IODescriptorBase(object):
 
         return version_to_use
 
+
     def copy(self, target_path):
         """
         Copy the contents of the descriptor to an external location
@@ -303,6 +304,8 @@ class IODescriptorBase(object):
             file_path = os.path.join(bundle_root, constants.BUNDLE_METADATA_FILE)
 
             if not os.path.exists(file_path):
+                # at this point we have downloaded the bundle, but it may have
+                # an invalid internal structure.
                 raise ShotgunDeployError("Toolkit metadata file '%s' missing." % file_path)
 
             try:
@@ -336,22 +339,6 @@ class IODescriptorBase(object):
         # always return that things are active.
         return False, ""
 
-    def get_platform_path(self, platform):
-        """
-        Returns the path to the descriptor on the given platform.
-        If the location is not known, None is returned.
-
-        The call ``get_platform_path(sys.platform)`` is equivalent to ``get_path()``
-
-        :param platform: sys.platform-style operating system string, e.g.
-                         'win32', 'linux2', 'darwin'
-        :returns: Path to the given platform or None if not known.
-        """
-        if platform == sys.platform:
-            return self.get_path()
-        else:
-            return None
-
     def get_changelog(self):
         """
         Returns information about the changelog for this item.
@@ -360,14 +347,6 @@ class IODescriptorBase(object):
                   to indicate that no changelog exists.
         """
         return (None, None)
-
-    def exists_local(self):
-        """
-        Returns true if this item exists in a locally accessible form
-        """
-        # we determine local existence based on the info.yml
-        info_yml_path = os.path.join(self.get_path(), constants.BUNDLE_METADATA_FILE)
-        return os.path.exists(info_yml_path)
 
     def is_developer(self):
         """
@@ -389,9 +368,38 @@ class IODescriptorBase(object):
             log.debug("Downloading %s to the local Toolkit install location..." % self)
             self.download_local()
 
+    def exists_local(self):
+        """
+        Returns true if this item exists in a locally accessible form
+        """
+        return self.get_path() is not None
+
+    def get_path(self):
+        """
+        Returns the path to the folder where this item resides. If no
+        cache exists for this path, None is returned.
+        """
+        for path in self._get_cache_paths():
+            # we determine local existence based on the info.yml
+            info_yml_path = os.path.join(path, constants.BUNDLE_METADATA_FILE)
+            if os.path.exists(info_yml_path):
+                return path
+
+        return None
+
+
     ###############################################################################################
     # stuff typically implemented by deriving classes
-    
+
+    def _get_cache_paths(self):
+        """
+        Get a list of resolved paths, starting with the primary and
+        continuing with alternative locations where it may reside
+
+        :return: List of path strings
+        """
+        raise NotImplementedError
+
     def get_system_name(self):
         """
         Returns a short name, suitable for use in configuration files
@@ -402,12 +410,6 @@ class IODescriptorBase(object):
     def get_version(self):
         """
         Returns the version number string for this item, .e.g 'v1.2.3'
-        """
-        raise NotImplementedError
-    
-    def get_path(self):
-        """
-        Returns the path to the folder where this item resides.
         """
         raise NotImplementedError
 

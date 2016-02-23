@@ -240,22 +240,6 @@ class Descriptor(object):
         """
         return self._io_descriptor.get_path()
 
-    def get_platform_path(self, platform):
-        """
-        Returns the path to the descriptor on the given platform.
-        If the location is not known, None is returned.
-
-        The call ``get_platform_path(sys.platform)`` is equivalent to ``get_path()``
-
-        :param platform: sys.platform-style operating system string, e.g.
-                         'win32', 'linux2', 'darwin'
-        :returns: Path to the given platform or None if not known.
-        """
-        if platform == sys.platform:
-            return self.get_path()
-        else:
-            return None
-
     def get_changelog(self):
         """
         Returns information about the changelog for this item.

@@ -117,6 +117,9 @@ class IODescriptorAppStore(IODescriptorBase):
         the same, the metadata may change. This typically happens when an item gets deprecated
         and its deprecation status changes.
         """
+        if not self.exists_local():
+            return
+
         cache_file = os.path.join(self.get_path(), METADATA_FILE)
         if os.path.exists(cache_file):
             try:
@@ -130,22 +133,39 @@ class IODescriptorAppStore(IODescriptorBase):
         Returns a metadata dictionary for this particular location.
         Tries to use a cache if possible.
         """
+        if not self.exists_local():
+            return {}
 
-        if self.__cached_metadata is None:
-            # no locally loaded. Try to load from disk
-            cache_file = os.path.join(self.get_path(), METADATA_FILE)
-            if os.path.exists(cache_file):
-                # try to load
-                try:
-                    fp = open(cache_file, "rt")
-                    self.__cached_metadata = pickle.load(fp)
-                    fp.close()
-                except Exception:
-                    pass
+        if self.__cached_metadata:
+            # got an in-memory cache
+            return self.__cached_metadata
+
+        # try to load from cache file
+        self.__cached_metadata = None
+        cache_file = os.path.join(self.get_path(), METADATA_FILE)
+
+        if os.path.exists(cache_file):
+            # try to load
+            try:
+                fp = open(cache_file, "rt")
+                self.__cached_metadata = pickle.load(fp)
+                fp.close()
+            except Exception:
+                pass
 
         if self.__cached_metadata is None:
             # load from disk failed. Get from shotgun
             self.__cached_metadata = self.__download_app_store_metadata()
+
+            # try to cache it on disk
+            try:
+                ensure_folder_exists(os.path.dirname(cache_file))
+                fp = open(cache_file, "wt")
+                pickle.dump(self.__cached_metadata, fp)
+                fp.close()
+            except Exception:
+                # fail gracefully - this is only a cache!
+                pass
 
         # finally return the data!
         return self.__cached_metadata
@@ -157,7 +177,6 @@ class IODescriptorAppStore(IODescriptorBase):
         :returns: A dictionary with keys bundle and version, containing
                   Shotgun metadata.
         """
-
         # get the appropriate shotgun app store types and fields
         bundle_entity = self._APP_STORE_OBJECT[self._type]
         version_entity = self._APP_STORE_VERSION[self._type]
@@ -216,18 +235,28 @@ class IODescriptorAppStore(IODescriptorBase):
 
         metadata = {"bundle": bundle, "version": version}
 
-        # cache it on disk
-        folder = self.get_path()
-        try:
-            ensure_folder_exists(folder)
-            fp = open(os.path.join(folder, METADATA_FILE), "wt")
-            pickle.dump(metadata, fp)
-            fp.close()
-        except Exception:
-            # fail gracefully - this is only a cache!
-            pass
-
         return metadata
+
+    def _get_cache_paths(self):
+        """
+        Get a list of resolved paths, starting with the primary and
+        continuing with alternative locations where it may reside.
+
+        :return: List of path strings
+        """
+        paths = []
+
+        for root in [self._bundle_cache_root] + self._fallback_roots:
+            paths.append(
+                os.path.join(
+                    root,
+                    "app_store",
+                    self.get_system_name(),
+                    self.get_version()
+                )
+            )
+        return paths
+
 
 
     ###############################################################################################
@@ -260,17 +289,6 @@ class IODescriptorAppStore(IODescriptorBase):
         """
         return self._version
 
-    def get_path(self):
-        """
-        returns the path to the folder where this item resides
-        """
-        return os.path.join(
-            self._bundle_cache_root,
-            "app_store",
-            self.get_system_name(),
-            self.get_version()
-        )
-
     def get_changelog(self):
         """
         Returns information about the changelog for this item.
@@ -288,14 +306,6 @@ class IODescriptorAppStore(IODescriptorBase):
             pass
         return (summary, url)
 
-    def exists_local(self):
-        """
-        Returns true if this item exists in a local repo
-        """
-        # we determine local existance based on the info.yml
-        info_yml_path = os.path.join(self.get_path(), constants.BUNDLE_METADATA_FILE)
-        return os.path.exists(info_yml_path)
-
     def download_local(self):
         """
         Retrieves this version to local repo.
@@ -305,7 +315,8 @@ class IODescriptorAppStore(IODescriptorBase):
             # nothing to do!
             return
 
-        target = self.get_path()
+        # cache into the primary location
+        target = self._get_cache_paths()[0]
         ensure_folder_exists(target)
 
         # connect to the app store

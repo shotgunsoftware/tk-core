@@ -86,8 +86,25 @@ class IODescriptorShotgunEntity(IODescriptorBase):
 
         self._project_id = location_dict.get("project_id")
 
-    ###############################################################################################
-    # data accessors
+
+    def _get_cache_paths(self):
+        """
+        Get a list of resolved paths, starting with the primary and
+        continuing with alternative locations where it may reside.
+
+        :return: List of path strings
+        """
+        paths = []
+
+        for root in [self._bundle_cache_root] + self._fallback_roots:
+            paths.append(
+                os.path.join(
+                    root,
+                    "sg_upload",
+                    self.get_version()
+                )
+            )
+        return paths
 
     def get_system_name(self):
         """
@@ -107,18 +124,6 @@ class IODescriptorShotgunEntity(IODescriptorBase):
         """
         return "v%s" % self._version
 
-    def get_path(self):
-        """
-        returns the path to the folder where this item resides
-        """
-        # note that the version for this descriptor is the attachment id, which is unique
-        # across all entity types etc. In order to keep paths short, we don't include
-        # any of the other descriptor elements when we cache the path.
-        return os.path.join(
-            self._bundle_cache_root,
-            "sg_upload",
-            self.get_version())
-
     def download_local(self):
         """
         Retrieves this version to local repo.
@@ -128,7 +133,8 @@ class IODescriptorShotgunEntity(IODescriptorBase):
             # nothing to do!
             return
 
-        target = self.get_path()
+        # cache into the primary location
+        target = self._get_cache_paths()[0]
         ensure_folder_exists(target)
 
         # and now for the download.

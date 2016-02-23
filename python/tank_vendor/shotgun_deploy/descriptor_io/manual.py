@@ -36,6 +36,26 @@ class IODescriptorManual(IODescriptorBase):
         self._name = location_dict.get("name")
         self._version = location_dict.get("version")
 
+    def _get_cache_paths(self):
+        """
+        Get a list of resolved paths, starting with the primary and
+        continuing with alternative locations where it may reside.
+
+        :return: List of path strings
+        """
+        paths = []
+
+        for root in [self._bundle_cache_root] + self._fallback_roots:
+            paths.append(
+                os.path.join(
+                    root,
+                    "manual",
+                    self._name,
+                    self._version
+                )
+            )
+        return paths
+
     def get_system_name(self):
         """
         Returns a short name, suitable for use in configuration files
@@ -48,12 +68,6 @@ class IODescriptorManual(IODescriptorBase):
         Returns the version number string for this item, .e.g 'v1.2.3'
         """
         return self._version
-
-    def get_path(self):
-        """
-        returns the path to the folder where this item resides
-        """
-        return os.path.join(self._bundle_cache_root, "manual", self._name, self._version)
 
     def download_local(self):
         """
