@@ -9,14 +9,13 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import sys
 import copy
 
 from . import paths
 from .descriptor_io import create_io_descriptor
 from .errors import ShotgunDeployError
 
-def create_descriptor(sg_connection, descriptor_type, location, bundle_cache_root=None):
+def create_descriptor(sg_connection, descriptor_type, location, bundle_cache_root=None, fallback_roots=None):
     """
     Factory method. Use this when creating descriptor objects.
 
@@ -24,6 +23,10 @@ def create_descriptor(sg_connection, descriptor_type, location, bundle_cache_roo
     :param descriptor_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK
     :param location: A std location dictionary dictionary or string
     :param bundle_cache_root: Root path to where downloaded apps are cached
+    :param fallback_roots: List of immutable fallback cache locations where
+                           apps will be searched for. Note that when descriptors
+                           download new content, it always ends up in the
+                           bundle_cache_root.
     :returns: Descriptor object
     """
     from .descriptor_bundle import AppDescriptor, EngineDescriptor, FrameworkDescriptor
@@ -33,12 +36,15 @@ def create_descriptor(sg_connection, descriptor_type, location, bundle_cache_roo
     # if bundle root is not set, fall back on default location
     bundle_cache_root = bundle_cache_root or paths.get_bundle_cache_root()
 
+    fallback_roots = fallback_roots or []
+
     # first construct a low level IO descriptor
     io_descriptor = create_io_descriptor(
         sg_connection,
         descriptor_type,
         location,
-        bundle_cache_root
+        bundle_cache_root,
+        fallback_roots
     )
 
     # now create a high level descriptor and bind that with the low level descriptor

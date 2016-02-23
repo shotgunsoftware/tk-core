@@ -14,7 +14,7 @@ from .. import constants
 from .. import util
 log = util.get_shotgun_deploy_logger()
 
-def create_io_descriptor(sg, descriptor_type, location, bundle_cache_root):
+def create_io_descriptor(sg, descriptor_type, location, bundle_cache_root, fallback_roots):
     """
     Factory method. Use this method to construct all DescriptorIO instances.
 
@@ -22,6 +22,10 @@ def create_io_descriptor(sg, descriptor_type, location, bundle_cache_root):
     :param descriptor_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK
     :param location: A std location dictionary dictionary or string
     :param bundle_cache_root: Root path to where downloaded apps are cached
+    :param fallback_roots: List of immutable fallback cache locations where
+                           apps will be searched for. Note that when descriptors
+                           download new content, it always ends up in the
+                           bundle_cache_root.
     :returns: Descriptor object
     """
     from .appstore import IODescriptorAppStore
@@ -63,7 +67,7 @@ def create_io_descriptor(sg, descriptor_type, location, bundle_cache_root):
         raise ShotgunDeployError("Unknown location type for '%s'" % location_dict)
 
     # specify where to go look for caches
-    descriptor.set_cache_roots(bundle_cache_root, [])
+    descriptor.set_cache_roots(bundle_cache_root, fallback_roots)
 
     if location_dict.get("version") == constants.LATEST_DESCRIPTOR_KEYWORD:
         log.debug("Latest keyword detected. Searching for latest version...")
