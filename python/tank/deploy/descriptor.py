@@ -47,8 +47,8 @@ def get_from_location_and_paths(app_or_engine, pc_path, bundle_install_path, loc
     new_descriptor_type = enums[app_or_engine]
 
     return create_descriptor(
-            sg_connection,
-            new_descriptor_type,
-            location_dict,
-            bundle_install_path
+        sg_connection,
+        new_descriptor_type,
+        location_dict,
+        bundle_install_path
     )
