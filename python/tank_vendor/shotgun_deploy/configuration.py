@@ -256,18 +256,6 @@ class Configuration(object):
             os.path.join(config_path, "install", "core.backup"),
             create_placeholder_file=True
         )
-        ensure_folder_exists(
-            os.path.join(config_path, "install", "engines"),
-            create_placeholder_file=True
-        )
-        ensure_folder_exists(
-            os.path.join(config_path, "install", "apps"),
-            create_placeholder_file=True
-        )
-        ensure_folder_exists(
-            os.path.join(config_path, "install", "frameworks"),
-            create_placeholder_file=True
-        )
 
         return config_exists
 
