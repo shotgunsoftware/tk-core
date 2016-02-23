@@ -12,7 +12,7 @@ import os
 from .. import shotgun_base
 from . import util
 
-def get_bundle_cache_root():
+def get_global_bundle_cache_root():
     """
     Returns the cache location for the global bundle cache.
     Ensures that this folder exists.

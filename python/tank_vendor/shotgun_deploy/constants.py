@@ -57,7 +57,7 @@ BUNDLE_METADATA_FILE = "info.yml"
 # if major changes happen to the way cloud based configs are handled
 # by the system, for example requiring any existing deployed cloud
 # configs to be re-deployed, this version number should be incremented.
-CLOUD_CONFIG_DEPLOY_LOGIC_GENERATION = 1
+CLOUD_CONFIG_DEPLOY_LOGIC_GENERATION = 2
 
 # readme file for toolkit configurations
 CONFIG_README_FILE = "README"

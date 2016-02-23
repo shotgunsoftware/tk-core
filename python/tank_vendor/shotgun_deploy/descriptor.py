@@ -15,14 +15,14 @@ from . import paths
 from .descriptor_io import create_io_descriptor
 from .errors import ShotgunDeployError
 
-def create_descriptor(sg_connection, descriptor_type, location, bundle_cache_root=None, fallback_roots=None):
+def create_descriptor(sg_connection, descriptor_type, location, bundle_cache_root_override=None, fallback_roots=None):
     """
     Factory method. Use this when creating descriptor objects.
 
     :param sg_connection: Shotgun connection to associated site
     :param descriptor_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK
     :param location: A std location dictionary dictionary or string
-    :param bundle_cache_root: Root path to where downloaded apps are cached
+    :param bundle_cache_root: Optional override for root path to where downloaded apps are cached
     :param fallback_roots: List of immutable fallback cache locations where
                            apps will be searched for. Note that when descriptors
                            download new content, it always ends up in the
@@ -34,7 +34,7 @@ def create_descriptor(sg_connection, descriptor_type, location, bundle_cache_roo
     from .descriptor_core import CoreDescriptor
 
     # if bundle root is not set, fall back on default location
-    bundle_cache_root = bundle_cache_root or paths.get_bundle_cache_root()
+    bundle_cache_root_override = bundle_cache_root_override or paths.get_global_bundle_cache_root()
 
     fallback_roots = fallback_roots or []
 
@@ -43,7 +43,7 @@ def create_descriptor(sg_connection, descriptor_type, location, bundle_cache_roo
         sg_connection,
         descriptor_type,
         location,
-        bundle_cache_root,
+        bundle_cache_root_override,
         fallback_roots
     )
 
@@ -130,15 +130,6 @@ class Descriptor(object):
         :param target_folder: Folder to copy the descriptor to
         """
         self._io_descriptor.copy(target_folder)
-
-    def get_bundle_cache_root(self):
-        """
-        Returns the folder which is used as the base point
-        for caching of resources relevant to this descriptor
-
-        :returns: path on disk as string
-        """
-        return self._io_descriptor.get_bundle_cache_root()
 
     def get_display_name(self):
         """

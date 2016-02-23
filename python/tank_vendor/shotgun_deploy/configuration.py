@@ -24,7 +24,14 @@ from ..shotgun_base import copy_folder, ensure_folder_exists
 
 log = util.get_shotgun_deploy_logger()
 
-def create_unmanaged_configuration(sg, descriptor, project_id, pipeline_config_id, namespace):
+def create_unmanaged_configuration(
+        sg,
+        descriptor,
+        project_id,
+        pipeline_config_id,
+        namespace,
+        bundle_cache_fallback_paths
+):
     """
     Factory method for creating an unmanaged configuration object. Unmanaged configurations
     are auto-installed on disk and the user doesn't have any power over where they are located.
@@ -40,27 +47,34 @@ def create_unmanaged_configuration(sg, descriptor, project_id, pipeline_config_i
                                should be set to None.
     :param namespace: name space string, typically one short word,
                       e.g. 'maya', 'rv', 'desktop'.
+    :param bundle_cache_fallback_paths: List of additional paths where apps are cached.
     :returns: Configuration instance
     """
     log.debug("Creating a configuration wrapper for unmanaged config %r" % descriptor)
-    return UnmanagedConfiguration(sg, descriptor, project_id, pipeline_config_id, namespace)
+    return UnmanagedConfiguration(
+        sg,
+        descriptor,
+        project_id,
+        pipeline_config_id,
+        namespace,
+        bundle_cache_fallback_paths
+    )
 
 
 def create_managed_configuration(
-    sg,
-    bundle_cache_root,
-    project_id,
-    pipeline_config_id,
-    namespace,
-    win_path,
-    linux_path,
-    mac_path
+        sg,
+        project_id,
+        pipeline_config_id,
+        namespace,
+        bundle_cache_fallback_paths,
+        win_path,
+        linux_path,
+        mac_path
 ):
     """
     Factory method for creating a managed configuration wrapper object.
 
     :param sg: Shotgun API instance
-    :param bundle_cache_root: Folder where descriptors are being cached
     :param project_id: Project id for the shotgun project associated with the
                        configuration. For a site-level configuration, this
                        can be set to None.
@@ -69,6 +83,7 @@ def create_managed_configuration(
                                configs, this option cannot be None.
     :param namespace: name space string, typically one short word,
                       e.g. 'maya', 'rv', 'desktop'.
+    :param bundle_cache_fallback_paths: List of additional paths where apps are cached.
     :param win_path: Path on windows where the config should be located
     :param linux_path: Path on linux where the config should be located
     :param mac_path: Path on macosx where the config should be located
@@ -101,7 +116,7 @@ def create_managed_configuration(
         sg,
         Descriptor.CONFIG,
         config_location,
-        bundle_cache_root
+        fallback_roots=bundle_cache_fallback_paths
     )
 
     return ManagedConfiguration(
@@ -110,6 +125,7 @@ def create_managed_configuration(
         project_id,
         pipeline_config_id,
         namespace,
+        bundle_cache_fallback_paths,
         config_root)
 
 
@@ -123,7 +139,15 @@ class Configuration(object):
 
     (LOCAL_CFG_UP_TO_DATE, LOCAL_CFG_MISSING, LOCAL_CFG_OLD, LOCAL_CFG_INVALID) = range(4)
 
-    def __init__(self, sg, descriptor, project_id, pipeline_config_id, namespace):
+    def __init__(
+            self,
+            sg,
+            descriptor,
+            project_id,
+            pipeline_config_id,
+            namespace,
+            bundle_cache_fallback_paths
+    ):
         """
         Constructor.
 
@@ -138,12 +162,14 @@ class Configuration(object):
                                    should be set to None.
         :param namespace: name space string, typically one short word,
                           e.g. 'maya', 'rv', 'desktop'.
+        :param bundle_cache_fallback_paths: List of additional paths where apps are cached.
         """
         self._sg_connection = sg
         self._descriptor = descriptor
         self._project_id = project_id
         self._pipeline_config_id = pipeline_config_id
         self._namespace = namespace
+        self._bundle_cache_fallback_paths = bundle_cache_fallback_paths
 
     def __repr__(self):
         return "<Config with id %s, project id %s and base %s>" % (
@@ -375,7 +401,7 @@ class Configuration(object):
             self._sg_connection,
             Descriptor.CORE,
             core_location,
-            self._descriptor.get_bundle_cache_root()
+            fallback_roots=self._bundle_cache_fallback_paths
         )
 
         log.debug("Config will use Core %s" % core_descriptor)
@@ -483,9 +509,12 @@ class Configuration(object):
 
         log.debug("Wrote %s" % sg_file)
 
-    def _write_pipeline_config_file(self):
+    def _get_pipeline_config_file_content(self):
         """
-        Writes pipeline configuration yml
+        Creates content for pipeline configuration file.
+
+        :returns: dictionary with data intended to be written to
+                  the pipeline_configuration.yml file.
         """
         # the pipeline config metadata
         # resolve project name and pipeline config name from shotgun.
@@ -525,25 +554,12 @@ class Configuration(object):
             "project_id": self._project_id,
             "project_name": project_name,
             "published_file_entity_type": "PublishedFile",
-            "bundle_cache_root": self._descriptor.get_bundle_cache_root(),
+            "use_global_bundle_cache": True,
+            "bundle_cache_fallback_roots": self._bundle_cache_fallback_paths,
             "use_shotgun_path_cache": True}
 
-        pipeline_config_file = os.path.join(
-            self.get_path(),
-            "config",
-            "core",
-            constants.PIPELINECONFIG_FILE
-        )
-        fh = open(pipeline_config_file, "wt")
+        return data
 
-        fh.write("# This file was auto generated\n")
-
-        # write yaml
-        yaml.safe_dump(data, fh)
-        fh.write("\n")
-        fh.close()
-
-        log.debug("Wrote %s" % pipeline_config_file)
 
     def _update_roots_file(self):
         """
@@ -609,7 +625,7 @@ class UnmanagedConfiguration(Configuration):
     is defined in the descriptor.
     """
 
-    def __init__(self, sg, descriptor, project_id, pipeline_config_id, namespace):
+    def __init__(self, sg, descriptor, project_id, pipeline_config_id, namespace, bundle_cache_fallback_paths):
         """
         Constructor.
 
@@ -624,13 +640,15 @@ class UnmanagedConfiguration(Configuration):
                                    should be set to None.
         :param namespace: name space string, typically one short word,
                           e.g. 'maya', 'rv', 'desktop'.
+        :param bundle_cache_fallback_paths: List of additional paths where apps are cached.
         """
         super(UnmanagedConfiguration, self).__init__(
             sg,
             descriptor,
             project_id,
             pipeline_config_id,
-            namespace
+            namespace,
+            bundle_cache_fallback_paths
         )
 
     def get_path(self, platform=sys.platform):
@@ -656,6 +674,21 @@ class UnmanagedConfiguration(Configuration):
             )
 
         return path
+
+    def _get_pipeline_config_file_content(self):
+        """
+        Creates content for pipeline configuration file for unmanaged configs.
+
+        :returns: dictionary with data intended to be written to
+                  the pipeline_configuration.yml file.
+        """
+        # let the base class fill in all the basic stuff for us
+        content = super(UnmanagedConfiguration, self)._get_pipeline_config_file_content()
+
+        # for unmanaged configs, the bundle cache is always used
+        content["use_global_bundle_cache"] = True
+
+        return content
 
     def status(self):
         """
@@ -739,11 +772,29 @@ class UnmanagedConfiguration(Configuration):
             self._write_install_location_file()
             self._write_config_info_file()
             self._write_shotgun_file()
-            self._write_pipeline_config_file()
             self._update_roots_file()
+
+            # write pipeline_configuration.yml
+            pipeline_config_content = self._get_pipeline_config_file_content()
+
+            pipeline_config_path = os.path.join(
+                self.get_path(),
+                "config",
+                "core",
+                constants.PIPELINECONFIG_FILE
+            )
+            fh = open(pipeline_config_path, "wt")
+            try:
+                fh.write("# This file was auto generated\n")
+                yaml.safe_dump(pipeline_config_content, fh)
+                fh.write("\n")
+                log.debug("Wrote %s" % pipeline_config_path)
+            finally:
+                fh.close()
 
             # and lastly install core
             self._install_core()
+
         except Exception, e:
             log.error("Failed to update configuration. Attempting Rollback. Error: %s" % e)
             # step 1 - clear core and config locations
@@ -763,9 +814,21 @@ class UnmanagedConfiguration(Configuration):
 class ManagedConfiguration(Configuration):
     """
     Represents a configuration that has been installed on disk in a specific location.
+
+    @todo - currently, this is not using the global app cache - the assumption is that
+    when you manage your config, you want to
     """
 
-    def __init__(self, sg, descriptor, project_id, pipeline_config_id, namespace, config_root):
+    def __init__(
+            self,
+            sg,
+            descriptor,
+            project_id,
+            pipeline_config_id,
+            namespace,
+            bundle_cache_fallback_paths,
+            config_root
+    ):
         """
         Constructor.
 
@@ -780,6 +843,7 @@ class ManagedConfiguration(Configuration):
                                    should be set to None.
         :param namespace: name space string, typically one short word,
                           e.g. 'maya', 'rv', 'desktop'.
+        :param bundle_cache_fallback_paths: List of additional paths where apps are cached.
         :param config_root: Root path where the installed configuration should be located
                             This is the same path that is being referenced by absolute paths
                             in a pipeline configuration. Note that the configuration itself
@@ -791,8 +855,24 @@ class ManagedConfiguration(Configuration):
             descriptor,
             project_id,
             pipeline_config_id,
-            namespace
+            namespace,
+            bundle_cache_fallback_paths
         )
+
+    def _get_pipeline_config_file_content(self):
+        """
+        Creates content for pipeline configuration file for managed configs.
+
+        :returns: dictionary with data intended to be written to
+                  the pipeline_configuration.yml file.
+        """
+        # let the base class fill in all the basic stuff for us
+        content = super(ManagedConfiguration, self)._get_pipeline_config_file_content()
+
+        # for managed configs, the bundle cache is not used.
+        content["use_global_bundle_cache"] = False
+
+        return content
 
     def get_path(self, platform=sys.platform):
         """
@@ -857,8 +937,25 @@ class ManagedConfiguration(Configuration):
         self._write_install_location_file()
         self._write_config_info_file()
         self._write_shotgun_file()
-        self._write_pipeline_config_file()
         self._update_roots_file()
+
+        # write pipeline_configuration.yml
+        pipeline_config_content = self._get_pipeline_config_file_content()
+
+        pipeline_config_path = os.path.join(
+            self.get_path(),
+            "config",
+            "core",
+            constants.PIPELINECONFIG_FILE
+        )
+        fh = open(pipeline_config_path, "wt")
+        try:
+            fh.write("# This file was auto generated\n")
+            yaml.safe_dump(pipeline_config_content, fh)
+            fh.write("\n")
+            log.debug("Wrote %s" % pipeline_config_path)
+        finally:
+            fh.close()
 
         # install core
         self._install_core()

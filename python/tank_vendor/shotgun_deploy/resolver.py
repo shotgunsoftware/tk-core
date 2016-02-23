@@ -24,15 +24,15 @@ class ConfigurationResolver(object):
     given a particular project and configuration.
     """
 
-    def __init__(self, sg_connection, bundle_cache_root):
+    def __init__(self, sg_connection, bundle_cache_fallback_paths):
         """
         Constructor.
 
         :param sg_connection: Shotgun API instance
-        :param bundle_cache_root: Root where content should be cached
+        :param bundle_cache_fallback_paths: List of additional paths where apps are cached.
         """
         self._sg_connection = sg_connection
-        self._bundle_cache_root = bundle_cache_root
+        self._bundle_cache_fallback_paths = bundle_cache_fallback_paths
 
     def resolve_project_configuration(
             self,
@@ -65,16 +65,16 @@ class BasicConfigurationResolver(ConfigurationResolver):
     toolkit is using today.
     """
 
-    def __init__(self, sg_connection, bundle_cache_root):
+    def __init__(self, sg_connection, bundle_cache_fallback_paths):
         """
         Constructor
 
         :param sg_connection: Shotgun API instance
-        :param bundle_cache_root: Root where content should be cached
+        :param bundle_cache_fallback_paths: List of additional paths where apps are cached.
         """
         super(BasicConfigurationResolver, self).__init__(
             sg_connection,
-            bundle_cache_root,
+            bundle_cache_fallback_paths
         )
 
     def resolve_project_configuration(self, project_id, pipeline_config_name, namespace, base_config_location):
@@ -113,10 +113,10 @@ class BasicConfigurationResolver(ConfigurationResolver):
                 # we have paths specified for the local platform!
                 return create_managed_configuration(
                     self._sg_connection,
-                    self._bundle_cache_root,
                     project_id,
                     pc_data.get("id"),
                     namespace,
+                    self._bundle_cache_fallback_paths,
                     pc_data.get("windows_path"),
                     pc_data.get("linux_path"),
                     pc_data.get("mac_path")
@@ -130,7 +130,7 @@ class BasicConfigurationResolver(ConfigurationResolver):
                     self._sg_connection,
                     Descriptor.CONFIG,
                     uri,
-                    self._bundle_cache_root
+                    fallback_roots=self._bundle_cache_fallback_paths
                 )
 
                 return create_unmanaged_configuration(
@@ -138,7 +138,8 @@ class BasicConfigurationResolver(ConfigurationResolver):
                     cfg_descriptor,
                     project_id,
                     pc_data.get("id"),
-                    namespace
+                    namespace,
+                    self._bundle_cache_fallback_paths
                 )
 
         # fall back on base
@@ -163,7 +164,7 @@ class BasicConfigurationResolver(ConfigurationResolver):
             self._sg_connection,
             Descriptor.CONFIG,
             base_config_location,
-            self._bundle_cache_root
+            fallback_roots=self._bundle_cache_fallback_paths
         )
 
         log.debug("Creating a configuration wrapper based on %r." % cfg_descriptor)
@@ -173,6 +174,7 @@ class BasicConfigurationResolver(ConfigurationResolver):
             self._sg_connection,
             cfg_descriptor,
             project_id,
-            None,           # pipeline config id
-            namespace
+            None, # pipeline config id
+            namespace,
+            self._bundle_cache_fallback_paths
         )

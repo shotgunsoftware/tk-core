@@ -88,10 +88,19 @@ class PipelineConfiguration(object):
         self._pc_name = pipeline_config_metadata.get("pc_name")
         self._published_file_entity_type = pipeline_config_metadata.get("published_file_entity_type", "TankPublishedFile")        
         self._use_shotgun_path_cache = pipeline_config_metadata.get("use_shotgun_path_cache", False)
-        self._bundle_cache_root = pipeline_config_metadata.get("bundle_cache_root")
-        if self._bundle_cache_root is None:
-            # pre-global cache root. default to an install root local to the installation
-            self._bundle_cache_root = os.path.join(self.get_install_location(), "install")
+
+        # figure out if to use the global bundle cache or the local pc 'install' cache
+        if pipeline_config_metadata.get("use_global_bundle_cache"):
+            # use global bundle cache
+            self._bundle_cache_root_override = None
+        else:
+            # use cache relative to core install
+            self._bundle_cache_root_override = os.path.join(self.get_install_location(), "install")
+
+        if pipeline_config_metadata.get("bundle_cache_fallback_roots"):
+            self._bundle_cache_fallback_paths = pipeline_config_metadata.get("bundle_cache_fallback_roots")
+        else:
+            self._bundle_cache_fallback_paths = []
 
         # Populate the global yaml_cache if we find a pickled cache
         # on disk.
@@ -579,7 +588,8 @@ class PipelineConfiguration(object):
             sg_connection,
             descriptor_type,
             pp_location,
-            self._bundle_cache_root
+            self._bundle_cache_root_override,
+            self._bundle_cache_fallback_paths
         )
 
         return desc

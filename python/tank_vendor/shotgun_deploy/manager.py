@@ -20,7 +20,6 @@ from . import Descriptor, create_descriptor
 from . import constants
 from ..shotgun_base import ensure_folder_exists
 from .errors import ShotgunDeployError
-from .paths import get_bundle_cache_root
 from .configuration import Configuration, create_managed_configuration
 from .resolver import BasicConfigurationResolver
 
@@ -41,7 +40,7 @@ class ToolkitManager(object):
         self._sg_connection = self._sg_user.create_sg_connection()
 
         # defaults
-        self._bundle_cache_root = get_bundle_cache_root()
+        self._bundle_cache_fallback_paths = []
         self._pipeline_configuration_name = constants.PRIMARY_PIPELINE_CONFIG_NAME
         self._base_config_location = None
         self._namespace = constants.DEFAULT_NAMESPACE
@@ -50,7 +49,7 @@ class ToolkitManager(object):
     def __repr__(self):
         repr  = "<TkManager "
         repr += " User %s\n" % self._sg_user
-        repr += " Cache root %s\n" % self._bundle_cache_root
+        repr += " Cache fallback path %s\n" % self._bundle_cache_fallback_paths
         repr += " Config %s\n" % self._pipeline_configuration_name
         repr += " Namespace: %s\n" % self._namespace
         repr += " Base %s >" % self._base_config_location
@@ -63,7 +62,8 @@ class ToolkitManager(object):
 
         :param path: Path on disk for cache
         """
-        self._bundle_cache_root = path
+        # @todo - change API method but need to change RV plugin for this.
+        self._bundle_cache_fallback_paths = [path]
 
     def set_namespace(self, namespace):
         """
@@ -143,7 +143,7 @@ class ToolkitManager(object):
         # separate file.
         self._report_progress("Resolving configuration...")
 
-        resolver = BasicConfigurationResolver(self._sg_connection, self._bundle_cache_root)
+        resolver = BasicConfigurationResolver(self._sg_connection, self._bundle_cache_fallback_paths)
 
         # now request a configuration object from the resolver.
         # this object represents a configuration that may or may not
@@ -361,10 +361,10 @@ class ToolkitManager(object):
         self._report_progress("Installing Configuration...")
         config = create_managed_configuration(
             self._sg_connection,
-            self._bundle_cache_root,
             project_id,
             pc_id,
             self._namespace,
+            self._bundle_cache_fallback_paths,
             win_path,
             linux_path,
             mac_path
@@ -474,7 +474,7 @@ class ToolkitManager(object):
             self._sg_connection,
             Descriptor.CONFIG,
             self._base_config_location,
-            self._bundle_cache_root
+            fallback_roots=self._bundle_cache_fallback_paths
         )
         log.debug("Base config resolved to: %r" % cfg_descriptor)
         return cfg_descriptor

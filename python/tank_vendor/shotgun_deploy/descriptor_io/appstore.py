@@ -109,71 +109,45 @@ class IODescriptorAppStore(IODescriptorBase):
         # cached metadata - loaded on demand
         self.__cached_metadata = None
 
-    def _remove_app_store_metadata(self):
-        """
-        Clears the app store metadata that is cached on disk.
-        This will force a re-fetch from shotgun the next time the metadata is needed.
-        Note that while the payload of the app is immutable - e.g. v1.2.3 always stays
-        the same, the metadata may change. This typically happens when an item gets deprecated
-        and its deprecation status changes.
-        """
-        if not self.exists_local():
-            return
 
-        cache_file = os.path.join(self.get_path(), METADATA_FILE)
-        if os.path.exists(cache_file):
-            try:
-                os.remove(cache_file)
-            except:
-                # fail gracefully - this is only a cache
-                pass
-    
     def _get_app_store_metadata(self):
         """
         Returns a metadata dictionary for this particular location.
         Tries to use a cache if possible.
         """
-        if not self.exists_local():
-            return {}
+        if not self.__cached_metadata:
 
-        if self.__cached_metadata:
-            # got an in-memory cache
-            return self.__cached_metadata
+            # make sure we have the app payload
+            self.ensure_local()
 
-        # try to load from cache file
-        self.__cached_metadata = None
-        cache_file = os.path.join(self.get_path(), METADATA_FILE)
-
-        if os.path.exists(cache_file):
-            # try to load
+            # try to load from cache file
+            # cache is downloaded on app installation so expect it exists
+            cache_file = os.path.join(self.get_path(), METADATA_FILE)
+            fp = open(cache_file, "rt")
             try:
-                fp = open(cache_file, "rt")
                 self.__cached_metadata = pickle.load(fp)
+            finally:
                 fp.close()
-            except Exception:
-                pass
-
-        if self.__cached_metadata is None:
-            # load from disk failed. Get from shotgun
-            self.__cached_metadata = self.__download_app_store_metadata()
-
-            # try to cache it on disk
-            try:
-                ensure_folder_exists(os.path.dirname(cache_file))
-                fp = open(cache_file, "wt")
-                pickle.dump(self.__cached_metadata, fp)
-                fp.close()
-            except Exception:
-                # fail gracefully - this is only a cache!
-                pass
 
         # finally return the data!
         return self.__cached_metadata
 
-    def __download_app_store_metadata(self):
+    def __refresh_app_store_metadata(self):
         """
-        Fetches metadata about the app from the toolkit app store
+        Rebuilds the app store metadata cache
+        """
+        # make sure we have the app payload
+        self.ensure_local()
 
+        # and cache the file
+        cache_file = os.path.join(self.get_path(), METADATA_FILE)
+        self.__cache_app_store_metadata(cache_file)
+
+    def __cache_app_store_metadata(self, path):
+        """
+        Fetches metadata about the app from the toolkit app store. Writes it to disk.
+
+        :param path: Path to write the cache file to.
         :returns: A dictionary with keys bundle and version, containing
                   Shotgun metadata.
         """
@@ -235,6 +209,13 @@ class IODescriptorAppStore(IODescriptorBase):
 
         metadata = {"bundle": bundle, "version": version}
 
+        fp = open(path, "wt")
+        try:
+            pickle.dump(metadata, fp)
+            log.debug("Wrote app store cache file '%s'" % path)
+        finally:
+            fp.close()
+
         return metadata
 
     def _get_cache_paths(self):
@@ -256,8 +237,6 @@ class IODescriptorAppStore(IODescriptorBase):
                 )
             )
         return paths
-
-
 
     ###############################################################################################
     # data accessors
@@ -322,8 +301,11 @@ class IODescriptorAppStore(IODescriptorBase):
         # connect to the app store
         (sg, script_user) = self.__create_sg_app_store_connection()
 
-        # get metadata from sg...
-        metadata = self._get_app_store_metadata()
+        # fetch metadata from sg...
+        metadata_cache_file = os.path.join(target, METADATA_FILE)
+        metadata = self.__cache_app_store_metadata(metadata_cache_file)
+
+        # now get the attachment info
         version = metadata.get("version")
 
         # attachment field is on the following form in the case a file has been uploaded:
@@ -420,7 +402,7 @@ class IODescriptorAppStore(IODescriptorBase):
             raise ShotgunDeployError("App store does not contain an item named '%s'!" % self._name)
 
         # check if this has been deprecated in the app store
-        # in that case we should ensure that the cache is cleared later
+        # in that case we should ensure that the metadata is refreshed later
         is_deprecated = False
         if bundle["sg_status_list"] == "dep":
             is_deprecated = True
@@ -456,7 +438,7 @@ class IODescriptorAppStore(IODescriptorBase):
         # all this info the next time it is being requested. So we force clear the metadata
         # cache.
         if is_deprecated:
-            desc._remove_app_store_metadata()
+            self.__refresh_app_store_metadata()
         
         return desc
 
@@ -534,8 +516,8 @@ class IODescriptorAppStore(IODescriptorBase):
         # all this info the next time it is being requested. So we force clear the metadata
         # cache.
         if is_deprecated:
-            desc._remove_app_store_metadata()
-        
+            self.__refresh_app_store_metadata()
+
         return desc
 
     def __create_sg_app_store_connection(self):
