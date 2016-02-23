@@ -12,16 +12,29 @@
 Logging configuration for this module.
 """
 
-import logging
-
-# Initialize the logger.
-_logger = logging.getLogger("sg_auth")
-_logger.setLevel(logging.WARNING)
+from tank_vendor.shotgun_base import get_sgtk_logger
 
 
-def get_logger():
+def get_logger(name=None):
     """
-    Returns the root level logger for this module.
+    Return the sgtk authentication logger.
+
+    If the name parameter is left as None, the sgtk authentication logger
+    itself is returned.
+
+    If the name parameter is set, a child logger will be created using
+    the name parameter.
+
+    For example:
+
+        log = get_logger() # returns the sgtk.auth logger
+        log = get_sgtk_logger("foo") # returns the sgtk.auth.foo logger
+
+    :param name: Child logger channel to return. For nested levels, use
+        periods.
+    :returns: Python logger
     """
-    global _logger
-    return _logger
+    if name:
+        return get_sgtk_logger("auth." + name)
+    else:
+        return get_sgtk_logger("auth")

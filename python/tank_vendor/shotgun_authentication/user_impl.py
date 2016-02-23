@@ -29,8 +29,8 @@ from .errors import IncompleteCredentials
 # Indirection to create ShotgunWrapper instances. Great for unit testing.
 _shotgun_instance_factory = ShotgunWrapper
 
-import logging
-logger = logging.getLogger("sg_auth.user_impl")
+from .sg_auth_logging import get_logger
+logger = get_logger("user_impl")
 
 
 class ShotgunUserImpl(object):

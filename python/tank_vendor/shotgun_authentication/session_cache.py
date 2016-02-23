@@ -29,11 +29,11 @@ from tank_vendor.shotgun_api3 import (Shotgun, AuthenticationFault, ProtocolErro
 from tank_vendor.shotgun_api3.lib import httplib2
 from tank_vendor import yaml
 from .errors import AuthenticationError
-import logging
+from .sg_auth_logging import get_logger
 
 from ..shotgun_base import get_cache_root, get_site_cache_root
 
-logger = logging.getLogger("sg_auth.session")
+logger = get_logger("session")
 
 _CURRENT_HOST = "current_host"
 _CURRENT_USER = "current_user"

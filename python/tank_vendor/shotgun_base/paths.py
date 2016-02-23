@@ -105,3 +105,20 @@ def get_pipeline_config_cache_root(site_url, project_id, pipeline_configuration_
 
     cache_root = os.path.join(get_site_cache_root(site_url), project_config_folder)
     return cache_root
+
+
+def get_logs_root():
+    """
+    Returns the platform specific location of the logfiles.
+
+    :returns: Path to the logfile.
+    """
+    if sys.platform == "darwin":
+        fname = os.path.join(os.path.expanduser("~"), "Library", "Logs", "Shotgun")
+    elif sys.platform == "win32":
+        fname = os.path.join(os.environ.get("APPDATA", "APPDATA_NOT_SET"), "Shotgun")
+    elif sys.platform.startswith("linux"):
+        fname = os.path.join(os.path.expanduser("~"), ".shotgun", "logs")
+    else:
+        raise NotImplementedError("Unknown platform: %s" % sys.platform)
+    return fname
