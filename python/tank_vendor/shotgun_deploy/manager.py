@@ -45,6 +45,7 @@ class ToolkitManager(object):
         self._pipeline_configuration_name = constants.PRIMARY_PIPELINE_CONFIG_NAME
         self._base_config_location = None
         self._namespace = constants.DEFAULT_NAMESPACE
+        self._progress_cb = None
 
     def __repr__(self):
         repr  = "<TkManager "
@@ -96,6 +97,25 @@ class ToolkitManager(object):
         """
         self._base_config_location = location
 
+    def set_progress_callback(self, callback):
+        """
+        Specify a method to call whenever progress should be reported back.
+
+        The method needs to have the following signature::
+
+            progress_callback(message, current_index, max_index)
+
+        The two index parameters are used to illustrate progress
+        over time and looping. max_index is the total number of
+        current progress items, current_index is the currently
+        processed item. This can be used to compute a percentage.
+        Note that max_index may change at any time and is not guaranteed
+        to be fixed.
+
+        :param callback: Callback fn. See above for details.
+        """
+        self._progress_cb = callback
+
     def bootstrap_sgtk(self, project_id=None):
         """
         Create an sgtk instance for the given project or site.
@@ -121,6 +141,8 @@ class ToolkitManager(object):
         # resolvers to implement different workflows.
         # For now, this logic is just separated out in a
         # separate file.
+        self._report_progress("Resolving configuration...")
+
         resolver = BasicConfigurationResolver(self._sg_connection, self._bundle_cache_root)
 
         # now request a configuration object from the resolver.
@@ -135,8 +157,10 @@ class ToolkitManager(object):
         )
 
         # see what we have locally
+        self._report_progress("Checking if config is out of date...")
         status = config.status()
 
+        self._report_progress("Updating configuration...")
         if status == Configuration.LOCAL_CFG_UP_TO_DATE:
             log.info("Your configuration is up to date.")
 
@@ -156,6 +180,7 @@ class ToolkitManager(object):
             raise ShotgunDeployError("Unknown configuration update status!")
 
         # we can now boot up this config.
+        self._report_progress("Starting up Toolkit...")
         tk = config.get_tk_instance(self._sg_user)
 
         if status != Configuration.LOCAL_CFG_UP_TO_DATE:
@@ -177,6 +202,7 @@ class ToolkitManager(object):
         """
         log.debug("bootstrapping into an engine.")
 
+        self._report_progress("Resolving Toolkit Context...")
         if entity:
 
             data = self._sg_connection.find_one(
@@ -200,7 +226,9 @@ class ToolkitManager(object):
         else:
             ctx = tk.context_from_entity_dictionary(entity)
 
+        self._report_progress("Launching Engine...")
         log.debug("Attempting to start engine %s for context %r" % (engine_name, ctx))
+
         # @todo - fix this import
         import tank
         engine = tank.platform.start_engine(engine_name, tk, ctx)
@@ -236,9 +264,11 @@ class ToolkitManager(object):
         log.debug("Will upload %s to %r, project %s" % (cfg_descriptor, self, project_id))
 
         # make sure it exists locally
+        self._report_progress("Downloading configuration...")
         cfg_descriptor.ensure_local()
 
         # zip up the config
+        self._report_progress("Compressing configuration...")
         config_root_path = cfg_descriptor.get_path()
         log.debug("Zipping up %s" % config_root_path)
 
@@ -251,9 +281,10 @@ class ToolkitManager(object):
         zipfilehelper.zip_file(config_root_path, zip_tmp)
 
         # make sure a pipeline config record exists
+        self._report_progress("Looking for Pipeline Configuration...")
         pc_id = self._ensure_pipeline_config_exists(project_id)
 
-        log.debug("Uploading zip file...")
+        self._report_progress("Uploading zip to Shotgun...")
         attachment_id = self._sg_connection.upload(
             constants.PIPELINE_CONFIGURATION_ENTITY,
             pc_id,
@@ -263,6 +294,7 @@ class ToolkitManager(object):
         log.debug("Upload complete!")
 
         # write uri
+        self._report_progress("Updating Pipeline Configuration...")
         uri = "sgtk:shotgun:%s:%s:%s:p%d:v%d" % (
             constants.PIPELINE_CONFIGURATION_ENTITY,
             constants.SHOTGUN_PIPELINECONFIG_ATTACHMENT_FIELD,
@@ -322,9 +354,11 @@ class ToolkitManager(object):
         log.debug("Configuration will be based on: %r" % descriptor_to_install)
 
         # make sure a pipeline config record exists
+        self._report_progress("Checking Pipeline Configuration...")
         pc_id = self._ensure_pipeline_config_exists(project_id)
 
         # create an object to represent our configuration install
+        self._report_progress("Installing Configuration...")
         config = create_managed_configuration(
             self._sg_connection,
             self._bundle_cache_root,
@@ -345,12 +379,28 @@ class ToolkitManager(object):
         )
 
         # we can now boot up this config.
+        self._report_progress("Starting up Toolkit...")
         tk = config.get_tk_instance(self._sg_user)
 
         # and cache
         self._cache_apps(tk)
 
         return pc_id
+
+    def _report_progress(self, message, curr_idx=None, max_idx=None):
+        """
+        Helper method. Report progress back to
+        any defined progress callback.
+
+        :param message: Message to report
+        :param curr_idx: Optional integer denoting progress. This number is
+                         relative to the max_idx which denotes completion
+                         of the current task or subtask.
+        :param max_idx: Max number of items.
+        """
+        log.info("Progress Report: %s" % message)
+        if self._progress_cb:
+            self._progress_cb(message, curr_idx, max_idx)
 
     def _ensure_pipeline_config_exists(self, project_id):
         """
@@ -462,7 +512,7 @@ class ToolkitManager(object):
         for idx, descriptor in enumerate(descriptors):
 
             if not descriptor.exists_local():
-                log.info("Downloading %s..." % descriptor)
+                self._report_progress("Downloading %s..." % descriptor, idx, len(descriptors))
                 descriptor.download_local()
 
             else:
@@ -471,7 +521,7 @@ class ToolkitManager(object):
         # pass 3 - do post install
         if do_post_install:
             for descriptor in descriptors:
-                log.debug("Post install for %s" % descriptor)
+                self._report_progress("Running post install for %s" % descriptor)
                 descriptor.ensure_shotgun_fields_exist(tk)
                 descriptor.run_post_install(tk)
 
