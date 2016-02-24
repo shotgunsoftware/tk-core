@@ -149,7 +149,7 @@ class ToolkitManager(object):
         # this object represents a configuration that may or may not
         # exist on disk. We can use the config object to check if the
         # object needs installation, updating etc.
-        config = resolver.resolve_project_configuration(
+        config = resolver.resolve_configuration(
             project_id,
             self._pipeline_configuration_name,
             self._namespace,
@@ -250,6 +250,16 @@ class ToolkitManager(object):
         """
         # @todo - implement validate() method
 
+    def get_configuration_uri(self, project_id):
+        """
+        Return the config uri that is associated with the given
+        project. Also takes into account the namespace and
+        pipeline configuration state of the manager instance itself.
+
+        :param project_id: Project to retrieve configuration uri for.
+        :return: toolkit config locator uri string
+        """
+
     def upload_configuration(self, project_id):
         """
         Convenience method that uploads the given base
@@ -311,7 +321,7 @@ class ToolkitManager(object):
 
         return pc_id
 
-    def create_disk_configuration(
+    def create_managed_configuration(
         self,
         project_id,
         win_path=None,
@@ -319,7 +329,8 @@ class ToolkitManager(object):
         linux_path=None,
         win_python=None,
         mac_python=None,
-        linux_python=None
+        linux_python=None,
+        use_global_bundle_cache=False
     ):
         """
         Creates a managed configuration on disk given the base location.
@@ -339,6 +350,17 @@ class ToolkitManager(object):
         :param win_python: Optional python interpreter path.
         :param mac_python: Optional python interpreter path.
         :param linux_python: Optional python interpreter path.
+        :param use_global_bundle_cache: If True, the global bundle cache location
+            will be used to cache bundles (apps, engine and frameworks. This location
+            is on the local disk and is shared across all projects and all sites, but
+            not shared between machines. If set to False, bundles will be cached
+            in a location relative to the core installation (e.g as part of the
+            managed configuration). This is synonymous with the way toolkit worked
+            up to core v0.17. For managed configurations used for development and not
+            intended to shared between multiple machines, setting this to True is
+            recommended. For configurations that are deployed to production and shared
+            between multiple users and machines, it should be set to False.
+
         :return: Shotgun id for the pipeline relevant configuration
         """
         log.debug("Begin installing config on disk.")
@@ -365,13 +387,14 @@ class ToolkitManager(object):
             pc_id,
             self._namespace,
             self._bundle_cache_fallback_paths,
+            use_global_bundle_cache,
             win_path,
             linux_path,
             mac_path
         )
 
         # and install or update the configuration with the new content
-        config.install_external_configuration(
+        config.install_managed_configuration(
             descriptor_to_install,
             win_python,
             mac_python,

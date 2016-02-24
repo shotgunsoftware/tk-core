@@ -34,12 +34,12 @@ class ConfigurationResolver(object):
         self._sg_connection = sg_connection
         self._bundle_cache_fallback_paths = bundle_cache_fallback_paths
 
-    def resolve_project_configuration(
-            self,
-            project_id,
-            pipeline_config_name,
-            namespace,
-            base_config_location
+    def resolve_configuration(
+        self,
+        project_id,
+        pipeline_config_name,
+        namespace,
+        base_config_location
     ):
         """
         Given a Shotgun project (or None for site mode), return a configuration
@@ -77,7 +77,13 @@ class BasicConfigurationResolver(ConfigurationResolver):
             bundle_cache_fallback_paths
         )
 
-    def resolve_project_configuration(self, project_id, pipeline_config_name, namespace, base_config_location):
+    def resolve_configuration(
+        self,
+        project_id,
+        pipeline_config_name,
+        namespace,
+        base_config_location
+    ):
         """
         Given a Shotgun project (or None for site mode), return a configuration
         object based on a particular set of resolution logic rules.

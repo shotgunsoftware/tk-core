@@ -67,6 +67,7 @@ def create_managed_configuration(
         pipeline_config_id,
         namespace,
         bundle_cache_fallback_paths,
+        use_global_bundle_cache,
         win_path,
         linux_path,
         mac_path
@@ -84,6 +85,9 @@ def create_managed_configuration(
     :param namespace: name space string, typically one short word,
                       e.g. 'maya', 'rv', 'desktop'.
     :param bundle_cache_fallback_paths: List of additional paths where apps are cached.
+    :param use_global_bundle_cache: True if global bundle cache should be used
+        with this configuration, False if bundles are cached relative to core,
+        e.g. inside the configuration itself.
     :param win_path: Path on windows where the config should be located
     :param linux_path: Path on linux where the config should be located
     :param mac_path: Path on macosx where the config should be located
@@ -126,6 +130,7 @@ def create_managed_configuration(
         pipeline_config_id,
         namespace,
         bundle_cache_fallback_paths,
+        use_global_bundle_cache,
         config_root)
 
 
@@ -177,6 +182,14 @@ class Configuration(object):
             self._project_id,
             self._descriptor
         )
+
+    def get_descriptor(self):
+        """
+        Returns the descriptor that is associated with this configuration
+
+        :return: ConfigDescriptor Object
+        """
+        return self._descriptor
 
     def get_path(self, platform=sys.platform):
         """
@@ -815,6 +828,7 @@ class ManagedConfiguration(Configuration):
             pipeline_config_id,
             namespace,
             bundle_cache_fallback_paths,
+            use_global_bundle_cache,
             config_root
     ):
         """
@@ -832,12 +846,16 @@ class ManagedConfiguration(Configuration):
         :param namespace: name space string, typically one short word,
                           e.g. 'maya', 'rv', 'desktop'.
         :param bundle_cache_fallback_paths: List of additional paths where apps are cached.
+        :param use_global_bundle_cache: True if global bundle cache should be used
+                                        with this configuration, False if bundles are cached
+                                        relative to core, e.g. inside the configuration itself.
         :param config_root: Root path where the installed configuration should be located
                             This is the same path that is being referenced by absolute paths
                             in a pipeline configuration. Note that the configuration itself
                             is installed inside a CONFIG_ROOT/config folder.
         """
         self._config_root = config_root
+        self._use_global_bundle_cache = use_global_bundle_cache
         super(ManagedConfiguration, self).__init__(
             sg,
             descriptor,
@@ -857,8 +875,8 @@ class ManagedConfiguration(Configuration):
         # let the base class fill in all the basic stuff for us
         content = super(ManagedConfiguration, self)._get_pipeline_config_file_content()
 
-        # for managed configs, the bundle cache is not used.
-        content["use_global_bundle_cache"] = False
+        # for managed configs, the bundle cache may or may not be usedqq
+        content["use_global_bundle_cache"] = self._use_global_bundle_cache
 
         return content
 
@@ -891,12 +909,12 @@ class ManagedConfiguration(Configuration):
         # we are always up to date with ourselves.
         return
 
-    def install_external_configuration(
-            self,
-            source_descriptor,
-            win_python=None,
-            mac_python=None,
-            linux_python=None
+    def install_managed_configuration(
+        self,
+        source_descriptor,
+        win_python=None,
+        mac_python=None,
+        linux_python=None
     ):
         """
         Installs the configuration described by the source descriptor.

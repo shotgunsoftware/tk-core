@@ -123,6 +123,16 @@ class Descriptor(object):
         """
         return self._io_descriptor.get_location()
 
+    def get_uri(self):
+        """
+        Returns the location uri associated with this descriptor
+        The uri is a string based representation that is equivalent to the
+        location dictionary returned by the get_location() method.
+
+        :returns: Uri string that can be used to construct the descriptor
+        """
+        return self._io_descriptor.get_uri()
+
     def copy(self, target_folder):
         """
         Copy the config descriptor into the specified target location
