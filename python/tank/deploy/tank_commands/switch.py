@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from ...errors import TankError
+from ...platform import constants
 from . import console_utils
 from .action_base import Action
 from ..descriptor import AppDescriptor 
@@ -89,19 +90,19 @@ class SwitchAppAction(Action):
             log.info("")
             log.info("For a list of environments, engines and apps, run the app_info command.")
             log.info("")            
-            log.info("If you add a --preserve-yaml flag, existing comments and "
-                     "structure will be preserved as the yaml files are updated. "
-                     "This is an experimental setting and therefore disabled by default.")
+            log.info("If you add a --use-pyyaml flag, the original, non-structure-preserving "
+                     "yaml parser will be used. This parser was used by default in core v0.17 "
+                     "and below.")
             log.info("")
             return
 
-        # look for an --preserve-yaml flag
-        if "--preserve-yaml" in args:
-            preserve_yaml = True
-            args.remove("--preserve-yaml")
-            log.info("Note: Using yaml parser which preserves structure and comments.")
+        # look for an --use-pyyaml flag
+        if constants.LEGACY_YAML_PARSER_FLAG in args:
+            preserve_yaml = False
+            args.remove(constants.LEGACY_YAML_PARSER_FLAG)
+            log.info("Note: Falling back on pre-0.18 legacy yaml parser.")
         else:
-            preserve_yaml = False        
+            preserve_yaml = True
 
         # get parameters
         env_name = args[0]

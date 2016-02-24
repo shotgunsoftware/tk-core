@@ -16,6 +16,7 @@ from ..descriptor import AppDescriptor
 from ..descriptor import get_from_location
 from ..app_store_descriptor import TankAppStoreDescriptor 
 
+from ...platform import constants
 
 class InstallAppAction(Action):
     """
@@ -84,12 +85,13 @@ class InstallAppAction(Action):
         :param args: command line args
         """
 
-        if "--preserve-yaml" in args:
-            preserve_yaml = True
-            args.remove("--preserve-yaml")
-            log.info("Note: Using yaml parser which preserves structure and comments.")
+        # look for an --use-pyyaml flag
+        if constants.LEGACY_YAML_PARSER_FLAG in args:
+            preserve_yaml = False
+            args.remove(constants.LEGACY_YAML_PARSER_FLAG)
+            log.info("Note: Falling back on pre-0.18 legacy yaml parser.")
         else:
-            preserve_yaml = False        
+            preserve_yaml = True
 
         if len(args) != 3:
             
@@ -165,9 +167,9 @@ class InstallAppAction(Action):
             log.info("Comment and structure preserving mode")
             log.info("-------------------------------------")
             log.info("")
-            log.info("If you add a --preserve-yaml flag, existing comments and "
-                     "structure will be preserved as the yaml files are updated. "
-                     "This is an experimental setting and therefore disabled by default.")
+            log.info("If you add a --use-pyyaml flag, the original, non-structure-preserving "
+                     "yaml parser will be used. This parser was used by default in core v0.17 "
+                     "and below.")
             log.info("")
             log.info("")
             log.info("Handy tip: For a list of existing environments, engines and apps, "
@@ -358,12 +360,13 @@ class InstallEngineAction(Action):
         :param args: command line args
         """
 
-        if "--preserve-yaml" in args:
-            preserve_yaml = True
-            args.remove("--preserve-yaml")
-            log.info("Note: Using yaml parser which preserves structure and comments.")
+        # look for an --use-pyyaml flag
+        if constants.LEGACY_YAML_PARSER_FLAG in args:
+            preserve_yaml = False
+            args.remove(constants.LEGACY_YAML_PARSER_FLAG)
+            log.info("Note: Falling back on pre-0.18 legacy yaml parser.")
         else:
-            preserve_yaml = False        
+            preserve_yaml = True
 
         if len(args) != 2:
             
@@ -430,9 +433,9 @@ class InstallEngineAction(Action):
             log.info("Comment and structure preserving mode")
             log.info("-------------------------------------")
             log.info("")
-            log.info("If you add a --preserve-yaml flag, existing comments and "
-                     "structure will be preserved as the yaml files are updated. "
-                     "This is an experimental setting and therefore disabled by default.")            
+            log.info("If you add a --use-pyyaml flag, the original, non-structure-preserving "
+                     "yaml parser will be used. This parser was used by default in core v0.17 "
+                     "and below.")
             log.info("")
             log.info("")
             log.info("Handy tip: For a list of existing environments, engines and apps, "

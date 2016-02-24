@@ -11,6 +11,7 @@
 from .action_base import Action
 from . import console_utils
 from ...platform.environment import WritableEnvironment
+from ...platform import constants
 import os
 
 
@@ -109,16 +110,16 @@ class AppUpdatesAction(Action):
             log.info("General syntax:")
             log.info("---------------")
             log.info("")
-            log.info("> tank updates [environment_name] [engine_name] [app_name] [--preserve-yaml] [--external='/path/to/config']")
+            log.info("> tank updates [environment_name] [engine_name] [app_name] [--use-pyyaml] [--external='/path/to/config']")
             log.info("")
             log.info("- The special keyword ALL can be used to denote all items in a category.")
             log.info("")
             log.info("- If you want to update an external configuration instead of the current project, "
                      "pass in a path via the --external flag.")
             log.info("")
-            log.info("- If you add a --preserve-yaml flag, existing comments and "
-                     "structure will be preserved as the yaml files are updated. "
-                     "This is an experimental setting and therefore disabled by default.")
+            log.info("If you add a --use-pyyaml flag, the original, non-structure-preserving "
+                     "yaml parser will be used. This parser was used by default in core v0.17 "
+                     "and below.")
             log.info("")
             log.info("")
             log.info("")
@@ -170,14 +171,13 @@ class AppUpdatesAction(Action):
                     log.error("You need to specify a path to a toolkit configuration!")
                     return        
 
-        # look for an --preserve-yaml flag
-        if "--preserve-yaml" in args:
-            preserve_yaml = True
-            args.remove("--preserve-yaml")
-            log.info("Note: Using yaml parser which preserves structure and comments.")
+        # look for an --use-pyyaml flag
+        if constants.LEGACY_YAML_PARSER_FLAG in args:
+            preserve_yaml = False
+            args.remove(constants.LEGACY_YAML_PARSER_FLAG)
+            log.info("Note: Falling back on pre-0.18 legacy yaml parser.")
         else:
-            preserve_yaml = False        
-        
+            preserve_yaml = True
 
         if len(args) > 0:
             env_filter = args[0]
