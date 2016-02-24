@@ -339,6 +339,10 @@ class ToolkitManager(object):
 
         # write uri
         self._report_progress("Updating Pipeline Configuration...")
+
+
+
+
         uri = "sgtk:shotgun:%s:%s:%s:p%d:v%d" % (
             constants.PIPELINE_CONFIGURATION_ENTITY,
             constants.SHOTGUN_PIPELINECONFIG_ATTACHMENT_FIELD,
