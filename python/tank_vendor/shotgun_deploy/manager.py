@@ -302,6 +302,10 @@ class ToolkitManager(object):
 
         :param project_id: Project to upload config to.
         """
+
+        # @todo - this method assumes non-official fields on pipelineconfiguration
+        # so requires further discussion prior to release.
+
         log.debug("Begin uploading config to sgtk.")
 
         # first resolve the config we are going to upload
