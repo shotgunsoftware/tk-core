@@ -163,13 +163,16 @@ class IODescriptorShotgunEntity(IODescriptorBase):
             optional=["project_id"]
         )
 
-        return "sgtk:shotgun:%s:%s:%s:%s:%s" % (
+        uri = [
+            "shotgun",
             location_dict["entity_type"],
             location_dict["field"],
             location_dict["name"],
             "p%s" % (location_dict.get("project_id") or ""),
             "v%s" % location_dict["version"]
-        )
+        ]
+
+        return cls._make_uri_from_chunks(uri)
 
     def get_system_name(self):
         """

@@ -93,10 +93,13 @@ class IODescriptorManual(IODescriptorBase):
             optional=[]
         )
 
-        return "sgtk:manual:%s:%s" % (
+        uri = [
+            "manual",
             location_dict["name"],
             location_dict["version"]
-        )
+        ]
+
+        return cls._make_uri_from_chunks(uri)
 
     def get_system_name(self):
         """

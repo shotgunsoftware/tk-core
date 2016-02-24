@@ -185,8 +185,8 @@ class IODescriptorBase(object):
                  in the item_keys parameter matched up by items in the
                  uri string.
         """
-        chunks = uri.split(":")
-        if chunks[0] != "sgtk" or len(chunks) < 3:
+        chunks = uri.split(constants.LOCATOR_URI_SEPARATOR)
+        if chunks[0] != constants.LOCATOR_URI_PREFIX or len(chunks) < 3:
             raise ShotgunDeployError(
                 "Invalid uri '%s' - must begin with 'sgtk:TYPE:...'" % uri
             )
@@ -220,6 +220,26 @@ class IODescriptorBase(object):
                 location_dict[item_key] = value
 
         return location_dict
+
+    @classmethod
+    def _make_uri_from_chunks(cls, chunks):
+        """
+        Given a list of chunks, compose a safe location uri.
+
+        ['foo', 'bar:baz'] --> 'sgtk:foo:bar%3Abaz'
+
+        :param chunks: list of strings
+        :return: location uri
+        """
+        # add sgtk prefix
+        prefixed_chunks = [constants.LOCATOR_URI_PREFIX] + chunks
+
+        # shorthand for constants
+        uri_sep = constants.LOCATOR_URI_SEPARATOR
+        uri_safe_sep = constants.ESCAPED_LOCATOR_URI_SEPARATOR
+
+        # replace all ':' inside tokens with '%3A' then join:together:by:colon
+        return uri_sep.join([x.replace(uri_sep, uri_safe_sep) for x in prefixed_chunks])
 
 
     def _find_latest_tag_by_pattern(self, version_numbers, pattern):

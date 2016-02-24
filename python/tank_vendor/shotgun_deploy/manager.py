@@ -22,6 +22,7 @@ from ..shotgun_base import ensure_folder_exists
 from .errors import ShotgunDeployError
 from .configuration import Configuration, create_managed_configuration
 from .resolver import BasicConfigurationResolver
+from .descriptor_io import location_dict_to_uri
 
 log = util.get_shotgun_deploy_logger()
 
@@ -340,16 +341,17 @@ class ToolkitManager(object):
         # write uri
         self._report_progress("Updating Pipeline Configuration...")
 
+        location = {
+            "type": "shotgun",
+            "entity_type": constants.PIPELINE_CONFIGURATION_ENTITY,
+            "name": self._pipeline_configuration_name,
+            "field": constants.SHOTGUN_PIPELINECONFIG_ATTACHMENT_FIELD,
+            "project_id": project_id,
+            "version": attachment_id
+        }
 
+        uri = location_dict_to_uri(location)
 
-
-        uri = "sgtk:shotgun:%s:%s:%s:p%d:v%d" % (
-            constants.PIPELINE_CONFIGURATION_ENTITY,
-            constants.SHOTGUN_PIPELINECONFIG_ATTACHMENT_FIELD,
-            self._pipeline_configuration_name,
-            project_id,
-            attachment_id
-        )
         log.debug("Updating pipeline config with new uri %s" % uri)
         self._sg_connection.update(
             constants.PIPELINE_CONFIGURATION_ENTITY,

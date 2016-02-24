@@ -178,11 +178,14 @@ class IODescriptorGitBranch(IODescriptorBase):
             optional=[]
         )
 
-        return "sgtk:git_branch:%s:%s:%s" % (
+        uri = [
+            "git_branch",
             location_dict["path"],
             location_dict["branch"],
             location_dict["version"]
-        )
+        ]
+
+        return cls._make_uri_from_chunks(uri)
 
     def get_system_name(self):
         """

@@ -174,19 +174,23 @@ class IODescriptorPath(IODescriptorBase):
         if "path" in location_dict:
             # single path style locator takes precedence so as soon as we
             # have a path key, generate the 'path' descriptor rather than a path3.
-            return "sgtk:path:%s:%s" % (
+            uri = [
+                "path",
                 location_dict.get("name") or "",
-                location_dict.get("path")
-            )
+                location_dict["path"]
+            ]
 
         else:
             # this is a path3 type URI with paths for windows, linux, mac
-            return "sgtk:path3:%s:%s:%s:%s" % (
+            uri = [
+                "path3",
                 location_dict.get("name") or "",
                 location_dict.get("windows_path") or "",
                 location_dict.get("linux_path") or "",
                 location_dict.get("mac_path") or "",
-            )
+            ]
+
+        return cls._make_uri_from_chunks(uri)
 
     def get_system_name(self):
         """

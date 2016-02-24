@@ -19,6 +19,7 @@ from ..errors import ShotgunDeployError
 from ...shotgun_base import ensure_folder_exists, safe_delete_file
 
 from .. import util
+
 log = util.get_shotgun_deploy_logger()
 
 class IODescriptorGit(IODescriptorBase):
@@ -235,10 +236,10 @@ class IODescriptorGit(IODescriptorBase):
             optional=[]
         )
 
-        return "sgtk:git:%s:%s" % (
-            location_dict["path"],
-            location_dict["version"]
-        )
+        uri = ["git", location_dict["path"], location_dict["version"]]
+
+        return cls._make_uri_from_chunks(uri)
+
 
     def get_system_name(self):
         """

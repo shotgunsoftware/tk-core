@@ -93,8 +93,8 @@ def location_uri_to_dict(location_uri):
     from .git_branch import IODescriptorGitBranch
     from .manual import IODescriptorManual
 
-    chunks = location_uri.split(":")
-    if chunks[0] != "sgtk" or len(chunks) < 3:
+    chunks = location_uri.split(constants.LOCATOR_URI_SEPARATOR)
+    if chunks[0] != constants.LOCATOR_URI_PREFIX or len(chunks) < 3:
         raise ShotgunDeployError("Invalid uri %s" % location_uri)
     descriptor_type = urllib.unquote(chunks[1])
 
@@ -121,8 +121,6 @@ def location_uri_to_dict(location_uri):
 
     else:
         raise ShotgunDeployError("Unknown location type for '%s'" % location_uri)
-
-    return location_dict
 
 
 
@@ -169,5 +167,4 @@ def location_dict_to_uri(location_dict):
     else:
         raise ShotgunDeployError("Unknown location type for '%s'" % location_dict)
 
-    return location_dict
 
