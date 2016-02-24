@@ -11,6 +11,7 @@
 import os
 import re
 import sys
+import urllib
 
 from .. import util
 from .. import constants
@@ -121,9 +122,10 @@ class IODescriptorBase(object):
         Low level representation
         """
         class_name = self.__class__.__name__
-        return "<%s %s %s>" % (class_name, self.get_system_name(), self.get_version())
+        return "<%s %s>" % (class_name, self.get_uri())
 
-    def _validate_locator(self, location, required, optional):
+    @classmethod
+    def _validate_locator(cls, location, required, optional):
         """
         Validate that the locator dictionary has got the necessary keys.
 
@@ -150,6 +152,75 @@ class IODescriptorBase(object):
                 "Found unsupported parameters %s in %s. "
                 "These will be ignored." % (location_keys_set.difference(all_keys), location)
             )
+
+    @classmethod
+    def _explode_uri(cls, uri, expected_type, item_keys):
+        """
+        Convert a uri string into a location dictionary.
+
+        Example:
+
+        - uri:       sgtk:app_store:hello:v123
+        - type:      app_store
+        - item_keys: ['name', 'version']
+
+        - returns:   {'type': 'app_store',
+                      'name': 'hello',
+                      'version': 'v123'}
+
+        Values that are omitted in the uri are not included as keys in the dict:
+
+        - uri:       sgtk:app_store:foo::bar
+        - type:      app_store
+        - item_keys: ['field1', 'field2', 'field3']
+
+        - returns:   {'type': 'app_store',
+                      'field1': 'foo',
+                      'field3': 'bar'}
+
+        :param uri: uri string
+        :param expected_type: expected locator type string
+        :param item_keys: list of keys to extract from the string
+        :return: dictionary with keys type and all keys specified
+                 in the item_keys parameter matched up by items in the
+                 uri string.
+        """
+        chunks = uri.split(":")
+        if chunks[0] != "sgtk" or len(chunks) < 3:
+            raise ShotgunDeployError(
+                "Invalid uri '%s' - must begin with 'sgtk:TYPE:...'" % uri
+            )
+
+        # sanity check
+        descriptor_type = urllib.unquote(chunks[1])
+        if descriptor_type != expected_type:
+            raise ShotgunDeployError(
+                "Invalid uri '%s' - unexpected type '%s', "
+                "was expecting '%s'" % (uri, descriptor_type, expected_type)
+            )
+
+        location_dict = {}
+        location_dict["type"] = descriptor_type
+
+        # now pop remaining keys into a dict and key by item_keys
+        #
+        # uri:       sgtk:app_store:hello:v123
+        # item_keys: ['name', 'version']
+        # ---->      {'type': 'app_store', 'name': 'hello', 'version': 'v123'}
+        remaining_chunks = chunks[2:]
+        for (idx, item_key) in enumerate(item_keys):
+
+            if idx >= len(remaining_chunks):
+                # not enough tokens
+                raise ShotgunDeployError("Uri '%s' looks incomplete!" % uri)
+
+            value = urllib.unquote(remaining_chunks[idx])
+            if value != "":
+                # don't create dict entries for empty values
+                location_dict[item_key] = value
+
+        return location_dict
+
 
     def _find_latest_tag_by_pattern(self, version_numbers, pattern):
         """
@@ -319,6 +390,14 @@ class IODescriptorBase(object):
         """
         return self._location_dict
 
+    def get_uri(self):
+        """
+        Return the string based uri representation of this object
+
+        :return: Uri string
+        """
+        return self.uri_from_dict(self._location_dict)
+
     def get_deprecation_status(self):
         """
         Returns information about deprecation.
@@ -388,6 +467,26 @@ class IODescriptorBase(object):
         continuing with alternative locations where it may reside
 
         :return: List of path strings
+        """
+        raise NotImplementedError
+
+    @classmethod
+    def dict_from_uri(cls, uri):
+        """
+        Given a location uri, return a location dict
+
+        :param uri: Location uri string
+        :return: Location dictionary
+        """
+        raise NotImplementedError
+
+    @classmethod
+    def uri_from_dict(cls, location_dict):
+        """
+        Given a location dictionary, return a location uri
+
+        :param location_dict: Location dictionary
+        :return: Location uri string
         """
         raise NotImplementedError
 

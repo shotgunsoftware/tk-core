@@ -198,6 +198,48 @@ class IODescriptorGit(IODescriptorBase):
         desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
         return desc
 
+    @classmethod
+    def dict_from_uri(cls, uri):
+        """
+        Given a location uri, return a location dict
+
+        :param uri: Location uri string
+        :return: Location dictionary
+        """
+        # sgtk:git:git/path:v12.3.4
+
+        # explode into dictionary
+        location_dict = cls._explode_uri(uri, "git", ["path", "version"])
+
+        # validate it
+        cls._validate_locator(
+            location_dict,
+            required=["type", "path", "version"],
+            optional=[]
+        )
+        return location_dict
+
+    @classmethod
+    def uri_from_dict(cls, location_dict):
+        """
+        Given a location dictionary, return a location uri
+
+        :param location_dict: Location dictionary
+        :return: Location uri string
+        """
+        # sgtk:git:git/path:v12.3.4
+
+        cls._validate_locator(
+            location_dict,
+            required=["type", "path", "version"],
+            optional=[]
+        )
+
+        return "sgtk:git:%s:%s" % (
+            location_dict["path"],
+            location_dict["version"]
+        )
+
     def get_system_name(self):
         """
         Returns a short name, suitable for use in configuration files

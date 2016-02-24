@@ -85,100 +85,42 @@ def _uri_to_dict(location_uri):
     :param location_uri: location string uri
     :returns: location dictionary
     """
+    from .appstore import IODescriptorAppStore
+    from .dev import IODescriptorDev
+    from .path import IODescriptorPath
+    from .shotgun_entity import IODescriptorShotgunEntity
+    from .git import IODescriptorGit
+    from .git_branch import IODescriptorGitBranch
+    from .manual import IODescriptorManual
+
     chunks = location_uri.split(":")
     if chunks[0] != "sgtk" or len(chunks) < 3:
         raise ShotgunDeployError("Invalid uri %s" % location_uri)
     descriptor_type = urllib.unquote(chunks[1])
 
-    location_dict = {}
-    location_dict["type"] = descriptor_type
-
     if descriptor_type == "app_store":
-        # sgtk:app_store:tk-core:v12.3.4
-        location_dict["name"] = urllib.unquote(chunks[2])
-        location_dict["version"] = urllib.unquote(chunks[3])
+        return IODescriptorAppStore.dict_from_uri(location_uri)
 
     elif descriptor_type == "shotgun":
-        # sgtk:shotgun:PipelineConfiguration:sg_config:primary:p123:v456 # with project id
-        # sgtk:shotgun:PipelineConfiguration:sg_config:primary::v456     # without project id
-        location_dict["entity_type"] = urllib.unquote(chunks[2])
-        location_dict["field"] = urllib.unquote(chunks[3])
-        location_dict["name"] = urllib.unquote(chunks[4])
-
-        if chunks[5].startswith("p"):
-            project_str = urllib.unquote(chunks[5])
-            location_dict["project_id"] = int(project_str[1:])
-
-        version_str = urllib.unquote(chunks[6])
-        location_dict["version"] = int(version_str[1:])
+        return IODescriptorShotgunEntity.dict_from_uri(location_uri)
 
     elif descriptor_type == "manual":
-        # sgtk:manual:tk-core:v12.3.4
-        location_dict["name"] = urllib.unquote(chunks[2])
-        location_dict["version"] = urllib.unquote(chunks[3])
+        return IODescriptorManual.dict_from_uri(location_uri)
 
     elif descriptor_type == "git":
-        # sgtk:git:git/path:v12.3.4
-        location_dict["path"] = urllib.unquote(chunks[2])
-        location_dict["version"] = urllib.unquote(chunks[3])
+        return IODescriptorGit.dict_from_uri(location_uri)
 
     elif descriptor_type == "git_branch":
-        # sgtk:git_branch:git/path:branchname:commithash
-        location_dict["path"] = urllib.unquote(chunks[2])
-        location_dict["branch"] = urllib.unquote(chunks[3])
-        location_dict["version"] = urllib.unquote(chunks[4])
+        return IODescriptorGitBranch.dict_from_uri(location_uri)
 
     elif descriptor_type == "dev" or descriptor_type == "dev3":
-        # sgtk:dev:[name]:local_path
-        # sgtk:dev3:[name]:win_path:linux_path:mac_path
-        #
-        # Examples:
-        # sgtk:dev:my-app:/tmp/foo/bar
-        # sgtk:dev3::c%3A%0Coo%08ar:/tmp/foo/bar:
-
-        if chunks[2] != "":
-            # there is a name defined
-            location_dict["name"] = urllib.unquote(chunks[2])
-
-        if chunks[1] == "dev":
-            # local path descriptor
-            location_dict["path"] = urllib.unquote(chunks[3])
-        else:
-            # three os format
-            if chunks[3] != "":
-                location_dict["windows_path"] = urllib.unquote(chunks[3])
-            if chunks[4] != "":
-                location_dict["linux_path"] = urllib.unquote(chunks[4])
-            if chunks[5] != "":
-                location_dict["mac_path"] = urllib.unquote(chunks[5])
+        return IODescriptorDev.dict_from_uri(location_uri)
 
     elif descriptor_type == "path" or descriptor_type == "path3":
-        # sgtk:path:[name]:local_path
-        # sgtk:path3:[name]:win_path:linux_path:mac_path
-        #
-        # Examples:
-        # sgtk:path:my-app:/tmp/foo/bar
-        # sgtk:path3::c%3A%0Coo%08ar:/tmp/foo/bar:
-
-        if chunks[2] != "":
-            # there is a name defined
-            location_dict["name"] = urllib.unquote(chunks[2])
-
-        if chunks[1] == "path":
-            # local path descriptor
-            location_dict["path"] = urllib.unquote(chunks[3])
-        else:
-            # three os format
-            if chunks[3] != "":
-                location_dict["windows_path"] = urllib.unquote(chunks[3])
-            if chunks[4] != "":
-                location_dict["linux_path"] = urllib.unquote(chunks[4])
-            if chunks[5] != "":
-                location_dict["mac_path"] = urllib.unquote(chunks[5])
+        return IODescriptorPath.dict_from_uri(location_uri)
 
     else:
         raise ShotgunDeployError("Unknown location type for '%s'" % location_dict)
 
     return location_dict
-
 

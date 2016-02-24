@@ -106,6 +106,71 @@ class IODescriptorShotgunEntity(IODescriptorBase):
             )
         return paths
 
+
+    @classmethod
+    def dict_from_uri(cls, uri):
+        """
+        Given a location uri, return a location dict
+
+        :param uri: Location uri string
+        :return: Location dictionary
+        """
+        # sgtk:shotgun:PipelineConfiguration:sg_config:primary:p123:v456 # with project id
+        # sgtk:shotgun:PipelineConfiguration:sg_config:primary::v456     # without project id
+        #
+        # sgtk:shotgun:EntityType:sg_field_name:shotgun_entity_name:pproject_id:vversion_id
+
+        # explode into dictionary
+        location_dict = cls._explode_uri(
+            uri,
+            "shotgun",
+            ["entity_type", "field", "name", "project_id", "version"]
+        )
+
+        # validate it
+        cls._validate_locator(
+            location_dict,
+            required=["type", "entity_type", "name", "version", "field"],
+            optional=["project_id"]
+        )
+
+        # version and project_id in the uri needs casting to int and
+        # have their prefix stripped
+
+        location_dict["version"] = int(location_dict["version"][1:])
+
+        if "project_id" in location_dict:
+            location_dict["project_id"] = int(location_dict["project_id"][1:])
+
+        return location_dict
+
+    @classmethod
+    def uri_from_dict(cls, location_dict):
+        """
+        Given a location dictionary, return a location uri
+
+        :param location_dict: Location dictionary
+        :return: Location uri string
+        """
+        # sgtk:shotgun:PipelineConfiguration:sg_config:primary:p123:v456 # with project id
+        # sgtk:shotgun:PipelineConfiguration:sg_config:primary::v456     # without project id
+        #
+        # sgtk:shotgun:EntityType:sg_field_name:shotgun_entity_name:pproject_id:vversion_id
+
+        cls._validate_locator(
+            location_dict,
+            required=["type", "entity_type", "name", "version", "field"],
+            optional=["project_id"]
+        )
+
+        return "sgtk:shotgun:%s:%s:%s:%s:%s" % (
+            location_dict["entity_type"],
+            location_dict["field"],
+            location_dict["name"],
+            "p%s" % (location_dict.get("project_id") or ""),
+            "v%s" % location_dict["version"]
+        )
+
     def get_system_name(self):
         """
         Returns a short name, suitable for use in configuration files
@@ -160,10 +225,6 @@ class IODescriptorShotgunEntity(IODescriptorBase):
         # clear temp file
         safe_delete_file(zip_tmp)
 
-
-
-    #############################################################################
-    # searching for other versions
 
     def get_latest_version(self, constraint_pattern=None):
         """

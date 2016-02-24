@@ -55,7 +55,7 @@ class IODescriptorPath(IODescriptorBase):
         self._validate_locator(
             location_dict,
             required=["type"],
-            optional=["name", "version", "linux_path", "mac_path", "path", "windows_path"]
+            optional=["name", "linux_path", "mac_path", "path", "windows_path"]
         )
 
         # platform specific location support
@@ -67,9 +67,11 @@ class IODescriptorPath(IODescriptorBase):
         if "path" in location_dict:
             # first look for 'path' key
             self._path = location_dict["path"]
+            self._multi_os_descriptor = False
         elif platform_key in location_dict:
             # if not defined, look for os specific key
             self._path = location_dict[platform_key]
+            self._multi_os_descriptor = True
         else:
             raise ShotgunDeployError(
                 "Invalid descriptor! Could not find a path or a %s entry in the "
@@ -90,13 +92,6 @@ class IODescriptorPath(IODescriptorBase):
             bn = os.path.basename(self._path)
             self._name, _ = os.path.splitext(bn)
 
-    def __repr__(self):
-        """
-        Low level string representation
-        """
-        class_name = self.__class__.__name__
-        return "<%s %s>" % (class_name, self._path)
-
     def _get_cache_paths(self):
         """
         Get a list of resolved paths, starting with the primary and
@@ -105,6 +100,93 @@ class IODescriptorPath(IODescriptorBase):
         :return: List of path strings
         """
         return [self._path]
+
+    @classmethod
+    def dict_from_uri(cls, uri):
+        """
+        Given a location uri, return a location dict
+
+        :param uri: Location uri string
+        :return: Location dictionary
+        """
+        # sgtk:path:[name]:local_path
+        # sgtk:path3:[name]:win_path:linux_path:mac_path
+        #
+        # Examples:
+        # sgtk:path:my-app:/tmp/foo/bar
+        # sgtk:path3::c%3A%0Coo%08ar:/tmp/foo/bar:
+
+        # explode into dictionary
+        location_dict = None
+        try:
+            location_dict = cls._explode_uri(
+                uri,
+                "path",
+                ["name", "path"]
+            )
+        except ShotgunDeployError:
+            # probably because it's a path3, not a path
+            pass
+
+        try:
+            location_dict = cls._explode_uri(
+                uri,
+                "path3",
+                ["name", "windows_path", "linux_path", "mac_path"]
+            )
+            # force set to 'path', not 'path3'
+            location_dict["type"] = "path"
+        except ShotgunDeployError:
+            pass
+
+        if location_dict is None:
+            raise ShotgunDeployError("Invalid path descriptor uri '%s'" % uri)
+
+        # validate it
+        cls._validate_locator(
+            location_dict,
+            required=["type"],
+            optional=["name", "linux_path", "mac_path", "path", "windows_path"]
+        )
+        return location_dict
+
+    @classmethod
+    def uri_from_dict(cls, location_dict):
+        """
+        Given a location dictionary, return a location uri
+
+        :param location_dict: Location dictionary
+        :return: Location uri string
+        """
+        # sgtk:path:[name]:local_path
+        # sgtk:path3:[name]:win_path:linux_path:mac_path
+        #
+        # Examples:
+        # sgtk:path:my-app:/tmp/foo/bar
+        # sgtk:path3::c%3A%0Coo%08ar:/tmp/foo/bar:
+
+        cls._validate_locator(
+            location_dict,
+            required=["type"],
+            optional=["name", "linux_path", "mac_path", "path", "windows_path"]
+        )
+
+        if "path" in location_dict:
+            # single path style locator takes precedence so as soon as we
+            # have a path key, generate the 'path' descriptor rather than a path3.
+            return "sgtk:path:%s:%s" % (
+                location_dict.get("name") or "",
+                location_dict.get("path")
+            )
+
+        else:
+            # this is a path3 type URI with paths for windows, linux, mac
+            return "sgtk:path3:%s:%s:%s:%s" % (
+                location_dict.get("name") or "",
+                location_dict.get("windows_path") or "",
+                location_dict.get("linux_path") or "",
+                location_dict.get("mac_path") or "",
+            )
 
     def get_system_name(self):
         """
