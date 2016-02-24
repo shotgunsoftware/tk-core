@@ -13,6 +13,7 @@ import sys
 from . import util
 from . import Descriptor, create_descriptor
 from . import constants
+from .errors import ShotgunDeployError
 
 from .configuration import create_managed_configuration, create_unmanaged_configuration
 
@@ -149,6 +150,12 @@ class BasicConfigurationResolver(ConfigurationResolver):
                 )
 
         # fall back on base
+        if base_config_location is None:
+            raise ShotgunDeployError(
+                "No base configuration specified and no pipeline "
+                "configuration exists in Shotgun for the given project. "
+                "Cannot create a configuration object.")
+
         return self._create_base_configuration(
             project_id,
             base_config_location,
