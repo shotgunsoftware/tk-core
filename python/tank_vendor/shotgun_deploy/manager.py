@@ -55,15 +55,27 @@ class ToolkitManager(object):
         repr += " Base %s >" % self._base_config_location
         return repr
 
-    def set_bundle_cache_root(self, path):
+    def set_bundle_cache_search_path(self, paths):
         """
-        Specify where the toolkit manager should tell new projects
-        and items to go and cache any associated content.
+        Specify a list of fallback paths where toolkit will go
+        look for cached bundles in case a bundle isn't found in
+        the primary app cache.
 
-        :param path: Path on disk for cache
+        This is useful if you want to distribute a pre-baked
+        package, containing all the app version that a user needs.
+        This avoids downloading anything from the app store or other
+        sources.
+
+        Any missing bundles will be downloaded and cached into
+        the primary bundle cache. For unmanaged projeccts, this is
+        typically a folder on the local machine.
+
+        :param paths: List of paths
         """
-        # @todo - change API method but need to change RV plugin for this.
-        self._bundle_cache_fallback_paths = [path]
+        # @todo - maybe here we can add support for environment variables in the
+        #         future so that studios can easily add their own 'primed cache'
+        #         locations for performance or to save space.
+        self._bundle_cache_fallback_paths = paths
 
     def set_namespace(self, namespace):
         """
@@ -143,7 +155,10 @@ class ToolkitManager(object):
         # separate file.
         self._report_progress("Resolving configuration...")
 
-        resolver = BasicConfigurationResolver(self._sg_connection, self._bundle_cache_fallback_paths)
+        resolver = BasicConfigurationResolver(
+            self._sg_connection,
+            self._bundle_cache_fallback_paths
+        )
 
         # now request a configuration object from the resolver.
         # this object represents a configuration that may or may not
@@ -259,6 +274,25 @@ class ToolkitManager(object):
         :param project_id: Project to retrieve configuration uri for.
         :return: toolkit config locator uri string
         """
+        resolver = BasicConfigurationResolver(
+            self._sg_connection,
+            self._bundle_cache_fallback_paths
+        )
+
+        # now request a configuration object from the resolver.
+        # this object represents a configuration that may or may not
+        # exist on disk. We can use the config object to check if the
+        # object needs installation, updating etc.
+        config = resolver.resolve_configuration(
+            project_id,
+            self._pipeline_configuration_name,
+            self._namespace,
+            self._base_config_location
+        )
+
+        # return the uri associated with this configuration
+        return config.get_descriptor().get_uri()
+
 
     def upload_configuration(self, project_id):
         """
