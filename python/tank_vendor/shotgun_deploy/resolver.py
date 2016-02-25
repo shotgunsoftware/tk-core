@@ -20,6 +20,7 @@ from . import util
 from . import Descriptor, create_descriptor
 from . import constants
 from .errors import ShotgunDeployError
+from .. import shotgun_api3
 
 from .configuration import create_managed_configuration, create_unmanaged_configuration
 
@@ -288,30 +289,37 @@ class BasicConfigurationResolver(ConfigurationResolver):
         # based on decreasing ids, the last entry is still the one with the lowest
         # id.
 
-        pcs = self._sg_connection.find(
-            "PipelineConfiguration",
-            [{
-                "filter_operator": "any",
-                "filters": [
-                    ["project", "is", None],
-                    {
-                        "filter_operator": "all",
-                        "filters": [
-                            ["project.Project.name", "is", "Template Project"],
-                            ["project.Project.layout_project", "is", None]
-                        ]
-                    }
+        try:
+            pcs = self._sg_connection.find(
+                "PipelineConfiguration",
+                [{
+                    "filter_operator": "any",
+                    "filters": [
+                        ["project", "is", None],
+                        {
+                            "filter_operator": "all",
+                            "filters": [
+                                ["project.Project.name", "is", "Template Project"],
+                                ["project.Project.layout_project", "is", None]
+                            ]
+                        }
+                    ]
+                }],
+                fields=fields,
+                order=[
+                    # Sorting on the project id doesn't actually matter. We want
+                    # some sorting simply because this will force grouping between
+                    # configurations with a project and those that don't.
+                    {'field_name':'project.Project.id','direction':'asc'},
+                    {'field_name':'id','direction':'desc'}
                 ]
-            }],
-            fields=fields,
-            order=[
-                # Sorting on the project id doesn't actually matter. We want
-                # some sorting simply because this will force grouping between
-                # configurations with a project and those that don't.
-                {'field_name':'project.Project.id','direction':'asc'},
-                {'field_name':'id','direction':'desc'}
-            ]
         )
+        except shotgun_api3.shotgun.Fault:
+            # In case where Toolkit is not enabled for a site, the
+            # 'PipelineConfiguration' entity will not exist, and this exception
+            # will be raised. Continue as if no entities were returned
+            pcs = []
+
 
         if len(pcs) == 0:
             log.debug("No legacy site pipeline configuration found.")
