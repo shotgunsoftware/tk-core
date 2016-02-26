@@ -148,7 +148,7 @@ class MetricsDispatcher(object):
             return
 
         # if metrics are not supported, then no reason to process the queue
-        if not self._metrics_supported(self._engine.tank.shotgun):
+        if not self._metrics_supported(self._engine.tank):
             self._engine.log_debug(
                 "Metrics not supported for this version of Shotgun.")
             return
@@ -180,16 +180,22 @@ class MetricsDispatcher(object):
         """A list of workers threads dispatching metrics from the queue."""
         return self._workers
 
-    def _metrics_supported(self, sg_connection):
+    def _metrics_supported(self, tk):
         """Returns True if server supports the metrics api endpoint."""
 
         if not hasattr(self, '_metrics_ok'):
 
-            self._metrics_ok = (
-                hasattr(sg_connection, 'server_caps') and
-                sg_connection.server_caps.version and
-                sg_connection.server_caps.version >= (6, 3, 11)
-            )
+            # local import avoids circular dependency errors
+            from tank.api import get_authenticated_user
+            if not get_authenticated_user():
+                self._metrics_ok = False
+            else:
+                sg_connection = tk.shotgun
+                self._metrics_ok = (
+                    hasattr(sg_connection, 'server_caps') and
+                    sg_connection.server_caps.version and
+                    sg_connection.server_caps.version >= (6, 3, 11)
+                )
 
         return self._metrics_ok
 
