@@ -12,31 +12,31 @@
 APP_STORE_QA_MODE_ENV_VAR = "TANK_QA_ENABLED"
 
 # app store: the entity that represents the core api
-TANK_CORE_VERSION_ENTITY = "CustomNonProjectEntity01"
+TANK_CORE_VERSION_ENTITY_TYPE = "CustomNonProjectEntity01"
 
 # app store: the entity representing apps
-TANK_APP_ENTITY = "CustomNonProjectEntity02"
+TANK_APP_ENTITY_TYPE = "CustomNonProjectEntity02"
 
 # app store: the entity representing app versions
-TANK_APP_VERSION_ENTITY = "CustomNonProjectEntity05"
+TANK_APP_VERSION_ENTITY_TYPE = "CustomNonProjectEntity05"
 
 # app store: the entity representing engines
-TANK_ENGINE_ENTITY = "CustomNonProjectEntity03"
+TANK_ENGINE_ENTITY_TYPE = "CustomNonProjectEntity03"
 
 # app store: the entity representing engine versions
-TANK_ENGINE_VERSION_ENTITY = "CustomNonProjectEntity04"
+TANK_ENGINE_VERSION_ENTITY_TYPE = "CustomNonProjectEntity04"
 
 # app store: the entity representing frameworks
-TANK_FRAMEWORK_ENTITY = "CustomNonProjectEntity13"
+TANK_FRAMEWORK_ENTITY_TYPE = "CustomNonProjectEntity13"
 
 # app store: the entity representing framework versions
-TANK_FRAMEWORK_VERSION_ENTITY = "CustomNonProjectEntity09"
+TANK_FRAMEWORK_VERSION_ENTITY_TYPE = "CustomNonProjectEntity09"
 
 # app store: the entity representing configs
-TANK_CONFIG_ENTITY = "CustomNonProjectEntity07"
+TANK_CONFIG_ENTITY_TYPE = "CustomNonProjectEntity07"
 
 # app store: the entity representing config versions
-TANK_CONFIG_VERSION_ENTITY = "CustomNonProjectEntity08"
+TANK_CONFIG_VERSION_ENTITY_TYPE = "CustomNonProjectEntity08"
 
 # app store: the field containing the zip payload
 TANK_CODE_PAYLOAD_FIELD = "sg_payload"
@@ -45,7 +45,7 @@ TANK_CODE_PAYLOAD_FIELD = "sg_payload"
 TANK_APP_STORE_DUMMY_PROJECT = {"type": "Project", "id": 64}
 
 # Shotgun: The entity that represents Pipeline Configurations in Shotgun
-PIPELINE_CONFIGURATION_ENTITY = "PipelineConfiguration"
+PIPELINE_CONFIGURATION_ENTITY_TYPE = "PipelineConfiguration"
 
 # the location of the toolkit app store
 SGTK_APP_STORE = "https://tank.shotgunstudio.com"
@@ -93,6 +93,11 @@ PRIMARY_PIPELINE_CONFIG_NAME = "Primary"
 # Unmanaged pipeline configs don't have a corresponding
 # record in Shotgun.
 UNMANAGED_PIPELINE_CONFIG_NAME = "Unmanaged"
+
+# The project name for a project with no tank name
+# not having a Project.tank_name is okay as long as
+# the configuration doesn't use templates.
+UNNAMED_PROJECT_NAME = "unnamed"
 
 # descriptor keyword denoting the latest version number
 LATEST_DESCRIPTOR_KEYWORD = "latest"

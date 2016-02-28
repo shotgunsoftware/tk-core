@@ -514,12 +514,12 @@ class Configuration(object):
             log.debug("Checking pipeline config in Shotgun...")
 
             sg_data = self._sg_connection.find_one(
-                constants.PIPELINE_CONFIGURATION_ENTITY,
+                constants.PIPELINE_CONFIGURATION_ENTITY_TYPE,
                 [["id", "is", self._pipeline_config_id]],
                 ["code", "project.Project.tank_name"]
             )
 
-            project_name = sg_data["project.Project.tank_name"] or "Unnamed"
+            project_name = sg_data["project.Project.tank_name"] or constants.UNNAMED_PROJECT_NAME
             pipeline_config_name = sg_data["code"] or constants.UNMANAGED_PIPELINE_CONFIG_NAME
 
         elif self._project_id:
@@ -532,7 +532,7 @@ class Configuration(object):
                 ["tank_name"]
             )
 
-            project_name = sg_data["tank_name"] or "Unnamed"
+            project_name = sg_data["tank_name"] or constants.UNNAMED_PROJECT_NAME
             pipeline_config_name = constants.UNMANAGED_PIPELINE_CONFIG_NAME
 
         else:
@@ -695,7 +695,13 @@ class UnmanagedConfiguration(Configuration):
 
         # first check if there is any config at all
         # probe for shotgun.yml connection params file
-        if not os.path.exists(os.path.join(config_root, "config", "core", "shotgun.yml")):
+        sg_config_file = os.path.join(
+            config_root,
+            "config",
+            "core",
+            constants.CONFIG_SHOTGUN_FILE
+        )
+        if not os.path.exists(sg_config_file):
             return self.LOCAL_CFG_MISSING
 
         # local config exists. See if it is up to date.
@@ -964,7 +970,7 @@ class ManagedConfiguration(Configuration):
         # @todo - in the future, need to add namespace handling here.
         log.debug("Updating pipeline configuration %s with new paths..." % self._pipeline_config_id)
         self._sg_connection.update(
-            constants.PIPELINE_CONFIGURATION_ENTITY,
+            constants.PIPELINE_CONFIGURATION_ENTITY_TYPE,
             self._pipeline_config_id,
             {"linux_path": self.get_path("linux2"),
              "windows_path": self.get_path("win32"),

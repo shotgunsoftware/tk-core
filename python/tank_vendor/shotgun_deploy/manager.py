@@ -335,7 +335,7 @@ class ToolkitManager(object):
 
         self._report_progress("Uploading zip to Shotgun...")
         attachment_id = self._sg_connection.upload(
-            constants.PIPELINE_CONFIGURATION_ENTITY,
+            constants.PIPELINE_CONFIGURATION_ENTITY_TYPE,
             pc_id,
             zip_tmp,
             constants.SHOTGUN_PIPELINECONFIG_ATTACHMENT_FIELD
@@ -347,7 +347,7 @@ class ToolkitManager(object):
 
         location = {
             "type": "shotgun",
-            "entity_type": constants.PIPELINE_CONFIGURATION_ENTITY,
+            "entity_type": constants.PIPELINE_CONFIGURATION_ENTITY_TYPE,
             "name": self._pipeline_configuration_name,
             "field": constants.SHOTGUN_PIPELINECONFIG_ATTACHMENT_FIELD,
             "project_id": project_id,
@@ -358,7 +358,7 @@ class ToolkitManager(object):
 
         log.debug("Updating pipeline config with new uri %s" % uri)
         self._sg_connection.update(
-            constants.PIPELINE_CONFIGURATION_ENTITY,
+            constants.PIPELINE_CONFIGURATION_ENTITY_TYPE,
             pc_id,
             {constants.SHOTGUN_PIPELINECONFIG_URI_FIELD: uri}
         )
@@ -495,7 +495,7 @@ class ToolkitManager(object):
             "named '%s' for project %s" % (self._pipeline_configuration_name, project_id)
         )
         pc_data = self._sg_connection.find_one(
-            constants.PIPELINE_CONFIGURATION_ENTITY,
+            constants.PIPELINE_CONFIGURATION_ENTITY_TYPE,
             [["code", "is", self._pipeline_configuration_name],
              ["project", "is", {"type": "Project", "id": project_id}]],
             ["users"]
@@ -506,7 +506,7 @@ class ToolkitManager(object):
             # pipeline configuration missing. Create a new one
             users = [current_user] if current_user else []
             pc_data = self._sg_connection.create(
-                constants.PIPELINE_CONFIGURATION_ENTITY,
+                constants.PIPELINE_CONFIGURATION_ENTITY_TYPE,
                 {"code": self._pipeline_configuration_name,
                  "project": {"type": "Project", "id": project_id},
                  "users": users
@@ -517,7 +517,7 @@ class ToolkitManager(object):
         elif current_user and current_user["id"] not in [x["id"] for x in pc_data["users"]]:
             log.debug("Adding %s to user access list..." % current_user)
             self._sg_connection.update(
-                constants.PIPELINE_CONFIGURATION_ENTITY,
+                constants.PIPELINE_CONFIGURATION_ENTITY_TYPE,
                 pc_data["id"],
                 {"users": pc_data["users"] + [current_user]}
             )

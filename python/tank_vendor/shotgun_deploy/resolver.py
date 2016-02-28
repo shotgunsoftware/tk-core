@@ -174,7 +174,7 @@ class BasicConfigurationResolver(ConfigurationResolver):
         # find a pipeline configuration in Shotgun.
         log.debug("Checking pipeline configuration in Shotgun...")
         pc_data = self._sg_connection.find_one(
-            constants.PIPELINE_CONFIGURATION_ENTITY,
+            constants.PIPELINE_CONFIGURATION_ENTITY_TYPE,
             [["code", "is", pipeline_config_name],
              ["project", "is", project_entity]],
             ["mac_path",

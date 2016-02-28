@@ -53,19 +53,19 @@ class IODescriptorAppStore(IODescriptorBase):
     (APP, FRAMEWORK, ENGINE, CONFIG, CORE) = range(5)
 
     _APP_STORE_OBJECT = {
-        Descriptor.APP: constants.TANK_APP_ENTITY,
-        Descriptor.FRAMEWORK: constants.TANK_FRAMEWORK_ENTITY,
-        Descriptor.ENGINE: constants.TANK_ENGINE_ENTITY,
-        Descriptor.CONFIG: constants.TANK_CONFIG_ENTITY,
+        Descriptor.APP: constants.TANK_APP_ENTITY_TYPE,
+        Descriptor.FRAMEWORK: constants.TANK_FRAMEWORK_ENTITY_TYPE,
+        Descriptor.ENGINE: constants.TANK_ENGINE_ENTITY_TYPE,
+        Descriptor.CONFIG: constants.TANK_CONFIG_ENTITY_TYPE,
         Descriptor.CORE: None,
     }
 
     _APP_STORE_VERSION = {
-        Descriptor.APP: constants.TANK_APP_VERSION_ENTITY,
-        Descriptor.FRAMEWORK: constants.TANK_FRAMEWORK_VERSION_ENTITY,
-        Descriptor.ENGINE: constants.TANK_ENGINE_VERSION_ENTITY,
-        Descriptor.CONFIG: constants.TANK_CONFIG_VERSION_ENTITY,
-        Descriptor.CORE: constants.TANK_CORE_VERSION_ENTITY,
+        Descriptor.APP: constants.TANK_APP_VERSION_ENTITY_TYPE,
+        Descriptor.FRAMEWORK: constants.TANK_FRAMEWORK_VERSION_ENTITY_TYPE,
+        Descriptor.ENGINE: constants.TANK_ENGINE_VERSION_ENTITY_TYPE,
+        Descriptor.CONFIG: constants.TANK_CONFIG_VERSION_ENTITY_TYPE,
+        Descriptor.CORE: constants.TANK_CORE_VERSION_ENTITY_TYPE,
     }
 
     _APP_STORE_LINK = {
@@ -148,12 +148,12 @@ class IODescriptorAppStore(IODescriptorBase):
         Fetches metadata about the app from the toolkit app store. Writes it to disk.
 
         :param path: Path to write the cache file to.
-        :returns: A dictionary with keys bundle and version, containing
-                  Shotgun metadata.
+        :returns: A dictionary with keys 'sg_bundle_data' and 'sg_version_data',
+                  containing Shotgun metadata.
         """
         # get the appropriate shotgun app store types and fields
-        bundle_entity = self._APP_STORE_OBJECT[self._type]
-        version_entity = self._APP_STORE_VERSION[self._type]
+        bundle_entity_type = self._APP_STORE_OBJECT[self._type]
+        version_entity_type = self._APP_STORE_VERSION[self._type]
         link_field = self._APP_STORE_LINK[self._type]
 
         # connect to the app store
@@ -162,17 +162,17 @@ class IODescriptorAppStore(IODescriptorBase):
         if self._type == self.CORE:
             # special handling of core since it doesn't have a high-level
             # 'bundle' entity
-            bundle = None
-            
-            version = sg.find_one(
-                constants.TANK_CORE_VERSION_ENTITY,
+            sg_bundle_data = None
+
+            sg_version_data = sg.find_one(
+                constants.TANK_CORE_VERSION_ENTITY_TYPE,
                 [["code", "is", self._version]],
                 ["description",
                  "sg_detailed_release_notes",
                  "sg_documentation",
                  constants.TANK_CODE_PAYLOAD_FIELD]
             )
-            if version is None:
+            if sg_version_data is None:
                 raise ShotgunDeployError(
                     "The App store does not have a version '%s' of Core!" % self._version
                 )
@@ -181,33 +181,36 @@ class IODescriptorAppStore(IODescriptorBase):
             # engines, apps etc have a 'bundle level entity' in the app store,
             # e.g. something representing the app or engine.
             # then a version entity representing a particular version
-            bundle = sg.find_one(
-                bundle_entity,
+            sg_bundle_data = sg.find_one(
+                bundle_entity_type,
                 [["sg_system_name", "is", self._name]],
                 ["sg_status_list", "sg_deprecation_message"]
             )
 
-            if bundle is None:
+            if sg_bundle_data is None:
                 raise ShotgunDeployError(
                     "The App store does not contain an item named '%s'!" % self._name
                 )
     
             # now get the version
-            version = sg.find_one(
-                version_entity,
-                [[link_field, "is", bundle], ["code", "is", self._version]],
+            sg_version_data = sg.find_one(
+                version_entity_type,
+                [[link_field, "is", sg_bundle_data], ["code", "is", self._version]],
                 ["description",
                  "sg_detailed_release_notes",
                  "sg_documentation",
                  constants.TANK_CODE_PAYLOAD_FIELD]
             )
-            if version is None:
+            if sg_version_data is None:
                 raise ShotgunDeployError(
                     "The App store does not have a "
                     "version '%s' of item '%s'!" % (self._version, self._name)
                 )
 
-        metadata = {"bundle": bundle, "version": version}
+        metadata = {
+            "sg_bundle_data": sg_bundle_data,
+            "sg_version_data": sg_version_data
+        }
 
         fp = open(path, "wt")
         try:
@@ -301,8 +304,9 @@ class IODescriptorAppStore(IODescriptorBase):
                   if this item is deprecated.
         """
         metadata = self._get_app_store_metadata()
-        if metadata.get("bundle").get("sg_status_list") == "dep":
-            msg = metadata.get("bundle").get("sg_deprecation_message", "No reason given.")
+        sg_bundle_data = metadata.get("sg_bundle_data") or {}
+        if sg_bundle_data.get("sg_status_list") == "dep":
+            msg = sg_bundle_data.get("sg_deprecation_message", "No reason given.")
             return (True, msg)
         else:
             return (False, "")        
@@ -324,8 +328,9 @@ class IODescriptorAppStore(IODescriptorBase):
         url = None
         metadata = self._get_app_store_metadata()
         try:
-            summary = metadata.get("version").get("description")
-            url = metadata.get("version").get("sg_detailed_release_notes").get("url")
+            sg_version_data = metadata.get("sg_version_data") or {}
+            summary = sg_version_data.get("description")
+            url = sg_version_data.get("sg_detailed_release_notes").get("url")
         except Exception:
             pass
         return (summary, url)
@@ -351,7 +356,7 @@ class IODescriptorAppStore(IODescriptorBase):
         metadata = self.__cache_app_store_metadata(metadata_cache_file)
 
         # now get the attachment info
-        version = metadata.get("version")
+        version = metadata.get("sg_version_data")
 
         # attachment field is on the following form in the case a file has been uploaded:
         #  {'name': 'v1.2.3.zip',
@@ -440,16 +445,19 @@ class IODescriptorAppStore(IODescriptorBase):
         # set up some lookup tables so we look in the right table in sg
 
         # find the main entry
-        bundle = sg.find_one(self._APP_STORE_OBJECT[self._type],
-                             [["sg_system_name", "is", self._name]], 
-                             ["id", "sg_status_list"])
-        if bundle is None:
+        sg_bundle_data = sg.find_one(
+            self._APP_STORE_OBJECT[self._type],
+            [["sg_system_name", "is", self._name]],
+            ["id", "sg_status_list"]
+        )
+
+        if sg_bundle_data is None:
             raise ShotgunDeployError("App store does not contain an item named '%s'!" % self._name)
 
         # check if this has been deprecated in the app store
         # in that case we should ensure that the metadata is refreshed later
         is_deprecated = False
-        if bundle["sg_status_list"] == "dep":
+        if sg_bundle_data["sg_status_list"] == "dep":
             is_deprecated = True
 
         # now get all versions
@@ -463,7 +471,11 @@ class IODescriptorAppStore(IODescriptorBase):
         
         link_field = self._APP_STORE_LINK[self._type]
         entity_type = self._APP_STORE_VERSION[self._type]
-        sg_data = sg.find(entity_type, [[link_field, "is", bundle]] + latest_filter, ["code"])
+        sg_data = sg.find(
+            entity_type,
+            [[link_field, "is", sg_bundle_data]] + latest_filter,
+            ["code"]
+        )
 
         if len(sg_data) == 0:
             raise ShotgunDeployError("Cannot find any versions for %s in the App store!" % self._name)
@@ -514,31 +526,38 @@ class IODescriptorAppStore(IODescriptorBase):
             # app/engine/etc.
             
             # find the main entry
-            bundle = sg.find_one(self._APP_STORE_OBJECT[self._type],
-                                 [["sg_system_name", "is", self._name]], 
-                                 ["id", "sg_status_list"])
-            if bundle is None:
+            sg_bundle_data = sg.find_one(
+                self._APP_STORE_OBJECT[self._type],
+                [["sg_system_name", "is", self._name]],
+                ["id", "sg_status_list"]
+            )
+
+            if sg_bundle_data is None:
                 raise ShotgunDeployError("App store does not contain an item named '%s'!" % self._name)
     
             # check if this has been deprecated in the app store
             # in that case we should ensure that the cache is cleared later    
-            if bundle["sg_status_list"] == "dep":
+            if sg_bundle_data["sg_status_list"] == "dep":
                 is_deprecated = True
 
             # now get the version
             link_field = self._APP_STORE_LINK[self._type]
             entity_type = self._APP_STORE_VERSION[self._type]
-            sg_version_data = sg.find_one(entity_type,
-                                          filters = [[link_field, "is", bundle]] + latest_filter,
-                                          fields = ["code"],
-                                          order=[{"field_name": "created_at", "direction": "desc"}])
+            sg_version_data = sg.find_one(
+                entity_type,
+                filters=[[link_field, "is", sg_bundle_data]] + latest_filter,
+                fields=["code"],
+                order=[{"field_name": "created_at", "direction": "desc"}]
+            )
             
         else:
             # core API
-            sg_version_data = sg.find_one(constants.TANK_CORE_VERSION_ENTITY,
-                                          filters = latest_filter,
-                                          fields = ["code"],
-                                          order=[{"field_name": "created_at", "direction": "desc"}])
+            sg_version_data = sg.find_one(
+                constants.TANK_CORE_VERSION_ENTITY_TYPE,
+                filters=latest_filter,
+                fields=["code"],
+                order=[{"field_name": "created_at", "direction": "desc"}]
+            )
         
         if sg_version_data is None:
             raise ShotgunDeployError("Cannot find any versions for %s in the App store!" % self._name)
