@@ -132,10 +132,7 @@ class IODescriptorGitBranch(IODescriptorGit):
         :param uri: Location uri string
         :return: Location dictionary
         """
-        # sgtk:git_branch:git/path:branchname:commithash
-
-        # explode into dictionary
-        location_dict = cls._explode_uri(uri, "git_branch", ["path", "branch", "version"])
+        location_dict = cls._explode_uri(uri, "git_branch")
 
         # validate it
         cls._validate_locator(
@@ -144,31 +141,6 @@ class IODescriptorGitBranch(IODescriptorGit):
             optional=[]
         )
         return location_dict
-
-    @classmethod
-    def uri_from_dict(cls, location_dict):
-        """
-        Given a location dictionary, return a location uri
-
-        :param location_dict: Location dictionary
-        :return: Location uri string
-        """
-        # sgtk:git_branch:git/path:branchname:commithash
-
-        cls._validate_locator(
-            location_dict,
-            required=["type", "path", "branch", "version"],
-            optional=[]
-        )
-
-        uri = [
-            "git_branch",
-            location_dict["path"],
-            location_dict["branch"],
-            location_dict["version"]
-        ]
-
-        return cls._make_uri_from_chunks(uri)
 
     def get_version(self):
         """

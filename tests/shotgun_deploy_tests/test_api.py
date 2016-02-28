@@ -56,11 +56,30 @@ class TestApi(TankTestBase):
                 bundle_root
         )
 
-        self.assertEqual(
-                d.get_path(),
-                os.path.join(
-                        bundle_root, "app_store", "tk-bundle", "v0.1.2"
-                )
-        )
+        # get_path() returns none if path doesn't exists
+        self.assertEqual(d.get_path(), None)
+
+        app_root_path = os.path.join(bundle_root, "app_store", "tk-bundle", "v0.1.2")
+        shotgun_base.ensure_folder_exists(app_root_path)
+        fh = open(os.path.join(app_root_path, "info.yml"), "wt")
+        fh.write("fo")
+        fh.close()
+
+        self.assertEqual(d.get_path(), app_root_path)
 
 
+    def _test_uri(self, uri, dict):
+        computed_dict = shotgun_deploy.io_descriptor.location_uri_to_dict(uri)
+        computed_uri = shotgun_deploy.io_descriptor.location_dict_to_uri(dict)
+        self.assertEqual(uri, computed_uri)
+        self.assertEqual(dict, computed_dict)
+
+    def test_descriptor_uris(self):
+
+        uri = "sgtk:location:app_store?version=v0.1.2&name=tk-bundle"
+        dict = {"type": "app_store", "version": "v0.1.2", "name": "tk-bundle"}
+        self._test_uri(uri, dict)
+
+        uri = "sgtk:location:path?path=/foo/bar"
+        dict = {"type": "path", "path": "/foo/bar"}
+        self._test_uri(uri, dict)

@@ -56,7 +56,7 @@ class ToolkitManager(object):
         repr += " Base %s >" % self._base_config_location
         return repr
 
-    def set_bundle_cache_search_path(self, paths):
+    def set_bundle_cache_fallback_paths(self, paths):
         """
         Specify a list of fallback paths where toolkit will go
         look for cached bundles in case a bundle isn't found in

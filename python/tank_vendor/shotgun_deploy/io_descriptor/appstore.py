@@ -246,51 +246,6 @@ class IODescriptorAppStore(IODescriptorBase):
     ###############################################################################################
     # data accessors
 
-    @classmethod
-    def dict_from_uri(cls, uri):
-        """
-        Given a location uri, return a location dict
-
-        :param uri: Location uri string
-        :return: Location dictionary
-        """
-        # sgtk:app_store:tk-core:v12.3.4
-
-        # explode into dictionary
-        location_dict = cls._explode_uri(uri, "app_store", ["name", "version"])
-
-        # validate it
-        cls._validate_locator(
-            location_dict,
-            required=["type", "name", "version"],
-            optional=[]
-        )
-        return location_dict
-
-    @classmethod
-    def uri_from_dict(cls, location_dict):
-        """
-        Given a location dictionary, return a location uri
-
-        :param location_dict: Location dictionary
-        :return: Location uri string
-        """
-        # sgtk:app_store:tk-core:v12.3.4
-
-        cls._validate_locator(
-            location_dict,
-            required=["type", "name", "version"],
-            optional=[]
-        )
-
-        uri = [
-            "app_store",
-            location_dict["name"],
-            location_dict["version"]
-        ]
-
-        return cls._make_uri_from_chunks(uri)
-
     def get_system_name(self):
         """
         Returns a short name, suitable for use in configuration files

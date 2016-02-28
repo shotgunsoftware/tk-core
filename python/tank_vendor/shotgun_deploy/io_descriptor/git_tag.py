@@ -190,10 +190,7 @@ class IODescriptorGitTag(IODescriptorGit):
         :param uri: Location uri string
         :return: Location dictionary
         """
-        # sgtk:git:git/path:v12.3.4
-
-        # explode into dictionary
-        location_dict = cls._explode_uri(uri, "git", ["path", "version"])
+        location_dict = cls._explode_uri(uri, "git")
 
         # validate it
         cls._validate_locator(
@@ -202,26 +199,6 @@ class IODescriptorGitTag(IODescriptorGit):
             optional=[]
         )
         return location_dict
-
-    @classmethod
-    def uri_from_dict(cls, location_dict):
-        """
-        Given a location dictionary, return a location uri
-
-        :param location_dict: Location dictionary
-        :return: Location uri string
-        """
-        # sgtk:git:git/path:v12.3.4
-
-        cls._validate_locator(
-            location_dict,
-            required=["type", "path", "version"],
-            optional=[]
-        )
-
-        uri = ["git", location_dict["path"], location_dict["version"]]
-
-        return cls._make_uri_from_chunks(uri)
 
     def get_version(self):
         """

@@ -110,38 +110,7 @@ class IODescriptorPath(IODescriptorBase):
         :param uri: Location uri string
         :return: Location dictionary
         """
-        # sgtk:path:[name]:local_path
-        # sgtk:path3:[name]:win_path:linux_path:mac_path
-        #
-        # Examples:
-        # sgtk:path:my-app:/tmp/foo/bar
-        # sgtk:path3::c%3A%0Coo%08ar:/tmp/foo/bar:
-
-        # explode into dictionary
-        location_dict = None
-        try:
-            location_dict = cls._explode_uri(
-                uri,
-                "path",
-                ["name", "path"]
-            )
-        except ShotgunDeployError:
-            # probably because it's a path3, not a path
-            pass
-
-        try:
-            location_dict = cls._explode_uri(
-                uri,
-                "path3",
-                ["name", "windows_path", "linux_path", "mac_path"]
-            )
-            # force set to 'path', not 'path3'
-            location_dict["type"] = "path"
-        except ShotgunDeployError:
-            pass
-
-        if location_dict is None:
-            raise ShotgunDeployError("Invalid path descriptor uri '%s'" % uri)
+        location_dict = cls._explode_uri(uri, "path")
 
         # validate it
         cls._validate_locator(
@@ -150,48 +119,6 @@ class IODescriptorPath(IODescriptorBase):
             optional=["name", "linux_path", "mac_path", "path", "windows_path"]
         )
         return location_dict
-
-    @classmethod
-    def uri_from_dict(cls, location_dict):
-        """
-        Given a location dictionary, return a location uri
-
-        :param location_dict: Location dictionary
-        :return: Location uri string
-        """
-        # sgtk:path:[name]:local_path
-        # sgtk:path3:[name]:win_path:linux_path:mac_path
-        #
-        # Examples:
-        # sgtk:path:my-app:/tmp/foo/bar
-        # sgtk:path3::c%3A%0Coo%08ar:/tmp/foo/bar:
-
-        cls._validate_locator(
-            location_dict,
-            required=["type"],
-            optional=["name", "linux_path", "mac_path", "path", "windows_path"]
-        )
-
-        if "path" in location_dict:
-            # single path style locator takes precedence so as soon as we
-            # have a path key, generate the 'path' descriptor rather than a path3.
-            uri = [
-                "path",
-                location_dict.get("name") or "",
-                location_dict["path"]
-            ]
-
-        else:
-            # this is a path3 type URI with paths for windows, linux, mac
-            uri = [
-                "path3",
-                location_dict.get("name") or "",
-                location_dict.get("windows_path") or "",
-                location_dict.get("linux_path") or "",
-                location_dict.get("mac_path") or "",
-            ]
-
-        return cls._make_uri_from_chunks(uri)
 
     def get_system_name(self):
         """

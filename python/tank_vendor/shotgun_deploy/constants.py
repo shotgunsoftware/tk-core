@@ -106,9 +106,9 @@ LATEST_DESCRIPTOR_KEYWORD = "latest"
 DEFAULT_NAMESPACE = "default"
 
 # locator uri separator
-LOCATOR_URI_PREFIX = "sgtk"
+LOCATOR_URI_PATH_SCHEME = "sgtk"
+LOCATOR_URI_PATH_PREFIX = "location"
 LOCATOR_URI_SEPARATOR = ":"
-ESCAPED_LOCATOR_URI_SEPARATOR = "%3A"
 
 # latest core
 LATEST_CORE_LOCATION = {"type": "app_store", "name": "tk-core", "version": "latest"}

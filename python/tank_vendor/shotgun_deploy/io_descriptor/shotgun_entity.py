@@ -117,17 +117,7 @@ class IODescriptorShotgunEntity(IODescriptorBase):
         :param uri: Location uri string
         :return: Location dictionary
         """
-        # sgtk:shotgun:PipelineConfiguration:sg_config:primary:p123:v456 # with project id
-        # sgtk:shotgun:PipelineConfiguration:sg_config:primary::v456     # without project id
-        #
-        # sgtk:shotgun:EntityType:sg_field_name:shotgun_entity_name:pproject_id:vversion_id
-
-        # explode into dictionary
-        location_dict = cls._explode_uri(
-            uri,
-            "shotgun",
-            ["entity_type", "field", "name", "project_id", "version"]
-        )
+        location_dict = cls._explode_uri(uri, "shotgun")
 
         # validate it
         cls._validate_locator(
@@ -145,36 +135,6 @@ class IODescriptorShotgunEntity(IODescriptorBase):
             location_dict["project_id"] = int(location_dict["project_id"][1:])
 
         return location_dict
-
-    @classmethod
-    def uri_from_dict(cls, location_dict):
-        """
-        Given a location dictionary, return a location uri
-
-        :param location_dict: Location dictionary
-        :return: Location uri string
-        """
-        # sgtk:shotgun:PipelineConfiguration:sg_config:primary:p123:v456 # with project id
-        # sgtk:shotgun:PipelineConfiguration:sg_config:primary::v456     # without project id
-        #
-        # sgtk:shotgun:EntityType:sg_field_name:shotgun_entity_name:pproject_id:vversion_id
-
-        cls._validate_locator(
-            location_dict,
-            required=["type", "entity_type", "name", "version", "field"],
-            optional=["project_id"]
-        )
-
-        uri = [
-            "shotgun",
-            location_dict["entity_type"],
-            location_dict["field"],
-            location_dict["name"],
-            "p%s" % (location_dict.get("project_id") or ""),
-            "v%s" % location_dict["version"]
-        ]
-
-        return cls._make_uri_from_chunks(uri)
 
     def get_system_name(self):
         """

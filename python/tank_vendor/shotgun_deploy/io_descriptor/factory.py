@@ -8,7 +8,6 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import urllib
 from ..errors import ShotgunDeployError
 from .. import constants
 from .. import util
@@ -28,6 +27,7 @@ def create_io_descriptor(sg, descriptor_type, location, bundle_cache_root, fallb
                            bundle_cache_root.
     :returns: Descriptor object
     """
+    from .base import IODescriptorBase
     from .appstore import IODescriptorAppStore
     from .dev import IODescriptorDev
     from .path import IODescriptorPath
@@ -38,7 +38,7 @@ def create_io_descriptor(sg, descriptor_type, location, bundle_cache_root, fallb
 
     if isinstance(location, basestring):
         # translate uri to dict
-        location_dict = location_uri_to_dict(location)
+        location_dict = IODescriptorBase.dict_from_uri(location)
     else:
         location_dict = location
 
@@ -76,7 +76,6 @@ def create_io_descriptor(sg, descriptor_type, location, bundle_cache_root, fallb
 
     return descriptor
 
-
 def location_uri_to_dict(location_uri):
     """
     Translates a location uri into a location dictionary, suitable for
@@ -85,44 +84,8 @@ def location_uri_to_dict(location_uri):
     :param location_uri: location string uri
     :returns: location dictionary
     """
-    from .appstore import IODescriptorAppStore
-    from .dev import IODescriptorDev
-    from .path import IODescriptorPath
-    from .shotgun_entity import IODescriptorShotgunEntity
-    from .git_tag import IODescriptorGitTag
-    from .git_branch import IODescriptorGitBranch
-    from .manual import IODescriptorManual
-
-    chunks = location_uri.split(constants.LOCATOR_URI_SEPARATOR)
-    if chunks[0] != constants.LOCATOR_URI_PREFIX or len(chunks) < 3:
-        raise ShotgunDeployError("Invalid uri %s" % location_uri)
-    descriptor_type = urllib.unquote(chunks[1])
-
-    if descriptor_type == "app_store":
-        return IODescriptorAppStore.dict_from_uri(location_uri)
-
-    elif descriptor_type == "shotgun":
-        return IODescriptorShotgunEntity.dict_from_uri(location_uri)
-
-    elif descriptor_type == "manual":
-        return IODescriptorManual.dict_from_uri(location_uri)
-
-    elif descriptor_type == "git":
-        return IODescriptorGitTag.dict_from_uri(location_uri)
-
-    elif descriptor_type == "git_branch":
-        return IODescriptorGitBranch.dict_from_uri(location_uri)
-
-    elif descriptor_type == "dev" or descriptor_type == "dev3":
-        return IODescriptorDev.dict_from_uri(location_uri)
-
-    elif descriptor_type == "path" or descriptor_type == "path3":
-        return IODescriptorPath.dict_from_uri(location_uri)
-
-    else:
-        raise ShotgunDeployError("Unknown location type for '%s'" % location_uri)
-
-
+    from .base import IODescriptorBase
+    return IODescriptorBase.dict_from_uri(location_uri)
 
 def location_dict_to_uri(location_dict):
     """
@@ -131,40 +94,5 @@ def location_dict_to_uri(location_dict):
     :param location_dict: location dictionary
     :returns: location uri
     """
-    from .appstore import IODescriptorAppStore
-    from .dev import IODescriptorDev
-    from .path import IODescriptorPath
-    from .shotgun_entity import IODescriptorShotgunEntity
-    from .git_tag import IODescriptorGitTag
-    from .git_branch import IODescriptorGitBranch
-    from .manual import IODescriptorManual
-
-    if "type" not in location_dict:
-        raise ShotgunDeployError("Invalid location dictionary %s" % location_dict)
-    descriptor_type = location_dict["type"]
-
-    if descriptor_type == "app_store":
-        return IODescriptorAppStore.uri_from_dict(location_dict)
-
-    elif descriptor_type == "shotgun":
-        return IODescriptorShotgunEntity.uri_from_dict(location_dict)
-
-    elif descriptor_type == "manual":
-        return IODescriptorManual.uri_from_dict(location_dict)
-
-    elif descriptor_type == "git":
-        return IODescriptorGitTag.uri_from_dict(location_dict)
-
-    elif descriptor_type == "git_branch":
-        return IODescriptorGitBranch.uri_from_dict(location_dict)
-
-    elif descriptor_type == "dev":
-        return IODescriptorDev.uri_from_dict(location_dict)
-
-    elif descriptor_type == "path":
-        return IODescriptorPath.uri_from_dict(location_dict)
-
-    else:
-        raise ShotgunDeployError("Unknown location type for '%s'" % location_dict)
-
-
+    from .base import IODescriptorBase
+    return IODescriptorBase.uri_from_dict(location_dict)
