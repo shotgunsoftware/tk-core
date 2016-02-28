@@ -13,19 +13,13 @@ Resolver module. This module provides a way to resolve a pipeline configuration
 on disk.
 """
 
-import sys
-import os
-
 from . import util
 from . import Descriptor, create_descriptor
 from . import constants
 from .errors import ShotgunDeployError
-from .. import shotgun_api3
 from ..shotgun_base import get_shotgun_storage_key
 
 from .configuration import create_managed_configuration, create_unmanaged_configuration
-
-
 
 log = util.get_shotgun_deploy_logger()
 
@@ -75,6 +69,8 @@ class BasicConfigurationResolver(ConfigurationResolver):
     """
     Basic configuration resolves which implements the logic
     toolkit is using today.
+
+    # @todo - handle namespace support in shotgun/pipeline config fields
     """
 
     def __init__(self, sg_connection, bundle_cache_fallback_paths):
@@ -107,82 +103,86 @@ class BasicConfigurationResolver(ConfigurationResolver):
         :param base_config_location: Location dict or string for fallback config.
         :return: Configuration instance
         """
-        if project_id:
-            return self._resolve_project_configuration(project_id, pipeline_config_name, namespace, base_config_location)
-        else:
-            return self._resolve_site_configuration(namespace, base_config_location)
 
-    def _resolve_site_configuration(self, namespace, base_config_location):
-        """
-        Return a configuration object for the site config, based on a particular
-        set of resolution logic rules.
+        # first attempt to resolve in Shotgun
+        config = self._resolve_sg_configuration(
+            project_id,
+            pipeline_config_name,
+            namespace
+        )
 
-        :param namespace: Config namespace to distinguish it from other configs with the
-                          same project id and pipeline configuration name.
-        :param base_config_location: Location dict or string for fallback config.
-        :return: Configuration instance
-        """
-
-        # The following is to provide backwards compatibility with the
-        # previous versions of the Shotgun Desktop which used a
-        # pipeline configuration without any project or a pipeline
-        # configuration attached to the site config.
-        # If we have a site configuration and one of it's path is set, then
-        # we have a managed pipeline configuration.
-        pc = self._find_site_pipeline_configuration_entity()
-        if pc and (pc["mac_path"] or pc["windows_path"] or pc["linux_path"]):
-            log.debug("Legacy site configuration is managed.")
-            is_managed = True
-        else:
-            is_managed = False
-
-        if is_managed:
-            return create_managed_configuration(
-                self._sg_connection,
-                pc.get("project.Project.id", None),
-                pc.get("id"),
-                namespace,
-                self._bundle_cache_fallback_paths,
-                True,
-                pc.get("windows_path"),
-                pc.get("linux_path"),
-                pc.get("mac_path")
-            )
-        else:
-            return self._create_base_configuration(
-                None,
+        # if that fails, fall back onto our base config
+        if config is None:
+            log.debug(
+                "Could not resolve a config from Shotgun, "
+                "falling back on base config.")
+            config = self._create_base_configuration(
+                project_id,
                 base_config_location,
                 namespace
             )
 
-    def _resolve_project_configuration(self, project_id, pipeline_config_name, namespace, base_config_location):
-        """
-        Given a Shotgun project, return a configuration object based on a particular
-        set of resolution logic rules.
+        return config
 
-        :param project_id: Project id to create a config object for, None for the site config.
+    def _resolve_sg_configuration(self, project_id, pipeline_config_name, namespace):
+        """
+        Returns a configuration object representing a project pipeline config in Shotgun.
+
+        If no config can be resolved in Shotgun, None is returned.
+
+        @todo - handle namespace support
+
+        :param project_id: Project id to create a config object for
         :param pipeline_config_name: Name of configuration branch (e.g Primary)
         :param namespace: Config namespace to distinguish it from other configs with the
                           same project id and pipeline configuration name.
-        :param base_config_location: Location dict or string for fallback config.
-        :return: Configuration instance
+        :return: Configuration instance or None if nothing found in Shotgun
         """
-
-        # now resolve pipeline config details
-        project_entity = {"type": "Project", "id": project_id}
+        if not self._pipeline_configuration_entity_type_enabled():
+            # In case where Toolkit is not enabled for a site, the
+            # 'PipelineConfiguration' entity will not exist
+            return None
 
         # find a pipeline configuration in Shotgun.
-        log.debug("Checking pipeline configuration in Shotgun...")
-        pc_data = self._sg_connection.find_one(
-            constants.PIPELINE_CONFIGURATION_ENTITY_TYPE,
-            [["code", "is", pipeline_config_name],
-             ["project", "is", project_entity]],
-            ["mac_path",
-             "windows_path",
-             "linux_path",
-             constants.SHOTGUN_PIPELINECONFIG_URI_FIELD]
-        )
-        log.debug("Shotgun returned: %s" % pc_data)
+        log.debug("Looking for a pipeline configuration in Shotgun...")
+
+        if project_id is None:
+
+            # attempt to resolve a site configuration!
+
+            # The following is to provide backwards compatibility with the
+            # previous versions of the Shotgun Desktop which used a
+            # pipeline config with blank paths to denote an 'auto-updating'
+            # config.
+            #
+            # this pipeline config was the either associated with the
+            # template project (old versions of desktop) or have its
+            # project field set to None (this is how a site configuration
+            # is handled today).
+
+            # get the right site pipeline config record or None if not found
+            pc_data = self._find_site_pipeline_configuration_entity(
+                pipeline_config_name,
+                namespace
+            )
+
+        else:
+
+            # attempt to resolve a project configuration
+            # now resolve pipeline config details
+            project_entity = {"type": "Project", "id": project_id}
+
+            pc_data = self._sg_connection.find_one(
+                constants.PIPELINE_CONFIGURATION_ENTITY_TYPE,
+                [["code", "is", pipeline_config_name],
+                 ["project", "is", project_entity]],
+                ["mac_path",
+                 "windows_path",
+                 "linux_path",
+                 constants.SHOTGUN_PIPELINECONFIG_URI_FIELD]
+            )
+
+        log.debug("...Shotgun returned: %s" % pc_data)
 
         if pc_data:
 
@@ -220,18 +220,8 @@ class BasicConfigurationResolver(ConfigurationResolver):
                     self._bundle_cache_fallback_paths
                 )
 
-        # fall back on base
-        if base_config_location is None:
-            raise ShotgunDeployError(
-                "No base configuration specified and no pipeline "
-                "configuration exists in Shotgun for the given project. "
-                "Cannot create a configuration object.")
-
-        return self._create_base_configuration(
-            project_id,
-            base_config_location,
-            namespace
-        )
+        # no luck resolving from Shotgun
+        return None
 
     def _create_base_configuration(self, project_id, base_config_location, namespace):
         """
@@ -244,6 +234,13 @@ class BasicConfigurationResolver(ConfigurationResolver):
                           same project id and pipeline configuration name.
         :return: Configuration instance
         """
+        # fall back on base
+        if base_config_location is None:
+            raise ShotgunDeployError(
+                "No base configuration specified and no pipeline "
+                "configuration exists in Shotgun for the given project. "
+                "Cannot create a configuration object.")
+
         cfg_descriptor = create_descriptor(
             self._sg_connection,
             Descriptor.CONFIG,
@@ -263,7 +260,7 @@ class BasicConfigurationResolver(ConfigurationResolver):
             self._bundle_cache_fallback_paths
         )
 
-    def _find_site_pipeline_configuration_entity(self):
+    def _find_site_pipeline_configuration_entity(self, pipeline_config_name, namespace):
         """
         Look for the site pipeline configuration entity associated with the site
         config.
@@ -271,9 +268,15 @@ class BasicConfigurationResolver(ConfigurationResolver):
         Clients who have been using Shotgun Desktop in the past actually have
         a pipeline configurarions in Shotgun for their site config.
 
+        # @todo - handle namespace parameter
+
+        :param pipeline_config_name: Name of configuration branch (e.g Primary)
+        :param namespace: Config namespace to distinguish it from other configs with the
+                          same project id and pipeline configuration name.
         :returns: The pipeline configuration entity for the site config, if it
-            exists.
+                  exists.
         """
+
         # interesting fields to return
         fields = ["id", "code", "windows_path", "mac_path", "linux_path", "project"]
 
@@ -290,91 +293,93 @@ class BasicConfigurationResolver(ConfigurationResolver):
         # based on decreasing ids, the last entry is still the one with the lowest
         # id.
 
-        try:
-            pcs = self._sg_connection.find(
-                "PipelineConfiguration",
-                [{
-                    "filter_operator": "any",
-                    "filters": [
-                        ["project", "is", None],
-                        {
-                            "filter_operator": "all",
-                            "filters": [
-                                ["project.Project.name", "is", "Template Project"],
-                                ["project.Project.layout_project", "is", None]
-                            ]
-                        }
-                    ]
-                }],
-                fields=fields,
-                order=[
-                    # Sorting on the project id doesn't actually matter. We want
-                    # some sorting simply because this will force grouping between
-                    # configurations with a project and those that don't.
-                    {'field_name':'project.Project.id','direction':'asc'},
-                    {'field_name':'id','direction':'desc'}
+        pcs = self._sg_connection.find(
+            constants.PIPELINE_CONFIGURATION_ENTITY_TYPE,
+            [{
+                "filter_operator": "any",
+                "filters": [
+                    {
+                        # either look for a pipeline config with project None
+                        # and the given name (e.g. Primary)
+                        "filter_operator": "all",
+                        "filters": [
+                            ["project", "is", None],
+                            ["code", "is", pipeline_config_name]
+                        ]
+                    },
+                    {
+                        # ...or look for the template project for legacy cases
+                        "filter_operator": "all",
+                        "filters": [
+                            ["project", "is", None],
+                            ["project.Project.name", "is", "Template Project"],
+                            ["project.Project.layout_project", "is", None]
+                        ]
+                    }
                 ]
+            }],
+            fields=fields,
+            order=[
+                # Sorting on the project id doesn't actually matter. We want
+                # some sorting simply because this will force grouping between
+                # configurations with a project and those that don't.
+                {"field_name": "project.Project.id", "direction": "asc"},
+                {"field_name": "id", "direction": "desc"}
+            ]
         )
-        except shotgun_api3.shotgun.Fault:
-            # In case where Toolkit is not enabled for a site, the
-            # 'PipelineConfiguration' entity will not exist, and this exception
-            # will be raised. Continue as if no entities were returned
-            pcs = []
-
 
         if len(pcs) == 0:
-            log.debug("No legacy site pipeline configuration found.")
+            log.debug("No site pipeline configuration found.")
             return None
 
-        log.debug("Legacy site pipeline configuration found.")
+        log.debug("Site pipeline configuration found.")
 
         # Pick the last result. See the big comment before the Shotgun query to understand.
         pc = pcs[-1]
         # It is possible to get multiple pipeline configurations due to user error.
         # Log a warning if there was more than one pipeline configuration found.
         if len(pcs) > 1:
-            log.info(
-                "More than one pipeline configuration was found (%s), using %d" %
+            log.warning(
+                "More than one site pipeline configuration was found (%s), using %d" %
                 (", ".join([str(p["id"]) for p in pcs]), pc["id"])
             )
 
         return pc
 
-    def _get_platform_field_name(self):
+    def _pipeline_configuration_entity_type_enabled(self):
         """
-        Return the name of the Project field for the path for the current
-        platform.
+        Checks that the pipeline configuration entity type is
+        accessible in Shotgun.
 
-        :returns: Field with the path for the current platform.
+        :return: True if pipeline configurations are active, false otherwise
         """
-        # find what path field from the entity we need
-        if sys.platform == "darwin":
-            return "mac_path"
-        elif sys.platform == "win32":
-            return "windows_path"
-        elif sys.platform.startswith("linux"):
-            return "linux_path"
-        else:
-            raise RuntimeError("unknown platform: %s" % sys.platform)
+        log.debug("Checking if the Pipeline Configuration entity is "
+                  "enabled in Shotgun...")
+        entity_types = self._sg_connection.schema_entity_read()
+        # returns a dict keyed by entity type
+        enabled = constants.PIPELINE_CONFIGURATION_ENTITY_TYPE in entity_types
+        log.debug("...enabled: %s" % enabled)
+        return enabled
 
-    # FIXME: Not invoking this method until we can discuss with Rob if
-    # this is still a valid
-    def _update_legacy_site_config_root(self, pc):
-        """
-        Honor the TK_SITE_CONFIG_ROOT environment variable for managed
-        site configs from Shotgun Desktop.
 
-        :param pc: Pipeline configuration that needs to use another path
-
-        """
-        env_site = os.environ.get("TK_SITE_CONFIG_ROOT")
-        if env_site:
-            log.info(
-                "$TK_SITE_CONFIG_ROOT site config override found, using "
-                "site config path '%s' when launching desktop." % str(env_site)
-            )
-            if sys.platform in ["darwin", "linux"]:
-                env_site = os.path.expanduser(str(env_site))
-
-            # Patch the site config root.
-            pc[self._get_platform_field_name()] = env_site
+    # # todo: Not invoking this method until we can discuss with Rob if
+    # # this is still a valid parameter.
+    # def _update_legacy_site_config_root(self, pc):
+    #     """
+    #     Honor the TK_SITE_CONFIG_ROOT environment variable for managed
+    #     site configs from Shotgun Desktop.
+    #
+    #     :param pc: Pipeline configuration that needs to use another path
+    #
+    #     """
+    #     env_site = os.environ.get("TK_SITE_CONFIG_ROOT")
+    #     if env_site:
+    #         log.info(
+    #             "$TK_SITE_CONFIG_ROOT site config override found, using "
+    #             "site config path '%s' when launching desktop." % str(env_site)
+    #         )
+    #         if sys.platform in ["darwin", "linux"]:
+    #             env_site = os.path.expanduser(str(env_site))
+    #
+    #         # Patch the site config root.
+    #         pc[get_shotgun_storage_key()] = env_site
