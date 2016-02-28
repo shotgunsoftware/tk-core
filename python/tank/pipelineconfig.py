@@ -588,7 +588,6 @@ class PipelineConfiguration(object):
 
         :param descriptor_type: Descriptor type (APP, ENGINE, etc)
         :param location:        Location dictionary
-        :param latest:          Return latest available version of descriptor
         :returns:               Descriptor object
         """
         sg_connection = shotgun.get_sg_connection()
@@ -610,7 +609,6 @@ class PipelineConfiguration(object):
         that is associated with this pipeline configuration.
         
         :param location: Location dictionary describing the app source location
-        :param latest: Return latest available version of descriptor
         :returns:        Descriptor object
         """
         return self._get_descriptor(Descriptor.APP, location)
@@ -621,7 +619,6 @@ class PipelineConfiguration(object):
         that is associated with this pipeline configuration.
         
         :param location: Location dictionary describing the engine source location
-        :param latest: Return latest available version of descriptor
         :returns:        Descriptor object
         """
         return self._get_descriptor(Descriptor.ENGINE, location)

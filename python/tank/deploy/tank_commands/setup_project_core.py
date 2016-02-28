@@ -152,7 +152,7 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, set
     fh.write(core_location if core_location else "undefined")
     fh.close()
 
-    # write a file location file for our new setup
+    # write the install_location file for our new setup
     sg_code_location = os.path.join(config_location_curr_os, "config", "core", "install_location.yml")
 
     # if we are basing our setup on an existing project setup, make sure we can write to the file.
