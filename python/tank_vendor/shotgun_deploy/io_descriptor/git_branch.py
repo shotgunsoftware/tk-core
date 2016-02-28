@@ -11,14 +11,14 @@ import os
 import copy
 
 from ..util import subprocess_check_output, execute_git_command
-from .base import IODescriptorBase
+from .git import IODescriptorGit
 from ..errors import ShotgunDeployError
 from ...shotgun_base import ensure_folder_exists
 
 from .. import util
 log = util.get_shotgun_deploy_logger()
 
-class IODescriptorGitBranch(IODescriptorBase):
+class IODescriptorGitBranch(IODescriptorGit):
     """
     Represents a commit in git, belonging to a particular branch.
 
@@ -66,15 +66,8 @@ class IODescriptorGitBranch(IODescriptorBase):
             optional=[]
         )
 
-        self._path = location_dict.get("path")
-        # strip trailing slashes - this is so that when we build
-        # the name later (using os.basename) we construct it correctly.
-        if self._path.endswith("/") or self._path.endswith("\\"):
-            self._path = self._path[:-1]
-
-        # Note: the git command always uses forward slashes
-        self._sanitized_repo_path = self._path.replace(os.path.sep, "/")
-
+        # path is handled by base class - all git descriptors
+        # have a path to a repo
         self._version = location_dict.get("version")
         self._branch = location_dict.get("branch")
 
@@ -129,18 +122,6 @@ class IODescriptorGitBranch(IODescriptorBase):
         finally:
             os.chdir(cwd)
 
-    def _clone_repo(self, target_path):
-        """
-        Clone the repo into the target path
-
-        :param target_path: The target path to clone the repo to
-        :raises:            TankError if the clone command fails
-        """
-        # Note: git doesn't like paths in single quotes when running on
-        # windows - it also prefers to use forward slashes!
-        log.debug("Git Cloning %r into %s" % (self, target_path))
-        execute_git_command("clone -q \"%s\" \"%s\"" % (self._sanitized_repo_path, target_path))
-
     @classmethod
     def dict_from_uri(cls, uri):
         """
@@ -186,15 +167,6 @@ class IODescriptorGitBranch(IODescriptorBase):
         ]
 
         return cls._make_uri_from_chunks(uri)
-
-    def get_system_name(self):
-        """
-        Returns a short name, suitable for use in configuration files
-        and for folders on disk, e.g. 'tk-maya'
-        """
-        bn = os.path.basename(self._path)
-        (name, ext) = os.path.splitext(bn)
-        return name
 
     def get_version(self):
         """

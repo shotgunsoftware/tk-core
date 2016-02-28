@@ -32,7 +32,7 @@ def create_io_descriptor(sg, descriptor_type, location, bundle_cache_root, fallb
     from .dev import IODescriptorDev
     from .path import IODescriptorPath
     from .shotgun_entity import IODescriptorShotgunEntity
-    from .git import IODescriptorGit
+    from .git_tag import IODescriptorGitTag
     from .git_branch import IODescriptorGitBranch
     from .manual import IODescriptorManual
 
@@ -52,7 +52,7 @@ def create_io_descriptor(sg, descriptor_type, location, bundle_cache_root, fallb
         descriptor = IODescriptorManual(location_dict)
 
     elif location_dict.get("type") == "git":
-        descriptor = IODescriptorGit(location_dict)
+        descriptor = IODescriptorGitTag(location_dict)
 
     elif location_dict.get("type") == "git_branch":
         descriptor = IODescriptorGitBranch(location_dict)
@@ -89,7 +89,7 @@ def location_uri_to_dict(location_uri):
     from .dev import IODescriptorDev
     from .path import IODescriptorPath
     from .shotgun_entity import IODescriptorShotgunEntity
-    from .git import IODescriptorGit
+    from .git_tag import IODescriptorGitTag
     from .git_branch import IODescriptorGitBranch
     from .manual import IODescriptorManual
 
@@ -108,7 +108,7 @@ def location_uri_to_dict(location_uri):
         return IODescriptorManual.dict_from_uri(location_uri)
 
     elif descriptor_type == "git":
-        return IODescriptorGit.dict_from_uri(location_uri)
+        return IODescriptorGitTag.dict_from_uri(location_uri)
 
     elif descriptor_type == "git_branch":
         return IODescriptorGitBranch.dict_from_uri(location_uri)
@@ -135,7 +135,7 @@ def location_dict_to_uri(location_dict):
     from .dev import IODescriptorDev
     from .path import IODescriptorPath
     from .shotgun_entity import IODescriptorShotgunEntity
-    from .git import IODescriptorGit
+    from .git_tag import IODescriptorGitTag
     from .git_branch import IODescriptorGitBranch
     from .manual import IODescriptorManual
 
@@ -153,7 +153,7 @@ def location_dict_to_uri(location_dict):
         return IODescriptorManual.uri_from_dict(location_dict)
 
     elif descriptor_type == "git":
-        return IODescriptorGit.uri_from_dict(location_dict)
+        return IODescriptorGitTag.uri_from_dict(location_dict)
 
     elif descriptor_type == "git_branch":
         return IODescriptorGitBranch.uri_from_dict(location_dict)
