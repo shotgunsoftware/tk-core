@@ -549,9 +549,30 @@ class PipelineConfiguration(object):
         """
         return os.path.join(self.get_install_location(), "install", "core", "python")
 
-
     ########################################################################################
-    # accessing cached code
+    # descriptors and locations
+
+    def execute_post_install_bundle_hook(self, bundle_path):
+        """
+        Executes a post install hook for a bundle.
+        Some bundles come with an associated script that is meant
+        to be executed after install. This method probes for such a script
+        and in case it exists, executes it.
+
+        :param bundle_path: Path to bundle (app/engine/framework)
+        """
+        post_install_hook_path = os.path.join(
+            bundle_path,
+            "hooks",
+            constants.BUNDLE_POST_INSTALL_HOOK)
+
+        if os.path.exists(post_install_hook_path):
+            hook.execute_hook(
+                post_install_hook_path,
+                parent=None,
+                pipeline_configuration=self.get_path(),
+                path=bundle_path
+            )
 
     def _preprocess_location(self, location_dict):
         """

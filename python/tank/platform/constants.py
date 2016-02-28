@@ -84,6 +84,9 @@ TANK_BUNDLE_INIT_HOOK_NAME = "bundle_init"
 # hook to log metrics
 TANK_LOG_METRICS_HOOK_NAME = "log_metrics"
 
+# hook to be executed after bundle install
+BUNDLE_POST_INSTALL_HOOK = "post_install.py"
+
 # metrics logging custom hooks blacklist
 TANK_LOG_METRICS_CUSTOM_HOOK_BLACKLIST = [
     "pick_environment",

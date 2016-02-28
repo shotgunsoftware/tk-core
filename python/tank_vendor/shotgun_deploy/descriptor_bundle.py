@@ -9,8 +9,11 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from .descriptor import Descriptor
-import os
 from .errors import ShotgunDeployError
+from . import util
+
+log = util.get_shotgun_deploy_logger()
+
 
 class BundleDescriptor(Descriptor):
     """
@@ -175,23 +178,17 @@ class BundleDescriptor(Descriptor):
         hooks directory for an app or engine, if a 'post_install.py' hook
         exists, the hook will be executed upon each installation.
 
+        Errors reported in the post install hook will be reported to the error
+        log but execution will continue.
+
         :param tk: Core API instance to use for post install execution
         """
-
-        post_install_hook_path = os.path.join(self.get_path(), "hooks", "post_install.py")
-
-        if os.path.exists(post_install_hook_path):
-            try:
-                # @todo - sort out this import once shotgun_deploy is parented under sgtk
-                from tank import hook
-                hook.execute_hook(post_install_hook_path,
-                                  parent=None,
-                                  pipeline_configuration=tk.pipeline_configuration.get_path(),
-                                  path=self.get_path())
-            except Exception, e:
-                raise ShotgunDeployError(
-                    "Could not run post-install hook for %s. Error reported: %s" % (self, e)
-                )
+        try:
+            tk.pipeline_configuration.execute_post_install_bundle_hook(self.get_path())
+        except Exception, e:
+            log.error(
+                "Could not run post-install hook for %s. Error reported: %s" % (self, e)
+            )
 
 
 class EngineDescriptor(BundleDescriptor):
