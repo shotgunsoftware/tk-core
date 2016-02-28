@@ -164,6 +164,9 @@ UNMANAGED_PIPELINE_CONFIG_NAME = "Unmanaged"
 # as a replacement for the path to a pipeline configuration
 PIPELINE_CONFIG_DEV_DESCRIPTOR_TOKEN = "{PIPELINE_CONFIG}"
 
+# Configuration file containing setup and path details
+PIPELINECONFIG_FILE = "pipeline_configuration.yml"
+
 # app store: the entity that represents the core api
 TANK_CORE_VERSION_ENTITY = "CustomNonProjectEntity01"
 

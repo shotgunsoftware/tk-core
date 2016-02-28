@@ -292,7 +292,12 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, set
         log.debug("Created data: %s" % pc_entity)
 
     # write the record to disk
-    pipe_config_sg_id_path = os.path.join(config_location_curr_os, "config", "core", "pipeline_configuration.yml")
+    pipe_config_sg_id_path = os.path.join(
+        config_location_curr_os,
+        "config",
+        "core",
+        constants.PIPELINECONFIG_FILE
+    )
     log.debug("Writing to pc cache file %s" % pipe_config_sg_id_path)
 
     # determine the entity type to use for Published Files:

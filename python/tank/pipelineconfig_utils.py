@@ -57,7 +57,12 @@ def get_metadata(pipeline_config_path):
     """
 
     # now read in the pipeline_configuration.yml file
-    cfg_yml = os.path.join(pipeline_config_path, "config", "core", "pipeline_configuration.yml")
+    cfg_yml = os.path.join(
+        pipeline_config_path,
+        "config",
+        "core",
+        constants.PIPELINECONFIG_FILE
+    )
 
     try:
         data = yaml_cache.g_yaml_cache.get(cfg_yml, deepcopy_data=False)

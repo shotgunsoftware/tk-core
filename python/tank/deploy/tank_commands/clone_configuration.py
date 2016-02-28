@@ -220,7 +220,12 @@ def _do_clone(log, tk, source_pc_id, user_id, new_name, target_linux, target_mac
     old_umask = os.umask(0)
     try:
         
-        sg_pc_location = os.path.join(target_folder, "config", "core", "pipeline_configuration.yml")
+        sg_pc_location = os.path.join(
+            target_folder,
+            "config",
+            "core",
+            constants.PIPELINECONFIG_FILE
+        )
         
         # read the file first
         fh = open(sg_pc_location, "rt")

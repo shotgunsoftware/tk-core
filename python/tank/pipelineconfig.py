@@ -128,9 +128,11 @@ class PipelineConfiguration(object):
         """
     
         # now read in the pipeline_configuration.yml file
-        cfg_yml = os.path.join(self.get_config_location(), 
-                               "core", 
-                               "pipeline_configuration.yml")
+        cfg_yml = os.path.join(
+            self.get_config_location(),
+            "core",
+            constants.PIPELINECONFIG_FILE
+        )
     
         if not os.path.exists(cfg_yml):
             raise TankError("Configuration metadata file '%s' missing! "
@@ -162,9 +164,11 @@ class PipelineConfiguration(object):
         curr_settings.update(updates)
         
         # write the record to disk
-        pipe_config_sg_id_path = os.path.join(self.get_config_location(), 
-                                              "core", 
-                                              "pipeline_configuration.yml")        
+        pipe_config_sg_id_path = os.path.join(
+            self.get_config_location(),
+            "core",
+            constants.PIPELINECONFIG_FILE
+        )
         
         old_umask = os.umask(0)
         try:

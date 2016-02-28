@@ -1748,7 +1748,13 @@ class MigratePublishedFileEntitiesAction(Action):
                 continue
                 
             # find the pipeline_config.yml path:
-            pc_path = os.path.join(local_path, "config", "core", "pipeline_configuration.yml")
+            pc_path = os.path.join(
+                local_path,
+                "config",
+                "core",
+                constants.PIPELINECONFIG_FILE
+            )
+
             
             if not os.path.exists(pc_path):
                 all_updated = False
