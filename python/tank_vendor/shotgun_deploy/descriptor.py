@@ -12,7 +12,7 @@ import os
 import copy
 
 from . import paths
-from .descriptor_io import create_io_descriptor
+from .io_descriptor import create_io_descriptor
 from .errors import ShotgunDeployError
 
 def create_descriptor(sg_connection, descriptor_type, location, bundle_cache_root_override=None, fallback_roots=None):

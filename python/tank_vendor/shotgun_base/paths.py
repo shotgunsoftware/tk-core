@@ -55,7 +55,7 @@ def get_site_cache_root(site_url):
     """
 
     # get site only; https://www.foo.com:8080 -> www.foo.com
-    base_url = urlparse.urlparse(site_url)[1].split(":")[0]
+    base_url = urlparse.urlparse(site_url).netloc.split(":")[0]
 
     # in order to apply further shortcuts to avoid hitting
     # MAX_PATH on windows, strip shotgunstudio.com from all
@@ -64,8 +64,7 @@ def get_site_cache_root(site_url):
     # mysite.shotgunstudio.com -> mysite
     # shotgun.internal.int     -> shotgun.internal.int
     #
-    if base_url.endswith("shotgunstudio.com"):
-        base_url = base_url[:-len(".shotgunstudio.com")]
+    base_url = base_url.replace(".shotgunstudio.com", "")
     return os.path.join(get_cache_root(), base_url)
 
 

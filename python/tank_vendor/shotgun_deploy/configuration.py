@@ -246,17 +246,9 @@ class Configuration(object):
     def _ensure_project_scaffold(self):
         """
         Creates all the necessary files on disk for a basic config scaffold.
-
-        - Sets up basic folder structure for a config
-        - Copies the configuration into place.
-
-        :returns: True if a scaffold was created, False if a complete or
-                  partial configuration already existed on disk.
         """
         config_path = self.get_path()
         log.info("Ensuring project scaffold in '%s'..." % config_path)
-
-        config_exists = os.path.exists(config_path)
 
         ensure_folder_exists(config_path)
         ensure_folder_exists(os.path.join(config_path, "cache"))
@@ -269,8 +261,6 @@ class Configuration(object):
             os.path.join(config_path, "install", "core.backup"),
             create_placeholder_file=True
         )
-
-        return config_exists
 
     def _move_to_backup(self):
         """
@@ -421,7 +411,7 @@ class Configuration(object):
         """
         config_path = self.get_path()
 
-        # write a file location file for our new setup
+        # write the install_location file for our new setup
         sg_code_location = os.path.join(
             config_path,
             "config",
@@ -549,7 +539,7 @@ class Configuration(object):
             project_name = "Site"
             pipeline_config_name = constants.UNMANAGED_PIPELINE_CONFIG_NAME
 
-        data = {
+        return {
             "pc_id": self._pipeline_config_id,
             "pc_name": pipeline_config_name,
             "project_id": self._project_id,
@@ -557,9 +547,8 @@ class Configuration(object):
             "published_file_entity_type": "PublishedFile",
             "use_global_bundle_cache": True,
             "bundle_cache_fallback_roots": self._bundle_cache_fallback_paths,
-            "use_shotgun_path_cache": True}
-
-        return data
+            "use_shotgun_path_cache": True
+        }
 
 
     def _update_roots_file(self):

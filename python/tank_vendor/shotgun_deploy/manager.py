@@ -22,7 +22,7 @@ from ..shotgun_base import ensure_folder_exists
 from .errors import ShotgunDeployError
 from .configuration import Configuration, create_managed_configuration
 from .resolver import BasicConfigurationResolver
-from .descriptor_io import location_dict_to_uri
+from .io_descriptor import location_dict_to_uri
 
 log = util.get_shotgun_deploy_logger()
 

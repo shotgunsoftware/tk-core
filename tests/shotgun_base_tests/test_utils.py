@@ -18,7 +18,6 @@ from tank_test.tank_test_base import *
 from tank_vendor import shotgun_base
 
 
-
 class TestBaseUtils(TankTestBase):
 
     def setUp(self):
