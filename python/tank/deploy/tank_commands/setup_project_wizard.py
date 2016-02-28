@@ -506,7 +506,7 @@ class SetupProjectWizard(object):
         
         core_path - If localize is set to False, the configuration will share an API and it will be picked up 
                     from the location indicated in the core_path parameter. In this case, a None value for a path
-                    indicates that this platform will not be supposed and the project will not be able to execute
+                    indicates that this platform will not be supported and the project will not be able to execute
                     on that platform unless further configuration adjustments are carried out.   
         
         :returns: dictionary, see above for details.

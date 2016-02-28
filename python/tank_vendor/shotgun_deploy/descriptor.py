@@ -22,8 +22,9 @@ def create_descriptor(sg_connection, descriptor_type, location, bundle_cache_roo
     :param sg_connection: Shotgun connection to associated site
     :param descriptor_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK
     :param location: A std location dictionary dictionary or string
-    :param bundle_cache_root: Optional override for root path to where downloaded apps are cached
-    :param fallback_roots: List of immutable fallback cache locations where
+    :param bundle_cache_root_override: Optional override for root path to where
+                                       downloaded apps are cached.
+    :param fallback_roots: Optional List of immutable fallback cache locations where
                            apps will be searched for. Note that when descriptors
                            download new content, it always ends up in the
                            bundle_cache_root.

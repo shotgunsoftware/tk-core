@@ -252,11 +252,17 @@ class PipelineConfiguration(object):
         auto path status.
 
         January 2016:
-        DEPRECATED - DO NOT USE! At some stage this wil be removed.
+        DEPRECATED - DO NOT USE! At some stage this will be removed.
 
         :returns: boolean indicating auto path state
         """
         if self.is_unmanaged():
+            # unmanaged configs introduced in core 0.18 means that
+            # pipeline configurations now may not even have a
+            # pipeline configuration entity in shotgun at all. This means
+            # that the configuration is tracking a particular version of a
+            # config directly, without any config settings anywhere.
+            #
             return False
 
         sg = shotgun.get_sg_connection()
@@ -290,7 +296,7 @@ class PipelineConfiguration(object):
     def is_unmanaged(self):
         """
         Returns true if the configuration is unmanaged, e.g. it does not have a
-        corresponding path cache in Shotgun.
+        corresponding pipeline configuration in Shotgun.
 
         :return: boolean indicating if config is unmanaged
         """
@@ -343,7 +349,6 @@ class PipelineConfiguration(object):
         Converts the pipeline configuration into the site configuration.
         """
         self._update_metadata({"project_id": None})
-        self._project_id = None
 
     ########################################################################################
     # path cache
@@ -591,8 +596,8 @@ class PipelineConfiguration(object):
         Constructs a descriptor object given a location dictionary.
 
         :param descriptor_type: Descriptor type (APP, ENGINE, etc)
-        :param location:        Location dictionary
-        :returns:               Descriptor object
+        :param location: Location dictionary
+        :returns: Descriptor object
         """
         sg_connection = shotgun.get_sg_connection()
         pp_location = self._preprocess_location(location)

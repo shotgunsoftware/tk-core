@@ -27,7 +27,8 @@ def get_from_location_and_paths(app_or_engine, pc_path, bundle_install_path, loc
     """
     Factory method.
 
-    LEGACY - Use create_descriptor instead.
+    LEGACY - Use create_descriptor instead. This is itended only for
+    older versions of the Shotgun desktop.
 
     :param app_or_engine: Either AppDescriptor.APP ENGINE CORE or FRAMEWORK (as defined above)
     :param pc_path: Path to the root of the pipeline configuration.

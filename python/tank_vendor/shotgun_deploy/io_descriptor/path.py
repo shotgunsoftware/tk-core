@@ -96,6 +96,8 @@ class IODescriptorPath(IODescriptorBase):
         Get a list of resolved paths, starting with the primary and
         continuing with alternative locations where it may reside.
 
+        Note: This method only computes paths and does not perform any I/O ops.
+
         :return: List of path strings
         """
         return [self._path]
