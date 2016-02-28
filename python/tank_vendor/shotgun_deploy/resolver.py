@@ -138,7 +138,7 @@ class BasicConfigurationResolver(ConfigurationResolver):
                           same project id and pipeline configuration name.
         :return: Configuration instance or None if nothing found in Shotgun
         """
-        if not self._pipeline_configuration_entity_type_enabled():
+        if not util.is_toolkit_activated_in_shotgun(self._sg_connection):
             # In case where Toolkit is not enabled for a site, the
             # 'PipelineConfiguration' entity will not exist
             return None
@@ -345,22 +345,6 @@ class BasicConfigurationResolver(ConfigurationResolver):
             )
 
         return pc
-
-    def _pipeline_configuration_entity_type_enabled(self):
-        """
-        Checks that the pipeline configuration entity type is
-        accessible in Shotgun.
-
-        :return: True if pipeline configurations are active, false otherwise
-        """
-        log.debug("Checking if the Pipeline Configuration entity is "
-                  "enabled in Shotgun...")
-        entity_types = self._sg_connection.schema_entity_read()
-        # returns a dict keyed by entity type
-        enabled = constants.PIPELINE_CONFIGURATION_ENTITY_TYPE in entity_types
-        log.debug("...enabled: %s" % enabled)
-        return enabled
-
 
     # # todo: Not invoking this method until we can discuss with Rob if
     # # this is still a valid parameter.

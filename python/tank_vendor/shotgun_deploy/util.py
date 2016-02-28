@@ -13,6 +13,7 @@ import re
 import subprocess
 
 from .errors import ShotgunDeployError
+from . import constants
 from ..shotgun_base import get_sgtk_logger
 
 def get_shotgun_deploy_logger():
@@ -31,6 +32,22 @@ def get_shotgun_deploy_logger():
     :returns: python logger
     """
     return get_sgtk_logger("deploy")
+
+log = get_shotgun_deploy_logger()
+
+def is_toolkit_activated_in_shotgun(sg):
+    """
+    Checks that toolkit has been activated in sg.
+
+    :return: True if true, false otherwise
+    """
+    log.debug("Checking if Toolkit is enabled in Shotgun...")
+    entity_types = sg.schema_entity_read()
+    # returns a dict keyed by entity type
+    enabled = constants.PIPELINE_CONFIGURATION_ENTITY_TYPE in entity_types
+    log.debug("...enabled: %s" % enabled)
+    return enabled
+
 
 def execute_git_command(cmd):
     """

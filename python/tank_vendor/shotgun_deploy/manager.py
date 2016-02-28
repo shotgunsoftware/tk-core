@@ -56,6 +56,82 @@ class ToolkitManager(object):
         repr += " Base %s >" % self._base_config_location
         return repr
 
+
+
+    def _get_namespace(self):
+        """
+        Returns the namespace that the manager will bootstrap into.
+        Namespaces make it possible to have more than a single pipeline
+        configuration for a project/pipeline config name combo. For example,
+        you may have primary site configurations for both rv, desktop and maya,
+        each with specific apps and settings that can live alongside each other.
+
+        :returns: namespace as string
+        """
+        return self._namespace
+
+    def _set_namespace(self, namespace):
+        """
+        Specify a namespace to bootstrap into. Namespaces make it possible
+        to have more than a single pipeline configuration for a
+        project/pipeline config name combo. For example, you may have primary
+        site configurations for both rv, desktop and maya, each with specific
+        apps and settings that can live alongside each other.
+
+        :param namespace: name space string, typically one short word,
+                          e.g. 'maya', 'rv', 'desktop'
+        """
+        self._namespace = namespace
+
+    namespace = property(_get_namespace, _set_namespace)
+
+
+
+    def _set_pipeline_configuration(self, name):
+        """
+        Specify a non-default pipeline configuration to operate on.
+        By default, the primary config will be used.
+
+        :param name: Pipeline configuration name as string
+        """
+        self._pipeline_configuration_name = name
+
+    def _get_pipeline_configuration(self):
+        """
+        Returns the pipeline configuration that is being operated on.
+        By default, the primary config will be used.
+
+        :returns: Pipeline configuration name as string
+        """
+        return self._pipeline_configuration_name
+
+    pipeline_configuration = property(_get_pipeline_configuration, _set_pipeline_configuration)
+
+
+
+    def _get_base_configuration(self):
+        """
+        Returns the location (string or dict) for the
+        config that should be used whenever shotgun
+        lookups fail.
+
+        :returns: base configuration location, dict, str or None
+        """
+        return self._base_config_location
+
+    def _set_base_configuration(self, location):
+        """
+        Specify the location (string or dict) for the
+        config that should be used whenever shotgun
+        lookups fail.
+
+        :param location: location dictionary or str
+        """
+        self._base_config_location = location
+
+    base_configuration = property(_get_base_configuration, _set_base_configuration)
+
+
     def set_bundle_cache_fallback_paths(self, paths):
         """
         Specify a list of fallback paths where toolkit will go
@@ -68,7 +144,7 @@ class ToolkitManager(object):
         sources.
 
         Any missing bundles will be downloaded and cached into
-        the primary bundle cache. For unmanaged projeccts, this is
+        the primary bundle cache. For unmanaged projects, this is
         typically a folder on the local machine.
 
         :param paths: List of paths
@@ -77,38 +153,6 @@ class ToolkitManager(object):
         #         future so that studios can easily add their own 'primed cache'
         #         locations for performance or to save space.
         self._bundle_cache_fallback_paths = paths
-
-    def set_namespace(self, namespace):
-        """
-        Specify a namespace to bootstrap into. Namespaces makes it possible
-        to have more than a single pipeline configuration for a
-        project/pipeline config name combo. For example, you may have primary
-        site configurations for both rv, desktop and maya, each with specific
-        apps and settings that can live alongside each other.
-
-        :param namespace: name space string, typically one short word,
-                          e.g. 'maya', 'rv', 'desktop'
-        """
-        self._namespace = namespace
-
-    def set_pipeline_configuration(self, name):
-        """
-        Specify a non-default pipeline configuration to operate on.
-        By default, the primary config will be used.
-
-        :param name: Pipeline configuration name as string
-        """
-        self._pipeline_configuration_name = name
-
-    def set_base_configuration(self, location):
-        """
-        Specify the config location (string or dict)
-        for the fallback config that is used whenever
-        shotgun lookups fail.
-
-        :param location: location dictionary or str
-        """
-        self._base_config_location = location
 
     def set_progress_callback(self, callback):
         """
@@ -252,20 +296,6 @@ class ToolkitManager(object):
         log.debug("Launched engine %r" % engine)
         return engine
 
-    def validate(self, project_id):
-        """
-        Check the validity of the given project against the given
-        base config. This can used to determine that a particular
-        base config can be assocaited with a given shotgun project.
-
-        Checks that storages exists and are correctly named and checks
-        that a tank project name has been set when necessary.
-
-        :param project_id: Project id for which to check
-        :returns: TBD
-        """
-        # @todo - implement validate() method
-
     def get_configuration_uri(self, project_id):
         """
         Return the config uri that is associated with the given
@@ -294,6 +324,22 @@ class ToolkitManager(object):
         # return the uri associated with this configuration
         return config.get_descriptor().get_uri()
 
+    ####################################################################################
+    # future functionality
+
+    def validate(self, project_id):
+        """
+        Check the validity of the given project against the given
+        base config. This can used to determine that a particular
+        base config can be assocaited with a given shotgun project.
+
+        Checks that storages exists and are correctly named and checks
+        that a tank project name has been set when necessary.
+
+        :param project_id: Project id for which to check
+        :returns: TBD
+        """
+        # @todo - implement validate() method
 
     def upload_configuration(self, project_id):
         """
@@ -302,6 +348,11 @@ class ToolkitManager(object):
 
         :param project_id: Project to upload config to.
         """
+        if not util.is_toolkit_activated_in_shotgun(self._sg_connection):
+            raise ShotgunDeployError(
+                "Toolkit has not yet been fully activated in Shotgun! Before you can upload "
+                "any configurations, you must go into the app management menu in Shotgun "
+                "and turn on the Toolkit integration.")
 
         # @todo - this method assumes non-official fields on pipelineconfiguration
         # so requires further discussion prior to release.
@@ -407,6 +458,12 @@ class ToolkitManager(object):
 
         :return: Shotgun id for the pipeline relevant configuration
         """
+        if not util.is_toolkit_activated_in_shotgun(self._sg_connection):
+            raise ShotgunDeployError(
+                "Toolkit has not yet been fully activated in Shotgun! Before you can upload "
+                "any configurations, you must go into the app management menu in Shotgun "
+                "and turn on the Toolkit integration.")
+
         log.debug("Begin installing config on disk.")
 
         # check that we have a local path and interpreter

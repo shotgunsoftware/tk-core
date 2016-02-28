@@ -12,8 +12,6 @@ import os
 import re
 import cgi
 import urlparse
-import sys
-import urllib
 
 from .. import util
 from .. import constants
