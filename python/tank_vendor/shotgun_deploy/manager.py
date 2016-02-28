@@ -281,7 +281,7 @@ class ToolkitManager(object):
                 ["project"]
             )
 
-            if not data.get("project"):
+            if not data or not data.get("project"):
                 raise ShotgunDeployError("Cannot resolve project for %s" % entity)
             project_id = data["project"]["id"]
 
