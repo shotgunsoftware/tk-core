@@ -263,8 +263,18 @@ class ToolkitManager(object):
         log.debug("bootstrapping into an engine.")
 
         self._report_progress("Resolving Toolkit Context...")
-        if entity:
+        if entity is None:
+            project_id = None
 
+        elif entity.get("type") == "Project":
+            project_id = entity["id"]
+
+        elif "project" in entity and entity["project"].get("type") == "Project":
+            # user passed a project link
+            project_id = entity["project"]["id"]
+
+        else:
+            # resolve from shotgun
             data = self._sg_connection.find_one(
                 entity["type"],
                 [["id", "is", entity["id"]]],
@@ -274,9 +284,6 @@ class ToolkitManager(object):
             if not data.get("project"):
                 raise ShotgunDeployError("Cannot resolve project for %s" % entity)
             project_id = data["project"]["id"]
-
-        else:
-            project_id = None
 
         tk = self.bootstrap_sgtk(project_id)
         log.debug("Bootstrapped into tk instance %r" % tk)
