@@ -14,6 +14,7 @@ from ...errors import TankError
 from ...platform import constants
 
 from tank_vendor import yaml
+from tank_vendor.shotgun_base import get_shotgun_storage_key
 
 from .action_base import Action
 
@@ -153,7 +154,7 @@ def _do_clone(log, tk, source_pc_id, user_id, new_name, target_linux, target_mac
     Clones the current configuration
     """
 
-    curr_os = {"linux2":"linux_path", "win32":"windows_path", "darwin":"mac_path" }[sys.platform]    
+    curr_os = get_shotgun_storage_key()
     source_pc = tk.shotgun.find_one(constants.PIPELINE_CONFIGURATION_ENTITY, 
                                     [["id", "is", source_pc_id]], 
                                     ["code", "project", "linux_path", "windows_path", "mac_path"])

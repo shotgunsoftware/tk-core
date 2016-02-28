@@ -21,6 +21,8 @@ from ... import pipelineconfig_utils
 from .setup_project_core import run_project_setup
 from .setup_project_params import ProjectSetupParameters
 
+from tank_vendor.shotgun_base import get_shotgun_storage_key
+
 class SetupProjectFactoryAction(Action):
     """
     Special handling of Project setup.
@@ -534,8 +536,7 @@ class SetupProjectWizard(object):
             self._log.debug("Will try to inherit core from the config template: %s" % data)
             
             # get the right path field from the config        
-            lookup = {"darwin": "mac_path", "linux2": "linux_path", "win32": "windows_path"}
-            pipeline_config_root_path = data[ lookup[sys.platform] ]
+            pipeline_config_root_path = data[get_shotgun_storage_key()]
             
             if pipeline_config_root_path and os.path.exists(pipeline_config_root_path):
                 # looks like this exists - try to resolve its core API location

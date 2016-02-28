@@ -21,8 +21,11 @@ from . import Descriptor, create_descriptor
 from . import constants
 from .errors import ShotgunDeployError
 from .. import shotgun_api3
+from ..shotgun_base import get_shotgun_storage_key
 
 from .configuration import create_managed_configuration, create_unmanaged_configuration
+
+
 
 log = util.get_shotgun_deploy_logger()
 
@@ -181,11 +184,9 @@ class BasicConfigurationResolver(ConfigurationResolver):
         )
         log.debug("Shotgun returned: %s" % pc_data)
 
-        lookup_dict = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path"}
-
         if pc_data:
 
-            if pc_data.get(lookup_dict[sys.platform]):
+            if pc_data.get(get_shotgun_storage_key()):
                 # we have paths specified for the local platform!
                 return create_managed_configuration(
                     self._sg_connection,

@@ -20,7 +20,7 @@ from .util import shotgun
 from . import pipelineconfig_utils
 from .pipelineconfig import PipelineConfiguration
 
-from tank_vendor.shotgun_base import get_site_cache_root
+from tank_vendor.shotgun_base import get_site_cache_root, get_shotgun_storage_key, sanitize_path
 
 def from_entity(entity_type, entity_id):
     """
@@ -333,14 +333,14 @@ def _get_pipeline_configuration_data(sg_pipeline_configs):
     :returns: (pc_data, primary_data) - tuple with two lists of dicts. See above.
     """
     # get list of local path to pipeline configurations that we have
-    platform_lookup = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
     pc_data = []
     primary_data = []
 
     for pc in sg_pipeline_configs:
 
         # prepare return data
-        curr_os_path = pipelineconfig_utils.sanitize_path(pc.get(platform_lookup[sys.platform]), os.path.sep)
+        raw_pc_path = pc.get(get_shotgun_storage_key())
+        curr_os_path = sanitize_path(raw_pc_path, os.path.sep)
 
         if pc.get("project"):  # project is None for site config else dict
             project_id = pc["project"]["id"]
@@ -415,12 +415,10 @@ def _get_pipeline_configs_for_path(path, data):
     :param data: Cache data chunk, obtained using _get_pipeline_configs()
     :returns: list of pipeline configurations matching the path, [] if no match.
     """
-    platform_lookup = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
-
     # step 1 - extract all storages for the current os
     storages = []
     for s in data["local_storages"]:
-        storage_path = s[ platform_lookup[sys.platform] ]
+        storage_path = s[get_shotgun_storage_key()]
         if storage_path:
             storages.append(storage_path)
 

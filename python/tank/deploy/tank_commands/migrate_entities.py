@@ -18,6 +18,7 @@ import shutil
 from itertools import chain
 
 from tank_vendor import yaml
+from tank_vendor.shotgun_base import get_shotgun_storage_key
 from .action_base import Action
 from . import update 
 from ...errors import TankError
@@ -1179,8 +1180,7 @@ class PublishedFileEntityMigrator(EntityMigrator):
             # query shotgun for the 'Tank' LocalStorage entity
             self._tls = {}
 
-            storage_map = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path"}
-            path_field = storage_map[sys.platform]
+            path_field = get_shotgun_storage_key()
             
             sg_entity = self._sg.find_one("LocalStorage", filters=[["code", "is", "Tank"]], fields=[path_field])
             if sg_entity:
@@ -1720,12 +1720,13 @@ class MigratePublishedFileEntitiesAction(Action):
         all_updated = True
         
         # first, get all pipeline configs:
-        pcs = sg_connection.find(constants.PIPELINE_CONFIGURATION_ENTITY, 
-                                      filters = [["project", "is", sg_project]] if sg_project else [],
-                                      fields = ["code", "mac_path", "windows_path", "linux_path", "project"])
+        pcs = sg_connection.find(
+            constants.PIPELINE_CONFIGURATION_ENTITY,
+            filters = [["project", "is", sg_project]] if sg_project else [],
+            fields = ["code", "mac_path", "windows_path", "linux_path", "project"]
+        )
         
         # now iterate through them, updating as we go
-        storage_map = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
         for pc_i, pc in enumerate(pcs):
             project_name = pc.get("project", {}).get("name", "")
             pc_name = pc["code"]
@@ -1739,7 +1740,7 @@ class MigratePublishedFileEntitiesAction(Action):
             log.info("Updating pipeline configuration '%s' for project '%s' (%d of %d)" % (pc_name, project_name, pc_i+1, len(pcs)))
             
             # check that pipeline config is accessible:
-            local_path = pc.get(storage_map[sys.platform])
+            local_path = pc.get(get_shotgun_storage_key())
             if local_path is None or not os.path.exists(local_path):
                 all_updated = False
                 warnings.append("Pipeline configuration '%s' for project '%s' is not accessible from this computer and can't be migrated!" 

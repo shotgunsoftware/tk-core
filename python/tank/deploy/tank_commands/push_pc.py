@@ -8,9 +8,6 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from ... import pipelineconfig
-
-from ...util import shotgun
 from .. import util
 from ...platform import constants
 from ...errors import TankError
@@ -19,13 +16,11 @@ from ...pipelineconfig import PipelineConfiguration
 from . import console_utils
 
 from .action_base import Action
+from tank_vendor.shotgun_base import get_shotgun_storage_key
 
-import sys
 import os
 import datetime
 import shutil
-
-SG_LOCAL_STORAGE_OS_MAP = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
 
 # core configuration files which are associated with the core API installation and not
 # the pipeline configuration.
@@ -102,7 +97,7 @@ class PushPCAction(Action):
             # skip self
             if pc["id"] == current_pc_id:
                 continue
-            local_path = pc.get(SG_LOCAL_STORAGE_OS_MAP[sys.platform])
+            local_path = pc.get(get_shotgun_storage_key())
             path_hash[ pc["id"] ] = local_path
             log.info(" - [%d] %s (%s)" % (pc["id"], pc["code"], local_path))
         log.info("")

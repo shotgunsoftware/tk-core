@@ -29,6 +29,7 @@ from . import pipelineconfig_utils
 from . import template_includes
 
 from tank_vendor.shotgun_deploy import Descriptor, create_descriptor
+from tank_vendor.shotgun_base import get_shotgun_storage_key
 
 class PipelineConfiguration(object):
     """
@@ -148,7 +149,7 @@ class PipelineConfiguration(object):
     
         return data
     
-    def _update_pipeline_config(self, updates):
+    def _update_metadata(self, updates):
         """
         Updates the pipeline configuration on disk with the passed in values.
 
@@ -157,7 +158,7 @@ class PipelineConfiguration(object):
         # get current settings
         curr_settings = self._get_metadata()
         
-        # add path cache setting
+        # apply updates to existing cache
         curr_settings.update(updates)
         
         # write the record to disk
@@ -308,7 +309,7 @@ class PipelineConfiguration(object):
     def get_project_id(self):
         """
         Returns the shotgun id for the project associated with this PC.
-        Can return None if the pipeline configuratoin represents the site and not a project.
+        Can return None if the pipeline config represents the site and not a project.
         """
         return self._project_id
 
@@ -337,7 +338,7 @@ class PipelineConfiguration(object):
         """
         Converts the pipeline configuration into the site configuration.
         """
-        self._update_pipeline_config({"project_id": None})
+        self._update_metadata({"project_id": None})
         self._project_id = None
 
     ########################################################################################
@@ -362,7 +363,7 @@ class PipelineConfiguration(object):
         if self.get_shotgun_path_cache_enabled():
             raise TankError("Shotgun based path cache already turned on!")
                 
-        self._update_pipeline_config({"use_shotgun_path_cache": True})
+        self._update_metadata({"use_shotgun_path_cache": True})
         self._use_shotgun_path_cache = True
 
         
@@ -376,12 +377,10 @@ class PipelineConfiguration(object):
         
         :returns: dictionary of storages, for example {"primary": "/studio", "textures": "/textures"}
         """
-        platform_lookup = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
-
         # now pick current os and append project root
         proj_roots = {}
         for r in self._roots:
-            root = self._roots[r][ platform_lookup[sys.platform] ]
+            root = self._roots[r][get_shotgun_storage_key()]
             
             if root is None:
                 raise TankError("Undefined toolkit storage! The local file storage '%s' is not defined for this "
@@ -418,16 +417,14 @@ class PipelineConfiguration(object):
         # note: currently supported platforms are linux2, win32 and darwin, however additional
         # platforms may be added in the future.
         
-        platform_lookup = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
-
         proj_roots = {}
         for storage_name in self._roots:
             # create dict entry for each storage
             proj_roots[storage_name] = {}
 
-            for (platform, shotgun_platform) in platform_lookup.iteritems():
+            for platform in ["win32", "linux2", "darwin"]:
                 # for each operating system, append the project root path
-                storage_path = self._roots[storage_name][shotgun_platform]
+                storage_path = self._roots[storage_name][get_shotgun_storage_key(platform)]
                 if storage_path:
                     # append project name
                     storage_path = self.__append_project_name_to_root(storage_path, platform)
@@ -565,14 +562,23 @@ class PipelineConfiguration(object):
         """
 
         if location_dict.get("type") == "dev":
+            # several different path parameters are supported by the dev descriptor.
+            # scan through all path keys and look for pipeline config token
 
-            # platform specific location support
-            platform_key = {"linux2": "linux_path", "darwin": "mac_path", "win32": "windows_path"}[sys.platform]
+            # platform specific resolve
+            platform_key = get_shotgun_storage_key()
             if platform_key in location_dict:
-                location_dict[platform_key] = location_dict[platform_key].replace("{PIPELINE_CONFIG}", self.get_path())
+                location_dict[platform_key] = location_dict[platform_key].replace(
+                    constants.PIPELINE_CONFIG_DEV_DESCRIPTOR_TOKEN,
+                    self.get_path()
+                )
 
+            # local path resolve
             if "path" in location_dict:
-                location_dict["path"] = location_dict["path"].replace("{PIPELINE_CONFIG}", self.get_path())
+                location_dict["path"] = location_dict["path"].replace(
+                    constants.PIPELINE_CONFIG_DEV_DESCRIPTOR_TOKEN,
+                    self.get_path()
+                )
 
         return location_dict
 

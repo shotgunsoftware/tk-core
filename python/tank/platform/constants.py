@@ -160,6 +160,10 @@ VALID_SG_ENTITY_NAME_EXPLANATION = ("letters, numbers and the characters period(
 PRIMARY_PIPELINE_CONFIG_NAME = "Primary"
 UNMANAGED_PIPELINE_CONFIG_NAME = "Unmanaged"
 
+# special dev descriptor token that can be used
+# as a replacement for the path to a pipeline configuration
+PIPELINE_CONFIG_DEV_DESCRIPTOR_TOKEN = "{PIPELINE_CONFIG}"
+
 # app store: the entity that represents the core api
 TANK_CORE_VERSION_ENTITY = "CustomNonProjectEntity01"
 

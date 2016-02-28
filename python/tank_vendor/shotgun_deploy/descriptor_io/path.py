@@ -14,6 +14,8 @@ import sys
 from .base import IODescriptorBase
 from ..errors import ShotgunDeployError
 
+from ...shotgun_base import get_shotgun_storage_key
+
 class IODescriptorPath(IODescriptorBase):
     """
     Represents a local item on disk. This item is never downloaded
@@ -59,10 +61,7 @@ class IODescriptorPath(IODescriptorBase):
         )
 
         # platform specific location support
-        platform_key = {
-            "linux2": "linux_path",
-            "darwin": "mac_path",
-            "win32": "windows_path"}[sys.platform]
+        platform_key = get_shotgun_storage_key()
 
         if "path" in location_dict:
             # first look for 'path' key

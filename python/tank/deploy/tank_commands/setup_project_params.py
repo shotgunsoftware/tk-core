@@ -27,6 +27,7 @@ from .. import util as deploy_util
 from .setup_project_core import _copy_folder
 
 from tank_vendor import yaml
+from tank_vendor.shotgun_base import get_shotgun_storage_key
 
 
 class ProjectSetupParameters(object):
@@ -284,7 +285,7 @@ class ProjectSetupParameters(object):
         if not self._config_template.is_local_config():
             return False
 
-        field_name = {"win32": "windows_path", "linux2": "linux_path", "darwin": "mac_path"}[sys.platform]
+        field_name = get_shotgun_storage_key()
 
         data = self._sg.find_one("PipelineConfiguration",
                                  [[field_name, "is", self._config_template.get_pipeline_configuration()]],
@@ -1160,8 +1161,7 @@ class TemplateConfiguration(object):
                         return_data[s]["shotgun_id"] = x.get("id")
 
                         # get the local path
-                        lookup_dict = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
-                        local_storage_path = x.get( lookup_dict[sys.platform] )
+                        local_storage_path = x.get(get_shotgun_storage_key())
 
                         if local_storage_path is None:
                             # shotgun has no path for our local storage

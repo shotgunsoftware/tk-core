@@ -19,6 +19,7 @@ from .errors import TankError, TankFileDoesNotExistError
 from .platform import constants
 from .util import yaml_cache
 
+from tank_vendor.shotgun_base import sanitize_path
 
 def is_localized(pipeline_config_path):
     """
@@ -118,70 +119,6 @@ def get_roots_metadata(pipeline_config_path):
 
     return data
 
-
-def sanitize_path(path, separator=os.path.sep):
-    """
-    Sanitize and clean up paths that may be incorrect.
-    
-    The following modifications will be carried out:
-    
-    None returns None
-    
-    Trailing slashes are removed:
-    1. /foo/bar      - unchanged
-    2. /foo/bar/     - /foo/bar
-    3. z:/foo/       - z:\foo
-    4. z:/           - z:\
-    5. z:\           - z:\
-    6. \\foo\bar\    - \\foo\bar
-
-    Double slashes are removed:
-    1. //foo//bar    - /foo/bar
-    2. \\foo\\bar    - \\foo\bar
-
-    Leading and trailing spaces are removed:
-    1. "   z:\foo  " - "Z:\foo"
-
-    :param path: the path to clean up
-    :param separator: the os.sep to adjust the path for. / on nix, \ on win.
-    :returns: cleaned up path
-    """
-    if path is None:
-        return None
-
-    # ensure there is no white space around the path
-    path = path.strip()
-
-    # get rid of any slashes at the end
-    # after this step, path value will be "/foo/bar", "c:" or "\\hello"
-    path = path.rstrip("/\\")
-    
-    # add slash for drive letters: c: --> c:/
-    if len(path) == 2 and path.endswith(":"):
-        path += "/"
-    
-    # and convert to the right separators
-    # after this we have a path with the correct slashes and no end slash
-    local_path = path.replace("\\", separator).replace("/", separator)
-
-    # now weed out any duplicated slashes. iterate until done
-    while True:
-        new_path = local_path.replace("//", "/")
-        if new_path == local_path:
-            break
-        else:
-            local_path = new_path
-    
-    # for windows, remove duplicated backslashes, except if they are 
-    # at the beginning of the path
-    while True:
-        new_path = local_path[0] + local_path[1:].replace("\\\\", "\\")
-        if new_path == local_path:
-            break
-        else:
-            local_path = new_path
-
-    return local_path
 
 
 
