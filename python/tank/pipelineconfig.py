@@ -80,7 +80,8 @@ class PipelineConfiguration(object):
 
         self._roots = pipelineconfig_utils.get_roots_metadata(self._pc_root)
 
-        # get the project tank disk name (Project.tank_name), stored in the PC metadata file.
+        # get the project tank disk name (Project.tank_name),
+        # stored in the pipeline config metadata file.
         pipeline_config_metadata = self._get_metadata()
         self._project_name = pipeline_config_metadata.get("project_name")
         self._project_id = pipeline_config_metadata.get("project_id")
@@ -89,7 +90,8 @@ class PipelineConfiguration(object):
         self._published_file_entity_type = pipeline_config_metadata.get("published_file_entity_type", "TankPublishedFile")        
         self._use_shotgun_path_cache = pipeline_config_metadata.get("use_shotgun_path_cache", False)
 
-        # figure out if to use the global bundle cache or the local pc 'install' cache
+        # figure out whether to use the global bundle cache or the
+        # local pipeline configuration 'install' cache
         if pipeline_config_metadata.get("use_global_bundle_cache"):
             # use global bundle cache
             self._bundle_cache_root_override = None
@@ -114,7 +116,7 @@ class PipelineConfiguration(object):
         return "<Sgtk Configuration %s>" % self._pc_root
 
     ########################################################################################
-    # handling pc metadata
+    # handling pipeline config metadata
     
     def _get_metadata(self):
         """
@@ -273,7 +275,8 @@ class PipelineConfiguration(object):
         if _is_empty(data.get("linux_path")) and \
            _is_empty(data.get("windows_path")) and \
            _is_empty(data.get("mac_path")):
-            # all three PC fields are empty. This means that we are running an auto path config
+            # all three pipeline config fields are empty.
+            # This means that we are running an auto path config
             return True
         
         else:
@@ -518,8 +521,9 @@ class PipelineConfiguration(object):
         """
         Returns the core api install location associated with this pipeline configuration.
 
-        Tries to resolve it via the explicit link which exists between the pc and the its core.
-        If this fails, it uses runtime introspection to resolve it.
+        Tries to resolve it via the explicit link which exists between
+        the pipeline config and the its core. If this fails, it uses
+        runtime introspection to resolve it.
         
         :returns: path string to the current core API install root location
         """

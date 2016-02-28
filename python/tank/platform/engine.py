@@ -1744,7 +1744,7 @@ class Engine(TankBundle):
         running apps are registered via a dev descriptor.
         """
         for app in self.__applications.values():
-            if app.descriptor.is_developer():
+            if app.descriptor.is_dev():
                 self.log_debug("App %s is registered via a dev descriptor. Will add a reload "
                                "button to the actions listings."  % app)
                 from . import restart

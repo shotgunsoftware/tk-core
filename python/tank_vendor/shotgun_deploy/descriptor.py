@@ -154,13 +154,13 @@ class Descriptor(object):
             display_name = self.get_system_name()
         return display_name
 
-    def is_developer(self):
+    def is_dev(self):
         """
         Returns true if this item is intended for development purposes
 
         :returns: True if this is a developer item
         """
-        return self._io_descriptor.is_developer()
+        return self._io_descriptor.is_dev()
 
     def get_description(self):
         """

@@ -143,7 +143,7 @@ class IODescriptorDev(IODescriptorPath):
 
         return cls._make_uri_from_chunks(uri)
 
-    def is_developer(self):
+    def is_dev(self):
         """
         Returns true if this item is intended for development purposes
         """

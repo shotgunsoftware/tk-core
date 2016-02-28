@@ -85,15 +85,11 @@ class CacheLocation(HookBaseClass):
         
         # if the bundle is a framework, we shorten it:
         # tk-framework-shotgunutils --> fw-shotgunutils        
-        bundle_name = bundle.name
-        if bundle_name.startswith("tk-framework-"):
-            bundle_name = "fw-%s" % bundle_name[len("tk-framework-"):]
-        
         # if the bundle is a multi-app, we shorten it:
-        # tk-multi-workfiles2 --> tm-workfiles2        
+        # tk-multi-workfiles2 --> tm-workfiles2
         bundle_name = bundle.name
-        if bundle_name.startswith("tk-multi-"):
-            bundle_name = "tm-%s" % bundle_name[len("tk-multi-"):]
+        bundle_name = bundle_name.replace("tk-framework-", "fw-")
+        bundle_name = bundle_name.replace("tk-multi-", "tm-")
 
         target_path = os.path.join(cache_root, bundle_name)
         self._ensure_folder_exists(target_path)

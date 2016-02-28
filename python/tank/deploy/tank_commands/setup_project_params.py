@@ -605,7 +605,8 @@ class ProjectSetupParameters(object):
 
         # validate that the config location is not taken
         if os.path.exists(config_path_current_os):
-            # pc location already exists - make sure it doesn't already contain an install
+            # pipeline config location already exists -
+            # make sure it doesn't already contain an install
             if os.path.exists(os.path.join(config_path_current_os, "install")) or \
                os.path.exists(os.path.join(config_path_current_os, "config")):
                 raise TankError("Looks like the location '%s' already contains a "

@@ -438,7 +438,7 @@ class IODescriptorBase(object):
         """
         return (None, None)
 
-    def is_developer(self):
+    def is_dev(self):
         """
         Returns true if this item is intended for development purposes
         """

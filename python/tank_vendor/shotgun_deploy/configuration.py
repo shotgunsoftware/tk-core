@@ -520,7 +520,7 @@ class Configuration(object):
         # the pipeline config metadata
         # resolve project name and pipeline config name from shotgun.
         if self._pipeline_config_id:
-            # look up pc name and project name via the pc
+            # look up pipeline config name and project name via the pc
             log.debug("Checking pipeline config in Shotgun...")
 
             sg_data = self._sg_connection.find_one(

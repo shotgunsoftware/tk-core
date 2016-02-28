@@ -206,7 +206,7 @@ class TankQDialog(TankDialogBase):
             self.ui.label.setToolTip("This is part of the Shotgun App %s" % self._bundle.name)
             
             # Add our context to the header
-            # two lines - top line covers PC and Project
+            # two lines - top line covers pipeline config and Project
             # second line covers context (entity, step etc)
             
             pc = self._bundle.context.tank.pipeline_configuration

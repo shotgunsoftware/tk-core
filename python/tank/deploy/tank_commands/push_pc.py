@@ -34,7 +34,8 @@ CORE_API_FILES = ["interpreter_Linux.cfg",
                   "interpreter_Darwin.cfg", 
                   "shotgun.yml"]
 
-# core configuration files which are associated with a particular PC and should not be moved
+# core configuration files which are associated with a particular
+# pipeline config and should not be moved
 CORE_PC_FILES = ["install_location.yml", "pipeline_configuration.yml"]
 
 
@@ -137,12 +138,12 @@ class PushPCAction(Action):
             env = self.tk.pipeline_configuration.get_environment(env_name)
             for eng in env.get_engines():
                 desc = env.get_engine_descriptor(eng)
-                if desc.is_developer():
+                if desc.is_dev():
                     dev_desc = desc
                     break
                 for app in env.get_apps(eng):
                     desc = env.get_app_descriptor(eng, app)
-                    if desc.is_developer():
+                    if desc.is_dev():
                         dev_desc = desc
                         break
         if dev_desc:
@@ -185,7 +186,8 @@ class PushPCAction(Action):
                         log.debug("Removing system file %s" % path )
                         os.remove(path)
                 
-                # copy the pc specific special core files from existing cfg to new cfg
+                # copy the pipeline config specific special core files
+                # from existing cfg to new cfg
                 for core_file in CORE_PC_FILES:
                     curr_config_path = os.path.join(target_path, "core", core_file)
                     new_config_path = os.path.join(target_tmp_path, "core", core_file)

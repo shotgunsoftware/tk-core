@@ -192,8 +192,8 @@ def get_path_to_current_core():
     """
     Returns the local path of the currently executing code, assuming that this code is 
     located inside a standard toolkit install setup. If the code that is running is part
-    of a localized pipeline configuration, the PC root path will be returned, otherwise 
-    a 'studio' root will be returned.
+    of a localized pipeline configuration, the pipeline config root path
+    will be returned, otherwise a 'studio' root will be returned.
     
     This method may not return valid results if there has been any symlinks set up as part of
     the install structure.
@@ -226,7 +226,7 @@ def get_core_path_for_config(pipeline_config_path):
         install_path = pipeline_config_path
 
     else:
-        # this PC is associated with a shared API (studio install)
+        # this pipeline config is associated with a shared API (studio install)
         # follow the links defined in the configuration to establish which 
         # setup it has been associated with.
         studio_linkback_files = {"win32": os.path.join(pipeline_config_path, "install", "core", "core_Windows.cfg"), 
@@ -277,7 +277,7 @@ def get_config_install_location(path):
     on the current platform.
     
     Loads the location metadata file from install_location.yml
-    This contains a reflection of the paths given in the pc entity.
+    This contains a reflection of the paths given in the pipeline config entity.
 
     Returns the path that has been registered for this pipeline configuration 
     for the current OS. This is the path that has been defined in shotgun.
