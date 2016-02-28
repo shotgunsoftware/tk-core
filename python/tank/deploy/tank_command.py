@@ -304,6 +304,10 @@ class SgtkSystemCommand(object):
                        is the value you want to pass. You can query which parameters
                        can be passed in via the parameters property.
         """
+
+        if self.__internal_action_obj.tk:
+            self.__internal_action_obj.tk.log_metric(self.name)
+
         return self.__internal_action_obj.run_noninteractive(self.__log, params)
         
         
@@ -459,6 +463,10 @@ def run_action(log, tk, ctx, command, args):
         log.info("Command: %s" % found_action.name.replace("_", " ").capitalize())
         log.info("-" * 70)
         log.info("")
+
+        if found_action.tk and not isinstance(found_action, ShellEngineAction):
+            found_action.tk.log_metric(found_action.name)
+
         return found_action.run_interactive(log, args)
 
 

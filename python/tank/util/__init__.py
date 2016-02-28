@@ -23,3 +23,6 @@ from .path import prepend_path_to_env_var
 from .login import get_shotgun_user
 from .login import get_current_user
 
+from .metrics import log_user_activity_metric
+from .metrics import log_user_attribute_metric
+

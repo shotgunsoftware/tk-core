@@ -168,9 +168,8 @@ class SetupProjectAction(Action):
             core_localize.do_localize(log, 
                                       params.get_configuration_location(sys.platform), 
                                       suppress_prompts=True)
-                        
-                        
-                        
+
+
     def run_interactive(self, log, args):
         """
         Tank command accessor
@@ -264,9 +263,9 @@ class SetupProjectAction(Action):
         log.info("")
         log.info("For more Apps, Support, Documentation and the Toolkit Community, go to")
         log.info("https://support.shotgunsoftware.com")
-        log.info("")        
-        
-        
+        log.info("")
+
+
     def _shotgun_connect(self, log):
         """
         Connects to the App store and to the associated shotgun site.
