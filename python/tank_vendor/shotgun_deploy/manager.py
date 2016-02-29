@@ -303,7 +303,7 @@ class ToolkitManager(object):
         log.debug("Launched engine %r" % engine)
         return engine
 
-    def get_configuration_uri(self, project_id):
+    def get_configuration_uri(self, project_id=None):
         """
         Return the config uri that is associated with the given
         project. Also takes into account the namespace and
@@ -334,7 +334,7 @@ class ToolkitManager(object):
     ####################################################################################
     # future functionality
 
-    def validate(self, project_id):
+    def validate(self, project_id=None):
         """
         Check the validity of the given project against the given
         base config. This can used to determine that a particular
@@ -348,7 +348,7 @@ class ToolkitManager(object):
         """
         # @todo - implement validate() method
 
-    def upload_configuration(self, project_id):
+    def upload_configuration(self, project_id=None):
         """
         Convenience method that uploads the given base
         config to Shotgun.
