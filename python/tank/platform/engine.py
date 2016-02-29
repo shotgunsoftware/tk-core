@@ -17,6 +17,7 @@ import os
 import re
 import sys
 import traceback
+import inspect
 import weakref
 import threading
         
@@ -662,12 +663,28 @@ class Engine(TankBundle):
                 # also add a prefix key in the properties dict
                 properties["prefix"] = prefix
 
-        # wrapper that logs app and usage metrics before executing the
-        # callback.
+        # now define command wrappers to capture metrics logging
+        # on command execution. The toolkit callback system supports
+        # two different callback styles:
+        #
+        # - A legacy type which is only used by Shotgun Apps which
+        #   utilize multi select. These callbacks are always on the
+        #   form callback(entity_type, entity_ids)
+        #
+        # - The standard type, which does not pass any arguments:
+        #   callback()
+        #
+        # In order to determine when to use the legacy type in other
+        # parts of the code, there is code that introspects the callback
+        # itself. This means that when we wrap the callback, we need to
+        # preserve the arg signature and arity.
+
+        # first define a generic callback wrapper that works in all
+        # cases except the legacy case. This generically wraps around
+        # the callback and passes all args.
         def callback_wrapper(*args, **kwargs):
 
             if properties.get("app"):
-
                 # track which app command is being launched
                 properties["app"].log_metric("'%s'" % name)
 
@@ -676,11 +693,24 @@ class Engine(TankBundle):
                     "%s version" % properties["app"].name,
                     properties["app"].version
                 )
-
+            # run the actual payload callback
             return callback(*args, **kwargs)
 
+        # now define a legacy callback that mimics the
+        # exact signature of the legacy format:
+        def legacy_callback_wrapper(entity_type, entity_ids):
+            return callback_wrapper(entity_type, entity_ids)
+
+        # detect the legacy case: callback(entity_type, entity_ids)
+        arg_spec = inspect.getargspec(callback)
+        # note - cannot use named tuple form because it is py2.6+
+        if "entity_type" in arg_spec[0] and "entity_ids" in arg_spec[0]:
+            resolved_callback = legacy_callback_wrapper
+        else:
+            resolved_callback = callback_wrapper
+
         self.__commands[name] = {
-            "callback": callback_wrapper,
+            "callback": resolved_callback,
             "properties": properties,
         }
 
