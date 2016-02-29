@@ -674,14 +674,20 @@ class Engine(TankBundle):
         # - The standard type, which does not pass any arguments:
         #   callback()
         #
-        # In order to determine when to use the legacy type in other
-        # parts of the code, there is code that introspects the callback
-        # itself. This means that when we wrap the callback, we need to
-        # preserve the arg signature and arity.
 
-        # first define a generic callback wrapper that works in all
-        # cases except the legacy case. This generically wraps around
-        # the callback and passes all args.
+        # introspect the arg list to determine this and set a flag
+        # to highlight this state. This is used by the tank_command
+        # execution logic to correctly dispatch the callback during
+        # runtime.
+        arg_spec = inspect.getargspec(callback)
+        # note - cannot use named tuple form because it is py2.6+
+        arg_list = arg_spec[0]
+
+        if "entity_type" in arg_list and "entity_ids" in arg_list:
+            # add property flag
+            properties[constants.LEGACY_MULTI_SELECT_ACTION_FLAG] = True
+
+        # define a generic callback wrapper for metrics logging
         def callback_wrapper(*args, **kwargs):
 
             if properties.get("app"):
@@ -696,21 +702,8 @@ class Engine(TankBundle):
             # run the actual payload callback
             return callback(*args, **kwargs)
 
-        # now define a legacy callback that mimics the
-        # exact signature of the legacy format:
-        def legacy_callback_wrapper(entity_type, entity_ids):
-            return callback_wrapper(entity_type, entity_ids)
-
-        # detect the legacy case: callback(entity_type, entity_ids)
-        arg_spec = inspect.getargspec(callback)
-        # note - cannot use named tuple form because it is py2.6+
-        if "entity_type" in arg_spec[0] and "entity_ids" in arg_spec[0]:
-            resolved_callback = legacy_callback_wrapper
-        else:
-            resolved_callback = callback_wrapper
-
         self.__commands[name] = {
-            "callback": resolved_callback,
+            "callback": callback_wrapper,
             "properties": properties,
         }
 
