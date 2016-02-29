@@ -132,7 +132,7 @@ class ToolkitManager(object):
     base_configuration = property(_get_base_configuration, _set_base_configuration)
 
 
-    def set_bundle_cache_fallback_paths(self, paths):
+    def _set_bundle_cache_fallback_paths(self, paths):
         """
         Specify a list of fallback paths where toolkit will go
         look for cached bundles in case a bundle isn't found in
@@ -144,7 +144,7 @@ class ToolkitManager(object):
         sources.
 
         Any missing bundles will be downloaded and cached into
-        the primary bundle cache. For unmanaged projects, this is
+        the *primary* bundle cache. For unmanaged projects, this is
         typically a folder on the local machine.
 
         :param paths: List of paths
@@ -153,6 +153,20 @@ class ToolkitManager(object):
         #         future so that studios can easily add their own 'primed cache'
         #         locations for performance or to save space.
         self._bundle_cache_fallback_paths = paths
+
+    def _get_bundle_cache_fallback_paths(self):
+        """
+        Returns the list of bundle cache fallback paths.
+
+        :returns: list of path strings
+        """
+        return self._bundle_cache_fallback_paths
+
+    bundle_cache_fallback_paths = property(
+        _get_bundle_cache_fallback_paths,
+        _set_bundle_cache_fallback_paths
+    )
+
 
     def set_progress_callback(self, callback):
         """
