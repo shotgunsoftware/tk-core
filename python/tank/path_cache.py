@@ -434,9 +434,15 @@ class PathCache(object):
                   - sg_id_lookup is a dictionary where the keys are path cache row ids 
                     and the values are the newly created corresponding shotgun ids. 
         """
-        
-        pc_link = {"type": "PipelineConfiguration",
-                   "id": self._tk.pipeline_configuration.get_shotgun_id() }
+
+        if self._tk.pipeline_configuration.is_unmanaged():
+            # no pipeline config for this one
+            pc_link = None
+        else:
+            pc_link = {
+                "type": "PipelineConfiguration",
+                "id": self._tk.pipeline_configuration.get_shotgun_id()
+            }
 
         sg_batch_data = []
         for d in data:

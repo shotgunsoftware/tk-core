@@ -21,7 +21,6 @@ from tank_vendor import yaml
 from . import constants
 from . import environment_includes
 from ..errors import TankError, TankUnreadableFileError
-from ..deploy import descriptor
 
 from ..util.yaml_cache import g_yaml_cache
 
@@ -290,11 +289,7 @@ class Environment(object):
                             "key for engine %s" % (self._env_path, framework_name))
 
         # get the descriptor object for the location
-        d = descriptor.get_from_location(descriptor.AppDescriptor.FRAMEWORK,
-                                         self.__pipeline_config,
-                                         location_dict)
-
-        return d
+        return self.__pipeline_config.get_framework_descriptor(location_dict)
 
     def get_engine_descriptor(self, engine_name):
         """
@@ -306,27 +301,20 @@ class Environment(object):
                             "key for engine %s" % (self._env_path, engine_name))
 
         # get the descriptor object for the location
-        d = descriptor.get_from_location(descriptor.AppDescriptor.ENGINE,
-                                         self.__pipeline_config,
-                                         location_dict)
-
-        return d
+        return self.__pipeline_config.get_engine_descriptor(location_dict)
 
     def get_app_descriptor(self, engine_name, app_name):
         """
         Returns the descriptor object for an app.
         """
-        location_dict = self.__engine_locations.get( (engine_name, app_name) )
+
+        location_dict = self.__engine_locations.get((engine_name, app_name))
         if location_dict is None:
             raise TankError("The environment %s does not have a valid location "
                             "key for app %s.%s" % (self._env_path, engine_name, app_name))
 
         # get the version object for the location
-        d = descriptor.get_from_location(descriptor.AppDescriptor.APP,
-                                         self.__pipeline_config,
-                                         location_dict)
-
-        return d
+        return self.__pipeline_config.get_app_descriptor(location_dict)
 
     ##########################################################################################
     # Public methods - data update

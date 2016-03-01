@@ -15,14 +15,11 @@ Various helper methods relating to user interaction via the shell.
 import textwrap
 import os
 
-from ... import pipelineconfig
 from ... import pipelineconfig_utils
 from ...platform import validation
 from ...platform import constants
 from ...errors import TankError
 from ...util import shotgun
-from ..app_store_descriptor import TankAppStoreDescriptor
-from ..descriptor import AppDescriptor
 from .. import util
 
 
@@ -330,13 +327,15 @@ def ensure_frameworks_installed(log, tank_api_instance, file_location, descripto
         # - minor: v1.x.x
         # - increment: v1.2.x
 
-        # get the latest version from the app store...
-        fw_descriptor = TankAppStoreDescriptor.find_latest_item(
-            tank_api_instance.pipeline_configuration.get_path(),
-            tank_api_instance.pipeline_configuration.get_bundles_location(),
-            AppDescriptor.FRAMEWORK,
-            name,
-            version_pattern)
+        # get the latest version from the app store by 
+        # first getting a stub and then looking for latest.
+        location_stub = {"type": "app_store", 
+                         "version": "latest",
+                         "name": name}
+        
+        pc = tank_api_instance.pipeline_configuration
+        
+        fw_descriptor = pc.get_framework_descriptor(location_stub)
 
         installed_fw_descriptors.append(fw_descriptor)
 
@@ -358,10 +357,10 @@ def ensure_frameworks_installed(log, tank_api_instance, file_location, descripto
         # okay to install!
 
         # create required shotgun fields
-        fw_descriptor.ensure_shotgun_fields_exist()
+        fw_descriptor.ensure_shotgun_fields_exist(tank_api_instance)
 
         # run post install hook
-        fw_descriptor.run_post_install()
+        fw_descriptor.run_post_install(tank_api_instance)
 
         # now get data for all new settings values in the config
         params = get_configuration(log, tank_api_instance, fw_descriptor, None, suppress_prompts, None)

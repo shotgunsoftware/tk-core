@@ -421,10 +421,10 @@ def _update_item(log, suppress_prompts, tk, env, old_descriptor, new_descriptor,
         new_descriptor.download_local()
 
     # create required shotgun fields
-    new_descriptor.ensure_shotgun_fields_exist()
+    new_descriptor.ensure_shotgun_fields_exist(tk)
 
     # run post install hook
-    new_descriptor.run_post_install()
+    new_descriptor.run_post_install(tk)
 
     # ensure that all required frameworks have been installed
     # find the file where our item is being installed

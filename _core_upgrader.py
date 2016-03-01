@@ -341,17 +341,18 @@ def _upgrade_tank_cmd_binaries(sgtk_install_root, log):
     pcs = sg.find("PipelineConfiguration", [], ["code", "project", "windows_path", "mac_path", "linux_path"])
     for pc in pcs:
         try:        
-            # get the pc root for this platform and make sure it exists:
+            # get the pipeline config root for this platform and make sure it exists:
             pc_tank_root = pc.get(SG_LOCAL_STORAGE_OS_MAP[sys.platform])
             if pc_tank_root is None:
                 continue
             if not os.path.exists(pc_tank_root):
                 continue
                     
-            # need to determine if this pc is using core located at sgtk_install_root
+            # need to determine if this pipeline config
+            # is using core located at sgtk_install_root
             pc_core_install_root = __get_pc_core_install_root(pc_tank_root)
             if not pc_core_install_root or pc_core_install_root != sgtk_install_root:
-                # this pc doesn't use the same core so skip it!
+                # this pipeline config doesn't use the same core so skip it!
                 continue
     
             # all good so lets process this config:

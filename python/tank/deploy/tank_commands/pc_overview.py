@@ -15,6 +15,8 @@ from ...platform import constants
 from ...errors import TankError
 from .action_base import Action
 
+from tank_vendor.shotgun_base import get_shotgun_storage_key
+
 import sys
 import os
 
@@ -115,8 +117,7 @@ class PCBreakdownAction(Action):
             if self.tk.pipeline_configuration.is_auto_path():
                 local_path = self.tk.pipeline_configuration.get_path()
             else:
-                storage_map = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
-                local_path = d.get(storage_map[sys.platform])
+                local_path = d.get(get_shotgun_storage_key())
 
             if local_path is None:
                 log.info("The Configuration is not accessible from this computer!")

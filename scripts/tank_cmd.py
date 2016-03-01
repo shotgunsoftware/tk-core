@@ -1040,7 +1040,7 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
     Launches an engine and potentially executes a command.
 
     :param log: logger
-    :param pipeline_config_root: PC config location
+    :param pipeline_config_root: pipeline config location
     :param context_items: list of strings to describe context. Either ["path"],
                                ["entity_type", "entity_id"] or ["entity_type", "entity_name"]
 
@@ -1459,7 +1459,7 @@ if __name__ == "__main__":
     if len(cmd_line) > 0 and cmd_line[-1].startswith("--pc="):
         pipeline_config_root = cmd_line[-1][5:]
     else:
-        # no PC parameter passed. But it could be that we are using a localized core
+        # no pipeline config parameter passed. But it could be that we are using a localized core
         # meaning that the core is contained inside the project itself. In that case,
         # the install root is the same as the pipeline config root.
         if is_localized:

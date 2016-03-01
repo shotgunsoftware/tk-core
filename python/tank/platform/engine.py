@@ -23,10 +23,7 @@ import threading
         
 from .. import loader
 from .. import hook
-
 from ..errors import TankError, TankEngineInitError, TankContextChangeNotSupportedError
-from ..deploy import descriptor
-from ..deploy.dev_descriptor import TankDevDescriptor
 from ..util import log_user_activity_metric, log_user_attribute_metric
 from ..util.metrics import MetricsDispatcher
 
@@ -184,7 +181,7 @@ class Engine(TankBundle):
             self.log_debug("Starting metrics dispatcher...")
             self._metrics_dispatcher.start()
             self.log_debug("Metrics dispatcher started.")
-        
+
     def __repr__(self):
         return "<Sgtk Engine 0x%08x: %s, env: %s>" % (id(self),  
                                                       self.name, 
@@ -612,7 +609,7 @@ class Engine(TankBundle):
         # Last, now that we're otherwise done, we can run the
         # apps' post_engine_init methods.
         self.__run_post_engine_inits()
-    
+
     ##########################################################################################
     # public methods
 
@@ -1663,7 +1660,7 @@ class Engine(TankBundle):
                         ))
                         self.__applications[app_instance_name] = app
                         continue
-            
+
             # load the app
             try:
                 # now get the app location and resolve it into a version object
@@ -1770,11 +1767,11 @@ class Engine(TankBundle):
         running apps are registered via a dev descriptor.
         """
         for app in self.__applications.values():
-            if isinstance(app.descriptor, TankDevDescriptor):
+            if app.descriptor.is_dev():
                 self.log_debug("App %s is registered via a dev descriptor. Will add a reload "
                                "button to the actions listings."  % app)
-                from . import restart 
-                self.register_command("Reload and Restart", restart, {"short_name": "restart", "type": "context_menu"})                
+                from . import restart
+                self.register_command("Reload and Restart", restart, {"short_name": "restart", "type": "context_menu"})
                 # only need one reload button, so don't keep iterating :)
                 break
 

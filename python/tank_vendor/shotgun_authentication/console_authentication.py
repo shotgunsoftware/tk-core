@@ -22,11 +22,11 @@ at any point.
 from . import session_cache
 from .errors import AuthenticationError, AuthenticationCancelled
 from tank_vendor.shotgun_api3 import MissingTwoFactorAuthenticationFault
+from .sg_auth_logging import get_logger
 
 from getpass import getpass
-import logging
 
-logger = logging.getLogger("sg_auth.console")
+logger = get_logger("console")
 
 
 class ConsoleAuthenticationHandlerBase(object):

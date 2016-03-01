@@ -478,7 +478,7 @@ class TestTankFromPathDuplicatePcPaths(TankTestBase):
     def setUp(self):
         super(TestTankFromPathDuplicatePcPaths, self).setUp()
 
-        # define an additional pc with overlapping paths
+        # define an additional pipeline config with overlapping paths
         self.overlapping_pc = {
             "type": "PipelineConfiguration",
             "code": "Primary",
@@ -602,9 +602,10 @@ class TestTankFromPathWindowsNoSlash(TankTestBase):
         roots_file.write(yaml.dump(roots))
         roots_file.close()
 
-        # need a new PC object that is using the new roots def file we just created
+        # need a new pipeline config object that is
+        # using the new roots def file we just created
         self.pipeline_configuration = sgtk.pipelineconfig_factory.from_path(self.pipeline_config_root)
-        # push this new PC into the tk api
+        # push this new pipeline config into the tk api
         self.tk._Tank__pipeline_config = self.pipeline_configuration
         # force reload templates
         self.tk.reload_templates()
@@ -697,9 +698,10 @@ class TestTankFromPathOverlapStorage(TankTestBase):
         roots_file.write(yaml.dump(roots))
         roots_file.close()
 
-        # need a new PC object that is using the new roots def file we just created
+        # need a new pipeline config object that is using the new
+        # roots def file we just created
         self.pipeline_configuration = sgtk.pipelineconfig_factory.from_path(self.pipeline_config_root)
-        # push this new PC into the tk api
+        # push this new pipeline config into the tk api
         self.tk._Tank__pipeline_config = self.pipeline_configuration
         # force reload templates
         self.tk.reload_templates()

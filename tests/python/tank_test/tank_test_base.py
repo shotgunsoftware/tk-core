@@ -17,7 +17,6 @@ import os
 import time
 import shutil
 import pprint
-import inspect
 import tempfile
 
 from tank_vendor.shotgun_api3.lib import mockgun
@@ -26,7 +25,7 @@ import unittest2 as unittest
 
 import sgtk
 import tank
-from tank_vendor import shotgun_authentication
+from tank_vendor import shotgun_base
 from tank import path_cache
 from tank_vendor import yaml
 
@@ -181,9 +180,8 @@ class TankTestBase(unittest.TestCase):
         self.tank_temp = TANK_TEMP
         self.init_cache_location = os.path.join(self.tank_temp, "init_cache.cache")
 
-        shotgun_authentication.session_cache._get_cache_location = lambda: os.path.join(
-            self.tank_temp, "session_cache"
-        )
+        shotgun_base.paths.get_cache_root = lambda: os.path.join(self.tank_temp, "cache_root")
+        self.cache_root = os.path.join(self.tank_temp, "cache_root")
 
         def _get_cache_location_mock():
             return self.init_cache_location
@@ -418,9 +416,10 @@ class TankTestBase(unittest.TestCase):
         roots_file.write(yaml.dump(roots))
         roots_file.close()
         
-        # need a new PC object that is using the new roots def file we just created
+        # need a new pipeline config object that is using the
+        # new roots def file we just created
         self.pipeline_configuration = sgtk.pipelineconfig_factory.from_path(self.pipeline_config_root)
-        # push this new PC into the tk api
+        # push this new pipeline config into the tk api
         self.tk._Tank__pipeline_config = self.pipeline_configuration 
         
         # force reload templates

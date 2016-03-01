@@ -18,9 +18,8 @@ at any point.
 --------------------------------------------------------------------------------
 """
 
-import logging
-
-logger = logging.getLogger("shotgun_auth.invoker")
+from .sg_auth_logging import get_logger
+logger = get_logger("invoker")
 
 
 def create():

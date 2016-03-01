@@ -17,6 +17,7 @@ var
 sdist
 develop-eggs
 .installed.cfg
+.idea
 .project
 .pydevproject
 .settings

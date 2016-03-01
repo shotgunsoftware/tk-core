@@ -1193,7 +1193,7 @@ def deserialize(context_str):
 
     data = pickle.loads(context_str)
 
-    # first get the pc path out of the dict
+    # first get the pipeline config path out of the dict
     pipeline_config_path = data["_pc_path"]
     del data["_pc_path"]
 
@@ -1243,7 +1243,7 @@ def context_yaml_representer(dumper, context):
     
     # now we also need to pass a TK instance to the constructor when we 
     # are deserializing the object. For this purpose, pass a 
-    # PC path as part of the dict
+    # pipeline config path as part of the dict
     context_dict["_pc_path"] = context.tank.pipeline_configuration.get_path()
 
     return dumper.represent_mapping(u'!TankContext', context_dict)
@@ -1259,7 +1259,7 @@ def context_yaml_constructor(loader, node):
     # get the dict from yaml
     context_constructor_dict = loader.construct_mapping(node)
     
-    # first get the pc path out of the dict
+    # first get the pipeline config path out of the dict
     pipeline_config_path = context_constructor_dict["_pc_path"] 
     del context_constructor_dict["_pc_path"]
     

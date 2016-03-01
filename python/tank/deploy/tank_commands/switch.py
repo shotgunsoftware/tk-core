@@ -11,9 +11,6 @@
 from ...errors import TankError
 from . import console_utils
 from .action_base import Action
-from ..descriptor import AppDescriptor 
-from ..descriptor import get_from_location
-from ..app_store_descriptor import TankAppStoreDescriptor 
 
 import os
 
@@ -147,37 +144,21 @@ class SwitchAppAction(Action):
         log.info("")
         
         if mode == "app_store":
-            
-            new_descriptor = TankAppStoreDescriptor.find_latest_item(
-                self.tk.pipeline_configuration.get_path(),
-                self.tk.pipeline_configuration.get_bundles_location(),
-                AppDescriptor.APP,
-                descriptor.get_system_name()
-            )
+            location = {"type": "app_store", "name": descriptor.get_system_name(), "version": "latest"}
+            new_descriptor = self.tk.pipeline_configuration.get_app_descriptor(location)
         
         elif mode == "dev":
-
             if not os.path.exists(path):
                 raise TankError("Cannot find path '%s' on disk!" % path)
 
             # run descriptor factory method
             location = {"type": "dev", "path": path}
-            new_descriptor = get_from_location(AppDescriptor.APP, 
-                                                          self.tk.pipeline_configuration, 
-                                                          location)
-
-
+            new_descriptor = self.tk.pipeline_configuration.get_app_descriptor(location)
 
         elif mode == "git":
-            
             # run descriptor factory method
-            location = {"type": "git", "path": path, "version": "v0.0.0"}
-            tmp_descriptor = get_from_location(AppDescriptor.APP, 
-                                               self.tk.pipeline_configuration, 
-                                               location)
-            # now find latest
-            new_descriptor = tmp_descriptor.find_latest_version()
-            
+            location = {"type": "git", "path": path, "version": "latest"}
+            new_descriptor = self.tk.pipeline_configuration.get_app_descriptor(location)
         
         else:
             raise TankError("Unknown mode!")
@@ -207,10 +188,10 @@ class SwitchAppAction(Action):
             new_descriptor.download_local()
     
         # create required shotgun fields
-        new_descriptor.ensure_shotgun_fields_exist()
+        new_descriptor.ensure_shotgun_fields_exist(self.tk)
     
         # run post install hook
-        new_descriptor.run_post_install()
+        new_descriptor.run_post_install(self.tk)
     
         # ensure that all required frameworks have been installed
         # find the file where our item is being installed
@@ -231,22 +212,3 @@ class SwitchAppAction(Action):
                                 new_descriptor.get_location())
         
         log.info("Switch complete!")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
