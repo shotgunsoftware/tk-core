@@ -93,7 +93,9 @@ class AppUpdatesAction(Action):
         :param log: std python logger
         :param args: command line args
         """
-                
+        (use_legacy_parser, args) = util.should_use_legacy_yaml_parser(args)
+        preserve_yaml = not use_legacy_parser
+
         if len(args) == 0:
             # update EVERYTHING!
             
@@ -154,7 +156,8 @@ class AppUpdatesAction(Action):
                                   self.tk,
                                   env_name=None,
                                   engine_instance_name=None, 
-                                  app_instance_name=None)
+                                  app_instance_name=None,
+                                  preserve_yaml=preserve_yaml)
             
             return
         
@@ -172,10 +175,7 @@ class AppUpdatesAction(Action):
                 external_path = arg[len("--external="):]
                 if external_path == "":
                     log.error("You need to specify a path to a toolkit configuration!")
-                    return        
-
-        (use_legacy_parser, args) = util.should_use_legacy_yaml_parser(args)
-        preserve_yaml = not use_legacy_parser
+                    return
 
         if len(args) > 0:
             env_filter = args[0]
@@ -220,7 +220,7 @@ def check_for_updates(log,
                       engine_instance_name, 
                       app_instance_name, 
                       external=None,
-                      preserve_yaml=False,
+                      preserve_yaml=True,
                       suppress_prompts=False):
     """
     Runs the update checker.
@@ -234,7 +234,6 @@ def check_for_updates(log,
     :param preserve_yaml: If True, a comment preserving yaml parser is used. 
     :param external: Path to external config to operate on
     """
-
     pc = tk.pipeline_configuration
     
     processed_items = []
