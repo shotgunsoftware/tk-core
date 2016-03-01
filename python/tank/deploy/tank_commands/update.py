@@ -10,6 +10,7 @@
 
 from .action_base import Action
 from . import console_utils
+from .. import util
 from ...platform.environment import WritableEnvironment
 from ...platform import constants
 import os
@@ -51,7 +52,7 @@ class AppUpdatesAction(Action):
         
         self.parameters["preserve_yaml"] = { "description": ("Enable alternative yaml parser that better preserves "
                                                              "yaml structure and comments"),
-                                            "default": False,
+                                            "default": True,
                                             "type": "bool" }      
         
         
@@ -110,16 +111,18 @@ class AppUpdatesAction(Action):
             log.info("General syntax:")
             log.info("---------------")
             log.info("")
-            log.info("> tank updates [environment_name] [engine_name] [app_name] [--use-pyyaml] [--external='/path/to/config']")
+            log.info("> tank updates [environment_name] "
+                     "[engine_name] [app_name] [%s] "
+                     "[--external='/path/to/config']" % constants.LEGACY_YAML_PARSER_FLAG)
             log.info("")
             log.info("- The special keyword ALL can be used to denote all items in a category.")
             log.info("")
             log.info("- If you want to update an external configuration instead of the current project, "
                      "pass in a path via the --external flag.")
             log.info("")
-            log.info("If you add a --use-pyyaml flag, the original, non-structure-preserving "
-                     "yaml parser will be used. This parser was used by default in core v0.17 "
-                     "and below.")
+            log.info("If you add a %s flag, the original, non-structure-preserving "
+                     "yaml parser will be used. This parser was used by default in core v0.17.x "
+                     "and below." % constants.LEGACY_YAML_PARSER_FLAG)
             log.info("")
             log.info("")
             log.info("")
@@ -171,13 +174,8 @@ class AppUpdatesAction(Action):
                     log.error("You need to specify a path to a toolkit configuration!")
                     return        
 
-        # look for an --use-pyyaml flag
-        if constants.LEGACY_YAML_PARSER_FLAG in args:
-            preserve_yaml = False
-            args.remove(constants.LEGACY_YAML_PARSER_FLAG)
-            log.info("Note: Falling back on pre-0.18 legacy yaml parser.")
-        else:
-            preserve_yaml = True
+        (use_legacy_parser, args) = util.should_use_legacy_yaml_parser(args)
+        preserve_yaml = not use_legacy_parser
 
         if len(args) > 0:
             env_filter = args[0]

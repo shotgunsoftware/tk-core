@@ -13,7 +13,27 @@ from distutils.version import LooseVersion
 import os
 import sys
 import shutil
+from ..platform import constants
 from ..errors import TankError
+
+def should_use_legacy_yaml_parser(args):
+    """
+    Given a set of command line args, determine if the
+    legacy yaml parser should be used.
+
+    :param args: list of arg strings
+    :returns: (use_legacy, adjusted_args) - tuple with bool to indicate
+              if the legacy parser should be used and a list of args where
+              the legacy flag has been removed.
+    """
+    # look for a legacy parser flag
+    if constants.LEGACY_YAML_PARSER_FLAG in args:
+        legacy_parser = True
+        args.remove(constants.LEGACY_YAML_PARSER_FLAG)
+    else:
+        legacy_parser = False
+
+    return (legacy_parser, args)
 
 def execute_git_command(cmd):
     """

@@ -14,6 +14,7 @@ from . import console_utils
 from .action_base import Action
 from ..descriptor import AppDescriptor 
 from ..descriptor import get_from_location
+from .. import util
 from ..app_store_descriptor import TankAppStoreDescriptor 
 
 import os
@@ -90,19 +91,14 @@ class SwitchAppAction(Action):
             log.info("")
             log.info("For a list of environments, engines and apps, run the app_info command.")
             log.info("")            
-            log.info("If you add a --use-pyyaml flag, the original, non-structure-preserving "
-                     "yaml parser will be used. This parser was used by default in core v0.17 "
-                     "and below.")
+            log.info("If you add a %s flag, the original, non-structure-preserving "
+                     "yaml parser will be used. This parser was used by default in core v0.17.x "
+                     "and below." % constants.LEGACY_YAML_PARSER_FLAG)
             log.info("")
             return
 
-        # look for an --use-pyyaml flag
-        if constants.LEGACY_YAML_PARSER_FLAG in args:
-            preserve_yaml = False
-            args.remove(constants.LEGACY_YAML_PARSER_FLAG)
-            log.info("Note: Falling back on pre-0.18 legacy yaml parser.")
-        else:
-            preserve_yaml = True
+        (use_legacy_parser, args) = util.should_use_legacy_yaml_parser(args)
+        preserve_yaml = not use_legacy_parser
 
         # get parameters
         env_name = args[0]

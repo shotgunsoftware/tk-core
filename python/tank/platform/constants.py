@@ -52,10 +52,10 @@ BUNDLE_PYTHON_FOLDER = "python"
 APP_STORE_QA_MODE_ENV_VAR = "TANK_QA_ENABLED"
 
 # force use old, non-structure preseving parser
-USE_PYYAML_ENV_VAR = "TK_USE_PYYAML"
+USE_LEGACY_YAML_ENV_VAR = "TK_USE_LEGACY_YAML"
 
 # flag to pass for legacy yaml parser
-LEGACY_YAML_PARSER_FLAG = "--use-pyyaml"
+LEGACY_YAML_PARSER_FLAG = "--use-legacy-yaml"
 
 # the file to look for that defines and bootstraps an engine
 ENGINE_FILE = "engine.py"

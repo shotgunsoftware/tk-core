@@ -605,7 +605,7 @@ class WritableEnvironment(Environment):
         :param val: True to enable new parser, false to disable
         """
         # environment variable setting overrides
-        if constants.USE_PYYAML_ENV_VAR in os.environ:
+        if constants.USE_LEGACY_YAML_ENV_VAR in os.environ:
             self._use_ruamel_yaml_parser = False
         else:
             self._use_ruamel_yaml_parser = val
