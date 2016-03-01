@@ -92,6 +92,10 @@ TANK_LOG_METRICS_CUSTOM_HOOK_BLACKLIST = [
     "pick_environment",
 ]
 
+# flag to indicate that an app command is a legacy style
+# shotgun multi select action
+LEGACY_MULTI_SELECT_ACTION_FLAG = "shotgun_multi_select_action"
+
 # hook that is executed whenever a PipelineConfiguration instance initializes.
 PIPELINE_CONFIGURATION_INIT_HOOK_NAME = "pipeline_configuration_init"
 

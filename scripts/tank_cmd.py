@@ -24,6 +24,7 @@ from tank.deploy import tank_command
 from tank.deploy.tank_commands.core_upgrade import TankCoreUpgrader
 from tank.deploy.tank_commands.action_base import Action
 from tank.util import shotgun, CoreDefaultsManager
+from tank.platform import constants
 from tank_vendor.shotgun_authentication import ShotgunAuthenticator
 from tank_vendor.shotgun_authentication import AuthenticationError
 from tank_vendor.shotgun_authentication import ShotgunAuthenticationError
@@ -266,17 +267,17 @@ def _run_shotgun_command(log, tk, action_name, entity_type, entity_ids):
     cmd = e.commands.get(action_name)
     if cmd:
         callback = cmd["callback"]
-        # introspect and get number of args for this fn
-        arg_count = callback.func_code.co_argcount
 
         # check if we are running a pre-013 engine
         # (this can be removed at a later point)
         if hasattr(e, "execute_old_style_command"):
             # 013 compliant engine!
-            # choose between simple style callbacks or complex style
-            # special shotgun callbacks - these always take two
-            # params entity_type and entity_ids
-            if arg_count > 1:
+            #
+            # choose between std style callbacks or special
+            # shotgun (legacy) multi select callbacks
+            # this is detected by register_command and a special
+            # flag is set for the multi select ones
+            if constants.LEGACY_MULTI_SELECT_ACTION_FLAG in cmd["properties"]:
                 # old style shotgun app launch - takes entity_type and ids as args
                 e.execute_old_style_command(action_name, entity_type, entity_ids)
             else:
