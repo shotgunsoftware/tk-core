@@ -84,7 +84,7 @@ def validate_platform(descriptor):
                             "Supported platforms are: %s" % (nice_system_name, supported_platforms))
 
     
-def get_missing_frameworks(descriptor, environment):
+def get_missing_frameworks(descriptor, environment, yml_file):
     """
     Returns a list of framework descriptors by the given descriptor required but not present 
     in the given environment.
@@ -95,7 +95,15 @@ def get_missing_frameworks(descriptor, environment):
     :returns: list dictionaries, each with a name and a version key.
     """
     required_frameworks = descriptor.get_required_frameworks()
-    current_framework_instances = environment.get_frameworks()
+
+    print "get_frameworks", environment.get_frameworks()
+    print "yml_file", yml_file
+
+    current_framework_instances = [
+        fw for fw in environment.get_frameworks() if environment.find_location_for_framework(fw)[1] == yml_file
+    ]
+
+    print "curent_framework_instances", current_framework_instances
     
     if len(required_frameworks) == 0:
         return []
