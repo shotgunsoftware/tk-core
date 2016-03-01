@@ -347,190 +347,192 @@ class ToolkitManager(object):
 
     ####################################################################################
     # future functionality
+    #
+    # def validate(self, project_id=None):
+    #     """
+    #     Check the validity of the given project against the given
+    #     base config. This can used to determine that a particular
+    #     base config can be assocaited with a given shotgun project.
+    #
+    #     Checks that storages exists and are correctly named and checks
+    #     that a tank project name has been set when necessary.
+    #
+    #     :param project_id: Project id for which to check
+    #     :returns: TBD
+    #     """
+    #     # @todo - implement validate() method
+    #
+    # def upload_configuration(self, project_id=None):
+    #     """
+    #     Convenience method that uploads the given base
+    #     config to Shotgun.
+    #
+    #     :param project_id: Project to upload config to.
+    #     """
+    #     if not util.is_toolkit_activated_in_shotgun(self._sg_connection):
+    #         raise ShotgunDeployError(
+    #             "Toolkit has not yet been fully activated in Shotgun! Before you can upload "
+    #             "any configurations, you must go into the app management menu in Shotgun "
+    #             "and turn on the Toolkit integration.")
+    #
+    #     # @todo - this method assumes non-official fields on pipelineconfiguration
+    #     # so requires further discussion prior to release.
+    #
+    #     log.debug("Begin uploading config to sgtk.")
+    #
+    #     # first resolve the config we are going to upload
+    #     cfg_descriptor = self._get_base_descriptor()
+    #     log.debug("Will upload %s to %r, project %s" % (cfg_descriptor, self, project_id))
+    #
+    #     # make sure it exists locally
+    #     self._report_progress("Downloading configuration...")
+    #     cfg_descriptor.ensure_local()
+    #
+    #     # zip up the config
+    #     self._report_progress("Compressing configuration...")
+    #     config_root_path = cfg_descriptor.get_path()
+    #     log.debug("Zipping up %s" % config_root_path)
+    #
+    #     zip_tmp = os.path.join(
+    #         tempfile.gettempdir(),
+    #         "tk_%s" % uuid.uuid4().hex,
+    #         datetime.datetime.now().strftime("%Y%m%d_%H%M%S.zip")
+    #     )
+    #     ensure_folder_exists(os.path.dirname(zip_tmp))
+    #     zipfilehelper.zip_file(config_root_path, zip_tmp)
+    #
+    #     # make sure a pipeline config record exists
+    #     self._report_progress("Looking for Pipeline Configuration...")
+    #     pc_id = self._ensure_pipeline_config_exists(project_id)
+    #
+    #     self._report_progress("Uploading zip to Shotgun...")
+    #     attachment_id = self._sg_connection.upload(
+    #         constants.PIPELINE_CONFIGURATION_ENTITY_TYPE,
+    #         pc_id,
+    #         zip_tmp,
+    #         constants.SHOTGUN_PIPELINECONFIG_ATTACHMENT_FIELD
+    #     )
+    #     log.debug("Upload complete!")
+    #
+    #     # write uri
+    #     self._report_progress("Updating Pipeline Configuration...")
+    #
+    #     location = {
+    #         "type": "shotgun",
+    #         "entity_type": constants.PIPELINE_CONFIGURATION_ENTITY_TYPE,
+    #         "name": self._pipeline_configuration_name,
+    #         "field": constants.SHOTGUN_PIPELINECONFIG_ATTACHMENT_FIELD,
+    #         "project_id": project_id,
+    #         "version": attachment_id
+    #     }
+    #
+    #     uri = location_dict_to_uri(location)
+    #
+    #     log.debug("Updating pipeline config with new uri %s" % uri)
+    #     self._sg_connection.update(
+    #         constants.PIPELINE_CONFIGURATION_ENTITY_TYPE,
+    #         pc_id,
+    #         {constants.SHOTGUN_PIPELINECONFIG_URI_FIELD: uri}
+    #     )
+    #
+    #     return pc_id
+    #
+    # def create_managed_configuration(
+    #     self,
+    #     project_id,
+    #     win_path=None,
+    #     mac_path=None,
+    #     linux_path=None,
+    #     win_python=None,
+    #     mac_python=None,
+    #     linux_python=None,
+    #     use_global_bundle_cache=False
+    # ):
+    #     """
+    #     Creates a managed configuration on disk given the base location.
+    #     The configuration will be downloaded and deployed for the
+    #     given project. A pipeline configuration will be created with paths referencing
+    #     the given locations on disk.
+    #
+    #     A path to a python interpreter can be specified. If this is not set, the
+    #     Shotgun desktop default python path will be used.
+    #
+    #     This process is akin to the toolkit project setup tank command.
+    #
+    #     :param project_id: Project id for which to create the configuration
+    #     :param win_path: Optional windows install path
+    #     :param mac_path: Otional mac install path
+    #     :param linux_path: Optional linux install path.
+    #     :param win_python: Optional python interpreter path.
+    #     :param mac_python: Optional python interpreter path.
+    #     :param linux_python: Optional python interpreter path.
+    #     :param use_global_bundle_cache: If True, the global bundle cache location
+    #         will be used to cache bundles (apps, engine and frameworks. This location
+    #         is on the local disk and is shared across all projects and all sites, but
+    #         not shared between machines. If set to False, bundles will be cached
+    #         in a location relative to the core installation (e.g as part of the
+    #         managed configuration). This is synonymous with the way toolkit worked
+    #         up to core v0.17. For managed configurations used for development and not
+    #         intended to shared between multiple machines, setting this to True is
+    #         recommended. For configurations that are deployed to production and shared
+    #         between multiple users and machines, it should be set to False.
+    #
+    #     :return: Shotgun id for the pipeline relevant configuration
+    #     """
+    #     if not util.is_toolkit_activated_in_shotgun(self._sg_connection):
+    #         raise ShotgunDeployError(
+    #             "Toolkit has not yet been fully activated in Shotgun! Before you can upload "
+    #             "any configurations, you must go into the app management menu in Shotgun "
+    #             "and turn on the Toolkit integration.")
+    #
+    #     log.debug("Begin installing config on disk.")
+    #
+    #     # check that we have a local path and interpreter
+    #     curr_os_path = {"win32": win_path, "linux2": linux_path, "darwin": mac_path}[sys.platform]
+    #
+    #     if curr_os_path is None:
+    #         raise ShotgunDeployError("Need to specify a path for the current operating system!")
+    #
+    #     # first resolve the config we are going to use to base the project on
+    #     descriptor_to_install = self._get_base_descriptor()
+    #     log.debug("Configuration will be based on: %r" % descriptor_to_install)
+    #
+    #     # make sure a pipeline config record exists
+    #     self._report_progress("Checking Pipeline Configuration...")
+    #     pc_id = self._ensure_pipeline_config_exists(project_id)
+    #
+    #     # create an object to represent our configuration install
+    #     self._report_progress("Installing Configuration...")
+    #     config = create_managed_configuration(
+    #         self._sg_connection,
+    #         project_id,
+    #         pc_id,
+    #         self._namespace,
+    #         self._bundle_cache_fallback_paths,
+    #         use_global_bundle_cache,
+    #         win_path,
+    #         linux_path,
+    #         mac_path
+    #     )
+    #
+    #     # and install or update the configuration with the new content
+    #     config.install_managed_configuration(
+    #         descriptor_to_install,
+    #         win_python,
+    #         mac_python,
+    #         linux_python
+    #     )
+    #
+    #     # we can now boot up this config.
+    #     self._report_progress("Starting up Toolkit...")
+    #     tk = config.get_tk_instance(self._sg_user)
+    #
+    #     # and cache
+    #     self._cache_apps(tk)
+    #
+    #     return pc_id
+    #
 
-    def validate(self, project_id=None):
-        """
-        Check the validity of the given project against the given
-        base config. This can used to determine that a particular
-        base config can be assocaited with a given shotgun project.
-
-        Checks that storages exists and are correctly named and checks
-        that a tank project name has been set when necessary.
-
-        :param project_id: Project id for which to check
-        :returns: TBD
-        """
-        # @todo - implement validate() method
-
-    def upload_configuration(self, project_id=None):
-        """
-        Convenience method that uploads the given base
-        config to Shotgun.
-
-        :param project_id: Project to upload config to.
-        """
-        if not util.is_toolkit_activated_in_shotgun(self._sg_connection):
-            raise ShotgunDeployError(
-                "Toolkit has not yet been fully activated in Shotgun! Before you can upload "
-                "any configurations, you must go into the app management menu in Shotgun "
-                "and turn on the Toolkit integration.")
-
-        # @todo - this method assumes non-official fields on pipelineconfiguration
-        # so requires further discussion prior to release.
-
-        log.debug("Begin uploading config to sgtk.")
-
-        # first resolve the config we are going to upload
-        cfg_descriptor = self._get_base_descriptor()
-        log.debug("Will upload %s to %r, project %s" % (cfg_descriptor, self, project_id))
-
-        # make sure it exists locally
-        self._report_progress("Downloading configuration...")
-        cfg_descriptor.ensure_local()
-
-        # zip up the config
-        self._report_progress("Compressing configuration...")
-        config_root_path = cfg_descriptor.get_path()
-        log.debug("Zipping up %s" % config_root_path)
-
-        zip_tmp = os.path.join(
-            tempfile.gettempdir(),
-            "tk_%s" % uuid.uuid4().hex,
-            datetime.datetime.now().strftime("%Y%m%d_%H%M%S.zip")
-        )
-        ensure_folder_exists(os.path.dirname(zip_tmp))
-        zipfilehelper.zip_file(config_root_path, zip_tmp)
-
-        # make sure a pipeline config record exists
-        self._report_progress("Looking for Pipeline Configuration...")
-        pc_id = self._ensure_pipeline_config_exists(project_id)
-
-        self._report_progress("Uploading zip to Shotgun...")
-        attachment_id = self._sg_connection.upload(
-            constants.PIPELINE_CONFIGURATION_ENTITY_TYPE,
-            pc_id,
-            zip_tmp,
-            constants.SHOTGUN_PIPELINECONFIG_ATTACHMENT_FIELD
-        )
-        log.debug("Upload complete!")
-
-        # write uri
-        self._report_progress("Updating Pipeline Configuration...")
-
-        location = {
-            "type": "shotgun",
-            "entity_type": constants.PIPELINE_CONFIGURATION_ENTITY_TYPE,
-            "name": self._pipeline_configuration_name,
-            "field": constants.SHOTGUN_PIPELINECONFIG_ATTACHMENT_FIELD,
-            "project_id": project_id,
-            "version": attachment_id
-        }
-
-        uri = location_dict_to_uri(location)
-
-        log.debug("Updating pipeline config with new uri %s" % uri)
-        self._sg_connection.update(
-            constants.PIPELINE_CONFIGURATION_ENTITY_TYPE,
-            pc_id,
-            {constants.SHOTGUN_PIPELINECONFIG_URI_FIELD: uri}
-        )
-
-        return pc_id
-
-    def create_managed_configuration(
-        self,
-        project_id,
-        win_path=None,
-        mac_path=None,
-        linux_path=None,
-        win_python=None,
-        mac_python=None,
-        linux_python=None,
-        use_global_bundle_cache=False
-    ):
-        """
-        Creates a managed configuration on disk given the base location.
-        The configuration will be downloaded and deployed for the
-        given project. A pipeline configuration will be created with paths referencing
-        the given locations on disk.
-
-        A path to a python interpreter can be specified. If this is not set, the
-        Shotgun desktop default python path will be used.
-
-        This process is akin to the toolkit project setup tank command.
-
-        :param project_id: Project id for which to create the configuration
-        :param win_path: Optional windows install path
-        :param mac_path: Otional mac install path
-        :param linux_path: Optional linux install path.
-        :param win_python: Optional python interpreter path.
-        :param mac_python: Optional python interpreter path.
-        :param linux_python: Optional python interpreter path.
-        :param use_global_bundle_cache: If True, the global bundle cache location
-            will be used to cache bundles (apps, engine and frameworks. This location
-            is on the local disk and is shared across all projects and all sites, but
-            not shared between machines. If set to False, bundles will be cached
-            in a location relative to the core installation (e.g as part of the
-            managed configuration). This is synonymous with the way toolkit worked
-            up to core v0.17. For managed configurations used for development and not
-            intended to shared between multiple machines, setting this to True is
-            recommended. For configurations that are deployed to production and shared
-            between multiple users and machines, it should be set to False.
-
-        :return: Shotgun id for the pipeline relevant configuration
-        """
-        if not util.is_toolkit_activated_in_shotgun(self._sg_connection):
-            raise ShotgunDeployError(
-                "Toolkit has not yet been fully activated in Shotgun! Before you can upload "
-                "any configurations, you must go into the app management menu in Shotgun "
-                "and turn on the Toolkit integration.")
-
-        log.debug("Begin installing config on disk.")
-
-        # check that we have a local path and interpreter
-        curr_os_path = {"win32": win_path, "linux2": linux_path, "darwin": mac_path}[sys.platform]
-
-        if curr_os_path is None:
-            raise ShotgunDeployError("Need to specify a path for the current operating system!")
-
-        # first resolve the config we are going to use to base the project on
-        descriptor_to_install = self._get_base_descriptor()
-        log.debug("Configuration will be based on: %r" % descriptor_to_install)
-
-        # make sure a pipeline config record exists
-        self._report_progress("Checking Pipeline Configuration...")
-        pc_id = self._ensure_pipeline_config_exists(project_id)
-
-        # create an object to represent our configuration install
-        self._report_progress("Installing Configuration...")
-        config = create_managed_configuration(
-            self._sg_connection,
-            project_id,
-            pc_id,
-            self._namespace,
-            self._bundle_cache_fallback_paths,
-            use_global_bundle_cache,
-            win_path,
-            linux_path,
-            mac_path
-        )
-
-        # and install or update the configuration with the new content
-        config.install_managed_configuration(
-            descriptor_to_install,
-            win_python,
-            mac_python,
-            linux_python
-        )
-
-        # we can now boot up this config.
-        self._report_progress("Starting up Toolkit...")
-        tk = config.get_tk_instance(self._sg_user)
-
-        # and cache
-        self._cache_apps(tk)
-
-        return pc_id
 
     def _report_progress(self, message, curr_idx=None, max_idx=None):
         """
