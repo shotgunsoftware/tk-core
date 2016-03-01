@@ -54,8 +54,8 @@ def get_site_cache_root(site_url):
     :returns: The calculated location for the cache root
     """
 
-    # get site only; https://www.foo.com:8080 -> www.foo.com
-    base_url = urlparse.urlparse(site_url).netloc.split(":")[0]
+    # get site only; https://www.FOO.com:8080 -> www.foo.com
+    base_url = urlparse.urlparse(site_url).netloc.split(":")[0].lower()
 
     # in order to apply further shortcuts to avoid hitting
     # MAX_PATH on windows, strip shotgunstudio.com from all
