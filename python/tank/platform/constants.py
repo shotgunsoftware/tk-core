@@ -84,6 +84,9 @@ TANK_BUNDLE_INIT_HOOK_NAME = "bundle_init"
 # hook to log metrics
 TANK_LOG_METRICS_HOOK_NAME = "log_metrics"
 
+# hook to be executed after bundle install
+BUNDLE_POST_INSTALL_HOOK = "post_install.py"
+
 # metrics logging custom hooks blacklist
 TANK_LOG_METRICS_CUSTOM_HOOK_BLACKLIST = [
     "pick_environment",
@@ -162,27 +165,17 @@ VALID_SG_ENTITY_NAME_EXPLANATION = ("letters, numbers and the characters period(
 
 # the name of the primary pipeline configuration
 PRIMARY_PIPELINE_CONFIG_NAME = "Primary"
+UNMANAGED_PIPELINE_CONFIG_NAME = "Unmanaged"
+
+# special dev descriptor token that can be used
+# as a replacement for the path to a pipeline configuration
+PIPELINE_CONFIG_DEV_DESCRIPTOR_TOKEN = "{PIPELINE_CONFIG}"
+
+# Configuration file containing setup and path details
+PIPELINECONFIG_FILE = "pipeline_configuration.yml"
 
 # app store: the entity that represents the core api
 TANK_CORE_VERSION_ENTITY = "CustomNonProjectEntity01"
-
-# app store: the entity representing apps
-TANK_APP_ENTITY         = "CustomNonProjectEntity02"
-
-# app store: the entity representing app versions
-TANK_APP_VERSION_ENTITY = "CustomNonProjectEntity05"
-
-# app store: the entity representing engines
-TANK_ENGINE_ENTITY      = "CustomNonProjectEntity03"
-
-# app store: the entity representing engine versions
-TANK_ENGINE_VERSION_ENTITY = "CustomNonProjectEntity04"
-
-# app store: the entity representing frameworks
-TANK_FRAMEWORK_ENTITY      = "CustomNonProjectEntity13"
-
-# app store: the entity representing framework versions
-TANK_FRAMEWORK_VERSION_ENTITY = "CustomNonProjectEntity09"
 
 # app store: the entity representing configs
 TANK_CONFIG_ENTITY = "CustomNonProjectEntity07"

@@ -206,7 +206,7 @@ class TankQDialog(TankDialogBase):
             self.ui.label.setToolTip("This is part of the Shotgun App %s" % self._bundle.name)
             
             # Add our context to the header
-            # two lines - top line covers PC and Project
+            # two lines - top line covers pipeline config and Project
             # second line covers context (entity, step etc)
             
             pc = self._bundle.context.tank.pipeline_configuration
@@ -215,7 +215,9 @@ class TankQDialog(TankDialogBase):
                 # this is a project only context
                 
                 # top line can contain the Pipeline Config
-                if pc.get_name() and pc.get_name() != constants.PRIMARY_PIPELINE_CONFIG_NAME:
+                if pc.get_name() and pc.get_name() not in \
+                        (constants.PRIMARY_PIPELINE_CONFIG_NAME,
+                         constants.UNMANAGED_PIPELINE_CONFIG_NAME):
                     # we are using a non-default pipeline config
                     first_line = "<b style='color: #30A7E3'>Config %s</b>" % pc.get_name()
                 else:
@@ -238,7 +240,9 @@ class TankQDialog(TankDialogBase):
                 
                 # ...unless we are running a non-Primary PC
                 pc = self._bundle.context.tank.pipeline_configuration 
-                if pc.get_name() and pc.get_name() != constants.PRIMARY_PIPELINE_CONFIG_NAME:
+                if pc.get_name() and pc.get_name() not in \
+                        (constants.PRIMARY_PIPELINE_CONFIG_NAME,
+                         constants.UNMANAGED_PIPELINE_CONFIG_NAME):
                     # we are using a non-default pipeline config
                     first_line = "<b style='color: #30A7E3'>Config %s</b>" % pc.get_name() 
                 
