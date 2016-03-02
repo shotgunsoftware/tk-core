@@ -16,7 +16,7 @@ import urllib2
 import cPickle as pickle
 
 from ..zipfilehelper import unzip_file
-from ..descriptor import Descriptor
+from ..descriptor import Descriptor, get_legacy_cache_path
 from ..errors import ShotgunDeployError, ShotgunAppStoreError
 from ...shotgun_base import ensure_folder_exists, safe_delete_file
 
@@ -241,6 +241,26 @@ class IODescriptorAppStore(IODescriptorBase):
                     self.get_version()
                 )
             )
+
+        # for compatibility with older versions of core, prior to v0.18.x,
+        # add the old-style bundle cache path as a fallback. As of v0.18.x,
+        # the bundle cache subdirectory names were shortened and otherwise
+        # modified to help prevent MAX_PATH issues on windows. This call adds
+        # the old path as a fallback for cases where core has been upgraded
+        # for an existing project.
+        try:
+            legacy_path = get_legacy_cache_path(
+                "app_store",
+                self._bundle_cache_root,
+                self._type,
+                self.get_system_name(),
+                self.get_version()
+            )
+        except ShotgunDeployError:
+            pass
+        else:
+            paths.append(legacy_path)
+
         return paths
 
     ###############################################################################################
