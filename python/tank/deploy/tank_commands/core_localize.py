@@ -356,7 +356,7 @@ class AttachToCoreAction(Action):
         # validate params and seed default values
         computed_params = self._validate_parameters(parameters)
         
-        return self._run_wrapper(log, computed_params["path"])
+        return self._run_wrapper(log, computed_params["path"], suppress_prompts=True)
         
     
     def run_interactive(self, log, args):
@@ -384,16 +384,17 @@ class AttachToCoreAction(Action):
         
         path_to_core = args[0]
 
-        return self._run_wrapper(log, path_to_core)
+        return self._run_wrapper(log, path_to_core, suppress_prompts=False)
  
  
-    def _run_wrapper(self, log, path_to_core):
+    def _run_wrapper(self, log, path_to_core, suppress_prompts):
         """
         Given the path to the core API, resolves the core path on all three OSes
         and then executes the unlocalize payload.
         
         :param log: Logger
         :param path_to_core: path to core root on current os.
+        :param suppress_prompts: Boolean to indicate if no questions should be asked.
         """
         
         # resolve the path to core on all platforms
@@ -408,7 +409,7 @@ class AttachToCoreAction(Action):
                                core_locations["win32"], 
                                core_locations["linux2"], 
                                copy_core=False, 
-                               suppress_prompts=False)
+                               suppress_prompts=suppress_prompts)
         
         
  
