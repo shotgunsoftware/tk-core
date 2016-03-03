@@ -16,6 +16,8 @@ import sgtk
 from sgtk import TankError
 import os
 import errno
+import sys
+import urlparse
 
 from tank_vendor.shotgun_base import get_pipeline_config_cache_root
 
@@ -51,9 +53,31 @@ class CacheLocation(HookBaseClass):
             project_id,
             pipeline_configuration_id
         )
-        self._ensure_folder_exists(cache_root)
+
         target_path = os.path.join(cache_root, "path_cache.db")
-        self._ensure_file_exists(target_path)
+
+        if os.path.exists(target_path):
+            # path exists, return it
+            return target_path
+
+        # ---- backward compatibility for old path cache locations
+
+        # The target path does not exist. This could be because it just hasn't
+        # been created yet, or it could be because of a core upgrade where the
+        # cache root directory structure has changed (such is the case with
+        # v0.17.x -> v0.18.x). To account for this scenario, see if the target
+        # exists in an old location first, and if so, return that path instead.
+
+        try:
+            legacy_path_cache = self._get_legacy_path_cache(
+                project_id, pipeline_configuration_id)
+        except TankError:
+            # legacy path cache does not exist. ensure original target exists.
+            self._ensure_folder_exists(cache_root)
+            self._ensure_file_exists(target_path)
+        else:
+            # legacy path exists, make it the target
+            target_path = legacy_path_cache
         
         return target_path
     
@@ -92,14 +116,35 @@ class CacheLocation(HookBaseClass):
         bundle_name = bundle_name.replace("tk-multi-", "tm-")
 
         target_path = os.path.join(cache_root, bundle_name)
-        self._ensure_folder_exists(target_path)
-        
+
+        if os.path.exists(target_path):
+            # path exists, return it
+            return target_path
+
+        # ---- backward compatibility for old bundle cache locations
+
+        # The target path does not exist. This could be because it just hasn't
+        # been created yet, or it could be because of a core upgrade where the
+        # bundle cache directory structure has changed (such is the case with
+        # v0.17.x -> v0.18.x). To account for this scenario, see if the target
+        # exists in an old location first, and if so, return that path instead.
+
+        try:
+            legacy_path_cache = self._get_legacy_bundle_cache(
+                project_id, pipeline_configuration_id, bundle)
+        except TankError:
+            # legacy bundle cache does not exist. ensure original target exists.
+            self._ensure_folder_exists(target_path)
+        else:
+            # legacy path exists, make it the target
+            target_path = legacy_path_cache
+
         return target_path
 
     def _ensure_file_exists(self, path):
         """
         Helper method - creates a file if it doesn't already exists
-        
+
         :param path: path to create
         """
         if not os.path.exists(path):
@@ -135,4 +180,88 @@ class CacheLocation(HookBaseClass):
                     raise TankError("Could not create cache folder '%s': %s" % (path, e))
             finally:
                 os.umask(old_umask)
+
+    def _get_legacy_cache_root_v017x(self, project_id, pipeline_configuration_id):
+        """Return the path cache root as defined in v0.17.x core.
+
+        :param project_id: The shotgun id of the project to store caches for
+        :param pipeline_configuration_id: The shotgun pipeline config id to store caches for
+        :rtype: str
+        :return: The v0.17.x cache root
+
+        """
+
+        # the legacy v0.17.x locations are:
+        # macosx: ~/Library/Caches/Shotgun/SITE_NAME/project_xxx/config_yyy
+        # windows: $APPDATA/Shotgun/SITE_NAME/project_xxx/config_yyy
+        # linux: ~/.shotgun/SITE_NAME/project_xxx/config_yyy
+
+        # first establish the root location
+        tk = self.parent
+        if sys.platform == "darwin":
+            root = os.path.expanduser("~/Library/Caches/Shotgun")
+        elif sys.platform == "win32":
+            root = os.path.join(os.environ["APPDATA"], "Shotgun")
+        elif sys.platform.startswith("linux"):
+            root = os.path.expanduser("~/.shotgun")
+
+        # get site only; https://www.foo.com:8080 -> www.foo.com
+        base_url = urlparse.urlparse(tk.shotgun_url)[1].split(":")[0]
+
+        # now structure things by site, project id, and pipeline config id
+        return os.path.join(
+            root,
+            base_url,
+            "project_%d" % project_id,
+            "config_%d" % pipeline_configuration_id,
+        )
+
+    def _get_legacy_path_cache(self, project_id, pipeline_configuration_id):
+        """Return the path cache file by looking at legacy locations.
+
+        :param project_id: The shotgun id of the project to store caches for
+        :param pipeline_configuration_id: The shotgun pipeline config id to store caches for
+        :rtype: str
+        :return: The legacy path to the path cache.
+        :raises: TankError - if no legacy path is found.
+        """
+
+        # If future backward incompatible changes are made to core, this method
+        # should be modified to account for additional legacy paths.
+
+        # --- v0.17.x
+
+        cache_root = self._get_legacy_cache_root_v017x(project_id,
+            pipeline_configuration_id)
+        path_cache = os.path.join(cache_root, "path_cache.db")
+
+        if not os.path.exists(path_cache):
+            raise TankError("No legacy path cache found.")
+
+        return path_cache
+
+    def _get_legacy_bundle_cache(self, project_id, pipeline_configuration_id, bundle):
+        """Return the bundle cache file by looking at legacy locations.
+
+        :param project_id: The shotgun id of the project to store caches for
+        :param pipeline_configuration_id: The shotgun pipeline config id to store caches for
+        :param bundle: The app, engine or framework object which is requesting the cache folder.
+        :rtype: str
+        :return: The legacy path to the bundle cache.
+        :raises: TankError - if no legacy path is found.
+        """
+
+        # If future backward incompatible changes are made to core, this method
+        # should be modified to account for additional legacy paths.
+
+        # --- v0.17.x
+
+        cache_root = self._get_legacy_cache_root_v017x(project_id,
+                                                       pipeline_configuration_id)
+        path_cache = os.path.join(cache_root, bundle.name)
+
+        if not os.path.exists(path_cache):
+            raise TankError("No legacy path cache found.")
+
+        return path_cache
 
