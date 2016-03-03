@@ -344,7 +344,7 @@ def get_legacy_cache_path(
     else:
         raise ShotgunDeployError(
             "Unknown bundle type '%s'. Can not determine legacy cache path." %
-            (bundlet_type,)
+            (bundle_type,)
         )
 
     # build and return the path.
