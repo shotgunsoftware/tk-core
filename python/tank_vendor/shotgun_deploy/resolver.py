@@ -65,12 +65,104 @@ class ConfigurationResolver(object):
         raise NotImplementedError
 
 
+class NoShotgunFallbackConfigurationResolver(ConfigurationResolver):
+    """
+    An simplistic resolver which is not aware of pipeline configurations
+    in Shotgun. This will always resolve the base config location
+    regardless of any external state.
+    """
+
+    def __init__(self, sg_connection, bundle_cache_fallback_paths):
+        """
+        Constructor
+
+        :param sg_connection: Shotgun API instance
+        :param bundle_cache_fallback_paths: List of additional paths where apps are cached.
+        """
+        super(NoShotgunFallbackConfigurationResolver, self).__init__(
+            sg_connection,
+            bundle_cache_fallback_paths
+        )
+
+    def resolve_configuration(
+        self,
+        project_id,
+        pipeline_config_name,
+        namespace,
+        base_config_location
+    ):
+        """
+        Given a Shotgun project (or None for site mode), return a configuration
+        object based on a particular set of resolution logic rules.
+
+        The NoShotgunFallbackConfigurationResolver is a simple and fast implementation
+        which does not take pipeline configuration entities in shotugn into account.
+        It just returns the base configuration.
+
+        Note: This implementation is expected to be replaced with the
+              BasicConfigurationResolver at some point soon.
+
+        :param project_id: Project id to create a config object for, None for the site config.
+        :param pipeline_config_name: Name of configuration branch (e.g Primary)
+        :param namespace: Config namespace to distinguish it from other configs with the
+                          same project id and pipeline configuration name.
+        :param base_config_location: Location dict or string for fallback config.
+        :return: Configuration instance
+        """
+        log.debug(
+            "%s resolving a configuration for project %s, "
+            "pipeline config %s, namespace %s" % (
+                self,
+                project_id,
+                pipeline_config_name,
+                namespace
+            )
+        )
+
+        # fall back on base
+        if base_config_location is None:
+            raise ShotgunDeployError(
+                "No base configuration specified and no pipeline "
+                "configuration exists in Shotgun for the given project. "
+                "Cannot create a configuration object.")
+
+        cfg_descriptor = create_descriptor(
+            self._sg_connection,
+            Descriptor.CONFIG,
+            base_config_location,
+            fallback_roots=self._bundle_cache_fallback_paths
+        )
+
+        log.debug("Configuration resolved to %r." % cfg_descriptor)
+
+        # create an object to represent our configuration install
+        return create_unmanaged_configuration(
+            self._sg_connection,
+            cfg_descriptor,
+            project_id,
+            None,  # pipeline config id
+            namespace,
+            self._bundle_cache_fallback_paths
+        )
+
+
 class BasicConfigurationResolver(ConfigurationResolver):
     """
     Basic configuration resolves which implements the logic
-    toolkit is using today.
+    toolkit is using today. It first tries to find a Pipeline Configuration
+    in Shotgun, if this fails, it falls back on the base configuration.
 
-    # @todo - handle namespace support in shotgun/pipeline config fields
+    This allows for a workflow where a project can start its life tracking
+    against a fully remote config - say the default config in the app store -
+    and when the time comes where the project needs to be customized, a
+    pipeline configuration is created in Shotgun. Once this is created, it
+    takes precedence over the base config location. The old path fields
+    on pipeline configuration are checked first and take precedence over
+    anything else. Secondly it looks for a config str field on the pipeline
+    configuration and tries to interpret and resolve this as a location uri.
+
+    @todo - handle namespace support in shotgun/pipeline config fields
+    @todo - finalize constants.SHOTGUN_PIPELINECONFIG_URI_FIELD
     """
 
     def __init__(self, sg_connection, bundle_cache_fallback_paths):
@@ -103,6 +195,16 @@ class BasicConfigurationResolver(ConfigurationResolver):
         :param base_config_location: Location dict or string for fallback config.
         :return: Configuration instance
         """
+
+        log.debug(
+            "%s resolving a configuration for project %s, "
+            "pipeline config %s, namespace %s" % (
+                self,
+                project_id,
+                pipeline_config_name,
+                namespace
+            )
+        )
 
         # first attempt to resolve in Shotgun
         config = self._resolve_sg_configuration(

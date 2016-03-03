@@ -177,7 +177,7 @@ class Configuration(object):
         self._bundle_cache_fallback_paths = bundle_cache_fallback_paths
 
     def __repr__(self):
-        return "<Config with id %s, project id %s and base %s>" % (
+        return "<Config with id %s, project id %s and base %r>" % (
             self._pipeline_config_id,
             self._project_id,
             self._descriptor
@@ -394,8 +394,6 @@ class Configuration(object):
             core_location,
             fallback_roots=self._bundle_cache_fallback_paths
         )
-
-        log.debug("Config will use Core %s" % core_descriptor)
 
         # make sure we have our core on disk
         core_descriptor.ensure_local()

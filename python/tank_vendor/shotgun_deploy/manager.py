@@ -21,7 +21,7 @@ from . import constants
 from ..shotgun_base import ensure_folder_exists
 from .errors import ShotgunDeployError
 from .configuration import Configuration, create_managed_configuration
-from .resolver import BasicConfigurationResolver
+from .resolver import NoShotgunFallbackConfigurationResolver
 from .io_descriptor import location_dict_to_uri
 
 log = util.get_shotgun_deploy_logger()
@@ -214,7 +214,7 @@ class ToolkitManager(object):
         # separate file.
         self._report_progress("Resolving configuration...")
 
-        resolver = BasicConfigurationResolver(
+        resolver = NoShotgunFallbackConfigurationResolver(
             self._sg_connection,
             self._bundle_cache_fallback_paths
         )
@@ -326,7 +326,7 @@ class ToolkitManager(object):
         :param project_id: Project to retrieve configuration uri for.
         :return: toolkit config locator uri string
         """
-        resolver = BasicConfigurationResolver(
+        resolver = NoShotgunFallbackConfigurationResolver(
             self._sg_connection,
             self._bundle_cache_fallback_paths
         )
