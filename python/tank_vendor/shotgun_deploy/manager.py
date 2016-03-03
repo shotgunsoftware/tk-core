@@ -21,7 +21,7 @@ from . import constants
 from ..shotgun_base import ensure_folder_exists
 from .errors import ShotgunDeployError
 from .configuration import Configuration, create_managed_configuration
-from .resolver import BasicConfigurationResolver
+from .resolver import BaseConfigurationResolver
 from .io_descriptor import location_dict_to_uri
 
 log = util.get_shotgun_deploy_logger()
@@ -193,7 +193,7 @@ class ToolkitManager(object):
 
         If project_id is None, the method will bootstrap into the site
         config. This method will attempt to resolve the config according
-        to business logic set in the assocaited resolver class and based
+        to business logic set in the associated resolver class and based
         on this launch a configuration. This may involve downloading new
         apps from the toolkit app store and installing files on disk.
 
@@ -214,7 +214,7 @@ class ToolkitManager(object):
         # separate file.
         self._report_progress("Resolving configuration...")
 
-        resolver = BasicConfigurationResolver(
+        resolver = BaseConfigurationResolver(
             self._sg_connection,
             self._bundle_cache_fallback_paths
         )
@@ -326,7 +326,7 @@ class ToolkitManager(object):
         :param project_id: Project to retrieve configuration uri for.
         :return: toolkit config locator uri string
         """
-        resolver = BasicConfigurationResolver(
+        resolver = BaseConfigurationResolver(
             self._sg_connection,
             self._bundle_cache_fallback_paths
         )
