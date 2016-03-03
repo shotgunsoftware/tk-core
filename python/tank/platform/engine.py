@@ -692,13 +692,8 @@ class Engine(TankBundle):
 
             if properties.get("app"):
                 # track which app command is being launched
-                properties["app"].log_metric("'%s'" % name)
+                properties["app"].log_metric("'%s'" % name, log_version=True)
 
-                # specify which app version is being used
-                log_user_attribute_metric(
-                    "%s version" % properties["app"].name,
-                    properties["app"].version
-                )
             # run the actual payload callback
             return callback(*args, **kwargs)
 
