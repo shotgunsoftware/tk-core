@@ -65,7 +65,7 @@ class ConfigurationResolver(object):
         raise NotImplementedError
 
 
-class NoShotgunFallbackConfigurationResolver(ConfigurationResolver):
+class BaseConfigurationResolver(ConfigurationResolver):
     """
     An simplistic resolver which is not aware of pipeline configurations
     in Shotgun. This will always resolve the base config location
@@ -79,7 +79,7 @@ class NoShotgunFallbackConfigurationResolver(ConfigurationResolver):
         :param sg_connection: Shotgun API instance
         :param bundle_cache_fallback_paths: List of additional paths where apps are cached.
         """
-        super(NoShotgunFallbackConfigurationResolver, self).__init__(
+        super(BaseConfigurationResolver, self).__init__(
             sg_connection,
             bundle_cache_fallback_paths
         )
@@ -95,8 +95,8 @@ class NoShotgunFallbackConfigurationResolver(ConfigurationResolver):
         Given a Shotgun project (or None for site mode), return a configuration
         object based on a particular set of resolution logic rules.
 
-        The NoShotgunFallbackConfigurationResolver is a simple and fast implementation
-        which does not take pipeline configuration entities in shotugn into account.
+        The BaseConfigurationResolver is a simple and fast implementation
+        which does not take pipeline configuration entities in Shotgun into account.
         It just returns the base configuration.
 
         Note: This implementation is expected to be replaced with the
@@ -146,9 +146,9 @@ class NoShotgunFallbackConfigurationResolver(ConfigurationResolver):
         )
 
 
-class BasicConfigurationResolver(ConfigurationResolver):
+class DefaultShotgunConfigurationResolver(ConfigurationResolver):
     """
-    Basic configuration resolves which implements the logic
+    Default Shotgun config resolver which implements the logic
     toolkit is using today. It first tries to find a Pipeline Configuration
     in Shotgun, if this fails, it falls back on the base configuration.
 
@@ -172,7 +172,7 @@ class BasicConfigurationResolver(ConfigurationResolver):
         :param sg_connection: Shotgun API instance
         :param bundle_cache_fallback_paths: List of additional paths where apps are cached.
         """
-        super(BasicConfigurationResolver, self).__init__(
+        super(DefaultShotgunConfigurationResolver, self).__init__(
             sg_connection,
             bundle_cache_fallback_paths
         )
