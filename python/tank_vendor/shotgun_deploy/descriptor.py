@@ -343,7 +343,9 @@ def get_legacy_cache_path(
         legacy_dir = "frameworks"
     else:
         raise ShotgunDeployError(
-            "Unknown bundle type '%s'. Can not determine legacy cache path.")
+            "Unknown bundle type '%s'. Can not determine legacy cache path." %
+            (bundlet_type,)
+        )
 
     # build and return the path.
     # example: <root>/apps/app_store/tk-multi-shotgunpanel/v1.2.5
