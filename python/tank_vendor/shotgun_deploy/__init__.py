@@ -10,4 +10,4 @@
 
 from .descriptor import Descriptor, create_descriptor
 from .manager import ToolkitManager
-from .paths import get_global_bundle_cache_root
+from .paths import get_bundle_cache_root

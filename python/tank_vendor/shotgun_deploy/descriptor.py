@@ -35,7 +35,7 @@ def create_descriptor(sg_connection, descriptor_type, location, bundle_cache_roo
     from .descriptor_core import CoreDescriptor
 
     # if bundle root is not set, fall back on default location
-    bundle_cache_root_override = bundle_cache_root_override or paths.get_global_bundle_cache_root()
+    bundle_cache_root_override = bundle_cache_root_override or paths.get_bundle_cache_root()
 
     fallback_roots = fallback_roots or []
 

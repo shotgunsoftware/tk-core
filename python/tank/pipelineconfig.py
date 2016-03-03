@@ -91,10 +91,10 @@ class PipelineConfiguration(object):
         self._published_file_entity_type = pipeline_config_metadata.get("published_file_entity_type", "TankPublishedFile")        
         self._use_shotgun_path_cache = pipeline_config_metadata.get("use_shotgun_path_cache", False)
 
-        # figure out whether to use the global bundle cache or the
+        # figure out whether to use the bundle cache or the
         # local pipeline configuration 'install' cache
-        if pipeline_config_metadata.get("use_global_bundle_cache"):
-            # use global bundle cache
+        if pipeline_config_metadata.get("use_bundle_cache"):
+            # use bundle cache
             self._bundle_cache_root_override = None
         else:
             # use cache relative to core install

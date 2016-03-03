@@ -446,7 +446,7 @@ class ToolkitManager(object):
     #     win_python=None,
     #     mac_python=None,
     #     linux_python=None,
-    #     use_global_bundle_cache=False
+    #     use_bundle_cache=False
     # ):
     #     """
     #     Creates a managed configuration on disk given the base location.
@@ -466,7 +466,7 @@ class ToolkitManager(object):
     #     :param win_python: Optional python interpreter path.
     #     :param mac_python: Optional python interpreter path.
     #     :param linux_python: Optional python interpreter path.
-    #     :param use_global_bundle_cache: If True, the global bundle cache location
+    #     :param use_bundle_cache: If True, the bundle cache location
     #         will be used to cache bundles (apps, engine and frameworks. This location
     #         is on the local disk and is shared across all projects and all sites, but
     #         not shared between machines. If set to False, bundles will be cached
@@ -509,7 +509,7 @@ class ToolkitManager(object):
     #         pc_id,
     #         self._namespace,
     #         self._bundle_cache_fallback_paths,
-    #         use_global_bundle_cache,
+    #         use_bundle_cache,
     #         win_path,
     #         linux_path,
     #         mac_path

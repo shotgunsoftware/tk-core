@@ -67,7 +67,7 @@ def create_managed_configuration(
         pipeline_config_id,
         namespace,
         bundle_cache_fallback_paths,
-        use_global_bundle_cache,
+        use_bundle_cache,
         win_path,
         linux_path,
         mac_path
@@ -85,9 +85,9 @@ def create_managed_configuration(
     :param namespace: name space string, typically one short word,
                       e.g. 'maya', 'rv', 'desktop'.
     :param bundle_cache_fallback_paths: List of additional paths where apps are cached.
-    :param use_global_bundle_cache: True if global bundle cache should be used
-        with this configuration, False if bundles are cached relative to core,
-        e.g. inside the configuration itself.
+    :param use_bundle_cache: True if the bundle cache should be used with this configuration,
+                             False if bundles are cached relative to core, e.g. inside the
+                             configuration itself.
     :param win_path: Path on windows where the config should be located
     :param linux_path: Path on linux where the config should be located
     :param mac_path: Path on macosx where the config should be located
@@ -130,7 +130,7 @@ def create_managed_configuration(
         pipeline_config_id,
         namespace,
         bundle_cache_fallback_paths,
-        use_global_bundle_cache,
+        use_bundle_cache,
         config_root)
 
 
@@ -460,7 +460,7 @@ class Configuration(object):
 
         metadata = {}
         # bake in which version of the deploy logic was used to push this config
-        metadata["deploy_generation"] = constants.CLOUD_CONFIG_DEPLOY_LOGIC_GENERATION
+        metadata["deploy_generation"] = constants.BOOTSTRAP_LOGIC_GENERATION
         # and include details about where the config came from
         metadata["config_location"] = self._descriptor.get_location()
 
@@ -543,7 +543,7 @@ class Configuration(object):
             "project_id": self._project_id,
             "project_name": project_name,
             "published_file_entity_type": "PublishedFile",
-            "use_global_bundle_cache": True,
+            "use_bundle_cache": True,
             "bundle_cache_fallback_roots": self._bundle_cache_fallback_paths,
             "use_shotgun_path_cache": True
         }
@@ -674,7 +674,7 @@ class UnmanagedConfiguration(Configuration):
         content = super(UnmanagedConfiguration, self)._get_pipeline_config_file_content()
 
         # for unmanaged configs, the bundle cache is always used
-        content["use_global_bundle_cache"] = True
+        content["use_bundle_cache"] = True
 
         return content
 
@@ -726,7 +726,7 @@ class UnmanagedConfiguration(Configuration):
         finally:
             fh.close()
 
-        if deploy_generation != constants.CLOUD_CONFIG_DEPLOY_LOGIC_GENERATION:
+        if deploy_generation != constants.BOOTSTRAP_LOGIC_GENERATION:
             # different format or logic of the deploy itself.
             # trigger a redeploy
             log.debug("Config was installed with an old generation of the logic.")
@@ -830,7 +830,7 @@ class ManagedConfiguration(Configuration):
             pipeline_config_id,
             namespace,
             bundle_cache_fallback_paths,
-            use_global_bundle_cache,
+            use_bundle_cache,
             config_root
     ):
         """
@@ -848,16 +848,16 @@ class ManagedConfiguration(Configuration):
         :param namespace: name space string, typically one short word,
                           e.g. 'maya', 'rv', 'desktop'.
         :param bundle_cache_fallback_paths: List of additional paths where apps are cached.
-        :param use_global_bundle_cache: True if global bundle cache should be used
-                                        with this configuration, False if bundles are cached
-                                        relative to core, e.g. inside the configuration itself.
+        :param use_bundle_cache: True if the bundle cache should be used
+                                 with this configuration, False if bundles are cached
+                                 relative to core, e.g. inside the configuration itself.
         :param config_root: Root path where the installed configuration should be located
                             This is the same path that is being referenced by absolute paths
                             in a pipeline configuration. Note that the configuration itself
                             is installed inside a CONFIG_ROOT/config folder.
         """
         self._config_root = config_root
-        self._use_global_bundle_cache = use_global_bundle_cache
+        self._use_bundle_cache = use_bundle_cache
         super(ManagedConfiguration, self).__init__(
             sg,
             descriptor,
@@ -877,8 +877,8 @@ class ManagedConfiguration(Configuration):
         # let the base class fill in all the basic stuff for us
         content = super(ManagedConfiguration, self)._get_pipeline_config_file_content()
 
-        # for managed configs, the bundle cache may or may not be usedqq
-        content["use_global_bundle_cache"] = self._use_global_bundle_cache
+        # for managed configs, the bundle cache may or may not be used
+        content["use_bundle_cache"] = self._use_bundle_cache
 
         return content
 
