@@ -741,6 +741,15 @@ class UnmanagedConfiguration(Configuration):
             )
             return self.LOCAL_CFG_OLD
 
+        elif not self._descriptor.is_immutable():
+            # our desired configuration's location matches
+            # the config that is already installed however the descriptor
+            # reports that it is not immutable, e.g. it can change at any
+            # point (e.g like a dev or path descriptor). Assume a worst case
+            # in this case - that the config that is cached locally is
+            # not the same as the source locator it is based on.
+            return self.LOCAL_CFG_OLD
+
         else:
             log.debug("Local config is up to date")
             return self.LOCAL_CFG_UP_TO_DATE

@@ -163,6 +163,19 @@ class Descriptor(object):
         """
         return self._io_descriptor.is_dev()
 
+    def is_immutable(self):
+        """
+        Returns true if this descriptor never changes its content.
+        This is true for most descriptors as they represent a particular
+        version, tag or commit of an item. Examples of non-immutable
+        descriptors include path and dev descriptors, where the
+        descriptor points at a "live" location on disk where a user
+        can make changes at any time.
+
+        :returns: True if this is a developer item
+        """
+        return self._io_descriptor.is_immutable()
+
     def get_description(self):
         """
         Returns a short description for the app.
