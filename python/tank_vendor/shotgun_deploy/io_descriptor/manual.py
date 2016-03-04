@@ -10,6 +10,8 @@
 import os
 
 from .base import IODescriptorBase
+from .legacy import get_legacy_bundle_install_folder
+from ..errors import ShotgunDeployError
 
 class IODescriptorManual(IODescriptorBase):
     """
@@ -18,11 +20,12 @@ class IODescriptorManual(IODescriptorBase):
     This descriptor type is largely deprecated. Please do not use.
     """
 
-    def __init__(self, location_dict):
+    def __init__(self, location_dict, bundle_type):
         """
         Constructor
 
         :param location_dict: Location dictionary describing the bundle
+        :param bundle_type: The type of bundle. ex: Descriptor.APP
         :return: Descriptor instance
         """
         super(IODescriptorManual, self).__init__(location_dict)
@@ -33,6 +36,7 @@ class IODescriptorManual(IODescriptorBase):
             optional=[]
         )
 
+        self._type = bundle_type
         self._name = location_dict.get("name")
         self._version = location_dict.get("version")
 
@@ -56,6 +60,29 @@ class IODescriptorManual(IODescriptorBase):
                     self._version
                 )
             )
+
+        # for compatibility with older versions of core, prior to v0.18.x,
+        # add the old-style bundle cache path as a fallback. As of v0.18.x,
+        # the bundle cache subdirectory names were shortened and otherwise
+        # modified to help prevent MAX_PATH issues on windows. This call adds
+        # the old path as a fallback for cases where core has been upgraded
+        # for an existing project. NOTE: This only works because the bundle
+        # cache root didn't change (when use_bundle_cache is set to False).
+        # If the bundle cache root changes across core versions, then this will
+        # need to be refactored.
+        try:
+            legacy_path = get_legacy_bundle_install_folder(
+                "manual",
+                self._bundle_cache_root,
+                self._type,
+                self._name,
+                self._version
+            )
+        except ShotgunDeployError:
+            pass
+        else:
+            paths.append(legacy_path)
+
         return paths
 
     @classmethod

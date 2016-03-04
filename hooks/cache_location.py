@@ -13,11 +13,18 @@ Hook to control the various cache locations in the system.
 """
 
 import sgtk
-from sgtk import TankError
 import os
-import errno
 
 from tank_vendor.shotgun_base import get_pipeline_config_cache_root
+from tank_vendor.shotgun_base.utils import (
+    ensure_file_exists,
+    ensure_folder_exists,
+)
+from tank_vendor.shotgun_deploy.errors import ShotgunDeployError
+from tank_vendor.shotgun_deploy.io_descriptor.legacy import (
+    get_legacy_path_cache_path,
+    get_legacy_bundle_data_cache_folder,
+)
 
 HookBaseClass = sgtk.get_hook_baseclass()
 
@@ -51,9 +58,31 @@ class CacheLocation(HookBaseClass):
             project_id,
             pipeline_configuration_id
         )
-        self._ensure_folder_exists(cache_root)
+
         target_path = os.path.join(cache_root, "path_cache.db")
-        self._ensure_file_exists(target_path)
+
+        if os.path.exists(target_path):
+            # path exists, return it
+            return target_path
+
+        # ---- backward compatibility for old path cache locations
+
+        # The target path does not exist. This could be because it just hasn't
+        # been created yet, or it could be because of a core upgrade where the
+        # cache root directory structure has changed (such is the case with
+        # v0.17.x -> v0.18.x). To account for this scenario, see if the target
+        # exists in an old location first, and if so, return that path instead.
+
+        try:
+            legacy_path_cache = get_legacy_path_cache_path(tk, project_id,
+                pipeline_configuration_id)
+        except ShotgunDeployError:
+            # legacy path cache does not exist. ensure original target exists.
+            ensure_folder_exists(cache_root)
+            ensure_file_exists(target_path)
+        else:
+            # legacy path exists, make it the target
+            target_path = legacy_path_cache
         
         return target_path
     
@@ -72,6 +101,13 @@ class CacheLocation(HookBaseClass):
         :param pipeline_configuration_id: The shotgun pipeline config id to store caches for
         :param bundle: The app, engine or framework object which is requesting the cache folder.
         :returns: The path to a folder which should exist on disk.
+
+        NOTE: This method may be slightly confusing given the use of the term
+        "bundle_cache" throughout core which refers to the location on disk
+        where bundles (apps, engines, frameworks) are installed. A better
+        name for this method might have been `bundle_data_cache`. The name
+        remains to avoid breaking client code.
+
         """
         tk = self.parent
         cache_root = get_pipeline_config_cache_root(
@@ -92,47 +128,28 @@ class CacheLocation(HookBaseClass):
         bundle_name = bundle_name.replace("tk-multi-", "tm-")
 
         target_path = os.path.join(cache_root, bundle_name)
-        self._ensure_folder_exists(target_path)
-        
-        return target_path
 
-    def _ensure_file_exists(self, path):
-        """
-        Helper method - creates a file if it doesn't already exists
-        
-        :param path: path to create
-        """
-        if not os.path.exists(path):
-            old_umask = os.umask(0)
-            try:
-                fh = open(path, "wb")
-                fh.close()
-                os.chmod(path, 0666)
-            except OSError, e:
-                # Race conditions are perfectly possible on some network storage setups
-                # so make sure that we ignore any file already exists errors, as they 
-                # are not really errors!
-                if e.errno != errno.EEXIST: 
-                    raise TankError("Could not create cache file '%s': %s" % (path, e))
-            finally:
-                os.umask(old_umask)
-    
-    def _ensure_folder_exists(self, path):
-        """
-        Helper method - creates a folder if it doesn't already exists
-        
-        :param path: path to create
-        """
-        if not os.path.exists(path):
-            old_umask = os.umask(0)
-            try:
-                os.makedirs(path, 0777)
-            except OSError, e:
-                # Race conditions are perfectly possible on some network storage setups
-                # so make sure that we ignore any file already exists errors, as they 
-                # are not really errors!
-                if e.errno != errno.EEXIST: 
-                    raise TankError("Could not create cache folder '%s': %s" % (path, e))
-            finally:
-                os.umask(old_umask)
+        if os.path.exists(target_path):
+            # path exists, return it
+            return target_path
+
+        # ---- backward compatibility for old bundle data cache locations
+
+        # The target path does not exist. This could be because it just hasn't
+        # been created yet, or it could be because of a core upgrade where the
+        # bundle cache directory structure has changed (such is the case with
+        # v0.17.x -> v0.18.x). To account for this scenario, see if the target
+        # exists in an old location first, and if so, return that path instead.
+
+        try:
+            legacy_path_cache = get_legacy_bundle_data_cache_folder(tk, bundle,
+                project_id, pipeline_configuration_id)
+        except ShotgunDeployError:
+            # legacy bundle cache does not exist. ensure original target exists.
+            ensure_folder_exists(target_path)
+        else:
+            # legacy path exists, make it the target
+            target_path = legacy_path_cache
+
+        return target_path
 

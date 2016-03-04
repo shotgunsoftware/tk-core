@@ -13,6 +13,7 @@ import uuid
 import tempfile
 
 from ..util import subprocess_check_output, execute_git_command
+from .legacy import get_legacy_bundle_install_folder
 from .git import IODescriptorGit
 from ..zipfilehelper import unzip_file
 from ..errors import ShotgunDeployError
@@ -41,11 +42,12 @@ class IODescriptorGitTag(IODescriptorGit):
 
     """
 
-    def __init__(self, location_dict):
+    def __init__(self, location_dict, bundle_type):
         """
         Constructor
 
         :param location_dict: Location dictionary describing the bundle
+        :param bundle_type: The type of bundle. ex: Descriptor.APP
         :return: Descriptor instance
         """
         super(IODescriptorGitTag, self).__init__(location_dict)
@@ -59,6 +61,8 @@ class IODescriptorGitTag(IODescriptorGit):
         # path is handled by base class - all git descriptors
         # have a path to a repo
         self._version = location_dict.get("version")
+
+        self._type = bundle_type
 
     def _get_cache_paths(self):
         """
@@ -84,6 +88,29 @@ class IODescriptorGitTag(IODescriptorGit):
                     self.get_version()
                 )
             )
+
+        # for compatibility with older versions of core, prior to v0.18.x,
+        # add the old-style bundle cache path as a fallback. As of v0.18.x,
+        # the bundle cache subdirectory names were shortened and otherwise
+        # modified to help prevent MAX_PATH issues on windows. This call adds
+        # the old path as a fallback for cases where core has been upgraded
+        # for an existing project. NOTE: This only works because the bundle
+        # cache root didn't change (when use_bundle_cache is set to False).
+        # If the bundle cache root changes across core versions, then this will
+        # need to be refactored.
+        try:
+            legacy_path = get_legacy_bundle_install_folder(
+                "git",
+                self._bundle_cache_root,
+                self._type,
+                name,
+                self.get_version()
+            )
+        except ShotgunDeployError:
+            pass
+        else:
+            paths.append(legacy_path)
+
         return paths
 
     def _get_latest_by_pattern(self, pattern):
