@@ -10,7 +10,7 @@
 import os
 
 from .base import IODescriptorBase
-from ..descriptor import get_legacy_cache_path
+from .legacy import get_legacy_bundle_install_folder
 from ..errors import ShotgunDeployError
 
 class IODescriptorManual(IODescriptorBase):
@@ -66,9 +66,12 @@ class IODescriptorManual(IODescriptorBase):
         # the bundle cache subdirectory names were shortened and otherwise
         # modified to help prevent MAX_PATH issues on windows. This call adds
         # the old path as a fallback for cases where core has been upgraded
-        # for an existing project.
+        # for an existing project. NOTE: This only works because the bundle
+        # cache root didn't change (when use_bundle_cache is set to False).
+        # If the bundle cache root changes across core versions, then this will
+        # need to be refactored.
         try:
-            legacy_path = get_legacy_cache_path(
+            legacy_path = get_legacy_bundle_install_folder(
                 "manual",
                 self._bundle_cache_root,
                 self._type,
