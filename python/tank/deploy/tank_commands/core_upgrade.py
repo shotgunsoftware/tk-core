@@ -237,20 +237,20 @@ class TankCoreUpdater(object):
             version_filter.append(["code", "is", core_version])
 
         # connect to the app store
-        latest_core = self._sg.find_one(constants.TANK_CORE_VERSION_ENTITY,
-                                        filters=version_filter,
-                                        fields=["sg_min_shotgun_version",
-                                                "code",
-                                                "sg_detailed_release_notes",
-                                                "description",
-                                                constants.TANK_CODE_PAYLOAD_FIELD],
-                                        order=[{"field_name": "created_at", "direction": "desc"}])
+        core_version = self._sg.find_one(constants.TANK_CORE_VERSION_ENTITY,
+                                         filters=version_filter,
+                                         fields=["sg_min_shotgun_version",
+                                                 "code",
+                                                 "sg_detailed_release_notes",
+                                                 "description",
+                                                 constants.TANK_CODE_PAYLOAD_FIELD],
+                                         order=[{"field_name": "created_at", "direction": "desc"}])
 
-        if latest_core is None:
+        if core_version is None:
             # technical problems?
             raise TankError("Could not find any version of the Core API in the app store!")
             
-        return latest_core    
+        return core_version    
 
     def get_update_version_number(self):
         """
