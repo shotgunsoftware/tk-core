@@ -147,7 +147,7 @@ class CoreUpdateAction(Action):
             log.info("Associated with this Shotgun Pipeline Toolkit installation.")
             log.info("")
             
-            if suppress_prompts or console_utils.ask_yn_question("Update to this new version of the Core API?"):
+            if suppress_prompts or console_utils.ask_yn_question("Update to this version of the Core API?"):
                 # install it!
                 log.info("Downloading and installing a new version of the core...")
                 installer.do_install()
