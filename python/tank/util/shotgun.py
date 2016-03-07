@@ -416,31 +416,19 @@ def __get_app_store_connection_information():
     return config_data
 
 
-def __get_app_store_yml_settings():
-    # Check if there is an app_store.yml file associated with the 
-    # project. In that case, just use that.
-    core_cfg = __get_api_core_config_location()
-    app_store_yml_path = os.path.join(core_cfg, "app_store.yml")
-
-    if os.path.exists(app_store_yml_path):
-        # The file exists, so read the file expecting all values to be present.
-        return __get_sg_config_data_with_script_user(app_store_yml_path)
-    return {}
-
-
 def __get_app_store_proxy_setting(connection):
     """
-    Retrieve the app store proxy settings. Retrieves it from the app_store.yml
-    crendential file if present, otherwise retrieves it from an existing connection
-    object.
+    Retrieve the app store proxy settings. If the key
+    app_store_http_proxy is not found in the shotgun.yml file, the proxy
+    settings from the client site connection will be used.
 
     :param connection: A working connection to the site.
 
     :returns: The http proxy connection string.
     """
-    config_data = __get_app_store_yml_settings()
+    config_data = get_associated_sg_config_data()
     if config_data:
-        return config_data["http_proxy"]
+        return config_data["app_store_http_proxy"]
     else:
         return client_site_sg.config.raw_http_proxy
 
@@ -455,8 +443,14 @@ def __get_app_store_key_from_shotgun(sg_connection):
                           app store credentials should be retrieved.
     :returns: tuple of strings with contents (script_name, script_key)
     """
-    config_data = __get_app_store_yml_settings()
-    if config_data:
+    # first check if there is an app_store.yml file associated with the 
+    # project. In that case, just use that.
+    core_cfg = __get_api_core_config_location()
+    app_store_yml_path = os.path.join(core_cfg, "app_store.yml")
+
+    if os.path.exists(app_store_yml_path):
+        # The file exists, so read the file expecting all values to be present.
+        config_data = __get_sg_config_data_with_script_user(app_store_yml_path)
         # we got two values from the app store file!
         return config_data["api_script"], config_data["api_key"]
 
