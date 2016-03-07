@@ -493,22 +493,6 @@ class LegacyAuthConnectionSettings(ConnectionSettingsTestCases, unittest.TestCas
     """
     Tests proxy connection for site and appstore connections.
     """
-    def _inject_shotgun_yaml_data(
-        self,
-        server_caps_mock,
-        get_api_core_config_location_mock,
-        get_sg_config_data_mock,
-        get_app_store_key_from_shotgun_mock,
-        shotgun_yml
-    ):
-        """
-        Bootstrap unit tests.
-        """
-        get_api_core_config_location_mock.return_value = "unknown_path_location"
-        get_sg_config_data_mock.return_value = shotgun_yml
-        get_app_store_key_from_shotgun_mock.return_value = ("abc", "123")
-        # no need to do anything for the server caps mock. It will not connect
-        # to Shotgun.
 
     @patch("tank.util.shotgun.__get_app_store_key_from_shotgun")
     @patch("tank.util.shotgun.__get_api_core_config_location")
@@ -524,24 +508,17 @@ class LegacyAuthConnectionSettings(ConnectionSettingsTestCases, unittest.TestCas
         source_store_proxy=None,
         expected_store_proxy=None
     ):
-        """
-        No authenticated user, should be picking settings from shotgun.yml
-        """
+        get_api_core_config_location_mock.return_value = "unknown_path_location"
+        get_app_store_key_from_shotgun_mock.return_value = ("abc", "123")
 
         site = "https://tank.shotgunstudio.com"
-        self._inject_shotgun_yaml_data(
-            server_caps_mock,
-            get_api_core_config_location_mock,
-            get_sg_config_data_mock,
-            get_app_store_key_from_shotgun_mock,
-            {
-                "host": site,
-                "api_script": "1234",
-                "api_key": "1234",
-                "http_proxy": source_proxy,
-                "app_store_http_proxy": source_store_proxy
-            }
-        )
+        get_sg_config_data_mock.return_value = {
+            "host": site,
+            "api_script": "1234",
+            "api_key": "1234",
+            "http_proxy": source_proxy,
+            "app_store_http_proxy": source_store_proxy
+        }
 
         # Make sure that the site uses the host and proxy.
         sg = tank.util.shotgun.create_sg_connection()
@@ -577,9 +554,14 @@ class AuthConnectionSettings(ConnectionSettingsTestCases, unittest.TestCase):
         """
         No authenticated user, should be picking settings from shotgun.yml
         """
-
+        # Monkey patch things that get in the way of the unit test.
+        # Avoids crash because we're not in a pipeline configuration.
         get_api_core_config_location_mock.return_value = "unknown_path_location"
+
+        # Mocks app store credentials retrieval
         get_app_store_key_from_shotgun_mock.return_value = ("abc", "123")
+
+        # Mocks shotgun.yml content
         get_sg_config_data_mock.return_value = {
             # We're supposed to read only the proxy settings for the appstore
             "host": "https://this_should_not_be_read.shotgunstudio.com",
@@ -589,6 +571,7 @@ class AuthConnectionSettings(ConnectionSettingsTestCases, unittest.TestCase):
             "app_store_http_proxy": source_store_proxy
         }
 
+        # Mocks a user being authenticated.
         user = ShotgunUser(
             SessionUser(
                 login="test_user", session_token="abc1234",
@@ -597,7 +580,7 @@ class AuthConnectionSettings(ConnectionSettingsTestCases, unittest.TestCase):
         )
         tank.set_authenticated_user(user)
 
-        # Make sure that the site uses the host and proxy.
+        # Create a connection
         sg = tank.util.shotgun.create_sg_connection()
         self.assertEqual(sg.base_url, self._SITE)
         self.assertEqual(sg.config.raw_http_proxy, source_proxy)
