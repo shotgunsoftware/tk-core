@@ -376,7 +376,7 @@ def create_sg_app_store_connection():
 
     # Connect to associated Shotgun site and retrieve the credentials to use to
     # connect to the app store site
-    config_data = __get_app_store_connection_information()
+    config_data = _get_app_store_connection_information()
 
     # get connection parameters
     sg = __create_sg_connection(config_data)
@@ -398,7 +398,7 @@ def create_sg_app_store_connection():
     return g_app_store_connection
 
 
-def __get_app_store_connection_information():
+def _get_app_store_connection_information():
     """
     Get app store connection information
     :returns: A dictionary with host, api_key, api_script and http_proxy
@@ -427,10 +427,10 @@ def __get_app_store_proxy_setting(connection):
     :returns: The http proxy connection string.
     """
     config_data = get_associated_sg_config_data()
-    if config_data:
+    if config_data and config_data.get("app_store_http_proxy"):
         return config_data["app_store_http_proxy"]
     else:
-        return client_site_sg.config.raw_http_proxy
+        return connection.config.raw_http_proxy
 
 
 def __get_app_store_key_from_shotgun(sg_connection):

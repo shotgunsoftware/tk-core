@@ -11,14 +11,16 @@
 from __future__ import with_statement
 import os
 import datetime
+import unittest2 as unittest
 
 from mock import patch
 
 import tank
 from tank import context, errors
-from tank_test.tank_test_base import *
+from tank_test.tank_test_base import TankTestBase, setUpModule
 from tank.template import TemplatePath
 from tank.templatekey import SequenceKey
+from tank_vendor.shotgun_authentication import ShotgunAuthenticator, DefaultsManager
 
 
 class TestShotgunFindPublish(TankTestBase):
@@ -427,6 +429,118 @@ class TestGetSgConfigData(TankTestBase):
 
 # Class decorators don't exist on Python2.5
 TestGetSgConfigData = patch("tank.util.shotgun.__get_api_core_config_location", TestGetSgConfigData)
+
+
+class LegacyAuthConnectionSettings(unittest.TestCase):
+    """
+    Tests proxy connection for site and appstore connections.
+    """
+
+    _SITE = "https://tank.shotgunstudio.com"
+    _SITE_PROXY = "127.0.0.1"
+    _STORE_PROXY = "127.0.0.2"
+
+    def _inject_shotgun_yaml_data(
+        self,
+        server_caps_mock,
+        get_api_core_config_location_mock,
+        get_sg_config_data_mock,
+        get_app_store_key_from_shotgun_mock,
+        shotgun_yml
+    ):
+        """
+        Bootstrap unit tests.
+        """
+        get_api_core_config_location_mock.return_value = "unknown_path_location"
+        get_sg_config_data_mock.return_value = shotgun_yml
+        get_app_store_key_from_shotgun_mock.return_value = ("abc", "123")
+        # no need to do anything for the server caps mock. It will not connect
+        # to Shotgun.
+
+    def setUp(self):
+        """
+        Clear cached appstore connection
+        """
+        tank.util.shotgun.g_sg_cached_connection = None
+        tank.util.shotgun.g_app_store_connection = None
+
+    def tearDown(self):
+        """
+        Clear cached appstore connection
+        """
+        tank.util.shotgun.g_sg_cached_connection = None
+        tank.util.shotgun.g_app_store_connection = None
+
+    @patch("tank.util.shotgun.__get_app_store_key_from_shotgun")
+    @patch("tank.util.shotgun.__get_api_core_config_location")
+    @patch("tank.util.shotgun.__get_sg_config_data")
+    @patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
+    def _test_site_connection_no_auth_user_internal(
+        self,
+        server_caps_mock,
+        get_sg_config_data_mock,
+        get_api_core_config_location_mock,
+        get_app_store_key_from_shotgun_mock,
+        source_proxy=None,
+        source_store_proxy=None,
+        expected_store_proxy=None
+    ):
+        """
+        No authenticated user, should be picking settings from shotgun.yml
+        """
+        self._inject_shotgun_yaml_data(
+            server_caps_mock,
+            get_api_core_config_location_mock,
+            get_sg_config_data_mock,
+            get_app_store_key_from_shotgun_mock,
+            {
+                "host": self._SITE,
+                "api_script": "1234",
+                "api_key": "1234",
+                "http_proxy": source_proxy,
+                "app_store_http_proxy": source_store_proxy
+            }
+        )
+
+        # Make sure that the site uses the host and proxy.
+        sg = tank.util.shotgun.create_sg_connection()
+        self.assertEqual(sg.base_url, self._SITE)
+        self.assertEqual(sg.config.raw_http_proxy, source_proxy)
+
+        config = tank.util.shotgun._get_app_store_connection_information()
+        self.assertEqual(config["host"], tank.platform.constants.SGTK_APP_STORE)
+        self.assertEqual(config["http_proxy"], expected_store_proxy)
+
+    def test_connections_no_proxy(self):
+        """
+        No proxies set, so everything should be None.
+        """
+        self._test_site_connection_no_auth_user_internal()
+
+    def test_connections_site_proxy(self):
+        """
+        When the http_proxy setting is set in shotgun.yml, both the site
+        connection and app store connections are expected to use the
+        proxy setting.
+        """
+        self._test_site_connection_no_auth_user_internal(source_proxy=self._SITE_PROXY, expected_store_proxy=self._SITE_PROXY)
+
+    def test_connections_store_proxy(self):
+        """
+        When the app_store_http_proxy setting is set in shotgun.yml, the app
+        store connections are expected to use the proxy setting.
+        """
+        self._test_site_connection_no_auth_user_internal(source_store_proxy=self._STORE_PROXY, expected_store_proxy=self._STORE_PROXY)
+
+    def test_connections_both_proxy(self):
+        """
+        When both proxy settings are set, each connection has its own proxy.
+        """
+        self._test_site_connection_no_auth_user_internal(
+            source_proxy=self._SITE_PROXY,
+            source_store_proxy=self._STORE_PROXY,
+            expected_store_proxy=self._STORE_PROXY
+        )
 
 
 class TestCalcPathCache(TankTestBase):
