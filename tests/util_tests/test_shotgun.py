@@ -543,6 +543,7 @@ class LegacyAuthConnectionSettings(ConnectionSettingsTestCases, unittest.TestCas
         """
         See ConnectionSettingsTestCases._run_test
         """
+        # Mocks shotgun.yml content, which we use for authentication.
         get_sg_config_data_mock.return_value = {
             "host": site,
             "api_script": "1234",
@@ -565,10 +566,8 @@ class AuthConnectionSettings(ConnectionSettingsTestCases, unittest.TestCase):
     Tests proxy connection for site and appstore connections.
     """
 
-    _SITE = "https://test.shotgunstudio.com"
-
     @patch("tank.util.shotgun.__get_sg_config_data")
-    def _test_site_connection_no_auth_user_internal(
+    def _run_test(
         self,
         get_sg_config_data_mock,
         site,
@@ -579,8 +578,6 @@ class AuthConnectionSettings(ConnectionSettingsTestCases, unittest.TestCase):
         """
         No authenticated user, should be picking settings from shotgun.yml
         """
-
-
         # Mocks shotgun.yml content
         get_sg_config_data_mock.return_value = {
             # We're supposed to read only the proxy settings for the appstore
@@ -590,17 +587,22 @@ class AuthConnectionSettings(ConnectionSettingsTestCases, unittest.TestCase):
             "http_proxy": "123.234.345.456:7890",
             "app_store_http_proxy": source_store_proxy
         }
-
         # Mocks a user being authenticated.
         user = ShotgunUser(
             SessionUser(
                 login="test_user", session_token="abc1234",
-                host=self._SITE, http_proxy=source_proxy
+                host=site, http_proxy=source_proxy
             )
         )
         tank.set_authenticated_user(user)
 
-        self._run_test(source_proxy, source_store_proxy, expected_store_proxy)
+        ConnectionSettingsTestCases._run_test(
+            self,
+            site=site,
+            source_proxy=source_proxy,
+            source_store_proxy=source_store_proxy,
+            expected_store_proxy=expected_store_proxy
+        )
 
 
 class TestCalcPathCache(TankTestBase):
