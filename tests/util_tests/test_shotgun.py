@@ -462,7 +462,7 @@ class ConnectionSettingsTestCases(object):
         """
         No proxies set, so everything should be None.
         """
-        self._test_site_connection_no_auth_user_internal(site=self._SITE)
+        self._run_test(site=self._SITE)
 
     def test_connections_site_proxy(self):
         """
@@ -470,7 +470,7 @@ class ConnectionSettingsTestCases(object):
         connection and app store connections are expected to use the
         proxy setting.
         """
-        self._test_site_connection_no_auth_user_internal(
+        self._run_test(
             site=self._SITE,
             source_proxy=self._SITE_PROXY,
             expected_store_proxy=self._SITE_PROXY
@@ -481,7 +481,7 @@ class ConnectionSettingsTestCases(object):
         When the app_store_http_proxy setting is set in shotgun.yml, the app
         store connections are expected to use the proxy setting.
         """
-        self._test_site_connection_no_auth_user_internal(
+        self._run_test(
             site=self._SITE,
             source_proxy=self._SITE_PROXY,
             expected_store_proxy=self._SITE_PROXY
@@ -491,30 +491,17 @@ class ConnectionSettingsTestCases(object):
         """
         When both proxy settings are set, each connection has its own proxy.
         """
-        self._test_site_connection_no_auth_user_internal(
+        self._run_test(
             site=self._SITE,
             source_proxy=self._SITE_PROXY,
             source_store_proxy=self._STORE_PROXY,
             expected_store_proxy=self._STORE_PROXY
         )
 
-    def _run_test(self, source_proxy, store_proxy, expected_store_proxy):
-        """
-        Called by the derived
-        """
-        # Make sure that the site uses the host and proxy.
-        sg = tank.util.shotgun.create_sg_connection()
-        self.assertEqual(sg.base_url, self._SITE)
-        self.assertEqual(sg.config.raw_http_proxy, source_proxy)
-
-        config = tank.util.shotgun._get_app_store_connection_information()
-        self.assertEqual(config["host"], tank.platform.constants.SGTK_APP_STORE)
-        self.assertEqual(config["http_proxy"], expected_store_proxy)
-
     @patch("tank.util.shotgun.__get_api_core_config_location")
     @patch("tank.util.shotgun.__get_app_store_key_from_shotgun")
     @patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
-    def _test_site_connection_no_auth_user_internal(self, *args, **kwargs):
+    def _run_test(self, *args, **kwargs):
         """
         Should be implemented by derived classes in order to mock authentication
         for the test.
@@ -524,13 +511,19 @@ class ConnectionSettingsTestCases(object):
         :param source_store_proxy: proxy being return by the authentication for the app store.
         :param expected_store_proxy: actual proxy value
         """
-        args[1].return_value = ("abc", "123")
+        # Avoids crash because we're not in a pipeline configuration.
         args[2].return_value = "unknown_path_location"
-        self._run_test(
-            kwargs["source_proxy"],
-            kwargs["source_store_proxy"],
-            kwargs["expected_store_proxy"]
-        )
+        # Mocks app store credentials retrieval
+        args[1].return_value = ("abc", "123")
+
+        # Make sure that the site uses the host and proxy.
+        sg = tank.util.shotgun.create_sg_connection()
+        self.assertEqual(sg.base_url, self._SITE)
+        self.assertEqual(sg.config.raw_http_proxy, kwargs["source_proxy"])
+
+        config = tank.util.shotgun._get_app_store_connection_information()
+        self.assertEqual(config["host"], tank.platform.constants.SGTK_APP_STORE)
+        self.assertEqual(config["http_proxy"], kwargs["expected_store_proxy"])
 
 
 class LegacyAuthConnectionSettings(ConnectionSettingsTestCases, unittest.TestCase):
@@ -539,7 +532,7 @@ class LegacyAuthConnectionSettings(ConnectionSettingsTestCases, unittest.TestCas
     """
 
     @patch("tank.util.shotgun.__get_sg_config_data")
-    def _test_site_connection_no_auth_user_internal(
+    def _run_test(
         self,
         get_sg_config_data_mock,
         site,
@@ -548,7 +541,7 @@ class LegacyAuthConnectionSettings(ConnectionSettingsTestCases, unittest.TestCas
         expected_store_proxy=None
     ):
         """
-        See ConnectionSettingsTestCases._test_site_connection_no_auth_user_internal
+        See ConnectionSettingsTestCases._run_test
         """
         get_sg_config_data_mock.return_value = {
             "host": site,
@@ -558,7 +551,7 @@ class LegacyAuthConnectionSettings(ConnectionSettingsTestCases, unittest.TestCas
             "app_store_http_proxy": source_store_proxy
         }
 
-        ConnectionSettingsTestCases._test_site_connection_no_auth_user_internal(
+        ConnectionSettingsTestCases._run_test(
             self,
             site=site,
             source_proxy=source_proxy,
@@ -574,13 +567,10 @@ class AuthConnectionSettings(ConnectionSettingsTestCases, unittest.TestCase):
 
     _SITE = "https://test.shotgunstudio.com"
 
-    @patch("tank.util.shotgun.__get_app_store_key_from_shotgun")
-    @patch("tank.util.shotgun.__get_api_core_config_location")
     @patch("tank.util.shotgun.__get_sg_config_data")
-    @patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
     def _test_site_connection_no_auth_user_internal(
         self,
-        get_app_store_key_from_shotgun_mock,
+        get_sg_config_data_mock,
         site,
         source_proxy=None,
         source_store_proxy=None,
@@ -589,12 +579,7 @@ class AuthConnectionSettings(ConnectionSettingsTestCases, unittest.TestCase):
         """
         No authenticated user, should be picking settings from shotgun.yml
         """
-        # Monkey patch things that get in the way of the unit test.
-        # Avoids crash because we're not in a pipeline configuration.
-        get_api_core_config_location_mock.return_value = "unknown_path_location"
 
-        # Mocks app store credentials retrieval
-        get_app_store_key_from_shotgun_mock.return_value = ("abc", "123")
 
         # Mocks shotgun.yml content
         get_sg_config_data_mock.return_value = {
