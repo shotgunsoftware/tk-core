@@ -499,6 +499,9 @@ class ConnectionSettingsTestCases(object):
         )
 
     def _run_test(self, source_proxy, store_proxy, expected_store_proxy):
+        """
+        Called by the derived
+        """
         # Make sure that the site uses the host and proxy.
         sg = tank.util.shotgun.create_sg_connection()
         self.assertEqual(sg.base_url, self._SITE)
@@ -508,29 +511,45 @@ class ConnectionSettingsTestCases(object):
         self.assertEqual(config["host"], tank.platform.constants.SGTK_APP_STORE)
         self.assertEqual(config["http_proxy"], expected_store_proxy)
 
+    @patch("tank.util.shotgun.__get_api_core_config_location")
+    @patch("tank.util.shotgun.__get_app_store_key_from_shotgun")
+    @patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
+    def _test_site_connection_no_auth_user_internal(self, *args, **kwargs):
+        """
+        Should be implemented by derived classes in order to mock authentication
+        for the test.
+
+        :param site: Site used for authentication
+        :param source_proxy: proxy being returned by the authentication code for the site
+        :param source_store_proxy: proxy being return by the authentication for the app store.
+        :param expected_store_proxy: actual proxy value
+        """
+        args[1].return_value = ("abc", "123")
+        args[2].return_value = "unknown_path_location"
+        self._run_test(
+            kwargs["source_proxy"],
+            kwargs["source_store_proxy"],
+            kwargs["expected_store_proxy"]
+        )
+
 
 class LegacyAuthConnectionSettings(ConnectionSettingsTestCases, unittest.TestCase):
     """
     Tests proxy connection for site and appstore connections.
     """
 
-    @patch("tank.util.shotgun.__get_app_store_key_from_shotgun")
-    @patch("tank.util.shotgun.__get_api_core_config_location")
     @patch("tank.util.shotgun.__get_sg_config_data")
-    @patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
     def _test_site_connection_no_auth_user_internal(
         self,
-        server_caps_mock,
         get_sg_config_data_mock,
-        get_api_core_config_location_mock,
-        get_app_store_key_from_shotgun_mock,
         site,
         source_proxy=None,
         source_store_proxy=None,
         expected_store_proxy=None
     ):
-        get_api_core_config_location_mock.return_value = "unknown_path_location"
-        get_app_store_key_from_shotgun_mock.return_value = ("abc", "123")
+        """
+        See ConnectionSettingsTestCases._test_site_connection_no_auth_user_internal
+        """
         get_sg_config_data_mock.return_value = {
             "host": site,
             "api_script": "1234",
@@ -539,7 +558,13 @@ class LegacyAuthConnectionSettings(ConnectionSettingsTestCases, unittest.TestCas
             "app_store_http_proxy": source_store_proxy
         }
 
-        self._run_test(source_proxy, source_store_proxy, expected_store_proxy)
+        ConnectionSettingsTestCases._test_site_connection_no_auth_user_internal(
+            self,
+            site=site,
+            source_proxy=source_proxy,
+            source_store_proxy=source_store_proxy,
+            expected_store_proxy=expected_store_proxy
+        )
 
 
 class AuthConnectionSettings(ConnectionSettingsTestCases, unittest.TestCase):
@@ -555,9 +580,6 @@ class AuthConnectionSettings(ConnectionSettingsTestCases, unittest.TestCase):
     @patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
     def _test_site_connection_no_auth_user_internal(
         self,
-        server_caps_mock,
-        get_sg_config_data_mock,
-        get_api_core_config_location_mock,
         get_app_store_key_from_shotgun_mock,
         site,
         source_proxy=None,
