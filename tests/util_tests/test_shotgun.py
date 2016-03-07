@@ -501,10 +501,22 @@ class ConnectionSettingsTestCases(object):
     @patch("tank.util.shotgun.__get_api_core_config_location")
     @patch("tank.util.shotgun.__get_app_store_key_from_shotgun")
     @patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
-    def _run_test(self, *args, **kwargs):
+    def _run_test(
+        self,
+        server_caps_mock,
+        get_app_store_key_from_shotgun_mock,
+        get_api_core_config_location_mock,
+        site,
+        source_proxy,
+        source_store_proxy,
+        expected_store_proxy
+    ):
         """
         Should be implemented by derived classes in order to mock authentication
         for the test.
+
+        The actual parameters of this method are the following. The _mock parameters
+        are passed in via the @patch method and should not be passed by the caller.
 
         :param site: Site used for authentication
         :param source_proxy: proxy being returned by the authentication code for the site
@@ -512,18 +524,18 @@ class ConnectionSettingsTestCases(object):
         :param expected_store_proxy: actual proxy value
         """
         # Avoids crash because we're not in a pipeline configuration.
-        args[2].return_value = "unknown_path_location"
+        get_api_core_config_location_mock.return_value = "unknown_path_location"
         # Mocks app store credentials retrieval
-        args[1].return_value = ("abc", "123")
+        get_app_store_key_from_shotgun_mock.return_value = ("abc", "123")
 
         # Make sure that the site uses the host and proxy.
         sg = tank.util.shotgun.create_sg_connection()
         self.assertEqual(sg.base_url, self._SITE)
-        self.assertEqual(sg.config.raw_http_proxy, kwargs["source_proxy"])
+        self.assertEqual(sg.config.raw_http_proxy, source_proxy)
 
         config = tank.util.shotgun._get_app_store_connection_information()
         self.assertEqual(config["host"], tank.platform.constants.SGTK_APP_STORE)
-        self.assertEqual(config["http_proxy"], kwargs["expected_store_proxy"])
+        self.assertEqual(config["http_proxy"], expected_store_proxy)
 
 
 class LegacyAuthConnectionSettings(ConnectionSettingsTestCases, unittest.TestCase):
