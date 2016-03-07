@@ -17,10 +17,11 @@ from . import paths
 from .errors import ShotgunDeployError
 from . import util
 
-from ..shotgun_base import copy_file, append_folder_to_path, copy_folder
+from ..shotgun_base import copy_file, append_folder_to_path
+from ..shotgun_base import copy_folder, ensure_folder_exists
 
 from .. import yaml
-from ..shotgun_base import copy_folder, ensure_folder_exists
+
 
 log = util.get_shotgun_deploy_logger()
 
@@ -444,15 +445,18 @@ class Configuration(object):
         """
         Writes a cache file with info about where the config came from.
         """
-        config_info_file = os.path.join(
-            self.get_path(),
-            "cache",
-            constants.CONFIG_INFO_CACHE
+        config_info_file = paths.get_configuration_info_path(
+            self._sg_connection.base_url,
+            self._project_id,
+            self._pipeline_config_id,
+            self._namespace
         )
+
         fh = open(config_info_file, "wt")
 
         fh.write("# This file contains metadata describing what exact version\n")
         fh.write("# Of the config that was downloaded from Shotgun\n")
+        fh.write("# Created %s\n" % datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
         fh.write("\n")
         fh.write("# Below follows details for the sg attachment that is\n")
         fh.write("# reflected within this local configuration.\n")
@@ -689,25 +693,27 @@ class UnmanagedConfiguration(Configuration):
         """
         log.debug("Checking status of %r" % self)
 
+        # Pass 1:
+        # first check if there is any config at all
+        # probe for info.yaml manifest file
         config_root = self.get_path()
 
-        # first check if there is any config at all
-        # probe for shotgun.yml connection params file
         sg_config_file = os.path.join(
             config_root,
             "config",
-            "core",
-            constants.CONFIG_SHOTGUN_FILE
+            constants.BUNDLE_METADATA_FILE
         )
         if not os.path.exists(sg_config_file):
             return self.LOCAL_CFG_MISSING
 
+        # Pass 2:
         # local config exists. See if it is up to date.
-        # look at the attachment id to determine the generation of the config.
-        config_info_file = os.path.join(
-            config_root,
-            "cache",
-            constants.CONFIG_INFO_CACHE
+        # get the path to a potential config metadata file
+        config_info_file = paths.get_configuration_info_path(
+            self._sg_connection.base_url,
+            self._project_id,
+            self._pipeline_config_id,
+            self._namespace
         )
 
         if not os.path.exists(config_info_file):
@@ -746,6 +752,8 @@ class UnmanagedConfiguration(Configuration):
             # point (e.g like a dev or path descriptor). Assume a worst case
             # in this case - that the config that is cached locally is
             # not the same as the source descriptor it is based on.
+            log.debug("The installed config is not immutable, so it is per "
+                      "definition always out of date.")
             return self.LOCAL_CFG_OLD
 
         else:

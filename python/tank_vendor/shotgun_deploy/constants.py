@@ -65,9 +65,6 @@ CONFIG_README_FILE = "README"
 # config file with information about which core to use
 CONFIG_CORE_DESCRIPTOR_FILE = "core_api.yml"
 
-# file where info about the configuration is cached
-CONFIG_INFO_CACHE = "config_info.yml"
-
 # the file that defines which storages a configuration requires
 STORAGE_ROOTS_FILE = "roots.yml"
 
