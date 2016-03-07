@@ -22,23 +22,38 @@ class TestApi(TankTestBase):
     Testing the Shotgun deploy main API methods
     """
 
+    def _touch_info_yaml(self, path):
+        """
+        Helper method that creates an info.yml dummy
+        file in the given location
+        """
+        shotgun_base.ensure_folder_exists(path)
+        fh = open(os.path.join(path, "info.yml"), "wt")
+        fh.write("# unit test placeholder file\n\n")
+        fh.close()
+
+
     def test_factory(self):
         """
         Basic test of descriptor construction
         """
-        sg = self.tk.shotgun
         d = shotgun_deploy.create_descriptor(
-                sg,
-                shotgun_deploy.Descriptor.CONFIG,
-                {"type": "app_store", "version": "v0.1.2", "name": "tk-bundle"}
+            self.tk.shotgun,
+            shotgun_deploy.Descriptor.CONFIG,
+            {"type": "app_store", "version": "v0.1.6", "name": "tk-testbundlefactory"}
         )
 
-        self.assertEqual(
-                d.get_path(),
-                os.path.join(
-                        shotgun_base.get_cache_root(), "bundle_cache", "app_store", "tk-bundle", "v0.1.2"
-                )
+        app_root_path = os.path.join(
+            shotgun_base.get_cache_root(),
+            "bundle_cache",
+            "app_store",
+            "tk-testbundlefactory",
+            "v0.1.6"
         )
+
+        self._touch_info_yaml(app_root_path)
+
+        self.assertEqual(app_root_path, d.get_path())
 
 
     def test_alt_cache_root(self):
@@ -52,34 +67,38 @@ class TestApi(TankTestBase):
         d = shotgun_deploy.create_descriptor(
                 sg,
                 shotgun_deploy.Descriptor.CONFIG,
-                {"type": "app_store", "version": "v0.1.2", "name": "tk-bundle"},
+                {"type": "app_store", "version": "v0.4.2", "name": "tk-testaltcacheroot"},
                 bundle_root
         )
 
         # get_path() returns none if path doesn't exists
         self.assertEqual(d.get_path(), None)
 
-        app_root_path = os.path.join(bundle_root, "app_store", "tk-bundle", "v0.1.2")
-        shotgun_base.ensure_folder_exists(app_root_path)
-        fh = open(os.path.join(app_root_path, "info.yml"), "wt")
-        fh.write("fo")
-        fh.close()
-
+        # now create info.yml file and try again
+        app_root_path = os.path.join(
+            bundle_root,
+            "app_store",
+            "tk-testaltcacheroot",
+            "v0.4.2")
+        self._touch_info_yaml(app_root_path)
         self.assertEqual(d.get_path(), app_root_path)
 
 
-    def _test_uri(self, uri, dict):
-        computed_dict = shotgun_deploy.io_descriptor.location_uri_to_dict(uri)
-        computed_uri = shotgun_deploy.io_descriptor.location_dict_to_uri(dict)
+    def _test_uri(self, uri, location_dict):
+
+        computed_dict = shotgun_deploy.io_descriptor.descriptor_uri_to_dict(uri)
+        computed_uri = shotgun_deploy.io_descriptor.descriptor_dict_to_uri(location_dict)
         self.assertEqual(uri, computed_uri)
-        self.assertEqual(dict, computed_dict)
+        self.assertEqual(location_dict, computed_dict)
 
     def test_descriptor_uris(self):
-
-        uri = "sgtk:location:app_store?version=v0.1.2&name=tk-bundle"
+        """
+        Test dict/uri syntax and conversion
+        """
+        uri = "sgtk:descriptor:app_store?version=v0.1.2&name=tk-bundle"
         dict = {"type": "app_store", "version": "v0.1.2", "name": "tk-bundle"}
         self._test_uri(uri, dict)
 
-        uri = "sgtk:location:path?path=/foo/bar"
+        uri = "sgtk:descriptor:path?path=/foo/bar"
         dict = {"type": "path", "path": "/foo/bar"}
         self._test_uri(uri, dict)

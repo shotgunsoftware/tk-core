@@ -22,7 +22,7 @@ from ..shotgun_base import ensure_folder_exists
 from .errors import ShotgunDeployError
 from .configuration import Configuration, create_managed_configuration
 from .resolver import BaseConfigurationResolver
-from .io_descriptor import location_dict_to_uri
+from .io_descriptor import descriptor_dict_to_uri
 
 log = util.get_shotgun_deploy_logger()
 
@@ -43,7 +43,7 @@ class ToolkitManager(object):
         # defaults
         self._bundle_cache_fallback_paths = []
         self._pipeline_configuration_name = constants.PRIMARY_PIPELINE_CONFIG_NAME
-        self._base_config_location = None
+        self._base_config_descriptor = None
         self._namespace = constants.DEFAULT_NAMESPACE
         self._progress_cb = None
 
@@ -53,7 +53,7 @@ class ToolkitManager(object):
         repr += " Cache fallback path %s\n" % self._bundle_cache_fallback_paths
         repr += " Config %s\n" % self._pipeline_configuration_name
         repr += " Namespace: %s\n" % self._namespace
-        repr += " Base %s >" % self._base_config_location
+        repr += " Base %s >" % self._base_config_descriptor
         return repr
 
 
@@ -111,23 +111,23 @@ class ToolkitManager(object):
 
     def _get_base_configuration(self):
         """
-        Returns the location (string or dict) for the
+        Returns the descriptor (string or dict) for the
         config that should be used whenever shotgun
         lookups fail.
 
-        :returns: base configuration location, dict, str or None
+        :returns: Base configuration descriptor, dict, str or None
         """
-        return self._base_config_location
+        return self._base_config_descriptor
 
-    def _set_base_configuration(self, location):
+    def _set_base_configuration(self, descriptor):
         """
-        Specify the location (string or dict) for the
+        Specify the descriptor (string or dict) for the
         config that should be used whenever shotgun
         lookups fail.
 
-        :param location: location dictionary or str
+        :param descriptor: descriptor dictionary or str
         """
-        self._base_config_location = location
+        self._base_config_descriptor = descriptor
 
     base_configuration = property(_get_base_configuration, _set_base_configuration)
 
@@ -227,7 +227,7 @@ class ToolkitManager(object):
             project_id,
             self._pipeline_configuration_name,
             self._namespace,
-            self._base_config_location
+            self._base_config_descriptor
         )
 
         # see what we have locally
@@ -324,7 +324,7 @@ class ToolkitManager(object):
         pipeline configuration state of the manager instance itself.
 
         :param project_id: Project to retrieve configuration uri for.
-        :return: toolkit config locator uri string
+        :return: toolkit config descriptor uri string
         """
         resolver = BaseConfigurationResolver(
             self._sg_connection,
@@ -339,7 +339,7 @@ class ToolkitManager(object):
             project_id,
             self._pipeline_configuration_name,
             self._namespace,
-            self._base_config_location
+            self._base_config_descriptor
         )
 
         # return the uri associated with this configuration
@@ -417,7 +417,7 @@ class ToolkitManager(object):
     #     # write uri
     #     self._report_progress("Updating Pipeline Configuration...")
     #
-    #     location = {
+    #     descriptor_dict = {
     #         "type": "shotgun",
     #         "entity_type": constants.PIPELINE_CONFIGURATION_ENTITY_TYPE,
     #         "name": self._pipeline_configuration_name,
@@ -426,7 +426,7 @@ class ToolkitManager(object):
     #         "version": attachment_id
     #     }
     #
-    #     uri = location_dict_to_uri(location)
+    #     uri = descriptor_dict_to_uri(descriptor_dict)
     #
     #     log.debug("Updating pipeline config with new uri %s" % uri)
     #     self._sg_connection.update(
@@ -449,7 +449,7 @@ class ToolkitManager(object):
     #     use_bundle_cache=False
     # ):
     #     """
-    #     Creates a managed configuration on disk given the base location.
+    #     Creates a managed configuration on disk given the base config descriptor.
     #     The configuration will be downloaded and deployed for the
     #     given project. A pipeline configuration will be created with paths referencing
     #     the given locations on disk.
@@ -620,7 +620,7 @@ class ToolkitManager(object):
         cfg_descriptor = create_descriptor(
             self._sg_connection,
             Descriptor.CONFIG,
-            self._base_config_location,
+            self._base_config_descriptor,
             fallback_roots=self._bundle_cache_fallback_paths
         )
         log.debug("Base config resolved to: %r" % cfg_descriptor)

@@ -133,7 +133,7 @@ PROCESS_FOLDER_NAME_HOOK_NAME = "process_folder_name"
 # the configuration key inside an environment which holds all the app configs
 ENVIRONMENT_CFG_APPS_SECTION = "apps"
 
-# the key that holds the app location dict
+# the key that holds the app descriptor dict
 ENVIRONMENT_LOCATION_KEY = "location"
 
 # the file to look for that defines and bootstraps an app

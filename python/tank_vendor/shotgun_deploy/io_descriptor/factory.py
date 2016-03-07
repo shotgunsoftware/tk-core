@@ -13,13 +13,13 @@ from .. import constants
 from .. import util
 log = util.get_shotgun_deploy_logger()
 
-def create_io_descriptor(sg, descriptor_type, location, bundle_cache_root, fallback_roots):
+def create_io_descriptor(sg, descriptor_type, dict_or_uri, bundle_cache_root, fallback_roots):
     """
     Factory method. Use this method to construct all DescriptorIO instances.
 
     :param sg: Shotgun connection to associated site
     :param descriptor_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK
-    :param location: A std location dictionary dictionary or string
+    :param dict_or_uri: A std descriptor dictionary dictionary or string
     :param bundle_cache_root: Root path to where downloaded apps are cached
     :param fallback_roots: List of immutable fallback cache locations where
                            apps will be searched for. Note that when descriptors
@@ -36,63 +36,63 @@ def create_io_descriptor(sg, descriptor_type, location, bundle_cache_root, fallb
     from .git_branch import IODescriptorGitBranch
     from .manual import IODescriptorManual
 
-    if isinstance(location, basestring):
+    if isinstance(dict_or_uri, basestring):
         # translate uri to dict
-        location_dict = IODescriptorBase.dict_from_uri(location)
+        descriptor_dict = IODescriptorBase.dict_from_uri(dict_or_uri)
     else:
-        location_dict = location
+        descriptor_dict = dict_or_uri
 
-    if location_dict.get("type") == "app_store":
-        descriptor = IODescriptorAppStore(location_dict, sg, descriptor_type)
+    if descriptor_dict.get("type") == "app_store":
+        descriptor = IODescriptorAppStore(descriptor_dict, sg, descriptor_type)
 
-    elif location_dict.get("type") == "shotgun":
-        descriptor = IODescriptorShotgunEntity(location_dict, sg)
+    elif descriptor_dict.get("type") == "shotgun":
+        descriptor = IODescriptorShotgunEntity(descriptor_dict, sg)
 
-    elif location_dict.get("type") == "manual":
-        descriptor = IODescriptorManual(location_dict)
+    elif descriptor_dict.get("type") == "manual":
+        descriptor = IODescriptorManual(descriptor_dict)
 
-    elif location_dict.get("type") == "git":
-        descriptor = IODescriptorGitTag(location_dict)
+    elif descriptor_dict.get("type") == "git":
+        descriptor = IODescriptorGitTag(descriptor_dict)
 
-    elif location_dict.get("type") == "git_branch":
-        descriptor = IODescriptorGitBranch(location_dict)
+    elif descriptor_dict.get("type") == "git_branch":
+        descriptor = IODescriptorGitBranch(descriptor_dict)
 
-    elif location_dict.get("type") == "dev":
-        descriptor = IODescriptorDev(location_dict)
+    elif descriptor_dict.get("type") == "dev":
+        descriptor = IODescriptorDev(descriptor_dict)
 
-    elif location_dict.get("type") == "path":
-        descriptor = IODescriptorPath(location_dict)
+    elif descriptor_dict.get("type") == "path":
+        descriptor = IODescriptorPath(descriptor_dict)
 
     else:
-        raise ShotgunDeployError("Unknown location type for '%s'" % location_dict)
+        raise ShotgunDeployError("Unknown descriptor type for '%s'" % descriptor_dict)
 
     # specify where to go look for caches
     descriptor.set_cache_roots(bundle_cache_root, fallback_roots)
 
-    if location_dict.get("version") == constants.LATEST_DESCRIPTOR_KEYWORD:
+    if descriptor_dict.get("version") == constants.LATEST_DESCRIPTOR_KEYWORD:
         log.debug("Latest keyword detected. Searching for latest version...")
         descriptor = descriptor.get_latest_version()
         log.debug("Resolved latest to be %r" % descriptor)
 
     return descriptor
 
-def location_uri_to_dict(location_uri):
+def descriptor_uri_to_dict(uri):
     """
-    Translates a location uri into a location dictionary, suitable for
+    Translates a descriptor uri into a dictionary, suitable for
     use with the create_io_descriptor factory method below.
 
-    :param location_uri: location string uri
-    :returns: location dictionary
+    :param uri: descriptor string uri
+    :returns: descriptor dictionary
     """
     from .base import IODescriptorBase
-    return IODescriptorBase.dict_from_uri(location_uri)
+    return IODescriptorBase.dict_from_uri(uri)
 
-def location_dict_to_uri(location_dict):
+def descriptor_dict_to_uri(ddict):
     """
-    Translates a location dictionary into a location uri.
+    Translates a descriptor dictionary into a uri.
 
-    :param location_dict: location dictionary
-    :returns: location uri
+    :param ddict: descriptor dictionary
+    :returns: descriptor uri
     """
     from .base import IODescriptorBase
-    return IODescriptorBase.uri_from_dict(location_dict)
+    return IODescriptorBase.uri_from_dict(ddict)

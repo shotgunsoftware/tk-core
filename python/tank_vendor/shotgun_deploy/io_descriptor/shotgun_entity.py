@@ -50,42 +50,35 @@ class IODescriptorShotgunEntity(IODescriptorBase):
     a new descriptor.
 
     The latest version is defined as the current record available in Shotgun.
-
-    Url format:
-
-        sgtk:shotgun:PipelineConfiguration:sg_config:primary:p123:v456 (with project id)
-        sgtk:shotgun:PipelineConfiguration:sg_config:primary::v456     (without project id)
-
     """
 
-    def __init__(self, location_dict, sg_connection):
+    def __init__(self, descriptor_dict, sg_connection):
         """
         Constructor
 
-        :param location_dict: Location dictionary describing the bundle
+        :param descriptor_dict: descriptor dictionary describing the bundle
         :param sg_connection: Shotgun connection to associated site
         :return: Descriptor instance
         """
-        super(IODescriptorShotgunEntity, self).__init__(location_dict)
+        super(IODescriptorShotgunEntity, self).__init__(descriptor_dict)
 
-        self._validate_locator(
-            location_dict,
+        self._validate_descriptor(
+            descriptor_dict,
             required=["type", "entity_type", "name", "version", "field"],
             optional=["project_id"]
         )
 
         self._sg_connection = sg_connection
-        self._entity_type = location_dict.get("entity_type")
-        self._name = location_dict.get("name")
-        self._version = location_dict.get("version")
-        self._field = location_dict.get("field")
+        self._entity_type = descriptor_dict.get("entity_type")
+        self._name = descriptor_dict.get("name")
+        self._version = descriptor_dict.get("version")
+        self._field = descriptor_dict.get("field")
 
         self._project_link = None
-        if "project_id" in location_dict:
-            self._project_link = {"type": "Project", "id": location_dict["project_id"]}
+        if "project_id" in descriptor_dict:
+            self._project_link = {"type": "Project", "id": descriptor_dict["project_id"]}
 
-        self._project_id = location_dict.get("project_id")
-
+        self._project_id = descriptor_dict.get("project_id")
 
     def _get_cache_paths(self):
         """
@@ -107,34 +100,6 @@ class IODescriptorShotgunEntity(IODescriptorBase):
                 )
             )
         return paths
-
-
-    @classmethod
-    def dict_from_uri(cls, uri):
-        """
-        Given a location uri, return a location dict
-
-        :param uri: Location uri string
-        :return: Location dictionary
-        """
-        location_dict = cls._explode_uri(uri, "shotgun")
-
-        # validate it
-        cls._validate_locator(
-            location_dict,
-            required=["type", "entity_type", "name", "version", "field"],
-            optional=["project_id"]
-        )
-
-        # version and project_id in the uri needs casting to int and
-        # have their prefix stripped
-
-        location_dict["version"] = int(location_dict["version"][1:])
-
-        if "project_id" in location_dict:
-            location_dict["project_id"] = int(location_dict["project_id"][1:])
-
-        return location_dict
 
     def get_system_name(self):
         """
@@ -190,7 +155,6 @@ class IODescriptorShotgunEntity(IODescriptorBase):
         # clear temp file
         safe_delete_file(zip_tmp)
 
-
     def get_latest_version(self, constraint_pattern=None):
         """
         Returns a descriptor object that represents the latest version.
@@ -241,8 +205,8 @@ class IODescriptorShotgunEntity(IODescriptorBase):
 
         attachment_id = data[self._field]["id"]
 
-        # make a location dict
-        location_dict = {
+        # make a descriptor dict
+        descriptor_dict = {
             "type": "shotgun",
             "entity_type": self._entity_type,
             "field": self._field,
@@ -251,10 +215,10 @@ class IODescriptorShotgunEntity(IODescriptorBase):
         }
 
         if self._project_link:
-            location_dict[self._project_id] = self._project_id
+            descriptor_dict[self._project_id] = self._project_id
 
         # and return a descriptor instance
-        desc = IODescriptorShotgunEntity(location_dict, self._sg_connection)
+        desc = IODescriptorShotgunEntity(descriptor_dict, self._sg_connection)
         desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
 
         log.debug("Latest version resolved to %s" % desc)

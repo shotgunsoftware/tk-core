@@ -366,7 +366,7 @@ def ensure_frameworks_installed(log, tank_api_instance, file_location, descripto
         params = get_configuration(log, tank_api_instance, fw_descriptor, None, suppress_prompts, None)
 
         # next step is to add the new configuration values to the environment
-        environment.create_framework_settings(file_location, fw_instance_name, params, fw_descriptor.get_location())
+        environment.create_framework_settings(file_location, fw_instance_name, params, fw_descriptor.get_dict())
 
 
     # second pass: For all the missing frameworks that were installed, ensure that these in turn also

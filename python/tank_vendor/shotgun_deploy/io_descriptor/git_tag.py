@@ -34,31 +34,26 @@ class IODescriptorGitTag(IODescriptorGit):
         https://github.com/manneohrstrom/tk-hiero-publish.git
         git://github.com/manneohrstrom/tk-hiero-publish.git
         /full/path/to/local/repo.git
-
-    Uris are on the form:
-
-        sgtk:git:path/to/git/repo:v12.3.4
-
     """
 
-    def __init__(self, location_dict):
+    def __init__(self, descriptor_dict):
         """
         Constructor
 
-        :param location_dict: Location dictionary describing the bundle
+        :param descriptor_dict: descriptor dictionary describing the bundle
         :return: Descriptor instance
         """
-        super(IODescriptorGitTag, self).__init__(location_dict)
+        super(IODescriptorGitTag, self).__init__(descriptor_dict)
 
-        self._validate_locator(
-            location_dict,
+        self._validate_descriptor(
+            descriptor_dict,
             required=["type", "path", "version"],
             optional=[]
         )
 
         # path is handled by base class - all git descriptors
         # have a path to a repo
-        self._version = location_dict.get("version")
+        self._version = descriptor_dict.get("version")
 
     def _get_cache_paths(self):
         """
@@ -130,7 +125,7 @@ class IODescriptorGitTag(IODescriptorGit):
 
         version_to_use = self._find_latest_tag_by_pattern(git_tags, pattern)
 
-        new_loc_dict = copy.deepcopy(self._location_dict)
+        new_loc_dict = copy.deepcopy(self._descriptor_dict)
         new_loc_dict["version"] = version_to_use
 
         # create new descriptor to represent this tag
@@ -174,31 +169,13 @@ class IODescriptorGitTag(IODescriptorGit):
         finally:
             os.chdir(cwd)
 
-        new_loc_dict = copy.deepcopy(self._location_dict)
+        new_loc_dict = copy.deepcopy(self._descriptor_dict)
         new_loc_dict["version"] = latest_version
 
         # create new descriptor to represent this tag
         desc = IODescriptorGit(new_loc_dict)
         desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
         return desc
-
-    @classmethod
-    def dict_from_uri(cls, uri):
-        """
-        Given a location uri, return a location dict
-
-        :param uri: Location uri string
-        :return: Location dictionary
-        """
-        location_dict = cls._explode_uri(uri, "git")
-
-        # validate it
-        cls._validate_locator(
-            location_dict,
-            required=["type", "path", "version"],
-            optional=[]
-        )
-        return location_dict
 
     def get_version(self):
         """

@@ -41,35 +41,30 @@ class IODescriptorGitBranch(IODescriptorGit):
         git://github.com/manneohrstrom/tk-hiero-publish.git
         /full/path/to/local/repo.git
 
-    Uris are on the form:
-
-        sgtk:git_branch:path/to/git/repo:master:17fedd8a4e3c7c004316af5001331ad2c9e14bd5
-        sgtk:git_branch:path/to/git/repo:master:latest
-
     The hash can be short, as long as it is unique, e.g. it follows the same logic
     that git is using for shortening its hashes. A recommendation is to use the first
     seven digits to describe a hash that is unique within a repository.
     """
 
-    def __init__(self, location_dict):
+    def __init__(self, descriptor_dict):
         """
         Constructor
 
-        :param location_dict: Location dictionary describing the bundle
+        :param descriptor_dict: descriptor dictionary describing the bundle
         :return: Descriptor instance
         """
-        super(IODescriptorGitBranch, self).__init__(location_dict)
+        super(IODescriptorGitBranch, self).__init__(descriptor_dict)
 
-        self._validate_locator(
-            location_dict,
+        self._validate_descriptor(
+            descriptor_dict,
             required=["type", "path", "version", "branch"],
             optional=[]
         )
 
         # path is handled by base class - all git descriptors
         # have a path to a repo
-        self._version = location_dict.get("version")
-        self._branch = location_dict.get("branch")
+        self._version = descriptor_dict.get("version")
+        self._branch = descriptor_dict.get("branch")
 
     def _get_cache_paths(self):
         """
@@ -123,24 +118,6 @@ class IODescriptorGitBranch(IODescriptorGit):
             execute_git_command("reset --hard -q %s" % self._version)
         finally:
             os.chdir(cwd)
-
-    @classmethod
-    def dict_from_uri(cls, uri):
-        """
-        Given a location uri, return a location dict
-
-        :param uri: Location uri string
-        :return: Location dictionary
-        """
-        location_dict = cls._explode_uri(uri, "git_branch")
-
-        # validate it
-        cls._validate_locator(
-            location_dict,
-            required=["type", "path", "branch", "version"],
-            optional=[]
-        )
-        return location_dict
 
     def get_version(self):
         """
@@ -210,7 +187,7 @@ class IODescriptorGitBranch(IODescriptorGit):
         git_hash = branch_info.split()[0]
 
         # make a new descriptor
-        new_loc_dict = copy.deepcopy(self._location_dict)
+        new_loc_dict = copy.deepcopy(self._descriptor_dict)
         new_loc_dict["version"] = git_hash
         desc = IODescriptorGitBranch(new_loc_dict)
         desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)

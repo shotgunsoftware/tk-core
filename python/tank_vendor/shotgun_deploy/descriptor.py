@@ -15,13 +15,13 @@ from . import paths
 from .io_descriptor import create_io_descriptor
 from .errors import ShotgunDeployError
 
-def create_descriptor(sg_connection, descriptor_type, location, bundle_cache_root_override=None, fallback_roots=None):
+def create_descriptor(sg_connection, descriptor_type, dict_or_uri, bundle_cache_root_override=None, fallback_roots=None):
     """
     Factory method. Use this when creating descriptor objects.
 
     :param sg_connection: Shotgun connection to associated site
     :param descriptor_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK
-    :param location: A std location dictionary dictionary or string
+    :param dict_or_uri: A std descriptor dictionary dictionary or string
     :param bundle_cache_root_override: Optional override for root path to where
                                        downloaded apps are cached.
     :param fallback_roots: Optional List of immutable fallback cache locations where
@@ -43,7 +43,7 @@ def create_descriptor(sg_connection, descriptor_type, location, bundle_cache_roo
     io_descriptor = create_io_descriptor(
         sg_connection,
         descriptor_type,
-        location,
+        dict_or_uri,
         bundle_cache_root_override,
         fallback_roots
     )
@@ -86,7 +86,7 @@ class Descriptor(object):
 
         :param io_descriptor: Associated IO descriptor.
         """
-        # construct a suitable IO descriptor for this locator
+        # construct a suitable IO descriptor for this descriptor
         self._io_descriptor = io_descriptor
 
     def __eq__(self, other):
@@ -116,19 +116,22 @@ class Descriptor(object):
     ###############################################################################################
     # data accessors
 
-    def get_location(self):
+    def get_dict(self):
         """
-        Returns the location dict associated with this descriptor
+        Returns the dictionary associated with this descriptor
 
         :returns: Dictionary that can be used to construct the descriptor
         """
-        return self._io_descriptor.get_location()
+        return self._io_descriptor.get_dict()
+
+    # legacy support for previous method name
+    get_location = get_dict
 
     def get_uri(self):
         """
-        Returns the location uri associated with this descriptor
+        Returns the uri associated with this descriptor
         The uri is a string based representation that is equivalent to the
-        location dictionary returned by the get_location() method.
+        descriptor dictionary returned by the get_dict() method.
 
         :returns: Uri string that can be used to construct the descriptor
         """

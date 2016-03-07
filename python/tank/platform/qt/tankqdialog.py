@@ -186,7 +186,7 @@ class TankQDialog(TankDialogBase):
         
         # when rendering the main UI title text, if the app is in dev mode, add 
         # a little DEV text.
-        if self._bundle.descriptor.get_location().get("type") == "dev":        
+        if self._bundle.descriptor.get_dict().get("type") == "dev":
             self.ui.label.setText("%s<span style='font-size:9px; color: #30A7E3'>  DEV</span>" % title)
         else:
             self.ui.label.setText(title)
@@ -290,7 +290,7 @@ class TankQDialog(TankDialogBase):
             self.ui.app_name.setText(self._bundle.display_name)
             self.ui.app_description.setText(self._bundle.description)
             # get the descriptor type (eg. git/app store/dev etc)
-            descriptor_type = self._bundle.descriptor.get_location().get("type", "Undefined")
+            descriptor_type = self._bundle.descriptor.get_dict().get("type", "Undefined")
             self.ui.app_tech_details.setText("Location: %s %s (Source: %s)" % (self._bundle.name, 
                                                                      self._bundle.version,
                                                                      descriptor_type))

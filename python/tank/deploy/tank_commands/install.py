@@ -272,7 +272,7 @@ class InstallAppAction(Action):
     
         # next step is to add the new configuration values to the environment
         env.create_app_settings(engine_instance_name, app_instance_name)
-        env.update_app_settings(engine_instance_name, app_instance_name, params, app_descriptor.get_location())
+        env.update_app_settings(engine_instance_name, app_instance_name, params, app_descriptor.get_dict())
     
         log.info("App Installation Complete!")
         if app_descriptor.get_doc_url():
@@ -515,7 +515,7 @@ class InstallEngineAction(Action):
         
         # next step is to add the new configuration values to the environment
         env.create_engine_settings(engine_instance_name)
-        env.update_engine_settings(engine_instance_name, params, engine_descriptor.get_location())
+        env.update_engine_settings(engine_instance_name, params, engine_descriptor.get_dict())
     
         log.info("")
         log.info("")

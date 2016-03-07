@@ -32,30 +32,22 @@ class IODescriptorPath(IODescriptorBase):
          "windows_path": "d:\foo\bar",
          "mac_path": "/path/to/app" }
 
-    String urls are on the following form::
-
-        sgtk:path:[name]:local_path
-        sgtk:path3:[name]:win_path:linux_path:mac_path
-
-        sgtk:path:my-app:/tmp/foo/bar
-        sgtk:path3::c%3A%0Coo%08ar:/tmp/foo/bar:
-
     Name is optional and if not specified will be determined based on folder path.
     If name is not specified and path is /tmp/foo/bar, the name will set to 'bar'
     """
     
-    def __init__(self, location_dict):
+    def __init__(self, descriptor_dict):
         """
         Constructor
 
-        :param location_dict: Location dictionary describing the bundle
+        :param descriptor_dict: descriptor dictionary describing the bundle
         :return: Descriptor instance
         """
 
-        super(IODescriptorPath, self).__init__(location_dict)
+        super(IODescriptorPath, self).__init__(descriptor_dict)
 
-        self._validate_locator(
-            location_dict,
+        self._validate_descriptor(
+            descriptor_dict,
             required=["type"],
             optional=["name", "linux_path", "mac_path", "path", "windows_path"]
         )
@@ -63,18 +55,18 @@ class IODescriptorPath(IODescriptorBase):
         # platform specific location support
         platform_key = get_shotgun_storage_key()
 
-        if "path" in location_dict:
+        if "path" in descriptor_dict:
             # first look for 'path' key
-            self._path = location_dict["path"]
+            self._path = descriptor_dict["path"]
             self._multi_os_descriptor = False
-        elif platform_key in location_dict:
+        elif platform_key in descriptor_dict:
             # if not defined, look for os specific key
-            self._path = location_dict[platform_key]
+            self._path = descriptor_dict[platform_key]
             self._multi_os_descriptor = True
         else:
             raise ShotgunDeployError(
                 "Invalid descriptor! Could not find a path or a %s entry in the "
-                "location dict %s." % (platform_key, location_dict)
+                "descriptor dict %s." % (platform_key, descriptor_dict)
             )
 
         # lastly, resolve environment variables
@@ -83,9 +75,9 @@ class IODescriptorPath(IODescriptorBase):
         # and normalise:
         self._path = os.path.normpath(self._path)
         
-        # if there is a name defined in the location dict then lets use
+        # if there is a name defined in the descriptor dict then lets use
         # this, otherwise we'll fall back to the folder name:
-        self._name = location_dict.get("name")
+        self._name = descriptor_dict.get("name")
         if not self._name:
             # fall back to the folder name
             bn = os.path.basename(self._path)
@@ -101,24 +93,6 @@ class IODescriptorPath(IODescriptorBase):
         :return: List of path strings
         """
         return [self._path]
-
-    @classmethod
-    def dict_from_uri(cls, uri):
-        """
-        Given a location uri, return a location dict
-
-        :param uri: Location uri string
-        :return: Location dictionary
-        """
-        location_dict = cls._explode_uri(uri, "path")
-
-        # validate it
-        cls._validate_locator(
-            location_dict,
-            required=["type"],
-            optional=["name", "linux_path", "mac_path", "path", "windows_path"]
-        )
-        return location_dict
 
     def get_system_name(self):
         """

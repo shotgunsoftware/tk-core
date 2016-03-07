@@ -30,7 +30,7 @@ class IODescriptorBase(object):
 
     Several Descriptor classes exists, all deriving from this base class, and the
     factory method create_descriptor() manufactures the correct descriptor object
-    based on a location dict, that is found inside of the environment config.
+    based on a descriptor dict, that is found inside of the environment config.
 
     Different App Descriptor implementations typically handle different source control
     systems: There may be an app descriptor which knows how to communicate with the
@@ -47,7 +47,7 @@ class IODescriptorBase(object):
     #         where we can keep better track of globals in general.
     _instances = dict()
 
-    def __new__(cls, location_dict, *args, **kwargs):
+    def __new__(cls, descriptor_dict, *args, **kwargs):
         """
         Handles caching of descriptors.
 
@@ -58,13 +58,13 @@ class IODescriptorBase(object):
         also cache their wrapper objects.
 
         :param bundle_cache_root: Root location for bundle cache
-        :param location_dict: Location dictionary describing the bundle
+        :param descriptor_dict: descriptor dictionary describing the bundle
         :returns: Descriptor instance
         """
         instance_cache = cls._instances
 
-        # The cache is keyed based on the location dict
-        cache_key = str(location_dict)
+        # The cache is keyed based on the descriptor dict
+        cache_key = str(descriptor_dict)
 
         # Instantiate and cache if we need to, otherwise just return what we
         # already have stored away.
@@ -75,23 +75,23 @@ class IODescriptorBase(object):
             # that we instantiate and store by version.
             instance_cache[cache_key] = super(IODescriptorBase, cls).__new__(
                 cls,
-                location_dict,
+                descriptor_dict,
                 *args,
                 **kwargs
             )
 
         return instance_cache[cache_key]
 
-    def __init__(self, location_dict):
+    def __init__(self, descriptor_dict):
         """
         Constructor
 
-        :param bundle_cache_root: Root location for bundle cache storage
-        :param location_dict: dictionary describing the location
+        :param descriptor_dict: Dictionary describing what
+                                the descriptor is pointing at
         """
         self._bundle_cache_root = None
         self._fallback_roots = []
-        self._location_dict = location_dict
+        self._descriptor_dict = descriptor_dict
         self.__manifest_data = None
 
     def set_cache_roots(self, primary_root, fallback_roots):
@@ -125,32 +125,32 @@ class IODescriptorBase(object):
         return "<%s %s>" % (class_name, self.get_uri())
 
     @classmethod
-    def _validate_locator(cls, location, required, optional):
+    def _validate_descriptor(cls, descriptor_dict, required, optional):
         """
-        Validate that the locator dictionary has got the necessary keys.
+        Validate that the descriptor dictionary has got the necessary keys.
 
         Raises ShotgunDeployError if required parameters are missing.
         Logs warnings if parameters outside the required/optional range are specified.
 
-        :param location: Location dict
+        :param descriptor_dict: descriptor dict
         :param required: List of required parameters
         :param optional: List of optionally supported parameters
-        :raises: ShotgunDeployError if the location dict does not include all parameters.
+        :raises: ShotgunDeployError if the descriptor dict does not include all parameters.
         """
-        location_keys_set = set(location.keys())
+        desc_keys_set = set(descriptor_dict.keys())
         required_set = set(required)
         optional_set = set(optional)
 
-        if not required_set.issubset(location_keys_set):
-            missing_keys = required_set.difference(location_keys_set)
-            raise ShotgunDeployError("%s are missing required keys %s" % (location, missing_keys))
+        if not required_set.issubset(desc_keys_set):
+            missing_keys = required_set.difference(desc_keys_set)
+            raise ShotgunDeployError("%s are missing required keys %s" % (descriptor_dict, missing_keys))
 
         all_keys = required_set.union(optional_set)
 
-        if location_keys_set.difference(all_keys):
+        if desc_keys_set.difference(all_keys):
             log.warning(
                 "Found unsupported parameters %s in %s. "
-                "These will be ignored." % (location_keys_set.difference(all_keys), location)
+                "These will be ignored." % (desc_keys_set.difference(all_keys), descriptor_dict)
             )
 
     def _find_latest_tag_by_pattern(self, version_numbers, pattern):
@@ -318,7 +318,7 @@ class IODescriptorBase(object):
     @classmethod
     def dict_from_uri(cls, uri):
         """
-        Convert a uri string into a location dictionary.
+        Convert a uri string into a descriptor dictionary.
 
         Example:
 
@@ -335,22 +335,21 @@ class IODescriptorBase(object):
         """
         parsed_uri = urlparse.urlparse(uri)
         # example:
-        # >>> urlparse.urlparse("sgtk:location:app_store?foo=bar&baz=buz")
-        # ParseResult(scheme='sgtk', netloc='', path='location:app_store',
+        # >>> urlparse.urlparse("sgtk:descriptor:app_store?foo=bar&baz=buz")
+        # ParseResult(scheme='sgtk', netloc='', path='descriptor:app_store',
         #             params='', query='foo=bar&baz=buz', fragment='')
 
-
-        if parsed_uri.scheme != constants.LOCATOR_URI_PATH_SCHEME:
+        if parsed_uri.scheme != constants.DESCRIPTOR_URI_PATH_SCHEME:
             raise ShotgunDeployError("Invalid uri '%s' - must begin with 'sgtk'" % uri)
 
-        split_path = parsed_uri.path.split(constants.LOCATOR_URI_SEPARATOR)
-        # e.g. 'location:app_store' -> ('location', 'app_store')
-        if len(split_path) != 2 or split_path[0] != constants.LOCATOR_URI_PATH_PREFIX:
-            raise ShotgunDeployError("Invalid uri '%s' - must begin with sgtk:location" % uri)
+        split_path = parsed_uri.path.split(constants.DESCRIPTOR_URI_SEPARATOR)
+        # e.g. 'location:app_store' -> ('descriptor', 'app_store')
+        if len(split_path) != 2 or split_path[0] != constants.DESCRIPTOR_URI_PATH_PREFIX:
+            raise ShotgunDeployError("Invalid uri '%s' - must begin with sgtk:descriptor" % uri)
 
-        location_dict = {}
+        descriptor_dict = {}
 
-        location_dict["type"] = split_path[1]
+        descriptor_dict["type"] = split_path[1]
 
         # now pop remaining keys into a dict and key by item_keys
         # note: using deprecated cfg method for 2.5 compatibility
@@ -360,40 +359,40 @@ class IODescriptorBase(object):
         for (param, value) in cgi.parse_qs(parsed_uri.query).iteritems():
             if len(value) > 1:
                 raise ShotgunDeployError("Invalid uri '%s' - duplicate parameters" % uri)
-            location_dict[param] = value[0]
+            descriptor_dict[param] = value[0]
 
-        return location_dict
+        return descriptor_dict
 
-    def get_location(self):
+    def get_dict(self):
         """
-        Returns the location dict associated with this descriptor
+        Returns the dictionary associated with this descriptor
         """
-        return self._location_dict
+        return self._descriptor_dict
 
     @classmethod
-    def uri_from_dict(cls, location_dict):
+    def uri_from_dict(cls, descriptor_dict):
         """
-        Create a locator uri given some data
+        Create a descriptor uri given some data
 
-        {'type': 'app_store', 'bar':'baz'} --> 'sgtk:location:app_store?bar=baz'
+        {'type': 'app_store', 'bar':'baz'} --> 'sgtk:descriptor:app_store?bar=baz'
 
-        :param location_dict: Location dictionary
-        :return: location uri
+        :param descriptor_dict: descriptor dictionary
+        :return: descriptor uri
         """
-        if "type" not in location_dict:
+        if "type" not in descriptor_dict:
             raise ShotgunDeployError(
-                "Cannot create uri from %s - missing type field" % location_dict
+                "Cannot create uri from %s - missing type field" % descriptor_dict
             )
 
         uri_chunks = [
-            constants.LOCATOR_URI_PATH_SCHEME,
-            constants.LOCATOR_URI_PATH_PREFIX,
-            location_dict["type"]
+            constants.DESCRIPTOR_URI_PATH_SCHEME,
+            constants.DESCRIPTOR_URI_PATH_PREFIX,
+            descriptor_dict["type"]
         ]
-        uri = constants.LOCATOR_URI_SEPARATOR.join(uri_chunks)
+        uri = constants.DESCRIPTOR_URI_SEPARATOR.join(uri_chunks)
 
         qs_chunks = []
-        for (param, value) in location_dict.iteritems():
+        for (param, value) in descriptor_dict.iteritems():
             if param == "type":
                 continue
             qs_chunks.append("%s=%s" % (param, value))
@@ -407,7 +406,7 @@ class IODescriptorBase(object):
 
         :return: Uri string
         """
-        return self.uri_from_dict(self._location_dict)
+        return self.uri_from_dict(self._descriptor_dict)
 
     def get_deprecation_status(self):
         """

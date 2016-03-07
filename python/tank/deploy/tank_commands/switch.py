@@ -16,7 +16,7 @@ import os
 
 class SwitchAppAction(Action):
     """
-    Action that makes it easy to switch from one locator to another
+    Action that makes it easy to switch from one descriptor to another
     """    
     def __init__(self):
         Action.__init__(self, 
@@ -118,7 +118,7 @@ class SwitchAppAction(Action):
             mode = "dev"
             path = fourth_param
         
-        # find locator
+        # find descriptor
         try:
             env = self.tk.pipeline_configuration.get_environment(env_name, writable=True)
             env.set_yaml_preserve_mode(preserve_yaml)
@@ -144,21 +144,26 @@ class SwitchAppAction(Action):
         log.info("")
         
         if mode == "app_store":
-            location = {"type": "app_store", "name": descriptor.get_system_name(), "version": "latest"}
-            new_descriptor = self.tk.pipeline_configuration.get_app_descriptor(location)
+            new_descriptor = self.tk.pipeline_configuration.get_app_descriptor(
+                {"type": "app_store",
+                 "name": descriptor.get_system_name(),
+                 "version": "latest"}
+            )
         
         elif mode == "dev":
             if not os.path.exists(path):
                 raise TankError("Cannot find path '%s' on disk!" % path)
 
             # run descriptor factory method
-            location = {"type": "dev", "path": path}
-            new_descriptor = self.tk.pipeline_configuration.get_app_descriptor(location)
+            new_descriptor = self.tk.pipeline_configuration.get_app_descriptor(
+                {"type": "dev", "path": path}
+            )
 
         elif mode == "git":
             # run descriptor factory method
-            location = {"type": "git", "path": path, "version": "latest"}
-            new_descriptor = self.tk.pipeline_configuration.get_app_descriptor(location)
+            new_descriptor = self.tk.pipeline_configuration.get_app_descriptor(
+                {"type": "git", "path": path, "version": "latest"}
+            )
         
         else:
             raise TankError("Unknown mode!")
@@ -169,13 +174,13 @@ class SwitchAppAction(Action):
         log.info("")
         log.info("Current version")
         log.info("------------------------------------")
-        for (k,v) in descriptor.get_location().items():
+        for (k,v) in descriptor.get_dict().items():
             log.info(" - %s: %s" % (k.capitalize(), v))
         
         log.info("")
         log.info("New version")
         log.info("------------------------------------")
-        for (k,v) in new_descriptor.get_location().items():
+        for (k,v) in new_descriptor.get_dict().items():
             log.info(" - %s: %s" % (k.capitalize(), v))
         
         log.info("")
@@ -209,6 +214,6 @@ class SwitchAppAction(Action):
         env.update_app_settings(engine_instance_name, 
                                 app_instance_name, 
                                 params, 
-                                new_descriptor.get_location())
+                                new_descriptor.get_dict())
         
         log.info("Switch complete!")

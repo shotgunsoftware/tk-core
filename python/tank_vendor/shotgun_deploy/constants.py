@@ -63,7 +63,7 @@ BOOTSTRAP_LOGIC_GENERATION = 3
 CONFIG_README_FILE = "README"
 
 # config file with information about which core to use
-CONFIG_CORE_LOCATION_FILE = "core_api.yml"
+CONFIG_CORE_DESCRIPTOR_FILE = "core_api.yml"
 
 # file where info about the configuration is cached
 CONFIG_INFO_CACHE = "config_info.yml"
@@ -84,7 +84,7 @@ PIPELINECONFIG_FILE = "pipeline_configuration.yml"
 SHOTGUN_PIPELINECONFIG_ATTACHMENT_FIELD = "sg_config"
 
 # field used to store a config uri
-SHOTGUN_PIPELINECONFIG_URI_FIELD = "sg_location"
+SHOTGUN_PIPELINECONFIG_URI_FIELD = "sg_config_uri"
 
 # The name of the primary pipeline config
 PRIMARY_PIPELINE_CONFIG_NAME = "Primary"
@@ -105,13 +105,13 @@ LATEST_DESCRIPTOR_KEYWORD = "latest"
 # default namespace
 DEFAULT_NAMESPACE = "default"
 
-# locator uri separator
-LOCATOR_URI_PATH_SCHEME = "sgtk"
-LOCATOR_URI_PATH_PREFIX = "location"
-LOCATOR_URI_SEPARATOR = ":"
+# descriptor uri separator
+DESCRIPTOR_URI_PATH_SCHEME = "sgtk"
+DESCRIPTOR_URI_PATH_PREFIX = "descriptor"
+DESCRIPTOR_URI_SEPARATOR = ":"
 
 # latest core
-LATEST_CORE_LOCATION = {"type": "app_store", "name": "tk-core", "version": "latest"}
+LATEST_CORE_DESCRIPTOR = {"type": "app_store", "name": "tk-core", "version": "latest"}
 
 # default shotgun desktop python installations
 DESKTOP_PYTHON_MAC = "/Applications/Shotgun.app/Contents/Resources/Python/bin/python"

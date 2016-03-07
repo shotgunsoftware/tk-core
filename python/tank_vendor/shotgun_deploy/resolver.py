@@ -45,7 +45,7 @@ class ConfigurationResolver(object):
         project_id,
         pipeline_config_name,
         namespace,
-        base_config_location
+        base_config_descriptor
     ):
         """
         Given a Shotgun project (or None for site mode), return a configuration
@@ -59,7 +59,7 @@ class ConfigurationResolver(object):
         :param pipeline_config_name: Name of configuration branch (e.g Primary)
         :param namespace: Config namespace to distinguish it from other configs with the
                           same project id and pipeline configuration name.
-        :param base_config_location: Location dict or string for fallback config.
+        :param base_config_descriptor: descriptor dict or string for fallback config.
         :return: Configuration instance
         """
         raise NotImplementedError
@@ -89,7 +89,7 @@ class BaseConfigurationResolver(ConfigurationResolver):
         project_id,
         pipeline_config_name,
         namespace,
-        base_config_location
+        base_config_descriptor
     ):
         """
         Given a Shotgun project (or None for site mode), return a configuration
@@ -106,7 +106,7 @@ class BaseConfigurationResolver(ConfigurationResolver):
         :param pipeline_config_name: Name of configuration branch (e.g Primary)
         :param namespace: Config namespace to distinguish it from other configs with the
                           same project id and pipeline configuration name.
-        :param base_config_location: Location dict or string for fallback config.
+        :param base_config_descriptor: descriptor dict or string for fallback config.
         :return: Configuration instance
         """
         log.debug(
@@ -120,7 +120,7 @@ class BaseConfigurationResolver(ConfigurationResolver):
         )
 
         # fall back on base
-        if base_config_location is None:
+        if base_config_descriptor is None:
             raise ShotgunDeployError(
                 "No base configuration specified and no pipeline "
                 "configuration exists in Shotgun for the given project. "
@@ -129,7 +129,7 @@ class BaseConfigurationResolver(ConfigurationResolver):
         cfg_descriptor = create_descriptor(
             self._sg_connection,
             Descriptor.CONFIG,
-            base_config_location,
+            base_config_descriptor,
             fallback_roots=self._bundle_cache_fallback_paths
         )
 
@@ -159,7 +159,8 @@ class DefaultShotgunConfigurationResolver(ConfigurationResolver):
     takes precedence over the base config location. The old path fields
     on pipeline configuration are checked first and take precedence over
     anything else. Secondly it looks for a config str field on the pipeline
-    configuration and tries to interpret and resolve this as a location uri.
+    configuration and tries to interpret and resolve this as a descriptor uri.
+    configuration and tries to interpret and resolve this as a descriptor uri.
 
     @todo - handle namespace support in shotgun/pipeline config fields
     @todo - finalize constants.SHOTGUN_PIPELINECONFIG_URI_FIELD
@@ -182,7 +183,7 @@ class DefaultShotgunConfigurationResolver(ConfigurationResolver):
         project_id,
         pipeline_config_name,
         namespace,
-        base_config_location
+        base_config_descriptor
     ):
         """
         Given a Shotgun project (or None for site mode), return a configuration
@@ -192,7 +193,7 @@ class DefaultShotgunConfigurationResolver(ConfigurationResolver):
         :param pipeline_config_name: Name of configuration branch (e.g Primary)
         :param namespace: Config namespace to distinguish it from other configs with the
                           same project id and pipeline configuration name.
-        :param base_config_location: Location dict or string for fallback config.
+        :param base_config_descriptor: descriptor dict or string for fallback config.
         :return: Configuration instance
         """
 
@@ -220,7 +221,7 @@ class DefaultShotgunConfigurationResolver(ConfigurationResolver):
                 "falling back on base config.")
             config = self._create_base_configuration(
                 project_id,
-                base_config_location,
+                base_config_descriptor,
                 namespace
             )
 
@@ -325,19 +326,19 @@ class DefaultShotgunConfigurationResolver(ConfigurationResolver):
         # no luck resolving from Shotgun
         return None
 
-    def _create_base_configuration(self, project_id, base_config_location, namespace):
+    def _create_base_configuration(self, project_id, base_config_descriptor, namespace):
         """
         Helper method that creates a config wrapper object
-        from the base configuration locator.
+        from the base configuration descriptor.
 
         :param project_id: Shotgun project id
-        :param base_config_location: Location dict or string for fallback config.
+        :param base_config_descriptor: descriptor dict or string for fallback config.
         :param namespace: Config namespace to distinguish it from other configs with the
                           same project id and pipeline configuration name.
         :return: Configuration instance
         """
         # fall back on base
-        if base_config_location is None:
+        if base_config_descriptor is None:
             raise ShotgunDeployError(
                 "No base configuration specified and no pipeline "
                 "configuration exists in Shotgun for the given project. "
@@ -346,7 +347,7 @@ class DefaultShotgunConfigurationResolver(ConfigurationResolver):
         cfg_descriptor = create_descriptor(
             self._sg_connection,
             Descriptor.CONFIG,
-            base_config_location,
+            base_config_descriptor,
             fallback_roots=self._bundle_cache_fallback_paths
         )
 

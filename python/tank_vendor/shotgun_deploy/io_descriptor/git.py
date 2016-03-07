@@ -8,15 +8,9 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 import os
-import copy
-import uuid
-import tempfile
 
-from ..util import subprocess_check_output, execute_git_command
+from ..util import execute_git_command
 from .base import IODescriptorBase
-from ..zipfilehelper import unzip_file
-from ..errors import ShotgunDeployError
-from ...shotgun_base import ensure_folder_exists, safe_delete_file
 
 from .. import util
 
@@ -31,16 +25,16 @@ class IODescriptorGit(IODescriptorBase):
     parameter).
     """
 
-    def __init__(self, location_dict):
+    def __init__(self, descriptor_dict):
         """
         Constructor
 
-        :param location_dict: Location dictionary describing the bundle
+        :param descriptor_dict: descriptor dictionary describing the bundle
         :return: Descriptor instance
         """
-        super(IODescriptorGit, self).__init__(location_dict)
+        super(IODescriptorGit, self).__init__(descriptor_dict)
 
-        self._path = location_dict.get("path")
+        self._path = descriptor_dict.get("path")
         # strip trailing slashes - this is so that when we build
         # the name later (using os.basename) we construct it correctly.
         if self._path.endswith("/") or self._path.endswith("\\"):

@@ -109,7 +109,7 @@ def create_managed_configuration(
     config_path_linux = append_folder_to_path("linux2", linux_path, "config")
     config_path_mac = append_folder_to_path("darwin", mac_path, "config")
 
-    config_location = {
+    config_descriptor_dict = {
         "type": "path",
         "linux_path": config_path_linux,
         "mac_path": config_path_mac,
@@ -119,7 +119,7 @@ def create_managed_configuration(
     config_descriptor = create_descriptor(
         sg,
         Descriptor.CONFIG,
-        config_location,
+        config_descriptor_dict,
         fallback_roots=bundle_cache_fallback_paths
     )
 
@@ -378,20 +378,20 @@ class Configuration(object):
         This will copy the core API from the given location into
         the configuration, effectively mimicing a localized setup.
         """
-        core_location = self._descriptor.get_associated_core_location()
+        core_uri_or_dict = self._descriptor.get_associated_core_descriptor()
 
-        if core_location is None:
-            # we don't have a core location specified. Get latest from app store.
+        if core_uri_or_dict is None:
+            # we don't have a core descriptor specified. Get latest from app store.
             log.info("Config does not define which core to use. Will use latest.")
-            core_location = constants.LATEST_CORE_LOCATION
+            core_uri_or_dict = constants.LATEST_CORE_DESCRIPTOR
         else:
-            # we have an exact core location. Get a descriptor for it
-            log.debug("Config needs core %s" % core_location)
+            # we have an exact core descriptor. Get a descriptor for it
+            log.debug("Config needs core %s" % core_uri_or_dict)
 
         core_descriptor = create_descriptor(
             self._sg_connection,
             Descriptor.CORE,
-            core_location,
+            core_uri_or_dict,
             fallback_roots=self._bundle_cache_fallback_paths
         )
 
@@ -462,7 +462,7 @@ class Configuration(object):
         # bake in which version of the deploy logic was used to push this config
         metadata["deploy_generation"] = constants.BOOTSTRAP_LOGIC_GENERATION
         # and include details about where the config came from
-        metadata["config_location"] = self._descriptor.get_location()
+        metadata["config_descriptor"] = self._descriptor.get_dict()
 
         # write yaml
         yaml.safe_dump(metadata, fh)
@@ -718,7 +718,7 @@ class UnmanagedConfiguration(Configuration):
         try:
             data = yaml.load(fh)
             deploy_generation = data["deploy_generation"]
-            location = data["config_location"]
+            descriptor_dict = data["config_descriptor"]
         except Exception, e:
             # yaml info not valid.
             log.warning("Cannot parse file '%s' - ignoring. Error: %s" % (config_info_file, e))
@@ -732,20 +732,20 @@ class UnmanagedConfiguration(Configuration):
             log.debug("Config was installed with an old generation of the logic.")
             return self.LOCAL_CFG_OLD
 
-        if location != self._descriptor.get_location():
+        if descriptor_dict != self._descriptor.get_dict():
             log.debug(
                 "Local Config %r does not match "
-                "associated descriptor %r" % (location, self._descriptor.get_location())
+                "associated descriptor %r" % (descriptor_dict, self._descriptor.get_dict())
             )
             return self.LOCAL_CFG_OLD
 
         elif not self._descriptor.is_immutable():
-            # our desired configuration's location matches
+            # our desired configuration's descriptor matches
             # the config that is already installed however the descriptor
             # reports that it is not immutable, e.g. it can change at any
             # point (e.g like a dev or path descriptor). Assume a worst case
             # in this case - that the config that is cached locally is
-            # not the same as the source locator it is based on.
+            # not the same as the source descriptor it is based on.
             return self.LOCAL_CFG_OLD
 
         else:

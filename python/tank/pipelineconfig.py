@@ -28,7 +28,7 @@ from . import hook
 from . import pipelineconfig_utils
 from . import template_includes
 
-from tank_vendor.shotgun_deploy import Descriptor, create_descriptor
+from tank_vendor.shotgun_deploy import Descriptor, create_descriptor, descriptor_uri_to_dict
 from tank_vendor.shotgun_base import get_shotgun_storage_key
 
 class PipelineConfiguration(object):
@@ -574,94 +574,92 @@ class PipelineConfiguration(object):
                 path=bundle_path
             )
 
-    def _preprocess_location(self, location_dict):
+    def _preprocess_descriptor(self, descriptor_dict):
         """
-        Preprocess location dict to resolve config-specific constants and directives.
+        Preprocess descriptor dictionary to resolve config-specific
+        constants and directives such as {PIPELINE_CONFIG}.
 
-        This is only relevant if the locator system is used in conjunction with
-        a toolkit configuration. For example, the keyword {PIPELINE_CONFIG} is
-        only meaningful if used in the context of a configuration.
-
-        Location dictionaries defined and used outside of the scope of a
-        pipeline configuration do not support such keywords (since no
-        pipeline configuration exists at that point).
-
-        :param location_dict: Location dict to operate on
-        :param pipeline_config: Pipeline Config object
-        :returns: location dict with any directives resolved.
+        :param descriptor_dict: Descriptor dict to operate on
+        :returns: Descriptor dict with any directives resolved.
         """
 
-        if location_dict.get("type") == "dev":
+        if descriptor_dict.get("type") == "dev":
             # several different path parameters are supported by the dev descriptor.
             # scan through all path keys and look for pipeline config token
 
             # platform specific resolve
             platform_key = get_shotgun_storage_key()
-            if platform_key in location_dict:
-                location_dict[platform_key] = location_dict[platform_key].replace(
+            if platform_key in descriptor_dict:
+                descriptor_dict[platform_key] = descriptor_dict[platform_key].replace(
                     constants.PIPELINE_CONFIG_DEV_DESCRIPTOR_TOKEN,
                     self.get_path()
                 )
 
             # local path resolve
-            if "path" in location_dict:
-                location_dict["path"] = location_dict["path"].replace(
+            if "path" in descriptor_dict:
+                descriptor_dict["path"] = descriptor_dict["path"].replace(
                     constants.PIPELINE_CONFIG_DEV_DESCRIPTOR_TOKEN,
                     self.get_path()
                 )
 
-        return location_dict
+        return descriptor_dict
 
-    def _get_descriptor(self, descriptor_type, location):
+    def _get_descriptor(self, descriptor_type, dict_or_uri):
         """
-        Constructs a descriptor object given a location dictionary.
+        Constructs a descriptor object given a descriptor dictionary.
 
         :param descriptor_type: Descriptor type (APP, ENGINE, etc)
-        :param location: Location dictionary
+        :param dict_or_uri: Descriptor dict or uri
         :returns: Descriptor object
         """
         sg_connection = shotgun.get_sg_connection()
-        pp_location = self._preprocess_location(location)
+
+        if isinstance(dict_or_uri, basestring):
+            descriptor_dict = descriptor_uri_to_dict(dict_or_uri)
+        else:
+            descriptor_dict = dict_or_uri
+
+        descriptor_dict = self._preprocess_descriptor(descriptor_dict)
 
         desc = create_descriptor(
             sg_connection,
             descriptor_type,
-            pp_location,
+            descriptor_dict,
             self._bundle_cache_root_override,
             self._bundle_cache_fallback_paths
         )
 
         return desc
 
-    def get_app_descriptor(self, location):
+    def get_app_descriptor(self, dict_or_uri):
         """
         Convenience method that returns a descriptor for an app
         that is associated with this pipeline configuration.
         
-        :param location: Location dictionary describing the app source location
-        :returns:        Descriptor object
+        :param dict_or_uri: Descriptor dictionary or uri
+        :returns:           Descriptor object
         """
-        return self._get_descriptor(Descriptor.APP, location)
+        return self._get_descriptor(Descriptor.APP, dict_or_uri)
 
-    def get_engine_descriptor(self, location):
+    def get_engine_descriptor(self, dict_or_uri):
         """
         Convenience method that returns a descriptor for an engine
         that is associated with this pipeline configuration.
         
-        :param location: Location dictionary describing the engine source location
+        :param dict_or_uri: Descriptor dictionary or uri
         :returns:        Descriptor object
         """
-        return self._get_descriptor(Descriptor.ENGINE, location)
+        return self._get_descriptor(Descriptor.ENGINE, dict_or_uri)
 
-    def get_framework_descriptor(self, location):
+    def get_framework_descriptor(self, dict_or_uri):
         """
         Convenience method that returns a descriptor for a framework
         that is associated with this pipeline configuration.
         
-        :param location: Location dictionary describing the framework source location
+        :param dict_or_uri: Descriptor dictionary or uri
         :returns:        Descriptor object
         """
-        return self._get_descriptor(Descriptor.FRAMEWORK, location)
+        return self._get_descriptor(Descriptor.FRAMEWORK, dict_or_uri)
 
 
     ########################################################################################

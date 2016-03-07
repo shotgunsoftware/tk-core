@@ -12,18 +12,37 @@ import os
 
 from tank_test.tank_test_base import *
 from tank.errors import TankError
-
+from tank_vendor import shotgun_base
 
 class TestDescriptors(TankTestBase):
 
+    def setUp(self, parameters=None):
+
+        super(TestDescriptors, self).setUp()
+
+        self.install_root = os.path.join(
+            self.tk.pipeline_configuration.get_install_location(),
+            "install"
+        )
+
+    def _create_info_yaml(self, path):
+        """
+        create a mock info.yml
+        """
+        shotgun_base.ensure_folder_exists(path)
+        fh = open(os.path.join(path, "info.yml"), "wt")
+        fh.write("foo")
+        fh.close()
 
     def test_app_store_descriptor_location(self):
         """
         Tests an appstore descriptor bundle path for the given bundle type and location.
         """
-        install_root = os.path.join(self.tk.pipeline_configuration.get_install_location(), "install")
+
         location = {"type": "app_store", "version": "v0.1.2", "name": "tk-bundle"}
-        path = os.path.join(install_root, "app_store", "tk-bundle", "v0.1.2")
+        path = os.path.join(self.install_root, "app_store", "tk-bundle", "v0.1.2")
+        self._create_info_yaml(path)
+
 
         d = self.tk.pipeline_configuration.get_app_descriptor(location)
         self.assertEqual(d.get_path(), path)
@@ -40,9 +59,9 @@ class TestDescriptors(TankTestBase):
         Tests a manual descriptor bundle path for the given bundle type and location.
         """
 
-        install_root = os.path.join(self.tk.pipeline_configuration.get_install_location(), "install")
         location = {"type": "manual", "version": "v0.1.2", "name": "tk-bundle"}
-        path = os.path.join(install_root, "manual", "tk-bundle", "v0.1.2")
+        path = os.path.join(self.install_root, "manual", "tk-bundle", "v0.1.2")
+        self._create_info_yaml(path)
 
         d = self.tk.pipeline_configuration.get_app_descriptor(location)
         self.assertEqual(d.get_path(), path)
@@ -58,12 +77,14 @@ class TestDescriptors(TankTestBase):
         """
         Tests a dev descriptor bundle path
         """
+        path = os.path.join(self.tk.pipeline_configuration.get_path(), "bundle")
+        self._create_info_yaml(path)
 
         d = self.tk.pipeline_configuration.get_app_descriptor({"type": "dev", "path": "{PIPELINE_CONFIG}/bundle"})
-        self.assertEqual(d.get_path(), os.path.join(self.tk.pipeline_configuration.get_path(), "bundle"))
+        self.assertEqual(d.get_path(), path)
 
-        d = self.tk.pipeline_configuration.get_app_descriptor({"type": "dev", "path": "path/to/bundle"})
-        self.assertEqual(d.get_path(), os.path.join("path", "to", "bundle"))
+        d = self.tk.pipeline_configuration.get_app_descriptor({"type": "dev", "path": path})
+        self.assertEqual(d.get_path(), path)
 
 
     def _test_git_descriptor_location_with_repo(self, repo):
@@ -71,10 +92,11 @@ class TestDescriptors(TankTestBase):
         Tests a git descriptor bundle path for the given bundle type and location and a given
         repo.
         """
-        install_root = os.path.join(self.tk.pipeline_configuration.get_install_location(), "install")
+        path = os.path.join(self.install_root, "git", os.path.basename(repo), "v0.1.2")
+        self._create_info_yaml(path)
 
         d = self.tk.pipeline_configuration.get_app_descriptor({"type": "git", "path": repo, "version": "v0.1.2"})
-        self.assertEqual(d.get_path(), os.path.join(install_root , "git", os.path.basename(repo), "v0.1.2"))
+        self.assertEqual(d.get_path(), path)
 
     def test_git_descriptor_location(self):
         """

@@ -9,7 +9,6 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from .path import IODescriptorPath
-from ..errors import ShotgunDeployError
 
 from .. import util
 log = util.get_shotgun_deploy_logger()
@@ -30,26 +29,18 @@ class IODescriptorDev(IODescriptorPath):
          "windows_path": "d:\foo\bar",
          "mac_path": "/path/to/app" }
 
-    String urls are on the following form::
-
-        sgtk:dev:[name]:local_path
-        sgtk:dev3:[name]:win_path:linux_path:mac_path
-
-        sgtk:dev:my-app:/tmp/foo/bar
-        sgtk:dev3::c%3A%0Coo%08ar:/tmp/foo/bar:
-
     Name is optional and if not specified will be determined based on folder path.
     If name is not specified and path is /tmp/foo/bar, the name will set to 'bar'
     """
 
-    def __init__(self, location_dict):
+    def __init__(self, descriptor_dict):
         """
         Constructor
 
-        :param location_dict: Location dictionary describing the bundle
+        :param descriptor_dict: descriptor dictionary describing the bundle
         :return: Descriptor instance
         """
-        super(IODescriptorDev, self).__init__(location_dict)
+        super(IODescriptorDev, self).__init__(descriptor_dict)
 
     def is_dev(self):
         """

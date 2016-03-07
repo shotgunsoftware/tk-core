@@ -34,7 +34,7 @@ def get_from_location_and_paths(app_or_engine, pc_path, bundle_install_path, loc
     :param pc_path: Path to the root of the pipeline configuration.
                     Legacy parameter and no longer used. This value will be ignored.
     :param bundle_install_path: Path to the root of the apps, frameworks and engines bundles.
-    :param location_dict: A tank location dict
+    :param location_dict: A tank location dict (now known as a descriptor dict)
     :returns: an AppDescriptor object
     """
     sg_connection = shotgun.get_sg_connection()

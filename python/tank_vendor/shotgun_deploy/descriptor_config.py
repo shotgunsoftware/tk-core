@@ -74,23 +74,23 @@ class ConfigDescriptor(Descriptor):
 
         return readme_content
 
-    def get_associated_core_location(self):
+    def get_associated_core_descriptor(self):
         """
-        Introspects a configuration and returns the required core version
+        Introspects a configuration and returns the required core descriptor
 
-        :returns: Core version string or None if undefined
+        :returns: Core descriptor dict or uri or None if not defined
         """
-        core_location_dict = None
+        core_descriptor_dict = None
 
         self._io_descriptor.ensure_local()
 
-        core_location_path = os.path.join(
+        core_descriptor_path = os.path.join(
             self._io_descriptor.get_path(),
             "core",
-            constants.CONFIG_CORE_LOCATION_FILE
+            constants.CONFIG_CORE_DESCRIPTOR_FILE
         )
 
-        if os.path.exists(core_location_path):
+        if os.path.exists(core_descriptor_path):
             # the core_api.yml contains info about the core config:
             #
             # location:
@@ -98,21 +98,21 @@ class ConfigDescriptor(Descriptor):
             #    type: app_store
             #    version: v0.16.34
 
-            log.debug("Detected core location file '%s'" % core_location_path)
+            log.debug("Detected core descriptor file '%s'" % core_descriptor_path)
 
             # read the file first
-            fh = open(core_location_path, "rt")
+            fh = open(core_descriptor_path, "rt")
             try:
                 data = yaml.load(fh)
-                core_location_dict = data["location"]
+                core_descriptor_dict = data["location"]
             except Exception, e:
                 raise ShotgunDeployError(
-                    "Cannot read invalid core location file '%s': %s" % (core_location_path, e)
+                    "Cannot read invalid core descriptor file '%s': %s" % (core_descriptor_path, e)
                 )
             finally:
                 fh.close()
 
-        return core_location_dict
+        return core_descriptor_dict
 
 
     def _get_roots_data(self):

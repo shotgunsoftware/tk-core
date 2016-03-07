@@ -17,14 +17,14 @@ from tank_vendor import shotgun_base
 
 
 
-class TestIOLocators(TankTestBase):
+class TestIODescriptors(TankTestBase):
     """
     Testing the Shotgun deploy main API methods
     """
 
-    def test_locator_cache(self):
+    def test_descriptor_cache(self):
         """
-        Tests caching of locators
+        Tests caching of descriptors
         """
         sg = self.tk.shotgun
 

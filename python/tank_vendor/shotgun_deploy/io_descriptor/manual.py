@@ -18,23 +18,23 @@ class IODescriptorManual(IODescriptorBase):
     This descriptor type is largely deprecated. Please do not use.
     """
 
-    def __init__(self, location_dict):
+    def __init__(self, descriptor_dict):
         """
         Constructor
 
-        :param location_dict: Location dictionary describing the bundle
+        :param descriptor_dict: descriptor dictionary describing the bundle
         :return: Descriptor instance
         """
-        super(IODescriptorManual, self).__init__(location_dict)
+        super(IODescriptorManual, self).__init__(descriptor_dict)
 
-        self._validate_locator(
-            location_dict,
+        self._validate_descriptor(
+            descriptor_dict,
             required=["type", "name", "version"],
             optional=[]
         )
 
-        self._name = location_dict.get("name")
-        self._version = location_dict.get("version")
+        self._name = descriptor_dict.get("name")
+        self._version = descriptor_dict.get("version")
 
     def _get_cache_paths(self):
         """
@@ -57,24 +57,6 @@ class IODescriptorManual(IODescriptorBase):
                 )
             )
         return paths
-
-    @classmethod
-    def dict_from_uri(cls, uri):
-        """
-        Given a location uri, return a location dict
-
-        :param uri: Location uri string
-        :return: Location dictionary
-        """
-        location_dict = cls._explode_uri(uri, "manual")
-
-        # validate it
-        cls._validate_locator(
-            location_dict,
-            required=["type", "name", "version"],
-            optional=[]
-        )
-        return location_dict
 
     def get_system_name(self):
         """

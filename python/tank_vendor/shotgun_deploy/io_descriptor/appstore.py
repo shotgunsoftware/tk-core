@@ -37,13 +37,9 @@ class IODescriptorAppStore(IODescriptorBase):
     """
     Represents a toolkit app store item.
 
-    Short syntax:
-        sgtk:app_store:tk-core:v12.3.4
-        sgtk:app_store:NAME:VERSION
+    {type: app_store, name: tk-core, version: v12.3.4}
+    {type: app_store, name: NAME, version: VERSION}
 
-    Dictionary syntax:
-        {type: app_store, name: tk-core, version: v12.3.4}
-        {type: app_store, name: NAME, version: VERSION}
     """
 
     # cache app store connections for performance
@@ -85,34 +81,34 @@ class IODescriptorAppStore(IODescriptorBase):
     }
 
 
-    def __init__(self, location_dict, sg_connection, bundle_type):
+    def __init__(self, descriptor_dict, sg_connection, bundle_type):
         """
         Constructor
 
-        :param location_dict: Location dictionary describing the bundle
+        :param descriptor_dict: descriptor dictionary describing the bundle
         :param sg_connection: Shotgun connection to associated site
         :param bundle_type: Either Descriptor.APP, CORE, ENGINE or FRAMEWORK
         :return: Descriptor instance
         """
-        super(IODescriptorAppStore, self).__init__(location_dict)
+        super(IODescriptorAppStore, self).__init__(descriptor_dict)
 
-        self._validate_locator(
-            location_dict,
+        self._validate_descriptor(
+            descriptor_dict,
             required=["type", "name", "version"],
             optional=[]
         )
 
         self._sg_connection = sg_connection
         self._type = bundle_type
-        self._name = location_dict.get("name")
-        self._version = location_dict.get("version")
+        self._name = descriptor_dict.get("name")
+        self._version = descriptor_dict.get("version")
         # cached metadata - loaded on demand
         self.__cached_metadata = None
 
 
     def _get_app_store_metadata(self):
         """
-        Returns a metadata dictionary for this particular location.
+        Returns a metadata dictionary.
         Tries to use a cache if possible.
         """
         if not self.__cached_metadata:
@@ -440,11 +436,11 @@ class IODescriptorAppStore(IODescriptorBase):
         version_numbers = [x.get("code") for x in sg_data]
         version_to_use = self._find_latest_tag_by_pattern(version_numbers, version_pattern)
 
-        # make a location dict
-        location_dict = {"type": "app_store", "name": self._name, "version": version_to_use}
+        # make a descriptor dict
+        descriptor_dict = {"type": "app_store", "name": self._name, "version": version_to_use}
 
         # and return a descriptor instance
-        desc = IODescriptorAppStore(location_dict, self._sg_connection, self._type)
+        desc = IODescriptorAppStore(descriptor_dict, self._sg_connection, self._type)
         desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
         
         # now if this item has been deprecated, meaning that someone has gone in to the app
@@ -523,13 +519,13 @@ class IODescriptorAppStore(IODescriptorBase):
         if version_str is None:
             raise ShotgunDeployError("Invalid version number for %s" % sg_version_data)
 
-        # make a location dict
-        location_dict = {"type": "app_store", 
+        # make a descriptor dict
+        descriptor_dict = {"type": "app_store",
                          "name": self._name, 
                          "version": version_str}
 
         # and return a descriptor instance
-        desc = IODescriptorAppStore(location_dict, self._sg_connection, self._type)
+        desc = IODescriptorAppStore(descriptor_dict, self._sg_connection, self._type)
         desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
         
         # now if this item has been deprecated, meaning that someone has gone in to the app
