@@ -19,7 +19,7 @@ from . import constants
 from .errors import ShotgunDeployError
 from ..shotgun_base import get_shotgun_storage_key
 
-from .configuration import create_managed_configuration, create_unmanaged_configuration
+from .configuration import create_installed_configuration, create_automatic_configuration
 
 log = util.get_shotgun_deploy_logger()
 
@@ -136,7 +136,7 @@ class BaseConfigurationResolver(ConfigurationResolver):
         log.debug("Configuration resolved to %r." % cfg_descriptor)
 
         # create an object to represent our configuration install
-        return create_unmanaged_configuration(
+        return create_automatic_configuration(
             self._sg_connection,
             cfg_descriptor,
             project_id,
@@ -291,7 +291,7 @@ class DefaultShotgunConfigurationResolver(ConfigurationResolver):
 
             if pc_data.get(get_shotgun_storage_key()):
                 # we have paths specified for the local platform!
-                return create_managed_configuration(
+                return create_installed_configuration(
                     self._sg_connection,
                     project_id,
                     pc_data.get("id"),
@@ -314,7 +314,7 @@ class DefaultShotgunConfigurationResolver(ConfigurationResolver):
                     fallback_roots=self._bundle_cache_fallback_paths
                 )
 
-                return create_unmanaged_configuration(
+                return create_automatic_configuration(
                     self._sg_connection,
                     cfg_descriptor,
                     project_id,
@@ -354,7 +354,7 @@ class DefaultShotgunConfigurationResolver(ConfigurationResolver):
         log.debug("Creating a configuration wrapper based on %r." % cfg_descriptor)
 
         # create an object to represent our configuration install
-        return create_unmanaged_configuration(
+        return create_automatic_configuration(
             self._sg_connection,
             cfg_descriptor,
             project_id,
@@ -453,7 +453,7 @@ class DefaultShotgunConfigurationResolver(ConfigurationResolver):
     # # this is still a valid parameter.
     # def _update_legacy_site_config_root(self, pc):
     #     """
-    #     Honor the TK_SITE_CONFIG_ROOT environment variable for managed
+    #     Honor the TK_SITE_CONFIG_ROOT environment variable for
     #     site configs from Shotgun Desktop.
     #
     #     :param pc: Pipeline configuration that needs to use another path

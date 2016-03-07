@@ -25,7 +25,7 @@ from .. import yaml
 
 log = util.get_shotgun_deploy_logger()
 
-def create_unmanaged_configuration(
+def create_automatic_configuration(
         sg,
         descriptor,
         project_id,
@@ -34,7 +34,7 @@ def create_unmanaged_configuration(
         bundle_cache_fallback_paths
 ):
     """
-    Factory method for creating an unmanaged configuration object. Unmanaged configurations
+    Factory method for creating an automatic configuration object. These configurations
     are auto-installed on disk and the user doesn't have any power over where they are located.
 
     :param sg: Shotgun API instance
@@ -51,8 +51,8 @@ def create_unmanaged_configuration(
     :param bundle_cache_fallback_paths: List of additional paths where apps are cached.
     :returns: Configuration instance
     """
-    log.debug("Creating a configuration wrapper for unmanaged config %r" % descriptor)
-    return UnmanagedConfiguration(
+    log.debug("Created configuration wrapper for config %r" % descriptor)
+    return AutomaticConfiguration(
         sg,
         descriptor,
         project_id,
@@ -62,7 +62,7 @@ def create_unmanaged_configuration(
     )
 
 
-def create_managed_configuration(
+def create_installed_configuration(
         sg,
         project_id,
         pipeline_config_id,
@@ -74,15 +74,17 @@ def create_managed_configuration(
         mac_path
 ):
     """
-    Factory method for creating a managed configuration wrapper object.
+    Factory method for creating a installed configuration wrapper object.
+
+    Installed configuration are located in a specific location on disk,
+    controlled by the user.
 
     :param sg: Shotgun API instance
     :param project_id: Project id for the shotgun project associated with the
                        configuration. For a site-level configuration, this
                        can be set to None.
     :param pipeline_config_id: Pipeline Configuration id for the shotgun
-                               pipeline config id associated. For managed
-                               configs, this option cannot be None.
+                               pipeline config id associated. Cannot be None.
     :param namespace: name space string, typically one short word,
                       e.g. 'maya', 'rv', 'desktop'.
     :param bundle_cache_fallback_paths: List of additional paths where apps are cached.
@@ -92,12 +94,10 @@ def create_managed_configuration(
     :param win_path: Path on windows where the config should be located
     :param linux_path: Path on linux where the config should be located
     :param mac_path: Path on macosx where the config should be located
-    :returns: ManagedConfiguration instance
+    :returns: InstalledConfiguration instance
     """
-    log.debug("Creating a configuration wrapper for managed config.")
-
     if pipeline_config_id is None:
-        raise ValueError("Managed configurations require a Pipeline Configuration id.")
+        raise ValueError("Installed configurations require a Pipeline Configuration id.")
 
     config_root = {
         "win32": win_path,
@@ -124,7 +124,9 @@ def create_managed_configuration(
         fallback_roots=bundle_cache_fallback_paths
     )
 
-    return ManagedConfiguration(
+    log.debug("Creating a configuration wrapper for config %r." % config_descriptor)
+
+    return InstalledConfiguration(
         sg,
         config_descriptor,
         project_id,
@@ -552,7 +554,6 @@ class Configuration(object):
             "use_shotgun_path_cache": True
         }
 
-
     def _update_roots_file(self):
         """
         Updates roots.yml based on local storage defs in shotugn
@@ -601,16 +602,16 @@ class Configuration(object):
         log.debug("Wrote %s" % roots_file)
 
 
-class UnmanagedConfiguration(Configuration):
+class AutomaticConfiguration(Configuration):
     """
-    An abstraction around an unmanaged Toolkit configuration.
-    Unmanaged configs are not installed in a particular location
+    An abstraction around a Toolkit configuration.
+
+    Automatic configs are not installed in a particular location
     on disk, but their life cycle is managed by toolkit internally.
 
-    An unmanaged configuration tracks against a config descriptor
-    and the locally cached configuration can be up to date with the
-    descriptor or out of date. You can execute the status() method
-    to determine this.
+    It tracks against a config descriptor and the locally cached
+    configuration can be up to date with the descriptor or not.
+    You can execute the status() method to determine this.
 
     For configurations that are not up to date, the update() method
     will ensure that they are gracefully brought to the version that
@@ -634,7 +635,7 @@ class UnmanagedConfiguration(Configuration):
                           e.g. 'maya', 'rv', 'desktop'.
         :param bundle_cache_fallback_paths: List of additional paths where apps are cached.
         """
-        super(UnmanagedConfiguration, self).__init__(
+        super(AutomaticConfiguration, self).__init__(
             sg,
             descriptor,
             project_id,
@@ -666,21 +667,6 @@ class UnmanagedConfiguration(Configuration):
             )
 
         return path
-
-    def _get_pipeline_config_file_content(self):
-        """
-        Creates content for pipeline configuration file for unmanaged configs.
-
-        :returns: dictionary with data intended to be written to
-                  the pipeline_configuration.yml file.
-        """
-        # let the base class fill in all the basic stuff for us
-        content = super(UnmanagedConfiguration, self)._get_pipeline_config_file_content()
-
-        # for unmanaged configs, the bundle cache is always used
-        content["use_bundle_cache"] = True
-
-        return content
 
     def status(self):
         """
@@ -822,7 +808,7 @@ class UnmanagedConfiguration(Configuration):
         # @todo - prime caches (yaml, path cache)
 
 
-class ManagedConfiguration(Configuration):
+class InstalledConfiguration(Configuration):
     """
     Represents a configuration that has been installed on disk in a specific location.
 
@@ -866,7 +852,7 @@ class ManagedConfiguration(Configuration):
         """
         self._config_root = config_root
         self._use_bundle_cache = use_bundle_cache
-        super(ManagedConfiguration, self).__init__(
+        super(InstalledConfiguration, self).__init__(
             sg,
             descriptor,
             project_id,
@@ -877,15 +863,16 @@ class ManagedConfiguration(Configuration):
 
     def _get_pipeline_config_file_content(self):
         """
-        Creates content for pipeline configuration file for managed configs.
+        Creates content for the pipeline_configuration.yml file.
 
         :returns: dictionary with data intended to be written to
                   the pipeline_configuration.yml file.
         """
         # let the base class fill in all the basic stuff for us
-        content = super(ManagedConfiguration, self)._get_pipeline_config_file_content()
+        content = super(InstalledConfiguration, self)._get_pipeline_config_file_content()
 
-        # for managed configs, the bundle cache may or may not be used
+        # we may or may not use the bundle cache depending
+        # on what the user has requested
         content["use_bundle_cache"] = self._use_bundle_cache
 
         return content
@@ -907,7 +894,7 @@ class ManagedConfiguration(Configuration):
         :returns: LOCAL_CFG_UP_TO_DATE, LOCAL_CFG_MISSING,
                   LOCAL_CFG_OLD, or LOCAL_CFG_INVALID
         """
-        # managed configs are always up to date - they track
+        # these configs are always up to date - they track
         # their status against themselves.
         return self.LOCAL_CFG_UP_TO_DATE
 
@@ -919,7 +906,7 @@ class ManagedConfiguration(Configuration):
         # we are always up to date with ourselves.
         return
 
-    def install_managed_configuration(
+    def install(
         self,
         source_descriptor,
         win_python=None,

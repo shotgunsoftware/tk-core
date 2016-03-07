@@ -20,7 +20,7 @@ from . import Descriptor, create_descriptor
 from . import constants
 from ..shotgun_base import ensure_folder_exists
 from .errors import ShotgunDeployError
-from .configuration import Configuration, create_managed_configuration
+from .configuration import Configuration, create_installed_configuration
 from .resolver import BaseConfigurationResolver
 from .io_descriptor import descriptor_dict_to_uri
 
@@ -144,8 +144,7 @@ class ToolkitManager(object):
         sources.
 
         Any missing bundles will be downloaded and cached into
-        the *primary* bundle cache. For unmanaged projects, this is
-        typically a folder on the local machine.
+        the *primary* bundle cache.
 
         :param paths: List of paths
         """
@@ -437,7 +436,7 @@ class ToolkitManager(object):
     #
     #     return pc_id
     #
-    # def create_managed_configuration(
+    # def install_configuration(
     #     self,
     #     project_id,
     #     win_path=None,
@@ -449,7 +448,7 @@ class ToolkitManager(object):
     #     use_bundle_cache=False
     # ):
     #     """
-    #     Creates a managed configuration on disk given the base config descriptor.
+    #     Installs a configuration in a particular location given the base config descriptor.
     #     The configuration will be downloaded and deployed for the
     #     given project. A pipeline configuration will be created with paths referencing
     #     the given locations on disk.
@@ -461,7 +460,7 @@ class ToolkitManager(object):
     #
     #     :param project_id: Project id for which to create the configuration
     #     :param win_path: Optional windows install path
-    #     :param mac_path: Otional mac install path
+    #     :param mac_path: Optional mac install path
     #     :param linux_path: Optional linux install path.
     #     :param win_python: Optional python interpreter path.
     #     :param mac_python: Optional python interpreter path.
@@ -470,9 +469,9 @@ class ToolkitManager(object):
     #         will be used to cache bundles (apps, engine and frameworks. This location
     #         is on the local disk and is shared across all projects and all sites, but
     #         not shared between machines. If set to False, bundles will be cached
-    #         in a location relative to the core installation (e.g as part of the
-    #         managed configuration). This is synonymous with the way toolkit worked
-    #         up to core v0.17. For managed configurations used for development and not
+    #         in a location relative to the core installation.
+    #         This is synonymous with the way toolkit worked
+    #         up to core v0.17. For installed configurations used for development and not
     #         intended to shared between multiple machines, setting this to True is
     #         recommended. For configurations that are deployed to production and shared
     #         between multiple users and machines, it should be set to False.
@@ -503,7 +502,7 @@ class ToolkitManager(object):
     #
     #     # create an object to represent our configuration install
     #     self._report_progress("Installing Configuration...")
-    #     config = create_managed_configuration(
+    #     config = create_installed_configuration(
     #         self._sg_connection,
     #         project_id,
     #         pc_id,
@@ -516,7 +515,7 @@ class ToolkitManager(object):
     #     )
     #
     #     # and install or update the configuration with the new content
-    #     config.install_managed_configuration(
+    #     config.install(
     #         descriptor_to_install,
     #         win_python,
     #         mac_python,
