@@ -255,15 +255,18 @@ class IODescriptorAppStore(IODescriptorBase):
         # cache root didn't change (when use_bundle_cache is set to False).
         # If the bundle cache root changes across core versions, then this will
         # need to be refactored.
-        paths.append(
-            get_legacy_bundle_install_folder(
+        try:
+            legacy_folder = get_legacy_bundle_install_folder(
                 "app_store",
                 self._bundle_cache_root,
                 self._type,
                 self.get_system_name(),
                 self.get_version()
             )
-        )
+        except RuntimeError:
+            pass
+        else:
+            paths.append(legacy_folder)
 
         return paths
 
