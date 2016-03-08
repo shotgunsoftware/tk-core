@@ -172,12 +172,22 @@ def get_legacy_pipeline_config_cache_root(site_url, project_id, pipeline_configu
     # get site only; https://www.foo.com:8080 -> www.foo.com
     base_url = urlparse.urlparse(site_url)[1].split(":")[0]
 
+    if pipeline_configuration_id is None:
+        pc_suffix = ""
+    else:
+        pc_suffix = "_%d" % (pipeline_configuration_id,)
+
+    if project_id is None:
+        proj_suffix = ""
+    else:
+        proj_suffix = "_%d" % (project_id,)
+
     # now structure things by site, project id, and pipeline config id
     return os.path.join(
         get_cache_root(),
         base_url,
-        "project_%d" % project_id,
-        "config_%d" % pipeline_configuration_id,
+        "project%s" % proj_suffix,
+        "config%s" % pc_suffix,
     )
 
 
