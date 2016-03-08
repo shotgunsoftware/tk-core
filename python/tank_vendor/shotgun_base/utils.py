@@ -141,6 +141,30 @@ def sanitize_path(path, separator=os.path.sep):
     return local_path
 
 
+def touch_file(path, permissions=0666):
+    """
+    Touch a file and optionally set its permissions.
+
+    :param path: path to touch
+    :param permissions: Optional permissions to set on the file.
+
+    :raises: OSError - if there was a problem reading/writing the file
+    """
+    if not os.path.exists(path):
+        old_umask = os.umask(0)
+        try:
+            fh = open(path, "wb")
+            fh.close()
+            os.chmod(path, permissions)
+        except OSError, e:
+            # Race conditions are perfectly possible on some network storage
+            # setups so make sure that we ignore any file already exists errors,
+            # as they are not really errors!
+            if e.errno != errno.EEXIST:
+                raise
+        finally:
+            os.umask(old_umask)
+
 
 def ensure_folder_exists(path, permissions=0775, create_placeholder_file=False):
     """
@@ -149,6 +173,8 @@ def ensure_folder_exists(path, permissions=0775, create_placeholder_file=False):
     :param path: path to create
     :param permissions: Permissions to use when folder is created
     :param create_placeholder_file: If true, a placeholder file will be generated.
+
+    :raises: OSError - if there was a problem creating the folder
     """
     if not os.path.exists(path):
         old_umask = os.umask(0)

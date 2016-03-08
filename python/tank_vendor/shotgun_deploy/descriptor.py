@@ -310,4 +310,3 @@ class Descriptor(object):
         latest._io_descriptor = self._io_descriptor.get_latest_version(constraint_pattern)
         return latest
 
-

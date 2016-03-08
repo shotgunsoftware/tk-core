@@ -49,10 +49,10 @@ def create_io_descriptor(sg, descriptor_type, dict_or_uri, bundle_cache_root, fa
         descriptor = IODescriptorShotgunEntity(descriptor_dict, sg)
 
     elif descriptor_dict.get("type") == "manual":
-        descriptor = IODescriptorManual(descriptor_dict)
+        descriptor = IODescriptorManual(descriptor_dict, descriptor_type)
 
     elif descriptor_dict.get("type") == "git":
-        descriptor = IODescriptorGitTag(descriptor_dict)
+        descriptor = IODescriptorGitTag(descriptor_dict, descriptor_type)
 
     elif descriptor_dict.get("type") == "git_branch":
         descriptor = IODescriptorGitBranch(descriptor_dict)

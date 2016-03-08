@@ -10,6 +10,7 @@
 import os
 
 from .base import IODescriptorBase
+from ...shotgun_base import get_legacy_bundle_install_folder
 
 class IODescriptorManual(IODescriptorBase):
     """
@@ -18,11 +19,12 @@ class IODescriptorManual(IODescriptorBase):
     This descriptor type is largely deprecated. Please do not use.
     """
 
-    def __init__(self, descriptor_dict):
+    def __init__(self, descriptor_dict, bundle_type):
         """
         Constructor
 
         :param descriptor_dict: descriptor dictionary describing the bundle
+        :param bundle_type: The type of bundle. ex: Descriptor.APP
         :return: Descriptor instance
         """
         super(IODescriptorManual, self).__init__(descriptor_dict)
@@ -33,6 +35,7 @@ class IODescriptorManual(IODescriptorBase):
             optional=[]
         )
 
+        self._type = bundle_type
         self._name = descriptor_dict.get("name")
         self._version = descriptor_dict.get("version")
 
@@ -56,6 +59,29 @@ class IODescriptorManual(IODescriptorBase):
                     self._version
                 )
             )
+
+        # for compatibility with older versions of core, prior to v0.18.x,
+        # add the old-style bundle cache path as a fallback. As of v0.18.x,
+        # the bundle cache subdirectory names were shortened and otherwise
+        # modified to help prevent MAX_PATH issues on windows. This call adds
+        # the old path as a fallback for cases where core has been upgraded
+        # for an existing project. NOTE: This only works because the bundle
+        # cache root didn't change (when use_bundle_cache is set to False).
+        # If the bundle cache root changes across core versions, then this will
+        # need to be refactored.
+        try:
+            legacy_folder = get_legacy_bundle_install_folder(
+                "manual",
+                self._bundle_cache_root,
+                self._type,
+                self._name,
+                self._version
+            )
+        except RuntimeError:
+            pass
+        else:
+            paths.append(legacy_folder)
+
         return paths
 
     def get_system_name(self):
