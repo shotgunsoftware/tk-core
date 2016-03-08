@@ -433,112 +433,118 @@ class TestGetSgConfigData(TankTestBase):
 TestGetSgConfigData = patch("tank.util.shotgun.__get_api_core_config_location", TestGetSgConfigData)
 
 
-class ConnectionSettingsTestCases(object):
+class ConnectinonSettingsTestCases:
     """
-    Test cases for connection validation.
+    Avoid multiple in heritance in the tests by scoping this test so the test runner
+    doesn't see it.
     """
 
-    _SITE = "https://127.0.0.1"
-    _SITE_PROXY = "127.0.0.2"
-    _STORE_PROXY = "127.0.0.3"
+    class Impl(unittest.TestCase):
+        """
+        Test cases for connection validation.
+        """
 
-    def setUp(self):
-        """
-        Clear cached appstore connection
-        """
-        tank.util.shotgun.g_sg_cached_connection = None
-        tank.util.shotgun.g_app_store_connection = None
-        tank.set_authenticated_user(None)
+        _SITE = "https://127.0.0.1"
+        _SITE_PROXY = "127.0.0.2"
+        _STORE_PROXY = "127.0.0.3"
 
-    def tearDown(self):
-        """
-        Clear cached appstore connection
-        """
-        tank.util.shotgun.g_sg_cached_connection = None
-        tank.util.shotgun.g_app_store_connection = None
-        tank.set_authenticated_user(None)
+        def setUp(self):
+            """
+            Clear cached appstore connection
+            """
+            tank.util.shotgun.g_sg_cached_connection = None
+            tank.util.shotgun.g_app_store_connection = None
+            tank.set_authenticated_user(None)
 
-    def test_connections_no_proxy(self):
-        """
-        No proxies set, so everything should be None.
-        """
-        self._run_test(site=self._SITE)
+        def tearDown(self):
+            """
+            Clear cached appstore connection
+            """
+            tank.util.shotgun.g_sg_cached_connection = None
+            tank.util.shotgun.g_app_store_connection = None
+            tank.set_authenticated_user(None)
 
-    def test_connections_site_proxy(self):
-        """
-        When the http_proxy setting is set in shotgun.yml, both the site
-        connection and app store connections are expected to use the
-        proxy setting.
-        """
-        self._run_test(
-            site=self._SITE,
-            source_proxy=self._SITE_PROXY,
-            expected_store_proxy=self._SITE_PROXY
-        )
+        def test_connections_no_proxy(self):
+            """
+            No proxies set, so everything should be None.
+            """
+            self._run_test(site=self._SITE)
 
-    def test_connections_store_proxy(self):
-        """
-        When the app_store_http_proxy setting is set in shotgun.yml, the app
-        store connections are expected to use the proxy setting.
-        """
-        self._run_test(
-            site=self._SITE,
-            source_proxy=self._SITE_PROXY,
-            expected_store_proxy=self._SITE_PROXY
-        )
+        def test_connections_site_proxy(self):
+            """
+            When the http_proxy setting is set in shotgun.yml, both the site
+            connection and app store connections are expected to use the
+            proxy setting.
+            """
+            self._run_test(
+                site=self._SITE,
+                source_proxy=self._SITE_PROXY,
+                expected_store_proxy=self._SITE_PROXY
+            )
 
-    def test_connections_both_proxy(self):
-        """
-        When both proxy settings are set, each connection has its own proxy.
-        """
-        self._run_test(
-            site=self._SITE,
-            source_proxy=self._SITE_PROXY,
-            source_store_proxy=self._STORE_PROXY,
-            expected_store_proxy=self._STORE_PROXY
-        )
+        def test_connections_store_proxy(self):
+            """
+            When the app_store_http_proxy setting is set in shotgun.yml, the app
+            store connections are expected to use the proxy setting.
+            """
+            self._run_test(
+                site=self._SITE,
+                source_proxy=self._SITE_PROXY,
+                expected_store_proxy=self._SITE_PROXY
+            )
 
-    @patch("tank.util.shotgun.__get_api_core_config_location")
-    @patch("tank.util.shotgun.__get_app_store_key_from_shotgun")
-    @patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
-    def _run_test(
-        self,
-        server_caps_mock,
-        get_app_store_key_from_shotgun_mock,
-        get_api_core_config_location_mock,
-        site,
-        source_proxy,
-        source_store_proxy,
-        expected_store_proxy
-    ):
-        """
-        Should be implemented by derived classes in order to mock authentication
-        for the test.
+        def test_connections_both_proxy(self):
+            """
+            When both proxy settings are set, each connection has its own proxy.
+            """
+            self._run_test(
+                site=self._SITE,
+                source_proxy=self._SITE_PROXY,
+                source_store_proxy=self._STORE_PROXY,
+                expected_store_proxy=self._STORE_PROXY
+            )
 
-        The actual parameters of this method are the following. The _mock parameters
-        are passed in via the @patch method and should not be passed by the caller.
+        @patch("tank.util.shotgun.__get_api_core_config_location")
+        @patch("tank.util.shotgun.__get_app_store_key_from_shotgun")
+        @patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
+        def _run_test(
+            self,
+            server_caps_mock,
+            get_app_store_key_from_shotgun_mock,
+            get_api_core_config_location_mock,
+            site,
+            source_proxy,
+            source_store_proxy,
+            expected_store_proxy
+        ):
+            """
+            Should be implemented by derived classes in order to mock authentication
+            for the test.
 
-        :param site: Site used for authentication
-        :param source_proxy: proxy being returned by the authentication code for the site
-        :param source_store_proxy: proxy being return by the authentication for the app store.
-        :param expected_store_proxy: actual proxy value
-        """
-        # Avoids crash because we're not in a pipeline configuration.
-        get_api_core_config_location_mock.return_value = "unknown_path_location"
-        # Mocks app store credentials retrieval
-        get_app_store_key_from_shotgun_mock.return_value = ("abc", "123")
+            The actual parameters of this method are the following. The _mock parameters
+            are passed in via the @patch method and should not be passed by the caller.
 
-        # Make sure that the site uses the host and proxy.
-        sg = tank.util.shotgun.create_sg_connection()
-        self.assertEqual(sg.base_url, self._SITE)
-        self.assertEqual(sg.config.raw_http_proxy, source_proxy)
+            :param site: Site used for authentication
+            :param source_proxy: proxy being returned by the authentication code for the site
+            :param source_store_proxy: proxy being return by the authentication for the app store.
+            :param expected_store_proxy: actual proxy value
+            """
+            # Avoids crash because we're not in a pipeline configuration.
+            get_api_core_config_location_mock.return_value = "unknown_path_location"
+            # Mocks app store credentials retrieval
+            get_app_store_key_from_shotgun_mock.return_value = ("abc", "123")
 
-        config = tank.util.shotgun._get_app_store_connection_information()
-        self.assertEqual(config["host"], tank.platform.constants.SGTK_APP_STORE)
-        self.assertEqual(config["http_proxy"], expected_store_proxy)
+            # Make sure that the site uses the host and proxy.
+            sg = tank.util.shotgun.create_sg_connection()
+            self.assertEqual(sg.base_url, self._SITE)
+            self.assertEqual(sg.config.raw_http_proxy, source_proxy)
+
+            config = tank.util.shotgun._get_app_store_connection_information()
+            self.assertEqual(config["host"], tank.platform.constants.SGTK_APP_STORE)
+            self.assertEqual(config["http_proxy"], expected_store_proxy)
 
 
-class LegacyAuthConnectionSettings(ConnectionSettingsTestCases, unittest.TestCase):
+class LegacyAuthConnectionSettings(ConnectinonSettingsTestCases.Impl):
     """
     Tests proxy connection for site and appstore connections.
     """
@@ -564,7 +570,7 @@ class LegacyAuthConnectionSettings(ConnectionSettingsTestCases, unittest.TestCas
             "app_store_http_proxy": source_store_proxy
         }
 
-        ConnectionSettingsTestCases._run_test(
+        ConnectinonSettingsTestCases.Impl._run_test(
             self,
             site=site,
             source_proxy=source_proxy,
@@ -573,7 +579,7 @@ class LegacyAuthConnectionSettings(ConnectionSettingsTestCases, unittest.TestCas
         )
 
 
-class AuthConnectionSettings(ConnectionSettingsTestCases, unittest.TestCase):
+class AuthConnectionSettings(ConnectinonSettingsTestCases.Impl):
     """
     Tests proxy connection for site and appstore connections.
     """
@@ -608,7 +614,7 @@ class AuthConnectionSettings(ConnectionSettingsTestCases, unittest.TestCase):
         )
         tank.set_authenticated_user(user)
 
-        ConnectionSettingsTestCases._run_test(
+        ConnectinonSettingsTestCases.Impl._run_test(
             self,
             site=site,
             source_proxy=source_proxy,
