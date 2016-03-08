@@ -435,8 +435,9 @@ TestGetSgConfigData = patch("tank.util.shotgun.__get_api_core_config_location", 
 
 class ConnectinonSettingsTestCases:
     """
-    Avoid multiple in heritance in the tests by scoping this test so the test runner
+    Avoid multiple inheritance in the tests by scoping this test so the test runner
     doesn't see it.
+    http://stackoverflow.com/a/25695512
     """
 
     class Impl(unittest.TestCase):
@@ -470,6 +471,12 @@ class ConnectinonSettingsTestCases:
             self.addCleanup(self._get_api_core_config_location_mock.stop)
 
             # Mocks app store script user credentials retrieval
+            self._get_app_store_key_from_shotgun_mock = patch(
+                "tank.util.shotgun.__get_app_store_key_from_shotgun",
+                return_value=("abc", "123")
+            )
+            self._get_app_store_key_from_shotgun_mock.start()
+            self.addCleanup(self._get_app_store_key_from_shotgun_mock.stop)
 
         def tearDown(self):
             """
@@ -519,40 +526,24 @@ class ConnectinonSettingsTestCases:
                 expected_store_proxy=self._STORE_PROXY
             )
 
-        def _run_test(
-            self,
-            site,
-            source_proxy,
-            source_store_proxy,
-            expected_store_proxy
-        ):
+        def _run_test(self, site, source_proxy, source_store_proxy, expected_store_proxy):
             """
             Should be implemented by derived classes in order to mock authentication
             for the test.
-
-            The actual parameters of this method are the following. The _mock parameters
-            are passed in via the @patch method and should not be passed by the caller.
 
             :param site: Site used for authentication
             :param source_proxy: proxy being returned by the authentication code for the site
             :param source_store_proxy: proxy being return by the authentication for the app store.
             :param expected_store_proxy: actual proxy value
             """
+            # Make sure that the site uses the host and proxy.
+            sg = tank.util.shotgun.create_sg_connection()
+            self.assertEqual(sg.base_url, self._SITE)
+            self.assertEqual(sg.config.raw_http_proxy, source_proxy)
 
-            with patch("tank.util.shotgun.__get_app_store_key_from_shotgun") as mock:
-                try:
-                    mock.start()
-                    mock.return_value = ("abc", "123")
-                    # Make sure that the site uses the host and proxy.
-                    sg = tank.util.shotgun.create_sg_connection()
-                    self.assertEqual(sg.base_url, self._SITE)
-                    self.assertEqual(sg.config.raw_http_proxy, source_proxy)
-
-                    config = tank.util.shotgun._get_app_store_connection_information()
-                    self.assertEqual(config["host"], tank.platform.constants.SGTK_APP_STORE)
-                    self.assertEqual(config["http_proxy"], expected_store_proxy)
-                finally:
-                    mock.stop()
+            config = tank.util.shotgun._get_app_store_connection_information()
+            self.assertEqual(config["host"], tank.platform.constants.SGTK_APP_STORE)
+            self.assertEqual(config["http_proxy"], expected_store_proxy)
 
 
 class LegacyAuthConnectionSettings(ConnectinonSettingsTestCases.Impl):
@@ -562,7 +553,7 @@ class LegacyAuthConnectionSettings(ConnectinonSettingsTestCases.Impl):
 
     def _run_test(self, site, source_proxy=None, source_store_proxy=None, expected_store_proxy=None):
         """
-        See ConnectionSettingsTestCases._run_test
+        Mock information coming from shotgun.yml for pre-authentication framework authentication.
         """
         with patch("tank.util.shotgun.__get_sg_config_data") as mock:
             # Mocks shotgun.yml content, which we use for authentication.
@@ -596,7 +587,7 @@ class AuthConnectionSettings(ConnectinonSettingsTestCases.Impl):
         expected_store_proxy=None
     ):
         """
-        No authenticated user, should be picking settings from shotgun.yml
+        Mock information coming from the Shotgun user and shotgun.yml for authentication.
         """
         with patch("tank.util.shotgun.__get_sg_config_data") as mock:
             # Mocks shotgun.yml content
