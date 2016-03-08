@@ -141,13 +141,14 @@ def sanitize_path(path, separator=os.path.sep):
     return local_path
 
 
-def ensure_file_exists(path, permissions=0666):
-    """Creates a file if it doesn't already exist.
+def touch_file(path, permissions=0666):
+    """
+    Touch a file and optionally set its permissions.
 
-    :param path: path to create
-    :param permissions: Permissions to use when file is created
+    :param path: path to touch
+    :param permissions: Optional permissions to set on the file.
 
-    :raises: OSError - if there was a problem creating the file
+    :raises: OSError - if there was a problem reading/writing the file
     """
     if not os.path.exists(path):
         old_umask = os.umask(0)

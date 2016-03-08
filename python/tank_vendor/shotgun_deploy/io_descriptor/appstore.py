@@ -17,13 +17,16 @@ import cPickle as pickle
 
 from ..zipfilehelper import unzip_file
 from ..descriptor import Descriptor
-from ..errors import ShotgunDeployError, ShotgunAppStoreError
-from ...shotgun_base import ensure_folder_exists, safe_delete_file
+from ..errors import ShotgunAppStoreError
+from ...shotgun_base import (
+    ensure_folder_exists,
+    safe_delete_file,
+    get_legacy_bundle_install_folder
+)
 
 from .. import util
 from .. import constants
 from .base import IODescriptorBase
-from .legacy import get_legacy_bundle_install_folder
 
 # use api json to cover py 2.5
 from ... import shotgun_api3
@@ -252,18 +255,15 @@ class IODescriptorAppStore(IODescriptorBase):
         # cache root didn't change (when use_bundle_cache is set to False).
         # If the bundle cache root changes across core versions, then this will
         # need to be refactored.
-        try:
-            legacy_path = get_legacy_bundle_install_folder(
+        paths.append(
+            get_legacy_bundle_install_folder(
                 "app_store",
                 self._bundle_cache_root,
                 self._type,
                 self.get_system_name(),
                 self.get_version()
             )
-        except ShotgunDeployError:
-            pass
-        else:
-            paths.append(legacy_path)
+        )
 
         return paths
 

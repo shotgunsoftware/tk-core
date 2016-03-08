@@ -15,16 +15,13 @@ Hook to control the various cache locations in the system.
 import sgtk
 import os
 
-from tank_vendor.shotgun_base import get_pipeline_config_cache_root
-from tank_vendor.shotgun_base.utils import (
-    ensure_file_exists,
-    ensure_folder_exists,
+from tank_vendor.shotgun_base import (
+    get_pipeline_config_cache_root,
+    get_legacy_pipeline_config_cache_root,
+    get_cache_bundle_folder_name,
 )
-from tank_vendor.shotgun_deploy.errors import ShotgunDeployError
-from tank_vendor.shotgun_deploy.io_descriptor.legacy import (
-    get_legacy_path_cache_path,
-    get_legacy_bundle_data_cache_folder,
-)
+
+from tank_vendor.shotgun_base import touch_file, ensure_folder_exists
 
 HookBaseClass = sgtk.get_hook_baseclass()
 
@@ -52,6 +49,9 @@ class CacheLocation(HookBaseClass):
         :param pipeline_configuration_id: The shotgun pipeline config id to store caches for
         :returns: The path to a path cache file. This file should exist when this method returns.
         """
+
+        cache_filename = "path_cache.db"
+
         tk = self.parent
         cache_root = get_pipeline_config_cache_root(
             tk.shotgun_url,
@@ -59,31 +59,32 @@ class CacheLocation(HookBaseClass):
             pipeline_configuration_id
         )
 
-        target_path = os.path.join(cache_root, "path_cache.db")
+        target_path = os.path.join(cache_root, cache_filename)
 
         if os.path.exists(target_path):
-            # path exists, return it
+            # new style path cache file exists, return it
             return target_path
-
-        # ---- backward compatibility for old path cache locations
 
         # The target path does not exist. This could be because it just hasn't
         # been created yet, or it could be because of a core upgrade where the
         # cache root directory structure has changed (such is the case with
         # v0.17.x -> v0.18.x). To account for this scenario, see if the target
         # exists in an old location first, and if so, return that path instead.
+        legacy_cache_root = get_legacy_pipeline_config_cache_root(
+            tk.shotgun_url,
+            project_id,
+            pipeline_configuration_id
+        )
+        legacy_target_path = os.path.join(legacy_cache_root, cache_filename)
 
-        try:
-            legacy_path_cache = get_legacy_path_cache_path(tk, project_id,
-                pipeline_configuration_id)
-        except ShotgunDeployError:
-            # legacy path cache does not exist. ensure original target exists.
-            ensure_folder_exists(cache_root)
-            ensure_file_exists(target_path)
-        else:
-            # legacy path exists, make it the target
-            target_path = legacy_path_cache
-        
+        if os.path.exists(legacy_target_path):
+            # legacy path cache file exists, return it
+            return legacy_target_path
+
+        # neither new style or legacy path cache exists. use the new style
+        ensure_folder_exists(cache_root)
+        touch_file(target_path)
+
         return target_path
     
     def bundle_cache(self, project_id, pipeline_configuration_id, bundle):
@@ -113,43 +114,32 @@ class CacheLocation(HookBaseClass):
         cache_root = get_pipeline_config_cache_root(
             tk.shotgun_url,
             project_id,
-            pipeline_configuration_id
+            pipeline_configuration_id,
         )
-
-        # in the interest of trying to minimize path lengths (to avoid
-        # the MAX_PATH limit on windows, we apply some shortcuts
-        
-        # if the bundle is a framework, we shorten it:
-        # tk-framework-shotgunutils --> fw-shotgunutils        
-        # if the bundle is a multi-app, we shorten it:
-        # tk-multi-workfiles2 --> tm-workfiles2
-        bundle_name = bundle.name
-        bundle_name = bundle_name.replace("tk-framework-", "fw-")
-        bundle_name = bundle_name.replace("tk-multi-", "tm-")
-
-        target_path = os.path.join(cache_root, bundle_name)
+        target_path = os.path.join(cache_root, get_cache_bundle_folder_name(bundle))
 
         if os.path.exists(target_path):
-            # path exists, return it
+            # new style cache bundle folder exists, return it
             return target_path
-
-        # ---- backward compatibility for old bundle data cache locations
 
         # The target path does not exist. This could be because it just hasn't
         # been created yet, or it could be because of a core upgrade where the
-        # bundle cache directory structure has changed (such is the case with
+        # cache root directory structure has changed (such is the case with
         # v0.17.x -> v0.18.x). To account for this scenario, see if the target
         # exists in an old location first, and if so, return that path instead.
+        legacy_cache_root = get_legacy_pipeline_config_cache_root(
+            tk.shotgun_url,
+            project_id,
+            pipeline_configuration_id,
+        )
+        legacy_target_path = os.path.join(legacy_cache_root, bundle.name)
 
-        try:
-            legacy_path_cache = get_legacy_bundle_data_cache_folder(tk, bundle,
-                project_id, pipeline_configuration_id)
-        except ShotgunDeployError:
-            # legacy bundle cache does not exist. ensure original target exists.
-            ensure_folder_exists(target_path)
-        else:
-            # legacy path exists, make it the target
-            target_path = legacy_path_cache
+        if os.path.exists(legacy_target_path):
+            # legacy cache bundle folder exists, return it
+            return legacy_target_path
+
+        # neither new style or legacy path cache exists. use the new style
+        ensure_folder_exists(target_path)
 
         return target_path
 

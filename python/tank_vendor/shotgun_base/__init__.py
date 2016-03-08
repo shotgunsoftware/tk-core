@@ -8,8 +8,12 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from .paths import get_cache_root, get_site_cache_root, get_pipeline_config_cache_root, get_logs_root
-from .utils import ensure_folder_exists, copy_folder, move_folder, copy_file
+from .paths import get_pipeline_config_cache_root, get_cache_bundle_folder_name
+from .paths import get_legacy_pipeline_config_cache_root, get_legacy_bundle_install_folder
+from .paths import get_cache_root, get_site_cache_root, get_logs_root
+from .utils import copy_folder, move_folder, copy_file
+from .utils import touch_file, ensure_folder_exists
 from .utils import append_folder_to_path, safe_delete_file, get_shotgun_storage_key, sanitize_path
 from .errors import ShotgunBaseError
 from .log import get_sgtk_logger
+

@@ -10,8 +10,7 @@
 import os
 
 from .base import IODescriptorBase
-from .legacy import get_legacy_bundle_install_folder
-from ..errors import ShotgunDeployError
+from ...shotgun_base import get_legacy_bundle_install_folder
 
 class IODescriptorManual(IODescriptorBase):
     """
@@ -70,18 +69,15 @@ class IODescriptorManual(IODescriptorBase):
         # cache root didn't change (when use_bundle_cache is set to False).
         # If the bundle cache root changes across core versions, then this will
         # need to be refactored.
-        try:
-            legacy_path = get_legacy_bundle_install_folder(
+        paths.append(
+            get_legacy_bundle_install_folder(
                 "manual",
                 self._bundle_cache_root,
                 self._type,
                 self._name,
                 self._version
             )
-        except ShotgunDeployError:
-            pass
-        else:
-            paths.append(legacy_path)
+        )
 
         return paths
 
