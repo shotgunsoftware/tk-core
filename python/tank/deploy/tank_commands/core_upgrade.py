@@ -86,24 +86,26 @@ class CoreUpdateAction(Action):
         return_status = {"status": "unknown"}
 
         # get the core api root of this installation by looking at the relative location of the running code.
-        code_install_root = pipelineconfig_utils.get_path_to_current_core() 
+        pipeline_root = pipelineconfig_utils.get_path_to_current_core() 
         
         log.info("")
         log.info("Welcome to the Shotgun Pipeline Toolkit update checker!")
         log.info("This script will check if the Toolkit Core API installed")
-        log.info("in %s" % code_install_root)
+        log.info("in %s" % pipeline_root)
         log.info("is up to date.")
         log.info("")
         log.info("")
-        log.info("Please note that when you update the core API, you typically affect "
-                 "more than one project. If you want to test a Core API update in isolation "
-                 "prior to rolling it out to multiple projects, we recommend creating a "
-                 "special *localized* pipeline configuration. For more information about this, please "
-                 "see the Toolkit documentation.")
-        log.info("")
-        log.info("")    
-        
-        installer = TankCoreUpdater(code_install_root, log, core_version)
+
+        if not pipelineconfig_utils.is_localized(pipeline_root):
+            log.info("Please note that when you update the core API, you typically affect "
+                     "more than one project. If you want to test a Core API update in isolation "
+                     "prior to rolling it out to multiple projects, we recommend creating a "
+                     "special *localized* pipeline configuration. For more information about this, please "
+                     "see the Toolkit documentation.")
+            log.info("")
+            log.info("")
+
+        installer = TankCoreUpdater(pipeline_root, log, core_version)
         cv = installer.get_current_version_number()
         lv = installer.get_update_version_number()
         log.info("You are currently running version %s of the Shotgun Pipeline Toolkit" % cv)
@@ -144,7 +146,7 @@ class CoreUpdateAction(Action):
             log.info("%s" % url)
             log.info("")
             log.info("Please note that this update will affect all projects")
-            log.info("Associated with this Shotgun Pipeline Toolkit installation.")
+            log.info("associated with this Shotgun Pipeline Toolkit installation.")
             log.info("")
             
             if suppress_prompts or console_utils.ask_yn_question("Update to this version of the Core API?"):
