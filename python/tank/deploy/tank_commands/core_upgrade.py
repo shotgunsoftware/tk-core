@@ -16,6 +16,7 @@ import sys
 import textwrap
 import uuid
 import tempfile
+import optparse
 
 from ...util import shotgun
 from ...platform import constants
@@ -24,6 +25,16 @@ from ..zipfilehelper import unzip_file
 from .. import util
 
 from . import console_utils
+
+
+# FIXME: This should be refactored into something that can be used by other commands.
+class TkOptParse(optparse.OptionParser):
+    def __init__(self, *args, **kwargs):
+        # Don't generate the --help options, since --help is already eaten up by tank_cmd.py
+        optparse.OptionParser.__init__(self, *args, add_help_option=False, **kwargs)
+        # optparse uses argv[0] for the program, but users use the tank command instead, so replace
+        # the program.
+        self.prog = "tank"
 
 
 class CoreUpdateAction(Action):
@@ -53,6 +64,23 @@ class CoreUpdateAction(Action):
 
         self.parameters = {"return_value": {"description": ret_val_doc, "type": "dict" }}
 
+    def _parse_arguments(self, parameters):
+        """
+        Parses the list of arguments from the command line.
+
+        :param parameters: The content of argv that hasn't been processed by the tank command.
+
+        :returns: The core version. None if --version wasn't specified.
+        """
+        parser = TkOptParse()
+        parser.set_usage(optparse.SUPPRESS_USAGE)
+        parser.add_option("-v", "--version", type="string", default=None)
+        options, args = parser.parse_args()
+
+        if options.version is not None and not options.version.startswith("v"):
+            parser.error("version string should always start with 'v'")
+        return options.version
+
     def run_noninteractive(self, log, parameters):
         """
         Tank command API accessor.
@@ -70,10 +98,10 @@ class CoreUpdateAction(Action):
         :param log: std python logger
         :param args: command line args
         """
-        if len(args) > 1:
-            raise TankError("This command takes a core version as an argument or nothing!")
 
-        self._run(log, False, args[0] if len(args) else None)
+        core_version = self._parse_arguments(args)
+
+        self._run(log, False, core_version)
 
     def _run(self, log, suppress_prompts, core_version):
         """
@@ -239,7 +267,7 @@ class TankCoreUpdater(object):
             version_filter.append(["code", "is", core_version])
 
         # connect to the app store
-        core_version = self._sg.find_one(constants.TANK_CORE_VERSION_ENTITY,
+        version_found = self._sg.find_one(constants.TANK_CORE_VERSION_ENTITY,
                                          filters=version_filter,
                                          fields=["sg_min_shotgun_version",
                                                  "code",
@@ -248,11 +276,14 @@ class TankCoreUpdater(object):
                                                  constants.TANK_CODE_PAYLOAD_FIELD],
                                          order=[{"field_name": "created_at", "direction": "desc"}])
 
-        if core_version is None:
-            # technical problems?
-            raise TankError("Could not find any version of the Core API in the app store!")
+        if version_found is None:
+            if not core_version:
+                # technical problems?
+                raise TankError("Could not find any version of the Core API in the app store!")
+            else:
+                raise TankError("Could not find version '%s' of the Core API in the app store!" % core_version)
             
-        return core_version    
+        return version_found
 
     def get_update_version_number(self):
         """
