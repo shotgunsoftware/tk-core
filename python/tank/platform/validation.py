@@ -405,13 +405,13 @@ class _SettingsValidator:
                     # string and allow the validation code do its thing.
                     settings_value = constants.TANK_BUNDLE_DEFAULT_HOOK_SETTING
                 else:
-                    settings_value = value_schema.get("default_value", None)
-
-            # if no value, then can't validate the setting. raise.
-            if settings_value is None:
-                raise TankError(
-                    "Could not determine value for key '%s' in settings!"
-                    "No specified value and no default value." % settings_key)
+                    if "default_value" not in value_schema:
+                        # if no value, then can't validate the setting. raise.
+                        raise TankError(
+                            "Could not determine value for key '%s' in settings!"
+                            "No specified value and no default value." % settings_key)
+                    else:
+                        settings_value = value_schema.get("default_value", None)
 
             self.__validate_settings_value(settings_key, value_schema, settings_value)
     

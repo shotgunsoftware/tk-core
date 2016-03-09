@@ -81,7 +81,7 @@ class TankBundle(object):
         :param key: setting name
         :param default: default value to return
         """
-        return self.__resolve_setting_value(key, other_settings.get(key, default))
+        return self.__resolve_setting_value(other_settings, key, default)
 
     def get_template_from(self, other_settings, key):
         """
@@ -362,7 +362,7 @@ class TankBundle(object):
         :param key: config name
         :param default: default value to return
         """
-        return self.__resolve_setting_value(key, self.__settings.get(key, default))
+        return self.__resolve_setting_value(self.__settings, key, default)
             
     def get_template(self, key):
         """
@@ -804,45 +804,57 @@ class TankBundle(object):
         
         return processed_val
         
-    def __resolve_setting_value(self, key, value):
+    def __resolve_setting_value(self, settings, key, default):
         """
         Resolve a setting value.  Exposed to allow values
         to be resolved for settings derived outside of the 
         app.
-        
-        :param key:   setting name
-        :param value: setting value
+
+        :param settings: the settings source
+        :param key: setting name
+        :param default: a default value to use for the setting
         """
 
-        # try to get the type for the setting
-        # (may fail if the key does not exist in the schema,
-        # which is an old use case we need to support now...)
+        # start with the supplied default value in case we need to short circuit
+        # before checking against the schema
+        value = default
+
+        # attempt to get the value from the settings.
+        if key in settings:
+            value = settings[key]
+
+        # try to get the type for the setting (may fail if the key does not
+        # exist in the schema. an old use case we need to support now...)
         try:
             schema = self.__descriptor.get_configuration_schema().get(key)
         except:
             schema = None
 
-        if schema:
+        if not schema:
+            # No schema, can't post process or retrieve a default. Just return
+            # the value we have.
+            return value
 
-            # If the value is None, then the setting wasn't specified. Use the
-            # default value in the schema instead.
-            if value is None:
+        # Schema exists. If the key wasn't in the settings, fallback to the
+        # default value in the manifest.
+        if key not in settings:
 
-                if schema.get("type") == "hook":
-                    # Hooks already have the concept of a default value. Just
-                    # use that special default hook string and allow the post
-                    # process to resolve the value correctly based on the
-                    # default value in the manifest. Because the hooks have a
-                    # bit of legacy path evaluation code, if we just use the
-                    # value from the manifest here, we aren't guaranteed to get
-                    # the expected path.
-                    value = constants.TANK_BUNDLE_DEFAULT_HOOK_SETTING
-                else:
-                    # Use the default value from the manifest
-                    value = schema.get("default_value", None)
+            if schema.get("type") == "hook":
+                # Hooks already have the concept of a default value. Just
+                # use that special default hook string and allow the post
+                # process to resolve the value correctly based on the
+                # default value in the manifest. Because the hooks have a
+                # bit of legacy path evaluation code, if we just use the
+                # value from the manifest here, we aren't guaranteed to get
+                # the expected path.
+                value = constants.TANK_BUNDLE_DEFAULT_HOOK_SETTING
+            else:
+                # Use the default value from the manifest
+                value = schema.get("default_value", default)
 
-            if value:
-                # post process against schema
-                value = self.__post_process_settings_r(key, value, schema)
-            
-        return value
+        # If the value is None, no need to post process.
+        if value is None:
+            return value
+
+        # post process against schema
+        return self.__post_process_settings_r(key, value, schema)
