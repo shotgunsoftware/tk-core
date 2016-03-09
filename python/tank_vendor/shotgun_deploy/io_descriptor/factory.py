@@ -13,9 +13,19 @@ from .. import constants
 from .. import util
 log = util.get_shotgun_deploy_logger()
 
+# for performance, we keep cached instances of
+# descriptors in a cache.
+g_cached_instances = {}
+
+
 def create_io_descriptor(sg, descriptor_type, dict_or_uri, bundle_cache_root, fallback_roots):
     """
     Factory method. Use this method to construct all DescriptorIO instances.
+
+    A descriptor is immutable in the sense that it always points at the same code -
+    this may be a particular frozen version out of that toolkit app store that
+    will not change or it may be a dev area where the code can change. Given this,
+    descriptors are cached and only constructed once for a given descriptor URL.
 
     :param sg: Shotgun connection to associated site
     :param descriptor_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK
@@ -36,12 +46,33 @@ def create_io_descriptor(sg, descriptor_type, dict_or_uri, bundle_cache_root, fa
     from .git_branch import IODescriptorGitBranch
     from .manual import IODescriptorManual
 
+    # resolve into both dict and uri form
     if isinstance(dict_or_uri, basestring):
-        # translate uri to dict
         descriptor_dict = IODescriptorBase.dict_from_uri(dict_or_uri)
+        descriptor_uri = dict_or_uri
     else:
         descriptor_dict = dict_or_uri
+        descriptor_uri = IODescriptorBase.uri_from_dict(dict_or_uri)
 
+    # first check if we already have this in our cache
+    # Since all our normal descriptors are immutable - they represent a specific,
+    # read only and cached version of an app, engine or framework on disk, we can
+    # also cache their wrapper objects.
+    # NOTE! We are not keying the cache based on bundle_cache_root or
+    # fallback_roots -- the assumption here is that if you find for example
+    # <core appstore v1.2.3> this represents that particular version of some code
+    # and it doesn't matter where we are fetching it from. If <core appstore v1.2.3>
+    # is available in multiple different locations on disk, the content of each location
+    # should be identical
+    if descriptor_uri in g_cached_instances:
+        # cache hit
+        return g_cached_instances[descriptor_uri]
+
+
+    # at this point we didn't have a cache hit,
+    # so construct the object manually
+
+    # factory logic
     if descriptor_dict.get("type") == "app_store":
         descriptor = IODescriptorAppStore(descriptor_dict, sg, descriptor_type)
 
@@ -73,6 +104,10 @@ def create_io_descriptor(sg, descriptor_type, dict_or_uri, bundle_cache_root, fa
         log.debug("Latest keyword detected. Searching for latest version...")
         descriptor = descriptor.get_latest_version()
         log.debug("Resolved latest to be %r" % descriptor)
+
+    # Now see if we should cache it. Only cache descriptors that represent immutable
+    if descriptor.is_immutable():
+        g_cached_instances[descriptor_uri] = descriptor
 
     return descriptor
 

@@ -35,53 +35,7 @@ class IODescriptorBase(object):
     Different App Descriptor implementations typically handle different source control
     systems: There may be an app descriptor which knows how to communicate with the
     Tank App store and one which knows how to handle the local file system.
-
-    A descriptor is immutable in the sense that it always points at the same code -
-    this may be a particular frozen version out of that toolkit app store that
-    will not change or it may be a dev area where the code can change. Given this,
-    descriptors are cached and only constructed once for a given descriptor URL.
     """
-
-    # @todo - need a way to clear this cache (for example when switching tk APIs)
-    #         we should look at a general cache system (maybe part of shotgun_base)
-    #         where we can keep better track of globals in general.
-    _instances = dict()
-
-    def __new__(cls, descriptor_dict, *args, **kwargs):
-        """
-        Handles caching of descriptors.
-
-        Executed prior to __init__ being executed.
-
-        Since all our normal descriptors are immutable - they represent a specific,
-        read only and cached version of an app, engine or framework on disk, we can
-        also cache their wrapper objects.
-
-        :param bundle_cache_root: Root location for bundle cache
-        :param descriptor_dict: descriptor dictionary describing the bundle
-        :returns: Descriptor instance
-        """
-        instance_cache = cls._instances
-
-        # The cache is keyed based on the descriptor dict
-        cache_key = str(descriptor_dict)
-
-        # Instantiate and cache if we need to, otherwise just return what we
-        # already have stored away.
-        if cache_key not in instance_cache:
-            # If the bundle install path isn't in the cache, then we are
-            # starting fresh. Otherwise, check to see if the app (by name)
-            # is cached, and if not initialize its specific cache. After
-            # that we instantiate and store by version.
-            instance_cache[cache_key] = super(IODescriptorBase, cls).__new__(
-                cls,
-                descriptor_dict,
-                *args,
-                **kwargs
-            )
-
-        return instance_cache[cache_key]
-
     def __init__(self, descriptor_dict):
         """
         Constructor
