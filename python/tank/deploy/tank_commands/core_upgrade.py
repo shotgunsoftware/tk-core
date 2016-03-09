@@ -36,6 +36,9 @@ class TkOptParse(optparse.OptionParser):
         # the program.
         self.prog = "tank"
 
+    def error(self, msg):
+        raise TankError(msg)
+
 
 class CoreUpdateAction(Action):
     """
@@ -252,10 +255,13 @@ class TankCoreUpdater(object):
         except Exception, e:
             raise TankError("Could not extract version number for studio shotgun: %s" % e)
 
-    def __get_core_version(self, core_version):
+    def __get_core_version(self, version_requested):
         """
         Returns info about the new version of the Toolkit API from shotgun.
-        Returns None if there is no version, otherwise a dictionary.
+
+        :raises TankError: Thrown if no version is found in the app store.
+
+        :returns: The entity dictionary
         """
         if constants.APP_STORE_QA_MODE_ENV_VAR in os.environ:
             version_filter = [["sg_status_list", "is_not", "bad" ]]
@@ -263,8 +269,8 @@ class TankCoreUpdater(object):
             version_filter = [["sg_status_list", "is_not", "rev" ],
                               ["sg_status_list", "is_not", "bad" ]]
 
-        if core_version is not None:
-            version_filter.append(["code", "is", core_version])
+        if version_requested is not None:
+            version_filter.append(["code", "is", version_requested])
 
         # connect to the app store
         version_found = self._sg.find_one(constants.TANK_CORE_VERSION_ENTITY,
@@ -277,12 +283,12 @@ class TankCoreUpdater(object):
                                          order=[{"field_name": "created_at", "direction": "desc"}])
 
         if version_found is None:
-            if not core_version:
+            if version_requested:
+                raise TankError("Could not find version '%s' of the Core API in the app store!" % version_requested)
+            else:
                 # technical problems?
                 raise TankError("Could not find any version of the Core API in the app store!")
-            else:
-                raise TankError("Could not find version '%s' of the Core API in the app store!" % core_version)
-            
+
         return version_found
 
     def get_update_version_number(self):
