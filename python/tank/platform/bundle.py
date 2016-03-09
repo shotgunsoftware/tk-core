@@ -813,9 +813,7 @@ class TankBundle(object):
         :param key:   setting name
         :param value: setting value
         """
-        if value is None:
-            return value
-        
+
         # try to get the type for the setting
         # (may fail if the key does not exist in the schema,
         # which is an old use case we need to support now...)
@@ -823,9 +821,28 @@ class TankBundle(object):
             schema = self.__descriptor.get_configuration_schema().get(key)
         except:
             schema = None
-        
+
         if schema:
-            # post process against schema
-            value = self.__post_process_settings_r(key, value, schema)
+
+            # If the value is None, then the setting wasn't specified. Use the
+            # default value in the schema instead.
+            if value is None:
+
+                if schema.get("type") == "hook":
+                    # Hooks already have the concept of a default value. Just
+                    # use that special default hook string and allow the post
+                    # process to resolve the value correctly based on the
+                    # default value in the manifest. Because the hooks have a
+                    # bit of legacy path evaluation code, if we just use the
+                    # value from the manifest here, we aren't guaranteed to get
+                    # the expected path.
+                    value = constants.TANK_BUNDLE_DEFAULT_HOOK_SETTING
+                else:
+                    # Use the default value from the manifest
+                    value = schema.get("default_value", None)
+
+            if value:
+                # post process against schema
+                value = self.__post_process_settings_r(key, value, schema)
             
         return value

@@ -285,9 +285,15 @@ class _SchemaValidator:
         data_type = schema.get("type")
         self.__validate_schema_type(settings_key, data_type)
 
-        if "default_value" in schema:
+        # Get a list of all keys that start with the default value key string.
+        # Some types, like hooks, allow for engine specific default values such
+        # as "default_value_tk-maya". Validate each of these key's values
+        # against the setting's data type.
+        default_value_keys = [k for k in schema if k.startswith("default_value")]
+        for default_value_key in default_value_keys:
+
             # validate the default value:
-            default_value = schema["default_value"]
+            default_value = schema[default_value_key]
 
             # handle template setting with default_value == null            
             if data_type == 'template' and default_value is None and schema.get('allows_empty', False):
@@ -295,10 +301,14 @@ class _SchemaValidator:
                 return
 
             if not _validate_expected_data_type(data_type, default_value):
-                params = (settings_key, 
-                          self._display_name, 
-                          type(default_value).__name__, data_type)
-                err_msg = "Invalid type for default value in schema '%s' for '%s' - found '%s', expected '%s'" % params
+                params = (
+                    default_value_key,
+                    settings_key,
+                    self._display_name,
+                    type(default_value).__name__,
+                    data_type
+                )
+                err_msg = "Invalid type for '%s' in schema '%s' for '%s' - found '%s', expected '%s'" % params
                 raise TankError(err_msg)
 
         if data_type == "list":
@@ -379,16 +389,31 @@ class _SettingsValidator:
         # first sanity check that the schema is correct
         validate_schema(self._display_name, self._schema)
         
-        # Ensure that all required keys are in the settings and that the
-        # values are appropriate.
+        # Ensure that all keys are in the settings or have a default value in
+        # the manifest. Also make sure values are appropriate.
         for settings_key in self._schema:
             value_schema = self._schema.get(settings_key, {})
-            
-            # make sure the required key exists in the environment settings
-            if settings_key not in settings:
-                raise TankError("Missing required key '%s' in settings!" % settings_key)
-            
-            self.__validate_settings_value(settings_key, value_schema, settings[settings_key])
+
+            if settings_key in settings:
+                # value exists in the settings. use it.
+                settings_value = settings[settings_key]
+            else:
+                # No value in the settings. Look for a default value.
+                if value_schema.get("type") == "hook":
+                    # Hooks already have the concept of a default value. If this
+                    # setting is a hook, just use that special default hook
+                    # string and allow the validation code do its thing.
+                    settings_value = constants.TANK_BUNDLE_DEFAULT_HOOK_SETTING
+                else:
+                    settings_value = value_schema.get("default_value", None)
+
+            # if no value, then can't validate the setting. raise.
+            if settings_value is None:
+                raise TankError(
+                    "Could not determine value for key '%s' in settings!"
+                    "No specified value and no default value." % settings_key)
+
+            self.__validate_settings_value(settings_key, value_schema, settings_value)
     
     def validate_setting(self, setting_name, setting_value):
         # first sanity check that the schema is correct
@@ -552,7 +577,7 @@ class _SettingsValidator:
         if hook_name == constants.TANK_BUNDLE_DEFAULT_HOOK_SETTING:
             # assume that each app contains its correct hooks
             return
-        
+
         elif hook_name.startswith("{self}"):
             # assume that each app contains its correct hooks
             return
