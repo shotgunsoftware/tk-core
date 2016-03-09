@@ -411,12 +411,12 @@ def _get_app_store_connection_information():
     config_data["host"] = constants.SGTK_APP_STORE
     config_data["api_script"] = script_name
     config_data["api_key"] = script_key
-    config_data["http_proxy"] = __get_app_store_proxy_setting(client_site_sg)
+    config_data["http_proxy"] = _get_app_store_proxy_setting(client_site_sg)
 
     return config_data
 
 
-def __get_app_store_proxy_setting(connection):
+def _get_app_store_proxy_setting(connection):
     """
     Retrieve the app store proxy settings. If the key
     app_store_http_proxy is not found in the shotgun.yml file, the proxy
@@ -427,8 +427,8 @@ def __get_app_store_proxy_setting(connection):
     :returns: The http proxy connection string.
     """
     config_data = get_associated_sg_config_data()
-    if config_data and config_data.get("app_store_http_proxy"):
-        return config_data["app_store_http_proxy"]
+    if config_data and config_data.get(constants.APP_STORE_HTTP_PROXY):
+        return config_data[constants.APP_STORE_HTTP_PROXY]
     else:
         return connection.config.raw_http_proxy
 

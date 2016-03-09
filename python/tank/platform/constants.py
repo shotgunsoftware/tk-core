@@ -249,3 +249,6 @@ SITE_INIT_CACHE_FILE_NAME = "toolkit_init.cache"
 
 # the location of the toolkit app store
 SGTK_APP_STORE = "https://tank.shotgunstudio.com"
+
+# name of the app store specific proxy setting
+APP_STORE_HTTP_PROXY = "app_store_http_proxy"
