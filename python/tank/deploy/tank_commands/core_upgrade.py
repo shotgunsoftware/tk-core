@@ -223,7 +223,7 @@ class TankCoreUpdater(object):
      UPDATE_BLOCKED_BY_SG          # more recent version exists but SG version is too low.
      ) = range(3)
 
-    def __init__(self, installation_root, logger, core_version):
+    def __init__(self, installation_root, logger, core_version=None):
         """
         Constructor
 

@@ -639,7 +639,7 @@ def _shotgun_run_action(log, install_root, pipeline_config_root, is_localized, a
         installer = TankCoreUpdater(install_root, log)
 
         cv = installer.get_current_version_number()
-        lv = installer.get_latest_version_number()
+        lv = installer.get_update_version_number()
         log.info("You are currently running version %s of the Shotgun Pipeline Toolkit." % cv)
 
         if not is_localized:
@@ -650,7 +650,7 @@ def _shotgun_run_action(log, install_root, pipeline_config_root, is_localized, a
         log.info("")
 
         status = installer.get_update_status()
-        req_sg = installer.get_required_sg_version_for_upgrade()
+        req_sg = installer.get_required_sg_version_for_update()
 
         if status == TankCoreUpdater.UP_TO_DATE:
             log.info("<b>You are up to date! There is no need to update the Toolkit Core API at this time!</b>")
@@ -659,7 +659,7 @@ def _shotgun_run_action(log, install_root, pipeline_config_root, is_localized, a
             log.warning("<b>A new version (%s) of the core API is available however "
                         "it requires a more recent version (%s) of Shotgun!</b>" % (lv, req_sg))
 
-        elif status == TankCoreUpdater.UPGRADE_POSSIBLE:
+        elif status == TankCoreUpdater.UPDATE_POSSIBLE:
 
             (summary, url) = installer.get_release_notes()
 
