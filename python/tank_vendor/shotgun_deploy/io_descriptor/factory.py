@@ -46,6 +46,13 @@ def create_io_descriptor(sg, descriptor_type, dict_or_uri, bundle_cache_root, fa
     from .git_branch import IODescriptorGitBranch
     from .manual import IODescriptorManual
 
+    # resolve into both dict and uri form
+    if isinstance(dict_or_uri, basestring):
+        descriptor_dict = IODescriptorBase.dict_from_uri(dict_or_uri)
+        descriptor_uri = dict_or_uri
+    else:
+        descriptor_dict = dict_or_uri
+        descriptor_uri = IODescriptorBase.uri_from_dict(dict_or_uri)
 
     # first check if we already have this in our cache
     # Since all our normal descriptors are immutable - they represent a specific,
@@ -57,21 +64,13 @@ def create_io_descriptor(sg, descriptor_type, dict_or_uri, bundle_cache_root, fa
     # and it doesn't matter where we are fetching it from. If <core appstore v1.2.3>
     # is available in multiple different locations on disk, the content of each location
     # should be identical
-
-    cache_key = str(dict_or_uri)
-
-    if cache_key in g_cached_instances:
+    if descriptor_uri in g_cached_instances:
         # cache hit
-        return g_cached_instances[cache_key]
+        return g_cached_instances[descriptor_uri]
 
-    # no cache hit, construct the object manually
 
-    # first resolve any uri
-    if isinstance(dict_or_uri, basestring):
-        # translate uri to dict
-        descriptor_dict = IODescriptorBase.dict_from_uri(dict_or_uri)
-    else:
-        descriptor_dict = dict_or_uri
+    # at this point we didn't have a cache hit,
+    # so construct the object manually
 
     # factory logic
     if descriptor_dict.get("type") == "app_store":
@@ -108,7 +107,7 @@ def create_io_descriptor(sg, descriptor_type, dict_or_uri, bundle_cache_root, fa
 
     # Now see if we should cache it. Only cache descriptors that represent immutable
     if descriptor.is_immutable():
-        g_cached_instances[cache_key] = descriptor
+        g_cached_instances[descriptor_uri] = descriptor
 
     return descriptor
 
