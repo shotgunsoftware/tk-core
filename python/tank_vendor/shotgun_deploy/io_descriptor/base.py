@@ -73,26 +73,22 @@ class IODescriptorBase(object):
             # starting fresh. Otherwise, check to see if the app (by name)
             # is cached, and if not initialize its specific cache. After
             # that we instantiate and store by version.
-            instance_cache[cache_key] = super(IODescriptorBase, cls).__new__(
+            instance = super(IODescriptorBase, cls).__new__(
                 cls,
                 descriptor_dict,
                 *args,
                 **kwargs
             )
 
+            # initialize the io descriptor instance with default values
+            instance._bundle_cache_root = None
+            instance._fallback_roots = []
+            instance._descriptor_dict = descriptor_dict
+            instance.__manifest_data = None
+
+            instance_cache[cache_key] = instance
+
         return instance_cache[cache_key]
-
-    def __init__(self, descriptor_dict):
-        """
-        Constructor
-
-        :param descriptor_dict: Dictionary describing what
-                                the descriptor is pointing at
-        """
-        self._bundle_cache_root = None
-        self._fallback_roots = []
-        self._descriptor_dict = descriptor_dict
-        self.__manifest_data = None
 
     def set_cache_roots(self, primary_root, fallback_roots):
         """
