@@ -42,10 +42,10 @@ class Tank(object):
         # special stuff to make sure we maintain backwards compatibility in the constructor
         # if the 'project_path' parameter contains a pipeline config object,
         # just use this straight away. If the param contains a string, assume
-        # this is a path and try to construct a pc from the path
+        # this is a path and try to construct a pipeline config from the path
 
         if isinstance(project_path, pipelineconfig.PipelineConfiguration):
-            # this is actually a pc object
+            # this is actually a pipeline config object
             self.__pipeline_config = project_path
         else:
             self.__pipeline_config = pipelineconfig_factory.from_path(project_path)

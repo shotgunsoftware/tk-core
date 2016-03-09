@@ -21,9 +21,8 @@ at any point.
 from .errors import AuthenticationCancelled
 from . import invoker
 
-import logging
-
-logger = logging.getLogger("shotgun_auth.ui")
+from .sg_auth_logging import get_logger
+logger = get_logger("ui")
 
 
 class UiAuthenticationHandler(object):

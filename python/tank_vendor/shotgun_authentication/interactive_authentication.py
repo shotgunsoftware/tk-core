@@ -29,13 +29,14 @@ from __future__ import with_statement
 from .errors import AuthenticationCancelled
 from .console_authentication import ConsoleLoginHandler, ConsoleRenewSessionHandler
 from .ui_authentication import UiAuthenticationHandler
+from .sg_auth_logging import get_logger
 
 import threading
 import sys
 import os
-import logging
 
-logger = logging.getLogger("sg_auth.authentication")
+
+logger = get_logger("interactive")
 
 
 ###############################################################################################

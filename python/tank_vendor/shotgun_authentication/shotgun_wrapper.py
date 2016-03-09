@@ -19,8 +19,8 @@ at any point.
 from tank_vendor.shotgun_api3 import Shotgun, AuthenticationFault
 from . import interactive_authentication, session_cache
 
-import logging
-logger = logging.getLogger("sg_auth.shotgun_wrapper")
+from .sg_auth_logging import get_logger
+logger = get_logger("wrapper")
 
 
 class ShotgunWrapper(Shotgun):

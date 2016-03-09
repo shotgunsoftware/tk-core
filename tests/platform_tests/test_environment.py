@@ -194,7 +194,7 @@ class TestUpdateEnvironment(TankTestBase):
         self.assertEqual(new_settings, prev_settings)
         
         desc_after = self.env.get_engine_descriptor("test_engine")
-        self.assertEqual(desc_after.get_location(), {"type":"dev", "path":"foo"})
+        self.assertEqual(desc_after.get_dict(), {"type":"dev", "path":"foo"})
         
         
         
@@ -261,7 +261,7 @@ class TestUpdateEnvironment(TankTestBase):
         self.assertEqual(settings_after, settings_before)
         
         desc_after = self.env.get_app_descriptor("test_engine", "test_app")
-        self.assertEqual(desc_after.get_location(), new_location)
+        self.assertEqual(desc_after.get_dict(), new_location)
     
     
     
