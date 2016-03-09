@@ -53,13 +53,15 @@ class IODescriptorGitBranch(IODescriptorGit):
         :param descriptor_dict: descriptor dictionary describing the bundle
         :return: Descriptor instance
         """
-        super(IODescriptorGitBranch, self).__init__(descriptor_dict)
-
+        # make sure all required fields are there
         self._validate_descriptor(
             descriptor_dict,
             required=["type", "path", "version", "branch"],
             optional=[]
         )
+
+        # call base class
+        super(IODescriptorGitBranch, self).__init__(descriptor_dict)
 
         # path is handled by base class - all git descriptors
         # have a path to a repo

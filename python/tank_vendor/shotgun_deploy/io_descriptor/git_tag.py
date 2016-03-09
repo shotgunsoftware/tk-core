@@ -47,13 +47,15 @@ class IODescriptorGitTag(IODescriptorGit):
         :param bundle_type: The type of bundle. ex: Descriptor.APP
         :return: Descriptor instance
         """
-        super(IODescriptorGitTag, self).__init__(descriptor_dict)
-
+        # make sure all required fields are there
         self._validate_descriptor(
             descriptor_dict,
             required=["type", "path", "version"],
             optional=[]
         )
+
+        # call base class
+        super(IODescriptorGitTag, self).__init__(descriptor_dict)
 
         # path is handled by base class - all git descriptors
         # have a path to a repo
