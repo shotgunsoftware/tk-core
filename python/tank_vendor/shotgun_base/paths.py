@@ -12,12 +12,13 @@ import os
 import sys
 import urlparse
 
+
 def get_cache_root():
     """
     Returns a cache root suitable for all Shotgun related data,
-    regardless of site.
+    regardless of Shotgun site.
 
-    The following paths will be generated:
+    The following paths will be computed:
 
     - macosx: ~/Library/Caches/Shotgun
     - windows: %APPDATA%\Shotgun
@@ -29,13 +30,13 @@ def get_cache_root():
         root = os.path.expanduser("~/Library/Caches/Shotgun")
 
     elif sys.platform == "win32":
-        root = os.path.join(os.environ["APPDATA"], "Shotgun")
+        root = os.path.join(os.environ.get("APPDATA", "APPDATA_NOT_SET"), "Shotgun")
 
     elif sys.platform.startswith("linux"):
         root = os.path.expanduser("~/.shotgun")
 
     else:
-        raise RuntimeError("Unsupported operating system!")
+        raise NotImplementedError("Unknown platform: %s" % sys.platform)
 
     return root
 
@@ -132,22 +133,27 @@ def get_cache_bundle_folder_name(bundle):
 
 def get_logs_root():
     """
-    Returns the platform specific location of the logfiles.
+    Returns a root folder suitable for all shotgun log files,
+    regardless of Shotgun site.
 
-    :returns: Path to the logfile.
+    The following paths will be computed:
+
+    - macosx: ~/Library/Logs/Shotgun
+    - windows: %APPDATA%\Shotgun\logs
+    - linux: ~/.shotgun/logs
+
+    :returns: The calculated location for the cache root
+
     """
     if sys.platform == "darwin":
-        fname = os.path.join(os.path.expanduser("~"), "Library", "Logs", "Shotgun")
+        root = os.path.join(os.path.expanduser("~"), "Library", "Logs", "Shotgun")
     elif sys.platform == "win32":
-        fname = os.path.join(os.environ.get("APPDATA", "APPDATA_NOT_SET"), "Shotgun")
+        root = os.path.join(os.environ.get("APPDATA", "APPDATA_NOT_SET"), "Shotgun", "logs")
     elif sys.platform.startswith("linux"):
-        fname = os.path.join(os.path.expanduser("~"), ".shotgun", "logs")
+        root = os.path.join(os.path.expanduser("~"), ".shotgun", "logs")
     else:
         raise NotImplementedError("Unknown platform: %s" % sys.platform)
-    return fname
-
-
-# ---- legacy path methods
+    return root
 
 
 def get_legacy_pipeline_config_cache_root(site_url, project_id, pipeline_configuration_id):

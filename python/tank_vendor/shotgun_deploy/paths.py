@@ -43,7 +43,7 @@ def get_configuration_cache_root(site_url, project_id, pipeline_configuration_id
             pipeline_configuration_id
         ),
         "cfg",
-        util.create_valid_filename(namespace)
+        shotgun_base.create_valid_filename(namespace)
     )
     shotgun_base.ensure_folder_exists(config_cache_root)
     return config_cache_root
@@ -63,7 +63,7 @@ def get_configuration_info_path(site_url, project_id, pipeline_configuration_id,
                       e.g. 'maya', 'rv', 'desktop'.
     :returns: path on disk to file
     """
-    sanitized_namespace = util.create_valid_filename(namespace)
+    sanitized_namespace = shotgun_base.create_valid_filename(namespace)
     cache_filename = "%s_info.yml" % sanitized_namespace
 
     config_info_path = os.path.join(

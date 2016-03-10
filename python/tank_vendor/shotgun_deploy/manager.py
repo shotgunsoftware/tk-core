@@ -18,7 +18,7 @@ from . import util
 from . import zipfilehelper
 from . import Descriptor, create_descriptor
 from . import constants
-from ..shotgun_base import ensure_folder_exists
+from ..shotgun_base import ensure_folder_exists, initialize_base_file_logger
 from .errors import ShotgunDeployError
 from .configuration import Configuration, create_installed_configuration
 from .resolver import BaseConfigurationResolver
@@ -202,6 +202,10 @@ class ToolkitManager(object):
         :param project_id: Project to bootstrap into, None for site mode
         :returns: sgtk instance
         """
+        # begin writing log to disk. Base the log file name
+        # on the current namespace we are launching into
+        initialize_base_file_logger(self.namespace)
+
         log.debug("Begin bootstrapping sgtk.")
 
         # get an object to represent the business logic for
@@ -531,7 +535,6 @@ class ToolkitManager(object):
     #
     #     return pc_id
     #
-
 
     def _report_progress(self, message, curr_idx=None, max_idx=None):
         """
