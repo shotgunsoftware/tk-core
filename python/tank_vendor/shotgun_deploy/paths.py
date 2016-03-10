@@ -75,7 +75,6 @@ def get_configuration_info_path(site_url, project_id, pipeline_configuration_id,
         "cfg",
         cache_filename
     )
-    print config_info_path
     shotgun_base.ensure_folder_exists(os.path.dirname(config_info_path))
     return config_info_path
 
