@@ -21,6 +21,7 @@ from ...platform import constants
 from ...errors import TankError
 from ...util import shotgun
 from .. import util
+from ...platform.bundle import resolve_default_value
 
 
 ##########################################################################################
@@ -403,38 +404,11 @@ def _generate_settings_diff_recursive(parent_engine_name, old_schema, new_schema
             # found a new param:
             new_params[param_name] = {"description": param_desc, "type": param_type}
 
-            # get any default value that was configured
-            # the standard key to look for is "default_value"
-            # however, for apps there can also be an engine
-            # specific default values. These are on the form
-            # default_value_ENGINENAME and take precendence.
-            #
-            # An example of a default value in an app manifest
-            # where there are two specific defaults for maya and
-            # nuke and a general fallback may look like this:
-            #
-            # param_name:
-            #    type: str
-            #    default_value_tk-maya: "Used in maya"
-            #    default_value_tk-nuke: "Used in nuke"
-            #    default_value: "Used in all other engines"
-            #    description: "Example of engine specific defaults"
-            #
-
-            # first try engine specific
-            if parent_engine_name and "default_value_%s" % parent_engine_name in new_param_definition_dict:
-                new_params[param_name]["value"] = new_param_definition_dict["default_value_%s" % parent_engine_name]
-
-            elif "default_value" in new_param_definition_dict:
-                # fall back on generic default
-                new_params[param_name]["value"] = new_param_definition_dict["default_value"]
-
-            # special case handling for list params - check if
-            # allows_empty == True, in that case set default value to []
-            if (param_type == "list"
-                and new_params[param_name].get("value") == None
-                and new_param_definition_dict.get("allows_empty") == True):
-                new_params[param_name]["value"] = []
+            # attempt to resolve a default value from the new parameter def
+            default_value = resolve_default_value(new_param_definition_dict,
+                engine_name=parent_engine_name)
+            if default_value is not None:
+                new_params[param_name]["value"] = default_value
 
         else:
             if old_param_definition_dict.get("type", "Unknown") != param_type:

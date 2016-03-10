@@ -19,6 +19,7 @@ import sys
 from . import constants
 from ..errors import TankError
 from ..template import TemplateString
+from .bundle import resolve_default_value
 
 def validate_schema(app_or_engine_display_name, schema):
     """
@@ -289,7 +290,9 @@ class _SchemaValidator:
         # Some types, like hooks, allow for engine specific default values such
         # as "default_value_tk-maya". Validate each of these key's values
         # against the setting's data type.
-        default_value_keys = [k for k in schema if k.startswith("default_value")]
+        default_value_keys = [k for k in schema
+            if k.startswith(constants.TANK_SCHEMA_DEFAULT_VALUE_KEY)]
+
         for default_value_key in default_value_keys:
 
             # validate the default value:
@@ -398,20 +401,14 @@ class _SettingsValidator:
                 # value exists in the settings. use it.
                 settings_value = settings[settings_key]
             else:
-                # No value in the settings. Look for a default value.
-                if value_schema.get("type") == "hook":
-                    # Hooks already have the concept of a default value. If this
-                    # setting is a hook, just use that special default hook
-                    # string and allow the validation code do its thing.
-                    settings_value = constants.TANK_BUNDLE_DEFAULT_HOOK_SETTING
-                else:
-                    if "default_value" not in value_schema:
-                        # if no value, then can't validate the setting. raise.
-                        raise TankError(
-                            "Could not determine value for key '%s' in settings!"
-                            "No specified value and no default value." % settings_key)
-                    else:
-                        settings_value = value_schema.get("default_value", None)
+                no_default_value = "__NO_DEFAULT_VALUE_IN_SCHEMA__"
+                settings_value = resolve_default_value(value_schema,
+                    no_default_value)
+                if settings_value == no_default_value:
+                    raise TankError(
+                        "Could not determine value for key '%s' in settings! "
+                        "No specified value and no default value." % settings_key
+                    )
 
             self.__validate_settings_value(settings_key, value_schema, settings_value)
     
