@@ -29,7 +29,15 @@ from . import console_utils
 
 # FIXME: This should be refactored into something that can be used by other commands.
 class TkOptParse(optparse.OptionParser):
+    """
+    Toolkit option parser for tank commands. It makes the interface and messages compatible with how Toolkit
+    displays errors.
+    """
+
     def __init__(self, *args, **kwargs):
+        """
+        Constructor.
+        """
         # Don't generate the --help options, since --help is already eaten up by tank_cmd.py
         optparse.OptionParser.__init__(self, *args, add_help_option=False, **kwargs)
         # optparse uses argv[0] for the program, but users use the tank command instead, so replace
@@ -37,6 +45,11 @@ class TkOptParse(optparse.OptionParser):
         self.prog = "tank"
 
     def error(self, msg):
+        """
+        :param msg: Error message for the TankError.
+
+        :raises TankError: Throws a TankError with the message passed in.
+        """
         raise TankError(msg)
 
 
