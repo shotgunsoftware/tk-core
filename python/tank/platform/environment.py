@@ -21,7 +21,6 @@ from tank_vendor import yaml
 from . import constants
 from . import environment_includes
 from ..errors import TankError, TankUnreadableFileError
-from ..deploy import descriptor
 
 from ..util.yaml_cache import g_yaml_cache
 
@@ -109,14 +108,14 @@ class Environment(object):
         """
         handles the checks to see if an item is disabled
         """
-        location_dict = settings.get(constants.ENVIRONMENT_LOCATION_KEY)
+        descriptor_dict = settings.get(constants.ENVIRONMENT_LOCATION_KEY)
         # Check for disabled and deny_platforms
-        is_disabled = location_dict.get("disabled", False)
+        is_disabled = descriptor_dict.get("disabled", False)
         if is_disabled:
             return True
 
         # now check if the current platform is disabled
-        deny_platforms = location_dict.get("deny_platforms", [])
+        deny_platforms = descriptor_dict.get("deny_platforms", [])
         # current os: linux/mac/windows
         nice_system_name = {"linux2": "linux", "darwin": "mac", "win32": "windows"}[sys.platform]
         if nice_system_name in deny_platforms:
@@ -170,24 +169,24 @@ class Environment(object):
         """
 
         for fw in self.__framework_settings:
-            location_dict = self.__framework_settings[fw].get(constants.ENVIRONMENT_LOCATION_KEY)
-            if location_dict is None:
+            descriptor_dict = self.__framework_settings[fw].get(constants.ENVIRONMENT_LOCATION_KEY)
+            if descriptor_dict is None:
                 raise TankError("The environment %s does not have a valid location "
                                 "key for framework %s" % (self._env_path, fw))
             # remove location from dict
             self.__framework_locations[fw] = self.__framework_settings[fw].pop(constants.ENVIRONMENT_LOCATION_KEY)
 
         for eng in self.__engine_settings:
-            location_dict = self.__engine_settings[eng].get(constants.ENVIRONMENT_LOCATION_KEY)
-            if location_dict is None:
+            descriptor_dict = self.__engine_settings[eng].get(constants.ENVIRONMENT_LOCATION_KEY)
+            if descriptor_dict is None:
                 raise TankError("The environment %s does not have a valid location "
                                 "key for engine %s" % (self._env_path, eng))
             # remove location from dict
             self.__engine_locations[eng] = self.__engine_settings[eng].pop(constants.ENVIRONMENT_LOCATION_KEY)
 
         for (eng, app) in self.__app_settings:
-            location_dict = self.__app_settings[(eng,app)].get(constants.ENVIRONMENT_LOCATION_KEY)
-            if location_dict is None:
+            descriptor_dict = self.__app_settings[(eng,app)].get(constants.ENVIRONMENT_LOCATION_KEY)
+            if descriptor_dict is None:
                 raise TankError("The environment %s does not have a valid location "
                                 "key for app %s.%s" % (self._env_path, eng, app))
             # remove location from dict
@@ -284,49 +283,38 @@ class Environment(object):
         """
         Returns the descriptor object for a framework.
         """
-        location_dict = self.__framework_locations.get(framework_name)
-        if location_dict is None:
+        descriptor_dict = self.__framework_locations.get(framework_name)
+        if descriptor_dict is None:
             raise TankError("The framework %s does not have a valid location "
                             "key for engine %s" % (self._env_path, framework_name))
 
         # get the descriptor object for the location
-        d = descriptor.get_from_location(descriptor.AppDescriptor.FRAMEWORK,
-                                         self.__pipeline_config,
-                                         location_dict)
-
-        return d
+        return self.__pipeline_config.get_framework_descriptor(descriptor_dict)
 
     def get_engine_descriptor(self, engine_name):
         """
         Returns the descriptor object for an engine.
         """
-        location_dict = self.__engine_locations.get(engine_name)
-        if location_dict is None:
+        descriptor_dict = self.__engine_locations.get(engine_name)
+        if descriptor_dict is None:
             raise TankError("The environment %s does not have a valid location "
                             "key for engine %s" % (self._env_path, engine_name))
 
         # get the descriptor object for the location
-        d = descriptor.get_from_location(descriptor.AppDescriptor.ENGINE,
-                                         self.__pipeline_config,
-                                         location_dict)
-
-        return d
+        return self.__pipeline_config.get_engine_descriptor(descriptor_dict)
 
     def get_app_descriptor(self, engine_name, app_name):
         """
         Returns the descriptor object for an app.
         """
-        location_dict = self.__engine_locations.get( (engine_name, app_name) )
-        if location_dict is None:
+
+        descriptor_dict = self.__engine_locations.get((engine_name, app_name))
+        if descriptor_dict is None:
             raise TankError("The environment %s does not have a valid location "
                             "key for app %s.%s" % (self._env_path, engine_name, app_name))
 
         # get the version object for the location
-        d = descriptor.get_from_location(descriptor.AppDescriptor.APP,
-                                         self.__pipeline_config,
-                                         location_dict)
-
-        return d
+        return self.__pipeline_config.get_app_descriptor(descriptor_dict)
 
     ##########################################################################################
     # Public methods - data update

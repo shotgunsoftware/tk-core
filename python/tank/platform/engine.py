@@ -23,10 +23,7 @@ import threading
         
 from .. import loader
 from .. import hook
-
 from ..errors import TankError, TankEngineInitError, TankContextChangeNotSupportedError
-from ..deploy import descriptor
-from ..deploy.dev_descriptor import TankDevDescriptor
 from ..util import log_user_activity_metric, log_user_attribute_metric
 from ..util.metrics import MetricsDispatcher
 
@@ -184,7 +181,7 @@ class Engine(TankBundle):
             self.log_debug("Starting metrics dispatcher...")
             self._metrics_dispatcher.start()
             self.log_debug("Metrics dispatcher started.")
-        
+
     def __repr__(self):
         return "<Sgtk Engine 0x%08x: %s, env: %s>" % (id(self),  
                                                       self.name, 
@@ -612,7 +609,7 @@ class Engine(TankBundle):
         # Last, now that we're otherwise done, we can run the
         # apps' post_engine_init methods.
         self.__run_post_engine_inits()
-    
+
     ##########################################################################################
     # public methods
 
@@ -1658,7 +1655,7 @@ class Engine(TankBundle):
                         ))
                         self.__applications[app_instance_name] = app
                         continue
-            
+
             # load the app
             try:
                 # now get the app location and resolve it into a version object
@@ -1765,11 +1762,11 @@ class Engine(TankBundle):
         running apps are registered via a dev descriptor.
         """
         for app in self.__applications.values():
-            if isinstance(app.descriptor, TankDevDescriptor):
+            if app.descriptor.is_dev():
                 self.log_debug("App %s is registered via a dev descriptor. Will add a reload "
                                "button to the actions listings."  % app)
-                from . import restart 
-                self.register_command("Reload and Restart", restart, {"short_name": "restart", "type": "context_menu"})                
+                from . import restart
+                self.register_command("Reload and Restart", restart, {"short_name": "restart", "type": "context_menu"})
                 # only need one reload button, so don't keep iterating :)
                 break
 
@@ -2029,7 +2026,7 @@ def _get_env_and_descriptor_for_engine(engine_name, tk, context):
 
     # get the env object based on the name in the pick env hook
     env = tk.pipeline_configuration.get_environment(env_name, context)
-    
+
     # make sure that the environment has an engine instance with that name
     if not engine_name in env.get_engines():
         raise TankEngineInitError("Cannot find an engine instance %s in %s." % (engine_name, env))

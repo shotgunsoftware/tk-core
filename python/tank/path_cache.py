@@ -57,12 +57,11 @@ class PathCache(object):
         self._connection = None
         self._tk = tk
         self._sync_with_sg = tk.pipeline_configuration.get_shotgun_path_cache_enabled()
-        
+
         if tk.pipeline_configuration.has_associated_data_roots():
             self._path_cache_disabled = False
             self._init_db()
             self._roots = tk.pipeline_configuration.get_data_roots()
-
         else:
             # no primary location found. Path cache therefore does not exist!
             # go into a no-path-cache-mode
@@ -306,7 +305,7 @@ class PathCache(object):
                     - metadata 
                     - path
         """
-        
+
         if self._path_cache_disabled:
             self._log_debug(log, "This project does not have any associated folders.")
             return []        
@@ -434,9 +433,15 @@ class PathCache(object):
                   - sg_id_lookup is a dictionary where the keys are path cache row ids 
                     and the values are the newly created corresponding shotgun ids. 
         """
-        
-        pc_link = {"type": "PipelineConfiguration",
-                   "id": self._tk.pipeline_configuration.get_shotgun_id() }
+
+        if self._tk.pipeline_configuration.is_unmanaged():
+            # no pipeline config for this one
+            pc_link = None
+        else:
+            pc_link = {
+                "type": "PipelineConfiguration",
+                "id": self._tk.pipeline_configuration.get_shotgun_id()
+            }
 
         sg_batch_data = []
         for d in data:

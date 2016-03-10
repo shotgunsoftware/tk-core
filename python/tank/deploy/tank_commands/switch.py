@@ -11,15 +11,12 @@
 from ...errors import TankError
 from . import console_utils
 from .action_base import Action
-from ..descriptor import AppDescriptor 
-from ..descriptor import get_from_location
-from ..app_store_descriptor import TankAppStoreDescriptor 
 
 import os
 
 class SwitchAppAction(Action):
     """
-    Action that makes it easy to switch from one locator to another
+    Action that makes it easy to switch from one descriptor to another
     """    
     def __init__(self):
         Action.__init__(self, 
@@ -121,7 +118,7 @@ class SwitchAppAction(Action):
             mode = "dev"
             path = fourth_param
         
-        # find locator
+        # find descriptor
         try:
             env = self.tk.pipeline_configuration.get_environment(env_name, writable=True)
             env.set_yaml_preserve_mode(preserve_yaml)
@@ -147,37 +144,26 @@ class SwitchAppAction(Action):
         log.info("")
         
         if mode == "app_store":
-            
-            new_descriptor = TankAppStoreDescriptor.find_latest_item(
-                self.tk.pipeline_configuration.get_path(),
-                self.tk.pipeline_configuration.get_bundles_location(),
-                AppDescriptor.APP,
-                descriptor.get_system_name()
+            new_descriptor = self.tk.pipeline_configuration.get_app_descriptor(
+                {"type": "app_store",
+                 "name": descriptor.get_system_name(),
+                 "version": "latest"}
             )
         
         elif mode == "dev":
-
             if not os.path.exists(path):
                 raise TankError("Cannot find path '%s' on disk!" % path)
 
             # run descriptor factory method
-            location = {"type": "dev", "path": path}
-            new_descriptor = get_from_location(AppDescriptor.APP, 
-                                                          self.tk.pipeline_configuration, 
-                                                          location)
-
-
+            new_descriptor = self.tk.pipeline_configuration.get_app_descriptor(
+                {"type": "dev", "path": path}
+            )
 
         elif mode == "git":
-            
             # run descriptor factory method
-            location = {"type": "git", "path": path, "version": "v0.0.0"}
-            tmp_descriptor = get_from_location(AppDescriptor.APP, 
-                                               self.tk.pipeline_configuration, 
-                                               location)
-            # now find latest
-            new_descriptor = tmp_descriptor.find_latest_version()
-            
+            new_descriptor = self.tk.pipeline_configuration.get_app_descriptor(
+                {"type": "git", "path": path, "version": "latest"}
+            )
         
         else:
             raise TankError("Unknown mode!")
@@ -188,13 +174,13 @@ class SwitchAppAction(Action):
         log.info("")
         log.info("Current version")
         log.info("------------------------------------")
-        for (k,v) in descriptor.get_location().items():
+        for (k,v) in descriptor.get_dict().items():
             log.info(" - %s: %s" % (k.capitalize(), v))
         
         log.info("")
         log.info("New version")
         log.info("------------------------------------")
-        for (k,v) in new_descriptor.get_location().items():
+        for (k,v) in new_descriptor.get_dict().items():
             log.info(" - %s: %s" % (k.capitalize(), v))
         
         log.info("")
@@ -207,10 +193,10 @@ class SwitchAppAction(Action):
             new_descriptor.download_local()
     
         # create required shotgun fields
-        new_descriptor.ensure_shotgun_fields_exist()
+        new_descriptor.ensure_shotgun_fields_exist(self.tk)
     
         # run post install hook
-        new_descriptor.run_post_install()
+        new_descriptor.run_post_install(self.tk)
     
         # ensure that all required frameworks have been installed
         # find the file where our item is being installed
@@ -228,25 +214,6 @@ class SwitchAppAction(Action):
         env.update_app_settings(engine_instance_name, 
                                 app_instance_name, 
                                 params, 
-                                new_descriptor.get_location())
+                                new_descriptor.get_dict())
         
         log.info("Switch complete!")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

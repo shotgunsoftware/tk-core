@@ -8,25 +8,19 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from ... import pipelineconfig
-
-from ...util import shotgun
 from .. import util
 from ...platform import constants
 from ...errors import TankError
 from ...pipelineconfig import PipelineConfiguration
-from ..dev_descriptor import TankDevDescriptor
 
 from . import console_utils
 
 from .action_base import Action
+from tank_vendor.shotgun_base import get_shotgun_storage_key
 
-import sys
 import os
 import datetime
 import shutil
-
-SG_LOCAL_STORAGE_OS_MAP = {"linux2": "linux_path", "win32": "windows_path", "darwin": "mac_path" }
 
 # core configuration files which are associated with the core API installation and not
 # the pipeline configuration.
@@ -35,7 +29,8 @@ CORE_API_FILES = ["interpreter_Linux.cfg",
                   "interpreter_Darwin.cfg", 
                   "shotgun.yml"]
 
-# core configuration files which are associated with a particular PC and should not be moved
+# core configuration files which are associated with a particular
+# pipeline config and should not be moved
 CORE_PC_FILES = ["install_location.yml", "pipeline_configuration.yml"]
 
 
@@ -59,6 +54,9 @@ class PushPCAction(Action):
         # get list of all PCs for this project
         if self.tk.pipeline_configuration.is_site_configuration():
             raise TankError("You can't push the site configuration.")
+
+        if self.tk.pipeline_configuration.is_unmanaged():
+            raise TankError("You can't push an unmanaged configuration.")
 
         project_id = self.tk.pipeline_configuration.get_project_id()
 
@@ -99,7 +97,7 @@ class PushPCAction(Action):
             # skip self
             if pc["id"] == current_pc_id:
                 continue
-            local_path = pc.get(SG_LOCAL_STORAGE_OS_MAP[sys.platform])
+            local_path = pc.get(get_shotgun_storage_key())
             path_hash[ pc["id"] ] = local_path
             log.info(" - [%d] %s (%s)" % (pc["id"], pc["code"], local_path))
         log.info("")
@@ -135,12 +133,12 @@ class PushPCAction(Action):
             env = self.tk.pipeline_configuration.get_environment(env_name)
             for eng in env.get_engines():
                 desc = env.get_engine_descriptor(eng)
-                if isinstance(desc, TankDevDescriptor):
+                if desc.is_dev():
                     dev_desc = desc
                     break
                 for app in env.get_apps(eng):
                     desc = env.get_app_descriptor(eng, app)
-                    if isinstance(desc, TankDevDescriptor):
+                    if desc.is_dev():
                         dev_desc = desc
                         break
         if dev_desc:
@@ -183,7 +181,8 @@ class PushPCAction(Action):
                         log.debug("Removing system file %s" % path )
                         os.remove(path)
                 
-                # copy the pc specific special core files from existing cfg to new cfg
+                # copy the pipeline config specific special core files
+                # from existing cfg to new cfg
                 for core_file in CORE_PC_FILES:
                     curr_config_path = os.path.join(target_path, "core", core_file)
                     new_config_path = os.path.join(target_tmp_path, "core", core_file)
@@ -245,8 +244,6 @@ class PushPCAction(Action):
                     if not desc.exists_local():
                         log.info("Downloading App %s..." % app)
                         desc.download_local()
-        
-        
         
         log.info("Push Complete!")
         log.info("")

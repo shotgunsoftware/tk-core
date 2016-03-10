@@ -107,7 +107,7 @@ class AppInfoAction(Action):
                 descriptor = env.get_app_descriptor(eng, app)
                 log.info("App %s" % app)
                 log.info("-" * (4+len(app)))
-                for (k,v) in descriptor.get_location().items():
+                for (k,v) in descriptor.get_dict().items():
                     log.info(" %s: %s" % (k.capitalize(), v) )
                 log.info(" Docs: %s" % descriptor.get_doc_url())
                 log.info("")

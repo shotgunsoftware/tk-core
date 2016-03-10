@@ -13,11 +13,15 @@ Hook to control the various cache locations in the system.
 """
 
 import sgtk
-from sgtk import TankError
 import os
-import errno
-import urlparse
-import sys
+
+from tank_vendor.shotgun_base import (
+    get_pipeline_config_cache_root,
+    get_legacy_pipeline_config_cache_root,
+    get_cache_bundle_folder_name,
+)
+
+from tank_vendor.shotgun_base import touch_file, ensure_folder_exists
 
 HookBaseClass = sgtk.get_hook_baseclass()
 
@@ -36,16 +40,51 @@ class CacheLocation(HookBaseClass):
         the path cache file is located. The path cache file holds a temporary cache representation
         of the FilesystemLocation entities stored in Shotgun for a project. Typically, this cache
         is stored on a local machine, separate for each user.  
-        
+
+        Note! In the case of the site configuration, project id will be set to None.
+        In the case of an unmanaged pipeline configuration, pipeline config
+        id will be set to None.
+
         :param project_id: The shotgun id of the project to store caches for
         :param pipeline_configuration_id: The shotgun pipeline config id to store caches for
         :returns: The path to a path cache file. This file should exist when this method returns.
         """
-        cache_root = self._get_cache_root(project_id, pipeline_configuration_id)
-        self._ensure_folder_exists(cache_root)
-        target_path = os.path.join(cache_root, "path_cache.db")
-        self._ensure_file_exists(target_path)
-        
+
+        cache_filename = "path_cache.db"
+
+        tk = self.parent
+        cache_root = get_pipeline_config_cache_root(
+            tk.shotgun_url,
+            project_id,
+            pipeline_configuration_id
+        )
+
+        target_path = os.path.join(cache_root, cache_filename)
+
+        if os.path.exists(target_path):
+            # new style path cache file exists, return it
+            return target_path
+
+        # The target path does not exist. This could be because it just hasn't
+        # been created yet, or it could be because of a core upgrade where the
+        # cache root directory structure has changed (such is the case with
+        # v0.17.x -> v0.18.x). To account for this scenario, see if the target
+        # exists in an old location first, and if so, return that path instead.
+        legacy_cache_root = get_legacy_pipeline_config_cache_root(
+            tk.shotgun_url,
+            project_id,
+            pipeline_configuration_id
+        )
+        legacy_target_path = os.path.join(legacy_cache_root, cache_filename)
+
+        if os.path.exists(legacy_target_path):
+            # legacy path cache file exists, return it
+            return legacy_target_path
+
+        # neither new style or legacy path cache exists. use the new style
+        ensure_folder_exists(cache_root)
+        touch_file(target_path)
+
         return target_path
     
     def bundle_cache(self, project_id, pipeline_configuration_id, bundle):
@@ -63,86 +102,44 @@ class CacheLocation(HookBaseClass):
         :param pipeline_configuration_id: The shotgun pipeline config id to store caches for
         :param bundle: The app, engine or framework object which is requesting the cache folder.
         :returns: The path to a folder which should exist on disk.
-        """
-        cache_root = self._get_cache_root(project_id, pipeline_configuration_id)
-        target_path = os.path.join(cache_root, bundle.name)
-        self._ensure_folder_exists(target_path)
-        
-        return target_path
-        
-    def _get_cache_root(self, project_id, pipeline_configuration_id):
-        """
-        Helper method that can be used both by subclassing hooks
-        and inside this base level hook. This method calculates the cache root
-        for the current project and configuration. In the default implementation,
-        all the different types of cache data resides below a common root point. 
-        
-        :param project_id: The shotgun id of the project to store caches for
-        :param pipeline_configuration_id: The shotgun pipeline config id to store caches for
-        :returns: The calculated location for the cache root
-        """
-        
-        # the default implementation will place things in the following locations:
-        # macosx: ~/Library/Caches/Shotgun/SITE_NAME/project_xxx/config_yyy
-        # windows: $APPDATA/Shotgun/SITE_NAME/project_xxx/config_yyy
-        # linux: ~/.shotgun/SITE_NAME/project_xxx/config_yyy
-        
-        # first establish the root location
-        tk = self.parent
-        if sys.platform == "darwin":
-            root = os.path.expanduser("~/Library/Caches/Shotgun")
-        elif sys.platform == "win32":
-            root = os.path.join(os.environ["APPDATA"], "Shotgun")
-        elif sys.platform.startswith("linux"):
-            root = os.path.expanduser("~/.shotgun")
 
-        # get site only; https://www.foo.com:8080 -> www.foo.com
-        base_url = urlparse.urlparse(tk.shotgun_url)[1].split(":")[0]
-        
-        # now structure things by site, project id, and pipeline config id
-        cache_root = os.path.join(root, 
-                                  base_url, 
-                                  "project_%d" % project_id,
-                                  "config_%d" % pipeline_configuration_id)
-        return cache_root
-    
-    def _ensure_file_exists(self, path):
+        NOTE: This method may be slightly confusing given the use of the term
+        "bundle_cache" throughout core which refers to the location on disk
+        where bundles (apps, engines, frameworks) are installed. A better
+        name for this method might have been `bundle_data_cache`. The name
+        remains to avoid breaking client code.
+
         """
-        Helper method - creates a file if it doesn't already exists
-        
-        :param path: path to create
-        """
-        if not os.path.exists(path):
-            old_umask = os.umask(0)
-            try:
-                fh = open(path, "wb")
-                fh.close()
-                os.chmod(path, 0666)
-            except OSError, e:
-                # Race conditions are perfectly possible on some network storage setups
-                # so make sure that we ignore any file already exists errors, as they 
-                # are not really errors!
-                if e.errno != errno.EEXIST: 
-                    raise TankError("Could not create cache file '%s': %s" % (path, e))
-            finally:
-                os.umask(old_umask)
-    
-    def _ensure_folder_exists(self, path):
-        """
-        Helper method - creates a folder if it doesn't already exists
-        
-        :param path: path to create
-        """
-        if not os.path.exists(path):
-            old_umask = os.umask(0)
-            try:
-                os.makedirs(path, 0777)
-            except OSError, e:
-                # Race conditions are perfectly possible on some network storage setups
-                # so make sure that we ignore any file already exists errors, as they 
-                # are not really errors!
-                if e.errno != errno.EEXIST: 
-                    raise TankError("Could not create cache folder '%s': %s" % (path, e))
-            finally:
-                os.umask(old_umask)
-            
+        tk = self.parent
+        cache_root = get_pipeline_config_cache_root(
+            tk.shotgun_url,
+            project_id,
+            pipeline_configuration_id,
+        )
+        target_path = os.path.join(cache_root, get_cache_bundle_folder_name(bundle))
+
+        if os.path.exists(target_path):
+            # new style cache bundle folder exists, return it
+            return target_path
+
+        # The target path does not exist. This could be because it just hasn't
+        # been created yet, or it could be because of a core upgrade where the
+        # cache root directory structure has changed (such is the case with
+        # v0.17.x -> v0.18.x). To account for this scenario, see if the target
+        # exists in an old location first, and if so, return that path instead.
+        legacy_cache_root = get_legacy_pipeline_config_cache_root(
+            tk.shotgun_url,
+            project_id,
+            pipeline_configuration_id,
+        )
+        legacy_target_path = os.path.join(legacy_cache_root, bundle.name)
+
+        if os.path.exists(legacy_target_path):
+            # legacy cache bundle folder exists, return it
+            return legacy_target_path
+
+        # neither new style or legacy path cache exists. use the new style
+        ensure_folder_exists(target_path)
+
+        return target_path
+

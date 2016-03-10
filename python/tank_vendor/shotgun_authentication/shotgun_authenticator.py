@@ -15,8 +15,8 @@ from . import session_cache
 from .errors import IncompleteCredentials
 from .defaults_manager import DefaultsManager
 
-import logging
-logger = logging.getLogger("sg_auth.shotgun_authenticator")
+from .sg_auth_logging import get_logger
+logger = get_logger("authenticator")
 
 
 class ShotgunAuthenticator(object):
