@@ -17,6 +17,8 @@ import sys
 from . import QtCore, QtGui
 from .ui_item import Ui_Item
 from .. import constants
+from tank.platform.bundle import resolve_default_value
+from tank.platform.engine import current_engine
 
 class ConfigItem(QtGui.QWidget):
     """
@@ -29,7 +31,11 @@ class ConfigItem(QtGui.QWidget):
         self.ui = Ui_Item() 
         self.ui.setupUi(self)
 
-        default_val = params.get("default_value")
+        engine_name = None
+        if current_engine():
+            engine_name = current_engine().name
+
+        default_val = resolve_default_value(params, engine_name=engine_name)
         param_type = params.get("type")
 
         self.ui.name.setText("Setting %s" % setting)
