@@ -847,11 +847,12 @@ def resolve_default_value(schema, default=None, engine_name=None):
     # Engine-specific default value keys are allowed (ex:
     # "default_value_tk-maya"). If an engine name was supplied,
     # build the corresponding engine-specific default value key.
+    engine_default_key = None
     if engine_name:
-        engine_default_key = "%s_%s" % (constants.TANK_SCHEMA_DEFAULT_VALUE_KEY,
-            engine_name)
-    else:
-        engine_default_key = None
+        engine_default_key = "%s_%s" % (
+            constants.TANK_SCHEMA_DEFAULT_VALUE_KEY,
+            engine_name
+        )
 
     # Now look for a default value to use.
     if engine_default_key and engine_default_key in schema:
@@ -891,13 +892,12 @@ def _resolve_default_hook_value(value, engine_name=None):
         value, but no engine name is provided.
     """
 
-    # Replace the engine reference token if it exists.
-    if constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN in value:
-        if not engine_name:
-            raise TankError(
-                "Cannot resolve dynamic engine token in setting: %s!" %
-                (value,)
-            )
+    # Replace the engine reference token if it exists and there is an engine.
+    # In some instances, such as during engine startup, as apps are being
+    # validated, the engine instance name may not be available. This is ok
+    # since hooks are actually validated just before they are executed. We'll
+    # simply return the value with the engine name token.
+    if engine_name and constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN in value:
         value = value.replace(
             constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN, engine_name)
 
