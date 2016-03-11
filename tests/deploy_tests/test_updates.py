@@ -261,6 +261,7 @@ class TestAppStoreUpdate(TankTestBase):
 
         EngineMocker("tk-test", "v1.0.0")
         AppMocker("tk-multi-test", "v1.0.0")
+        AppMocker("tk-multi-test", "v2.0.0")
         FrameworkMocker("tk-framework-test", "v1.0.0")
 
     def test_environment(self):
@@ -268,5 +269,17 @@ class TestAppStoreUpdate(TankTestBase):
         Make sure we can instantiate an environment and get information about the installed apps and their descriptors.
         """
         env = Environment(os.path.join(self.project_config, "env", "main.yml"), self.pipeline_configuration)
-        desc = env.get_framework_descriptor("tk-framework-test")
+
+        self.assertEqual(env.get_engines(), ["tk-test-instance"])
+        self.assertEqual(env.get_apps("tk-test-instance"), ["tk-multi-test-instance"])
+        self.assertEqual(env.get_frameworks(), ["tk-framework-test_v1.0.0"])
+
+        desc = env.get_framework_descriptor("tk-framework-test_v1.0.0")
         self.assertIsInstance(desc, TankAppStoreDescriptorMock)
+
+        desc = env.get_engine_descriptor("tk-test-instance")
+        self.assertIsInstance(desc, TankAppStoreDescriptorMock)
+
+        desc = env.get_app_descriptor("tk-test-instance", "tk-multi-test-instance")
+        self.assertIsInstance(desc, TankAppStoreDescriptorMock)
+
