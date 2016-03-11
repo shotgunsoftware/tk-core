@@ -11,7 +11,7 @@
 import os
 from .action_base import Action
 from ...errors import TankError
-from ...platform import validation
+from ...platform import validation, bundle
 
 
 class ValidateConfigAction(Action):
@@ -125,7 +125,7 @@ class ValidateConfigAction(Action):
 g_templates = set()
 g_hooks = set()
 
-def _validate_bundle(log, tk, name, settings, descriptor):
+def _validate_bundle(log, tk, name, settings, descriptor, engine_name=None, app_name=None):
 
     log.info("")
     log.info("Validating %s..." % name)
@@ -145,54 +145,54 @@ def _validate_bundle(log, tk, name, settings, descriptor):
     
     
     manifest = descriptor.get_configuration_schema()
-    
+
     for s in settings.keys():
         if s not in manifest.keys():
             log.info("  WARNING - Parameter not needed: %s" % s)
-        
-        else: 
-            default = manifest[s].get("default_value")
-            
-            value = settings[s]
-            try:
-                validation.validate_single_setting(name, tk, manifest, s, value)
-            except TankError, e:
-                log.info("  ERROR - Parameter %s - Invalid value: %s" % (s,e))
+
+    for s in manifest.keys():
+
+        default = bundle.resolve_default_value(manifest.get(s), engine_name=engine_name)
+
+        if s in settings:
+            value = settings.get(s)
+        else:
+            value = default
+
+        try:
+            validation.validate_single_setting(name, tk, manifest, s, value)
+        except TankError, e:
+            log.info("  ERROR - Parameter %s - Invalid value: %s" % (s,e))
+        else:
+            # validation is ok
+            if default is None:
+                # no default value
+                # don't report this
+                pass
+                #log.info("  Parameter %s - OK [no default value specified in manifest]" % s)
+
+            elif manifest[s].get("type") == "hook" and value == "default":
+                # don't display when default values are used.
+                pass
+                #log.info("  Parameter %s - OK [using hook 'default']" % s)
+
+            elif default == value:
+                pass
+                # don't display when default values are used.
+                #log.info("  Parameter %s - OK [using default value]" % s)
+
             else:
-                # validation is ok
-                if default is None:
-                    # no default value
-                    # don't report this
-                    pass
-                    #log.info("  Parameter %s - OK [no default value specified in manifest]" % s)
-                
-                elif manifest[s].get("type") == "hook" and value == "default":
-                    # don't display when default values are used.
-                    pass
-                    #log.info("  Parameter %s - OK [using hook 'default']" % s)
-                
-                elif default == value:
-                    pass
-                    # don't display when default values are used.
-                    #log.info("  Parameter %s - OK [using default value]" % s)
-                
-                else:
-                    log.info("  Parameter %s - OK [using non-default value]" % s)
-                    log.info("    |---> Current: %s" % value)
-                    log.info("    \---> Default: %s" % default)
-                    
-                # remember templates
-                if manifest[s].get("type") == "template":
-                    g_templates.add(value)
-                if manifest[s].get("type") == "hook":
-                    g_hooks.add(value)
+                log.info("  Parameter %s - OK [using non-default value]" % s)
+                log.info("    |---> Current: %s" % value)
+                log.info("    \---> Default: %s" % default)
+
+            # remember templates
+            if manifest[s].get("type") == "template":
+                g_templates.add(value)
+            if manifest[s].get("type") == "hook":
+                g_hooks.add(value)
 
                      
-    for r in manifest.keys():
-        if r not in settings.keys():
-            log.error("Required parameter missing: %s" % r)
-
-
 def _process_environment(log, tk, env):
     
     log.info("Processing environment %s" % env)
@@ -201,12 +201,13 @@ def _process_environment(log, tk, env):
         s = env.get_engine_settings(e)
         descriptor = env.get_engine_descriptor(e)
         name = "Engine %s / %s" % (env.name, e)
-        _validate_bundle(log, tk, name, s, descriptor)
+        _validate_bundle(log, tk, name, s, descriptor, engine_name=e)
         for a in env.get_apps(e):
             s = env.get_app_settings(e, a)
             descriptor = env.get_app_descriptor(e, a)
             name = "%s / %s / %s" % (env.name, e, a)
-            _validate_bundle(log, tk, name, s, descriptor)
+            _validate_bundle(log, tk, name, s, descriptor, engine_name=e,
+                app_name=a)
     
     
     
