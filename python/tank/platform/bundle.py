@@ -888,8 +888,6 @@ def _resolve_default_hook_value(value, engine_name=None):
     :param engine_name: The name of the engine for engine-specific hook values
     :return: The resolved hook default value.
 
-    :raises: TankError - if an engine name token is found in the supplied
-        value, but no engine name is provided.
     """
 
     # Replace the engine reference token if it exists and there is an engine.
