@@ -401,6 +401,8 @@ class _SettingsValidator:
                 # value exists in the settings. use it.
                 settings_value = settings[settings_key]
             else:
+                # Use the fallback default with an unlikely to be used value to
+                # detect cases where there is no default value in the schema.
                 no_default_value = "__NO_DEFAULT_VALUE_IN_SCHEMA__"
                 settings_value = resolve_default_value(value_schema,
                     no_default_value)

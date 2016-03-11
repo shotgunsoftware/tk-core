@@ -404,10 +404,13 @@ def _generate_settings_diff_recursive(parent_engine_name, old_schema, new_schema
             # found a new param:
             new_params[param_name] = {"description": param_desc, "type": param_type}
 
-            # attempt to resolve a default value from the new parameter def
+            # attempt to resolve a default value from the new parameter def.
+            # Use the fallback default with an unlikely to be used value to
+            # detect cases where there is no default value in the schema.
+            no_default_value = "__NO_DEFAULT_VALUE_IN_SCHEMA__"
             default_value = resolve_default_value(new_param_definition_dict,
-                engine_name=parent_engine_name)
-            if default_value is not None:
+                no_default_value, parent_engine_name)
+            if default_value is not no_default_value:
                 new_params[param_name]["value"] = default_value
 
         else:
