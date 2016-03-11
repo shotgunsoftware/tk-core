@@ -358,7 +358,7 @@ class Environment(object):
         return tokens, path
     
 
-    def find_location_for_framework(self, framework_name):
+    def find_location_for_framework(self, framework_name, starting_point=None):
         """
         Returns the filename and a list of dictionary keys where a framework instance resides.
         The dictionary key list (tokens) can be nested, for example [frameworks, tk-framework-widget_v0.2.x]
@@ -375,10 +375,10 @@ class Environment(object):
         :param framework_name:  The name of the framework to find the location of
         :returns:               (list of tokens, file path)
         """
-        # first, try to find the location of the framework definition that will be used at 
+        # first, try to find the place on disk of the framework definition that will be used at 
         # run-time.  This handles the special case where multiple 'frameworks' blocks from 
-        # different levels of included files have been concatenated together. 
-        fw_location = environment_includes.find_framework_location(self._env_path, framework_name, self.__context)
+        # different levels of included files have been concatenated together.
+        fw_location = environment_includes.find_framework_location(starting_point or self._env_path, framework_name, self.__context)
         if not fw_location:
             # assume the framework is in the environment - this also handles the @include syntax 
             # not handled by the previous search method!

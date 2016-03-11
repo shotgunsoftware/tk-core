@@ -96,15 +96,10 @@ def get_missing_frameworks(descriptor, environment, yml_file):
     """
     required_frameworks = descriptor.get_required_frameworks()
 
-    print "get_frameworks", environment.get_frameworks()
-    print "yml_file", yml_file
-
     current_framework_instances = [
-        fw for fw in environment.get_frameworks() if environment.find_location_for_framework(fw)[1] == yml_file
+        fw for fw in environment.get_frameworks() if environment.find_location_for_framework(fw, yml_file)
     ]
 
-    print "curent_framework_instances", current_framework_instances
-    
     if len(required_frameworks) == 0:
         return []
 
