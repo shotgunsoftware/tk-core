@@ -12,10 +12,14 @@
 Unit tests tank updates.
 """
 
+import os
+
+import mock
 
 from tank_test.tank_test_base import TankTestBase, setUpModule
 from sgtk.deploy import app_store_descriptor
-import mock
+from sgtk.deploy.descriptor import AppDescriptor
+from tank.platform.environment import Environment
 
 
 class AppStoreMocker(object):
@@ -23,11 +27,13 @@ class AppStoreMocker(object):
     Allows to create a mock app store.
     """
 
+    APP, ENGINE, FRAMEWORK = AppDescriptor.APP, AppDescriptor.ENGINE, AppDescriptor.FRAMEWORK
+
     def __init__(self):
         """
         Constructor.
         """
-        self._frameworks = {}
+        self._bundles = {}
 
     @staticmethod
     def reset():
@@ -36,23 +42,23 @@ class AppStoreMocker(object):
         """
         AppStoreMocker.instance = AppStoreMocker()
 
-    def add_framework(self, framework):
+    def add_bundle(self, bundle_type, bundle):
         """
         Registers a mock framework.
         """
-        self._frameworks.setdefault(framework.name, {})[framework.version] = framework
+        self._bundles.setdefault(bundle_type, {}).setdefault(bundle.name, {})[bundle.version] = bundle
 
-    def get_framework(self, name, version):
+    def get_bundle(self, bundle_type, name, version):
         """
-        :returns: The requested framework.
+        Registers a mock framework.
         """
-        return self._frameworks[name][version]
+        return self._bundles[bundle_type][name][version]
 
-    def get_framework_versions(self, name):
+    def get_bundle_verions(self, bundle_type, name):
         """
         :returns: Versions of a given framework.
         """
-        return self._frameworks[name].keys()
+        return self._bundles[bundle_type][name].keys()
 
 
 class BundleMocker(object):
@@ -106,7 +112,7 @@ class AppMocker(BundleMocker):
         Constructor.
         """
         BundleMocker.__init__(self, name, version, dependencies)
-        AppStoreMocker.instance.add_application(self)
+        AppStoreMocker.instance.add_bundle(AppStoreMocker.APP, self)
 
 
 class FrameworkMocker(BundleMocker):
@@ -119,7 +125,7 @@ class FrameworkMocker(BundleMocker):
         Constructor.
         """
         BundleMocker.__init__(self, name, version, dependencies)
-        AppStoreMocker.instance.add_framework(self)
+        AppStoreMocker.instance.add_bundle(AppStoreMocker.FRAMEWORK, self)
 
 
 class EngineMocker(BundleMocker):
@@ -132,7 +138,7 @@ class EngineMocker(BundleMocker):
         Constructor.
         """
         BundleMocker.__init__(self, name, version, dependencies)
-        AppStoreMocker.instance.add_engine(self)
+        AppStoreMocker.instance.add_bundle(AppStoreMocker.ENGINE, self)
 
 
 class TankAppStoreDescriptorMock(object):
@@ -141,19 +147,19 @@ class TankAppStoreDescriptorMock(object):
     """
 
     @staticmethod
-    def create(name, version):
+    def create(name, version, bundle_type):
         """
         Simple method to create an instance of the mocker object. This is required only when testing the framework.
 
         :returns: A TankAppStoreDescriptorMock object.
         """
-        return TankAppStoreDescriptorMock(None, None, {"name": name, "version": version}, None)
+        return TankAppStoreDescriptorMock(None, None, {"name": name, "version": version}, bundle_type)
 
     def __init__(self, pc_path, bundle_install_path, location_dict, bundle_type):
         """
         Constructor.
         """
-        self._mock_entry = AppStoreMocker.instance.get_framework(location_dict["name"], location_dict["version"])
+        self._mock_entry = AppStoreMocker.instance.get_bundle(bundle_type, location_dict["name"], location_dict["version"])
 
     def get_system_name(self):
         """
@@ -211,7 +217,7 @@ class TestAppStoreMocker(TankTestBase):
         FrameworkMocker("tk-framework-main", "v2.0.0")
 
         self.assertIsInstance(
-            TankAppStoreDescriptorMock.create("tk-framework-main", "v2.0.0"),
+            TankAppStoreDescriptorMock.create("tk-framework-main", "v2.0.0", AppDescriptor.FRAMEWORK),
             TankAppStoreDescriptorMock
         )
 
@@ -227,10 +233,40 @@ class TestAppStoreMocker(TankTestBase):
         FrameworkMocker("tk-framework-main", "v2.0.0", dependency)
 
         # Makes sure we respect the interface of the TankAppStoreDescriptor
-        desc = app_store_descriptor.TankAppStoreDescriptor(None, None, {"name": "tk-framework-main", "version": "v2.0.0"}, None)
+        desc = app_store_descriptor.TankAppStoreDescriptor(None, None, {"name": "tk-framework-main", "version": "v2.0.0"}, AppDescriptor.FRAMEWORK)
         self.assertEqual(
             desc.get_required_frameworks(),
             [{"type": "app_store", "name": "tk-framework-dependency", "version": "v1.0.0"}]
         )
-        desc = app_store_descriptor.TankAppStoreDescriptor(None, None, {"name": "tk-framework-main", "version": "v1.0.0"}, None)
+        desc = app_store_descriptor.TankAppStoreDescriptor(None, None, {"name": "tk-framework-main", "version": "v1.0.0"}, AppDescriptor.FRAMEWORK)
         self.assertEqual(desc.get_required_frameworks(), [])
+
+
+class TestAppStoreUpdate(TankTestBase):
+    """
+    Makes sure environment code works with the app store mocker.
+    """
+
+    def setUp(self):
+        """
+        Prepare unit test.
+        """
+        TankTestBase.setUp(self)
+
+        self._patcher, self._app_store_mocker = mock_app_store()
+        self._patcher.start()
+        self.addCleanup(self._patcher.stop)
+
+        self.setup_fixtures("app_store_tests")
+
+        EngineMocker("tk-test", "v1.0.0")
+        AppMocker("tk-multi-test", "v1.0.0")
+        FrameworkMocker("tk-framework-test", "v1.0.0")
+
+    def test_environment(self):
+        """
+        Make sure we can instantiate an environment and get information about the installed apps and their descriptors.
+        """
+        env = Environment(os.path.join(self.project_config, "env", "main.yml"), self.pipeline_configuration)
+        desc = env.get_framework_descriptor("tk-framework-test")
+        self.assertIsInstance(desc, TankAppStoreDescriptorMock)
