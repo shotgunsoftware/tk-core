@@ -305,13 +305,12 @@ class _SchemaValidator:
 
             if not _validate_expected_data_type(data_type, default_value):
                 params = (
-                    default_value_key,
                     settings_key,
                     self._display_name,
                     type(default_value).__name__,
                     data_type
                 )
-                err_msg = "Invalid type for '%s' in schema '%s' for '%s' - found '%s', expected '%s'" % params
+                err_msg = "Invalid type for default value in schema '%s' for '%s' - found '%s', expected '%s'" % params
                 raise TankError(err_msg)
 
         if data_type == "list":

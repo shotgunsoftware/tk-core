@@ -791,28 +791,26 @@ class TankBundle(object):
         # The post processing code requires the schema to introspect the
         # setting's types, defaults, etc. An old use case exists whereby the key
         # does not exist in the config schema so we need to account for that.
-        schema_exists = key in self.__descriptor.get_configuration_schema()
+        schema = self.__descriptor.get_configuration_schema().get(key, None)
 
         # Get the value for the supplied key
         if key in settings:
             # Value provided by the settings
             value = settings[key]
-        elif schema_exists:
-            schema = self.__descriptor.get_configuration_schema().get(key)
-
+        elif schema:
             # Resolve a default value from the schema. This checks various
             # legacy default value forms in the schema keys.
             value = resolve_default_value(schema, default,
                 self._get_engine_name())
-
-            # We have a value of some kind and a schema. Allow the post
-            # processing code to further resolve the value.
-            if value:
-                value = self.__post_process_settings_r(key, value, schema)
         else:
             # Nothing in the settings, no schema, fallback to the supplied
             # default value
             value = default
+
+        # We have a value of some kind and a schema. Allow the post
+        # processing code to further resolve the value.
+        if value and schema:
+            value = self.__post_process_settings_r(key, value, schema)
 
         return value
 
@@ -889,6 +887,9 @@ def _resolve_default_hook_value(value, engine_name=None):
     :return: The resolved hook default value.
 
     """
+
+    if not value:
+        return value
 
     # Replace the engine reference token if it exists and there is an engine.
     # In some instances, such as during engine startup, as apps are being

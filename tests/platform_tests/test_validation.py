@@ -188,7 +188,7 @@ class TestValidateSettings(TankTestBase):
         key = "some_name"
         schema = {key:{"type":"str"}}
 
-        expected_msg = "Missing required key '%s' in settings!" % key 
+        expected_msg = "Could not determine value for key '%s' in settings! No specified value and no default value." % key
         self.check_error_message(TankError, expected_msg, validate_settings, self.app_name, self.tk, self.context, schema, settings)
 
     def test_hook_does_not_exist(self):
