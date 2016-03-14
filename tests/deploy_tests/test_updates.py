@@ -13,6 +13,7 @@ Unit tests tank updates.
 """
 
 import os
+import re
 import logging
 import functools
 
@@ -21,6 +22,7 @@ import mock
 from tank_test.tank_test_base import TankTestBase, setUpModule
 from sgtk.deploy.descriptor import AppDescriptor
 from sgtk.deploy import app_store_descriptor
+from tank import TankError
 from tank.platform.environment import Environment
 from distutils.version import LooseVersion
 
@@ -35,6 +37,8 @@ class MockStore(object):
         """
         Mocks a bundle type.
         """
+
+        _version_regex = re.compile(r"v([0-9]+)\.([0-9]+)\.(.*)")
 
         def __init__(self, name, version, dependencies=[], bundle_type=None):
             """
@@ -80,6 +84,19 @@ class MockStore(object):
             :returns: List of required frameworks as descriptors dictionaries.
             """
             return self._dependencies
+
+        def get_major_dependency_descriptor(self):
+            return {
+                "version": "v%s.x.x" % self._split_version()[0],
+                "name": self.name,
+                "type": "app_store"
+            }
+
+        def _split_version(self):
+            """
+            Splits the version string into major, minor and remainder.
+            """
+            return self._version_regex.match(self.version).group(1, 2, 3)
 
         @required_frameworks.setter
         def required_frameworks(self, dependencies):
@@ -169,7 +186,7 @@ class MockStore(object):
 
         :returns: List of version strings for a particular bundle.
         """
-        return self._bundles[bundle_type][name].iterkeys()
+        return self._bundles[bundle_type][name].keys()
 
 
 # Cleaner than having to write three class types that would also have to be documented.
@@ -218,17 +235,10 @@ class TankMockStoreDescriptor(AppDescriptor):
         """
         See documentation from TankAppStoreDescriptor.
         """
-        dependencies = self._mock_store.get_bundle(
-            self._type, self.get_system_name(), self.get_version()
-        ).required_frameworks
         return {
-            "frameworks": [
-                {
-                    "name": d.name,
-                    "version": d.version,
-                    "type": "app_store"
-                } for d in dependencies
-            ]
+            "frameworks": self._mock_store.get_bundle(
+                self._type, self.get_system_name(), self.get_version()
+            ).required_frameworks
         }
 
     def run_post_install(self):
@@ -243,18 +253,89 @@ class TankMockStoreDescriptor(AppDescriptor):
         """
         return True
 
-    def find_latest_version(self, constraint=None):
+    def find_latest_version(self, version_pattern=None):
         """
         See documentation from TankAppStoreDescriptor.
         """
-        versions = self._mock_store.get_bundle_versions(
+        if version_pattern:
+            return self._find_latest_for_pattern(version_pattern)
+        else:
+            versions = self._mock_store.get_bundle_versions(
+                self._type, self.get_system_name()
+            )
+            latest = "v0.0.0"
+            for version in versions:
+                if LooseVersion(version) > LooseVersion(latest):
+                    latest = version
+            return self.create(self.get_system_name(), latest, self._type)
+
+    def _find_latest_for_pattern(self, version_pattern):
+        # FIXME: Refactor this with the code from the new descriptor code
+        # in the deploy module when that code is released.
+        version_numbers = self._mock_store.get_bundle_versions(
             self._type, self.get_system_name()
         )
-        latest = "v0.0.0"
-        for version in versions:
-            if LooseVersion(version) > LooseVersion(latest):
-                latest = version
-        return self.create(self.get_system_name(), latest, self._type)
+        versions = {}
+
+        for version_num in version_numbers:
+
+            try:
+                (major_str, minor_str, increment_str) = version_num[1:].split(".")
+                (major, minor, increment) = (int(major_str), int(minor_str), int(increment_str))
+            except:
+                # this version number was not on the form vX.Y.Z where X Y and Z are ints. skip.
+                continue
+
+            if major not in versions:
+                versions[major] = {}
+            if minor not in versions[major]:
+                versions[major][minor] = []
+            if increment not in versions[major][minor]:
+                versions[major][minor].append(increment)
+
+        # now handle the different version strings
+        version_to_use = None
+        if "x" not in version_pattern:
+            # we are looking for a specific version
+            if version_pattern not in version_numbers:
+                raise TankError("Could not find requested version '%s' "
+                                "of '%s' in the App store!" % (version_pattern, self.get_system_name()))
+            else:
+                # the requested version exists in the app store!
+                version_to_use = version_pattern
+
+        elif re.match("v[0-9]+\.x\.x", version_pattern):
+            # we have a v123.x.x pattern
+            (major_str, _, _) = version_pattern[1:].split(".")
+            major = int(major_str)
+
+            if major not in versions:
+                raise TankError("%s does not have a version matching the pattern '%s'. "
+                                "Available versions are: %s" % (self.get_system_name(), version_pattern, ", ".join(version_numbers)))
+            # now find the max version
+            max_minor = max(versions[major].keys())
+            max_increment = max(versions[major][max_minor])
+            version_to_use = "v%s.%s.%s" % (major, max_minor, max_increment)
+
+        elif re.match("v[0-9]+\.[0-9]+\.x", version_pattern):
+            # we have a v123.345.x pattern
+            (major_str, minor_str, _) = version_pattern[1:].split(".")
+            major = int(major_str)
+            minor = int(minor_str)
+
+            # make sure the constraints are fulfilled
+            if (major not in versions) or (minor not in versions[major]):
+                raise TankError("%s does not have a version matching the pattern '%s'. "
+                                "Available versions are: %s" % (self.get_system_name(), version_pattern, ", ".join(version_numbers)))
+
+            # now find the max increment
+            max_increment = max(versions[major][minor])
+            version_to_use = "v%s.%s.%s" % (major, minor, max_increment)
+
+        else:
+            raise TankError("Cannot parse version expression '%s'!" % version_pattern)
+
+        return self.create(self.get_system_name(), version_to_use, self._type)
 
 
 def patch_app_store(func=None):
@@ -291,12 +372,6 @@ class TestMockStore(TankTestBase):
     """
     Tests the mocker to see if it behaves as expected.
     """
-
-    def setUp(self):
-        """
-        Prepare unit test.
-        """
-        TankTestBase.setUp(self)
 
     @patch_app_store
     def test_decorated(self, mock_store):
@@ -344,10 +419,17 @@ class TestMockStore(TankTestBase):
         """
         # Version this is a dependency.
         dependency = mock_store.add_framework("tk-framework-dependency", "v1.0.0")
+        self.assertEqual(dependency.get_major_dependency_descriptor(), {
+            "version": "v1.x.x",
+            "name": "tk-framework-dependency",
+            "type": "app_store"
+        })
         # This is V1 of a framework that has no depdendencies.
         mock_store.add_framework("tk-framework-main", "v1.0.0")
         # This is V2 of a framework that now has a depdendency
-        mock_store.add_framework("tk-framework-main", "v2.0.0").required_frameworks = [dependency]
+        mock_store.add_framework("tk-framework-main", "v2.0.0").required_frameworks = [
+            dependency.get_major_dependency_descriptor()
+        ]
 
         # Makes sure we respect the interface of the TankAppStoreDescriptor
         desc = app_store_descriptor.TankAppStoreDescriptor(
@@ -355,7 +437,7 @@ class TestMockStore(TankTestBase):
         )
         self.assertEqual(
             desc.get_required_frameworks(),
-            [{"type": "app_store", "name": "tk-framework-dependency", "version": "v1.0.0"}]
+            [{"type": "app_store", "name": "tk-framework-dependency", "version": "v1.x.x"}]
         )
         desc = app_store_descriptor.TankAppStoreDescriptor(
             None, None, {"name": "tk-framework-main", "version": "v1.0.0"}, AppDescriptor.FRAMEWORK
@@ -381,29 +463,34 @@ class TestAppStoreUpdate(TankTestBase):
         self.setup_fixtures("app_store_tests")
 
         self._mock_store.add_engine("tk-test", "v1.0.0")
-        self._mock_store.add_application("tk-multi-test", "v1.0.0")
-        self._mock_store.add_application("tk-multi-test", "v2.0.0")
+        self._mock_store.add_application("tk-multi-nodep", "v1.0.0")
+        self._mock_store.add_application("tk-multi-nodep", "v2.0.0")
         self._mock_store.add_framework("tk-framework-test", "v1.0.0")
+        self._mock_store.add_framework("tk-framework-test", "v1.0.1")
+        self._mock_store.add_framework("tk-framework-test", "v1.1.0")
 
     def test_environment(self):
         """
         Make sure we can instantiate an environment and get information about the installed apps and their descriptors.
         """
-        env = Environment(os.path.join(self.project_config, "env", "main.yml"), self.pipeline_configuration)
+        env = Environment(os.path.join(self.project_config, "env", "simple.yml"), self.pipeline_configuration)
 
-        self.assertEqual(env.get_engines(), ["tk-test-instance"])
-        self.assertEqual(env.get_apps("tk-test-instance"), ["tk-multi-test-instance"])
-        self.assertEqual(env.get_frameworks(), ["tk-framework-test_v1.0.0"])
+        self.assertListEqual(env.get_engines(), ["tk-test"])
+        self.assertListEqual(env.get_apps("tk-test"), ["tk-multi-nodep"])
+        self.assertListEqual(
+            env.get_frameworks(),
+            ["tk-framework-test_v1.0.0", "tk-framework-test_v1.0.x", "tk-framework-test_v1.x.x"]
+        )
 
         desc = env.get_framework_descriptor("tk-framework-test_v1.0.0")
         self.assertIsInstance(desc, TankMockStoreDescriptor)
         self.assertEqual(desc.get_version(), "v1.0.0")
 
-        desc = env.get_engine_descriptor("tk-test-instance")
+        desc = env.get_engine_descriptor("tk-test")
         self.assertIsInstance(desc, TankMockStoreDescriptor)
         self.assertEqual(desc.get_version(), "v1.0.0")
 
-        desc = env.get_app_descriptor("tk-test-instance", "tk-multi-test-instance")
+        desc = env.get_app_descriptor("tk-test", "tk-multi-nodep")
         self.assertIsInstance(desc, TankMockStoreDescriptor)
         self.assertEqual(desc.get_version(), "v1.0.0")
 
@@ -414,9 +501,19 @@ class TestAppStoreUpdate(TankTestBase):
         # Run appstore updates.
         command = self.tk.get_command("updates")
         command.set_logger(logging.getLogger("/dev/null"))
-        command.execute(["tk-test-instance", "tk-multi-test-instance"])
+        command.execute([])
 
         # Make sure we are v2.
-        env = Environment(os.path.join(self.project_config, "env", "main.yml"), self.pipeline_configuration)
-        desc = env.get_app_descriptor("tk-test-instance", "tk-multi-test-instance")
+        env = Environment(os.path.join(self.project_config, "env", "simple.yml"), self.pipeline_configuration)
+
+        desc = env.get_app_descriptor("tk-test", "tk-multi-nodep")
         self.assertEqual(desc.get_version(), "v2.0.0")
+
+        desc = env.get_framework_descriptor("tk-framework-test_v1.0.0")
+        self.assertEqual(desc.get_version(), "v1.0.0")
+
+        desc = env.get_framework_descriptor("tk-framework-test_v1.0.x")
+        self.assertEqual(desc.get_version(), "v1.0.1")
+
+        desc = env.get_framework_descriptor("tk-framework-test_v1.x.x")
+        self.assertEqual(desc.get_version(), "v1.1.0")
