@@ -94,8 +94,10 @@ def get_missing_frameworks(descriptor, environment, yml_file):
     
     :returns: list dictionaries, each with a name and a version key.
     """
-    required_frameworks = descriptor.get_required_frameworks()
 
+    required_frameworks = descriptor.get_required_frameworks()
+    print "required", required_frameworks
+    print "yml file", yml_file
     current_framework_instances = [
         fw for fw in environment.get_frameworks() if environment.find_location_for_framework(fw, yml_file)
     ]
@@ -116,6 +118,7 @@ def get_missing_frameworks(descriptor, environment, yml_file):
         if desired_fw_instance not in current_framework_instances:
             missing_fws.append(fw)
 
+    print "missing", missing_fws
     return missing_fws
 
     

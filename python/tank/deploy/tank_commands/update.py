@@ -435,7 +435,6 @@ def _update_item(log, suppress_prompts, tk, env, old_descriptor, new_descriptor,
     else:
         (_, yml_file) = env.find_location_for_engine(engine_name)
 
-
     console_utils.ensure_frameworks_installed(log, tk, yml_file, new_descriptor, env, suppress_prompts)
 
     # if we are updating an app, we pass the engine system name to the configuration method

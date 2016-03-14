@@ -610,9 +610,9 @@ class TestAppStoreUpdates(TankTestBase):
         self._mock_store = patcher.start()
         self.addCleanup(patcher.stop)
 
-        self._mock_store.add_engine("tk-engine", "v1.0.0")
-        self._mock_store.add_application("tk-multi-app", "v1.0.0")
-        self._mock_store.add_framework("tk-framework-2nd-level-dep", "v1.0.0")
+        self._engine_bundle = self._mock_store.add_engine("tk-engine", "v1.0.0")
+        self._app_bundle = self._mock_store.add_application("tk-multi-app", "v1.0.0")
+        self._2nd_level_dep_bundle = self._mock_store.add_framework("tk-framework-2nd-level-dep", "v1.0.0")
 
         self._update_cmd = self.tk.get_command("updates")
         self._update_cmd.set_logger(logging.getLogger("/dev/null"))
@@ -675,3 +675,28 @@ class TestAppStoreUpdates(TankTestBase):
         # The new version of the app should reside inside common_apps.yml
         _, file_path = env.find_location_for_framework("tk-framework-test_v1.x.x")
         self.assertEqual(os.path.basename(file_path), "common_apps.yml")
+        desc = env.get_framework_descriptor("tk-framework-test_v1.x.x")
+        self.assertEqual(
+            desc.get_location()["version"], "v1.0.0"
+        )
+
+        # Add another version, which this time will bring in a new framework
+        # that is already being used in the environment file.
+        fwk = self._mock_store.add_framework("tk-framework-test", "v1.0.1")
+#        self._mock_store.add_framework("tk-framework-2nd-level-dep", "v1.0.1")
+        fwk.required_frameworks = [self._2nd_level_dep_bundle.get_major_dependency_descriptor()]
+
+        self._update_env("updating_included_app")
+
+        # Reload env
+        env = self._get_env("updating_included_app")
+
+        # The new version of the app should reside inside common_apps.yml
+        _, file_path = env.find_location_for_framework("tk-framework-test_v1.x.x")
+        self.assertEqual(os.path.basename(file_path), "common_apps.yml")
+
+        _, file_path = env.find_location_for_framework("tk-framework-2nd-level-dep_v1.x.x")
+        self.assertEqual(os.path.basename(file_path), "common_apps.yml")
+
+    def tearDown(self):
+        pass
