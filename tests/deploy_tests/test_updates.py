@@ -211,13 +211,12 @@ class TankMockStoreDescriptor(AppDescriptor):
             None, None, {"name": name, "type": "app_store", "version": version}, bundle_type
         )
 
-    def __init__(self, pc_path, bundle_install_path, location_dict, bundle_type, mock_store):
+    def __init__(self, pc_path, bundle_install_path, location_dict, bundle_type):
         """
         Constructor.
         """
         AppDescriptor.__init__(self, pc_path, bundle_install_path, location_dict)
         self._type = bundle_type
-        self._mock_store = mock_store
 
     def get_system_name(self):
         """
@@ -236,7 +235,7 @@ class TankMockStoreDescriptor(AppDescriptor):
         See documentation from TankAppStoreDescriptor.
         """
         return {
-            "frameworks": self._mock_store.get_bundle(
+            "frameworks": MockStore.instance.get_bundle(
                 self._type, self.get_system_name(), self.get_version()
             ).required_frameworks
         }
@@ -253,28 +252,47 @@ class TankMockStoreDescriptor(AppDescriptor):
         """
         return True
 
+    @classmethod
+    def find_latest_item(cls, pc_path, bundle_install_path, bundle_type, name, constraint_pattern=None):
+        """
+        Finds the latest version of an item.
+        """
+        if constraint_pattern:
+            return cls._find_latest_for_pattern(bundle_type, name, constraint_pattern)
+        else:
+            return cls._find_latest(bundle_type, name)
+
     def find_latest_version(self, version_pattern=None):
         """
         See documentation from TankAppStoreDescriptor.
         """
         if version_pattern:
-            return self._find_latest_for_pattern(version_pattern)
-        else:
-            versions = self._mock_store.get_bundle_versions(
-                self._type, self.get_system_name()
+            return self._find_latest_for_pattern(
+                self._type,
+                self.get_system_name(),
+                version_pattern
             )
-            latest = "v0.0.0"
-            for version in versions:
-                if LooseVersion(version) > LooseVersion(latest):
-                    latest = version
-            return self.create(self.get_system_name(), latest, self._type)
+        else:
+            return self._find_latest(
+                self._type,
+                self.get_system_name()
+            )
 
-    def _find_latest_for_pattern(self, version_pattern):
+    @classmethod
+    def _find_latest(cls, bundle_type, name):
+
+        versions = MockStore.instance.get_bundle_versions(bundle_type, name)
+        latest = "v0.0.0"
+        for version in versions:
+            if LooseVersion(version) > LooseVersion(latest):
+                latest = version
+        return cls.create(name, latest, bundle_type)
+
+    @classmethod
+    def _find_latest_for_pattern(cls, bundle_type, name, version_pattern):
         # FIXME: Refactor this with the code from the new descriptor code
         # in the deploy module when that code is released.
-        version_numbers = self._mock_store.get_bundle_versions(
-            self._type, self.get_system_name()
-        )
+        version_numbers = MockStore.instance.get_bundle_versions(bundle_type, name)
         versions = {}
 
         for version_num in version_numbers:
@@ -299,7 +317,7 @@ class TankMockStoreDescriptor(AppDescriptor):
             # we are looking for a specific version
             if version_pattern not in version_numbers:
                 raise TankError("Could not find requested version '%s' "
-                                "of '%s' in the App store!" % (version_pattern, self.get_system_name()))
+                                "of '%s' in the App store!" % (version_pattern, name))
             else:
                 # the requested version exists in the app store!
                 version_to_use = version_pattern
@@ -311,7 +329,7 @@ class TankMockStoreDescriptor(AppDescriptor):
 
             if major not in versions:
                 raise TankError("%s does not have a version matching the pattern '%s'. "
-                                "Available versions are: %s" % (self.get_system_name(), version_pattern, ", ".join(version_numbers)))
+                                "Available versions are: %s" % (name, version_pattern, ", ".join(version_numbers)))
             # now find the max version
             max_minor = max(versions[major].keys())
             max_increment = max(versions[major][max_minor])
@@ -326,7 +344,7 @@ class TankMockStoreDescriptor(AppDescriptor):
             # make sure the constraints are fulfilled
             if (major not in versions) or (minor not in versions[major]):
                 raise TankError("%s does not have a version matching the pattern '%s'. "
-                                "Available versions are: %s" % (self.get_system_name(), version_pattern, ", ".join(version_numbers)))
+                                "Available versions are: %s" % (name, version_pattern, ", ".join(version_numbers)))
 
             # now find the max increment
             max_increment = max(versions[major][minor])
@@ -335,7 +353,74 @@ class TankMockStoreDescriptor(AppDescriptor):
         else:
             raise TankError("Cannot parse version expression '%s'!" % version_pattern)
 
-        return self.create(self.get_system_name(), version_to_use, self._type)
+        return cls.create(name, version_to_use, bundle_type)
+
+
+class _Patcher(object):
+    """
+    Patches the api for mock store and instantiates and deletes the
+    MockStore singleton.
+    """
+
+    def __init__(self):
+        """
+        Constructor.
+        """
+        self._patch = mock.patch(
+            "tank.deploy.app_store_descriptor.TankAppStoreDescriptor",
+            new=TankMockStoreDescriptor
+        )
+        self._mock_store = MockStore()
+
+    def __enter__(self):
+        """
+        Patches the api.
+
+        :returns: The mock store object.
+        """
+        self.start()
+        return self._mock_store
+
+    def __exit__(self, *_):
+        """
+        Unpatches the API.
+        """
+        self.stop()
+
+    def start(self):
+        """
+        Patches the api.
+
+        :returns: The mock store object.
+        """
+        MockStore.instance = self._mock_store
+        self._patch.start()
+        return MockStore.instance
+
+    def stop(self):
+        """
+        Unpatches the api.
+        """
+        del MockStore.instance
+        self._patch.stop()
+
+    def __call__(self, func):
+        """
+        Decorates the provided method so that the api is patched
+        during the duration of the call.
+
+        :param func: Function to decorate.
+
+        :returns: A decorated function with an extra
+            positional argument referencing the mock store singleton.
+        """
+        # Need to reapply doc and name to the method or we won't be able
+        # to invoke the test individually.
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            with self:
+                return func(*(args + (self._mock_store,)), **kwargs)
+        return wrapper
 
 
 def patch_app_store(func=None):
@@ -352,20 +437,10 @@ def patch_app_store(func=None):
     mock_store parameter passed in. If the user didn't pass a function in,
     the method will return a tuple of (mock.patch, MockStore) objects.
     """
-    mock_store = MockStore()
-    app_store_patch = mock.patch(
-        "tank.deploy.app_store_descriptor.TankAppStoreDescriptor",
-        new=functools.partial(TankMockStoreDescriptor, mock_store=mock_store)
-    )
-    app_store_patch.mock_store = mock_store
-
-    if func is None:
-        return app_store_patch, mock_store
+    if func:
+        return _Patcher()(func)
     else:
-        def wrapper(*args, **kwargs):
-            with app_store_patch:
-                return functools.partial(func, mock_store=mock_store)(*args, **kwargs)
-        return wrapper
+        return _Patcher()
 
 
 class TestMockStore(TankTestBase):
@@ -401,12 +476,12 @@ class TestMockStore(TankTestBase):
         """
         Tests the non decorated usage of the patch_app_store method.
         """
-        patch, mock_store = patch_app_store()
+        patcher = patch_app_store()
 
         self.assertNotEqual(TankMockStoreDescriptor, app_store_descriptor.TankAppStoreDescriptor)
 
         # Once we use the patch, everything should be mocked.
-        with patch:
+        with patcher as mock_store:
             self._test_patched(mock_store)
 
         # Now the patch should be unaplied and nothing should be mocked anymore.
@@ -445,7 +520,7 @@ class TestMockStore(TankTestBase):
         self.assertEqual(desc.get_required_frameworks(), [])
 
 
-class TestAppStoreUpdate(TankTestBase):
+class TestSimpleEndToEndTesting(TankTestBase):
     """
     Makes sure environment code works with the app store mocker.
     """
@@ -456,9 +531,9 @@ class TestAppStoreUpdate(TankTestBase):
         """
         TankTestBase.setUp(self)
 
-        self._patcher, self._mock_store = patch_app_store()
-        self._patcher.start()
-        self.addCleanup(self._patcher.stop)
+        patcher = patch_app_store()
+        self._mock_store = patcher.start()
+        self.addCleanup(patcher.stop)
 
         self.setup_fixtures("app_store_tests")
 
@@ -501,7 +576,7 @@ class TestAppStoreUpdate(TankTestBase):
         # Run appstore updates.
         command = self.tk.get_command("updates")
         command.set_logger(logging.getLogger("/dev/null"))
-        command.execute([])
+        command.execute({"environment_filter": "simple"})
 
         # Make sure we are v2.
         env = Environment(os.path.join(self.project_config, "env", "simple.yml"), self.pipeline_configuration)
@@ -517,3 +592,86 @@ class TestAppStoreUpdate(TankTestBase):
 
         desc = env.get_framework_descriptor("tk-framework-test_v1.x.x")
         self.assertEqual(desc.get_version(), "v1.1.0")
+
+
+class TestAppStoreUpdates(TankTestBase):
+    """
+    Tests all kinds of app store update cases.
+    """
+
+    def setUp(self):
+        """
+        Prepares unit test with basic bundles.
+        """
+        TankTestBase.setUp(self)
+        self.setup_fixtures("app_store_tests")
+
+        patcher = patch_app_store()
+        self._mock_store = patcher.start()
+        self.addCleanup(patcher.stop)
+
+        self._mock_store.add_engine("tk-engine", "v1.0.0")
+        self._mock_store.add_application("tk-multi-app", "v1.0.0")
+        self._mock_store.add_framework("tk-framework-2nd-level-dep", "v1.0.0")
+
+        self._update_cmd = self.tk.get_command("updates")
+        self._update_cmd.set_logger(logging.getLogger("/dev/null"))
+
+    def _get_env(self, env_name):
+        """
+        Retrieves the environment file specified.
+        """
+        return Environment(
+            os.path.join(self.project_config, "env", "%s.yml" % env_name), self.pipeline_configuration
+        )
+
+    def _update_env(self, env_name):
+        """
+        Updates given environment.
+
+        :param name: Name of the environment to update.
+        """
+        self._update_cmd.execute({"environment_filter": env_name})
+
+    def test_update_include(self):
+        """
+        App should be updated in the common_apps file.
+        """
+        # Create a new version of the app that is included and update.
+        self._mock_store.add_application("tk-multi-app", "v2.0.0")
+        self._update_env("updating_included_app")
+
+        # Reload env
+        env = self._get_env("updating_included_app")
+
+        # The new version of the app should reside inside common_apps.yml
+        _, file_path = env.find_location_for_app("tk-engine", "tk-multi-app")
+        self.assertEqual(os.path.basename(file_path), "common_apps.yml")
+
+        self.assertDictEqual(
+            env.get_app_descriptor("tk-engine", "tk-multi-app").get_location(),
+            {
+                "name": "tk-multi-app",
+                "version": "v2.0.0",
+                "type": "app_store"
+            }
+        )
+
+    def test_update_include_with_new_framework(self):
+        """
+        App's new dependency should be installed inside common_apps.yml.
+        """
+        # Create a new framework that we've never seen before.
+        fwk = self._mock_store.add_framework("tk-framework-test", "v1.0.0")
+        # Add a new version of the app and add give it a dependency on the new framework.
+        self._mock_store.add_application("tk-multi-app", "v2.0.0").required_frameworks = [
+            fwk.get_major_dependency_descriptor()
+        ]
+        self._update_env("updating_included_app")
+
+        # Reload env
+        env = self._get_env("updating_included_app")
+
+        # The new version of the app should reside inside common_apps.yml
+        _, file_path = env.find_location_for_framework("tk-framework-test_v1.x.x")
+        self.assertEqual(os.path.basename(file_path), "common_apps.yml")

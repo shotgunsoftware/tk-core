@@ -1,0 +1,13 @@
+includes:
+  - includes/common_apps.yml
+
+
+engines:
+  tk-engine:
+    apps:
+      tk-multi-app: "@app"
+    location: {"type": "app_store", "version": "v1.0.0", "name": "tk-engine"}
+
+frameworks:
+  tk-framework-2nd-level-dep_v1.x.x:
+    location: {"name": "tk-framework-2nd-level-dep", "type": "app_store", "version": "v1.0.0"}
