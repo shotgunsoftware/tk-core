@@ -171,6 +171,8 @@ class MockStore(object):
         """
         return self._bundles[bundle_type][name].iterkeys()
 
+
+# Cleaner than having to write three class types that would also have to be documented.
 MockStoreApp = functools.partial(MockStore._Entry, bundle_type=MockStore.APP)
 MockStoreFramework = functools.partial(MockStore._Entry, bundle_type=MockStore.FRAMEWORK)
 MockStoreEngine = functools.partial(MockStore._Entry, bundle_type=MockStore.ENGINE)
@@ -313,7 +315,7 @@ class TestMockStore(TankTestBase):
         # Register an engine with it.
         mock_store.add_engine("tk-test", "v1.2.3")
 
-        # Make sure the created object is actually an instanced of the mocked descriptor class.
+        # Make sure the created object is actually an instance of the mocked descriptor class.
         self.assertIsInstance(
             app_store_descriptor.TankAppStoreDescriptor(
                 None, None, {"name": "tk-test", "version": "v1.2.3"}, AppDescriptor.ENGINE
@@ -326,31 +328,14 @@ class TestMockStore(TankTestBase):
         """
         patch, mock_store = patch_app_store()
 
-        self.assertNotIsInstance(
-            TankMockStoreDescriptor(
-                None, None, {"name": "tk-test", "version": "v1.2.3"}, AppDescriptor.ENGINE, mock_store
-            ), app_store_descriptor.TankAppStoreDescriptor
-        )
+        self.assertNotEqual(TankMockStoreDescriptor, app_store_descriptor.TankAppStoreDescriptor)
+
+        # Once we use the patch, everything should be mocked.
         with patch:
             self._test_patched(mock_store)
 
-        self.assertNotIsInstance(
-            TankMockStoreDescriptor(
-                None, None, {"name": "tk-test", "version": "v1.2.3"}, AppDescriptor.ENGINE, mock_store
-            ), app_store_descriptor.TankAppStoreDescriptor
-        )
-
-    @patch_app_store
-    def test_mocked_app_store(self, mock_store):
-        """
-        Makes sure we mocked the right thing.
-        """
-        mock_store.add_bundle(MockStoreFramework("tk-framework-main", "v2.0.0"))
-
-        self.assertIsInstance(
-            TankMockStoreDescriptor.create("tk-framework-main", "v2.0.0", AppDescriptor.FRAMEWORK),
-            TankMockStoreDescriptor
-        )
+        # Now the patch should be unaplied and nothing should be mocked anymore.
+        self.assertNotEqual(TankMockStoreDescriptor, app_store_descriptor.TankAppStoreDescriptor)
 
     @patch_app_store
     def test_framework_registration(self, mock_store):
@@ -365,12 +350,16 @@ class TestMockStore(TankTestBase):
         mock_store.add_framework("tk-framework-main", "v2.0.0").required_frameworks = [dependency]
 
         # Makes sure we respect the interface of the TankAppStoreDescriptor
-        desc = app_store_descriptor.TankAppStoreDescriptor(None, None, {"name": "tk-framework-main", "version": "v2.0.0"}, AppDescriptor.FRAMEWORK)
+        desc = app_store_descriptor.TankAppStoreDescriptor(
+            None, None, {"name": "tk-framework-main", "version": "v2.0.0"}, AppDescriptor.FRAMEWORK
+        )
         self.assertEqual(
             desc.get_required_frameworks(),
             [{"type": "app_store", "name": "tk-framework-dependency", "version": "v1.0.0"}]
         )
-        desc = app_store_descriptor.TankAppStoreDescriptor(None, None, {"name": "tk-framework-main", "version": "v1.0.0"}, AppDescriptor.FRAMEWORK)
+        desc = app_store_descriptor.TankAppStoreDescriptor(
+            None, None, {"name": "tk-framework-main", "version": "v1.0.0"}, AppDescriptor.FRAMEWORK
+        )
         self.assertEqual(desc.get_required_frameworks(), [])
 
 
