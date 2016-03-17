@@ -881,7 +881,9 @@ def resolve_default_value(schema, default=None, engine_name=None):
 
     # special case handling for list params - check if
     # allows_empty == True, in that case set default value to []
-    if setting_type == "list" and value is None and schema.get("allows_empty"):
+    if (setting_type == "list" and
+        value in [None, constants.TANK_SCHEMA_NO_DEFAULT_VALUE_TEST_VALUE] and
+        schema.get("allows_empty")):
         value = []
 
     if setting_type == "hook":

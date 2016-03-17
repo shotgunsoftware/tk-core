@@ -120,6 +120,10 @@ TANK_BUNDLE_DEFAULT_HOOK_SETTING = "default"
 # example: "default_value_tk-maya".
 TANK_SCHEMA_DEFAULT_VALUE_KEY = "default_value"
 
+# A (hopefully) not used value used to test against a missing default value
+# in the schema. This allows None/null to be acceptable as a default value.
+TANK_SCHEMA_NO_DEFAULT_VALUE_TEST_VALUE = "XXX_NO_DEFAULT_VALUE_XXX"
+
 # default method to execute on hooks
 DEFAULT_HOOK_METHOD = "execute"
 

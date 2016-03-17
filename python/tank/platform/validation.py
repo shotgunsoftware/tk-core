@@ -402,7 +402,7 @@ class _SettingsValidator:
             else:
                 # Use the fallback default with an unlikely to be used value to
                 # detect cases where there is no default value in the schema.
-                no_default_value = "__NO_DEFAULT_VALUE_IN_SCHEMA__"
+                no_default_value = constants.TANK_SCHEMA_NO_DEFAULT_VALUE_TEST_VALUE
                 settings_value = resolve_default_value(value_schema,
                     no_default_value)
                 if settings_value == no_default_value:

@@ -125,7 +125,42 @@ class TestGetSetting(TestApplication):
         self.assertEqual("maya_publish_name", tmpl.name)
         self.assertIsInstance(tmpl_sparse, Template)
 
+        # test legacy case where a setting has no schema
+        self.assertEqual(1234.5678, self.app.get_setting("test_no_schema"))
 
+        # test empty list without default
+        self.assertEqual([], self.app.get_setting("test_allow_empty_list"))
+
+        # test the default values of sparse hooks
+        self.assertEqual(
+            "{config}/config_test_hook.py",
+            self.app.get_setting("test_hook_std_sparse")
+        )
+
+        self.assertEqual(
+            "{self}/test_hook.py",
+            self.app.get_setting("test_hook_default_sparse")
+        )
+
+        self.assertEqual(
+            "{$TEST_ENV_VAR}/test_env_var_hook.py",
+            self.app.get_setting("test_hook_env_var_sparse")
+        )
+
+        self.assertEqual(
+            "{self}/test_hook.py",
+            self.app.get_setting("test_hook_self_sparse")
+        )
+
+        self.assertEqual(
+            "{self}/test_hook-test_engine.py",
+            self.app.get_setting("test_hook_new_style_config_old_style_engine_specific_hook_sparse")
+        )
+
+        self.assertEqual(
+            "{self}/test_hook-test_engine.py",
+            self.app.get_setting("test_default_syntax_with_new_style_engine_specific_hook_sparse")
+        )
 
 class TestExecuteHookByName(TestApplication):
     

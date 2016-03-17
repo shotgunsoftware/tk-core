@@ -119,7 +119,13 @@ configuration:
         type: list
         values:
             type: str
-    
+
+    test_allow_empty_list:
+        type: list
+        allows_empty: True
+        values:
+            type: str
+
     test_complex_list:
         type: list
         values:
