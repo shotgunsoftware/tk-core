@@ -406,10 +406,21 @@ class _SettingsValidator:
                 settings_value = resolve_default_value(value_schema,
                     no_default_value)
                 if settings_value == no_default_value:
-                    raise TankError(
-                        "Could not determine value for key '%s' in settings! "
-                        "No specified value and no default value." % settings_key
-                    )
+                    # could not identify a default value. that may be because
+                    # the default is engine-specific and there is no regular
+                    # "default_value". See if there are any engine-specific
+                    # keys. If so, continue with the assumption that one of them
+                    # is the right one. The default values have already been
+                    # validated against the type. Hopefully this is sufficient!
+                    default_value_keys = [k for k in value_schema
+                        if k.startswith(constants.TANK_SCHEMA_DEFAULT_VALUE_KEY)]
+                    if default_value_keys:
+                        continue
+                    else:
+                        raise TankError(
+                            "Could not determine value for key '%s' in settings! "
+                            "No specified value and no default value." % settings_key
+                        )
 
             self.__validate_settings_value(settings_key, value_schema, settings_value)
     
@@ -568,9 +579,22 @@ class _SettingsValidator:
         Validate that the value for a setting of type hook corresponds to a file in the hooks
         directory.
         """
-        
+
+        if constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN in hook_name:
+            # the hook name is engine-specific. see if there is an engine
+            # currently. If so, validate it. If not, then there's not much
+            # we can do.
+            from .engine import current_engine
+            if current_engine():
+                hook_name = hook_name.replace(
+                    constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN,
+                    current_engine().name
+                )
+            else:
+                return
+
         hooks_folder = self._tank_api.pipeline_configuration.get_hooks_location()
-        
+
         # if setting is default, assume everything is fine
         if hook_name == constants.TANK_BUNDLE_DEFAULT_HOOK_SETTING:
             # assume that each app contains its correct hooks

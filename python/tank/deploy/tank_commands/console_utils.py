@@ -193,7 +193,8 @@ def _get_configuration_recursive(log, tank_api_instance, new_ver_descriptor, par
 
             if "value" in param_data:
                 # default value in param data, just log the info for the user
-                log.info("Using default value '%s'" % str(param_data["value"]))
+                default_value = param_data["value"]
+                log.info("Using default value '%s'" % (str(default_value),))
             else:
                 # no default value in the param_data, prompt the user
                 if suppress_prompts:

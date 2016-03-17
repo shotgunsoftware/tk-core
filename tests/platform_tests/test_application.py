@@ -114,6 +114,19 @@ class TestGetSetting(TestApplication):
         self.assertEqual(True, test_item["test_bool"])
         self.assertEqual("extra", test_item["test_extra"])
 
+        # sparse tests. these values do not exists in the environment, only
+        # as default values in the manifest. the results should be the same
+        self.assertEqual("a", self.app.get_setting("test_str_sparse"))
+        self.assertEqual(1, self.app.get_setting("test_int_sparse"))
+        self.assertEqual(1.1, self.app.get_setting("test_float_sparse"))
+        self.assertEqual(True, self.app.get_setting("test_bool_sparse"))
+
+        tmpl_sparse = self.app.get_template("test_template_sparse")
+        self.assertEqual("maya_publish_name", tmpl.name)
+        self.assertIsInstance(tmpl_sparse, Template)
+
+
+
 class TestExecuteHookByName(TestApplication):
     
 
@@ -169,7 +182,7 @@ class TestExecuteHook(TestApplication):
         shutil.copy( os.path.join(app.disk_location, "hooks", "test_hook.py"), 
                      os.path.join(self.project_root, "test_env_var_hook.py"))
         os.environ["TEST_ENV_VAR"] = self.project_root
-        
+
         self.assertTrue(app.execute_hook("test_hook_env_var", dummy_param=True))
 
     def test_inheritance(self):
@@ -179,42 +192,69 @@ class TestExecuteHook(TestApplication):
     def test_inheritance_2(self):
         app = self.engine.apps["test_app"]
         self.assertEqual(app.execute_hook_method("test_hook_inheritance_2", "foo2", bar=True), "custom class base class")
-        
+
     def test_inheritance_old_style(self):
         """
         Test that a hook that contains multiple levels of derivation works as long as there is only one leaf
-        level class 
+        level class
         """
         app = self.engine.apps["test_app"]
         self.assertEqual(app.execute_hook("test_hook_inheritance_old_style", dummy_param=True), "doubly derived class")
 
     def test_inheritance_old_style_fails(self):
         """
-        Test that a hook file that contains multiple levels of derivation raises a TankError when there 
+        Test that a hook file that contains multiple levels of derivation raises a TankError when there
         are multiple leaf level classes derived from 'Hook'
         """
         app = self.engine.apps["test_app"]
-        self.assertRaises(TankError, 
+        self.assertRaises(TankError,
                          app.execute_hook,
                          "test_hook_inheritance_old_style_fails", dummy_param=True)
-        
+
     def test_new_style_config_old_style_hook(self):
-        app = self.engine.apps["test_app"]        
+        app = self.engine.apps["test_app"]
         self.assertTrue(app.execute_hook("test_hook_new_style_config_old_style_hook", dummy_param=True))
+        self.assertTrue(app.execute_hook("test_hook_new_style_config_old_style_engine_specific_hook", dummy_param=True))
 
     def test_default_syntax_with_new_style_hook(self):
-        app = self.engine.apps["test_app"]        
+        app = self.engine.apps["test_app"]
         self.assertTrue(app.execute_hook("test_default_syntax_with_new_style_hook", dummy_param=True))
+        self.assertTrue(app.execute_hook("test_default_syntax_with_new_style_engine_specific_hook", dummy_param=True))
 
     def test_default_syntax_missing_implementation(self):
         """
         Test the case when the default hook defined in the manifest is missing.
         This is common when using the {engine_name} token and a user is trying
-        to create a hook which supports an engine which the app does not yet support.  
+        to create a hook which supports an engine which the app does not yet support.
         """
-        app = self.engine.apps["test_app"]                
+        app = self.engine.apps["test_app"]
         self.assertEqual(app.execute_hook_method("test_default_syntax_missing_implementation", "test_method"), "hello")
-        
+
+    # sparse tests
+
+    def test_hooks_sparse(self):
+        app = self.engine.apps["test_app"]
+
+        self.assertTrue(app.execute_hook("test_hook_std_sparse", dummy_param=True))
+        self.assertTrue(app.execute_hook_method("test_hook_std_sparse", "second_method", another_dummy_param=True))
+        self.assertTrue(app.execute_hook("test_hook_default_sparse", dummy_param=True))
+        self.assertTrue(app.execute_hook("test_hook_self_sparse", dummy_param=True))
+
+        shutil.copy( os.path.join(app.disk_location, "hooks", "test_hook.py"),
+                     os.path.join(self.project_root, "test_env_var_hook.py"))
+        os.environ["TEST_ENV_VAR"] = self.project_root
+        self.assertTrue(app.execute_hook("test_hook_env_var_sparse", dummy_param=True))
+
+        self.assertTrue(app.execute_hook("test_hook_new_style_config_old_style_engine_specific_hook_sparse", dummy_param=True))
+        self.assertTrue(app.execute_hook("test_default_syntax_with_new_style_engine_specific_hook_sparse", dummy_param=True))
+
+    def test_default_values(self):
+        app = self.engine.apps["test_app"]
+
+        self.assertEqual(app.get_setting("test_engine_specific_default"), "foobar")
+        self.assertEqual(app.get_setting("test_engine_specific_multi"), "foobar")
+        self.assertEqual(app.get_setting("test_engine_specific_default_only"), "foobar")
+        self.assertEqual(app.get_setting("test_engine_specific_default_wrong"), None)
 
 class TestRequestFolder(TestApplication):
     

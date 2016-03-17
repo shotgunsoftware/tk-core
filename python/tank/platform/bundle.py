@@ -529,6 +529,19 @@ class TankBundle(object):
             raise TankError("%s config setting %s: Configuration value cannot be None!" % (self, settings_name))
         
         path = None
+
+        # make sure to replace the engine token if it exists.
+        if constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN in hook_expression:
+            engine_name = self._get_engine_name()
+            if not engine_name:
+                raise TankError(
+                    "No engine could be determined for hook expression '%s'. "
+                    "The hook could not be resolved." % (hook_expression,))
+            else:
+                hook_expression = hook_expression.replace(
+                    constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN,
+                    engine_name,
+                )
         
         # first the default case
         if hook_expression == constants.TANK_BUNDLE_DEFAULT_HOOK_SETTING:
@@ -665,7 +678,7 @@ class TankBundle(object):
         """
         # split up the config value into distinct items
         unresolved_hook_paths = hook_expression.split(":")
-        
+
         # first of all, see if we should add a base class hook to derive from:
         # 
         # Basically, any overridden hook implicitly derives from the default hook.
@@ -711,7 +724,7 @@ class TankBundle(object):
                 if os.path.exists(full_path):
                     # add to inheritance path
                     unresolved_hook_paths.insert(0, default_value)
-        
+
         # resolve paths into actual file paths
         resolved_hook_paths = [self.__resolve_hook_path(settings_name, x) for x in unresolved_hook_paths]
 
@@ -779,9 +792,8 @@ class TankBundle(object):
         
     def __resolve_setting_value(self, settings, key, default):
         """
-        Resolve a setting value.  Exposed to allow values
-        to be resolved for settings derived outside of the 
-        app.
+        Resolve a setting value.  Exposed to allow values to be resolved for
+        settings derived outside of the app.
 
         :param settings: the settings dictionary source
         :param key: setting name
@@ -893,9 +905,9 @@ def _resolve_default_hook_value(value, engine_name=None):
 
     # Replace the engine reference token if it exists and there is an engine.
     # In some instances, such as during engine startup, as apps are being
-    # validated, the engine instance name may not be available. This is ok
-    # since hooks are actually validated just before they are executed. We'll
-    # simply return the value with the engine name token.
+    # validated, the engine instance name may not be available. This might be ok
+    # since hooks are actually evaluated just before they are executed. We'll
+    # simply return the value with the engine name token intact.
     if engine_name and constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN in value:
         value = value.replace(
             constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN, engine_name)
