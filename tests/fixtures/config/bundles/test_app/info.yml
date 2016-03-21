@@ -52,6 +52,8 @@ configuration:
     test_hook_config:
         type: hook
 
+    test_hook_engine:
+        type: hook
 
     test_hook_inheritance_1:
         type: hook
@@ -61,7 +63,10 @@ configuration:
         type: hook
         default_value: "{self}/inheritance2.py"
         
-        
+    test_hook_inheritance_3:
+        type: hook
+        default_value: "{self}/inheritance2.py"
+
     test_hook_inheritance_old_style:
         type: hook
         default_value: "{self}/inheritance_old_style.py"
@@ -195,6 +200,10 @@ configuration:
     test_hook_std_sparse:
         type: hook
         default_value: "{config}/config_test_hook.py"
+
+    test_hook_engine_sparse:
+        type: hook
+        default_value: "{engine}/engine_test_hook.py"
 
     test_hook_default_sparse:
         type: hook

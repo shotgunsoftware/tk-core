@@ -608,7 +608,20 @@ class _SettingsValidator:
             # config hook 
             path = hook_name.replace("{config}", hooks_folder)
             hook_path = path.replace("/", os.path.sep)
-        
+
+        elif hook_name.startswith("{engine}"):
+            # engine hook. see if there is a current engine we can use to
+            # validate against. there should be an engine, but in the case
+            # where validation is being run outside of or before engine
+            # startup, continue and assume the hook exists similar to app
+            # hooks.
+            from .engine import current_engine
+            if current_engine():
+                path = os.path.join(current_engine().disk_location, "hooks")
+                hook_path = path.replace("/", os.path.sep)
+            else:
+                return
+
         elif hook_name.startswith("{$") and "}" in hook_name:
             # environment variable: {$HOOK_PATH}/path/to/foo.py
             # lazy (runtime) validation for this - it may be beneficial
