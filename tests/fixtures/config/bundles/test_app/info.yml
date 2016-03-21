@@ -126,6 +126,12 @@ configuration:
         values:
             type: str
 
+    test_allow_empty_dict:
+        type: dict
+        allows_empty: True
+        values:
+            type: str
+
     test_complex_list:
         type: list
         values:
@@ -176,6 +182,10 @@ configuration:
     test_bool_sparse:
         type: bool
         default_value: true
+
+    test_empty_str_sparse:
+        type: str
+        default_value: ""
 
     test_template_sparse:
         type: template

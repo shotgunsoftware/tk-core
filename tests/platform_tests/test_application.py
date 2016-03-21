@@ -120,6 +120,7 @@ class TestGetSetting(TestApplication):
         self.assertEqual(1, self.app.get_setting("test_int_sparse"))
         self.assertEqual(1.1, self.app.get_setting("test_float_sparse"))
         self.assertEqual(True, self.app.get_setting("test_bool_sparse"))
+        self.assertEqual("", self.app.get_setting("test_empty_str_sparse"))
 
         tmpl_sparse = self.app.get_template("test_template_sparse")
         self.assertEqual("maya_publish_name", tmpl.name)
@@ -128,8 +129,9 @@ class TestGetSetting(TestApplication):
         # test legacy case where a setting has no schema
         self.assertEqual(1234.5678, self.app.get_setting("test_no_schema"))
 
-        # test empty list without default
+        # test allow empty types with no default
         self.assertEqual([], self.app.get_setting("test_allow_empty_list"))
+        self.assertEqual({}, self.app.get_setting("test_allow_empty_dict"))
 
         # test the default values of sparse hooks
         self.assertEqual(

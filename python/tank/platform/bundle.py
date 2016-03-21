@@ -560,7 +560,7 @@ class TankBundle(object):
             #    default_value: maya_publish_file
             #
             resolved_hook_name = resolve_default_value(
-                manifest.get(settings_name), "undefined", engine_name)
+                manifest.get(settings_name), engine_name=engine_name)
 
             # get the full path for the resolved hook name:
             if resolved_hook_name.startswith("{self}"):
@@ -885,6 +885,13 @@ def resolve_default_value(schema, default=None, engine_name=None):
         value in [None, constants.TANK_SCHEMA_NO_DEFAULT_VALUE_TEST_VALUE] and
         schema.get("allows_empty")):
         value = []
+
+    # special case handling for dict params - check if
+    # allows_empty == True, in that case set default value to {}
+    if (setting_type == "dict" and
+        value in [None, constants.TANK_SCHEMA_NO_DEFAULT_VALUE_TEST_VALUE] and
+        schema.get("allows_empty")):
+        value = {}
 
     if setting_type == "hook":
         value = _resolve_default_hook_value(value, engine_name)
