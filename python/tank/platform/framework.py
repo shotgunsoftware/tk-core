@@ -15,6 +15,7 @@ Defines the base class for all Tank Frameworks.
 
 import os
 import sys
+import threading
 
 from .. import loader
 from . import constants 
@@ -23,14 +24,6 @@ from ..errors import TankError
 from .bundle import TankBundle
 from . import validation
 from ..util import log_user_activity_metric
-
-# global variable that holds a stack of references to
-# a current bundle object - this variable is populated
-# whenever the bundle.import_module method is executed
-# and is a way for import_framework() to be able to resolve
-# the current bundle even when being recursively called 
-# inside an import_module call
-CURRENT_BUNDLE_DOING_IMPORT = []
 
 
 class Framework(TankBundle):

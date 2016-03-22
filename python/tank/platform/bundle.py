@@ -21,6 +21,7 @@ import uuid
 from .. import hook
 from ..errors import TankError, TankContextChangeNotSupportedError
 from . import constants
+from .import_stack import ImportStack
 
 class TankBundle(object):
     """
@@ -318,10 +319,9 @@ class TankBundle(object):
         For more information, see the API documentation.
         """
         # local import to avoid cycles
-        from . import framework
-        
+
         # first, set the module we are currently processing
-        framework.CURRENT_BUNDLE_DOING_IMPORT.append(self)
+        ImportStack.push_current_bundle(self)
         
         try:
         
@@ -348,7 +348,7 @@ class TankBundle(object):
         
         finally:
             # no longer processing this one
-            framework.CURRENT_BUNDLE_DOING_IMPORT.pop()
+            ImportStack.pop_current_bundle()
         
         return sys.modules[mod_name]
 
