@@ -57,13 +57,12 @@ class ImportStack(object):
         cls._get_thread_import_stack().pop()
 
     @classmethod
-    def _get_thread_import_stack():
+    def _get_thread_import_stack(cls):
         """
         Gets the import stack for the current thread.
 
         :returns: A list of TankBundles.
         """
-        global __threadlocal_storage
-        if not hasattr(__threadlocal_storage, "import_stack"):
-            __threadlocal_storage.import_stack = []
-        return __threadlocal_storage.import_stack
+        if not hasattr(cls.__threadlocal_storage, "import_stack"):
+            cls.__threadlocal_storage.import_stack = []
+        return cls.__threadlocal_storage.import_stack
