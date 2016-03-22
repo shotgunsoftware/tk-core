@@ -607,10 +607,10 @@ class TankBundle(object):
                     "engine. Unable to resolve hook path for: '%s'" %
                     (self, settings_name, hook_expression)
                 )
-            else:
-                hooks_folder = os.path.join(engine.disk_location, "hooks")
-                path = hook_expression.replace("{engine}", hooks_folder)
-                path = path.replace("/", os.path.sep)
+
+            hooks_folder = os.path.join(engine.disk_location, "hooks")
+            path = hook_expression.replace("{engine}", hooks_folder)
+            path = path.replace("/", os.path.sep)
         
         elif hook_expression.startswith("{$") and "}" in hook_expression:
             # environment variable: {$HOOK_PATH}/path/to/foo.py
