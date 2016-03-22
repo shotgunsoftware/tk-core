@@ -530,7 +530,7 @@ class TankBundle(object):
         
         path = None
 
-        # make sure to replace the engine token if it exists.
+        # make sure to replace the `{engine_name}` token if it exists.
         if constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN in hook_expression:
             engine_name = self._get_engine_name()
             if not engine_name:
@@ -543,7 +543,7 @@ class TankBundle(object):
                     engine_name,
                 )
         
-        # first the default case
+        # first the legacy, old-style hooks case
         if hook_expression == constants.TANK_BUNDLE_DEFAULT_HOOK_SETTING:
             # hook settings points to the default one.
             # find the name of the hook from the manifest
@@ -582,7 +582,7 @@ class TankBundle(object):
                                 "hook setup (e.g '%s') but no hook '%s' has been provided with the app. "
                                 "In order for this app to work with engine %s, you need to provide a "
                                 "custom hook implementation. Please contact support for more "
-                                "information" % (self, settings_name, default_hook_name, path, engine_name))                
+                                "information" % (self, settings_name, resolved_hook_name, path, engine_name))
             
         elif hook_expression.startswith("{self}"):
             # bundle local reference
@@ -834,6 +834,11 @@ class TankBundle(object):
         :return: The engine name or None
         """
 
+        # note - this technically violates the generic nature of the bundle
+        # base class implementation because the engine member is not defined
+        # in the bundle base class (only in App and Framework, not Engine) - an
+        # engine trying to define a hook using the {engine_name} construct will
+        # therefore get an error.
         try:
             engine_name = self.engine.name
         except:
@@ -841,7 +846,8 @@ class TankBundle(object):
 
         return engine_name
 
-def resolve_default_value(schema, default=None, engine_name=None):
+def resolve_default_value(schema, default=None, engine_name=None,
+    raise_if_missing=False):
     """
     Extract a default value from the supplied schema.
 
@@ -851,8 +857,12 @@ def resolve_default_value(schema, default=None, engine_name=None):
     :param schema: The schema for the setting default to resolve
     :param default: Optional fallback default value.
     :param engine_name: Optional name of the current engine if there is one.
-    :return:
+    :param raise_if_missing: If True, raise TankError if no default value is
+        found.
+    :return: The resolved default value
     """
+
+    default_missing = False
 
     # Engine-specific default value keys are allowed (ex:
     # "default_value_tk-maya"). If an engine name was supplied,
@@ -873,6 +883,7 @@ def resolve_default_value(schema, default=None, engine_name=None):
         value = schema[constants.TANK_SCHEMA_DEFAULT_VALUE_KEY]
     else:
         # No default value found, fall back on the supplied default.
+        default_missing = True
         value = default
 
     # ---- type specific checks
@@ -881,20 +892,22 @@ def resolve_default_value(schema, default=None, engine_name=None):
 
     # special case handling for list params - check if
     # allows_empty == True, in that case set default value to []
-    if (setting_type == "list" and
-        value in [None, constants.TANK_SCHEMA_NO_DEFAULT_VALUE_TEST_VALUE] and
-        schema.get("allows_empty")):
+    if (setting_type == "list" and value is None and schema.get("allows_empty")):
         value = []
 
     # special case handling for dict params - check if
     # allows_empty == True, in that case set default value to {}
-    if (setting_type == "dict" and
-        value in [None, constants.TANK_SCHEMA_NO_DEFAULT_VALUE_TEST_VALUE] and
-        schema.get("allows_empty")):
+    if (setting_type == "dict" and value is None and schema.get("allows_empty")):
         value = {}
 
     if setting_type == "hook":
         value = _resolve_default_hook_value(value, engine_name)
+
+    if value is None and default_missing and raise_if_missing:
+        # calling code requested an exception if no default value exists.
+        # the value may have been overridden by one of the special cases above,
+        # so only raise if the value is None.
+        raise TankError("No default value found.")
 
     return value
 

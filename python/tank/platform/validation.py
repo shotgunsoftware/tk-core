@@ -402,10 +402,10 @@ class _SettingsValidator:
             else:
                 # Use the fallback default with an unlikely to be used value to
                 # detect cases where there is no default value in the schema.
-                no_default_value = constants.TANK_SCHEMA_NO_DEFAULT_VALUE_TEST_VALUE
-                settings_value = resolve_default_value(value_schema,
-                    no_default_value)
-                if settings_value == no_default_value:
+                try:
+                    settings_value = resolve_default_value(value_schema,
+                        raise_if_missing=True)
+                except TankError:
                     # could not identify a default value. that may be because
                     # the default is engine-specific and there is no regular
                     # "default_value". See if there are any engine-specific
@@ -418,8 +418,9 @@ class _SettingsValidator:
                         continue
                     else:
                         raise TankError(
-                            "Could not determine value for key '%s' in settings! "
-                            "No specified value and no default value." % settings_key
+                            "Could not determine value for key '%s' in "
+                            "settings! No specified value and no default value."
+                            % (settings_key,)
                         )
 
             self.__validate_settings_value(settings_key, value_schema, settings_value)

@@ -125,7 +125,19 @@ class ValidateConfigAction(Action):
 g_templates = set()
 g_hooks = set()
 
-def _validate_bundle(log, tk, name, settings, descriptor, engine_name=None, app_name=None):
+def _validate_bundle(log, tk, name, settings, descriptor, engine_name=None):
+    """Validate the supplied bundle including the descriptor and all settings.
+
+    :param log: A logger instance for logging validation output.
+    :param tk: A toolkit api instance.
+    :param name: The bundle's name.
+    :param settings: The bundle's settings dict.
+    :param descriptor: A descriptor object for the bundle.
+    :param engine_name: The name of the containing engine or None.
+        This is used when the bundle is an app and needs to validate engine-
+        specific settings.
+
+    """
 
     log.info("")
     log.info("Validating %s..." % name)
@@ -152,7 +164,7 @@ def _validate_bundle(log, tk, name, settings, descriptor, engine_name=None, app_
 
     for s in manifest.keys():
 
-        default = bundle.resolve_default_value(manifest.get(s), engine_name=engine_name)
+        default = bundle.resolve_default_value(manifest[s], engine_name=engine_name)
 
         if s in settings:
             value = settings.get(s)
@@ -169,17 +181,13 @@ def _validate_bundle(log, tk, name, settings, descriptor, engine_name=None, app_
                 # no default value
                 # don't report this
                 pass
-                #log.info("  Parameter %s - OK [no default value specified in manifest]" % s)
 
             elif manifest[s].get("type") == "hook" and value == "default":
                 # don't display when default values are used.
                 pass
-                #log.info("  Parameter %s - OK [using hook 'default']" % s)
 
             elif default == value:
                 pass
-                # don't display when default values are used.
-                #log.info("  Parameter %s - OK [using default value]" % s)
 
             else:
                 log.info("  Parameter %s - OK [using non-default value]" % s)
@@ -194,6 +202,12 @@ def _validate_bundle(log, tk, name, settings, descriptor, engine_name=None, app_
 
                      
 def _process_environment(log, tk, env):
+    """Process an environment by validating each of its bundles.
+
+    :param log: A logger instance for logging validation output.
+    :param tk: A toolkit api instance.
+    :param env: An environment instance.
+    """
     
     log.info("Processing environment %s" % env)
 
@@ -206,9 +220,8 @@ def _process_environment(log, tk, env):
             s = env.get_app_settings(e, a)
             descriptor = env.get_app_descriptor(e, a)
             name = "%s / %s / %s" % (env.name, e, a)
-            _validate_bundle(log, tk, name, s, descriptor, engine_name=e,
-                app_name=a)
-    
+            _validate_bundle(log, tk, name, s, descriptor, engine_name=e)
+
     
     
      
