@@ -556,7 +556,6 @@ class TankBundle(object):
             # hook_publish_file:
             #    type: hook
             #    description: Called when a file is published, e.g. copied from a work area to a publish area.
-            #    parameters: [source_path, target_path]
             #    default_value: maya_publish_file
             #
             resolved_hook_name = resolve_default_value(
