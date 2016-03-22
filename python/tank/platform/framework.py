@@ -15,6 +15,7 @@ Defines the base class for all Tank Frameworks.
 
 import os
 import sys
+import threading
 
 from .. import loader
 from . import constants 
@@ -25,12 +26,52 @@ from . import validation
 from ..util import log_user_activity_metric
 
 # global variable that holds a stack of references to
-# a current bundle object - this variable is populated
+# a current bundle object, per thread - this variable is populated
 # whenever the bundle.import_module method is executed
 # and is a way for import_framework() to be able to resolve
 # the current bundle even when being recursively called 
-# inside an import_module call
-CURRENT_BUNDLE_DOING_IMPORT = []
+# inside an import_module call.
+__threadlocal_storage = threading.local()
+
+
+def _get_thread_import_stack():
+    """
+    Gets the import stack for the current thread.
+
+    :returns: A list of TankBundles.
+    """
+    global __threadlocal_storage
+    if not hasattr(__threadlocal_storage, "import_stack"):
+        __threadlocal_storage.import_stack = []
+    return __threadlocal_storage.import_stack
+
+
+def set_current_bundle_doing_import(bundle):
+    """
+    Sets which bundle we are currently importing from.
+
+    :param bundle: Bundle we are importing from.
+    """
+    _get_thread_import_stack().append(bundle)
+
+
+def reset_current_bundle_doing_import():
+    """
+    Resets the current bundle to the previous value.
+    """
+    _get_thread_import_stack().pop()
+
+
+def get_current_bundle_doing_import():
+    """
+    Retrieves the bundle doing an import in the current thread.
+
+    :returns: A TankBundle derived object.
+    """
+    import_stack = _get_thread_import_stack()
+    if len(import_stack) > 0:
+        return import_stack[-1]
+    return None
 
 
 class Framework(TankBundle):

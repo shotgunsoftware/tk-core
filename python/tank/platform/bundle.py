@@ -321,7 +321,7 @@ class TankBundle(object):
         from . import framework
         
         # first, set the module we are currently processing
-        framework.CURRENT_BUNDLE_DOING_IMPORT.append(self)
+        framework.set_current_bundle_doing_import(self)
         
         try:
         
@@ -348,7 +348,7 @@ class TankBundle(object):
         
         finally:
             # no longer processing this one
-            framework.CURRENT_BUNDLE_DOING_IMPORT.pop()
+            framework.reset_current_bundle_doing_import()
         
         return sys.modules[mod_name]
 

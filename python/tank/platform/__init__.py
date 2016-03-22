@@ -25,26 +25,22 @@ from ..errors import TankError, TankContextChangeNotSupportedError
 def _get_current_bundle():
 
     import sys
-    from .framework import CURRENT_BUNDLE_DOING_IMPORT
-    
-    if len(CURRENT_BUNDLE_DOING_IMPORT) > 0:
-        # this special variable is set by bundle.import_module() and 
-        # and is a way to defuse the chicken/egg situtation which happens
-        # when trying to do an import_framework inside a module that is being
-        # loaded by import_module. The crux is that the module._tank_bundle reference
-        # that import_module() sets is constructed at the end of the call,
-        # meaning that the frameworks import cannot find this during the import
-        # this variable is the fallback in this case and it contains a reference 
-        # to the current bundle.
-        
-        # this variable is a stack, so grab the last element
-        current_bundle = CURRENT_BUNDLE_DOING_IMPORT[-1]
-        
-    else:
+    from .framework import get_current_bundle_doing_import
+
+    # this special variable is set by bundle.import_module() and 
+    # and is a way to defuse the chicken/egg situtation which happens
+    # when trying to do an import_framework inside a module that is being
+    # loaded by import_module. The crux is that the module._tank_bundle reference
+    # that import_module() sets is constructed at the end of the call,
+    # meaning that the frameworks import cannot find this during the import
+    # this variable is the fallback in this case and it contains a reference 
+    # to the current bundle.
+    current_bundle = get_current_bundle_doing_import()
+    if not current_bundle:
         # try to figure out the associated bundle using module trickery, 
         # looking for the module which called this command and looking for 
         # a ._tank_module property on the module object.
-    
+
         try:
             # get the caller's stack frame
             caller = sys._getframe(2)
