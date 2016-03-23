@@ -64,3 +64,12 @@ class TankErrorProjectIsSetup(TankError):
         """
         super(TankErrorProjectIsSetup, self).__init__("You are trying to set up a project which has already been set up. "
                                                       "If you want to do this, make sure to set the force parameter.")
+
+class TankNoDefaultValueError(TankError):
+    """
+    Exception that can be raised when a default value is required but none is found.
+
+    Typically raised by `tank.platform.bundle.resolve_default_value()` when the
+    `raise_if_missing` flag is set to True.
+    """
+    pass

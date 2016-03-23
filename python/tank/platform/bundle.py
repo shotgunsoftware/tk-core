@@ -19,7 +19,7 @@ import sys
 import imp
 import uuid
 from .. import hook
-from ..errors import TankError, TankContextChangeNotSupportedError
+from ..errors import TankError, TankContextChangeNotSupportedError, TankNoDefaultValueError
 from . import constants
 
 class TankBundle(object):
@@ -856,8 +856,8 @@ def resolve_default_value(schema, default=None, engine_name=None,
     :param schema: The schema for the setting default to resolve
     :param default: Optional fallback default value.
     :param engine_name: Optional name of the current engine if there is one.
-    :param raise_if_missing: If True, raise TankError if no default value is
-        found.
+    :param raise_if_missing: If True, raise TankNoDefaultValueError if no
+        default value is found.
     :return: The resolved default value
     """
 
@@ -906,7 +906,7 @@ def resolve_default_value(schema, default=None, engine_name=None,
         # calling code requested an exception if no default value exists.
         # the value may have been overridden by one of the special cases above,
         # so only raise if the value is None.
-        raise TankError("No default value found.")
+        raise TankNoDefaultValueError("No default value found.")
 
     return value
 

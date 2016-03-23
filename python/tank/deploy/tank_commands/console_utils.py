@@ -18,7 +18,7 @@ import os
 from ... import pipelineconfig_utils
 from ...platform import validation
 from ...platform import constants
-from ...errors import TankError
+from ...errors import TankError, TankNoDefaultValueError
 from ...util import shotgun
 from .. import util
 from ...platform.bundle import resolve_default_value
@@ -409,7 +409,7 @@ def _generate_settings_diff_recursive(parent_engine_name, old_schema, new_schema
             try:
                 default_value = resolve_default_value(new_param_definition_dict,
                     parent_engine_name, raise_if_missing=True)
-            except TankError:
+            except TankNoDefaultValueError:
                 # No default value exists. We won't add it to the dict.
                 # It will be prompted for later.
                 pass

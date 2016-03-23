@@ -17,7 +17,7 @@ import re
 import sys
 
 from . import constants
-from ..errors import TankError
+from ..errors import TankError, TankNoDefaultValueError
 from ..template import TemplateString
 from .bundle import resolve_default_value
 
@@ -405,7 +405,7 @@ class _SettingsValidator:
                 try:
                     settings_value = resolve_default_value(value_schema,
                         raise_if_missing=True)
-                except TankError:
+                except TankNoDefaultValueError:
                     # could not identify a default value. that may be because
                     # the default is engine-specific and there is no regular
                     # "default_value". See if there are any engine-specific
