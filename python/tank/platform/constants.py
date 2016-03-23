@@ -115,6 +115,11 @@ CONFIG_BACK_MAPPING_FILE = "tank_configs.yml"
 # default value for hooks
 TANK_BUNDLE_DEFAULT_HOOK_SETTING = "default"
 
+# the key name used to identify default values in a manifest file. used as both
+# the actual key as well as the prefix for engine-specific default value keys.
+# example: "default_value_tk-maya".
+TANK_SCHEMA_DEFAULT_VALUE_KEY = "default_value"
+
 # default method to execute on hooks
 DEFAULT_HOOK_METHOD = "execute"
 

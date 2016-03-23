@@ -490,7 +490,7 @@ def _process_item(log, suppress_prompts, tk, env, engine_name=None, app_name=Non
         log.info("")
         log.info("-" * 70)
         log.info("Engine %s (Environment %s)" % (engine_name, env.name))
-        
+
 
     status = _check_item_update_status(env, engine_name, app_name, framework_name)
     item_was_updated = False
@@ -554,7 +554,7 @@ def _check_item_update_status(environment_obj, engine_name=None, app_name=None, 
     - can_update:    Can we update?
     - update_status: String with details describing the status.  
     """
-    
+
     parent_engine_desc = None
     
     if framework_name:

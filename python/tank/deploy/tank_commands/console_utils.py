@@ -18,9 +18,10 @@ import os
 from ... import pipelineconfig_utils
 from ...platform import validation
 from ...platform import constants
-from ...errors import TankError
+from ...errors import TankError, TankNoDefaultValueError
 from ...util import shotgun
 from .. import util
+from ...platform.bundle import resolve_default_value
 
 
 ##########################################################################################
@@ -190,95 +191,17 @@ def _get_configuration_recursive(log, tank_api_instance, new_ver_descriptor, par
                 log.info(x)
             log.info("\%s" % ("-" * 70))
 
-            
-            found_default_value = False
-            
-            # check if we can auto populate a default
             if "value" in param_data:
-                if param_data["type"] == "hook":
-                    # hooks have special logic when their default values are resolved
-
-                    default_value = param_data["value"]
-
-                    # for hooks there are new style values and old
-                    # style values. old style values are characterized
-                    # by not having a {xxx} structure, except for when they
-                    # are using the special {engine_name} token
-                    if "{" in default_value.replace(constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN, ""):
-                        # this is a new style hook, for example
-                        # - {$HOOK_PATH}/path/to/foo.py
-                        # - {self}/path/to/foo.py
-                        # - {config}/path/to/foo.py
-                        # - {tk-framework-perforce_v1.x.x}/path/to/foo.py
-                        #
-                        # for new style hooks, copy the value across into the
-                        # environment. Resolve the {engine_name} token if it
-                        # exists.
-                        if constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN in default_value:
-                            # we have something on the form {self}/path/to/{engine_name}_foo.py
-                            # replace {engine_name} in the default value with the current engine name
-                            # also check that this file actually exist as part of the app.
-                            # if it doesn't, don't populate the value with a default because it 
-                            # will generate a hook-not-found runtime error
-                            if parent_engine_name is None:
-                                # should not happen
-                                raise TankError("Cannot resolve dynamic engine token for "
-                                                "setting %s in %s!" % (param_name, new_ver_descriptor))
-                            
-                            # Before we can check that the hook file exists, ensure that the code exists...
-                            if not new_ver_descriptor.exists_local():
-                                log.info("Hang on, downloading %s..." % new_ver_descriptor)
-                                new_ver_descriptor.download_local()
-                            
-                            # bake out the current engine token
-                            resolved_default_value = default_value.replace(constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN, 
-                                                                           parent_engine_name)
-                            
-                            # ensure that it exists as part of the app
-                            hooks_folder = os.path.join(new_ver_descriptor.get_path(), "hooks")
-                            full_path = resolved_default_value.replace("{self}", hooks_folder)
-                            
-                            if not os.path.exists(full_path):
-                                log.warning("Sorry, no built-in support for the %s engine yet! " 
-                                            "The default hook value '%s' for this hook refers to an engine specific hook, "
-                                            "however there is currently "
-                                            "no hook implementation available for the current engine. "
-                                            "If you want to continue with the install, you have to supply your "
-                                            "own hooks." % (parent_engine_name, default_value))
-                            
-                            else:
-                                # hook exists on disk!
-                                found_default_value = True
-                        
-                        else:
-                            # new style hook setting without {engine_name}
-                            resolved_default_value = default_value
-                            found_default_value = True
-
-                    else:
-                        # this is an old style hook, where we want to
-                        # populate the environment config with a
-                        # 'magic' default value.
-                        resolved_default_value = constants.TANK_BUNDLE_DEFAULT_HOOK_SETTING
-                        found_default_value = True
-                else:
-                    # non-hook value
-                    # just copy the default value into the environment
-                    resolved_default_value = param_data["value"]
-                    found_default_value = True
-
-            # now check if we managed to get a default
-            if found_default_value: 
-                # default value available!
-                param_values[param_name] = resolved_default_value
-                # note that value can be a tuple so need to cast to str
-                log.info("Auto-populated with default value '%s'" % str(resolved_default_value))
-            
-            elif suppress_prompts:
-                log.warning("Value set to None! Please update the environment by hand later!")
-                params[name] = None
-
+                # default value in param data, just log the info for the user
+                default_value = param_data["value"]
+                log.info("Using default value '%s'" % (str(default_value),))
             else:
+                # no default value in the param_data, prompt the user
+                if suppress_prompts:
+                    log.warning("No default value! Please update the environment by hand later!")
+                    param_values[param_name] = None
+                    continue
+
                 # get value from user
                 # loop around until happy
                 input_valid = False
@@ -482,38 +405,16 @@ def _generate_settings_diff_recursive(parent_engine_name, old_schema, new_schema
             # found a new param:
             new_params[param_name] = {"description": param_desc, "type": param_type}
 
-            # get any default value that was configured
-            # the standard key to look for is "default_value"
-            # however, for apps there can also be an engine
-            # specific default values. These are on the form
-            # default_value_ENGINENAME and take precendence.
-            #
-            # An example of a default value in an app manifest
-            # where there are two specific defaults for maya and
-            # nuke and a general fallback may look like this:
-            #
-            # param_name:
-            #    type: str
-            #    default_value_tk-maya: "Used in maya"
-            #    default_value_tk-nuke: "Used in nuke"
-            #    default_value: "Used in all other engines"
-            #    description: "Example of engine specific defaults"
-            #
-
-            # first try engine specific
-            if parent_engine_name and "default_value_%s" % parent_engine_name in new_param_definition_dict:
-                new_params[param_name]["value"] = new_param_definition_dict["default_value_%s" % parent_engine_name]
-
-            elif "default_value" in new_param_definition_dict:
-                # fall back on generic default
-                new_params[param_name]["value"] = new_param_definition_dict["default_value"]
-
-            # special case handling for list params - check if
-            # allows_empty == True, in that case set default value to []
-            if (param_type == "list"
-                and new_params[param_name].get("value") == None
-                and new_param_definition_dict.get("allows_empty") == True):
-                new_params[param_name]["value"] = []
+            # attempt to resolve a default value from the new parameter def.
+            try:
+                default_value = resolve_default_value(new_param_definition_dict,
+                    parent_engine_name, raise_if_missing=True)
+            except TankNoDefaultValueError:
+                # No default value exists. We won't add it to the dict.
+                # It will be prompted for later.
+                pass
+            else:
+                new_params[param_name]["value"] = default_value
 
         else:
             if old_param_definition_dict.get("type", "Unknown") != param_type:
