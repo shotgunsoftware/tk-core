@@ -439,6 +439,7 @@ class TankBundle(object):
         - hook_expression: {$HOOK_PATH}/path/to/foo.py  -- expression based around an environment variable.
         - hook_expression: {self}/path/to/foo.py -- looks in the hooks folder in the local app, engine of framework.
         - hook_expression: {config}/path/to/foo.py -- Looks in the hooks folder in the project config.
+        - hook_expression: {engine}/path/to/foo.py -- looks in the hooks folder of the current engine.
         - hook_expression: {tk-framework-perforce_v1.x.x}/path/to/foo.py -- looks in the hooks folder of a
           framework instance that exists in the current environment. Basically, each entry inside the 
           frameworks section in the current environment can be specified here - all these entries are 
@@ -594,6 +595,21 @@ class TankBundle(object):
             hooks_folder = self.tank.pipeline_configuration.get_hooks_location()
             path = hook_expression.replace("{config}", hooks_folder)
             path = path.replace("/", os.path.sep)
+
+        elif hook_expression.startswith("{engine}"):
+            # look for the hook in the currently running engine
+            try:
+                engine = self.engine
+            except AttributeError:
+                raise TankError(
+                    "%s config setting %s: Could not determine the current "
+                    "engine. Unable to resolve hook path for: '%s'" %
+                    (self, settings_name, hook_expression)
+                )
+
+            hooks_folder = os.path.join(engine.disk_location, "hooks")
+            path = hook_expression.replace("{engine}", hooks_folder)
+            path = path.replace("/", os.path.sep)
         
         elif hook_expression.startswith("{$") and "}" in hook_expression:
             # environment variable: {$HOOK_PATH}/path/to/foo.py
@@ -661,6 +677,7 @@ class TankBundle(object):
         - hook_setting: {$HOOK_PATH}/path/to/foo.py  -- environment variable.
         - hook_setting: {self}/path/to/foo.py   -- looks in the hooks folder in the local bundle
         - hook_setting: {config}/path/to/foo.py -- looks in the hooks folder in the config
+        - hook_setting: {engine}/path/to/foo.py -- looks in the hooks folder of the current engine.
         - hook_setting: {tk-framework-perforce_v1.x.x}/path/to/foo.py -- looks in the hooks folder of a
           framework instance that exists in the current environment. Basically, each entry inside the 
           frameworks section in the current environment can be specified here - all these entries are 
@@ -938,7 +955,7 @@ def _resolve_default_hook_value(value, engine_name=None):
         #  compatibility, return the value in the new style.
         value = "{self}/%s.py" % (value,)
 
-    # the remaining tokens ({self}, {config}, {tk-framework-...}) will be
-    # resolved at runtime just before the hook is executed.
+    # the remaining tokens ({self}, {config}, {engine}, {tk-framework-...})
+    # will be resolved at runtime just before the hook is executed.
     return value
 
