@@ -18,6 +18,7 @@ import cPickle as pickle
 from ..zipfilehelper import unzip_file
 from ..descriptor import Descriptor
 from ..errors import ShotgunAppStoreError
+from ..errors import ShotgunDeployError
 from ...shotgun_base import (
     ensure_folder_exists,
     safe_delete_file,
