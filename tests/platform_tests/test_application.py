@@ -137,6 +137,11 @@ class TestExecuteHookByName(TestApplication):
         self.assertEqual(app.execute_hook_expression("{config}/named_hook.py", "execute", dummy_param=True), 
                          "named_hook_1")
 
+    def test_engine(self):
+        app = self.engine.apps["test_app"]
+        self.assertEqual(app.execute_hook_expression("{engine}/named_hook.py", "execute", dummy_param=True),
+                         "named_hook_1")
+
     def test_self(self):
         app = self.engine.apps["test_app"]
         self.assertTrue(app.execute_hook_expression("{self}/test_hook.py", "execute", dummy_param=True), 
@@ -162,6 +167,10 @@ class TestExecuteHook(TestApplication):
         app = self.engine.apps["test_app"]
         self.assertTrue(app.execute_hook("test_hook_config", dummy_param=True))
 
+    def test_engine_format(self):
+        app = self.engine.apps["test_app"]
+        self.assertTrue(app.execute_hook("test_hook_engine", dummy_param=True))
+
     def test_default_format(self):
         app = self.engine.apps["test_app"]
         self.assertTrue(app.execute_hook("test_hook_default", dummy_param=True))
@@ -181,7 +190,11 @@ class TestExecuteHook(TestApplication):
     def test_inheritance_2(self):
         app = self.engine.apps["test_app"]
         self.assertEqual(app.execute_hook_method("test_hook_inheritance_2", "foo2", bar=True), "custom class base class")
-        
+
+    def test_inheritance_3(self):
+        app = self.engine.apps["test_app"]
+        self.assertEqual(app.execute_hook_method("test_hook_inheritance_3", "foo2", bar=True), "custom class base class")
+
     def test_inheritance_old_style(self):
         """
         Test that a hook that contains multiple levels of derivation works as long as there is only one leaf
