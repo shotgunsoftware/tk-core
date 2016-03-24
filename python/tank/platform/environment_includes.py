@@ -59,9 +59,13 @@ def _resolve_includes(file_name, data, context):
         includes.extend( data[constants.MULTI_INCLUDE_SECTION] )
 
     for include in includes:
+
+        # Check if this include file is optional or not (starts with a ?). If it is optional, 
+        # then we won't raise an exception if it doesn't exist.
         is_optional = False
         if include.startswith("?"):
             is_optional = True
+            # strip out the ? character to get the true path
             include = include[1:]
 
         if "{" in include:
