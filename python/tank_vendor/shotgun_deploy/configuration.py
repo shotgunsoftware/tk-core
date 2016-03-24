@@ -792,8 +792,8 @@ class AutomaticConfiguration(Configuration):
             # and lastly install core
             self._install_core()
 
-        except Exception, e:
-            log.error("Failed to update configuration. Attempting Rollback. Error: %s" % e)
+        except Exception:
+            log.exception("Failed to update configuration. Attempting Rollback.")
             # step 1 - clear core and config locations
             log.debug("Cleaning out faulty config location...")
             self._move_to_backup()
