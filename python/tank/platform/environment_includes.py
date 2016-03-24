@@ -59,7 +59,11 @@ def _resolve_includes(file_name, data, context):
         includes.extend( data[constants.MULTI_INCLUDE_SECTION] )
 
     for include in includes:
-        
+        is_optional = False
+        if include.startswith("?"):
+            is_optional = True
+            include = include[1:]
+
         if "{" in include:
             # it's a template path
             if context is None:
@@ -110,6 +114,8 @@ def _resolve_includes(file_name, data, context):
             full_path = os.path.join(os.path.dirname(file_name), adjusted)
             # make sure that the paths all exist
             if not os.path.exists(full_path):
+                if is_optional:
+                    continue
                 raise TankError("Include Resolve error in %s: Included path %s ('%s') "
                                 "does not exist!" % (file_name, full_path, include))
     
@@ -121,6 +127,8 @@ def _resolve_includes(file_name, data, context):
             full_path = os.path.expandvars(include)
             # make sure that the paths all exist
             if not os.path.exists(full_path):
+                if is_optional:
+                    continue
                 raise TankError("Include Resolve error in %s: Included path %s "
                                 "does not exist!" % (file_name, full_path))
             
@@ -132,6 +140,8 @@ def _resolve_includes(file_name, data, context):
             full_path = os.path.expandvars(include)                    
             # make sure that the paths all exist
             if not os.path.exists(full_path):
+                if is_optional:
+                    continue
                 raise TankError("Include Resolve error in %s: Included path %s "
                                 "does not exist!" % (file_name, full_path))
 
