@@ -13,11 +13,14 @@ Environment Settings Object and access.
 
 """
 
+import errno
 import os
+import shutil
 import sys
 import copy
 
 from tank_vendor import yaml
+from .bundle import resolve_default_value
 from . import constants
 from . import environment_includes
 from ..errors import TankError, TankUnreadableFileError
@@ -109,6 +112,9 @@ class Environment(object):
         handles the checks to see if an item is disabled
         """
         descriptor_dict = settings.get(constants.ENVIRONMENT_LOCATION_KEY)
+        if not descriptor_dict:
+            import pdb
+            pdb.set_trace()
         # Check for disabled and deny_platforms
         is_disabled = descriptor_dict.get("disabled", False)
         if is_disabled:
@@ -461,6 +467,205 @@ class Environment(object):
         return (bundle_tokens, bundle_yml_file)
 
 
+    def _make_settings_sparse(self, schema, settings, engine_name=None):
+        """
+
+        :param schema:
+        :param settings:
+        :param engine_name:
+        :return:
+        """
+
+        modified = False
+
+        for setting_name in schema.keys():
+
+            setting_schema = schema[setting_name]
+
+            if setting_name in settings:
+                setting_value = settings[setting_name]
+                schema_default = resolve_default_value(
+                    setting_schema, engine_name=engine_name)
+
+                # the setting value matches the schema default.
+                # remove the setting.
+                if setting_value == schema_default:
+                    print "DELETING: " + setting_name
+                    modified = True
+                    del settings[setting_name]
+
+                # special cases
+                setting_type = setting_schema["type"]
+
+                # remove any legacy "default" hook references
+                if setting_type == "hook" and setting_value == "default":
+                    print "DELETING: " + setting_name
+                    modified = True
+                    del settings[setting_name]
+
+        return modified
+
+    def _make_settings_full(self, schema, settings, engine_name=None):
+        """
+
+        :param schema:
+        :param settings:
+        :param engine_name:
+        :return:
+        """
+
+        modified = False
+
+        for setting_name in schema.keys():
+
+            setting_schema = schema[setting_name]
+
+            if setting_name not in settings:
+                schema_default = resolve_default_value(
+                    setting_schema, engine_name=engine_name)
+
+                # No value specified in the settings. Just set the default.
+                print "ADDING: " + setting_name
+                modified = True
+                settings[setting_name] = schema_default
+
+        return modified
+
+    def dump_sparse(self, output_path):
+        """
+
+        :param output_path:
+        :return:
+        """
+        self.__dump(output_path, "sparse")
+
+    def dump_full(self, output_path):
+        """
+
+        :param output_path:
+        :return:
+        """
+
+        self.__dump(output_path, "full")
+
+    def __dump(self, output_path, dump_type):
+        """
+
+        :param output_path:
+        :return:
+        """
+
+        (filename, ext) = os.path.splitext(self._env_path)
+        tmp_output_path = os.path.join(
+            os.path.dirname(self._env_path),
+            "%s_%s%s" % (filename, dump_type, ext)
+        )
+
+        output_path = tmp_output_path
+
+        output_dir = os.path.dirname(output_path)
+
+        # XXX ensure folder exists
+
+        # create the output path directory if it doesn't exist
+        if not os.path.exists(output_dir):
+            old_umask = os.umask(0)
+            try:
+                os.makedirs(output_dir, 0775)
+            except OSError, e:
+                if e.errno != errno.EEXIST:
+                    raise
+            finally:
+                os.umask(old_umask)
+
+        # XXX copy file
+
+        # start by making a copy of the source env to the output path to
+        # preserve comments if possible.
+        old_umask = os.umask(0)
+        try:
+            shutil.copy(self._env_path, output_path)
+            os.chmod(output_path, 0666)
+        finally:
+            os.umask(old_umask)
+
+        output_env = WritableEnvironment(
+            output_path,
+            self.__pipeline_config,
+            self.__context
+        )
+
+        # we're either adding or remove settings depending on the dump type.
+        # either way we access the data the same, and the arguments are the same
+        # so just call a different method based on what needs to be done.
+        if dump_type == "sparse":
+            update_settings= self._make_settings_sparse
+        else:
+            update_settings = self._make_settings_full
+
+        # start by processing the engines
+        for engine_name in output_env.get_engines():
+
+            # only process settings in this file
+            (tokens, engine_file) = output_env.find_location_for_engine(engine_name)
+            if not engine_file == output_path:
+                continue
+
+            engine_settings = output_env.get_engine_settings(engine_name)
+            engine_descriptor = output_env.get_engine_descriptor(engine_name)
+            engine_schema = engine_descriptor.get_configuration_schema()
+
+            if update_settings(engine_schema, engine_settings, engine_name):
+
+                output_env.update_engine_settings(
+                    engine_name,
+                    engine_settings,
+                    engine_descriptor.get_dict(),
+                    replace=True
+                )
+
+            # processing all the installed apps
+            for app_name in output_env.get_apps(engine_name):
+
+                # only process settings in this file
+                (tokens, app_file) = output_env.find_location_for_app(engine_name, app_name)
+                if not app_file == output_path:
+                    continue
+
+                app_settings = output_env.get_app_settings(engine_name, app_name)
+                app_descriptor = output_env.get_app_descriptor(engine_name, app_name)
+                app_schema = app_descriptor.get_configuration_schema()
+
+                if update_settings(app_schema, app_settings, engine_name):
+
+                    output_env.update_app_settings(
+                        engine_name,
+                        app_name,
+                        app_settings,
+                        app_descriptor.get_dict(),
+                        replace=True
+                )
+
+        # processing all the frameworks
+        for fw_name in output_env.get_frameworks():
+
+            # only process settings in this file
+            (tokens, fw_file) = output_env.find_location_for_framework(fw_name)
+            if not fw_file == output_path:
+                continue
+
+            fw_settings = output_env.get_framework_settings(fw_name)
+            fw_descriptor = output_env.get_framework_descriptor(fw_name)
+            fw_schema = fw_descriptor.get_configuration_schema()
+            if update_settings(fw_schema, fw_settings):
+
+                output_env.update_framework_settings(
+                    fw_name,
+                    fw_settings,
+                    fw_descriptor.get_dict(),
+                    replace=True
+                )
+
 
 
 
@@ -583,6 +788,72 @@ class WritableEnvironment(Environment):
         finally:
             fh.close()
 
+    def get_framework_settings(self, framework_name):
+        """
+        Returns the settings for a framework
+        """
+
+        if framework_name not in self._env_data["frameworks"]:
+            raise TankError("Framework %s does not exist in environment %s" % (framework_name, self._env_path) )
+
+        (tokens, yml_file) = self.find_location_for_framework(framework_name)
+
+        # now update the yml file where the engine is defined
+        yml_data = self.__load_writable_yaml(yml_file)
+
+        # now the token may be either [my_fw_ref] or [frameworks, tk-framework-widget_v0.1.x]
+        # find the right chunk in the file
+        framework_data = yml_data
+        for x in tokens:
+            framework_data = framework_data.get(x)
+
+        return framework_data
+
+
+    def get_engine_settings(self, engine_name):
+        """
+        Returns the settings for an engine
+        """
+
+        if engine_name not in self._env_data["engines"]:
+            raise TankError("Engine %s does not exist in environment %s" % (engine_name, self._env_path) )
+
+        (tokens, yml_file) = self.find_location_for_engine(engine_name)
+
+        # now update the yml file where the engine is defined
+        yml_data = self.__load_writable_yaml(yml_file)
+
+        # now the token may be either [my-maya-ref] or [engines, tk-maya]
+        # find the right chunk in the file
+        engine_data = yml_data
+        for x in tokens:
+            engine_data = engine_data.get(x)
+
+        return engine_data
+
+    def get_app_settings(self, engine_name, app_name):
+        """
+        Returns the settings for an app
+        """
+
+        if engine_name not in self._env_data["engines"]:
+            raise TankError("Engine %s does not exist in environment %s" % (engine_name, self._env_path) )
+        if app_name not in self._env_data["engines"][engine_name]["apps"]:
+            raise TankError("App %s.%s does not exist in environment %s" % (engine_name, app_name, self._env_path) )
+
+        (tokens, yml_file) = self.find_location_for_app(engine_name, app_name)
+
+        # now update the yml file where the engine is defined
+        yml_data = self.__load_writable_yaml(yml_file)
+
+        # now the token may be either [my-maya-ref] or [engines, tk-maya]
+        # find the right chunk in the file
+        app_data = yml_data
+        for x in tokens:
+            app_data = app_data.get(x)
+
+        return app_data
+
     def set_yaml_preserve_mode(self, val):
         """
         If set to true, the ruamel parser will be used instead of the 
@@ -598,10 +869,11 @@ class WritableEnvironment(Environment):
         else:
             self._use_ruamel_yaml_parser = val
         
-    def update_engine_settings(self, engine_name, new_data, new_location):
+    def update_engine_settings(self, engine_name, new_data, new_location, replace=False):
         """
         Updates the engine configuration
         """
+
         if engine_name not in self._env_data["engines"]:
             raise TankError("Engine %s does not exist in environment %s" % (engine_name, self._env_path) )
 
@@ -619,17 +891,22 @@ class WritableEnvironment(Environment):
         if new_location:
             engine_data[constants.ENVIRONMENT_LOCATION_KEY] = new_location
 
-        self._update_settings_recursive(engine_data, new_data)
+        if replace:
+            self._replace_settings(engine_data, new_data)
+        else:
+            self._update_settings_recursive(engine_data, new_data)
+
         self.__write_data(yml_file, yml_data)
 
         # sync internal data with disk
         self._refresh()
 
 
-    def update_app_settings(self, engine_name, app_name, new_data, new_location):
+    def update_app_settings(self, engine_name, app_name, new_data, new_location, replace=False):
         """
         Updates the app configuration.
         """
+
         if engine_name not in self._env_data["engines"]:
             raise TankError("Engine %s does not exist in environment %s" % (engine_name, self._env_path) )
         if app_name not in self._env_data["engines"][engine_name]["apps"]:
@@ -648,16 +925,22 @@ class WritableEnvironment(Environment):
 
         # finally update the file
         app_data[constants.ENVIRONMENT_LOCATION_KEY] = new_location
-        self._update_settings_recursive(app_data, new_data)
+
+        if replace:
+            self._replace_settings(app_data, new_data)
+        else:
+            self._update_settings_recursive(app_data, new_data)
+
         self.__write_data(yml_file, yml_data)
 
         # sync internal data with disk
         self._refresh()
 
-    def update_framework_settings(self, framework_name, new_data, new_location):
+    def update_framework_settings(self, framework_name, new_data, new_location, replace=False):
         """
         Updates the framework configuration
         """
+
         if framework_name not in self._env_data["frameworks"]:
             raise TankError("Framework %s does not exist in environment %s" % (framework_name, self._env_path) )
 
@@ -675,12 +958,23 @@ class WritableEnvironment(Environment):
         if new_location:
             framework_data[constants.ENVIRONMENT_LOCATION_KEY] = new_location
 
-        self._update_settings_recursive(framework_data, new_data)
+        if replace:
+            self._replace_settings(framework_data, new_data)
+        else:
+            self._update_settings_recursive(framework_data, new_data)
+
         self.__write_data(yml_file, yml_data)
 
         # sync internal data with disk
         self._refresh()
 
+    def _replace_settings(self, settings, new_data):
+
+        for key in settings:
+            del settings[key]
+
+        for key in new_data:
+            settings[key] = new_data[key]
 
     def _update_settings_recursive(self, settings, new_data):
         """
