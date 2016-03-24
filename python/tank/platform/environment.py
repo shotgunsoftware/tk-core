@@ -467,7 +467,7 @@ class Environment(object):
         return (bundle_tokens, bundle_yml_file)
 
 
-    def _make_settings_sparse(self, schema, settings, engine_name=None):
+    def _make_settings_sparse(self, schema, settings, engine_name=None, manifest_file=None):
         """
 
         :param schema:
@@ -490,22 +490,25 @@ class Environment(object):
                 # the setting value matches the schema default.
                 # remove the setting.
                 if setting_value == schema_default:
-                    print "DELETING: " + setting_name
                     modified = True
                     del settings[setting_name]
+                else:
+                    # add a comment to identify default values in the dump
+                    if hasattr(settings, 'yaml_add_eol_comment'):
+                        settings.yaml_add_eol_comment("Differs from %s default value (%s) in manifest %s" % (engine_name or "", schema_default or '""', manifest_file or ""), setting_name, column=80)
+
 
                 # special cases
                 setting_type = setting_schema["type"]
 
                 # remove any legacy "default" hook references
                 if setting_type == "hook" and setting_value == "default":
-                    print "DELETING: " + setting_name
                     modified = True
                     del settings[setting_name]
 
         return modified
 
-    def _make_settings_full(self, schema, settings, engine_name=None):
+    def _make_settings_full(self, schema, settings, engine_name=None, manifest_file=None):
         """
 
         :param schema:
@@ -519,15 +522,18 @@ class Environment(object):
         for setting_name in schema.keys():
 
             setting_schema = schema[setting_name]
+            schema_default = resolve_default_value(
+                setting_schema, engine_name=engine_name)
 
             if setting_name not in settings:
-                schema_default = resolve_default_value(
-                    setting_schema, engine_name=engine_name)
-
                 # No value specified in the settings. Just set the default.
-                print "ADDING: " + setting_name
                 modified = True
                 settings[setting_name] = schema_default
+
+            if schema_default == settings[setting_name]:
+                # add a comment to identify default values in the dump
+                if hasattr(settings, 'yaml_add_eol_comment'):
+                    settings.yaml_add_eol_comment("Matches %s default value in manifest %s" % (engine_name or "", manifest_file or ""), setting_name, column=80)
 
         return modified
 
@@ -603,6 +609,9 @@ class Environment(object):
         else:
             update_settings = self._make_settings_full
 
+        # load the output path's yaml
+        yml_data = output_env._WritableEnvironment__load_writable_yaml(output_path)
+
         # start by processing the engines
         for engine_name in output_env.get_engines():
 
@@ -611,18 +620,14 @@ class Environment(object):
             if not engine_file == output_path:
                 continue
 
-            engine_settings = output_env.get_engine_settings(engine_name)
+            engine_settings = yml_data
+            for token in tokens:
+                engine_settings = engine_settings.get(token)
+
             engine_descriptor = output_env.get_engine_descriptor(engine_name)
             engine_schema = engine_descriptor.get_configuration_schema()
-
-            if update_settings(engine_schema, engine_settings, engine_name):
-
-                output_env.update_engine_settings(
-                    engine_name,
-                    engine_settings,
-                    engine_descriptor.get_dict(),
-                    replace=True
-                )
+            engine_manifest_file = os.path.join(engine_descriptor.get_path(), constants.BUNDLE_METADATA_FILE)
+            update_settings(engine_schema, engine_settings, engine_name, engine_manifest_file)
 
             # processing all the installed apps
             for app_name in output_env.get_apps(engine_name):
@@ -632,19 +637,14 @@ class Environment(object):
                 if not app_file == output_path:
                     continue
 
-                app_settings = output_env.get_app_settings(engine_name, app_name)
+                app_settings = yml_data
+                for token in tokens:
+                    app_settings = app_settings.get(token)
+
                 app_descriptor = output_env.get_app_descriptor(engine_name, app_name)
                 app_schema = app_descriptor.get_configuration_schema()
-
-                if update_settings(app_schema, app_settings, engine_name):
-
-                    output_env.update_app_settings(
-                        engine_name,
-                        app_name,
-                        app_settings,
-                        app_descriptor.get_dict(),
-                        replace=True
-                )
+                app_manifest_file = os.path.join(app_descriptor.get_path(), constants.BUNDLE_METADATA_FILE)
+                update_settings(app_schema, app_settings, engine_name, app_manifest_file)
 
         # processing all the frameworks
         for fw_name in output_env.get_frameworks():
@@ -654,18 +654,16 @@ class Environment(object):
             if not fw_file == output_path:
                 continue
 
-            fw_settings = output_env.get_framework_settings(fw_name)
+            fw_settings = yml_data
+            for token in tokens:
+                fw_settings = fw_settings.get(token)
+
             fw_descriptor = output_env.get_framework_descriptor(fw_name)
             fw_schema = fw_descriptor.get_configuration_schema()
-            if update_settings(fw_schema, fw_settings):
+            fw_manifest_file = os.path.join(fw_descriptor.get_path(), constants.BUNDLE_METADATA_FILE)
+            update_settings(fw_schema, fw_settings, fw_manifest_file)
 
-                output_env.update_framework_settings(
-                    fw_name,
-                    fw_settings,
-                    fw_descriptor.get_dict(),
-                    replace=True
-                )
-
+        output_env._WritableEnvironment__write_data(output_path, yml_data)
 
 
 
@@ -787,72 +785,6 @@ class WritableEnvironment(Environment):
                             "Error reported: %s" % (path, e))
         finally:
             fh.close()
-
-    def get_framework_settings(self, framework_name):
-        """
-        Returns the settings for a framework
-        """
-
-        if framework_name not in self._env_data["frameworks"]:
-            raise TankError("Framework %s does not exist in environment %s" % (framework_name, self._env_path) )
-
-        (tokens, yml_file) = self.find_location_for_framework(framework_name)
-
-        # now update the yml file where the engine is defined
-        yml_data = self.__load_writable_yaml(yml_file)
-
-        # now the token may be either [my_fw_ref] or [frameworks, tk-framework-widget_v0.1.x]
-        # find the right chunk in the file
-        framework_data = yml_data
-        for x in tokens:
-            framework_data = framework_data.get(x)
-
-        return framework_data
-
-
-    def get_engine_settings(self, engine_name):
-        """
-        Returns the settings for an engine
-        """
-
-        if engine_name not in self._env_data["engines"]:
-            raise TankError("Engine %s does not exist in environment %s" % (engine_name, self._env_path) )
-
-        (tokens, yml_file) = self.find_location_for_engine(engine_name)
-
-        # now update the yml file where the engine is defined
-        yml_data = self.__load_writable_yaml(yml_file)
-
-        # now the token may be either [my-maya-ref] or [engines, tk-maya]
-        # find the right chunk in the file
-        engine_data = yml_data
-        for x in tokens:
-            engine_data = engine_data.get(x)
-
-        return engine_data
-
-    def get_app_settings(self, engine_name, app_name):
-        """
-        Returns the settings for an app
-        """
-
-        if engine_name not in self._env_data["engines"]:
-            raise TankError("Engine %s does not exist in environment %s" % (engine_name, self._env_path) )
-        if app_name not in self._env_data["engines"][engine_name]["apps"]:
-            raise TankError("App %s.%s does not exist in environment %s" % (engine_name, app_name, self._env_path) )
-
-        (tokens, yml_file) = self.find_location_for_app(engine_name, app_name)
-
-        # now update the yml file where the engine is defined
-        yml_data = self.__load_writable_yaml(yml_file)
-
-        # now the token may be either [my-maya-ref] or [engines, tk-maya]
-        # find the right chunk in the file
-        app_data = yml_data
-        for x in tokens:
-            app_data = app_data.get(x)
-
-        return app_data
 
     def set_yaml_preserve_mode(self, val):
         """
