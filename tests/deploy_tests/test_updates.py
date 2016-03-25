@@ -102,8 +102,6 @@ class MockStore(object):
         def required_frameworks(self, dependencies):
             self._dependencies = dependencies
 
-    APP, ENGINE, FRAMEWORK = AppDescriptor.APP, AppDescriptor.ENGINE, AppDescriptor.FRAMEWORK
-
     def __init__(self):
         """
         Constructor.
@@ -133,7 +131,7 @@ class MockStore(object):
 
         :returns: A MockStoreFramework object.
         """
-        return self._add_typed_bundle(self.FRAMEWORK, name, version)
+        return self._add_typed_bundle(AppDescriptor.FRAMEWORK, name, version)
 
     def add_engine(self, name, version):
         """
@@ -144,7 +142,7 @@ class MockStore(object):
 
         :returns: A MockStoreEngine object.
         """
-        return self._add_typed_bundle(self.ENGINE, name, version)
+        return self._add_typed_bundle(AppDescriptor.ENGINE, name, version)
 
     def add_application(self, name, version):
         """
@@ -155,7 +153,7 @@ class MockStore(object):
 
         :returns: A MockStoreApp object.
         """
-        return self._add_typed_bundle(self.APP, name, version)
+        return self._add_typed_bundle(AppDescriptor.APP, name, version)
 
     def add_bundle(self, bundle):
         """
@@ -189,10 +187,10 @@ class MockStore(object):
         return self._bundles[bundle_type][name].keys()
 
 
-# Cleaner than having to write three class types that would also have to be documented.
-MockStoreApp = functools.partial(MockStore._Entry, bundle_type=MockStore.APP)
-MockStoreFramework = functools.partial(MockStore._Entry, bundle_type=MockStore.FRAMEWORK)
-MockStoreEngine = functools.partial(MockStore._Entry, bundle_type=MockStore.ENGINE)
+# Simpler than having to write three class types that would also have to be documented.
+MockStoreApp = functools.partial(MockStore._Entry, bundle_type=AppDescriptor.APP)
+MockStoreFramework = functools.partial(MockStore._Entry, bundle_type=AppDescriptor.FRAMEWORK)
+MockStoreEngine = functools.partial(MockStore._Entry, bundle_type=AppDescriptor.ENGINE)
 
 
 class TankMockStoreDescriptor(AppDescriptor):
@@ -255,7 +253,7 @@ class TankMockStoreDescriptor(AppDescriptor):
     @classmethod
     def find_latest_item(cls, pc_path, bundle_install_path, bundle_type, name, constraint_pattern=None):
         """
-        Finds the latest version of an item.
+        See documentation from TankAppStoreDescriptor.
         """
         if constraint_pattern:
             return cls._find_latest_for_pattern(bundle_type, name, constraint_pattern)
@@ -280,6 +278,14 @@ class TankMockStoreDescriptor(AppDescriptor):
 
     @classmethod
     def _find_latest(cls, bundle_type, name):
+        """
+        Finds the latest version of a bundle.
+
+        :param bundle_type: Type of the bundle. Any of AppDescriptor.{APP,ENGINE,FRAMEWORK}
+        :param name: Name of the bundle.
+
+        :returns: A MockStore._Entry descriptor for the latest version of the bundle.
+        """
 
         versions = MockStore.instance.get_bundle_versions(bundle_type, name)
         latest = "v0.0.0"
@@ -290,6 +296,15 @@ class TankMockStoreDescriptor(AppDescriptor):
 
     @classmethod
     def _find_latest_for_pattern(cls, bundle_type, name, version_pattern):
+        """
+        Finds the latest version of a bundle for a given version pattern, e.g. v1.x.x
+
+        :param bundle_type: Type of the bundle. Any of AppDescriptor.{APP,ENGINE,FRAMEWORK}
+        :param name: Name of the bundle.
+        :param version_pattern: Version pattern to use when searching for the latest version, e.g. v1.x.x.
+
+        :returns: A MockStore._Entry descriptor for the latest version of the bundle that matches the pattern.
+        """
         # FIXME: Refactor this with the code from the new descriptor code
         # in the deploy module when that code is released.
         version_numbers = MockStore.instance.get_bundle_versions(bundle_type, name)
@@ -418,8 +433,10 @@ class _Patcher(object):
         # to invoke the test individually.
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
-            with self:
-                return func(*(args + (self._mock_store,)), **kwargs)
+            with self as mock_store:
+                # Adds the mockstore at the tail of any expected positional
+                # arguments.
+                return func(*(args + (mock_store,)), **kwargs)
         return wrapper
 
 
@@ -427,9 +444,9 @@ def patch_app_store(func=None):
     """
     Patches the TankAppStoreDescriptor class to be able to mock connections
     to the AppStore. If a function is passed in, the method will be decorated
-    and the patch will only be applied during the call. Otherwise, the patch
-    is created automatically and the caller only needs to call start() on the patch
-    to activate it.
+    and the patch will only be applied during the call. Otherwise, the a patcher
+    object is created and the caller only needs to call start() on the patcher
+    to activate it or use it with the with statement.
 
     :param func: Function to wrap. Can be None.
 
@@ -520,7 +537,7 @@ class TestMockStore(TankTestBase):
         self.assertEqual(desc.get_required_frameworks(), [])
 
 
-class TestSimpleEndToEndTesting(TankTestBase):
+class TestSimpleUpdates(TankTestBase):
     """
     Makes sure environment code works with the app store mocker.
     """
@@ -594,9 +611,9 @@ class TestSimpleEndToEndTesting(TankTestBase):
         self.assertEqual(desc.get_version(), "v1.1.0")
 
 
-class TestAppStoreUpdates(TankTestBase):
+class TestIncludeUpdates(TankTestBase):
     """
-    Tests all kinds of app store update cases.
+    Tests updates to bundle within includes.
     """
 
     def setUp(self):
@@ -670,7 +687,6 @@ class TestAppStoreUpdates(TankTestBase):
         in them. In other words, new frameworks that are installed need to be added as close
         as possible as the bundles that depend on them. This is what this test ensures.
         """
-
         # The 2nd level dependency is initialially available from the main environment file.
         env = self._get_env("updating_included_app")
         _, file_path = env.find_location_for_framework("tk-framework-2nd-level-dep_v1.x.x")
