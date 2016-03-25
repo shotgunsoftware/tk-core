@@ -8,13 +8,17 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import errno
+import argparse
 import os
 import tempfile
 from .action_base import Action
 from ...errors import TankError
-from ...platform import validation, bundle
-
+from ...platform import validation, bundle, environment
+from tank_vendor.shotgun_base import (
+    ensure_folder_exists,
+    copy_file,
+    safe_delete_file
+)
 
 class ValidateConfigAction(Action):
     """
@@ -31,12 +35,24 @@ class ValidateConfigAction(Action):
         # this method can be executed via the API
         self.supports_api = True
 
+        # since the interactive and non-interactive calls run through the same
+        # logic, we just keep track of this so that certain things like output
+        # can be tweaked depending on the mode of execution.
+        self._interactive = False
+
         self.parameters = {}
+
+        self.parameters["envs"] = {
+            "description": ("A list of environment names to process. If not "
+                            "specified, process all environments."),
+            "type": "list",
+            "default": [],
+        }
 
         self.parameters["dump"] = {
             "description": ("Dump fully evaluated copies of each validated "
                             "environment to the location specified by "
-                            "'dump-location' or a temp directory if no dump "
+                            "dump location or a temp directory if no dump "
                             "location is specified."),
             "type": "bool",
             "default": False,
@@ -44,9 +60,15 @@ class ValidateConfigAction(Action):
 
         self.parameters["dump_sparse"] = {
             "description": ("Dump sparse copies of each validated environment "
-                            "to the location specified by the 'dump-location' "
+                            "to the location specified by the dump location "
                             "or a temp directory if no dump location is "
                             "specified."),
+            "type": "bool",
+            "default": False,
+        }
+
+        self.parameters["dump_debug"] = {
+            "description": "Add debug comments to the dumped environments.",
             "type": "bool",
             "default": False,
         }
@@ -57,9 +79,6 @@ class ValidateConfigAction(Action):
             "type": "str",
             "default": "",
         }
-
-        # XXX specify the envs to validate
-
 
 
     def run_noninteractive(self, log, parameters):
@@ -84,84 +103,110 @@ class ValidateConfigAction(Action):
         :param args: command line args
         """
 
-        # 0-2 args.
-        if len(args) not in range(0, 3):
-            self._print_usage()
-            raise TankError("Invalid number of arguments.\n"
-                            "See the command usage above.")
+        self._interactive = True
 
-        params = {}
+        parser = argparse.ArgumentParser(
+            prog="./tank validate",
+            description="Environment validation command."
+        )
 
-        if "--dump" in args:
-            params["dump"] = True
-            args.pop(args.index("--dump"))
+        # a list of environment names
+        parser.add_argument(
+            "envs",
+            metavar="<env_name>",
+            type=str,
+            nargs="*",
+            help=self.parameters["envs"]["description"],
+        )
 
-        if "--dump-sparse" in args:
-            params["dump_sparse"] = True
-            args.pop(args.index("--dump-sparse"))
+        # mutually exclusive dump types, full and sparse
+        dump_type_group = parser.add_mutually_exclusive_group()
+        dump_type_group.add_argument(
+            "-f", "--dump",
+            action="store_true",
+            help=self.parameters["dump"]["description"],
+        )
+        dump_type_group.add_argument(
+            "-s", "--dump-sparse",
+            action="store_true",
+            help=self.parameters["dump_sparse"]["description"],
+        )
 
-        # look through the remaining args for known values.
-        for (i, arg) in enumerate(args):
-            if arg.startswith("--dump-location"):
-                if not "=" in arg:
-                    self._print_usage()
-                    raise TankError(
-                        "Dump location must be specified like this: "
-                        "'--dump-location=/path/to/env/output/directory'.\n"
-                        "See the command usage above."
-                    )
-                (flag, dump_loc) = arg.split("=")
-                params["dump_location"] = dump_loc
-                args.pop(i)
+        # the output directory for the modified environment files
+        parser.add_argument(
+            "-l", "--dump-location",
+            metavar="<output_directory>",
+            type=str,
+            help=self.parameters["dump_sparse"]["description"],
+        )
 
-        # if there are any args left, then we don't know how to process them.
-        if len(args):
-            self._print_usage()
-            raise TankError(
-                "Unknown arguments in validate command: '%s'\n"
-                "See the command usage above."
-                % (", ".join(args),)
-            )
+        # turn on debug comments in the dumped environments
+        parser.add_argument(
+            "--dump-debug",
+            action="store_true",
+            help=self.parameters["dump_debug"]["description"],
+        )
 
-        computed_params = self.__validate_parameters(params)
+        # calling vars() on the returned namespace object essentially
+        # translates it into a dictionary. In addition, argparse naturally
+        # translates the flags we used to the matching parameters that
+        # are defined by the action (ex: "--dump-debug" becomes "dump_debug").
+        # so we're left with a dict that should look just like the params
+        # supplied to the non-interactive version of this action.
+        parsed_args = vars(parser.parse_args(args))
+
+        # validate the parsed args just like the non-interactive params.
+        computed_params = self.__validate_parameters(parsed_args)
+
+        # do work.
         return self._run(log, computed_params)
         
     def _run(self, log, params):
         """
-        Actual execution payload
-        """ 
-        
+        Actual execution payload. Includes validation and optional dumping.
+
+        :param log: A logger instance.
+        :param params: A dict of parameters to drive the validation/dumping.
+        :return:
+        """
+
         log.info("")
         log.info("")
         log.info("Welcome to the Shotgun Pipeline Toolkit Configuration validator!")
         log.info("")
     
         try:
-            envs = self.tk.pipeline_configuration.get_environments()
+            env_names = self.tk.pipeline_configuration.get_environments()
         except Exception, e:
-            raise TankError("Could not find any environments for config %s: %s" % (self.tk, e))
+            raise TankError(
+                "Could not find any environments for config %s: %s"
+                % (self.tk, e)
+            )
+
+        # filter the envs if any were called out via the params.
+        if params["envs"]:
+            env_names = [n for n in env_names if n in params["envs"]]
+            if not env_names:
+                raise TankError(
+                    "No matching environments found for '%s'." %
+                    (", ".join(params["envs"]))
+                )
     
         log.info("Found the following environments:")
-        for x in envs:
+        for x in env_names:
             log.info("    %s" % x)
         log.info("")
         log.info("")
 
-        should_dump = False
-        if params["dump"] or params["dump_sparse"]:
-            should_dump = True
-
         # validate environments
-        for env_name in envs:
+        envs = []
+        for env_name in env_names:
             env = self.tk.pipeline_configuration.get_environment(env_name)
             #_process_environment(log, self.tk, env)
-            if should_dump:
-                output_path = os.path.join(params["dump_location"],
-                    os.path.basename(env.disk_location))
-                if params["dump_sparse"]:
-                    env.dump_sparse(output_path)
-                else:
-                    env.dump_full(output_path)
+            envs.append(env)
+
+        if params["dump"] or params["dump_sparse"]:
+            self._dump(log, envs, params)
 
         log.info("")
         log.info("")
@@ -201,19 +246,95 @@ class ValidateConfigAction(Action):
         log.info("")
         log.info("")
 
+    def _dump(self, log, envs, params):
+        """
+        Dump the supplied environments with the specified parameters
+
+        :param log: A logger instance.
+        :param envs: list of environment objects
+        :param params: parameter dict.
+        """
+
+        if params["dump_sparse"]:
+            dump_type = environment.UpdateAllSettingsFormat.SPARSE
+            dump_display_type = "sparse"
+        else:
+            dump_type = environment.UpdateAllSettingsFormat.FULL
+            dump_display_type = "full"
+
+        for env in envs:
+
+            # build the full output path from the dump location directory
+            # and the basename of the source environment file.
+            output_path = os.path.abspath(
+                os.path.join(params["dump_location"],
+                os.path.basename(env.disk_location))
+            )
+
+            # make sure the output path doesn't match the environment path.
+            # don't allow writing over existing environments.
+            if output_path == env.disk_location:
+                raise TankError(
+                    "Dump locaiton matches the existing environment path. "
+                    "Refusing to overwrite existing environment file."
+                )
+
+            # build a copy of the environment file that we can use to process.
+            (filename, ext) = os.path.splitext(
+                os.path.basename(env.disk_location)
+            )
+            tmp_env_path = os.path.join(
+                os.path.dirname(env.disk_location),
+                "%s_%s%s" % (filename, dump_display_type, ext)
+            )
+
+            # now copy the environment file to the tmp file.
+            copy_file(env.disk_location, tmp_env_path, 0666)
+
+            try:
+                # In order to dump an environment, we need a WritableEnvironment
+                # instance. To prevent writing the current environment, we'll
+                # make a copy of the environment file, process it, then write it
+                # to the output location. We'll also need to remove the
+                # temporary copy of the environment. The temp copy is made in
+                # the same location as the actual environment file in order to
+                # allow relative includes to be handled correctly.
+                tmp_env = environment.WritableEnvironment(
+                    tmp_env_path,
+                    self.tk.pipeline_configuration,
+                    self.context
+                )
+
+                debug = params["dump_debug"]
+
+                # Make the temp environment full or sparse. Each of these calls
+                # will write the environment to disk.
+                if dump_type == environment.UpdateAllSettingsFormat.SPARSE:
+                    tmp_env.make_sparse(debug)
+                else:
+                    tmp_env.make_full(debug)
+
+            finally:
+                # copy the tmp env file to the output location
+                copy_file(tmp_env_path, output_path, 0666)
+
+                # remove the temporary dump file.
+                safe_delete_file(tmp_env_path)
+
+            log.info("Dumped modified environment to: %s" % (output_path,))
+
 
     def __validate_parameters(self, parameters):
-        """Validate the params."""
+        """
+        Do validation of the parameters that arse specific to this action.
+
+        :param parameters: The dict of parameters
+        :returns: The validated and fully populated dict of parameters.
+        """
 
         # do the base class default validation
-        params = super(ValidateConfigAction, self)._validate_parameters(parameters)
-
-        # check for mutually exclusive arguments
-        if params["dump"] and params["dump_sparse"]:
-            raise TankError(
-                "The 'dump' and 'dump sparse' options are mutually exclusive. "
-                "Please run again with only one of these options specified."
-            )
+        params = super(ValidateConfigAction, self)._validate_parameters(
+            parameters)
 
         # need to dump something
         if params["dump"] or params["dump_sparse"]:
@@ -232,54 +353,26 @@ class ValidateConfigAction(Action):
                 )
 
             # create the dump location if it doesn't exist
-            if not os.path.exists(dump_dir):
-                old_umask = os.umask(0)
-                try:
-                    os.makedirs(dump_dir, 0775)
-                except OSError, e:
-                    if e.errno != errno.EEXIST:
-                        raise
-                finally:
-                    os.umask(old_umask)
+            ensure_folder_exists(dump_dir)
 
+            # make sure the dump location is populated
             params["dump_location"] = dump_dir
 
         return params
-
-    def _print_usage(self):
-
-        example_usage = (
-            "Syntax: validate [--dump|--dump-sparse] "
-            "[--dump-location=/path/to/env/output/directory]"
-        )
-
-        print "Validate command usage:\n"
-        for (param, settings) in self.parameters.iteritems():
-            param_display = "--" + param.replace("_", "-")
-            print "  %s (%s): %s [default=%s]" % (
-                param_display,
-                settings["type"],
-                settings["description"],
-                settings["default"]
-            )
-        print "\n%s" % (example_usage,)
-
 
 g_templates = set()
 g_hooks = set()
 
 def _validate_bundle(log, tk, name, settings, descriptor, engine_name=None):
-    """Validate the supplied bundle including the descriptor and all settings.
+    """
+    Given a bundle name and settings, make sure everything looks legit!
 
-    :param log: A logger instance for logging validation output.
-    :param tk: A toolkit api instance.
-    :param name: The bundle's name.
-    :param settings: The bundle's settings dict.
-    :param descriptor: A descriptor object for the bundle.
-    :param engine_name: The name of the containing engine or None.
-        This is used when the bundle is an app and needs to validate engine-
-        specific settings.
-
+    :param log: A logger instance.
+    :param tk: Toolkit API instance
+    :param name: The name of the bundle.
+    :param settings: The bundle's settings from the environment.
+    :param descriptor: A descriptor for locating the bundle.
+    :param engine_name: The engine Name if there is one.
     """
 
     log.info("")
@@ -289,16 +382,12 @@ def _validate_bundle(log, tk, name, settings, descriptor, engine_name=None):
         log.info("Please wait, downloading...")
         descriptor.download_local()
     
-    #if len(descriptor.get_required_frameworks()) > 0:
-    #    log.info("  Using frameworks: %s" % descriptor.get_required_frameworks())
-        
     # out of date check
     latest_desc = descriptor.find_latest_version()
     if descriptor.get_version() != latest_desc.get_version():
         log.info(  "WARNING: Latest version is %s. You are running %s." % (latest_desc.get_version(), 
                                                                         descriptor.get_version()))
-    
-    
+
     manifest = descriptor.get_configuration_schema()
 
     for s in settings.keys():

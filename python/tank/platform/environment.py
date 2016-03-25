@@ -13,9 +13,7 @@ Environment Settings Object and access.
 
 """
 
-import errno
 import os
-import shutil
 import sys
 import copy
 
@@ -467,211 +465,11 @@ class Environment(object):
         return (bundle_tokens, bundle_yml_file)
 
 
-    def _make_settings_sparse(self, schema, settings, engine_name=None, manifest_file=None):
-        """
-
-        :param schema:
-        :param settings:
-        :param engine_name:
-        :return:
-        """
-
-        modified = False
-
-        for setting_name in schema.keys():
-
-            setting_schema = schema[setting_name]
-
-            if setting_name in settings:
-                setting_value = settings[setting_name]
-                schema_default = resolve_default_value(
-                    setting_schema, engine_name=engine_name)
-
-                # the setting value matches the schema default.
-                # remove the setting.
-                if setting_value == schema_default:
-                    modified = True
-                    del settings[setting_name]
-                else:
-                    # add a comment to identify default values in the dump
-                    if hasattr(settings, 'yaml_add_eol_comment'):
-                        settings.yaml_add_eol_comment("Differs from %s default value (%s) in manifest %s" % (engine_name or "", schema_default or '""', manifest_file or ""), setting_name, column=80)
-
-
-                # special cases
-                setting_type = setting_schema["type"]
-
-                # remove any legacy "default" hook references
-                if setting_type == "hook" and setting_value == "default":
-                    modified = True
-                    del settings[setting_name]
-
-        return modified
-
-    def _make_settings_full(self, schema, settings, engine_name=None, manifest_file=None):
-        """
-
-        :param schema:
-        :param settings:
-        :param engine_name:
-        :return:
-        """
-
-        modified = False
-
-        for setting_name in schema.keys():
-
-            setting_schema = schema[setting_name]
-            schema_default = resolve_default_value(
-                setting_schema, engine_name=engine_name)
-
-            if setting_name not in settings:
-                # No value specified in the settings. Just set the default.
-                modified = True
-                settings[setting_name] = schema_default
-
-            if schema_default == settings[setting_name]:
-                # add a comment to identify default values in the dump
-                if hasattr(settings, 'yaml_add_eol_comment'):
-                    settings.yaml_add_eol_comment("Matches %s default value in manifest %s" % (engine_name or "", manifest_file or ""), setting_name, column=80)
-
-        return modified
-
-    def dump_sparse(self, output_path):
-        """
-
-        :param output_path:
-        :return:
-        """
-        self.__dump(output_path, "sparse")
-
-    def dump_full(self, output_path):
-        """
-
-        :param output_path:
-        :return:
-        """
-
-        self.__dump(output_path, "full")
-
-    def __dump(self, output_path, dump_type):
-        """
-
-        :param output_path:
-        :return:
-        """
-
-        (filename, ext) = os.path.splitext(self._env_path)
-        tmp_output_path = os.path.join(
-            os.path.dirname(self._env_path),
-            "%s_%s%s" % (filename, dump_type, ext)
-        )
-
-        output_path = tmp_output_path
-
-        output_dir = os.path.dirname(output_path)
-
-        # XXX ensure folder exists
-
-        # create the output path directory if it doesn't exist
-        if not os.path.exists(output_dir):
-            old_umask = os.umask(0)
-            try:
-                os.makedirs(output_dir, 0775)
-            except OSError, e:
-                if e.errno != errno.EEXIST:
-                    raise
-            finally:
-                os.umask(old_umask)
-
-        # XXX copy file
-
-        # start by making a copy of the source env to the output path to
-        # preserve comments if possible.
-        old_umask = os.umask(0)
-        try:
-            shutil.copy(self._env_path, output_path)
-            os.chmod(output_path, 0666)
-        finally:
-            os.umask(old_umask)
-
-        output_env = WritableEnvironment(
-            output_path,
-            self.__pipeline_config,
-            self.__context
-        )
-
-        # we're either adding or remove settings depending on the dump type.
-        # either way we access the data the same, and the arguments are the same
-        # so just call a different method based on what needs to be done.
-        if dump_type == "sparse":
-            update_settings= self._make_settings_sparse
-        else:
-            update_settings = self._make_settings_full
-
-        # load the output path's yaml
-        yml_data = output_env._WritableEnvironment__load_writable_yaml(output_path)
-
-        # start by processing the engines
-        for engine_name in output_env.get_engines():
-
-            # only process settings in this file
-            (tokens, engine_file) = output_env.find_location_for_engine(engine_name)
-            if not engine_file == output_path:
-                continue
-
-            engine_settings = yml_data
-            for token in tokens:
-                engine_settings = engine_settings.get(token)
-
-            engine_descriptor = output_env.get_engine_descriptor(engine_name)
-            engine_schema = engine_descriptor.get_configuration_schema()
-            engine_manifest_file = os.path.join(engine_descriptor.get_path(), constants.BUNDLE_METADATA_FILE)
-            update_settings(engine_schema, engine_settings, engine_name, engine_manifest_file)
-
-            # processing all the installed apps
-            for app_name in output_env.get_apps(engine_name):
-
-                # only process settings in this file
-                (tokens, app_file) = output_env.find_location_for_app(engine_name, app_name)
-                if not app_file == output_path:
-                    continue
-
-                app_settings = yml_data
-                for token in tokens:
-                    app_settings = app_settings.get(token)
-
-                app_descriptor = output_env.get_app_descriptor(engine_name, app_name)
-                app_schema = app_descriptor.get_configuration_schema()
-                app_manifest_file = os.path.join(app_descriptor.get_path(), constants.BUNDLE_METADATA_FILE)
-                update_settings(app_schema, app_settings, engine_name, app_manifest_file)
-
-        # processing all the frameworks
-        for fw_name in output_env.get_frameworks():
-
-            # only process settings in this file
-            (tokens, fw_file) = output_env.find_location_for_framework(fw_name)
-            if not fw_file == output_path:
-                continue
-
-            fw_settings = yml_data
-            for token in tokens:
-                fw_settings = fw_settings.get(token)
-
-            fw_descriptor = output_env.get_framework_descriptor(fw_name)
-            fw_schema = fw_descriptor.get_configuration_schema()
-            fw_manifest_file = os.path.join(fw_descriptor.get_path(), constants.BUNDLE_METADATA_FILE)
-            update_settings(fw_schema, fw_settings, fw_manifest_file)
-
-        output_env._WritableEnvironment__write_data(output_path, yml_data)
-
-
-
 
 class WritableEnvironment(Environment):
     """
     Represents a mutable environment.
-    
+
     If you need to make change to the environment, this class should be used
     rather than the Environment class. Additional methods are added
     to support modification and updates and handling of writing yaml
@@ -682,13 +480,13 @@ class WritableEnvironment(Environment):
         """
         Constructor
         """
-        self.set_yaml_preserve_mode(False)        
+        self.set_yaml_preserve_mode(False)
         Environment.__init__(self, env_path, pipeline_config, context)
 
     def __load_writable_yaml(self, path):
         """
         Loads yaml data from disk.
-        
+
         :param path: Path to yaml file
         :returns: yaml object representing the data structure
         """
@@ -1104,3 +902,262 @@ class WritableEnvironment(Environment):
         self.__write_data(self._env_path, data)
         # sync internal data with disk
         self._refresh()
+
+
+    ############################################################################
+    # Methods specific to updating all environment settings to full or sparse
+
+    def make_sparse(self, debug=False):
+        """
+        Make the settings defined in this environment sparsely populated.
+
+        Any setting defined in the environment that matches the default value
+        specified will be removed.
+
+        :param debug: If True, include debug comments on lines using a
+            non-default value.
+        """
+
+        self.__update_all_settings(UpdateAllSettingsFormat.SPARSE, debug)
+
+    def make_full(self, debug=False):
+        """
+        Make the settings defined in this environment fully populated.
+
+        Any setting not specified in the environment will be populated with the
+        default value.
+
+        :param debug: If True, include debug comments on lines using a default
+            valued.
+        """
+
+        self.__update_all_settings(UpdateAllSettingsFormat.FULL, debug)
+
+    def _update_settings_sparse(self, schema, settings, engine_name=None,
+        manifest_file=None, debug=False):
+        """
+        Given a schema and settings, make sure that the settings are sparse.
+
+        Iterate over the schema key's default values and remove any settings
+        that use the default.
+
+        :param schema: A schema defining types and defaults for settings.
+        :param settings: A dict of settings to sparsify.
+        :param engine_name: The name of the engine currently running if there
+            is one.
+        :param manifest_file: The path to the manifest file if known.
+        :param debug: If True, include debug comments on lines using a
+            non-default value.
+
+        :returns: bool - True if the settings were modified, False otherwise.
+        """
+
+        modified = False
+
+        # check each key defined in the schema
+        for setting_name in schema.keys():
+
+            # identify the portion of the manifest that defines the setting
+            setting_schema = schema[setting_name]
+
+            # if defined, check the settings against the default value
+            if setting_name in settings:
+                setting_value = settings[setting_name]
+                schema_default = resolve_default_value(
+                    setting_schema, engine_name=engine_name)
+
+                if setting_value == schema_default:
+                    # the setting value matches the schema default. remove the
+                    # setting.
+                    del settings[setting_name]
+                    modified = True
+
+                elif debug:
+                    # Add a comment to identify default values in the dumped
+                    # file to help with debugging. The comment shows the
+                    # default value and the path to the manifest where the
+                    # default value is defined.
+                    if hasattr(settings, 'yaml_add_eol_comment'):
+                        settings.yaml_add_eol_comment(
+                            "Differs from %s default value (%s) in manifest %s"
+                                % (engine_name or "",
+                                   schema_default or '""',
+                                   manifest_file or ""
+                                ),
+                            setting_name,
+                            column=80
+                        )
+
+                # identify the type to address any special cases
+                setting_type = setting_schema["type"]
+
+                # remove any legacy "default" hook references
+                if setting_type == "hook" and setting_value == "default":
+                    del settings[setting_name]
+                    modified = True
+
+        return modified
+
+    def _update_settings_full(self, schema, settings, engine_name=None,
+        manifest_file=None, debug=False):
+        """
+        Given a schema and settings, make sure that the settings are fully
+        defined.
+
+        Iterate over the schema key's default values and add any settings
+        that aren't defined by using the default value.
+
+        :param schema: A schema defining types and defaults for settings.
+        :param settings: A dict of settings to sparsify.
+        :param engine_name: The name of the engine currently running if there
+            is one.
+        :param manifest_file: The path to the manifest file if known.
+        :param debug: If True, include debug comments on lines using a default
+            value.
+
+        :returns: bool - True if the settings were modified, False otherwise.
+        """
+
+        modified = False
+
+        # check each key defined in the schema
+        for setting_name in schema.keys():
+
+            # get the default value for the setting
+            setting_schema = schema[setting_name]
+            schema_default = resolve_default_value(
+                setting_schema, engine_name=engine_name)
+
+            if setting_name not in settings:
+                # No value specified in the settings. Just set the default.
+                settings[setting_name] = schema_default
+                modified = True
+
+            if schema_default == settings[setting_name] and debug:
+                # The value of the setting matches the default value in the
+                # manifest. Add a comment to identify default values in the
+                # dumped file to help with debugging. The comment will display
+                # the path to the manifest.
+                if hasattr(settings, 'yaml_add_eol_comment'):
+                    settings.yaml_add_eol_comment(
+                        "Matches %s default value in manifest %s" % (
+                            engine_name or "",
+                            manifest_file or ""),
+                        setting_name,
+                        column=80
+                    )
+
+        return modified
+
+    def __update_all_settings(self, update_format, debug=False):
+        """
+        Iterate over items in the env, make them full or sparse.
+
+        :param update_format: UpdateAllSettingsFormat.[FULL|SPARSE]
+        :param debug: Add debug comments in the updated settings.
+        """
+
+        # we're either adding or remove settings depending on the update format.
+        # either way we access the data the same, and the arguments are the
+        # same so just call a different method based on what needs to be
+        # done.
+        if update_format == UpdateAllSettingsFormat.SPARSE:
+            update_settings= self._update_settings_sparse
+        else:
+            update_settings = self._update_settings_full
+
+        # load the output path's yaml
+        yml_data = self.__load_writable_yaml(self._env_path)
+
+        # process each of the engines for the environment
+        for engine_name in self.get_engines():
+
+            # only process settings in this file
+            (tokens, engine_file) = self.find_location_for_engine(engine_name)
+            if not engine_file == self._env_path:
+                continue
+
+            # drill down into the yml data to find the chunk where the
+            # engine settings live
+            engine_settings = yml_data
+            for token in tokens:
+                engine_settings = engine_settings.get(token)
+
+            # get information about the engine in order to process the
+            # settings.
+            engine_descriptor = self.get_engine_descriptor(engine_name)
+            engine_schema = engine_descriptor.get_configuration_schema()
+            engine_manifest_file = os.path.join(
+                engine_descriptor.get_path(),
+                constants.BUNDLE_METADATA_FILE
+            )
+
+            # update the settings by adding or removing keys based on the
+            # type of dumping being performed.
+            update_settings(engine_schema, engine_settings, engine_name,
+                engine_manifest_file, debug)
+
+            # processing all the installed apps
+            for app_name in self.get_apps(engine_name):
+
+                # only process settings in this file
+                (tokens, app_file) = self.find_location_for_app(engine_name,
+                    app_name)
+                if not app_file == self._env_path:
+                    continue
+
+                # drill down into the yml data to find the chunk where the
+                # app settings live
+                app_settings = yml_data
+                for token in tokens:
+                    app_settings = app_settings.get(token)
+
+                # get information about the app in order to process the
+                # settings.
+                app_descriptor = self.get_app_descriptor(engine_name, app_name)
+                app_schema = app_descriptor.get_configuration_schema()
+                app_manifest_file = os.path.join(app_descriptor.get_path(),
+                    constants.BUNDLE_METADATA_FILE)
+
+                # update the settings by adding or removing keys based on the
+                # type of dumping being performed.
+                update_settings(app_schema, app_settings, engine_name,
+                    app_manifest_file, debug)
+
+        # processing all the frameworks
+        for fw_name in self.get_frameworks():
+
+            # only process settings in this file
+            (tokens, fw_file) = self.find_location_for_framework(fw_name)
+            if not fw_file == self._env_path:
+                continue
+
+            # drill down into the yml data to find the chunk where the
+            # framework settings live
+            fw_settings = yml_data
+            for token in tokens:
+                fw_settings = fw_settings.get(token)
+
+            # get information about the framework in order to process the
+            # settings.
+            fw_descriptor = self.get_framework_descriptor(fw_name)
+            fw_schema = fw_descriptor.get_configuration_schema()
+            fw_manifest_file = os.path.join(fw_descriptor.get_path(),
+                constants.BUNDLE_METADATA_FILE)
+
+            # update the settings by adding or removing keys based on the
+            # type of dumping being performed.
+            update_settings(fw_schema, fw_settings, fw_manifest_file, debug)
+
+        # write the modified data to the output path
+        self.__write_data(self._env_path, yml_data)
+
+
+class UpdateAllSettingsFormat(object):
+    """
+    Format enumeration to use when updating all settings in an environment.
+
+    FULL = Include all settings, using default values when necessary.
+    SPARSE = Exclude settings using default values.
+    """
+    (FULL, SPARSE) = range(2)
