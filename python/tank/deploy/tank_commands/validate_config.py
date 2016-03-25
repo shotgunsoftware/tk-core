@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import argparse
+from datetime import datetime
 import os
 import tempfile
 from .action_base import Action
@@ -202,7 +203,7 @@ class ValidateConfigAction(Action):
         envs = []
         for env_name in env_names:
             env = self.tk.pipeline_configuration.get_environment(env_name)
-            #_process_environment(log, self.tk, env)
+            _process_environment(log, self.tk, env)
             envs.append(env)
 
         if params["dump"] or params["dump_sparse"]:
@@ -285,7 +286,12 @@ class ValidateConfigAction(Action):
             )
             tmp_env_path = os.path.join(
                 os.path.dirname(env.disk_location),
-                "%s_%s%s" % (filename, dump_display_type, ext)
+                "%s_%s_%s_%s" % (
+                    filename,
+                    dump_display_type,
+                    datetime.now().strftime("%Y_%m_%d_%H_%M_%s_%f"),
+                    ext
+                )
             )
 
             # now copy the environment file to the tmp file.
@@ -294,11 +300,11 @@ class ValidateConfigAction(Action):
             try:
                 # In order to dump an environment, we need a WritableEnvironment
                 # instance. To prevent writing the current environment, we'll
-                # make a copy of the environment file, process it, then write it
+                # use a copy of the environment file, process it, then copy it
                 # to the output location. We'll also need to remove the
                 # temporary copy of the environment. The temp copy is made in
                 # the same location as the actual environment file in order to
-                # allow relative includes to be handled correctly.
+                # allow relative includes to be handled correctly when parsed.
                 tmp_env = environment.WritableEnvironment(
                     tmp_env_path,
                     self.tk.pipeline_configuration,
