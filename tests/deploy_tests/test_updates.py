@@ -660,6 +660,15 @@ class TestAppStoreUpdates(TankTestBase):
     def test_update_include_with_new_framework(self):
         """
         App's new dependency should be installed inside common_apps.yml.
+
+        tk-multi-app v1.0.0 doesn't have any dependency. v2.0.0 however has a dependency
+        on a new framework, tk-framework-test. This new framework has a dependency on
+        tk-framework-2nd-level-dep. This second framework is however already
+        installed in the updating_included_app environment. We need to make sure that
+        this framework is added inside the common_apps.yml file, where the app
+        is defined, because other environments might not already have the second framework
+        in them. In other words, new frameworks that are installed need to be added as close
+        as possible as the bundles that depend on them. This is what this test ensures.
         """
         # Create a new framework that we've never seen before.
         fwk = self._mock_store.add_framework("tk-framework-test", "v1.0.0")
@@ -683,7 +692,6 @@ class TestAppStoreUpdates(TankTestBase):
         # Add another version, which this time will bring in a new framework
         # that is already being used in the environment file.
         fwk = self._mock_store.add_framework("tk-framework-test", "v1.0.1")
-#        self._mock_store.add_framework("tk-framework-2nd-level-dep", "v1.0.1")
         fwk.required_frameworks = [self._2nd_level_dep_bundle.get_major_dependency_descriptor()]
 
         self._update_env("updating_included_app")
@@ -697,6 +705,3 @@ class TestAppStoreUpdates(TankTestBase):
 
         _, file_path = env.find_location_for_framework("tk-framework-2nd-level-dep_v1.x.x")
         self.assertEqual(os.path.basename(file_path), "common_apps.yml")
-
-    def tearDown(self):
-        pass

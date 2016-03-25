@@ -83,23 +83,20 @@ def validate_platform(descriptor):
             raise TankError("The current operating system '%s' is not supported."
                             "Supported platforms are: %s" % (nice_system_name, supported_platforms))
 
-    
+
 def get_missing_frameworks(descriptor, environment, yml_file):
     """
     Returns a list of framework descriptors by the given descriptor required but not present 
     in the given environment.
-    
+
     returns items on the following form:
     [{'version': 'v0.1.0', 'name': 'tk-framework-widget'}]
-    
+
     :returns: list dictionaries, each with a name and a version key.
     """
-
     required_frameworks = descriptor.get_required_frameworks()
-    print "required", required_frameworks
-    print "yml file", yml_file
     current_framework_instances = [
-        fw for fw in environment.get_frameworks() if environment.find_location_for_framework(fw, yml_file)
+        fw for fw in environment.get_frameworks() if environment.is_framework_available_from(fw, yml_file)
     ]
 
     if len(required_frameworks) == 0:
@@ -112,17 +109,15 @@ def get_missing_frameworks(descriptor, environment, yml_file):
         name = fw.get("name")
         version = fw.get("version")
 
-        # find it by naming convention based on the instance name        
+        # find it by naming convention based on the instance name
         desired_fw_instance = "%s_%s" % (name, version)
 
         if desired_fw_instance not in current_framework_instances:
             missing_fws.append(fw)
 
-    print "missing", missing_fws
     return missing_fws
 
-    
-    
+
 def validate_and_return_frameworks(descriptor, environment):
     """
     Validates the frameworks needed for an given descriptor.
