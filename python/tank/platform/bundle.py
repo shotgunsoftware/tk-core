@@ -891,13 +891,17 @@ def resolve_default_value(schema, default=None, engine_name=None,
 
     # special case handling for list params - check if
     # allows_empty == True, in that case set default value to []
-    if (setting_type == "list" and value is None and schema.get("allows_empty")):
+    if setting_type == "list" and value is None and schema.get("allows_empty"):
         value = []
 
     # special case handling for dict params - check if
     # allows_empty == True, in that case set default value to {}
-    if (setting_type == "dict" and value is None and schema.get("allows_empty")):
+    if setting_type == "dict" and value is None and schema.get("allows_empty"):
         value = {}
+
+    if setting_type == "template" and value is None and schema.get("allows_empty"):
+        value = None
+        default_missing = False
 
     if setting_type == "hook":
         value = _resolve_default_hook_value(value, engine_name)
