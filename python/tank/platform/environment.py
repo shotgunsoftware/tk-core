@@ -110,9 +110,7 @@ class Environment(object):
         handles the checks to see if an item is disabled
         """
         descriptor_dict = settings.get(constants.ENVIRONMENT_LOCATION_KEY)
-        if not descriptor_dict:
-            import pdb
-            pdb.set_trace()
+
         # Check for disabled and deny_platforms
         is_disabled = descriptor_dict.get("disabled", False)
         if is_disabled:
@@ -599,7 +597,7 @@ class WritableEnvironment(Environment):
         else:
             self._use_ruamel_yaml_parser = val
         
-    def update_engine_settings(self, engine_name, new_data, new_location, replace=False):
+    def update_engine_settings(self, engine_name, new_data, new_location):
         """
         Updates the engine configuration
         """
@@ -621,18 +619,14 @@ class WritableEnvironment(Environment):
         if new_location:
             engine_data[constants.ENVIRONMENT_LOCATION_KEY] = new_location
 
-        if replace:
-            self._replace_settings(engine_data, new_data)
-        else:
-            self._update_settings_recursive(engine_data, new_data)
-
+        self._update_settings_recursive(engine_data, new_data)
         self.__write_data(yml_file, yml_data)
 
         # sync internal data with disk
         self._refresh()
 
 
-    def update_app_settings(self, engine_name, app_name, new_data, new_location, replace=False):
+    def update_app_settings(self, engine_name, app_name, new_data, new_location):
         """
         Updates the app configuration.
         """
@@ -656,17 +650,13 @@ class WritableEnvironment(Environment):
         # finally update the file
         app_data[constants.ENVIRONMENT_LOCATION_KEY] = new_location
 
-        if replace:
-            self._replace_settings(app_data, new_data)
-        else:
-            self._update_settings_recursive(app_data, new_data)
-
+        self._update_settings_recursive(app_data, new_data)
         self.__write_data(yml_file, yml_data)
 
         # sync internal data with disk
         self._refresh()
 
-    def update_framework_settings(self, framework_name, new_data, new_location, replace=False):
+    def update_framework_settings(self, framework_name, new_data, new_location):
         """
         Updates the framework configuration
         """
@@ -688,23 +678,11 @@ class WritableEnvironment(Environment):
         if new_location:
             framework_data[constants.ENVIRONMENT_LOCATION_KEY] = new_location
 
-        if replace:
-            self._replace_settings(framework_data, new_data)
-        else:
-            self._update_settings_recursive(framework_data, new_data)
-
+        self._update_settings_recursive(framework_data, new_data)
         self.__write_data(yml_file, yml_data)
 
         # sync internal data with disk
         self._refresh()
-
-    def _replace_settings(self, settings, new_data):
-
-        for key in settings:
-            del settings[key]
-
-        for key in new_data:
-            settings[key] = new_data[key]
 
     def _update_settings_recursive(self, settings, new_data):
         """
