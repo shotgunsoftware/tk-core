@@ -670,6 +670,12 @@ class TestAppStoreUpdates(TankTestBase):
         in them. In other words, new frameworks that are installed need to be added as close
         as possible as the bundles that depend on them. This is what this test ensures.
         """
+
+        # The 2nd level dependency is initialially available from the main environment file.
+        env = self._get_env("updating_included_app")
+        _, file_path = env.find_location_for_framework("tk-framework-2nd-level-dep_v1.x.x")
+        self.assertEqual(os.path.basename(file_path), "updating_included_app.yml")
+
         # Create a new framework that we've never seen before.
         fwk = self._mock_store.add_framework("tk-framework-test", "v1.0.0")
         # Add a new version of the app and add give it a dependency on the new framework.
@@ -703,5 +709,6 @@ class TestAppStoreUpdates(TankTestBase):
         _, file_path = env.find_location_for_framework("tk-framework-test_v1.x.x")
         self.assertEqual(os.path.basename(file_path), "common_apps.yml")
 
+        # Also, its dependency should now be picked up from the common_apps.yml file.
         _, file_path = env.find_location_for_framework("tk-framework-2nd-level-dep_v1.x.x")
         self.assertEqual(os.path.basename(file_path), "common_apps.yml")
