@@ -186,88 +186,20 @@ class ToolkitManager(object):
         """
         self._progress_cb = callback
 
-    def bootstrap_sgtk(self, project_id=None):
+    def bootstrap_engine(self, engine_name, entity=None):
         """
-        Create an sgtk instance for the given project or site.
+        Create an sgtk instance for the given project or site,
+        then launch into the given engine.
 
-        If project_id is None, the method will bootstrap into the site
+        If entity is None, the method will bootstrap into the site
         config. This method will attempt to resolve the config according
         to business logic set in the associated resolver class and based
         on this launch a configuration. This may involve downloading new
         apps from the toolkit app store and installing files on disk.
 
-        Please note that the API version of the tk instance may not
-        be the same as the API version that was executed to bootstrap.
-
-        :param project_id: Project to bootstrap into, None for site mode
-        :returns: sgtk instance
-        """
-        log.debug("Begin bootstrapping sgtk.")
-
-        # get an object to represent the business logic for
-        # how a configuration location is being determined
-        #
-        # @todo - in the future, there may be more and/or other
-        # resolvers to implement different workflows.
-        # For now, this logic is just separated out in a
-        # separate file.
-        self._report_progress("Resolving configuration...")
-
-        resolver = BaseConfigurationResolver(
-            self._sg_connection,
-            self._bundle_cache_fallback_paths
-        )
-
-        # now request a configuration object from the resolver.
-        # this object represents a configuration that may or may not
-        # exist on disk. We can use the config object to check if the
-        # object needs installation, updating etc.
-        config = resolver.resolve_configuration(
-            project_id,
-            self._pipeline_configuration_name,
-            self._namespace,
-            self._base_config_descriptor
-        )
-
-        # see what we have locally
-        self._report_progress("Checking if config is out of date...")
-        status = config.status()
-
-        self._report_progress("Updating configuration...")
-        if status == Configuration.LOCAL_CFG_UP_TO_DATE:
-            log.info("Your configuration is up to date.")
-
-        elif status == Configuration.LOCAL_CFG_MISSING:
-            log.info("A brand new configuration will be created locally.")
-            config.update_configuration()
-
-        elif status == Configuration.LOCAL_CFG_OLD:
-            log.info("Your local configuration is out of date and will be updated.")
-            config.update_configuration()
-
-        elif status == Configuration.LOCAL_CFG_INVALID:
-            log.info("Your local configuration looks invalid and will be replaced.")
-            config.update_configuration()
-
-        else:
-            raise ShotgunDeployError("Unknown configuration update status!")
-
-        # we can now boot up this config.
-        self._report_progress("Starting up Toolkit...")
-        tk = config.get_tk_instance(self._sg_user)
-
-        if status != Configuration.LOCAL_CFG_UP_TO_DATE:
-            self._cache_apps(tk)
-
-        return tk
-
-    def bootstrap_engine(self, engine_name, entity=None):
-        """
-        Convenience method that bootstraps into the given engine.
-
-        Similar to bootstrap_sgtk(), this will configure and install
-        items necessary in order to start up toolkit. Once launched,
-        the specified engine will be initiated.
+        Please note that the API version of the tk instance that hosts
+        the engine may not be the same as the API version that was
+        executed during the bootstrap.
 
         :param entity: Shotgun entity to launch engine for
         :param engine_name: name of engine to launch (e.g. tk-nuke)
@@ -298,7 +230,7 @@ class ToolkitManager(object):
                 raise ShotgunDeployError("Cannot resolve project for %s" % entity)
             project_id = data["project"]["id"]
 
-        tk = self.bootstrap_sgtk(project_id)
+        tk = self._bootstrap_sgtk(project_id)
         log.debug("Bootstrapped into tk instance %r" % tk)
 
         if entity is None:
@@ -532,6 +464,81 @@ class ToolkitManager(object):
     #     return pc_id
     #
 
+
+    def _bootstrap_sgtk(self, project_id=None):
+        """
+        Create an sgtk instance for the given project or site.
+
+        If project_id is None, the method will bootstrap into the site
+        config. This method will attempt to resolve the config according
+        to business logic set in the associated resolver class and based
+        on this launch a configuration. This may involve downloading new
+        apps from the toolkit app store and installing files on disk.
+
+        Please note that the API version of the tk instance may not
+        be the same as the API version that was executed to bootstrap.
+
+        :param project_id: Project to bootstrap into, None for site mode
+        :returns: sgtk instance
+        """
+        log.debug("Begin bootstrapping sgtk.")
+
+        # get an object to represent the business logic for
+        # how a configuration location is being determined
+        #
+        # @todo - in the future, there may be more and/or other
+        # resolvers to implement different workflows.
+        # For now, this logic is just separated out in a
+        # separate file.
+        self._report_progress("Resolving configuration...")
+
+        resolver = BaseConfigurationResolver(
+            self._sg_connection,
+            self._bundle_cache_fallback_paths
+        )
+
+        # now request a configuration object from the resolver.
+        # this object represents a configuration that may or may not
+        # exist on disk. We can use the config object to check if the
+        # object needs installation, updating etc.
+        config = resolver.resolve_configuration(
+            project_id,
+            self._pipeline_configuration_name,
+            self._namespace,
+            self._base_config_descriptor
+        )
+
+        # see what we have locally
+        self._report_progress("Checking if config is out of date...")
+        status = config.status()
+
+        self._report_progress("Updating configuration...")
+        if status == Configuration.LOCAL_CFG_UP_TO_DATE:
+            log.info("Your configuration is up to date.")
+
+        elif status == Configuration.LOCAL_CFG_MISSING:
+            log.info("A brand new configuration will be created locally.")
+            config.update_configuration()
+
+        elif status == Configuration.LOCAL_CFG_OLD:
+            log.info("Your local configuration is out of date and will be updated.")
+            config.update_configuration()
+
+        elif status == Configuration.LOCAL_CFG_INVALID:
+            log.info("Your local configuration looks invalid and will be replaced.")
+            config.update_configuration()
+
+        else:
+            raise ShotgunDeployError("Unknown configuration update status!")
+
+        # we can now boot up this config.
+        self._report_progress("Starting up Toolkit...")
+        tk = config.get_tk_instance(self._sg_user)
+
+        if status != Configuration.LOCAL_CFG_UP_TO_DATE:
+            self._cache_apps(tk)
+
+        return tk
 
     def _report_progress(self, message, curr_idx=None, max_idx=None):
         """
