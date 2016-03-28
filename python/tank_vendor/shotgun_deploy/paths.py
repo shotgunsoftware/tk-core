@@ -10,7 +10,6 @@
 
 import os
 from .. import shotgun_base
-from . import util
 
 def get_bundle_cache_root():
     """

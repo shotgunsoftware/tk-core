@@ -13,11 +13,10 @@ import sys
 import datetime
 from . import constants
 from . import Descriptor, create_descriptor
-from . import paths
 from .errors import ShotgunDeployError
 from . import util
 
-from ..shotgun_base import copy_file, append_folder_to_path
+from ..shotgun_base import copy_file
 from ..shotgun_base import copy_folder, ensure_folder_exists
 
 from .. import yaml
