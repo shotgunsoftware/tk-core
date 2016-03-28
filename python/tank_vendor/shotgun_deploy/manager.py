@@ -44,6 +44,7 @@ class ToolkitManager(object):
         self._bundle_cache_fallback_paths = []
         self._pipeline_configuration_name = constants.PRIMARY_PIPELINE_CONFIG_NAME
         self._base_config_descriptor = None
+        self._resolve_latest_base_descriptor = False
         self._namespace = constants.DEFAULT_NAMESPACE
         self._progress_cb = None
 
@@ -130,6 +131,32 @@ class ToolkitManager(object):
         self._base_config_descriptor = descriptor
 
     base_configuration = property(_get_base_configuration, _set_base_configuration)
+
+
+
+
+    def _get_resolve_latest(self):
+        """
+        Returns whether the bootstrapper will attempt to resolve
+        the latest version of the base configuration or not.
+
+        :returns: Boolean flag to indicate latest resolve or not
+        """
+        return self._resolve_latest_base_descriptor
+
+    def _set_resolve_latest(self, status):
+        """
+        Controls whether the bootstrapper will attempt to resolve
+        the latest version of the base configuration or not.
+
+        :param status: Boolean flag to indicate latest resolve or not
+        """
+        self._resolve_latest_base_descriptor = status
+
+    resolve_latest_base_configuration = property(_get_resolve_latest, _set_resolve_latest)
+
+
+
 
 
     def _set_bundle_cache_fallback_paths(self, paths):
@@ -270,7 +297,8 @@ class ToolkitManager(object):
             project_id,
             self._pipeline_configuration_name,
             self._namespace,
-            self._base_config_descriptor
+            self._base_config_descriptor,
+            self._resolve_latest_base_descriptor
         )
 
         # return the uri associated with this configuration
@@ -463,6 +491,22 @@ class ToolkitManager(object):
     #
     #     return pc_id
     #
+    # def _get_base_descriptor(self):
+    #     """
+    #     Resolves and returns a descriptor to the base config
+    #
+    #     :return: ConfigDescriptor object
+    #     """
+    #     cfg_descriptor = create_descriptor(
+    #         self._sg_connection,
+    #         Descriptor.CONFIG,
+    #         self._base_config_descriptor,
+    #         fallback_roots=self._bundle_cache_fallback_paths,
+    #         resolve_latest=self._resolve_latest_base_descriptor
+    #     )
+    #     log.debug("Base config resolved to: %r" % cfg_descriptor)
+    #     return cfg_descriptor
+
 
 
     def _bootstrap_sgtk(self, project_id=None):
@@ -505,7 +549,8 @@ class ToolkitManager(object):
             project_id,
             self._pipeline_configuration_name,
             self._namespace,
-            self._base_config_descriptor
+            self._base_config_descriptor,
+            self._resolve_latest_base_descriptor
         )
 
         # see what we have locally
@@ -616,21 +661,6 @@ class ToolkitManager(object):
         the primary (default) one.
         """
         return self._pipeline_configuration_name == constants.PRIMARY_PIPELINE_CONFIG_NAME
-
-    def _get_base_descriptor(self):
-        """
-        Resolves and returns a descriptor to the base config
-
-        :return: ConfigDescriptor object
-        """
-        cfg_descriptor = create_descriptor(
-            self._sg_connection,
-            Descriptor.CONFIG,
-            self._base_config_descriptor,
-            fallback_roots=self._bundle_cache_fallback_paths
-        )
-        log.debug("Base config resolved to: %r" % cfg_descriptor)
-        return cfg_descriptor
 
     def _cache_apps(self, tk, do_post_install=False):
         """

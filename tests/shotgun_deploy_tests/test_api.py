@@ -65,10 +65,10 @@ class TestApi(TankTestBase):
         bundle_root = tempfile.gettempdir()
 
         d = shotgun_deploy.create_descriptor(
-                sg,
-                shotgun_deploy.Descriptor.CONFIG,
-                {"type": "app_store", "version": "v0.4.2", "name": "tk-testaltcacheroot"},
-                bundle_root
+            sg,
+            shotgun_deploy.Descriptor.CONFIG,
+            {"type": "app_store", "version": "v0.4.2", "name": "tk-testaltcacheroot2"},
+            bundle_root
         )
 
         # get_path() returns none if path doesn't exists
@@ -78,7 +78,7 @@ class TestApi(TankTestBase):
         app_root_path = os.path.join(
             bundle_root,
             "app_store",
-            "tk-testaltcacheroot",
+            "tk-testaltcacheroot2",
             "v0.4.2")
         self._touch_info_yaml(app_root_path)
         self.assertEqual(d.get_path(), app_root_path)

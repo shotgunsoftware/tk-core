@@ -604,12 +604,15 @@ class PipelineConfiguration(object):
 
         return descriptor_dict
 
-    def _get_descriptor(self, descriptor_type, dict_or_uri):
+    def _get_descriptor(self, descriptor_type, dict_or_uri, latest=False):
         """
         Constructs a descriptor object given a descriptor dictionary.
 
         :param descriptor_type: Descriptor type (APP, ENGINE, etc)
         :param dict_or_uri: Descriptor dict or uri
+        :param latest: Resolve latest version of descriptor. This
+                       typically requires some sort of remote lookup and may error
+                       if the machine is not connected to the Internet.
         :returns: Descriptor object
         """
         sg_connection = shotgun.get_sg_connection()
@@ -626,15 +629,16 @@ class PipelineConfiguration(object):
             descriptor_type,
             descriptor_dict,
             self._bundle_cache_root_override,
-            self._bundle_cache_fallback_paths
+            self._bundle_cache_fallback_paths,
+            latest
         )
 
         return desc
 
     def get_app_descriptor(self, dict_or_uri):
         """
-        Convenience method that returns a descriptor for an app
-        that is associated with this pipeline configuration.
+        Convenience method that returns a descriptor for the app
+        that is associated with the given descriptor.
         
         :param dict_or_uri: Descriptor dictionary or uri
         :returns:           Descriptor object
@@ -643,8 +647,8 @@ class PipelineConfiguration(object):
 
     def get_engine_descriptor(self, dict_or_uri):
         """
-        Convenience method that returns a descriptor for an engine
-        that is associated with this pipeline configuration.
+        Convenience method that returns a descriptor for the engine
+        that is associated with the given descriptor.
         
         :param dict_or_uri: Descriptor dictionary or uri
         :returns:        Descriptor object
@@ -653,13 +657,55 @@ class PipelineConfiguration(object):
 
     def get_framework_descriptor(self, dict_or_uri):
         """
-        Convenience method that returns a descriptor for a framework
-        that is associated with this pipeline configuration.
+        Convenience method that returns a descriptor for the framework
+        that is associated with the given descriptor.
         
         :param dict_or_uri: Descriptor dictionary or uri
         :returns:        Descriptor object
         """
         return self._get_descriptor(Descriptor.FRAMEWORK, dict_or_uri)
+
+    def get_latest_app_descriptor(self, dict_or_uri):
+        """
+        Convenience method that returns the latest descriptor for the
+        given app. The descriptor dictionary or uri does not have to contain
+        any version information. This will be resolved as part of the call.
+        Please note that this call may be slow as it will typically connect
+        to an external source (git, toolkit app store etc) in order to determine
+        which the most recent version is.
+
+        :param dict_or_uri: Descriptor dictionary or uri
+        :returns:           Descriptor object
+        """
+        return self._get_descriptor(Descriptor.APP, dict_or_uri, latest=True)
+
+    def get_latest_engine_descriptor(self, dict_or_uri):
+        """
+        Convenience method that returns the latest descriptor for the
+        given engine. The descriptor dictionary or uri does not have to contain
+        any version information. This will be resolved as part of the call.
+        Please note that this call may be slow as it will typically connect
+        to an external source (git, toolkit app store etc) in order to determine
+        which the most recent version is.
+
+        :param dict_or_uri: Descriptor dictionary or uri
+        :returns:        Descriptor object
+        """
+        return self._get_descriptor(Descriptor.ENGINE, dict_or_uri, latest=True)
+
+    def get_latest_framework_descriptor(self, dict_or_uri):
+        """
+        Convenience method that returns the latest descriptor for the
+        given framework. The descriptor dictionary or uri does not have to contain
+        any version information. This will be resolved as part of the call.
+        Please note that this call may be slow as it will typically connect
+        to an external source (git, toolkit app store etc) in order to determine
+        which the most recent version is.
+
+        :param dict_or_uri: Descriptor dictionary or uri
+        :returns:        Descriptor object
+        """
+        return self._get_descriptor(Descriptor.FRAMEWORK, dict_or_uri, latest=True)
 
 
     ########################################################################################

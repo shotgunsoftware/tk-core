@@ -45,7 +45,8 @@ class ConfigurationResolver(object):
         project_id,
         pipeline_config_name,
         namespace,
-        base_config_descriptor
+        base_config_descriptor,
+        get_latest_config
     ):
         """
         Given a Shotgun project (or None for site mode), return a configuration
@@ -60,6 +61,8 @@ class ConfigurationResolver(object):
         :param namespace: Config namespace to distinguish it from other configs with the
                           same project id and pipeline configuration name.
         :param base_config_descriptor: descriptor dict or string for fallback config.
+        :param get_latest_config: Flag to indicate that latest version of the fallback config
+                                  should be resolved and used.
         :return: Configuration instance
         """
         raise NotImplementedError
@@ -89,7 +92,8 @@ class BaseConfigurationResolver(ConfigurationResolver):
         project_id,
         pipeline_config_name,
         namespace,
-        base_config_descriptor
+        base_config_descriptor,
+        get_latest_config
     ):
         """
         Given a Shotgun project (or None for site mode), return a configuration
@@ -107,6 +111,8 @@ class BaseConfigurationResolver(ConfigurationResolver):
         :param namespace: Config namespace to distinguish it from other configs with the
                           same project id and pipeline configuration name.
         :param base_config_descriptor: descriptor dict or string for fallback config.
+        :param get_latest_config: Flag to indicate that latest version of the fallback config
+                                  should be resolved and used.
         :return: Configuration instance
         """
         log.debug(
@@ -130,7 +136,8 @@ class BaseConfigurationResolver(ConfigurationResolver):
             self._sg_connection,
             Descriptor.CONFIG,
             base_config_descriptor,
-            fallback_roots=self._bundle_cache_fallback_paths
+            fallback_roots=self._bundle_cache_fallback_paths,
+            resolve_latest=get_latest_config
         )
 
         log.debug("Configuration resolved to %r." % cfg_descriptor)
@@ -183,7 +190,8 @@ class DefaultShotgunConfigurationResolver(ConfigurationResolver):
         project_id,
         pipeline_config_name,
         namespace,
-        base_config_descriptor
+        base_config_descriptor,
+        get_latest_config
     ):
         """
         Given a Shotgun project (or None for site mode), return a configuration
@@ -194,6 +202,8 @@ class DefaultShotgunConfigurationResolver(ConfigurationResolver):
         :param namespace: Config namespace to distinguish it from other configs with the
                           same project id and pipeline configuration name.
         :param base_config_descriptor: descriptor dict or string for fallback config.
+        :param get_latest_config: Flag to indicate that latest version of the fallback config
+                          should be resolved and used.
         :return: Configuration instance
         """
 
@@ -222,6 +232,7 @@ class DefaultShotgunConfigurationResolver(ConfigurationResolver):
             config = self._create_base_configuration(
                 project_id,
                 base_config_descriptor,
+                get_latest_config,
                 namespace
             )
 
@@ -326,13 +337,15 @@ class DefaultShotgunConfigurationResolver(ConfigurationResolver):
         # no luck resolving from Shotgun
         return None
 
-    def _create_base_configuration(self, project_id, base_config_descriptor, namespace):
+    def _create_base_configuration(self, project_id, base_config_descriptor, get_latest_config, namespace):
         """
         Helper method that creates a config wrapper object
         from the base configuration descriptor.
 
         :param project_id: Shotgun project id
         :param base_config_descriptor: descriptor dict or string for fallback config.
+        :param get_latest_config: Flag to indicate that latest version of the fallback config
+                          should be resolved and used.
         :param namespace: Config namespace to distinguish it from other configs with the
                           same project id and pipeline configuration name.
         :return: Configuration instance
@@ -348,7 +361,8 @@ class DefaultShotgunConfigurationResolver(ConfigurationResolver):
             self._sg_connection,
             Descriptor.CONFIG,
             base_config_descriptor,
-            fallback_roots=self._bundle_cache_fallback_paths
+            fallback_roots=self._bundle_cache_fallback_paths,
+            resolve_latest=get_latest_config
         )
 
         log.debug("Creating a configuration wrapper based on %r." % cfg_descriptor)

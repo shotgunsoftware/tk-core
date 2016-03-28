@@ -387,15 +387,20 @@ class Configuration(object):
             # we don't have a core descriptor specified. Get latest from app store.
             log.info("Config does not define which core to use. Will use latest.")
             core_uri_or_dict = constants.LATEST_CORE_DESCRIPTOR
+            # resolve latest core
+            use_latest = True
         else:
             # we have an exact core descriptor. Get a descriptor for it
             log.debug("Config needs core %s" % core_uri_or_dict)
+            # when core is specified, it is always a specific version
+            use_latest = False
 
         core_descriptor = create_descriptor(
             self._sg_connection,
             Descriptor.CORE,
             core_uri_or_dict,
-            fallback_roots=self._bundle_cache_fallback_paths
+            fallback_roots=self._bundle_cache_fallback_paths,
+            resolve_latest=use_latest
         )
 
         # make sure we have our core on disk
@@ -807,6 +812,9 @@ class AutomaticConfiguration(Configuration):
 
         # @todo - prime caches (yaml, path cache)
 
+        # create tank executable for this config - based on the default desktop
+        # python interpreter settings
+        self._create_tank_command()
 
 class InstalledConfiguration(Configuration):
     """

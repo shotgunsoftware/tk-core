@@ -96,9 +96,6 @@ UNMANAGED_PIPELINE_CONFIG_NAME = "Unmanaged"
 # the configuration doesn't use templates.
 UNNAMED_PROJECT_NAME = "unnamed"
 
-# descriptor keyword denoting the latest version number
-LATEST_DESCRIPTOR_KEYWORD = "latest"
-
 # default namespace
 DEFAULT_NAMESPACE = "default"
 
@@ -108,7 +105,7 @@ DESCRIPTOR_URI_PATH_PREFIX = "descriptor"
 DESCRIPTOR_URI_SEPARATOR = ":"
 
 # latest core
-LATEST_CORE_DESCRIPTOR = {"type": "app_store", "name": "tk-core", "version": "latest"}
+LATEST_CORE_DESCRIPTOR = {"type": "app_store", "name": "tk-core"}
 
 # default shotgun desktop python installations
 DESKTOP_PYTHON_MAC = "/Applications/Shotgun.app/Contents/Resources/Python/bin/python"
