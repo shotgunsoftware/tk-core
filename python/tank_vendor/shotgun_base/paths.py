@@ -87,7 +87,9 @@ def get_pipeline_config_cache_root(site_url, project_id, pipeline_configuration_
     :param site_url: Shotgun site url string, e.g. 'https://mysite.shotgunstudio.com'
     :param project_id: The shotgun id of the project to store caches for
     :param pipeline_configuration_id: The shotgun pipeline config id to
-                                      store caches for. Can be None.
+                                      store caches for. Can be None to indicate
+                                      a configuration that doesn't have a corresponding
+                                      pipeline configuration entry in Shotgun.
     :returns: The calculated location for the cache root
     """
     if pipeline_configuration_id is None:

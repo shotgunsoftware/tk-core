@@ -20,7 +20,7 @@ from . import Descriptor, create_descriptor
 from . import constants
 from ..shotgun_base import ensure_folder_exists
 from .errors import ShotgunDeployError
-from .configuration import Configuration, create_installed_configuration
+from .configuration import Configuration
 from .resolver import BaseConfigurationResolver
 from .io_descriptor import descriptor_dict_to_uri
 
@@ -45,7 +45,6 @@ class ToolkitManager(object):
         self._pipeline_configuration_name = constants.PRIMARY_PIPELINE_CONFIG_NAME
         self._base_config_descriptor = None
         self._resolve_latest_base_descriptor = False
-        self._namespace = constants.DEFAULT_NAMESPACE
         self._progress_cb = None
 
     def __repr__(self):
@@ -53,40 +52,8 @@ class ToolkitManager(object):
         repr += " User %s\n" % self._sg_user
         repr += " Cache fallback path %s\n" % self._bundle_cache_fallback_paths
         repr += " Config %s\n" % self._pipeline_configuration_name
-        repr += " Namespace: %s\n" % self._namespace
         repr += " Base %s >" % self._base_config_descriptor
         return repr
-
-
-
-    def _get_namespace(self):
-        """
-        Returns the namespace that the manager will bootstrap into.
-        Namespaces make it possible to have more than a single pipeline
-        configuration for a project/pipeline config name combo. For example,
-        you may have primary site configurations for both rv, desktop and maya,
-        each with specific apps and settings that can live alongside each other.
-
-        :returns: namespace as string
-        """
-        return self._namespace
-
-    def _set_namespace(self, namespace):
-        """
-        Specify a namespace to bootstrap into. Namespaces make it possible
-        to have more than a single pipeline configuration for a
-        project/pipeline config name combo. For example, you may have primary
-        site configurations for both rv, desktop and maya, each with specific
-        apps and settings that can live alongside each other.
-
-        :param namespace: name space string, typically one short word,
-                          e.g. 'maya', 'rv', 'desktop'
-        """
-        self._namespace = namespace
-
-    namespace = property(_get_namespace, _set_namespace)
-
-
 
     def _set_pipeline_configuration(self, name):
         """
@@ -107,8 +74,6 @@ class ToolkitManager(object):
         return self._pipeline_configuration_name
 
     pipeline_configuration = property(_get_pipeline_configuration, _set_pipeline_configuration)
-
-
 
     def _get_base_configuration(self):
         """
@@ -132,9 +97,6 @@ class ToolkitManager(object):
 
     base_configuration = property(_get_base_configuration, _set_base_configuration)
 
-
-
-
     def _get_resolve_latest(self):
         """
         Returns whether the bootstrapper will attempt to resolve
@@ -154,10 +116,6 @@ class ToolkitManager(object):
         self._resolve_latest_base_descriptor = status
 
     resolve_latest_base_configuration = property(_get_resolve_latest, _set_resolve_latest)
-
-
-
-
 
     def _set_bundle_cache_fallback_paths(self, paths):
         """
@@ -192,7 +150,6 @@ class ToolkitManager(object):
         _get_bundle_cache_fallback_paths,
         _set_bundle_cache_fallback_paths
     )
-
 
     def set_progress_callback(self, callback):
         """
@@ -234,30 +191,7 @@ class ToolkitManager(object):
         """
         log.debug("bootstrapping into an engine.")
 
-        self._report_progress("Resolving Toolkit Context...")
-        if entity is None:
-            project_id = None
-
-        elif entity.get("type") == "Project":
-            project_id = entity["id"]
-
-        elif "project" in entity and entity["project"].get("type") == "Project":
-            # user passed a project link
-            project_id = entity["project"]["id"]
-
-        else:
-            # resolve from shotgun
-            data = self._sg_connection.find_one(
-                entity["type"],
-                [["id", "is", entity["id"]]],
-                ["project"]
-            )
-
-            if not data or not data.get("project"):
-                raise ShotgunDeployError("Cannot resolve project for %s" % entity)
-            project_id = data["project"]["id"]
-
-        tk = self._bootstrap_sgtk(project_id)
+        tk = self._bootstrap_sgtk(engine_name, entity)
         log.debug("Bootstrapped into tk instance %r" % tk)
 
         if entity is None:
@@ -275,38 +209,39 @@ class ToolkitManager(object):
         log.debug("Launched engine %r" % engine)
         return engine
 
-    def get_configuration_uri(self, project_id=None):
-        """
-        Return the config uri that is associated with the given
-        project. Also takes into account the namespace and
-        pipeline configuration state of the manager instance itself.
-
-        :param project_id: Project to retrieve configuration uri for.
-        :return: toolkit config descriptor uri string
-        """
-        resolver = BaseConfigurationResolver(
-            self._sg_connection,
-            self._bundle_cache_fallback_paths
-        )
-
-        # now request a configuration object from the resolver.
-        # this object represents a configuration that may or may not
-        # exist on disk. We can use the config object to check if the
-        # object needs installation, updating etc.
-        config = resolver.resolve_configuration(
-            project_id,
-            self._pipeline_configuration_name,
-            self._namespace,
-            self._base_config_descriptor,
-            self._resolve_latest_base_descriptor
-        )
-
-        # return the uri associated with this configuration
-        return config.get_descriptor().get_uri()
 
     ####################################################################################
     # future functionality
     #
+
+    # def get_configuration_uri(self, project_id=None):
+    #     """
+    #     Return the config uri that is associated with the given
+    #     project and engine
+    #
+    #     :param project_id: Project to retrieve configuration uri for.
+    #     :return: toolkit config descriptor uri string
+    #     """
+    #     resolver = BaseConfigurationResolver(
+    #         self._sg_connection,
+    #         self._bundle_cache_fallback_paths
+    #     )
+    #
+    #     # now request a configuration object from the resolver.
+    #     # this object represents a configuration that may or may not
+    #     # exist on disk. We can use the config object to check if the
+    #     # object needs installation, updating etc.
+    #     config = resolver.resolve_configuration(
+    #         project_id,
+    #         self._pipeline_configuration_name,
+    #         self._base_config_descriptor,
+    #         self._resolve_latest_base_descriptor
+    #     )
+    #
+    #     # return the uri associated with this configuration
+    #     return config.get_descriptor().get_uri()
+
+
     # def validate(self, project_id=None):
     #     """
     #     Check the validity of the given project against the given
@@ -466,7 +401,6 @@ class ToolkitManager(object):
     #         self._sg_connection,
     #         project_id,
     #         pc_id,
-    #         self._namespace,
     #         self._bundle_cache_fallback_paths,
     #         use_bundle_cache,
     #         win_path,
@@ -507,25 +441,111 @@ class ToolkitManager(object):
     #     log.debug("Base config resolved to: %r" % cfg_descriptor)
     #     return cfg_descriptor
 
+    # def _ensure_pipeline_config_exists(self, project_id):
+    #     """
+    #     Helper method. Creates a pipeline configuration entity if
+    #     one doesn't already exist.
+    #
+    #     :param project_id: Project id to check
+    #     :returns: pipeline configuration id
+    #     """
+    #     # if we are looking at a non-default config,
+    #     # attempt to determine current user so that we can
+    #     # populate the user restrictions field later on
+    #     current_user = None
+    #     if not self._is_primary_config() and self._sg_user.login:
+    #         # the current user object is linked to a person
+    #         current_user = self._sg_connection.find_one(
+    #             "HumanUser",
+    #             [["login", "is", self._sg_user.login]]
+    #         )
+    #         log.debug("Resolved current shotgun user %s to %s" % (self._sg_user, current_user))
+    #
+    #     log.debug(
+    #         "Looking for a pipeline configuration "
+    #         "named '%s' for project %s" % (self._pipeline_configuration_name, project_id)
+    #     )
+    #     pc_data = self._sg_connection.find_one(
+    #         constants.PIPELINE_CONFIGURATION_ENTITY_TYPE,
+    #         [["code", "is", self._pipeline_configuration_name],
+    #          ["project", "is", {"type": "Project", "id": project_id}]],
+    #         ["users"]
+    #     )
+    #     log.debug("Shotgun returned %s" % pc_data)
+    #
+    #     if pc_data is None:
+    #         # pipeline configuration missing. Create a new one
+    #         users = [current_user] if current_user else []
+    #         pc_data = self._sg_connection.create(
+    #             constants.PIPELINE_CONFIGURATION_ENTITY_TYPE,
+    #             {"code": self._pipeline_configuration_name,
+    #              "project": {"type": "Project", "id": project_id},
+    #              "users": users
+    #              }
+    #         )
+    #         log.debug("Created new pipeline config: %s" % pc_data)
+    #
+    #     elif current_user and current_user["id"] not in [x["id"] for x in pc_data["users"]]:
+    #         log.debug("Adding %s to user access list..." % current_user)
+    #         self._sg_connection.update(
+    #             constants.PIPELINE_CONFIGURATION_ENTITY_TYPE,
+    #             pc_data["id"],
+    #             {"users": pc_data["users"] + [current_user]}
+    #         )
+    #
+    #     return pc_data["id"]
+
+    # def _is_primary_config(self):
+    #     """
+    #     Returns true if the pipeline configuration associated with the manager is
+    #     the primary (default) one.
+    #     """
+    #     return self._pipeline_configuration_name == constants.PRIMARY_PIPELINE_CONFIG_NAME
 
 
-    def _bootstrap_sgtk(self, project_id=None):
+    def _bootstrap_sgtk(self, engine_name, entity):
         """
-        Create an sgtk instance for the given project or site.
+        Create an sgtk instance for the given engine and entity.
 
-        If project_id is None, the method will bootstrap into the site
+        If entity is None, the method will bootstrap into the site
         config. This method will attempt to resolve the config according
         to business logic set in the associated resolver class and based
         on this launch a configuration. This may involve downloading new
         apps from the toolkit app store and installing files on disk.
 
-        Please note that the API version of the tk instance may not
-        be the same as the API version that was executed to bootstrap.
+        Please note that the API version of the tk instance that hosts
+        the engine may not be the same as the API version that was
+        executed during the bootstrap.
 
-        :param project_id: Project to bootstrap into, None for site mode
+        :param entity: Shotgun entity to launch engine for
+        :param engine_name: name of engine to launch (e.g. tk-nuke)
         :returns: sgtk instance
         """
         log.debug("Begin bootstrapping sgtk.")
+
+        self._report_progress("Resolving Toolkit Context...")
+        if entity is None:
+            project_id = None
+
+        elif entity.get("type") == "Project":
+            project_id = entity["id"]
+
+        elif "project" in entity and entity["project"].get("type") == "Project":
+            # user passed a project link
+            project_id = entity["project"]["id"]
+
+        else:
+            # resolve from shotgun
+            data = self._sg_connection.find_one(
+                entity["type"],
+                [["id", "is", entity["id"]]],
+                ["project"]
+            )
+
+            if not data or not data.get("project"):
+                raise ShotgunDeployError("Cannot resolve project for %s" % entity)
+            project_id = data["project"]["id"]
+
 
         # get an object to represent the business logic for
         # how a configuration location is being determined
@@ -548,7 +568,7 @@ class ToolkitManager(object):
         config = resolver.resolve_configuration(
             project_id,
             self._pipeline_configuration_name,
-            self._namespace,
+            engine_name,
             self._base_config_descriptor,
             self._resolve_latest_base_descriptor
         )
@@ -600,67 +620,7 @@ class ToolkitManager(object):
         if self._progress_cb:
             self._progress_cb(message, curr_idx, max_idx)
 
-    def _ensure_pipeline_config_exists(self, project_id):
-        """
-        Helper method. Creates a pipeline configuration entity if
-        one doesn't already exist.
 
-        :param project_id: Project id to check
-        :returns: pipeline configuration id
-        """
-        # @todo - in the future, need to add namespace handling here.
-        # if we are looking at a non-default config,
-        # attempt to determine current user so that we can
-        # populate the user restrictions field later on
-        current_user = None
-        if not self._is_primary_config() and self._sg_user.login:
-            # the current user object is linked to a person
-            current_user = self._sg_connection.find_one(
-                "HumanUser",
-                [["login", "is", self._sg_user.login]]
-            )
-            log.debug("Resolved current shotgun user %s to %s" % (self._sg_user, current_user))
-
-        log.debug(
-            "Looking for a pipeline configuration "
-            "named '%s' for project %s" % (self._pipeline_configuration_name, project_id)
-        )
-        pc_data = self._sg_connection.find_one(
-            constants.PIPELINE_CONFIGURATION_ENTITY_TYPE,
-            [["code", "is", self._pipeline_configuration_name],
-             ["project", "is", {"type": "Project", "id": project_id}]],
-            ["users"]
-        )
-        log.debug("Shotgun returned %s" % pc_data)
-
-        if pc_data is None:
-            # pipeline configuration missing. Create a new one
-            users = [current_user] if current_user else []
-            pc_data = self._sg_connection.create(
-                constants.PIPELINE_CONFIGURATION_ENTITY_TYPE,
-                {"code": self._pipeline_configuration_name,
-                 "project": {"type": "Project", "id": project_id},
-                 "users": users
-                 }
-            )
-            log.debug("Created new pipeline config: %s" % pc_data)
-
-        elif current_user and current_user["id"] not in [x["id"] for x in pc_data["users"]]:
-            log.debug("Adding %s to user access list..." % current_user)
-            self._sg_connection.update(
-                constants.PIPELINE_CONFIGURATION_ENTITY_TYPE,
-                pc_data["id"],
-                {"users": pc_data["users"] + [current_user]}
-            )
-
-        return pc_data["id"]
-
-    def _is_primary_config(self):
-        """
-        Returns true if the pipeline configuration associated with the manager is
-        the primary (default) one.
-        """
-        return self._pipeline_configuration_name == constants.PRIMARY_PIPELINE_CONFIG_NAME
 
     def _cache_apps(self, tk, do_post_install=False):
         """

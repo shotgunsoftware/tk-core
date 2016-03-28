@@ -96,9 +96,6 @@ UNMANAGED_PIPELINE_CONFIG_NAME = "Unmanaged"
 # the configuration doesn't use templates.
 UNNAMED_PROJECT_NAME = "unnamed"
 
-# default namespace
-DEFAULT_NAMESPACE = "default"
-
 # descriptor uri separator
 DESCRIPTOR_URI_PATH_SCHEME = "sgtk"
 DESCRIPTOR_URI_PATH_PREFIX = "descriptor"
