@@ -202,7 +202,7 @@ class Configuration(object):
             self._install_core()
 
         except Exception:
-            log.exception("Failed to update configuration. Attempting Rollback.")
+            log.exception("Failed to update configuration. Attempting Rollback. Error Traceback:")
             # step 1 - clear core and config locations
             log.debug("Cleaning out faulty config location...")
             self._move_to_backup()
@@ -299,15 +299,25 @@ class Configuration(object):
         config_path = self._paths[sys.platform]
         configuration_payload = os.path.join(config_path, "config")
 
+        # timestamp for rollback backup folders
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+
         if os.path.exists(configuration_payload):
 
             config_backup_root = os.path.join(config_path, "install", "config.backup")
 
             # make sure we have a backup folder present
-            config_backup_path = os.path.join(
-                config_backup_root,
-                datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-            )
+            # sometimes, execution and rollback is so quick that several backup folders
+            # are created in a single second. In that case, append a suffix
+            config_backup_path = os.path.join(config_backup_root, timestamp)
+            counter = 0
+            while os.path.exists(config_backup_path):
+                # that backup path already exists. Try another one
+                counter += 1
+                config_backup_path = os.path.join(config_backup_root, "%s.%d" % (timestamp, counter))
+
+            # now that we have found a spot for our backup, make sure folder exists
+            # and then move the existing config *into* this folder.
             ensure_folder_exists(config_backup_path)
 
             log.debug("Moving config %s -> %s" % (configuration_payload, config_backup_path))
@@ -325,10 +335,14 @@ class Configuration(object):
             ensure_folder_exists(core_backup_root)
 
             # make sure we have a backup folder present
-            core_backup_path = os.path.join(
-                core_backup_root,
-                datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-            )
+            # sometimes, execution and rollback is so quick that several backup folders
+            # are created in a single second. In that case, append a suffix
+            core_backup_path = os.path.join(core_backup_root, timestamp)
+            counter = 0
+            while os.path.exists(core_backup_path):
+                # that backup path already exists. Try another one
+                counter += 1
+                core_backup_path = os.path.join(core_backup_root, "%s.%d" % (timestamp, counter))
 
             log.debug("Moving core %s -> %s" % (core_payload, core_backup_path))
             os.rename(core_payload, core_backup_path)
