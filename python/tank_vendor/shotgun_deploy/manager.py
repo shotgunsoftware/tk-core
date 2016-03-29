@@ -10,6 +10,7 @@
 
 from . import util
 from . import constants
+from ..shotgun_base import initialize_base_file_logger
 from .errors import ShotgunDeployError
 from .configuration import Configuration
 from .resolver import BaseConfigurationResolver
@@ -179,6 +180,10 @@ class ToolkitManager(object):
         :param engine_name: name of engine to launch (e.g. tk-nuke)
         :returns: engine instance
         """
+        # begin writing log to disk. Base the log file name
+        # on the current engine we are launching into
+        initialize_base_file_logger(engine_name)
+
         log.debug("bootstrapping into an engine.")
 
         tk = self._bootstrap_sgtk(engine_name, entity)

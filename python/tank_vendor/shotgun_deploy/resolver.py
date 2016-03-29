@@ -157,7 +157,7 @@ class BaseConfigurationResolver(ConfigurationResolver):
             cache_root,
             "cfg",
             "base",
-            util.create_valid_filename(engine_name)
+            shotgun_base.create_valid_filename(engine_name)
         )
         shotgun_base.ensure_folder_exists(config_cache_root)
 
