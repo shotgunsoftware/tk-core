@@ -103,12 +103,6 @@ class IODescriptorManual(IODescriptorBase):
         """
         # do nothing!
 
-    def is_immutable(self):
-        """
-        Returns true if this items content never changes
-        """
-        return False
-
     def get_latest_version(self, constraint_pattern=None):
         """
         Returns a descriptor object that represents the latest version.
