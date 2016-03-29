@@ -16,7 +16,7 @@ from .base import IODescriptorBase
 from .. import util
 from ..zipfilehelper import unzip_file
 from ..errors import ShotgunDeployError
-from ...shotgun_base import ensure_folder_exists, safe_delete_file
+from ...shotgun_base import ensure_folder_exists, safe_delete_file, create_valid_filename
 
 log = util.get_shotgun_deploy_logger()
 
@@ -110,7 +110,7 @@ class IODescriptorShotgunEntity(IODescriptorBase):
             name = "p%s_%s" % (self._project_id, self._name)
         else:
             name = self._name
-        return util.create_valid_filename(name)
+        return create_valid_filename(name)
 
     def get_version(self):
         """
