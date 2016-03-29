@@ -15,7 +15,13 @@ from . import paths
 from .io_descriptor import create_io_descriptor
 from .errors import ShotgunDeployError
 
-def create_descriptor(sg_connection, descriptor_type, dict_or_uri, bundle_cache_root_override=None, fallback_roots=None):
+def create_descriptor(
+        sg_connection,
+        descriptor_type,
+        dict_or_uri,
+        bundle_cache_root_override=None,
+        fallback_roots=None,
+        resolve_latest=False):
     """
     Factory method. Use this when creating descriptor objects.
 
@@ -23,11 +29,17 @@ def create_descriptor(sg_connection, descriptor_type, dict_or_uri, bundle_cache_
     :param descriptor_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK
     :param dict_or_uri: A std descriptor dictionary dictionary or string
     :param bundle_cache_root_override: Optional override for root path to where
-                                       downloaded apps are cached.
+                                       downloaded apps are cached. If not specified,
+                                       the global bundle cache location will be used.
     :param fallback_roots: Optional List of immutable fallback cache locations where
                            apps will be searched for. Note that when descriptors
                            download new content, it always ends up in the
                            bundle_cache_root.
+    :param resolve_latest: If true, the latest version will be determined and returned.
+                           If set to True, no version information need to be supplied with
+                           the descriptor dictionary/uri. Please note that setting this flag
+                           to true will typically affect performance - an external connection
+                           is often required in order to establish what the latest version is.
     :returns: Descriptor object
     """
     from .descriptor_bundle import AppDescriptor, EngineDescriptor, FrameworkDescriptor
@@ -45,7 +57,8 @@ def create_descriptor(sg_connection, descriptor_type, dict_or_uri, bundle_cache_
         descriptor_type,
         dict_or_uri,
         bundle_cache_root_override,
-        fallback_roots
+        fallback_roots,
+        resolve_latest
     )
 
     # now create a high level descriptor and bind that with the low level descriptor

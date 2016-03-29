@@ -276,7 +276,7 @@ class IODescriptorBase(object):
 
         Example:
 
-        - uri:           sgtk:location:app_store?name=hello&version=v123
+        - uri:           sgtk:descriptor:app_store?name=hello&version=v123
         - expected_type: app_store
         - returns:   {'type': 'app_store',
                       'name': 'hello',
@@ -297,7 +297,7 @@ class IODescriptorBase(object):
             raise ShotgunDeployError("Invalid uri '%s' - must begin with 'sgtk'" % uri)
 
         split_path = parsed_uri.path.split(constants.DESCRIPTOR_URI_SEPARATOR)
-        # e.g. 'location:app_store' -> ('descriptor', 'app_store')
+        # e.g. 'descriptor:app_store' -> ('descriptor', 'app_store')
         if len(split_path) != 2 or split_path[0] != constants.DESCRIPTOR_URI_PATH_PREFIX:
             raise ShotgunDeployError("Invalid uri '%s' - must begin with sgtk:descriptor" % uri)
 

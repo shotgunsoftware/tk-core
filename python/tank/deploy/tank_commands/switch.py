@@ -144,10 +144,8 @@ class SwitchAppAction(Action):
         log.info("")
         
         if mode == "app_store":
-            new_descriptor = self.tk.pipeline_configuration.get_app_descriptor(
-                {"type": "app_store",
-                 "name": descriptor.get_system_name(),
-                 "version": "latest"}
+            new_descriptor = self.tk.pipeline_configuration.get_latest_app_descriptor(
+                {"type": "app_store", "name": descriptor.get_system_name()}
             )
         
         elif mode == "dev":
@@ -161,8 +159,8 @@ class SwitchAppAction(Action):
 
         elif mode == "git":
             # run descriptor factory method
-            new_descriptor = self.tk.pipeline_configuration.get_app_descriptor(
-                {"type": "git", "path": path, "version": "latest"}
+            new_descriptor = self.tk.pipeline_configuration.get_latest_app_descriptor(
+                {"type": "git", "path": path}
             )
         
         else:

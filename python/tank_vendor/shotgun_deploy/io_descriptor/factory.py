@@ -18,7 +18,13 @@ log = util.get_shotgun_deploy_logger()
 g_cached_instances = {}
 
 
-def create_io_descriptor(sg, descriptor_type, dict_or_uri, bundle_cache_root, fallback_roots):
+def create_io_descriptor(
+        sg,
+        descriptor_type,
+        dict_or_uri,
+        bundle_cache_root,
+        fallback_roots,
+        resolve_latest):
     """
     Factory method. Use this method to construct all DescriptorIO instances.
 
@@ -35,6 +41,11 @@ def create_io_descriptor(sg, descriptor_type, dict_or_uri, bundle_cache_root, fa
                            apps will be searched for. Note that when descriptors
                            download new content, it always ends up in the
                            bundle_cache_root.
+    :param resolve_latest: If true, the latest version will be determined and returned.
+                           If set to True, no version information need to be supplied with
+                           the descriptor dictionary/uri. Please note that setting this flag
+                           to true will typically affect performance - an external connection
+                           is often required in order to establish what the latest version is.
     :returns: Descriptor object
     """
     from .base import IODescriptorBase
@@ -68,9 +79,16 @@ def create_io_descriptor(sg, descriptor_type, dict_or_uri, bundle_cache_root, fa
         # cache hit
         return g_cached_instances[descriptor_uri]
 
-
     # at this point we didn't have a cache hit,
     # so construct the object manually
+
+    # check latest versions
+    descriptors_using_version = ["app_store", "shotgun", "manual", "git", "git_branch"]
+    if resolve_latest and descriptor_dict.get("type") in descriptors_using_version:
+        # for the case of latest version, make sure we attach a version
+        # key as part of the descriptor dictionary so that the descriptor
+        # is valid
+        descriptor_dict["version"] = "latest"
 
     # factory logic
     if descriptor_dict.get("type") == "app_store":
@@ -100,8 +118,11 @@ def create_io_descriptor(sg, descriptor_type, dict_or_uri, bundle_cache_root, fa
     # specify where to go look for caches
     descriptor.set_cache_roots(bundle_cache_root, fallback_roots)
 
-    if descriptor_dict.get("version") == constants.LATEST_DESCRIPTOR_KEYWORD:
-        log.debug("Latest keyword detected. Searching for latest version...")
+    if resolve_latest:
+        #@todo - in the future, attempt to get "remote" latest first
+        #        and if that fails, fall back on the latest item
+        #        available in the local cache.
+        log.debug("Searching for latest version...")
         descriptor = descriptor.get_latest_version()
         log.debug("Resolved latest to be %r" % descriptor)
 

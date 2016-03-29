@@ -17,8 +17,9 @@ import re
 import sys
 
 from . import constants
-from ..errors import TankError
+from ..errors import TankError, TankNoDefaultValueError
 from ..template import TemplateString
+from .bundle import resolve_default_value
 
 def validate_schema(app_or_engine_display_name, schema):
     """
@@ -285,9 +286,17 @@ class _SchemaValidator:
         data_type = schema.get("type")
         self.__validate_schema_type(settings_key, data_type)
 
-        if "default_value" in schema:
+        # Get a list of all keys that start with the default value key string.
+        # Some types, like hooks, allow for engine specific default values such
+        # as "default_value_tk-maya". Validate each of these key's values
+        # against the setting's data type.
+        default_value_keys = [k for k in schema
+            if k.startswith(constants.TANK_SCHEMA_DEFAULT_VALUE_KEY)]
+
+        for default_value_key in default_value_keys:
+
             # validate the default value:
-            default_value = schema["default_value"]
+            default_value = schema[default_value_key]
 
             # handle template setting with default_value == null            
             if data_type == 'template' and default_value is None and schema.get('allows_empty', False):
@@ -295,9 +304,12 @@ class _SchemaValidator:
                 return
 
             if not _validate_expected_data_type(data_type, default_value):
-                params = (settings_key, 
-                          self._display_name, 
-                          type(default_value).__name__, data_type)
+                params = (
+                    settings_key,
+                    self._display_name,
+                    type(default_value).__name__,
+                    data_type
+                )
                 err_msg = "Invalid type for default value in schema '%s' for '%s' - found '%s', expected '%s'" % params
                 raise TankError(err_msg)
 
@@ -379,16 +391,39 @@ class _SettingsValidator:
         # first sanity check that the schema is correct
         validate_schema(self._display_name, self._schema)
         
-        # Ensure that all required keys are in the settings and that the
-        # values are appropriate.
+        # Ensure that all keys are in the settings or have a default value in
+        # the manifest. Also make sure values are appropriate.
         for settings_key in self._schema:
             value_schema = self._schema.get(settings_key, {})
-            
-            # make sure the required key exists in the environment settings
-            if settings_key not in settings:
-                raise TankError("Missing required key '%s' in settings!" % settings_key)
-            
-            self.__validate_settings_value(settings_key, value_schema, settings[settings_key])
+
+            if settings_key in settings:
+                # value exists in the settings. use it.
+                settings_value = settings[settings_key]
+            else:
+                # Use the fallback default with an unlikely to be used value to
+                # detect cases where there is no default value in the schema.
+                try:
+                    settings_value = resolve_default_value(value_schema,
+                        raise_if_missing=True)
+                except TankNoDefaultValueError:
+                    # could not identify a default value. that may be because
+                    # the default is engine-specific and there is no regular
+                    # "default_value". See if there are any engine-specific
+                    # keys. If so, continue with the assumption that one of them
+                    # is the right one. The default values have already been
+                    # validated against the type. Hopefully this is sufficient!
+                    default_value_keys = [k for k in value_schema
+                        if k.startswith(constants.TANK_SCHEMA_DEFAULT_VALUE_KEY)]
+                    if default_value_keys:
+                        continue
+                    else:
+                        raise TankError(
+                            "Could not determine value for key '%s' in "
+                            "settings! No specified value and no default value."
+                            % (settings_key,)
+                        )
+
+            self.__validate_settings_value(settings_key, value_schema, settings_value)
     
     def validate_setting(self, setting_name, setting_value):
         # first sanity check that the schema is correct
@@ -545,14 +580,27 @@ class _SettingsValidator:
         Validate that the value for a setting of type hook corresponds to a file in the hooks
         directory.
         """
-        
+
+        if constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN in hook_name:
+            # the hook name is engine-specific. see if there is an engine
+            # currently. If so, validate it. If not, then there's not much
+            # we can do.
+            from .engine import current_engine
+            if current_engine():
+                hook_name = hook_name.replace(
+                    constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN,
+                    current_engine().name
+                )
+            else:
+                return
+
         hooks_folder = self._tank_api.pipeline_configuration.get_hooks_location()
-        
+
         # if setting is default, assume everything is fine
         if hook_name == constants.TANK_BUNDLE_DEFAULT_HOOK_SETTING:
             # assume that each app contains its correct hooks
             return
-        
+
         elif hook_name.startswith("{self}"):
             # assume that each app contains its correct hooks
             return
@@ -561,6 +609,19 @@ class _SettingsValidator:
             # config hook 
             path = hook_name.replace("{config}", hooks_folder)
             hook_path = path.replace("/", os.path.sep)
+
+        elif hook_name.startswith("{engine}"):
+            # engine hook. see if there is a current engine we can use to
+            # validate against. there should be an engine, but in the case
+            # where validation is being run outside of or before engine
+            # startup, continue and assume the hook exists similar to app
+            # hooks.
+            from .engine import current_engine
+            if current_engine():
+                path = os.path.join(current_engine().disk_location, "hooks")
+                hook_path = path.replace("/", os.path.sep)
+            else:
+                return
         
         elif hook_name.startswith("{$") and "}" in hook_name:
             # environment variable: {$HOOK_PATH}/path/to/foo.py

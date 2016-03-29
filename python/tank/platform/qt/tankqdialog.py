@@ -322,7 +322,7 @@ class TankQDialog(TankDialogBase):
             else:
                 # enumerate configuration items            
                 for setting, params in self._bundle.descriptor.get_configuration_schema().items():        
-                    value = self._bundle.settings.get(setting)
+                    value = self._bundle.get_setting(setting, None)
                     self._add_settings_item(setting, params, value)
 
         ########################################################################################

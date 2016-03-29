@@ -19,8 +19,9 @@ import sys
 import imp
 import uuid
 from .. import hook
-from ..errors import TankError, TankContextChangeNotSupportedError
+from ..errors import TankError, TankContextChangeNotSupportedError, TankNoDefaultValueError
 from . import constants
+from .import_stack import ImportStack
 
 class TankBundle(object):
     """
@@ -81,7 +82,7 @@ class TankBundle(object):
         :param key: setting name
         :param default: default value to return
         """
-        return self.__resolve_setting_value(key, other_settings.get(key, default))
+        return self.__resolve_setting_value(other_settings, key, default)
 
     def get_template_from(self, other_settings, key):
         """
@@ -320,10 +321,9 @@ class TankBundle(object):
         For more information, see the API documentation.
         """
         # local import to avoid cycles
-        from . import framework
-        
+
         # first, set the module we are currently processing
-        framework.CURRENT_BUNDLE_DOING_IMPORT.append(self)
+        ImportStack.push_current_bundle(self)
         
         try:
         
@@ -350,7 +350,7 @@ class TankBundle(object):
         
         finally:
             # no longer processing this one
-            framework.CURRENT_BUNDLE_DOING_IMPORT.pop()
+            ImportStack.pop_current_bundle()
         
         return sys.modules[mod_name]
 
@@ -362,7 +362,7 @@ class TankBundle(object):
         :param key: config name
         :param default: default value to return
         """
-        return self.__resolve_setting_value(key, self.__settings.get(key, default))
+        return self.__resolve_setting_value(self.__settings, key, default)
             
     def get_template(self, key):
         """
@@ -439,6 +439,7 @@ class TankBundle(object):
         - hook_expression: {$HOOK_PATH}/path/to/foo.py  -- expression based around an environment variable.
         - hook_expression: {self}/path/to/foo.py -- looks in the hooks folder in the local app, engine of framework.
         - hook_expression: {config}/path/to/foo.py -- Looks in the hooks folder in the project config.
+        - hook_expression: {engine}/path/to/foo.py -- looks in the hooks folder of the current engine.
         - hook_expression: {tk-framework-perforce_v1.x.x}/path/to/foo.py -- looks in the hooks folder of a
           framework instance that exists in the current environment. Basically, each entry inside the 
           frameworks section in the current environment can be specified here - all these entries are 
@@ -529,43 +530,38 @@ class TankBundle(object):
             raise TankError("%s config setting %s: Configuration value cannot be None!" % (self, settings_name))
         
         path = None
+
+        # make sure to replace the `{engine_name}` token if it exists.
+        if constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN in hook_expression:
+            engine_name = self._get_engine_name()
+            if not engine_name:
+                raise TankError(
+                    "No engine could be determined for hook expression '%s'. "
+                    "The hook could not be resolved." % (hook_expression,))
+            else:
+                hook_expression = hook_expression.replace(
+                    constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN,
+                    engine_name,
+                )
         
-        # first the default case
+        # first the legacy, old-style hooks case
         if hook_expression == constants.TANK_BUNDLE_DEFAULT_HOOK_SETTING:
             # hook settings points to the default one.
             # find the name of the hook from the manifest
+
             manifest = self.__descriptor.get_configuration_schema()
-            #
+            engine_name = self._get_engine_name()
+
             # Entries are on the following form
             #            
             # hook_publish_file:
             #    type: hook
             #    description: Called when a file is published, e.g. copied from a work area to a publish area.
-            #    parameters: [source_path, target_path]
             #    default_value: maya_publish_file
             #
-            default_hook_name = manifest.get(settings_name).get("default_value", "undefined")
-            
-            # special case - if the manifest default value contains the special token
-            # {engine_name}, replace this with the name of the associated engine.
-            # note that this bundle base class level has no notion of what an engine or app is
-            # so we basically do this duck-type style, basically see if there is an engine
-            # attribute and if so, attempt the replacement:
-            engine_name = None
-            resolved_hook_name = default_hook_name
-            if constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN in default_hook_name:
-                try:
-                    # note - this technically violates the generic nature of the bundle
-                    # base class implementation (because the engine member is not defined in bundle
-                    # but in App and Framework but NOT in the Engine class) - an engine trying to define
-                    # a hook using the {engine_name} construct will therefore get an error.
-                    engine_name = self.engine.name
-                except:
-                    raise TankError("%s: Failed to find the associated engine "
-                                    "when trying to access hook %s" % (self, hook_expression))
-                
-                resolved_hook_name = default_hook_name.replace(constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN, engine_name)
-                
+            resolved_hook_name = resolve_default_value(
+                manifest.get(settings_name), engine_name=engine_name)
+
             # get the full path for the resolved hook name:
             if resolved_hook_name.startswith("{self}"):
                 # new format hook: 
@@ -577,7 +573,7 @@ class TankBundle(object):
                 # old style hook: 
                 #  default_value: 'my_hook'
                 path = os.path.join(self.disk_location, "hooks", "%s.py" % resolved_hook_name)
-            
+
             # if the hook uses the engine name then output a more useful error message if a hook for 
             # the engine can't be found.
             if engine_name and not os.path.exists(path):
@@ -586,7 +582,7 @@ class TankBundle(object):
                                 "hook setup (e.g '%s') but no hook '%s' has been provided with the app. "
                                 "In order for this app to work with engine %s, you need to provide a "
                                 "custom hook implementation. Please contact support for more "
-                                "information" % (self, settings_name, default_hook_name, path, engine_name))                
+                                "information" % (self, settings_name, resolved_hook_name, path, engine_name))
             
         elif hook_expression.startswith("{self}"):
             # bundle local reference
@@ -598,6 +594,21 @@ class TankBundle(object):
             # config hook 
             hooks_folder = self.tank.pipeline_configuration.get_hooks_location()
             path = hook_expression.replace("{config}", hooks_folder)
+            path = path.replace("/", os.path.sep)
+
+        elif hook_expression.startswith("{engine}"):
+            # look for the hook in the currently running engine
+            try:
+                engine = self.engine
+            except AttributeError:
+                raise TankError(
+                    "%s config setting %s: Could not determine the current "
+                    "engine. Unable to resolve hook path for: '%s'" %
+                    (self, settings_name, hook_expression)
+                )
+
+            hooks_folder = os.path.join(engine.disk_location, "hooks")
+            path = hook_expression.replace("{engine}", hooks_folder)
             path = path.replace("/", os.path.sep)
         
         elif hook_expression.startswith("{$") and "}" in hook_expression:
@@ -666,6 +677,7 @@ class TankBundle(object):
         - hook_setting: {$HOOK_PATH}/path/to/foo.py  -- environment variable.
         - hook_setting: {self}/path/to/foo.py   -- looks in the hooks folder in the local bundle
         - hook_setting: {config}/path/to/foo.py -- looks in the hooks folder in the config
+        - hook_setting: {engine}/path/to/foo.py -- looks in the hooks folder of the current engine.
         - hook_setting: {tk-framework-perforce_v1.x.x}/path/to/foo.py -- looks in the hooks folder of a
           framework instance that exists in the current environment. Basically, each entry inside the 
           frameworks section in the current environment can be specified here - all these entries are 
@@ -682,7 +694,7 @@ class TankBundle(object):
         """
         # split up the config value into distinct items
         unresolved_hook_paths = hook_expression.split(":")
-        
+
         # first of all, see if we should add a base class hook to derive from:
         # 
         # Basically, any overridden hook implicitly derives from the default hook.
@@ -705,24 +717,14 @@ class TankBundle(object):
             default_value = None
             
             if settings_name:
-                default_value = manifest.get(settings_name).get("default_value")
-            
+                default_value = resolve_default_value(
+                    manifest.get(settings_name),
+                    engine_name=self._get_engine_name(),
+            )
+
             if default_value: # possible not to have a default value!
                 
-                if constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN in default_value:
-                    try:
-                        # note - this technically violates the generic nature of the bundle
-                        # base class implementation (because the engine member is not defined in bundle
-                        # but in App and Framework but NOT in the Engine class) - an engine trying to define
-                        # a hook using the {engine_name} construct will therefore get an error.
-                        engine_name = self.engine.name
-                    except:
-                        raise TankError("%s: Failed to find the associated engine "
-                                        "when trying to access hook %s" % (self, hook_expression))
-                    
-                    default_value = default_value.replace(constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN, engine_name)
-            
-                # expand the default value to be referenced from {self} and with the .py suffix 
+                # expand the default value to be referenced from {self} and with the .py suffix
                 # for backwards compatibility with the old syntax where the default value could
                 # just be 'hook_name' with implicit '{self}' and no suffix!
                 if not default_value.startswith("{self}"):
@@ -738,10 +740,10 @@ class TankBundle(object):
                 if os.path.exists(full_path):
                     # add to inheritance path
                     unresolved_hook_paths.insert(0, default_value)
-        
+
         # resolve paths into actual file paths
         resolved_hook_paths = [self.__resolve_hook_path(settings_name, x) for x in unresolved_hook_paths]
-                
+
         ret_value = hook.execute_hook_method(resolved_hook_paths, self, method_name, **kwargs)
         
         return ret_value
@@ -804,28 +806,156 @@ class TankBundle(object):
         
         return processed_val
         
-    def __resolve_setting_value(self, key, value):
+    def __resolve_setting_value(self, settings, key, default):
         """
-        Resolve a setting value.  Exposed to allow values
-        to be resolved for settings derived outside of the 
-        app.
-        
-        :param key:   setting name
-        :param value: setting value
+        Resolve a setting value.  Exposed to allow values to be resolved for
+        settings derived outside of the app.
+
+        :param settings: the settings dictionary source
+        :param key: setting name
+        :param default: a default value to use for the setting
         """
-        if value is None:
-            return value
-        
-        # try to get the type for the setting
-        # (may fail if the key does not exist in the schema,
-        # which is an old use case we need to support now...)
-        try:
-            schema = self.__descriptor.get_configuration_schema().get(key)
-        except:
-            schema = None
-        
-        if schema:
-            # post process against schema
+
+        # The post processing code requires the schema to introspect the
+        # setting's types, defaults, etc. An old use case exists whereby the key
+        # does not exist in the config schema so we need to account for that.
+        schema = self.__descriptor.get_configuration_schema().get(key, None)
+
+        # Get the value for the supplied key
+        if key in settings:
+            # Value provided by the settings
+            value = settings[key]
+        elif schema:
+            # Resolve a default value from the schema. This checks various
+            # legacy default value forms in the schema keys.
+            value = resolve_default_value(schema, default,
+                self._get_engine_name())
+        else:
+            # Nothing in the settings, no schema, fallback to the supplied
+            # default value
+            value = default
+
+        # We have a value of some kind and a schema. Allow the post
+        # processing code to further resolve the value.
+        if value and schema:
             value = self.__post_process_settings_r(key, value, schema)
-            
+
         return value
+
+    def _get_engine_name(self):
+        """Returns the bundle's engine name if available. None otherwise.
+
+        Convenience method to avoid try/except everywhere.
+
+        :return: The engine name or None
+        """
+
+        # note - this technically violates the generic nature of the bundle
+        # base class implementation because the engine member is not defined
+        # in the bundle base class (only in App and Framework, not Engine) - an
+        # engine trying to define a hook using the {engine_name} construct will
+        # therefore get an error.
+        try:
+            engine_name = self.engine.name
+        except:
+            engine_name = None
+
+        return engine_name
+
+def resolve_default_value(schema, default=None, engine_name=None,
+    raise_if_missing=False):
+    """
+    Extract a default value from the supplied schema.
+
+    Fall back on the supplied default value if no default could be
+    determined from the schema.
+
+    :param schema: The schema for the setting default to resolve
+    :param default: Optional fallback default value.
+    :param engine_name: Optional name of the current engine if there is one.
+    :param raise_if_missing: If True, raise TankNoDefaultValueError if no
+        default value is found.
+    :return: The resolved default value
+    """
+
+    default_missing = False
+
+    # Engine-specific default value keys are allowed (ex:
+    # "default_value_tk-maya"). If an engine name was supplied,
+    # build the corresponding engine-specific default value key.
+    engine_default_key = None
+    if engine_name:
+        engine_default_key = "%s_%s" % (
+            constants.TANK_SCHEMA_DEFAULT_VALUE_KEY,
+            engine_name
+        )
+
+    # Now look for a default value to use.
+    if engine_default_key and engine_default_key in schema:
+        # An engine specific key exists, use it.
+        value = schema[engine_default_key]
+    elif constants.TANK_SCHEMA_DEFAULT_VALUE_KEY in schema:
+        # The standard default value key
+        value = schema[constants.TANK_SCHEMA_DEFAULT_VALUE_KEY]
+    else:
+        # No default value found, fall back on the supplied default.
+        default_missing = True
+        value = default
+
+    # ---- type specific checks
+
+    setting_type = schema.get("type")
+
+    # special case handling for list params - check if
+    # allows_empty == True, in that case set default value to []
+    if (setting_type == "list" and value is None and schema.get("allows_empty")):
+        value = []
+
+    # special case handling for dict params - check if
+    # allows_empty == True, in that case set default value to {}
+    if (setting_type == "dict" and value is None and schema.get("allows_empty")):
+        value = {}
+
+    if setting_type == "hook":
+        value = _resolve_default_hook_value(value, engine_name)
+
+    if value is None and default_missing and raise_if_missing:
+        # calling code requested an exception if no default value exists.
+        # the value may have been overridden by one of the special cases above,
+        # so only raise if the value is None.
+        raise TankNoDefaultValueError("No default value found.")
+
+    return value
+
+
+def _resolve_default_hook_value(value, engine_name=None):
+    """
+    Given a hook value, evaluate any special keys or legacy values.
+
+    :param value: The unresolved default value for the hook
+    :param engine_name: The name of the engine for engine-specific hook values
+    :return: The resolved hook default value.
+
+    """
+
+    if not value:
+        return value
+
+    # Replace the engine reference token if it exists and there is an engine.
+    # In some instances, such as during engine startup, as apps are being
+    # validated, the engine instance name may not be available. This might be ok
+    # since hooks are actually evaluated just before they are executed. We'll
+    # simply return the value with the engine name token intact.
+    if engine_name and constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN in value:
+        value = value.replace(
+            constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN, engine_name)
+
+    if not value.startswith("{"):
+        # This is an old-style hook. In order to maintain backward
+        #  compatibility, return the value in the new style.
+        value = "{self}/%s.py" % (value,)
+
+    # the remaining tokens ({self}, {config}, {tk-framework-...}) will be
+    # resolved at runtime just before the hook is executed.
+    return value
+
