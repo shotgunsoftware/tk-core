@@ -141,13 +141,23 @@ class IODescriptorGitBranch(IODescriptorGit):
         target = self._get_cache_paths()[0]
         self._clone_into(target)
 
-    def copy(self, target_path):
+    def copy(self, target_path, connected=False):
         """
         Copy the contents of the descriptor to an external location
 
-        :param target_path: target path
+        :param target_path: target path to copy the descriptor to.
+        :param connected: For descriptor types that supports it, attempt
+                          to create a 'connected' copy that has a relationship
+                          with the descriptor. This is typically useful for SCMs
+                          such as git, where rather than copying the content in
+                          its raw form, you clone the repository, thereby creating
+                          a setup where changes can be made and pushed back to the
+                          connected server side repository.
         """
-        self._clone_into(target_path)
+        if connected:
+            self._clone_into(target_path)
+        else:
+            super(IODescriptorGitBranch, self).copy(target_path, connected)
 
     def get_latest_version(self, constraint_pattern=None):
         """

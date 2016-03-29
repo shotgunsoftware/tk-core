@@ -256,24 +256,34 @@ class IODescriptorGitTag(IODescriptorGit):
         # clear temp file
         safe_delete_file(zip_tmp)
 
-    def copy(self, target_path):
+    def copy(self, target_path, connected=False):
         """
         Copy the contents of the descriptor to an external location
 
-        :param target_path: target path
+        :param target_path: target path to copy the descriptor to.
+        :param connected: For descriptor types that supports it, attempt
+                          to create a 'connected' copy that has a relationship
+                          with the descriptor. This is typically useful for SCMs
+                          such as git, where rather than copying the content in
+                          its raw form, you clone the repository, thereby creating
+                          a setup where changes can be made and pushed back to the
+                          connected server side repository.
         """
-        # git repos are cloned into place to retain their
-        # repository status
-        log.debug("Copying %r -> %s" % (self, target_path))
-        # now clone and archive
-        cwd = os.getcwd()
-        try:
-            # clone the repo
-            self._clone_repo(target_path)
-            os.chdir(target_path)
-            execute_git_command("checkout %s -q" % self._version)
-        finally:
-            os.chdir(cwd)
+        if connected:
+            # git repos are cloned into place to retain their
+            # repository status
+            log.debug("Copying %r -> %s" % (self, target_path))
+            # now clone and archive
+            cwd = os.getcwd()
+            try:
+                # clone the repo
+                self._clone_repo(target_path)
+                os.chdir(target_path)
+                execute_git_command("checkout %s -q" % self._version)
+            finally:
+                os.chdir(cwd)
+        else:
+            super(IODescriptorGitTag, self).copy(target_path, connected)
 
     def get_latest_version(self, constraint_pattern=None):
         """
