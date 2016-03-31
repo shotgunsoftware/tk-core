@@ -12,13 +12,12 @@
 *******************************************************************************
 * DEPRECATION WARNING!                                                        *
 *******************************************************************************
-This hook should not be used if you haven't already implemented it in your 
-pipeline configuration. Support for it is minimal and it will likely be removed 
-in a future release.
+This hook should not be used if you aren't already using it.  It probably 
+doesn't do what you think it does and it will likely be removed in a future 
+release.
 
-If you are currently using this hook in your studio, please contact 
-support@shotgunsoftware.com so we can discuss how to migrate your workflow to 
-one that doesn't use this hook.
+Email support@shotgunsoftware.com if you have any questions about how to 
+migrate away from this hook.
 *******************************************************************************
 
 Hook which provides advanced customization of context creation.
