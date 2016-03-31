@@ -9,6 +9,17 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
+*******************************************************************************
+* DEPRECATION WARNING!                                                        *
+*******************************************************************************
+This hook should not be used if you aren't already using it.  It probably 
+doesn't do what you think it does and it will likely be removed in a future 
+release.
+
+Email support@shotgunsoftware.com if you have any questions about how to 
+migrate away from this hook.
+*******************************************************************************
+
 Hook which provides advanced customization of context creation.
 Returns a dict with two keys:
 

@@ -92,11 +92,14 @@ class CoreUpgradeAction(Action):
         log.info("is up to date.")
         log.info("")
         log.info("")
-        log.info("Please note that when you upgrade the core API, you typically affect "
-                 "more than one project. If you want to test a Core API upgrade in isolation "
-                 "prior to rolling it out to multiple projects, we recommend creating a "
-                 "special *localized* pipeline configuration. For more information about this, please "
-                 "see the Toolkit documentation.")
+        log.info("Please note that if this is a shared Toolkit Core used by more than one project, "
+                 "this will affect all of the projects that use it. If you want to test a Core API "
+                 "upgrade in isolation, prior to rolling it out to multiple projects, we recommend "
+                 "creating a special *localized* pipeline configuration.")
+        log.info("")
+        log.info("For more information, please see the Toolkit documentation:")
+        log.info("https://support.shotgunsoftware.com/entries/96141707")
+        log.info("https://support.shotgunsoftware.com/entries/96142347")
         log.info("")
         log.info("")    
         
@@ -131,8 +134,8 @@ class CoreUpgradeAction(Action):
             log.info("Detailed Release Notes:")
             log.info("%s" % url)
             log.info("")
-            log.info("Please note that this upgrade will affect all projects")
-            log.info("Associated with this Shotgun Pipeline Toolkit installation.")
+            log.info("Please note that if this is a shared core used by more than one project, "
+                     "this will affect the other projects as well.")
             log.info("")
             
             if suppress_prompts or console_utils.ask_yn_question("Update to the latest version of the Core API?"):
