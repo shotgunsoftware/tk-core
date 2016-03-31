@@ -14,6 +14,7 @@ import datetime
 from . import constants
 from . import Descriptor, create_descriptor
 from .errors import ShotgunDeployError
+from .import_handler import CoreImportHandler
 from . import util
 
 from ..shotgun_base import copy_file
@@ -237,14 +238,58 @@ class Configuration(object):
 
         :param sg_user: Authenticated Shotgun user to associate
                         the tk instance with.
+
+        This method looks for an existing custom import handler on
+        `sys.meta_path` in order to handle context switches for pre-existing,
+        imported core packages. The method will create a new import handler
+        if none is found and add it to `sys.meta_path`. Once a custom import
+        handler is on `sys.meta_path`, this method will rest the core path so
+        that imports on the core package namespaces will come from the core
+        associated with this configuration.
+
         """
-        # @todo - check if there is already a tank instance, in that case unload or warn
+
+        # construct a path to core for this configuration
         path = self._paths[sys.platform]
         core_path = os.path.join(path, "install", "core", "python")
-        sys.path.insert(0, core_path)
+
+        # see if there's already a core import handler in use
+        import_handler = None
+        for handler in sys.meta_path:
+            if isinstance(handler, CoreImportHandler):
+                import_handler = handler
+                log.debug(
+                    "Found existing core import handler: %s" % (handler,)
+                )
+                break
+
+        if not import_handler:
+            # no import handler yet, create a new one
+            import_handler = CoreImportHandler(
+                constants.TANK_CORE_PYTHON_NAMESPACES, core_path, log)
+            log.debug(
+                "Created new core import handler:  %s" % (import_handler,))
+
+            # add the new import handler to the meta path so that it starts
+            # taking over core-related imports
+            sys.meta_path.append(import_handler)
+
+        if core_path != import_handler.core_path:
+            # the core we want to load differs from the one the import handler
+            # is using. we'll set it so that future imports of core namespaces
+            # use this new location
+            import_handler.set_core_path(core_path)
+
+        # NOTE: At this point, future imports will be to a different version of
+        # core. i.e. not the version this code lives in. It's worth pointing
+        # out what that means...
+
+        # XXX finish the above thought
+
+        # continue like usual and return an authenticated tk instance
         import tank
         tank.set_authenticated_user(sg_user)
-        tk = tank.tank_from_path(path)
+        tk = tank.tank_from_path(core_path)
         log.info("API created: %s" % tk)
         return tk
 
