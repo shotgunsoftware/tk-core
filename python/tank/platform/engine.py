@@ -448,6 +448,15 @@ class Engine(TankBundle):
         """
         return True
 
+    @property
+    def created_qt_dialogs(self):
+        """
+        Returns a list of dialog objects that have been created by the engine.
+
+        :returns:   A list of TankQDialog objects.
+        """
+        return self.__created_qt_dialogs
+
     ##########################################################################################
     # init and destroy
     
