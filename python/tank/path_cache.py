@@ -357,7 +357,7 @@ class PathCache(object):
                                              [ ["event_type", "in", ["Toolkit_Folders_Create", 
                                                                      "Toolkit_Folders_Delete"]], 
                                                ["id", "greater_than", (event_log_id - 1)],
-                                               ["project", "is", self._get_project_link()] ],
+                                               ["project", "is", self._get_project_link()]],
                                              ["id", "meta", "event_type"],
                                              [{"field_name": "id", "direction": "asc"}] )   
 
@@ -553,10 +553,15 @@ class PathCache(object):
             self._log_debug(log, "Performing a complete Shotgun folder sync...") 
             
             # find the max event log id. we will store this in the sync db later.
-            sg_data = self._tk.shotgun.find_one("EventLogEntry", 
-                                                [["event_type", "in", ["Toolkit_Folders_Create", "Toolkit_Folders_Delete"]]], 
-                                                ["id"], 
-                                                [{"field_name": "id", "direction": "desc"}])
+            sg_data = self._tk.shotgun.find_one(
+                "EventLogEntry",
+                [["event_type", "in", ["Toolkit_Folders_Create", "Toolkit_Folders_Delete"]],
+                 ["project", "is", self._get_project_link()]
+                 ],
+                ["id"],
+                [{"field_name": "id", "direction": "desc"}]
+            )
+
     
             if sg_data is None:
                 # event log was wiped or we haven't done any folder operations
