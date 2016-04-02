@@ -265,8 +265,7 @@ class Configuration(object):
 
         if not import_handler:
             # no import handler yet, create a new one
-            import_handler = CoreImportHandler(
-                constants.TANK_CORE_PYTHON_NAMESPACES, core_path, log)
+            import_handler = CoreImportHandler(core_path, log)
             log.debug(
                 "Created new core import handler:  %s" % (import_handler,))
 
@@ -288,8 +287,9 @@ class Configuration(object):
 
         # continue like usual and return an authenticated tk instance
         import tank
+        print "\n\n **** TANK: " + str(tank)
         tank.set_authenticated_user(sg_user)
-        tk = tank.tank_from_path(core_path)
+        tk = tank.tank_from_path(path)
         log.info("API created: %s" % tk)
         return tk
 

@@ -11,7 +11,16 @@
 import imp
 import os
 import sys
-from threading import Lock
+
+# XXX ... alt approach
+# never import into the regular module name (so that custom import will always run)
+# this makes the imports a lookup each time
+# try to get the context
+# if have a context, create a unique name from context and path
+    # import the module into that namespace if it doesn't already exist
+    # return the namespaced module in sys.modules
+# if no context, use the last set core path
+# XXX ... alt approach
 
 
 class CoreImportHandler(object):
@@ -20,11 +29,7 @@ class CoreImportHandler(object):
     Usage:
         >>> import sys
         >>> from tank.shotgun_deploy import CoreImportHandler
-        >>> importer = CoreImportHandler(
-        >>>     ["sgtk", "tank", "tank_vendor"],
-        >>>     "/path/to/a/version/of/tk-core",
-        >>>     logger,
-        >>> )
+        >>> importer = CoreImportHandler("/path/to/a/version/of/tk-core", log)
         >>> sys.meta_path.append(importer)
         >>> # import/run a bunch of code
         >>> # context change, need to use a different core
@@ -33,8 +38,7 @@ class CoreImportHandler(object):
         >>> # new imports will come from new core location
 
     When an instance of this object is added to `sys.meta_path`, it is used to
-    alter the way python imports packages. The supplied `namespaces` limit the
-    packages that the importer will operate on.
+    alter the way python imports packages.
 
     The core path is used to locate modules attempting to be loaded. The core
     path can be set via `set_core_path` to alter the location of existing and
@@ -45,37 +49,28 @@ class CoreImportHandler(object):
 
     """
 
-    def __init__(self, namespaces, core_path, logger):
+    def __init__(self, core_path, logger):
         """Initialize the custom importer.
 
-        :param namespaces: A list of core namespaces for limiting the custom
-            behavior.
         :param core_path: A str path to the core location to import from.
         :param logger: A logger object
 
         """
 
-        self._core_path = core_path
         self._log = logger
-
-        # list of namespaces to operate on
-        self._namespaces = namespaces
-
-        # re-imports any existing modules matching the namespaces
-        self.set_core_path(core_path)
-
-        # used to lock while operating on sys.modules
-        self._core_change_lock = Lock()
+        self._core_path = None   # will be set shortly
+        self._namespaces = []
 
         # a dictionary to hold module information after it is found, before
         # it is loaded.
         self._module_info = {}
 
+        # re-imports any existing modules for the core namespaces
+        self.set_core_path(core_path)
+
     def __repr__(self):
         return (
-            "<CoreImportHandler with namespaces '%s' and core_path '%s'" %
-            (self.namespaces, self.core_path)
-        )
+            "<CoreImportHandler for core located in: '%s'" % (self.core_path,))
 
     def find_module(self, module_fullname, package_path=None):
         """Locates the given module in the current core.
@@ -134,7 +129,6 @@ class CoreImportHandler(object):
         # since this object is also the "loader" return itself
         return self
 
-    # -------------------------------------------------------------------------
     def load_module(self, module_fullname):
         """Custom loader.
 
@@ -177,9 +171,9 @@ class CoreImportHandler(object):
         """Set the core path to use.
 
         This method clears out `sys.modules` of all previously imported modules
-        matching `self.namespaces` and reimports them using the new core path.
-        This method locks the global interpreter in an attempt to prevent
-        problems from modifying sys.modules in a multithreaded context.
+        and reimports them using the new core path. This method locks the global
+        interpreter in an attempt to prevent problems from modifying sys.modules
+        in a multithreaded context.
 
         :param path: str path to the core to import from.
 
@@ -199,35 +193,61 @@ class CoreImportHandler(object):
 
         # TODO: ensure that the directory looks like core?
 
+        # hold on to the old core namespaces
+        old_namespaces = self._namespaces
+
         # set the core path internally. now that this is set,
         self._core_path = path
 
+        # get the new namespaces
+        self._namespaces = [d for d in os.listdir(path)
+                            if not d.startswith(".")]
+
         # acquire a lock to prevent issues with other threads importing at the
         # same time.
-        self._core_change_lock.acquire()
+        imp.acquire_lock()
 
         # keep a runnng list of modules that need to be re-imported from the new
         # core location.
-        modules_to_import = []
+        module_names_to_import = []
 
-        for module in sys.modules.keys():
+        # sort by package depth, deeper modules first
+        module_names = sorted(
+            sys.modules.keys(),
+            key=lambda module_name: module_name.count("."),
+            reverse=True
+        )
 
-            # extract just the package name to see if it matches a namespace
-            package_name = module.split(".")[0]
+        for module_name in module_names:
 
-            if package_name in self.namespaces:
-                # module is in one of the namespaces. remember the name so we
-                # can re-import it. but first, delete it from sys.modules so
-                # that the custom import can run.
-                modules_to_import.append(module)
-                del sys.modules[module]
+            # don't re-import this module. we always use the first one added
+            # to `sys.meta_path` anyway.
+            if module_name == __name__:
+                continue
+
+            # extract just the package name
+            pkg_name = module_name.split(".")[0]
+
+            if pkg_name in old_namespaces and pkg_name in self._namespaces:
+                # the package name exists in an old core namespace and in the
+                # new core namespace. we need to re-import it, but first,
+                # delete it from sys.modules so that the custom import can run.
+                # This code leaves imported modules in place for use in already
+                # running code for scenarios where an old namespace doesn't
+                # exist in the new core (probably very rare).
+                module_names_to_import.append(module_name)
+                print "DELETING MODULE: " + module_name
+                if hasattr(sys.modules[module_name], '__dict__'):
+                    for (key, val) in sys.modules[module_name].__dict__.items():
+                        print "  %s: %s" % (key, val)
+                del sys.modules[module_name]
 
         # now go through the list of previously imported modules and re-import
         # them. these imports will run through the custom `find_module` and
         # `load_module` and be imported from the newly set core path.
-        for module in modules_to_import:
+        for module_name in module_names_to_import:
             try:
-                __import__(module)
+                __import__(module_name)
             except ImportError:
                 # The existing module could not be re-imported. It may not be
                 # necessary with the new core, so just ignore it.
@@ -238,7 +258,7 @@ class CoreImportHandler(object):
 
         # release the lock so that other threads can continue importing from
         # the new core location.
-        self._core_change_lock.release()
+        imp.release_lock()
 
     @property
     def core_path(self):
