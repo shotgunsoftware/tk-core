@@ -433,12 +433,14 @@ class TestGetSgConfigData(TankTestBase):
 TestGetSgConfigData = patch("tank.util.shotgun.__get_api_core_config_location", TestGetSgConfigData)
 
 
-class ConnectinonSettingsTestCases:
+class ConnectionSettingsTestCases:
     """
     Avoid multiple inheritance in the tests by scoping this test so the test runner
     doesn't see it.
     http://stackoverflow.com/a/25695512
     """
+
+    FOLLOW_HTTP_PROXY_SETTING = "FOLLOW_HTTP_PROXY_SETTING"
 
     class Impl(unittest.TestCase):
         """
@@ -526,6 +528,18 @@ class ConnectinonSettingsTestCases:
                 expected_store_proxy=self._STORE_PROXY
             )
 
+        def test_connections_site_proxy_and_no_appstore_proxy(self):
+            """
+            When the source store proxy is set to None in shotgun.yml, we are forcing it
+            to be empty and now use the value from the site setting.
+            """
+            self._run_test(
+                site=self._SITE,
+                source_proxy=self._SITE_PROXY,
+                source_store_proxy=None,
+                expected_store_proxy=None
+            )
+
         def _run_test(self, site, source_proxy, source_store_proxy, expected_store_proxy):
             """
             Should be implemented by derived classes in order to mock authentication
@@ -546,12 +560,18 @@ class ConnectinonSettingsTestCases:
             self.assertEqual(config["http_proxy"], expected_store_proxy)
 
 
-class LegacyAuthConnectionSettings(ConnectinonSettingsTestCases.Impl):
+class LegacyAuthConnectionSettings(ConnectionSettingsTestCases.Impl):
     """
     Tests proxy connection for site and appstore connections.
     """
 
-    def _run_test(self, site, source_proxy=None, source_store_proxy=None, expected_store_proxy=None):
+    def _run_test(
+        self,
+        site,
+        source_proxy=None,
+        source_store_proxy=ConnectionSettingsTestCases.FOLLOW_HTTP_PROXY_SETTING,
+        expected_store_proxy=None
+    ):
         """
         Mock information coming from shotgun.yml for pre-authentication framework authentication.
         """
@@ -561,11 +581,13 @@ class LegacyAuthConnectionSettings(ConnectinonSettingsTestCases.Impl):
                 "host": site,
                 "api_script": "1234",
                 "api_key": "1234",
-                "http_proxy": source_proxy,
-                "app_store_http_proxy": source_store_proxy
+                "http_proxy": source_proxy
             }
+            # Adds the app store proxy setting in the mock shotgun.yml settings if one should be present.
+            if source_store_proxy != ConnectionSettingsTestCases.FOLLOW_HTTP_PROXY_SETTING:
+                mock.return_value["app_store_http_proxy"] = source_store_proxy
 
-            ConnectinonSettingsTestCases.Impl._run_test(
+            ConnectionSettingsTestCases.Impl._run_test(
                 self,
                 site=site,
                 source_proxy=source_proxy,
@@ -574,7 +596,7 @@ class LegacyAuthConnectionSettings(ConnectinonSettingsTestCases.Impl):
             )
 
 
-class AuthConnectionSettings(ConnectinonSettingsTestCases.Impl):
+class AuthConnectionSettings(ConnectionSettingsTestCases.Impl):
     """
     Tests proxy connection for site and appstore connections.
     """
@@ -583,7 +605,7 @@ class AuthConnectionSettings(ConnectinonSettingsTestCases.Impl):
         self,
         site,
         source_proxy=None,
-        source_store_proxy=None,
+        source_store_proxy=ConnectionSettingsTestCases.FOLLOW_HTTP_PROXY_SETTING,
         expected_store_proxy=None
     ):
         """
@@ -596,9 +618,12 @@ class AuthConnectionSettings(ConnectinonSettingsTestCases.Impl):
                 "host": "https://this_should_not_be_read.shotgunstudio.com",
                 "api_script": "1234",
                 "api_key": "1234",
-                "http_proxy": "123.234.345.456:7890",
-                "app_store_http_proxy": source_store_proxy
+                "http_proxy": "123.234.345.456:7890"
             }
+            # Adds the app store proxy setting in the mock shotgun.yml settings if one should be present.
+            if source_store_proxy != ConnectionSettingsTestCases.FOLLOW_HTTP_PROXY_SETTING:
+                mock.return_value["app_store_http_proxy"] = source_store_proxy
+
             # Mocks a user being authenticated.
             user = ShotgunUser(
                 SessionUser(
@@ -608,7 +633,7 @@ class AuthConnectionSettings(ConnectinonSettingsTestCases.Impl):
             )
             tank.set_authenticated_user(user)
 
-            ConnectinonSettingsTestCases.Impl._run_test(
+            ConnectionSettingsTestCases.Impl._run_test(
                 self,
                 site=site,
                 source_proxy=source_proxy,
