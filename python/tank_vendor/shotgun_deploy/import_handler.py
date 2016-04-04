@@ -12,24 +12,13 @@ import imp
 import os
 import sys
 
-# XXX ... alt approach
-# never import into the regular module name (so that custom import will always run)
-# this makes the imports a lookup each time
-# try to get the context
-# if have a context, create a unique name from context and path
-    # import the module into that namespace if it doesn't already exist
-    # return the namespaced module in sys.modules
-# if no context, use the last set core path
-# XXX ... alt approach
-
-
 class CoreImportHandler(object):
     """A custom import handler to allow for core version switching.
 
     Usage:
         >>> import sys
         >>> from tank.shotgun_deploy import CoreImportHandler
-        >>> importer = CoreImportHandler("/path/to/a/version/of/tk-core", log)
+        >>> importer = CoreImportHandler("/path/to/a/version/of/tk-core")
         >>> sys.meta_path.append(importer)
         >>> # import/run a bunch of code
         >>> # context change, need to use a different core
@@ -49,15 +38,13 @@ class CoreImportHandler(object):
 
     """
 
-    def __init__(self, core_path, logger):
+    def __init__(self, core_path):
         """Initialize the custom importer.
 
         :param core_path: A str path to the core location to import from.
-        :param logger: A logger object
 
         """
 
-        self._log = logger
         self._core_path = None   # will be set shortly
         self._namespaces = []
 
@@ -122,9 +109,6 @@ class CoreImportHandler(object):
         except ImportError:
             # no module found, fall back to regular import
             return None
-
-        self._log.debug(
-            "Custom core import of '%s' from '%s'" % (module_name, path))
 
         # since this object is also the "loader" return itself
         return self
@@ -236,12 +220,10 @@ class CoreImportHandler(object):
                 # running code for scenarios where an old namespace doesn't
                 # exist in the new core (probably very rare).
                 module_names_to_import.append(module_name)
-                print "DELETING MODULE: " + module_name
-                if hasattr(sys.modules[module_name], '__dict__'):
-                    for (key, val) in sys.modules[module_name].__dict__.items():
-                        print "  %s: %s" % (key, val)
+                print "DELETING: " + str(module_name)
                 del sys.modules[module_name]
 
+        """
         # now go through the list of previously imported modules and re-import
         # them. these imports will run through the custom `find_module` and
         # `load_module` and be imported from the newly set core path.
@@ -255,6 +237,7 @@ class CoreImportHandler(object):
                 # those exceptions will likely be more useful if raised in
                 # context.
                 pass
+        """
 
         # release the lock so that other threads can continue importing from
         # the new core location.

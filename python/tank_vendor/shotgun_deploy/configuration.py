@@ -8,13 +8,13 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+import imp
 import os
 import sys
 import datetime
 from . import constants
 from . import Descriptor, create_descriptor
 from .errors import ShotgunDeployError
-from .import_handler import CoreImportHandler
 from . import util
 
 from ..shotgun_base import copy_file
@@ -253,44 +253,13 @@ class Configuration(object):
         path = self._paths[sys.platform]
         core_path = os.path.join(path, "install", "core", "python")
 
-        # see if there's already a core import handler in use
-        import_handler = None
-        for handler in sys.meta_path:
-            if isinstance(handler, CoreImportHandler):
-                import_handler = handler
-                log.debug(
-                    "Found existing core import handler: %s" % (handler,)
-                )
-                break
-
-        if not import_handler:
-            # no import handler yet, create a new one
-            import_handler = CoreImportHandler(core_path, log)
-            log.debug(
-                "Created new core import handler:  %s" % (import_handler,))
-
-            # add the new import handler to the meta path so that it starts
-            # taking over core-related imports
-            sys.meta_path.append(import_handler)
-
-        if core_path != import_handler.core_path:
-            # the core we want to load differs from the one the import handler
-            # is using. we'll set it so that future imports of core namespaces
-            # use this new location
-            import_handler.set_core_path(core_path)
-
-        # NOTE: At this point, future imports will be to a different version of
-        # core. i.e. not the version this code lives in. It's worth pointing
-        # out what that means...
-
-        # XXX finish the above thought
-
         # continue like usual and return an authenticated tk instance
         import tank
         print "\n\n **** TANK: " + str(tank)
         tank.set_authenticated_user(sg_user)
         tk = tank.tank_from_path(path)
         log.info("API created: %s" % tk)
+        print "\n\n **** TK: " + str(tk)
         return tk
 
     def _get_descriptor_metadata_file(self):
@@ -674,4 +643,8 @@ class Configuration(object):
         fh.write("\n")
         fh.close()
         log.debug("Wrote %s" % roots_file)
+
+    @property
+    def path(self):
+        return self._paths[sys.platform]
 
