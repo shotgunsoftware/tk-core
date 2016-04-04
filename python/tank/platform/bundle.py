@@ -907,14 +907,20 @@ def resolve_default_value(schema, default=None, engine_name=None,
     setting_type = schema.get("type")
 
     # special case handling for list params - check if
-    # allows_empty == True, in that case set default value to []
-    if (setting_type == "list" and value is None and schema.get("allows_empty")):
+    # allows_empty is True, in that case set default value to []
+    if setting_type == "list" and value is None and schema.get("allows_empty"):
         value = []
 
     # special case handling for dict params - check if
-    # allows_empty == True, in that case set default value to {}
-    if (setting_type == "dict" and value is None and schema.get("allows_empty")):
+    # allows_empty is True, in that case set default value to {}
+    if setting_type == "dict" and value is None and schema.get("allows_empty"):
         value = {}
+
+    # special case for template params. if allows_empty is True, then we allow
+    # a value of None. make sure we don't raise in the "raise_if_missing" case.
+    if setting_type == "template" and value is None and schema.get("allows_empty"):
+        value = None
+        default_missing = False
 
     if setting_type == "hook":
         value = _resolve_default_hook_value(value, engine_name)

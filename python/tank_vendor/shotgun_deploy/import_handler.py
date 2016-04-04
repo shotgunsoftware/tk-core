@@ -220,7 +220,6 @@ class CoreImportHandler(object):
                 # running code for scenarios where an old namespace doesn't
                 # exist in the new core (probably very rare).
                 module_names_to_import.append(module_name)
-                print "DELETING: " + str(module_name)
                 del sys.modules[module_name]
 
         """

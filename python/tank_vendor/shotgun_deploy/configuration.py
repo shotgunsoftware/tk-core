@@ -239,27 +239,16 @@ class Configuration(object):
         :param sg_user: Authenticated Shotgun user to associate
                         the tk instance with.
 
-        This method looks for an existing custom import handler on
-        `sys.meta_path` in order to handle context switches for pre-existing,
-        imported core packages. The method will create a new import handler
-        if none is found and add it to `sys.meta_path`. Once a custom import
-        handler is on `sys.meta_path`, this method will rest the core path so
-        that imports on the core package namespaces will come from the core
-        associated with this configuration.
-
         """
 
-        # construct a path to core for this configuration
-        path = self._paths[sys.platform]
-        core_path = os.path.join(path, "install", "core", "python")
-
-        # continue like usual and return an authenticated tk instance
         import tank
-        print "\n\n **** TANK: " + str(tank)
+
+        # set the authenticated user and create the api instance based on
+        # the path to this configuration
         tank.set_authenticated_user(sg_user)
-        tk = tank.tank_from_path(path)
+        tk = tank.tank_from_path(self.path)
         log.info("API created: %s" % tk)
-        print "\n\n **** TK: " + str(tk)
+
         return tk
 
     def _get_descriptor_metadata_file(self):

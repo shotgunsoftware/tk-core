@@ -22,10 +22,12 @@ def swap_core(core_path):
 
     """
 
-    # do this locally so that we know it is imported properly each time
-    # this method is called. when this method runs, the imported module
-    # will be unloaded.
-    from tank_vendor.shotgun_deploy.import_handler import CoreImportHandler
+    # NOTE: this imports the handler from the current core.
+    try:
+        from tank_vendor.shotgun_deploy.import_handler import CoreImportHandler
+    except ImportError:
+        # TODO: log a message about not being able to swap the core
+        return
 
     # see if there's already a core import handler in use
     import_handler = None
