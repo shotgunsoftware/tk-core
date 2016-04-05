@@ -12,6 +12,7 @@ import imp
 import os
 import sys
 
+
 class CoreImportHandler(object):
     """A custom import handler to allow for core version switching.
 
@@ -162,10 +163,9 @@ class CoreImportHandler(object):
     def set_core_path(self, path):
         """Set the core path to use.
 
-        This method clears out `sys.modules` of all previously imported modules
-        and reimports them using the new core path. This method locks the global
-        interpreter to prevent problems from modifying sys.modules in a
-        multithreaded context.
+        This method clears out `sys.modules` of all previously imported modules.
+        This method locks the global interpreter to prevent problems from
+        modifying sys.modules in a multithreaded context.
 
         :param path: str path to the core to import from.
 
@@ -272,12 +272,11 @@ def swap_core(core_path):
         # taking over core-related imports
         sys.meta_path.append(import_handler)
 
-    if core_path != import_handler.core_path:
-        # the core we want to load differs from the one the import handler
-        # is using. we'll set it so that future imports of core namespaces
-        # use this new location
-        import_handler.set_core_path(core_path)
+    # the core we want to load differs from the one the import handler
+    # is using. we'll set it so that future imports of core namespaces
+    # use this new location
+    import_handler.set_core_path(core_path)
 
-        # NOTE: once this is called, any imported modules in the core python
-        # namespaces will be unloaded. the calling code will need to reimport
-        # everything necessary before continuing.
+    # NOTE: once this is called, any imported modules in the core python
+    # namespaces will be unloaded. the calling code will need to reimport
+    # everything necessary before continuing.

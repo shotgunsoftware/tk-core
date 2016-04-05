@@ -210,8 +210,8 @@ class ToolkitManager(object):
 
         Determines the entity's project in order to resolve a configuration.
 
-        :param engine_name: The name of the engine.
-        :param entity: The entity data.
+        :param engine_name: The name of the engine
+        :param entity: The entity data
         :return: A resolved Configuration object
         """
 
