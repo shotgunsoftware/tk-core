@@ -14,9 +14,6 @@ APP_STORE_QA_MODE_ENV_VAR = "TANK_QA_ENABLED"
 # app store: the entity that represents the core api
 TANK_CORE_VERSION_ENTITY_TYPE = "CustomNonProjectEntity01"
 
-# top-level python namespaces for core
-TANK_CORE_PYTHON_NAMESPACES = ["sgtk", "tank", "tank_vendor"]
-
 # app store: the entity representing apps
 TANK_APP_ENTITY_TYPE = "CustomNonProjectEntity02"
 

@@ -206,6 +206,14 @@ class ToolkitManager(object):
 
 
     def get_config(self, engine_name, entity):
+        """Return a configuration object for the supplied engine and entity.
+
+        Determines the entity's project in order to resolve a configuration.
+
+        :param engine_name: The name of the engine.
+        :param entity: The entity data.
+        :return: A resolved Configuration object
+        """
 
         self._report_progress("Resolving Toolkit Context...")
         if entity is None:

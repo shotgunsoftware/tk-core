@@ -241,10 +241,29 @@ class Configuration(object):
 
         """
 
-        import tank
+        core_path = os.path.join(self.path, "install", "core", "python")
+
+        # if the custom import handler has been added to `sys.meta_path`, then
+        # the import should work with the proper version of core. if not, then
+        # fallback to the behavior of manually adding this configuration's
+        # python dir to `sys.path` in order to pick it up.
+        try:
+            # custom import handler will handle this properly
+            import tank
+        except ImportError:
+            # oops, import handler likely not installed. fall back to using
+            # sys.path. this won't guarantee we get the right core though if
+            # core was already previously imported from elsewhere.
+            sys.path.insert(0, core_path)
+            import tank
+
+        if not core_path in tank.__file__:
+            log.warning("Using alternate core: %s" %
+                (os.path.dirname(tank.__file__),)
+            )
 
         # set the authenticated user and create the api instance based on
-        # the path to this configuration
+        # the path to this configuration.
         tank.set_authenticated_user(sg_user)
         tk = tank.tank_from_path(self.path)
         log.info("API created: %s" % tk)
@@ -635,5 +654,6 @@ class Configuration(object):
 
     @property
     def path(self):
+        """The path to the config on the current platform."""
         return self._paths[sys.platform]
 
