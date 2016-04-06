@@ -92,18 +92,44 @@ class CoreImportHandler(object):
             # default import mechanism).
             return None
 
+        if len(module_path_parts) > 1:
+            # this is a dotted path. we need to recursively import the parents
+            # with this logic. once we've found the immediate parent we
+            # can use it's `__path__` attribute to locate this module.
+            # this matches the suggested logic for finding nested modules in
+            # the `imp.find_module` docs found here:
+            #     https://docs.python.org/2/library/imp.html
+
+            parent_module_parts = module_path_parts[:-1]
+
+            # this is the parent module's full package spec.
+            parent_path = ".".join(parent_module_parts)
+
+            if parent_path in sys.modules:
+                # if the parent has already been imported, then we can just grab
+                # it's path to locate this module
+                package_path = sys.modules[parent_path].__path__
+            else:
+                # parent hasn't been loaded. do a recursive find/load in order
+                # to get the parent's path
+                if self.find_module(parent_path):
+                    parent_module = self.load_module(parent_path)
+                    package_path = parent_module.__path__
+                else:
+                    # could not find parent module. we'll try to build a path
+                    # given what we know about core and the parent package path.
+                    # this turns parent package "foo.bar" into:
+                    #    /path/to/current/core/foo/bar
+                    package_path = [
+                        os.path.join(self.core_path, *parent_module_parts)
+                    ]
+        else:
+            # this appears to be a top-level package. it should be in the
+            # current core's root path.
+            package_path = [self.core_path]
+
         # module path without the target module name
         module_name = module_path_parts.pop()
-
-        # partial path to the module on disk
-        if len(module_path_parts):
-            module_path = os.path.join(*module_path_parts)
-        else:
-            module_path = ""
-
-        # if it exists, this should be the full directory path to the module in
-        # the current core.
-        path = os.path.join(self.core_path, module_path)
 
         try:
             # find the module and store its info in a lookup based on the
@@ -113,7 +139,7 @@ class CoreImportHandler(object):
             #
             # If this find is successful, we'll need the info in order
             # to load it later.
-            module_info = imp.find_module(module_name, [path])
+            module_info = imp.find_module(module_name, package_path)
             self._module_info[module_fullname] = module_info
         except ImportError:
             # no module found, fall back to regular import
@@ -192,8 +218,26 @@ class CoreImportHandler(object):
         self._core_path = path
 
         # get the new namespaces
-        self._namespaces = [d for d in os.listdir(path)
-                            if not d.startswith(".")]
+        self._namespaces = []
+        for name in os.listdir(path):
+            # for each file/dir in the core path, see if it is a python module.
+            try:
+                # if this doesn't raise, then it is valid python
+                imp.find_module(name, [path])
+            except ImportError:
+                # couldn't be found. not valid python
+                continue
+
+            # add the importable name to the list of top-level namespaces
+            self._namespaces.append(name)
+
+        if not self._namespaces:
+            # oops, no top-level namespaces found. this could indicate a bad
+            # core path.
+            raise RuntimeError(
+                "Could not find any top-level core namespaces. This may could "
+                "mean that the supplied core path (%s) is not valid" % (path,)
+            )
 
         # acquire a lock to prevent issues with other threads importing at the
         # same time.
