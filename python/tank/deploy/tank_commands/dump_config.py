@@ -36,6 +36,8 @@ class DumpConfigAction(Action):
         # this method can be executed via the API
         self.supports_api = True
 
+        self._is_interactive = False
+
         self.parameters = {}
 
         self.parameters["env"] = {
@@ -102,12 +104,15 @@ class DumpConfigAction(Action):
         :param args: command line args
         """
 
+        self._is_interactive = True
+
         parameters = {}
 
         # look for a --file argument
         parameters["file"] = ""
         for arg in args:
             if arg == "--file":
+                print "\nUsage: %s\n" % (self._usage(),)
                 raise TankError(
                     "Must specify a path: --file=/path/to/write/to.yml"
                 )
@@ -117,6 +122,7 @@ class DumpConfigAction(Action):
                 # from '--file=/path/to/my config' get '/path/to/my config'
                 parameters["file"] = arg[len("--file="):]
                 if parameters["file"] == "":
+                    print "\nUsage: %s\n" % (self._usage(),)
                     raise TankError(
                         "Must specify a path: --file=/path/to/write/to.yml"
                     )
@@ -145,6 +151,7 @@ class DumpConfigAction(Action):
         # if there are any options left, bail
         for arg in args:
             if arg.startswith("-"):
+                print "\nUsage: %s\n" % (self._usage(),)
                 raise TankError("Unknown argument: %s" % (arg,))
 
         # everything left should be the env argument
@@ -240,6 +247,8 @@ class DumpConfigAction(Action):
 
         # make sure we don't have too many dump types
         if parameters["full"] and parameters["sparse"]:
+            if self._is_interactive:
+                print "\nUsage: %s\n" % (self._usage(),)
             raise TankError(
                 "The 'full' and 'sparse' options are mutually exclusive.")
 
@@ -253,3 +262,8 @@ class DumpConfigAction(Action):
             )
 
         return parameters
+
+    def _usage(self):
+        """Return a string displaying the usage of this command."""
+        return "./tank dump_config env_name [--sparse | --full] [--debug-comments] [--file=/path/to/output/file.yml]"
+

@@ -37,7 +37,9 @@ class ValidateConfigAction(Action):
         
         # this method can be executed via the API
         self.supports_api = True
-        
+
+        self._is_interactive = False
+
     def run_noninteractive(self, log, parameters):
         """
         Tank command API accessor. 
@@ -57,6 +59,8 @@ class ValidateConfigAction(Action):
         :param log: std python logger
         :param args: command line args
         """
+
+        self._is_interactive = True
 
         # currently, environment names are passed in as arguments for
         # validation. Just translate the args to the env list and validate them
@@ -130,7 +134,7 @@ class ValidateConfigAction(Action):
         """
 
         # do the base class default validation
-        params = super(ValidateConfigAction, self)._validate_parameters(
+        parameters = super(ValidateConfigAction, self)._validate_parameters(
             parameters)
 
         # get a list of valid env names
@@ -154,6 +158,8 @@ class ValidateConfigAction(Action):
 
         # bail if any bad env names
         if bad_env_names:
+            if self._is_interactive:
+                print "\nUsage: %s\n" % (self._usage(),)
             raise TankError(
                 "Error retrieving environments mathing supplied arguments: %s"
                 % (", ".join(bad_env_names),)
@@ -161,8 +167,12 @@ class ValidateConfigAction(Action):
 
         parameters["envs"] = sorted(env_names_to_process)
 
-        return params
-        
+        return parameters
+
+    def _usage(self):
+        """Return a string displaying the usage of this command."""
+        return "./tank validate [env_name, env_name, ...] "
+
 g_templates = set()
 g_hooks = set()
 
