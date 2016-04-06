@@ -212,8 +212,6 @@ class CoreImportHandler(object):
         # TODO: ensure that the directory looks like core?
 
         # hold on to the old core namespaces
-        old_namespaces = self._namespaces
-
         # set the core path internally. now that this is set,
         self._core_path = path
 
@@ -260,10 +258,9 @@ class CoreImportHandler(object):
             # extract just the package name
             pkg_name = module_name.split(".")[0]
 
-            if pkg_name in old_namespaces and pkg_name in self._namespaces:
-                # the package name exists in an old core namespace and in the
-                # new core namespace. we delete it from sys.modules so that
-                # the custom import can run.
+            if pkg_name in self._namespaces:
+                # the package name is in one of the new core namespaces. we
+                # delete it from sys.modules so that the custom import can run.
                 del sys.modules[module_name]
 
         # clear out the previously found module info
