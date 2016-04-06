@@ -32,6 +32,15 @@ class ValidateConfigAction(Action):
                         ("Validates your current Configuration to check that all "
                         "environments have been correctly configured."), 
                         "Configuration")
+
+        self.parameters = {}
+
+        self.parameters["envs"] = {
+            "description": ("A list of environment names to process. If not "
+                            "specified, process all environments."),
+            "type": "list",
+            "default": [],
+        }
         
         # this method can be executed via the API
         self.supports_api = True
@@ -92,9 +101,7 @@ class ValidateConfigAction(Action):
         """
 
         # validate params and seed default values
-        computed_params = self.__validate_parameters(parameters)
-
-        return self._run(log, computed_params)
+        return self._run(log, self._validate_parameters(parameters))
     
     def run_interactive(self, log, args):
         """
@@ -104,65 +111,11 @@ class ValidateConfigAction(Action):
         :param args: command line args
         """
 
-        self._interactive = True
+        # currently, environment names are passed in as arguments for
+        # validation. Just translate the args to the env list and validate them
+        return self._run(log, self._validate_parameters({"envs": args}))
 
-        parser = argparse.ArgumentParser(
-            prog="./tank validate",
-            description="Environment validation command."
-        )
-
-        # a list of environment names
-        parser.add_argument(
-            "envs",
-            metavar="<env_name>",
-            type=str,
-            nargs="*",
-            help=self.parameters["envs"]["description"],
-        )
-
-        # mutually exclusive dump types, full and sparse
-        dump_type_group = parser.add_mutually_exclusive_group()
-        dump_type_group.add_argument(
-            "-f", "--dump",
-            action="store_true",
-            help=self.parameters["dump"]["description"],
-        )
-        dump_type_group.add_argument(
-            "-s", "--dump-sparse",
-            action="store_true",
-            help=self.parameters["dump_sparse"]["description"],
-        )
-
-        # the output directory for the modified environment files
-        parser.add_argument(
-            "-l", "--dump-location",
-            metavar="<output_directory>",
-            type=str,
-            help=self.parameters["dump_sparse"]["description"],
-        )
-
-        # turn on debug comments in the dumped environments
-        parser.add_argument(
-            "--dump-debug",
-            action="store_true",
-            help=self.parameters["dump_debug"]["description"],
-        )
-
-        # calling vars() on the returned namespace object essentially
-        # translates it into a dictionary. In addition, argparse naturally
-        # translates the flags we used to the matching parameters that
-        # are defined by the action (ex: "--dump-debug" becomes "dump_debug").
-        # so we're left with a dict that should look just like the params
-        # supplied to the non-interactive version of this action.
-        parsed_args = vars(parser.parse_args(args))
-
-        # validate the parsed args just like the non-interactive params.
-        computed_params = self.__validate_parameters(parsed_args)
-
-        # do work.
-        return self._run(log, computed_params)
-        
-    def _run(self, log, params):
+    def _run(self, log, parameters):
         """
         Actual execution payload. Includes validation and optional dumping.
 
@@ -176,32 +129,14 @@ class ValidateConfigAction(Action):
         log.info("Welcome to the Shotgun Pipeline Toolkit Configuration validator!")
         log.info("")
     
-        try:
-            env_names = self.tk.pipeline_configuration.get_environments()
-        except Exception, e:
-            raise TankError(
-                "Could not find any environments for config %s: %s"
-                % (self.tk, e)
-            )
-
-        # filter the envs if any were called out via the params.
-        if params["envs"]:
-            env_names = [n for n in env_names if n in params["envs"]]
-            if not env_names:
-                raise TankError(
-                    "No matching environments found for '%s'." %
-                    (", ".join(params["envs"]))
-                )
-    
         log.info("Found the following environments:")
-        for x in env_names:
+        for x in parameters["envs"]:
             log.info("    %s" % x)
         log.info("")
         log.info("")
 
         # validate environments
-        envs = []
-        for env_name in env_names:
+        for env_name in parameters["envs"]:
             env = self.tk.pipeline_configuration.get_environment(env_name)
             _process_environment(log, self.tk, env)
             envs.append(env)
@@ -247,92 +182,9 @@ class ValidateConfigAction(Action):
         log.info("")
         log.info("")
 
-    def _dump(self, log, envs, params):
+    def _validate_parameters(self, parameters):
         """
-        Dump the supplied environments with the specified parameters
-
-        :param log: A logger instance.
-        :param envs: list of environment objects
-        :param params: parameter dict.
-        """
-
-        if params["dump_sparse"]:
-            dump_type = environment.UpdateAllSettingsFormat.SPARSE
-            dump_display_type = "sparse"
-        else:
-            dump_type = environment.UpdateAllSettingsFormat.FULL
-            dump_display_type = "full"
-
-        for env in envs:
-
-            # build the full output path from the dump location directory
-            # and the basename of the source environment file.
-            output_path = os.path.abspath(
-                os.path.join(params["dump_location"],
-                os.path.basename(env.disk_location))
-            )
-
-            # make sure the output path doesn't match the environment path.
-            # don't allow writing over existing environments.
-            if output_path == env.disk_location:
-                raise TankError(
-                    "Dump locaiton matches the existing environment path. "
-                    "Refusing to overwrite existing environment file."
-                )
-
-            # build a copy of the environment file that we can use to process.
-            (filename, ext) = os.path.splitext(
-                os.path.basename(env.disk_location)
-            )
-            tmp_env_path = os.path.join(
-                os.path.dirname(env.disk_location),
-                "%s_%s_%s_%s" % (
-                    filename,
-                    dump_display_type,
-                    datetime.now().strftime("%Y_%m_%d_%H_%M_%s_%f"),
-                    ext
-                )
-            )
-
-            # now copy the environment file to the tmp file.
-            copy_file(env.disk_location, tmp_env_path, 0666)
-
-            try:
-                # In order to dump an environment, we need a WritableEnvironment
-                # instance. To prevent writing the current environment, we'll
-                # use a copy of the environment file, process it, then copy it
-                # to the output location. We'll also need to remove the
-                # temporary copy of the environment. The temp copy is made in
-                # the same location as the actual environment file in order to
-                # allow relative includes to be handled correctly when parsed.
-                tmp_env = environment.WritableEnvironment(
-                    tmp_env_path,
-                    self.tk.pipeline_configuration,
-                    self.context
-                )
-
-                debug = params["dump_debug"]
-
-                # Make the temp environment full or sparse. Each of these calls
-                # will write the environment to disk.
-                if dump_type == environment.UpdateAllSettingsFormat.SPARSE:
-                    tmp_env.make_sparse(debug)
-                else:
-                    tmp_env.make_full(debug)
-
-            finally:
-                # copy the tmp env file to the output location
-                copy_file(tmp_env_path, output_path, 0666)
-
-                # remove the temporary dump file.
-                safe_delete_file(tmp_env_path)
-
-            log.info("Dumped modified environment to: %s" % (output_path,))
-
-
-    def __validate_parameters(self, parameters):
-        """
-        Do validation of the parameters that arse specific to this action.
+        Do validation of the parameters that are specific to this action.
 
         :param parameters: The dict of parameters
         :returns: The validated and fully populated dict of parameters.
@@ -342,43 +194,50 @@ class ValidateConfigAction(Action):
         params = super(ValidateConfigAction, self)._validate_parameters(
             parameters)
 
-        # need to dump something
-        if params["dump"] or params["dump_sparse"]:
+        # get a list of valid env names
+        valid_env_names = self.tk.pipeline_configuration.get_environments()
 
-            # determine the dump location
-            if params["dump_location"]:
-                dump_dir = params["dump_location"]
-            else:
-                dump_dir = tempfile.gettempdir()
+        bad_env_names = []
+        env_names_to_process = []
+        if parameters["envs"]:
+            # some environment names supplied on the command line
+            for env_param in parameters["envs"]:
+                # see if this is a comma separated list
+                for env_name in env_param.split(","):
+                    env_name = env_name.strip()
+                    if env_name in valid_env_names:
+                        env_names_to_process.append(env_name)
+                    else:
+                        bad_env_names.append(env_name)
+        else:
+            # nothing specified. process all
+            env_names_to_process = valid_env_names
 
-            # if it exists and is not a directory, that's no good. raise.
-            if os.path.exists(dump_dir) and not os.path.isdir(dump_dir):
-                raise TankError(
-                    "The specified dump location already exists and is not a "
-                    "directory. Please try again with a valid dump location."
-                )
+        # bail if any bad env names
+        if bad_env_names:
+            raise TankError(
+                "Error retrieving environments mathing supplied arguments: %s"
+                % (", ".join(bad_env_names),)
+            )
 
-            # create the dump location if it doesn't exist
-            ensure_folder_exists(dump_dir)
-
-            # make sure the dump location is populated
-            params["dump_location"] = dump_dir
+        parameters["envs"] = sorted(env_names_to_process)
 
         return params
-
+        
 g_templates = set()
 g_hooks = set()
 
-def _validate_bundle(log, tk, name, settings, descriptor, engine_name=None):
-    """
-    Given a bundle name and settings, make sure everything looks legit!
 
-    :param log: A logger instance.
-    :param tk: Toolkit API instance
-    :param name: The name of the bundle.
-    :param settings: The bundle's settings from the environment.
-    :param descriptor: A descriptor for locating the bundle.
-    :param engine_name: The engine Name if there is one.
+def _validate_bundle(log, tk, name, settings, descriptor, engine_name=None):
+    """Validate the supplied bundle including the descriptor and all settings.
+    :param log: A logger instance for logging validation output.
+    :param tk: A toolkit api instance.
+    :param name: The bundle's name.
+    :param settings: The bundle's settings dict.
+    :param descriptor: A descriptor object for the bundle.
+    :param engine_name: The name of the containing engine or None.
+        This is used when the bundle is an app and needs to validate engine-
+        specific settings.
     """
 
     log.info("")
@@ -387,12 +246,16 @@ def _validate_bundle(log, tk, name, settings, descriptor, engine_name=None):
     if not descriptor.exists_local():
         log.info("Please wait, downloading...")
         descriptor.download_local()
-    
+
+    #if len(descriptor.get_required_frameworks()) > 0:
+    #    log.info("  Using frameworks: %s" % descriptor.get_required_frameworks())
+
     # out of date check
     latest_desc = descriptor.find_latest_version()
     if descriptor.get_version() != latest_desc.get_version():
-        log.info(  "WARNING: Latest version is %s. You are running %s." % (latest_desc.get_version(), 
+        log.info(  "WARNING: Latest version is %s. You are running %s." % (latest_desc.get_version(),
                                                                         descriptor.get_version()))
+
 
     manifest = descriptor.get_configuration_schema()
 
@@ -438,36 +301,24 @@ def _validate_bundle(log, tk, name, settings, descriptor, engine_name=None):
             if manifest[s].get("type") == "hook":
                 g_hooks.add(value)
 
-                     
-def _process_environment(log, tk, env):
-    """Validate the supplied environment.
 
-    :param log: A logger object for logging validation information.
-    :param tk: Toolkit api instance
-    :param env: An environment object.
-    :return:
+def _process_environment(log, tk, env):
+    """Process an environment by validating each of its bundles.
+    :param log: A logger instance for logging validation output.
+    :param tk: A toolkit api instance.
+    :param env: An environment instance.
     """
 
     log.info("Processing environment %s" % env)
 
-    for engine_name in env.get_engines():
+    for e in env.get_engines():
+        s = env.get_engine_settings(e)
+        descriptor = env.get_engine_descriptor(e)
+        name = "Engine %s / %s" % (env.name, e)
+        _validate_bundle(log, tk, name, s, descriptor, engine_name=e)
+        for a in env.get_apps(e):
+            s = env.get_app_settings(e, a)
+            descriptor = env.get_app_descriptor(e, a)
+            name = "%s / %s / %s" % (env.name, e, a)
+            _validate_bundle(log, tk, name, s, descriptor, engine_name=e)
 
-        # get the engine details
-        engine_settings = env.get_engine_settings(engine_name)
-        engine_descriptor = env.get_engine_descriptor(engine_name)
-        engine_display_name = "Engine %s / %s" % (env.name, engine_name)
-
-        # validate the engine settings
-        _validate_bundle(log, tk, engine_display_name, engine_settings,
-            engine_descriptor, engine_name=engine_name)
-
-        for app_name in env.get_apps(engine_name):
-
-            # get the app details
-            app_settings = env.get_app_settings(engine_name, app_name)
-            app_descriptor = env.get_app_descriptor(engine_name, app_name)
-            app_display_name = "%s / %s / %s" % (env.name, engine_name, app_name)
-
-            # validate the app settings
-            _validate_bundle(log, tk, app_display_name, app_settings,
-                app_descriptor, engine_name=engine_name)

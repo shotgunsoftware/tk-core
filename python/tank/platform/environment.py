@@ -474,6 +474,13 @@ class WritableEnvironment(Environment):
     content back to disk.
     """
 
+    (FULL, SPARSE) = range(2)
+    """Format enumeration to use when updating all settings in an environment.
+
+    FULL: Include all settings, using default values when necessary.
+    SPARSE: Exclude settings using default values.
+    """
+
     def __init__(self, env_path, pipeline_config, context=None):
         """
         Constructor
@@ -530,57 +537,68 @@ class WritableEnvironment(Environment):
         except Exception, e:
             raise TankError("Could not open file '%s' for writing. "
                             "Error reported: '%s'" % (path, e))
-        
+
         try:
-            # the ruamel parser doesn't have 2.5 support so 
-            # only use it on 2.6+
-            if self._use_ruamel_yaml_parser and not(sys.version_info < (2,6)):
-                # note that we are using the RoundTripDumper in order to 
-                # preserve the structure when writing the file to disk.
-                #
-                # the default_flow_style=False tells the parse to write
-                # any modified values on multi-line form, e.g.
-                # 
-                # foo:
-                #   bar: 3
-                #   baz: 4
-                #
-                # rather than
-                #
-                # foo: { bar: 3, baz: 4 }
-                #
-                # note that safe_dump is not needed when using the 
-                # roundtrip dumper, it will adopt a 'safe' behaviour
-                # by default.
-                from tank_vendor import ruamel_yaml
-                ruamel_yaml.dump(data, 
-                                 fh, 
-                                 default_flow_style=False, 
-                                 Dumper=ruamel_yaml.RoundTripDumper)
-            else:
-                # use pyyaml parser
-                #
-                # using safe_dump instead of dump ensures that we
-                # don't serialize any non-std yaml content. In particular,
-                # this causes issues if a unicode object containing a 7-bit
-                # ascii string is passed as part of the data. in this case, 
-                # dump will write out a special format which is later on 
-                # *loaded in* as a unicode object, even if the content doesn't  
-                # need unicode handling. And this causes issues down the line
-                # in toolkit code, assuming strings:
-                #
-                # >>> yaml.dump({"foo": u"bar"})
-                # "{foo: !!python/unicode 'bar'}\n"
-                # >>> yaml.safe_dump({"foo": u"bar"})
-                # '{foo: bar}\n'
-                #                
-                yaml.safe_dump(data, fh)
-                
+            self.__write_data_file(fh, data)
         except Exception, e:
             raise TankError("Could not write to environment file '%s'. "
                             "Error reported: %s" % (path, e))
         finally:
             fh.close()
+
+
+    def __write_data_file(self, fh, data):
+        """
+        Writes the yaml data to a supplied file handle
+
+        :param fh: An open file handle to write to.
+        :param data: yaml data structure to write
+        """
+
+        # the ruamel parser doesn't have 2.5 support so
+        # only use it on 2.6+
+        if self._use_ruamel_yaml_parser and not(sys.version_info < (2,6)):
+            # note that we are using the RoundTripDumper in order to
+            # preserve the structure when writing the file to disk.
+            #
+            # the default_flow_style=False tells the parse to write
+            # any modified values on multi-line form, e.g.
+            #
+            # foo:
+            #   bar: 3
+            #   baz: 4
+            #
+            # rather than
+            #
+            # foo: { bar: 3, baz: 4 }
+            #
+            # note that safe_dump is not needed when using the
+            # roundtrip dumper, it will adopt a 'safe' behaviour
+            # by default.
+            from tank_vendor import ruamel_yaml
+            ruamel_yaml.dump(data,
+                             fh,
+                             default_flow_style=False,
+                             Dumper=ruamel_yaml.RoundTripDumper)
+        else:
+            # use pyyaml parser
+            #
+            # using safe_dump instead of dump ensures that we
+            # don't serialize any non-std yaml content. In particular,
+            # this causes issues if a unicode object containing a 7-bit
+            # ascii string is passed as part of the data. in this case,
+            # dump will write out a special format which is later on
+            # *loaded in* as a unicode object, even if the content doesn't
+            # need unicode handling. And this causes issues down the line
+            # in toolkit code, assuming strings:
+            #
+            # >>> yaml.dump({"foo": u"bar"})
+            # "{foo: !!python/unicode 'bar'}\n"
+            # >>> yaml.safe_dump({"foo": u"bar"})
+            # '{foo: bar}\n'
+            #
+            yaml.safe_dump(data, fh)
+                
 
     def set_yaml_preserve_mode(self, val):
         """
@@ -883,33 +901,52 @@ class WritableEnvironment(Environment):
 
 
     ############################################################################
-    # Methods specific to updating all environment settings to full or sparse
+    # Methods specific to dumping environment settings
 
-    def make_sparse(self, debug=False):
+    def dump(self, file):
         """
-        Make the settings defined in this environment sparsely populated.
+        Dump a copy of this environment's settings to a file.
+
+        NOTE: The calling code is responsible for closing the file handle.
+
+        :param file: An open file object to write to.
+        """
+
+        # load the output path's yaml
+        yml_data = self.__load_writable_yaml(self._env_path)
+        self.__write_data_file(file, yml_data)
+
+    def dump_sparse(self, file, debug=False):
+        """
+        Dump a sparse copy of this environment's settings to a file.
 
         Any setting defined in the environment that matches the default value
-        specified will be removed.
+        specified will not be included.
 
+        NOTE: The calling code is responsible for closing the file handle.
+
+        :param file: An open file object to write to.
         :param debug: If True, include debug comments on lines using a
             non-default value.
         """
 
-        self.__update_all_settings(UpdateAllSettingsFormat.SPARSE, debug)
+        self._dump_settings(self.SPARSE, file, debug)
 
-    def make_full(self, debug=False):
+    def dump_full(self, file, debug=False):
         """
-        Make the settings defined in this environment fully populated.
+        Dump a full copy of this environment's settings to a file.
 
-        Any setting not specified in the environment will be populated with the
+        Any setting not specified in the environment will be dumped with the
         default value.
 
+        NOTE: The calling code is responsible for closing the file handle.
+
+        :param file: An open file object to write to.
         :param debug: If True, include debug comments on lines using a default
-            valued.
+            value.
         """
 
-        self.__update_all_settings(UpdateAllSettingsFormat.FULL, debug)
+        self._dump_settings(self.FULL, file, debug)
 
     def _update_settings_sparse(self, schema, settings, engine_name=None,
         manifest_file=None, debug=False):
@@ -921,8 +958,7 @@ class WritableEnvironment(Environment):
 
         :param schema: A schema defining types and defaults for settings.
         :param settings: A dict of settings to sparsify.
-        :param engine_name: The name of the engine currently running if there
-            is one.
+        :param engine_name: The name of the current engine
         :param manifest_file: The path to the manifest file if known.
         :param debug: If True, include debug comments on lines using a
             non-default value.
@@ -1027,20 +1063,21 @@ class WritableEnvironment(Environment):
 
         return modified
 
-    def __update_all_settings(self, update_format, debug=False):
+    def _dump_settings(self, dump_format, file, debug=False):
         """
-        Iterate over items in the env, make them full or sparse.
+        Dump a copy of this environment's settings to the supplied file.
 
-        :param update_format: UpdateAllSettingsFormat.[FULL|SPARSE]
-        :param debug: Add debug comments in the updated settings.
+        :param dump_format: WritableEnvironment.[FULL|SPARSE]
+        :param file: A file like object to dump to
+        :param debug: Include debug comments in the dumped settings.
         """
 
         # we're either adding or remove settings depending on the update format.
         # either way we access the data the same, and the arguments are the
         # same so just call a different method based on what needs to be
         # done.
-        if update_format == UpdateAllSettingsFormat.SPARSE:
-            update_settings= self._update_settings_sparse
+        if dump_format == self.SPARSE:
+            update_settings = self._update_settings_sparse
         else:
             update_settings = self._update_settings_full
 
@@ -1127,15 +1164,5 @@ class WritableEnvironment(Environment):
             # type of dumping being performed.
             update_settings(fw_schema, fw_settings, fw_manifest_file, debug)
 
-        # write the modified data to the output path
-        self.__write_data(self._env_path, yml_data)
+        self.__write_data_file(file, yml_data)
 
-
-class UpdateAllSettingsFormat(object):
-    """
-    Format enumeration to use when updating all settings in an environment.
-
-    FULL = Include all settings, using default values when necessary.
-    SPARSE = Exclude settings using default values.
-    """
-    (FULL, SPARSE) = range(2)
