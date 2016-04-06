@@ -18,6 +18,7 @@ import sys
 import copy
 
 from tank_vendor import yaml
+from .bundle import resolve_default_value
 from . import constants
 from . import environment_includes
 from ..errors import TankError, TankUnreadableFileError
@@ -109,6 +110,7 @@ class Environment(object):
         handles the checks to see if an item is disabled
         """
         descriptor_dict = settings.get(constants.ENVIRONMENT_LOCATION_KEY)
+
         # Check for disabled and deny_platforms
         is_disabled = descriptor_dict.get("disabled", False)
         if is_disabled:
@@ -462,30 +464,34 @@ class Environment(object):
 
 
 
-
-
-
 class WritableEnvironment(Environment):
     """
     Represents a mutable environment.
-    
+
     If you need to make change to the environment, this class should be used
     rather than the Environment class. Additional methods are added
     to support modification and updates and handling of writing yaml
     content back to disk.
     """
 
+    (FULL, SPARSE) = range(2)
+    """Format enumeration to use when updating all settings in an environment.
+
+    FULL: Include all settings, using default values when necessary.
+    SPARSE: Exclude settings using default values.
+    """
+
     def __init__(self, env_path, pipeline_config, context=None):
         """
         Constructor
         """
-        self.set_yaml_preserve_mode(False)        
+        self.set_yaml_preserve_mode(False)
         Environment.__init__(self, env_path, pipeline_config, context)
 
     def __load_writable_yaml(self, path):
         """
         Loads yaml data from disk.
-        
+
         :param path: Path to yaml file
         :returns: yaml object representing the data structure
         """
@@ -531,57 +537,68 @@ class WritableEnvironment(Environment):
         except Exception, e:
             raise TankError("Could not open file '%s' for writing. "
                             "Error reported: '%s'" % (path, e))
-        
+
         try:
-            # the ruamel parser doesn't have 2.5 support so 
-            # only use it on 2.6+
-            if self._use_ruamel_yaml_parser and not(sys.version_info < (2,6)):
-                # note that we are using the RoundTripDumper in order to 
-                # preserve the structure when writing the file to disk.
-                #
-                # the default_flow_style=False tells the parse to write
-                # any modified values on multi-line form, e.g.
-                # 
-                # foo:
-                #   bar: 3
-                #   baz: 4
-                #
-                # rather than
-                #
-                # foo: { bar: 3, baz: 4 }
-                #
-                # note that safe_dump is not needed when using the 
-                # roundtrip dumper, it will adopt a 'safe' behaviour
-                # by default.
-                from tank_vendor import ruamel_yaml
-                ruamel_yaml.dump(data, 
-                                 fh, 
-                                 default_flow_style=False, 
-                                 Dumper=ruamel_yaml.RoundTripDumper)
-            else:
-                # use pyyaml parser
-                #
-                # using safe_dump instead of dump ensures that we
-                # don't serialize any non-std yaml content. In particular,
-                # this causes issues if a unicode object containing a 7-bit
-                # ascii string is passed as part of the data. in this case, 
-                # dump will write out a special format which is later on 
-                # *loaded in* as a unicode object, even if the content doesn't  
-                # need unicode handling. And this causes issues down the line
-                # in toolkit code, assuming strings:
-                #
-                # >>> yaml.dump({"foo": u"bar"})
-                # "{foo: !!python/unicode 'bar'}\n"
-                # >>> yaml.safe_dump({"foo": u"bar"})
-                # '{foo: bar}\n'
-                #                
-                yaml.safe_dump(data, fh)
-                
+            self.__write_data_file(fh, data)
         except Exception, e:
             raise TankError("Could not write to environment file '%s'. "
                             "Error reported: %s" % (path, e))
         finally:
             fh.close()
+
+
+    def __write_data_file(self, fh, data):
+        """
+        Writes the yaml data to a supplied file handle
+
+        :param fh: An open file handle to write to.
+        :param data: yaml data structure to write
+        """
+
+        # the ruamel parser doesn't have 2.5 support so
+        # only use it on 2.6+
+        if self._use_ruamel_yaml_parser and not(sys.version_info < (2,6)):
+            # note that we are using the RoundTripDumper in order to
+            # preserve the structure when writing the file to disk.
+            #
+            # the default_flow_style=False tells the parse to write
+            # any modified values on multi-line form, e.g.
+            #
+            # foo:
+            #   bar: 3
+            #   baz: 4
+            #
+            # rather than
+            #
+            # foo: { bar: 3, baz: 4 }
+            #
+            # note that safe_dump is not needed when using the
+            # roundtrip dumper, it will adopt a 'safe' behaviour
+            # by default.
+            from tank_vendor import ruamel_yaml
+            ruamel_yaml.dump(data,
+                             fh,
+                             default_flow_style=False,
+                             Dumper=ruamel_yaml.RoundTripDumper)
+        else:
+            # use pyyaml parser
+            #
+            # using safe_dump instead of dump ensures that we
+            # don't serialize any non-std yaml content. In particular,
+            # this causes issues if a unicode object containing a 7-bit
+            # ascii string is passed as part of the data. in this case,
+            # dump will write out a special format which is later on
+            # *loaded in* as a unicode object, even if the content doesn't
+            # need unicode handling. And this causes issues down the line
+            # in toolkit code, assuming strings:
+            #
+            # >>> yaml.dump({"foo": u"bar"})
+            # "{foo: !!python/unicode 'bar'}\n"
+            # >>> yaml.safe_dump({"foo": u"bar"})
+            # '{foo: bar}\n'
+            #
+            yaml.safe_dump(data, fh)
+                
 
     def set_yaml_preserve_mode(self, val):
         """
@@ -602,6 +619,7 @@ class WritableEnvironment(Environment):
         """
         Updates the engine configuration
         """
+
         if engine_name not in self._env_data["engines"]:
             raise TankError("Engine %s does not exist in environment %s" % (engine_name, self._env_path) )
 
@@ -630,6 +648,7 @@ class WritableEnvironment(Environment):
         """
         Updates the app configuration.
         """
+
         if engine_name not in self._env_data["engines"]:
             raise TankError("Engine %s does not exist in environment %s" % (engine_name, self._env_path) )
         if app_name not in self._env_data["engines"][engine_name]["apps"]:
@@ -648,6 +667,7 @@ class WritableEnvironment(Environment):
 
         # finally update the file
         app_data[constants.ENVIRONMENT_LOCATION_KEY] = new_location
+
         self._update_settings_recursive(app_data, new_data)
         self.__write_data(yml_file, yml_data)
 
@@ -658,6 +678,7 @@ class WritableEnvironment(Environment):
         """
         Updates the framework configuration
         """
+
         if framework_name not in self._env_data["frameworks"]:
             raise TankError("Framework %s does not exist in environment %s" % (framework_name, self._env_path) )
 
@@ -680,7 +701,6 @@ class WritableEnvironment(Environment):
 
         # sync internal data with disk
         self._refresh()
-
 
     def _update_settings_recursive(self, settings, new_data):
         """
@@ -878,3 +898,271 @@ class WritableEnvironment(Environment):
         self.__write_data(self._env_path, data)
         # sync internal data with disk
         self._refresh()
+
+
+    ############################################################################
+    # Methods specific to dumping environment settings
+
+    def dump(self, file):
+        """
+        Dump a copy of this environment's settings to a file.
+
+        NOTE: The calling code is responsible for closing the file handle.
+
+        :param file: An open file object to write to.
+        """
+
+        # load the output path's yaml
+        yml_data = self.__load_writable_yaml(self._env_path)
+        self.__write_data_file(file, yml_data)
+
+    def dump_sparse(self, file, debug=False):
+        """
+        Dump a sparse copy of this environment's settings to a file.
+
+        Any setting defined in the environment that matches the default value
+        specified will not be included.
+
+        NOTE: The calling code is responsible for closing the file handle.
+
+        :param file: An open file object to write to.
+        :param debug: If True, include debug comments on lines using a
+            non-default value.
+        """
+
+        self._dump_settings(self.SPARSE, file, debug)
+
+    def dump_full(self, file, debug=False):
+        """
+        Dump a full copy of this environment's settings to a file.
+
+        Any setting not specified in the environment will be dumped with the
+        default value.
+
+        NOTE: The calling code is responsible for closing the file handle.
+
+        :param file: An open file object to write to.
+        :param debug: If True, include debug comments on lines using a default
+            value.
+        """
+
+        self._dump_settings(self.FULL, file, debug)
+
+    def _update_settings_sparse(self, schema, settings, engine_name=None,
+        manifest_file=None, debug=False):
+        """
+        Given a schema and settings, make sure that the settings are sparse.
+
+        Iterate over the schema key's default values and remove any settings
+        that use the default.
+
+        :param schema: A schema defining types and defaults for settings.
+        :param settings: A dict of settings to sparsify.
+        :param engine_name: The name of the current engine
+        :param manifest_file: The path to the manifest file if known.
+        :param debug: If True, include debug comments on lines using a
+            non-default value.
+
+        :returns: bool - True if the settings were modified, False otherwise.
+        """
+
+        modified = False
+
+        # check each key defined in the schema
+        for setting_name in schema.keys():
+
+            # identify the portion of the manifest that defines the setting
+            setting_schema = schema[setting_name]
+
+            # if defined, check the settings against the default value
+            if setting_name in settings:
+                setting_value = settings[setting_name]
+                schema_default = resolve_default_value(
+                    setting_schema, engine_name=engine_name)
+
+                if setting_value == schema_default:
+                    # the setting value matches the schema default. remove the
+                    # setting.
+                    del settings[setting_name]
+                    modified = True
+
+                elif debug:
+                    # Add a comment to identify default values in the dumped
+                    # file to help with debugging. The comment shows the
+                    # default value and the path to the manifest where the
+                    # default value is defined.
+                    if hasattr(settings, 'yaml_add_eol_comment'):
+                        settings.yaml_add_eol_comment(
+                            "Differs from %s default value (%s) in manifest %s"
+                                % (engine_name or "",
+                                   schema_default or '""',
+                                   manifest_file or ""
+                                ),
+                            setting_name,
+                            column=80
+                        )
+
+                # identify the type to address any special cases
+                setting_type = setting_schema["type"]
+
+                # remove any legacy "default" hook references
+                if setting_type == "hook" and setting_value == "default":
+                    del settings[setting_name]
+                    modified = True
+
+        return modified
+
+    def _update_settings_full(self, schema, settings, engine_name=None,
+        manifest_file=None, debug=False):
+        """
+        Given a schema and settings, make sure that the settings are fully
+        defined.
+
+        Iterate over the schema key's default values and add any settings
+        that aren't defined by using the default value.
+
+        :param schema: A schema defining types and defaults for settings.
+        :param settings: A dict of settings to sparsify.
+        :param engine_name: The name of the engine currently running if there
+            is one.
+        :param manifest_file: The path to the manifest file if known.
+        :param debug: If True, include debug comments on lines using a default
+            value.
+
+        :returns: bool - True if the settings were modified, False otherwise.
+        """
+
+        modified = False
+
+        # check each key defined in the schema
+        for setting_name in schema.keys():
+
+            # get the default value for the setting
+            setting_schema = schema[setting_name]
+            schema_default = resolve_default_value(
+                setting_schema, engine_name=engine_name)
+
+            if setting_name not in settings:
+                # No value specified in the settings. Just set the default.
+                settings[setting_name] = schema_default
+                modified = True
+
+            if schema_default == settings[setting_name] and debug:
+                # The value of the setting matches the default value in the
+                # manifest. Add a comment to identify default values in the
+                # dumped file to help with debugging. The comment will display
+                # the path to the manifest.
+                if hasattr(settings, 'yaml_add_eol_comment'):
+                    settings.yaml_add_eol_comment(
+                        "Matches %s default value in manifest %s" % (
+                            engine_name or "",
+                            manifest_file or ""),
+                        setting_name,
+                        column=80
+                    )
+
+        return modified
+
+    def _dump_settings(self, dump_format, file, debug=False):
+        """
+        Dump a copy of this environment's settings to the supplied file.
+
+        :param dump_format: WritableEnvironment.[FULL|SPARSE]
+        :param file: A file like object to dump to
+        :param debug: Include debug comments in the dumped settings.
+        """
+
+        # we're either adding or remove settings depending on the update format.
+        # either way we access the data the same, and the arguments are the
+        # same so just call a different method based on what needs to be
+        # done.
+        if dump_format == self.SPARSE:
+            update_settings = self._update_settings_sparse
+        else:
+            update_settings = self._update_settings_full
+
+        # load the output path's yaml
+        yml_data = self.__load_writable_yaml(self._env_path)
+
+        # process each of the engines for the environment
+        for engine_name in self.get_engines():
+
+            # only process settings in this file
+            (tokens, engine_file) = self.find_location_for_engine(engine_name)
+            if not engine_file == self._env_path:
+                continue
+
+            # drill down into the yml data to find the chunk where the
+            # engine settings live
+            engine_settings = yml_data
+            for token in tokens:
+                engine_settings = engine_settings.get(token)
+
+            # get information about the engine in order to process the
+            # settings.
+            engine_descriptor = self.get_engine_descriptor(engine_name)
+            engine_schema = engine_descriptor.get_configuration_schema()
+            engine_manifest_file = os.path.join(
+                engine_descriptor.get_path(),
+                constants.BUNDLE_METADATA_FILE
+            )
+
+            # update the settings by adding or removing keys based on the
+            # type of dumping being performed.
+            update_settings(engine_schema, engine_settings, engine_name,
+                engine_manifest_file, debug)
+
+            # processing all the installed apps
+            for app_name in self.get_apps(engine_name):
+
+                # only process settings in this file
+                (tokens, app_file) = self.find_location_for_app(engine_name,
+                    app_name)
+                if not app_file == self._env_path:
+                    continue
+
+                # drill down into the yml data to find the chunk where the
+                # app settings live
+                app_settings = yml_data
+                for token in tokens:
+                    app_settings = app_settings.get(token)
+
+                # get information about the app in order to process the
+                # settings.
+                app_descriptor = self.get_app_descriptor(engine_name, app_name)
+                app_schema = app_descriptor.get_configuration_schema()
+                app_manifest_file = os.path.join(app_descriptor.get_path(),
+                    constants.BUNDLE_METADATA_FILE)
+
+                # update the settings by adding or removing keys based on the
+                # type of dumping being performed.
+                update_settings(app_schema, app_settings, engine_name,
+                    app_manifest_file, debug)
+
+        # processing all the frameworks
+        for fw_name in self.get_frameworks():
+
+            # only process settings in this file
+            (tokens, fw_file) = self.find_location_for_framework(fw_name)
+            if not fw_file == self._env_path:
+                continue
+
+            # drill down into the yml data to find the chunk where the
+            # framework settings live
+            fw_settings = yml_data
+            for token in tokens:
+                fw_settings = fw_settings.get(token)
+
+            # get information about the framework in order to process the
+            # settings.
+            fw_descriptor = self.get_framework_descriptor(fw_name)
+            fw_schema = fw_descriptor.get_configuration_schema()
+            fw_manifest_file = os.path.join(fw_descriptor.get_path(),
+                constants.BUNDLE_METADATA_FILE)
+
+            # update the settings by adding or removing keys based on the
+            # type of dumping being performed.
+            update_settings(fw_schema, fw_settings, fw_manifest_file, debug)
+
+        self.__write_data_file(file, yml_data)
+

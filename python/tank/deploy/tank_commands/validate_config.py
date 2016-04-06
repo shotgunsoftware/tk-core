@@ -25,6 +25,15 @@ class ValidateConfigAction(Action):
                         ("Validates your current Configuration to check that all "
                         "environments have been correctly configured."), 
                         "Configuration")
+
+        self.parameters = {}
+
+        self.parameters["envs"] = {
+            "description": ("A list of environment names to process. If not "
+                            "specified, process all environments."),
+            "type": "list",
+            "default": [],
+        }
         
         # this method can be executed via the API
         self.supports_api = True
@@ -37,7 +46,9 @@ class ValidateConfigAction(Action):
         :param log: std python logger
         :param parameters: dictionary with tank command parameters
         """
-        return self._run(log)
+
+        # validate params and seed default values
+        return self._run(log, self._validate_parameters(parameters))
     
     def run_interactive(self, log, args):
         """
@@ -46,11 +57,12 @@ class ValidateConfigAction(Action):
         :param log: std python logger
         :param args: command line args
         """
-        if len(args) != 0:
-            raise TankError("This command takes no arguments!")
-        return self._run(log)
-        
-    def _run(self, log):
+
+        # currently, environment names are passed in as arguments for
+        # validation. Just translate the args to the env list and validate them
+        return self._run(log, self._validate_parameters({"envs": args}))
+
+    def _run(self, log, parameters):
         """
         Actual execution payload
         """ 
@@ -60,19 +72,14 @@ class ValidateConfigAction(Action):
         log.info("Welcome to the Shotgun Pipeline Toolkit Configuration validator!")
         log.info("")
     
-        try:
-            envs = self.tk.pipeline_configuration.get_environments()
-        except Exception, e:
-            raise TankError("Could not find any environments for config %s: %s" % (self.tk, e))
-    
         log.info("Found the following environments:")
-        for x in envs:
+        for x in parameters["envs"]:
             log.info("    %s" % x)
         log.info("")
         log.info("")
     
         # validate environments
-        for env_name in envs:
+        for env_name in parameters["envs"]:
             env = self.tk.pipeline_configuration.get_environment(env_name)
             _process_environment(log, self.tk, env)
     
@@ -113,21 +120,55 @@ class ValidateConfigAction(Action):
         log.info("")
         log.info("")
         log.info("")
+
+    def _validate_parameters(self, parameters):
+        """
+        Do validation of the parameters that are specific to this action.
+
+        :param parameters: The dict of parameters
+        :returns: The validated and fully populated dict of parameters.
+        """
+
+        # do the base class default validation
+        params = super(ValidateConfigAction, self)._validate_parameters(
+            parameters)
+
+        # get a list of valid env names
+        valid_env_names = self.tk.pipeline_configuration.get_environments()
+
+        bad_env_names = []
+        env_names_to_process = []
+        if parameters["envs"]:
+            # some environment names supplied on the command line
+            for env_param in parameters["envs"]:
+                # see if this is a comma separated list
+                for env_name in env_param.split(","):
+                    env_name = env_name.strip()
+                    if env_name in valid_env_names:
+                        env_names_to_process.append(env_name)
+                    else:
+                        bad_env_names.append(env_name)
+        else:
+            # nothing specified. process all
+            env_names_to_process = valid_env_names
+
+        # bail if any bad env names
+        if bad_env_names:
+            raise TankError(
+                "Error retrieving environments mathing supplied arguments: %s"
+                % (", ".join(bad_env_names),)
+            )
+
+        parameters["envs"] = sorted(env_names_to_process)
+
+        return params
         
-        
-
-
-
-
-
-
-
 g_templates = set()
 g_hooks = set()
 
+
 def _validate_bundle(log, tk, name, settings, descriptor, engine_name=None):
     """Validate the supplied bundle including the descriptor and all settings.
-
     :param log: A logger instance for logging validation output.
     :param tk: A toolkit api instance.
     :param name: The bundle's name.
@@ -136,7 +177,6 @@ def _validate_bundle(log, tk, name, settings, descriptor, engine_name=None):
     :param engine_name: The name of the containing engine or None.
         This is used when the bundle is an app and needs to validate engine-
         specific settings.
-
     """
 
     log.info("")
@@ -145,17 +185,17 @@ def _validate_bundle(log, tk, name, settings, descriptor, engine_name=None):
     if not descriptor.exists_local():
         log.info("Please wait, downloading...")
         descriptor.download_local()
-    
+
     #if len(descriptor.get_required_frameworks()) > 0:
     #    log.info("  Using frameworks: %s" % descriptor.get_required_frameworks())
-        
+
     # out of date check
     latest_desc = descriptor.find_latest_version()
     if descriptor.get_version() != latest_desc.get_version():
-        log.info(  "WARNING: Latest version is %s. You are running %s." % (latest_desc.get_version(), 
+        log.info(  "WARNING: Latest version is %s. You are running %s." % (latest_desc.get_version(),
                                                                         descriptor.get_version()))
-    
-    
+
+
     manifest = descriptor.get_configuration_schema()
 
     for s in settings.keys():
@@ -200,18 +240,17 @@ def _validate_bundle(log, tk, name, settings, descriptor, engine_name=None):
             if manifest[s].get("type") == "hook":
                 g_hooks.add(value)
 
-                     
+
 def _process_environment(log, tk, env):
     """Process an environment by validating each of its bundles.
-
     :param log: A logger instance for logging validation output.
     :param tk: A toolkit api instance.
     :param env: An environment instance.
     """
-    
+
     log.info("Processing environment %s" % env)
 
-    for e in env.get_engines():  
+    for e in env.get_engines():
         s = env.get_engine_settings(e)
         descriptor = env.get_engine_descriptor(e)
         name = "Engine %s / %s" % (env.name, e)
@@ -221,12 +260,3 @@ def _process_environment(log, tk, env):
             descriptor = env.get_app_descriptor(e, a)
             name = "%s / %s / %s" % (env.name, e, a)
             _validate_bundle(log, tk, name, s, descriptor, engine_name=e)
-
-    
-    
-     
-
-
-
-
-
