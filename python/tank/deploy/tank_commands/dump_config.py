@@ -170,23 +170,28 @@ class DumpConfigAction(Action):
         # get a file to write to
         env_fh= self._get_file_handle(params)
 
-        # dump the environment to the in-memory file
-        if params["sparse"]:
-            # write a sparse representation of the config to the file
-            env.dump_sparse(env_fh, params["debug_comments"])
-        elif params["full"]:
-            # write a full representation of the config to the file
-            env.dump_full(env_fh, params["debug_comments"])
-        else:
-            # write the config as-is
-            env.dump(env_fh)
+        try:
+            # dump the environment to the in-memory file
+            if params["sparse"]:
+                # write a sparse representation of the config to the file
+                env.dump_sparse(env_fh, params["debug_comments"])
+            elif params["full"]:
+                # write a full representation of the config to the file
+                env.dump_full(env_fh, params["debug_comments"])
+            else:
+                # write the config as-is
+                env.dump(env_fh)
 
-        if not params["file"]:
-            # no file specified, write the in-memory file contents to <stdout>
-            print env_fh.getvalue()
-
-        # all done, close the file handle
-        env_fh.close()
+            if not params["file"]:
+                # no file, write the in-memory file contents to <stdout>
+                print env_fh.getvalue()
+        except Exception, e:
+            raise TankError(
+                "There was a problem dumping the config: '%s'" % (e,)
+            )
+        finally:
+            # all done, close the file handle
+            env_fh.close()
 
     def _get_file_handle(self, params):
         """

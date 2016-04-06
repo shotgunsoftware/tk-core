@@ -914,7 +914,14 @@ class WritableEnvironment(Environment):
 
         # load the output path's yaml
         yml_data = self.__load_writable_yaml(self._env_path)
-        self.__write_data_file(file, yml_data)
+
+        try:
+            self.__write_data_file(file, yml_data)
+        except Exception, e:
+            raise TankError(
+                "Could not write to environment file handle. "
+                "Error reported: %s" % (e,)
+            )
 
     def dump_sparse(self, file, debug=False):
         """
@@ -1164,5 +1171,11 @@ class WritableEnvironment(Environment):
             # type of dumping being performed.
             update_settings(fw_schema, fw_settings, fw_manifest_file, debug)
 
-        self.__write_data_file(file, yml_data)
+        try:
+            self.__write_data_file(file, yml_data)
+        except Exception, e:
+            raise TankError(
+                "Could not write to environment file handle. "
+                "Error reported: %s" % (e,)
+            )
 
