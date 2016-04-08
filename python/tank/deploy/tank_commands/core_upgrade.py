@@ -17,6 +17,7 @@ import textwrap
 import uuid
 import tempfile
 import optparse
+import copy
 
 from ...util import shotgun
 from ...platform import constants
@@ -39,7 +40,9 @@ class TkOptParse(optparse.OptionParser):
         Constructor.
         """
         # Don't generate the --help options, since --help is already eaten up by tank_cmd.py
-        optparse.OptionParser.__init__(self, *args, add_help_option=False, **kwargs)
+        kwargs = copy.copy(kwargs)
+        kwargs["add_help_option"] = False
+        optparse.OptionParser.__init__(self, *args, **kwargs)
         # optparse uses argv[0] for the program, but users use the tank command instead, so replace
         # the program.
         self.prog = "tank"
