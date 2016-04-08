@@ -156,6 +156,8 @@ class CoreUpdateAction(Action):
         log.info("For more information, please see the Toolkit documentation:")
         log.info("https://support.shotgunsoftware.com/entries/96141707")
         log.info("https://support.shotgunsoftware.com/entries/96142347")
+        log.info("")
+        log.info("")
 
         cv = installer.get_current_version_number()
         nv = installer.get_update_version_number()
