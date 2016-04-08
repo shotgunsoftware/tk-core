@@ -102,6 +102,17 @@ class BundleDescriptor(Descriptor):
             cfg = {}
         return cfg
 
+    def get_supported_engines(self):
+        """
+        Returns the engines supported by this app or framework. May return None,
+        meaning that anything goes.
+
+        return: None                   (all engines are fine!)
+        return: ["tk-maya", "tk-nuke"] (works with maya and nuke)
+        """
+        manifest = self._io_descriptor.get_manifest()
+        return manifest.get("supported_engines")
+
     def get_required_frameworks(self):
         """
         Returns the list of required frameworks for this item.
@@ -217,17 +228,6 @@ class AppDescriptor(BundleDescriptor):
         :param io_descriptor: Associated IO descriptor.
         """
         super(AppDescriptor, self).__init__(io_descriptor)
-
-    def get_supported_engines(self):
-        """
-        Returns the engines supported for this app. May return None,
-        meaning that anything goes.
-
-        return: None                   (all engines are fine!)
-        return: ["tk-maya", "tk-nuke"] (works with maya and nuke)
-        """
-        manifest = self._io_descriptor.get_manifest()
-        return manifest.get("supported_engines")
 
 
 class FrameworkDescriptor(BundleDescriptor):
