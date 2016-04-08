@@ -220,8 +220,16 @@ def __create_sg_connection(config_data=None, user=None):
         sg = shotgun_api3.Shotgun(
             config_data["host"],
             script_name=config_data["api_script"], api_key=config_data["api_key"],
-            http_proxy=config_data.get("http_proxy")
-        )
+            http_proxy=config_data.get("http_proxy"), connect=config_data.get("connect", True))
+
+        if "timeout_secs" in config_data:
+            sg.config.timeout_secs = config_data.get("timeout_secs")
+            # The timeout can't be set until after the sg instance is created (when it has already
+            # stored the timeout setting in the connection). We have to force it to re-spawn
+            # the connection with the new timeout settings. It will create a new conneciton 
+            # automatically the next time it's called. There shouldn't be a connection yet, but
+            # if there is, let's close it just in case.
+            sg.close()
     elif user:
         sg = user.create_sg_connection()
     else:
