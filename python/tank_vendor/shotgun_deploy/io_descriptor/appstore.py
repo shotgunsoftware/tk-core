@@ -455,10 +455,6 @@ class IODescriptorAppStore(IODescriptorBase):
                 [[link_field, "is", sg_bundle_data]] + latest_filter,
                 ["code"]
             )
-
-            if len(sg_data) == 0:
-                raise ShotgunDeployError("Cannot find any versions for %s in the App store!" % self._name)
-
         else:
             # now get all versions
             sg_data = sg.find(
@@ -466,6 +462,9 @@ class IODescriptorAppStore(IODescriptorBase):
                 filters=latest_filter,
                 fields=["code"]
             )
+
+        if len(sg_data) == 0:
+            raise ShotgunDeployError("Cannot find any versions for %s in the App store!" % self._name)
 
         version_numbers = [x.get("code") for x in sg_data]
         version_to_use = self._find_latest_tag_by_pattern(version_numbers, version_pattern)

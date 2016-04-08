@@ -193,8 +193,8 @@ class IODescriptorBase(object):
             version_digit = int(version_digit)
             if version_digit not in current:
                 raise ShotgunDeployError(
-                    "%s does not have a version matching the pattern '%s'. "
-                    "Available versions are: %s" % (self._path, pattern, ", ".join(version_numbers))
+                    "'%s' does not have a version matching the pattern '%s'. "
+                    "Available versions are: %s" % (self.get_system_name(), pattern, ", ".join(version_numbers))
                 )
             current = current[version_digit]
             if version_to_use is None:
