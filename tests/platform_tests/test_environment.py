@@ -1,9 +1,11 @@
+import os
+
 import tank
 import tank.platform.constants
 from tank.errors import TankError
 from tank_test.tank_test_base import *
 from tank.platform.validation import *
-from tank.platform.environment import Environment
+from tank.platform.environment import Environment, WritableEnvironment
 from tank_vendor import yaml
 
 import copy
@@ -78,8 +80,105 @@ class TestEnvironment(TankTestBase):
         self.assertRaises(TankError, self.env.get_app_descriptor, "test_engine", "bad_engine")
         self.assertEqual(self.env.get_app_descriptor("test_engine", "test_app").get_configuration_schema(), 
                          self.raw_app_metadata["configuration"])
-        
-    
+
+
+class TestDumpEnvironment(TankTestBase):
+
+    def setUp(self):
+        super(TestDumpEnvironment, self).setUp()
+        self.setup_fixtures()
+
+        # create env object
+        self.env = self.tk.pipeline_configuration.get_environment("test_dump",
+            writable=True)
+
+    def test_dump(self):
+
+        env_name = "test_dump_unmodified"
+
+        # dump to a temp file
+        temp_path = os.path.join(self.project_config, "env", env_name + ".yml")
+        fh = open(temp_path, "w")
+        self.env.dump(fh, self.env.NONE)  # no transform
+        fh.close()
+
+        self.assertTrue(os.path.exists(temp_path))
+
+        # make sure the env can be loaded
+        dumped_env = self.tk.pipeline_configuration.get_environment(env_name)
+
+        # make sure engines are there
+        self.assertEquals(dumped_env.get_engines(), ["test_engine"])
+
+        # make sure apps are there
+        self.assertEquals(dumped_env.get_apps("test_engine"), ["test_app"])
+
+        # because we didn't transform, it should not have any of the sparse
+        # config values. try a couple to be sure
+        app_settings = dumped_env.get_app_settings("test_engine", "test_app")
+        self.assertTrue("test_str_sparse" not in app_settings)
+        self.assertTrue("test_empty_str_sparse" not in app_settings)
+        self.assertTrue("test_template_sparse" not in app_settings)
+        self.assertTrue("test_hook_std_sparse" not in app_settings)
+
+    def test_dump_full(self):
+
+        env_name = "test_dump_full"
+
+        # dump to a temp file
+        temp_path = os.path.join(self.project_config, "env", env_name + ".yml")
+        fh = open(temp_path, "w")
+        self.env.dump(fh, self.env.INCLUDE_DEFAULTS)
+        fh.close()
+
+        self.assertTrue(os.path.exists(temp_path))
+
+        # make sure the env can be loaded
+        dumped_env = self.tk.pipeline_configuration.get_environment(env_name)
+
+        # make sure engines are there
+        self.assertEquals(dumped_env.get_engines(), ["test_engine"])
+
+        # make sure apps are there
+        self.assertEquals(dumped_env.get_apps("test_engine"), ["test_app"])
+
+        # it should have the sparse config values. try a couple to be sure
+        app_settings = dumped_env.get_app_settings("test_engine", "test_app")
+        self.assertTrue("test_str_sparse" in app_settings)
+        self.assertTrue("test_empty_str_sparse" in app_settings)
+        self.assertTrue("test_template_sparse" in app_settings)
+        self.assertTrue("test_hook_std_sparse" in app_settings)
+
+    def test_dump_sparse(self):
+
+        env_name = "test_dump_sparse"
+
+        # dump to a temp file
+        temp_path = os.path.join(self.project_config, "env", env_name + ".yml")
+        fh = open(temp_path, "w")
+        self.env.dump(fh, self.env.STRIP_DEFAULTS)
+        fh.close()
+
+        self.assertTrue(os.path.exists(temp_path))
+
+        # make sure the env can be loaded
+        dumped_env = self.tk.pipeline_configuration.get_environment(env_name)
+
+        # make sure engines are there
+        self.assertEquals(dumped_env.get_engines(), ["test_engine"])
+
+        # make sure apps are there
+        self.assertEquals(dumped_env.get_apps("test_engine"), ["test_app"])
+
+        # because we dumped sparse, it should not have any of the sparse
+        # config values. try a couple to be sure
+        app_settings = dumped_env.get_app_settings("test_engine", "test_app")
+        self.assertTrue("test_str_sparse" not in app_settings)
+        self.assertTrue("test_empty_str_sparse" not in app_settings)
+        self.assertTrue("test_template_sparse" not in app_settings)
+        self.assertTrue("test_hook_std_sparse" not in app_settings)
+
+
 class TestUpdateEnvironment(TankTestBase):
     """
     Tests yaml environment updates
