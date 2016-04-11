@@ -175,15 +175,34 @@ class PushPCAction(Action):
                 log.debug("Copying %s -> %s" % (source_path, target_tmp_path))
                 util._copy_folder(log, source_path, target_tmp_path)
                 
-                # unlock and remove all the special core files from the tmp folder
-                for core_file in CORE_API_FILES + CORE_PC_FILES:
+                # If the source and target configurations are both localized, then also copy the
+                # core-related api files to the target config. Otherwise, skip them. 
+                copy_core_related_files = (self.tk.pipeline_configuration.is_localized() and 
+                                           target_pc.is_localized())
+
+                # CORE_PC_FILES are specific to the pipeline configuration so we shouldn't copy them
+                if copy_core_related_files:
+                    core_files_to_remove = CORE_PC_FILES
+                else:
+                    core_files_to_remove = CORE_API_FILES + CORE_PC_FILES
+                
+                if self.tk.pipeline_configuration.is_localized() and not target_pc.is_localized():
+                    log.warning("The source configuration contains a local core but the target "
+                                "configuration uses a shared core. The following core-related api "
+                                "files will not be copied to the target configuration: "
+                                "%s" % CORE_API_FILES)
+
+                # unlock and remove all the special core files from the temp dir so they aren't
+                # copied to the target
+                for core_file in core_files_to_remove:
                     path = os.path.join(target_tmp_path, "core", core_file)
                     if os.path.exists(path):
                         os.chmod(path, 0666)
                         log.debug("Removing system file %s" % path )
                         os.remove(path)
                 
-                # copy the pc specific special core files from existing cfg to new cfg
+                # copy the pc specific special core files from target config to new config temp dir
+                # in order to preserve them
                 for core_file in CORE_PC_FILES:
                     curr_config_path = os.path.join(target_path, "core", core_file)
                     new_config_path = os.path.join(target_tmp_path, "core", core_file)
