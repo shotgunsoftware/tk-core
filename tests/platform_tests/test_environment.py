@@ -1,11 +1,8 @@
 import os
 
-import tank
-import tank.platform.constants
 from tank.errors import TankError
 from tank_test.tank_test_base import *
 from tank.platform.validation import *
-from tank.platform.environment import Environment, WritableEnvironment
 from tank_vendor import yaml
 
 import copy
