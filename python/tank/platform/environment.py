@@ -1010,10 +1010,8 @@ class WritableEnvironment(Environment):
     def _update_settings(self, transform, schema, settings, engine_name=None,
         manifest_file=None, include_debug_comments=False):
         """
-        Given a schema and settings, make sure that the settings are sparse.
-
-        Iterate over the schema key's default values and remove any settings
-        that use the default.
+        Given a schema and settings, update them based on the specified
+        transform mode.
 
         :param transform: one of WritableEnvironment.[NONE | INCLUDE_DEFAULTS |
             STRIP_DEFAULTS]
