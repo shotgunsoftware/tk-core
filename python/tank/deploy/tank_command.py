@@ -26,6 +26,7 @@ from .tank_commands import update
 from .tank_commands import push_pc
 from .tank_commands import setup_project
 from .tank_commands import setup_project_wizard
+from .tank_commands import dump_config
 from .tank_commands import validate_config
 from .tank_commands import cache_apps
 from .tank_commands import switch
@@ -53,6 +54,7 @@ BUILT_IN_ACTIONS = [setup_project.SetupProjectAction,
                     core_localize.CoreLocalizeAction,
                     core_localize.ShareCoreAction,
                     core_localize.AttachToCoreAction,
+                    dump_config.DumpConfigAction,
                     validate_config.ValidateConfigAction,
                     cache_apps.CacheAppsAction,
                     misc.ClearCacheAction,
