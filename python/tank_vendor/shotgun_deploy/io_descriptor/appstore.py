@@ -613,7 +613,7 @@ class IODescriptorAppStore(IODescriptorBase):
                 api_key=script_key,
                 http_proxy=self._sg_connection.config.raw_http_proxy,
                 connect=False,
-                timeout_secs=5
+                constants.SGTK_APP_STORE_CONN_TIMEOUT
             )
 
             # determine the script user running currently
@@ -632,6 +632,7 @@ class IODescriptorAppStore(IODescriptorBase):
             # the firewall will drop the connection instead of rejecting it. The API request will 
             # timeout which unfortunately results in a generic SSLError with only the message text 
             # to give us a clue why the request failed. 
+            # The exception raised in this case is "ssl.SSLError: The read operation timed out"
             except httplib2.ssl.SSLError, e:
                 if "timed" in e.message:
                     raise ShotgunAppStoreConnectionError("Connection to %s timed out: %s" % (
