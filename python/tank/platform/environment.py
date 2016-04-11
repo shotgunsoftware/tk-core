@@ -357,11 +357,26 @@ class Environment(object):
             
         return tokens, path
 
-    def is_framework_available_from(self, framework_name, starting_point):
+    def find_framework_instances_from(self, yml_file):
+        """
+        Returns the list of frameworks available from a file and it's includes inside the environment.
+
+        :params yml_file: Environment file to start the search from.
+
+        :returns: List of framework instances accessible from the file.
+        """
+        if yml_file is None:
+            return self.get_frameworks()
+        else:
+            return [
+                fw for fw in self.get_frameworks() if self._is_framework_available_from(fw, yml_file)
+            ]
+
+    def _is_framework_available_from(self, framework_name, starting_point):
         """
         Tests if a framework is reachable from a given file in the environment by following its includes.
 
-        :param framework_name: Name of the framework to search for.
+        :param framework_name: Name of the framework instance to search for, e.g. tk-framework-something_v1.x.x
         :param starting_point: First file to start looking for the framework.
 
         :returns: True if the framework is available from the starting point, False otherwise.

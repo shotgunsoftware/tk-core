@@ -86,18 +86,18 @@ def validate_platform(descriptor):
 
 def get_missing_frameworks(descriptor, environment, yml_file):
     """
-    Returns a list of framework descriptors by the given descriptor required but not present 
-    in the given environment.
+    Returns a list of missing frameworks from a given environment based on the
+    list of dependencies returned by a bundle descriptor.
 
-    returns items on the following form:
-    [{'version': 'v0.1.0', 'name': 'tk-framework-widget'}]
+    :param descriptor: The bundle for which missing dependencies will be searched.
+    :param environment: The environment to search in
+    :param yml_file: The yml file inside the environment to start the search from.
 
-    :returns: list dictionaries, each with a name and a version key.
+    :returns: A list of dictionaries, each with a name and a version key, e.g.
+        [{'version': 'v0.1.0', 'name': 'tk-framework-widget'}]
     """
     required_frameworks = descriptor.get_required_frameworks()
-    current_framework_instances = [
-        fw for fw in environment.get_frameworks() if environment.is_framework_available_from(fw, yml_file)
-    ]
+    current_framework_instances = environment.find_framework_instances_from(yml_file) 
 
     if len(required_frameworks) == 0:
         return []
