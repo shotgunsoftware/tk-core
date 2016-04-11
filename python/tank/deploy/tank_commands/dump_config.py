@@ -73,12 +73,12 @@ class DumpConfigAction(Action):
             "default": False,
         }
 
-        self.parameters["debug_comments"] = {
+        self.parameters["no_debug_comments"] = {
             "description": (
-                "Add debug comments to the dumped environment. Note this only "
-                "works when using the new style yaml parser introduced in "
-                "toolkit core v0.16.30. When using an older version of core, "
-                "this parameter is a no-op."
+                "Prevents debug comments from being included in the dumped "
+                "environment (the default behavior). Note the debug comments "
+                "only show up when using the new style yaml parser introduced "
+                "in toolkit core v0.16.30."
             ),
             "type": "bool",
             "default": False,
@@ -142,11 +142,11 @@ class DumpConfigAction(Action):
             parameters["sparse"] = False
 
         # debug
-        if "--debug-comments" in args:
-            parameters["debug_comments"] = True
-            args.remove("--debug-comments")
+        if "--no-debug-comments" in args:
+            parameters["no_debug_comments"] = True
+            args.remove("--no-debug-comments")
         else:
-            parameters["debug_comments"] = False
+            parameters["no_debug_comments"] = False
 
         # if there are any options left, bail
         for arg in args:
@@ -175,24 +175,30 @@ class DumpConfigAction(Action):
         )
 
         # get a file to write to
-        env_fh= self._get_file_handle(params)
+        env_fh = self._get_file_handle(params)
+
+        # determine the transform to use when dumping
+        if params["sparse"]:
+            transform = env.STRIP_DEFAULTS
+        elif params["full"]:
+            transform = env.INCLUDE_DEFAULTS
+        else:
+            transform = env.NONE
+
+        # map the command line debug comments arg to the expected arg.
+        if params["no_debug_comments"]:
+            include_debug_comments = False
+        else:
+            include_debug_comments = True
 
         try:
-            # dump the environment to the in-memory file
-            if params["sparse"]:
-                # write a sparse representation of the config to the file
-                env.dump_sparse(env_fh, params["debug_comments"])
-            elif params["full"]:
-                # write a full representation of the config to the file
-                env.dump_full(env_fh, params["debug_comments"])
-            else:
-                # write the config as-is
-                env.dump(env_fh)
-
+            env.dump(env_fh, transform, include_debug_comments)
             if not params["file"]:
                 # no file, write the in-memory file contents to <stdout>
                 print env_fh.getvalue()
         except Exception, e:
+            import traceback
+            traceback.print_exc()
             raise TankError(
                 "There was a problem dumping the config: '%s'" % (e,)
             )
