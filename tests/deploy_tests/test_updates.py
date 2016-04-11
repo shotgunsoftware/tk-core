@@ -12,6 +12,8 @@
 Unit tests tank updates.
 """
 
+from __future__ import with_statement
+
 import os
 import re
 import logging
@@ -78,12 +80,16 @@ class MockStore(object):
             """
             return self._version
 
-        @property
-        def required_frameworks(self):
+        def _get_required_frameworks(self):
             """
             :returns: List of required frameworks as descriptors dictionaries.
             """
             return self._dependencies
+
+        def _set_required_frameworks(self, dependencies):
+            self._dependencies = dependencies
+
+        required_frameworks = property(_get_required_frameworks, _set_required_frameworks)
 
         def get_major_dependency_descriptor(self):
             return {
@@ -97,10 +103,6 @@ class MockStore(object):
             Splits the version string into major, minor and remainder.
             """
             return self._version_regex.match(self.version).group(1, 2, 3)
-
-        @required_frameworks.setter
-        def required_frameworks(self, dependencies):
-            self._dependencies = dependencies
 
     def __init__(self):
         """
