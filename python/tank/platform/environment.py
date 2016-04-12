@@ -560,16 +560,17 @@ class WritableEnvironment(Environment):
     def __write_data(self, path, data):
         """
         Writes the yaml data back to disk
-        
+
         :param path: Path to yaml file
         :param data: yaml data structure to write
         """
         try:
+            g_yaml_cache.invalidate(path)
             fh = open(path, "wt")
         except Exception, e:
             raise TankError("Could not open file '%s' for writing. "
                             "Error reported: '%s'" % (path, e))
-        
+
         try:
             # the ruamel parser doesn't have 2.5 support so 
             # only use it on 2.6+
@@ -614,7 +615,7 @@ class WritableEnvironment(Environment):
                 # '{foo: bar}\n'
                 #                
                 yaml.safe_dump(data, fh)
-                
+
         except Exception, e:
             raise TankError("Could not write to environment file '%s'. "
                             "Error reported: %s" % (path, e))

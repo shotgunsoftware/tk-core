@@ -13,6 +13,8 @@ Implements a caching mechanism to avoid loading the same yaml file multiple time
 unless it's changed on disk.
 """
 
+from __future__ import with_statement
+
 import os
 import copy
 import threading
@@ -145,7 +147,15 @@ class YamlCache(object):
         self._is_static = bool(state)
 
     is_static = property(_get_is_static, _set_is_static)
-            
+
+    def invalidate(self, path):
+        """
+        Invalidates the cache for a given path. This is usually called when writing
+        to a yaml file.
+        """
+        with self._lock:
+            del self._cache[path]
+
     def get(self, path, deepcopy_data=True):
         """
         Retrieve the yaml data for the specified path.  If it's not already
@@ -254,6 +264,8 @@ class YamlCache(object):
             raise TankError("Could not open file '%s'. Error reported: '%s'" % (path, e))
             # Since it wasn't an IOError it means we have an open
             # filehandle to close.
+            fh.close()
+        else:
             fh.close()
         # Populate the item's data before adding it to the cache.
         item.data = raw_data
