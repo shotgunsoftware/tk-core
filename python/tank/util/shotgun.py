@@ -384,7 +384,7 @@ def create_sg_app_store_connection():
 
     # Connect to associated Shotgun site and retrieve the credentials to use to
     # connect to the app store site
-    config_data = __get_app_store_connection_information()
+    config_data = _get_app_store_connection_information()
 
     # get connection parameters
     sg = __create_sg_connection(config_data)
@@ -406,7 +406,7 @@ def create_sg_app_store_connection():
     return g_app_store_connection
 
 
-def __get_app_store_connection_information():
+def _get_app_store_connection_information():
     """
     Get app store connection information
     :returns: A dictionary with host, api_key, api_script and http_proxy
@@ -419,7 +419,7 @@ def __get_app_store_connection_information():
     config_data["host"] = constants.SGTK_APP_STORE
     config_data["api_script"] = script_name
     config_data["api_key"] = script_key
-    config_data["http_proxy"] = client_site_sg.config.raw_http_proxy
+    config_data["http_proxy"] = _get_app_store_proxy_setting(client_site_sg)
     # For studios without internet access, the connection to the Toolkit app store won't succeed.
     # This ensures that the request won't hang indefinitely if their firewall silently drops the 
     # connection instead of rejecting it.
@@ -429,6 +429,29 @@ def __get_app_store_connection_information():
     config_data["connect"] = False
 
     return config_data
+
+
+def _get_app_store_proxy_setting(connection):
+    """
+    Retrieve the app store proxy settings. If the key
+    app_store_http_proxy is not found in the shotgun.yml file, the proxy
+    settings from the client site connection will be used. If the key is
+    found, than its value will be used. Note that if the app_store_http_proxy
+    setting is set to 'null' in the configuration file, it means that
+    the app store proxy is being forced to none and therefore won't be inherited
+    from the http proxy setting.
+
+    :param connection: A working connection to the site.
+
+    :returns: The http proxy connection string.
+    """
+    config_data = get_associated_sg_config_data()
+    if config_data and constants.APP_STORE_HTTP_PROXY in config_data:
+        return config_data[constants.APP_STORE_HTTP_PROXY]
+    else:
+        # Use the http proxy from the connection so we don't have to run
+        # the connection hook again.
+        return connection.config.raw_http_proxy
 
 
 def __get_app_store_key_from_shotgun(sg_connection):
