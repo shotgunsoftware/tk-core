@@ -46,7 +46,6 @@ class TkOptParse(optparse.OptionParser):
         kwargs = copy.copy(kwargs)
         kwargs["add_help_option"] = False
         optparse.OptionParser.__init__(self, *args, **kwargs)
-        optparse.OptionParser.__init__(self, *args, **kwargs)
         # optparse uses argv[0] for the program, but users use the tank command instead, so replace
         # the program.
         self.prog = "tank"
@@ -138,8 +137,6 @@ class CoreUpdateAction(Action):
         # get the core api root of this installation by looking at the relative location of the running code.
         code_install_root = pipelineconfig_utils.get_path_to_current_core()
 
-        installer = TankCoreUpdater(code_install_root, log, core_constraint_pattern)
-
         log.info("")
         log.info("Welcome to the Shotgun Pipeline Toolkit update checker!")
         log.info("This script will check if the Toolkit Core API installed")
@@ -159,6 +156,7 @@ class CoreUpdateAction(Action):
         log.info("")
         log.info("")
 
+        installer = TankCoreUpdater(code_install_root, log, core_constraint_pattern)
         cv = installer.get_current_version_number()
         nv = installer.get_update_version_number()
         log.info("You are currently running version %s of the Shotgun Pipeline Toolkit" % cv)
@@ -242,7 +240,7 @@ class TankCoreUpdater(object):
 
     # possible update status states
     (
-        UP_TO_DATE,                    # all good, no update necessary
+        UP_TO_DATE,                   # all good, no update necessary
         UPDATE_POSSIBLE,              # more recent version exists
         UPDATE_BLOCKED_BY_SG          # more recent version exists but SG version is too low.
     ) = range(3)
@@ -348,7 +346,7 @@ class TankCoreUpdater(object):
 
     def do_install(self):
         """
-        Installs ther requests core and updates core_api.yml.
+        Installs the requested core and updates core_api.yml.
         """
         self._install_core()
         self._update_core_api_descriptor()
@@ -357,10 +355,13 @@ class TankCoreUpdater(object):
         """
         Performs the actual installation of the new version of the core API
         """
-        self._log.info("Begin downloading Toolkit Core API %s from the App Store..." % self._new_core_descriptor.get_version())
-        self._new_core_descriptor.ensure_local()
+        if not self._new_core_descriptor.exists_local():
+            self._log.info("Begin downloading Toolkit Core API %s from the App Store..." % self._new_core_descriptor.get_version())
+            self._new_core_descriptor.ensure_local()
+            self._log.info("Download complete.")
 
-        self._log.info("Download complete - now installing Toolkit Core")
+        self._log.info("Now installing Toolkit Core.")
+
         sys.path.insert(0, self._new_core_descriptor.get_path())
         try:
             import _core_upgrader
