@@ -14,6 +14,7 @@ from .paths import get_cache_root, get_site_cache_root, get_logs_root
 from .utils import copy_folder, move_folder, copy_file
 from .utils import touch_file, ensure_folder_exists, create_valid_filename
 from .utils import append_folder_to_path, safe_delete_file, get_shotgun_storage_key, sanitize_path
+from .utils import with_cleared_umask
 from .errors import ShotgunBaseError
 from .log import get_sgtk_logger, initialize_base_file_logger
 

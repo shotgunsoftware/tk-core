@@ -18,6 +18,34 @@ import shutil
 from .log import get_shotgun_base_logger
 log = get_shotgun_base_logger()
 
+
+def with_cleared_umask(func):
+    """
+    Decorator which clears the umask for a method.
+
+    The umask controls default permissions for files
+    and folders. By setting the umask to zero, we can control
+    permissions.
+
+    Example use:
+
+    @with_cleared_umask
+    def my_io_method(param1, param2):
+
+        # do i/o operations in here
+    """
+    def inner(*args, **kwargs):
+        # set umask to zero, store old umask
+        old_umask = os.umask(0)
+        try:
+            # execute method payload
+            return func(*args, **kwargs)
+        finally:
+            # set mask back to previous value
+            os.umask(old_umask)
+    return inner
+
+
 def get_shotgun_storage_key(platform=sys.platform):
     """
     Given a sys.platform, resolve a Shotgun storage key
@@ -141,7 +169,7 @@ def sanitize_path(path, separator=os.path.sep):
 
     return local_path
 
-
+@with_cleared_umask
 def touch_file(path, permissions=0666):
     """
     Touch a file and optionally set its permissions.
@@ -152,7 +180,6 @@ def touch_file(path, permissions=0666):
     :raises: OSError - if there was a problem reading/writing the file
     """
     if not os.path.exists(path):
-        old_umask = os.umask(0)
         try:
             fh = open(path, "wb")
             fh.close()
@@ -163,10 +190,8 @@ def touch_file(path, permissions=0666):
             # as they are not really errors!
             if e.errno != errno.EEXIST:
                 raise
-        finally:
-            os.umask(old_umask)
 
-
+@with_cleared_umask
 def ensure_folder_exists(path, permissions=0775, create_placeholder_file=False):
     """
     Helper method - creates a folder and parent folders if such do not already exist.
@@ -178,7 +203,6 @@ def ensure_folder_exists(path, permissions=0775, create_placeholder_file=False):
     :raises: OSError - if there was a problem creating the folder
     """
     if not os.path.exists(path):
-        old_umask = os.umask(0)
         try:
             log.debug("Creating folder %s [%o].." % (path, permissions))
             os.makedirs(path, permissions)
@@ -197,10 +221,8 @@ def ensure_folder_exists(path, permissions=0775, create_placeholder_file=False):
             if e.errno != errno.EEXIST:
                 # re-raise
                 raise
-        finally:
-            os.umask(old_umask)
 
-
+@with_cleared_umask
 def copy_file(src, dst, permissions=0555):
     """
     Copy file with permissions
@@ -209,12 +231,8 @@ def copy_file(src, dst, permissions=0555):
     :param dst: Target destination
     :param permissions: Permissions to use for target file
     """
-    old_umask = os.umask(0)
-    try:
-        shutil.copy(src, dst)
-        os.chmod(dst, permissions)
-    finally:
-        os.umask(old_umask)
+    shutil.copy(src, dst)
+    os.chmod(dst, permissions)
 
 def safe_delete_file(path):
     """
@@ -228,11 +246,17 @@ def safe_delete_file(path):
     """
     try:
         if os.path.exists(path):
+            # on windows, make sure file is not read-only
+            if sys.platform == "win32":
+                # make sure we have write permission
+                attr = os.stat(path)[0]
+                if not attr & stat.S_IWRITE:
+                    os.chmod(path, stat.S_IWRITE)
             os.remove(path)
     except Exception, e:
         log.warning("File '%s' could not be deleted, skipping: %s" % (path, e))
 
-
+@with_cleared_umask
 def copy_folder(src, dst, folder_permissions=0775):
     """
     Alternative implementation to shutil.copytree
@@ -247,21 +271,6 @@ def copy_folder(src, dst, folder_permissions=0775):
     :param dst: Destination to copy to
     :param folder_permissions: permissions to use for new folders
     :returns: List of files copied
-    """
-    old_umask = os.umask(0)
-    try:
-        return _copy_folder_r(src, dst, folder_permissions)
-    finally:
-        os.umask(old_umask)
-
-def _copy_folder_r(src, dst, folder_permissions):
-    """
-    Recursive helper and implementation of copy_folder()
-
-    :param src: Source path to copy from
-    :param dst: Destination to copy to
-    :param folder_permissions: permissions to use for new folders
-    :returns: List of source files copied
     """
     SKIP_LIST = [".svn", ".git", ".gitignore", "__MACOSX", ".DS_Store"]
 
@@ -283,7 +292,7 @@ def _copy_folder_r(src, dst, folder_permissions):
 
         try:
             if os.path.isdir(srcname):
-                files.extend(_copy_folder_r(srcname, dstname, folder_permissions))
+                files.extend(copy_folder(srcname, dstname, folder_permissions))
             else:
                 shutil.copy(srcname, dstname)
                 files.append(srcname)
@@ -300,7 +309,7 @@ def _copy_folder_r(src, dst, folder_permissions):
 
     return files
 
-
+@with_cleared_umask
 def move_folder(src, dst, folder_permissions=0775):
     """
     Move a directory.
