@@ -298,7 +298,7 @@ class Shotgun(object):
 
     def find(self, entity_type, filters, fields=None, order=None, filter_operator=None, limit=0, retired_only=False, page=0):
         
-        
+
         self.finds += 1
                 
         self._validate_entity_type(entity_type)
@@ -347,13 +347,29 @@ class Shotgun(object):
             
         results = [row for row in self._db[entity_type].values() if self._row_matches_filters(entity_type, row, resolved_filters_2, filter_operator, retired_only)]
         
+        # handle the ordering of the recordset
+        if order:
+            for order_entry in order:
+                if "field_name" not in order_entry:
+                    raise ValueError("Order clauses must be list of dicts with keys field_name and direction!")
+                order_field = order_entry["field_name"]
+                if order_entry["direction"] == "asc":
+                    desc_order = False
+                elif order_entry["direction"] == "desc":
+                    desc_order = True
+                else:
+                    raise ValueError("Unknown ordering direction")
+
+                results = sorted(results, key=lambda k: k[order_field], reverse=desc_order)
+
         if fields is None:
             fields = set(["type", "id"])
         else:
             fields = set(fields) | set(["type", "id"])
-        
+
+        # get the values requested
         val = [dict((field, self._get_field_from_row(entity_type, row, field)) for field in fields) for row in results]
-    
+
         return val
     
     
