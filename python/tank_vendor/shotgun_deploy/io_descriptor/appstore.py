@@ -291,7 +291,7 @@ class IODescriptorAppStore(IODescriptorBase):
             msg = sg_bundle_data.get("sg_deprecation_message", "No reason given.")
             return (True, msg)
         else:
-            return (False, "")        
+            return (False, "")
 
     def get_version(self):
         """

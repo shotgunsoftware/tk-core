@@ -36,7 +36,6 @@ class CoreDescriptor(Descriptor):
 
         manifest = self._io_descriptor.get_manifest()
 
-        if manifest.get("requires_shotgun_version") is not None:
-            constraints["min_sg"] = manifest.get("requires_shotgun_version")
+        constraints["min_sg"] = manifest.get("requires_shotgun_version", "5.0.0")
 
         return constraints

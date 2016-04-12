@@ -476,5 +476,3 @@ class IODescriptorBase(object):
         :returns: descriptor object
         """
         raise NotImplementedError
-
-

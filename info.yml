@@ -12,5 +12,5 @@
 # This is automatically replaced with appropriate values
 # as the core bundle is uploaded to the app store.
 
-version: "HEAD"
+version: "v0.17.5"
 documentation_url: ""
