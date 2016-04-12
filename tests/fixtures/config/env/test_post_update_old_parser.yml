@@ -29,9 +29,11 @@ engines:
         test_float: 1.1
         test_hook_config: '{config}/foo/bar.py'
         test_hook_default: default
+        test_hook_engine: '{engine}/foo/bar.py'
         test_hook_env_var: '{$TEST_ENV_VAR}/test_env_var_hook.py'
         test_hook_inheritance_1: '{self}/inheritance1.py'
         test_hook_inheritance_2: '{config}/inherit.py'
+        test_hook_inheritance_3: '{engine}/inherit.py'
         test_hook_inheritance_old_style: '{self}/inheritance_old_style.py'
         test_hook_inheritance_old_style_fails: '{self}/inheritance_old_style_fails.py'
         test_hook_new_style_config_old_style_hook: '{config}/config_test_hook.py'

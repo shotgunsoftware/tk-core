@@ -335,6 +335,7 @@ class TestPyYamlParser(TankTestBase):
         updated_env = fh.readlines()
         fh.close()
 
+
         # get raw environment after
         env_file = os.path.join(self.project_config, "env", "test_post_update_old_parser.yml")
         fh = open(env_file)
