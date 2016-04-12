@@ -10,7 +10,9 @@
 
 from .action_base import Action
 from . import console_utils
+from .. import util
 from ...platform.environment import WritableEnvironment
+from ...platform import constants
 import os
 
 
@@ -50,7 +52,7 @@ class AppUpdatesAction(Action):
         
         self.parameters["preserve_yaml"] = { "description": ("Enable alternative yaml parser that better preserves "
                                                              "yaml structure and comments"),
-                                            "default": False,
+                                            "default": True,
                                             "type": "bool" }      
         
         
@@ -91,7 +93,9 @@ class AppUpdatesAction(Action):
         :param log: std python logger
         :param args: command line args
         """
-                
+        (use_legacy_parser, args) = util.should_use_legacy_yaml_parser(args)
+        preserve_yaml = not use_legacy_parser
+
         if len(args) == 0:
             # update EVERYTHING!
             
@@ -109,16 +113,18 @@ class AppUpdatesAction(Action):
             log.info("General syntax:")
             log.info("---------------")
             log.info("")
-            log.info("> tank updates [environment_name] [engine_name] [app_name] [--preserve-yaml] [--external='/path/to/config']")
+            log.info("> tank updates [environment_name] "
+                     "[engine_name] [app_name] [%s] "
+                     "[--external='/path/to/config']" % constants.LEGACY_YAML_PARSER_FLAG)
             log.info("")
             log.info("- The special keyword ALL can be used to denote all items in a category.")
             log.info("")
             log.info("- If you want to update an external configuration instead of the current project, "
                      "pass in a path via the --external flag.")
             log.info("")
-            log.info("- If you add a --preserve-yaml flag, existing comments and "
-                     "structure will be preserved as the yaml files are updated. "
-                     "This is an experimental setting and therefore disabled by default.")
+            log.info("If you add a %s flag, the original, non-structure-preserving "
+                     "yaml parser will be used. This parser was used by default in core v0.17.x "
+                     "and below." % constants.LEGACY_YAML_PARSER_FLAG)
             log.info("")
             log.info("")
             log.info("")
@@ -150,7 +156,8 @@ class AppUpdatesAction(Action):
                                   self.tk,
                                   env_name=None,
                                   engine_instance_name=None, 
-                                  app_instance_name=None)
+                                  app_instance_name=None,
+                                  preserve_yaml=preserve_yaml)
             
             return
         
@@ -168,16 +175,7 @@ class AppUpdatesAction(Action):
                 external_path = arg[len("--external="):]
                 if external_path == "":
                     log.error("You need to specify a path to a toolkit configuration!")
-                    return        
-
-        # look for an --preserve-yaml flag
-        if "--preserve-yaml" in args:
-            preserve_yaml = True
-            args.remove("--preserve-yaml")
-            log.info("Note: Using yaml parser which preserves structure and comments.")
-        else:
-            preserve_yaml = False        
-        
+                    return
 
         if len(args) > 0:
             env_filter = args[0]
@@ -222,7 +220,7 @@ def check_for_updates(log,
                       engine_instance_name, 
                       app_instance_name, 
                       external=None,
-                      preserve_yaml=False,
+                      preserve_yaml=True,
                       suppress_prompts=False):
     """
     Runs the update checker.
@@ -236,7 +234,6 @@ def check_for_updates(log,
     :param preserve_yaml: If True, a comment preserving yaml parser is used. 
     :param external: Path to external config to operate on
     """
-
     pc = tk.pipeline_configuration
     
     processed_items = []

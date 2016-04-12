@@ -517,7 +517,7 @@ class WritableEnvironment(Environment):
         """
         Constructor
         """
-        self.set_yaml_preserve_mode(False)        
+        self.set_yaml_preserve_mode(True)
         Environment.__init__(self, env_path, pipeline_config, context)
 
     def __load_writable_yaml(self, path):
@@ -632,8 +632,8 @@ class WritableEnvironment(Environment):
         :param val: True to enable new parser, false to disable
         """
         # environment variable setting overrides
-        if constants.PRESERVE_YAML_ENV_VAR in os.environ:
-            self._use_ruamel_yaml_parser = True
+        if constants.USE_LEGACY_YAML_ENV_VAR in os.environ:
+            self._use_ruamel_yaml_parser = False
         else:
             self._use_ruamel_yaml_parser = val
         
