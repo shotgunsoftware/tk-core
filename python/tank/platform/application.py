@@ -21,7 +21,7 @@ from . import constants
 
 from ..errors import TankError
 from .bundle import TankBundle
-from ..util import log_user_activity_metric
+from ..util import log_user_activity_metric, log_user_attribute_metric
 
 class Application(TankBundle):
     """
@@ -166,14 +166,19 @@ class Application(TankBundle):
     ##########################################################################################
     # internal API
 
-    def log_metric(self, action):
+    def log_metric(self, action, log_version=False):
         """Logs an app metric.
 
         :param action: Action string to log, e.g. 'Execute Action'
+        :param log_version: If True, also log a user attribute metric for the
+            version of the app. Default is `False`.
 
         Logs a user activity metric as performed within an app. This is a
         convenience method that auto-populates the module portion of
         `tank.util.log_user_activity_metric()`.
+
+        If the optional `log_version` flag is set to True, this method will
+        also log a user attribute metric for the current version of the app.
 
         Internal Use Only - We provide no guarantees that this method
         will be backwards compatible.
@@ -185,6 +190,9 @@ class Application(TankBundle):
         full_action = "(%s) %s %s" % (self.engine.name, self.name, action)
         log_user_activity_metric(self.name, full_action)
 
+        if log_version:
+            # log the app version as a user attribute
+            log_user_attribute_metric("%s version" % (self.name,), self.version)
 
 def get_application(engine, app_folder, descriptor, settings, instance_name, env):
     """

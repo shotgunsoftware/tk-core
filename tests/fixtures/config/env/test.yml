@@ -7,27 +7,37 @@ engines:
     location: {type: dev, path: '{PIPELINE_CONFIG}/config/bundles/test_engine'}
     debug_logging: false
 
-    apps:
-      test_app:
-        # this is a comment in the test_app
-        location: {type: dev, path: '{PIPELINE_CONFIG}/config/bundles/test_app'}
-        test_str: a
-        test_int: 1
-        test_float: 1.1
-        test_bool: true
-        test_template: maya_publish_name
-        test_icon: foo/bar.png
-        test_hook_std: config_test_hook
-        test_hook_default: default
-        test_hook_env_var: '{$TEST_ENV_VAR}/test_env_var_hook.py'
-        test_hook_self: '{self}/test_hook.py'
-        test_hook_config: '{config}/foo/bar.py'
-        test_hook_inheritance_1: '{self}/inheritance1.py'
-        test_hook_inheritance_2: '{config}/inherit.py'
-        test_hook_inheritance_old_style: '{self}/inheritance_old_style.py'
-        test_hook_inheritance_old_style_fails: '{self}/inheritance_old_style_fails.py'
-        test_hook_new_style_config_old_style_hook: '{config}/config_test_hook.py'
-        test_default_syntax_with_new_style_hook: default
+        apps:
+            test_app:
+                # this is a comment in the test_app
+                location: {'type': 'dev', 'path': '{PIPELINE_CONFIG}/config/bundles/test_app'}
+                test_str: a
+                test_int: 1 
+                test_float: 1.1
+                test_bool: true 
+                test_template: maya_publish_name
+                test_icon: "foo/bar.png"
+                
+                # 
+                
+                test_hook_std: config_test_hook
+                test_hook_default: default
+                test_hook_env_var: "{$TEST_ENV_VAR}/test_env_var_hook.py"
+                test_hook_self: "{self}/test_hook.py"
+                test_hook_config: "{config}/foo/bar.py"
+                test_hook_engine: "{engine}/foo/bar.py"
+
+                test_hook_inheritance_1: "{self}/inheritance1.py"
+                test_hook_inheritance_2: "{config}/inherit.py"
+                test_hook_inheritance_3: "{engine}/inherit.py"
+                
+                test_hook_inheritance_old_style: "{self}/inheritance_old_style.py"
+                test_hook_inheritance_old_style_fails: "{self}/inheritance_old_style_fails.py"
+                
+                test_hook_new_style_config_old_style_hook: "{config}/config_test_hook.py"
+                test_default_syntax_with_new_style_hook: default
+                
+                test_default_syntax_missing_implementation: "{config}/no_app_implementation.py"
 
         test_default_syntax_missing_implementation: '{config}/no_app_implementation.py'
         test_simple_dictionary:

@@ -21,9 +21,10 @@ import datetime
 from tank import TankError
 from tank.deploy.tank_commands.clone_configuration import clone_pipeline_configuration_html
 from tank.deploy import tank_command
-from tank.deploy.tank_commands.core_upgrade import TankCoreUpgrader
+from tank.deploy.tank_commands.core_upgrade import TankCoreUpdater
 from tank.deploy.tank_commands.action_base import Action
 from tank.util import shotgun, CoreDefaultsManager
+from tank.platform import constants
 from tank_vendor.shotgun_authentication import ShotgunAuthenticator
 from tank_vendor.shotgun_authentication import AuthenticationError
 from tank_vendor.shotgun_authentication import ShotgunAuthenticationError
@@ -266,17 +267,17 @@ def _run_shotgun_command(log, tk, action_name, entity_type, entity_ids):
     cmd = e.commands.get(action_name)
     if cmd:
         callback = cmd["callback"]
-        # introspect and get number of args for this fn
-        arg_count = callback.func_code.co_argcount
 
         # check if we are running a pre-013 engine
         # (this can be removed at a later point)
         if hasattr(e, "execute_old_style_command"):
             # 013 compliant engine!
-            # choose between simple style callbacks or complex style
-            # special shotgun callbacks - these always take two
-            # params entity_type and entity_ids
-            if arg_count > 1:
+            #
+            # choose between std style callbacks or special
+            # shotgun (legacy) multi select callbacks
+            # this is detected by register_command and a special
+            # flag is set for the multi select ones
+            if constants.LEGACY_MULTI_SELECT_ACTION_FLAG in cmd["properties"]:
                 # old style shotgun app launch - takes entity_type and ids as args
                 e.execute_old_style_command(action_name, entity_type, entity_ids)
             else:
@@ -635,10 +636,10 @@ def _shotgun_run_action(log, install_root, pipeline_config_root, is_localized, a
         code_css_block = "display: block; padding: 0.5em 1em; border: 1px solid #bebab0; background: #faf8f0;"
 
         # create an upgrader instance that we can query if the install is up to date
-        installer = TankCoreUpgrader(install_root, log)
+        installer = TankCoreUpdater(install_root, log)
 
         cv = installer.get_current_version_number()
-        lv = installer.get_latest_version_number()
+        lv = installer.get_update_version_number()
         log.info("You are currently running version %s of the Shotgun Pipeline Toolkit." % cv)
 
         if not is_localized:
@@ -649,16 +650,16 @@ def _shotgun_run_action(log, install_root, pipeline_config_root, is_localized, a
         log.info("")
 
         status = installer.get_update_status()
-        req_sg = installer.get_required_sg_version_for_upgrade()
+        req_sg = installer.get_required_sg_version_for_update()
 
-        if status == TankCoreUpgrader.UP_TO_DATE:
+        if status == TankCoreUpdater.UP_TO_DATE:
             log.info("<b>You are up to date! There is no need to update the Toolkit Core API at this time!</b>")
 
-        elif status == TankCoreUpgrader.UPGRADE_BLOCKED_BY_SG:
+        elif status == TankCoreUpdater.UPDATE_BLOCKED_BY_SG:
             log.warning("<b>A new version (%s) of the core API is available however "
                         "it requires a more recent version (%s) of Shotgun!</b>" % (lv, req_sg))
 
-        elif status == TankCoreUpgrader.UPGRADE_POSSIBLE:
+        elif status == TankCoreUpdater.UPDATE_POSSIBLE:
 
             (summary, url) = installer.get_release_notes()
 

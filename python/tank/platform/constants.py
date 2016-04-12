@@ -92,6 +92,10 @@ TANK_LOG_METRICS_CUSTOM_HOOK_BLACKLIST = [
     "pick_environment",
 ]
 
+# flag to indicate that an app command is a legacy style
+# shotgun multi select action
+LEGACY_MULTI_SELECT_ACTION_FLAG = "shotgun_multi_select_action"
+
 # hook that is executed whenever a PipelineConfiguration instance initializes.
 PIPELINE_CONFIGURATION_INIT_HOOK_NAME = "pipeline_configuration_init"
 
@@ -248,3 +252,6 @@ SITE_INIT_CACHE_FILE_NAME = "toolkit_init.cache"
 
 # the location of the toolkit app store
 SGTK_APP_STORE = "https://tank.shotgunstudio.com"
+
+# name of the app store specific proxy setting
+APP_STORE_HTTP_PROXY = "app_store_http_proxy"

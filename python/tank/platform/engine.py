@@ -17,6 +17,7 @@ import os
 import re
 import sys
 import traceback
+import inspect
 import weakref
 import threading
         
@@ -662,21 +663,38 @@ class Engine(TankBundle):
                 # also add a prefix key in the properties dict
                 properties["prefix"] = prefix
 
-        # wrapper that logs app and usage metrics before executing the
-        # callback.
+        # now define command wrappers to capture metrics logging
+        # on command execution. The toolkit callback system supports
+        # two different callback styles:
+        #
+        # - A legacy type which is only used by Shotgun Apps which
+        #   utilize multi select. These callbacks are always on the
+        #   form callback(entity_type, entity_ids)
+        #
+        # - The standard type, which does not pass any arguments:
+        #   callback()
+        #
+
+        # introspect the arg list to determine this and set a flag
+        # to highlight this state. This is used by the tank_command
+        # execution logic to correctly dispatch the callback during
+        # runtime.
+        arg_spec = inspect.getargspec(callback)
+        # note - cannot use named tuple form because it is py2.6+
+        arg_list = arg_spec[0]
+
+        if "entity_type" in arg_list and "entity_ids" in arg_list:
+            # add property flag
+            properties[constants.LEGACY_MULTI_SELECT_ACTION_FLAG] = True
+
+        # define a generic callback wrapper for metrics logging
         def callback_wrapper(*args, **kwargs):
 
             if properties.get("app"):
-
                 # track which app command is being launched
-                properties["app"].log_metric("'%s'" % name)
+                properties["app"].log_metric("'%s'" % name, log_version=True)
 
-                # specify which app version is being used
-                log_user_attribute_metric(
-                    "%s version" % properties["app"].name,
-                    properties["app"].version
-                )
-
+            # run the actual payload callback
             return callback(*args, **kwargs)
 
         self.__commands[name] = {

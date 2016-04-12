@@ -47,9 +47,9 @@ from ..errors import TankError
 ###############################################################################################
 # Built in actions (all in the tank_commands sub module)
 
-BUILT_IN_ACTIONS = [setup_project.SetupProjectAction, 
+BUILT_IN_ACTIONS = [setup_project.SetupProjectAction,
                     setup_project_wizard.SetupProjectFactoryAction,
-                    core_upgrade.CoreUpgradeAction, 
+                    core_upgrade.CoreUpdateAction,
                     core_localize.CoreLocalizeAction,
                     core_localize.ShareCoreAction,
                     core_localize.AttachToCoreAction,
