@@ -356,7 +356,33 @@ class Environment(object):
                             % (engine_name, self._env_path))
             
         return tokens, path
-    
+
+    def find_framework_instances_from(self, yml_file):
+        """
+        Returns the list of frameworks available from a file and it's includes inside the environment.
+
+        :params yml_file: Environment file to start the search from.
+
+        :returns: List of framework instances accessible from the file.
+        """
+        if yml_file is None:
+            return self.get_frameworks()
+        else:
+            return [
+                fw for fw in self.get_frameworks() if self._is_framework_available_from(fw, yml_file)
+            ]
+
+    def _is_framework_available_from(self, framework_name, starting_point):
+        """
+        Tests if a framework is reachable from a given file in the environment by following its includes.
+
+        :param framework_name: Name of the framework instance to search for, e.g. tk-framework-something_v1.x.x
+        :param starting_point: First file to start looking for the framework.
+
+        :returns: True if the framework is available from the starting point, False otherwise.
+        """
+        fw_location = environment_includes.find_framework_location(starting_point, framework_name, self.__context)
+        return True if fw_location else False
 
     def find_location_for_framework(self, framework_name):
         """
@@ -364,36 +390,36 @@ class Environment(object):
         The dictionary key list (tokens) can be nested, for example [frameworks, tk-framework-widget_v0.2.x]
         or just flat [tk-framework-widget_v0.2.x]
 
-        Note, this tries a two stage search.  It first looks to see if there is a matching 
+        Note, this tries a two stage search.  It first looks to see if there is a matching
         framework in a regular 'frameworks' block in this or any included file.  This matches
         the behaviour at run-time to ensure the framework that is found is the same as one
         that is used!
-        
+
         The second stage is to check for a framework (or frameworks block) that has been
         specified using the @include syntax.
 
         :param framework_name:  The name of the framework to find the location of
         :returns:               (list of tokens, file path)
         """
-        # first, try to find the location of the framework definition that will be used at 
-        # run-time.  This handles the special case where multiple 'frameworks' blocks from 
-        # different levels of included files have been concatenated together. 
+        # first, try to find the place on disk of the framework definition that will be used at
+        # run-time.  This handles the special case where multiple 'frameworks' blocks from
+        # different levels of included files have been concatenated together.
         fw_location = environment_includes.find_framework_location(self._env_path, framework_name, self.__context)
         if not fw_location:
-            # assume the framework is in the environment - this also handles the @include syntax 
+            # assume the framework is in the environment - this also handles the @include syntax
             # not handled by the previous search method!
             fw_location = self._env_path
 
         # get the raw data
         root_yml_data = self.__load_data(fw_location)
-    
+
         # find the location for the framework:
         tokens, path = self.__find_location_for_bundle(fw_location, root_yml_data, "frameworks", framework_name)
 
         if not path:
             raise TankError("Failed to find the location of the '%s' framework in the '%s' environment!"
                             % (framework_name, self._env_path))
-            
+
         return tokens, path
 
     def find_location_for_app(self, engine_name, app_name):
@@ -534,16 +560,17 @@ class WritableEnvironment(Environment):
     def __write_data(self, path, data):
         """
         Writes the yaml data back to disk
-        
+
         :param path: Path to yaml file
         :param data: yaml data structure to write
         """
         try:
+            g_yaml_cache.invalidate(path)
             fh = open(path, "wt")
         except Exception, e:
             raise TankError("Could not open file '%s' for writing. "
                             "Error reported: '%s'" % (path, e))
-        
+
         try:
             # the ruamel parser doesn't have 2.5 support so 
             # only use it on 2.6+
@@ -588,7 +615,7 @@ class WritableEnvironment(Environment):
                 # '{foo: bar}\n'
                 #                
                 yaml.safe_dump(data, fh)
-                
+
         except Exception, e:
             raise TankError("Could not write to environment file '%s'. "
                             "Error reported: %s" % (path, e))

@@ -15,13 +15,12 @@ Various helper methods relating to user interaction via the shell.
 import textwrap
 import os
 
-from ... import pipelineconfig
 from ... import pipelineconfig_utils
 from ...platform import validation
 from ...platform import constants
 from ...errors import TankError
 from ...util import shotgun
-from ..app_store_descriptor import TankAppStoreDescriptor
+from .. import app_store_descriptor
 from ..descriptor import AppDescriptor
 from .. import util
 
@@ -312,7 +311,8 @@ def ensure_frameworks_installed(log, tank_api_instance, file_location, descripto
     Anything not installed will be downloaded from the app store.
     """
 
-    missing_fws = validation.get_missing_frameworks(descriptor, environment)
+    missing_fws = validation.get_missing_frameworks(descriptor, environment, file_location)
+
     # this returns dictionaries with name and version keys, the way
     # they are defined in the manifest for that descriptor
     # [{'version': 'v0.1.x', 'name': 'tk-framework-widget'}]
@@ -331,7 +331,7 @@ def ensure_frameworks_installed(log, tank_api_instance, file_location, descripto
         # - increment: v1.2.x
 
         # get the latest version from the app store...
-        fw_descriptor = TankAppStoreDescriptor.find_latest_item(
+        fw_descriptor = app_store_descriptor.TankAppStoreDescriptor.find_latest_item(
             tank_api_instance.pipeline_configuration.get_path(),
             tank_api_instance.pipeline_configuration.get_bundles_location(),
             AppDescriptor.FRAMEWORK,

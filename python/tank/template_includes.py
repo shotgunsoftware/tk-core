@@ -100,7 +100,10 @@ def _process_template_includes_r(file_name, data):
     # add items for keys, paths, strings etc
     for ts in constants.TEMPLATE_SECTIONS:
         output_data[ts] = {}
-    
+
+    if data is None:
+        return output_data
+
     # process includes
     included_paths = _get_includes(file_name, data)
     
