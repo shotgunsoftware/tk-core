@@ -154,7 +154,8 @@ class YamlCache(object):
         to a yaml file.
         """
         with self._lock:
-            del self._cache[path]
+            if path in self._cache:
+                del self._cache[path]
 
     def get(self, path, deepcopy_data=True):
         """
