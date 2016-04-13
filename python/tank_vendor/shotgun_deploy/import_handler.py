@@ -63,7 +63,7 @@ class CoreImportHandler(object):
         """
 
         return (
-            "<CoreImportHandler for core located in: '%s'" % (self.core_path,))
+            "<CoreImportHandler for core located in: '%s'>" % (self.core_path,))
 
     def find_module(self, module_fullname, package_path=None):
         """Locates the given module in the current core.
@@ -241,34 +241,39 @@ class CoreImportHandler(object):
         # same time.
         imp.acquire_lock()
 
-        # sort by package depth, deeper modules first
-        module_names = sorted(
-            sys.modules.keys(),
-            key=lambda module_name: module_name.count("."),
-            reverse=True
-        )
+        # wrap this up in try/finally to make sure the lock is released!
+        try:
 
-        for module_name in module_names:
+            # sort by package depth, deeper modules first
+            module_names = sorted(
+                sys.modules.keys(),
+                key=lambda module_name: module_name.count("."),
+                reverse=True
+            )
 
-            # just to be safe, don't re-import this module.
-            # we always use the first one added to `sys.meta_path` anyway.
-            if module_name == __name__:
-                continue
+            for module_name in module_names:
 
-            # extract just the package name
-            pkg_name = module_name.split(".")[0]
+                # just to be safe, don't re-import this module.
+                # we always use the first one added to `sys.meta_path` anyway.
+                if module_name == __name__:
+                    continue
 
-            if pkg_name in self._namespaces:
-                # the package name is in one of the new core namespaces. we
-                # delete it from sys.modules so that the custom import can run.
-                del sys.modules[module_name]
+                # extract just the package name
+                pkg_name = module_name.split(".")[0]
 
-        # clear out the previously found module info
-        self._module_info = {}
+                if pkg_name in self._namespaces:
+                    # the package name is in one of the new core namespaces. we
+                    # delete it from sys.modules so that the custom import can
+                    # run.
+                    del sys.modules[module_name]
 
-        # release the lock so that other threads can continue importing from
-        # the new core location.
-        imp.release_lock()
+            # clear out the previously found module info
+            self._module_info = {}
+
+        finally:
+            # release the lock so that other threads can continue importing from
+            # the new core location.
+            imp.release_lock()
 
     @property
     def core_path(self):
