@@ -612,9 +612,10 @@ class IODescriptorAppStore(IODescriptorBase):
                 script_name=script_name,
                 api_key=script_key,
                 http_proxy=self._sg_connection.config.raw_http_proxy,
-                connect=False,
-                constants.SGTK_APP_STORE_CONN_TIMEOUT
+                connect=False
             )
+            # set the default timeout for app store connections
+            app_store_sg.config.timeout_secs = constants.SGTK_APP_STORE_CONN_TIMEOUT
 
             # determine the script user running currently
             # get the API script user ID from shotgun
