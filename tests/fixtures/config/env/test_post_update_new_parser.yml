@@ -13,7 +13,7 @@ engines:
         location: {type: dev, path: '{PIPELINE_CONFIG}/config/bundles/test_app'}
         test_str: a
         test_int: 1
-        test_float: 1.1
+        test_float: FLOAT_VALUE
         test_bool: true
         test_template: maya_publish_name
         test_icon: foo/bar.png
@@ -50,7 +50,7 @@ engines:
         test_complex_list:
         - test_str: a
           test_int: 1
-          test_float: 1.1
+          test_float: FLOAT_VALUE
           test_bool: true
           test_template: maya_shot_work
           test_hook: config_test_hook
@@ -58,7 +58,7 @@ engines:
 
         - test_str: b
           test_int: 2
-          test_float: 2.2
+          test_float: FLOAT_VALUE
           test_bool: false
           test_template: maya_shot_publish
           test_hook: config_test_hook

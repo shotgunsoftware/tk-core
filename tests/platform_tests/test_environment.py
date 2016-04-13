@@ -308,6 +308,11 @@ class TestRuamelParser(TankTestBase):
         expected_env = fh.readlines()
         fh.close()
 
+        # because floats are rendered differently on different versions of
+        # python, replace the FLOAT_VALUE keyword in the expected fixture
+        # with whatever the current version of python is expecting
+        expected_env = [l.replace("FLOAT_VALUE", repr(1.1)) for l in expected_env]
+
         self.assertEqual(updated_env, expected_env)
 
 
@@ -335,11 +340,15 @@ class TestPyYamlParser(TankTestBase):
         updated_env = fh.readlines()
         fh.close()
 
-
         # get raw environment after
         env_file = os.path.join(self.project_config, "env", "test_post_update_old_parser.yml")
         fh = open(env_file)
         expected_env = fh.readlines()
         fh.close()
+
+        # because floats are rendered differently on different versions of
+        # python, replace the FLOAT_VALUE keyword in the expected fixture
+        # with whatever the current version of python is expecting
+        expected_env = [l.replace("FLOAT_VALUE", repr(1.1)) for l in expected_env]
 
         self.assertEqual(updated_env, expected_env)

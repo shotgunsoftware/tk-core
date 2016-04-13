@@ -20,13 +20,13 @@ engines:
           - {test_int: 2, test_str: b}
           test_str: a
         test_complex_list:
-        - {test_bool: true, test_extra: extra, test_float: 1.1, test_hook: config_test_hook,
+        - {test_bool: true, test_extra: extra, test_float: FLOAT_VALUE, test_hook: config_test_hook,
           test_int: 1, test_str: a, test_template: maya_shot_work}
-        - {test_bool: false, test_extra: extra, test_float: 2.2, test_hook: config_test_hook,
+        - {test_bool: false, test_extra: extra, test_float: FLOAT_VALUE, test_hook: config_test_hook,
           test_int: 2, test_str: b, test_template: maya_shot_publish}
         test_default_syntax_missing_implementation: '{config}/no_app_implementation.py'
         test_default_syntax_with_new_style_hook: default
-        test_float: 1.1
+        test_float: FLOAT_VALUE
         test_hook_config: '{config}/foo/bar.py'
         test_hook_default: default
         test_hook_engine: '{engine}/foo/bar.py'

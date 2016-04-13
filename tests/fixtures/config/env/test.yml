@@ -65,7 +65,7 @@ engines:
 
                     -   test_str: b
                         test_int: 2
-                        test_float: 2.2
+                        test_float: 1.1
                         test_bool: false
                         test_template: maya_shot_publish
                         test_hook: config_test_hook
