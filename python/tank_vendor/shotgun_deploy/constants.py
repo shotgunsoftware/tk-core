@@ -50,6 +50,9 @@ PIPELINE_CONFIGURATION_ENTITY_TYPE = "PipelineConfiguration"
 # the location of the toolkit app store
 SGTK_APP_STORE = "https://tank.shotgunstudio.com"
 
+# timeout in secs to apply to TK app store connections
+SGTK_APP_STORE_CONN_TIMEOUT = 5
+
 # the manifest file inside a bundle
 BUNDLE_METADATA_FILE = "info.yml"
 
