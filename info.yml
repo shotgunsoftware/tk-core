@@ -14,3 +14,4 @@
 
 version: "HEAD"
 documentation_url: ""
+requires_shotgun_version: "v5.0.0"

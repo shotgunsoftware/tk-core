@@ -27,6 +27,7 @@ from ...util import shotgun
 from ... import pipelineconfig_utils
 from . import console_utils
 from .. import util
+from ..util import is_version_head
 
 from tank_vendor import yaml
 
@@ -130,7 +131,13 @@ class CoreUpdateAction(Action):
 
         :param log: std python logger
         :param suppress_prompts: If False, user will be prompted to accept or reject the core update.
-        :param core_version: Version to update the core to. If None, updates the core to the latest version.
+        :param core_constraint_pattern: Version pattern to update the core to. The version pattern can be any of the
+            following.
+            - 0.17.16, which will upgrade to this specific version
+            - 0.17.x, which will upgrade to the latest 0.17 version
+            - 0.x.x, which will upgrade to the latest 0 version of Toolkit
+            - x.x.x, which will upgrade to the latest version of Toolkit.
+            If None, updates the core to the latest version.
         """
         return_status = {"status": "unknown"}
 
@@ -157,9 +164,9 @@ class CoreUpdateAction(Action):
         log.info("")
 
         installer = TankCoreUpdater(code_install_root, log, core_constraint_pattern)
-        cv = installer.get_current_version_number()
-        nv = installer.get_update_version_number()
-        log.info("You are currently running version %s of the Shotgun Pipeline Toolkit" % cv)
+        current_version = installer.get_current_version_number()
+        new_version = installer.get_update_version_number()
+        log.info("You are currently running version %s of the Shotgun Pipeline Toolkit" % current_version)
 
         status = installer.get_update_status()
         req_sg = installer.get_required_sg_version_for_update()
@@ -173,7 +180,7 @@ class CoreUpdateAction(Action):
                 "%s version (%s) of the core API is available however "
                 "it requires a more recent version (%s) of Shotgun!" % (
                     "A new" if core_constraint_pattern is None else "The requested",
-                    nv,
+                    new_version,
                     req_sg
                 )
             )
@@ -185,7 +192,7 @@ class CoreUpdateAction(Action):
             (summary, url) = installer.get_release_notes()
             log.info(
                 "%s version of the Toolkit API (%s) is available!" % (
-                    "A new" if core_constraint_pattern is None else "The requested", nv
+                    "A new" if core_constraint_pattern is None else "The requested", new_version
                 )
             )
             log.info("")
@@ -222,7 +229,7 @@ class CoreUpdateAction(Action):
                 log.info("")
                 log.info("----------------------------------------------------------------")
                 log.info("")
-                return_status = {"status": "updated", "new_version": nv}
+                return_status = {"status": "updated", "new_version": new_version}
 
             else:
                 log.info("The Shotgun Pipeline Toolkit will not be updated.")
@@ -249,11 +256,11 @@ class TankCoreUpdater(object):
         """
         Constructor
 
-        :param installation_root: The path to the installation to check. This is either a localized
-                                  Pipeline Configuration or a studio code location (omit the install folder).
-                                  Because we are passing this parameter in explicitly, the currently running
-                                  code base does not have to be related to the code base that is being updated,
-                                  e.g. you can run the updater as a totally separate thing.
+        :param install_folder_root: The path to the installation to check. This is either a localized
+                                   Pipeline Configuration or a studio code location (omit the install folder).
+                                   Because we are passing this parameter in explicitly, the currently running
+                                   code base does not have to be related to the code base that is being updated,
+                                   e.g. you can run the updater as a totally separate thing.
         :param logger: Logger to send output to.
         :param core_version: Version of the core to update to. If None, the core will be updated to the latest
                              version. Defaults to None.
@@ -304,7 +311,7 @@ class TankCoreUpdater(object):
         Returns the SG version that is required in order to update to the specified
         version of the Tank Core API.
 
-        :returns: sg version number as a string or None if no version is required. 
+        :returns: sg version number as a string or None if no version is required.
         """
         # FIXME: This should look inside Shotgun.
         return self._new_core_descriptor.get_version_constraints()["min_sg"]
@@ -321,10 +328,10 @@ class TankCoreUpdater(object):
         """
         Returns true if an update is recommended
         """
-        if self._current_core_descriptor.get_version() == "HEAD":
+        if is_version_head(self._current_core_descriptor.get_version()):
             # head is the verison number which is stored in tank core trunk
             # getting this as a result means that we are not actually running
-            # a version of tank that came from the app store, but some sort 
+            # a version of tank that came from the app store, but some sort
             # of dev version
             return self.UP_TO_DATE
 
