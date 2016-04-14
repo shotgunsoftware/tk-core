@@ -25,3 +25,9 @@ class ShotgunAppStoreError(ShotgunDeployError):
     Errors relating to the shotgun app store
     """
     pass
+
+class ShotgunAppStoreConnectionError(ShotgunAppStoreError):
+    """
+    Errors indicating an error connecting to the Toolkit App Store
+    """
+    pass

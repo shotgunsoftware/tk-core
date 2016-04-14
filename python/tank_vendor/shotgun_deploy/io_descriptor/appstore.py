@@ -17,6 +17,7 @@ import cPickle as pickle
 
 from ..zipfilehelper import unzip_file
 from ..descriptor import Descriptor
+from ..errors import ShotgunAppStoreConnectionError
 from ..errors import ShotgunAppStoreError
 from ..errors import ShotgunDeployError
 from ...shotgun_base import (
@@ -603,21 +604,43 @@ class IODescriptorAppStore(IODescriptorBase):
                     raise
 
 
-            # connect to the app store and resolve the script user id we are connecting with
+            # Connect to the app store and resolve the script user id we are connecting with.
+            # Set the timeout explicitly so we ensure the connection won't hang in cases where
+            # a response is not returned in a reasonable amount of time.
             app_store_sg = shotgun_api3.Shotgun(
                 constants.SGTK_APP_STORE,
                 script_name=script_name,
                 api_key=script_key,
-                http_proxy=self._sg_connection.config.raw_http_proxy
+                http_proxy=self._sg_connection.config.raw_http_proxy,
+                connect=False
             )
+            # set the default timeout for app store connections
+            app_store_sg.config.timeout_secs = constants.SGTK_APP_STORE_CONN_TIMEOUT
 
             # determine the script user running currently
             # get the API script user ID from shotgun
-            script_user = app_store_sg .find_one(
-                "ApiUser",
-                [["firstname", "is", script_name]],
-                fields=["type", "id"]
-            )
+            try:
+                script_user = app_store_sg.find_one(
+                    "ApiUser",
+                    filters=[["firstname", "is", script_name]],
+                    fields=["type", "id"]
+                )
+            # Connection errors can occur for a variety of reasons. For example, there is no 
+            # internet access or there is a proxy server blocking access to the Toolkit app store.
+            except (httplib2.HttpLib2Error, httplib2.socks.HTTPError, httplib.HTTPException), e:
+                raise ShotgunAppStoreConnectionError(e)
+            # In cases where there is a firewall/proxy blocking access to the app store, sometimes 
+            # the firewall will drop the connection instead of rejecting it. The API request will 
+            # timeout which unfortunately results in a generic SSLError with only the message text 
+            # to give us a clue why the request failed. 
+            # The exception raised in this case is "ssl.SSLError: The read operation timed out"
+            except httplib2.ssl.SSLError, e:
+                if "timed" in e.message:
+                    raise ShotgunAppStoreConnectionError("Connection to %s timed out: %s" % (
+                                                            app_store_sg.config.server, 
+                                                            e))     
+            except Exception:
+                raise ShotgunAppStoreError(e)
 
             if script_user is None:
                 raise ShotgunAppStoreError(
