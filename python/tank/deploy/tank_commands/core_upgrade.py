@@ -161,7 +161,6 @@ class CoreUpdateAction(Action):
         log.info("https://support.shotgunsoftware.com/entries/96141707")
         log.info("https://support.shotgunsoftware.com/entries/96142347")
         log.info("")
-        log.info("")
 
         installer = TankCoreUpdater(code_install_root, log, core_constraint_pattern)
         current_version = installer.get_current_version_number()
@@ -177,9 +176,8 @@ class CoreUpdateAction(Action):
 
         elif status == TankCoreUpdater.UPDATE_BLOCKED_BY_SG:
             msg = (
-                "%s version (%s) of the core API is available however "
-                "it requires a more recent version (%s) of Shotgun!" % (
-                    "A new" if core_constraint_pattern is None else "The requested",
+                "%s version of core requires a more recent version (%s) of Shotgun!" % (
+                    "The newest" if core_constraint_pattern is None else "The requested",
                     new_version,
                     req_sg
                 )
@@ -190,11 +188,6 @@ class CoreUpdateAction(Action):
         elif status == TankCoreUpdater.UPDATE_POSSIBLE:
 
             (summary, url) = installer.get_release_notes()
-            log.info(
-                "%s version of the Toolkit API (%s) is available!" % (
-                    "A new" if core_constraint_pattern is None else "The requested", new_version
-                )
-            )
             log.info("")
             log.info("Change Summary:")
             for x in textwrap.wrap(summary, width=60):
@@ -209,7 +202,6 @@ class CoreUpdateAction(Action):
 
             if suppress_prompts or console_utils.ask_yn_question("Update to this version of the Core API?"):
                 # install it!
-                log.info("Downloading and installing a new version of the core...")
                 installer.do_install()
 
                 log.info("")
@@ -326,7 +318,9 @@ class TankCoreUpdater(object):
 
     def get_update_status(self):
         """
-        Returns true if an update is recommended
+        Returns true if an update is recommended. As a side effect, if pulls down
+        the core from the AppStore to get access to the info.yml file so we can
+        get the required Shotgun version.
         """
         if is_version_head(self._current_core_descriptor.get_version()):
             # head is the verison number which is stored in tank core trunk
@@ -339,6 +333,14 @@ class TankCoreUpdater(object):
             # running updated version already
             return self.UP_TO_DATE
         else:
+            # FIXME: We should cache info.yml on the appstore so we don't have
+            # to download the whole bundle just to see the file.
+            if not self._new_core_descriptor.exists_local():
+                self._log.info("")
+                self._log.info("Downloading Toolkit Core API %s from the App Store..." % self._new_core_descriptor.get_version())
+                self._new_core_descriptor.download_local()
+                self._log.info("Download completed.")
+
             # running an older version. Make sure that shotgun has the required version
             req_sg = self.get_required_sg_version_for_update()
             if req_sg is None:
@@ -362,11 +364,6 @@ class TankCoreUpdater(object):
         """
         Performs the actual installation of the new version of the core API
         """
-        if not self._new_core_descriptor.exists_local():
-            self._log.info("Begin downloading Toolkit Core API %s from the App Store..." % self._new_core_descriptor.get_version())
-            self._new_core_descriptor.ensure_local()
-            self._log.info("Download complete.")
-
         self._log.info("Now installing Toolkit Core.")
 
         sys.path.insert(0, self._new_core_descriptor.get_path())
