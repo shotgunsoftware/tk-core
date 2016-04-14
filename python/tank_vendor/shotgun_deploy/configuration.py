@@ -33,7 +33,7 @@ class Configuration(object):
     object and may or may not exist on disk.
     """
 
-    (LOCAL_CFG_UP_TO_DATE, LOCAL_CFG_MISSING, LOCAL_CFG_OLD, LOCAL_CFG_INVALID) = range(4)
+    (LOCAL_CFG_UP_TO_DATE, LOCAL_CFG_MISSING, LOCAL_CFG_DIFFERENT, LOCAL_CFG_INVALID) = range(4)
 
     def __init__(
             self,
@@ -89,7 +89,7 @@ class Configuration(object):
         the class constructor.
 
         :returns: LOCAL_CFG_UP_TO_DATE, LOCAL_CFG_MISSING,
-                  LOCAL_CFG_OLD, or LOCAL_CFG_INVALID
+                  LOCAL_CFG_DIFFERENT, or LOCAL_CFG_INVALID
         """
         log.debug("Checking status of %r" % self)
 
@@ -131,14 +131,14 @@ class Configuration(object):
             # different format or logic of the deploy itself.
             # trigger a redeploy
             log.debug("Config was installed with an old generation of the logic.")
-            return self.LOCAL_CFG_OLD
+            return self.LOCAL_CFG_DIFFERENT
 
         if descriptor_dict != self._descriptor.get_dict():
             log.debug(
                 "Local Config %r does not match "
                 "associated descriptor %r" % (descriptor_dict, self._descriptor.get_dict())
             )
-            return self.LOCAL_CFG_OLD
+            return self.LOCAL_CFG_DIFFERENT
 
         elif not self._descriptor.is_immutable():
             # our desired configuration's descriptor matches
@@ -149,7 +149,7 @@ class Configuration(object):
             # not the same as the source descriptor it is based on.
             log.debug("The installed config is not immutable, so it is per "
                       "definition always out of date.")
-            return self.LOCAL_CFG_OLD
+            return self.LOCAL_CFG_DIFFERENT
 
         else:
             log.debug("Local config is up to date")
