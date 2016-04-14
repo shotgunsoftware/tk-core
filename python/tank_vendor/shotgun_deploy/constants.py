@@ -111,3 +111,9 @@ LATEST_CORE_DESCRIPTOR = {"type": "app_store", "name": "tk-core"}
 DESKTOP_PYTHON_MAC = "/Applications/Shotgun.app/Contents/Resources/Python/bin/python"
 DESKTOP_PYTHON_WIN = "C:\\Program Files\\Shotgun\\Python\\python.exe"
 DESKTOP_PYTHON_LINUX = "/opt/Shotgun/Python/bin/python"
+
+# This is the earliest version of Shotgun that Toolkit has historically been compatible
+# with. Code that use this constant do so because the manifest from a core doesn't
+# have a requires_shotgun_version. 5.0.0 is the minimum Shotgun version that every
+# version fo Toolkit have been published with ever since it came out.
+LOWEST_SHOTGUN_VERSION = "5.0.0"

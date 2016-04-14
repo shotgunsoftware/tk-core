@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from .descriptor import Descriptor
+from . import constants
 
 class CoreDescriptor(Descriptor):
     """
@@ -36,7 +37,6 @@ class CoreDescriptor(Descriptor):
 
         manifest = self._io_descriptor.get_manifest()
 
-        if manifest.get("requires_shotgun_version") is not None:
-            constraints["min_sg"] = manifest.get("requires_shotgun_version")
+        constraints["min_sg"] = manifest.get("requires_shotgun_version", constants.LOWEST_SHOTGUN_VERSION)
 
         return constraints
