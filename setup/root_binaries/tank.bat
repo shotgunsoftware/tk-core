@@ -56,6 +56,7 @@ rem -- get contents of file
 rem -- 'usebackq' is used to allow quoting of the path which could potentially contain spaces
 rem -- 'tokens=*' is used to ensure each line of the file doesn't get split on whitespace
 for /f "usebackq tokens=*" %%G in ("%PARENT_CONFIG_FILE%") do (SET PARENT_LOCATION=%%G)
+for /f  %%G in ('echo %PARENT_LOCATION%') do (SET PARENT_LOCATION=%%G)
 IF NOT EXIST "%PARENT_LOCATION%" GOTO NO_PARENT_LOCATION
 
 rem -- all good, execute tank script in parent location
