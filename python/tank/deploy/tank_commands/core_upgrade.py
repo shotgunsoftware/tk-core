@@ -178,11 +178,10 @@ class CoreUpdateAction(Action):
             msg = (
                 "%s version of core requires a more recent version (%s) of Shotgun!" % (
                     "The newest" if core_constraint_pattern is None else "The requested",
-                    new_version,
                     req_sg
                 )
             )
-            log.warning(msg)
+            log.error(msg)
             return_status = {"status": "update_blocked", "reason": msg}
 
         elif status == TankCoreUpdater.UPDATE_POSSIBLE:
