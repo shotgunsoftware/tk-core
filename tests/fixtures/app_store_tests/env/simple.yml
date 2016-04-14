@@ -1,0 +1,15 @@
+
+engines:
+  tk-test:
+    apps:
+      tk-multi-nodep:
+        location: {"type": "app_store", "version": "v1.0.0", "name": "tk-multi-nodep"}
+    location: {"type": "app_store", "version": "v1.0.0", "name": "tk-test"}
+
+frameworks:
+  tk-framework-test_v1.0.0:
+    location: {"type": "app_store", "version": "v1.0.0", "name": "tk-framework-test"}
+  tk-framework-test_v1.0.x:
+    location: {"type": "app_store", "version": "v1.0.0", "name": "tk-framework-test"}
+  tk-framework-test_v1.x.x:
+    location: {"type": "app_store", "version": "v1.0.0", "name": "tk-framework-test"}

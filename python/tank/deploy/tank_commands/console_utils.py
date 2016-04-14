@@ -232,7 +232,8 @@ def ensure_frameworks_installed(log, tank_api_instance, file_location, descripto
     Anything not installed will be downloaded from the app store.
     """
 
-    missing_fws = validation.get_missing_frameworks(descriptor, environment)
+    missing_fws = validation.get_missing_frameworks(descriptor, environment, file_location)
+
     # this returns dictionaries with name and version keys, the way
     # they are defined in the manifest for that descriptor
     # [{'version': 'v0.1.x', 'name': 'tk-framework-widget'}]
@@ -250,13 +251,13 @@ def ensure_frameworks_installed(log, tank_api_instance, file_location, descripto
         # - minor: v1.x.x
         # - increment: v1.2.x
 
-        # get the latest version from the app store by 
+        # get the latest version from the app store by
         # first getting a stub and then looking for latest.
         location_stub = {"type": "app_store", "name": name}
-        
+
         pc = tank_api_instance.pipeline_configuration
-        
-        fw_descriptor = pc.get_latest_framework_descriptor(location_stub)
+
+        fw_descriptor = pc.get_latest_framework_descriptor(location_stub, version_pattern)
 
         installed_fw_descriptors.append(fw_descriptor)
 

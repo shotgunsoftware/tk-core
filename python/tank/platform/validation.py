@@ -84,20 +84,22 @@ def validate_platform(descriptor):
             raise TankError("The current operating system '%s' is not supported."
                             "Supported platforms are: %s" % (nice_system_name, supported_platforms))
 
-    
-def get_missing_frameworks(descriptor, environment):
+
+def get_missing_frameworks(descriptor, environment, yml_file):
     """
-    Returns a list of framework descriptors by the given descriptor required but not present 
-    in the given environment.
-    
-    returns items on the following form:
-    [{'version': 'v0.1.0', 'name': 'tk-framework-widget'}]
-    
-    :returns: list dictionaries, each with a name and a version key.
+    Returns a list of missing frameworks from a given environment based on the
+    list of dependencies returned by a bundle descriptor.
+
+    :param descriptor: The bundle for which missing dependencies will be searched.
+    :param environment: The environment to search in
+    :param yml_file: The yml file inside the environment to start the search from.
+
+    :returns: A list of dictionaries, each with a name and a version key, e.g.
+        [{'version': 'v0.1.0', 'name': 'tk-framework-widget'}]
     """
     required_frameworks = descriptor.get_required_frameworks()
-    current_framework_instances = environment.get_frameworks()
-    
+    current_framework_instances = environment.find_framework_instances_from(yml_file) 
+
     if len(required_frameworks) == 0:
         return []
 
@@ -108,7 +110,7 @@ def get_missing_frameworks(descriptor, environment):
         name = fw.get("name")
         version = fw.get("version")
 
-        # find it by naming convention based on the instance name        
+        # find it by naming convention based on the instance name
         desired_fw_instance = "%s_%s" % (name, version)
 
         if desired_fw_instance not in current_framework_instances:
@@ -116,8 +118,7 @@ def get_missing_frameworks(descriptor, environment):
 
     return missing_fws
 
-    
-    
+
 def validate_and_return_frameworks(descriptor, environment):
     """
     Validates the frameworks needed for an given descriptor.

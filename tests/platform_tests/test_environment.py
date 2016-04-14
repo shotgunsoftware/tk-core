@@ -371,3 +371,80 @@ class TestUpdateEnvironmentRuamelYaml(TestUpdateEnvironment):
         super(TestUpdateEnvironmentRuamelYaml, self).setUp()
         self.env.set_yaml_preserve_mode(True)
     
+
+
+
+
+class TestRuamelParser(TankTestBase):
+    """
+    Tests writing yaml files using the ruamel parser
+    """
+
+
+    def setUp(self):
+        super(TestRuamelParser, self).setUp()
+        self.setup_fixtures()
+
+    def test_yaml(self):
+
+        # create env object
+        env = self.tk.pipeline_configuration.get_environment("test", writable=True)
+
+        env.create_engine_settings("new_engine")
+
+        # get environment content before
+        env_file = os.path.join(self.project_config, "env", "test.yml")
+        fh = open(env_file)
+        updated_env = fh.readlines()
+        fh.close()
+
+        # get raw environment after
+        env_file = os.path.join(self.project_config, "env", "test_post_update_new_parser.yml")
+        fh = open(env_file)
+        expected_env = fh.readlines()
+        fh.close()
+
+        # because floats are rendered differently on different versions of
+        # python, replace the FLOAT_VALUE keyword in the expected fixture
+        # with whatever the current version of python is expecting
+        expected_env = [l.replace("FLOAT_VALUE", repr(1.1)) for l in expected_env]
+
+        self.assertEqual(updated_env, expected_env)
+
+
+
+class TestPyYamlParser(TankTestBase):
+    """
+    Tests writing yaml files using the old pyyaml parser
+    """
+
+    def setUp(self):
+        super(TestPyYamlParser, self).setUp()
+        self.setup_fixtures()
+
+    def test_yaml(self):
+
+        # create env object
+        env = self.tk.pipeline_configuration.get_environment("test", writable=True)
+        env.set_yaml_preserve_mode(False)
+
+        env.create_engine_settings("new_engine")
+
+        # get environment content before
+        env_file = os.path.join(self.project_config, "env", "test.yml")
+        fh = open(env_file)
+        updated_env = fh.readlines()
+        fh.close()
+
+        # get raw environment after
+        env_file = os.path.join(self.project_config, "env", "test_post_update_old_parser.yml")
+        fh = open(env_file)
+        expected_env = fh.readlines()
+        fh.close()
+
+        # because floats are rendered differently on different versions of
+        # python, replace the FLOAT_VALUE keyword in the expected fixture
+        # with whatever the current version of python is expecting
+        expected_env = [l.replace("FLOAT_VALUE", repr(1.1)) for l in expected_env]
+
+        self.assertEqual(updated_env, expected_env)
