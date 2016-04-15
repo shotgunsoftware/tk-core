@@ -16,7 +16,11 @@ import os
 import threading
 from . import loader
 from .platform import constants
-from .errors import TankError, TankFileDoesNotExistError
+from .errors import (
+    TankError,
+    TankFileDoesNotExistError,
+    TankHookMethodDoesNotExist,
+)
 
 class Hook(object):
     """
@@ -276,8 +280,10 @@ def execute_hook_method(hook_paths, parent, method_name, **kwargs):
     try:
         hook_method = getattr(hook, method_name)
     except AttributeError:
-        raise TankError("Cannot execute hook '%s' - the hook class does not "
-                        "have a '%s' method!" % (hook, method_name))
+        raise TankHookMethodDoesNotExist(
+            "Cannot execute hook '%s' - the hook class does not have a '%s' "
+            "method!" % (hook, method_name)
+        )
     
     # execute the method
     ret_val = hook_method(**kwargs)

@@ -49,6 +49,11 @@ class TankEngineInitError(TankError):
     """
     pass
 
+class TankHookMethodDoesNotExist(TankError):
+    """
+    Exception that indicates that a called method does not exist in the hook.
+    """
+    pass
 
 class TankErrorProjectIsSetup(TankError):
     """
