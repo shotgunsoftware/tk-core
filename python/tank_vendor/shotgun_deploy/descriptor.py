@@ -21,7 +21,8 @@ def create_descriptor(
         dict_or_uri,
         bundle_cache_root_override=None,
         fallback_roots=None,
-        resolve_latest=False):
+        resolve_latest=False,
+        constraint_pattern=None):
     """
     Factory method. Use this when creating descriptor objects.
 
@@ -40,6 +41,12 @@ def create_descriptor(
                            the descriptor dictionary/uri. Please note that setting this flag
                            to true will typically affect performance - an external connection
                            is often required in order to establish what the latest version is.
+    :param constraint_pattern: If resolve_latest is True, this pattern can be used to constrain
+                           the search for latest to only take part over a subset of versions.
+                           This is a string that can be on the following form:
+                                - v0.1.2, v0.12.3.2, v0.1.3beta - a specific version
+                                - v0.12.x - get the highest v0.12 version
+                                - v1.x.x - get the highest v1 version
     :returns: Descriptor object
     """
     from .descriptor_bundle import AppDescriptor, EngineDescriptor, FrameworkDescriptor
@@ -58,7 +65,8 @@ def create_descriptor(
         dict_or_uri,
         bundle_cache_root_override,
         fallback_roots,
-        resolve_latest
+        resolve_latest,
+        constraint_pattern
     )
 
     # now create a high level descriptor and bind that with the low level descriptor

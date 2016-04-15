@@ -604,7 +604,7 @@ class PipelineConfiguration(object):
 
         return descriptor_dict
 
-    def _get_descriptor(self, descriptor_type, dict_or_uri, latest=False):
+    def _get_descriptor(self, descriptor_type, dict_or_uri, latest=False, constraint_pattern=None):
         """
         Constructs a descriptor object given a descriptor dictionary.
 
@@ -613,6 +613,12 @@ class PipelineConfiguration(object):
         :param latest: Resolve latest version of descriptor. This
                        typically requires some sort of remote lookup and may error
                        if the machine is not connected to the Internet.
+        :param constraint_pattern: If resolve_latest is True, this pattern can be used to constrain
+                               the search for latest to only take part over a subset of versions.
+                               This is a string that can be on the following form:
+                                    - v0.1.2, v0.12.3.2, v0.1.3beta - a specific version
+                                    - v0.12.x - get the highest v0.12 version
+                                    - v1.x.x - get the highest v1 version
         :returns: Descriptor object
         """
         sg_connection = shotgun.get_sg_connection()
@@ -630,7 +636,8 @@ class PipelineConfiguration(object):
             descriptor_dict,
             self._bundle_cache_root_override,
             self._bundle_cache_fallback_paths,
-            latest
+            latest,
+            constraint_pattern
         )
 
         return desc
@@ -693,7 +700,7 @@ class PipelineConfiguration(object):
         """
         return self._get_descriptor(Descriptor.ENGINE, dict_or_uri, latest=True)
 
-    def get_latest_framework_descriptor(self, dict_or_uri):
+    def get_latest_framework_descriptor(self, dict_or_uri, constraint_pattern=None):
         """
         Convenience method that returns the latest descriptor for the
         given framework. The descriptor dictionary or uri does not have to contain
@@ -703,9 +710,20 @@ class PipelineConfiguration(object):
         which the most recent version is.
 
         :param dict_or_uri: Descriptor dictionary or uri
+        :param constraint_pattern: This pattern can be used to constrain
+                                   the search for latest to only take part over a subset of versions.
+                                   This is a string that can be on the following form:
+                                        - v0.1.2, v0.12.3.2, v0.1.3beta - a specific version
+                                        - v0.12.x - get the highest v0.12 version
+                                        - v1.x.x - get the highest v1 version
         :returns:        Descriptor object
         """
-        return self._get_descriptor(Descriptor.FRAMEWORK, dict_or_uri, latest=True)
+        return self._get_descriptor(
+            Descriptor.FRAMEWORK,
+            dict_or_uri,
+            latest=True,
+            constraint_pattern=constraint_pattern
+        )
 
 
     ########################################################################################
