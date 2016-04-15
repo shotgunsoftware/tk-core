@@ -31,9 +31,12 @@ engines:
         test_hook_inheritance_old_style: '{self}/inheritance_old_style.py'
         test_hook_inheritance_old_style_fails: '{self}/inheritance_old_style_fails.py'
         test_hook_new_style_config_old_style_hook: '{config}/config_test_hook.py'
-        test_default_syntax_with_new_style_hook: default 
-
+        test_hook_new_style_config_old_style_engine_specific_hook: '{config}/config_test_hook-{engine_name}.py'
+        test_default_syntax_with_new_style_hook: default
+        test_default_syntax_with_new_style_engine_specific_hook: '{self}/test_hook-{engine_name}.py'
         test_default_syntax_missing_implementation: '{config}/no_app_implementation.py'
+        test_no_schema: 1234.5678
+
         test_simple_dictionary:
           test_str: a
           test_int: 1         

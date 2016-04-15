@@ -18,12 +18,17 @@ import os
 import re
 import logging
 import functools
+import tempfile
 
 import mock
 
 from tank_test.tank_test_base import TankTestBase, setUpModule
-from sgtk.deploy.descriptor import AppDescriptor
-from sgtk.deploy import app_store_descriptor
+
+import tank_vendor
+from tank_vendor.shotgun_deploy.descriptor import Descriptor
+from tank_vendor.shotgun_deploy.io_descriptor.base import IODescriptorBase
+from tank_vendor.shotgun_deploy.descriptor import create_descriptor
+
 from tank import TankError
 from tank.platform.environment import Environment
 from distutils.version import LooseVersion
@@ -133,7 +138,7 @@ class MockStore(object):
 
         :returns: A MockStoreFramework object.
         """
-        return self._add_typed_bundle(AppDescriptor.FRAMEWORK, name, version)
+        return self._add_typed_bundle(Descriptor.FRAMEWORK, name, version)
 
     def add_engine(self, name, version):
         """
@@ -144,7 +149,7 @@ class MockStore(object):
 
         :returns: A MockStoreEngine object.
         """
-        return self._add_typed_bundle(AppDescriptor.ENGINE, name, version)
+        return self._add_typed_bundle(Descriptor.ENGINE, name, version)
 
     def add_application(self, name, version):
         """
@@ -155,7 +160,7 @@ class MockStore(object):
 
         :returns: A MockStoreApp object.
         """
-        return self._add_typed_bundle(AppDescriptor.APP, name, version)
+        return self._add_typed_bundle(Descriptor.APP, name, version)
 
     def add_bundle(self, bundle):
         """
@@ -190,61 +195,58 @@ class MockStore(object):
 
 
 # Simpler than having to write three class types that would also have to be documented.
-MockStoreApp = functools.partial(MockStore._Entry, bundle_type=AppDescriptor.APP)
-MockStoreFramework = functools.partial(MockStore._Entry, bundle_type=AppDescriptor.FRAMEWORK)
-MockStoreEngine = functools.partial(MockStore._Entry, bundle_type=AppDescriptor.ENGINE)
+MockStoreApp = functools.partial(MockStore._Entry, bundle_type=Descriptor.APP)
+MockStoreFramework = functools.partial(MockStore._Entry, bundle_type=Descriptor.FRAMEWORK)
+MockStoreEngine = functools.partial(MockStore._Entry, bundle_type=Descriptor.ENGINE)
 
 
-class TankMockStoreDescriptor(AppDescriptor):
+class TankMockStoreDescriptor(IODescriptorBase):
     """
     Mocking of the TankAppStoreDescriptor class. Interfaces with the MockStore to return results.
     """
 
-    @staticmethod
-    def create(name, version, bundle_type):
+    def __init__(self, location_dict, sg_connection, bundle_type):
+        """
+        Constructor.
+
+        Patches IODescriptorAppStore so needs to carry the same signature.
+
+        :param location_dict: descriptor dictionary describing the bundle
+        :param sg_connection: Shotgun connection to associated site
+        :param bundle_type: Either Descriptor.APP, CORE, ENGINE or FRAMEWORK
+        """
+        IODescriptorBase.__init__(self, location_dict)
+        self._type = bundle_type
+
+    def create(self, version):
         """
         Simple method to create an instance of the mocker object. This is required only when testing the framework.
 
-        :returns: A TankMockStoreDescriptor object.
+        :returns: A IODescriptorAppStore object.
         """
-        return app_store_descriptor.TankAppStoreDescriptor(
-            None, None, {"name": name, "type": "app_store", "version": version}, bundle_type
+        descriptor = TankMockStoreDescriptor(
+            {"name": self.get_system_name(),
+             "type": "app_store",
+             "version": version},
+            None,
+            self._type
         )
 
-    def __init__(self, pc_path, bundle_install_path, location_dict, bundle_type):
-        """
-        Constructor.
-        """
-        AppDescriptor.__init__(self, pc_path, bundle_install_path, location_dict)
-        self._type = bundle_type
+        descriptor.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
+
+        return descriptor
 
     def get_system_name(self):
         """
         See documentation from TankAppStoreDescriptor.
         """
-        return self.get_location()["name"]
+        return self.get_dict()["name"]
 
     def get_version(self):
         """
         See documentation from TankAppStoreDescriptor.
         """
-        return self.get_location()["version"]
-
-    def _get_metadata(self):
-        """
-        See documentation from TankAppStoreDescriptor.
-        """
-        return {
-            "frameworks": MockStore.instance.get_bundle(
-                self._type, self.get_system_name(), self.get_version()
-            ).required_frameworks
-        }
-
-    def run_post_install(self):
-        """
-        See documentation from TankAppStoreDescriptor.
-        """
-        pass
+        return self.get_dict()["version"]
 
     def exists_local(self):
         """
@@ -252,125 +254,65 @@ class TankMockStoreDescriptor(AppDescriptor):
         """
         return True
 
-    @classmethod
-    def find_latest_item(cls, pc_path, bundle_install_path, bundle_type, name, constraint_pattern=None):
+    def get_latest_version(self, constraint_pattern=None):
         """
         See documentation from TankAppStoreDescriptor.
         """
         if constraint_pattern:
-            return cls._find_latest_for_pattern(bundle_type, name, constraint_pattern)
+            return self._find_latest_for_pattern(constraint_pattern)
         else:
-            return cls._find_latest(bundle_type, name)
+            return self._find_latest()
 
-    def find_latest_version(self, version_pattern=None):
-        """
-        See documentation from TankAppStoreDescriptor.
-        """
-        if version_pattern:
-            return self._find_latest_for_pattern(
-                self._type,
-                self.get_system_name(),
-                version_pattern
-            )
-        else:
-            return self._find_latest(
-                self._type,
-                self.get_system_name()
-            )
-
-    @classmethod
-    def _find_latest(cls, bundle_type, name):
+    def _find_latest(self):
         """
         Finds the latest version of a bundle.
-
-        :param bundle_type: Type of the bundle. Any of AppDescriptor.{APP,ENGINE,FRAMEWORK}
-        :param name: Name of the bundle.
 
         :returns: A MockStore._Entry descriptor for the latest version of the bundle.
         """
 
-        versions = MockStore.instance.get_bundle_versions(bundle_type, name)
+        versions = MockStore.instance.get_bundle_versions(
+            self._type,
+            self.get_system_name()
+        )
         latest = "v0.0.0"
         for version in versions:
             if LooseVersion(version) > LooseVersion(latest):
                 latest = version
-        return cls.create(name, latest, bundle_type)
 
-    @classmethod
-    def _find_latest_for_pattern(cls, bundle_type, name, version_pattern):
+        return self.create(latest)
+
+    def _find_latest_for_pattern(self, version_pattern):
         """
         Finds the latest version of a bundle for a given version pattern, e.g. v1.x.x
 
-        :param bundle_type: Type of the bundle. Any of AppDescriptor.{APP,ENGINE,FRAMEWORK}
-        :param name: Name of the bundle.
         :param version_pattern: Version pattern to use when searching for the latest version, e.g. v1.x.x.
 
         :returns: A MockStore._Entry descriptor for the latest version of the bundle that matches the pattern.
         """
-        # FIXME: Refactor this with the code from the new descriptor code
-        # in the deploy module when that code is released.
-        version_numbers = MockStore.instance.get_bundle_versions(bundle_type, name)
-        versions = {}
 
-        for version_num in version_numbers:
+        version_numbers = MockStore.instance.get_bundle_versions(
+            self._type,
+            self.get_system_name()
+        )
 
-            try:
-                (major_str, minor_str, increment_str) = version_num[1:].split(".")
-                (major, minor, increment) = (int(major_str), int(minor_str), int(increment_str))
-            except:
-                # this version number was not on the form vX.Y.Z where X Y and Z are ints. skip.
-                continue
+        version_to_use = self._find_latest_tag_by_pattern(
+            version_numbers,
+            version_pattern
+        )
 
-            if major not in versions:
-                versions[major] = {}
-            if minor not in versions[major]:
-                versions[major][minor] = []
-            if increment not in versions[major][minor]:
-                versions[major][minor].append(increment)
+        return self.create(version_to_use)
 
-        # now handle the different version strings
-        version_to_use = None
-        if "x" not in version_pattern:
-            # we are looking for a specific version
-            if version_pattern not in version_numbers:
-                raise TankError("Could not find requested version '%s' "
-                                "of '%s' in the App store!" % (version_pattern, name))
-            else:
-                # the requested version exists in the app store!
-                version_to_use = version_pattern
+    def get_manifest(self):
+        """
+        REturns the manifest data
+        """
+        bundle = MockStore.instance.get_bundle(
+                self._type,
+                self.get_system_name(),
+                self.get_version()
+        )
 
-        elif re.match("v[0-9]+\.x\.x", version_pattern):
-            # we have a v123.x.x pattern
-            (major_str, _, _) = version_pattern[1:].split(".")
-            major = int(major_str)
-
-            if major not in versions:
-                raise TankError("%s does not have a version matching the pattern '%s'. "
-                                "Available versions are: %s" % (name, version_pattern, ", ".join(version_numbers)))
-            # now find the max version
-            max_minor = max(versions[major].keys())
-            max_increment = max(versions[major][max_minor])
-            version_to_use = "v%s.%s.%s" % (major, max_minor, max_increment)
-
-        elif re.match("v[0-9]+\.[0-9]+\.x", version_pattern):
-            # we have a v123.345.x pattern
-            (major_str, minor_str, _) = version_pattern[1:].split(".")
-            major = int(major_str)
-            minor = int(minor_str)
-
-            # make sure the constraints are fulfilled
-            if (major not in versions) or (minor not in versions[major]):
-                raise TankError("%s does not have a version matching the pattern '%s'. "
-                                "Available versions are: %s" % (name, version_pattern, ", ".join(version_numbers)))
-
-            # now find the max increment
-            max_increment = max(versions[major][minor])
-            version_to_use = "v%s.%s.%s" % (major, minor, max_increment)
-
-        else:
-            raise TankError("Cannot parse version expression '%s'!" % version_pattern)
-
-        return cls.create(name, version_to_use, bundle_type)
+        return {"frameworks": bundle.required_frameworks}
 
 
 class _Patcher(object):
@@ -384,9 +326,10 @@ class _Patcher(object):
         Constructor.
         """
         self._patch = mock.patch(
-            "tank.deploy.app_store_descriptor.TankAppStoreDescriptor",
+            "tank_vendor.shotgun_deploy.io_descriptor.appstore.IODescriptorAppStore",
             new=TankMockStoreDescriptor
         )
+
         self._mock_store = MockStore()
 
     def __enter__(self):
@@ -484,10 +427,14 @@ class TestMockStore(TankTestBase):
         # Register an engine with it.
         mock_store.add_engine("tk-test", "v1.2.3")
 
+        from tank_vendor.shotgun_deploy.io_descriptor.appstore import IODescriptorAppStore
+
         # Make sure the created object is actually an instance of the mocked descriptor class.
         self.assertIsInstance(
-            app_store_descriptor.TankAppStoreDescriptor(
-                None, None, {"name": "tk-test", "version": "v1.2.3"}, AppDescriptor.ENGINE
+            IODescriptorAppStore(
+                {"name": "tk-test", "type": "app_store", "version": "v1.2.3"},
+                None,
+                Descriptor.ENGINE
             ), TankMockStoreDescriptor
         )
 
@@ -497,14 +444,16 @@ class TestMockStore(TankTestBase):
         """
         patcher = patch_app_store()
 
-        self.assertNotEqual(TankMockStoreDescriptor, app_store_descriptor.TankAppStoreDescriptor)
+        from tank_vendor.shotgun_deploy.io_descriptor.appstore import IODescriptorAppStore
+
+        self.assertNotEqual(TankMockStoreDescriptor, IODescriptorAppStore)
 
         # Once we use the patch, everything should be mocked.
         with patcher as mock_store:
             self._test_patched(mock_store)
 
         # Now the patch should be unaplied and nothing should be mocked anymore.
-        self.assertNotEqual(TankMockStoreDescriptor, app_store_descriptor.TankAppStoreDescriptor)
+        self.assertNotEqual(TankMockStoreDescriptor, IODescriptorAppStore)
 
     @patch_app_store
     def test_framework_registration(self, mock_store):
@@ -526,16 +475,24 @@ class TestMockStore(TankTestBase):
         ]
 
         # Makes sure we respect the interface of the TankAppStoreDescriptor
-        desc = app_store_descriptor.TankAppStoreDescriptor(
-            None, None, {"name": "tk-framework-main", "version": "v2.0.0"}, AppDescriptor.FRAMEWORK
+
+        desc = create_descriptor(
+            None,
+            Descriptor.FRAMEWORK,
+            {"name": "tk-framework-main", "version": "v2.0.0", "type": "app_store"}
         )
+
         self.assertEqual(
             desc.get_required_frameworks(),
             [{"type": "app_store", "name": "tk-framework-dependency", "version": "v1.x.x"}]
         )
-        desc = app_store_descriptor.TankAppStoreDescriptor(
-            None, None, {"name": "tk-framework-main", "version": "v1.0.0"}, AppDescriptor.FRAMEWORK
+
+        desc = create_descriptor(
+            None,
+            Descriptor.FRAMEWORK,
+            {"name": "tk-framework-main", "version": "v1.0.0", "type": "app_store"}
         )
+
         self.assertEqual(desc.get_required_frameworks(), [])
 
 
@@ -577,15 +534,15 @@ class TestSimpleUpdates(TankTestBase):
         )
 
         desc = env.get_framework_descriptor("tk-framework-test_v1.0.0")
-        self.assertIsInstance(desc, TankMockStoreDescriptor)
+        self.assertIsInstance(desc._io_descriptor, TankMockStoreDescriptor)
         self.assertEqual(desc.get_version(), "v1.0.0")
 
         desc = env.get_engine_descriptor("tk-test")
-        self.assertIsInstance(desc, TankMockStoreDescriptor)
+        self.assertIsInstance(desc._io_descriptor, TankMockStoreDescriptor)
         self.assertEqual(desc.get_version(), "v1.0.0")
 
         desc = env.get_app_descriptor("tk-test", "tk-multi-nodep")
-        self.assertIsInstance(desc, TankMockStoreDescriptor)
+        self.assertIsInstance(desc._io_descriptor, TankMockStoreDescriptor)
         self.assertEqual(desc.get_version(), "v1.0.0")
 
     def test_simple_update(self):
