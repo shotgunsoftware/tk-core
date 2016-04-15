@@ -11,6 +11,7 @@
 from .descriptor import Descriptor
 from .errors import ShotgunDeployError
 from . import util
+from . import constants
 
 log = util.get_shotgun_deploy_logger()
 
@@ -41,8 +42,7 @@ class BundleDescriptor(Descriptor):
 
         manifest = self._io_descriptor.get_manifest()
 
-        if manifest.get("requires_shotgun_version") is not None:
-            constraints["min_sg"] = manifest.get("requires_shotgun_version")
+        constraints["min_sg"] = manifest.get("requires_shotgun_version", constants.LOWEST_SHOTGUN_VERSION)
 
         if manifest.get("requires_core_version") is not None:
             constraints["min_core"] = manifest.get("requires_core_version")

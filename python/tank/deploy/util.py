@@ -163,6 +163,18 @@ def subprocess_check_output(*popenargs, **kwargs):
 
 ################################################################################################
 
+
+def is_version_head(version):
+    """
+    Returns if the specified version is HEAD or MASTER. The comparison is case insensitive.
+
+    :param version: Version to test.
+
+    :returns: True if version is HEAD or MASTER, false otherwise.
+    """
+    return version.lower() in ["head", "master"]
+
+
 def is_version_newer(a, b):
     """
     Is the version number string a newer than b?
@@ -173,11 +185,11 @@ def is_version_newer(a, b):
     a=master b=0.13.4 -- Returns False
 
     """
-    if a.lower() in ["head", "master"]:
+    if is_version_head(a):
         # our version is latest
         return True
     
-    if b.lower() in ["head", "master"]:
+    if is_version_head(b):
         # comparing against HEAD - our version is always old
         return False
 
@@ -199,11 +211,11 @@ def is_version_older(a, b):
     a=master b=0.13.4 -- Returns False
 
     """
-    if a.lower() in ["head", "master"]:
+    if is_version_head(a):
         # other version is latest
         return False
     
-    if b.lower() in ["head", "master"]:
+    if is_version_head(b):
         # comparing against HEAD - our version is always old
         return True
 

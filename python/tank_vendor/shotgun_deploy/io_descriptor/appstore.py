@@ -15,6 +15,7 @@ import urllib
 import urllib2
 import cPickle as pickle
 
+from ..errors import ShotgunDeployError
 from ..zipfilehelper import unzip_file
 from ..descriptor import Descriptor
 from ..errors import ShotgunAppStoreConnectionError
@@ -291,7 +292,7 @@ class IODescriptorAppStore(IODescriptorBase):
             msg = sg_bundle_data.get("sg_deprecation_message", "No reason given.")
             return (True, msg)
         else:
-            return (False, "")        
+            return (False, "")
 
     def get_version(self):
         """
@@ -420,44 +421,48 @@ class IODescriptorAppStore(IODescriptorBase):
 
         :returns: IODescriptorAppStore instance
         """
-
         # connect to the app store
         (sg, _) = self.__create_sg_app_store_connection()
 
-        # set up some lookup tables so we look in the right table in sg
-
-        # find the main entry
-        sg_bundle_data = sg.find_one(
-            self._APP_STORE_OBJECT[self._type],
-            [["sg_system_name", "is", self._name]],
-            ["id", "sg_status_list"]
-        )
-
-        if sg_bundle_data is None:
-            raise ShotgunDeployError("App store does not contain an item named '%s'!" % self._name)
-
-        # check if this has been deprecated in the app store
-        # in that case we should ensure that the metadata is refreshed later
-        is_deprecated = False
-        if sg_bundle_data["sg_status_list"] == "dep":
-            is_deprecated = True
-
-        # now get all versions
-        
         # get latest get the filter logic for what to exclude
         if constants.APP_STORE_QA_MODE_ENV_VAR in os.environ:
             latest_filter = [["sg_status_list", "is_not", "bad" ]]
         else:
             latest_filter = [["sg_status_list", "is_not", "rev" ],
-                             ["sg_status_list", "is_not", "bad" ]]        
-        
-        link_field = self._APP_STORE_LINK[self._type]
-        entity_type = self._APP_STORE_VERSION[self._type]
-        sg_data = sg.find(
-            entity_type,
-            [[link_field, "is", sg_bundle_data]] + latest_filter,
-            ["code"]
-        )
+                             ["sg_status_list", "is_not", "bad" ]]
+
+        is_deprecated = False
+        if self._type != self.CORE:
+            # find the main entry
+            sg_bundle_data = sg.find_one(
+                self._APP_STORE_OBJECT[self._type],
+                [["sg_system_name", "is", self._name]],
+                ["id", "sg_status_list"]
+            )
+
+            if sg_bundle_data is None:
+                raise ShotgunDeployError("App store does not contain an item named '%s'!" % self._name)
+
+            # check if this has been deprecated in the app store
+            # in that case we should ensure that the metadata is refreshed later
+            if sg_bundle_data["sg_status_list"] == "dep":
+                is_deprecated = True
+
+            # now get all versions
+            link_field = self._APP_STORE_LINK[self._type]
+            entity_type = self._APP_STORE_VERSION[self._type]
+            sg_data = sg.find(
+                entity_type,
+                [[link_field, "is", sg_bundle_data]] + latest_filter,
+                ["code"]
+            )
+        else:
+            # now get all versions
+            sg_data = sg.find(
+                constants.TANK_CORE_VERSION_ENTITY_TYPE,
+                filters=latest_filter,
+                fields=["code"]
+            )
 
         if len(sg_data) == 0:
             raise ShotgunDeployError("Cannot find any versions for %s in the App store!" % self._name)
