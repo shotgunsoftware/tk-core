@@ -12,6 +12,6 @@
 # This is automatically replaced with appropriate values
 # as the core bundle is uploaded to the app store.
 
-version: "v0.17.17"
+version: "HEAD"
 documentation_url: ""
 requires_shotgun_version: "v5.0.0"
