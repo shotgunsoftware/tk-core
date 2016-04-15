@@ -15,7 +15,7 @@ import sys
 from tank_test.tank_test_base import *
 from mock import patch
 import tank_vendor
-from tank_vendor.shotgun_authentication import user_impl, interactive_authentication, invoker
+from tank_vendor.shotgun_authentication import user_impl, console_authentication, interactive_authentication, invoker
 
 
 class InteractiveTests(TankTestBase):
@@ -236,6 +236,45 @@ class InteractiveTests(TankTestBase):
         with self.assertRaises(FromMainThreadException):
             bg.wait()
 
+    @patch(
+        "tank_vendor.shotgun_authentication.console_authentication.ConsoleLoginHandler._raw_input",
+        side_effect=["  https://test.shotgunstudio.com ", "  username   ", " 2fa code "]
+    )
+    @patch(
+        "tank_vendor.shotgun_authentication.console_authentication.ConsoleLoginHandler._get_password",
+        return_value=" password "
+    )
+    def test_console_auth_with_whitespace(self, get_password_mock, console_handler_mock):
+        """
+        Makes sure that authentication strips whitespaces on the command line.
+        """
+        handler = console_authentication.ConsoleLoginHandler(fixed_host=False)
+        self.assertEqual(
+            handler._get_user_credentials(None, " something "),
+            ("https://test.shotgunstudio.com", "username", " password ")
+        )
+        self.assertEqual(
+            handler._get_2fa_code(),
+            "2fa code"
+        )
+
+    @skip_if_pyside_missing
+    def test_ui_auth_with_whitespace(self):
+        """
+        Makes sure that the ui strips out whitespaces.
+        """
+        # Import locally since login_dialog has a dependency on Qt and it might be missing
+        from tank_vendor.shotgun_authentication.login_dialog import LoginDialog
+        ld = LoginDialog(is_session_renewal=False)
+
+        # For each widget in the ui, make sure that the 
+        for widget in [ld.ui._2fa_code, ld.ui.backup_code, ld.ui.site, ld.ui.login]:
+            widget.setText(" text ")
+            # Give the focus to another widget, which should trigger the editingFinished
+            # signal and the dialog will clear the extra spaces in it.
+            ld.ui.password.setFocus()
+            # Text should be cleaned of spaces now.
+            self.assertEqual(widget.text(), "text")
 
 # Class decorators don't exist on Python2.5
 InteractiveTests = skip_if_pyside_missing(InteractiveTests)

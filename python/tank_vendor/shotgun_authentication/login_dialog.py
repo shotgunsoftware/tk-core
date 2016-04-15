@@ -112,6 +112,15 @@ class LoginDialog(QtGui.QDialog):
 
         self.ui.forgot_password_link.linkActivated.connect(self._link_activated)
 
+        self.ui.site.editingFinished.connect(self._strip_whitespaces)
+        self.ui.login.editingFinished.connect(self._strip_whitespaces)
+        self.ui._2fa_code.editingFinished.connect(self._strip_whitespaces)
+        self.ui.backup_code.editingFinished.connect(self._strip_whitespaces)
+
+    def _strip_whitespaces(self):
+        # Cleans up the field after editing
+        self.sender().setText(self.sender().text().strip())
+
     def _link_activated(self, site):
         """
         Clicked when the user presses on the "Forgot your password?" link.
