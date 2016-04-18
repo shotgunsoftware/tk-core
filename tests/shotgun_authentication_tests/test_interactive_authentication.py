@@ -8,17 +8,24 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+"""
+Unit tests for interactive authentication.
+"""
+
 from __future__ import with_statement
 
 import sys
 
-from tank_test.tank_test_base import *
+from tank_test.tank_test_base import setUpModule, TankTestBase, skip_if_pyside_missing, interactive
 from mock import patch
 import tank_vendor
 from tank_vendor.shotgun_authentication import user_impl, console_authentication, interactive_authentication, invoker
 
 
 class InteractiveTests(TankTestBase):
+    """
+    Tests ui and console based authentication.
+    """
 
     def setUp(self, *args, **kwargs):
         """
@@ -40,7 +47,19 @@ class InteractiveTests(TankTestBase):
         self.assertTrue(ld.ui.site.isReadOnly())
         self.assertTrue(ld.ui.login.isReadOnly())
 
-    @interactive
+    def _prepare_window(self, ld):
+        """
+        Prepares the dialog so the events get processed and focus is attributed to the right
+        widget.
+        """
+        from PySide.QtGui import QApplication
+
+        ld.show()
+        ld.raise_()
+
+        QApplication.processEvents()
+
+    @skip_if_pyside_missing
     def test_focus(self):
         """
         Make sure that the site and user fields are disabled when doing session renewal
@@ -48,20 +67,23 @@ class InteractiveTests(TankTestBase):
         # Import locally since login_dialog has a dependency on Qt and it might be missing
         from tank_vendor.shotgun_authentication import login_dialog
         ld = login_dialog.LoginDialog(is_session_renewal=False)
-        ld._set_login_message("mystudio should be selected in https://mystudio.shotgunstudio.com")
-        ld.exec_()
+        self.assertEqual(ld.ui.site.text(), "https://mystudio.shotgunstudio.com")
+        ld.close()
 
         ld = login_dialog.LoginDialog(is_session_renewal=False, login="login")
-        ld._set_login_message("mystudio should be selected in https://mystudio.shotgunstudio.com")
-        ld.exec_()
+        self.assertEqual(ld.ui.site.text(), "https://mystudio.shotgunstudio.com")
+        ld.close()
 
         ld = login_dialog.LoginDialog(is_session_renewal=False, hostname="host")
-        ld._set_login_message("Focus should be on login box")
-        ld.exec_()
+        self._prepare_window(ld)
+        # window needs to be activated to get focus.
+        self.assertTrue(ld.ui.login.hasFocus())
+        ld.close()
 
         ld = login_dialog.LoginDialog(is_session_renewal=False, hostname="host", login="login")
-        ld._set_login_message("Focus should be on password box")
-        ld.exec_()
+        self._prepare_window(ld)
+        self.assertTrue(ld.ui.password.hasFocus())
+        ld.close()
 
     def _test_login(self, console):
         self._print_message(
@@ -78,24 +100,6 @@ class InteractiveTests(TankTestBase):
             "Test successful",
             console
         )
-
-    @interactive
-    def test_login_ui(self):
-        """
-        Pops the ui and lets the user authenticate.
-        :param cache_session_data_mock: Mock for the tank.util.session_cache.cache_session_data
-        """
-        self._test_login(console=False)
-
-    @patch("tank_vendor.shotgun_authentication.interactive_authentication._get_qt_state")
-    @interactive
-    def test_login_console(self, _get_qt_state_mock):
-        """
-        Pops the ui and lets the user authenticate.
-        :param cache_session_data_mock: Mock for the tank.util.session_cache.cache_session_data
-        """
-        _get_qt_state_mock.return_value = None, None, None
-        self._test_login(console=True)
 
     def _print_message(self, text, test_console):
         if test_console:
@@ -136,17 +140,6 @@ class InteractiveTests(TankTestBase):
             sg_user
         )
         self._print_message("Test successful", test_console)
-
-    @interactive
-    def test_session_renewal_ui(self):
-        self._test_session_renewal(test_console=False)
-
-    @patch("tank_vendor.shotgun_authentication.interactive_authentication._get_qt_state")
-    @interactive
-    def test_session_renewal_console(self,_get_qt_state_mock):
-        # Doing this forces the prompting code to use the console.
-        _get_qt_state_mock.return_value = None, None, None
-        self._test_session_renewal(test_console=True)
 
     def test_invoker_rethrows_exception(self):
         """
@@ -244,13 +237,13 @@ class InteractiveTests(TankTestBase):
         "tank_vendor.shotgun_authentication.console_authentication.ConsoleLoginHandler._get_password",
         return_value=" password "
     )
-    def test_console_auth_with_whitespace(self, get_password_mock, console_handler_mock):
+    def test_console_auth_with_whitespace(self, *mocks):
         """
         Makes sure that authentication strips whitespaces on the command line.
         """
         handler = console_authentication.ConsoleLoginHandler(fixed_host=False)
         self.assertEqual(
-            handler._get_user_credentials(None, " something "),
+            handler._get_user_credentials(None, None),
             ("https://test.shotgunstudio.com", "username", " password ")
         )
         self.assertEqual(
@@ -266,9 +259,12 @@ class InteractiveTests(TankTestBase):
         # Import locally since login_dialog has a dependency on Qt and it might be missing
         from tank_vendor.shotgun_authentication.login_dialog import LoginDialog
         ld = LoginDialog(is_session_renewal=False)
-
-        # For each widget in the ui, make sure that the 
+        self._prepare_window(ld)
+        # For each widget in the ui, make sure that the text is properly cleaned
+        # up when widget loses focus.
         for widget in [ld.ui._2fa_code, ld.ui.backup_code, ld.ui.site, ld.ui.login]:
+            # Give the focus, so that editingFinished can be triggered.
+            widget.setFocus()
             widget.setText(" text ")
             # Give the focus to another widget, which should trigger the editingFinished
             # signal and the dialog will clear the extra spaces in it.

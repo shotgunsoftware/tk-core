@@ -118,7 +118,9 @@ class LoginDialog(QtGui.QDialog):
         self.ui.backup_code.editingFinished.connect(self._strip_whitespaces)
 
     def _strip_whitespaces(self):
-        # Cleans up the field after editing
+        """
+        Cleans up a field after editing.
+        """
         self.sender().setText(self.sender().text().strip())
 
     def _link_activated(self, site):
@@ -207,7 +209,7 @@ class LoginDialog(QtGui.QDialog):
 
     def _ok_pressed(self):
         """
-        validate the values, accepting if login is successful and display an error message if not.
+        Validate the values, accepting if login is successful and display an error message if not.
         """
         # pull values from the gui
         site = self.ui.site.text()
