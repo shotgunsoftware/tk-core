@@ -19,7 +19,7 @@ from .platform import constants
 from .errors import (
     TankError,
     TankFileDoesNotExistError,
-    TankHookMethodDoesNotExist,
+    TankHookMethodDoesNotExistError,
 )
 
 class Hook(object):
@@ -280,7 +280,7 @@ def execute_hook_method(hook_paths, parent, method_name, **kwargs):
     try:
         hook_method = getattr(hook, method_name)
     except AttributeError:
-        raise TankHookMethodDoesNotExist(
+        raise TankHookMethodDoesNotExistError(
             "Cannot execute hook '%s' - the hook class does not have a '%s' "
             "method!" % (hook, method_name)
         )
