@@ -68,10 +68,12 @@ class InteractiveTests(TankTestBase):
         from tank_vendor.shotgun_authentication import login_dialog
         ld = login_dialog.LoginDialog(is_session_renewal=False)
         self.assertEqual(ld.ui.site.text(), "https://mystudio.shotgunstudio.com")
+        self.assertEqual(ld.ui.site.selectedText(), "mystudio")
         ld.close()
 
         ld = login_dialog.LoginDialog(is_session_renewal=False, login="login")
         self.assertEqual(ld.ui.site.text(), "https://mystudio.shotgunstudio.com")
+        self.assertEqual(ld.ui.site.selectedText(), "mystudio")
         ld.close()
 
         ld = login_dialog.LoginDialog(is_session_renewal=False, hostname="host")
