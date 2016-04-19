@@ -592,3 +592,49 @@ class TestShotgunSync(TankTestBase):
         # check that this triggers a full sync        
         log = sync_path_cache(self.tk)
         self.assertTrue("Performing a complete Shotgun folder sync" in log)
+
+
+
+    def test_multiple_projects_eventlog(self):
+        """
+        Tests that projects don't get their path caches mixed up.
+
+        This tests that the path cache for a project isn't influenced
+        or affected by filesystem locations and event logs created
+        by other projects.
+        """
+
+        # now create folders down to task level
+        folder.process_filesystem_structure(self.tk,
+                                            self.task["type"],
+                                            self.task["id"],
+                                            preview=False,
+                                            engine=None)
+
+        # simulate event from other project inserted
+        sg_proj = self.tk.shotgun.create("Project", {"name": "other_project"})
+        sg_data = {
+            'description': 'Toolkit HEAD: Created folders on disk for Tasks with id: 888',
+            'entity': {'id': 666, 'type': 'PipelineConfiguration'},
+            'event_type': 'Toolkit_Folders_Create',
+            'meta': {'core_api_version': 'HEAD', 'sg_folder_ids': [768]},
+            'project': sg_proj
+        }
+        for x in range(100):
+            self.tk.shotgun.create("EventLogEntry", sg_data)
+
+        # now delete our path cache so that next time, a full sync is done
+        path_cache = tank.path_cache.PathCache(self.tk)
+        path_cache_location = path_cache._get_path_cache_location()
+        path_cache.close()
+        os.remove(path_cache_location)
+
+        # now because we deleted our path cache, we will do a full sync
+        log = sync_path_cache(self.tk)
+        self.assertTrue("Performing a complete Shotgun folder sync" in log)
+
+        # now if we sync again, this should be incremental and the sync
+        # should detect that there are no new entries for this project,
+        # even though there are new entries for other projects.
+        log = sync_path_cache(self.tk)
+        self.assertTrue("Path cache syncing not necessary" in log)
