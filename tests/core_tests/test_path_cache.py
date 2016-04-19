@@ -596,7 +596,13 @@ class TestShotgunSync(TankTestBase):
 
 
     def test_multiple_projects_eventlog(self):
-        """Tests that creation of path cache entries in projects doesn't affect each other."""
+        """
+        Tests that projects don't get their path caches mixed up.
+
+        This tests that the path cache for a project isn't influenced
+        or affected by filesystem locations and event logs created
+        by other projects.
+        """
 
         # now create folders down to task level
         folder.process_filesystem_structure(self.tk,
@@ -628,7 +634,7 @@ class TestShotgunSync(TankTestBase):
         self.assertTrue("Performing a complete Shotgun folder sync" in log)
 
         # now if we sync again, this should be incremental and the sync
-        # should detec that there are no new entries for this project,
+        # should detect that there are no new entries for this project,
         # even though there are new entries for other projects.
         log = sync_path_cache(self.tk)
         self.assertTrue("Path cache syncing not necessary" in log)

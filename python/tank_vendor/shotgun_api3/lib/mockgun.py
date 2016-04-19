@@ -300,58 +300,60 @@ class Shotgun(object):
         
 
         self.finds += 1
-                
+
         self._validate_entity_type(entity_type)
         # do not validate custom fields - this makes it hard to mock up a field quickly
         #self._validate_entity_fields(entity_type, fields)
-        
+
         if isinstance(filters, dict):
             # complex filter style!
             # {'conditions': [{'path': 'id', 'relation': 'is', 'values': [1]}], 'logical_operator': 'and'}
-            
+
             resolved_filters = []
             for f in filters["conditions"]:
-                
+
                 if f["path"].startswith("$FROM$"):
                     # special $FROM$Task.step.entity syntax
                     # skip this for now
                     continue
-                    
+
                 if len(f["values"]) != 1:
                     # {'path': 'id', 'relation': 'in', 'values': [1,2,3]} --> ["id", "in", [1,2,3]]
                     resolved_filters.append([ f["path"], f["relation"], f["values"] ])
                 else:
                     # {'path': 'id', 'relation': 'is', 'values': [3]} --> ["id", "is", 3]
                     resolved_filters.append([ f["path"], f["relation"], f["values"][0] ])
-                
+
         else:
             # traditiona style sg filters
-            resolved_filters = filters        
-        
+            resolved_filters = filters
+
         # now translate ["field", "in", 2,3,4] --> ["field", "in", [2, 3, 4]]
         resolved_filters_2 = []
         for f in resolved_filters:
-            
+
             if len(f) > 3:
                 # ["field", "in", 2,3,4] --> ["field", "in", [2, 3, 4]]
                 new_filter = [ f[0], f[1], f[2:] ]
-            
+
             elif f[1] == "in" and not isinstance(f[2], list):
                 # ["field", "in", 2] --> ["field", "in", [2]]
                 new_filter = [ f[0], f[1], [ f[2] ] ]
-            
+
             else:
                 new_filter = f
-                
+
             resolved_filters_2.append(new_filter)
-            
+
         results = [row for row in self._db[entity_type].values() if self._row_matches_filters(entity_type, row, resolved_filters_2, filter_operator, retired_only)]
-        
+
         # handle the ordering of the recordset
         if order:
+            # order: [{"field_name": "code", "direction": "asc"}, ... ]
             for order_entry in order:
                 if "field_name" not in order_entry:
-                    raise ValueError("Order clauses must be list of dicts with keys field_name and direction!")
+                    raise ValueError("Order clauses must be list of dicts with keys 'field_name' and 'direction'!")
+
                 order_field = order_entry["field_name"]
                 if order_entry["direction"] == "asc":
                     desc_order = False
