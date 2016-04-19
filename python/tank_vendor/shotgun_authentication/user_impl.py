@@ -48,7 +48,14 @@ class ShotgunUserImpl(object):
         if not host:
             raise IncompleteCredentials("missing host")
 
-        self._host = host
+        # We need to ensure that we are always storing utf-8 so that
+        # we don't end up infecting API instances with unicode strings
+        # that would then cause some string data to be unicoded during
+        # concatenation operations.
+        if http_proxy is not None:
+            http_proxy = http_proxy.encode("utf-8")
+
+        self._host = host.encode("utf-8")
         self._http_proxy = http_proxy
 
     def get_host(self):
