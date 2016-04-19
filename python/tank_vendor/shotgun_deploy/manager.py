@@ -205,25 +205,15 @@ class ToolkitManager(object):
         return engine
 
 
-    def _bootstrap_sgtk(self, engine_name, entity):
+    def get_config(self, engine_name, entity):
+        """Return a configuration object for the supplied engine and entity.
+
+        Determines the entity's project in order to resolve a configuration.
+
+        :param engine_name: The name of the engine
+        :param entity: The entity data
+        :return: A resolved Configuration object
         """
-        Create an sgtk instance for the given engine and entity.
-
-        If entity is None, the method will bootstrap into the site
-        config. This method will attempt to resolve the config according
-        to business logic set in the associated resolver class and based
-        on this launch a configuration. This may involve downloading new
-        apps from the toolkit app store and installing files on disk.
-
-        Please note that the API version of the tk instance that hosts
-        the engine may not be the same as the API version that was
-        executed during the bootstrap.
-
-        :param entity: Shotgun entity to launch engine for
-        :param engine_name: name of engine to launch (e.g. tk-nuke)
-        :returns: sgtk instance
-        """
-        log.debug("Begin bootstrapping sgtk.")
 
         self._report_progress("Resolving Toolkit Context...")
         if entity is None:
@@ -274,6 +264,31 @@ class ToolkitManager(object):
             self._base_config_descriptor,
             self._resolve_latest_base_descriptor
         )
+
+        return config
+
+    def _bootstrap_sgtk(self, engine_name, entity):
+        """
+        Create an sgtk instance for the given engine and entity.
+
+        If entity is None, the method will bootstrap into the site
+        config. This method will attempt to resolve the config according
+        to business logic set in the associated resolver class and based
+        on this launch a configuration. This may involve downloading new
+        apps from the toolkit app store and installing files on disk.
+
+        Please note that the API version of the tk instance that hosts
+        the engine may not be the same as the API version that was
+        executed during the bootstrap.
+
+        :param entity: Shotgun entity to launch engine for
+        :param engine_name: name of engine to launch (e.g. tk-nuke)
+        :returns: sgtk instance
+        """
+
+        log.debug("Begin bootstrapping sgtk.")
+
+        config = self.get_config(engine_name, entity)
 
         # see what we have locally
         self._report_progress("Checking if config is out of date...")
