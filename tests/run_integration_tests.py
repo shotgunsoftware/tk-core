@@ -41,14 +41,14 @@ def _test_return_value(expected_result, args):
     args = [tank_path] + args.split(" ")
     print "Running %s" % " ".join(args)
     try:
-        result = subprocess.check_output(args)
-        output = ""
+        output = subprocess.check_output(args, stdin=None)
+        result = 0
     except subprocess.CalledProcessError, e:
         result = e.returncode
         output = e.output
 
     if result != expected_result:
-        print "Expecting %d, got %d" % (expected_result, result)
+        print "Expecting %s, got %s" % (expected_result, result)
         print output
         assert(result == expected_result)
 

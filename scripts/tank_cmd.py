@@ -207,7 +207,7 @@ Log out of the current user (no context required):
         log.info(x)
 
 
-def ensure_authenticated(script_name=None, script_key=None):
+def ensure_authenticated(script_name, script_key):
     """
     Make sure that there is a current toolkit user set.
     May prompt for a login/password if needed. Note that if command line
@@ -1601,7 +1601,10 @@ if __name__ == "__main__":
                     ctx_list = [ os.getcwd() ] # path
 
             # first make sure there is a current user
-            ensure_authenticated(credentials)
+            ensure_authenticated(
+                credentials.get("script-name"),
+                credentials.get("script-key")
+            )
 
             # now run the command
             exit_code = run_engine_cmd(logger, pipeline_config_root, ctx_list, cmd_name, using_cwd, cmd_args)
