@@ -25,10 +25,9 @@ def get_test_resource_path(rel_path):
     return os.path.join(os.path.split(__file__)[0], "fixtures", "integration_tests", rel_path)
 
 
-def test_return_value(expected_result, args):
+def _test_return_value(expected_result, args):
     """
-    Invokes the tank command with the arguments provided and compares the
-    result with the expected value.
+    Invokes the tank command compares the result with the expected value.
 
     e.g.
 
@@ -39,7 +38,6 @@ def test_return_value(expected_result, args):
 
     :raises AssertError: If the error codes differ, this exception is raised.
     """
-    global tank_path
     args = [tank_path] + args.split(" ")
     print "Running %s" % " ".join(args)
     try:
@@ -55,6 +53,26 @@ def test_return_value(expected_result, args):
         assert(result == expected_result)
 
 
+def test_return_value(expected_result, args):
+    """
+    Invokes the tank command with the arguments provided with and without a core
+    command and compares the result with the expected value.
+
+    e.g.
+
+    test_return_value(9, "--login=login --password=password")
+
+    :param expected_result: The expected integer return code for the tank process.
+    :param args: String containing all the parameters for the command line.
+
+    :raises AssertError: If the error codes differ, this exception is raised.
+    """
+    global tank_path
+
+    _test_return_value(expected_result, args)
+    _test_return_value(expected_result, args + " shell")
+
+
 def command_line_authentication_tests():
     """
     Runs command line authentication tests.
@@ -63,7 +81,7 @@ def command_line_authentication_tests():
     # missing param
     test_return_value(9, "--script-name=test")
     test_return_value(9, "--script-key=1234")
-    test_return_value(9, "--credentials-file==%s" % get_test_resource_path("authentication/missing_file"))
+    test_return_value(9, "--credentials-file=%s" % get_test_resource_path("authentication/missing_file"))
 
     test_return_value(9, "--script-name=test --script-name=test --script-key=1234")
     test_return_value(9, "--script-name=test --script-key=1234 --script-key=1234")
@@ -71,6 +89,10 @@ def command_line_authentication_tests():
     # mixing params
     test_return_value(9, "--script-name=test --credentials-file=/var/tmp/script_credentials.yml")
     test_return_value(9, "--script-key=test --credentials-file=/var/tmp/script_credentials.yml")
+
+    # Bad credentials
+    test_return_value(7, "--script-name=test --script-key=1234")
+    test_return_value(7, "--credentials-file=%s" % get_test_resource_path("authentication/bad_credentials"))
 
 
 def main():
