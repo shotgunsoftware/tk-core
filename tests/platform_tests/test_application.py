@@ -15,7 +15,7 @@ import tempfile
 
 from tank_test.tank_test_base import *
 import tank
-from tank.errors import TankError
+from tank.errors import TankError, TankHookMethodDoesNotExistError
 from tank.platform import application
 from tank.platform import constants
 from tank.template import Template
@@ -194,6 +194,17 @@ class TestExecuteHookByName(TestApplication):
         app = self.engine.apps["test_app"]
         self.assertTrue(app.execute_hook_expression("{self}/test_hook.py", "execute", dummy_param=True), 
                         "named_hook_1")
+
+    # calling `execute_hook_method` for a method that does not exist in the hook
+    # should raise the TankHookMethodDoesNotExistError exception
+    def test_no_method(self):
+        app = self.engine.apps["test_app"]
+        self.assertRaises(
+            TankHookMethodDoesNotExistError,
+            app.execute_hook_method,
+            "test_hook_std",
+            "foobar"
+        )
 
 
 class TestExecuteHook(TestApplication):
