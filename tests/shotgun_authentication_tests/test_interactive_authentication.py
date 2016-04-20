@@ -232,7 +232,7 @@ class InteractiveTests(TankTestBase):
             bg.wait()
 
     @patch(
-        "tank_vendor.shotgun_authentication.console_authentication.ConsoleLoginHandler._raw_input",
+        "__builtin__.raw_input",
         side_effect=["  https://test.shotgunstudio.com ", "  username   ", " 2fa code "]
     )
     @patch(
