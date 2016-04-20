@@ -8,6 +8,10 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+"""
+Integration tests for core.
+"""
+
 import sys
 import os
 import subprocess
@@ -58,10 +62,6 @@ def test_return_value(expected_result, args):
     Invokes the tank command with the arguments provided with and without a core
     command and compares the result with the expected value.
 
-    e.g.
-
-    test_return_value(9, "--login=login --password=password")
-
     :param expected_result: The expected integer return code for the tank process.
     :param args: String containing all the parameters for the command line.
 
@@ -77,7 +77,6 @@ def command_line_authentication_tests():
     """
     Runs command line authentication tests.
     """
-
     # missing param
     test_return_value(9, "--script-name=test")
     test_return_value(9, "--script-key=1234")
