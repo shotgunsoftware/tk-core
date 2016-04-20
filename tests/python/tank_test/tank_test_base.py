@@ -17,6 +17,7 @@ import os
 import time
 import shutil
 import pprint
+import logging
 import tempfile
 
 from tank_vendor.shotgun_api3.lib import mockgun
@@ -32,6 +33,10 @@ from tank_vendor import yaml
 TANK_TEMP = None
 
 __all__ = ['setUpModule', 'TankTestBase', 'tank', 'interactive', 'skip_if_pyside_missing']
+
+# mute the sgtk logging by default to avoid the 'no handlers defined' message
+from tank_vendor.shotgun_base import get_sgtk_logger
+get_sgtk_logger().addHandler(logging.NullHandler())
 
 
 def interactive(func):
