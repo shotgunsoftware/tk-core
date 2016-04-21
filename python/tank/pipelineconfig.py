@@ -20,7 +20,7 @@ import cPickle
 from tank_vendor import yaml
 
 from .errors import TankError, TankUnreadableFileError
-from .deploy import util
+from .util.version import is_version_older
 from .platform import constants
 from .platform.environment import Environment, WritableEnvironment
 from .util import shotgun, yaml_cache
@@ -28,7 +28,7 @@ from . import hook
 from . import pipelineconfig_utils
 from . import template_includes
 
-from tank_vendor.shotgun_deploy import Descriptor, create_descriptor, descriptor_uri_to_dict
+from .descriptor import Descriptor, create_descriptor, descriptor_uri_to_dict
 from tank_vendor.shotgun_base import get_shotgun_storage_key
 
 class PipelineConfiguration(object):
@@ -59,7 +59,7 @@ class PipelineConfiguration(object):
         current_api_version = pipelineconfig_utils.get_currently_running_api_version()
         
         if our_associated_api_version is not None and \
-           util.is_version_older(current_api_version, our_associated_api_version):
+           is_version_older(current_api_version, our_associated_api_version):
             # currently running API is too old!
             current_api_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
             

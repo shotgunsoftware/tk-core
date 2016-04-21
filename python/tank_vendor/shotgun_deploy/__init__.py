@@ -8,7 +8,4 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from .descriptor import Descriptor, create_descriptor
-from .io_descriptor import descriptor_dict_to_uri, descriptor_uri_to_dict
 from .manager import ToolkitManager
-from .paths import get_bundle_cache_root

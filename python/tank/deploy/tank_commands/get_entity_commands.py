@@ -10,12 +10,42 @@
 
 from .action_base import Action
 from ...errors import TankError
-from ..util import execute_tank_command, SubprocessCalledProcessError
+from ...util.process import SubprocessCalledProcessError, subprocess_check_output
 
 import itertools
 import operator
 import os
 import sys
+
+def execute_tank_command(pipeline_config_path, args):
+    """
+    Wrapper around execution of the tank command of a specified pipeline
+    configuration.
+
+    :raises: Will raise a SubprocessCalledProcessError if the tank command
+             returns a non-zero error code.
+             Will raise a TankError if the tank command could not be
+             executed.
+    :param pipeline_config_path: the path to the pipeline configuration that
+                                 contains the tank command
+    :param args:                 list of arguments to pass to the tank command
+    :returns:                    text output of the command
+    """
+    if not os.path.isdir(pipeline_config_path):
+        raise TankError(
+            "Could not find the Pipeline Configuration on disk: %s" % pipeline_config_path
+        )
+
+    tank_command = "tank" if sys.platform != "win32" else "tank.bat"
+
+    command_path = os.path.join(pipeline_config_path, tank_command)
+
+    if not os.path.isfile(command_path):
+        raise TankError("Could not find the tank command on disk: %s"
+                        % command_path)
+
+    return subprocess_check_output([command_path] + args)
+
 
 
 class GetEntityCommandsAction(Action):

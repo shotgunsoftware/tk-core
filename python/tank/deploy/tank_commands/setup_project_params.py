@@ -16,14 +16,13 @@ import uuid
 
 from ...platform import constants
 from ...util import shotgun
+from ...util.version import is_version_newer
 from ... import hook
 from ...errors import TankError, TankErrorProjectIsSetup
 from ... import pipelineconfig_utils
-from ... import pipelineconfig
 
 from ...util.zip import unzip_file
 from ...util.git import execute_git_command
-from .. import util as deploy_util
 
 from .setup_project_core import _copy_folder
 
@@ -760,7 +759,7 @@ class ProjectSetupParameters(object):
             api_location = self.get_associated_core_path(sys.platform)
             curr_core_version = pipelineconfig_utils.get_core_api_version(api_location)
 
-            if deploy_util.is_version_newer(required_core_version, curr_core_version):
+            if is_version_newer(required_core_version, curr_core_version):
                 raise TankError("This configuration requires Toolkit Core version %s "
                                 "but you are running version %s" % (required_core_version, curr_core_version))
             else:
@@ -862,7 +861,7 @@ class TemplateConfiguration(object):
                 # get the version for the current sg site as a string (1.2.3)
                 sg_version_str = ".".join([ str(x) for x in self._sg.server_info["version"]])
 
-                if deploy_util.is_version_newer(required_version, sg_version_str):
+                if is_version_newer(required_version, sg_version_str):
                     raise TankError("This configuration requires Shotgun version %s "
                                     "but you are running version %s" % (required_version, sg_version_str))
                 else:

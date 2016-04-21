@@ -31,7 +31,6 @@ from . import application
 from . import constants
 from . import validation
 from . import qt
-from . import black_list
 from .bundle import TankBundle
 from .framework import setup_frameworks
 
@@ -165,15 +164,6 @@ class Engine(TankBundle):
         # log the core and engine versions being used by the current user
         log_user_attribute_metric("tk-core version", tk.version)
         log_user_attribute_metric("%s version" % (self.name,), self.version)
-
-        # check if there are any compatibility warnings:
-        # do this now in case the engine fails to load!
-        messages = black_list.compare_against_black_list(descriptor)
-        if len(messages) > 0:
-            self.log_warning("Compatibility warnings were issued for %s:" % descriptor)
-            for msg in messages:
-                self.log_warning("")
-                self.log_warning(msg)
 
         # if the engine supports logging metrics, begin dispatching logged metrics
         if self.metrics_dispatch_allowed:
@@ -1697,14 +1687,6 @@ class Engine(TankBundle):
                 # note! Apps are keyed by their instance name, meaning that we 
                 # could theoretically have multiple instances of the same app.
                 self.__applications[app_instance_name] = app
-                
-            # lastly check if there are any compatibility warnings
-            messages = black_list.compare_against_black_list(descriptor)
-            if len(messages) > 0:
-                self.log_warning("Compatibility warnings were issued for %s:" % descriptor)
-                for msg in messages:
-                    self.log_warning("")
-                    self.log_warning(msg)
 
             # For the sake of potetial context changes, apps and commands are cached
             # into a persistent pool such that they can be reused at some later time.

@@ -17,11 +17,10 @@ import os
 
 from ... import pipelineconfig_utils
 from ...platform import validation
-from ...platform import constants
 from ...errors import TankError, TankNoDefaultValueError
 from ...util import shotgun
-from .. import util
 from ...platform.bundle import resolve_default_value
+from ...util.version import is_version_older
 
 
 ##########################################################################################
@@ -486,7 +485,7 @@ def _check_constraints(descriptor_obj, parent_engine_descriptor = None):
         # ensure shotgun version is ok
         studio_sg_version = __get_sg_version()
         minimum_sg_version = constraints["min_sg"]
-        if util.is_version_older(studio_sg_version, minimum_sg_version):
+        if is_version_older(studio_sg_version, minimum_sg_version):
             can_update = False
             reasons.append("Requires at least Shotgun v%s but currently "
                            "installed version is v%s." % (minimum_sg_version, studio_sg_version))
@@ -495,7 +494,7 @@ def _check_constraints(descriptor_obj, parent_engine_descriptor = None):
         # ensure core API is ok
         core_api_version = pipelineconfig_utils.get_currently_running_api_version()
         minimum_core_version = constraints["min_core"]
-        if util.is_version_older(core_api_version, minimum_core_version):
+        if is_version_older(core_api_version, minimum_core_version):
             can_update = False
             reasons.append("Requires at least Core API %s but currently "
                            "installed version is %s." % (minimum_core_version, core_api_version))
@@ -503,7 +502,7 @@ def _check_constraints(descriptor_obj, parent_engine_descriptor = None):
     if "min_engine" in constraints:
         curr_engine_version = parent_engine_descriptor.get_version()
         minimum_engine_version = constraints["min_engine"]
-        if util.is_version_older(curr_engine_version, minimum_engine_version):
+        if is_version_older(curr_engine_version, minimum_engine_version):
             can_update = False
             reasons.append("Requires at least Engine %s %s but currently "
                            "installed version is %s." % (parent_engine_descriptor.get_display_name(),

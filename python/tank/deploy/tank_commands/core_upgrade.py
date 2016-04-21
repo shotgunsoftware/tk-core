@@ -26,8 +26,7 @@ import copy
 from ...util import shotgun
 from ... import pipelineconfig_utils
 from . import console_utils
-from .. import util
-from ..util import is_version_head
+from ...util.version import is_version_newer, is_version_head
 
 from tank_vendor import yaml
 
@@ -252,7 +251,7 @@ class TankCoreUpdater(object):
         """
         self._log = logger
 
-        from tank_vendor.shotgun_deploy import Descriptor, create_descriptor
+        from ..descriptor import Descriptor, create_descriptor
 
         self._local_sg = shotgun.get_sg_connection()
 
@@ -333,7 +332,7 @@ class TankCoreUpdater(object):
                 return TankCoreUpdater.UPDATE_POSSIBLE
             else:
                 # there is a sg min version required - make sure we have that!
-                if util.is_version_newer(req_sg, self._sg_studio_version):
+                if is_version_newer(req_sg, self._sg_studio_version):
                     return TankCoreUpdater.UPDATE_BLOCKED_BY_SG
                 else:
                     return TankCoreUpdater.UPDATE_POSSIBLE

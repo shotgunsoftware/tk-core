@@ -12,9 +12,6 @@ import os
 import sys
 import urlparse
 
-
-
-
 def get_cache_root():
     """
     Returns a cache root suitable for all Shotgun related data,

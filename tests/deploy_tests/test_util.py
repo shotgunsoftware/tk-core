@@ -29,7 +29,7 @@ class TestVersionCompare(TankTestBase):
 
     def test_is_version_newer(self):        
         
-        from tank.deploy.util import is_version_newer
+        from tank.util.version import is_version_newer
         
         self.assertTrue( is_version_newer("1.2.3", "1.0.0") )
         self.assertTrue( is_version_newer("v1.2.3", "v1.0.0") )
@@ -57,7 +57,7 @@ class TestVersionCompare(TankTestBase):
         
     def test_is_version_older(self):        
         
-        from tank.deploy.util import is_version_older
+        from tank.util.version import is_version_older
         
         self.assertFalse( is_version_older("1.2.3", "1.0.0") )
         self.assertFalse( is_version_older("v1.2.3", "v1.0.0") )

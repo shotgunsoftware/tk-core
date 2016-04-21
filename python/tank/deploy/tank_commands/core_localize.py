@@ -15,14 +15,12 @@ from __future__ import with_statement
 import os
 import sys
 import stat
-import copy
 import shutil
 import datetime
 
-from tank_vendor import yaml
-
 from ...errors import TankError
 from .. import util
+from ...util.version import is_version_older
 from .action_base import Action
 from . import console_utils
 from ... import pipelineconfig_utils
@@ -468,7 +466,7 @@ def _run_unlocalize(tk, log, mac_path, windows_path, linux_path, copy_core, supp
         
         # ensure that the API we are switching to is as recent as the current
         new_core_version = pipelineconfig_utils.get_core_api_version(new_core_path_local)
-        if util.is_version_older(new_core_version, tk.version):
+        if is_version_older(new_core_version, tk.version):
             raise TankError("You are currently running version %s of the core. It looks like the core "
                             "in '%s' is version %s. You cannot switch to a version of the core that is "
                             "older than the current core. Before switching, update the shared core and then "

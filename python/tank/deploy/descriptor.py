@@ -12,7 +12,7 @@
 Functionality for managing versions of apps.
 """
 
-from tank_vendor.shotgun_deploy import create_descriptor, Descriptor
+from ..descriptor import create_descriptor, Descriptor
 from ..util import shotgun
 
 
