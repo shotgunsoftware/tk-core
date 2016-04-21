@@ -15,8 +15,10 @@ import urllib
 import urllib2
 import cPickle as pickle
 
+from ..errors import ShotgunDeployError
 from ..zipfilehelper import unzip_file
 from ..descriptor import Descriptor
+from ..errors import ShotgunAppStoreConnectionError
 from ..errors import ShotgunAppStoreError
 from ..errors import ShotgunDeployError
 from ...shotgun_base import (
@@ -290,7 +292,7 @@ class IODescriptorAppStore(IODescriptorBase):
             msg = sg_bundle_data.get("sg_deprecation_message", "No reason given.")
             return (True, msg)
         else:
-            return (False, "")        
+            return (False, "")
 
     def get_version(self):
         """
@@ -419,44 +421,48 @@ class IODescriptorAppStore(IODescriptorBase):
 
         :returns: IODescriptorAppStore instance
         """
-
         # connect to the app store
         (sg, _) = self.__create_sg_app_store_connection()
 
-        # set up some lookup tables so we look in the right table in sg
-
-        # find the main entry
-        sg_bundle_data = sg.find_one(
-            self._APP_STORE_OBJECT[self._type],
-            [["sg_system_name", "is", self._name]],
-            ["id", "sg_status_list"]
-        )
-
-        if sg_bundle_data is None:
-            raise ShotgunDeployError("App store does not contain an item named '%s'!" % self._name)
-
-        # check if this has been deprecated in the app store
-        # in that case we should ensure that the metadata is refreshed later
-        is_deprecated = False
-        if sg_bundle_data["sg_status_list"] == "dep":
-            is_deprecated = True
-
-        # now get all versions
-        
         # get latest get the filter logic for what to exclude
         if constants.APP_STORE_QA_MODE_ENV_VAR in os.environ:
             latest_filter = [["sg_status_list", "is_not", "bad" ]]
         else:
             latest_filter = [["sg_status_list", "is_not", "rev" ],
-                             ["sg_status_list", "is_not", "bad" ]]        
-        
-        link_field = self._APP_STORE_LINK[self._type]
-        entity_type = self._APP_STORE_VERSION[self._type]
-        sg_data = sg.find(
-            entity_type,
-            [[link_field, "is", sg_bundle_data]] + latest_filter,
-            ["code"]
-        )
+                             ["sg_status_list", "is_not", "bad" ]]
+
+        is_deprecated = False
+        if self._type != self.CORE:
+            # find the main entry
+            sg_bundle_data = sg.find_one(
+                self._APP_STORE_OBJECT[self._type],
+                [["sg_system_name", "is", self._name]],
+                ["id", "sg_status_list"]
+            )
+
+            if sg_bundle_data is None:
+                raise ShotgunDeployError("App store does not contain an item named '%s'!" % self._name)
+
+            # check if this has been deprecated in the app store
+            # in that case we should ensure that the metadata is refreshed later
+            if sg_bundle_data["sg_status_list"] == "dep":
+                is_deprecated = True
+
+            # now get all versions
+            link_field = self._APP_STORE_LINK[self._type]
+            entity_type = self._APP_STORE_VERSION[self._type]
+            sg_data = sg.find(
+                entity_type,
+                [[link_field, "is", sg_bundle_data]] + latest_filter,
+                ["code"]
+            )
+        else:
+            # now get all versions
+            sg_data = sg.find(
+                constants.TANK_CORE_VERSION_ENTITY_TYPE,
+                filters=latest_filter,
+                fields=["code"]
+            )
 
         if len(sg_data) == 0:
             raise ShotgunDeployError("Cannot find any versions for %s in the App store!" % self._name)
@@ -603,21 +609,43 @@ class IODescriptorAppStore(IODescriptorBase):
                     raise
 
 
-            # connect to the app store and resolve the script user id we are connecting with
+            # Connect to the app store and resolve the script user id we are connecting with.
+            # Set the timeout explicitly so we ensure the connection won't hang in cases where
+            # a response is not returned in a reasonable amount of time.
             app_store_sg = shotgun_api3.Shotgun(
                 constants.SGTK_APP_STORE,
                 script_name=script_name,
                 api_key=script_key,
-                http_proxy=self._sg_connection.config.raw_http_proxy
+                http_proxy=self._sg_connection.config.raw_http_proxy,
+                connect=False
             )
+            # set the default timeout for app store connections
+            app_store_sg.config.timeout_secs = constants.SGTK_APP_STORE_CONN_TIMEOUT
 
             # determine the script user running currently
             # get the API script user ID from shotgun
-            script_user = app_store_sg .find_one(
-                "ApiUser",
-                [["firstname", "is", script_name]],
-                fields=["type", "id"]
-            )
+            try:
+                script_user = app_store_sg.find_one(
+                    "ApiUser",
+                    filters=[["firstname", "is", script_name]],
+                    fields=["type", "id"]
+                )
+            # Connection errors can occur for a variety of reasons. For example, there is no 
+            # internet access or there is a proxy server blocking access to the Toolkit app store.
+            except (httplib2.HttpLib2Error, httplib2.socks.HTTPError, httplib.HTTPException), e:
+                raise ShotgunAppStoreConnectionError(e)
+            # In cases where there is a firewall/proxy blocking access to the app store, sometimes 
+            # the firewall will drop the connection instead of rejecting it. The API request will 
+            # timeout which unfortunately results in a generic SSLError with only the message text 
+            # to give us a clue why the request failed. 
+            # The exception raised in this case is "ssl.SSLError: The read operation timed out"
+            except httplib2.ssl.SSLError, e:
+                if "timed" in e.message:
+                    raise ShotgunAppStoreConnectionError("Connection to %s timed out: %s" % (
+                                                            app_store_sg.config.server, 
+                                                            e))     
+            except Exception:
+                raise ShotgunAppStoreError(e)
 
             if script_user is None:
                 raise ShotgunAppStoreError(

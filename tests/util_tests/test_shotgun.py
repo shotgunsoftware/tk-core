@@ -474,7 +474,7 @@ class ConnectionSettingsTestCases:
 
             # Mocks app store script user credentials retrieval
             self._get_app_store_key_from_shotgun_mock = patch(
-                "tank.util.shotgun.__get_app_store_key_from_shotgun",
+                "tank_vendor.shotgun_deploy.io_descriptor.appstore.IODescriptorAppStore._IODescriptorAppStore__get_app_store_key_from_shotgun",
                 return_value=("abc", "123")
             )
             self._get_app_store_key_from_shotgun_mock.start()
@@ -555,8 +555,6 @@ class ConnectionSettingsTestCases:
             self.assertEqual(sg.base_url, self._SITE)
             self.assertEqual(sg.config.raw_http_proxy, source_proxy)
 
-            config = tank.util.shotgun._get_app_store_connection_information()
-            self.assertEqual(config["host"], tank.platform.constants.SGTK_APP_STORE)
             self.assertEqual(config["http_proxy"], expected_store_proxy)
 
 

@@ -303,68 +303,6 @@ def __copy_tank_cmd_binaries(src_dir, dst_dir, tank_scripts, log):
         shutil.copy(src_tank_script, dst_tank_script)
         os.chmod(dst_tank_script, 0775)
 
-def _upgrade_tank_cmd_binaries(sgtk_install_root, log):
-    """
-    Upgrade the tank command binaries to the latest versions.  This 
-    replaces the tank.bat and tank scripts for all projects with the 
-    most current versions.
-    
-    Note, this will only update the scripts if this upgrade script has 
-    access to the location they are installed to.
-    
-    :param sgtk_install_root:   The location core has been installed to
-    :param log:                 The log instance to be used for all 
-                                logging
-    """
-    log.info("Updating tank.bat & tank command scripts for all Pipeline Configurations "
-             "in all projects that use this version of core.  Please note that only Pipeline "
-             "Configurations in disk locations that are accessible will be updated."
-             "Others can be updated manually by copying the tank command executables from "
-             "'install/core/setup/root_binaries' if needed.")
-    
-    tank_scripts = ["tank.bat", "tank"]
-    
-    # first need a connection to the associated shotgun site
-    shotgun_cfg = os.path.abspath(os.path.join(sgtk_install_root, "..", "config", "core", "shotgun.yml"))
-    sg = __create_sg_connection(log, shotgun_cfg)
-    log.debug("Shotgun API: %s" % sg)
-
-    this_folder = os.path.abspath(os.path.join( os.path.dirname(__file__)))
-    new_tank_root = os.path.join(this_folder, "setup", "root_binaries")
-    
-    # first do the versions in the studio location:
-    studio_tank_root = os.path.abspath(os.path.join(sgtk_install_root, ".."))
-    log.info(" - Processing studio location '%s'" % studio_tank_root) 
-    __copy_tank_cmd_binaries(new_tank_root, studio_tank_root, tank_scripts, log)
-    
-    # now do the project pc locations (if we can access them):
-    pcs = sg.find("PipelineConfiguration", [], ["code", "project", "windows_path", "mac_path", "linux_path"])
-    for pc in pcs:
-        try:        
-            # get the pipeline config root for this platform and make sure it exists:
-            pc_tank_root = pc.get(SG_LOCAL_STORAGE_OS_MAP[sys.platform])
-            if pc_tank_root is None:
-                continue
-            if not os.path.exists(pc_tank_root):
-                continue
-                    
-            # need to determine if this pipeline config
-            # is using core located at sgtk_install_root
-            pc_core_install_root = __get_pc_core_install_root(pc_tank_root)
-            if not pc_core_install_root or pc_core_install_root != sgtk_install_root:
-                # this pipeline config doesn't use the same core so skip it!
-                continue
-    
-            # all good so lets process this config:
-            log.info(" - Processing Pipeline Configuration %s (Project %s)" % (pc.get("code"), 
-                                                                           pc.get("project").get("name")))
-            __copy_tank_cmd_binaries(new_tank_root, pc_tank_root, tank_scripts, log)
-            
-        except Exception, e:
-            log.error("\n   Could not upgrade Pipeline Configuration '%s'! Please contact "
-                      "support@shotgunsoftware.com.\nError: %s\n\n\n" % (str(pc), e))
-
-
 def upgrade_tank(sgtk_install_root, log):
     """
     Upgrades the sgtk core API located in sgtk_install_root
@@ -379,17 +317,12 @@ def upgrade_tank(sgtk_install_root, log):
     try:
         log.debug("First running migrations...")
 
-        # check that noone is still on 0.12/early 0.13 and in that case ask them to contact us
-        # so that we can advise that they reinstall their setup from scratch.     
-        if __is_upgrade(sgtk_install_root) and __current_version_less_than(log, sgtk_install_root, "v0.13.16"):
+        # check that noone is still on older versions of core and in that case ask them to contact us
+        # so that we can advise them.
+        if __is_upgrade(sgtk_install_root) and __current_version_less_than(log, sgtk_install_root, "v0.14.72"):
             log.error("You are running a very old version of the Toolkit Core API. Automatic upgrades "
                       "are no longer supported. Please contact support@shotgunsoftware.com.")
             return
-
-        # Make sure the tank.bat and tank scripts are up to date:
-        if __is_upgrade(sgtk_install_root) and __current_version_less_than(log, sgtk_install_root, "v0.14.72"):
-            log.debug("Running tank command replacement migration...")
-            _upgrade_tank_cmd_binaries(sgtk_install_root, log)
 
         if __is_upgrade(sgtk_install_root) and __current_version_less_than(log, sgtk_install_root, "v0.15.0"):
             log.debug("Upgrading to v0.15.0. Prompting for path cache changes.")

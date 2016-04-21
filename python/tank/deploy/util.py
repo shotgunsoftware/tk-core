@@ -13,7 +13,27 @@ from distutils.version import LooseVersion
 import os
 import sys
 import shutil
+from ..platform import constants
 from ..errors import TankError
+
+def should_use_legacy_yaml_parser(args):
+    """
+    Given a set of command line args, determine if the
+    legacy yaml parser should be used.
+
+    :param args: list of arg strings
+    :returns: (use_legacy, adjusted_args) - tuple with bool to indicate
+              if the legacy parser should be used and a list of args where
+              the legacy flag has been removed.
+    """
+    # look for a legacy parser flag
+    if constants.LEGACY_YAML_PARSER_FLAG in args:
+        legacy_parser = True
+        args.remove(constants.LEGACY_YAML_PARSER_FLAG)
+    else:
+        legacy_parser = False
+
+    return (legacy_parser, args)
 
 def execute_git_command(cmd):
     """
@@ -143,6 +163,18 @@ def subprocess_check_output(*popenargs, **kwargs):
 
 ################################################################################################
 
+
+def is_version_head(version):
+    """
+    Returns if the specified version is HEAD or MASTER. The comparison is case insensitive.
+
+    :param version: Version to test.
+
+    :returns: True if version is HEAD or MASTER, false otherwise.
+    """
+    return version.lower() in ["head", "master"]
+
+
 def is_version_newer(a, b):
     """
     Is the version number string a newer than b?
@@ -153,11 +185,11 @@ def is_version_newer(a, b):
     a=master b=0.13.4 -- Returns False
 
     """
-    if a.lower() in ["head", "master"]:
+    if is_version_head(a):
         # our version is latest
         return True
     
-    if b.lower() in ["head", "master"]:
+    if is_version_head(b):
         # comparing against HEAD - our version is always old
         return False
 
@@ -179,11 +211,11 @@ def is_version_older(a, b):
     a=master b=0.13.4 -- Returns False
 
     """
-    if a.lower() in ["head", "master"]:
+    if is_version_head(a):
         # other version is latest
         return False
     
-    if b.lower() in ["head", "master"]:
+    if is_version_head(b):
         # comparing against HEAD - our version is always old
         return True
 

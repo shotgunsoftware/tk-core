@@ -352,13 +352,15 @@ class PathCache(object):
             # for a non-truncated event log table, the first record returned
             # by this query should be the last one previously processed by the 
             # path cache (via the event_log_id variable)
-            response = self._tk.shotgun.find("EventLogEntry", 
-                                             [ ["event_type", "in", ["Toolkit_Folders_Create", 
-                                                                     "Toolkit_Folders_Delete"]], 
-                                               ["id", "greater_than", (event_log_id - 1)],
-                                               ["project", "is", self._get_project_link()] ],
-                                             ["id", "meta", "event_type"],
-                                             [{"field_name": "id", "direction": "asc"}] )   
+            response = self._tk.shotgun.find(
+                "EventLogEntry",
+                [["event_type", "in", ["Toolkit_Folders_Create", "Toolkit_Folders_Delete"]],
+                 ["id", "greater_than", (event_log_id - 1)],
+                 ["project", "is", self._get_project_link()]
+                 ],
+                ["id", "meta", "event_type"],
+                [{"field_name": "id", "direction": "asc"}]
+            )
 
             self._log_debug(log, "Got %s event log entries" % len(response)) 
         
@@ -552,17 +554,21 @@ class PathCache(object):
         
         show_global_busy("Hang on, Toolkit is preparing folders...", 
                          ("Toolkit is retrieving folder listings from Shotgun and ensuring that your "
-                         "setup is up to date. Hang tight while data is being downloaded..."))
+                          "setup is up to date. Hang tight while data is being downloaded..."))
         
         try:
             self._log_debug(log, "Performing a complete Shotgun folder sync...") 
             
             # find the max event log id. we will store this in the sync db later.
-            sg_data = self._tk.shotgun.find_one("EventLogEntry", 
-                                                [["event_type", "in", ["Toolkit_Folders_Create", "Toolkit_Folders_Delete"]]], 
-                                                ["id"], 
-                                                [{"field_name": "id", "direction": "desc"}])
-    
+            sg_data = self._tk.shotgun.find_one(
+                "EventLogEntry",
+                [["event_type", "in", ["Toolkit_Folders_Create", "Toolkit_Folders_Delete"]],
+                 ["project", "is", self._get_project_link()]
+                 ],
+                ["id"],
+                [{"field_name": "id", "direction": "desc"}]
+            )
+
             if sg_data is None:
                 # event log was wiped or we haven't done any folder operations
                 max_event_log_id = 0

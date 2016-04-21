@@ -281,18 +281,18 @@ class ToolkitManager(object):
 
         self._report_progress("Updating configuration...")
         if status == Configuration.LOCAL_CFG_UP_TO_DATE:
-            log.info("Your configuration is up to date.")
+            log.info("Your locally cached configuration is up to date.")
 
         elif status == Configuration.LOCAL_CFG_MISSING:
-            log.info("A brand new configuration will be created locally.")
+            log.info("A locally cached configuration will be set up.")
             config.update_configuration()
 
-        elif status == Configuration.LOCAL_CFG_OLD:
-            log.info("Your local configuration is out of date and will be updated.")
+        elif status == Configuration.LOCAL_CFG_DIFFERENT:
+            log.info("Your locally cached configuration differs and will be updated.")
             config.update_configuration()
 
         elif status == Configuration.LOCAL_CFG_INVALID:
-            log.info("Your local configuration looks invalid and will be replaced.")
+            log.info("Your locally cached configuration looks invalid and will be replaced.")
             config.update_configuration()
 
         else:

@@ -38,3 +38,6 @@ coverage.xml
 
 # os files
 .DS_Store
+
+# pyenv
+.python-version
