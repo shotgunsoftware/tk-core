@@ -1,18 +1,19 @@
 # Copyright (c) 2016 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
+import logging
 import zipfile
-from ..shotgun_base import with_cleared_umask
-from . import util
-log = util.get_shotgun_deploy_logger()
+from tank_vendor.shotgun_base import with_cleared_umask
+
+log = logging.getLogger(__name__)
 
 @with_cleared_umask
 def unzip_file(src_zip_file, target_folder):
@@ -24,7 +25,7 @@ def unzip_file(src_zip_file, target_folder):
 
         z = zipfile.ZipFile(zip_file, "r")
         z.extractall(target_folder)
-    
+
     Works around http://bugs.python.org/issue6050
 
     :param src_zip_file: Path to zip file to uncompress
@@ -32,7 +33,7 @@ def unzip_file(src_zip_file, target_folder):
     """
     log.debug("Unpacking %s into %s" % (src_zip_file, target_folder))
     zip_obj = zipfile.ZipFile(src_zip_file, "r")
-    
+
     # loosely based on:
     # http://forums.devshed.com/python-programming-11/unzipping-a-zip-file-having-folders-and-subfolders-534487.html
 
