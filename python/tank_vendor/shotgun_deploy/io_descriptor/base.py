@@ -11,6 +11,7 @@
 import os
 import re
 import cgi
+import sys
 import urlparse
 
 from .. import util
@@ -295,15 +296,47 @@ class IODescriptorBase(object):
                  uri string.
         """
         parsed_uri = urlparse.urlparse(uri)
+
         # example:
+        #
         # >>> urlparse.urlparse("sgtk:descriptor:app_store?foo=bar&baz=buz")
+        #
         # ParseResult(scheme='sgtk', netloc='', path='descriptor:app_store',
         #             params='', query='foo=bar&baz=buz', fragment='')
+        #
+        #
+        # NOTE - on python 2.5, the result is different:
+        #
+        # uri: sgtk:descriptor:app_store?version=v0.1.2&name=tk-bundle
+        #
+        # python 2.6+: ParseResult(
+        # scheme='sgtk',
+        # netloc='',
+        # path='descriptor:app_store',
+        # params='',
+        # query='version=v0.1.2&name=tk-bundle',
+        # fragment='')
+        #
+        # python 2.5: (
+        # 'sgtk',
+        # '',
+        # 'descriptor:app_store?version=v0.1.2&name=tk-bundle',
+        # '',
+        # '',
+        # '')
 
         if parsed_uri.scheme != constants.DESCRIPTOR_URI_PATH_SCHEME:
             raise ShotgunDeployError("Invalid uri '%s' - must begin with 'sgtk'" % uri)
 
-        split_path = parsed_uri.path.split(constants.DESCRIPTOR_URI_SEPARATOR)
+        if sys.version_info < (2,6):
+            # in python 2.5, the querystring is part of the path (see above)
+            (path, query) = parsed_uri.path.split("?")
+        else:
+            path = parsed_uri.path
+            query = parsed_uri.query
+
+
+        split_path = path.split(constants.DESCRIPTOR_URI_SEPARATOR)
         # e.g. 'descriptor:app_store' -> ('descriptor', 'app_store')
         if len(split_path) != 2 or split_path[0] != constants.DESCRIPTOR_URI_PATH_PREFIX:
             raise ShotgunDeployError("Invalid uri '%s' - must begin with sgtk:descriptor" % uri)
@@ -317,7 +350,7 @@ class IODescriptorBase(object):
         # example:
         # >>> cgi.parse_qs("path=foo&version=v1.2.3")
         # {'path': ['foo'], 'version': ['v1.2.3']}
-        for (param, value) in cgi.parse_qs(parsed_uri.query).iteritems():
+        for (param, value) in cgi.parse_qs(query).iteritems():
             if len(value) > 1:
                 raise ShotgunDeployError("Invalid uri '%s' - duplicate parameters" % uri)
             descriptor_dict[param] = value[0]
