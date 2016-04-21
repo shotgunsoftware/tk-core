@@ -36,7 +36,13 @@ __all__ = ['setUpModule', 'TankTestBase', 'tank', 'interactive', 'skip_if_pyside
 
 # mute the sgtk logging by default to avoid the 'no handlers defined' message
 from tank_vendor.shotgun_base import get_sgtk_logger
-get_sgtk_logger().addHandler(logging.NullHandler())
+
+# built-in logging nullhandler is py2.6+ so recreate it here for 2.5
+class NullHandler(logging.Handler):
+    def emit(self, record):
+        pass
+
+get_sgtk_logger().addHandler(NullHandler())
 
 
 def interactive(func):
