@@ -57,7 +57,7 @@ class ShotgunPath(object):
 
     SHOTGUN_PATH_FIELDS = ["windows_path", "linux_path", "mac_path"]
     """
-    Returns a list of the standard path fields used by Shotgun.
+    A list of the standard path fields used by Shotgun.
     """
 
     @classmethod
