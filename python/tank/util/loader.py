@@ -18,9 +18,15 @@ import imp
 import traceback
 import inspect
 
-from .errors import TankError
+from ..errors import TankError
 
-def load_plugin(plugin_file, valid_base_class, alternate_base_classes = None):
+class TankLoadPluginError(TankError):
+    """
+    Errors related to git communication
+    """
+    pass
+
+def load_plugin(plugin_file, valid_base_class, alternate_base_classes=None):
     """
     Load a plugin into memory and extract its single interface class.
 
@@ -52,7 +58,7 @@ def load_plugin(plugin_file, valid_base_class, alternate_base_classes = None):
         message += "Exception: %s - %s\n" % (exc_type, exc_value)
         message += "Traceback (most recent call last):\n"
         message += "\n".join( traceback.format_tb(exc_traceback))
-        raise TankError(message)
+        raise TankLoadPluginError(message)
     finally:
         imp.release_lock()
     
@@ -99,7 +105,7 @@ def load_plugin(plugin_file, valid_base_class, alternate_base_classes = None):
                "generates is invalid and this is causing the error. In that case, please delete "
                "the .pyc file and try again." % (plugin_file, valid_base_class.__name__))
         
-        raise TankError(msg)
+        raise TankLoadPluginError(msg)
 
     # return the class that was found.        
     return found_classes[0]

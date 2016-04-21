@@ -21,7 +21,7 @@ import inspect
 import weakref
 import threading
         
-from .. import loader
+from ..util.loader import load_plugin
 from .. import hook
 from ..errors import TankError, TankEngineInitError, TankContextChangeNotSupportedError
 from ..util import log_user_activity_metric, log_user_attribute_metric
@@ -1838,7 +1838,7 @@ def start_engine(engine_name, tk, context):
     plugin_file = os.path.join(engine_path, constants.ENGINE_FILE)
 
     # Instantiate the engine
-    class_obj = loader.load_plugin(plugin_file, Engine)
+    class_obj = load_plugin(plugin_file, Engine)
     engine = class_obj(tk, context, engine_name, env)
 
     # register this engine as the current engine
@@ -1954,7 +1954,7 @@ def start_shotgun_engine(tk, entity_type, context):
     plugin_file = os.path.join(engine_path, constants.ENGINE_FILE)
 
     # Instantiate the engine
-    class_obj = loader.load_plugin(plugin_file, Engine)
+    class_obj = load_plugin(plugin_file, Engine)
     obj = class_obj(tk, context, constants.SHOTGUN_ENGINE_NAME, env)
 
     # register this engine as the current engine

@@ -16,7 +16,7 @@ Defines the base class for all Tank Apps.
 import os
 import sys
 
-from .. import loader
+from ..util.loader import load_plugin
 from . import constants 
 
 from ..errors import TankError
@@ -208,7 +208,7 @@ def get_application(engine, app_folder, descriptor, settings, instance_name, env
     plugin_file = os.path.join(app_folder, constants.APP_FILE)
         
     # Instantiate the app
-    class_obj = loader.load_plugin(plugin_file, Application)
+    class_obj = load_plugin(plugin_file, Application)
     obj = class_obj(engine, descriptor, settings, instance_name, env)
     return obj
 

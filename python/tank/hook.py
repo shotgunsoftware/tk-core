@@ -14,7 +14,7 @@ Defines the base class for all Tank Hooks.
 """
 import os
 import threading
-from . import loader
+from .util.loader import load_plugin
 from .platform import constants
 from .errors import (
     TankError,
@@ -255,9 +255,11 @@ def execute_hook_method(hook_paths, parent, method_name, **kwargs):
                 alternate_base_classes.append(Hook)
                 
             # try to load the hook class:
-            loaded_hook_class = loader.load_plugin(hook_path, 
-                                                   valid_base_class = _current_hook_baseclass.value, 
-                                                   alternate_base_classes = alternate_base_classes)
+            loaded_hook_class = load_plugin(
+                hook_path,
+                valid_base_class=_current_hook_baseclass.value,
+                alternate_base_classes=alternate_base_classes
+            )
                 
             # add it to the cache...
             _hooks_cache.add(hook_path, _current_hook_baseclass.value, loaded_hook_class)

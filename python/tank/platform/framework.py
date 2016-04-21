@@ -16,7 +16,7 @@ Defines the base class for all Tank Frameworks.
 import os
 import sys
 
-from .. import loader
+from ..util.loader import load_plugin
 from . import constants 
 
 from ..errors import TankError
@@ -278,6 +278,6 @@ def _create_framework_instance(engine, descriptor, settings, env):
     plugin_file = os.path.join(fw_folder, constants.FRAMEWORK_FILE)
         
     # Instantiate the app
-    class_obj = loader.load_plugin(plugin_file, Framework)
+    class_obj = load_plugin(plugin_file, Framework)
     obj = class_obj(engine, descriptor, settings, env)
     return obj
