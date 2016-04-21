@@ -46,7 +46,7 @@ class TestZipCore(TankTestBase):
 
     def test_core(self):        
         
-        import tank.deploy.zipfilehelper as zfh
+        import tank.util.zip as zfh
         
         zip = os.path.join(self.zip_file_location, "tank_core.zip")
         txt = os.path.join(self.zip_file_location, "tank_core.txt")
@@ -75,7 +75,7 @@ class TestZipConfig(TankTestBase):
 
     def test_config(self):        
         
-        import tank.deploy.zipfilehelper as zfh
+        import tank.deploy.zip as zfh
         
         zip = os.path.join(self.zip_file_location, "tk-config-default_v0.1.3.zip")
         txt = os.path.join(self.zip_file_location, "tk-config-default_v0.1.3.txt")
@@ -103,7 +103,7 @@ class TestZipApp(TankTestBase):
 
     def test_app(self):        
         
-        import tank.deploy.zipfilehelper as zfh
+        import tank.util.zip as zfh
         
         zip = os.path.join(self.zip_file_location, "tk-multi-about_v0.1.1.zip")
         txt = os.path.join(self.zip_file_location, "tk-multi-about_v0.1.1.txt")

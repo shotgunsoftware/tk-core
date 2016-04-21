@@ -11,31 +11,32 @@
 import os
 import uuid
 import tempfile
+import logging
 import urllib
 import urllib2
+import httplib
+from tank_vendor.shotgun_api3.lib import httplib2
 import cPickle as pickle
 
-from ..errors import ShotgunDeployError
-from ..zipfilehelper import unzip_file
+from ...util.zip import unzip_file
 from ..descriptor import Descriptor
-from ..errors import ShotgunAppStoreConnectionError
-from ..errors import ShotgunAppStoreError
-from ..errors import ShotgunDeployError
-from ...shotgun_base import (
+from ..errors import TankAppStoreConnectionError
+from ..errors import TankAppStoreError
+from ..errors import TankDescriptorError
+from tank_vendor.shotgun_base import (
     ensure_folder_exists,
     safe_delete_file,
     get_legacy_bundle_install_folder
 )
 
-from .. import util
 from .. import constants
 from .base import IODescriptorBase
 
 # use api json to cover py 2.5
-from ... import shotgun_api3
+from tank_vendor import shotgun_api3
 json = shotgun_api3.shotgun.json
 
-log = util.get_shotgun_deploy_logger()
+log = logging.getLogger(__name__)
 
 # file where we cache the app store metadata for an item
 METADATA_FILE = ".cached_metadata.pickle"
@@ -176,7 +177,7 @@ class IODescriptorAppStore(IODescriptorBase):
                  constants.TANK_CODE_PAYLOAD_FIELD]
             )
             if sg_version_data is None:
-                raise ShotgunDeployError(
+                raise TankDescriptorError(
                     "The App store does not have a version '%s' of Core!" % self._version
                 )
             
@@ -191,7 +192,7 @@ class IODescriptorAppStore(IODescriptorBase):
             )
 
             if sg_bundle_data is None:
-                raise ShotgunDeployError(
+                raise TankDescriptorError(
                     "The App store does not contain an item named '%s'!" % self._name
                 )
     
@@ -205,7 +206,7 @@ class IODescriptorAppStore(IODescriptorBase):
                  constants.TANK_CODE_PAYLOAD_FIELD]
             )
             if sg_version_data is None:
-                raise ShotgunDeployError(
+                raise TankDescriptorError(
                     "The App store does not have a "
                     "version '%s' of item '%s'!" % (self._version, self._name)
                 )
@@ -441,7 +442,7 @@ class IODescriptorAppStore(IODescriptorBase):
             )
 
             if sg_bundle_data is None:
-                raise ShotgunDeployError("App store does not contain an item named '%s'!" % self._name)
+                raise TankDescriptorError("App store does not contain an item named '%s'!" % self._name)
 
             # check if this has been deprecated in the app store
             # in that case we should ensure that the metadata is refreshed later
@@ -465,7 +466,7 @@ class IODescriptorAppStore(IODescriptorBase):
             )
 
         if len(sg_data) == 0:
-            raise ShotgunDeployError("Cannot find any versions for %s in the App store!" % self._name)
+            raise TankDescriptorError("Cannot find any versions for %s in the App store!" % self._name)
 
         version_numbers = [x.get("code") for x in sg_data]
         version_to_use = self._find_latest_tag_by_pattern(version_numbers, version_pattern)
@@ -520,7 +521,7 @@ class IODescriptorAppStore(IODescriptorBase):
             )
 
             if sg_bundle_data is None:
-                raise ShotgunDeployError("App store does not contain an item named '%s'!" % self._name)
+                raise TankDescriptorError("App store does not contain an item named '%s'!" % self._name)
     
             # check if this has been deprecated in the app store
             # in that case we should ensure that the cache is cleared later    
@@ -547,11 +548,11 @@ class IODescriptorAppStore(IODescriptorBase):
             )
         
         if sg_version_data is None:
-            raise ShotgunDeployError("Cannot find any versions for %s in the App store!" % self._name)
+            raise TankDescriptorError("Cannot find any versions for %s in the App store!" % self._name)
 
         version_str = sg_version_data.get("code")
         if version_str is None:
-            raise ShotgunDeployError("Invalid version number for %s" % sg_version_data)
+            raise TankDescriptorError("Invalid version number for %s" % sg_version_data)
 
         # make a descriptor dict
         descriptor_dict = {"type": "app_store",
@@ -633,7 +634,7 @@ class IODescriptorAppStore(IODescriptorBase):
             # Connection errors can occur for a variety of reasons. For example, there is no 
             # internet access or there is a proxy server blocking access to the Toolkit app store.
             except (httplib2.HttpLib2Error, httplib2.socks.HTTPError, httplib.HTTPException), e:
-                raise ShotgunAppStoreConnectionError(e)
+                raise TankAppStoreConnectionError(e)
             # In cases where there is a firewall/proxy blocking access to the app store, sometimes 
             # the firewall will drop the connection instead of rejecting it. The API request will 
             # timeout which unfortunately results in a generic SSLError with only the message text 
@@ -641,14 +642,14 @@ class IODescriptorAppStore(IODescriptorBase):
             # The exception raised in this case is "ssl.SSLError: The read operation timed out"
             except httplib2.ssl.SSLError, e:
                 if "timed" in e.message:
-                    raise ShotgunAppStoreConnectionError("Connection to %s timed out: %s" % (
-                                                            app_store_sg.config.server, 
-                                                            e))     
+                    raise TankAppStoreConnectionError(
+                        "Connection to %s timed out: %s" % (app_store_sg.config.server, e)
+                    )
             except Exception:
-                raise ShotgunAppStoreError(e)
+                raise TankAppStoreError(e)
 
             if script_user is None:
-                raise ShotgunAppStoreError(
+                raise TankAppStoreError(
                     "Could not evaluate the current App Store User! Please contact support."
                 )
 

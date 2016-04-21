@@ -9,14 +9,15 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
+import logging
+
+from tank_vendor import yaml
 
 from . import constants
-from .. import yaml
-from .errors import ShotgunDeployError
+from .errors import TankDescriptorError
 from .descriptor import Descriptor
-from . import util
 
-log = util.get_shotgun_deploy_logger()
+log = logging.getLogger(__name__)
 
 class ConfigDescriptor(Descriptor):
     """
@@ -106,7 +107,7 @@ class ConfigDescriptor(Descriptor):
                 data = yaml.load(fh)
                 core_descriptor_dict = data["location"]
             except Exception, e:
-                raise ShotgunDeployError(
+                raise TankDescriptorError(
                     "Cannot read invalid core descriptor file '%s': %s" % (core_descriptor_path, e)
                 )
             finally:

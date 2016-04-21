@@ -21,7 +21,8 @@ from ...errors import TankError, TankErrorProjectIsSetup
 from ... import pipelineconfig_utils
 from ... import pipelineconfig
 
-from ..zipfilehelper import unzip_file
+from ...util.zip import unzip_file
+from ...util.git import execute_git_command
 from .. import util as deploy_util
 
 from .setup_project_core import _copy_folder
@@ -1076,7 +1077,7 @@ class TemplateConfiguration(object):
         # windows - it also prefers to use forward slashes!
         sanitized_repo_path = repo_path.replace(os.path.sep, "/")
         cmd = "clone \"%s\" \"%s\"" % (sanitized_repo_path, target_path)
-        deploy_util.execute_git_command(cmd)
+        execute_git_command(cmd)
 
 
     ################################################################################################

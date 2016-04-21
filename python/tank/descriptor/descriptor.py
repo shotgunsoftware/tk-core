@@ -13,7 +13,7 @@ import copy
 
 from . import paths
 from .io_descriptor import create_io_descriptor
-from .errors import ShotgunDeployError
+from .errors import TankDescriptorError
 
 def create_descriptor(
         sg_connection,
@@ -86,7 +86,7 @@ def create_descriptor(
         return CoreDescriptor(io_descriptor)
 
     else:
-        raise ShotgunDeployError("Unsupported descriptor type %s" % descriptor_type)
+        raise TankDescriptorError("Unsupported descriptor type %s" % descriptor_type)
 
 
 class Descriptor(object):

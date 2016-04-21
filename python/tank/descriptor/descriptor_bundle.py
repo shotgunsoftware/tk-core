@@ -8,13 +8,12 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+import logging
 from .descriptor import Descriptor
-from .errors import ShotgunDeployError
-from . import util
+from .errors import TankDescriptorError
 from . import constants
 
-log = util.get_shotgun_deploy_logger()
-
+log = logging.getLogger(__name__)
 
 class BundleDescriptor(Descriptor):
     """
@@ -165,7 +164,7 @@ class BundleDescriptor(Descriptor):
                     # sg_my_awesome_field -> My Awesome Field
                     if not sg_field_name.startswith("sg_"):
                         # invalid field name
-                        raise ShotgunDeployError(
+                        raise TankDescriptorError(
                             "Invalid field name '%s' in app manifest. "
                             "Must start with sg_" % sg_field_name
                         )

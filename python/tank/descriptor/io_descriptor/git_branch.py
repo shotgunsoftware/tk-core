@@ -9,14 +9,16 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 import os
 import copy
+import logging
 
-from ..util import subprocess_check_output, execute_git_command
+from ...util.process import subprocess_check_output
+from ...util.git import execute_git_command
 from .git import IODescriptorGit
-from ..errors import ShotgunDeployError
-from ...shotgun_base import ensure_folder_exists
+from ..errors import TankDescriptorError
+from tank_vendor.shotgun_base import ensure_folder_exists
 
-from .. import util
-log = util.get_shotgun_deploy_logger()
+
+log = logging.getLogger(__name__)
 
 class IODescriptorGitBranch(IODescriptorGit):
     """
@@ -190,7 +192,7 @@ class IODescriptorGitBranch(IODescriptorGit):
             branch_info = subprocess_check_output(cmd, shell=True).strip()
             log.debug("ls-remote returned: '%s'" % branch_info)
         except Exception, e:
-            raise ShotgunDeployError(
+            raise TankDescriptorError(
                 "Could not get latest commit for %s, "
                 "branch %s: %s" % (self._path, self._branch, e)
             )

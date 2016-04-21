@@ -11,19 +11,20 @@ import os
 import copy
 import uuid
 import tempfile
+import logging
 
-from ..util import subprocess_check_output, execute_git_command
+from ...util.git import execute_git_command
+from ...util.process import subprocess_check_output
 from .git import IODescriptorGit
-from ..zipfilehelper import unzip_file
-from ...shotgun_base import (
+from ...util.zip import unzip_file
+from ..errors import TankDescriptorError
+from tank_vendor.shotgun_base import (
     ensure_folder_exists,
     safe_delete_file,
     get_legacy_bundle_install_folder,
 )
 
-from .. import util
-
-log = util.get_shotgun_deploy_logger()
+log = logging.getLogger(__name__)
 
 class IODescriptorGitTag(IODescriptorGit):
     """
@@ -144,13 +145,13 @@ class IODescriptorGitTag(IODescriptorGit):
                     shell=True
                 ).split("\n")
             except Exception, e:
-                raise ShotgunDeployError("Could not get list of tags for %s: %s" % (self, e))
+                raise TankDescriptorError("Could not get list of tags for %s: %s" % (self, e))
 
         finally:
             os.chdir(cwd)
 
         if len(git_tags) == 0:
-            raise ShotgunDeployError(
+            raise TankDescriptorError(
                 "Git repository %s doesn't seem to have any tags!" % self._path
             )
 
@@ -187,7 +188,7 @@ class IODescriptorGitTag(IODescriptorGit):
                     shell=True
                 ).strip()
             except Exception, e:
-                raise ShotgunDeployError("Could not get list of tags for %s: %s" % (self, e))
+                raise TankDescriptorError("Could not get list of tags for %s: %s" % (self, e))
 
             try:
                 latest_version = subprocess_check_output(
@@ -195,7 +196,7 @@ class IODescriptorGitTag(IODescriptorGit):
                     shell=True
                 ).strip()
             except Exception, e:
-                raise ShotgunDeployError("Could not get tag for hash %s: %s" % (hash, e))
+                raise TankDescriptorError("Could not get tag for hash %s: %s" % (hash, e))
 
         finally:
             os.chdir(cwd)

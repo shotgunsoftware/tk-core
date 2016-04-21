@@ -11,15 +11,14 @@
 import os
 import uuid
 import tempfile
+import logging
 
 from .base import IODescriptorBase
-from .. import util
-from ..zipfilehelper import unzip_file
-from ..errors import ShotgunDeployError
-from ...shotgun_base import ensure_folder_exists, safe_delete_file, create_valid_filename
+from ...util.zip import unzip_file
+from ..errors import TankDescriptorError
+from tank_vendor.shotgun_base import ensure_folder_exists, safe_delete_file, create_valid_filename
 
-log = util.get_shotgun_deploy_logger()
-
+log = logging.getLogger(__name__)
 
 class IODescriptorShotgunEntity(IODescriptorBase):
     """
@@ -169,7 +168,7 @@ class IODescriptorShotgunEntity(IODescriptorBase):
         :returns: descriptor object
         """
         if constraint_pattern:
-            raise ShotgunDeployError(
+            raise TankDescriptorError(
                 "%s does not support version constraint patterns." % self
             )
 
@@ -194,12 +193,12 @@ class IODescriptorShotgunEntity(IODescriptorBase):
         #  'link_type': 'upload'}
 
         if data is None:
-            raise ShotgunDeployError(
+            raise TankDescriptorError(
                 "Cannot find a pipeline configuration named '%s'!" % self._name
             )
 
         if data[self._field].get("link_type") != "upload":
-            raise ShotgunDeployError(
+            raise TankDescriptorError(
                 "Latest version of %s is not an uploaded file: %s" % (self, data)
             )
 

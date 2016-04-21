@@ -13,15 +13,11 @@ All custom exceptions that Tank emits are defined here.
 
 """
 
-from tank_vendor.shotgun_base import ShotgunBaseError
-
-# we alias this with TankError since this is what is commonly
-# considered the top level exception in the toolkit world.
-#
-# 'tank' is a deprecated name and should be gracefully phased out
-# over time.
-
-TankError = ShotgunBaseError
+class TankError(Exception):
+    """
+    Top level exception for all toolkit-core level runtime errors
+    """
+    pass
 
 
 class TankContextChangeNotSupportedError(TankError):

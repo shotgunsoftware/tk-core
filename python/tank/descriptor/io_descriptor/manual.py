@@ -8,9 +8,12 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 import os
+import logging
 
 from .base import IODescriptorBase
-from ...shotgun_base import get_legacy_bundle_install_folder
+from tank_vendor.shotgun_base import get_legacy_bundle_install_folder
+
+log = logging.getLogger(__name__)
 
 class IODescriptorManual(IODescriptorBase):
     """

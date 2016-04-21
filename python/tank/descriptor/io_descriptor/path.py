@@ -10,11 +10,14 @@
 
 import os
 import sys
+import logging
 
 from .base import IODescriptorBase
-from ..errors import ShotgunDeployError
+from ..errors import TankDescriptorError
 
-from ...shotgun_base import get_shotgun_storage_key
+from tank_vendor.shotgun_base import get_shotgun_storage_key
+
+log = logging.getLogger(__name__)
 
 class IODescriptorPath(IODescriptorBase):
     """
@@ -64,7 +67,7 @@ class IODescriptorPath(IODescriptorBase):
             self._path = descriptor_dict[platform_key]
             self._multi_os_descriptor = True
         else:
-            raise ShotgunDeployError(
+            raise TankDescriptorError(
                 "Invalid descriptor! Could not find a path or a %s entry in the "
                 "descriptor dict %s." % (platform_key, descriptor_dict)
             )

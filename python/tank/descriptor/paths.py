@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-from .. import shotgun_base
+from tank_vendor import shotgun_base
 
 def get_bundle_cache_root():
     """

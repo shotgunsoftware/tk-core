@@ -13,16 +13,15 @@ import re
 import cgi
 import sys
 import urlparse
+import logging
 
-from .. import util
 from .. import constants
-from ..errors import ShotgunDeployError
+from ..errors import TankDescriptorError
 
-from ...shotgun_base import copy_folder
-from ... import yaml
+from tank_vendor.shotgun_base import copy_folder
+from tank_vendor import yaml
 
-
-log = util.get_shotgun_deploy_logger()
+log = logging.getLogger(__name__)
 
 class IODescriptorBase(object):
     """
@@ -84,13 +83,13 @@ class IODescriptorBase(object):
         """
         Validate that the descriptor dictionary has got the necessary keys.
 
-        Raises ShotgunDeployError if required parameters are missing.
+        Raises TankDescriptorError if required parameters are missing.
         Logs warnings if parameters outside the required/optional range are specified.
 
         :param descriptor_dict: descriptor dict
         :param required: List of required parameters
         :param optional: List of optionally supported parameters
-        :raises: ShotgunDeployError if the descriptor dict does not include all parameters.
+        :raises: TankDescriptorError if the descriptor dict does not include all parameters.
         """
         desc_keys_set = set(descriptor_dict.keys())
         required_set = set(required)
@@ -98,7 +97,7 @@ class IODescriptorBase(object):
 
         if not required_set.issubset(desc_keys_set):
             missing_keys = required_set.difference(desc_keys_set)
-            raise ShotgunDeployError("%s are missing required keys %s" % (descriptor_dict, missing_keys))
+            raise TankDescriptorError("%s are missing required keys %s" % (descriptor_dict, missing_keys))
 
         all_keys = required_set.union(optional_set)
 
@@ -124,7 +123,7 @@ class IODescriptorBase(object):
             - v1.2.3.x (will always return a forked version, eg. v1.2.3.2)
 
         :returns: The most appropriate tag in the given list of tags
-        :raises: ShotgunDeployError if parsing fails
+        :raises: TankDescriptorError if parsing fails
         """
         # now put all version number strings which match the form
         # vX.Y.Z(.*) into a nested dictionary where it is keyed recursively
@@ -171,7 +170,7 @@ class IODescriptorBase(object):
         # now search for the latest version matching our pattern
         version_to_use = None
         if not re.match("^v([0-9]+|x)(.([0-9]+|x)){2,}$", pattern):
-            raise ShotgunDeployError("Cannot parse version expression '%s'!" % pattern)
+            raise TankDescriptorError("Cannot parse version expression '%s'!" % pattern)
 
         # split our pattern, beware each part is a string (even integers)
         version_split = re.findall("([0-9]+|x)", pattern)
@@ -179,7 +178,7 @@ class IODescriptorBase(object):
             # check that we don't have an incorrect pattern using x
             # then a digit, eg. v4.x.2
             if re.match("^v[0-9\.]+[x\.]+[0-9\.]+$", pattern):
-                raise ShotgunDeployError(
+                raise TankDescriptorError(
                     "Incorrect version pattern '%s'. "
                     "There should be no digit after a 'x'." % pattern
                 )
@@ -193,7 +192,7 @@ class IODescriptorBase(object):
                 version_digit = max(current.keys(), key=int)
             version_digit = int(version_digit)
             if version_digit not in current:
-                raise ShotgunDeployError(
+                raise TankDescriptorError(
                     "'%s' does not have a version matching the pattern '%s'. "
                     "Available versions are: %s" % (self.get_system_name(), pattern, ", ".join(version_numbers))
                 )
@@ -261,7 +260,7 @@ class IODescriptorBase(object):
             if not os.path.exists(file_path):
                 # at this point we have downloaded the bundle, but it may have
                 # an invalid internal structure.
-                raise ShotgunDeployError("Toolkit metadata file '%s' missing." % file_path)
+                raise TankDescriptorError("Toolkit metadata file '%s' missing." % file_path)
 
             try:
                 file_data = open(file_path)
@@ -270,7 +269,7 @@ class IODescriptorBase(object):
                 finally:
                     file_data.close()
             except Exception, exp:
-                raise ShotgunDeployError("Cannot load metadata file '%s'. Error: %s" % (file_path, exp))
+                raise TankDescriptorError("Cannot load metadata file '%s'. Error: %s" % (file_path, exp))
 
             # cache it
             self.__manifest_data = metadata
@@ -326,7 +325,7 @@ class IODescriptorBase(object):
         # '')
 
         if parsed_uri.scheme != constants.DESCRIPTOR_URI_PATH_SCHEME:
-            raise ShotgunDeployError("Invalid uri '%s' - must begin with 'sgtk'" % uri)
+            raise TankDescriptorError("Invalid uri '%s' - must begin with 'sgtk'" % uri)
 
         if sys.version_info < (2,6):
             # in python 2.5, the querystring is part of the path (see above)
@@ -339,7 +338,7 @@ class IODescriptorBase(object):
         split_path = path.split(constants.DESCRIPTOR_URI_SEPARATOR)
         # e.g. 'descriptor:app_store' -> ('descriptor', 'app_store')
         if len(split_path) != 2 or split_path[0] != constants.DESCRIPTOR_URI_PATH_PREFIX:
-            raise ShotgunDeployError("Invalid uri '%s' - must begin with sgtk:descriptor" % uri)
+            raise TankDescriptorError("Invalid uri '%s' - must begin with sgtk:descriptor" % uri)
 
         descriptor_dict = {}
 
@@ -352,7 +351,7 @@ class IODescriptorBase(object):
         # {'path': ['foo'], 'version': ['v1.2.3']}
         for (param, value) in cgi.parse_qs(query).iteritems():
             if len(value) > 1:
-                raise ShotgunDeployError("Invalid uri '%s' - duplicate parameters" % uri)
+                raise TankDescriptorError("Invalid uri '%s' - duplicate parameters" % uri)
             descriptor_dict[param] = value[0]
 
         return descriptor_dict
@@ -374,7 +373,7 @@ class IODescriptorBase(object):
         :return: descriptor uri
         """
         if "type" not in descriptor_dict:
-            raise ShotgunDeployError(
+            raise TankDescriptorError(
                 "Cannot create uri from %s - missing type field" % descriptor_dict
             )
 

@@ -8,10 +8,10 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from ..errors import ShotgunDeployError
-from .. import constants
-from .. import util
-log = util.get_shotgun_deploy_logger()
+from ..errors import TankDescriptorError
+import logging
+
+log = logging.getLogger(__name__)
 
 # for performance, we keep cached instances of
 # descriptors in a cache.
@@ -120,7 +120,7 @@ def create_io_descriptor(
         descriptor = IODescriptorPath(descriptor_dict)
 
     else:
-        raise ShotgunDeployError("Unknown descriptor type for '%s'" % descriptor_dict)
+        raise TankDescriptorError("Unknown descriptor type for '%s'" % descriptor_dict)
 
     # specify where to go look for caches
     descriptor.set_cache_roots(bundle_cache_root, fallback_roots)

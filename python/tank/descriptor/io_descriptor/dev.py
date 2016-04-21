@@ -10,8 +10,8 @@
 
 from .path import IODescriptorPath
 
-from .. import util
-log = util.get_shotgun_deploy_logger()
+import logging
+log = logging.getLogger(__name__)
 
 class IODescriptorDev(IODescriptorPath):
     """
