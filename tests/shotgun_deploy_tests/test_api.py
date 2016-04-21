@@ -10,6 +10,7 @@
 
 import os
 import tempfile
+import datetime
 
 from tank_test.tank_test_base import *
 from tank_vendor import shotgun_deploy
@@ -62,12 +63,18 @@ class TestApi(TankTestBase):
         """
         sg = self.tk.shotgun
 
-        bundle_root = tempfile.gettempdir()
+        # make a unique bundleroot
+        bundle_root = os.path.join(
+            tempfile.gettempdir(),
+            str(datetime.datetime.now())
+        )
+
+        os.makedirs(bundle_root)
 
         d = shotgun_deploy.create_descriptor(
             sg,
             shotgun_deploy.Descriptor.CONFIG,
-            {"type": "app_store", "version": "v0.4.2", "name": "tk-testaltcacheroot2"},
+            {"type": "app_store", "version": "v0.4.3", "name": "tk-testaltcacheroot2"},
             bundle_root
         )
 
@@ -79,7 +86,7 @@ class TestApi(TankTestBase):
             bundle_root,
             "app_store",
             "tk-testaltcacheroot2",
-            "v0.4.2")
+            "v0.4.3")
         self._touch_info_yaml(app_root_path)
         self.assertEqual(d.get_path(), app_root_path)
 
