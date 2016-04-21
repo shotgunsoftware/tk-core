@@ -14,36 +14,80 @@ import sys
 import errno
 import stat
 import shutil
+import functools
 
 from .log import get_shotgun_base_logger
 log = get_shotgun_base_logger()
 
 
-def with_cleared_umask(func):
+def with_umask(umask):
     """
-    Decorator which clears the umask for a method.
+    Decorator which sets the umask for a method.
 
     The umask controls default permissions for files
-    and folders. By setting the umask to zero, we can control
-    permissions.
+    and folders as they are being created.
 
     Example use:
 
-    @with_cleared_umask
+    @with_cleared_umask(0200)
     def my_io_method(param1, param2):
-
         # do i/o operations in here
+
+    This will create files with umask 0200 set.
+    When execution leaves the decorated scope,
+    the umask is reset to the previous value.
     """
-    def inner(*args, **kwargs):
-        # set umask to zero, store old umask
-        old_umask = os.umask(0)
-        try:
-            # execute method payload
-            return func(*args, **kwargs)
-        finally:
-            # set mask back to previous value
-            os.umask(old_umask)
-    return inner
+    def actual_decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            # set umask to zero, store old umask
+            old_umask = os.umask(umask)
+            log.debug("Umask set to %o" % umask)
+            try:
+                # execute method payload
+                return func(*args, **kwargs)
+            finally:
+                # set mask back to previous value
+                os.umask(old_umask)
+                log.debug("Umask reset back to %o" % old_umask)
+        return wrapper
+    return actual_decorator
+
+def with_cleared_umask():
+    """
+    Decorator which clears the umask for a method.
+
+    The umask is a permissions mask that gets applied
+    whenever new files or folders are created. For I/O methods
+    that have a permissions parameter, it is important that the
+    umask is cleared prior to execution, otherwise the default
+    umask may alter the resulting permissions, for example::
+
+        def create_folders(path, permissions=0777):
+            log.debug("Creating folder %s..." % path)
+            os.makedirs(path, permissions)
+
+    The 0777 permissions indicate that we want folders to be
+    completely open for all users (a+rwx). However, the umask
+    overrides this, so if the umask for example is set to 0777,
+    meaning that I/O operations are not allowed to create files
+    that are readable, executable or writable for users, groups
+    or others, the resulting permissions on folders created
+    by create folders will be 0, despite passing in 0777 permissions.
+
+    By adding this decorator to the method, we temporarily reset
+    the umask to 0, thereby giving full control to
+    any permissions operation to take place without any restriction
+    by the umask::
+
+        @with_cleared_umask
+        def create_folders(path, permissions=0777):
+            # Creates folders with the given permissions,
+            # regardless of umask setting.
+            log.debug("Creating folder %s..." % path)
+            os.makedirs(path, permissions)
+    """
+    return with_umask(0000)
 
 
 def get_shotgun_storage_key(platform=sys.platform):
