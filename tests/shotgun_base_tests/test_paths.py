@@ -81,7 +81,7 @@ class TestShotgunPath(TankTestBase):
         )
 
         self.assertEqual(sg.windows, "C:\\temp")
-        self.assertEqual(sg.mac, "/tmp")
+        self.assertEqual(sg.macosx, "/tmp")
         self.assertEqual(sg.linux, "/tmp2")
 
         sg = shotgun_base.ShotgunPath.from_shotgun_dict(
@@ -89,7 +89,7 @@ class TestShotgunPath(TankTestBase):
         )
 
         self.assertEqual(sg.windows, "C:\\temp")
-        self.assertEqual(sg.mac, None)
+        self.assertEqual(sg.macosx, None)
         self.assertEqual(sg.linux, None)
 
         sys_paths = shotgun_base.ShotgunPath.from_system_dict(
@@ -97,7 +97,7 @@ class TestShotgunPath(TankTestBase):
         )
 
         self.assertEqual(sys_paths.windows, "C:\\temp")
-        self.assertEqual(sys_paths.mac, "/tmp")
+        self.assertEqual(sys_paths.macosx, "/tmp")
         self.assertEqual(sys_paths.linux, "/tmp2")
 
         sys_paths = shotgun_base.ShotgunPath.from_system_dict(
@@ -105,33 +105,33 @@ class TestShotgunPath(TankTestBase):
         )
 
         self.assertEqual(sys_paths.windows, "C:\\temp")
-        self.assertEqual(sys_paths.mac, None)
+        self.assertEqual(sys_paths.macosx, None)
         self.assertEqual(sys_paths.linux, None)
 
         if sys.platform == "win32":
             curr = shotgun_base.ShotgunPath.from_current_os_path("\\\\server\\mount\\path")
             self.assertEqual(curr.windows, "\\\\server\\mount\\path")
-            self.assertEqual(curr.mac, None)
+            self.assertEqual(curr.macosx, None)
             self.assertEqual(curr.linux, None)
             self.assertEqual(curr.current_os, curr.windows)
 
         if sys.platform == "linux2":
             curr = shotgun_base.ShotgunPath.from_current_os_path("/tmp/foo/bar")
             self.assertEqual(curr.windows, None)
-            self.assertEqual(curr.mac, None)
+            self.assertEqual(curr.macosx, None)
             self.assertEqual(curr.linux, "/tmp/foo/bar")
             self.assertEqual(curr.current_os, curr.linux)
 
         if sys.platform == "darwin":
             curr = shotgun_base.ShotgunPath.from_current_os_path("/tmp/foo/bar")
             self.assertEqual(curr.windows, None)
-            self.assertEqual(curr.mac, "/tmp/foo/bar")
+            self.assertEqual(curr.macosx, "/tmp/foo/bar")
             self.assertEqual(curr.linux, None)
-            self.assertEqual(curr.current_os, curr.mac)
+            self.assertEqual(curr.current_os, curr.macosx)
 
         std_constructor = shotgun_base.ShotgunPath("C:\\temp", "/tmp", "/tmp2")
         self.assertEqual(std_constructor.windows, "C:\\temp")
-        self.assertEqual(std_constructor.mac, "/tmp2")
+        self.assertEqual(std_constructor.macosx, "/tmp2")
         self.assertEqual(std_constructor.linux, "/tmp")
 
 
@@ -141,17 +141,17 @@ class TestShotgunPath(TankTestBase):
         """
         std_constructor = shotgun_base.ShotgunPath("C:\\temp\\", "/tmp/", "/tmp2/")
         self.assertEqual(std_constructor.windows, "C:\\temp")
-        self.assertEqual(std_constructor.mac, "/tmp2")
+        self.assertEqual(std_constructor.macosx, "/tmp2")
         self.assertEqual(std_constructor.linux, "/tmp")
 
         std_constructor = shotgun_base.ShotgunPath("C:/temp/", "///tmp//", "//tmp2/")
         self.assertEqual(std_constructor.windows, "C:\\temp")
-        self.assertEqual(std_constructor.mac, "/tmp2")
+        self.assertEqual(std_constructor.macosx, "/tmp2")
         self.assertEqual(std_constructor.linux, "/tmp")
 
         std_constructor = shotgun_base.ShotgunPath("C:\\", "///tmp//", "//tmp2/")
         self.assertEqual(std_constructor.windows, "C:\\")
-        self.assertEqual(std_constructor.mac, "/tmp2")
+        self.assertEqual(std_constructor.macosx, "/tmp2")
         self.assertEqual(std_constructor.linux, "/tmp")
 
     def test_equality(self):
@@ -186,13 +186,13 @@ class TestShotgunPath(TankTestBase):
         p3 = p2.join("bar")
 
         self.assertEqual(p1.windows, "C:\\temp")
-        self.assertEqual(p1.mac, "/mac")
+        self.assertEqual(p1.macosx, "/mac")
         self.assertEqual(p1.linux, "/linux")
 
         self.assertEqual(p2.windows, "C:\\temp\\foo")
-        self.assertEqual(p2.mac, "/mac/foo")
+        self.assertEqual(p2.macosx, "/mac/foo")
         self.assertEqual(p2.linux, "/linux/foo")
 
         self.assertEqual(p3.windows, "C:\\temp\\foo\\bar")
-        self.assertEqual(p3.mac, "/mac/foo/bar")
+        self.assertEqual(p3.macosx, "/mac/foo/bar")
         self.assertEqual(p3.linux, "/linux/foo/bar")

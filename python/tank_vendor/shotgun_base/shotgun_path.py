@@ -34,7 +34,7 @@ class ShotgunPath(object):
 
         >>> p = ShotgunPath.from_current_os_path("/tmp")
 
-        >>> p.mac
+        >>> p.macosx
         '/tmp'
 
         >>> p.windows
@@ -51,7 +51,7 @@ class ShotgunPath(object):
 
         >>> p2 = p.join('foo')
         >>> p2
-        <Path win:'c:\temp\foo', linux:'/tmp/foo', mac:'/tmp/foo'>
+        <Path win:'c:\temp\foo', linux:'/tmp/foo', macosx:'/tmp/foo'>
 
     """
 
@@ -120,14 +120,14 @@ class ShotgunPath(object):
 
         :param windows_path: Path on windows to associate with this path object
         :param linux_path: Path on linux to associate with this path object
-        :param macosx_path: Path on mac to associate with this path object
+        :param macosx_path: Path on macosx to associate with this path object
         """
         self._windows_path = sanitize_path(windows_path, "\\")
         self._linux_path = sanitize_path(linux_path, "/")
         self._macosx_path = sanitize_path(macosx_path, "/")
 
     def __repr__(self):
-        return "<Path win:'%s', linux:'%s', mac:'%s'>" % (
+        return "<Path win:'%s', linux:'%s', macosx:'%s'>" % (
             self._windows_path,
             self._linux_path,
             self._macosx_path
@@ -144,7 +144,7 @@ class ShotgunPath(object):
         if not isinstance(other, ShotgunPath):
             return NotImplemented
 
-        return self.mac == other.mac and self.windows == other.windows and self.linux == other.linux
+        return self.macosx == other.macosx and self.windows == other.windows and self.linux == other.linux
 
     def __ne__(self, other):
         """
@@ -159,7 +159,7 @@ class ShotgunPath(object):
         return not is_equal
 
     @property
-    def mac(self):
+    def macosx(self):
         """
         The macosx representation of the path
         """
@@ -168,14 +168,14 @@ class ShotgunPath(object):
     @property
     def windows(self):
         """
-        The macosx representation of the path
+        The windows representation of the path
         """
         return self._windows_path
 
     @property
     def linux(self):
         """
-        The macosx representation of the path
+        The linux representation of the path
         """
         return self._linux_path
 
@@ -189,7 +189,7 @@ class ShotgunPath(object):
         elif sys.platform == "linux2":
             return self.linux
         elif sys.platform == "darwin":
-            return self.mac
+            return self.macosx
         else:
             return ValueError("Unsupported platform '%s'." % sys.platform)
 
@@ -226,7 +226,7 @@ class ShotgunPath(object):
         # so value is "/foo/bar", "c:" or "\\hello"
         # then append separator and new folder
         linux_path = "%s/%s" % (self._linux_path.rstrip("/\\"), folder) if self._linux_path else None
-        mac_path = "%s/%s" % (self._macosx_path.rstrip("/\\"), folder) if self._macosx_path else None
+        macosx_path = "%s/%s" % (self._macosx_path.rstrip("/\\"), folder) if self._macosx_path else None
         win_path = "%s\\%s" % (self._windows_path.rstrip("/\\"), folder) if self._windows_path else None
 
-        return ShotgunPath(win_path, linux_path, mac_path)
+        return ShotgunPath(win_path, linux_path, macosx_path)
