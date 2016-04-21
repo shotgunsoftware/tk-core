@@ -20,40 +20,7 @@ from .log import get_shotgun_base_logger
 log = get_shotgun_base_logger()
 
 
-def with_umask(umask):
-    """
-    Decorator which sets the umask for a method.
-
-    The umask controls default permissions for files
-    and folders as they are being created.
-
-    Example use:
-
-    @with_cleared_umask(0200)
-    def my_io_method(param1, param2):
-        # do i/o operations in here
-
-    This will create files with umask 0200 set.
-    When execution leaves the decorated scope,
-    the umask is reset to the previous value.
-    """
-    def actual_decorator(func):
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            # set umask to zero, store old umask
-            old_umask = os.umask(umask)
-            log.debug("Umask set to %o" % umask)
-            try:
-                # execute method payload
-                return func(*args, **kwargs)
-            finally:
-                # set mask back to previous value
-                os.umask(old_umask)
-                log.debug("Umask reset back to %o" % old_umask)
-        return wrapper
-    return actual_decorator
-
-def with_cleared_umask():
+def with_cleared_umask(func):
     """
     Decorator which clears the umask for a method.
 
@@ -87,7 +54,19 @@ def with_cleared_umask():
             log.debug("Creating folder %s..." % path)
             os.makedirs(path, permissions)
     """
-    return with_umask(0000)
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        # set umask to zero, store old umask
+        old_umask = os.umask(0)
+        log.debug("Umask cleared")
+        try:
+            # execute method payload
+            return func(*args, **kwargs)
+        finally:
+            # set mask back to previous value
+            os.umask(old_umask)
+            log.debug("Umask reset back to %o" % old_umask)
+    return wrapper
 
 
 def get_shotgun_storage_key(platform=sys.platform):
@@ -118,35 +97,6 @@ def get_shotgun_storage_key(platform=sys.platform):
             "os platform '%s'" % platform
         )
 
-def append_folder_to_path(os_name, base, folder_name):
-    """
-    Multi-os method that appends a folder to an existing path.
-
-    This is effectively os.path.join() that can be executed on
-    an alternative platform.
-
-    base Paths that are None will return None
-
-    :param os_name: Operating system, sys.platform style, e.g. win32, linux2, darwin
-    :param base: Base path
-    :param folder_name: Name of folder to append
-    :returns: Full path
-    """
-    if base is None:
-        return None
-
-    # get the valid separator for this path
-    separators = {"linux2": "/", "win32": "\\", "darwin": "/"}
-    separator = separators[os_name]
-
-    # get rid of any slashes at the end
-    root_value = base.rstrip("/\\")
-    # now root value is "/foo/bar", "c:" or "\\hello"
-
-    # concat the full path.
-    full_path = root_value + separator + folder_name
-
-    return full_path
 
 
 def sanitize_path(path, separator=os.path.sep):
@@ -299,6 +249,7 @@ def safe_delete_file(path):
             os.remove(path)
     except Exception, e:
         log.warning("File '%s' could not be deleted, skipping: %s" % (path, e))
+
 
 @with_cleared_umask
 def copy_folder(src, dst, folder_permissions=0775):

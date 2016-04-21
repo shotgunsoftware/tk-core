@@ -18,7 +18,7 @@ from . import Descriptor, create_descriptor
 from .errors import ShotgunDeployError
 from . import util
 
-from ..shotgun_base import copy_file
+from ..shotgun_base import copy_file, ShotgunPath
 from ..shotgun_base import copy_folder, ensure_folder_exists
 from ..shotgun_base import with_cleared_umask, safe_delete_file
 
@@ -40,7 +40,7 @@ class Configuration(object):
 
     def __init__(
             self,
-            paths,
+            path,
             sg,
             descriptor,
             project_id,
@@ -50,8 +50,7 @@ class Configuration(object):
         """
         Constructor.
 
-        :param paths: Dictionary of paths for this configuration, keyed
-                      by operating system, sys.platform style.
+        :param path: ShotgunPath object describing the path to this configuration
         :param sg: Shotgun API instance
         :param descriptor: ConfigDescriptor for the associated config
         :param project_id: Project id for the shotgun project associated with the
@@ -63,7 +62,7 @@ class Configuration(object):
                                    should be set to None.
         :param bundle_cache_fallback_paths: List of additional paths where apps are cached.
         """
-        self._paths = paths
+        self._path = path
         self._sg_connection = sg
         self._descriptor = descriptor
         self._project_id = project_id
@@ -99,10 +98,8 @@ class Configuration(object):
         # Pass 1:
         # first check if there is any config at all
         # probe for info.yaml manifest file
-        config_root = self._paths[sys.platform]
-
         sg_config_file = os.path.join(
-            config_root,
+            self._path.current_os,
             "config",
             constants.BUNDLE_METADATA_FILE
         )
@@ -174,8 +171,7 @@ class Configuration(object):
 
         # copy the configuration into place
         try:
-            config_path = self._paths[sys.platform]
-            self._descriptor.copy(os.path.join(config_path, "config"))
+            self._descriptor.copy(os.path.join(self._path.current_os, "config"))
 
             # write out config files
             self._write_install_location_file()
@@ -221,24 +217,21 @@ class Configuration(object):
             pc_data = self._sg_connection.find_one(
                 constants.PIPELINE_CONFIGURATION_ENTITY_TYPE,
                 [["id", "is", self._pipeline_config_id]],
-                ["linux_path", "windows_path", "mac_path"]
+                ShotgunPath.SHOTGUN_PATH_FIELDS
             )
 
             log.debug("Shotgun data returned: %s" % pc_data)
 
-            if pc_data is None or \
-                pc_data.get("linux_path") != self._paths["linux2"] or \
-                pc_data.get("windows_path") != self._paths["win32"] or \
-                pc_data.get("mac_path") != self._paths["darwin"]:
+            shotgun_path = ShotgunPath.from_shotgun_dict(pc_data)
 
-                log.debug("Attempting to updating pipeline configuration with new paths...")
+            if shotgun_path != self._path:
+
+                log.debug("Attempting to update pipeline configuration with new paths...")
 
                 self._sg_connection.update(
                     constants.PIPELINE_CONFIGURATION_ENTITY_TYPE,
                     self._pipeline_config_id,
-                    {"linux_path": self._paths["linux2"],
-                     "windows_path": self._paths["win32"],
-                     "mac_path": self._paths["darwin"]}
+                    self.path.as_shotgun_dict()
                 )
 
     def get_tk_instance(self, sg_user):
@@ -249,7 +242,7 @@ class Configuration(object):
                         the tk instance with.
         """
         # @todo - check if there is already a tank instance, in that case unload or warn
-        path = self._paths[sys.platform]
+        path = self._path.current_os
         core_path = os.path.join(path, "install", "core", "python")
         sys.path.insert(0, core_path)
         import tank
@@ -264,7 +257,7 @@ class Configuration(object):
         :return: path
         """
         path = os.path.join(
-            self._paths[sys.platform],
+            self._path.current_os,
             "cache",
             "descriptor_info.yml"
         )
@@ -275,7 +268,7 @@ class Configuration(object):
         """
         Creates all the necessary files on disk for a basic config scaffold.
         """
-        config_path = self._paths[sys.platform]
+        config_path = self._path.current_os
         log.info("Ensuring project scaffold in '%s'..." % config_path)
 
         ensure_folder_exists(config_path)
@@ -290,7 +283,6 @@ class Configuration(object):
             create_placeholder_file=True
         )
 
-    @with_cleared_umask
     def _move_to_backup(self):
         """
         Move any existing config and core to a backup location.
@@ -307,7 +299,7 @@ class Configuration(object):
         core_backup_path = None
 
         # get backup root location
-        config_path = self._paths[sys.platform]
+        config_path = self._path.current_os
         configuration_payload = os.path.join(config_path, "config")
 
         # timestamp for rollback backup folders
@@ -384,7 +376,7 @@ class Configuration(object):
         executables["Darwin"] = mac_python or constants.DESKTOP_PYTHON_MAC
         executables["Windows"] = win_python or constants.DESKTOP_PYTHON_WIN
 
-        config_root_path = self._paths[sys.platform]
+        config_root_path = self._path.current_os
 
         for platform in executables:
             sg_config_location = os.path.join(
@@ -443,7 +435,7 @@ class Configuration(object):
 
         # make sure we have our core on disk
         core_descriptor.ensure_local()
-        config_root_path = self._paths[sys.platform]
+        config_root_path = self._path.current_os
         core_target_path = os.path.join(config_root_path, "install", "core")
 
         log.debug("Copying core into place")
@@ -453,7 +445,7 @@ class Configuration(object):
         """
         Writes the install location file
         """
-        config_path = self._paths[sys.platform]
+        config_path = self._path.current_os
 
         # write the install_location file for our new setup
         sg_code_location = os.path.join(
@@ -465,18 +457,12 @@ class Configuration(object):
 
         with self.__open_auto_created_yml(sg_code_location) as fh:
 
-            config_paths = {
-                "darwin": self._paths["darwin"],
-                "win32": self._paths["win32"],
-                "linux2": self._paths["linux2"]
-            }
-
             fh.write("# This file reflects the paths in the pipeline\n")
             fh.write("# configuration defined for this project.\n")
             fh.write("\n")
-            fh.write("Windows: '%s'\n" % config_paths["win32"])
-            fh.write("Darwin: '%s'\n" % config_paths["darwin"])
-            fh.write("Linux: '%s'\n" % config_paths["linux2"])
+            fh.write("Windows: '%s'\n" % self._path.windows)
+            fh.write("Darwin: '%s'\n" % self._path.mac)
+            fh.write("Linux: '%s'\n" % self._path.linux)
             fh.write("\n")
             fh.write("# End of file.\n")
 
@@ -510,7 +496,7 @@ class Configuration(object):
         Writes config/core/shotgun.yml
         """
         sg_file = os.path.join(
-            self._paths[sys.platform],
+            self._path.current_os,
             "config",
             "core",
             constants.CONFIG_SHOTGUN_FILE
@@ -579,7 +565,7 @@ class Configuration(object):
 
         # write pipeline_configuration.yml
         pipeline_config_path = os.path.join(
-            self._paths[sys.platform],
+            self._path.current_os,
             "config",
             "core",
             constants.PIPELINECONFIG_FILE
@@ -600,7 +586,7 @@ class Configuration(object):
         sg_data = self._sg_connection.find(
             "LocalStorage",
             [],
-            fields=["id", "code", "linux_path", "mac_path", "windows_path"])
+            fields=["id", "code"] + ShotgunPath.SHOTGUN_PATH_FIELDS)
 
         # organize them by name
         storage_by_name = {}
@@ -610,19 +596,19 @@ class Configuration(object):
         # now write out roots data
         roots_data = {}
 
-        for storage in self._descriptor.get_required_storages():
-            roots_data[storage] = {}
-            if storage not in storage_by_name:
+        for storage_name in self._descriptor.get_required_storages():
+
+            if storage_name not in storage_by_name:
                 raise ShotgunDeployError(
                     "A '%s' storage is defined by %s but is "
-                    "not defined in Shotgun." % (storage, self._descriptor)
+                    "not defined in Shotgun." % (storage_name, self._descriptor)
                 )
-            roots_data[storage]["mac_path"] = storage_by_name[storage]["mac_path"]
-            roots_data[storage]["linux_path"] = storage_by_name[storage]["linux_path"]
-            roots_data[storage]["windows_path"] = storage_by_name[storage]["windows_path"]
+
+            storage_path = ShotgunPath.from_shotgun_dict(storage_by_name[storage])
+            roots_data[storage_name] = storage_path.as_shotgun_dict()
 
         roots_file = os.path.join(
-            self._paths[sys.platform],
+            self._path.current_os,
             "config",
             "core",
             constants.STORAGE_ROOTS_FILE
