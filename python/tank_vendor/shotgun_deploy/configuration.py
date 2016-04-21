@@ -8,6 +8,8 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from __future__ import with_statement
+
 import os
 import sys
 import datetime
@@ -16,8 +18,9 @@ from . import Descriptor, create_descriptor
 from .errors import ShotgunDeployError
 from . import util
 
-from ..shotgun_base import copy_file
+from ..shotgun_base import copy_file, ShotgunPath
 from ..shotgun_base import copy_folder, ensure_folder_exists
+from ..shotgun_base import with_cleared_umask, safe_delete_file
 
 from .. import yaml
 
@@ -37,7 +40,7 @@ class Configuration(object):
 
     def __init__(
             self,
-            paths,
+            path,
             sg,
             descriptor,
             project_id,
@@ -47,8 +50,7 @@ class Configuration(object):
         """
         Constructor.
 
-        :param paths: Dictionary of paths for this configuration, keyed
-                      by operating system, sys.platform style.
+        :param path: ShotgunPath object describing the path to this configuration
         :param sg: Shotgun API instance
         :param descriptor: ConfigDescriptor for the associated config
         :param project_id: Project id for the shotgun project associated with the
@@ -60,7 +62,7 @@ class Configuration(object):
                                    should be set to None.
         :param bundle_cache_fallback_paths: List of additional paths where apps are cached.
         """
-        self._paths = paths
+        self._path = path
         self._sg_connection = sg
         self._descriptor = descriptor
         self._project_id = project_id
@@ -96,10 +98,8 @@ class Configuration(object):
         # Pass 1:
         # first check if there is any config at all
         # probe for info.yaml manifest file
-        config_root = self._paths[sys.platform]
-
         sg_config_file = os.path.join(
-            config_root,
+            self._path.current_os,
             "config",
             constants.BUNDLE_METADATA_FILE
         )
@@ -166,37 +166,21 @@ class Configuration(object):
         # make sure a scaffold is in place
         self._ensure_project_scaffold()
 
-        # stow away any previous versions of core or config
+        # stow away any previous versions of core and config folders
         (config_backup_path, core_backup_path) = self._move_to_backup()
 
         # copy the configuration into place
         try:
-            config_path = self._paths[sys.platform]
-            self._descriptor.copy(os.path.join(config_path, "config"))
+            self._descriptor.copy(os.path.join(self._path.current_os, "config"))
 
             # write out config files
             self._write_install_location_file()
             self._write_config_info_file()
             self._write_shotgun_file()
+            self._write_pipeline_config_file()
+
+            # make sure roots file reflects current paths
             self._update_roots_file()
-
-            # write pipeline_configuration.yml
-            pipeline_config_content = self._get_pipeline_config_file_content()
-
-            pipeline_config_path = os.path.join(
-                self._paths[sys.platform],
-                "config",
-                "core",
-                constants.PIPELINECONFIG_FILE
-            )
-            fh = open(pipeline_config_path, "wt")
-            try:
-                fh.write("# This file was auto generated\n")
-                yaml.safe_dump(pipeline_config_content, fh)
-                fh.write("\n")
-                log.debug("Wrote %s" % pipeline_config_path)
-            finally:
-                fh.close()
 
             # and lastly install core
             self._install_core()
@@ -216,20 +200,39 @@ class Configuration(object):
 
         # @todo - prime caches (yaml, path cache)
 
-        # create tank executable for this config - based on the default desktop
-        # python interpreter settings
+        # make sure tank command and interpreter files are up to date
         self._create_tank_command()
 
         if self._pipeline_config_id:
-            # create pipeline configuration entry in Shotgun
-            log.debug("Updating pipeline configuration %s with new paths..." % self._pipeline_config_id)
-            self._sg_connection.update(
-                constants.PIPELINE_CONFIGURATION_ENTITY_TYPE,
-                self._pipeline_config_id,
-                {"linux_path": self._paths["linux2"],
-                 "windows_path": self._paths["win32"],
-                 "mac_path": self._paths["darwin"]}
+            # make sure there is a pipeline config entry in Shotgun
+            # and that this is up to date. We may not have permission
+            # to write to this configuration, so take a conservative
+            # approach where we first check if the record exists and is
+            # up to date and only if it differs we attempt to update it.
+            log.debug(
+                "Checking that shotgun pipeline config entry "
+                "id %s exists and is up to date..." % self._pipeline_config_id
             )
+
+            pc_data = self._sg_connection.find_one(
+                constants.PIPELINE_CONFIGURATION_ENTITY_TYPE,
+                [["id", "is", self._pipeline_config_id]],
+                ShotgunPath.SHOTGUN_PATH_FIELDS
+            )
+
+            log.debug("Shotgun data returned: %s" % pc_data)
+
+            shotgun_path = ShotgunPath.from_shotgun_dict(pc_data)
+
+            if shotgun_path != self._path:
+
+                log.debug("Attempting to update pipeline configuration with new paths...")
+
+                self._sg_connection.update(
+                    constants.PIPELINE_CONFIGURATION_ENTITY_TYPE,
+                    self._pipeline_config_id,
+                    self.path.as_shotgun_dict()
+                )
 
     def get_tk_instance(self, sg_user):
         """
@@ -239,7 +242,7 @@ class Configuration(object):
                         the tk instance with.
         """
         # @todo - check if there is already a tank instance, in that case unload or warn
-        path = self._paths[sys.platform]
+        path = self._path.current_os
         core_path = os.path.join(path, "install", "core", "python")
         sys.path.insert(0, core_path)
         import tank
@@ -254,7 +257,7 @@ class Configuration(object):
         :return: path
         """
         path = os.path.join(
-            self._paths[sys.platform],
+            self._path.current_os,
             "cache",
             "descriptor_info.yml"
         )
@@ -265,7 +268,7 @@ class Configuration(object):
         """
         Creates all the necessary files on disk for a basic config scaffold.
         """
-        config_path = self._paths[sys.platform]
+        config_path = self._path.current_os
         log.info("Ensuring project scaffold in '%s'..." % config_path)
 
         ensure_folder_exists(config_path)
@@ -296,7 +299,7 @@ class Configuration(object):
         core_backup_path = None
 
         # get backup root location
-        config_path = self._paths[sys.platform]
+        config_path = self._path.current_os
         configuration_payload = os.path.join(config_path, "config")
 
         # timestamp for rollback backup folders
@@ -351,10 +354,13 @@ class Configuration(object):
 
         return (config_backup_path, core_backup_path)
 
+    @with_cleared_umask
     def _create_tank_command(self, win_python=None, mac_python=None, linux_python=None):
         """
         Create a tank command for this configuration.
-        This will overwrites existing binaries and create interpreter files.
+
+        The tank command binaries will be copied from the current core distribution
+        The interpreter_xxx.cfg files will be created based on the given interpreter settings.
         Uses sg desktop python if no interpreter paths are provided.
 
         :param win_python: Optional path to a python interpreter
@@ -370,7 +376,7 @@ class Configuration(object):
         executables["Darwin"] = mac_python or constants.DESKTOP_PYTHON_MAC
         executables["Windows"] = win_python or constants.DESKTOP_PYTHON_WIN
 
-        config_root_path = self._paths[sys.platform]
+        config_root_path = self._path.current_os
 
         for platform in executables:
             sg_config_location = os.path.join(
@@ -379,9 +385,11 @@ class Configuration(object):
                 "core",
                 "interpreter_%s.cfg" % platform
             )
-            fh = open(sg_config_location, "wt")
-            fh.write(executables[platform])
-            fh.close()
+            # clean out any existing files
+            safe_delete_file(sg_config_location)
+            # create new file
+            with open(sg_config_location, "wt") as fh:
+                fh.write(executables[platform])
 
         # now deploy the actual tank command
         core_target_path = os.path.join(config_root_path, "install", "core")
@@ -389,18 +397,11 @@ class Configuration(object):
         for file_name in os.listdir(root_binaries_folder):
             src_file = os.path.join(root_binaries_folder, file_name)
             tgt_file = os.path.join(config_root_path, file_name)
-            if os.path.exists(tgt_file):
-                log.debug("File already exists, replacing.")
-                try:
-                    os.remove(tgt_file)
-                    copy_file(src_file, tgt_file, 0775)
-                except Exception, e:
-                    log.warning(
-                        "Could not replace existing file '%s': %s" % (tgt_file, e)
-                    )
-            else:
-                log.debug("Installing brand new tank command")
-                copy_file(src_file, tgt_file, 0775)
+            # clear out any existing files
+            safe_delete_file(tgt_file)
+            # and copy new one into place
+            log.debug("Installing tank command %s -> %s" % (src_file, tgt_file))
+            copy_file(src_file, tgt_file, 0775)
 
 
     def _install_core(self):
@@ -434,7 +435,7 @@ class Configuration(object):
 
         # make sure we have our core on disk
         core_descriptor.ensure_local()
-        config_root_path = self._paths[sys.platform]
+        config_root_path = self._path.current_os
         core_target_path = os.path.join(config_root_path, "install", "core")
 
         log.debug("Copying core into place")
@@ -444,7 +445,7 @@ class Configuration(object):
         """
         Writes the install location file
         """
-        config_path = self._paths[sys.platform]
+        config_path = self._path.current_os
 
         # write the install_location file for our new setup
         sg_code_location = os.path.join(
@@ -454,28 +455,16 @@ class Configuration(object):
             "install_location.yml"
         )
 
-        log.debug("Creating install_location file...")
+        with self.__open_auto_created_yml(sg_code_location) as fh:
 
-        # platforms other than the current OS will not be supposed
-        # by this config scaffold
-        config_paths = {
-            "darwin": self._paths["darwin"],
-            "win32": self._paths["win32"],
-            "linux2": self._paths["linux2"]
-        }
-
-        fh = open(sg_code_location, "wt")
-        fh.write("# Shotgun Pipeline Toolkit configuration file\n")
-        fh.write("# This file was automatically created\n")
-        fh.write("# This file reflects the paths in the pipeline\n")
-        fh.write("# configuration defined for this project.\n")
-        fh.write("\n")
-        fh.write("Windows: '%s'\n" % config_paths["win32"])
-        fh.write("Darwin: '%s'\n" % config_paths["darwin"])
-        fh.write("Linux: '%s'\n" % config_paths["linux2"])
-        fh.write("\n")
-        fh.write("# End of file.\n")
-        fh.close()
+            fh.write("# This file reflects the paths in the pipeline\n")
+            fh.write("# configuration defined for this project.\n")
+            fh.write("\n")
+            fh.write("Windows: '%s'\n" % self._path.windows)
+            fh.write("Darwin: '%s'\n" % self._path.mac)
+            fh.write("Linux: '%s'\n" % self._path.linux)
+            fh.write("\n")
+            fh.write("# End of file.\n")
 
     def _write_config_info_file(self):
         """
@@ -483,62 +472,53 @@ class Configuration(object):
         """
         config_info_file = self._get_descriptor_metadata_file()
 
-        fh = open(config_info_file, "wt")
+        with self.__open_auto_created_yml(config_info_file) as fh:
+            fh.write("# This file contains metadata describing what exact version\n")
+            fh.write("# Of the config that was downloaded from Shotgun\n")
+            fh.write("\n")
+            fh.write("# Below follows details for the sg attachment that is\n")
+            fh.write("# reflected within this local configuration.\n")
+            fh.write("\n")
 
-        fh.write("# This file contains metadata describing what exact version\n")
-        fh.write("# Of the config that was downloaded from Shotgun\n")
-        fh.write("# Created %s\n" % datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-        fh.write("\n")
-        fh.write("# Below follows details for the sg attachment that is\n")
-        fh.write("# reflected within this local configuration.\n")
-        fh.write("\n")
+            metadata = {}
+            # bake in which version of the deploy logic was used to push this config
+            metadata["deploy_generation"] = constants.BOOTSTRAP_LOGIC_GENERATION
+            # and include details about where the config came from
+            metadata["config_descriptor"] = self._descriptor.get_dict()
 
-        metadata = {}
-        # bake in which version of the deploy logic was used to push this config
-        metadata["deploy_generation"] = constants.BOOTSTRAP_LOGIC_GENERATION
-        # and include details about where the config came from
-        metadata["config_descriptor"] = self._descriptor.get_dict()
-
-        # write yaml
-        yaml.safe_dump(metadata, fh)
-        fh.write("\n")
-        fh.close()
-
-        log.debug("Wrote %s" % config_info_file)
+            # write yaml
+            yaml.safe_dump(metadata, fh)
+            fh.write("\n")
+            fh.write("# End of file.\n")
 
     def _write_shotgun_file(self):
         """
         Writes config/core/shotgun.yml
         """
         sg_file = os.path.join(
-            self._paths[sys.platform],
+            self._path.current_os,
             "config",
             "core",
             constants.CONFIG_SHOTGUN_FILE
         )
-        fh = open(sg_file, "wt")
 
-        fh.write("# This file was auto generated\n")
+        with self.__open_auto_created_yml(sg_file) as fh:
 
-        metadata = {}
-        # bake in which version of the deploy logic was used to push this config
-        metadata["host"] = self._sg_connection.base_url
-        # and include details about where the config came from
-        metadata["http_proxy"] = self._sg_connection.config.raw_http_proxy
-
-        # write yaml
-        yaml.safe_dump(metadata, fh)
-        fh.write("\n")
-        fh.close()
+            metadata = {}
+            # bake in which version of the deploy logic was used to push this config
+            metadata["host"] = self._sg_connection.base_url
+            # and include details about where the config came from
+            metadata["http_proxy"] = self._sg_connection.config.raw_http_proxy
+            # write yaml
+            yaml.safe_dump(metadata, fh)
+            fh.write("\n")
+            fh.write("# End of file.\n")
 
         log.debug("Wrote %s" % sg_file)
 
-    def _get_pipeline_config_file_content(self):
+    def _write_pipeline_config_file(self):
         """
-        Creates content for pipeline configuration file.
-
-        :returns: dictionary with data intended to be written to
-                  the pipeline_configuration.yml file.
+        Writes out the config/core/pipeline_config.yml
         """
         # the pipeline config metadata
         # resolve project name and pipeline config name from shotgun.
@@ -572,7 +552,7 @@ class Configuration(object):
             project_name = "Site"
             pipeline_config_name = constants.UNMANAGED_PIPELINE_CONFIG_NAME
 
-        return {
+        pipeline_config_content = {
             "pc_id": self._pipeline_config_id,
             "pc_name": pipeline_config_name,
             "project_id": self._project_id,
@@ -583,9 +563,22 @@ class Configuration(object):
             "use_shotgun_path_cache": True
         }
 
+        # write pipeline_configuration.yml
+        pipeline_config_path = os.path.join(
+            self._path.current_os,
+            "config",
+            "core",
+            constants.PIPELINECONFIG_FILE
+        )
+
+        with self.__open_auto_created_yml(pipeline_config_path) as fh:
+            yaml.safe_dump(pipeline_config_content, fh)
+            fh.write("\n")
+            fh.write("# End of file.\n")
+
     def _update_roots_file(self):
         """
-        Updates roots.yml based on local storage defs in shotugn
+        Updates roots.yml based on local storage defs in shotgun.
         """
         log.debug("Creating storage roots file...")
 
@@ -593,7 +586,7 @@ class Configuration(object):
         sg_data = self._sg_connection.find(
             "LocalStorage",
             [],
-            fields=["id", "code", "linux_path", "mac_path", "windows_path"])
+            fields=["id", "code"] + ShotgunPath.SHOTGUN_PATH_FIELDS)
 
         # organize them by name
         storage_by_name = {}
@@ -603,30 +596,51 @@ class Configuration(object):
         # now write out roots data
         roots_data = {}
 
-        for storage in self._descriptor.get_required_storages():
-            roots_data[storage] = {}
-            if storage not in storage_by_name:
+        for storage_name in self._descriptor.get_required_storages():
+
+            if storage_name not in storage_by_name:
                 raise ShotgunDeployError(
                     "A '%s' storage is defined by %s but is "
-                    "not defined in Shotgun." % (storage, self._descriptor)
+                    "not defined in Shotgun." % (storage_name, self._descriptor)
                 )
-            roots_data[storage]["mac_path"] = storage_by_name[storage]["mac_path"]
-            roots_data[storage]["linux_path"] = storage_by_name[storage]["linux_path"]
-            roots_data[storage]["windows_path"] = storage_by_name[storage]["windows_path"]
+
+            storage_path = ShotgunPath.from_shotgun_dict(storage_by_name[storage])
+            roots_data[storage_name] = storage_path.as_shotgun_dict()
 
         roots_file = os.path.join(
-            self._paths[sys.platform],
+            self._path.current_os,
             "config",
             "core",
             constants.STORAGE_ROOTS_FILE
         )
-        fh = open(roots_file, "wt")
 
-        fh.write("# This file was auto generated\n")
+        with self.__open_auto_created_yml(roots_file) as fh:
+            yaml.safe_dump(roots_data, fh)
+            fh.write("\n")
+            fh.write("# End of file.\n")
 
-        # write yaml
-        yaml.safe_dump(roots_data, fh)
-        fh.write("\n")
-        fh.close()
-        log.debug("Wrote %s" % roots_file)
+    @with_cleared_umask
+    def __open_auto_created_yml(self, path):
+        """
+        Open a standard auto generated yml for writing.
 
+        - any existing files will be removed
+        - the given path will be open for writing in text mode
+        - a standard header will be added
+
+        :param path: path to yml file to open for writing
+        :return: file handle. It's the respoponsibility of the caller to close this.
+        """
+        log.debug("Creating auto-generated config file %s" % path)
+        # clean out any existing file and replace it with a new one.
+        safe_delete_file(path)
+
+        # open file for writing
+        fh = open(path, "wt")
+
+        fh.write("# This file was auto generated by the Shotgun Pipeline Toolkit.\n")
+        fh.write("# Please do not modify by hand as it may be overwritten at any point.\n")
+        fh.write("# Created %s\n" % datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+        fh.write("# \n")
+
+        return fh

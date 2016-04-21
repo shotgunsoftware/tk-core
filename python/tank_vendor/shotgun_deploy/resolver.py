@@ -164,7 +164,7 @@ class BaseConfigurationResolver(ConfigurationResolver):
         # populate current platform, leave rest blank.
         # this resolver only supports local, on-the-fly
         # configurations
-        config_root[sys.platform] = config_cache_root
+        config_root = shotgun_base.ShotgunPath.from_current_os_path(config_cache_root)
 
         # create an object to represent our configuration install
         return Configuration(

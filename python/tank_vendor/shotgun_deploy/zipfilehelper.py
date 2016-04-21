@@ -10,9 +10,11 @@
 
 import os
 import zipfile
+from ..shotgun_base import with_cleared_umask
 from . import util
 log = util.get_shotgun_deploy_logger()
 
+@with_cleared_umask
 def unzip_file(src_zip_file, target_folder):
     """
     Unzips the given file into the given folder.
@@ -35,14 +37,10 @@ def unzip_file(src_zip_file, target_folder):
     # http://forums.devshed.com/python-programming-11/unzipping-a-zip-file-having-folders-and-subfolders-534487.html
 
     # make sure we are using consistent permissions
-    old_umask = os.umask(0)
-    try:
-        # get list of filenames contained in archinve
-        for x in zip_obj.namelist(): 
-            # process them one by one
-            _process_item(zip_obj, x, target_folder)
-    finally:
-        os.umask(old_umask)
+    # get list of filenames contained in archinve
+    for x in zip_obj.namelist():
+        # process them one by one
+        _process_item(zip_obj, x, target_folder)
 
 def zip_file(source_folder, target_zip_file):
     """
