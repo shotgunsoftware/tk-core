@@ -1,4 +1,5 @@
 Toolkit Platform API
 ####################################################
 
-Docs coming soon!
+.. note::
+    This is work in progress.

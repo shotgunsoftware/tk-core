@@ -7,7 +7,10 @@ Contents:
 .. toctree::
     :maxdepth: 2
 
-    core_api
-    platform_api
     filesystem_configuration
     environment_configuration
+
+    bootstrap
+    descriptor
+    core
+    platform

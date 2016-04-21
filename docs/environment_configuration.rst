@@ -1,4 +1,6 @@
 Configuration the Environment
 ####################################################
 
-Documentation coming soon!
+
+.. note::
+    This is work in progress.
