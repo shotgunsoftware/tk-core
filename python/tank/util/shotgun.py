@@ -15,18 +15,15 @@ Shotgun utilities
 
 import os
 import sys
-import urllib
 import urllib2
 import urlparse
-
-from tank_vendor import yaml
 
 # use api json to cover py 2.5
 from tank_vendor import shotgun_api3
 
 from ..errors import TankError
 from .. import hook
-from ..platform import constants
+from . import constants
 from . import login
 from . import yaml_cache
 
@@ -778,7 +775,7 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
     else:
         # no thumbnail found - instead use the default one
         this_folder = os.path.abspath(os.path.dirname(__file__))
-        no_thumb = os.path.join(this_folder, "no_preview.jpg")
+        no_thumb = os.path.join(this_folder, "resources", "no_preview.jpg")
         tk.shotgun.upload_thumbnail(published_file_entity_type, entity.get("id"), no_thumb)
 
 

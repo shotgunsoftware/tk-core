@@ -12,11 +12,7 @@ import os
 import sys
 import copy
 
-from tank_vendor import yaml
 from tank_test.tank_test_base import *
-
-from tank_vendor import shotgun_base
-import tank_vendor
 
 
 class TestBasePaths(TankTestBase):
@@ -154,6 +150,31 @@ class TestShotgunPath(TankTestBase):
         self.assertEqual(std_constructor.macosx, "/tmp2")
         self.assertEqual(std_constructor.linux, "/tmp")
 
+
+
+        self.assertEqual( sp("/foo/bar/baz", "/"), "/foo/bar/baz")
+        self.assertEqual( sp("/foo/bar/baz/", "/"), "/foo/bar/baz")
+        self.assertEqual( sp("//foo//bar//baz", "/"), "/foo/bar/baz")
+        self.assertEqual( sp("/foo/bar//baz", "/"), "/foo/bar/baz")
+        self.assertEqual( sp("/foo\\bar//baz/////", "/"), "/foo/bar/baz")
+
+
+        self.assertEqual( sp("/foo/bar/baz", "\\"), "\\foo\\bar\\baz")
+        self.assertEqual( sp("c:/foo/bar/baz", "\\"), "c:\\foo\\bar\\baz")
+        self.assertEqual( sp("c:/foo///bar\\\\baz//", "\\"), "c:\\foo\\bar\\baz")
+        self.assertEqual( sp("/foo///bar\\\\baz//", "\\"), "\\foo\\bar\\baz")
+
+        self.assertEqual( sp("\\\\server\\share\\foo\\bar", "\\"), "\\\\server\\share\\foo\\bar")
+        self.assertEqual( sp("\\\\server\\share\\foo\\bar\\", "\\"), "\\\\server\\share\\foo\\bar")
+        self.assertEqual( sp("//server/share/foo//bar", "\\"), "\\\\server\\share\\foo\\bar")
+
+        self.assertEqual( sp("z:/", "\\"), "z:\\")
+        self.assertEqual( sp("z:\\", "\\"), "z:\\")
+
+        self.assertEqual( sp(None, "/"), None)
+
+
+
     def test_equality(self):
         """
         Tests site cache root
@@ -196,3 +217,20 @@ class TestShotgunPath(TankTestBase):
         self.assertEqual(p3.windows, "C:\\temp\\foo\\bar")
         self.assertEqual(p3.macosx, "/mac/foo/bar")
         self.assertEqual(p3.linux, "/linux/foo/bar")
+
+    def test_get_shotgun_storage_key(self):
+        """
+        Tests get_shotgun_storage_key
+        """
+        gssk = shotgun_base.ShotgunPath.get_shotgun_storage_key
+        self.assertEqual(gssk("win32"), "windows_path")
+        self.assertEqual(gssk("linux2"), "linux_path")
+        self.assertEqual(gssk("linux"), "linux_path")
+        self.assertEqual(gssk("linux3"), "linux_path")
+        self.assertEqual(gssk("darwin"), "mac_path")
+        if sys.platform == "win32":
+            self.assertEqual(gssk(), "windows_path")
+        if sys.platform == "darwin":
+            self.assertEqual(gssk(), "mac_path")
+        if sys.platform == "linux2":
+            self.assertEqual(gssk(), "linux_path")

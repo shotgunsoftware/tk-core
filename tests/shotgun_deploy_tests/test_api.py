@@ -13,8 +13,6 @@ import tempfile
 import datetime
 
 from tank_test.tank_test_base import *
-from tank_vendor import shotgun_deploy
-from tank_vendor import shotgun_base
 
 
 

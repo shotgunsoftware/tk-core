@@ -14,11 +14,9 @@ on disk.
 """
 
 import os
-import sys
 from . import util
-from . import Descriptor, create_descriptor
+from ..descriptor import Descriptor, create_descriptor
 from .errors import ShotgunDeployError
-from .. import shotgun_base
 
 from .configuration import Configuration
 

@@ -24,7 +24,7 @@ from collections import deque
 from threading import Event, Thread, Lock
 import urllib2
  
-from ..platform import constants as platform_constants
+from . import constants
 
 # use api json to cover py 2.5
 from tank_vendor import shotgun_api3
@@ -298,7 +298,7 @@ class MetricsDispatchWorkerThread(Thread):
 
         # execute the log_metrics core hook
         self._engine.tank.execute_core_hook(
-            platform_constants.TANK_LOG_METRICS_HOOK_NAME,
+            constants.TANK_LOG_METRICS_HOOK_NAME,
             metrics=[m.data for m in metrics]
         )
 

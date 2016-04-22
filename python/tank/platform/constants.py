@@ -75,17 +75,11 @@ ENGINE_CONFIG_ENVIRONMENT_KEY = "environment"
 # hook that is executed when a tank instance initializes.
 TANK_INIT_HOOK_NAME = "tank_init"
 
-# hook that is executed before a publish is registered in sg.
-TANK_PUBLISH_HOOK_NAME = "before_register_publish"
-
 # hook that is executed whenever an engine has initialized
 TANK_ENGINE_INIT_HOOK_NAME = "engine_init"
 
 # hook that is executed whenever a bundle has initialized
 TANK_BUNDLE_INIT_HOOK_NAME = "bundle_init"
-
-# hook to log metrics
-TANK_LOG_METRICS_HOOK_NAME = "log_metrics"
 
 # hook to be executed after bundle install
 BUNDLE_POST_INSTALL_HOOK = "post_install.py"
@@ -104,9 +98,6 @@ PIPELINE_CONFIGURATION_INIT_HOOK_NAME = "pipeline_configuration_init"
 
 # hook that is executed whenever a cache location should be determined
 CACHE_LOCATION_HOOK_NAME = "cache_location"
-
-# hook to get current login
-CURRENT_LOGIN_HOOK_NAME = "get_current_login"
 
 # the name of the file that holds the inverse root defs
 # note - this is no longer used by the core itself, but it is still
@@ -135,9 +126,6 @@ PROCESS_FOLDER_CREATION_HOOK_NAME = "process_folder_creation"
 # hook to choose the environment file given a context
 PICK_ENVIRONMENT_CORE_HOOK_NAME = "pick_environment"
 
-# hook to decide what how folders on disk should be named
-PROCESS_FOLDER_NAME_HOOK_NAME = "process_folder_name"
-
 # the configuration key inside an environment which holds all the app configs
 ENVIRONMENT_CFG_APPS_SECTION = "apps"
 
@@ -160,16 +148,6 @@ PRIMARY_STORAGE_NAME = "primary"
 
 # the file to look for that defines and bootstraps a framework
 FRAMEWORK_FILE = "framework.py"
-
-# regex pattern that all folder names must validate against
-VALID_SG_ENTITY_NAME_REGEX = "^[\w\-\.]+$"
-
-# regex pattern that all project folder names must validate against
-VALID_SG_PROJECT_NAME_REGEX = "^[\w\-\./]+$"
-
-# a human readable explanation of the regex above - used in error messages
-VALID_SG_ENTITY_NAME_EXPLANATION = ("letters, numbers and the characters period(.), "
-                                    "dash(-) and underscore(_)")
 
 # the name of the primary pipeline configuration
 PRIMARY_PIPELINE_CONFIG_NAME = "Primary"
@@ -239,11 +217,7 @@ SHOTGUN_ENGINE_NAME = "tk-shotgun"
 # the menu favourites key for an engine
 MENU_FAVOURITES_KEY = "menu_favourites"
 
-# studio level core hook file name for computing the default name of a project
-STUDIO_HOOK_PROJECT_NAME = "project_name.py"
 
-# studio level core hook for specifying shotgun connection settings
-STUDIO_HOOK_SG_CONNECTION_SETTINGS = "sg_connection.py"
 
 # init cache for fast initialization
 SITE_INIT_CACHE_FILE_NAME = "toolkit_init.cache"

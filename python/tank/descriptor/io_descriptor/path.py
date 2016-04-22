@@ -9,13 +9,11 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import sys
 import logging
 
 from .base import IODescriptorBase
 from ..errors import TankDescriptorError
-
-from tank_vendor.shotgun_base import get_shotgun_storage_key
+from ...util.shotgun_path import ShotgunPath
 
 log = logging.getLogger(__name__)
 
@@ -56,7 +54,7 @@ class IODescriptorPath(IODescriptorBase):
         )
 
         # platform specific location support
-        platform_key = get_shotgun_storage_key()
+        platform_key = ShotgunPath.get_shotgun_storage_key()
 
         if "path" in descriptor_dict:
             # first look for 'path' key

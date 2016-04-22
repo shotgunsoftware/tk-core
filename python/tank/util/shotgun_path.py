@@ -9,8 +9,6 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import sys
-from .utils import sanitize_path
-
 
 class ShotgunPath(object):
     """
@@ -59,6 +57,38 @@ class ShotgunPath(object):
     """
     A list of the standard path fields used by Shotgun.
     """
+
+    @staticmethod
+    def get_shotgun_storage_key(platform=sys.platform):
+        """
+        Given a sys.platform, resolve a Shotgun storage key
+
+        Shotgun local storages handle operating systems using
+        the three keys 'windows_path, 'mac_path' and 'linux_path',
+        also defined as ShotgunPath.SHOTGUN_PATH_FIELDS
+
+        This method resolves the right key given a std. python
+        sys.platform::
+
+            get_shotgun_storage_key('win32') -> 'windows_path'
+            get_shotgun_storage_key() -> 'mac_path' # if on mac
+
+        :param platform: sys.platform style string, e.g 'linux2',
+                         'win32' or 'darwin'.
+        :returns: Shotgun storage path as string.
+        """
+        if platform == "win32":
+            return "windows_path"
+        elif platform == "darwin":
+            return "mac_path"
+        elif platform.startswith("linux"):
+            return "linux_path"
+        else:
+            raise ValueError(
+                "Cannot resolve Shotgun storage - unsupported "
+                "os platform '%s'" % platform
+            )
+
 
     @classmethod
     def from_shotgun_dict(cls, sg_dict):
@@ -122,9 +152,9 @@ class ShotgunPath(object):
         :param linux_path: Path on linux to associate with this path object
         :param macosx_path: Path on macosx to associate with this path object
         """
-        self._windows_path = sanitize_path(windows_path, "\\")
-        self._linux_path = sanitize_path(linux_path, "/")
-        self._macosx_path = sanitize_path(macosx_path, "/")
+        self._windows_path = self._sanitize_path(windows_path, "\\")
+        self._linux_path = self._sanitize_path(linux_path, "/")
+        self._macosx_path = self._sanitize_path(macosx_path, "/")
 
     def __repr__(self):
         return "<Path win:'%s', linux:'%s', macosx:'%s'>" % (
@@ -157,6 +187,70 @@ class ShotgunPath(object):
         if is_equal is NotImplemented:
             return NotImplemented
         return not is_equal
+
+    def _sanitize_path(self, path, separator):
+        """
+        Multi-platform sanitize and clean up of paths.
+
+        The following modifications will be carried out:
+
+        None returns None
+
+        Trailing slashes are removed:
+        1. /foo/bar      - unchanged
+        2. /foo/bar/     - /foo/bar
+        3. z:/foo/       - z:\foo
+        4. z:/           - z:\
+        5. z:\           - z:\
+        6. \\foo\bar\    - \\foo\bar
+
+        Double slashes are removed:
+        1. //foo//bar    - /foo/bar
+        2. \\foo\\bar    - \\foo\bar
+
+        Leading and trailing spaces are removed:
+        1. "   Z:\foo  " - "Z:\foo"
+
+        :param path: the path to clean up
+        :param separator: the os.sep to adjust the path for. / on nix, \ on win.
+        :returns: cleaned up path
+        """
+        if path is None:
+            return None
+
+        # ensure there is no white space around the path
+        path = path.strip()
+
+        # get rid of any slashes at the end
+        # after this step, path value will be "/foo/bar", "c:" or "\\hello"
+        path = path.rstrip("/\\")
+
+        # add slash for drive letters: c: --> c:/
+        if len(path) == 2 and path.endswith(":"):
+            path += "/"
+
+        # and convert to the right separators
+        # after this we have a path with the correct slashes and no end slash
+        local_path = path.replace("\\", separator).replace("/", separator)
+
+        # now weed out any duplicated slashes. iterate until done
+        while True:
+            new_path = local_path.replace("//", "/")
+            if new_path == local_path:
+                break
+            else:
+                local_path = new_path
+
+        # for windows, remove duplicated backslashes, except if they are
+        # at the beginning of the path
+        while True:
+            new_path = local_path[0] + local_path[1:].replace("\\\\", "\\")
+            if new_path == local_path:
+                break
+            else:
+                local_path = new_path
+
+        return local_path
 
     @property
     def macosx(self):
@@ -213,6 +307,30 @@ class ShotgunPath(object):
             d["mac_path"] = self._macosx_path
         if self._linux_path or include_empty:
             d["linux_path"] = self._linux_path
+        return d
+
+    def as_system_dict(self, include_empty=True):
+        """
+        The path as a dictionary keyed by sys.platform.
+
+        With include_empty set to True:
+
+            { "win32": "C:\\temp", "darwin": None, "linux2": "/tmp"}
+
+        With include_empty set to False:
+
+            { "win32": "C:\\temp", "linux2": "/tmp"}
+
+        :param include_empty: Controls whether keys should be included for empty path values
+        :return: dictionary of paths keyed by sys.platform.
+        """
+        d = {}
+        if self._windows_path or include_empty:
+            d["win32"] = self._windows_path
+        if self._macosx_path or include_empty:
+            d["darwin"] = self._macosx_path
+        if self._linux_path or include_empty:
+            d["linux2"] = self._linux_path
         return d
 
     def join(self, folder):

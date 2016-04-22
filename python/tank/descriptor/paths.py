@@ -9,7 +9,8 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-from tank_vendor import shotgun_base
+from .. import paths
+from ..util import filesystem
 
 def get_bundle_cache_root():
     """
@@ -18,8 +19,8 @@ def get_bundle_cache_root():
 
     :returns: path on disk
     """
-    bundle_cache_root = os.path.join(shotgun_base.get_cache_root(), "bundle_cache")
-    shotgun_base.ensure_folder_exists(bundle_cache_root)
+    bundle_cache_root = os.path.join(paths.get_cache_root(), "bundle_cache")
+    filesystem.ensure_folder_exists(bundle_cache_root)
     return bundle_cache_root
 
 

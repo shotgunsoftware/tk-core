@@ -24,12 +24,12 @@ from .util.version import is_version_older
 from .platform import constants
 from .platform.environment import Environment, WritableEnvironment
 from .util import shotgun, yaml_cache
+from .util.shotgun_path import ShotgunPath
 from . import hook
 from . import pipelineconfig_utils
 from . import template_includes
 
 from .descriptor import Descriptor, create_descriptor, descriptor_uri_to_dict
-from tank_vendor.shotgun_base import get_shotgun_storage_key
 
 class PipelineConfiguration(object):
     """
@@ -386,17 +386,19 @@ class PipelineConfiguration(object):
         
         :returns: dictionary of storages, for example {"primary": "/studio", "textures": "/textures"}
         """
-        # now pick current os and append project root
         proj_roots = {}
-        for r in self._roots:
-            root = self._roots[r][get_shotgun_storage_key()]
+
+        for storage_name in self._roots:
+            # get current os path
+            local_root_path = self._roots[storage_name].current_os
+            # validate it
+            if local_root_path is None:
+                raise TankError(
+                    "Undefined toolkit storage! The local file storage '%s' is not defined for this "
+                    "operating system! Please contact toolkit support." % storage_name)
             
-            if root is None:
-                raise TankError("Undefined toolkit storage! The local file storage '%s' is not defined for this "
-                                "operating system! Please contact toolkit support." % r)
-            
-            proj_roots[r] = root
-            
+            proj_roots[storage_name] = local_root_path
+
         return proj_roots
     
     def get_all_platform_data_roots(self):
@@ -422,24 +424,13 @@ class PipelineConfiguration(object):
          
         :returns: dictionary of dictionaries. See above.
         """
-        
-        # note: currently supported platforms are linux2, win32 and darwin, however additional
-        # platforms may be added in the future.
-        
         proj_roots = {}
         for storage_name in self._roots:
-            # create dict entry for each storage
-            proj_roots[storage_name] = {}
+            # join the project name to the storage ShotgunPath
+            project_path = self._roots[storage_name].join(self._project_name)
+            # break out the ShotgunPath object in sys.platform style dict
+            proj_roots[storage_name] = project_path.as_system_dict()
 
-            for platform in ["win32", "linux2", "darwin"]:
-                # for each operating system, append the project root path
-                storage_path = self._roots[storage_name][get_shotgun_storage_key(platform)]
-                if storage_path:
-                    # append project name
-                    storage_path = self.__append_project_name_to_root(storage_path, platform)
-                # key by operating system
-                proj_roots[storage_name][platform] = storage_path
-                
         return proj_roots
     
     def get_data_roots(self):
@@ -452,38 +443,14 @@ class PipelineConfiguration(object):
                   {"primary": "/studio/my_project", "textures": "/textures/my_project"}        
         """
         proj_roots = {}
-        for storage_name, root_path in self.get_local_storage_roots().iteritems():
-            proj_roots[storage_name] = self.__append_project_name_to_root(root_path, sys.platform)
+        for storage_name in self._roots:
+            # join the project name to the storage ShotgunPath
+            project_path = self._roots[storage_name].join(self._project_name)
+            # break out the ShotgunPath object in sys.platform style dict
+            proj_roots[storage_name] = project_path.current_os
+
         return proj_roots
 
-    def __append_project_name_to_root(self, root_value, os_name):
-        """
-        Multi-os method that creates a project root path.
-        Note that this method does not use any of the os.path methods,
-        since we may for example be evaulating a windows path on linux.
-        
-        :param root_value: A root path, for example /mnt/projects or c:\foo
-        :param os_name: sys.platform name for the path's platform.
-          
-        :returns: the project disk name properly concatenated onto the root_value
-        """
-        # get the valid separator for this path
-        separators = {"linux2": "/", "win32": "\\", "darwin": "/" }
-        separator = separators[os_name] 
-        
-        # get rid of any slashes at the end
-        root_value = root_value.rstrip("/\\")
-        # now root value is "/foo/bar", "c:" or "\\hello" 
-        
-        # concat the full path.
-        full_path = root_value + separator + self._project_name
-        
-        # note that project name may be "foo/bar/baz" even on windows.
-        # now get all the separators adjusted.
-        full_path = full_path.replace("\\", separator).replace("/", separator)
-        
-        return full_path
-        
     def has_associated_data_roots(self):
         """
         Some configurations do not have a notion of a project storage and therefore
@@ -588,7 +555,7 @@ class PipelineConfiguration(object):
             # scan through all path keys and look for pipeline config token
 
             # platform specific resolve
-            platform_key = get_shotgun_storage_key()
+            platform_key = ShotgunPath.get_shotgun_storage_key()
             if platform_key in descriptor_dict:
                 descriptor_dict[platform_key] = descriptor_dict[platform_key].replace(
                     constants.PIPELINE_CONFIG_DEV_DESCRIPTOR_TOKEN,

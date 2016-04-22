@@ -8,14 +8,12 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from ... import pipelineconfig
+
 from ... import pipelineconfig_utils
-from ...util import shotgun
+from ...util.shotgun_path import ShotgunPath
 from ...platform import constants
 from ...errors import TankError
 from .action_base import Action
-
-from tank_vendor.shotgun_base import get_shotgun_storage_key
 
 import sys
 import os
@@ -117,7 +115,7 @@ class PCBreakdownAction(Action):
             if self.tk.pipeline_configuration.is_auto_path():
                 local_path = self.tk.pipeline_configuration.get_path()
             else:
-                local_path = d.get(get_shotgun_storage_key())
+                local_path = d.get(ShotgunPath.get_shotgun_storage_key())
 
             if local_path is None:
                 log.info("The Configuration is not accessible from this computer!")

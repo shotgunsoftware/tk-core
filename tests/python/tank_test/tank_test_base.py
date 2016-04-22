@@ -26,7 +26,6 @@ import unittest2 as unittest
 
 import sgtk
 import tank
-from tank_vendor import shotgun_base
 from tank import path_cache
 from tank_vendor import yaml
 

@@ -18,12 +18,12 @@ import shutil
 from itertools import chain
 
 from tank_vendor import yaml
-from tank_vendor.shotgun_base import get_shotgun_storage_key
 from .action_base import Action
 from . import update 
 from ...errors import TankError
 from ...platform import constants
 from ...util import shotgun
+from ...util.shotgun_path import ShotgunPath
 
 class EntityMigrator(object):
     """
@@ -1180,7 +1180,7 @@ class PublishedFileEntityMigrator(EntityMigrator):
             # query shotgun for the 'Tank' LocalStorage entity
             self._tls = {}
 
-            path_field = get_shotgun_storage_key()
+            path_field = ShotgunPath.get_shotgun_storage_key()
             
             sg_entity = self._sg.find_one("LocalStorage", filters=[["code", "is", "Tank"]], fields=[path_field])
             if sg_entity:
@@ -1740,7 +1740,7 @@ class MigratePublishedFileEntitiesAction(Action):
             log.info("Updating pipeline configuration '%s' for project '%s' (%d of %d)" % (pc_name, project_name, pc_i+1, len(pcs)))
             
             # check that pipeline config is accessible:
-            local_path = pc.get(get_shotgun_storage_key())
+            local_path = pc.get(ShotgunPath.get_shotgun_storage_key())
             if local_path is None or not os.path.exists(local_path):
                 all_updated = False
                 warnings.append("Pipeline configuration '%s' for project '%s' is not accessible from this computer and can't be migrated!" 

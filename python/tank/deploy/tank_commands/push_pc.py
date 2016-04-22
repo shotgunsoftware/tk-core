@@ -16,7 +16,8 @@ from ...pipelineconfig import PipelineConfiguration
 from . import console_utils
 
 from .action_base import Action
-from tank_vendor.shotgun_base import get_shotgun_storage_key
+
+from ...util.shotgun_path import ShotgunPath
 
 import os
 import datetime
@@ -97,8 +98,8 @@ class PushPCAction(Action):
             # skip self
             if pc["id"] == current_pc_id:
                 continue
-            local_path = pc.get(get_shotgun_storage_key())
-            path_hash[ pc["id"] ] = local_path
+            local_path = ShotgunPath.from_shotgun_dict(pc).current_os
+            path_hash[pc["id"]] = local_path
             log.info(" - [%d] %s (%s)" % (pc["id"], pc["code"], local_path))
         log.info("")
         

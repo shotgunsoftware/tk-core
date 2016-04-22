@@ -12,7 +12,6 @@ import os
 
 from tank_test.tank_test_base import *
 from tank.errors import TankError
-from tank_vendor import shotgun_base
 
 class TestDescriptors(TankTestBase):
 

@@ -27,7 +27,9 @@ from ...util.git import execute_git_command
 from .setup_project_core import _copy_folder
 
 from tank_vendor import yaml
-from tank_vendor.shotgun_base import get_shotgun_storage_key
+
+from ...util.shotgun_path import ShotgunPath
+
 
 
 class ProjectSetupParameters(object):
@@ -285,17 +287,19 @@ class ProjectSetupParameters(object):
         if not self._config_template.is_local_config():
             return False
 
-        field_name = get_shotgun_storage_key()
+        field_name = ShotgunPath.get_shotgun_storage_key()
 
-        data = self._sg.find_one("PipelineConfiguration",
-                                 [[field_name, "is", self._config_template.get_pipeline_configuration()]],
-                                 ["id",
-                                  "code",
-                                  "mac_path",
-                                  "windows_path",
-                                  "linux_path",
-                                  "project",
-                                  "project.Project.tank_name"])
+        data = self._sg.find_one(
+            "PipelineConfiguration",
+            [[field_name, "is", self._config_template.get_pipeline_configuration()]],
+            ["id",
+             "code",
+             "mac_path",
+             "windows_path",
+             "linux_path",
+             "project",
+             "project.Project.tank_name"]
+        )
 
         return data
 
@@ -1161,7 +1165,7 @@ class TemplateConfiguration(object):
                         return_data[s]["shotgun_id"] = x.get("id")
 
                         # get the local path
-                        local_storage_path = x.get(get_shotgun_storage_key())
+                        local_storage_path = x.get(ShotgunPath.get_shotgun_storage_key())
 
                         if local_storage_path is None:
                             # shotgun has no path for our local storage

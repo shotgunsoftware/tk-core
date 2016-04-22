@@ -14,10 +14,9 @@ from .action_base import Action
 from . import core_localize
 from ...errors import TankError
 from ...util import shotgun
+from ...util.shotgun_path import ShotgunPath
 from ...platform import constants
 from ... import pipelineconfig_utils
-
-from tank_vendor.shotgun_base import get_shotgun_storage_key
 
 from .setup_project_core import run_project_setup
 from .setup_project_params import ProjectSetupParameters
@@ -354,7 +353,7 @@ class SetupProjectAction(Action):
                 if ppc.get("project") is None:
                     continue
 
-                pc_path = ppc.get(get_shotgun_storage_key())
+                pc_path = ppc.get(ShotgunPath.get_shotgun_storage_key())
                 if pc_path is None or pc_path == "":
                     # this Toolkit config does not exist on a disk that is reachable from this os
                     log.info("   %s: No valid config found for this OS!" % ppc.get("project").get("name"))

@@ -10,7 +10,6 @@
 
 """
 Helper methods that do path management.
-
 """
 
 import os, sys
@@ -23,7 +22,7 @@ def append_path_to_env_var(env_var_name, path):
     will concatenate paths using : on linux and ; on windows
     """
     
-    return add_path_to_env_var(env_var_name, path, prepend=False)
+    return _add_path_to_env_var(env_var_name, path, prepend=False)
 
 
 def prepend_path_to_env_var(env_var_name, path):
@@ -33,10 +32,10 @@ def prepend_path_to_env_var(env_var_name, path):
     will concatenate paths using : on linux and ; on windows
     """
     
-    return add_path_to_env_var(env_var_name, path, prepend=True)
+    return _add_path_to_env_var(env_var_name, path, prepend=True)
 
 
-def add_path_to_env_var(env_var_name, path, prepend=False):
+def _add_path_to_env_var(env_var_name, path, prepend=False):
     """
     Append or prepend the path to the given environment variable.
     Creates the env var if it doesn't exist already.
