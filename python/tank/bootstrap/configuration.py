@@ -466,7 +466,7 @@ class Configuration(object):
             fh.write("# configuration defined for this project.\n")
             fh.write("\n")
             fh.write("Windows: '%s'\n" % self._path.windows)
-            fh.write("Darwin: '%s'\n" % self._path.mac)
+            fh.write("Darwin: '%s'\n" % self._path.macosx)
             fh.write("Linux: '%s'\n" % self._path.linux)
             fh.write("\n")
             fh.write("# End of file.\n")
