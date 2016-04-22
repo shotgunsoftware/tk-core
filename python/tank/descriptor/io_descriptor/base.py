@@ -16,9 +16,9 @@ import urlparse
 import logging
 
 from .. import constants
+from ...util import filesystem
 from ..errors import TankDescriptorError
 
-from tank_vendor.shotgun_base import copy_folder
 from tank_vendor import yaml
 
 log = logging.getLogger(__name__)
@@ -231,7 +231,7 @@ class IODescriptorBase(object):
         # make sure config exists
         self.ensure_local()
         # copy descriptor in
-        copy_folder(self.get_path(), target_path)
+        filesystem.copy_folder(self.get_path(), target_path)
 
     def get_manifest(self):
         """

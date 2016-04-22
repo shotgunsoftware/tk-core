@@ -13,9 +13,10 @@ import logging
 
 from ...util.process import subprocess_check_output
 from ...util.git import execute_git_command
+from ...util import filesystem
 from .git import IODescriptorGit
 from ..errors import TankDescriptorError
-from tank_vendor.shotgun_base import ensure_folder_exists
+
 
 
 log = logging.getLogger(__name__)
@@ -108,7 +109,7 @@ class IODescriptorGitBranch(IODescriptorGit):
 
         # ensure *parent* folder exists
         parent_folder = os.path.dirname(target_path)
-        ensure_folder_exists(parent_folder)
+        filesystem.ensure_folder_exists(parent_folder)
 
         # now clone, set to branch and set to specific commit
         cwd = os.getcwd()

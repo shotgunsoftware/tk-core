@@ -15,8 +15,9 @@ import logging
 
 from .base import IODescriptorBase
 from ...util.zip import unzip_file
+from ...util import filesystem
 from ..errors import TankDescriptorError
-from tank_vendor.shotgun_base import ensure_folder_exists, safe_delete_file, create_valid_filename
+
 
 log = logging.getLogger(__name__)
 
@@ -109,7 +110,7 @@ class IODescriptorShotgunEntity(IODescriptorBase):
             name = "p%s_%s" % (self._project_id, self._name)
         else:
             name = self._name
-        return create_valid_filename(name)
+        return filesystem.create_valid_filename(name)
 
     def get_version(self):
         """
@@ -129,7 +130,7 @@ class IODescriptorShotgunEntity(IODescriptorBase):
 
         # cache into the primary location
         target = self._get_cache_paths()[0]
-        ensure_folder_exists(target)
+        filesystem.ensure_folder_exists(target)
 
         # and now for the download.
         # @todo: progress feedback here - when the SG api supports it!
@@ -152,7 +153,7 @@ class IODescriptorShotgunEntity(IODescriptorBase):
         unzip_file(zip_tmp, target)
 
         # clear temp file
-        safe_delete_file(zip_tmp)
+        filesystem.safe_delete_file(zip_tmp)
 
     def get_latest_version(self, constraint_pattern=None):
         """

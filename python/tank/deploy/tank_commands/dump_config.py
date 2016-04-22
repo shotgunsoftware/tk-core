@@ -13,7 +13,7 @@ import StringIO
 
 from tank import TankError
 from .action_base import Action
-from tank_vendor.shotgun_base import ensure_folder_exists
+from ...util import filesystem
 
 class DumpConfigAction(Action):
     """
@@ -220,7 +220,7 @@ class DumpConfigAction(Action):
             dir = os.path.dirname(path)
             if not os.path.isdir(dir):
                 try:
-                    ensure_folder_exists(dir)
+                    filesystem.ensure_folder_exists(dir)
                 except OSError, e:
                     raise TankError(
                         "Unable to create directory: %s\n"
@@ -262,10 +262,7 @@ class DumpConfigAction(Action):
         valid_env_names = self.tk.pipeline_configuration.get_environments()
 
         if parameters["env"] not in valid_env_names:
-           raise TankError(
-                "Could not find a valid config named: '%s'" %
-                (parameters["env"],)
-            )
+            raise TankError("Could not find a valid config named: '%s'" % (parameters["env"],))
 
         return parameters
 

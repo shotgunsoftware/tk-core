@@ -11,11 +11,11 @@
 import os
 import logging
 import zipfile
-from tank_vendor.shotgun_base import with_cleared_umask
+from . import filesystem
 
 log = logging.getLogger(__name__)
 
-@with_cleared_umask
+@filesystem.with_cleared_umask
 def unzip_file(src_zip_file, target_folder):
     """
     Unzips the given file into the given folder.
@@ -43,6 +43,7 @@ def unzip_file(src_zip_file, target_folder):
         # process them one by one
         _process_item(zip_obj, x, target_folder)
 
+@filesystem.with_cleared_umask
 def zip_file(source_folder, target_zip_file):
     """
     Zips the contents of a folder.

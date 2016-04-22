@@ -15,14 +15,11 @@ import logging
 
 from ...util.git import execute_git_command
 from ...util.process import subprocess_check_output
+from ...util import filesystem
 from .git import IODescriptorGit
 from ...util.zip import unzip_file
 from ..errors import TankDescriptorError
-from tank_vendor.shotgun_base import (
-    ensure_folder_exists,
-    safe_delete_file,
-    get_legacy_bundle_install_folder,
-)
+
 
 log = logging.getLogger(__name__)
 
@@ -129,7 +126,7 @@ class IODescriptorGitTag(IODescriptorGit):
         """
         # now first clone the repo into a tmp location
         clone_tmp = os.path.join(tempfile.gettempdir(), "%s_tank_clone" % uuid.uuid4().hex)
-        ensure_folder_exists(clone_tmp)
+        filesystem.ensure_folder_exists(clone_tmp)
 
         # get the most recent tag hash
         cwd = os.getcwd()
@@ -173,7 +170,7 @@ class IODescriptorGitTag(IODescriptorGit):
         """
         # now first clone the repo into a tmp location
         clone_tmp = os.path.join(tempfile.gettempdir(), "%s_tank_clone" % uuid.uuid4().hex)
-        ensure_folder_exists(clone_tmp)
+        filesystem.ensure_folder_exists(clone_tmp)
 
         # get the most recent tag hash
         cwd = os.getcwd()
@@ -228,14 +225,14 @@ class IODescriptorGitTag(IODescriptorGit):
         target = self._get_cache_paths()[0]
 
         # clone into temp location and extract tag
-        ensure_folder_exists(target)
+        filesystem.ensure_folder_exists(target)
 
         # now first clone the repo into a tmp location
         # then zip up the tag we are looking for
         # finally, move that zip file into the target location
         zip_tmp = os.path.join(tempfile.gettempdir(), "%s_tank.zip" % uuid.uuid4().hex)
         clone_tmp = os.path.join(tempfile.gettempdir(), "%s_tank_clone" % uuid.uuid4().hex)
-        ensure_folder_exists(clone_tmp)
+        filesystem.ensure_folder_exists(clone_tmp)
 
         # now clone and archive
         cwd = os.getcwd()
@@ -255,7 +252,7 @@ class IODescriptorGitTag(IODescriptorGit):
         unzip_file(zip_tmp, target)
 
         # clear temp file
-        safe_delete_file(zip_tmp)
+        filesystem.safe_delete_file(zip_tmp)
 
     def copy(self, target_path, connected=False):
         """

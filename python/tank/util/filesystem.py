@@ -8,6 +8,10 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+"""
+Utility methods for manipulating files and folders
+"""
+
 import os
 import re
 import sys
@@ -154,7 +158,6 @@ def safe_delete_file(path):
     except Exception, e:
         log.warning("File '%s' could not be deleted, skipping: %s" % (path, e))
 
-
 @with_cleared_umask
 def copy_folder(src, dst, folder_permissions=0775):
     """
@@ -239,7 +242,6 @@ def move_folder(src, dst, folder_permissions=0775):
                 os.remove(f)
             except Exception, e:
                 log.error("Could not delete file %s: %s" % (f, e))
-
 
 def create_valid_filename(value):
     """

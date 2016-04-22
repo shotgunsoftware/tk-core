@@ -19,15 +19,11 @@ from tank_vendor.shotgun_api3.lib import httplib2
 import cPickle as pickle
 
 from ...util.zip import unzip_file
+from ...util import filesystem
 from ..descriptor import Descriptor
 from ..errors import TankAppStoreConnectionError
 from ..errors import TankAppStoreError
 from ..errors import TankDescriptorError
-from tank_vendor.shotgun_base import (
-    ensure_folder_exists,
-    safe_delete_file,
-    get_legacy_bundle_install_folder
-)
 
 from .. import constants
 from .base import IODescriptorBase
@@ -330,7 +326,7 @@ class IODescriptorAppStore(IODescriptorBase):
 
         # cache into the primary location
         target = self._get_cache_paths()[0]
-        ensure_folder_exists(target)
+        filesystem.ensure_folder_exists(target)
 
         # connect to the app store
         (sg, script_user) = self.__create_sg_app_store_connection()
@@ -374,7 +370,7 @@ class IODescriptorAppStore(IODescriptorBase):
         unzip_file(zip_tmp, target)
 
         # remove zip file
-        safe_delete_file(zip_tmp)
+        filesystem.safe_delete_file(zip_tmp)
 
         # write a stats record to the tank app store
         data = {}

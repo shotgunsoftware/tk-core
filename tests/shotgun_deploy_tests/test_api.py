@@ -26,7 +26,7 @@ class TestApi(TankTestBase):
         Helper method that creates an info.yml dummy
         file in the given location
         """
-        shotgun_base.ensure_folder_exists(path)
+        sgtk.util.filesystem.ensure_folder_exists(path)
         fh = open(os.path.join(path, "info.yml"), "wt")
         fh.write("# unit test placeholder file\n\n")
         fh.close()

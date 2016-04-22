@@ -78,8 +78,8 @@ def initialize_base_file_logger(log_name):
                      filename of the log file.
     """
     # avoid cyclic imports
-    from . import ensure_folder_exists
-    from . import create_valid_filename
+    from .util.filesystem import ensure_folder_exists
+    from .util.filesystem import create_valid_filename
 
     global std_file_handler
 

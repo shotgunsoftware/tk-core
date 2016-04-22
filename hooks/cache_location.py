@@ -14,14 +14,7 @@ Hook to control the various cache locations in the system.
 
 import sgtk
 import os
-
-from tank_vendor.shotgun_base import (
-    get_pipeline_config_cache_root,
-    get_legacy_pipeline_config_cache_root,
-    get_cache_bundle_folder_name,
-)
-
-from tank_vendor.shotgun_base import touch_file, ensure_folder_exists
+from sgtk.util import filesystem
 
 HookBaseClass = sgtk.get_hook_baseclass()
 
@@ -82,8 +75,8 @@ class CacheLocation(HookBaseClass):
             return legacy_target_path
 
         # neither new style or legacy path cache exists. use the new style
-        ensure_folder_exists(cache_root)
-        touch_file(target_path)
+        filesystem.ensure_folder_exists(cache_root)
+        filesystem.touch_file(target_path)
 
         return target_path
     
@@ -139,7 +132,7 @@ class CacheLocation(HookBaseClass):
             return legacy_target_path
 
         # neither new style or legacy path cache exists. use the new style
-        ensure_folder_exists(target_path)
+        filesystem.ensure_folder_exists(target_path)
 
         return target_path
 

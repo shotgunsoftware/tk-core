@@ -8,14 +8,15 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from . import util
+import logging
+
 from . import constants
-from ..shotgun_base import initialize_base_file_logger
-from .errors import ShotgunDeployError
+from ..log import initialize_base_file_logger
+from .errors import TankBootstrapError
 from .configuration import Configuration
 from .resolver import BaseConfigurationResolver
 
-log = util.get_shotgun_deploy_logger()
+log = logging.getLogger(__name__)
 
 class ToolkitManager(object):
     """
@@ -245,7 +246,7 @@ class ToolkitManager(object):
             )
 
             if not data or not data.get("project"):
-                raise ShotgunDeployError("Cannot resolve project for %s" % entity)
+                raise TankBootstrapError("Cannot resolve project for %s" % entity)
             project_id = data["project"]["id"]
 
 
@@ -296,7 +297,7 @@ class ToolkitManager(object):
             config.update_configuration()
 
         else:
-            raise ShotgunDeployError("Unknown configuration update status!")
+            raise TankBootstrapError("Unknown configuration update status!")
 
         # we can now boot up this config.
         self._report_progress("Starting up Toolkit...")
@@ -322,7 +323,18 @@ class ToolkitManager(object):
         if self._progress_cb:
             self._progress_cb(message, curr_idx, max_idx)
 
+    def _is_toolkit_activated_in_shotgun(self):
+        """
+        Checks if toolkit has been activated in sg.
 
+        :return: True if true, false otherwise
+        """
+        log.debug("Checking if Toolkit is enabled in Shotgun...")
+        entity_types = self._sg_connection.schema_entity_read()
+        # returns a dict keyed by entity type
+        enabled = constants.PIPELINE_CONFIGURATION_ENTITY_TYPE in entity_types
+        log.debug("...enabled: %s" % enabled)
+        return enabled
 
     def _cache_apps(self, tk, do_post_install=False):
         """

@@ -12,11 +12,11 @@
 All custom exceptions that this module emits are defined here.
 """
 
-from ..shotgun_base import ShotgunBaseError
+from ..errors import TankError
 
-class ShotgunDeployError(ShotgunBaseError):
+class TankBootstrapError(TankError):
     """
-    Base class for all deploy related errors
+    Base class for all bootstrap related errors
     """
     pass
 

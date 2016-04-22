@@ -14,14 +14,15 @@ on disk.
 """
 
 import os
-from . import util
+import logging
+
 from ..descriptor import Descriptor, create_descriptor
-from .errors import ShotgunDeployError
-
+from .errors import TankBootstrapError
 from .configuration import Configuration
+from ..util import filesystem
+from ..util.shotgun_path import ShotgunPath
 
-log = util.get_shotgun_deploy_logger()
-
+log = logging.getLogger(__name__)
 
 class ConfigurationResolver(object):
     """
@@ -124,7 +125,7 @@ class BaseConfigurationResolver(ConfigurationResolver):
 
         # fall back on base
         if base_config_descriptor is None:
-            raise ShotgunDeployError(
+            raise TankBootstrapError(
                 "No base configuration specified and no pipeline "
                 "configuration exists in Shotgun for the given project. "
                 "Cannot create a configuration object.")
@@ -155,14 +156,14 @@ class BaseConfigurationResolver(ConfigurationResolver):
             cache_root,
             "cfg",
             "base",
-            shotgun_base.create_valid_filename(engine_name)
+            filesystem.create_valid_filename(engine_name)
         )
-        shotgun_base.ensure_folder_exists(config_cache_root)
+        filesystem.ensure_folder_exists(config_cache_root)
 
         # populate current platform, leave rest blank.
         # this resolver only supports local, on-the-fly
         # configurations
-        config_root = shotgun_base.ShotgunPath.from_current_os_path(config_cache_root)
+        config_root = ShotgunPath.from_current_os_path(config_cache_root)
 
         # create an object to represent our configuration install
         return Configuration(

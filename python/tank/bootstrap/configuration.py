@@ -12,20 +12,19 @@ from __future__ import with_statement
 
 import os
 import sys
+import logging
 import datetime
+
 from . import constants
-from . import Descriptor, create_descriptor
-from .errors import ShotgunDeployError
-from . import util
+from .errors import TankBootstrapError
+from ..descriptor import Descriptor, create_descriptor
 
-from ..shotgun_base import copy_file, ShotgunPath
-from ..shotgun_base import copy_folder, ensure_folder_exists
-from ..shotgun_base import with_cleared_umask, safe_delete_file
+from ..util import filesystem
+from ..util.shotgun_path import ShotgunPath
 
-from .. import yaml
+from tank_vendor import yaml
 
-
-log = util.get_shotgun_deploy_logger()
+log = logging.getLogger(__name__)
 
 
 class Configuration(object):
@@ -193,10 +192,16 @@ class Configuration(object):
             # step 2 - recover previous core and backup
             if config_backup_path:
                 log.debug("Restoring previous config...")
-                copy_folder(config_backup_path, os.path.join(config_path, "config"))
+                filesystem.copy_folder(
+                    config_backup_path,
+                    os.path.join(self._path.current_os, "config")
+                )
             if core_backup_path:
                 log.debug("Restoring previous core...")
-                copy_folder(core_backup_path, os.path.join(config_path, "install", "core"))
+                filesystem.copy_folder(
+                    core_backup_path,
+                    os.path.join(self._path.current_os, "install", "core")
+                )
 
         # @todo - prime caches (yaml, path cache)
 
@@ -261,7 +266,7 @@ class Configuration(object):
             "cache",
             "descriptor_info.yml"
         )
-        ensure_folder_exists(os.path.dirname(path))
+        filesystem.ensure_folder_exists(os.path.dirname(path))
         return path
 
     def _ensure_project_scaffold(self):
@@ -271,14 +276,14 @@ class Configuration(object):
         config_path = self._path.current_os
         log.info("Ensuring project scaffold in '%s'..." % config_path)
 
-        ensure_folder_exists(config_path)
-        ensure_folder_exists(os.path.join(config_path, "cache"))
+        filesystem.ensure_folder_exists(config_path)
+        filesystem.ensure_folder_exists(os.path.join(config_path, "cache"))
 
-        ensure_folder_exists(
+        filesystem.ensure_folder_exists(
             os.path.join(config_path, "install", "config.backup"),
             create_placeholder_file=True
         )
-        ensure_folder_exists(
+        filesystem.ensure_folder_exists(
             os.path.join(config_path, "install", "core.backup"),
             create_placeholder_file=True
         )
@@ -321,7 +326,7 @@ class Configuration(object):
 
             # now that we have found a spot for our backup, make sure folder exists
             # and then move the existing config *into* this folder.
-            ensure_folder_exists(config_backup_path)
+            filesystem.ensure_folder_exists(config_backup_path)
 
             log.debug("Moving config %s -> %s" % (configuration_payload, config_backup_path))
             backup_target_path = os.path.join(config_backup_path, os.path.basename(configuration_payload))
@@ -335,7 +340,7 @@ class Configuration(object):
         if os.path.exists(core_payload):
             core_backup_root = os.path.join(config_path, "install", "core.backup")
             # should not be necessary but just in case.
-            ensure_folder_exists(core_backup_root)
+            filesystem.ensure_folder_exists(core_backup_root)
 
             # make sure we have a backup folder present
             # sometimes, execution and rollback is so quick that several backup folders
@@ -354,7 +359,7 @@ class Configuration(object):
 
         return (config_backup_path, core_backup_path)
 
-    @with_cleared_umask
+    @filesystem.with_cleared_umask
     def _create_tank_command(self, win_python=None, mac_python=None, linux_python=None):
         """
         Create a tank command for this configuration.
@@ -386,7 +391,7 @@ class Configuration(object):
                 "interpreter_%s.cfg" % platform
             )
             # clean out any existing files
-            safe_delete_file(sg_config_location)
+            filesystem.safe_delete_file(sg_config_location)
             # create new file
             with open(sg_config_location, "wt") as fh:
                 fh.write(executables[platform])
@@ -398,10 +403,10 @@ class Configuration(object):
             src_file = os.path.join(root_binaries_folder, file_name)
             tgt_file = os.path.join(config_root_path, file_name)
             # clear out any existing files
-            safe_delete_file(tgt_file)
+            filesystem.safe_delete_file(tgt_file)
             # and copy new one into place
             log.debug("Installing tank command %s -> %s" % (src_file, tgt_file))
-            copy_file(src_file, tgt_file, 0775)
+            filesystem.copy_file(src_file, tgt_file, 0775)
 
 
     def _install_core(self):
@@ -599,7 +604,7 @@ class Configuration(object):
         for storage_name in self._descriptor.get_required_storages():
 
             if storage_name not in storage_by_name:
-                raise ShotgunDeployError(
+                raise TankBootstrapError(
                     "A '%s' storage is defined by %s but is "
                     "not defined in Shotgun." % (storage_name, self._descriptor)
                 )
@@ -619,7 +624,7 @@ class Configuration(object):
             fh.write("\n")
             fh.write("# End of file.\n")
 
-    @with_cleared_umask
+    @filesystem.with_cleared_umask
     def __open_auto_created_yml(self, path):
         """
         Open a standard auto generated yml for writing.
@@ -633,7 +638,7 @@ class Configuration(object):
         """
         log.debug("Creating auto-generated config file %s" % path)
         # clean out any existing file and replace it with a new one.
-        safe_delete_file(path)
+        filesystem.safe_delete_file(path)
 
         # open file for writing
         fh = open(path, "wt")
