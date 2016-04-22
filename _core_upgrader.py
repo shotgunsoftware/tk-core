@@ -184,20 +184,6 @@ def __get_pc_core_install_root(pc_root, visited_paths = None):
         return __get_pc_core_install_root(root_path, visited_paths)
     finally:
         cfg.close()
-
-
-def _make_folder(log, folder, permissions):
-    """
-    Create a folder on disk. Wrapper.
-    
-    :param log: std python logger
-    :param folder: Path to folder to create
-    :param permissions: Permissions to apply as an int
-    """
-    if not os.path.exists(folder):
-        log.debug("Creating folder %s.." % folder)
-        os.mkdir(folder, permissions)
-    
     
 def _copy_folder(log, src, dst): 
     """
