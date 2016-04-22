@@ -103,6 +103,17 @@ class ConsoleAuthenticationHandlerBase(object):
             raise AuthenticationCancelled()
         return password
 
+    def _read_clean_input(self, text):
+        """
+        Reads a line a text from the keyboard and strips any trailing or tailing
+        whitespaces.
+
+        :param text: Text to display before prompting the user.
+
+        :returns: The user's text input.
+        """
+        return raw_input(text).strip()
+
     def _get_keyboard_input(self, label, default_value=""):
         """
         Queries for keyboard input.
@@ -116,7 +127,8 @@ class ConsoleAuthenticationHandlerBase(object):
         text += ": "
         user_input = None
         while not user_input:
-            user_input = raw_input(text) or default_value
+            user_input = self._read_clean_input(text) or default_value
+        # Strip whitespace before and after user input.
         return user_input
 
     def _get_2fa_code(self):
@@ -126,7 +138,7 @@ class ConsoleAuthenticationHandlerBase(object):
         :raises AuthenticationCancelled: If the user enters an empty code, the exception will be
                                          thrown.
         """
-        code = raw_input("Two factor authentication code (empty to abort): ")
+        code = self._read_clean_input("Two factor authentication code (empty to abort): ")
         if not code:
             raise AuthenticationCancelled()
         return code
@@ -138,6 +150,7 @@ class ConsoleRenewSessionHandler(ConsoleAuthenticationHandlerBase):
     not be instantiated directly and be used through the authenticate and
     renew_session methods.
     """
+
     def _get_user_credentials(self, hostname, login):
         """
         Reads the user password from the keyboard.
@@ -156,6 +169,7 @@ class ConsoleLoginHandler(ConsoleAuthenticationHandlerBase):
     instantiated directly and be used through the authenticate and renew_session
     methods.
     """
+
     def __init__(self, fixed_host):
         """
         Constructor.
