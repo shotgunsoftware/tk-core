@@ -14,32 +14,18 @@ import shutil
 
 from ...platform import constants
 from ...errors import TankError
+from ...util import filesystem
 
 from ...api import sgtk_from_path
 
 from tank_vendor import yaml
 
+@filesystem.with_cleared_umask
 def run_project_setup(log, sg, sg_app_store, sg_app_store_script_user, setup_params):
     """
     Execute the project setup.
     No validation is happening at this point - ensure that you have run the necessary validation
     methods in the parameters object.
-
-    :param log: python logger object
-    :param sg: shotgun api connection to the associated site
-    :param sg_app_store: toolkit app store sg connection
-    :param sg_app_store_script_user: The script user used to connect to the app store, as a shotgun link-dict
-    :param setup_params: Parameters object which holds gathered project settings
-    """
-    old_umask = os.umask(0)
-    try:
-        _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, setup_params)
-    finally:
-        os.umask(old_umask)
-
-def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, setup_params):
-    """
-    Project setup, internal method.
 
     :param log: python logger object
     :param sg: shotgun api connection to the associated site
@@ -69,7 +55,6 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, set
     pcs = sg.find(constants.PIPELINE_CONFIGURATION_ENTITY,
                   [["project", "is", sg_project_link]],
                   ["code", "linux_path", "windows_path", "mac_path"])
-
 
     if len(pcs) > 0:
         if setup_params.get_force_setup():
@@ -128,7 +113,10 @@ def _project_setup_internal(log, sg, sg_app_store, sg_app_store_script_user, set
     # copy the python stubs
     log.debug("Copying python stubs...")
     tank_proxy = os.path.join(core_api_root, "setup", "tank_api_proxy")
-    _copy_folder(log, tank_proxy, os.path.join(config_location_curr_os, "install", "core", "python"))
+    filesystem.copy_folder(
+        tank_proxy,
+        os.path.join(config_location_curr_os, "install", "core", "python")
+    )
 
     # specify the parent files in install/core/core_PLATFORM.cfg
     log.debug("Creating core redirection config files...")
@@ -470,36 +458,6 @@ def _make_folder(log, folder, permissions, create_placeholder_file = False):
         fh.close()
 
 
-def _copy_folder(log, src, dst):
-    """
-    Alternative implementation to shutil.copytree
-    Copies recursively with very open permissions.
-    Creates folders if they don't already exist.
-    """
-
-    if not os.path.exists(dst):
-        log.debug("Creating folder %s..." % dst)
-        os.mkdir(dst, 0775)
-
-    names = os.listdir(src)
-    for name in names:
-
-        # get rid of system files
-        if name in [".svn", ".git", ".gitignore", "__MACOSX"]:
-            continue
-
-        srcname = os.path.join(src, name)
-        dstname = os.path.join(dst, name)
-
-        try:
-            if os.path.isdir(srcname):
-                _copy_folder(log, srcname, dstname)
-            else:
-                log.debug("Copying %s --> %s" % (srcname, dstname))
-                shutil.copy(srcname, dstname)
-
-        except (IOError, os.error), why:
-            raise TankError("Can't copy %s to %s: %s" % (srcname, dstname, str(why)))
 
     
 def _get_published_file_entity_type(log, sg):

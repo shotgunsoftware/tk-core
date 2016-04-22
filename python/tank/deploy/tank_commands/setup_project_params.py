@@ -15,16 +15,19 @@ import tempfile
 import uuid
 
 from ...platform import constants
+
 from ...util import shotgun
+from ...util import filesystem
 from ...util.version import is_version_newer
+from ...util.zip import unzip_file
+from ...util.git import execute_git_command
+
 from ... import hook
 from ...errors import TankError, TankErrorProjectIsSetup
 from ... import pipelineconfig_utils
 
-from ...util.zip import unzip_file
-from ...util.git import execute_git_command
 
-from .setup_project_core import _copy_folder
+
 
 from tank_vendor import yaml
 
@@ -1250,22 +1253,17 @@ class TemplateConfiguration(object):
         """
         return self._manifest.get("description")
 
+    @filesystem.with_cleared_umask
     def create_configuration(self, target_path):
         """
         Creates the configuration folder in the target path
         """
-        old_umask = os.umask(0)
-        try:
+        if self._config_mode == "git":
+            # clone the config into place
+            self._log.info("Cloning git configuration into '%s'..." % target_path)
+            self._clone_git_repo(self._config_uri, target_path)
+        else:
+            # copy the config from its source location into place
+            filesystem.copy_folder(self._cfg_folder, target_path)
 
-            if self._config_mode == "git":
-                # clone the config into place
-                self._log.info("Cloning git configuration into '%s'..." % target_path)
-                self._clone_git_repo(self._config_uri, target_path)
-            else:
-                # copy the config from its source location into place
-                _copy_folder(self._log, self._cfg_folder, target_path )
 
-        finally:
-            os.umask(old_umask)
-
-    

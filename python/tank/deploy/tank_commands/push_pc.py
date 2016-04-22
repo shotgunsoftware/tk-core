@@ -8,7 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from .. import util
+from ...util import filesystem
 from ...platform import constants
 from ...errors import TankError
 from ...pipelineconfig import PipelineConfiguration
@@ -172,7 +172,7 @@ class PushPCAction(Action):
             try:
                 # copy everything!
                 log.debug("Copying %s -> %s" % (source_path, target_tmp_path))
-                util._copy_folder(log, source_path, target_tmp_path)
+                filesystem.copy_folder(source_path, target_tmp_path)
                 
                 # If the source and target configurations are both localized, then also copy the
                 # core-related api files to the target config. Otherwise, skip them.

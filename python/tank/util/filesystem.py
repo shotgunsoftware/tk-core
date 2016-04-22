@@ -158,8 +158,9 @@ def safe_delete_file(path):
     except Exception, e:
         log.warning("File '%s' could not be deleted, skipping: %s" % (path, e))
 
+
 @with_cleared_umask
-def copy_folder(src, dst, folder_permissions=0775):
+def copy_folder(src, dst, folder_permissions=0775, skip_list=None):
     """
     Alternative implementation to shutil.copytree
     Copies recursively and creates folders if they don't already exist.
@@ -172,6 +173,7 @@ def copy_folder(src, dst, folder_permissions=0775):
     :param src: Source path to copy from
     :param dst: Destination to copy to
     :param folder_permissions: permissions to use for new folders
+    :param skip_list: List of file names to skip
     :returns: List of files copied
     """
     SKIP_LIST = [".svn", ".git", ".gitignore", "__MACOSX", ".DS_Store"]
@@ -185,12 +187,16 @@ def copy_folder(src, dst, folder_permissions=0775):
     names = os.listdir(src)
     for name in names:
 
-        srcname = os.path.join(src, name)
-        dstname = os.path.join(dst, name)
+        if skip_list and name in skip_list:
+            # skip!
+            continue
 
         # get rid of system files
         if name in SKIP_LIST:
             continue
+
+        srcname = os.path.join(src, name)
+        dstname = os.path.join(dst, name)
 
         try:
             if os.path.isdir(srcname):

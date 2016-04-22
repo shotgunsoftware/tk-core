@@ -8,10 +8,10 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from .. import util
 from ...util.shotgun_path import ShotgunPath
 from ...errors import TankError
 from ...platform import constants
+from ...util import filesystem
 
 from tank_vendor import yaml
 
@@ -147,7 +147,7 @@ def clone_pipeline_configuration_html(log, tk, source_pc_id, user_id, new_name, 
 ###################################################################################################
 # private methods
 
-
+@filesystem.with_cleared_umask
 def _do_clone(log, tk, source_pc_id, user_id, new_name, target_linux, target_mac, target_win):
     """
     Clones the current configuration
@@ -170,12 +170,17 @@ def _do_clone(log, tk, source_pc_id, user_id, new_name, target_linux, target_mac
         raise TankError("Cannot clone! Target folder '%s' already exists!" % target_folder)
     
     # copy files and folders across
-    old_umask = os.umask(0)
     try:
         os.mkdir(target_folder, 0777)
         os.mkdir(os.path.join(target_folder, "cache"), 0777)
-        util._copy_folder(log, os.path.join(source_folder, "config"), os.path.join(target_folder, "config"))
-        util._copy_folder(log, os.path.join(source_folder, "install"), os.path.join(target_folder, "install"))
+        filesystem.copy_folder(
+            os.path.join(source_folder, "config"),
+            os.path.join(target_folder, "config")
+        )
+        filesystem.copy_folder(
+            os.path.join(source_folder, "install"),
+            os.path.join(target_folder, "install")
+        )
         shutil.copy(os.path.join(source_folder, "tank"), os.path.join(target_folder, "tank"))
         shutil.copy(os.path.join(source_folder, "tank.bat"), os.path.join(target_folder, "tank.bat"))
         os.chmod(os.path.join(target_folder, "tank.bat"), 0777)
@@ -192,16 +197,14 @@ def _do_clone(log, tk, source_pc_id, user_id, new_name, target_linux, target_mac
         fh.write("# entity which is associated with this location (%s).\n" % new_name)
         fh.write("\n")
         fh.write("Windows: '%s'\n" % target_win)
-        fh.write("Darwin: '%s'\n" % target_mac)    
-        fh.write("Linux: '%s'\n" % target_linux)                    
+        fh.write("Darwin: '%s'\n" % target_mac)
+        fh.write("Linux: '%s'\n" % target_linux)
         fh.write("\n")
         fh.write("# End of file.\n")
         fh.close()
     
     except Exception, e:
         raise TankError("Could not create file system structure: %s" % e)
-    finally:
-        os.umask(old_umask)
 
     # finally register with shotgun
     data = {"linux_path": target_linux,
@@ -216,7 +219,6 @@ def _do_clone(log, tk, source_pc_id, user_id, new_name, target_linux, target_mac
     log.debug("Created in SG: %s" % str(pc_entity))
 
     # lastly, update the pipeline_configuration.yml file
-    old_umask = os.umask(0)
     try:
         
         sg_pc_location = os.path.join(
@@ -265,9 +267,7 @@ def _do_clone(log, tk, source_pc_id, user_id, new_name, target_linux, target_mac
     except Exception, e:
         raise TankError("Could not update pipeline_configuration.yml file: %s" % e)
     
-    finally:
-        os.umask(old_umask)
-        
+
     return {"source": source_folder, "target": target_folder, "id": pc_entity["id"] }
 
 

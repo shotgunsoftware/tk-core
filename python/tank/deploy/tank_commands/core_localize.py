@@ -19,6 +19,7 @@ import shutil
 import datetime
 
 from ...errors import TankError
+from ...util import filesystem
 from .. import util
 from ...util.version import is_version_older
 from .action_base import Action
@@ -142,7 +143,7 @@ def do_localize(log, pc_root_path, suppress_prompts):
         backup_folder_name = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         backup_path = os.path.join(backup_location, backup_folder_name)
         log.debug("Backing up Core API: %s -> %s" % (target_core, backup_path))
-        src_files = util._copy_folder(log, target_core, backup_path)
+        src_files = filesystem.copy_folder(target_core, backup_path)
         
         # step 2. copy all the bundles that are used by the environment   
         log.info("Copying %s apps, engines and frameworks..." % len(descriptors))
@@ -163,7 +164,7 @@ def do_localize(log, pc_root_path, suppress_prompts):
                     # create all folders
                     os.makedirs(target_path, 0777)
                     # and copy content
-                    util._copy_folder(log, descriptor_path, target_path)
+                    filesystem.copy_folder(descriptor_path, target_path)
                     
         # step 3. clear out the install location
         log.debug("Clearing out core target location...")
@@ -182,7 +183,7 @@ def do_localize(log, pc_root_path, suppress_prompts):
         
         # step 4. copy core distro
         log.info("Localizing Core: %s -> %s" % (source_core, target_core))
-        util._copy_folder(log, source_core, target_core)
+        filesystem.copy_folder(source_core, target_core)
         
         # copy some core config files across
         log.info("Copying Core Configuration Files...")
@@ -548,9 +549,10 @@ def _run_unlocalize(tk, log, mac_path, windows_path, linux_path, copy_core, supp
         
             # copy the install
             log.info("Copying core installation...")
-            util._copy_folder(log, 
-                              os.path.join(pc_root, "install"), 
-                              os.path.join(new_core_path_local, "install"))
+            filesystem.copy_folder(
+                os.path.join(pc_root, "install"),
+                os.path.join(new_core_path_local, "install")
+            )
         
         # back up current core API into the core.backup folder
         log.info("Backing up local core install...")
@@ -577,7 +579,10 @@ def _run_unlocalize(tk, log, mac_path, windows_path, linux_path, copy_core, supp
         
         # copy python API proxy
         tank_proxy = os.path.join(new_core_path_local, "install", "core", "setup", "tank_api_proxy")
-        util._copy_folder(log, tank_proxy, os.path.join(pc_root, "install", "core", "python"))
+        filesystem.copy_folder(
+            tank_proxy,
+            os.path.join(pc_root, "install", "core", "python")
+        )
         
         # create core_XXX redirection files
         core_path = os.path.join(pc_root, "install", "core", "core_Darwin.cfg")
