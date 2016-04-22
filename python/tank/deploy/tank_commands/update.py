@@ -12,7 +12,7 @@ from .action_base import Action
 from . import console_utils
 from .. import util
 from ...platform.environment import WritableEnvironment
-from ...platform import constants
+from .. import constants
 import os
 
 

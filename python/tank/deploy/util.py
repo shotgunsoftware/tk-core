@@ -8,9 +8,13 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+"""
+Utility methods that are specific to tank commands
+"""
+
 import os
 import shutil
-from ..platform import constants
+from . import constants
 
 
 def should_use_legacy_yaml_parser(args):

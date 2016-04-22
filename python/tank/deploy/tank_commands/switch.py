@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from ...errors import TankError
-from ...platform import constants
+from .. import constants
 from .. import util
 from . import console_utils
 from .action_base import Action

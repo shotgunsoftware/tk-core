@@ -12,7 +12,7 @@ from ...errors import TankError
 from . import console_utils
 from .action_base import Action
 from .. import util
-from ...platform import constants
+from .. import constants
 
 class InstallAppAction(Action):
     """
