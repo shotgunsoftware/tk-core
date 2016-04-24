@@ -107,6 +107,68 @@ class IODescriptorBase(object):
                 "These will be ignored." % (desc_keys_set.difference(all_keys), descriptor_dict)
             )
 
+    @classmethod
+    def _get_legacy_bundle_install_folder(
+        cls,
+        descriptor_name,
+        install_cache_root,
+        bundle_type,
+        bundle_name,
+        bundle_version
+    ):
+        """Return the path to the legacy bundle install dir for the supplied info.
+
+        :param descriptor_name: The name of the descriptor. ex: "app_store" or "git"
+        :param install_cache_root: The root path to the bundle cache.
+        :param bundle_type: The type of the bundle. Should be one of:
+            Descriptor.APP, Descriptor.ENGINE, or Descriptor.FRAMEWORK.
+        :param bundle_name: The display name for the resolved descriptor resource.
+            ex: "tk-multi-shotgunpanel"
+        :param bundle_version: The version of the bundle on disk. ex: "v1.2.5"
+        :rtype: str
+        :return: The path to the cache in the legacy bundle structure.
+        :raises: RuntimeError - if the bundle_type is not recognized.
+
+        This method is provided for compatibility with older versions of core,
+        prior to v0.18.x. As of v0.18.x, the bundle cache subdirectory names
+        were shortened and otherwise modified to help prevent MAX_PATH issues
+        on windows. This method is used to add the old style path as a fallback
+        for cases like core having been upgraded to v0.18.x on an existing project.
+
+        New style cache path:
+            <root>/app_store/tk-multi-shotgunpanel/v1.2.5
+
+        Legacy style cache path:
+            <root>/apps/app_store/tk-multi-shotgunpanel/v1.2.5
+
+        For reference, this method emulates: `tank.deploy.descriptor._get_local_location`
+        in the pre-v0.18.x core.
+
+        """
+        from ..descriptor import Descriptor
+
+        if bundle_type == Descriptor.APP:
+            legacy_dir = "apps"
+        elif bundle_type == Descriptor.ENGINE:
+            legacy_dir = "engines"
+        elif bundle_type == Descriptor.FRAMEWORK:
+            legacy_dir = "frameworks"
+        else:
+            raise RuntimeError(
+                "Unknown bundle type '%s'. Can not determine legacy cache path." %
+                (bundle_type,)
+            )
+
+        # build and return the path.
+        # example: <root>/apps/app_store/tk-multi-shotgunpanel/v1.2.5
+        return os.path.join(
+            install_cache_root,
+            legacy_dir,
+            descriptor_name,
+            bundle_name,
+            bundle_version,
+        )
+
     def _find_latest_tag_by_pattern(self, version_numbers, pattern):
         """
         Given a list of version strings (e.g. 'v1.2.3'), find the one
@@ -211,7 +273,6 @@ class IODescriptorBase(object):
             version_to_use = version_to_use + ".%d" % version_digit
 
         return version_to_use
-
 
     def copy(self, target_path, connected=False):
         """

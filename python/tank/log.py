@@ -12,7 +12,7 @@ import logging
 import logging.handlers
 import os
 
-from .paths import get_logs_root
+from .paths import ToolkitPathManager
 
 sgtk_root_logger = logging.getLogger("sgtk")
 sgtk_root_logger.propagate = False
@@ -90,7 +90,7 @@ def initialize_base_file_logger(log_name):
         std_file_handler = None
 
     # set up logging root folder
-    log_folder = get_logs_root()
+    log_folder = ToolkitPathManager.get_global_root(ToolkitPathManager.LOGGING)
     ensure_folder_exists(log_folder)
 
     # generate log path

@@ -30,8 +30,7 @@ from tank_vendor.shotgun_api3.lib import httplib2
 from tank_vendor import yaml
 from .errors import AuthenticationError
 from .sg_auth_logging import get_logger
-
-from ..shotgun_base import get_cache_root, get_site_cache_root
+from tank import ToolkitPathManager
 
 logger = get_logger("session")
 
@@ -63,8 +62,10 @@ def _get_global_authentication_file_location():
 
     :returns: Path to the login information.
     """
-    return os.path.join(get_cache_root(), _SESSION_CACHE_FILE_NAME)
-
+    return os.path.join(
+        ToolkitPathManager.get_global_root(ToolkitPathManager.PERSISTENT),
+        _SESSION_CACHE_FILE_NAME
+    )
 
 def _get_site_authentication_file_location(base_url):
     """
@@ -74,7 +75,10 @@ def _get_site_authentication_file_location(base_url):
 
     :returns: Path to the login information.
     """
-    return os.path.join(get_site_cache_root(base_url), _SESSION_CACHE_FILE_NAME)
+    return os.path.join(
+        ToolkitPathManager.get_site_root(base_url, ToolkitPathManager.PERSISTENT),
+        _SESSION_CACHE_FILE_NAME
+    )
 
 
 def _ensure_folder_for_file(filepath):

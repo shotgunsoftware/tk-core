@@ -11,7 +11,6 @@ import os
 import logging
 
 from .base import IODescriptorBase
-from tank_vendor.shotgun_base import get_legacy_bundle_install_folder
 
 log = logging.getLogger(__name__)
 
@@ -73,7 +72,7 @@ class IODescriptorManual(IODescriptorBase):
         # If the bundle cache root changes across core versions, then this will
         # need to be refactored.
         try:
-            legacy_folder = get_legacy_bundle_install_folder(
+            legacy_folder = self._get_legacy_bundle_install_folder(
                 "manual",
                 self._bundle_cache_root,
                 self._type,

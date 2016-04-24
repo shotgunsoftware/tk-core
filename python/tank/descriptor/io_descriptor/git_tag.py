@@ -96,7 +96,7 @@ class IODescriptorGitTag(IODescriptorGit):
         # If the bundle cache root changes across core versions, then this will
         # need to be refactored.
         try:
-            legacy_folder = get_legacy_bundle_install_folder(
+            legacy_folder = self._get_legacy_bundle_install_folder(
                 "git",
                 self._bundle_cache_root,
                 self._type,

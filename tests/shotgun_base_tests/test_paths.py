@@ -39,16 +39,16 @@ class TestBasePaths(TankTestBase):
 
         cache_root = self.cache_root
 
-        path = shotgun_base.get_site_cache_root("http://sg-internal")
+        path = tank.paths.get_site_cache_root("http://sg-internal")
 
         self.assertEqual(os.path.dirname(path), cache_root)
         self.assertEqual(os.path.basename(path), "sg-internal")
 
-        path = shotgun_base.get_site_cache_root("http://foo.int")
+        path = tank.paths.get_site_cache_root("http://foo.int")
         self.assertEqual(os.path.dirname(path), cache_root)
         self.assertEqual(os.path.basename(path), "foo.int")
 
-        path = shotgun_base.get_site_cache_root("https://my-site.shotgunstudio.com")
+        path = tank.paths.get_site_cache_root("https://my-site.shotgunstudio.com")
         self.assertEqual(os.path.dirname(path), cache_root)
         self.assertEqual(os.path.basename(path), "my-site")
 

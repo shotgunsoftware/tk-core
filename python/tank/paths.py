@@ -8,254 +8,214 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+"""
+Path handling in Toolkit
+"""
+
 import os
 import sys
 import urlparse
 
-def get_cache_root():
+
+class ToolkitPathManager(object):
     """
-    Returns a cache root suitable for all Shotgun related data,
-    regardless of Shotgun site.
-
-    The following paths will be computed:
-
-    - macosx: ~/Library/Caches/Shotgun
-    - windows: %APPDATA%\Shotgun
-    - linux: ~/.shotgun
-
-    :returns: The calculated location for the cache root
+    Class that encapsulates
     """
-    if sys.platform == "darwin":
-        root = os.path.expanduser("~/Library/Caches/Shotgun")
+    # generation of path structures
+    (CORE_V17, CORE_V18) = range(2)
 
-    elif sys.platform == "win32":
-        root = os.path.join(os.environ.get("APPDATA", "APPDATA_NOT_SET"), "Shotgun")
+    # supported types of paths
+    (LOGGING, CACHE, PERSISTENT) = range(3)
 
-    elif sys.platform.startswith("linux"):
-        root = os.path.expanduser("~/.shotgun")
+    @classmethod
+    def get_global_root(cls, path_type, generation=CORE_V18):
+        """
+        Returns a generic Shotgun storage root. This is a path which is user specific,
+        where typically only the current user can read and write.
 
-    else:
-        raise NotImplementedError("Unknown platform: %s" % sys.platform)
+        On the mac, paths will point into ~/Library, on windows it is %APPDATA%/Shotgun
+        and on Linux ~/.shotgun
 
-    return root
+        This method does not ensure that the folder exists.
 
+        :param path_type: Type of path to return. One of LOGGING, CACHE, PERSISTENT, where
+                          logging is a path where log- and debug related data should be stored,
+                          cache is a location intended for cache data, e.g. data that can be deleted
+                          without affecting the state of execution, and persistent is a location intended
+                          for data that is meant to be persist. This includes things like settings and
+                          preferences.
+        :param generation: Path standard generation to use. Defaults to CORE_V18, which is the current
+                           generation of paths.
+        :return: Path as string
+        """
+        if generation == cls.CORE_V18:
 
-def get_site_cache_root(site_url):
-    """
-    Returns a cache root suitable for all Shotgun related data for a given shotgun site.
+            # current generation of paths
+            if sys.platform == "darwin":
+                if path_type == cls.CACHE:
+                    return os.path.expanduser("~/Library/Caches/Shotgun")
+                elif path_type == cls.PERSISTENT:
+                    return os.path.expanduser("~/Library/Application Support/Shotgun")
+                elif path_type == cls.LOGGING:
+                    return os.path.expanduser("~/Library/Logs/Shotgun")
+                else:
+                    raise ValueError("Unsupported path type!")
 
-    The following paths will be generated:
+            elif sys.platform == "win32":
+                if path_type == cls.CACHE:
+                    return os.path.join(os.environ.get("APPDATA", "APPDATA_NOT_SET"), "Shotgun", "Cache")
+                elif path_type == cls.PERSISTENT:
+                    return os.path.join(os.environ.get("APPDATA", "APPDATA_NOT_SET"), "Shotgun", "Data")
+                elif path_type == cls.LOGGING:
+                    return os.path.join(os.environ.get("APPDATA", "APPDATA_NOT_SET"), "Shotgun", "Logs")
+                else:
+                    raise ValueError("Unsupported path type!")
 
-    - macosx: ~/Library/Caches/Shotgun/SITE_NAME
-    - windows: %APPDATA%\Shotgun\SITE_NAME
-    - linux: ~/.shotgun/SITE_NAME
+            elif sys.platform.startswith("linux"):
+                if path_type == cls.CACHE:
+                    return os.path.expanduser("~/.shotgun/caches")
+                elif path_type == cls.PERSISTENT:
+                    return os.path.expanduser("~/.shotgun/data")
+                elif path_type == cls.LOGGING:
+                    return os.path.expanduser("~/.shotgun/logs")
+                else:
+                    raise ValueError("Unsupported path type!")
 
-    :param site_url: Shotgun site url string, eg 'https://mysite.shotgunstudio.com'
-    :returns: The calculated location for the cache root
-    """
-
-    # get site only; https://www.FOO.com:8080 -> www.foo.com
-    base_url = urlparse.urlparse(site_url).netloc.split(":")[0].lower()
-
-    # in order to apply further shortcuts to avoid hitting
-    # MAX_PATH on windows, strip shotgunstudio.com from all
-    # hosted sites
-    #
-    # mysite.shotgunstudio.com -> mysite
-    # shotgun.internal.int     -> shotgun.internal.int
-    #
-    base_url = base_url.replace(".shotgunstudio.com", "")
-    return os.path.join(get_cache_root(), base_url)
-
-
-def get_pipeline_config_cache_root(site_url, project_id, pipeline_configuration_id):
-    """
-    Calculates the cache root for the current project and configuration.
-
-    The following paths will be generated:
-
-    - macosx: ~/Library/Caches/Shotgun/SITE_NAME/proj123_cfg12
-    - windows: %APPDATA%\Shotgun\SITE_NAME\proj123_cfg12
-    - linux: ~/.shotgun/SITE_NAME/proj123_cfg12
-
-    Alternatively, the following syntaxes are also possible:
-
-    - site config: ~/Library/Caches/Shotgun/SITE_NAME/site_cfg12
-    - unmanaged site config: ~/Library/Caches/Shotgun/SITE_NAME/site
-    - unmanaged project config: ~/Library/Caches/Shotgun/SITE_NAME/proj123
-
-    :param site_url: Shotgun site url string, e.g. 'https://mysite.shotgunstudio.com'
-    :param project_id: The shotgun id of the project to store caches for
-    :param pipeline_configuration_id: The shotgun pipeline config id to
-                                      store caches for. Can be None to indicate
-                                      a configuration that doesn't have a corresponding
-                                      pipeline configuration entry in Shotgun.
-    :returns: The calculated location for the cache root
-    """
-    if pipeline_configuration_id is None:
-        # unmanaged config
-        pc_suffix = ""
-    else:
-        pc_suffix = "_cfg%d" % pipeline_configuration_id
-
-    if project_id is None:
-        # site configuration
-        project_config_folder = "site%s" % pc_suffix
-    else:
-        project_config_folder = "proj%d%s" % (project_id, pc_suffix)
-
-    cache_root = os.path.join(get_site_cache_root(site_url), project_config_folder)
-    return cache_root
+            else:
+                raise ValueError("Unknown platform: %s" % sys.platform)
 
 
-def get_cache_bundle_folder_name(bundle):
-    """
-    Returns the modified bundle name as used the cache root.
+        if generation == cls.CORE_V17:
 
-    :param bundle: The bundle to return a folder name for.
+            # previous generation of paths
+            if sys.platform == "darwin":
+                if path_type == cls.CACHE:
+                    return os.path.expanduser("~/Library/Caches/Shotgun")
+                elif path_type == cls.PERSISTENT:
+                    return os.path.expanduser("~/Library/Application Support/Shotgun")
+                elif path_type == cls.LOGGING:
+                    return os.path.expanduser("~/Library/Logs/Shotgun")
+                else:
+                    raise ValueError("Unsupported path type!")
 
-    :rtype: str
-    :return: The name of the bundle folder.
-    """
+            elif sys.platform == "win32":
+                if path_type == cls.CACHE:
+                    return os.path.join(os.environ.get("APPDATA", "APPDATA_NOT_SET"), "Shotgun")
+                elif path_type == cls.PERSISTENT:
+                    return os.path.join(os.environ.get("APPDATA", "APPDATA_NOT_SET"), "Shotgun")
+                elif path_type == cls.LOGGING:
+                    return os.path.join(os.environ.get("APPDATA", "APPDATA_NOT_SET"), "Shotgun")
+                else:
+                    raise ValueError("Unsupported path type!")
 
-    # in the interest of trying to minimize path lengths (to avoid
-    # the MAX_PATH limit on windows, we apply some shortcuts
+            elif sys.platform.startswith("linux"):
+                if path_type == cls.CACHE:
+                    return os.path.expanduser("~/.shotgun")
+                elif path_type == cls.PERSISTENT:
+                    return os.path.expanduser("~/.shotgun")
+                elif path_type == cls.LOGGING:
+                    return os.path.expanduser("~/.shotgun")
+                else:
+                    raise ValueError("Unsupported path type!")
 
-    # if the bundle is a framework, we shorten it:
-    # tk-framework-shotgunutils --> fw-shotgunutils
-    # if the bundle is a multi-app, we shorten it:
-    # tk-multi-workfiles2 --> tm-workfiles2
-    bundle_name = bundle.name
-    bundle_name = bundle_name.replace("tk-framework-", "fw-")
-    bundle_name = bundle_name.replace("tk-multi-", "tm-")
+            else:
+                raise ValueError("Unknown platform: %s" % sys.platform)
 
-    return bundle_name
+    @classmethod
+    def get_site_root(cls, hostname, path_type, generation=CORE_V18):
+        """
+        Returns a cache root where items can be stored on a per site basis.
 
+        This is a path which is user specific, where typically only the current
+        user can read and write.
 
-def get_logs_root():
-    """
-    Returns a root folder suitable for all shotgun log files,
-    regardless of Shotgun site.
+        This method does not ensure that the folder exists.
 
-    The following paths will be computed:
+        :param hostname: Shotgun hostname as string, e.g. 'https://foo.shotgunstudio.com'
+        :param path_type: Type of path to return. One of LOGGING, CACHE, PERSISTENT, where
+                          logging is a path where log- and debug related data should be stored,
+                          cache is a location intended for cache data, e.g. data that can be deleted
+                          without affecting the state of execution, and persistent is a location intended
+                          for data that is meant to be persist. This includes things like settings and
+                          preferences.
+        :param generation: Path standard generation to use. Defaults to CORE_V18, which is the current
+                           generation of paths.
+        :return: Path as string
+        """
+        # get site only; https://www.FOO.com:8080 -> www.foo.com
+        base_url = urlparse.urlparse(hostname).netloc.split(":")[0].lower()
 
-    - macosx: ~/Library/Logs/Shotgun
-    - windows: %APPDATA%\Shotgun
-    - linux: ~/.shotgun/logs
+        if generation > cls.CORE_V17:
+            # for 0.18, in order to apply further shortcuts to avoid hitting
+            # MAX_PATH on windows, strip shotgunstudio.com from all
+            # hosted sites
+            #
+            # mysite.shotgunstudio.com -> mysite
+            # shotgun.internal.int     -> shotgun.internal.int
+            #
+            base_url = base_url.replace(".shotgunstudio.com", "")
 
-    :returns: The calculated location for the cache root
-
-    """
-    if sys.platform == "darwin":
-        root = os.path.join(os.path.expanduser("~"), "Library", "Logs", "Shotgun")
-    elif sys.platform == "win32":
-        root = os.path.join(os.environ.get("APPDATA", "APPDATA_NOT_SET"), "Shotgun")
-    elif sys.platform.startswith("linux"):
-        root = os.path.join(os.path.expanduser("~"), ".shotgun", "logs")
-    else:
-        raise NotImplementedError("Unknown platform: %s" % sys.platform)
-    return root
-
-
-def get_legacy_pipeline_config_cache_root(site_url, project_id, pipeline_configuration_id):
-    """
-    Calculates the legacy cache root for the current project and configuration.
-
-    The following paths will be generated:
-
-    - macosx: ~/Library/Caches/Shotgun/SITE_NAME/project_xxx/config_yyy
-    - windows: $APPDATA/Shotgun/SITE_NAME/project_xxx/config_yyy
-    - linux: ~/.shotgun/SITE_NAME/project_xxx/config_yyy
-
-    :param site_url: Shotgun site url string, e.g. 'https://mysite.shotgunstudio.com'
-    :param project_id: The shotgun id of the project to store caches for
-    :param pipeline_configuration_id: The shotgun pipeline config id to
-                                      store caches for. Can be None.
-    :rtype: str
-    :return: The v0.17.x cache root
-
-    """
-
-    # get site only; https://www.foo.com:8080 -> www.foo.com
-    base_url = urlparse.urlparse(site_url)[1].split(":")[0]
-
-    if pipeline_configuration_id is None:
-        pc_suffix = ""
-    else:
-        pc_suffix = "_%d" % (pipeline_configuration_id,)
-
-    if project_id is None:
-        proj_suffix = ""
-    else:
-        proj_suffix = "_%d" % (project_id,)
-
-    # now structure things by site, project id, and pipeline config id
-    return os.path.join(
-        get_cache_root(),
-        base_url,
-        "project%s" % proj_suffix,
-        "config%s" % pc_suffix,
-    )
-
-
-def get_legacy_bundle_install_folder(
-    descriptor_name,
-    install_cache_root,
-    bundle_type,
-    bundle_name,
-    bundle_version
-):
-    """Return the path to the legacy bundle install dir for the supplied info.
-
-    :param descriptor_name: The name of the descriptor. ex: "app_store" or "git"
-    :param install_cache_root: The root path to the bundle cache.
-    :param bundle_type: The type of the bundle. Should be one of:
-        Descriptor.APP, Descriptor.ENGINE, or Descriptor.FRAMEWORK.
-    :param bundle_name: The display name for the resolved descriptor resource.
-        ex: "tk-multi-shotgunpanel"
-    :param bundle_version: The version of the bundle on disk. ex: "v1.2.5"
-    :rtype: str
-    :return: The path to the cache in the legacy bundle structure.
-    :raises: RuntimeError - if the bundle_type is not recognized.
-
-    This method is provided for compatibility with older versions of core,
-    prior to v0.18.x. As of v0.18.x, the bundle cache subdirectory names
-    were shortened and otherwise modified to help prevent MAX_PATH issues
-    on windows. This method is used to add the old style path as a fallback
-    for cases like core having been upgraded to v0.18.x on an existing project.
-
-    New style cache path:
-        <root>/app_store/tk-multi-shotgunpanel/v1.2.5
-
-    Legacy style cache path:
-        <root>/apps/app_store/tk-multi-shotgunpanel/v1.2.5
-
-    For reference, this method emulates: `tank.deploy.descriptor._get_local_location`
-    in the pre-v0.18.x core.
-
-    """
-
-    from tank_vendor.shotgun_deploy import Descriptor
-
-    if bundle_type == Descriptor.APP:
-        legacy_dir = "apps"
-    elif bundle_type == Descriptor.ENGINE:
-        legacy_dir = "engines"
-    elif bundle_type == Descriptor.FRAMEWORK:
-        legacy_dir = "frameworks"
-    else:
-        raise RuntimeError(
-            "Unknown bundle type '%s'. Can not determine legacy cache path." %
-            (bundle_type,)
+        return os.path.join(
+            cls.get_global_root(path_type, generation),
+            base_url
         )
 
-    # build and return the path.
-    # example: <root>/apps/app_store/tk-multi-shotgunpanel/v1.2.5
-    return os.path.join(
-        install_cache_root,
-        legacy_dir,
-        descriptor_name,
-        bundle_name,
-        bundle_version,
-    )
+
+    @classmethod
+    def get_configuration_root(cls, hostname, project_id, pipeline_config_id, path_type, generation=CORE_V18):
+        """
+        Returns the storage root for any data that is project and config specific.
+
+        Returns a cache root where items can be stored on a per site basis.
+
+        This is a path which is user specific, where typically only the current
+        user can read and write.
+
+        This method does not ensure that the folder exists.
+
+        :param hostname: Shotgun hostname as string, e.g. 'https://foo.shotgunstudio.com'
+        :param project_id: Shotgun project id as integer. For the site config, this should be None.
+        :param pipeline_config_id: Shotgun pipeline config id.
+        :param path_type: Type of path to return. One of LOGGING, CACHE, PERSISTENT, where
+                          logging is a path where log- and debug related data should be stored,
+                          cache is a location intended for cache data, e.g. data that can be deleted
+                          without affecting the state of execution, and persistent is a location intended
+                          for data that is meant to be persist. This includes things like settings and
+                          preferences.
+        :param generation: Path standard generation to use. Defaults to CORE_V18, which is the current
+                           generation of paths.
+        :return: Path as string
+        """
+        if generation == cls.CORE_V17:
+
+            # older paths are on the form root/mysite.shotgunstudio.com/project_123/config_123
+            return os.path.join(
+                cls.get_site_root(hostname, path_type, generation),
+                "project_%s" % project_id,
+                "config_%s" % pipeline_config_id
+            )
+
+        else:
+
+            # new paths are on the form
+            # project 123, config 33:     root/mysite/p123c33
+            # project 123 without config: root/mysite/p123
+            # site project:               root/mysite/site
+            if pipeline_config_id is None:
+                # unmanaged config
+                pc_suffix = ""
+            else:
+                pc_suffix = "c%d" % pipeline_config_id
+
+            if project_id is None:
+                # site configuration
+                project_config_folder = "site%s" % pc_suffix
+            else:
+                project_config_folder = "p%d%s" % (project_id, pc_suffix)
+
+            return os.path.join(
+                cls.get_site_root(hostname, path_type, generation),
+                project_config_folder
+            )
+
 

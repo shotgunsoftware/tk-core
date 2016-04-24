@@ -11,9 +11,11 @@
 import os
 import copy
 
-from . import paths
+from .. import paths
+from ..util import filesystem
 from .io_descriptor import create_io_descriptor
 from .errors import TankDescriptorError
+from ..paths import ToolkitPathManager
 
 def create_descriptor(
         sg_connection,
@@ -54,7 +56,9 @@ def create_descriptor(
     from .descriptor_core import CoreDescriptor
 
     # if bundle root is not set, fall back on default location
-    bundle_cache_root_override = bundle_cache_root_override or paths.get_bundle_cache_root()
+    if bundle_cache_root_override is None:
+        bundle_cache_root_override = Descriptor.get_default_bundle_cache_root()
+        filesystem.ensure_folder_exists(bundle_cache_root_override)
 
     fallback_roots = fallback_roots or []
 
@@ -133,6 +137,20 @@ class Descriptor(object):
         Used for pretty printing
         """
         return "%s %s" % (self.get_system_name(), self.get_version())
+
+    @classmethod
+    def get_default_bundle_cache_root(cls):
+        """
+        Returns the cache location for the default bundle cache.
+
+        :returns: path on disk
+        """
+        return os.path.join(
+            ToolkitPathManager.get_global_root(ToolkitPathManager.CACHE),
+            "bundle_cache"
+        )
+
+
 
     ###############################################################################################
     # data accessors

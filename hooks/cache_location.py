@@ -46,7 +46,8 @@ class CacheLocation(HookBaseClass):
         cache_filename = "path_cache.db"
 
         tk = self.parent
-        cache_root = get_pipeline_config_cache_root(
+
+        cache_root = sgtk.ToolkitPathManager.get_configuration_root(
             tk.shotgun_url,
             project_id,
             pipeline_configuration_id
@@ -63,11 +64,13 @@ class CacheLocation(HookBaseClass):
         # cache root directory structure has changed (such is the case with
         # v0.17.x -> v0.18.x). To account for this scenario, see if the target
         # exists in an old location first, and if so, return that path instead.
-        legacy_cache_root = get_legacy_pipeline_config_cache_root(
+        legacy_cache_root = sgtk.ToolkitPathManager.get_configuration_root(
             tk.shotgun_url,
             project_id,
-            pipeline_configuration_id
+            pipeline_configuration_id,
+            generation=sgtk.ToolkitPathManager.CORE_V17
         )
+
         legacy_target_path = os.path.join(legacy_cache_root, cache_filename)
 
         if os.path.exists(legacy_target_path):
@@ -104,12 +107,24 @@ class CacheLocation(HookBaseClass):
 
         """
         tk = self.parent
-        cache_root = get_pipeline_config_cache_root(
+        cache_root = sgtk.ToolkitPathManager.get_configuration_root(
             tk.shotgun_url,
             project_id,
-            pipeline_configuration_id,
+            pipeline_configuration_id
         )
-        target_path = os.path.join(cache_root, get_cache_bundle_folder_name(bundle))
+
+        # in the interest of trying to minimize path lengths (to avoid
+        # the MAX_PATH limit on windows, we apply some shortcuts
+
+        # if the bundle is a framework, we shorten it:
+        # tk-framework-shotgunutils --> fw-shotgunutils
+        # if the bundle is a multi-app, we shorten it:
+        # tk-multi-workfiles2 --> tm-workfiles2
+        bundle_name = bundle.name
+        bundle_name = bundle_name.replace("tk-framework-", "fw-")
+        bundle_name = bundle_name.replace("tk-multi-", "tm-")
+
+        target_path = os.path.join(cache_root, bundle_name)
 
         if os.path.exists(target_path):
             # new style cache bundle folder exists, return it
@@ -120,10 +135,11 @@ class CacheLocation(HookBaseClass):
         # cache root directory structure has changed (such is the case with
         # v0.17.x -> v0.18.x). To account for this scenario, see if the target
         # exists in an old location first, and if so, return that path instead.
-        legacy_cache_root = get_legacy_pipeline_config_cache_root(
+        legacy_cache_root = sgtk.ToolkitPathManager.get_configuration_root(
             tk.shotgun_url,
             project_id,
             pipeline_configuration_id,
+            generation=sgtk.ToolkitPathManager.CORE_V17
         )
         legacy_target_path = os.path.join(legacy_cache_root, bundle.name)
 

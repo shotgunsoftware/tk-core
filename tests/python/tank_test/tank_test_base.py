@@ -190,7 +190,8 @@ class TankTestBase(unittest.TestCase):
         self.tank_temp = TANK_TEMP
         self.init_cache_location = os.path.join(self.tank_temp, "init_cache.cache")
 
-        shotgun_base.paths.get_cache_root = lambda: os.path.join(self.tank_temp, "cache_root")
+        print fix tests here
+        tank.paths.get_cache_root = lambda: os.path.join(self.tank_temp, "cache_root")
         self.cache_root = os.path.join(self.tank_temp, "cache_root")
 
         def _get_cache_location_mock():
