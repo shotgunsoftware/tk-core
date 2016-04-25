@@ -31,7 +31,7 @@ from ... import pipelineconfig_utils
 
 from tank_vendor import yaml
 
-from ...util.shotgun_path import ShotgunPath
+from ...util import ShotgunPath
 
 
 

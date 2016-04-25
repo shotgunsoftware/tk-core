@@ -115,9 +115,9 @@ class MovePCAction(Action):
             log.info("Current Paths")
             log.info("--------------------------------------------------------------")
             log.info("")
-            log.info("Current Linux Path:   '%s'" % current_paths["linux2"])
-            log.info("Current Windows Path: '%s'" % current_paths["win32"])
-            log.info("Current Mac Path:     '%s'" % current_paths["darwin"])
+            log.info("Current Linux Path:   '%s'" % current_paths.linux)
+            log.info("Current Windows Path: '%s'" % current_paths.windows)
+            log.info("Current Mac Path:     '%s'" % current_paths.macosx)
             log.info("")
             log.info("")
             log.info("You typically need to quote your paths, like this:")
@@ -140,16 +140,16 @@ class MovePCAction(Action):
                      "linux2": linux_path}
               
         # check which paths are different
-        modifications = {"darwin": (current_paths["darwin"] != mac_path),
-                         "win32": (current_paths["win32"] != windows_path),
-                         "linux2": (current_paths["linux2"] != linux_path), }
+        modifications = {"darwin": (current_paths.macosx != mac_path),
+                         "win32": (current_paths.windows != windows_path),
+                         "linux2": (current_paths.linux != linux_path), }
 
         log.info("")
         log.info("Current Paths")
         log.info("--------------------------------------------------------------")
-        log.info("Current Linux Path:   '%s'" % current_paths["linux2"])
-        log.info("Current Windows Path: '%s'" % current_paths["win32"])
-        log.info("Current Mac Path:     '%s'" % current_paths["darwin"])
+        log.info("Current Linux Path:   '%s'" % current_paths.linux)
+        log.info("Current Windows Path: '%s'" % current_paths.windows)
+        log.info("Current Mac Path:     '%s'" % current_paths.macosx)
         log.info("")
         log.info("New Paths")
         log.info("--------------------------------------------------------------")

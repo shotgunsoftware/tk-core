@@ -15,7 +15,7 @@ from distutils.version import StrictVersion
 from .action_base import Action
 from . import core_localize
 from ...util import shotgun
-from ...util.shotgun_path import ShotgunPath
+from ...util import ShotgunPath
 from ...errors import TankError
 from ... import pipelineconfig_utils
 

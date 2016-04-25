@@ -17,7 +17,7 @@ import cPickle as pickle
 from .errors import TankError
 from .platform import constants
 from .util import shotgun
-from .util.shotgun_path import ShotgunPath
+from .util import ShotgunPath
 from . import pipelineconfig_utils
 from .pipelineconfig import PipelineConfiguration
 from .paths import PathManager

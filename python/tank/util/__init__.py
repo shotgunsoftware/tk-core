@@ -26,3 +26,5 @@ from .login import get_current_user
 from .metrics import log_user_activity_metric
 from .metrics import log_user_attribute_metric
 
+from .shotgun_path import ShotgunPath
+

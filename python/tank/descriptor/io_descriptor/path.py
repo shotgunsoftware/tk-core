@@ -13,7 +13,7 @@ import logging
 
 from .base import IODescriptorBase
 from ..errors import TankDescriptorError
-from ...util.shotgun_path import ShotgunPath
+from ...util import ShotgunPath
 
 log = logging.getLogger(__name__)
 

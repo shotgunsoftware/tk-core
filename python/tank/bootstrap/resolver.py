@@ -20,7 +20,7 @@ from ..descriptor import Descriptor, create_descriptor
 from .errors import TankBootstrapError
 from .configuration import Configuration
 from ..util import filesystem
-from ..util.shotgun_path import ShotgunPath
+from ..util import ShotgunPath
 from ..paths import PathManager
 
 log = logging.getLogger(__name__)

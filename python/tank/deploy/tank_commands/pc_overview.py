@@ -10,7 +10,7 @@
 
 
 from ... import pipelineconfig_utils
-from ...util.shotgun_path import ShotgunPath
+from ...util import ShotgunPath
 from ...platform import constants
 from ...errors import TankError
 from .action_base import Action

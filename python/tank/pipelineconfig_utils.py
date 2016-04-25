@@ -18,7 +18,7 @@ import sys
 from .errors import TankError
 from .platform import constants
 from .util import yaml_cache
-from .util.shotgun_path import ShotgunPath
+from .util import ShotgunPath
 
 def is_localized(pipeline_config_path):
     """
@@ -198,17 +198,18 @@ def resolve_all_os_paths_to_core(core_path):
     Given a core path on the current os platform, 
     return paths for all platforms, 
     as cached in the install_locations system file
-    
+
     :returns: dictionary with keys linux2, darwin and win32
     """
-    return _get_install_locations(core_path)
+    # @todo - refactor this to return a ShotgunPath
+    return _get_install_locations(core_path).as_system_dict()
 
 def resolve_all_os_paths_to_config(pc_path):
     """
     Given a pipeline configuration path on the current os platform, 
     return paths for all platforms, as cached in the install_locations system file
-    
-    :returns: dictionary with keys linux2, darwin and win32
+
+    :returns: ShotgunPath object
     """
     return _get_install_locations(pc_path)
 
@@ -231,18 +232,14 @@ def get_config_install_location(path):
     :param path: Path to a pipeline configuration on disk.
     :returns: registered path, may be None.
     """
-    # resolve locations and sanitize
-    locations = ShotgunPath.from_system_dict(
-        _get_install_locations(path)
-    )
-    return locations.current_os
+    return _get_install_locations(path).current_os
 
 def _get_install_locations(path):
     """
     Given a pipeline configuration OR core location, return paths on all platforms.
     
     :param path: Path to a pipeline configuration on disk.
-    :returns: dictionary with keys linux2, darwin and win32
+    :returns: ShotgunPath object
     """
     # basic sanity check
     if not os.path.exists(path):
@@ -280,9 +277,9 @@ def _get_install_locations(path):
     if not win_path or not (win_path.startswith("\\") or win_path[1] == ":"):
         win_path = None
 
-    # return data
-    return {"win32": win_path, "darwin": macosx_path, "linux2": linux_path }
-        
+    # sanitize data into a ShotgunPath and return data
+    return ShotgunPath(win_path, linux_path, macosx_path)
+
 
 
 

@@ -23,7 +23,7 @@ from . import update
 from ...errors import TankError
 from ...platform import constants
 from ...util import shotgun
-from ...util.shotgun_path import ShotgunPath
+from ...util import ShotgunPath
 
 class EntityMigrator(object):
     """

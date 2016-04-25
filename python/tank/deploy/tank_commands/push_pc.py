@@ -17,7 +17,7 @@ from . import console_utils
 
 from .action_base import Action
 
-from ...util.shotgun_path import ShotgunPath
+from ...util import ShotgunPath
 
 import os
 import datetime

@@ -20,7 +20,7 @@ from .errors import TankBootstrapError
 from ..descriptor import Descriptor, create_descriptor
 
 from ..util import filesystem
-from ..util.shotgun_path import ShotgunPath
+from ..util import ShotgunPath
 
 from tank_vendor import yaml
 

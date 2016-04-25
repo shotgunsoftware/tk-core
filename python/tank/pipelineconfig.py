@@ -24,7 +24,7 @@ from .util.version import is_version_older
 from .platform import constants
 from .platform.environment import Environment, WritableEnvironment
 from .util import shotgun, yaml_cache
-from .util.shotgun_path import ShotgunPath
+from .util import ShotgunPath
 from . import hook
 from . import pipelineconfig_utils
 from . import template_includes
@@ -233,9 +233,9 @@ class PipelineConfiguration(object):
     def get_all_os_paths(self):
         """
         Returns the path to this config for all operating systems,
-        as defined in the install_locations file. None, if not defined.
+        as defined in the install_locations file.
         
-        :returns: dictionary with keys linux2, darwin and win32
+        :returns: ShotgunPath
         """
         return pipelineconfig_utils.resolve_all_os_paths_to_config(self._pc_root)
 
@@ -421,7 +421,9 @@ class PipelineConfiguration(object):
         The operating system keys are returned on sys.platform-style notation.
         If a data root has not been defined on a particular platform, None is 
         returned (see example above).
-         
+
+        @todo - refactor to use ShotgunPath
+
         :returns: dictionary of dictionaries. See above.
         """
         proj_roots = {}

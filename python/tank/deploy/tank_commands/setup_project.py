@@ -14,7 +14,7 @@ from .action_base import Action
 from . import core_localize
 from ...errors import TankError
 from ...util import shotgun
-from ...util.shotgun_path import ShotgunPath
+from ...util import ShotgunPath
 from ...platform import constants
 from ... import pipelineconfig_utils
 
