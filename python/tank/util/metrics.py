@@ -186,7 +186,7 @@ class MetricsDispatcher(object):
         if not hasattr(self, '_metrics_ok'):
 
             # local import avoids circular dependency errors
-            from tank.api import get_authenticated_user
+            from ..api import get_authenticated_user
             if not get_authenticated_user():
                 self._metrics_ok = False
             else:

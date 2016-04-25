@@ -16,9 +16,8 @@ import sys
 
 from . import QtCore, QtGui
 from .ui_item import Ui_Item
-from .. import constants
-from tank.platform.bundle import resolve_default_value
-from tank.platform.engine import current_engine
+from ..bundle import resolve_default_value
+from ..engine import current_engine
 
 class ConfigItem(QtGui.QWidget):
     """
@@ -97,5 +96,4 @@ class ConfigItem(QtGui.QWidget):
             
             
         
-        
-        
+

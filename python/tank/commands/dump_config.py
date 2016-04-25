@@ -11,7 +11,7 @@
 import os
 import StringIO
 
-from tank import TankError
+from ..errors import TankError
 from .action_base import Action
 from ..util import filesystem
 
