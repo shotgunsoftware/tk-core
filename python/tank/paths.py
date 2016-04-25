@@ -17,7 +17,7 @@ import sys
 import urlparse
 
 
-class ToolkitPathManager(object):
+class PathManager(object):
     """
     Class that encapsulates
     """

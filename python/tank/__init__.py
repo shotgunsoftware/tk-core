@@ -62,4 +62,5 @@ from .hook import Hook, get_hook_baseclass
 from .deploy.tank_command import list_commands, get_command
 
 
-from .paths import ToolkitPathManager
+from .paths import PathManager
+from .log import LogManager

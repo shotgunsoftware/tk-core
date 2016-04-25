@@ -21,7 +21,7 @@ from .errors import TankBootstrapError
 from .configuration import Configuration
 from ..util import filesystem
 from ..util.shotgun_path import ShotgunPath
-from ..paths import ToolkitPathManager
+from ..paths import PathManager
 
 log = logging.getLogger(__name__)
 
@@ -145,11 +145,11 @@ class BaseConfigurationResolver(ConfigurationResolver):
         config_root = {"win32": None, "linux2": None, "darwin": None}
 
         # first get the cache root
-        cache_root = ToolkitPathManager.get_configuration_root(
+        cache_root = PathManager.get_configuration_root(
             self._sg_connection.base_url,
             project_id,
             None,  # pipeline config id
-            ToolkitPathManager.CACHE
+            PathManager.CACHE
         )
 
         # now locate configs created by the base config resolver

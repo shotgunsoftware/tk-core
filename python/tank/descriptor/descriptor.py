@@ -15,7 +15,7 @@ from .. import paths
 from ..util import filesystem
 from .io_descriptor import create_io_descriptor
 from .errors import TankDescriptorError
-from ..paths import ToolkitPathManager
+from ..paths import PathManager
 
 def create_descriptor(
         sg_connection,
@@ -146,7 +146,7 @@ class Descriptor(object):
         :returns: path on disk
         """
         return os.path.join(
-            ToolkitPathManager.get_global_root(ToolkitPathManager.CACHE),
+            PathManager.get_global_root(PathManager.CACHE),
             "bundle_cache"
         )
 

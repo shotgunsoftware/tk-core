@@ -20,7 +20,7 @@ from .util import shotgun
 from .util.shotgun_path import ShotgunPath
 from . import pipelineconfig_utils
 from .pipelineconfig import PipelineConfiguration
-from .paths import ToolkitPathManager
+from .paths import PathManager
 
 def from_entity(entity_type, entity_id):
     """
@@ -697,5 +697,5 @@ def _get_cache_location():
     # optimized version of creating an sg instance and then calling sg.base_url
     # this is to avoid connecting to shotgun if possible.
     sg_base_url = shotgun.get_associated_sg_base_url()
-    return ToolkitPathManager.get_site_root(sg_base_url, ToolkitPathManager.CACHE)
+    return PathManager.get_site_root(sg_base_url, PathManager.CACHE)
 

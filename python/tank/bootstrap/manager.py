@@ -11,7 +11,7 @@
 import logging
 
 from . import constants
-from ..log import initialize_base_file_logger
+from ..log import LogManager
 from .errors import TankBootstrapError
 from .configuration import Configuration
 from .resolver import BaseConfigurationResolver
@@ -183,7 +183,7 @@ class ToolkitManager(object):
         """
         # begin writing log to disk. Base the log file name
         # on the current engine we are launching into
-        initialize_base_file_logger(engine_name)
+        LogManager.initialize_base_file_logger(engine_name)
 
         log.debug("bootstrapping into an engine.")
 

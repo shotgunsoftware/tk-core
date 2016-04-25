@@ -47,7 +47,7 @@ class CacheLocation(HookBaseClass):
 
         tk = self.parent
 
-        cache_root = sgtk.ToolkitPathManager.get_configuration_root(
+        cache_root = sgtk.PathManager.get_configuration_root(
             tk.shotgun_url,
             project_id,
             pipeline_configuration_id
@@ -64,11 +64,11 @@ class CacheLocation(HookBaseClass):
         # cache root directory structure has changed (such is the case with
         # v0.17.x -> v0.18.x). To account for this scenario, see if the target
         # exists in an old location first, and if so, return that path instead.
-        legacy_cache_root = sgtk.ToolkitPathManager.get_configuration_root(
+        legacy_cache_root = sgtk.PathManager.get_configuration_root(
             tk.shotgun_url,
             project_id,
             pipeline_configuration_id,
-            generation=sgtk.ToolkitPathManager.CORE_V17
+            generation=sgtk.PathManager.CORE_V17
         )
 
         legacy_target_path = os.path.join(legacy_cache_root, cache_filename)
@@ -107,7 +107,7 @@ class CacheLocation(HookBaseClass):
 
         """
         tk = self.parent
-        cache_root = sgtk.ToolkitPathManager.get_configuration_root(
+        cache_root = sgtk.PathManager.get_configuration_root(
             tk.shotgun_url,
             project_id,
             pipeline_configuration_id
@@ -135,11 +135,11 @@ class CacheLocation(HookBaseClass):
         # cache root directory structure has changed (such is the case with
         # v0.17.x -> v0.18.x). To account for this scenario, see if the target
         # exists in an old location first, and if so, return that path instead.
-        legacy_cache_root = sgtk.ToolkitPathManager.get_configuration_root(
+        legacy_cache_root = sgtk.PathManager.get_configuration_root(
             tk.shotgun_url,
             project_id,
             pipeline_configuration_id,
-            generation=sgtk.ToolkitPathManager.CORE_V17
+            generation=sgtk.PathManager.CORE_V17
         )
         legacy_target_path = os.path.join(legacy_cache_root, bundle.name)
 

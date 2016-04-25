@@ -43,7 +43,7 @@ class TestApi(TankTestBase):
         )
 
         app_root_path = os.path.join(
-            tank.ToolkitPathManager.get_global_root(tank.ToolkitPathManager.CACHE),
+            tank.PathManager.get_global_root(tank.PathManager.CACHE),
             "bundle_cache",
             "app_store",
             "tk-testbundlefactory",

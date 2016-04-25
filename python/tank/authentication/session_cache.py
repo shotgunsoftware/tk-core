@@ -30,7 +30,7 @@ from tank_vendor.shotgun_api3 import (Shotgun, AuthenticationFault, ProtocolErro
 from tank_vendor.shotgun_api3.lib import httplib2
 from tank_vendor import yaml
 from .errors import AuthenticationError
-from ..paths import ToolkitPathManager
+from ..paths import PathManager
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +63,7 @@ def _get_global_authentication_file_location():
     :returns: Path to the login information.
     """
     return os.path.join(
-        ToolkitPathManager.get_global_root(ToolkitPathManager.PERSISTENT),
+        PathManager.get_global_root(PathManager.PERSISTENT),
         _SESSION_CACHE_FILE_NAME
     )
 
@@ -76,7 +76,7 @@ def _get_site_authentication_file_location(base_url):
     :returns: Path to the login information.
     """
     return os.path.join(
-        ToolkitPathManager.get_site_root(base_url, ToolkitPathManager.PERSISTENT),
+        PathManager.get_site_root(base_url, PathManager.PERSISTENT),
         _SESSION_CACHE_FILE_NAME
     )
 
