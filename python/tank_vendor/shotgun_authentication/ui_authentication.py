@@ -17,12 +17,12 @@ not be called directly. Interfaces and implementation of this module may change
 at any point.
 --------------------------------------------------------------------------------
 """
+import logging
 
 from .errors import AuthenticationCancelled
 from . import invoker
 
-from .sg_auth_logging import get_logger
-logger = get_logger("ui")
+logger = logging.getLogger(__name__)
 
 
 class UiAuthenticationHandler(object):

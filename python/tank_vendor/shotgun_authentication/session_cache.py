@@ -24,15 +24,15 @@ import os
 import sys
 import urlparse
 import socket
+import logging
 from tank_vendor.shotgun_api3 import (Shotgun, AuthenticationFault, ProtocolError,
                                       MissingTwoFactorAuthenticationFault)
 from tank_vendor.shotgun_api3.lib import httplib2
 from tank_vendor import yaml
 from .errors import AuthenticationError
-from .sg_auth_logging import get_logger
-from tank import ToolkitPathManager
+#from tank import ToolkitPathManager
 
-logger = get_logger("session")
+logger = logging.getLogger(__name__)
 
 _CURRENT_HOST = "current_host"
 _CURRENT_USER = "current_user"

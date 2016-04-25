@@ -16,6 +16,7 @@ Defines the base class for all Tank Engines.
 import os
 import re
 import sys
+import logging
 import traceback
 import inspect
 import weakref
@@ -33,6 +34,8 @@ from . import validation
 from . import qt
 from .bundle import TankBundle
 from .framework import setup_frameworks
+
+log = logging.getLogger(__name__)
 
 class Engine(TankBundle):
     """
@@ -888,32 +891,27 @@ class Engine(TankBundle):
     def log_debug(self, msg):
         """
         Debug logging.
-        Implemented in deriving class.
         """
-        pass
+        log.debug(msg)
     
     def log_info(self, msg):
         """
         Info logging.
-        Implemented in deriving class.
         """
-        pass
+        log.info(msg)
         
     def log_warning(self, msg):
         """
         Warning logging.
-        Implemented in deriving class.
         """
-        pass
+        log.warning(msg)
     
     def log_error(self, msg):
         """
         Debug logging.
-        Implemented in deriving class - however we provide a basic implementation here.
         """        
-        # fall back to std out error reporting if deriving class does not implement this.
-        sys.stderr.write("Shotgun Error: %s\n" % msg)
-    
+        log.error(msg)
+
     def log_exception(self, msg):
         """
         Helper method. Typically not overridden by deriving classes.

@@ -18,8 +18,8 @@ at any point.
 --------------------------------------------------------------------------------
 """
 
-from .sg_auth_logging import get_logger
-logger = get_logger("invoker")
+import logging
+logger = logging.getLogger(__name__)
 
 
 def create():

@@ -16,12 +16,12 @@ at any point.
 --------------------------------------------------------------------------------
 """
 
+import logging
+
 from tank_vendor.shotgun_api3 import Shotgun, AuthenticationFault
 from . import interactive_authentication, session_cache
 
-from .sg_auth_logging import get_logger
-logger = get_logger("wrapper")
-
+logger = logging.getLogger(__name__)
 
 class ShotgunWrapper(Shotgun):
     """

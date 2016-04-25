@@ -11,56 +11,69 @@
 import logging
 import logging.handlers
 import os
-
 from .paths import ToolkitPathManager
 
-sgtk_root_logger = logging.getLogger("sgtk")
+ROOT_LOGGER_NAME = "tank"
+
+
+# initialize toolkit logging
+#
+# retrieve top most logger in the sgtk hierarchy
+sgtk_root_logger = logging.getLogger(ROOT_LOGGER_NAME)
+# 'cap it' so that log messages don't propagate
+# further upwards in the hierarchy. This is to avoid
+# log message spilling over into other loggers; if you
+# want to receive toolkit log messages, you have to
+# explicitly attach a log handler to the sgtk top level
+# logger (or any of its child loggers).
 sgtk_root_logger.propagate = False
-# the basic logger object has its message throughput
+# The top level logger object has its message throughput
 # level set to DEBUG. Individual handlers attaching
 # to this logger should then individually adjust
 # their preferred display level.
 sgtk_root_logger.setLevel(logging.DEBUG)
+#
+# create a 'nop' log handler to be attached.
+# this is to avoid warnings being reported that
+# logging is missing.
+#
+class NullHandler(logging.Handler):
+    def emit(self, record):
+        pass
+#
+sgtk_root_logger.addHandler(NullHandler())
+
+def get_root_logger():
+    """
+    Returns the root logger for sgtk.
+
+    This method is typically used for two different purposes:
+
+    - If you want to add your own logger underneath the toolkit
+      logger, you can use this method to easily do so::
+
+        log = get_root_logger().getChild("my_logger")
+
+      This will create a ``my_logger`` under the root logger and
+      log information from this will appear in all standard toolkit
+      logs.
+
+    - If you want to control how log information is being output. This
+      is done by adding a handler to the root logger. The handler can send
+      the information to stdout, write it to a file etc. Please note that if
+      you want your log handler to output less information, for example only
+      warning and errors, do not adjust the log level on the logger itself.
+      Instead, adjust the log level on the log handler you are creating. This
+      will ensure that the right amount of information is written to log files.
+
+    :return: log object
+    """
+    return logging.getLogger(ROOT_LOGGER_NAME)
+
 
 # a global and standard rotating log file handler
 # for writing generic toolkit logs to disk
 std_file_handler = None
-
-def get_sgtk_logger(name=None):
-    """
-    Returns a official sgtk root logger.
-
-    If the name parameter is left as None, the root
-    logger itself is returned. This logger is not meant
-    to be used to for actual logging, but instead you
-    attach your log handlers to this log. By attaching
-    a log handler at this level, you will catch all
-    sgtk related messages.
-
-    If you are logging inside of your code, use
-    the name parameter to generate a child logger
-    which will be parented under the main sgtk
-    logger. For example::
-
-        log = get_sgtk_logger("maya_plugin")
-        log = get_sgtk_logger("maya_plugin.bootstrap")
-
-    :param name: Child logger channel to return.
-                 For nested levels, use periods.
-    :returns: Python logger
-    """
-    if name is None:
-        return sgtk_root_logger
-    else:
-        return logging.getLogger("sgtk.%s" % name)
-
-def get_shotgun_base_logger():
-    """
-    Returns a logger to be used inside the shotun_base module
-
-    :return: Python logger
-    """
-    return get_sgtk_logger("base")
 
 def initialize_base_file_logger(log_name):
     """
@@ -86,7 +99,7 @@ def initialize_base_file_logger(log_name):
     if std_file_handler:
         # there is already a log handler.
         # terminate previous one
-        get_shotgun_base_logger().removeHandler(std_file_handler)
+        sgtk_root_logger.removeHandler(std_file_handler)
         std_file_handler = None
 
     # set up logging root folder
@@ -102,13 +115,18 @@ def initialize_base_file_logger(log_name):
     std_file_handler = logging.handlers.RotatingFileHandler(
         log_file,
         maxBytes=1024*1024,
-        backupCount=5)
-    formatter = logging.Formatter(
-        "%(asctime)s [%(process)-5d %(levelname)-7s] %(name)s - %(message)s"
+        backupCount=5
     )
+
+    # example:
+    # 2016-04-25 08:56:12,413 [44862 DEBUG tank.log] message message
+    formatter = logging.Formatter(
+        "%(asctime)s [%(process)d %(levelname)s %(name)s] %(message)s"
+    )
+
     std_file_handler.setFormatter(formatter)
-    get_sgtk_logger().addHandler(std_file_handler)
+    sgtk_root_logger.addHandler(std_file_handler)
 
     # log the fact that we set up the log file :)
-    log = get_shotgun_base_logger()
+    log = logging.getLogger(__name__)
     log.debug("Writing to log standard log file %s" % log_file)

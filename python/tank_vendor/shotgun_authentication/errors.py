@@ -12,10 +12,8 @@
 All custom exceptions that this module emits are defined here.
 """
 
-from ..shotgun_base import ShotgunBaseError
 
-
-class ShotgunAuthenticationError(ShotgunBaseError):
+class ShotgunAuthenticationError(Exception):
     """
     Base class for all exceptions coming out from this module.
     """
