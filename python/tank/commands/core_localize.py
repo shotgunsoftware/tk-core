@@ -18,20 +18,19 @@ import stat
 import shutil
 import datetime
 
-from ...errors import TankError
-from ...util import filesystem
-from .. import util
-from ...util.version import is_version_older
+from ..errors import TankError
+from ..util import filesystem
+from ..util.version import is_version_older
 from .action_base import Action
 from . import console_utils
-from ... import pipelineconfig_utils
-from ... import pipelineconfig_factory
+from .. import pipelineconfig_utils
+from .. import pipelineconfig_factory
 
 
 # these are the items that need to be copied across
 # when a configuration is upgraded to contain a core API
-CORE_FILES_FOR_LOCALIZE = [ "shotgun.yml",
-                            "app_store.yml",
+CORE_FILES_FOR_LOCALIZE = ["shotgun.yml",
+                           "app_store.yml",
                            "interpreter_Darwin.cfg", 
                            "interpreter_Linux.cfg", 
                            "interpreter_Windows.cfg"]
@@ -616,4 +615,5 @@ def _run_unlocalize(tk, log, mac_path, windows_path, linux_path, copy_core, supp
         
     log.info("The Core API was successfully processed.")    
     log.info("")
-            
+
+

@@ -10,9 +10,9 @@
 
 from .action_base import Action
 from . import console_utils
-from .. import util
-from ...platform.environment import WritableEnvironment
-from .. import constants
+from . import util
+from ..platform.environment import WritableEnvironment
+from . import constants
 import os
 
 

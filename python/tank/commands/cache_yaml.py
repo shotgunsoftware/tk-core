@@ -13,8 +13,8 @@ import fnmatch
 import cPickle
 
 from .action_base import Action
-from ...errors import TankError
-from ...util import yaml_cache
+from ..errors import TankError
+from ..util import yaml_cache
 
 class CacheYamlAction(Action):
     """

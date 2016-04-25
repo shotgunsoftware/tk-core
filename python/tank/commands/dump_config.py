@@ -13,7 +13,7 @@ import StringIO
 
 from tank import TankError
 from .action_base import Action
-from ...util import filesystem
+from ..util import filesystem
 
 class DumpConfigAction(Action):
     """

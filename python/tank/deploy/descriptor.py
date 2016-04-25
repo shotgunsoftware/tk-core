@@ -9,7 +9,9 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-Functionality for managing versions of apps.
+Legacy handling of descriptors for Shotgun Desktop.
+
+This code may be removed at some point in the future.
 """
 
 from ..descriptor import create_descriptor, Descriptor

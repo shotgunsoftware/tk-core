@@ -9,8 +9,8 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from .action_base import Action
-from ...errors import TankError
-from ...util.process import SubprocessCalledProcessError, subprocess_check_output
+from ..errors import TankError
+from ..util.process import SubprocessCalledProcessError, subprocess_check_output
 
 import itertools
 import operator

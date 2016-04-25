@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from .action_base import Action
-from ...errors import TankError
+from ..errors import TankError
 
 
 class AppInfoAction(Action):

@@ -8,11 +8,11 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from ...errors import TankError
+from ..errors import TankError
 from . import console_utils
 from .action_base import Action
-from .. import util
-from .. import constants
+from . import util
+from . import constants
 
 class InstallAppAction(Action):
     """

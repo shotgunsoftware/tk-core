@@ -10,7 +10,7 @@
 
 from .action_base import Action
 from . import console_utils
-from ...platform import constants
+from ..platform import constants
 
 _MESSAGE = ("This command will migrate the Shotgun site configuration used by the Desktop app so "
             "it is no longer associated with the 'Template Project'. Before proceeding, make sure "

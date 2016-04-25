@@ -10,8 +10,8 @@
 
 import os
 from .action_base import Action
-from ...errors import TankError
-from ...platform import validation, bundle
+from ..errors import TankError
+from ..platform import validation, bundle
 
 
 class ValidateConfigAction(Action):

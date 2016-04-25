@@ -8,16 +8,16 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from ...util import filesystem
-from ...platform import constants
-from ...errors import TankError
-from ...pipelineconfig import PipelineConfiguration
+from ..util import filesystem
+from ..platform import constants
+from ..errors import TankError
+from ..pipelineconfig import PipelineConfiguration
 
 from . import console_utils
 
 from .action_base import Action
 
-from ...util import ShotgunPath
+from ..util import ShotgunPath
 
 import os
 import datetime

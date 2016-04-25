@@ -14,7 +14,7 @@ Tank command allowing to do core updates.
 
 from __future__ import with_statement
 
-from ...errors import TankError
+from ..errors import TankError
 from .action_base import Action
 
 import os
@@ -23,10 +23,10 @@ import textwrap
 import optparse
 import copy
 
-from ...util import shotgun
-from ... import pipelineconfig_utils
+from ..util import shotgun
+from .. import pipelineconfig_utils
 from . import console_utils
-from ...util.version import is_version_newer, is_version_head
+from ..util.version import is_version_newer, is_version_head
 
 from tank_vendor import yaml
 

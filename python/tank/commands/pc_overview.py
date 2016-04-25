@@ -9,13 +9,12 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 
-from ... import pipelineconfig_utils
-from ...util import ShotgunPath
-from ...platform import constants
-from ...errors import TankError
+from .. import pipelineconfig_utils
+from ..util import ShotgunPath
+from ..platform import constants
+from ..errors import TankError
 from .action_base import Action
 
-import sys
 import os
 
 

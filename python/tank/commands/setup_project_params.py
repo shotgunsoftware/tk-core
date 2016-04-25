@@ -14,24 +14,21 @@ import re
 import tempfile
 import uuid
 
-from ...platform import constants
+from ..platform import constants
 
-from ...util import shotgun
-from ...util import filesystem
-from ...util.version import is_version_newer
-from ...util.zip import unzip_file
-from ...util.git import execute_git_command
+from ..util import shotgun
+from ..util import filesystem
+from ..util.version import is_version_newer
+from ..util.zip import unzip_file
+from ..util.git import execute_git_command
 
-from ... import hook
-from ...errors import TankError, TankErrorProjectIsSetup
-from ... import pipelineconfig_utils
-
-
-
+from .. import hook
+from ..errors import TankError, TankErrorProjectIsSetup
+from .. import pipelineconfig_utils
 
 from tank_vendor import yaml
 
-from ...util import ShotgunPath
+from ..util import ShotgunPath
 
 
 

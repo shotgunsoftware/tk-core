@@ -15,31 +15,31 @@ Methods for handling of the tank command
 
 import logging
 
-from .tank_commands.action_base import Action 
-from .tank_commands import folders
-from .tank_commands import misc
-from .tank_commands import move_pc
-from .tank_commands import pc_overview
-from .tank_commands import migrate_entities
-from .tank_commands import path_cache
-from .tank_commands import update
-from .tank_commands import push_pc
-from .tank_commands import setup_project
-from .tank_commands import setup_project_wizard
-from .tank_commands import dump_config
-from .tank_commands import validate_config
-from .tank_commands import cache_apps
-from .tank_commands import switch
-from .tank_commands import app_info
-from .tank_commands import core_upgrade
-from .tank_commands import core_localize
-from .tank_commands import install
-from .tank_commands import clone_configuration
-from .tank_commands import copy_apps
-from .tank_commands import unregister_folders
-from .tank_commands import desktop_migration
-from .tank_commands import cache_yaml
-from .tank_commands import get_entity_commands
+from .action_base import Action
+from . import folders
+from . import misc
+from . import move_pc
+from . import pc_overview
+from . import migrate_entities
+from . import path_cache
+from . import update
+from . import push_pc
+from . import setup_project
+from . import setup_project_wizard
+from . import dump_config
+from . import validate_config
+from . import cache_apps
+from . import switch
+from . import app_info
+from . import core_upgrade
+from . import core_localize
+from . import install
+from . import clone_configuration
+from . import copy_apps
+from . import unregister_folders
+from . import desktop_migration
+from . import cache_yaml
+from . import get_entity_commands
 
 from ..platform import constants
 from ..platform.engine import start_engine, get_environment_from_context

@@ -12,10 +12,10 @@
 Method to unregister folders from the path cache
 """
 
-from ...errors import TankError
-from ... import path_cache
+from ..errors import TankError
+from .. import path_cache
 from .action_base import Action
-from ...util.login import get_current_user 
+from ..util.login import get_current_user
 
 class UnregisterFoldersAction(Action):
     """

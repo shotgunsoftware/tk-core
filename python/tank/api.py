@@ -253,8 +253,8 @@ class Tank(object):
         :returns: list of command names
         """
         # avoid cyclic dependencies
-        from .deploy import tank_command
-        return tank_command.list_commands(self) 
+        from . import commands
+        return commands.list_commands(self)
 
     def get_command(self, command_name):
         """
@@ -272,8 +272,8 @@ class Tank(object):
         :returns: SgtkSystemCommand object instance
         """
         # avoid cyclic dependencies
-        from .deploy import tank_command
-        return tank_command.get_command(command_name, self) 
+        from . import commands
+        return commands.get_command(command_name, self)
         
     def template_from_path(self, path):
         """Finds a template that matches the input path.

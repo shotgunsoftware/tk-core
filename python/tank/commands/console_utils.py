@@ -15,12 +15,12 @@ Various helper methods relating to user interaction via the shell.
 import textwrap
 import os
 
-from ... import pipelineconfig_utils
-from ...platform import validation
-from ...errors import TankError, TankNoDefaultValueError
-from ...util import shotgun
-from ...platform.bundle import resolve_default_value
-from ...util.version import is_version_older
+from .. import pipelineconfig_utils
+from ..platform import validation
+from ..errors import TankError, TankNoDefaultValueError
+from ..util import shotgun
+from ..platform.bundle import resolve_default_value
+from ..util.version import is_version_older
 
 
 ##########################################################################################

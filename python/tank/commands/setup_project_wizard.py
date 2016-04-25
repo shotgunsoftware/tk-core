@@ -14,10 +14,10 @@ from distutils.version import StrictVersion
 
 from .action_base import Action
 from . import core_localize
-from ...util import shotgun
-from ...util import ShotgunPath
-from ...errors import TankError
-from ... import pipelineconfig_utils
+from ..util import shotgun
+from ..util import ShotgunPath
+from ..errors import TankError
+from .. import pipelineconfig_utils
 
 from .setup_project_core import run_project_setup
 from .setup_project_params import ProjectSetupParameters

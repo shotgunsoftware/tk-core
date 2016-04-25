@@ -19,10 +19,10 @@ import tank
 import textwrap
 import datetime
 from tank import TankError
-from tank.deploy.tank_commands.clone_configuration import clone_pipeline_configuration_html
-from tank.deploy import tank_command
-from tank.deploy.tank_commands.core_upgrade import TankCoreUpdater
-from tank.deploy.tank_commands.action_base import Action
+from tank import commands
+from tank.commands.clone_configuration import clone_pipeline_configuration_html
+from tank.commands.core_upgrade import TankCoreUpdater
+from tank.commands.action_base import Action
 from tank.util import shotgun, CoreDefaultsManager
 from tank.platform import constants
 from tank.authentication import ShotgunAuthenticator
@@ -767,7 +767,7 @@ def _list_commands(log, tk, ctx):
     Output a list of commands given the current context etc
     """
     # get all the action objets (commands) suitable for the current context
-    (aa, engine) = tank_command.get_actions(log, tk, ctx)
+    (aa, engine) = commands.get_actions(log, tk, ctx)
 
     log.info("")
     log.info("The following commands are available:")
@@ -1269,7 +1269,7 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
     else:
         # pass over to the tank commands api - this will take over command execution,
         # setup the objects accordingly etc.
-        return tank_command.run_action(log, tk, ctx, command, args)
+        return commands.run_action(log, tk, ctx, command, args)
 
 
 def _extract_args(cmd_line, args):

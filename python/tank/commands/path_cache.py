@@ -12,13 +12,11 @@
 Methods relating to the path cache
 """
 
-from ...errors import TankError
-from ... import path_cache
-from ... import folder 
+from ..errors import TankError
+from .. import path_cache
+from .. import folder
 
 from .action_base import Action
-from ...util.login import get_current_user 
-
 
 
 class SynchronizePathCache(Action):
