@@ -40,7 +40,7 @@ if "TANK_CURRENT_PC" not in os.environ:
     # it is intentionally left here in the init method to highlight that  
     # is unique and special.
     #
-    from .platform import constants
+    from . import constants
     current_folder = os.path.abspath(os.path.dirname(__file__))
     pipeline_config = os.path.abspath(os.path.join(current_folder, "..", "..", "..", ".."))
     roots_file = os.path.join(pipeline_config, "config", "core", constants.STORAGE_ROOTS_FILE)
