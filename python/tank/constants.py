@@ -59,5 +59,11 @@ MULTI_INCLUDE_SECTION = "includes"
 # the key sections in a template file
 TEMPLATE_SECTIONS = ["keys", "paths", "strings"]
 
+# the path section in a templates file
+TEMPLATE_PATH_SECTION = "paths"
+
+# the string section in a templates file
+TEMPLATE_STRING_SECTION = "strings"
+
 # a human readable explanation of the above. For error messages.
 VALID_TEMPLATE_KEY_NAME_DESC = "letters, numbers, underscore, space and period"

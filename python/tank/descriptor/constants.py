@@ -75,3 +75,6 @@ DESCRIPTOR_URI_SEPARATOR = ":"
 # have a requires_shotgun_version. 5.0.0 is the minimum Shotgun version that every
 # version fo Toolkit have been published with ever since it came out.
 LOWEST_SHOTGUN_VERSION = "5.0.0"
+
+# name of the app store specific proxy setting
+APP_STORE_HTTP_PROXY = "app_store_http_proxy"

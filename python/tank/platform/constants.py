@@ -91,14 +91,8 @@ TANK_BUNDLE_DEFAULT_HOOK_SETTING = "default"
 # example: "default_value_tk-maya".
 TANK_SCHEMA_DEFAULT_VALUE_KEY = "default_value"
 
-# default method to execute on hooks
-DEFAULT_HOOK_METHOD = "execute"
-
 # if the engine name is included in a hook definition, include this in the manifest.
 TANK_HOOK_ENGINE_REFERENCE_TOKEN = "{engine_name}"
-
-# hooks that are used during folder creation.
-PROCESS_FOLDER_CREATION_HOOK_NAME = "process_folder_creation"
 
 # hook to choose the environment file given a context
 PICK_ENVIRONMENT_CORE_HOOK_NAME = "pick_environment"
@@ -120,9 +114,6 @@ SG_STYLESHEET_CONSTANTS = { "SG_HIGHLIGHT_COLOR": "#18A7E3",
                             "SG_ALERT_COLOR": "#FC6246",
                             "SG_FOREGROUND_COLOR": "#C8C8C8"}
 
-# the storage name that is treated to be the primary storage for tank
-PRIMARY_STORAGE_NAME = "primary"
-
 # the file to look for that defines and bootstraps a framework
 FRAMEWORK_FILE = "framework.py"
 
@@ -130,77 +121,8 @@ FRAMEWORK_FILE = "framework.py"
 PRIMARY_PIPELINE_CONFIG_NAME = "Primary"
 UNMANAGED_PIPELINE_CONFIG_NAME = "Unmanaged"
 
-# special dev descriptor token that can be used
-# as a replacement for the path to a pipeline configuration
-PIPELINE_CONFIG_DEV_DESCRIPTOR_TOKEN = "{PIPELINE_CONFIG}"
-
-# Configuration file containing setup and path details
-PIPELINECONFIG_FILE = "pipeline_configuration.yml"
-
-# app store: the entity that represents the core api
-TANK_CORE_VERSION_ENTITY = "CustomNonProjectEntity01"
-
-# app store: the entity representing configs
-TANK_CONFIG_ENTITY = "CustomNonProjectEntity07"
-
-# app store: the entity representing config versions
-TANK_CONFIG_VERSION_ENTITY = "CustomNonProjectEntity08"
-
-# app store: the field containing the zip payload
-TANK_CODE_PAYLOAD_FIELD = "sg_payload"
-
-# app store: dummy project required when writing event data to the system
-TANK_APP_STORE_DUMMY_PROJECT = {"type": "Project", "id": 64}
-
-# Shotgun: The entity that represents Pipeline Configurations in Shotgun
-PIPELINE_CONFIGURATION_ENTITY = "PipelineConfiguration"
-
-# The name of the default config
-DEFAULT_CFG = "tk-config-default"
-
-# the name of the shell engine
-SHELL_ENGINE = "tk-shell"
-
-# valid characters for a template key name
-TEMPLATE_KEY_NAME_REGEX = "[a-zA-Z_ 0-9\.]+"
-
-# a human readable explanation of the above. For error messages.
-VALID_TEMPLATE_KEY_NAME_DESC = "letters, numbers, underscore, space and period"
-
-# the name of the file that holds the templates.yml config
-CONTENT_TEMPLATES_FILE = "templates.yml"
-
-# the name of the file that contains the storage root definitions
-STORAGE_ROOTS_FILE = "roots.yml"
-
-# the name of the include section in env and template files
-SINGLE_INCLUDE_SECTION = "include"
-
-# the name of the includes section in env and template files
-MULTI_INCLUDE_SECTION = "includes"
-
-# the key sections in a template file
-TEMPLATE_SECTIONS = ["keys", "paths", "strings"]
-
-# the path section in a templates file
-TEMPLATE_PATH_SECTION = "paths"
-
-# the string section in a templates file
-TEMPLATE_STRING_SECTION = "strings"
-
 # the shotgun engine always has this name
 SHOTGUN_ENGINE_NAME = "tk-shotgun"
 
 # the menu favourites key for an engine
 MENU_FAVOURITES_KEY = "menu_favourites"
-
-
-
-# init cache for fast initialization
-SITE_INIT_CACHE_FILE_NAME = "toolkit_init.cache"
-
-# the location of the toolkit app store
-SGTK_APP_STORE = "https://tank.shotgunstudio.com"
-
-# name of the app store specific proxy setting
-APP_STORE_HTTP_PROXY = "app_store_http_proxy"
