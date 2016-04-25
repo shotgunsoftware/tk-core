@@ -28,7 +28,7 @@
 # itself with the primary config rather than with the config where the code is located. 
 
 import os
-from .platform import constants
+
 
 if "TANK_CURRENT_PC" not in os.environ:
     # find the pipeline configuration root, probe for a key file
@@ -40,6 +40,7 @@ if "TANK_CURRENT_PC" not in os.environ:
     # it is intentionally left here in the init method to highlight that  
     # is unique and special.
     #
+    from .platform import constants
     current_folder = os.path.abspath(os.path.dirname(__file__))
     pipeline_config = os.path.abspath(os.path.join(current_folder, "..", "..", "..", ".."))
     roots_file = os.path.join(pipeline_config, "config", "core", constants.STORAGE_ROOTS_FILE)
@@ -49,6 +50,12 @@ if "TANK_CURRENT_PC" not in os.environ:
 ########################################################################
     
 # make sure that all sub-modules are imported at the same as the main module
+from . import authentication
+from . import bootstrap
+from . import commands
+from . import deploy
+from . import descriptor
+from . import folder
 from . import platform
 from . import util
 

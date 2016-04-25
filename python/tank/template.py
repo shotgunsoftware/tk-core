@@ -19,7 +19,7 @@ import sys
 
 from . import templatekey
 from .errors import TankError
-from .platform import constants
+from . import constants
 from .template_path_parser import TemplatePathParser
 
 class Template(object):

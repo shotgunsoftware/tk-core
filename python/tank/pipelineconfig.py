@@ -13,7 +13,6 @@ Encapsulates the pipeline configuration and helps navigate and resolve paths
 across storages, configurations etc.
 """
 import os
-import sys
 import glob
 import cPickle
 
@@ -21,7 +20,7 @@ from tank_vendor import yaml
 
 from .errors import TankError, TankUnreadableFileError
 from .util.version import is_version_older
-from .platform import constants
+from . import constants
 from .platform.environment import Environment, WritableEnvironment
 from .util import shotgun, yaml_cache
 from .util import ShotgunPath

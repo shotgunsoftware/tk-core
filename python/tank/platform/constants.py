@@ -48,9 +48,6 @@ TANK_SCHEMA_STRING_TYPES = [
 # a folder to look for an automatically add to the pythonpath
 BUNDLE_PYTHON_FOLDER = "python"
 
-# app store approvals mode
-APP_STORE_QA_MODE_ENV_VAR = "TANK_QA_ENABLED"
-
 # force use old, non-structure preseving parser
 USE_LEGACY_YAML_ENV_VAR = "TK_USE_LEGACY_YAML"
 
@@ -69,32 +66,15 @@ ENGINE_ENV_LOCATIONS = "env"
 # the key in the configuration for an engine which holds the environment
 ENGINE_CONFIG_ENVIRONMENT_KEY = "environment"
 
-# hook that is executed when a tank instance initializes.
-TANK_INIT_HOOK_NAME = "tank_init"
-
 # hook that is executed whenever an engine has initialized
 TANK_ENGINE_INIT_HOOK_NAME = "engine_init"
 
 # hook that is executed whenever a bundle has initialized
 TANK_BUNDLE_INIT_HOOK_NAME = "bundle_init"
 
-# hook to be executed after bundle install
-BUNDLE_POST_INSTALL_HOOK = "post_install.py"
-
-# metrics logging custom hooks blacklist
-TANK_LOG_METRICS_CUSTOM_HOOK_BLACKLIST = [
-    "pick_environment",
-]
-
 # flag to indicate that an app command is a legacy style
 # shotgun multi select action
 LEGACY_MULTI_SELECT_ACTION_FLAG = "shotgun_multi_select_action"
-
-# hook that is executed whenever a PipelineConfiguration instance initializes.
-PIPELINE_CONFIGURATION_INIT_HOOK_NAME = "pipeline_configuration_init"
-
-# hook that is executed whenever a cache location should be determined
-CACHE_LOCATION_HOOK_NAME = "cache_location"
 
 # the name of the file that holds the inverse root defs
 # note - this is no longer used by the core itself, but it is still

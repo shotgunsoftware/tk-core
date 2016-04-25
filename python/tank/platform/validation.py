@@ -13,7 +13,6 @@ App configuration and schema validation.
 
 """
 import os
-import re
 import sys
 
 from . import constants

@@ -16,7 +16,7 @@ import os
 import sys
 
 from .errors import TankError
-from .platform import constants
+from . import constants
 from .util import yaml_cache
 from .util import ShotgunPath
 

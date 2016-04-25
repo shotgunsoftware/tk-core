@@ -14,8 +14,7 @@ Classes for fields on TemplatePaths and TemplateStrings
 
 import re
 import datetime
-import time
-from .platform import constants
+from . import constants
 from .errors import TankError
 
 class TemplateKey(object):

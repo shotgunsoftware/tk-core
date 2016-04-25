@@ -22,7 +22,7 @@ from .util import shotgun, yaml_cache
 from .errors import TankError
 from .path_cache import PathCache
 from .template import read_templates
-from .platform import constants as platform_constants
+from . import constants
 from .util import log_user_activity_metric
 from . import pipelineconfig
 from . import pipelineconfig_utils
@@ -56,7 +56,7 @@ class Tank(object):
             raise TankError("Could not read templates configuration: %s" % e)
 
         # execute a tank_init hook for developers to use.
-        self.execute_core_hook(platform_constants.TANK_INIT_HOOK_NAME)
+        self.execute_core_hook(constants.TANK_INIT_HOOK_NAME)
 
     def __repr__(self):
         return "<Sgtk Core %s@0x%08x Config %s>" % (self.version, id(self), self.__pipeline_config.get_path())

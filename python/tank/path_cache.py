@@ -25,7 +25,7 @@ from tank_vendor import shotgun_api3
 json = shotgun_api3.shotgun.json
 
 from .platform.engine import show_global_busy, clear_global_busy 
-from .platform import constants
+from . import constants
 from .errors import TankError 
 from .util.login import get_current_user
 

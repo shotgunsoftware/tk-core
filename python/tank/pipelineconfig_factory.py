@@ -9,13 +9,11 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import sys
-import urlparse
 import collections
 import cPickle as pickle
 
 from .errors import TankError
-from .platform import constants
+from . import constants
 from .util import shotgun
 from .util import ShotgunPath
 from . import pipelineconfig_utils

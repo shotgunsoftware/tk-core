@@ -19,7 +19,6 @@ import sys
 from ..util.loader import load_plugin
 from . import constants 
 
-from ..errors import TankError
 from .bundle import TankBundle
 from ..util import log_user_activity_metric, log_user_attribute_metric
 

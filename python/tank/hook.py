@@ -15,7 +15,6 @@ Defines the base class for all Tank Hooks.
 import os
 import threading
 from .util.loader import load_plugin
-from .platform import constants
 from .errors import (
     TankError,
     TankFileDoesNotExistError,
@@ -29,6 +28,9 @@ class Hook(object):
     which presently could be an instance of the Sgtk API for core hooks, or an Engine
     or Application instance.
     """
+
+    # default method to execute on hooks
+    DEFAULT_HOOK_METHOD = "execute"
     
     def __init__(self, parent):
         self.__parent = parent
@@ -229,7 +231,7 @@ def execute_hook_method(hook_paths, parent, method_name, **kwargs):
     :param method_name: method to execute. If None, the default method will be executed.
     :returns: Whatever the hook returns.
     """    
-    method_name = method_name or constants.DEFAULT_HOOK_METHOD
+    method_name = method_name or Hook.DEFAULT_HOOK_METHOD
 
     # keep track of the current base class - this is used when loading hooks to dynamically
     # inherit from the correct base.
