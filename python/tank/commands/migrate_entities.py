@@ -21,7 +21,7 @@ from tank_vendor import yaml
 from .action_base import Action
 from . import update 
 from ..errors import TankError
-from ..platform import constants
+from . import constants
 from ..util import shotgun
 from ..util import ShotgunPath
 

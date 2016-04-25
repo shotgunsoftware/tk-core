@@ -15,7 +15,7 @@ from . import core_localize
 from ..errors import TankError
 from ..util import shotgun
 from ..util import ShotgunPath
-from ..platform import constants
+from . import constants
 from .. import pipelineconfig_utils
 
 from .setup_project_core import run_project_setup

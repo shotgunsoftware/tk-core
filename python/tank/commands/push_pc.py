@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from ..util import filesystem
-from ..platform import constants
+from . import constants
 from ..errors import TankError
 from ..pipelineconfig import PipelineConfiguration
 

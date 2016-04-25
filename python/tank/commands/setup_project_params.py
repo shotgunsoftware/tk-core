@@ -14,7 +14,7 @@ import re
 import tempfile
 import uuid
 
-from ..platform import constants
+from . import constants
 
 from ..util import shotgun
 from ..util import filesystem

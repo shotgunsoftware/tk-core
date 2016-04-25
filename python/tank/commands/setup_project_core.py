@@ -12,7 +12,7 @@ import sys
 import os
 import shutil
 
-from ..platform import constants
+from . import constants
 from ..errors import TankError
 from ..util import filesystem
 from ..api import sgtk_from_path
