@@ -13,15 +13,10 @@ Main entry points for folder creation.
 
 """
 
-import os
-import sys
-
 from .configuration import FolderConfiguration
 from .folder_io import FolderIOReceiver
 from .folder_types import EntityLinkTypeMismatch
-
 from ..errors import TankError
-from ..platform import constants
 
 
 def create_single_folder_item(tk, config_obj, io_receiver, entity_type, entity_id, sg_task_data, engine):

@@ -18,7 +18,7 @@ Known constraints:
 
 import os
 
-from ..platform import constants
+from . import constants
 from ..errors import TankError
 
 from ..path_cache import PathCache
