@@ -30,7 +30,7 @@ from tank_vendor.shotgun_api3 import (Shotgun, AuthenticationFault, ProtocolErro
 from tank_vendor.shotgun_api3.lib import httplib2
 from tank_vendor import yaml
 from .errors import AuthenticationError
-#from tank import ToolkitPathManager
+from ..paths import ToolkitPathManager
 
 logger = logging.getLogger(__name__)
 

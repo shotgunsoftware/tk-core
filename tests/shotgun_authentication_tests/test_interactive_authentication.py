@@ -15,7 +15,7 @@ import sys
 from tank_test.tank_test_base import *
 from mock import patch
 import tank_vendor
-from tank_vendor.shotgun_authentication import user_impl, interactive_authentication, invoker
+from tank.authentication import user_impl, interactive_authentication, invoker
 
 
 class InteractiveTests(TankTestBase):
@@ -35,7 +35,7 @@ class InteractiveTests(TankTestBase):
         Make sure that the site and user fields are disabled when doing session renewal
         """
         # Import locally since login_dialog has a dependency on Qt and it might be missing
-        from tank_vendor.shotgun_authentication import login_dialog
+        from tank.authentication import login_dialog
         ld = login_dialog.LoginDialog(is_session_renewal=True)
         self.assertTrue(ld.ui.site.isReadOnly())
         self.assertTrue(ld.ui.login.isReadOnly())
@@ -46,7 +46,7 @@ class InteractiveTests(TankTestBase):
         Make sure that the site and user fields are disabled when doing session renewal
         """
         # Import locally since login_dialog has a dependency on Qt and it might be missing
-        from tank_vendor.shotgun_authentication import login_dialog
+        from tank.authentication import login_dialog
         ld = login_dialog.LoginDialog(is_session_renewal=False)
         ld._set_login_message("mystudio should be selected in https://mystudio.shotgunstudio.com")
         ld.exec_()
@@ -87,7 +87,7 @@ class InteractiveTests(TankTestBase):
         """
         self._test_login(console=False)
 
-    @patch("tank_vendor.shotgun_authentication.interactive_authentication._get_qt_state")
+    @patch("tank.authentication.interactive_authentication._get_qt_state")
     @interactive
     def test_login_console(self, _get_qt_state_mock):
         """
@@ -132,7 +132,7 @@ class InteractiveTests(TankTestBase):
         )
         self._print_message("We're about to fake an expired session. Hang tight!", test_console)
         # Test the session renewal code.
-        tank_vendor.shotgun_authentication.interactive_authentication.renew_session(
+        tank.authentication.interactive_authentication.renew_session(
             sg_user
         )
         self._print_message("Test successful", test_console)
@@ -141,7 +141,7 @@ class InteractiveTests(TankTestBase):
     def test_session_renewal_ui(self):
         self._test_session_renewal(test_console=False)
 
-    @patch("tank_vendor.shotgun_authentication.interactive_authentication._get_qt_state")
+    @patch("tank.authentication.interactive_authentication._get_qt_state")
     @interactive
     def test_session_renewal_console(self,_get_qt_state_mock):
         # Doing this forces the prompting code to use the console.

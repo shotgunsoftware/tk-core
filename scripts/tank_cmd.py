@@ -25,15 +25,14 @@ from tank.deploy.tank_commands.core_upgrade import TankCoreUpdater
 from tank.deploy.tank_commands.action_base import Action
 from tank.util import shotgun, CoreDefaultsManager
 from tank.platform import constants
-from tank_vendor.shotgun_authentication import ShotgunAuthenticator
-from tank_vendor.shotgun_authentication import AuthenticationError
-from tank_vendor.shotgun_authentication import ShotgunAuthenticationError
-from tank_vendor.shotgun_authentication import AuthenticationCancelled
-from tank_vendor.shotgun_authentication import IncompleteCredentials
+from tank.authentication import ShotgunAuthenticator
+from tank.authentication import AuthenticationError
+from tank.authentication import ShotgunAuthenticationError
+from tank.authentication import AuthenticationCancelled
+from tank.authentication import IncompleteCredentials
 from tank_vendor import yaml
 from tank.platform import engine
 from tank import pipelineconfig_utils
-from tank import context
 
 
 

@@ -12,7 +12,7 @@ from __future__ import with_statement
 
 from tank_test.tank_test_base import *
 
-from tank_vendor.shotgun_authentication import session_cache
+from tank.authentication import session_cache
 
 
 class SessionCacheTests(TankTestBase):

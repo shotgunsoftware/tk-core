@@ -692,7 +692,7 @@ _authenticated_user = None
 def set_authenticated_user(user):
     """
     Sets the currently authenticated Shotgun user.
-    :params user: A shotgun_authentication.user.ShotgunUser derived object. Can
+    :params user: A authentication.user.ShotgunUser derived object. Can
     be None to clear the authenticated user.
     """
     global _authenticated_user
@@ -702,7 +702,7 @@ def set_authenticated_user(user):
 def get_authenticated_user():
     """
     Returns the currently authenticated Shotgun user.
-    :returns: A shotgun_authentication.user.ShotgunUser derived object if set,
+    :returns: A authentication.user.ShotgunUser derived object if set,
         None otherwise.
     """
     global _authenticated_user

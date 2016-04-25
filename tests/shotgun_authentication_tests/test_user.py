@@ -14,7 +14,7 @@ from tank_test.tank_test_base import *
 
 from mock import patch
 
-from tank_vendor.shotgun_authentication import user, user_impl
+from tank.authentication import user, user_impl
 from tank_vendor.shotgun_api3 import AuthenticationFault
 
 
@@ -55,7 +55,7 @@ class UserTests(TankTestBase):
 
     @patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
     @patch("tank_vendor.shotgun_api3.Shotgun._call_rpc")
-    @patch("tank_vendor.shotgun_authentication.interactive_authentication.renew_session")
+    @patch("tank.authentication.interactive_authentication.renew_session")
     def test_refresh_credentials_failure(self, renew_session_mock, call_rpc_mock, server_caps_mock):
         """
         Makes sure we can refresh credentials correctly.
@@ -74,7 +74,7 @@ class UserTests(TankTestBase):
 
     @patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
     @patch("tank_vendor.shotgun_api3.Shotgun._call_rpc")
-    @patch("tank_vendor.shotgun_authentication.interactive_authentication.renew_session")
+    @patch("tank.authentication.interactive_authentication.renew_session")
     def test_refresh_credentials_on_old_connection(self, renew_session_mock, call_rpc_mock, server_caps_mock):
         """
         Makes sure that an existing connection with old session token can still be

@@ -20,9 +20,9 @@ from tank import context, errors
 from tank_test.tank_test_base import TankTestBase, setUpModule
 from tank.template import TemplatePath
 from tank.templatekey import SequenceKey
-from tank_vendor.shotgun_authentication import ShotgunAuthenticator, DefaultsManager
-from tank_vendor.shotgun_authentication.user import ShotgunUser
-from tank_vendor.shotgun_authentication.user_impl import SessionUser
+from tank.authentication import ShotgunAuthenticator, DefaultsManager
+from tank.authentication.user import ShotgunUser
+from tank.authentication.user_impl import SessionUser
 
 
 class TestShotgunFindPublish(TankTestBase):

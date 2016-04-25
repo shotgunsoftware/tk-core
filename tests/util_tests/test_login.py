@@ -14,7 +14,7 @@ from mock import patch
 from tank_test.tank_test_base import *
 
 from tank.util import login
-from tank_vendor.shotgun_authentication import ShotgunAuthenticator
+from tank.authentication import ShotgunAuthenticator
 
 
 class LoginTests(TankTestBase):

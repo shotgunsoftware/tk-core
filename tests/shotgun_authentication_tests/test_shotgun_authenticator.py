@@ -13,7 +13,7 @@ from mock import patch
 
 from tank_test.tank_test_base import *
 
-from tank_vendor.shotgun_authentication import ShotgunAuthenticator, IncompleteCredentials, DefaultsManager, user_impl
+from tank.authentication import ShotgunAuthenticator, IncompleteCredentials, DefaultsManager, user_impl
 
 
 class TestDefaultManager(DefaultsManager):
@@ -24,7 +24,7 @@ class TestDefaultManager(DefaultsManager):
 class ShotgunAuthenticatorTests(TankTestBase):
 
     @patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
-    @patch("tank_vendor.shotgun_authentication.session_cache.generate_session_token")
+    @patch("tank.authentication.session_cache.generate_session_token")
     def test_create_session_user(self, generate_session_token_mock, server_caps_mock):
         """
         Makes sure that create_session_user does correct input validation.
@@ -72,7 +72,7 @@ class ShotgunAuthenticatorTests(TankTestBase):
         self.assertEqual(connection.config.script_name, "api_script")
         self.assertEqual(connection.config.api_key, "api_key")
 
-    @patch("tank_vendor.shotgun_authentication.session_cache.generate_session_token")
+    @patch("tank.authentication.session_cache.generate_session_token")
     def test_get_default_user(self, generate_session_token_mock):
         """
         Makes sure get_default_user handles all the edge cases.

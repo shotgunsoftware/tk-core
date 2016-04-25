@@ -203,7 +203,7 @@ def __create_sg_connection(config_data=None, user=None):
     :param config_data: Configuration data dictionary. Keys host, api_script and api_key are
                         expected, while http_proxy is optional. If None, the user parameter will be
                         used to determine which credentials to use.
-    :param user: Shotgun user from the shotgun_authentication module to use to create the
+    :param user: Shotgun user from the authentication module to use to create the
                  connection. Won't be used if config_data is set. Can be None.
 
     :raises TankError: Raised if both config_data and user are None.

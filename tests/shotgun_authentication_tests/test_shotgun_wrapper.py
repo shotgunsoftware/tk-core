@@ -14,7 +14,7 @@ from mock import patch
 from tank_test.tank_test_base import *
 
 from tank_vendor.shotgun_api3 import AuthenticationFault
-from tank_vendor.shotgun_authentication import user_impl, ShotgunAuthenticationError
+from tank.authentication import user_impl, ShotgunAuthenticationError
 
 
 class ShotgunWrapperTests(TankTestBase):
@@ -24,7 +24,7 @@ class ShotgunWrapperTests(TankTestBase):
 
     @patch("tank_vendor.shotgun_api3.Shotgun._call_rpc")
     @patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
-    @patch("tank_vendor.shotgun_authentication.interactive_authentication.renew_session")
+    @patch("tank.authentication.interactive_authentication.renew_session")
     def test_create_connection_with_session_renewal(self, renew_session_mock, server_caps_mock, _call_rpc_mock):
         """
         When there is no valid session cached, the engine's renew session should take care of the
@@ -55,7 +55,7 @@ class ShotgunWrapperTests(TankTestBase):
 
     @patch("tank_vendor.shotgun_api3.Shotgun._call_rpc")
     @patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
-    @patch("tank_vendor.shotgun_authentication.interactive_authentication.renew_session")
+    @patch("tank.authentication.interactive_authentication.renew_session")
     def test_create_connection_with_session_renewal_failure(self, renew_session_mock, server_caps_mock, _call_rpc_mock):
         """
         When there is no valid session cached, the engine's renew session should take care of the
@@ -75,8 +75,8 @@ class ShotgunWrapperTests(TankTestBase):
         self.assertEqual(_call_rpc_mock.call_count, 1)
 
     @patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
-    @patch("tank_vendor.shotgun_authentication.interactive_authentication.renew_session")
-    @patch("tank_vendor.shotgun_authentication.session_cache.get_session_data")
+    @patch("tank.authentication.interactive_authentication.renew_session")
+    @patch("tank.authentication.session_cache.get_session_data")
     @patch("tank_vendor.shotgun_api3.Shotgun._call_rpc")
     def test_successfull_session_cache_snooping(self, _call_rpc_mock, get_session_data_mock, renew_session_mock, server_caps_mock):
         """
@@ -112,8 +112,8 @@ class ShotgunWrapperTests(TankTestBase):
         self.assertEqual(_call_rpc_mock.call_count, 2)
 
     @patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
-    @patch("tank_vendor.shotgun_authentication.interactive_authentication.renew_session")
-    @patch("tank_vendor.shotgun_authentication.session_cache.get_session_data")
+    @patch("tank.authentication.interactive_authentication.renew_session")
+    @patch("tank.authentication.session_cache.get_session_data")
     @patch("tank_vendor.shotgun_api3.Shotgun._call_rpc")
     def test_failed_session_cache_snooping(self, _call_rpc_mock, get_session_data_mock, renew_session_mock, server_caps_mock):
         """

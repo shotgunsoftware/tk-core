@@ -18,7 +18,7 @@ import pickle
 import copy
 
 from tank_vendor import yaml
-from tank_vendor import shotgun_authentication as sg_auth
+from . import authentication
 
 from .util import login
 from .util import shotgun_entity
@@ -1180,7 +1180,7 @@ def serialize(context):
     if user:
         # We should serialize it as well so that the next process knows who to
         # run as.
-        data["_current_user"] = sg_auth.serialize_user(user)
+        data["_current_user"] = authentication.serialize_user(user)
     return pickle.dumps(data)
 
 
@@ -1208,7 +1208,7 @@ def deserialize(context_str):
         # Remove it from the data
         del data["_current_user"]
         # and set the authenticated user user.
-        user = sg_auth.deserialize_user(user_string)
+        user = authentication.deserialize_user(user_string)
         set_authenticated_user(user)
 
     # create a Sgtk API instance.

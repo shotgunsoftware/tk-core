@@ -129,7 +129,8 @@ class Engine(TankBundle):
         qt.TankDialogBase = base_def.get("dialog_base")
 
         # Update the authentication module to use the engine's Qt.
-        from tank_vendor.shotgun_authentication.ui import qt_abstraction
+        # @todo: can this import be untangled? Code references internal part of the auth module
+        from tank.authentication.ui import qt_abstraction
         qt_abstraction.QtCore = qt.QtCore
         qt_abstraction.QtGui = qt.QtGui
         

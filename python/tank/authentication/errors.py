@@ -12,6 +12,7 @@
 All custom exceptions that this module emits are defined here.
 """
 
+# @todo - what should ShotgunAuthenticationError derive from? TankError?
 
 class ShotgunAuthenticationError(Exception):
     """
