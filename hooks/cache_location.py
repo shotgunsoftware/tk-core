@@ -50,7 +50,8 @@ class CacheLocation(HookBaseClass):
         cache_root = sgtk.PathManager.get_configuration_root(
             tk.shotgun_url,
             project_id,
-            pipeline_configuration_id
+            pipeline_configuration_id,
+            sgtk.PathManager.CACHE
         )
 
         target_path = os.path.join(cache_root, cache_filename)
@@ -68,6 +69,7 @@ class CacheLocation(HookBaseClass):
             tk.shotgun_url,
             project_id,
             pipeline_configuration_id,
+            sgtk.PathManager.CACHE,
             generation=sgtk.PathManager.CORE_V17
         )
 
@@ -110,7 +112,8 @@ class CacheLocation(HookBaseClass):
         cache_root = sgtk.PathManager.get_configuration_root(
             tk.shotgun_url,
             project_id,
-            pipeline_configuration_id
+            pipeline_configuration_id,
+            sgtk.PathManager.CACHE
         )
 
         # in the interest of trying to minimize path lengths (to avoid
@@ -139,6 +142,7 @@ class CacheLocation(HookBaseClass):
             tk.shotgun_url,
             project_id,
             pipeline_configuration_id,
+            sgtk.PathManager.CACHE,
             generation=sgtk.PathManager.CORE_V17
         )
         legacy_target_path = os.path.join(legacy_cache_root, bundle.name)

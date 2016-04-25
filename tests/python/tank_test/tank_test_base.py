@@ -180,8 +180,21 @@ class TankTestBase(unittest.TestCase):
         self.tank_temp = TANK_TEMP
         self.init_cache_location = os.path.join(self.tank_temp, "init_cache.cache")
 
-        print fix tests here
-        tank.paths.get_cache_root = lambda: os.path.join(self.tank_temp, "cache_root")
+        # create a version of the path manager which stashes everything in the temp fixtures folder
+        class PatchedPathManager(tank.paths.PathManager):
+            @classmethod
+            def get_global_root(cls, path_type, generation=tank.paths.PathManager.CORE_V18):
+                if path_type == cls.CACHE:
+                    return os.path.join(self.tank_temp, "cache_root")
+                elif path_type == cls.PERSISTENT:
+                    return os.path.join(self.tank_temp, "data_root")
+                elif path_type == cls.LOGGING:
+                    return os.path.join(self.tank_temp, "log_root")
+                else:
+                    raise ValueError("Unsupported path type!")
+
+        tank.paths.PathManager = PatchedPathManager
+
         self.cache_root = os.path.join(self.tank_temp, "cache_root")
 
         def _get_cache_location_mock():
