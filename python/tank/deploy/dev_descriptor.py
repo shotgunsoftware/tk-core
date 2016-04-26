@@ -57,7 +57,8 @@ class TankDevDescriptor(AppDescriptor):
         self._version = "Undefined"
         if "version" in location_dict:
             self._version = location_dict.get("version")
-            
+            self._version = os.path.expandvars(self._version)
+
         # if there is a name defined in the location dict then lets use 
         # this, otherwise we'll fall back to the folder name:
         self._name = location_dict.get("name")

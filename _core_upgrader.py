@@ -369,7 +369,7 @@ def upgrade_tank(sgtk_install_root, log):
     Upgrades the sgtk core API located in sgtk_install_root
     based on files located locally to this script
     """
-    
+    return
     # get our location
     this_folder = os.path.abspath(os.path.join( os.path.dirname(__file__)))
     
