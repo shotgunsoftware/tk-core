@@ -61,14 +61,14 @@ def with_cleared_umask(func):
     def wrapper(*args, **kwargs):
         # set umask to zero, store old umask
         old_umask = os.umask(0)
-        log.debug("Umask cleared")
+        #log.debug("Umask cleared")
         try:
             # execute method payload
             return func(*args, **kwargs)
         finally:
             # set mask back to previous value
             os.umask(old_umask)
-            log.debug("Umask reset back to %o" % old_umask)
+            #log.debug("Umask reset back to %o" % old_umask)
     return wrapper
 
 @with_cleared_umask

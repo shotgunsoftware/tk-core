@@ -126,3 +126,9 @@ SHOTGUN_ENGINE_NAME = "tk-shotgun"
 
 # the menu favourites key for an engine
 MENU_FAVOURITES_KEY = "menu_favourites"
+
+# the name of the include section in env and template files
+SINGLE_INCLUDE_SECTION = "include"
+
+# the name of the includes section in env and template files
+MULTI_INCLUDE_SECTION = "includes"

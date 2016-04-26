@@ -26,6 +26,31 @@ class LogManager(object):
     # for writing generic toolkit logs to disk
     _std_file_handler = None
 
+
+    @classmethod
+    def initialize_std_handler(cls, handler=logging.StreamHandler()):
+        """
+        Convenience method that initializes a standard logger
+        and attaches it to the toolkit logging root.
+
+
+
+        :param handler:
+        :return:
+        """
+
+        # example:
+        # 2016-04-25 08:56:12,413 [44862 DEBUG tank.log] message message
+        formatter = logging.Formatter(
+            "[%(levelname)s %(name)s] %(message)s"
+        )
+
+        handler.setFormatter(formatter)
+        sgtk_root_logger.addHandler(handler)
+
+        return handler
+
+
     @classmethod
     def get_root_logger(cls):
         """
@@ -70,11 +95,11 @@ class LogManager(object):
         :param log_name: Name of logger to create. This will form the
                          filename of the log file.
         """
-        if cls.std_file_handler:
+        if cls._std_file_handler:
             # there is already a log handler.
             # terminate previous one
-            sgtk_root_logger.removeHandler(cls.std_file_handler)
-            cls.std_file_handler = None
+            sgtk_root_logger.removeHandler(cls._std_file_handler)
+            cls._std_file_handler = None
 
         # set up logging root folder
         log_folder = PathManager.get_global_root(PathManager.LOGGING)
@@ -86,7 +111,7 @@ class LogManager(object):
             "%s.log" % filesystem.create_valid_filename(log_name)
         )
 
-        std_file_handler = logging.handlers.RotatingFileHandler(
+        cls._std_file_handler = logging.handlers.RotatingFileHandler(
             log_file,
             maxBytes=1024*1024,
             backupCount=5
@@ -98,8 +123,8 @@ class LogManager(object):
             "%(asctime)s [%(process)d %(levelname)s %(name)s] %(message)s"
         )
 
-        std_file_handler.setFormatter(formatter)
-        sgtk_root_logger.addHandler(std_file_handler)
+        cls._std_file_handler.setFormatter(formatter)
+        sgtk_root_logger.addHandler(cls._std_file_handler)
 
         # log the fact that we set up the log file :)
         log = logging.getLogger(__name__)
@@ -131,5 +156,5 @@ sgtk_root_logger.setLevel(logging.DEBUG)
 class NullHandler(logging.Handler):
     def emit(self, record):
         pass
-#
+# and add it to the logger
 sgtk_root_logger.addHandler(NullHandler())

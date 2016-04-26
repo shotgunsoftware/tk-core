@@ -608,8 +608,7 @@ class Configuration(object):
                     "A '%s' storage is defined by %s but is "
                     "not defined in Shotgun." % (storage_name, self._descriptor)
                 )
-
-            storage_path = ShotgunPath.from_shotgun_dict(storage_by_name[storage])
+            storage_path = ShotgunPath.from_shotgun_dict(storage_by_name[storage_name])
             roots_data[storage_name] = storage_path.as_shotgun_dict()
 
         roots_file = os.path.join(
