@@ -24,7 +24,8 @@ import threading
         
 from ..util.loader import load_plugin
 from .. import hook
-from ..errors import TankError, TankEngineInitError, TankContextChangeNotSupportedError
+from ..errors import TankError
+from .errors import TankEngineInitError, TankContextChangeNotSupportedError
 from ..util import log_user_activity_metric, log_user_attribute_metric
 from ..util.metrics import MetricsDispatcher
 

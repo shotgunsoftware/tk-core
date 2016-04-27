@@ -18,7 +18,7 @@ import threading
 class ImportStack(object):
     """
     Manages a thread-safe stack of Toolkit imports. Used in conjunction with the
-    _get_current_bundle() method - for more details, see platform/__init__.py.
+    _get_current_bundle() method - for more details, see platform/util.py.
     """
 
     # global variable that holds a stack of references to

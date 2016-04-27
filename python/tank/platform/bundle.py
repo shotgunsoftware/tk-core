@@ -19,7 +19,8 @@ import sys
 import imp
 import uuid
 from .. import hook
-from ..errors import TankError, TankContextChangeNotSupportedError, TankNoDefaultValueError
+from ..errors import TankError, TankNoDefaultValueError
+from .errors import TankContextChangeNotSupportedError
 from . import constants
 from .import_stack import ImportStack
 

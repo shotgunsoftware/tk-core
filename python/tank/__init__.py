@@ -28,7 +28,7 @@
 # itself with the primary config rather than with the config where the code is located. 
 
 import os
-
+import sys
 
 if "TANK_CURRENT_PC" not in os.environ:
     # find the pipeline configuration root, probe for a key file
@@ -46,7 +46,7 @@ if "TANK_CURRENT_PC" not in os.environ:
     roots_file = os.path.join(pipeline_config, "config", "core", constants.STORAGE_ROOTS_FILE)
     if os.path.exists(roots_file):
         os.environ["TANK_CURRENT_PC"] = pipeline_config
-    
+
 ########################################################################
     
 # make sure that all sub-modules are imported at the same as the main module
@@ -62,7 +62,9 @@ from . import util
 # core functionality
 from .api import Tank, tank_from_path, tank_from_entity, set_authenticated_user, get_authenticated_user
 from .api import Sgtk, sgtk_from_path, sgtk_from_entity
-from .errors import TankError, TankEngineInitError, TankErrorProjectIsSetup
+from .errors import TankError, TankErrorProjectIsSetup
+# note: TankEngineInitError used to reside in .errors but was moved into platform.errors
+from .platform.errors import TankEngineInitError
 from .template import TemplatePath, TemplateString
 from .hook import Hook, get_hook_baseclass
 

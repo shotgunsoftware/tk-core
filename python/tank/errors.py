@@ -20,14 +20,6 @@ class TankError(Exception):
     pass
 
 
-class TankContextChangeNotSupportedError(TankError):
-    """
-    Exception that indicates that a requested context change is not allowed
-    based on a check of the current engine and all of its active apps.
-    """
-    pass
-
-
 class TankUnreadableFileError(TankError):
     """
     Exception that indicates that a required file can't be read from disk.
@@ -42,17 +34,22 @@ class TankFileDoesNotExistError(TankUnreadableFileError):
     pass
 
 
-class TankEngineInitError(TankError):
+class TankNoDefaultValueError(TankError):
     """
-    Exception that indicates that an engine could not start up.
+    Exception that can be raised when a default value is required but none is found.
+
+    Typically raised by `tank.platform.bundle.resolve_default_value()` when the
+    `raise_if_missing` flag is set to True.
     """
     pass
+
 
 class TankHookMethodDoesNotExistError(TankError):
     """
     Exception that indicates that a called method does not exist in the hook.
     """
     pass
+
 
 class TankErrorProjectIsSetup(TankError):
     """
@@ -66,11 +63,3 @@ class TankErrorProjectIsSetup(TankError):
         super(TankErrorProjectIsSetup, self).__init__("You are trying to set up a project which has already been set up. "
                                                       "If you want to do this, make sure to set the force parameter.")
 
-class TankNoDefaultValueError(TankError):
-    """
-    Exception that can be raised when a default value is required but none is found.
-
-    Typically raised by `tank.platform.bundle.resolve_default_value()` when the
-    `raise_if_missing` flag is set to True.
-    """
-    pass
