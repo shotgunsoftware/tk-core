@@ -132,3 +132,6 @@ SINGLE_INCLUDE_SECTION = "include"
 
 # the name of the includes section in env and template files
 MULTI_INCLUDE_SECTION = "includes"
+
+# hook that is executed whenever a cache location should be determined
+CACHE_LOCATION_HOOK_NAME = "cache_location"
