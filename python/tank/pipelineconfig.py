@@ -828,7 +828,7 @@ class PipelineConfiguration(object):
             hook_path = os.path.join(hooks_path, file_name)
         else:
             # some hooks are always custom. ignore those and log the rest.
-            if (hasattr(parent, 'log_metric') and
+            if (hasattr(parent, "log_metric") and
                hook_name not in constants.TANK_LOG_METRICS_CUSTOM_HOOK_BLACKLIST):
                 parent.log_metric("custom hook %s" % (hook_name,))
 
