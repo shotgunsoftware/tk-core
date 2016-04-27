@@ -16,6 +16,5 @@ from .engine import start_engine, current_engine, get_engine_path, find_app_sett
 from .application import Application
 from .engine import Engine
 from .framework import Framework
-from .import_stack import ImportStack
 from .util import change_context, get_framework, import_framework, current_bundle, restart
 
