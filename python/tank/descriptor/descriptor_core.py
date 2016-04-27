@@ -18,7 +18,8 @@ class CoreDescriptor(Descriptor):
 
     def __init__(self, io_descriptor):
         """
-        Constructor
+        Use the factory method :meth:`create_descriptor` when
+        creating new descriptor objects.
 
         :param io_descriptor: Associated IO descriptor.
         """

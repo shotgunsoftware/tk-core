@@ -22,7 +22,8 @@ class BundleDescriptor(Descriptor):
 
     def __init__(self, io_descriptor):
         """
-        Constructor
+        Use the factory method :meth:`create_descriptor` when
+        creating new descriptor objects.
 
         :param io_descriptor: Associated IO descriptor.
         """
@@ -137,16 +138,19 @@ class BundleDescriptor(Descriptor):
     def ensure_shotgun_fields_exist(self, tk):
         """
         Ensures that any shotgun fields a particular descriptor requires
-        exists in shotgun. In the metadata (info.yml) for an app or an engine,
-        it is possible to define a section for this:
+        exists in shotgun. In the metadata (``info.yml``) for an app or an engine,
+        it is possible to define a section for this::
 
-        # the Shotgun fields that this app needs in order to operate correctly
-        requires_shotgun_fields:
-            Version:
-                - { "system_name": "sg_movie_type", "type": "text" }
+            # the Shotgun fields that this app needs in order to operate correctly
+            requires_shotgun_fields:
+                Version:
+                    - { "system_name": "sg_movie_type", "type": "text" }
 
         This method will retrieve the metadata and ensure that any required
         fields exists.
+
+        .. warning::
+            This feature may be deprecated in the future.
 
         :param tk: Core API instance to use for post install execution
         """
@@ -208,7 +212,8 @@ class EngineDescriptor(BundleDescriptor):
 
     def __init__(self, io_descriptor):
         """
-        Constructor
+        Use the factory method :meth:`create_descriptor` when
+        creating new descriptor objects.
 
         :param io_descriptor: Associated IO descriptor.
         """
@@ -222,7 +227,8 @@ class AppDescriptor(BundleDescriptor):
 
     def __init__(self, io_descriptor):
         """
-        Constructor
+        Use the factory method :meth:`create_descriptor` when
+        creating new descriptor objects.
 
         :param io_descriptor: Associated IO descriptor.
         """
@@ -236,7 +242,8 @@ class FrameworkDescriptor(BundleDescriptor):
 
     def __init__(self, io_descriptor):
         """
-        Constructor
+        Use the factory method :meth:`create_descriptor` when
+        creating new descriptor objects.
 
         :param io_descriptor: Associated IO descriptor.
         """

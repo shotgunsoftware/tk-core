@@ -141,8 +141,7 @@ def create_io_descriptor(
 
 def descriptor_uri_to_dict(uri):
     """
-    Translates a descriptor uri into a dictionary, suitable for
-    use with the create_io_descriptor factory method below.
+    Translates a descriptor uri into a dictionary.
 
     :param uri: descriptor string uri
     :returns: descriptor dictionary

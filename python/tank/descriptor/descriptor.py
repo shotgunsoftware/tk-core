@@ -11,7 +11,6 @@
 import os
 import copy
 
-from .. import paths
 from ..util import filesystem
 from .io_descriptor import create_io_descriptor
 from .errors import TankDescriptorError
@@ -29,11 +28,12 @@ def create_descriptor(
     Factory method. Use this when creating descriptor objects.
 
     :param sg_connection: Shotgun connection to associated site
-    :param descriptor_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK
+    :param descriptor_type: Either ``Descriptor.APP``, ``CORE``, ``CONFIG``, ``ENGINE`` or ``FRAMEWORK``
     :param dict_or_uri: A std descriptor dictionary dictionary or string
     :param bundle_cache_root_override: Optional override for root path to where
                                        downloaded apps are cached. If not specified,
-                                       the global bundle cache location will be used.
+                                       the global bundle cache location will be used. This location is a per-user
+                                       cache that is shared across all sites and projects.
     :param fallback_roots: Optional List of immutable fallback cache locations where
                            apps will be searched for. Note that when descriptors
                            download new content, it always ends up in the
@@ -46,9 +46,9 @@ def create_descriptor(
     :param constraint_pattern: If resolve_latest is True, this pattern can be used to constrain
                            the search for latest to only take part over a subset of versions.
                            This is a string that can be on the following form:
-                                - v0.1.2, v0.12.3.2, v0.1.3beta - a specific version
-                                - v0.12.x - get the highest v0.12 version
-                                - v1.x.x - get the highest v1 version
+                                - ``v0.1.2``, ``v0.12.3.2``, ``v0.1.3beta`` - a specific version
+                                - ``v0.12.x`` - get the highest v0.12 version
+                                - ``v1.x.x`` - get the highest v1 version
     :returns: Descriptor object
     """
     from .descriptor_bundle import AppDescriptor, EngineDescriptor, FrameworkDescriptor
@@ -57,7 +57,7 @@ def create_descriptor(
 
     # if bundle root is not set, fall back on default location
     if bundle_cache_root_override is None:
-        bundle_cache_root_override = Descriptor.get_default_bundle_cache_root()
+        bundle_cache_root_override = _get_default_bundle_cache_root()
         filesystem.ensure_folder_exists(bundle_cache_root_override)
 
     fallback_roots = fallback_roots or []
@@ -93,6 +93,18 @@ def create_descriptor(
         raise TankDescriptorError("Unsupported descriptor type %s" % descriptor_type)
 
 
+def _get_default_bundle_cache_root():
+    """
+    Returns the cache location for the default bundle cache.
+
+    :returns: path on disk
+    """
+    return os.path.join(
+        PathManager.get_global_root(PathManager.CACHE),
+        "bundle_cache"
+    )
+
+
 class Descriptor(object):
     """
     A descriptor describes a particular version of an app, engine or core component.
@@ -107,7 +119,8 @@ class Descriptor(object):
 
     def __init__(self, io_descriptor):
         """
-        Constructor
+        Use the factory method :meth:`create_descriptor` when
+        creating new descriptor objects.
 
         :param io_descriptor: Associated IO descriptor.
         """
@@ -137,20 +150,6 @@ class Descriptor(object):
         Used for pretty printing
         """
         return "%s %s" % (self.get_system_name(), self.get_version())
-
-    @classmethod
-    def get_default_bundle_cache_root(cls):
-        """
-        Returns the cache location for the default bundle cache.
-
-        :returns: path on disk
-        """
-        return os.path.join(
-            PathManager.get_global_root(PathManager.CACHE),
-            "bundle_cache"
-        )
-
-
 
     ###############################################################################################
     # data accessors

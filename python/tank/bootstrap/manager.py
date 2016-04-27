@@ -20,14 +20,14 @@ log = logging.getLogger(__name__)
 
 class ToolkitManager(object):
     """
-    A class that defines toolkit bootstrap operations
+    This class allows for flexible and non-obstrusive management of toolkit configurations
+    and installations.
     """
 
     def __init__(self, sg_user):
         """
-        Constructor
-
         :param sg_user: Authenticated Shotgun User object
+        :type sg_user: :class:`~sgtk.authentication.ShotgunUser`
         """
         self._sg_user = sg_user
         self._sg_connection = self._sg_user.create_sg_connection()
@@ -49,19 +49,15 @@ class ToolkitManager(object):
 
     def _set_pipeline_configuration(self, name):
         """
-        Specify a non-default pipeline configuration to operate on.
-        By default, the primary config will be used.
-
-        :param name: Pipeline configuration name as string
+        The pipeline configuration that is being operated on.
+        By default, the primary pipeline config will be used.
         """
         self._pipeline_configuration_name = name
 
     def _get_pipeline_configuration(self):
         """
-        Returns the pipeline configuration that is being operated on.
-        By default, the primary config will be used.
-
-        :returns: Pipeline configuration name as string
+        The pipeline configuration that is being operated on.
+        By default, the primary pipeline config will be used.
         """
         return self._pipeline_configuration_name
 
@@ -69,21 +65,19 @@ class ToolkitManager(object):
 
     def _get_base_configuration(self):
         """
-        Returns the descriptor (string or dict) for the
-        config that should be used whenever shotgun
-        lookups fail.
-
-        :returns: Base configuration descriptor, dict, str or None
+        The descriptor (string or dict) for the
+        configuration that should be used as a base fallback
+        to be used whenever runtime and shotgun configuration
+        resolution doesn't resolve an override configuration to use.
         """
         return self._base_config_descriptor
 
     def _set_base_configuration(self, descriptor):
         """
-        Specify the descriptor (string or dict) for the
-        config that should be used whenever shotgun
-        lookups fail.
-
-        :param descriptor: descriptor dictionary or str
+        The descriptor (string or dict) for the
+        configuration that should be used as a base fallback
+        to be used whenever runtime and shotgun configuration
+        resolution doesn't resolve an override configuration to use.
         """
         self._base_config_descriptor = descriptor
 
@@ -91,19 +85,21 @@ class ToolkitManager(object):
 
     def _get_resolve_latest(self):
         """
-        Returns whether the bootstrapper will attempt to resolve
-        the latest version of the base configuration or not.
-
-        :returns: Boolean flag to indicate latest resolve or not
+        Controls if Toolkit should attempt to resolve the latest version
+        of the base configuration. If set to True, the descriptor set via
+        the base configuration property does not need to contain a version
+        directive. If the property does contain a version directive, it
+        will be ignored.
         """
         return self._resolve_latest_base_descriptor
 
     def _set_resolve_latest(self, status):
         """
-        Controls whether the bootstrapper will attempt to resolve
-        the latest version of the base configuration or not.
-
-        :param status: Boolean flag to indicate latest resolve or not
+        Controls if Toolkit should attempt to resolve the latest version
+        of the base configuration. If set to True, the descriptor set via
+        the base configuration property does not need to contain a version
+        directive. If the property does contain a version directive, it
+        will be ignored.
         """
         self._resolve_latest_base_descriptor = status
 
@@ -111,7 +107,7 @@ class ToolkitManager(object):
 
     def _set_bundle_cache_fallback_paths(self, paths):
         """
-        Specify a list of fallback paths where toolkit will go
+        Specifies a list of fallback paths where toolkit will go
         look for cached bundles in case a bundle isn't found in
         the primary app cache.
 
@@ -122,8 +118,6 @@ class ToolkitManager(object):
 
         Any missing bundles will be downloaded and cached into
         the *primary* bundle cache.
-
-        :param paths: List of paths
         """
         # @todo - maybe here we can add support for environment variables in the
         #         future so that studios can easily add their own 'primed cache'
@@ -132,9 +126,17 @@ class ToolkitManager(object):
 
     def _get_bundle_cache_fallback_paths(self):
         """
-        Returns the list of bundle cache fallback paths.
+        Specifies a list of fallback paths where toolkit will go
+        look for cached bundles in case a bundle isn't found in
+        the primary app cache.
 
-        :returns: list of path strings
+        This is useful if you want to distribute a pre-baked
+        package, containing all the app version that a user needs.
+        This avoids downloading anything from the app store or other
+        sources.
+
+        Any missing bundles will be downloaded and cached into
+        the *primary* bundle cache.
         """
         return self._bundle_cache_fallback_paths
 
@@ -152,10 +154,10 @@ class ToolkitManager(object):
             progress_callback(message, current_index, max_index)
 
         The two index parameters are used to illustrate progress
-        over time and looping. max_index is the total number of
-        current progress items, current_index is the currently
+        over time and looping. ``max_index`` is the total number of
+        current progress items, ``current_index`` is the currently
         processed item. This can be used to compute a percentage.
-        Note that max_index may change at any time and is not guaranteed
+        Note that ``max_index`` may change at any time and is not guaranteed
         to be fixed.
 
         :param callback: Callback fn. See above for details.
@@ -178,8 +180,9 @@ class ToolkitManager(object):
         executed during the bootstrap.
 
         :param entity: Shotgun entity to launch engine for
-        :param engine_name: name of engine to launch (e.g. tk-nuke)
-        :returns: engine instance
+        :type entity: Dictionary with keys type and id
+        :param engine_name: name of engine to launch (e.g. ``tk-nuke``)
+        :returns: :class:`sgtk.platform.Engine` instance
         """
         # begin writing log to disk. Base the log file name
         # on the current engine we are launching into

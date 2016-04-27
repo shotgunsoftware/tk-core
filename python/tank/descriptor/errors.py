@@ -16,18 +16,18 @@ from ..errors import TankError
 
 class TankDescriptorError(TankError):
     """
-    Base class for all deploy related errors
+    Base class for all descriptor related errors.
     """
     pass
 
 class TankAppStoreError(TankDescriptorError):
     """
-    Errors relating to the shotgun app store
+    Errors relating to the Toolkit App Store app store.
     """
     pass
 
 class TankAppStoreConnectionError(TankAppStoreError):
     """
-    Errors indicating an error connecting to the Toolkit App Store
+    Errors indicating an error connecting to the Toolkit App Store.
     """
     pass
