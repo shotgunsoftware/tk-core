@@ -141,10 +141,6 @@ class CoreImportHandler(object):
                 "The supplied core path '%s' is not a valid directory." % core_path
             )
 
-        # the paths are the same. No need to do anything.
-        if core_path == self._core_path:
-            return
-
         # acquire a lock to prevent issues with other
         # threads importing at the same time.
         imp.acquire_lock()
