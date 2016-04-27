@@ -185,11 +185,12 @@ class ToolkitManager(object):
         # on the current engine we are launching into
         LogManager.initialize_base_file_logger(engine_name)
 
-        log.debug("bootstrapping into an engine.")
+        log.debug("Bootstrapping into engine %s for entity %s." % (engine_name, entity))
 
+        log.debug("Bootstrapping into environment.")
         tk = self._bootstrap_sgtk(engine_name, entity)
-        log.debug("Bootstrapped into tk instance %r" % tk)
 
+        log.debug("Resolving context.")
         if entity is None:
             ctx = tk.context_empty()
         else:
@@ -198,7 +199,7 @@ class ToolkitManager(object):
         self._report_progress("Launching Engine...")
         log.debug("Attempting to start engine %s for context %r" % (engine_name, ctx))
 
-        # @todo - fix this import
+        # perform absolute import to ensure we get the new swapped core.
         import tank
         engine = tank.platform.start_engine(engine_name, tk, ctx)
 

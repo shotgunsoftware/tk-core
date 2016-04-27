@@ -11,11 +11,13 @@
 from __future__ import with_statement
 
 import os
-import sys
 import logging
 import datetime
+import inspect
 
 from . import constants
+from .import_handler import CoreImportHandler
+
 from .errors import TankBootstrapError
 from ..descriptor import Descriptor, create_descriptor
 
@@ -246,14 +248,21 @@ class Configuration(object):
         :param sg_user: Authenticated Shotgun user to associate
                         the tk instance with.
         """
-        # @todo - check if there is already a tank instance, in that case unload or warn
         path = self._path.current_os
         core_path = os.path.join(path, "install", "core", "python")
-        sys.path.insert(0, core_path)
-        import tank
-        tank.set_authenticated_user(sg_user)
-        tk = tank.tank_from_path(path)
-        log.info("API created: %s" % tk)
+
+        # swap the core out
+        CoreImportHandler.swap_core(core_path)
+
+        # perform a local import here to make sure we are getting
+        # the newly swapped in core code
+        from .. import api
+        api.set_authenticated_user(sg_user)
+        tk = api.tank_from_path(path)
+
+        log.debug("Bootstrapped into tk instance %r" % tk)
+        log.debug("Core API code located here: %s" % inspect.getfile(tk.__class__))
+
         return tk
 
     def _get_descriptor_metadata_file(self):
