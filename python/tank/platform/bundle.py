@@ -550,7 +550,7 @@ class TankBundle(object):
             # hook settings points to the default one.
             # find the name of the hook from the manifest
 
-            manifest = self.__descriptor.get_configuration_schema()
+            manifest = self.__descriptor.configuration_schema
             engine_name = self._get_engine_name()
 
             # Entries are on the following form
@@ -713,7 +713,7 @@ class TankBundle(object):
         if unresolved_hook_paths[0].startswith("{") and not unresolved_hook_paths[0].startswith("{self}"):
             # this is a new style hook that is not the default hook value.
             # now prepend the default hook first in the list 
-            manifest = self.__descriptor.get_configuration_schema()
+            manifest = self.__descriptor.configuration_schema
             
             default_value = None
             
@@ -820,7 +820,7 @@ class TankBundle(object):
         # The post processing code requires the schema to introspect the
         # setting's types, defaults, etc. An old use case exists whereby the key
         # does not exist in the config schema so we need to account for that.
-        schema = self.__descriptor.get_configuration_schema().get(key, None)
+        schema = self.__descriptor.configuration_schema.get(key, None)
 
         # Get the value for the supplied key
         if key in settings:

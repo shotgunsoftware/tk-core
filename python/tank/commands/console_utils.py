@@ -355,11 +355,11 @@ def _generate_settings_diff(parent_engine_name, new_descriptor, old_descriptor=N
     }
     """
     # get the new metadata (this will download the app potentially)
-    schema = new_descriptor.get_configuration_schema()
+    schema = new_descriptor.configuration_schema
     old_schema = {}
     if old_descriptor is not None:
         try:
-            old_schema = old_descriptor.get_configuration_schema()
+            old_schema = old_descriptor.configuration_schema
         except TankError:
             # download to local failed? Assume that the old version is
             # not valid. This is an edge case.
@@ -476,7 +476,7 @@ def _check_constraints(descriptor_obj, parent_engine_descriptor = None):
     :returns: a tuple: (can_upgrade, list_of_reasons)
     """
 
-    constraints = descriptor_obj.get_version_constraints()
+    constraints = descriptor_obj.version_constraints
 
     can_update = True
     reasons = []
@@ -510,7 +510,7 @@ def _check_constraints(descriptor_obj, parent_engine_descriptor = None):
                                                         curr_engine_version))
 
     # for multi engine apps, validate the supported_engines list
-    supported_engines  = descriptor_obj.get_supported_engines()
+    supported_engines  = descriptor_obj.supported_engines
     if supported_engines is not None:
         # this is a multi engine app!
         engine_name = parent_engine_descriptor.system_name
@@ -529,7 +529,7 @@ def _validate_parameter(tank_api_instance, descriptor, parameter, str_value):
     Returns the object-ified value on success.
     """
 
-    schema = descriptor.get_configuration_schema()
+    schema = descriptor.configuration_schema
     # get the type for the param we are dealing with
     schema_type = schema.get(parameter, {}).get("type", "unknown")
     # now convert string value input to objet (int, string, dict etc)

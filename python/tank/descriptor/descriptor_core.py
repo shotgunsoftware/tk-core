@@ -25,9 +25,10 @@ class CoreDescriptor(Descriptor):
         """
         super(CoreDescriptor, self).__init__(io_descriptor)
 
-    def get_version_constraints(self):
+    @property
+    def version_constraints(self):
         """
-        Returns a dictionary with version constraints. The absence of a key
+        A dictionary with version constraints. The absence of a key
         indicates that there is no defined constraint. The following keys can be
         returned: min_sg, min_core, min_engine and min_desktop
 

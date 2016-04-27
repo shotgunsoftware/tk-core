@@ -96,7 +96,7 @@ class Engine(TankBundle):
         validation.validate_platform(descriptor)
 
         # Get the settings for the engine and then validate them
-        engine_schema = descriptor.get_configuration_schema()
+        engine_schema = descriptor.configuration_schema
         validation.validate_settings(self.__engine_instance_name, tk, context, engine_schema, settings)
         
         # set up any frameworks defined
@@ -1553,7 +1553,7 @@ class Engine(TankBundle):
             # Load settings for app - skip over the ones that don't validate
             try:
                 # get the app settings data and validate it.
-                app_schema = descriptor.get_configuration_schema()
+                app_schema = descriptor.configuration_schema
                 app_settings = self.__env.get_app_settings(
                     self.__engine_instance_name,
                     app_instance_name,
@@ -1569,7 +1569,7 @@ class Engine(TankBundle):
                 validation.validate_platform(descriptor)
                                 
                 # for multi engine apps, make sure our engine is supported
-                supported_engines = descriptor.get_supported_engines()
+                supported_engines = descriptor.supported_engines
                 if supported_engines and self.name not in supported_engines:
                     raise TankError("The app could not be loaded since it only supports "
                                     "the following engines: %s. Your current engine has been "
@@ -1889,7 +1889,7 @@ def find_app_settings(engine_name, app_name, tk, context, engine_instance_name=N
             # ok, found an app - lets validate the settings as
             # we want to ignore them if they're not valid
             try:
-                schema = app_desc.get_configuration_schema()
+                schema = app_desc.configuration_schema
                 settings = env.get_app_settings(eng, app)
                 
                 # check that the context contains all the info that the app needs
@@ -1899,7 +1899,7 @@ def find_app_settings(engine_name, app_name, tk, context, engine_instance_name=N
                 validation.validate_platform(app_desc)
                                 
                 # for multi engine apps, make sure our engine is supported
-                supported_engines = app_desc.get_supported_engines()
+                supported_engines = app_desc.supported_engines
                 if supported_engines and engine_name not in supported_engines:
                     raise TankError("The app could not be loaded since it only supports "
                                     "the following engines: %s" % supported_engines)

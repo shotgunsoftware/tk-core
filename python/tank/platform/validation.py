@@ -49,7 +49,7 @@ def validate_context(descriptor, context):
     """
     # check that the context contains all the info that the app needs
     # this returns list of strings, e.g. ["user", "entity"]
-    req_ctx = descriptor.get_required_context()
+    req_ctx = descriptor.required_context
 
     context_check_ok = True
     if "user" in req_ctx and context.user is None:
@@ -74,7 +74,7 @@ def validate_platform(descriptor):
     current operating system
     """
     # make sure the current operating system platform is supported
-    supported_platforms = descriptor.get_supported_platforms()
+    supported_platforms = descriptor.supported_platforms
     if len(supported_platforms) > 0:
         # supported platforms defined in manifest
         # get a human friendly mapping of current platform: linux/mac/windows 
@@ -96,7 +96,7 @@ def get_missing_frameworks(descriptor, environment, yml_file):
     :returns: A list of dictionaries, each with a name and a version key, e.g.
         [{'version': 'v0.1.0', 'name': 'tk-framework-widget'}]
     """
-    required_frameworks = descriptor.get_required_frameworks()
+    required_frameworks = descriptor.required_frameworks
     current_framework_instances = environment.find_framework_instances_from(yml_file) 
 
     if len(required_frameworks) == 0:
@@ -126,7 +126,7 @@ def validate_and_return_frameworks(descriptor, environment):
     
     Will raise exceptions if there are frameworks missing from the environment. 
     """
-    required_frameworks = descriptor.get_required_frameworks()
+    required_frameworks = descriptor.required_frameworks
     
     if len(required_frameworks) == 0:
         return []

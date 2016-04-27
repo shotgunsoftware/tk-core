@@ -531,6 +531,6 @@ class TestValidateFixtures(TankTestBase):
         fh.close()        
 
         for app_name in env.get_apps(self.test_engine):
-            schema = env.get_app_descriptor(self.test_engine, app_name).get_configuration_schema()
+            schema = env.get_app_descriptor(self.test_engine, app_name).configuration_schema
             settings = env.get_app_settings(self.test_engine, app_name)
             validate_settings(app_name, self.tk, context, schema, settings)

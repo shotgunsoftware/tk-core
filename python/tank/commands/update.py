@@ -580,7 +580,7 @@ def _check_item_update_status(environment_obj, engine_name=None, app_name=None, 
     out_of_date = (latest_desc.version != curr_desc.version)
     
     # check deprecation
-    (is_dep, dep_msg) = latest_desc.get_deprecation_status()
+    (is_dep, dep_msg) = latest_desc.deprecation_status
     
     if is_dep:
         # we treat deprecation as an out of date that cannot be upgraded!

@@ -485,7 +485,7 @@ class TestMockStore(TankTestBase):
         )
 
         self.assertEqual(
-            desc.get_required_frameworks(),
+            desc.required_frameworks,
             [{"type": "app_store", "name": "tk-framework-dependency", "version": "v1.x.x"}]
         )
 
@@ -495,7 +495,7 @@ class TestMockStore(TankTestBase):
             {"name": "tk-framework-main", "version": "v1.0.0", "type": "app_store"}
         )
 
-        self.assertEqual(desc.get_required_frameworks(), [])
+        self.assertEqual(desc.required_frameworks, [])
 
 
 class TestSimpleUpdates(TankTestBase):

@@ -31,7 +31,7 @@ example shows basic usage::
     latest_desc = desc.find_latest_version()
 
     # see what core is needed for this config
-    required_core_uri = desc.get_associated_core_descriptor()
+    required_core_uri = desc.associated_core_descriptor
 
 When descriptors serialized, they can have two different forms:
 
@@ -197,23 +197,18 @@ Descriptor Classes
 ----------------------------------------
 
 .. autoclass:: AppDescriptor
-    :inherited-members:
     :members:
 
 .. autoclass:: EngineDescriptor
-    :inherited-members:
     :members:
 
 .. autoclass:: FrameworkDescriptor
-    :inherited-members:
     :members:
 
 .. autoclass:: ConfigDescriptor
-    :inherited-members:
     :members:
 
 .. autoclass:: CoreDescriptor
-    :inherited-members:
     :members:
 
 Descriptor Exceptions

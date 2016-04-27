@@ -33,9 +33,10 @@ class ConfigDescriptor(Descriptor):
         """
         super(ConfigDescriptor, self).__init__(io_descriptor)
 
-    def get_version_constraints(self):
+    @property
+    def version_constraints(self):
         """
-        Returns a dictionary with version constraints. The absence of a key
+        A dictionary with version constraints. The absence of a key
         indicates that there is no defined constraint. The following keys can be
         returned: min_sg, min_core, min_engine and min_desktop
 
@@ -54,9 +55,10 @@ class ConfigDescriptor(Descriptor):
 
         return constraints
 
-    def get_readme_content(self):
+    @property
+    def readme_content(self):
         """
-        Get associated readme content as a list.
+        Associated readme content as a list.
         If not readme exists, an empty list is returned
 
         :returns: list of strings
@@ -76,9 +78,10 @@ class ConfigDescriptor(Descriptor):
 
         return readme_content
 
-    def get_associated_core_descriptor(self):
+    @property
+    def associated_core_descriptor(self):
         """
-        Introspects a configuration and returns the required core descriptor
+        The descriptor dict or url required for this core or None if not defined.
 
         :returns: Core descriptor dict or uri or None if not defined
         """
@@ -144,9 +147,10 @@ class ConfigDescriptor(Descriptor):
 
         return roots_data
 
-    def get_required_storages(self):
+    @property
+    def required_storages(self):
         """
-        Returns a list of storage names needed for this config.
+        A list of storage names needed for this config.
         This may be an empty list if the configuration doesn't
         make use of the file system.
 

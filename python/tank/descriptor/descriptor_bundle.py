@@ -29,9 +29,10 @@ class BundleDescriptor(Descriptor):
         """
         super(BundleDescriptor, self).__init__(io_descriptor)
 
-    def get_version_constraints(self):
+    @property
+    def version_constraints(self):
         """
-        Returns a dictionary with version constraints. The absence of a key
+        A dictionary with version constraints. The absence of a key
         indicates that there is no defined constraint. The following keys can be
         returned: min_sg, min_core, min_engine and min_desktop
 
@@ -55,9 +56,10 @@ class BundleDescriptor(Descriptor):
 
         return constraints
 
-    def get_required_context(self):
+    @property
+    def required_context(self):
         """
-        Returns the required context, if there is one defined for a bundle.
+        The required context, if there is one defined, for a bundle.
         This is a list of strings, something along the lines of
         ["user", "task", "step"] for an app that requires a context with
         user task and step defined.
@@ -70,9 +72,10 @@ class BundleDescriptor(Descriptor):
             rc = []
         return rc
 
-    def get_supported_platforms(self):
+    @property
+    def supported_platforms(self):
         """
-        Returns the platforms supported. Possible values
+        The platforms supported. Possible values
         are windows, linux and mac.
 
         Always returns a list, returns an empty list if there is
@@ -87,9 +90,10 @@ class BundleDescriptor(Descriptor):
             sp = []
         return sp
 
-    def get_configuration_schema(self):
+    @property
+    def configuration_schema(self):
         """
-        Returns the manifest configuration schema for this bundle.
+        The manifest configuration schema for this bundle.
         Always returns a dictionary.
 
         :returns: Configuration dictionary as defined
@@ -102,9 +106,10 @@ class BundleDescriptor(Descriptor):
             cfg = {}
         return cfg
 
-    def get_supported_engines(self):
+    @property
+    def supported_engines(self):
         """
-        Returns the engines supported by this app or framework. May return None,
+        The engines supported by this app or framework. May return None,
         meaning that anything goes.
 
         return: None                   (all engines are fine!)
@@ -113,9 +118,10 @@ class BundleDescriptor(Descriptor):
         manifest = self._io_descriptor.get_manifest()
         return manifest.get("supported_engines")
 
-    def get_required_frameworks(self):
+    @property
+    def required_frameworks(self):
         """
-        Returns the list of required frameworks for this item.
+        A list of required frameworks for this item.
 
         Always returns a list - for example::
 

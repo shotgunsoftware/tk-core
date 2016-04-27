@@ -196,9 +196,6 @@ def _validate_bundle(log, tk, name, settings, descriptor, engine_name=None):
         log.info("Please wait, downloading...")
         descriptor.download_local()
 
-    #if len(descriptor.get_required_frameworks()) > 0:
-    #    log.info("  Using frameworks: %s" % descriptor.get_required_frameworks())
-
     # out of date check
     latest_desc = descriptor.find_latest_version()
     if descriptor.version != latest_desc.version:
@@ -207,7 +204,7 @@ def _validate_bundle(log, tk, name, settings, descriptor, engine_name=None):
         )
 
 
-    manifest = descriptor.get_configuration_schema()
+    manifest = descriptor.configuration_schema
 
     for s in settings.keys():
         if s not in manifest.keys():

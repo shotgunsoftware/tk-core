@@ -425,7 +425,7 @@ class Configuration(object):
         This will copy the core API from the given location into
         the configuration, effectively mimicing a localized setup.
         """
-        core_uri_or_dict = self._descriptor.get_associated_core_descriptor()
+        core_uri_or_dict = self._descriptor.associated_core_descriptor
 
         if core_uri_or_dict is None:
             # we don't have a core descriptor specified. Get latest from app store.
@@ -610,7 +610,7 @@ class Configuration(object):
         # now write out roots data
         roots_data = {}
 
-        for storage_name in self._descriptor.get_required_storages():
+        for storage_name in self._descriptor.required_storages:
 
             if storage_name not in storage_by_name:
                 raise TankBootstrapError(

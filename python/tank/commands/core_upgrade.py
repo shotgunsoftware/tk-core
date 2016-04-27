@@ -290,7 +290,7 @@ class TankCoreUpdater(object):
 
         :returns: sg version number as a string or None if no version is required.
         """
-        return self._new_core_descriptor.get_version_constraints()["min_sg"]
+        return self._new_core_descriptor.version_constraints["min_sg"]
 
     def get_release_notes(self):
         """

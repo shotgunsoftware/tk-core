@@ -225,7 +225,7 @@ def load_framework(engine_obj, env, fw_instance_name):
         validation.validate_platform(descriptor)
 
         # get the app settings data and validate it.
-        fw_schema = descriptor.get_configuration_schema()
+        fw_schema = descriptor.configuration_schema
 
         fw_settings = env.get_framework_settings(fw_instance_name)
         validation.validate_settings(fw_instance_name, 

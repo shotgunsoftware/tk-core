@@ -266,9 +266,10 @@ class Descriptor(object):
         # note - doc_url can be none which is fine.
         return doc_url
 
-    def get_deprecation_status(self):
+    @property
+    def deprecation_status(self):
         """
-        Returns information about deprecation.
+        Information about deprecation status.
 
         :returns: Returns a tuple (is_deprecated, message) to indicate
                   if this item is deprecated.
@@ -291,7 +292,8 @@ class Descriptor(object):
     
     def get_path(self):
         """
-        returns the path to the folder where this item resides
+        Returns the path to the folder where this item either currently resides
+        or would reside in case it existed locally.
         """
         return self._io_descriptor.get_path()
 

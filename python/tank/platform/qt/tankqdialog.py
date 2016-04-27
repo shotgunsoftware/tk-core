@@ -313,7 +313,7 @@ class TankQDialog(TankDialogBase):
             self.ui.btn_shotgun.clicked.connect( self._on_shotgun )
             self.ui.btn_reload.clicked.connect( self._on_reload )
             
-            if len(self._bundle.descriptor.get_configuration_schema()) == 0:
+            if len(self._bundle.descriptor.configuration_schema) == 0:
                 # no configuration for this app!
                 self.ui.config_header.setVisible(False)
                 self.ui.config_line.setVisible(False)
@@ -321,7 +321,7 @@ class TankQDialog(TankDialogBase):
                 
             else:
                 # enumerate configuration items            
-                for setting, params in self._bundle.descriptor.get_configuration_schema().items():        
+                for setting, params in self._bundle.descriptor.configuration_schema.items():
                     value = self._bundle.get_setting(setting, None)
                     self._add_settings_item(setting, params, value)
 
