@@ -15,7 +15,6 @@ Please use the authentication module found in sgtk.authentication for
 new code. This compatibility wrapper will be removed at some point in the future.
 """
 
-from .errors import ShotgunAuthenticationError, AuthenticationError, IncompleteCredentials, AuthenticationCancelled
-from .shotgun_authenticator import ShotgunAuthenticator
-from .defaults_manager import DefaultsManager
-from .user import deserialize_user, serialize_user
+from tank.authentication import DefaultsManager, ShotgunAuthenticator
+from tank.authentication import ShotgunAuthenticationError, AuthenticationError, IncompleteCredentials, AuthenticationCancelled
+from tank.authentication import deserialize_user, serialize_user
