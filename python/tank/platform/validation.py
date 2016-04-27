@@ -179,7 +179,7 @@ def validate_and_return_frameworks(descriptor, environment):
         #
         # note: this old form does not handle the 1.x.x syntax, only exact version numbers
         for (fw_instance_name, fw_instance) in fw_descriptors.items():
-            if fw_instance.get_version() == version and fw_instance.get_system_name() == name:
+            if fw_instance.version == version and fw_instance.system_name == name:
                 found = True
                 required_fw_instance_names.append(fw_instance_name)
                 break
@@ -194,8 +194,8 @@ def validate_and_return_frameworks(descriptor, environment):
                 msg += "The currently installed frameworks are: \n"
                 fw_strings = []
                 for x in fw_descriptors:
-                    fw_strings.append("Name: '%s', Version: '%s'" % (fw_descriptors[x].get_system_name(), 
-                                                                     fw_descriptors[x].get_version()))
+                    fw_strings.append("Name: '%s', Version: '%s'" % (fw_descriptors[x].system_name,
+                                                                     fw_descriptors[x].version))
                 msg += "\n".join(fw_strings)
                 
             raise TankError(msg) 

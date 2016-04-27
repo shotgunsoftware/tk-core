@@ -204,7 +204,7 @@ class InstallAppAction(Action):
             log.info("Connecting to git...")
             location = {"type": "git", "path": app_name}
             app_descriptor = self.tk.pipeline_configuration.get_latest_app_descriptor(location)
-            log.info("Latest tag in repository '%s' is %s." % (app_name, app_descriptor.get_version()))
+            log.info("Latest tag in repository '%s' is %s." % (app_name, app_descriptor.version))
             
         elif "/" in app_name or "\\" in app_name:
             # this is a local path on disk, meaning that we should set up a dev descriptor!
@@ -217,7 +217,7 @@ class InstallAppAction(Action):
             log.info("Connecting to the Toolkit App Store...")
             location = {"type": "app_store", "name": app_name}
             app_descriptor = self.tk.pipeline_configuration.get_latest_app_descriptor(location)
-            log.info("Latest approved App Store Version is %s." % app_descriptor.get_version())
+            log.info("Latest approved App Store Version is %s." % app_descriptor.version)
         
         # note! Some of these methods further down are likely to pull the apps local
         # in order to do deep introspection. In order to provide better error reporting,
@@ -228,7 +228,7 @@ class InstallAppAction(Action):
     
         # now assume a convention where we will name the app instance that we create in the environment
         # the same as the short name of the app
-        app_instance_name = app_descriptor.get_system_name()
+        app_instance_name = app_descriptor.system_name
     
         # check so that there is not an app with that name already!
         if app_instance_name in env.get_apps(engine_instance_name):
@@ -256,7 +256,7 @@ class InstallAppAction(Action):
         app_descriptor.run_post_install(self.tk)
     
         # find the name of the engine
-        engine_system_name = env.get_engine_descriptor(engine_instance_name).get_system_name()
+        engine_system_name = env.get_engine_descriptor(engine_instance_name).system_name
     
         # now get data for all new settings values in the config
         params = console_utils.get_configuration(log, 
@@ -271,8 +271,8 @@ class InstallAppAction(Action):
         env.update_app_settings(engine_instance_name, app_instance_name, params, app_descriptor.get_dict())
     
         log.info("App Installation Complete!")
-        if app_descriptor.get_doc_url():
-            log.info("For documentation, see %s" % app_descriptor.get_doc_url())
+        if app_descriptor.documentation_url:
+            log.info("For documentation, see %s" % app_descriptor.documentation_url)
         log.info("")
         log.info("")
         
@@ -447,7 +447,7 @@ class InstallEngineAction(Action):
             log.info("Connecting to git...")
             location = {"type": "git", "path": engine_name}
             engine_descriptor = self.tk.pipeline_configuration.get_latest_engine_descriptor(location)
-            log.info("Latest tag in repository '%s' is %s." % (engine_name, engine_descriptor.get_version()))
+            log.info("Latest tag in repository '%s' is %s." % (engine_name, engine_descriptor.version))
             
         elif "/" in engine_name or "\\" in engine_name:
             # this is a local path on disk, meaning that we should set up a dev descriptor!
@@ -460,13 +460,13 @@ class InstallEngineAction(Action):
             log.info("Connecting to the Toolkit App Store...")
             location = {"type": "app_store", "name": engine_name}
             engine_descriptor = self.tk.pipeline_configuration.get_latest_engine_descriptor(location)
-            log.info("Latest approved App Store Version is %s." % engine_descriptor.get_version())
+            log.info("Latest approved App Store Version is %s." % engine_descriptor.version)
         
         log.info("")
     
         # now assume a convention where we will name the engine instance that we create in the environment
         # the same as the short name of the engine
-        engine_instance_name = engine_descriptor.get_system_name()
+        engine_instance_name = engine_descriptor.system_name
     
         # check so that there is not an app with that name already!
         if engine_instance_name in env.get_engines():
@@ -512,8 +512,8 @@ class InstallEngineAction(Action):
         log.info("")
         log.info("Engine Installation Complete!")
         log.info("")
-        if engine_descriptor.get_doc_url():
-            log.info("For documentation, see %s" % engine_descriptor.get_doc_url())
+        if engine_descriptor.documentation_url:
+            log.info("For documentation, see %s" % engine_descriptor.documentation_url)
         log.info("")
         log.info("")
     

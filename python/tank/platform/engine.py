@@ -639,7 +639,7 @@ class Engine(TankBundle):
             properties["description"] = self.__currently_initializing_app.description
         
         if "icon" not in properties and self.__currently_initializing_app:
-            properties["icon"] = self.__currently_initializing_app.descriptor.get_icon_256()
+            properties["icon"] = self.__currently_initializing_app.descriptor.icon_256
 
         # check for duplicates!
         if name in self.__commands:
@@ -1871,7 +1871,7 @@ def find_app_settings(engine_name, app_name, tk, context, engine_instance_name=N
     # now find all engines whose names match the engine_name:
     for eng in env.get_engines():
         eng_desc = env.get_engine_descriptor(eng)
-        eng_sys_name = eng_desc.get_system_name()
+        eng_sys_name = eng_desc.system_name
 
         # Make sure that we get the right engine by comparing engine
         # name and instance name, if provided.
@@ -1883,7 +1883,7 @@ def find_app_settings(engine_name, app_name, tk, context, engine_instance_name=N
         # ok, found engine so look for app:
         for app in env.get_apps(eng):
             app_desc = env.get_app_descriptor(eng, app)
-            if app_desc.get_system_name() != app_name:
+            if app_desc.system_name != app_name:
                 continue
             
             # ok, found an app - lets validate the settings as

@@ -109,7 +109,7 @@ class AppInfoAction(Action):
                 log.info("-" * (4+len(app)))
                 for (k,v) in descriptor.get_dict().items():
                     log.info(" %s: %s" % (k.capitalize(), v) )
-                log.info(" Docs: %s" % descriptor.get_doc_url())
+                log.info(" Docs: %s" % descriptor.documentation_url)
                 log.info("")
         
         log.info("")

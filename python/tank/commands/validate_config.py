@@ -201,9 +201,10 @@ def _validate_bundle(log, tk, name, settings, descriptor, engine_name=None):
 
     # out of date check
     latest_desc = descriptor.find_latest_version()
-    if descriptor.get_version() != latest_desc.get_version():
-        log.info(  "WARNING: Latest version is %s. You are running %s." % (latest_desc.get_version(),
-                                                                        descriptor.get_version()))
+    if descriptor.version != latest_desc.version:
+        log.info(
+            "WARNING: Latest version is %s. You are running %s." % (latest_desc.version, descriptor.version)
+        )
 
 
     manifest = descriptor.get_configuration_schema()

@@ -275,7 +275,7 @@ class TankCoreUpdater(object):
         Returns the new version of the Toolkit API from shotgun
         Returns None if there is no new version
         """
-        return self._new_core_descriptor.get_version()
+        return self._new_core_descriptor.version
 
     def get_current_version_number(self):
         """
@@ -298,7 +298,7 @@ class TankCoreUpdater(object):
 
         :returns: tuple with (summary_string, details_url_string)
         """
-        return self._new_core_descriptor.get_changelog()
+        return self._new_core_descriptor.changelog
 
     def get_update_status(self):
         """
@@ -313,7 +313,7 @@ class TankCoreUpdater(object):
             # of dev version
             return self.UP_TO_DATE
 
-        elif self.get_current_version_number() == self._new_core_descriptor.get_version():
+        elif self.get_current_version_number() == self._new_core_descriptor.version:
             # running updated version already
             return self.UP_TO_DATE
         else:
@@ -321,7 +321,7 @@ class TankCoreUpdater(object):
             # to download the whole bundle just to see the file.
             if not self._new_core_descriptor.exists_local():
                 self._log.info("")
-                self._log.info("Downloading Toolkit Core API %s from the App Store..." % self._new_core_descriptor.get_version())
+                self._log.info("Downloading Toolkit Core API %s from the App Store..." % self._new_core_descriptor.version)
                 self._new_core_descriptor.download_local()
                 self._log.info("Download completed.")
 

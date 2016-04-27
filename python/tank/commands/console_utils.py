@@ -86,7 +86,7 @@ def format_bundle_info(log, descriptor):
     """
 
     # yay we can install! - get release notes
-    (summary, url) = descriptor.get_changelog()
+    (summary, url) = descriptor.changelog
     if summary is None:
         summary = "No details provided."
 
@@ -95,7 +95,7 @@ def format_bundle_info(log, descriptor):
     log.info("| Item:        %s" % descriptor)
     log.info("|")
 
-    str_to_wrap = "Description: %s" % descriptor.get_description()
+    str_to_wrap = "Description: %s" % descriptor.description
     for x in textwrap.wrap(str_to_wrap, width=68, initial_indent="| ", subsequent_indent="|              "):
         log.info(x)
     log.info("|")
@@ -500,12 +500,12 @@ def _check_constraints(descriptor_obj, parent_engine_descriptor = None):
                            "installed version is %s." % (minimum_core_version, core_api_version))
 
     if "min_engine" in constraints:
-        curr_engine_version = parent_engine_descriptor.get_version()
+        curr_engine_version = parent_engine_descriptor.version
         minimum_engine_version = constraints["min_engine"]
         if is_version_older(curr_engine_version, minimum_engine_version):
             can_update = False
             reasons.append("Requires at least Engine %s %s but currently "
-                           "installed version is %s." % (parent_engine_descriptor.get_display_name(),
+                           "installed version is %s." % (parent_engine_descriptor.display_name,
                                                         minimum_engine_version,
                                                         curr_engine_version))
 
@@ -513,7 +513,7 @@ def _check_constraints(descriptor_obj, parent_engine_descriptor = None):
     supported_engines  = descriptor_obj.get_supported_engines()
     if supported_engines is not None:
         # this is a multi engine app!
-        engine_name = parent_engine_descriptor.get_system_name()
+        engine_name = parent_engine_descriptor.system_name
         if engine_name not in supported_engines:
             can_update = False
             reasons.append("Not compatible with engine %s. "
@@ -535,7 +535,7 @@ def _validate_parameter(tank_api_instance, descriptor, parameter, str_value):
     # now convert string value input to objet (int, string, dict etc)
     obj_value = validation.convert_string_to_type(str_value, schema_type)
     # finally validate this object against the schema
-    validation.validate_single_setting(descriptor.get_display_name(), tank_api_instance, schema, parameter, obj_value)
+    validation.validate_single_setting(descriptor.display_name, tank_api_instance, schema, parameter, obj_value)
 
     # we are here, must mean we are good to go!
     return obj_value

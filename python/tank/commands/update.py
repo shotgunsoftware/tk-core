@@ -302,9 +302,9 @@ def check_for_updates(log,
         if x["was_updated"]:
 
             summary.append("%s was updated from %s to %s" % (x["new_descriptor"],
-                                                             x["old_descriptor"].get_version(),
-                                                             x["new_descriptor"].get_version()))
-            (_, url) = x["new_descriptor"].get_changelog()
+                                                             x["old_descriptor"].version,
+                                                             x["new_descriptor"].version))
+            (_, url) = x["new_descriptor"].changelog
             if url:
                 summary.append("Change Log: %s" % url)
             summary.append("")
@@ -327,7 +327,7 @@ def check_for_updates(log,
         d["environment"] = x["env_name"].name
         d["updated"] = x["was_updated"]
         if x["was_updated"]:
-            d["new_version"] = x["new_descriptor"].get_version()
+            d["new_version"] = x["new_descriptor"].version
         ret_val.append(d)
     
     return ret_val
@@ -438,7 +438,7 @@ def _update_item(log, suppress_prompts, tk, env, old_descriptor, new_descriptor,
     # so that it can resolve engine based defaults
     parent_engine_system_name = None
     if app_name: 
-        parent_engine_system_name = env.get_engine_descriptor(engine_name).get_system_name()
+        parent_engine_system_name = env.get_engine_descriptor(engine_name).system_name
 
     # now get data for all new settings values in the config
     params = console_utils.get_configuration(log, 
@@ -519,7 +519,7 @@ def _process_item(log, suppress_prompts, tk, env, engine_name=None, app_name=Non
             status["current"].download_local()
 
     elif status["out_of_date"] == False:
-        log.info(" \-- You are running version %s which is the most recent release." % status["latest"].get_version())
+        log.info(" \-- You are running version %s which is the most recent release." % status["latest"].version)
 
     else:
         # cannot update for some reason
@@ -577,7 +577,7 @@ def _check_item_update_status(environment_obj, engine_name=None, app_name=None, 
 
 
     # out of date check
-    out_of_date = (latest_desc.get_version() != curr_desc.get_version())
+    out_of_date = (latest_desc.version != curr_desc.version)
     
     # check deprecation
     (is_dep, dep_msg) = latest_desc.get_deprecation_status()
@@ -599,10 +599,10 @@ def _check_item_update_status(environment_obj, engine_name=None, app_name=None, 
         
         # create status message
         if can_update:
-            status = "A new version (%s) of the item is available for installation." % latest_desc.get_version()
+            status = "A new version (%s) of the item is available for installation." % latest_desc.version
         else:
             reasons.insert(0, "The latest version (%s) of the item requires an upgrade to one "
-                           "or more of your installed components." % latest_desc.get_version())
+                           "or more of your installed components." % latest_desc.version)
             status = " ".join(reasons)
             
     # prepare return data

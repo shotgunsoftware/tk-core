@@ -149,7 +149,7 @@ class Descriptor(object):
         """
         Used for pretty printing
         """
-        return "%s %s" % (self.get_system_name(), self.get_version())
+        return "%s %s" % (self.system_name, self.version)
 
     ###############################################################################################
     # data accessors
@@ -183,17 +183,16 @@ class Descriptor(object):
         """
         self._io_descriptor.copy(target_folder)
 
-    def get_display_name(self):
+    @property
+    def display_name(self):
         """
-        Returns the display name for this item.
+        The display name for this item.
         If no display name has been defined, the system name will be returned.
-
-        :returns: Display name as string
         """
         meta = self._io_descriptor.get_manifest()
         display_name = meta.get("display_name")
         if display_name is None:
-            display_name = self.get_system_name()
+            display_name = self.system_name
         return display_name
 
     def is_dev(self):
@@ -217,11 +216,10 @@ class Descriptor(object):
         """
         return self._io_descriptor.is_immutable()
 
-    def get_description(self):
+    @property
+    def description(self):
         """
-        Returns a short description for the app.
-
-        :returns: Description as string
+        A short description of the item.
         """
         meta = self._io_descriptor.get_manifest()
         desc = meta.get("description")
@@ -229,11 +227,10 @@ class Descriptor(object):
             desc = "No description available." 
         return desc
 
-    def get_icon_256(self):
+    @property
+    def icon_256(self):
         """
-        Returns the path to a 256px square png icon file for this app
-
-        :returns: Path to a 256px png icon file
+        The path to a 256px square png icon file representing this item
         """
         app_icon = os.path.join(self._io_descriptor.get_path(), "icon_256.png")
         if os.path.exists(app_icon):
@@ -247,12 +244,11 @@ class Descriptor(object):
             ))
             return default_icon
 
-    def get_support_url(self):
+    @property
+    def support_url(self):
         """
-        Returns a url that points to a support web page where you can get help
-        if you are stuck with this item.
-
-        :returns: Url as string or None if not defined
+        A url that points at a support web page associated with this item.
+        If not url has been defined, None is returned.
         """
         meta = self._io_descriptor.get_manifest()
         support_url = meta.get("support_url")
@@ -260,14 +256,10 @@ class Descriptor(object):
             support_url = "https://support.shotgunsoftware.com" 
         return support_url
 
-    def get_doc_url(self):
+    @property
+    def documentation_url(self):
         """
-        Returns the documentation url for this item. Returns None if the documentation url
-        is not defined. This is sometimes subclassed, where a descriptor (like the tank app
-        store) and support for automatic, built in documentation management. If not, the 
-        default implementation will search the manifest for a doc url location.
-
-        :returns: Url as string or None if not defined
+        The documentation url for this item or None if not defined.
         """
         meta = self._io_descriptor.get_manifest()
         doc_url = meta.get("documentation_url")
@@ -283,16 +275,17 @@ class Descriptor(object):
         """
         return self._io_descriptor.get_deprecation_status()
 
-    def get_system_name(self):
+    @property
+    def system_name(self):
         """
-        Returns a short name, suitable for use in configuration files
-        and for folders on disk
+        A short name, suitable for use in configuration files and for folders on disk.
         """
         return self._io_descriptor.get_system_name()
     
-    def get_version(self):
+    @property
+    def version(self):
         """
-        Returns the version number string for this item.
+        The version number string for this item.
         """
         return self._io_descriptor.get_version()
     
@@ -302,9 +295,10 @@ class Descriptor(object):
         """
         return self._io_descriptor.get_path()
 
-    def get_changelog(self):
+    @property
+    def changelog(self):
         """
-        Returns information about the changelog for this item.
+        Information about the changelog for this item.
 
         :returns: A tuple (changelog_summary, changelog_url). Values may be None
                   to indicate that no changelog exists.

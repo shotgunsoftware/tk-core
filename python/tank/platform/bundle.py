@@ -108,7 +108,7 @@ class TankBundle(object):
         
         :returns: name as string
         """
-        return self.__descriptor.get_system_name()
+        return self.__descriptor.system_name
     
     @property
     def display_name(self):
@@ -117,7 +117,7 @@ class TankBundle(object):
         
         :returns: display name as string
         """
-        return self.__descriptor.get_display_name()
+        return self.__descriptor.display_name
 
     @property
     def description(self):
@@ -126,7 +126,7 @@ class TankBundle(object):
         
         :returns: string
         """
-        return self.__descriptor.get_description()
+        return self.__descriptor.description
 
     @property
     def version(self):
@@ -135,14 +135,14 @@ class TankBundle(object):
         
         :returns: string representing the version
         """
-        return self.__descriptor.get_version()
+        return self.__descriptor.version
 
     @property
     def icon_256(self):
         """
         The path to the app's icon, which is a 256px square png
         """
-        return self.__descriptor.get_icon_256()
+        return self.__descriptor.icon_256
 
     @property
     def style_constants(self):
@@ -177,7 +177,7 @@ class TankBundle(object):
         
         :returns: url string, None if no documentation was found
         """
-        return self.__descriptor.get_doc_url()        
+        return self.__descriptor.documentation_url
 
     @property
     def support_url(self):
@@ -186,7 +186,7 @@ class TankBundle(object):
         
         :returns: url string, None if no documentation was found
         """
-        return self.__descriptor.get_support_url()        
+        return self.__descriptor.support_url
 
     @property
     def disk_location(self):
