@@ -333,6 +333,14 @@ class Descriptor(object):
         """
         Returns a descriptor object that represents the latest version.
 
+        .. note:: Different descriptor types implements this logic differently,
+                  but general good practice is to follow the semantic version numbering
+                  standard for any versions used in conjunction with toolkit. This ensures
+                  that toolkit can track and correctly determine not just the latest version
+                  but also apply constraint pattern matching such as looking for the latest
+                  version matching the pattern ``v1.x.x``. You can read more about semantic
+                  versioning here: http://semver.org/
+
         :param constraint_pattern: If this is specified, the query will be constrained
                by the given pattern. Version patterns are on the following forms:
 
