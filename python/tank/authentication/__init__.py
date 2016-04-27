@@ -21,4 +21,4 @@ credentials are reused if available.
 from .errors import ShotgunAuthenticationError, AuthenticationError, IncompleteCredentials, AuthenticationCancelled
 from .shotgun_authenticator import ShotgunAuthenticator
 from .defaults_manager import DefaultsManager
-from .user import deserialize_user, serialize_user
+from .user import ShotgunUser, deserialize_user, serialize_user

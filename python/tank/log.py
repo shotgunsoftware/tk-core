@@ -27,6 +27,9 @@ class LogManager(object):
     _std_file_handler = None
 
 
+    # @todo - add methods for getting partial logger
+
+
     @classmethod
     def initialize_std_handler(cls, handler=logging.StreamHandler()):
         """
@@ -40,7 +43,7 @@ class LogManager(object):
         """
 
         # example:
-        # 2016-04-25 08:56:12,413 [44862 DEBUG tank.log] message message
+        # [DEBUG tank.log] message message
         formatter = logging.Formatter(
             "[%(levelname)s %(name)s] %(message)s"
         )

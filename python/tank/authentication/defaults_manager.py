@@ -16,7 +16,7 @@ class DefaultsManager(object):
     The defaults manager allows a client of the Shotgun Authenticator class
     to customize various behaviors around data storage and settings.
     
-    By default, when you construct a ShotgunAuthenticator object, it will be
+    By default, when you construct a :class:`ShotgunAuthenticator` object, it will be
     instantiated with a standard defaults manager implementation. This will 
     work for most cases - user session credentials will be stored in a file
     on disk and the system maintains a concept of a current user and a current 
@@ -24,15 +24,13 @@ class DefaultsManager(object):
     
     If, however, you want to implement a custom behavior around how defaults
     are managed, simply derive from this class and pass your custom instance 
-    to the ShotgunAuthenticator object when you construct it.    
+    to the :class:`ShotgunAuthenticator` object when you construct it.
     """
 
     def __init__(self):
         """
-        Constructor.
-
-        Reads the default host and login from disk.
         """
+        # Reads the default host and login from disk.
         self._host = session_cache.get_current_host()
         if self._host:
             self._login = session_cache.get_current_user(self.get_host())
@@ -42,7 +40,7 @@ class DefaultsManager(object):
     def is_host_fixed(self):
         """
         When doing an interactive login, this indicates if the user can decide
-        the host to connect to. In its default implementation, the DefaultsManager
+        the host to connect to. In its default implementation, the :class:`DefaultsManager`
         will indicate that the host is not fixed, meaning that the user will be
         presented with an option to pick a site at login time.
         
@@ -61,7 +59,7 @@ class DefaultsManager(object):
         """
         The default host is used as a useful starting point when doing
         interactive authentication. When the host is not fixed (see the 
-        is_host_fixed method), the return value of get_host is what is 
+        :meth:`is_host_fixed` method), the return value of get_host is what is
         used to implement single sign-on between all Toolkit desktop 
         applications (at the moment, tank and Shotgun Desktop).
 

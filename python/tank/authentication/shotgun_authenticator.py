@@ -28,7 +28,7 @@ class ShotgunAuthenticator(object):
     It also helps store who the current user is, so that users don't have to log
     in over and over again, but only when needed.
 
-    A simple use case scenario would look something like this:
+    A simple use case scenario would look something like this::
 
         # create an authenticator
         sa = ShotgunAuthenticator()
@@ -138,7 +138,7 @@ class ShotgunAuthenticator(object):
         :param host: Shotgun host to log in to. If None, the default host will be used.
         :param http_proxy: Shotgun proxy to use. If None, the default http proxy will be used.
 
-        :returns: A SessionUser instance.
+        :returns: A :class:`ShotgunUser` instance.
         """
         # Get the defaults is arguments were None.
         host = host or self._defaults_manager.get_host()
@@ -160,7 +160,7 @@ class ShotgunAuthenticator(object):
         :param http_proxy: Shotgun proxy to use. If None, the default http proxy
                            will be used.
 
-        :returns: A ShotgunUser derived instance.
+        :returns: A :class:`ShotgunUser` derived instance.
         """
         return user.ShotgunUser(
             user_impl.ScriptUser(
@@ -191,7 +191,7 @@ class ShotgunAuthenticator(object):
         """
         Returns the default user from the defaults manager.
 
-        :returns: A ShotgunUser derived instance if available, None otherwise.
+        :returns: A :class:`ShotgunUser` derived instance if available, None otherwise.
         """
         # Get the credentials
         credentials = self._defaults_manager.get_user_credentials()
@@ -236,11 +236,11 @@ class ShotgunAuthenticator(object):
         Once the user has entered valid credentials, the default user will be
         updated with these.
 
-        :returns: A ShotgunUser derived instance matching the credentials
+        :returns: A :class:`ShotgunUser` derived instance matching the credentials
         provided.
 
-        :raises AuthenticationCancelled: This is raised if the user cancelled
-                                         the authentication.
+        :raises: :class:`AuthenticationCancelled` is raised
+                if the user cancelled the authentication.
         """
         # Make sure we don't already have a user logged in through single
         # sign-on or provided by a DefaultsManager-derived instance.

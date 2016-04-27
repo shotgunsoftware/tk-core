@@ -10,3 +10,4 @@
 
 from .manager import ToolkitManager
 
+from .errors import TankBootstrapError
