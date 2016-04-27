@@ -16,16 +16,10 @@ import warnings
 
 log = logging.getLogger(__name__)
 
-
-
-
-
-
 class CoreImportHandler(object):
-    """A custom import handler to allow for core version switching.
+    """
+    A custom import handler to allow for core version switching.
 
-    When an instance of this object is added to `sys.meta_path`, it is used to
-    alter the way python imports packages.
 
     The core path is used to locate modules attempting to be loaded. The core
     path can be set via `set_core_path` to alter the location of existing and
@@ -39,7 +33,64 @@ class CoreImportHandler(object):
     NAMESPACES_TO_TRACK = ["tank", "sgtk", "tank_vendor"]
 
     @classmethod
-    def initialize(cls):
+    def swap_core(cls, core_path):
+        """
+        Swap the current core with the core located at the supplied path.
+
+        Actually just unloads the existing core and ensures an import handler
+        exists that points to the supplied core path. When this method completes,
+        all core namespaces will be removed from `sys.modules`.
+
+        :param core_path: The path to the new core to use upon import.
+        """
+        # make sure handler is up
+        handler = cls._initialize()
+
+        # make sure that this entire operation runs inside the import thread lock
+        # in order to not cause any type of cross-thread confusion during the swap
+        imp.acquire_lock()
+
+        try:
+            log.debug("Begin swapping %s to %s" % (handler, core_path))
+            handler._swap_core(core_path)
+            log.debug("...core swap complete.")
+
+            # because we are swapping out the code that we are currently running, Python is
+            # generating a runtime warning:
+            #
+            # RuntimeWarning: Parent module 'tank.bootstrap' not found while handling absolute import
+            #
+            # We are fixing this issue by re-importing tank, so it's essentially a chicken and egg
+            # scenario. So it's ok to mute the warning. Interestingly, by muting the warning, the
+            # execution of the reload/import becomes more complete and it seems some parts of the
+            # code that weren't previously reloaded are now covered. So turning off the warnings
+            # display seems to have executionary side effects.
+
+            # Save the existing list of warning filters before we modify it using simplefilter().
+            # Note: the '[:]' causes a copy of the list to be created. Without it, original_filter
+            # would alias the one and only 'real' list and then we'd have nothing to restore.
+            original_filters = warnings.filters[:]
+
+            # Ignore all warnings
+            warnings.simplefilter("ignore")
+
+            log.debug("running explicit 'import tank' to re-initialize new core...")
+
+            try:
+                # Kick toolkit to re-import
+                import tank
+
+            finally:
+                # Restore the list of warning filters.
+                warnings.filters = original_filters
+
+            log.debug("...import complete")
+
+        finally:
+            imp.release_lock()
+
+    @classmethod
+    def _initialize(cls):
         """
         Boots up the import manager if it's not already up.
 
@@ -57,53 +108,11 @@ class CoreImportHandler(object):
         log.debug("Added import handler to sys.meta_path to support core swapping.")
         return handler
 
-    @classmethod
-    def swap_core(cls, core_path):
-        """
-        Swap the current core with the core located at the supplied path.
-
-        Actually just unloads the existing core and ensures an import handler
-        exists that points to the supplied core path. When this method completes,
-        all core namespaces will be removed from `sys.modules`.
-
-        :param core_path: The path to the new core to use upon import.
-        """
-        # make sure handler is up
-        handler = cls.initialize()
-
-        if not os.path.exists(core_path):
-            raise ValueError("The supplied core path '%s' is not a valid directory." % core_path)
-
-        log.debug("Begin swapping %s to %s" % (handler, core_path))
-        handler._swap_core(core_path)
-        log.debug("...core swap complete.")
-
-
-        log.debug("running explicit 'import tank' to re-initialize new core...")
-
-        # Save the existing list of warning filters before we modify it using simplefilter().
-        # Note: the '[:]' causes a copy of the list to be created. Without it, original_filter
-        # would alias the one and only 'real' list and then we'd have nothing to restore.
-        original_filters = warnings.filters[:]
-
-        # Ignore warnings.
-        warnings.simplefilter("ignore")
-
-        try:
-            # Execute the code that presumably causes the warnings.
-            import tank
-
-        finally:
-            # Restore the list of warning filters.
-            warnings.filters = original_filters
-
-        log.debug("...import complete")
 
     def __init__(self, core_path):
         """Initialize the custom importer.
 
         :param core_path: A str path to the core location to import from.
-
         """
         self._core_path = core_path
 
@@ -121,20 +130,25 @@ class CoreImportHandler(object):
 
     def _swap_core(self, core_path):
         """
-        Actual payload for the core swapping
+        Actual payload for the core swapping.
 
-        :param core_path:
-        :return:
+        To swap a core, call CoreImportHandler.swap_core().
+
+        :param core_path: core path to swap to.
         """
+        if not os.path.exists(core_path):
+            raise ValueError(
+                "The supplied core path '%s' is not a valid directory." % core_path
+            )
+
         # the paths are the same. No need to do anything.
         if core_path == self._core_path:
             return
 
-        # acquire a lock to prevent issues with other threads importing at the
-        # same time.
+        # acquire a lock to prevent issues with other
+        # threads importing at the same time.
         imp.acquire_lock()
 
-        # wrap this up in try/finally to make sure the lock is released!
         try:
 
             # sort by package depth, deeper modules first
@@ -171,6 +185,8 @@ class CoreImportHandler(object):
 
     def find_module(self, module_fullname, package_path=None):
         """Locates the given module in the current core.
+
+        This method is part of the custom import handler interface contract.
 
         :param module_fullname: The fullname of the module to import
         :param package_path: None for a top-level module, or
@@ -256,6 +272,8 @@ class CoreImportHandler(object):
 
         Called by python if the find_module was successful.
 
+        This method is part of the custom import handler interface contract.
+
         For further info, see the docs on `load_module` here:
             https://docs.python.org/2/library/imp.html#imp.load_module
 
@@ -269,6 +287,7 @@ class CoreImportHandler(object):
             # retrieve the found module info
             (file_obj, filename, desc) = self._module_info[module_fullname]
 
+            # uncomment for lots of import related debug :)
             #log.debug("Custom load module! %s [%s]" % (module_fullname, filename))
 
             # attempt to load the module. if this fails, allow it to raise
