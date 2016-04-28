@@ -62,7 +62,11 @@ from . import util
 # core functionality
 from .api import Tank, tank_from_path, tank_from_entity, set_authenticated_user, get_authenticated_user
 from .api import Sgtk, sgtk_from_path, sgtk_from_entity
-from .errors import TankError, TankErrorProjectIsSetup
+
+from .context import Context
+
+from .errors import TankError, TankErrorProjectIsSetup, TankHookMethodDoesNotExistError
+from .errors import TankNoDefaultValueError, TankFileDoesNotExistError, TankUnreadableFileError
 # note: TankEngineInitError used to reside in .errors but was moved into platform.errors
 from .platform.errors import TankEngineInitError
 from .template import TemplatePath, TemplateString

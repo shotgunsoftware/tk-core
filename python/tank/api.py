@@ -211,7 +211,7 @@ class Tank(object):
     @property
     def documentation_url(self):
         """
-        Return the relevant documentation url for this app.
+        Return a relevant documentation url for this version of the Toolkit Core.
 
         :returns: url string, None if no documentation was found
         """

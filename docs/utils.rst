@@ -20,6 +20,10 @@ Path Management
 
 Tank Commands FTW!
 
+.. autoclass:: PathManager
+    :members:
+
+
 
 
 Tank Commands
