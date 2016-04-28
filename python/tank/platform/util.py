@@ -159,10 +159,10 @@ def current_bundle():
     mechanism, import_module(), otherwise an exception will be raised.
     
     This special helper method can be useful when code deep inside an app needs
-    to reach out to for example grab a configuration value. Then you can simply do
+    to reach out to for example grab a configuration value. Then you can simply do::
     
-    app = sgtk.platform.current_bundle()
-    app.get_setting("frame_range")
+        app = sgtk.platform.current_bundle()
+        app.get_setting("frame_range")
 
     :returns: app, engine or framework instance
     """ 
@@ -181,16 +181,16 @@ def get_framework(framework):
     
     For example, if your app code requires the tk-framework-helpers framework, and you
     need to retrieve a configuration setting from this framework, then you can 
-    simply do
+    simply do::
     
-    fw = sgtk.platform.get_framework("tk-framework-helpers")
-    fw.get_setting("frame_range")
+        fw = sgtk.platform.get_framework("tk-framework-helpers")
+        fw.get_setting("frame_range")
 
     :param framework: name of the framework object to access, as defined in the app's
                       info.yml manifest.
     :returns: framework instance
+    :type: :class:`Framework`
     """
-
     current_bundle = _get_current_bundle()
     
     if framework not in current_bundle.frameworks:
@@ -206,25 +206,24 @@ def import_framework(framework, module):
     Convenience method for using frameworks code inside of apps, engines and other frameworks.
     
     This method is intended to replace an import statement.
-    Instead of typing 
+    Instead of typing::
     
-    > from . import foo_bar
+        from . import foo_bar
     
-    You use the following syntax to load a framework module
+    You use the following syntax to load a framework module::
     
-    > foo_bar = tank.platform.import_framework("tk-framework-mystuff", "foo_bar")
+        foo_bar = tank.platform.import_framework("tk-framework-mystuff", "foo_bar")
     
     This is a special method, designed to 
     be used inside python modules that belong to apps, engines or frameworks.
     
     The calling code needs to have been imported using toolkit's standard import 
-    mechanism, import_module(), otherwise an exception will be raised.    
+    mechanism, :meth:`Bundle.import_module()`, otherwise an exception will be raised.
 
     :param framework: name of the framework object to access, as defined in the app's
                       info.yml manifest.
     :param module: module to load from framework
     """
-    
     current_bundle = _get_current_bundle()
 
     if framework not in current_bundle.frameworks:

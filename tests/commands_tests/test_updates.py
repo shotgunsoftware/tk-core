@@ -24,10 +24,10 @@ import mock
 
 from tank_test.tank_test_base import TankTestBase, setUpModule
 
-import tank_vendor
-from tank_vendor.shotgun_deploy.descriptor import Descriptor
-from tank_vendor.shotgun_deploy.io_descriptor.base import IODescriptorBase
-from tank_vendor.shotgun_deploy.descriptor import create_descriptor
+import sgtk
+from sgtk.descriptor import Descriptor
+from sgtk.descriptor.io_descriptor.base import IODescriptorBase
+from sgtk.descriptor.descriptor import create_descriptor
 
 from tank import TankError
 from tank.platform.environment import Environment
@@ -225,7 +225,7 @@ class TankMockStoreDescriptor(IODescriptorBase):
         :returns: A IODescriptorAppStore object.
         """
         descriptor = TankMockStoreDescriptor(
-            {"name": self.system_name,
+            {"name": self.get_system_name(),
              "type": "app_store",
              "version": version},
             None,
@@ -236,15 +236,13 @@ class TankMockStoreDescriptor(IODescriptorBase):
 
         return descriptor
 
-    @property
-    def system_name(self):
+    def get_system_name(self):
         """
         See documentation from TankAppStoreDescriptor.
         """
         return self.get_dict()["name"]
 
-    @property
-    def version(self):
+    def get_version(self):
         """
         See documentation from TankAppStoreDescriptor.
         """
@@ -274,7 +272,7 @@ class TankMockStoreDescriptor(IODescriptorBase):
 
         versions = MockStore.instance.get_bundle_versions(
             self._type,
-            self.system_name
+            self.get_system_name()
         )
         latest = "v0.0.0"
         for version in versions:
@@ -294,7 +292,7 @@ class TankMockStoreDescriptor(IODescriptorBase):
 
         version_numbers = MockStore.instance.get_bundle_versions(
             self._type,
-            self.system_name
+            self.get_system_name()
         )
 
         version_to_use = self._find_latest_tag_by_pattern(
@@ -306,12 +304,12 @@ class TankMockStoreDescriptor(IODescriptorBase):
 
     def get_manifest(self):
         """
-        REturns the manifest data
+        Returns the manifest data
         """
         bundle = MockStore.instance.get_bundle(
-                self._type,
-                self.system_name,
-                self.version
+            self._type,
+            self.get_system_name(),
+            self.get_version()
         )
 
         return {"frameworks": bundle.required_frameworks}
@@ -328,7 +326,7 @@ class _Patcher(object):
         Constructor.
         """
         self._patch = mock.patch(
-            "tank_vendor.shotgun_deploy.io_descriptor.appstore.IODescriptorAppStore",
+            "tank.descriptor.io_descriptor.appstore.IODescriptorAppStore",
             new=TankMockStoreDescriptor
         )
 
@@ -429,7 +427,7 @@ class TestMockStore(TankTestBase):
         # Register an engine with it.
         mock_store.add_engine("tk-test", "v1.2.3")
 
-        from tank_vendor.shotgun_deploy.io_descriptor.appstore import IODescriptorAppStore
+        from tank.descriptor.io_descriptor.appstore import IODescriptorAppStore
 
         # Make sure the created object is actually an instance of the mocked descriptor class.
         self.assertIsInstance(
@@ -446,7 +444,7 @@ class TestMockStore(TankTestBase):
         """
         patcher = patch_app_store()
 
-        from tank_vendor.shotgun_deploy.io_descriptor.appstore import IODescriptorAppStore
+        from tank.descriptor.io_descriptor.appstore import IODescriptorAppStore
 
         self.assertNotEqual(TankMockStoreDescriptor, IODescriptorAppStore)
 

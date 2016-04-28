@@ -692,8 +692,18 @@ _authenticated_user = None
 def set_authenticated_user(user):
     """
     Sets the currently authenticated Shotgun user.
-    :params user: A authentication.user.ShotgunUser derived object. Can
-    be None to clear the authenticated user.
+
+    You instruct the Toolkit API which user the current session is associated with by executing
+    this command. Conversely, you can use :meth`get_authenticated_user()` to retrieve the current user.
+    The user object above is created by the `sgtk.authentication` part of the API and wraps around the Shotgun
+    API to provide a continuous and configurable experience around user based Shotgun connections.
+
+    Normally, Toolkit handles this transparently as part of setting up the `sgtk` instance and there is no need
+    to call this method. However, if you are running a custom tool which has particular requirements
+    around authentication, you can provide your own logic if desirable.
+
+    :params user: A :class:`sgtk.authentication.ShotgunUser` derived object. Can
+                  be None to clear the authenticated user.
     """
     global _authenticated_user
     _authenticated_user = user

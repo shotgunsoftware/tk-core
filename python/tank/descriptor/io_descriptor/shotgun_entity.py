@@ -166,12 +166,10 @@ class IODescriptorShotgunEntity(IODescriptorBase):
                 - v0.12.x - get the highest v0.12 version
                 - v1.x.x - get the highest v1 version
 
-        :returns: descriptor object
+        :returns: IODescriptorShotgunEntity object
         """
         if constraint_pattern:
-            raise TankDescriptorError(
-                "%s does not support version constraint patterns." % self
-            )
+            log.warning("%s does not support version constraint patterns." % self)
 
         log.debug("Finding latest version of %s..." % self)
 

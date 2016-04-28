@@ -396,7 +396,7 @@ class IODescriptorAppStore(IODescriptorBase):
                 - v0.12.x - get the highest v0.12 version
                 - v1.x.x - get the highest v1 version
 
-        :returns: descriptor object
+        :returns: IODescriptorAppStore object
         """
         if constraint_pattern:
             return self._find_latest_for_pattern(constraint_pattern)

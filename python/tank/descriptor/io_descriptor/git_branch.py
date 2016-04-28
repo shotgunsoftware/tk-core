@@ -173,7 +173,7 @@ class IODescriptorGitBranch(IODescriptorGit):
                 - v0.12.x - get the highest v0.12 version
                 - v1.x.x - get the highest v1 version
 
-        :returns: descriptor object
+        :returns: IODescriptorGitBranch object
         """
         if constraint_pattern:
             log.warning(

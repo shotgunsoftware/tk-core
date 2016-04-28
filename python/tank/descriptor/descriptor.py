@@ -344,7 +344,7 @@ class Descriptor(object):
                 - v0.12.x - get the highest v0.12 version
                 - v1.x.x - get the highest v1 version
 
-        :returns: descriptor object
+        :returns: instance derived from :class:`Descriptor`
         """
         # make a copy of the descriptor
         latest = copy.copy(self)

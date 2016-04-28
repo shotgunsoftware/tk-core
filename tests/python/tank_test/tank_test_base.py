@@ -268,13 +268,16 @@ class TankTestBase(unittest.TestCase):
         roots_path = os.path.join(self.pipeline_config_root, "config", "core", "roots.yml")
         roots_file = open(roots_path, "w") 
         roots_file.write(yaml.dump(roots))
-        roots_file.close()        
+        roots_file.close()
                 
         self.pipeline_configuration = sgtk.pipelineconfig_factory.from_path(self.pipeline_config_root)
         self.tk = tank.Tank(self.pipeline_configuration)
         
         # set up mockgun and make sure shotgun connection calls route via mockgun
         self.mockgun = mockgun.Shotgun("http://unit_test_mock_sg", "mock_user", "mock_key")
+        # fake a version response from the server
+        self.mockgun.server_info = {"version": (7, 0, 0)}
+
         
         def get_associated_sg_base_url_mocker():
             return "http://unit_test_mock_sg"

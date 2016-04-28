@@ -116,7 +116,7 @@ class IODescriptorManual(IODescriptorBase):
             - v1.2.x 
             - v1.x.x
 
-        :returns: descriptor object
+        :returns: IODescriptorManual object
         """
         # since this descriptor has no way of updating and no way of knowing 
         # what is latest, just return our own version as representing the latest version.

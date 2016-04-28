@@ -268,7 +268,7 @@ class TankCoreUpdater(object):
         try:
             self._sg_studio_version = ".".join([ str(x) for x in self._local_sg.server_info["version"]])
         except Exception, e:
-            raise TankError("Could not extract version number for studio shotgun: %s" % e)
+            raise TankError("Could not extract version number for shotgun: %s" % e)
 
     def get_update_version_number(self):
         """

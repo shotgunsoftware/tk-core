@@ -24,13 +24,13 @@ from ..util import log_user_activity_metric, log_user_attribute_metric
 
 class Application(TankBundle):
     """
-    Base class for an app in Tank.
+    Base class for all Applications (Apps) running in Toolkit.
     """
     
     def __init__(self, engine, descriptor, settings, instance_name, env):
         """
-        Called by the app loader framework. The constructor
-        is not supposed to be overridden by deriving classes.
+        Application instances are constructed by the toolkit launch process
+        and various factory methods such as :meth:`start_engine`.
         
         :param engine: The engine instance to connect this app to
         :param app_name: The short name of this app (e.g. tk-nukepublish)

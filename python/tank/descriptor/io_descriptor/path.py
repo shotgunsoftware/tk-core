@@ -133,7 +133,7 @@ class IODescriptorPath(IODescriptorBase):
                 - v0.12.x - get the highest v0.12 version
                 - v1.x.x - get the highest v1 version
 
-        :returns: descriptor object
+        :returns: IODescriptorPath object
         """
         # we are always the latest version :)
         return self

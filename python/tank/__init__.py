@@ -74,5 +74,7 @@ from .hook import Hook, get_hook_baseclass
 
 from .commands import list_commands, get_command, SgtkSystemCommand
 
+from .templatekey import SequenceKey, IntegerKey, StringKey, TimestampKey
+
 from .paths import PathManager
 from .log import LogManager

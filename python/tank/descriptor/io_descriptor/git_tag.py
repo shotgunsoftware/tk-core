@@ -122,7 +122,7 @@ class IODescriptorGitTag(IODescriptorGit):
             - v1.x.x (examples: v1.3.2, a forked version v1.3.2.2)
             - v1.2.3.x (will always return a forked version, eg. v1.2.3.2)
 
-        :returns: descriptor object
+        :returns: IODescriptorGitTag object
         """
         # now first clone the repo into a tmp location
         clone_tmp = os.path.join(tempfile.gettempdir(), "%s_tank_clone" % uuid.uuid4().hex)
@@ -158,7 +158,7 @@ class IODescriptorGitTag(IODescriptorGit):
         new_loc_dict["version"] = version_to_use
 
         # create new descriptor to represent this tag
-        desc = IODescriptorGit(new_loc_dict)
+        desc = IODescriptorGitTag(new_loc_dict)
         desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
         return desc
 
@@ -166,7 +166,7 @@ class IODescriptorGitTag(IODescriptorGit):
         """
         Returns a descriptor object that represents the latest version.
 
-        :returns: descriptor object
+        :returns: IODescriptorGitTag object
         """
         # now first clone the repo into a tmp location
         clone_tmp = os.path.join(tempfile.gettempdir(), "%s_tank_clone" % uuid.uuid4().hex)
@@ -202,7 +202,7 @@ class IODescriptorGitTag(IODescriptorGit):
         new_loc_dict["version"] = latest_version
 
         # create new descriptor to represent this tag
-        desc = IODescriptorGit(new_loc_dict)
+        desc = IODescriptorGitTag(new_loc_dict)
         desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
         return desc
 
@@ -294,7 +294,7 @@ class IODescriptorGitTag(IODescriptorGit):
                 - v0.12.x - get the highest v0.12 version
                 - v1.x.x - get the highest v1 version
 
-        :returns: descriptor object
+        :returns: IODescriptorGitTag object
         """
         if constraint_pattern:
             return self._get_latest_by_pattern(constraint_pattern)

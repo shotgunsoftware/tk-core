@@ -542,7 +542,7 @@ class IODescriptorBase(object):
         and for folders on disk, e.g. 'tk-maya'
         """
         raise NotImplementedError
-    
+
     def get_version(self):
         """
         Returns the version number string for this item, .e.g 'v1.2.3'
@@ -566,6 +566,6 @@ class IODescriptorBase(object):
                 - v0.12.x - get the highest v0.12 version
                 - v1.x.x - get the highest v1 version
 
-        :returns: descriptor object
+        :returns: instance deriving from IODescriptorBase
         """
         raise NotImplementedError
