@@ -67,3 +67,4 @@ TEMPLATE_STRING_SECTION = "strings"
 
 # a human readable explanation of the above. For error messages.
 VALID_TEMPLATE_KEY_NAME_DESC = "letters, numbers, underscore, space and period"
+

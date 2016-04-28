@@ -18,7 +18,7 @@ from tank_test.tank_test_base import *
 
 from tank import path_cache
 from tank import folder
-from tank.platform import constants
+from tank import constants
 
 def add_item_to_cache(path_cache, entity, path, primary = True):
     
@@ -551,10 +551,14 @@ class TestShotgunSync(TankTestBase):
         
         # construct an invalid roots.yml that is out of sync with the records coming from
         current_roots = self.pipeline_configuration._roots
-        invalid_roots = {"primary": 
-                         {"linux_path": "/invalid",
-                          "mac_path": "/invalid",
-                          "windows_path": "X:\\invalid"}}
+        invalid_roots = {
+            "primary": tank.util.ShotgunPath.from_shotgun_dict(
+                {"linux_path": "/invalid",
+                 "mac_path": "/invalid",
+                 "windows_path": "X:\\invalid"
+                 }
+            )
+        }
         
         self.pipeline_configuration._roots = invalid_roots
         
