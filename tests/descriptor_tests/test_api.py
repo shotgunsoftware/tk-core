@@ -11,6 +11,7 @@
 import os
 import tempfile
 import datetime
+import sgtk
 
 from tank_test.tank_test_base import *
 
@@ -36,9 +37,9 @@ class TestApi(TankTestBase):
         """
         Basic test of descriptor construction
         """
-        d = shotgun_deploy.create_descriptor(
+        d = sgtk.descriptor.create_descriptor(
             self.tk.shotgun,
-            shotgun_deploy.Descriptor.CONFIG,
+            sgtk.descriptor.Descriptor.CONFIG,
             {"type": "app_store", "version": "v0.1.6", "name": "tk-testbundlefactory"}
         )
 
@@ -69,9 +70,9 @@ class TestApi(TankTestBase):
 
         os.makedirs(bundle_root)
 
-        d = shotgun_deploy.create_descriptor(
+        d = sgtk.descriptor.create_descriptor(
             sg,
-            shotgun_deploy.Descriptor.CONFIG,
+            sgtk.descriptor.Descriptor.CONFIG,
             {"type": "app_store", "version": "v0.4.3", "name": "tk-testaltcacheroot2"},
             bundle_root
         )
@@ -91,8 +92,8 @@ class TestApi(TankTestBase):
 
     def _test_uri(self, uri, location_dict):
 
-        computed_dict = shotgun_deploy.io_descriptor.descriptor_uri_to_dict(uri)
-        computed_uri = shotgun_deploy.io_descriptor.descriptor_dict_to_uri(location_dict)
+        computed_dict = sgtk.descriptor.descriptor_uri_to_dict(uri)
+        computed_uri = sgtk.descriptor.descriptor_dict_to_uri(location_dict)
         self.assertEqual(uri, computed_uri)
         self.assertEqual(location_dict, computed_dict)
 

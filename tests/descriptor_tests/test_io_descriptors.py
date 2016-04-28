@@ -12,7 +12,7 @@ import os
 import tempfile
 
 from tank_test.tank_test_base import *
-
+import sgtk
 
 
 class TestIODescriptors(TankTestBase):
@@ -29,9 +29,9 @@ class TestIODescriptors(TankTestBase):
         location1 = {"type": "app_store", "version": "v1.1.1", "name": "tk-bundle"}
         location2 = {"type": "app_store", "version": "v3.3.3", "name": "tk-bundle"}
 
-        d1 = shotgun_deploy.create_descriptor(sg, shotgun_deploy.Descriptor.APP, location1)
-        d2 = shotgun_deploy.create_descriptor(sg, shotgun_deploy.Descriptor.APP, location1)
-        d3 = shotgun_deploy.create_descriptor(sg, shotgun_deploy.Descriptor.APP, location2)
+        d1 = sgtk.descriptor.create_descriptor(sg, sgtk.descriptor.Descriptor.APP, location1)
+        d2 = sgtk.descriptor.create_descriptor(sg, sgtk.descriptor.Descriptor.APP, location1)
+        d3 = sgtk.descriptor.create_descriptor(sg, sgtk.descriptor.Descriptor.APP, location2)
 
         # note that we don't use the equality operator here but using 'is' to
         # make sure we are getting the same instance back
