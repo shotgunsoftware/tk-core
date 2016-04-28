@@ -14,6 +14,7 @@ import copy
 
 from tank_test.tank_test_base import *
 
+from tank import PathManager
 
 class TestBasePaths(TankTestBase):
 
@@ -24,32 +25,106 @@ class TestBasePaths(TankTestBase):
         """
         Tests get_cache_root
         """
-        gcr = shotgun_base.get_cache_root
+        p = PathManager.get_global_root(PathManager.CACHE)
         if sys.platform == "win32":
-            self.assertEqual(gcr(), os.path.join(os.environ["APPDATA"], "Shotgun"))
+            self.assertEqual(p, os.path.join(os.environ["APPDATA"], "Shotgun", "Caches"))
         if sys.platform == "darwin":
-            self.assertEqual(gcr(), os.path.expanduser("~/Library/Caches/Shotgun"))
+            self.assertEqual(p, os.path.expanduser("~/Library/Caches/Shotgun"))
         if sys.platform == "linux2":
-            self.assertEqual(gcr(), os.path.expanduser("~/.shotgun"))
+            self.assertEqual(p, os.path.expanduser("~/.shotgun/caches"))
+
+
+        p = PathManager.get_global_root(PathManager.CACHE, PathManager.CORE_V17)
+
+        if sys.platform == "win32":
+            self.assertEqual(p, os.path.join(os.environ["APPDATA"], "Shotgun"))
+        if sys.platform == "darwin":
+            self.assertEqual(p, os.path.expanduser("~/Library/Caches/Shotgun"))
+        if sys.platform == "linux2":
+            self.assertEqual(p, os.path.expanduser("~/.shotgun"))
+
+    def test_get_data_root(self):
+        """
+        Tests get_cache_root
+        """
+
+        p = PathManager.get_global_root(PathManager.PERSISTENT)
+
+        if sys.platform == "win32":
+            self.assertEqual(p, os.path.join(os.environ["APPDATA"], "Shotgun", "Data"))
+        if sys.platform == "darwin":
+            self.assertEqual(p, os.path.expanduser("~/Library/Application Support/Shotgun"))
+        if sys.platform == "linux2":
+            self.assertEqual(p, os.path.expanduser("~/.shotgun/data"))
+
+
+        p = PathManager.get_global_root(PathManager.PERSISTENT, PathManager.CORE_V17)
+
+        if sys.platform == "win32":
+            self.assertEqual(p, os.path.join(os.environ["APPDATA"], "Shotgun"))
+        if sys.platform == "darwin":
+            self.assertEqual(p, os.path.expanduser("~/Library/Application Support/Shotgun"))
+        if sys.platform == "linux2":
+            self.assertEqual(p, os.path.expanduser("~/.shotgun"))
+
+    def test_get_log_root(self):
+        """
+        Tests get_cache_root
+        """
+
+        p = PathManager.get_global_root(PathManager.LOGGING)
+
+        if sys.platform == "win32":
+            self.assertEqual(p, os.path.join(os.environ["APPDATA"], "Shotgun", "Log"))
+        if sys.platform == "darwin":
+            self.assertEqual(p, os.path.expanduser("~/Library/Logs/Shotgun"))
+        if sys.platform == "linux2":
+            self.assertEqual(p, os.path.expanduser("~/.shotgun/log"))
+
+
+        p = PathManager.get_global_root(PathManager.LOGGING, PathManager.CORE_V17)
+
+        if sys.platform == "win32":
+            self.assertEqual(p, os.path.join(os.environ["APPDATA"], "Shotgun"))
+        if sys.platform == "darwin":
+            self.assertEqual(p, os.path.expanduser("~/Library/Logs/Shotgun"))
+        if sys.platform == "linux2":
+            self.assertEqual(p, os.path.expanduser("~/.shotgun"))
+
 
     def test_get_site_cache_root(self):
         """
         Tests site cache root
         """
 
-        cache_root = self.cache_root
-
-        path = tank.paths.get_site_cache_root("http://sg-internal")
-
-        self.assertEqual(os.path.dirname(path), cache_root)
-        self.assertEqual(os.path.basename(path), "sg-internal")
-
-        path = tank.paths.get_site_cache_root("http://foo.int")
-        self.assertEqual(os.path.dirname(path), cache_root)
-        self.assertEqual(os.path.basename(path), "foo.int")
-
-        path = tank.paths.get_site_cache_root("https://my-site.shotgunstudio.com")
-        self.assertEqual(os.path.dirname(path), cache_root)
-        self.assertEqual(os.path.basename(path), "my-site")
+        for mode in [PathManager.CACHE, PathManager.PERSISTENT, PathManager.LOGGING]:
 
 
+            site_path = PathManager.get_site_root("http://sg-internal", mode)
+            global_path = PathManager.get_global_root(mode)
+            self.assertEqual(os.path.dirname(site_path), global_path)
+            self.assertEqual(os.path.basename(site_path), "sg-internal")
+
+            site_path = PathManager.get_site_root("http://foo.int", mode)
+            self.assertEqual(os.path.basename(site_path), "foo.int")
+
+            site_path = PathManager.get_site_root("https://my-site.shotgunstudio.com", mode)
+            self.assertEqual(os.path.basename(site_path), "my-site")
+
+
+            legacy_site_path = PathManager.get_site_root("http://sg-internal", mode, PathManager.CORE_V17)
+            legacy_global_path = PathManager.get_global_root(mode, PathManager.CORE_V17)
+
+            self.assertEqual(os.path.dirname(legacy_site_path), legacy_global_path)
+            self.assertEqual(os.path.basename(legacy_site_path), "sg-internal")
+
+            legacy_site_path = PathManager.get_site_root("http://foo.int", mode, PathManager.CORE_V17)
+            self.assertEqual(os.path.basename(legacy_site_path), "foo.int")
+
+            legacy_site_path = PathManager.get_site_root("https://my-site.shotgunstudio.com", mode, PathManager.CORE_V17)
+            self.assertEqual(os.path.basename(legacy_site_path), "my-site.shotgunstudio.com")
+
+
+
+
+    # @ todo - add tests for project/ pipleine config level methods

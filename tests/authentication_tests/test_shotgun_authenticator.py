@@ -10,6 +10,7 @@
 
 from __future__ import with_statement
 from mock import patch
+import os
 
 from tank_test.tank_test_base import *
 
@@ -25,13 +26,15 @@ class ShotgunAuthenticatorTests(TankTestBase):
 
     @patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
     @patch("tank.authentication.session_cache.generate_session_token")
-    def test_create_session_user(self, generate_session_token_mock, server_caps_mock):
+    @patch("tank.PathManager.get_global_root")
+    def test_create_session_user(self, get_global_root, generate_session_token_mock, server_caps_mock):
         """
         Makes sure that create_session_user does correct input validation.
         :param generate_session_token_mock: Mocked so we can skip communicating
                                             with the Shotgun server.
         """
         generate_session_token_mock.return_value = "session_token"
+        get_global_root.return_value = os.path.join(self.tank_temp, "session_cache")
 
         # No login should throw
         with self.assertRaises(IncompleteCredentials):
@@ -73,13 +76,16 @@ class ShotgunAuthenticatorTests(TankTestBase):
         self.assertEqual(connection.config.api_key, "api_key")
 
     @patch("tank.authentication.session_cache.generate_session_token")
-    def test_get_default_user(self, generate_session_token_mock):
+    @patch("tank.PathManager.get_global_root")
+    def test_get_default_user(self, get_global_root, generate_session_token_mock):
         """
         Makes sure get_default_user handles all the edge cases.
         :param generate_session_token_mock: Mocked so we can skip communicating
                                             with the Shotgun server.
         """
         generate_session_token_mock.return_value = "session_token"
+        get_global_root.return_value = os.path.join(self.tank_temp, "session_cache")
+
 
         class TestWithUserDefaultManager(TestDefaultManager):
             def get_user_credentials(self):
