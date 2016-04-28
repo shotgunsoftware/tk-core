@@ -9,16 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import datetime
-
-from mock import Mock, patch
-
-import tank
-from tank import context
-from tank import TankError
 from tank_test.tank_test_base import *
-from tank.template import TemplatePath
-from tank.templatekey import SequenceKey
 
 def get_file_list_r(folder, tank_temp):
     items = []
@@ -75,7 +66,7 @@ class TestZipConfig(TankTestBase):
 
     def test_config(self):        
         
-        import tank.deploy.zip as zfh
+        import tank.util.zip as zfh
         
         zip = os.path.join(self.zip_file_location, "tk-config-default_v0.1.3.zip")
         txt = os.path.join(self.zip_file_location, "tk-config-default_v0.1.3.txt")
