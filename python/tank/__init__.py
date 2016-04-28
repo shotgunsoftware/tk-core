@@ -72,7 +72,7 @@ from .platform.errors import TankEngineInitError
 from .template import TemplatePath, TemplateString
 from .hook import Hook, get_hook_baseclass
 
-from .commands import list_commands, get_command
+from .commands import list_commands, get_command, SgtkSystemCommand
 
 from .paths import PathManager
 from .log import LogManager

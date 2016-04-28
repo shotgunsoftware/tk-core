@@ -10,7 +10,6 @@
 
 """
 Defines the base class for all Tank Engines.
-
 """
 
 import os
@@ -40,19 +39,33 @@ log = logging.getLogger(__name__)
 
 class Engine(TankBundle):
     """
-    Base class for an engine in Tank.
+    Base class for an engine. When a new DCC integration is created, it should
+    derive from this class.
     """
 
     _ASYNC_INVOKER, _SYNC_INVOKER = range(2)
 
     def __init__(self, tk, context, engine_instance_name, env):
         """
-        Constructor. Takes the following parameters:
-        
-        :param tk: Sgtk API handle
+        Engine instances are constructed by the toolkit launch process
+        and various factory methods such as :meth:`start_engine`.
+
+        :param tk: :class:`~sgtk.Sgtk` instance
         :param context: A context object to define the context on disk where the engine is operating
+        :type context: :class:`~sgtk.Context`
         :param engine_instance_name: The name of the engine as it has been defined in the environment.
-        :param env: An Environment object to associate with this engine
+        :param env: An Environment object to associate with this engine.
+
+
+        .. tell sphinx to document certain protected methods
+        .. automethod:: _initialize_dark_look_and_feel
+        .. automethod:: _define_qt_base
+        .. automethod:: _create_dialog
+        .. automethod:: _create_widget
+        .. automethod:: _get_dialog_parent
+        .. automethod:: _create_dialog_with_widget
+        .. automethod:: _get_dialog_parent
+        .. automethod:: _on_dialog_closed
         """
         
         self.__env = env
@@ -257,47 +270,6 @@ class Engine(TankBundle):
             self.__global_progress_widget.close()
             self.__global_progress_widget = None
     
-    def show_busy(self, title, details):
-        """
-        Displays or updates a global "busy window" tied to this engine. The window
-        is a splash screen type window, floats on top and contains details of what
-        is currently being processed.
-        
-        This is currently an internal method and not meant to be be used by anything
-        outside the core API. Later on, as things settle, we may consider exposing this.
-        
-        This method pops up a splash screen with a message and the idea is that 
-        long running core processes can use this as a way to communicate their intent
-        to the user and keep the user informed as slow processes are executed. If the engine
-        has a UI present, this will be used to display the progress message. If the engine
-        does not have UI support, a message will be logged. The UI always appears in the 
-        main thread for safety.
-
-        Only one global progress window can exist per engine at a time, so if you want to 
-        push several updates one after the other, just keep calling this method.
-        
-        When you want to remove the window, call clear_busy().
-
-        Note! If you are calling this from the Core API you typically don't have 
-        access to the current engine object. In this case you can use the 
-        convenience method tank.platform.engine.show_global_busy() which will
-        attempt to broadcast the request to the currently active engine.
-        
-        :params title: Short descriptive title of what is happening
-        :params details: Detailed message describing what is going on.
-        """
-        # make sure that the UI is always shown in the main thread
-        self.execute_in_main_thread(self.__show_busy, title, details)
-    
-    def clear_busy(self):
-        """
-        Closes any active busy window.
-        
-        For more details, see the show_busy() documentation.
-        """
-        if self.__global_progress_widget:
-            self.execute_in_main_thread(self.__clear_busy)
-
     def log_metric(self, action):
         """Log an engine metric.
 
@@ -305,7 +277,7 @@ class Engine(TankBundle):
 
         Logs a user activity metric as performed within an engine. This is
         a convenience method that auto-populates the module portion of
-        `tank.util.log_user_activity_metric()`
+        ``tank.util.log_user_activity_metric()``
 
         Internal Use Only - We provide no guarantees that this method
         will be backwards compatible.
@@ -334,6 +306,47 @@ class Engine(TankBundle):
         """
         log_user_attribute_metric(attr_name, attr_value)
 
+    def show_busy(self, title, details):
+        """
+        Displays or updates a global "busy window" tied to this engine. The window
+        is a splash screen type window, floats on top and contains details of what
+        is currently being processed.
+
+        This is currently an internal method and not meant to be be used by anything
+        outside the core API. Later on, as things settle, we may consider exposing this.
+
+        This method pops up a splash screen with a message and the idea is that
+        long running core processes can use this as a way to communicate their intent
+        to the user and keep the user informed as slow processes are executed. If the engine
+        has a UI present, this will be used to display the progress message. If the engine
+        does not have UI support, a message will be logged. The UI always appears in the
+        main thread for safety.
+
+        Only one global progress window can exist per engine at a time, so if you want to
+        push several updates one after the other, just keep calling this method.
+
+        When you want to remove the window, call :meth:`clear_busy()`.
+
+        Note! If you are calling this from the Core API you typically don't have
+        access to the current engine object. In this case you can use the
+        convenience method tank.platform.engine.show_global_busy() which will
+        attempt to broadcast the request to the currently active engine.
+
+        :params title: Short descriptive title of what is happening
+        :params details: Detailed message describing what is going on.
+        """
+        # make sure that the UI is always shown in the main thread
+        self.execute_in_main_thread(self.__show_busy, title, details)
+
+    def clear_busy(self):
+        """
+        Closes any active busy window.
+
+        For more details, see the :meth:`show_busy()` documentation.
+        """
+        if self.__global_progress_widget:
+            self.execute_in_main_thread(self.__clear_busy)
+
 
     ##########################################################################################
     # properties
@@ -341,9 +354,10 @@ class Engine(TankBundle):
     @property
     def shotgun(self):
         """
-        Delegates to the Sgtk API instance's shotgun connection, which is lazily
-        created the first time it is requested.
-        
+        Returns a Shotgun API handle associated with the currently running
+        environment. This method is a conveinece method that calls out
+        to :meth:`~sgtk.Tank.shotgun`.
+
         :returns: Shotgun API handle
         """
         # pass on information to the user agent manager which bundle is returning
@@ -363,9 +377,9 @@ class Engine(TankBundle):
     def environment(self):
         """
         A dictionary with information about the environment.
-        Returns keys name, description and disk_location.
          
-        :returns: dictionary
+        :returns: dictionary with keys ``name``,
+                  ``description`` and ``disk_location``.
         """
         data = {}
         data["name"] = self.__env.name
@@ -380,7 +394,7 @@ class Engine(TankBundle):
         The instance name for this engine. The instance name
         is the entry that is defined in the environment file.
         
-        :returns: instance name as string
+        :returns: instance name as string, e.g. ``tk-maya``
         """
         return self.__engine_instance_name
 
@@ -397,10 +411,11 @@ class Engine(TankBundle):
     def commands(self):
         """
         Returns a dictionary representing all the commands that have been registered
-        by apps in this engine. Each dictionary item contains the following keys:
+        by apps in this engine via :meth:`register_command`.
+        Each dictionary item contains the following keys:
         
-        * callback - function pointer to function to execute for this command
-        * properties - dictionary with free form options - these are typically
+        - ``callback`` - function pointer to function to execute for this command
+        - ``properties`` - dictionary with free form options - these are typically
           engine specific and driven by convention.
         
         :returns: commands dictionary, keyed by command name
@@ -410,6 +425,10 @@ class Engine(TankBundle):
     @property
     def panels(self):
         """
+        Returns all the panels which have been registered with the engine via the :meth:`register_panel()`
+        method. Returns a dictionary keyed by panel unqiue ids. Each value is a dictionary with keys
+        ``callback`` and ``properties``.
+
         Returns all the panels which have been registered with the engine.
         
         :returns: A dictionary keyed by panel unqiue ids. Each value is a dictionary
@@ -463,17 +482,15 @@ class Engine(TankBundle):
     
     def pre_app_init(self):
         """
-        Runs after the engine is set up but before any apps have been initialized.
-        
-        Implemented by deriving classes.
+        Sets up the engine into an operational state. Executed by the system and typically
+        implemented by deriving classes. This method called before any apps are loaded.
         """
         pass
     
     def post_app_init(self):
         """
-        Runs after all apps have been initialized.
-        
-        Implemented by deriving classes.
+        Executed by the system and typically implemented by deriving classes.
+        This method called after all apps have been loaded.
         """
         pass
     
@@ -481,7 +498,8 @@ class Engine(TankBundle):
         """
         Destroy all apps, then call destroy_engine so subclasses can add their own tear down code.
 
-        This method should not be subclassed.
+        .. note:: This method should not be subclassed. Instead, implement :meth:`destroy_engine()`.
+
         """
         self.__destroy_frameworks()
         self.__destroy_apps()
@@ -524,6 +542,7 @@ class Engine(TankBundle):
         one or both of pre_context_change and post_context_change methods.
 
         :param new_context:     The context to change to.
+        :type new_context: :class:`~sgtk.Context`
         """
         # Make sure we're allowed to change context at the engine level.
         if not self.context_change_allowed:
@@ -619,9 +638,28 @@ class Engine(TankBundle):
 
     def register_command(self, name, callback, properties=None):
         """
-        Register a command with a name and a callback function. Properties can store
+        Register a command with a name and a callback function.
+
+        Each engine implements its own command handling, so the way
+        commands are exposed to the user can differ. Typically, they
+        appear as items on a Shotgun menu somewhere in the user interface
+        of the DCC that is being integrated into.
+
+        Properties can store
         implementation specific configuration, like if a tooltip is supported.
-        Typically called from the init_app() method of an app.
+        Typically called from the :meth:`Application.init_app()` method of an app::
+
+
+            self.engine.register_command(
+                "Work Area Info...",
+                callback,
+                {"type": "context_menu", "short_name": "work_area_info"}
+            )
+
+        :param name: Name of the command. This will be the key when accessed via the
+                     :meth:`commands` dictionary.
+        :param callback: Callback to call upon command execution
+        :param properties: Dictionary with command properties.
         """
         if properties is None:
             properties = {}
@@ -706,7 +744,7 @@ class Engine(TankBundle):
 
     def register_panel(self, callback, panel_name="main", properties=None):
         """
-        Similar to register_command, but instead of registering a menu item in the form of a
+        Similar to :meth:`register_command()`, but instead of registering a menu item in the form of a
         command, this method registers a UI panel. A register_panel call should
         be used in conjunction with a register_command call.
         
@@ -729,7 +767,7 @@ class Engine(TankBundle):
         :param properties: Properties dictionary. Reserved for future use.
         :returns: A unique identifier that can be used to consistently identify the 
                   panel across sessions. This identifier should be used to identify the panel
-                  in all subsequent calls, e.g. for example show_panel().
+                  in all subsequent calls, e.g. for example :meth:`show_panel()`.
         """
         properties = properties or {}
         
@@ -767,10 +805,13 @@ class Engine(TankBundle):
         method can introduce a deadlock if the main thread is waiting for a background thread
         and the background thread is invoking this method. Since the main thread is waiting
         for the background thread to finish, Qt's event loop won't be able to process the request
-        to execute in the main thread.
+        to execute in the main thread::
 
-        Note, this currently only works if Qt is available, otherwise it just
-        executes immediately on the current thread.
+            >>> from sgtk.platform.qt import QtGui
+            >>> engine.execute_in_main_thread(QtGui.QMessageBox.information, None, "Hello", "Hello from the main thread!")
+
+        .. note:: This currently only works if Qt is available, otherwise it just
+                  executes immediately on the current thread.
 
         :param func: function to call
         :param args: arguments to pass to the function
@@ -786,8 +827,8 @@ class Engine(TankBundle):
         thread.  This call will return immediately and will not wait for the code to be
         executed in the main thread.
 
-        Note, this currently only works if Qt is available, otherwise it just
-        executes immediately on the current thread.
+        .. note:: This currently only works if Qt is available, otherwise it just
+                  executes immediately on the current thread.
 
         :param func: function to call
         :param args: arguments to pass to the function
@@ -830,18 +871,18 @@ class Engine(TankBundle):
         Finds all the commands that match the given selectors.
 
         Command selector structures are typically found in engine configurations
-        and are typically defined on the following form in yaml:
+        and are typically defined on the following form in yaml::
 
-        menu_favourites:
-        - {app_instance: tk-multi-workfiles, name: Shotgun File Manager...}
-        - {app_instance: tk-multi-snapshot,  name: Snapshot...}
-        - {app_instance: tk-multi-workfiles, name: Shotgun Save As...}
-        - {app_instance: tk-multi-publish,   name: Publish...}
+            menu_favourites:
+            - {app_instance: tk-multi-workfiles, name: Shotgun File Manager...}
+            - {app_instance: tk-multi-snapshot,  name: Snapshot...}
+            - {app_instance: tk-multi-workfiles, name: Shotgun Save As...}
+            - {app_instance: tk-multi-publish,   name: Publish...}
 
         Note that selectors that do not match a command will output a warning.
 
         :param command_selectors: A list of command selectors, with each
-                                  selector having the following structure:
+                                  selector having the following structure::
                                     {
                                       name: command-name,
                                       app_instance: instance-name
@@ -850,7 +891,7 @@ class Engine(TankBundle):
                                   commands of the given instance-name.
 
         :returns:                 A list of tuples for all commands that match
-                                  the selectors. Each tuple has the format:
+                                  the selectors. Each tuple has the format::
                                     (instance-name, command-name, callback)
         """
         # return a dictionary grouping all the commands by instance name
@@ -892,33 +933,51 @@ class Engine(TankBundle):
 
     def log_debug(self, msg):
         """
-        Debug logging.
+        Logs a debug message.
+
+        :param msg: Message to log.
         """
         log.debug(msg)
     
     def log_info(self, msg):
         """
-        Info logging.
+        Logs an info message.
+
+        :param msg: Message to log.
         """
         log.info(msg)
         
     def log_warning(self, msg):
         """
-        Warning logging.
+        Logs an warning message.
+
+        :param msg: Message to log.
         """
         log.warning(msg)
     
     def log_error(self, msg):
         """
-        Debug logging.
+        Logs an error message.
+
+        :param msg: Message to log.
         """        
         log.error(msg)
 
     def log_exception(self, msg):
         """
-        Helper method. Typically not overridden by deriving classes.
-        This method is called inside an except clause and it creates an formatted error message
-        which is logged as an error.
+        Logs an exception.
+
+        This will contain a full traceback and is typically called from
+        within an exception handler::
+
+            try:
+                do_stuff()
+            except Exception:
+                self.log_exception("A general error was raised")
+
+        The message will be emitted as an error message.
+
+        :param msg: Message to log.
         """
         (exc_type, exc_value, exc_traceback) = sys.exc_info()
         
@@ -968,10 +1027,12 @@ class Engine(TankBundle):
 
     def _get_dialog_parent(self):
         """
-        Get the QWidget parent for all dialogs created through show_dialog & show_modal.
+        Get the QWidget parent for all dialogs created through :meth:`show_dialog` :meth:`show_modal`.
         
         Can be overriden in derived classes to return the QWidget to be used as the parent 
-        for all TankQDialog's 
+        for all TankQDialog's.
+
+        :return: QT Parent window (:class:`PySide.QtGui.QWidget`)
         """
         # By default, this will return the QApplication's active window:
         from .qt import QtGui
@@ -981,11 +1042,13 @@ class Engine(TankBundle):
         """
         Create a TankQDialog with the specified widget embedded. This also connects to the 
         dialogs dialog_closed event so that it can clean up when the dialog is closed.
+
+        .. note:: For more information, see the documentation for :meth:`show_dialog()`.
         
         :param title: The title of the window
         :param bundle: The app, engine or framework object that is associated with this window
         :param widget: A QWidget instance to be embedded in the newly created dialog.
-        
+        :type widget: :class:`PySide.QtGui.QWidget`
         """
         from .qt import tankqdialog
         
@@ -1007,9 +1070,16 @@ class Engine(TankBundle):
         """
         Create an instance of the specified widget_class.  This wraps the widget_class so that 
         the TankQDialog it is embedded in can connect to it more easily in order to handle the 
-        close event
-        
-        :param widget_class: The class of the UI to be constructed. This must derive from QWidget.    
+        close event.
+
+        When overriding in a derived engine, be sure to call the base implementations of
+        :meth:`_create_widget()` and :meth:`_create_dialog()` to ensure that all
+        dialogs and widgets are tracked efficiently and safely.
+
+        .. note:: For more information, see the documentation for :meth:`show_dialog()`.
+
+        :param widget_class: The class of the UI to be constructed. This must derive from QWidget.
+        :type widget_class: :class:`PySide.QtGui.QWidget`
             
         Additional parameters specified will be passed through to the widget_class constructor.
         """
@@ -1028,10 +1098,13 @@ class Engine(TankBundle):
         """
         Convenience method to create an sgtk TankQDialog with a widget instantiated from 
         widget_class embedded in the main section.
+
+        .. note:: For more information, see the documentation for :meth:`show_dialog()`.
         
         :param title: The title of the window
         :param bundle: The app, engine or framework object that is associated with this window
-        :param widget_class: The class of the UI to be constructed. This must derive from QWidget.    
+        :param widget_class: The class of the UI to be constructed. This must derive from QWidget.
+        :type widget_class: :class:`PySide.QtGui.QWidget`
             
         Additional parameters specified will be passed through to the widget_class constructor.
         """
@@ -1053,6 +1126,7 @@ class Engine(TankBundle):
         Called when a dialog created by this engine is closed.
         
         :param dlg: The dialog being closed
+        :type dlg: :class:`PySide.QtGui.QWidget`
         
         Derived implementations of this method should be sure to call
         the base implementation
@@ -1123,10 +1197,36 @@ class Engine(TankBundle):
         """
         Shows a non-modal dialog window in a way suitable for this engine. 
         The engine will attempt to parent the dialog nicely to the host application.
-        
+
+        **Notes for engine developers**
+
+        Qt dialog & widget management can be quite tricky in different engines/applications.
+        Because of this, Sgtk provides a few overridable methods with the idea being that when
+        developing a new engine, you only need to override the minimum amount necessary.
+
+        Making use of these methods in the correct way allows the base Engine class to manage the
+        lifetime of the dialogs and widgets efficiently and safely without you having to worry about it.
+
+        The methods available are listed here in the hierarchy in which they are called::
+
+            show_dialog()/show_modal()
+                _create_dialog_with_widget()
+                    _get_dialog_parent()
+                    _create_widget()
+                    _create_dialog()
+
+        For example, if you just need to make sure that all dialogs use a specific parent widget
+        then you only need to override _get_dialog_parent() (e.g. the tk-maya engine).
+        However, if you need to implement a two-stage creation then you may need to re-implement
+        show_dialog() and show_modal() to call _create_widget() and _create_dialog() directly rather
+        than using the helper method _create_dialog_with_widget() (e.g. the tk-3dsmax engine).
+        Finally, if the application you are writing an engine for is Qt based then you may not need
+        to override any of these methods (e.g. the tk-nuke engine).
+
         :param title: The title of the window
         :param bundle: The app, engine or framework object that is associated with this window
         :param widget_class: The class of the UI to be constructed. This must derive from QWidget.
+        :type widget_class: :class:`PySide.QtGui.QWidget`
         
         Additional parameters specified will be passed through to the widget_class constructor.
         
@@ -1155,6 +1255,7 @@ class Engine(TankBundle):
         :param title: The title of the window
         :param bundle: The app, engine or framework object that is associated with this window
         :param widget_class: The class of the UI to be constructed. This must derive from QWidget.
+        :type widget_class: :class:`PySide.QtGui.QWidget`
         
         Additional parameters specified will be passed through to the widget_class constructor.
 
@@ -1189,6 +1290,7 @@ class Engine(TankBundle):
         :param title: The title of the panel
         :param bundle: The app, engine or framework object that is associated with this window
         :param widget_class: The class of the UI to be constructed. This must derive from QWidget.
+        :type widget_class: :class:`PySide.QtGui.QWidget`
         
         Additional parameters specified will be passed through to the widget_class constructor.
         
@@ -1784,13 +1886,17 @@ g_current_engine = None
 def set_current_engine(eng):
     """
     Sets the current engine
+
+    :param eng: :class:`Engine` instance to set as current.
     """
     global g_current_engine
     g_current_engine = eng
 
 def current_engine():
     """
-    Returns the current engine
+    Returns the currently active engine.
+
+    :returns: :class:`Engine` instance or None if no engine is running.
     """
     global g_current_engine
     return g_current_engine
@@ -1800,6 +1906,24 @@ def get_engine_path(engine_name, tk, context):
     """
     Returns the path to the engine corresponding to the given engine name or
     None if the engine could not be found.
+
+    Similar to :meth:`start_engine`, but instead of starting an engine, this method
+    returns the path to a suitable engine. This helper method is sometimes useful
+    when initializing engines for applications that do not have a built in python interpreter.
+
+    Example::
+
+        >>> import sgtk
+        >>> tk = sgtk.sgtk_from_path("/studio/project_root")
+        >>> ctx = tk.context_empty()
+        >>> sgtk.platform.get_engine_path('tk-maya', tk, ctx)
+        /studio/sgtk/install/engines/app_store/tk-maya/v0.1.0
+
+
+    :param engine_name: Name of the engine to launch, e.g. tk-maya
+    :param tk: :class:`~sgtk.Sgtk` instance to associate the engine with
+    :param context: :class:`~sgtk.Context` object of the context to launch the engine for.
+    :returns: Path to where the engine code is located on disk.
     """
     # get environment and engine location
     try:
@@ -1815,10 +1939,21 @@ def get_engine_path(engine_name, tk, context):
 def start_engine(engine_name, tk, context):
     """
     Creates an engine and makes it the current engine.
-    Returns the newly created engine object.
+    Returns the newly created engine object. Example::
 
-    Raises TankEngineInitError if an engine could not be started
-    for the passed context.
+        >>> import sgtk
+        >>> tk = sgtk.sgtk_from_path("/studio/project_root")
+        >>> ctx = tk.context_empty()
+        >>> engine = sgtk.platform.start_engine('tk-maya', tk, ctx)
+        >>> engine
+        <Sgtk Engine 0x10451b690: tk-maya, env: shotgun>
+
+    :param engine_name: Name of the engine to launch, e.g. tk-maya
+    :param tk: :class:`~sgtk.Sgtk` instance to associate the engine with
+    :param context: :class:`~sgtk.Context` object of the context to launch the engine for.
+    :returns: :class:`Engine` instance
+    :raises: :class:`TankEngineInitError` if an engine could not be started
+             for the passed context.
     """
     # first ensure that an engine is not currently running
     if current_engine():
@@ -1851,10 +1986,10 @@ def find_app_settings(engine_name, app_name, tk, context, engine_instance_name=N
     Utility method to find the settings for an app in an engine in the
     environment determined for the context by pick environment hook.
     
-    :param engine_name: system name of the engine to look for
-    :param app_name: system name of the app to look for
-    :param tk: tank instance
-    :param context: context to use when picking environment
+    :param engine_name: system name of the engine to look for, e.g tk-maya
+    :param app_name: system name of the app to look for, e.g. tk-multi-publish
+    :param tk: :class:`~sgtk.Sgtk` instance
+    :param context: :class:`~sgtk.Context` object to use when picking environment
     :param engine_instance_name: The instance name of the engine to look for.
     
     :returns: list of dictionaries containing the engine name, 
@@ -2010,7 +2145,11 @@ def _get_env_and_descriptor_for_engine(engine_name, tk, context):
     """
     Utility method to return commonly needed objects when instantiating engines.
 
-    Raises TankEngineInitError if the engine name cannot be found.
+    :param engine_name: system name of the engine to look for, e.g tk-maya
+    :param tk: :class:`~sgtk.Sgtk` instance
+    :param context: :class:`~sgtk.Context` object to use when picking environment
+    :returns: tuple with associated environment and engine descriptor)
+    :raises: :class:`TankEngineInitError` if the engine name cannot be found.
     """
     # get the environment via the pick_environment hook
     env_name = __pick_environment(engine_name, tk, context)
@@ -2032,6 +2171,11 @@ def __pick_environment(engine_name, tk, context):
     """
     Call out to the pick_environment core hook to determine which environment we should load
     based on the current context. The Shotgun engine provides its own implementation.
+
+    :param engine_name: system name of the engine to look for, e.g tk-maya
+    :param tk: :class:`~sgtk.Sgtk` instance
+    :param context: :class:`~sgtk.Context` object to use when picking environment
+    :returns: name of environment.
     """
 
     try:

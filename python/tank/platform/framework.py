@@ -27,15 +27,16 @@ from ..util import log_user_activity_metric
 
 class Framework(TankBundle):
     """
-    Base class for an app in Tank.
+    Base class for a Toolkit Framework
     """
     
     def __init__(self, engine, descriptor, settings, env):
         """
-        Called by the app loader framework. The constructor
-        is not supposed to be overridden by deriving classes.
+        Called by the bundle loading framework. The constructor
+        is not meant to be overridden by deriving classes.
         
         :param engine: The engine instance to connect this fw to
+        :type engine: :class:`Engine`
         :param app_name: The short name of this framework (e.g. tk-framework-widget)
         :param settings: a settings dictionary for this fw
         :param env: the environment that the framework belongs to
@@ -69,9 +70,10 @@ class Framework(TankBundle):
     @property
     def shotgun(self):
         """
-        Delegates to the Sgtk API instance's shotgun connection, which is lazily
-        created the first time it is requested.
-        
+        Returns a Shotgun API handle associated with the currently running
+        environment. This method is a conveinece method that calls out
+        to :meth:`~sgtk.Tank.shotgun`.
+
         :returns: Shotgun API handle
         """
         # pass on information to the user agent manager which bundle is returning
@@ -101,6 +103,21 @@ class Framework(TankBundle):
     def is_shared(self):
         """
         Boolean indicating whether this is a shared framework.
+
+        Frameworks are shared by default and this is a setting that can be
+        controlled by the bundle manifest.
+
+        When a framework is shared, a single copy of the code is shared
+        across all apps that use it. All apps will cut their framework
+        instances from the same code. Any global state within the framework
+        will be shared across all framework instances, and hence across all
+        different apps.
+
+        If your framework manages complex global state that you want to control
+        precisely, it may be useful to set the framework to be not shared in
+        the ``info.yml`` manifest file. This will ensure that each bundle that
+        uses the framework will maintain it's own private version of the
+        framework code.
         """
         return self.descriptor.is_shared_framework()
         
@@ -109,13 +126,15 @@ class Framework(TankBundle):
         
     def init_framework(self):
         """
-        Implemented by deriving classes in order to initialize the framework
+        Implemented by deriving classes in order to initialize the app.
+        Called by the engine as it loads the framework.
         """
         pass
 
     def destroy_framework(self):
         """
-        Implemented by deriving classes in order to tear down the framework
+        Implemented by deriving classes in order to tear down the framework.
+        Called by the engine as it is being destroyed.
         """
         pass
     
@@ -124,18 +143,53 @@ class Framework(TankBundle):
     # logging methods, delegated to the current engine
 
     def log_debug(self, msg):
+        """
+        Logs a debug message.
+
+        :param msg: Message to log.
+        """
         self.engine.log_debug(msg)
 
     def log_info(self, msg):
+        """
+        Logs an info message.
+
+        :param msg: Message to log.
+        """
         self.engine.log_info(msg)
 
     def log_warning(self, msg):
+        """
+        Logs a warning message.
+
+        :param msg: Message to log.
+        """
         self.engine.log_warning(msg)
 
     def log_error(self, msg):
+        """
+        Logs an error message.
+
+        :param msg: Message to log.
+        """
         self.engine.log_error(msg)
 
     def log_exception(self, msg):
+        """
+        Logs an exception.
+
+        This will contain a full traceback and is typically called from
+        within an exception handler::
+
+            try:
+                do_stuff()
+            except Exception:
+                self.log_exception("A general error was raised")
+
+        The message will be emitted as an error message.
+
+        :param msg: Message to log.
+        """
         self.engine.log_exception(msg)
 
 

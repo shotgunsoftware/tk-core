@@ -16,6 +16,12 @@ Creating an API
 
 .. autofunction:: sgtk_from_entity
 
+.. autofunction:: list_commands
+.. autofunction:: get_command
+
+.. autoclass:: SgtkSystemCommand
+    :members:
+
 
 Sgtk API
 =========================================
@@ -29,7 +35,7 @@ Sgtk API
 
 .. autoclass:: Tank
     :members:
-    :exclude-members: pipeline_configuration
+    :exclude-members: pipeline_configuration, log_metric
 
 Context
 =========================================

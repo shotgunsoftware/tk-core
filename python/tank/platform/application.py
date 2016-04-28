@@ -75,9 +75,10 @@ class Application(TankBundle):
     @property
     def shotgun(self):
         """
-        Delegates to the Sgtk API instance's shotgun connection, which is lazily
-        created the first time it is requested.
-        
+        Returns a Shotgun API handle associated with the currently running
+        environment. This method is a conveinece method that calls out
+        to :meth:`~sgtk.Tank.shotgun`.
+
         :returns: Shotgun API handle
         """
         # pass on information to the user agent manager which bundle is returning
@@ -131,7 +132,7 @@ class Application(TankBundle):
         """
         Implemented by deriving classes in order to run code after the engine
         has completely finished initializing itself and all its apps.
-        At this point, the engine has a fully populaed apps dictionary and
+        At this point, the engine has a fully populated apps dictionary and
         all loaded apps have been fully initialized and validated.
         """
         pass
@@ -147,18 +148,53 @@ class Application(TankBundle):
     # logging methods, delegated to the current engine
 
     def log_debug(self, msg):
+        """
+        Logs a debug message.
+
+        :param msg: Message to log.
+        """
         self.engine.log_debug(msg)
 
     def log_info(self, msg):
+        """
+        Logs an info message.
+
+        :param msg: Message to log.
+        """
         self.engine.log_info(msg)
 
     def log_warning(self, msg):
+        """
+        Logs a warning message.
+
+        :param msg: Message to log.
+        """
         self.engine.log_warning(msg)
 
     def log_error(self, msg):
+        """
+        Logs an error message.
+
+        :param msg: Message to log.
+        """
         self.engine.log_error(msg)
 
     def log_exception(self, msg):
+        """
+        Logs an exception.
+
+        This will contain a full traceback and is typically called from
+        within an exception handler::
+
+            try:
+                do_stuff()
+            except Exception:
+                self.log_exception("A general error was raised")
+
+        The message will be emitted as an error message.
+
+        :param msg: Message to log.
+        """
         self.engine.log_exception(msg)
 
 

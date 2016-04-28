@@ -84,12 +84,13 @@ def change_context(new_context):
 
     For more information on supporting context changing, see the following:
 
-        tank.platform.engine.context_change_allowed
-        tank.platform.application.context_change_allowed
-        tank.platform.engine.change_context()
-        tank.platform.application.change_context()
+    - :meth:`Engine.context_change_allowed`
+    - :meth:`Application.context_change_allowed`
+    - :meth:`change_context`
+    - :meth:`Application.change_context`
 
     :param new_context: The new Context to change to.
+    :type new_context: :class:`~sgtk.Context`
     """
     engine = current_engine()
 
@@ -106,18 +107,19 @@ def change_context(new_context):
 
 def restart(new_context=None):
     """
-    Running restart will shut down any currently running engine, then refresh the templates
-    definitions and finally start up the engine again. 
-    
-    The template configuration, environment configuration and the actual app and engine code
-    will be reloaded.
-    
-    Any open windows will remain open and will use the old code base and settings. In order to
-    access any changes that have happened as part of a reload, you need to launch new app
-    windows and these will use the fresh code and configs.
+    Restarts the currently running Toolkit platform. This includes reloading all
+    configuration files as well as reloading the code for all apps and engines.
+    (The Core API, however, is not reloaded). The call does not take any parameters
+    and does not return any value.
+
+    Any open windows will remain open and will use the old code base and settings.
+    In order to access any changes that have happened as part of a reload, you need
+    to start up new app windows (typically done via the Shotgun menu) and these will
+    use the fresh code and configs.
 
     :param new_context: The new Context to start the engine in, if desired. Default behavior
                         is to restart the engine with its current context.
+    :type new_context: :class:`~sgtk.Context`
     """
     engine = current_engine()
     

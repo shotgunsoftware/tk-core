@@ -32,6 +32,13 @@ class TankBundle(object):
     def __init__(self, tk, context, settings, descriptor, env):
         """
         Constructor.
+
+        :param tk: :class:`~sgtk.Sgtk` instance
+        :param context: A context object to define the context on disk where the engine is operating
+        :type context: :class:`~sgtk.Context`
+        :param settings: dictionary of settings to associate with this object
+        :param descriptor: Descriptor pointing at associated code.
+        :param env: An Environment object to associate with this engine.
         """
         self.__tk = tk
         self.__context = context
@@ -113,7 +120,7 @@ class TankBundle(object):
     @property
     def display_name(self):
         """
-        The displayname for the item (e.g. Maya Engine)
+        The display name for the item (e.g. Maya Engine)
         
         :returns: display name as string
         """
@@ -140,7 +147,7 @@ class TankBundle(object):
     @property
     def icon_256(self):
         """
-        The path to the app's icon, which is a 256px square png
+        Path to a 256x256 pixel png file which describes the item
         """
         return self.__descriptor.icon_256
 
@@ -151,14 +158,14 @@ class TankBundle(object):
         UIs using standard colors and other style components. All keys returned
         in this dictionary can also be used inside a style.qss that lives 
         at the root level of the app, engine or framework. Use a 
-        {{DOUBLE_BACKET}} syntax in the stylesheet file, for example:
+        ``{{DOUBLE_BACKET}}`` syntax in the stylesheet file, for example::
         
             QWidget
             { 
                 color: {{SG_FOREGROUND_COLOR}};
             }
         
-        This property returns the values for all constants, for example:
+        This property returns the values for all constants, for example::
         
             { 
               "SG_HIGHLIGHT_COLOR": "#18A7E3",
@@ -191,7 +198,11 @@ class TankBundle(object):
     @property
     def disk_location(self):
         """
-        The folder on disk where this item is located
+        The folder on disk where this item is located.
+        This can be useful if you want to write app code
+        to retrieve a local resource::
+
+            app_font = os.path.join(self.disk_location, "resources", "font.fnt")
         """
         path_to_this_file = os.path.abspath(sys.modules[self.__module__].__file__)
         return os.path.dirname(path_to_this_file)
@@ -201,6 +212,18 @@ class TankBundle(object):
         """
         An item-specific location on disk where the app or engine can store
         random cache data. This location is guaranteed to exist on disk.
+
+        This location is configurable via the ``cache_location`` hook.
+        It is typically points at a path in the local filesystem, e.g
+        on for example on the mac::
+
+            ~/Library/Caches/Shotgun/SITENAME/PROJECT_ID/BUNDLE_NAME
+
+        This can be used to store cache data that the app wants to reuse across
+        sessions::
+
+            stored_query_data_path = os.path.join(self.cache_location, "query.dat")
+
         """
         # this method is memoized for performance since it is being called a lot!
         if self.__cache_location is None:
@@ -228,9 +251,9 @@ class TankBundle(object):
     @property
     def context(self):
         """
-        The current context associated with this item.
+        The context associated with this item.
         
-        :returns: context object
+        :returns: :class:`~sgtk.Context`
         """
         return self.__context
 
@@ -246,21 +269,11 @@ class TankBundle(object):
         return False
 
     @property
-    def shotgun(self):
-        """
-        Delegates to the Sgtk API instance's shotgun connection, which is lazily
-        created the first time it is requested.
-        
-        :returns: Shotgun API handle
-        """
-        return self.__tk.shotgun
-    
-    @property
     def tank(self):
         """
-        Returns an Sgtk API instance associated with this item
+        Returns the Toolkit API instance associated with this item
         
-        :returns: Sgtk API handle 
+        :returns: :class:`~sgtk.Tank`
         """
         return self.__tk
     
@@ -287,6 +300,7 @@ class TankBundle(object):
         require specific logic to do so safely.
 
         :param new_context: The context being changed to.
+        :type context: :class:`~sgtk.Context`
         """
         if not self.context_change_allowed:
             self.log_debug("Bundle %r does not allow context changes." % self)
@@ -299,7 +313,9 @@ class TankBundle(object):
         Implemented by deriving classes.
 
         :param old_context:     The context being changed away from.
+        :type old_context: :class:`~sgtk.Context`
         :param new_context:     The context being changed to.
+        :type new_context: :class:`~sgtk.Context`
         """
         pass
 
@@ -310,16 +326,39 @@ class TankBundle(object):
         Implemented by deriving classes.
 
         :param old_context:     The context being changed away from.
+        :type old_context: :class:`~sgtk.Context`
         :param new_context:     The context being changed to.
+        :type new_context: :class:`~sgtk.Context`
         """
         pass
 
     def import_module(self, module_name):
         """
-        Special Tank import command for app modules. Imports the python folder inside
+        Special import command for Toolkit bundles. Imports the python folder inside
         an app and returns the specified module name that exists inside the python folder.
-        
-        For more information, see the API documentation.
+
+        Each Toolkit App or Engine can have a python folder which contains additional
+        code. In order to ensure that Toolkit can run multiple versions of the same app,
+        as well as being able to reload app code if it changes, it is recommended that
+        this method is used whenever you want to access code in the python location.
+
+        For example, imagine you had the following structure::
+
+            tk-multi-mybundle
+               |- app.py or engine.py or framework.py
+               |- info.yml
+               \- python
+                   |- __init__.py   <--- Needs to contain 'from . import tk_multi_mybundle'
+                   \- tk_multi_mybundle
+
+        The above structure is a standard Toolkit app outline. ``app.py`` is a
+        light weight wrapper and the python module
+        ``tk_multi_myapp`` module contains the actual code payload.
+        In order to import this in a Toolkit friendly way, you need to run
+        the following when you want to load the payload module inside of app.py::
+
+            module_obj = self.import_module("tk_multi_myapp")
+
         """
         # local import to avoid cycles
 
@@ -358,10 +397,14 @@ class TankBundle(object):
 
     def get_setting(self, key, default=None):
         """
-        Get a value from the item's settings
+        Get a value from the item's settings::
+
+            >>> app.get_setting('entity_types')
+            ['Sequence', 'Shot', 'Asset', 'Task']
 
         :param key: config name
         :param default: default value to return
+        :returns: Value from the environment configuration
         """
         return self.__resolve_setting_value(self.__settings, key, default)
             
@@ -371,7 +414,10 @@ class TankBundle(object):
         This method will look at the app configuration, determine which template is being referred to 
         in the setting, go into the main platform Template API and fetch that particular template object.
     
-        This is a convenience method. Shorthand for `self.sgtk.templates[ self.get_setting(key) ]`.
+        This is a convenience method. Shorthand for ``self.sgtk.templates[ self.get_setting(key) ]``.
+
+        :param key: Setting to retrieve template for
+        :returns: :class:`~Template` object
         """
         template_name = self.get_setting(key)        
         return self.get_template_by_name(template_name)
@@ -379,22 +425,31 @@ class TankBundle(object):
     def get_template_by_name(self, template_name):
         """
         Note: This is for advanced use cases - Most of the time you should probably use 
-        get_template(). Find a particular template, the way it is named in the master 
-        config file templates.yml. This method will access the master templates file 
+        :meth:`get_template()`. Find a particular template, the way it is named in the master
+        config file ``templates.yml``. This method will access the master templates file
         directly and pull out a specifically named template without using the app config. 
         Note that using this method may result in code which is less portable across 
         studios, since it makes assumptions about how templates are named and defined in 
         the master config. Generally speaking, it is often better to access templates using 
         the app configuration and the get_template() method.
         
-        This is a convenience method. Shorthand for `self.sgtk.templates[template_name]`.
+        This is a convenience method. Shorthand for ``self.sgtk.templates[template_name]``.
+
+        :param template_name
+        :returns: :class:`~Template` object
         """
         return self.tank.templates.get(template_name)
                         
     def execute_hook(self, key, **kwargs):
         """
         Execute a hook that is part of the environment configuration for the current bundle.
-        
+
+        Convenience method that calls :meth:`execute_hook_method()` with the
+        method_name parameter set to "execute".
+
+        This method provides backwards compatibility for older hooks where each hook class
+        would only contain a single execute method there were no way to call specific methods.
+
         You simply pass the name of the hook setting that you want to execute and 
         the accompanying arguments, and toolkit will find the correct hook file based
         on the currently configured setting and then execute the execute() method for 
@@ -414,6 +469,24 @@ class TankBundle(object):
         name of the method you want to execute and the accompanying arguments. 
         Toolkit will find the correct hook file based on the currently configured 
         setting and then execute the specified method.
+
+        Hooks form a flexbile way to extend and make toolkit apps or engines configurable.
+        A hook acts like a setting in that it needs to be configured as part of the app's
+        configuration, but instead of being a simple value, it is a code snippet contained
+        inside a class.
+
+        Apps typically provide default hooks to make installation and overriding easy.
+        Each hook is represented by a setting, similar to the ones you access via
+        the :meth:`get_setting()` method, however instead of retrieving a fixed value,
+        you execute code which generates a value.
+
+        This method will execute a specific method for a given hook setting. Toolkit will
+        find the actual python hook file and handle initialization and execution for you,
+        by looking at the configuration settings and resolve a path based on this.
+
+        Arguments should always be passed in by name. This is to make it easy to add new
+        parameters without breaking backwards compatibility, for example
+        ``execute_hook_method("validator", "pre_check", name=curr_scene, version=curr_ver).``
         
         :param key: The name of the hook setting you want to execute.
         :param method_name: Name of the method to execute
@@ -427,7 +500,7 @@ class TankBundle(object):
         and execute_hook_method allows you to execute a particular hook setting as
         specified in the app configuration manifest, this methods allows you to 
         execute a hook directly by passing a hook expression, for example 
-        {config}/path/to/my_hook.py
+        ``{config}/path/to/my_hook.py``
         
         This is useful if you are doing rapid app development and don't necessarily
         want to expose a hook as a configuration setting just yet. It is also useful 
@@ -437,19 +510,23 @@ class TankBundle(object):
         
         Supported formats:
         
-        - hook_expression: {$HOOK_PATH}/path/to/foo.py  -- expression based around an environment variable.
-        - hook_expression: {self}/path/to/foo.py -- looks in the hooks folder in the local app, engine of framework.
-        - hook_expression: {config}/path/to/foo.py -- Looks in the hooks folder in the project config.
-        - hook_expression: {engine}/path/to/foo.py -- looks in the hooks folder of the current engine.
-        - hook_expression: {tk-framework-perforce_v1.x.x}/path/to/foo.py -- looks in the hooks folder of a
+        - ``{$HOOK_PATH}/path/to/foo.py``  -- expression based around an environment variable.
+
+        - ``{self}/path/to/foo.py`` -- looks in the hooks folder in the local app, engine of framework.
+
+        - ``{config}/path/to/foo.py`` -- Looks in the hooks folder in the project config.
+
+        - ``{engine}/path/to/foo.py`` -- looks in the hooks folder of the current engine.
+
+        - ``{tk-framework-perforce_v1.x.x}/path/to/foo.py`` -- looks in the hooks folder of a
           framework instance that exists in the current environment. Basically, each entry inside the 
           frameworks section in the current environment can be specified here - all these entries are 
-          on the form frameworkname_versionpattern, for example tk-framework-widget_v0.1.2 or 
-          tk-framework-shotgunutils_v1.3.x. 
+          on the form frameworkname_versionpattern, for example ``tk-framework-widget_v0.1.2`` or
+          ``tk-framework-shotgunutils_v1.3.x``.
         
         Supported legacy formats:
         
-        - hook_expression: foo -- Will look for a foo.py file in the project configuration folder. 
+        - ``foo`` -- Will look for a ``foo.py`` file in the project configuration's hooks folder.
 
         :param hook_expression: Path to hook to execute. See above for syntax details.
         :param method_name: Method inside the hook to execute.
@@ -458,18 +535,21 @@ class TankBundle(object):
 
     def execute_hook_by_name(self, hook_name, **kwargs):
         """
-        Note: Now deprecated - Please use execute_hook_expression instead.
-        
         Execute an arbitrary hook located in the hooks folder for this project.
         The hook_name is the name of the python file in which the hook resides,
         without the file extension.
         
         In most use cases, the execute_hook method is the preferred way to 
         access a hook from an app.
-        
+
+        .. note:: Now deprecated - Please use :meth:`execute_hook_expression`
+                  instead.
+
         This method is typically only used when you want to execute an arbitrary
         list of hooks, for example if you want to run a series of arbitrary
-        user defined pre-publish validation hooks.  
+        user defined pre-publish validation hooks.
+
+        :param hook_name: name of the legacy hook file to execute.
         """
         hook_folder = self.tank.pipeline_configuration.get_hooks_location()
         hook_path = os.path.join(hook_folder, "%s.py" % hook_name)
@@ -478,12 +558,13 @@ class TankBundle(object):
     
     def ensure_folder_exists(self, path):
         """
-        Convenience method to make it easy for apps and engines to create folders
-        in a standardized fashion. While the creation of high level folder structure
-        such as Shot and Asset folders is typically handled by the folder creation system
-        in Tank, Apps tend to need to create leaf-level folders such as publish folders
+        Make sure that the given folder exists on disk.
+        Convenience method to make it easy for apps and engines to create folders in a
+        standardized fashion. While the creation of high level folder structure such as
+        Shot and Asset folders is typically handled by the folder creation system in
+        Toolkit, Apps tend to need to create leaf-level folders such as publish folders
         and work areas. These are often created just in time of the operation.
-        
+
         :param path: path to create
         """        
         try:

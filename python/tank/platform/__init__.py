@@ -11,6 +11,7 @@
 
 # Engine management
 from .engine import start_engine, current_engine, get_engine_path, find_app_settings
+from .errors import TankEngineInitError, TankContextChangeNotSupportedError
 
 # base classes to derive from
 from .application import Application
