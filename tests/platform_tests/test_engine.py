@@ -22,7 +22,7 @@ from tank_test.tank_test_base import TankTestBase, setUpModule, skip_if_pyside_m
 
 import tank
 import sgtk
-from sgtk.platform import constants
+from sgtk.platform import engine
 from tank.errors import TankError
 import mock
 
@@ -92,8 +92,8 @@ class TestStartEngine(TestEngineBase):
         """
         Makes sure the engine that is started is actually an sgtk engine.
         """
-        engine = tank.platform.start_engine("test_engine", self.tk, self.context)
-        self.assertIsInstance(engine, tank.platform.engine.Engine)
+        cur_engine = tank.platform.start_engine("test_engine", self.tk, self.context)
+        self.assertIsInstance(cur_engine, tank.platform.engine.Engine)
 
     def test_engine_running(self):
         """
@@ -107,13 +107,13 @@ class TestStartEngine(TestEngineBase):
         """
         Test engine properties
         """
-        engine = tank.platform.start_engine("test_engine", self.tk, self.context)
-        self.assertEqual(engine.name, "test_engine")
-        self.assertEqual(engine.display_name, "test_engine")
-        self.assertEqual(engine.version, "Undefined")
-        self.assertEqual(engine.documentation_url, None)
-        self.assertEqual(engine.instance_name, "test_engine")
-        self.assertEqual(engine.context, self.context)
+        cur_engine = tank.platform.start_engine("test_engine", self.tk, self.context)
+        self.assertEqual(cur_engine.name, "test_engine")
+        self.assertEqual(cur_engine.display_name, "test_engine")
+        self.assertEqual(cur_engine.version, "Undefined")
+        self.assertEqual(cur_engine.documentation_url, None)
+        self.assertEqual(cur_engine.instance_name, "test_engine")
+        self.assertEqual(cur_engine.context, self.context)
 
 
 class TestExecuteInMainThread(TestEngineBase):
@@ -247,28 +247,35 @@ class TestContextChange(TestEngineBase):
         """
         TestEngineBase.setUp(self)
 
-        self._nb_times_pre_invoked = 0
-        self._nb_times_post_invoked = 0
-        self._allow_engine_hook_start = True
-        self._original_execute_hook_method = self.tk.execute_core_hook_method
-        self.execute_hook_method_spy = mock.patch.object(self.tk, "execute_core_hook_method", new=self._execute_hook_method_spy) 
+        # Create pass-through patches for methods that should be invoked
+        # when switching context.
+        self._pre_patch = mock.patch(
+            "sgtk.platform.engine._emit_core_pre_context_change",
+            wraps=engine._emit_core_pre_context_change
+        )
+        self._post_patch = mock.patch(
+            "sgtk.platform.engine._emit_core_post_context_change",
+            wraps=engine._emit_core_post_context_change
+        )
 
-    def _assert_hooks_invoked(self):
+    def _assert_hooks_invoked(self, fn, old_context, new_context):
         """
         Asserts that the change context hooks have only been invoked once.
         """
-        self.assertEqual(self._nb_times_pre_invoked, 1)
-        self.assertEqual(self._nb_times_post_invoked, 1)
+        with self._pre_patch as pre_mock:
+            with self._post_patch as post_mock:
+                fn()
+                pre_mock.assert_called_once_with(self.tk, old_context, new_context)
+                post_mock.assert_called_once_with(self.tk, old_context, new_context)
 
     def test_on_engine_start(self):
         """
         Checks if the context change hooks are invoked when an engine starts.
         """
-        self._old_context = None
-        self._new_context = self.context
-        with self.execute_hook_method_spy:
-            sgtk.platform.start_engine("test_engine", self.tk, self.context)
-            self._assert_hooks_invoked()
+        self._assert_hooks_invoked(
+            lambda: sgtk.platform.start_engine("test_engine", self.tk, self.context),
+            None, self.context
+        )
 
     def test_on_engine_restart(self):
         """
@@ -276,11 +283,11 @@ class TestContextChange(TestEngineBase):
         the same context.
         """
         sgtk.platform.start_engine("test_engine", self.tk, self.context)
-        with self.execute_hook_method_spy:
-            self._old_context = self.context
-            self._new_context = self.context
-            tank.platform.restart()
-            self._assert_hooks_invoked()
+        # Restart toolkit
+        self._assert_hooks_invoked(
+            lambda: tank.platform.restart(),
+            self.context, self.context
+        )
 
     def test_on_engine_restart_other_context(self):
         """
@@ -288,15 +295,15 @@ class TestContextChange(TestEngineBase):
         a different context.
         """
         sgtk.platform.start_engine("test_engine", self.tk, self.context)
-        with self.execute_hook_method_spy:
-            # Create another context we can switch to.
-            new_context = self.tk.context_from_entity(
-                self.context.entity["type"], self.context.entity["id"]
-            )
-            self._old_context = self.context
-            self._new_context = new_context
-            tank.platform.restart(new_context)
-            self._assert_hooks_invoked()
+        # Create another context we can switch to.
+        new_context = self.tk.context_from_entity(
+            self.context.entity["type"], self.context.entity["id"]
+        )
+        # Restart toolkit with the new context.
+        self._assert_hooks_invoked(
+            lambda: tank.platform.restart(new_context),
+            self.context, new_context
+        )
 
     def test_on_change_context(self):
         """
@@ -306,33 +313,12 @@ class TestContextChange(TestEngineBase):
         new_context = self.tk.context_from_entity(
             self.context.entity["type"], self.context.entity["id"]
         )
-
         sgtk.platform.start_engine("test_engine", self.tk, self.context)
 
-        with self.execute_hook_method_spy:
-            # Set the restult
-            self._old_context = self.context
-            self._new_context = new_context
-
-            engine = sgtk.platform.current_engine()
-            sgtk.platform.change_context(new_context)
-            self._assert_hooks_invoked()
-
-            # Make sure the wasn't destroyed and recreated.
-            self.assertEqual(engine, sgtk.platform.current_engine())
-
-    def _execute_hook_method_spy(self, hook_name, method_name, **kwargs):
-        """
-        Wraps the Tank.execute_core_hook_method_spy and tracks how many times the context
-        change hooks are called.
-        """
-        if method_name == constants.PRE_CONTEXT_CHANGE_METHOD:
-            self._nb_times_pre_invoked += 1
-            self.assertEqual(self._old_context, kwargs["current_context"])
-            self.assertEqual(self._new_context, kwargs["next_context"])
-        elif method_name == constants.POST_CONTEXT_CHANGE_METHOD:
-            self._nb_times_post_invoked += 1
-            self.assertEqual(self._old_context, kwargs["previous_context"])
-            self.assertEqual(self._new_context, kwargs["current_context"])
-
-        return self._original_execute_hook_method(hook_name, method_name, **kwargs)
+        cur_engine = sgtk.platform.current_engine()
+        self._assert_hooks_invoked(
+            lambda: sgtk.platform.change_context(new_context),
+            self.context, new_context
+        )
+        # Make sure the engine wasn't destroyed and recreated.
+        self.assertEqual(id(cur_engine), id(sgtk.platform.current_engine()))
