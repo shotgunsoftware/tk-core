@@ -21,6 +21,9 @@ class TestEngine(Engine):
     
     def init_engine(self):
         pass
+
+    def context_change_allowed(self):
+        return True
                 
     ##########################################################################################
     # logging interfaces
@@ -37,4 +40,3 @@ class TestEngine(Engine):
     
     def log_error(self, msg):
         sys.stdout.write("ERROR: %s\n" % msg)
-

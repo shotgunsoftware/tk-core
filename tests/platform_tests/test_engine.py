@@ -8,20 +8,29 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+"""
+Engine-related unit tests.
+"""
+
 import os
 import sys
 import threading
 import random
 import time
 
-from tank_test.tank_test_base import *
+from tank_test.tank_test_base import TankTestBase, setUpModule, skip_if_pyside_missing
 
 import tank
 import sgtk
+from sgtk.platform import constants
 from tank.errors import TankError
+import mock
 
 
 class TestEngineBase(TankTestBase):
+    """
+    Sets up and tears down engine-based unit tests.
+    """
 
     def setUp(self):
         """
@@ -225,3 +234,117 @@ class TestExecuteInMainThread(TestEngineBase):
         t = threading.Thread(target=lambda: wait_for_threads_and_quit(threads))
         t.start()
         QtCore.QCoreApplication.instance().exec_()
+
+
+class TestContextChange(TestEngineBase):
+    """
+    Makes sure that pre and post context change events are always sent wen context changes.
+    """
+
+    def setUp(self):
+        """
+        Prepares a mocker that will count how many times a method is called with certain parameters.
+        """
+        TestEngineBase.setUp(self)
+
+        self._nb_times_pre_invoked = 0
+        self._nb_times_post_invoked = 0
+        self._allow_engine_hook_start = True
+        self._original_execute_hook_method = self.tk.execute_core_hook_method
+        self._original_execute_hook = self.tk.execute_core_hook
+
+        self.execute_hook_spy = mock.patch.object(self.tk, "execute_core_hook", new=self._execute_hook_spy) 
+        self.execute_hook_method_spy = mock.patch.object(self.tk, "execute_core_hook_method", new=self._execute_hook_method_spy) 
+
+    def _assert_hooks_invoked(self):
+        """
+        Asserts that the change context hooks have only been invoked once.
+        """
+        self.assertEqual(self._nb_times_pre_invoked, 1)
+        self.assertEqual(self._nb_times_post_invoked, 1)
+
+    def test_on_engine_start(self):
+        """
+        Checks if the context change hooks are invoked when an engine starts.
+        """
+        self._old_context = None
+        self._new_context = self.context
+        with self.execute_hook_method_spy:
+            sgtk.platform.start_engine("test_engine", self.tk, self.context)
+            self._assert_hooks_invoked()
+
+    def test_on_engine_restart(self):
+        """
+        Checks if the context change hooks are invoked when an engine restarts with
+        the same context.
+        """
+        sgtk.platform.start_engine("test_engine", self.tk, self.context)
+        with self.execute_hook_method_spy:
+            self._old_context = self.context
+            self._new_context = self.context
+            tank.platform.restart()
+            self._assert_hooks_invoked()
+
+    def test_on_engine_restart_other_context(self):
+        """
+        Checks if the context change hooks are invoked when an engine restarts with
+        a different context.
+        """
+        sgtk.platform.start_engine("test_engine", self.tk, self.context)
+        with self.execute_hook_method_spy:
+            # Create another context we can switch to.
+            new_context = self.tk.context_from_entity(
+                self.context.entity["type"], self.context.entity["id"]
+            )
+            self._old_context = self.context
+            self._new_context = new_context
+            tank.platform.restart(new_context)
+            self._assert_hooks_invoked()
+
+    def test_on_change_context(self):
+        """
+        Checks that the context change event are sent when the context is changed.
+        """
+        # Create another context we can switch to.
+        new_context = self.tk.context_from_entity(
+            self.context.entity["type"], self.context.entity["id"]
+        )
+
+        sgtk.platform.start_engine("test_engine", self.tk, self.context)
+
+        with self.execute_hook_method_spy:
+            with self.execute_hook_spy:
+                # Do not allow the engine start hook to run, it should be calling
+                # Engine.context_change instead.
+                self._allow_engine_hook_start = False
+
+                # Sett the restult
+                self._old_context = self.context
+                self._new_context = new_context
+                sgtk.platform.change_context(new_context)
+            self._assert_hooks_invoked()
+
+    def _execute_hook_spy(self, hook_name, **kwargs):
+        """
+        Wraps the Tank.execute_core_hook_method_spy and tracks how many times the context
+        change hooks are called.
+        """
+        if hook_name == constants.TANK_ENGINE_INIT_HOOK_NAME:
+            self.assertTrue(self._allow_engine_hook_start)
+        return self._original_execute_hook(hook_name, **kwargs)
+
+    def _execute_hook_method_spy(self, hook_name, method_name, **kwargs):
+        """
+        Wraps the Tank.execute_core_hook_method_spy and tracks how many times the context
+        change hooks are called.
+        """
+        if method_name == constants.PRE_CONTEXT_CHANGE_METHOD:
+            self._nb_times_pre_invoked += 1
+            self.assertEqual(self._old_context, kwargs["current_context"])
+            self.assertEqual(self._new_context, kwargs["next_context"])
+        elif method_name == constants.POST_CONTEXT_CHANGE_METHOD:
+            self._nb_times_post_invoked += 1
+            self.assertEqual(self._old_context, kwargs["previous_context"])
+            self.assertEqual(self._new_context, kwargs["current_context"])
+
+        return self._original_execute_hook_method(hook_name, method_name, **kwargs)
