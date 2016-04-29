@@ -37,6 +37,17 @@ class Hook(object):
     
     @property
     def parent(self):
+        """
+        The parent object to the executing hook. This varies with the type of
+        hook that is being executed. For a hook that runs inside an app or an engine,
+        the parent object will be the :class:`~sgtk.platform.Application` or
+        :class:`~sgtk.platform.Engine` instance. For core hooks, the
+        parent object will be :class:`sgtk`.
+
+        .. note:: If you need to access Shotgun inside your hook, you can do this by
+                  calling ``self.parent.shotgun`` since both Apps, Engines and the Core API
+                  has a ``shotgun`` property.
+        """
         return self.__parent
     
     def get_publish_path(self, sg_publish_data):

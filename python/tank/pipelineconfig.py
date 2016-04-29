@@ -33,14 +33,15 @@ from .descriptor import Descriptor, create_descriptor, descriptor_uri_to_dict
 class PipelineConfiguration(object):
     """
     Represents a pipeline configuration in Tank.
-    Use the factory methods below to construct this object, do not
-    create directly via constructor.
+
+    Use the factory methods in pipelineconfig_factory
+    to construct this object, do not create directly via the constructor.
     """
 
     def __init__(self, pipeline_configuration_path):
         """
         Constructor. Do not call this directly, use the factory methods
-        at the bottom of this file.
+        in pipelineconfig_factory.
         
         NOTE ABOUT SYMLINKS!
         

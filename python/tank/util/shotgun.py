@@ -16,6 +16,7 @@ Shotgun utilities
 import os
 import sys
 import urllib2
+import logging
 import urlparse
 
 # use api json to cover py 2.5
@@ -26,6 +27,8 @@ from .. import hook
 from . import constants
 from . import login
 from . import yaml_cache
+
+log = logging.getLogger(__name__)
 
 
 def __get_api_core_config_location():
@@ -65,7 +68,14 @@ def __get_sg_config():
     :returns: full path to to shotgun.yml config file
     """
     core_cfg = __get_api_core_config_location()
-    return os.path.join(core_cfg, "shotgun.yml")
+    path = os.path.join(core_cfg, "shotgun.yml")
+
+    log.debug(
+        "Resolving shotgun.yml location to '%s' by looking "
+        "at the location of the currently executing code." % path
+    )
+
+    return path
 
 def get_project_name_studio_hook_location():
     """
@@ -83,7 +93,14 @@ def get_project_name_studio_hook_location():
     # pipeline configuration/Toolkit project.
     
     core_cfg = __get_api_core_config_location()
-    return os.path.join(core_cfg, constants.STUDIO_HOOK_PROJECT_NAME)
+    path = os.path.join(core_cfg, constants.STUDIO_HOOK_PROJECT_NAME)
+
+    log.debug(
+        "Resolving studio hook location to '%s' by looking "
+        "at the location of the currently executing code." % path
+    )
+
+    return path
 
 def __get_sg_config_data(shotgun_cfg_path, user="default"):
     """
@@ -366,7 +383,7 @@ def get_entity_type_display_name(tk, entity_type_code):
     CustomEntity03 -> Workspace.
 
     :param tk: tank handle
-    :param entity_type code: API entity type name
+    :param entity_type_code: API entity type name
     :returns: display name
     """
 

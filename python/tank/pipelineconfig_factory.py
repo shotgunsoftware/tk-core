@@ -10,6 +10,7 @@
 
 import os
 import collections
+import logging
 import cPickle as pickle
 
 from .errors import TankError
@@ -19,6 +20,8 @@ from .util import ShotgunPath
 from . import pipelineconfig_utils
 from .pipelineconfig import PipelineConfiguration
 from .paths import PathManager
+
+log = logging.getLogger(__name__)
 
 def from_entity(entity_type, entity_id):
     """

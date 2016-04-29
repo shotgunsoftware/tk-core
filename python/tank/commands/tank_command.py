@@ -147,21 +147,33 @@ def get_shell_engine_actions(engine_obj):
 def list_commands(tk=None):
     """
     Lists the system commands registered with the system.
-    
-    If you leave the optional tk parameter as None, a list of 
+
+    If you leave the optional tk parameter as None, a list of
     global commands will be returned. These commands can be executed
     at any point and do not require a project or a configuration to 
     be present. Examples of such commands are the core upgrade
-    check and the setup_project commands.
+    check and the setup_project commands::
+
+        >>> import sgtk
+        >>> sgtk.list_commands()
+        ['setup_project', 'core']
     
-    If you pass in a tk API handle (or alternatively use the 
-    convenience method tk_api_obj.list_commands()), all commands which 
+    If you do pass in a tk API handle (or alternatively use the
+    convenience method :meth:`Sgtk.list_commands`), all commands which
     are available in the context of a project configuration will be returned.
     This includes for example commands for configuration management, 
     anything app or engine related and validation and overview functionality.
-    In addition to these commands, the global commands will also be returned.
+    In addition to these commands, the global commands will also be returned::
 
-    :param tk: toolkit API instance
+        >>> import sgtk
+        >>> tk = sgtk.sgtk_from_path("/studio/project_root")
+        >>> tk.list_commands()
+        ['setup_project', 'core', 'localize', 'validate', 'cache_apps', 'clear_cache',
+         'app_info', 'install_app', 'install_engine', 'updates', 'configurations', 'clone_configuration']
+
+
+    :param tk: Optional Toolkit API instance
+    :type tk: :class:`Sgtk`
     :returns: list of command names
     """
     action_names = []
@@ -194,9 +206,9 @@ def get_command(command_name, tk=None):
     
     :param command_name: Name of command to execute. Get a list of all available commands
                          using the sgtk.list_commands() method.
-    :param tk: Optional Toolkit API instance that some commands require in order to operate.
-    
-    :returns: SgtkSystemCommand object instance
+    :param tk: Optional Toolkit API instance
+    :type tk: :class:`Sgtk`
+    :returns: :class:`SgtkSystemCommand`
     """    
     if command_name not in list_commands(tk):
         # not found
@@ -213,15 +225,32 @@ class SgtkSystemCommand(object):
     Represents a toolkit system command.
     
     You can use this object to introspect command properties such as 
-    name, description, parameters etc.
-    
-    Execution is carried out by calling the execute() method.    
+    name, description, parameters etc. Execution is carried out by calling the :meth:`execute` method.
+
+    For a global command which doesn't require an active configuration,
+    execution typically looks like this::
+
+
+        >>> import sgtk
+
+        >>> sgtk.list_commands()
+        ['setup_project', 'core']
+
+        >>> cmd = sgtk.get_command("core")
+        >>> cmd
+        <tank.deploy.tank_command.SgtkSystemCommand object at 0x106d9f090>
+
+        >>> cmd.execute({})
+
     """
     
     # this class wraps around a tank.deploy.tank_commands.action_base.Action class
     # and exposes the "official" interface for it.
     
     def __init__(self, internal_action_object, tk):
+        """
+        Instances should be constructed using the :meth:`get_command` factory method.
+        """
         self.__internal_action_obj = internal_action_object
         
         # only commands of type GLOBAL, TK_INSTANCE are currently supported
@@ -252,39 +281,39 @@ class SgtkSystemCommand(object):
     @property
     def parameters(self):
         """
-        Returns the different parameters that needs to be specified and if a 
-        parameter has any default values. For example:
+        The different parameters that needs to be specified and if a
+        parameter has any default values. For example::
         
-        { "parameter_name": { "description": "Parameter info",
-                            "default": None,
-                            "type": "str" }, 
-                            
-         ...
-        
-         "return_value": { "description": "Return value (optional)",
-                           "type": "str" }
-        }
+            { "parameter_name": { "description": "Parameter info",
+                                "default": None,
+                                "type": "str" },
+
+             ...
+
+             "return_value": { "description": "Return value (optional)",
+                               "type": "str" }
+            }
         """
         return self.__internal_action_obj.parameters
 
     @property
     def description(self):
         """
-        Returns a description of this command.
+        A brief description of this command.
         """
         return self.__internal_action_obj.description
          
     @property
     def name(self):
         """
-        Returns the name of this command.
+        The name of this command.
         """
         return self.__internal_action_obj.name
     
     @property
     def category(self):
         """
-        Returns the category for this command. This is typically a short string like "Admin".
+        The category for this command. This is typically a short string like "Admin".
         """
         return self.__internal_action_obj.category
 
@@ -305,8 +334,9 @@ class SgtkSystemCommand(object):
                        the dictionary key is the name of the parameter and the value
                        is the value you want to pass. You can query which parameters
                        can be passed in via the parameters property.
+        :returns: Whatever the command returns. Data type and description for the return
+                  value can be introspected via the :meth:`parameters` property.
         """
-
         if self.__internal_action_obj.tk:
             self.__internal_action_obj.tk.log_metric(self.name)
 

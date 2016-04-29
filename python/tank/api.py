@@ -10,10 +10,11 @@
 
 """
 Classes for the main Sgtk API.
-
 """
+
 import os
 import glob
+import logging
 import threading
 
 from . import folder
@@ -28,13 +29,20 @@ from . import pipelineconfig
 from . import pipelineconfig_utils
 from . import pipelineconfig_factory
 
-class Tank(object):
+log = logging.getLogger(__name__)
+
+class Sgtk(object):
     """
-    Object with presenting interface to tank.
+    The Toolkit Core API class. Instances of this class are associated with a particular
+    configuration and contain access methods for a number of low level
+    Toolkit services such as filesystem creation, hooks, context
+    manipulation and the Toolkit template system.
     """
+
     def __init__(self, project_path):
         """
-        :param project_path: Any path inside one of the data locations
+        Instances of this class should be created via the factory methods
+        :meth:`sgtk_from_path` and :meth:`sgtk_from_entity`.
         """
         
         self.__threadlocal_storage = threading.local()
@@ -75,19 +83,6 @@ class Tank(object):
         subject to change and are not part of the public Sgtk API.
         """
         return self.__pipeline_config
-
-    def reload_templates(self):
-        """
-        Reloads the template definitions. If reload fails, the previous 
-        template definitions will be preserved.
-        
-        Internal Use Only - We provide no guarantees that this method
-        will be backwards compatible.        
-        """
-        try:
-            self.templates = read_templates(self.__pipeline_config)
-        except TankError, e:
-            raise TankError("Templates could not be reloaded: %s" % e)
 
     def execute_core_hook(self, hook_name, **kwargs):
         """
@@ -148,32 +143,57 @@ class Tank(object):
     @property
     def project_path(self):
         """
-        Path to the primary root directory for a project.
-        If no primary root directory exists, an exception is raised.
+        Path to the primary data directory for a project.
+
+        Toolkit Projects that utilize the template system to read and write data
+        to disk will use a number of Shotgun local storages as part of their setup
+        to define where data should be stored on disk. One of these storages
+        are identified as the 'primary' storage root and this is the value
+        returned by this property.
+
+        :raises: :class:`TankError` if the configuration doesn't use storages.
         """
         return self.__pipeline_config.get_primary_data_root()
 
     @property
     def roots(self):
         """
-        Returns a dictionary of root names to root paths. 
-        In the case of a single project root, there will only be one entry. 
+        Returns a dictionary of root names to root paths.
+
+        Toolkit Projects that utilize the template system to read and write data
+        to disk will use a number of Shotgun local storages as part of their setup
+        to define where data should be stored on disk. This method returns a dictionary
+        keyed by storage root name with the value being the path on the current
+        operating system platform::
+
+            {"primary": "/studio/my_project", "textures": "/textures/my_project"}
+
+        These items reflect the Local Storages that you have set up in Shotgun.
+        Each project in the Pipeline Toolkit is connected to a number of these
+        storages - these storages define the root points for all the different
+        data locations for your project. So for example, if you have a mount
+        point for textures, one for renders and one for production data such
+        as scene files, you can set up a multi root configuration which uses
+        three Local Storages in Shotgun. This method returns the project
+        storage locations for the current project. The key is the name of the local
+        storage, the way it is defined in Shotgun. The value is the path which is defined in the
+        Shotgun Local storage definition for the current operating system,
+        concatenated with the project folder name.
         """
         return self.__pipeline_config.get_data_roots()
 
     @property
     def shotgun_url(self):
         """
-        The shotgun url associated with this API session.
-        
-        :returns: url as string, for example 'https://mysite.shotgunstudio.com'
+        The associated shotgun url, e.g. ``https://mysite.shotgunstudio.com``
         """
         return shotgun.get_associated_sg_base_url()
 
     @property
     def shotgun(self):
         """
-        Lazily create a Shotgun API handle.
+        Just-in-time access to a per-thread Shotgun API instance.
+
         This Shotgun API is threadlocal, meaning that each thread will get
         a separate instance of the Shotgun API. This is in order to prevent
         concurrency issues and add a layer of basic protection around the 
@@ -203,17 +223,14 @@ class Tank(object):
     def version(self):
         """
         The version of the tank Core API (e.g. v0.2.3)
-
-        :returns: string representing the version
         """
         return pipelineconfig_utils.get_currently_running_api_version()
 
     @property
     def documentation_url(self):
         """
-        Return a relevant documentation url for this version of the Toolkit Core.
-
-        :returns: url string, None if no documentation was found
+        A url pointing at relevant documentation for this version of the Toolkit Core
+        or None if no documentation is associated.
         """
         # read this from info.yml
         info_yml_path = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "info.yml"))
@@ -230,7 +247,7 @@ class Tank(object):
     @property
     def configuration_name(self):
         """
-        Returns the name of the currently running pipeline configuration
+        The name of the currently running pipeline configuration
         
         :returns: pipeline configuration name as string, e.g. 'primary'
         """
@@ -238,6 +255,25 @@ class Tank(object):
 
     ##########################################################################################
     # public methods
+
+    def reload_templates(self):
+        """
+        Reloads the template definitions from disk. If the reload fails a
+        :class:`TankError` will be raised and the previous template definitions
+        will be preserved.
+
+        .. note:: This method can be helpful if you are tweaking
+                 templates inside of for example Maya and want to reload them. You can
+                 then access this method from the python console via the current engine
+                 handle::
+                    sgtk.platform.current_engine().sgtk.reload_templates()
+
+        :raises: :class:`TankError`
+        """
+        try:
+            self.templates = read_templates(self.__pipeline_config)
+        except TankError, e:
+            raise TankError("Templates could not be reloaded: %s" % e)
 
     def list_commands(self):
         """
@@ -249,7 +285,9 @@ class Tank(object):
         anything app or engine related and validation and overview functionality.
         In addition to these commands, the global commands such as project setup
         and core API check commands will also be returned.
-    
+
+        For more information, see :meth:`sgtk.list_commands`
+
         :returns: list of command names
         """
         # avoid cyclic dependencies
@@ -265,24 +303,30 @@ class Tank(object):
         Lastly, you can execute the command by running the execute() method.
         
         In order to get a list of the available commands, use the list_commands() method.
-                
+
+        For more information, see :meth:`sgtk.get_command`
+
         :param command_name: Name of command to execute. Get a list of all available commands
-                             using the tk.list_commands() method.
+                             using the :meth:`list_commands` method.
         
-        :returns: SgtkSystemCommand object instance
+        :returns: :class:`~sgtk.SgtkSystemCommand` object instance
         """
         # avoid cyclic dependencies
         from . import commands
         return commands.get_command(command_name, self)
         
     def template_from_path(self, path):
-        """Finds a template that matches the input path.
+        """
+        Finds a template that matches the given path::
 
-        :param input_path: path against which to match a template.
-        :type  input_path: string representation of a path
+            >>> import sgtk
+            >>> tk = sgtk.sgtk_from_path("/studio/project_root")
+            >>> tk.template_from_path("/studio/my_proj/assets/Car/Anim/work")
+            <Sgtk Template maya_asset_project: assets/%(Asset)s/%(Step)s/work>
 
-        :returns: Template matching this path
-        :rtype: Template instance or None
+
+        :param path: Path to match against a template
+        :returns: :class:`TemplatePath` or None if no match could be found.
         """
         matched_templates = []
         for key, template in self.templates.items():
@@ -310,30 +354,48 @@ class Tank(object):
         """
         Finds paths that match a template using field values passed.
 
-        By omitting fields, you are effectively adding wild cards to the search.
-        So if a template requires Shot, Sequence, Name and Version, and you
-        omit the version fields from the fields dictionary, the method
-        will return paths to all the different versions you can find.
-        
-        If an optional key is specified in skip_keys then all paths that
-        contain a match for that key as well as paths that don't contain
-        a value for the key will be returned.
-        
-        If skip_missing_optional_keys is True then all optional keys not
-        included in the fields dictionary will be considered as skip keys.
+        This is useful if you want to get a list of files matching a particular
+        template and set of fields. One common pattern is when you are dealing
+        with versions, and you want to retrieve all the different versions for a
+        file. In that case just resolve all the fields for the file you want to operate
+        on, then pass those in to the paths_from_template() method. By passing version to
+        the ``skip_keys`` parameter, the method will return all the versions associated
+        with your original file.
 
-        For more information and examples, see the API documentation.
+        Any keys that are required by the template but aren't included in the fields
+        dictionary are always skipped. Any optional keys that aren't included are only
+        skipped if the ``skip_missing_optional_keys`` parameter is set to True.
+
+        If an optional key is to be skipped, all matching paths that contain a value for
+        that key as well as those that don't will be included in the result.
+
+        .. note:: The result is not ordered in any particular way.
+
+        Imagine you have a template ``maya_work: sequences/{Sequence}/{Shot}/work/{name}.v{version}.ma``::
+
+            >>> import sgtk
+            >>> tk = sgtk.sgtk_from_path("/studio/my_proj")
+            >>> maya_work = tk.templates["maya_work"]
+
+        All fields that you don't specify will be searched for. So if we want to search for all
+        names and versions for a particular sequence and shot, we can do::
+
+            >>> tk.paths_from_template(maya_work, {"Sequence": "AAA", "Shot": "001"})
+            /studio/my_proj/sequences/AAA/001/work/background.v001.ma
+            /studio/my_proj/sequences/AAA/001/work/background.v002.ma
+            /studio/my_proj/sequences/AAA/001/work/background.v003.ma
+            /studio/my_proj/sequences/AAA/001/work/mainscene.v001.ma
+            /studio/my_proj/sequences/AAA/001/work/mainscene.v002.ma
+            /studio/my_proj/sequences/AAA/001/work/mainscene.v003.ma
 
         :param template: Template against whom to match.
-        :type  template: Tank.Template instance.
+        :type  template: :class:`TemplatePath`
         :param fields: Fields and values to use.
-        :type  fields: Dictionary.
+        :type  fields: Dictionary
         :param skip_keys: Keys whose values should be ignored from the fields parameter.
-        :type  skip_keys: List of key names.
+        :type  skip_keys: List of key names
         :param skip_missing_optional_keys: Specify if optional keys should be skipped if they 
                                         aren't found in the fields collection
-        :type skip_missing_optional_keys: Boolean
-        
         :returns: Matching file paths
         :rtype: List of strings.
         """
@@ -392,21 +454,45 @@ class Tank(object):
 
 
     def abstract_paths_from_template(self, template, fields):
-        """Returns an abstract path based on a template.
+        """
+        Returns an abstract path based on a template.
 
-        This method is similar to paths_from_template with the addition that
-        abstract fields (such as sequence fields and any other field that is
-        marked as being abstract) is returned as their abstract value by default.
+        Similar to paths_from_template(), but optimized for abstract fields
+        such as image sequences and stereo patterns.
 
-        So rather than returning a value for every single frame in an image sequence,
-        this method will return a single path representing all the frames and using the
-        abstract value '%04d' for the sequence key. Similarly, it may be useful to return
-        %V to represent an eye (assuming an eye template has been defined and marked as abstract)
+        An *abstract field* is for example an image sequence pattern
+        token, such as ``%04d``, ``%V`` or ``@@@@@``. This token represents
+        a large collection of files. This method will return abstract fields whenever
+        it can, and it will attempt to optimize the calls based on abstract
+        pattern matching, trying to avoid doing a thousand file lookups for a
+        thousand frames in a sequence.
 
-        For more information and examples, see the API documentation.
+        It works exactly like :meth:`paths_from_template` with the difference
+        that any field marked as abstract in the configuration will use its
+        default value rather than any matched file values. Sequence
+        fields are abstract by default.
 
-        :param template: Template with which to search.
+        .. note:: The result is not ordered in any particular way.
+
+        Imagine you have a template ``render: sequences/{Sequence}/{Shot}/images/{eye}/{name}.{SEQ}.exr``::
+
+            >>> import sgtk
+            >>> tk = sgtk.sgtk_from_path("/studio/my_proj")
+            >>> render = tk.templates["render"]
+
+        All fields that you don't specify will be searched for. So if we want to search for all
+        names and versions for a particular sequence and shot, we can do::
+
+            >>> tk.abstract_paths_from_template(maya_work, {"Sequence": "AAA", "Shot": "001"})
+            /studio/my_proj/sequences/AAA/001/images/%V/render_1.%04d.exr
+            /studio/my_proj/sequences/AAA/001/images/%V/render_2.%04d.exr
+            /studio/my_proj/sequences/AAA/001/images/%V/render_3.%04d.exr
+
+
+        :param template: Template with which to search
+        :type  template: :class:`TemplatePath`
         :param fields: Mapping of keys to values with which to assemble the abstract path.
+        :type fields: dictionary
 
         :returns: A list of paths whose abstract keys use their abstract(default) value unless
                   a value is specified for them in the fields parameter.
@@ -480,11 +566,13 @@ class Tank(object):
 
     def paths_from_entity(self, entity_type, entity_id):
         """
-        Finds paths associated with an entity.
+        Finds paths associated with a Shotgun entity.
+
+        .. note:: Only paths that have been generated by :meth:`create_filesystem_structure` will
+                 be returned. Such paths are stored in Shotgun as ``FilesystemLocation`` entities.
 
         :param entity_type: a Shotgun entity type
-        :params entity_id: a Shotgun entity id
-
+        :param entity_id: a Shotgun entity id
         :returns: Matching file paths
         :rtype: List of strings.
         """
@@ -498,10 +586,12 @@ class Tank(object):
 
     def entity_from_path(self, path):
         """
-        Returns the shotgun entity associated with a path
+        Returns the shotgun entity associated with a path.
+
+        .. note:: Only paths that have been generated by :meth:`create_filesystem_structure` will
+                 be returned. Such paths are stored in Shotgun as ``FilesystemLocation`` entities.
 
         :param path: A path to a folder or file
-
         :returns: Shotgun dictionary containing name, type and id or None
                   if no path was associated.
         """
@@ -514,36 +604,34 @@ class Tank(object):
 
     def context_empty(self):
         """
-        Creates an empty context.
+        Factory method that constructs an empty Context object.
 
-        :returns: Context object.
+        :returns: :class:`Context`
         """
         return context.create_empty(self)
         
     def context_from_path(self, path, previous_context=None):
         """
-        Derive a context from a path.
+        Factory method that constructs a context object from a path on disk.
 
         :param path: a file system path
-        :param previous_context: a context object to use to try to automatically extend the generated
+        :param previous_context: A context object to use to try to automatically extend the generated
                                  context if it is incomplete when extracted from the path. For example,
                                  the Task may be carried across from the previous context if it is
                                  suitable and if the task wasn't already expressed in the file system
                                  path passed in via the path argument.
-        :returns: Context object.
+        :type previous_context: :class:`Context`
+        :returns: :class:`Context`
         """
         return context.from_path(self, path, previous_context)
 
     def context_from_entity(self, entity_type, entity_id):
         """
-        Derives a context from a Shotgun entity.
+        Factory method that constructs a context object from a Shotgun entity.
 
         :param entity_type: The name of the entity type.
-        :type  entity_type: String.
         :param entity_id: Shotgun id of the entity upon which to base the context.
-        :type  entity_id: Integer.
-
-        :returns: Context object.
+        :returns: :class:`Context`
         """
         return context.from_entity(self, entity_type, entity_id)
 
@@ -558,41 +646,39 @@ class Tank(object):
         created without falling back to a potential Shotgun query - each entity in the
         dictionary (including linked entities) must have the fields: 'type', 'id' and 
         'name' (or the name equivelent for specific entity types, e.g. 'content' for 
-        Step entities, 'code' for Shot entities, etc.):
+        Step entities, 'code' for Shot entities, etc.)::
 
-            - {"type":"Project", "id":123, "name":"My Project"}
+            {"type": "Project", "id": 123, "name": "My Project"}
 
-            - {"type":"Shot", "id":456, "code":"Shot 001", 
-                "project":{"type":"Project", "id":123, "name":"My Project"}
-                }
+            {"type": "Shot", "id": 456, "code": "Shot 001",
+             "project": {"type": "Project", "id": 123, "name": "My Project"}
+            }
 
-            - {"type":"Task", "id":789, "name":"Animation",
-                "project":{"type":"Project", "id":123, "name":"My Project"}} 
-                "entity":{"type":"Shot", "id":456, "name":"Shot 001"}
-                "step":{"type":"Step", "id":101112, "name":"Anm"}
-                }
+            {"type": "Task", "id": 789, "name": "Animation",
+             "project": {"type": "Project", "id": 123, "name": "My Project"}
+             "entity": {"type": "Shot", "id": 456, "name": "Shot 001"}
+             "step": {"type": "Step", "id": 101112, "name": "Anm"}
+            }
 
         The following values for 'entity_dictionary' don't contain enough information to
         fully form a context so the code will fall back to 'context_from_entity()' which 
-        may then result in a Shotgun query to retrieve the missing information:
+        may then result in a Shotgun query to retrieve the missing information::
 
-            - # missing project name
-              {"type":"Project", "id":123}
+            # missing project name
+            {"type": "Project", "id": 123}
 
-            - # missing linked project
-              {"type":"Shot", "id":456, "code":"Shot 001"}
+            # missing linked project
+            {"type": "Shot", "id": 456, "code": "Shot 001"}
 
-            - # missing linked project name and linked step
-              {"type":"Task", "id":789, "name":"Animation",
-                "project":{"type":"Project", "id":123}} 
-                "entity":{"type":"Shot", "id":456, "name":"Shot 001"}
-                }
+            # missing linked project name and linked step
+            {"type": "Task", "id": 789, "name": "Animation",
+             "project": {"type": "Project", "id": 123}}
+             "entity": {"type": "Shot", "id": 456, "name": "Shot 001"}
+            }
 
         :param entity_dictionary:   A Shotgun entity dictionary containing at least 'type'
-                                    and 'id'
-        :type  entity_dictionary:   dict.
-
-        :returns: Context object.
+                                    and 'id'. See examples above.
+        :returns: :class:`Context`
         """
         return context.from_entity_dictionary(self, entity_dictionary)
 
@@ -603,7 +689,7 @@ class Tank(object):
         normal folder creation process, however sometimes it is useful to
         be able to call it on its own.
         
-        Note that this method is equivalent to the synchronize_folders tank command.
+        .. note:: That this method is equivalent to the **synchronize_folders** tank command.
         
         :param full_sync: If set to true, a complete sync will be carried out.
                           By default, the sync is incremental.
@@ -613,24 +699,29 @@ class Tank(object):
 
     def create_filesystem_structure(self, entity_type, entity_id, engine=None):
         """
-        Create folders and associated data on disk to reflect branches in the project tree
-        related to a specific entity.
+        Create folders and associated data on disk to reflect branches in the project
+        tree related to a specific entity.
 
-        :param entity_type: The name of the entity type.
-        :type  entity_type: String.
-        :param entity_id: Shotgun id of the entity or list of ids if more than one.
-        :type  entity_id: Integer or list of integers.
+        It is possible to set up folder creation so that it happens in two passes -
+        a primary pass and a deferred pass. Typically, the primary pass is used to
+        create the high level folder structure and the deferred is executed just before
+        launching an application environment. It can be used to create application specific
+        folders or to create a user workspace based on the user launching the application. By
+        setting the optional engine parameter to a string value (typically the engine name, for
+        example ``tk-maya``) you can indicate to the system that it should trigger the deferred
+        pass and recurse down in the part of the configuration that has been marked as being
+        deferred in the configuration.
+
+        Note that this is just a string following a convention - typically, we recommend
+        that an engine name (e.g. 'tk-nuke') is passed in, however all this method is doing
+        is to relay this string on to the folder creation (schema) setup so that it is
+        compared with any deferred entries there. In case of a match, the folder creation
+        will recurse down into the subtree marked as deferred.
+
+        :param entity_type: Shotgun entity type
+        :param entity_id: Shotgun id
         :param engine: Optional engine name to indicate that a second, engine specific
                        folder creation pass should be executed for a particular engine.
-                       Folders marked as deferred will be processed. Note that this is 
-                       just a string following a convention - typically, we recommend that
-                       the engine name (e.g. 'tk-nuke') is passed in, however all this metod
-                       is doing is to relay this string on to the folder creation (schema)
-                       setup so that it is compared with any deferred entries there. In case
-                       of a match, the folder creation will recurse down into the subtree 
-                       marked as deferred.
-        :type engine: String.
-
         :returns: The number of folders processed
         """
         folders = folder.process_filesystem_structure(self,
@@ -642,24 +733,14 @@ class Tank(object):
 
     def preview_filesystem_structure(self, entity_type, entity_id, engine=None):
         """
-        Previews folders that would be created by create_filesystem_structure.
+        Previews folders that would be created by :meth:`create_filesystem_structure`.
 
-        :param entity_type: The name of the entity type.
-        :type  entity_type: String.
-        :param entity_id: Shotgun id of the entity or list of ids if more than one.
-        :type  entity_id: Integer or list of integers.
+        :param entity_type: Shotgun entity type
+        :param entity_id: Shotgun id
         :param engine: Optional engine name to indicate that a second, engine specific
                        folder creation pass should be executed for a particular engine.
-                       Folders marked as deferred will be processed. Note that this is 
-                       just a string following a convention - typically, we recommend that
-                       the engine name (e.g. 'tk-nuke') is passed in, however all this metod
-                       is doing is to relay this string on to the folder creation (schema)
-                       setup so that it is compared with any deferred entries there. In case
-                       of a match, the folder creation will recurse down into the subtree 
-                       marked as deferred.
         :type engine: String.
-
-        :returns: List of items processed.
+        :returns: List of paths that would be created
         """
         folders = folder.process_filesystem_structure(self,
                                                       entity_type,
@@ -672,15 +753,25 @@ class Tank(object):
 ##########################################################################################
 # module methods
 
-def tank_from_path(path):
+def sgtk_from_path(path):
     """
-    Create an Sgtk API instance based on a path inside a project.
+    Creates a Toolkit Core API instance based on a path inside a project
+    or path pointing directly at a pipeline configuration.
+
+    :param path: Path to pipeline configuration or to a folder associated with a project.
+    :returns: :class:`Sgtk` instance
     """
     return Tank(path)
 
-def tank_from_entity(entity_type, entity_id):
+def sgtk_from_entity(entity_type, entity_id):
     """
-    Create a Sgtk API instance based on a path inside a project.
+    Creates a Toolkit Core API instance given an entity in Shotgun.
+    The given object will be looked up in Shotgun and an
+    associated pipeline configuration will be determined and loaded.
+
+    :param entity_type: Shotgun entity type, e.g. ``Shot``
+    :param entity_id: Shotgun entity id
+    :returns: :class:`Sgtk` instance
     """
     pc = pipelineconfig_factory.from_entity(entity_type, entity_id)
     return Tank(pc)
@@ -691,10 +782,10 @@ _authenticated_user = None
 
 def set_authenticated_user(user):
     """
-    Sets the currently authenticated Shotgun user.
+    Sets the currently authenticated Shotgun user for the current toolkit session.
 
     You instruct the Toolkit API which user the current session is associated with by executing
-    this command. Conversely, you can use :meth`get_authenticated_user()` to retrieve the current user.
+    this command. Conversely, you can use :meth`get_authenticated_user` to retrieve the current user.
     The user object above is created by the `sgtk.authentication` part of the API and wraps around the Shotgun
     API to provide a continuous and configurable experience around user based Shotgun connections.
 
@@ -702,7 +793,7 @@ def set_authenticated_user(user):
     to call this method. However, if you are running a custom tool which has particular requirements
     around authentication, you can provide your own logic if desirable.
 
-    :params user: A :class:`sgtk.authentication.ShotgunUser` derived object. Can
+    :params user: A :class:`~sgtk.authentication.ShotgunUser` derived object. Can
                   be None to clear the authenticated user.
     """
     global _authenticated_user
@@ -711,16 +802,30 @@ def set_authenticated_user(user):
 
 def get_authenticated_user():
     """
-    Returns the currently authenticated Shotgun user.
-    :returns: A authentication.user.ShotgunUser derived object if set,
+    Returns the Shotgun user associated with Toolkit.
+
+    :returns: A :class:`~sgtk.authentication.ShotgunUser` derived object if set,
         None otherwise.
     """
     global _authenticated_user
     return _authenticated_user
 
 ##########################################################################################
-# sgtk API aliases
+# Legacy handling
 
-Sgtk = Tank
-sgtk_from_path = tank_from_path
-sgtk_from_entity = tank_from_entity
+def tank_from_path(path):
+    """
+    Legacy alias for :meth:`sgtk_from_path`.
+    """
+    return sgtk_from_path(path)
+
+def tank_from_entity(entity_type, entity_id):
+    """
+    Legacy alias for :meth:`sgtk_from_entity`.
+    """
+    return sgtk_from_entity(entity_type, entity_id)
+
+class Tank(Sgtk):
+    """
+    Legacy alias for :class:`Sgtk`
+    """

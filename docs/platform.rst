@@ -1,3 +1,5 @@
+.. _sgtk_platform_docs:
+
 .. currentmodule:: sgtk.platform
 
 Toolkit Platform API
@@ -7,8 +9,8 @@ This part of the API documentation covers all the classes and methods used when 
 If you are interested in developing your own apps, engines or frameworks, the base classes needed to be derived
 from are outlined below. The documentation also covers how to initialize and shut down the Toolkit engine platform.
 
-Launching and accessing the platform
----------------------------------------
+Launching and accessing Engines and Apps
+---------------------------------------------------
 
 The methods in this section are used when you want to start up or manage a Toolkit engine.
 This typically happens directly once a host application (e.g. Maya or Nuke) has been launched.
@@ -28,7 +30,7 @@ for terminating an engine can be found on the engine class itself.
 .. autofunction:: restart
 
 
-Engine
+Toolkit Engines
 ---------------------------------------
 
 A toolkit engine connects a runtime environment such as a DCC with the rest of the Toolkit ecosystem.
@@ -88,8 +90,16 @@ The typical things an engine needs to handle are:
     :members:
 
 
-Application
+Applications
 ---------------------------------------
+
+Toolkit Apps are tools that can execute in multiple DCC environments.
+
+.. note:: For an introduction to App development, see https://support.shotgunsoftware.com/entries/95440137
+
+A good way to get started with App development is to clone our starter github repository
+https://github.com/shotgunsoftware/tk-multi-starterapp. Please note that there are different branches
+demonstrating different types of apps with a varying degree of complexity.
 
 .. autoclass:: Application
     :inherited-members:
@@ -97,7 +107,7 @@ Application
     :members:
 
 
-Framework
+Frameworks
 ---------------------------------------
 
 Frameworks are like libraries. They contain functionality that can be shared and reused across apps or engines.
@@ -153,6 +163,8 @@ typically contains a class which derives from the Framework base class, etc.
 Exceptions
 -----------------
 
+The following exception types are raised from within ``sgtk.platform``:
+
 .. autoclass:: TankEngineInitError
 
 .. autoclass:: TankContextChangeNotSupportedError
@@ -161,12 +173,16 @@ Exceptions
 Developing apps and engines
 ---------------------------------------
 
+The following methods are useful when writing app, engine or framework code and you need to
+access and load other objects.
+
+.. autofunction:: current_bundle
 
 .. autofunction:: get_framework
 
 .. autofunction:: import_framework
 
-.. autofunction:: current_bundle
+
 
 
 
@@ -185,6 +201,8 @@ In order to use QT, import it from Sgtk::
 
 Toolkit will make sure Qt is sourced in the correct way. Keep in mind that many applications (for example Nuke)
 may not have a functional Qt that can be imported when they run in batch mode.
+
+**Creating Dialogs**
 
 When creating a dialog, it is important to parent it properly to the host environment. There is nothing stopping
 you from managing this by yourself, but for maximum compatibility and portabilty, we strongly suggest that you l
@@ -213,7 +231,7 @@ What happens in the above calls is that your app widget is parented inside of a 
 Sgtk will add additional potential window constructs, menus etc. Whenever the app widget is closed (for example
 using the close() method), the parent window that is used to wrap the widget will automatically close too.
 
-Modal dialogs and exit codes
+**Modal dialogs and exit codes**
 
 If you want to run your widget as a modal dialog, it may be useful to signal success or failure.
 This is normally done in QT using the methods QDialog.accepted() and QDialog.rejected(), however since the app
@@ -232,7 +250,7 @@ property called ``exit_code``. Typically, your code for a modal dialog would loo
 
 The call to self.engine.show_modal() will return the appropriate status code depending on which button was clicked.
 
-Hiding the Sgtk Title Bar
+**Hiding the Sgtk Title Bar**
 
 By default, the standard Sgtk dialog includes a title bar at the top. However, sometimes this is not desirable,
 especially when the contained widget is quite small. To hide the title bar, just add a property called
