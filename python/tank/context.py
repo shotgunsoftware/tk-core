@@ -76,8 +76,9 @@ class Context(object):
         # smart looking string representation
         
         if self.project is None:
-            # empty context!
-            ctx_name = "Empty Context"
+            # We're in a "site" context, so we'll give the site's url
+            # minus the "https://" if that's attached.
+            ctx_name = self.shotgun_url.split("//")[-1]
         
         elif self.entity is None:
             # project-only!
