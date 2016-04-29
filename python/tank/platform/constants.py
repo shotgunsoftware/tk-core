@@ -87,12 +87,6 @@ TANK_BUNDLE_INIT_HOOK_NAME = "bundle_init"
 # hook that is execute whenever a context change happens
 CONTEXT_CHANGE_HOOK = "context_change"
 
-# Hook method to call during pre context change.
-PRE_CONTEXT_CHANGE_METHOD = "pre_context_change"
-
-# Hook method to call during post context change.
-POST_CONTEXT_CHANGE_METHOD = "post_context_change"
-
 # hook to log metrics
 TANK_LOG_METRICS_HOOK_NAME = "log_metrics"
 

@@ -253,12 +253,12 @@ class TestContextChange(TestEngineBase):
         # Create pass-through patches for methods that should be invoked
         # when switching context.
         self._pre_patch = mock.patch(
-            "sgtk.platform.engine._emit_core_pre_context_change",
-            wraps=engine._emit_core_pre_context_change
+            "sgtk.platform.engine._execute_pre_context_change_hook",
+            wraps=engine._execute_pre_context_change_hook
         )
         self._post_patch = mock.patch(
-            "sgtk.platform.engine._emit_core_post_context_change",
-            wraps=engine._emit_core_post_context_change
+            "sgtk.platform.engine._execute_post_context_change_hook",
+            wraps=engine._execute_post_context_change_hook
         )
 
     @contextlib.contextmanager

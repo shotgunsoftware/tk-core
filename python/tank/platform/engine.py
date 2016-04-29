@@ -566,7 +566,7 @@ class Engine(TankBundle):
             )
         )
         # Emit the core level event.
-        _emit_core_pre_context_change(self.sgtk, self.context, new_context)
+        _execute_pre_context_change_hook(self.sgtk, self.context, new_context)
         self.pre_context_change(self.context, new_context)
         self.log_debug("Execution of pre_context_change for engine %r is complete." % self)
 
@@ -610,7 +610,7 @@ class Engine(TankBundle):
 
         # Emit the core level event.
         self.post_context_change(old_context, new_context)
-        _emit_core_post_context_change(self.sgtk, old_context, new_context)
+        _execute_post_context_change_hook(self.sgtk, old_context, new_context)
         self.log_debug("Execution of post_context_change for engine %r is complete." % self)
 
         # Last, now that we're otherwise done, we can run the
@@ -1852,7 +1852,6 @@ def _restart_engine(new_context):
         current_engine_name = engine.instance_name
         engine.destroy()
 
-        # Local import so we don't leak this method into the public API.
         _start_engine(current_engine_name, new_context.tank, old_context, new_context)
     except TankError, e:
         engine.log_error("Could not restart the engine: %s" % e)
@@ -1860,19 +1859,31 @@ def _restart_engine(new_context):
         engine.log_exception("Could not restart the engine!")
 
 
-def _emit_core_pre_context_change(tk, current_context, next_context):
+def _execute_pre_context_change_hook(tk, current_context, next_context):
+    """
+    Executes the pre context change hook.
+
+    :param current_context: Context before the context change.
+    :param next_context: Context after the context change.
+    """
     tk.execute_core_hook_method(
         constants.CONTEXT_CHANGE_HOOK,
-        constants.PRE_CONTEXT_CHANGE_METHOD,
+        "pre_context_change",
         current_context=current_context,
         next_context=next_context
     )
 
 
-def _emit_core_post_context_change(tk, previous_context, current_context):
+def _execute_post_context_change_hook(tk, previous_context, current_context):
+    """
+    Executes the post context change hook.
+
+    :param current_context: Context before the context change.
+    :param next_context: Context after the context change.
+    """
     tk.execute_core_hook_method(
         constants.CONTEXT_CHANGE_HOOK,
-        constants.POST_CONTEXT_CHANGE_METHOD,
+        "post_context_change",
         previous_context=previous_context,
         current_context=current_context
     )
@@ -1896,15 +1907,15 @@ def _start_engine(engine_name, tk, old_context, new_context):
     # get path to engine code
     engine_path = engine_descriptor.get_path()
     plugin_file = os.path.join(engine_path, constants.ENGINE_FILE)
+    class_obj = loader.load_plugin(plugin_file, Engine)
 
     # Notify the context change and start the engine.
-    _emit_core_pre_context_change(tk, old_context, new_context)
+    _execute_pre_context_change_hook(tk, old_context, new_context)
     # Instantiate the engine
-    class_obj = loader.load_plugin(plugin_file, Engine)
     engine = class_obj(tk, new_context, engine_name, env)
     # register this engine as the current engine
     set_current_engine(engine)
-    _emit_core_post_context_change(tk, old_context, new_context)
+    _execute_post_context_change_hook(tk, old_context, new_context)
     return engine
 
 
