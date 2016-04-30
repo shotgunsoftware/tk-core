@@ -2,7 +2,7 @@
 
 .. currentmodule:: sgtk.platform
 
-Toolkit Platform API
+Apps, Engines and Frameworks
 ####################################################
 
 This part of the API documentation covers all the classes and methods used when dealing with Engines, Apps and Frameworks.
@@ -30,7 +30,7 @@ for terminating an engine can be found on the engine class itself.
 .. autofunction:: restart
 
 
-Toolkit Engines
+Engines
 ---------------------------------------
 
 A toolkit engine connects a runtime environment such as a DCC with the rest of the Toolkit ecosystem.
@@ -48,7 +48,7 @@ You use the engine for a couple of main things:
 
 The engine takes acts as a bridge betgween the DCC and the App so that the app doesn't have to
 contain DCC-specific code to create dialogs or manage menus etc. Typically, any DCC specific code
-is contained within Hooks (or calling out to engine hooks), making it easy to design apps that
+is contained within a :class:`~sgtk.Hook`, making it easy to design apps that
 can be extended easily to support new engine environments.
 
 
@@ -170,7 +170,7 @@ The following exception types are raised from within ``sgtk.platform``:
 .. autoclass:: TankContextChangeNotSupportedError
 
 
-Developing apps and engines
+Import and access methods
 ---------------------------------------
 
 The following methods are useful when writing app, engine or framework code and you need to

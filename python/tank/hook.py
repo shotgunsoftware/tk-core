@@ -23,10 +23,159 @@ from .errors import (
 
 class Hook(object):
     """
-    Base class for a "hook", a simple extension mechanism that is used in the core,
-    engines and apps. The "parent" of the hook is the object that executed the hook,
-    which presently could be an instance of the Sgtk API for core hooks, or an Engine
-    or Application instance.
+    Hooks are implemented in a python file and they all derive from a :class:`Hook` base class.
+
+    If you are writing an app that loads files into Maya, Nuke or other DCCs, a hook is a good
+    way to expose the actual loading logic, so that not only can be customized by a user, but
+    so that you could even add support for a new DCC to your load app without having to update it.
+
+    First, you would create a ``hooks/actions.py`` file in your app. This would contain a hook class::
+
+        import sgtk
+        HookBaseClass = sgtk.get_hook_baseclass()
+
+        class Actions(HookBaseClass):
+
+            def list_actions(self, sg_publish_data):
+                '''
+                Given some Shotgun publish data, return a list of
+                actions that can be performed
+
+                :param sg_publish_data: Dictionary of publish data from Shotgun
+                :returns: List of action strings
+                '''
+                # The base implementation implements an action to show
+                # the item in Shotgun
+                return ["show_in_sg"]
+
+            def run_action(self, action, sg_publish_data):
+                '''
+                Execute the given action
+
+                :param action: name of action. One of the items returned by list_actions.
+                :param sg_publish_data: Dictionary of publish data from Shotgun
+                '''
+                if action == "show_in_sg":
+
+                    url = "%s/detail/%s/%d" % (
+                        self.parent.shotgun.base_url,
+                        sg_publish_data["type"],
+                        sg_publish_data["id"]
+                        )
+                    QtGui.QDesktopServices.openUrl(QtCore.QUrl(url))
+
+    The above code forms a generic base for your hook with a basic implementation that works
+    everywhere.
+
+    In the app manifest (``info.yml``), where we define all the basic configuration properties for the app,
+    we define an actions hook::
+
+        configuration:
+
+            actions_hook:
+                type: hook
+                default_value: "{self}/actions.py"
+                description: Hook which contains all methods for action management.
+
+    From the app code itself, you can now use :meth:`~sgtk.platform.Application.execute_hook_method()`
+    to call out to the hook::
+
+        # when creating a list of items in the UI for your app -
+        # given a shotgun publish, build a menu of avaialable actions:
+        actions = self.execute_hook_method("actions_hook", "list_actions", sg_data)
+
+        # in a callback method once a user has selected an action -
+        # call out to the hook to execute the action
+        self.execute_hook_method("actions_hook", "run_action", sg_data, action_name)
+
+    In the configuration for your app, you can now 'glue together' different functionality
+    for different scenarios. For example, when you install the app to run inside the Maya
+    engine, you want to be able to import maya files into maya. We implement this by adding a
+    custom publish hook for maya. This can either be placed with the app itself, in the ``hooks``
+    folder in the configuration, or in the maya engine. In this case, we'll add a ``hooks/actions.py``
+    to the maya engine. This file looks like this::
+
+        import sgtk
+        HookBaseClass = sgtk.get_hook_baseclass()
+
+        class MayaActions(HookBaseClass):
+
+            def list_actions(self, sg_publish_data):
+                '''
+                Given some Shotgun publish data, return a list of
+                actions that can be performed
+
+                :param sg_publish_data: Dictionary of publish data from Shotgun
+                :returns: List of action strings
+                '''
+                # first get base class actions
+                actions = HookBaseClass.list_actions(sg_publish_data)
+
+                # Add maya actions
+                if sg_publish_data["published_file_type"]["name"] == "Maya Scene":
+                    actions += ["reference", "import"]
+
+            def run_action(self, action, sg_publish_data):
+                '''
+                Execute the given action
+
+                :param action: name of action. One of the items returned by list_actions.
+                :param sg_publish_data: Dictionary of publish data from Shotgun
+                '''
+                if action == "reference":
+                    # do maya reference operation
+
+                elif action == "import":
+                    # do maya import operation
+
+                else:
+                    # pass on to base class
+                    return HookBaseClass.run_action(action, sg_publish_data)
+
+    The above hook implements a couple of actions that are designed to work in Maya.
+    Lastly, we need to tell the app to pick up this file. In the environment configuration for the app
+    running inside of maya, we point it at our engine specific hook::
+
+        tk-maya:
+            tk-multi-myapp:
+                actions_hook: '{engine}/actions.py'
+
+    When we are running the app configuration in maya, the actions hook will automatically
+    resolve the hook code distributed with the maya engine. The base class will be automatically
+    determined to be the default value set in the manifest, allowing for the app to carry a default
+    base implementation that is always taken into account.
+
+    Several different path formats exist, making this a very powerful configuration mechanism:
+
+    - ``{self}/path/to/foo.py`` -- looks in the ``hooks`` folder in the local app, engine of framework.
+
+    - ``{config}/path/to/foo.py`` -- Looks in the ``hooks`` folder in the configuration.
+
+    - ``{$HOOK_PATH}/path/to/foo.py``  -- expression based around an environment variable.
+
+    - ``{engine}/path/to/foo.py`` -- looks in the ``hooks`` folder of the current engine.
+
+    - ``{tk-framework-perforce_v1.x.x}/path/to/foo.py`` -- looks in the ``hooks`` folder of a
+      framework instance that exists in the current environment. Basically, each entry inside the
+      frameworks section in the current environment can be specified here - all these entries are
+      on the form frameworkname_versionpattern, for example ``tk-framework-widget_v0.1.2`` or
+      ``tk-framework-shotgunutils_v1.3.x``.
+
+    Supported legacy formats:
+
+    - ``foo`` -- Equivalent to ``{config}/foo.py``
+
+    You can also provide your own inheritance chains. For example, if you wanted to add your own,
+    project specific maya hooks to this app, you could do this by creating a hook file, placing
+    it in your configuration's ``hooks`` folder and then configure it like this::
+
+        tk-maya:
+            tk-multi-myapp:
+                actions_hook: '{engine}/actions.py:{config}/maya_actions.py'
+
+    This would execute your ``maya_actions.py`` hook and make sure that that hook inherits from the
+    engine specific hook, making sure that you get both your custom actions, the engine default actions
+    and the app's built-in actions.
     """
 
     # default method to execute on hooks
@@ -52,9 +201,12 @@ class Hook(object):
     
     def get_publish_path(self, sg_publish_data):
         """
-        Resolves a local path on disk given a shotgun 
-        data dictionary representing a publish.
-        
+        Returns the path on disk for a publish entity in Shotgun.
+
+        Use this method if you have a shotgun publish entity and want
+        to get a local path on disk. This method will ensure that however
+        the publish path is encoded, a local path is returned.
+
         :param sg_publish_data: Shotgun dictionary containing
                                 information about a publish. Needs to at least 
                                 contain a type, id and a path key. 
@@ -66,7 +218,11 @@ class Hook(object):
         """
         Returns several local paths on disk given a
         list of shotgun data dictionaries representing publishes.
-        
+
+        Use this method if you have several shotgun publish entities and want
+        to get a local path on disk. This method will ensure that however
+        the publish path is encoded, a local path is returned.
+
         :param sg_publish_data_list: List of shotgun data dictionaries 
                                      containing publish data. Each dictionary 
                                      needs to at least contain a type, id and 
@@ -91,7 +247,42 @@ class Hook(object):
     def load_framework(self, framework_instance_name):
         """
         Loads and returns a framework given an environment instance name.
-        Only works for hooks that are executed from apps and frameworks.
+
+        ..note:: This method only works for hooks that are executed from apps and frameworks.
+
+        If you have complex logic and functionality and want to manage (and version it) as part
+        of a framework rather than in a hook, you can do this by calling a configured framework
+        from inside a hook::
+
+            import sgtk
+            HookBaseClass = sgtk.get_hook_baseclass()
+
+            class SomeHook(HookBaseClass):
+
+                def some_method(self):
+
+                    # first get a framework handle. This object is similar to an app or engine object
+                    fw = self.load_framework("tk-framework-library_v1.x.x")
+
+                    # now just like with an app or an engine, if you want to access code in the python
+                    # folder, you can do import_plugin
+                    module = fw.import_module("some_module")
+
+                    module.do_stuff()
+
+
+        Note how we are accessing the framework instance ``tk-framework-library_v1.x.x`` above.
+        This needs to be defined in the currently running environment, as part of the ``frameworks`` section::
+
+            engines:
+              # all engine and app defs here...
+
+            frameworks:
+             # define the framework that we are using in the hook
+             tk-framework-library_v1.x.x:
+                location: {type: git, path: 'https://github.com/foo/tk-framework-library.git', version: v1.2.6}
+
+        :param framework_instance_name: Name of the framework instance to load from the environment.
         """
         # avoid circular refs
         from .platform import framework
@@ -104,6 +295,9 @@ class Hook(object):
         return framework.load_framework(engine, engine.get_env(), framework_instance_name)
     
     def execute(self):
+        """
+        Legacy support for old style hooks
+        """
         return None
 
 class _HooksCache(object):

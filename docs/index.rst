@@ -1,10 +1,9 @@
-Shotgun Pipeline Toolkit Core Reference
+Shotgun Pipeline Toolkit Developer Guide
 ####################################################
 
-Welcome to the Shotgun pipeline Toolkit reference documentation.
-Below you will find a detailed technical reference of the Toolkit API.
-
-
+Welcome to the Shotgun pipeline Toolkit developer and reference documentation.
+Below you will find a detailed technical reference of the Toolkit API as well
+as information useful for developers and engineers.
 
 .. toctree::
     :maxdepth: 2

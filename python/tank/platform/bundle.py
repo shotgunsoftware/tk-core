@@ -447,13 +447,16 @@ class TankBundle(object):
         Convenience method that calls :meth:`execute_hook_method()` with the
         method_name parameter set to "execute".
 
-        This method provides backwards compatibility for older hooks where each hook class
-        would only contain a single execute method there were no way to call specific methods.
+        .. warning:: This method is present for backwards compatibility. For
+                     all new hooks, we recommend using :meth:`execute_hook_method`
+                     instead.
 
         You simply pass the name of the hook setting that you want to execute and 
         the accompanying arguments, and toolkit will find the correct hook file based
         on the currently configured setting and then execute the execute() method for 
-        that hook. 
+        that hook.
+
+        .. note:: For more information about hooks, see :class:`~sgtk.Hook`
         
         :param key: The name of the hook setting you want to execute.
         """
@@ -470,7 +473,7 @@ class TankBundle(object):
         Toolkit will find the correct hook file based on the currently configured 
         setting and then execute the specified method.
 
-        Hooks form a flexbile way to extend and make toolkit apps or engines configurable.
+        Hooks form a flexible way to extend and make toolkit apps or engines configurable.
         A hook acts like a setting in that it needs to be configured as part of the app's
         configuration, but instead of being a simple value, it is a code snippet contained
         inside a class.
@@ -487,7 +490,9 @@ class TankBundle(object):
         Arguments should always be passed in by name. This is to make it easy to add new
         parameters without breaking backwards compatibility, for example
         ``execute_hook_method("validator", "pre_check", name=curr_scene, version=curr_ver).``
-        
+
+        .. note:: For more information about hooks, see :class:`~sgtk.Hook`
+
         :param key: The name of the hook setting you want to execute.
         :param method_name: Name of the method to execute
         """
@@ -501,32 +506,14 @@ class TankBundle(object):
         specified in the app configuration manifest, this methods allows you to 
         execute a hook directly by passing a hook expression, for example 
         ``{config}/path/to/my_hook.py``
-        
+
         This is useful if you are doing rapid app development and don't necessarily
         want to expose a hook as a configuration setting just yet. It is also useful 
         if you have app settings that are nested deep inside of lists or dictionaries.
         In that case, you cannot use execute_hook, but instead will have to retrieve
         the value specifically and then run it.
-        
-        Supported formats:
-        
-        - ``{$HOOK_PATH}/path/to/foo.py``  -- expression based around an environment variable.
 
-        - ``{self}/path/to/foo.py`` -- looks in the hooks folder in the local app, engine of framework.
-
-        - ``{config}/path/to/foo.py`` -- Looks in the hooks folder in the project config.
-
-        - ``{engine}/path/to/foo.py`` -- looks in the hooks folder of the current engine.
-
-        - ``{tk-framework-perforce_v1.x.x}/path/to/foo.py`` -- looks in the hooks folder of a
-          framework instance that exists in the current environment. Basically, each entry inside the 
-          frameworks section in the current environment can be specified here - all these entries are 
-          on the form frameworkname_versionpattern, for example ``tk-framework-widget_v0.1.2`` or
-          ``tk-framework-shotgunutils_v1.3.x``.
-        
-        Supported legacy formats:
-        
-        - ``foo`` -- Will look for a ``foo.py`` file in the project configuration's hooks folder.
+        .. note:: For more information about hooks, see :class:`~sgtk.Hook`
 
         :param hook_expression: Path to hook to execute. See above for syntax details.
         :param method_name: Method inside the hook to execute.
@@ -542,12 +529,14 @@ class TankBundle(object):
         In most use cases, the execute_hook method is the preferred way to 
         access a hook from an app.
 
-        .. note:: Now deprecated - Please use :meth:`execute_hook_expression`
+        .. warning:: Now deprecated - Please use :meth:`execute_hook_expression`
                   instead.
 
         This method is typically only used when you want to execute an arbitrary
         list of hooks, for example if you want to run a series of arbitrary
         user defined pre-publish validation hooks.
+
+        .. note:: For more information about hooks, see :class:`~sgtk.Hook`
 
         :param hook_name: name of the legacy hook file to execute.
         """

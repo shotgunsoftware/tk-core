@@ -1,15 +1,16 @@
 .. currentmodule:: sgtk
 
-The Toolkit Core API
+Toolkit Foundation
 ########################################
 
-Welcome to the Core API documentation! This part of the documentation covers the part of the
-API that deals with the Toolkit Core. This includes several low level services:
+Toolkit foundation is the part of the Toolkit Core API
+that contains lower level components and APIs. These include
 
 - Automatic folder creation
-- Template system and path resolution
+- :class:`Template` system and path resolution APIs
 - Execution of Tank Admin commands
-- The toolkit Context.
+- The toolkit :class:`Context`
+- The :class:`Sgtk` Main API class
 
 For apps and engines, see the :ref:`sgtk_platform_docs` documentation.
 
@@ -17,7 +18,7 @@ Constructing a Toolkit Core API instance
 ==============================================
 
 
-An instance of the :class:`sgtk.Sgtk` is associated with a specific set of configuration settings.
+Each instance of the :class:`sgtk.Sgtk` class is associated with a specific set of configuration settings.
 This association is automatically resolved as the API instance is created and can be
 specified in several ways:
 
@@ -29,6 +30,8 @@ The following factory methods are used to create a Toolkit API instance:
 
 .. autofunction:: sgtk_from_path
 .. autofunction:: sgtk_from_entity
+
+**Authentication**
 
 Certain API operations require Shotgun data and hence require a way for the API
 to establish a connection to Shotgun. The easiest way to handle this is by
@@ -43,7 +46,10 @@ Toolkit Core API Reference
 
 .. autoclass:: Sgtk
     :members:
-    :exclude-members: pipeline_configuration, log_metric, execute_core_hook, execute_core_hook_method
+    :exclude-members: pipeline_configuration,
+                      log_metric,
+                      execute_core_hook,
+                      execute_core_hook_method
 
 
 Toolkit Context
@@ -72,26 +78,15 @@ Hooks
 =========================================
 
 
-
-
-
 Hooks are snippets of code that can be customized as part of the configuration of a Toolkit app,
 engine or core itself. You can use hooks with the Core API (we call those core hooks) and with
-apps and engines. Hooks are a central concept in the configuration of Sgtk. A hook is like a
-configuration setting, but instead of specifying a simple value, a piece of code represents the
-value. We use hooks whenever there is a need to expose code and allow it to be customized. Examples
-of when this is useful is Disk I/O, launching of applications and permissions control.
-
-Hooks are implemented in a python file and they all derive from a Hook base class. They all
-need to implement an execute() method which Sgtk will call. The execute method needs to match
-the argument signature required by Sgtk. The example below shows the before register publish
-hook, which is called just before Sgtk creates a publish in shotgun. The idea with this hook
-is that you can modify the data that gets created in Shotgun as part of the publish. For example,
-if you are using custom publish fields, these can be set here. The default implementation is a
-pass through which just returns the same data dictionary that was passed to the hook:
+apps and engines. Hooks are a central concept in the configuration of Toolkit. We use hooks whenever
+there is a need to expose code and allow it to be customized. Examples
+of when this is useful is Disk I/O, launching of applications, DCC-specific logic and permissions control.
 
 .. autoclass:: Hook
     :members:
+    :exclude-members: execute
 
 .. autofunction:: get_hook_baseclass
 

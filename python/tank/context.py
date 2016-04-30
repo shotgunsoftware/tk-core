@@ -523,7 +523,7 @@ class Context(object):
             # data into a path.
 
 
-        :param template:    Template for which the fields will be used.
+        :param template:    :class:`TemplatePath` or :class:`TemplateString` for which the fields will be used.
         :param validate:    If True then the fields found will be checked to ensure that all expected fields for
                             the context were found.  If a field is missing then a TankError will be raised
         :returns:           A dictionary of template files representing the context. Handy to pass to for example
