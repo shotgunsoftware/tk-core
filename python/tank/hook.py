@@ -248,7 +248,7 @@ class Hook(object):
         """
         Loads and returns a framework given an environment instance name.
 
-        ..note:: This method only works for hooks that are executed from apps and frameworks.
+        .. note:: This method only works for hooks that are executed from apps and frameworks.
 
         If you have complex logic and functionality and want to manage (and version it) as part
         of a framework rather than in a hook, you can do this by calling a configured framework
@@ -502,6 +502,6 @@ def execute_hook_method(hook_paths, parent, method_name, **kwargs):
 def get_hook_baseclass():
     """
     Returns the base class to use for the hook currently
-    being loaded.
+    being loaded. For more details and examples, see the :class:`Hook` documentation.
     """
     return _current_hook_baseclass.value

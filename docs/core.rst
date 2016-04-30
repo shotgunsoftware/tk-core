@@ -149,6 +149,13 @@ where the asset field would be associated with an asset in Shotgun.
     :inherited-members:
     :members:
 
+Template System Tokens
+=========================================
+
+A template, e.g. ``shots/{Shot}/{Step}/pub/{name}.v{version}.ma`` consists of several dynamic ``{tokens}``.
+Each token is represented by an `TemplateKey` object at runtime, where you can access properties and
+execute token specific logic.
+
 .. autoclass:: StringKey
     :inherited-members:
     :members:
