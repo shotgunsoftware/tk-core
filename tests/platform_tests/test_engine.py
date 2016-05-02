@@ -315,9 +315,32 @@ class TestContextChange(TestEngineBase):
         with self._assert_hooks_invoked(self.context, new_context):
             tank.platform.restart(new_context)
 
-    def test_on_change_context(self):
+    def test_on_change_context_with_context_change_supporting_engine(self):
         """
         Checks that the context change event are sent when the context is changed.
+        """
+        # Start the engine.
+        cur_engine = sgtk.platform.start_engine("test_engine", self.tk, self.context)
+
+        # Create another context we can switch to.
+        new_context = self.tk.context_from_entity(
+            self.context.entity["type"], self.context.entity["id"]
+        )
+
+        # Enables the test engine to support context change.
+        cur_engine.enable_context_change()
+
+        # Now trigger a context change.
+        with self._assert_hooks_invoked(self.context, new_context):
+            sgtk.platform.change_context(new_context)
+
+        # Make sure the engine wasn't destroyed and recreated.
+        self.assertEqual(id(cur_engine), id(sgtk.platform.current_engine()))
+
+    def test_on_change_context_without_context_change_supporting_engine(self):
+        """
+        Checks that the context change event are sent when the context is changed
+        even if the engine doesn't support context change.
         """
         # Start the engine.
         cur_engine = sgtk.platform.start_engine("test_engine", self.tk, self.context)
@@ -331,5 +354,6 @@ class TestContextChange(TestEngineBase):
         with self._assert_hooks_invoked(self.context, new_context):
             sgtk.platform.change_context(new_context)
 
-        # Make sure the engine wasn't destroyed and recreated.
-        self.assertEqual(id(cur_engine), id(sgtk.platform.current_engine()))
+        # Make sure the engine was destroyed and recreated.
+        self.assertNotEqual(id(cur_engine), id(sgtk.platform.current_engine()))
+
