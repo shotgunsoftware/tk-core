@@ -140,36 +140,36 @@ and a version field, since this is needed for all publishes, regardless of what 
 however, we would not have a Shot and a Step field. Instead, we may have an Asset and a Step field,
 where the asset field would be associated with an asset in Shotgun.
 
+.. autoclass:: Template
+    :members:
 
 .. autoclass:: TemplatePath
-    :inherited-members:
     :members:
 
 .. autoclass:: TemplateString
-    :inherited-members:
     :members:
+    :exclude-members: get_fields
 
 Template System Tokens
 =========================================
 
 A template, e.g. ``shots/{Shot}/{Step}/pub/{name}.v{version}.ma`` consists of several dynamic ``{tokens}``.
-Each token is represented by an `TemplateKey` object at runtime, where you can access properties and
+Each token is represented by a :class:`TemplateKey` object at runtime, where you can access properties and
 execute token specific logic.
 
+.. autoclass:: TemplateKey
+    :members:
+
 .. autoclass:: StringKey
-    :inherited-members:
     :members:
 
 .. autoclass:: SequenceKey
-    :inherited-members:
     :members:
 
 .. autoclass:: IntegerKey
-    :inherited-members:
     :members:
 
 .. autoclass:: TimestampKey
-    :inherited-members:
     :members:
 
 
